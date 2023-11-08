@@ -1,0 +1,13 @@
+class A {
+  A(bool this.v1, {required num this.v2});
+  bool v1;
+  num v2;
+}
+
+class C = A with M1;
+
+mixin class M1 {
+  num v2 = -1;
+}
+
+test() {}

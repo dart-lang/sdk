@@ -200,6 +200,46 @@ class A {
 ''');
   }
 
+  Future<void> test_redeclare_invalidTarget() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class C {
+  @redeclare
+  void m() {}
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class C {
+  void m() {}
+}
+''');
+  }
+
+  Future<void> test_redeclare_notRedeclaring() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class C {}
+
+extension type E(C c) implements C {
+  @redeclare
+  int get i => 0;
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class C {}
+
+extension type E(C c) implements C {
+  int get i => 0;
+}
+''');
+  }
+
   Future<void> test_required_namedWithDefault() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';

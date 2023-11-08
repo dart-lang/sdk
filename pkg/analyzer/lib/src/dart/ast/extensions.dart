@@ -86,6 +86,8 @@ extension AstNodeNullableExtension on AstNode? {
       return self.members;
     } else if (self is ExtensionDeclaration) {
       return self.members;
+    } else if (self is ExtensionTypeDeclaration) {
+      return self.members;
     } else if (self is MixinDeclaration) {
       return self.members;
     } else {
@@ -255,6 +257,18 @@ extension IndexExpressionExtension on IndexExpression {
 extension ListOfFormalParameterExtension on List<FormalParameter> {
   Iterable<FormalParameterImpl> get asImpl {
     return cast<FormalParameterImpl>();
+  }
+}
+
+extension MethodDeclarationExtension on MethodDeclaration {
+  bool get hasObjectMemberName {
+    return const {
+      '==',
+      'hashCode',
+      'toString',
+      'runtimeType',
+      'noSuchMethod',
+    }.contains(name.lexeme);
   }
 }
 

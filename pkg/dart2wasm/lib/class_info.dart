@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:dart2wasm/translator.dart';
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/library_index.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -28,6 +29,7 @@ class FieldIndex {
   static const classId = 0;
   static const boxValue = 1;
   static const identityHash = 1;
+  static const objectFieldBase = 2;
   static const stringArray = 2;
   static const listLength = 3;
   static const listArray = 4;
@@ -46,13 +48,6 @@ class FieldIndex {
   static const functionTypeNamedParameters = 9;
   static const recordTypeNames = 3;
   static const recordTypeFieldTypes = 4;
-  static const typedListBaseLength = 2;
-  static const typedListArray = 3;
-  static const typedListViewTypedData = 3;
-  static const typedListViewOffsetInBytes = 4;
-  static const byteDataViewLength = 2;
-  static const byteDataViewTypedData = 3;
-  static const byteDataViewOffsetInBytes = 4;
   static const suspendStateIterator = 4;
   static const suspendStateContext = 5;
   static const suspendStateTargetIndex = 6;
@@ -91,7 +86,8 @@ class FieldIndex {
     check(translator.twoByteStringClass, "_array", FieldIndex.stringArray);
     check(translator.listBaseClass, "_length", FieldIndex.listLength);
     check(translator.listBaseClass, "_data", FieldIndex.listArray);
-    check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
+    check(translator.hashFieldBaseClass, "_indexNullable",
+        FieldIndex.hashBaseIndex);
     check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
     check(translator.closureClass, "context", FieldIndex.closureContext);
     check(translator.typeClass, "isDeclaredNullable",
@@ -179,6 +175,13 @@ class ClassInfo {
     assert(expectedIndex == null || expectedIndex == struct.fields.length);
     struct.fields.add(fieldType);
   }
+
+  // This returns the types of all the class's fields (including
+  // superclass fields), except for the class id and the identity hash
+  List<w.ValueType> getClassFieldTypes() => [
+        for (var fieldType in struct.fields.skip(FieldIndex.objectFieldBase))
+          fieldType.type.unpacked
+      ];
 }
 
 ClassInfo upperBound(Set<ClassInfo> classes) {
@@ -214,16 +217,20 @@ class ClassInfoCollector {
 
   /// Masquerades for implementation classes. For each entry of the map, all
   /// subtypes of the key masquerade as the value.
-  late final Map<Class, Class> _masquerades = {
-    translator.coreTypes.boolClass: translator.coreTypes.boolClass,
-    translator.coreTypes.intClass: translator.coreTypes.intClass,
-    translator.coreTypes.doubleClass: translator.coreTypes.doubleClass,
-    translator.coreTypes.stringClass: translator.coreTypes.stringClass,
-    translator.index.getClass("dart:core", "_Type"):
-        translator.coreTypes.typeClass,
-    translator.index.getClass("dart:core", "_ListBase"):
-        translator.coreTypes.listClass,
-    for (Class cls in const <String>[
+  late final Map<Class, Class> _masquerades = _computeMasquerades();
+
+  Map<Class, Class> _computeMasquerades() {
+    final map = {
+      translator.coreTypes.boolClass: translator.coreTypes.boolClass,
+      translator.coreTypes.intClass: translator.coreTypes.intClass,
+      translator.coreTypes.doubleClass: translator.coreTypes.doubleClass,
+      translator.coreTypes.stringClass: translator.coreTypes.stringClass,
+      translator.index.getClass("dart:core", "_Type"):
+          translator.coreTypes.typeClass,
+      translator.index.getClass("dart:core", "_ListBase"):
+          translator.coreTypes.listClass
+    };
+    for (final name in const <String>[
       "Int8List",
       "Uint8List",
       "Uint8ClampedList",
@@ -238,13 +245,53 @@ class ClassInfoCollector {
       "Int32x4List",
       "Float32x4List",
       "Float64x2List",
-    ].map((name) => translator.index.getClass("dart:typed_data", name)))
-      cls: cls
+    ]) {
+      final Class? cls = translator.index.tryGetClass("dart:typed_data", name);
+      if (cls != null) {
+        map[cls] = cls;
+      }
+    }
+    return map;
+  }
+
+  late final Set<Class> _neverMasquerades = _computeNeverMasquerades();
+
+  /// These types switch from properly reified non-masquerading types in regular
+  /// Dart2Wasm mode to masquerading types in js compatibility mode.
+  final Set<String> jsCompatibilityTypes = {
+    "JSArrayBufferImpl",
+    "JSArrayBufferViewImpl",
+    "JSDataViewImpl",
+    "JSInt8ArrayImpl",
+    "JSUint8ArrayImpl",
+    "JSUint8ClampedArrayImpl",
+    "JSInt16ArrayImpl",
+    "JSUint16ArrayImpl",
+    "JSInt32ArrayImpl",
+    "JSInt32x4ArrayImpl",
+    "JSUint32ArrayImpl",
+    "JSBigUint64ArrayImpl",
+    "JSBigInt64ArrayImpl",
+    "JSFloat32ArrayImpl",
+    "JSFloat32x4ArrayImpl",
+    "JSFloat64ArrayImpl",
+    "JSFloat64x2ArrayImpl",
   };
 
-  late final Set<Class> _neverMasquerades = {
-    translator.jsStringImplClass,
-  };
+  Set<Class> _computeNeverMasquerades() {
+    // The JS types do not masquerade in regular Dart2Wasm, but they aren't
+    // always used so we have to construct this set programmatically.
+    final jsTypesLibraryIndex =
+        LibraryIndex(translator.component, ["dart:_js_types"]);
+    final neverMasquerades = [
+      "JSStringImpl",
+      if (!translator.options.jsCompatibility) ...jsCompatibilityTypes,
+    ]
+        .map((name) => jsTypesLibraryIndex.tryGetClass("dart:_js_types", name))
+        .toSet();
+    neverMasquerades.removeWhere((c) => c == null);
+    return neverMasquerades.cast<Class>();
+  }
 
   /// Wasm field type for fields with type [_Type]. Fields of this type are
   /// added to classes for type parameters.
@@ -252,17 +299,18 @@ class ClassInfoCollector {
   /// This field is initialized when a class with a type parameter is first
   /// encountered. Initialization depends on [Translator] visiting the [_Type]
   /// class first and creating a [ClassInfo] for it.
-  late final w.FieldType typeType =
-      w.FieldType(translator.classInfo[translator.typeClass]!.nullableType);
+  late final w.FieldType typeType = w.FieldType(
+      translator.classInfo[translator.typeClass]!.nonNullableType,
+      mutable: false);
 
   ClassInfoCollector(this.translator);
 
-  w.Module get m => translator.m;
+  w.ModuleBuilder get m => translator.m;
 
   TranslatorOptions get options => translator.options;
 
   void _initializeTop() {
-    final w.StructType struct = m.addStructType("#Top");
+    final w.StructType struct = m.types.defineStruct("#Top");
     topInfo = ClassInfo(null, _nextClassId++, 0, struct, null);
     translator.classes.add(topInfo);
     translator.classForHeapType[struct] = topInfo;
@@ -276,7 +324,7 @@ class ClassInfoCollector {
     if (superclass == null) {
       ClassInfo superInfo = topInfo;
       final w.StructType struct =
-          m.addStructType(cls.name, superType: superInfo.struct);
+          m.types.defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(
           cls, _nextClassId++, superInfo.depth + 1, struct, superInfo);
       // Mark Top type as implementing Object to force the representation
@@ -327,14 +375,10 @@ class ClassInfoCollector {
       //   3. The class is not a special class that contains hidden fields.
       bool canReuseSuperStruct =
           typeParameterMatch.length == cls.typeParameters.length &&
-              cls.fields.where((f) => f.isInstanceMember).isEmpty &&
-              cls != translator.typedListBaseClass &&
-              cls != translator.typedListClass &&
-              cls != translator.typedListViewClass &&
-              cls != translator.byteDataViewClass;
+              cls.fields.where((f) => f.isInstanceMember).isEmpty;
       w.StructType struct = canReuseSuperStruct
           ? superInfo.struct
-          : m.addStructType(cls.name, superType: superInfo.struct);
+          : m.types.defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(
           cls, _nextClassId++, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
@@ -382,7 +426,7 @@ class ClassInfoCollector {
 
     final struct = _recordStructs.putIfAbsent(
         numFields,
-        () => m.addStructType(
+        () => m.types.defineStruct(
               'Record$numFields',
               superType: translator.recordInfo.struct,
             ));
@@ -401,7 +445,8 @@ class ClassInfoCollector {
     ClassInfo? superInfo = info.superInfo;
     if (superInfo == null) {
       // Top - add class id field
-      info._addField(w.FieldType(w.NumType.i32), FieldIndex.classId);
+      info._addField(
+          w.FieldType(w.NumType.i32, mutable: false), FieldIndex.classId);
     } else if (info.struct != superInfo.struct) {
       // Copy fields from superclass
       for (w.FieldType fieldType in superInfo.struct.fields) {
@@ -427,12 +472,8 @@ class ClassInfoCollector {
       for (Field field in info.cls!.fields) {
         if (field.isInstanceMember) {
           w.ValueType wasmType = translator.translateType(field.type);
-          // TODO(askesc): Generalize this check for finer nullability control
-          if (wasmType != w.RefType.struct(nullable: false)) {
-            wasmType = wasmType.withNullability(true);
-          }
           translator.fieldIndex[field] = info.struct.fields.length;
-          info._addField(w.FieldType(wasmType));
+          info._addField(w.FieldType(wasmType, mutable: !field.isFinal));
         }
       }
     } else {
@@ -472,6 +513,11 @@ class ClassInfoCollector {
   void collect() {
     _initializeTop();
 
+    // Initialize the record base class early to give enough space for special
+    // values in the type category table before the first masquerade class
+    // (which is `Type`).
+    _initialize(translator.coreTypes.recordClass);
+
     // Subclasses of the `_Closure` class are generated on the fly as fields
     // with function types are encountered. Therefore, `_Closure` class must
     // be early in the initialization order.
@@ -490,11 +536,6 @@ class ClassInfoCollector {
     // Initialize masquerade classes to make sure they have low class IDs.
     for (Class cls in _masquerades.values) {
       _initialize(cls);
-    }
-
-    // Initialize the record base class if we have record classes.
-    if (translator.recordClasses.isNotEmpty) {
-      _initialize(translator.coreTypes.recordClass);
     }
 
     for (Library library in translator.component.libraries) {
@@ -517,47 +558,7 @@ class ClassInfoCollector {
       }
     }
 
-    // Add hidden fields of typed_data classes.
-    _addTypedDataFields();
-
     // Validate that all internally used fields have the expected indices.
     FieldIndex.validate(translator);
-  }
-
-  void _addTypedDataFields() {
-    ClassInfo typedListBaseInfo =
-        translator.classInfo[translator.typedListBaseClass]!;
-    typedListBaseInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.typedListBaseLength);
-
-    ClassInfo typedListInfo = translator.classInfo[translator.typedListClass]!;
-    typedListInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.typedListBaseLength);
-    w.RefType bytesArrayType = w.RefType.def(
-        translator.wasmArrayType(w.PackedType.i8, "i8"),
-        nullable: false);
-    typedListInfo._addField(
-        w.FieldType(bytesArrayType, mutable: false), FieldIndex.typedListArray);
-
-    w.RefType typedListType =
-        w.RefType.def(typedListInfo.struct, nullable: false);
-
-    ClassInfo typedListViewInfo =
-        translator.classInfo[translator.typedListViewClass]!;
-    typedListViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.typedListBaseLength);
-    typedListViewInfo._addField(w.FieldType(typedListType, mutable: false),
-        FieldIndex.typedListViewTypedData);
-    typedListViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.typedListViewOffsetInBytes);
-
-    ClassInfo byteDataViewInfo =
-        translator.classInfo[translator.byteDataViewClass]!;
-    byteDataViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.byteDataViewLength);
-    byteDataViewInfo._addField(w.FieldType(typedListType, mutable: false),
-        FieldIndex.byteDataViewTypedData);
-    byteDataViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.byteDataViewOffsetInBytes);
   }
 }

@@ -1,0 +1,9 @@
+expectEquals(x, y) {}
+main() {}
+mapToString(Map map) {}
+test1() => <dynamic, dynamic>{for (var [i] in []) i: i};
+test2(dynamic x, dynamic another) => {
+      1: 1,
+      for (var [i] in x)
+        for (var [j] in x) ...another,
+    };

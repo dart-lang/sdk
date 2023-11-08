@@ -1,0 +1,9 @@
+import augment 'scope_access_lib1.dart';
+import augment 'scope_access_lib2.dart';
+class Class {
+  Class.constructor() {}
+  static void set staticSetter(value) {}
+  static void staticMethod() {}
+}
+void set topLevelSetter(value) {}
+void topLevelMethod() {}

@@ -193,6 +193,10 @@ void defineCreateTests() {
         expect(lines.length, 2);
         expect(lines[0], 'cd $dir');
         expect(lines[1], 'dart run bin/server.dart');
+      } else if (generator.categories.contains('cli')) {
+        expect(lines.length, 2);
+        expect(lines[0], 'cd $dir');
+        expect(lines[1], 'dart run bin/$projectName.dart');
       } else {
         expect(lines.length, 2);
         expect(lines[0], 'cd $dir');

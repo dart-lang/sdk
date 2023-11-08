@@ -29,16 +29,18 @@ class LspNotificationManager extends AbstractNotificationManager {
       String filePath, List<protocol.AnalysisError> errors) {
     final diagnostics = errors
         .map((error) => pluginToDiagnostic(
+              pathContext,
               (path) => server.getLineInfo(path),
               error,
-              supportedTags: server.clientCapabilities?.diagnosticTags,
+              supportedTags: server.lspClientCapabilities?.diagnosticTags,
               clientSupportsCodeDescription:
-                  server.clientCapabilities?.diagnosticCodeDescription ?? false,
+                  server.lspClientCapabilities?.diagnosticCodeDescription ??
+                      false,
             ))
         .toList();
 
     final params = PublishDiagnosticsParams(
-        uri: Uri.file(filePath), diagnostics: diagnostics);
+        uri: pathContext.toUri(filePath), diagnostics: diagnostics);
     final message = NotificationMessage(
       method: Method.textDocument_publishDiagnostics,
       params: params,

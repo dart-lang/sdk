@@ -307,9 +307,9 @@ class TypeConstraintGathererTest {
 
   void checkConstraintsLower(String type, String bound, List<String> expected,
       {String? typeParameters, String? typeParametersToConstrain}) {
-    env.withTypeParameters(typeParameters ?? '',
-        (List<TypeParameter> typeParameterNodes) {
-      List<TypeParameter> typeParameterNodesToConstrain;
+    env.withStructuralParameters(typeParameters ?? '',
+        (List<StructuralParameter> typeParameterNodes) {
+      List<StructuralParameter> typeParameterNodesToConstrain;
       if (typeParametersToConstrain != null) {
         Set<String> namesToConstrain =
             typeParametersToConstrain.split(",").map((s) => s.trim()).toSet();
@@ -333,7 +333,7 @@ class TypeConstraintGathererTest {
       DartType bound,
       Library clientLibrary,
       List<String> expectedConstraints,
-      List<TypeParameter> typeParameterNodesToConstrain) {
+      List<StructuralParameter> typeParameterNodesToConstrain) {
     _checkConstraintsHelper(
         type,
         bound,
@@ -345,9 +345,9 @@ class TypeConstraintGathererTest {
 
   void checkConstraintsUpper(String type, String bound, List<String>? expected,
       {String? typeParameters, String? typeParametersToConstrain}) {
-    env.withTypeParameters(typeParameters ?? '',
-        (List<TypeParameter> typeParameterNodes) {
-      List<TypeParameter> typeParameterNodesToConstrain;
+    env.withStructuralParameters(typeParameters ?? '',
+        (List<StructuralParameter> typeParameterNodes) {
+      List<StructuralParameter> typeParameterNodesToConstrain;
       if (typeParametersToConstrain != null) {
         Set<String> namesToConstrain =
             typeParametersToConstrain.split(",").map((s) => s.trim()).toSet();
@@ -371,7 +371,7 @@ class TypeConstraintGathererTest {
       DartType bound,
       Library clientLibrary,
       List<String>? expectedConstraints,
-      List<TypeParameter> typeParameterNodesToConstrain) {
+      List<StructuralParameter> typeParameterNodesToConstrain) {
     _checkConstraintsHelper(
         type,
         bound,
@@ -387,7 +387,7 @@ class TypeConstraintGathererTest {
       Library clientLibrary,
       List<String>? expectedConstraints,
       bool Function(TypeConstraintGatherer, DartType, DartType) tryConstrain,
-      List<TypeParameter> typeParameterNodesToConstrain) {
+      List<StructuralParameter> typeParameterNodesToConstrain) {
     var typeSchemaEnvironment = new TypeSchemaEnvironment(
         coreTypes, new ClassHierarchy(component, coreTypes));
     var typeConstraintGatherer = new TypeConstraintGatherer(

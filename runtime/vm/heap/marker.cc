@@ -320,8 +320,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     while (current != WeakReference::null()) {
       WeakReferencePtr next = current->untag()->next_seen_by_gc();
       current->untag()->next_seen_by_gc_ = WeakReference::null();
-      ForwardOrSetNullIfCollected(current->heap_base(),
-                                  &current->untag()->target_);
+      ForwardOrSetNullIfCollected(current, &current->untag()->target_);
       current = next;
     }
   }
@@ -333,8 +332,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       current->untag()->next_seen_by_gc_ = WeakArray::null();
       intptr_t length = Smi::Value(current->untag()->length());
       for (intptr_t i = 0; i < length; i++) {
-        ForwardOrSetNullIfCollected(current->heap_base(),
-                                    &current->untag()->data()[i]);
+        ForwardOrSetNullIfCollected(current, &current->untag()->data()[i]);
       }
       current = next;
     }
@@ -350,20 +348,20 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     }
   }
 
-  // Returns whether the object referred to in `ptr_address` was GCed this GC.
-  static bool ForwardOrSetNullIfCollected(uword heap_base,
-                                          CompressedObjectPtr* ptr_address) {
-    ObjectPtr raw = ptr_address->Decompress(heap_base);
-    if (raw->IsImmediateOrNewObject()) {
+  // Returns whether the object referred to in `slot` was GCed this GC.
+  static bool ForwardOrSetNullIfCollected(ObjectPtr parent,
+                                          CompressedObjectPtr* slot) {
+    ObjectPtr target = slot->Decompress(parent->heap_base());
+    if (target->IsImmediateOrNewObject()) {
       // Object not touched during this GC.
       return false;
     }
-    if (raw->untag()->IsMarked()) {
+    if (target->untag()->IsMarked()) {
       // Object already null (which is permanently marked) or has survived this
       // GC.
       return false;
     }
-    *ptr_address = Object::null();
+    *slot = Object::null();
     return true;
   }
 
@@ -996,6 +994,11 @@ void GCMarker::IncrementalMarkWithUnlimitedBudget(PageSpace* page_space) {
 
 void GCMarker::IncrementalMarkWithSizeBudget(PageSpace* page_space,
                                              intptr_t size) {
+  // Avoid setup overhead for tiny amounts of marking as the last bits of TLABs
+  // get filled in.
+  const intptr_t kMinimumMarkingStep = KB;
+  if (size < kMinimumMarkingStep) return;
+
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(),
                                 "IncrementalMarkWithSizeBudget");
 

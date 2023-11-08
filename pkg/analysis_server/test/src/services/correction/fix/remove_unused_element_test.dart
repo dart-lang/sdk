@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -12,8 +13,46 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(RemoveUnreachableFromMainTest);
     defineReflectiveTests(RemoveUnusedElementTest);
   });
+}
+
+@reflectiveTest
+class RemoveUnreachableFromMainTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_UNUSED_ELEMENT;
+
+  @override
+  String get lintCode => LintNames.unreachable_from_main;
+
+  Future<void> test_class() async {
+    await resolveTestCode(r'''
+void main() {}
+class C {}
+''');
+    await assertHasFix(r'''
+void main() {}
+''');
+  }
+
+  Future<void> test_method() async {
+    await resolveTestCode(r'''
+void main() {
+  C();
+}
+class C {
+  void m() {}
+}
+''');
+    await assertHasFix(r'''
+void main() {
+  C();
+}
+class C {
+}
+''');
+  }
 }
 
 @reflectiveTest
@@ -87,8 +126,7 @@ class _A {
     await resolveTestCode(r'''
 class _A {}
 void f(p) {
-  if (p is _A) {
-  }
+  if (p is _A) {}
 }
 ''');
     // We don't know what to do  with the reference.
@@ -97,8 +135,7 @@ void f(p) {
 
   Future<void> test_class_notUsed_noReference() async {
     await resolveTestCode(r'''
-class _A {
-}
+class _A {}
 ''');
     await assertHasFix(r'''
 ''');
@@ -161,24 +198,20 @@ void f() {
   Future<void> test_functionTop_notUsed_noReference() async {
     await resolveTestCode(r'''
 _f() {}
-void f() {
-}
+void f() {}
 ''');
     await assertHasFix(r'''
-void f() {
-}
+void f() {}
 ''');
   }
 
   Future<void> test_functionTypeAlias_notUsed_noReference() async {
     await resolveTestCode(r'''
 typedef _F(a, b);
-void f() {
-}
+void f() {}
 ''');
     await assertHasFix(r'''
-void f() {
-}
+void f() {}
 ''');
   }
 

@@ -86,7 +86,7 @@ class _Override {
   const _Override();
 }
 
-/// Annotation on an instance members which override an interface member.
+/// Annotation on instance members which override an interface member.
 ///
 /// Annotations have no effect on the meaning of a Dart program.
 /// This annotation is recognized by the Dart analyzer, and it allows the
@@ -110,7 +110,7 @@ class _Override {
 /// it means that the variable's implicit getter and setter (if any)
 /// are marked as overriding. It has no effect on the variable itself.
 ///
-/// Further [lints](https://dart-lang.github.io/linter/lints/)
+/// Further [lints](https://dart.dev/lints)
 /// can be used to enable more warnings based on `@override` annotations.
 const Object override = _Override();
 

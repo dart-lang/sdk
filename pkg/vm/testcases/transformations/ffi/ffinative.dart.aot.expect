@@ -41,16 +41,16 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
     } =>#t3;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method goodHasReceiverHandle() → void
     return self::NativeClassy::_goodHasReceiverHandle$Method$FfiNative$Ptr(this, #C7){(self::NativeClassy, core::int) → void};
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method goodHasReceiverHandleAndPtr([@vm.inferred-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method goodHasReceiverHandleAndPtr([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
     return block {
       final self::NativeClassy #t4 = this;
       final nat::NativeFieldWrapperClass1 #t5 = v;
       final void #t6 = self::NativeClassy::_goodHasReceiverHandleAndPtr$Method$FfiNative$Ptr(#t4, ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t5))){(self::NativeClassy, ffi::Pointer<ffi::Void>) → void};
       _in::reachabilityFence(#t5);
     } =>#t6;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method goodHasReceiverHandleAndHandle([@vm.inferred-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method goodHasReceiverHandleAndHandle([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
     return self::NativeClassy::_goodHasReceiverHandleAndHandle$Method$FfiNative$Ptr(this, v){(self::NativeClassy, self::NativeClassy) → void};
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method goodHasReceiverPtrAndHandle([@vm.inferred-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method goodHasReceiverPtrAndHandle([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
     return block {
       final nat::NativeFieldWrapperClass1 #t7 = this;
       final self::NativeClassy #t8 = v;
@@ -100,7 +100,7 @@ class NativeClassy extends nat::NativeFieldWrapperClass1 {
       } =>#pointerAddress)){(ffi::Pointer<ffi::Void>) → core::bool};
       _in::reachabilityFence(#t15);
     } =>#t16;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  set myField([@vm.inferred-type.metadata=dart.core::bool] core::bool value) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  set myField([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool value) → void
     return block {
       final nat::NativeFieldWrapperClass1 #t17 = this;
       final core::bool #t18 = value;

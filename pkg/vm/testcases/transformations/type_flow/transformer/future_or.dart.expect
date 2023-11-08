@@ -20,28 +20,28 @@ static field dynamic usedObject;
 static method use(dynamic object) → void {
   self::usedObject == null ?{dynamic} self::usedObject = object : null;
 }
-static method foo1_a1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {
+static method foo1_a1([@vm.inferred-arg-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {
   self::use(x);
 }
-static method foo1_a2([@vm.inferred-type.metadata=#lib::B] dynamic x) → void {
+static method foo1_a2([@vm.inferred-arg-type.metadata=#lib::B] dynamic x) → void {
   self::use(x);
 }
-static method foo1_a3([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {
+static method foo1_a3([@vm.inferred-arg-type.metadata=dart.async::_Future<#lib::B>] dynamic x) → void {
   self::use(x);
 }
-static method foo1_a4([@vm.inferred-type.metadata=#lib::B] dynamic x) → void {
+static method foo1_a4([@vm.inferred-arg-type.metadata=#lib::B] dynamic x) → void {
   self::use(x);
 }
-static method foo1([@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] asy::Future<self::A> a1, [@vm.inferred-type.metadata=#lib::B] self::A a2, [@vm.inferred-type.metadata=dart.async::_Future<#lib::B>] FutureOr<self::A>a3, [@vm.inferred-type.metadata=#lib::B] FutureOr<self::A>a4) → void {
+static method foo1([@vm.inferred-arg-type.metadata=dart.async::_Future<#lib::B>] asy::Future<self::A> a1, [@vm.inferred-arg-type.metadata=#lib::B] self::A a2, [@vm.inferred-arg-type.metadata=dart.async::_Future<#lib::B>] FutureOr<self::A>a3, [@vm.inferred-arg-type.metadata=#lib::B] FutureOr<self::A>a4) → void {
   self::foo1_a1(a1);
   self::foo1_a2(a2);
   self::foo1_a3(a3);
   self::foo1_a4(a4);
 }
-static method foo2_a1([@vm.inferred-type.metadata=dart.async::_Future?] dynamic x) → void {
+static method foo2_a1([@vm.inferred-arg-type.metadata=dart.async::_Future?] dynamic x) → void {
   self::use(x);
 }
-static method foo2_a2([@vm.inferred-type.metadata=#lib::B?] dynamic x) → void {
+static method foo2_a2([@vm.inferred-arg-type.metadata=#lib::B?] dynamic x) → void {
   self::use(x);
 }
 static method foo2_a3(dynamic x) → void {
@@ -50,7 +50,7 @@ static method foo2_a3(dynamic x) → void {
 static method foo2_a4(dynamic x) → void {
   self::use(x);
 }
-static method foo2([@vm.inferred-type.metadata=dart.async::_Future?] asy::Future<self::A>? a1, [@vm.inferred-type.metadata=#lib::B?] self::A? a2, FutureOr<self::A>? a3, FutureOr<self::A>? a4) → void {
+static method foo2([@vm.inferred-arg-type.metadata=dart.async::_Future?] asy::Future<self::A>? a1, [@vm.inferred-arg-type.metadata=#lib::B?] self::A? a2, FutureOr<self::A>? a3, FutureOr<self::A>? a4) → void {
   self::foo2_a1(a1);
   self::foo2_a2(a2);
   self::foo2_a3(a3);

@@ -6,18 +6,16 @@ import 'package:kernel/ast.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
-import '../builder/extension_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show
         messagePatchDeclarationMismatch,
         messagePatchDeclarationOrigin,
         noLength;
 import '../kernel/body_builder_context.dart';
-import '../operator.dart';
 import '../problems.dart';
 import '../scope.dart';
 import 'name_scheme.dart';
@@ -40,8 +38,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   @override
   final TypeBuilder onType;
 
-  final ExtensionTypeShowHideClauseBuilder extensionTypeShowHideClauseBuilder;
-
   final ExtensionName extensionName;
 
   SourceExtensionBuilder(
@@ -50,10 +46,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       this.extensionName,
       this.typeParameters,
       this.onType,
-      this.extensionTypeShowHideClauseBuilder,
       Scope scope,
       SourceLibraryBuilder parent,
-      bool isExtensionTypeDeclaration,
       int startOffset,
       int nameOffset,
       int endOffset,
@@ -64,7 +58,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             typeParameters:
                 TypeVariableBuilder.typeParametersFromBuilders(typeParameters),
             reference: referenceFrom?.reference)
-          ..isExtensionTypeDeclaration = isExtensionTypeDeclaration
+          ..isExtensionTypeDeclaration = false
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
         super(metadata, modifiers, extensionName.name, parent, nameOffset,
@@ -107,8 +101,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   Extension build(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
     _extension.onType = onType.build(libraryBuilder, TypeUse.extensionOnType);
-    extensionTypeShowHideClauseBuilder.buildAndStoreTypes(
-        _extension, libraryBuilder);
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 
@@ -116,8 +108,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   }
 
   @override
-  void addMemberDescriptorInternal(SourceMemberBuilder memberBuilder,
-      Member member, BuiltMemberKind memberKind, Reference memberReference) {
+  void addMemberDescriptorInternal(
+      SourceMemberBuilder memberBuilder,
+      BuiltMemberKind memberKind,
+      Reference memberReference,
+      Reference? tearOffReference) {
     String name = memberBuilder.name;
     ExtensionMemberKind kind;
     switch (memberKind) {
@@ -126,15 +121,14 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.Factory:
       case BuiltMemberKind.Field:
       case BuiltMemberKind.Method:
-      case BuiltMemberKind.InlineClassConstructor:
-      case BuiltMemberKind.InlineClassMethod:
-      case BuiltMemberKind.InlineClassGetter:
-      case BuiltMemberKind.InlineClassSetter:
-      case BuiltMemberKind.InlineClassOperator:
-      case BuiltMemberKind.InlineClassTearOff:
-      case BuiltMemberKind.InlineClassFactory:
-      case BuiltMemberKind.InlineClassRedirectingFactory:
-        unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
+      case BuiltMemberKind.ExtensionTypeConstructor:
+      case BuiltMemberKind.ExtensionTypeMethod:
+      case BuiltMemberKind.ExtensionTypeGetter:
+      case BuiltMemberKind.ExtensionTypeSetter:
+      case BuiltMemberKind.ExtensionTypeOperator:
+      case BuiltMemberKind.ExtensionTypeFactory:
+      case BuiltMemberKind.ExtensionTypeRedirectingFactory:
+        unhandled("${memberBuilder.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
@@ -154,13 +148,11 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.ExtensionOperator:
         kind = ExtensionMemberKind.Operator;
         break;
-      case BuiltMemberKind.ExtensionTearOff:
-        kind = ExtensionMemberKind.TearOff;
-        break;
     }
     extension.members.add(new ExtensionMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,
+        tearOff: tearOffReference,
         isStatic: memberBuilder.isStatic,
         kind: kind));
   }
@@ -196,43 +188,5 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             fileUri, charOffset, noLength)
       ]);
     }
-  }
-}
-
-class ExtensionTypeShowHideClauseBuilder {
-  final List<TypeBuilder> shownSupertypes;
-  final List<String> shownGetters;
-  final List<String> shownSetters;
-  final List<String> shownMembersOrTypes;
-  final List<Operator> shownOperators;
-
-  final List<TypeBuilder> hiddenSupertypes;
-  final List<String> hiddenGetters;
-  final List<String> hiddenSetters;
-  final List<String> hiddenMembersOrTypes;
-  final List<Operator> hiddenOperators;
-
-  ExtensionTypeShowHideClauseBuilder(
-      {required this.shownSupertypes,
-      required this.shownGetters,
-      required this.shownSetters,
-      required this.shownMembersOrTypes,
-      required this.shownOperators,
-      required this.hiddenSupertypes,
-      required this.hiddenGetters,
-      required this.hiddenSetters,
-      required this.hiddenMembersOrTypes,
-      required this.hiddenOperators});
-
-  void buildAndStoreTypes(Extension extension, LibraryBuilder libraryBuilder) {
-    List<Supertype> builtShownSupertypes =
-        shownSupertypes.map((t) => t.buildSupertype(libraryBuilder)!).toList();
-    List<Supertype> builtHiddenSupertypes =
-        hiddenSupertypes.map((t) => t.buildSupertype(libraryBuilder)!).toList();
-    ExtensionTypeShowHideClause showHideClause =
-        extension.showHideClause ?? new ExtensionTypeShowHideClause();
-    showHideClause.shownSupertypes.addAll(builtShownSupertypes);
-    showHideClause.hiddenSupertypes.addAll(builtHiddenSupertypes);
-    extension.showHideClause ??= showHideClause;
   }
 }

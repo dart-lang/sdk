@@ -271,26 +271,26 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
 
     source.begin(tag);
     Deferrable<Map<MemberEntity, GlobalTypeInferenceMemberResult>>
-        memberResults = source.readDeferrable(() => source.readMemberMap(
+        memberResults = source.readDeferrable((source) => source.readMemberMap(
             (MemberEntity member) =>
                 GlobalTypeInferenceMemberResult.readFromDataSource(
                     source,
                     elementMap.getMemberContextNode(member),
                     closedWorld.abstractValueDomain)));
     Deferrable<Map<Local, AbstractValue>> parameterResults =
-        source.readDeferrable(() => source.readLocalMap(() => closedWorld
+        source.readDeferrable((source) => source.readLocalMap(() => closedWorld
             .abstractValueDomain
             .readAbstractValueFromDataSource(source)));
     Set<Selector> returnsListElementTypeSet =
         source.readList(() => Selector.readFromDataSource(source)).toSet();
     Deferrable<Map<ir.TreeNode, AbstractValue>> allocatedLists =
-        source.readDeferrable(() => source.readTreeNodeMap(() => closedWorld
-            .abstractValueDomain
-            .readAbstractValueFromDataSource(source)));
+        source.readDeferrable((source) => source.readTreeNodeMap(() =>
+            closedWorld.abstractValueDomain
+                .readAbstractValueFromDataSource(source)));
     Deferrable<Map<ir.TreeNode, AbstractValue>> allocatedRecords =
-        source.readDeferrable(() => source.readTreeNodeMap(() => closedWorld
-            .abstractValueDomain
-            .readAbstractValueFromDataSource(source)));
+        source.readDeferrable((source) => source.readTreeNodeMap(() =>
+            closedWorld.abstractValueDomain
+                .readAbstractValueFromDataSource(source)));
     source.end(tag);
     return GlobalTypeInferenceResultsImpl._deserialized(
         closedWorld,

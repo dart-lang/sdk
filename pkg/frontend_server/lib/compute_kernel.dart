@@ -19,13 +19,14 @@ import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
 import 'package:args/args.dart';
 import 'package:build_integration/file_system/multi_root.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
+import 'package:dart2wasm/target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:kernel/ast.dart'
-    show Component, Library, NonNullableByDefaultCompiledMode, Reference;
+    show Component, Library, NonNullableByDefaultCompiledMode;
 import 'package:kernel/target/targets.dart';
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/native_assets/synthesizer.dart';
@@ -78,9 +79,11 @@ final summaryArgsParser = ArgParser()
         'flutter_runner',
         'dart2js',
         'dart2js_summary',
+        'dart2wasm',
         'ddc',
       ],
-      help: 'Build kernel for the vm, flutter, flutter_runner, dart2js or ddc')
+      help: 'Build kernel for the vm, flutter, flutter_runner, dart2js, '
+          'dart2wasm or ddc.')
   ..addOption('dart-sdk-summary')
   ..addMultiOption('redirect')
   ..addMultiOption('input-summary')
@@ -232,6 +235,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         out.writeln('error: --no-summary-only not supported for the '
             'ddc target');
       }
+      break;
+    case 'dart2wasm':
+      target = WasmTarget();
       break;
     default:
       out.writeln('error: unsupported target: $targetName');
@@ -558,9 +564,7 @@ void makeStable(Component c) {
   c.problemsAsJson?.sort();
   c.computeCanonicalNames();
   for (Library library in c.libraries) {
-    library.additionalExports.sort((Reference r1, Reference r2) {
-      return "${r1.canonicalName}".compareTo("${r2.canonicalName}");
-    });
+    library.additionalExports.sort();
     library.problemsAsJson?.sort();
   }
 }

@@ -1,0 +1,10 @@
+class Base {
+  Base(this.value);
+  int value;
+}
+class Extended extends Base {
+  Extended.one(final super.value);
+  Extended.three(const super.value);
+  Extended.two(var super.value);
+}
+main() {}

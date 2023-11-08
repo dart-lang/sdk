@@ -378,7 +378,7 @@ class _ConstructorBodyNamingScope {
   }
 }
 
-abstract class _MinifyConstructorBodyNamer implements Namer {
+mixin _MinifyConstructorBodyNamer implements Namer {
   final Map<ClassEntity, _ConstructorBodyNamingScope> _constructorBodyScopes =
       {};
 
@@ -392,7 +392,7 @@ abstract class _MinifyConstructorBodyNamer implements Namer {
   }
 }
 
-abstract class _MinifiedOneShotInterceptorNamer implements Namer {
+mixin _MinifiedOneShotInterceptorNamer implements Namer {
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
   @override

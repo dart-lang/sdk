@@ -569,6 +569,19 @@ Never nnn() => throw '';
     assertHasRegion(HighlightRegionType.CLASS, 'Never nnn');
   }
 
+  Future<void> test_class_augmentKeyword() async {
+    final testCode = TestCode.parse(r'''
+augment class A {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 7 |augment| BUILT_IN
+8 + 5 |class| KEYWORD
+14 + 1 |A| CLASS
+''');
+  }
+
   Future<void> test_class_constructor_fieldFormalParameter() async {
     var testCode = TestCode.parse(r'''
 class A {
@@ -587,6 +600,19 @@ class A {
 29 + 1 |A| CLASS
 31 + 4 |this| KEYWORD
 36 + 3 |foo| INSTANCE_FIELD_REFERENCE
+''');
+  }
+
+  Future<void> test_class_macroKeyword() async {
+    final testCode = TestCode.parse(r'''
+macro class A {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 5 |macro| BUILT_IN
+6 + 5 |class| KEYWORD
+12 + 1 |A| CLASS
 ''');
   }
 
@@ -1099,6 +1125,26 @@ void f() {
     assertHasRegion(HighlightRegionType.EXTENSION, 'E.bar()');
   }
 
+  Future<void> test_extensionType() async {
+    final testCode = TestCode.parse(r'''
+extension type const A<T>.named(int it) implements num {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, -1, r'''
+0 + 9 |extension| BUILT_IN
+10 + 4 |type| BUILT_IN
+15 + 5 |const| BUILT_IN
+21 + 1 |A| EXTENSION_TYPE
+23 + 1 |T| TYPE_PARAMETER
+26 + 5 |named| CONSTRUCTOR
+32 + 3 |int| CLASS
+36 + 2 |it| INSTANCE_FIELD_DECLARATION
+40 + 10 |implements| BUILT_IN
+51 + 3 |num| CLASS
+''');
+  }
+
   Future<void> test_forEachPartsWithPattern_final() async {
     addTestFile('''
 void f(List<Object> l) {
@@ -1240,6 +1286,40 @@ class A {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.INSTANCE_FIELD_DECLARATION, 'f;');
     assertHasRegion(HighlightRegionType.INSTANCE_FIELD_REFERENCE, 'f);');
+  }
+
+  Future<void> test_instanceCreation_class() async {
+    final testCode = TestCode.parse(r'''
+class A {
+  A.named(int it);
+}
+void f() {
+  [!A.named(0)!];
+}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, 0, r'''
+44 + 1 |A| CONSTRUCTOR
+46 + 5 |named| CONSTRUCTOR
+52 + 1 |0| LITERAL_INTEGER
+''');
+  }
+
+  Future<void> test_instanceCreation_extensionType() async {
+    final testCode = TestCode.parse(r'''
+extension type A.named(T it) {}
+void f() {
+  [!A.named(0)!];
+}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, 0, r'''
+45 + 1 |A| CONSTRUCTOR
+47 + 5 |named| CONSTRUCTOR
+53 + 1 |0| LITERAL_INTEGER
+''');
   }
 
   Future<void> test_KEYWORD() async {
@@ -1416,14 +1496,6 @@ f(a, b) {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.KEYWORD, 'if');
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
-  }
-
-  Future<void> test_KEYWORD_inline() async {
-    addTestFile('''
-inline class A {}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'inline');
   }
 
   Future<void> test_KEYWORD_late() async {
@@ -1625,6 +1697,19 @@ void g() {
     assertHasRegion(HighlightRegionType.PARAMETER_REFERENCE, 'a: 0');
   }
 
+  Future<void> test_namedType_extensionType() async {
+    final testCode = TestCode.parse(r'''
+extension type A<T>(T it) {}
+void f([!A<int>!] a) {}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, 0, r'''
+36 + 1 |A| EXTENSION_TYPE
+38 + 3 |int| CLASS
+''');
+  }
+
   Future<void> test_PARAMETER() async {
     addTestFile('''
 void f(int p) {
@@ -1731,6 +1816,23 @@ void f(Object o) {
 ''');
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.KEYWORD, 'var');
+  }
+
+  Future<void> test_propertyAccess_extensionTypeName() async {
+    final testCode = TestCode.parse(r'''
+extension type A.named(T it) {
+  static const V = 0;
+}
+void f() {
+  [!A.V!];
+}
+''');
+    addTestFile(testCode.code);
+    await prepareHighlights();
+    assertHighlightText(testCode, 0, r'''
+68 + 1 |A| EXTENSION_TYPE
+70 + 1 |V| STATIC_GETTER_REFERENCE
+''');
   }
 
   Future<void> test_recordTypeAnnotation_named() async {

@@ -98,4 +98,30 @@ enum E with M {
       error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 56, 3),
     ]);
   }
+
+  test_extensionType_getter() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  void foo() {}
+}
+
+extension type B(int it) implements A {
+  int get foo => 0;
+}
+''');
+  }
+
+  test_extensionType_setter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  void foo() {}
+}
+
+extension type B(int it) implements A {
+  set foo(int _) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, 92, 3),
+    ]);
+  }
 }

@@ -8,8 +8,6 @@ class A {
   //                 ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
-  //                 ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
   const A.a2(this.x);
   const A.a3([this.x = 'foo']);
   //                   ^^^^^
@@ -24,8 +22,6 @@ class A {
   //                              ^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
   // [cfe] A value of type 'String' can't be assigned to a variable of type 'int'.
-  //                              ^
-  // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZER_NOT_ASSIGNABLE
   const A.a6(int x) : this.x = x;
 }
 
@@ -34,10 +30,9 @@ var a1 = const A.a1();
 // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
 var a2 = const A.a2('foo');
 //                  ^^^^^
+// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
 // [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
-//                  ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 var a3 = const A.a3();
 //       ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
@@ -48,13 +43,10 @@ var a5 = const A.a5('foo');
 //       ^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
 var a6 = const A.a6('foo');
-//       ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH
-//                  ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
-// [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 //                  ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH
+// [cfe] The argument type 'String' can't be assigned to the parameter type 'int'.
 
 main() {
   print(a1);

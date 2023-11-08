@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.10
+# Dart VM Service Protocol 4.13
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.9_ of the Dart VM Service Protocol. This
+This document describes of _version 4.13_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -1214,7 +1214,8 @@ SourceReport|Sentinel getSourceReport(string isolateId,
                                       int endTokenPos [optional],
                                       bool forceCompile [optional],
                                       bool reportLines [optional],
-                                      string[] libraryFilters [optional])
+                                      string[] libraryFilters [optional],
+                                      string[] librariesAlreadyCompiled [optional])
 ```
 
 The _getSourceReport_ RPC is used to generate a set of reports tied to
@@ -1260,6 +1261,14 @@ The _libraryFilters_ parameter is intended to be used when gathering coverage
 for the whole isolate. If it is provided, the _SourceReport_ will only contain
 results from scripts with URIs that start with one of the filter strings. For
 example, pass `["package:foo/"]` to only include scripts from the foo package.
+
+The _librariesAlreadyCompiled_ parameter overrides the _forceCompilation_
+parameter on a per-library basis, setting it to _false_ for any libary in this
+list. This is useful for cases where multiple _getSourceReport_ RPCs are sent
+with _forceCompilation_ enabled, to avoid recompiling the same libraries
+repeatedly. To use this parameter, enable _forceCompilation_, cache the results
+of each _getSourceReport_ RPC, and pass all the libraries mentioned in the
+_SourceReport_ to subsequent RPCs in the _librariesAlreadyCompiled_.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -1441,19 +1450,20 @@ ReloadReport|Sentinel reloadSources(string isolateId,
                                     string packagesUri [optional])
 ```
 
-The _reloadSources_ RPC is used to perform a hot reload of an Isolate's sources.
+The _reloadSources_ RPC is used to perform a hot reload of the sources of all
+isolates in the same isolate group as the isolate specified by `isolateId`.
 
-if the _force_ parameter is provided, it indicates that all of the Isolate's
-sources should be reloaded regardless of modification time.
+If the _force_ parameter is provided, it indicates that all sources should be
+reloaded regardless of modification time.
 
-if the _pause_ parameter is provided, the isolate will pause immediately
-after the reload.
+The _pause_ parameter has been deprecated, so providing it no longer has any
+effect.
 
-if the _rootLibUri_ parameter is provided, it indicates the new uri to the
-Isolate's root library.
+If the _rootLibUri_ parameter is provided, it indicates the new uri to the
+isolate group's root library.
 
-if the _packagesUri_ parameter is provided, it indicates the new uri to the
-Isolate's package map (.packages) file.
+If the _packagesUri_ parameter is provided, it indicates the new uri to the
+isolate group's package map (.packages) file.
 
 If _isolateId_ refers to an isolate which has exited, then the
 _Collected_ [Sentinel](#sentinel) is returned.
@@ -2776,6 +2786,12 @@ class @Function extends @Object {
   // Is this function an abstract method?
   bool abstract;
 
+  // Is this function a getter?
+  bool isGetter;
+
+  // Is this function a setter?
+  bool isSetter;
+
   // The location of this function in the source code.
   //
   // Note: this may not agree with the location of `owner` if this is a function
@@ -2810,6 +2826,12 @@ class Function extends Object {
 
   // Is this function an abstract method?
   bool abstract;
+
+  // Is this function a getter?
+  bool isGetter;
+
+  // Is this function a setter?
+  bool isSetter;
 
   // The location of this function in the source code.
   //
@@ -4496,9 +4518,16 @@ instantiated generic type.
 ### TypeParameters
 
 ```
-class TypeParameters {
+class @TypeParameters extends @Object {
+}
+```
+
+_@TypeParameters_ is a reference to a _TypeParameters_ object.
+
+```
+class TypeParameters extends Object {
   // The names of the type parameters.
-  string[] names;
+  @Instance names;
 
   // The bounds set on each type parameter.
   @TypeArguments bounds;
@@ -4706,5 +4735,8 @@ version | comments
 4.8 | Added `getIsolatePauseEvent` RPC.
 4.9 | Added `isolateGroup` property to `Event`.
 4.10 | Deprecated `isSyntheticAsyncContinuation` on `Breakpoint`.
+4.11 | Added `isGetter` and `isSetter` properties to `@Function` and `Function`.
+4.12 | Added `@TypeParameters` and changed `TypeParameters` to extend `Object`.
+4.13 | Added `librariesAlreadyCompiled` to `getSourceReport`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

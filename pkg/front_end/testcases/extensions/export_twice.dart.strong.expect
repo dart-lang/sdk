@@ -20,7 +20,7 @@ class Class extends core::Object {
 }
 extension Extension on exp::Class {
   method method = exp::Extension|method;
-  tearoff method = exp::Extension|get#method;
+  method tearoff method = exp::Extension|get#method;
 }
 static extension-member method Extension|method(lowered final exp::Class #this) → dynamic {}
 static extension-member method Extension|get#method(lowered final exp::Class #this) → () → dynamic

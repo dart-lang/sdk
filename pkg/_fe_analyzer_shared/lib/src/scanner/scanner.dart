@@ -1,12 +1,12 @@
 // Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 library _fe_analyzer_shared.scanner;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'dart:convert' show unicodeReplacementCharacterRune, utf8;
+import 'dart:convert' show Utf8Encoder, unicodeReplacementCharacterRune;
 
 import 'token.dart' show Token;
 
@@ -98,7 +98,7 @@ ScannerResult _tokenizeAndRecover(Scanner scanner,
     {List<int>? bytes, String? source}) {
   Token tokens = scanner.tokenize();
   if (scanner.hasErrors) {
-    if (bytes == null) bytes = utf8.encode(source!);
+    if (bytes == null) bytes = const Utf8Encoder().convert(source!);
     tokens = scannerRecovery(bytes, tokens, scanner.lineStarts);
   }
   return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);

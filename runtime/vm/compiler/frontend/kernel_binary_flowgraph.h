@@ -23,16 +23,12 @@ namespace kernel {
 class StreamingFlowGraphBuilder : public KernelReaderHelper {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            const ExternalTypedData& data,
+                            const TypedDataView& data,
                             intptr_t data_program_offset)
-      : KernelReaderHelper(
-            flow_graph_builder->zone_,
-            &flow_graph_builder->translation_helper_,
-            Script::Handle(
-                flow_graph_builder->zone_,
-                flow_graph_builder->parsed_function_->function().script()),
-            data,
-            data_program_offset),
+      : KernelReaderHelper(flow_graph_builder->zone_,
+                           &flow_graph_builder->translation_helper_,
+                           data,
+                           data_program_offset),
         flow_graph_builder_(flow_graph_builder),
         active_class_(&flow_graph_builder->active_class_),
         constant_reader_(this, active_class_),
@@ -94,6 +90,13 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function);
 
+  ScriptPtr Script() {
+    if (active_class_ != nullptr) {
+      return active_class_->ActiveScript();
+    }
+    return Script::null();
+  }
+
   static UncheckedEntryPointStyle ChooseEntryPointStyle(
       const Function& dart_function,
       const Fragment& implicit_type_checks,
@@ -102,9 +105,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   void loop_depth_inc();
   void loop_depth_dec();
-  intptr_t for_in_depth();
-  void for_in_depth_inc();
-  void for_in_depth_dec();
   void catch_depth_inc();
   void catch_depth_dec();
   void try_depth_inc();
@@ -282,7 +282,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildInstanceGet(TokenPosition* position);
   Fragment BuildDynamicGet(TokenPosition* position);
   Fragment BuildInstanceTearOff(TokenPosition* position);
-  Fragment BuildFunctionTearOff(TokenPosition* position);
   Fragment BuildInstanceSet(TokenPosition* position);
   Fragment BuildDynamicSet(TokenPosition* position);
   Fragment BuildAllocateInvocationMirrorCall(TokenPosition position,
@@ -351,7 +350,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildWhileStatement(TokenPosition* position);
   Fragment BuildDoStatement(TokenPosition* position);
   Fragment BuildForStatement(TokenPosition* position);
-  Fragment BuildForInStatement(bool async, TokenPosition* position);
   Fragment BuildSwitchStatement(TokenPosition* position);
   Fragment BuildSwitchCase(SwitchHelper* helper, intptr_t case_index);
   Fragment BuildLinearScanSwitch(SwitchHelper* helper);
@@ -395,7 +393,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   // Build FG for '_nativeCallbackFunction'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting Function object.
-  Fragment BuildFfiNativeCallbackFunction(FfiCallbackKind kind);
+  Fragment BuildFfiNativeCallbackFunction(FfiFunctionKind kind);
 
   // Piece of a StringConcatenation.
   // Represents either a StringLiteral, or a Reader offset to the expression.

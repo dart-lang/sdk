@@ -374,8 +374,9 @@ class Profile : public ValueObject {
 
   // Build a filtered model using |filter|.
   void Build(Thread* thread,
+             Isolate* isolate,
              SampleFilter* filter,
-             ProcessedSampleBufferBuilder* sample_block_buffer);
+             SampleBlockBuffer* sample_block_buffer);
 
   // After building:
   int64_t min_time() const { return min_time_; }
@@ -485,7 +486,7 @@ class ProfilerService : public AllStatic {
                               Thread* thread,
                               JSONStream* js,
                               SampleFilter* filter,
-                              ProcessedSampleBufferBuilder* buffer,
+                              SampleBlockBuffer* buffer,
                               bool include_code_samples);
 
   /*

@@ -73,20 +73,17 @@ class LibraryMacroApplier {
   final LibraryBuilder libraryBuilder;
   final MultiMacroExecutor macroExecutor;
 
+  late final macro.DeclarationPhaseIntrospector _declarationPhaseIntrospector =
+      _DeclarationPhaseIntrospector(
+    _linker.elementFactory,
+    declarationBuilder,
+    libraryBuilder.element.typeSystem,
+  );
+
   final List<_MacroTarget> _targets = [];
 
-  late final macro.IdentifierResolver _identifierResolver =
-      _IdentifierResolver(_linker.elementFactory, declarationBuilder);
-
-  late final macro.TypeDeclarationResolver _typeDeclarationResolver =
-      _TypeDeclarationResolver(declarationBuilder);
-
-  late final macro.TypeIntrospector _typeIntrospector =
-      _TypeIntrospector(declarationBuilder);
-
-  late final macro.TypeResolver _typeResolver = _TypeResolver(
-    typeSystem: libraryBuilder.element.typeSystem,
-  );
+  late final macro.TypePhaseIntrospector _typePhaseIntrospector =
+      _TypePhaseIntrospector(_linker.elementFactory, declarationBuilder);
 
   LibraryMacroApplier({
     required this.macroExecutor,
@@ -94,27 +91,31 @@ class LibraryMacroApplier {
     required this.libraryBuilder,
   });
 
+  bool get hasTargets => _targets.isNotEmpty;
+
   Linker get _linker => libraryBuilder.linker;
 
   /// Fill [_targets]s with macro applications.
   Future<void> buildApplications({
+    required LibraryOrAugmentationElementImpl container,
     required OperationPerformanceImpl performance,
   }) async {
     final collector = _MacroTargetElementCollector();
-    libraryBuilder.element.accept(collector);
+    container.accept(collector);
 
-    for (final targetElement in collector.targets) {
-      final targetNode = _linker.elementNodes[targetElement as ElementImpl];
+    for (final target in collector.targets) {
+      final targetNode = _linker.elementNodes[target.element];
       // TODO(scheglov) support other declarations
       if (targetNode is ClassDeclaration) {
         await performance.runAsync(
           'forClassDeclaration',
           (performance) async {
             await _buildApplications(
-              targetElement,
+              target.target,
               targetNode.metadata,
               macro.DeclarationKind.classType,
               () => declarationBuilder.fromNode.classDeclaration(targetNode),
+              container: target.container,
               performance: performance,
             );
           },
@@ -123,6 +124,25 @@ class LibraryMacroApplier {
     }
   }
 
+  /// Builds the augmentation library code for [results].
+  String? buildAugmentationLibraryCode(
+    List<macro.MacroExecutionResult> results,
+  ) {
+    if (results.isEmpty) {
+      return null;
+    }
+
+    return macroExecutor
+        .buildAugmentationLibrary(
+          results,
+          _resolveDeclaration,
+          _resolveIdentifier,
+          _inferOmittedType,
+        )
+        .trim();
+  }
+
+  /// TODO(scheglov) return results instead of code
   Future<String?> executeDeclarationsPhase() async {
     final results = <macro.MacroExecutionResult>[];
     for (final target in _targets) {
@@ -143,10 +163,10 @@ class LibraryMacroApplier {
         }
       }
     }
-    return _buildAugmentationLibrary(results);
+    return buildAugmentationLibraryCode(results);
   }
 
-  Future<String?> executeTypesPhase() async {
+  Future<List<macro.MacroExecutionResult>> executeTypesPhase() async {
     final results = <macro.MacroExecutionResult>[];
     for (final target in _targets) {
       for (final application in target.applications) {
@@ -166,7 +186,7 @@ class LibraryMacroApplier {
         }
       }
     }
-    return _buildAugmentationLibrary(results);
+    return results;
   }
 
   /// If there are any macro applications in [annotations], add a new
@@ -176,6 +196,7 @@ class LibraryMacroApplier {
     List<Annotation> annotations,
     macro.DeclarationKind declarationKind,
     macro.DeclarationImpl Function() getDeclaration, {
+    required LibraryOrAugmentationElementImpl container,
     required OperationPerformanceImpl performance,
   }) async {
     final applications = <_MacroApplication>[];
@@ -216,6 +237,7 @@ class LibraryMacroApplier {
       final annotation = annotations[i];
       final macroInstance = await _importedMacroDeclaration(
         annotation,
+        container: container,
         whenClass: ({
           required macroClass,
           required constructorName,
@@ -228,16 +250,6 @@ class LibraryMacroApplier {
               argumentsNode: argumentsNode,
             );
           }
-        },
-        whenGetter: ({
-          required macroClass,
-          required instanceCreation,
-        }) async {
-          return await instantiateSingle(
-            macroClass: macroClass,
-            constructorName: instanceCreation.constructorName.name?.name ?? '',
-            argumentsNode: instanceCreation.argumentList,
-          );
         },
       );
 
@@ -264,34 +276,14 @@ class LibraryMacroApplier {
     }
   }
 
-  /// If there are any [results], builds the augmentation library with them.
-  String? _buildAugmentationLibrary(
-    List<macro.MacroExecutionResult> results,
-  ) {
-    if (results.isEmpty) {
-      return null;
-    }
-
-    final code = macroExecutor.buildAugmentationLibrary(
-      results,
-      _resolveDeclaration,
-      _resolveIdentifier,
-      _inferOmittedType,
-    );
-    return code.trim();
-  }
-
   /// If [annotation] references a macro, invokes the right callback.
   Future<R?> _importedMacroDeclaration<R>(
     Annotation annotation, {
+    required LibraryOrAugmentationElementImpl container,
     required Future<R?> Function({
       required ClassElementImpl macroClass,
       required String? constructorName,
     }) whenClass,
-    required Future<R?> Function({
-      required ClassElementImpl macroClass,
-      required InstanceCreationExpression instanceCreation,
-    }) whenGetter,
   }) async {
     final String? prefix;
     final String name;
@@ -303,7 +295,7 @@ class LibraryMacroApplier {
       constructorName = annotation.constructorName?.name;
     } else if (nameNode is PrefixedIdentifier) {
       final importPrefixCandidate = nameNode.prefix.name;
-      final hasImportPrefix = libraryBuilder.element.libraryImports.any(
+      final hasImportPrefix = container.libraryImports.any(
           (import) => import.prefix?.element.name == importPrefixCandidate);
       if (hasImportPrefix) {
         prefix = importPrefixCandidate;
@@ -318,7 +310,7 @@ class LibraryMacroApplier {
       throw StateError('${nameNode.runtimeType} $nameNode');
     }
 
-    for (final import in libraryBuilder.element.libraryImports) {
+    for (final import in container.libraryImports) {
       if (import.prefix?.element.name != prefix) {
         continue;
       }
@@ -343,24 +335,6 @@ class LibraryMacroApplier {
             constructorName: constructorName,
           );
         }
-      } else if (element is PropertyAccessorElementImpl &&
-          element.isGetter &&
-          element.isSynthetic) {
-        final variable = element.variable;
-        final variableType = variable.type;
-        if (variable is ConstTopLevelVariableElementImpl &&
-            variableType is InterfaceType) {
-          final macroClass = variableType.element;
-          final initializer = variable.constantInitializer;
-          if (macroClass is ClassElementImpl &&
-              macroClass.isMacro &&
-              initializer is InstanceCreationExpression) {
-            return await whenGetter(
-              macroClass: macroClass,
-              instanceCreation: initializer,
-            );
-          }
-        }
       }
     }
     return null;
@@ -382,6 +356,17 @@ class LibraryMacroApplier {
   }
 
   macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
+    if (identifier is IdentifierImplFromElement) {
+      // TODO(scheglov) other elements
+      final element = identifier.element as ClassElementImpl;
+      return macro.ResolvedIdentifier(
+        // TODO(scheglov) other kinds
+        kind: macro.IdentifierKind.topLevelMember,
+        name: element.name,
+        uri: element.source.uri,
+        staticScope: null,
+      );
+    }
     throw UnimplementedError();
   }
 
@@ -519,138 +504,12 @@ class _ArgumentEvaluation {
   }
 }
 
-class _IdentifierResolver implements macro.IdentifierResolver {
-  final LinkedElementFactory elementFactory;
-  final DeclarationBuilder declarationBuilder;
-
-  _IdentifierResolver(
-    this.elementFactory,
-    this.declarationBuilder,
-  );
-
-  @override
-  Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
-    final libraryElement = elementFactory.libraryOfUri2(library);
-    final element = libraryElement.scope.lookup(name).getter!;
-    return declarationBuilder.fromElement.identifier(element);
-  }
-}
-
-class _MacroApplication {
-  late final _MacroTarget target;
-  final int annotationIndex;
-  final macro.MacroInstanceIdentifier instanceIdentifier;
-
-  _MacroApplication({
-    required this.annotationIndex,
-    required this.instanceIdentifier,
-  });
-
-  Future<macro.MacroExecutionResult> executeDeclarationsPhase() async {
-    final applier = target.applier;
-    final executor = applier.macroExecutor;
-    return await executor.executeDeclarationsPhase(
-      instanceIdentifier,
-      target.declaration,
-      applier._identifierResolver,
-      applier._typeDeclarationResolver,
-      applier._typeResolver,
-      applier._typeIntrospector,
-    );
-  }
-
-  Future<macro.MacroExecutionResult> executeTypesPhase() async {
-    final applier = target.applier;
-    final executor = applier.macroExecutor;
-    return await executor.executeTypesPhase(
-      instanceIdentifier,
-      target.declaration,
-      applier._identifierResolver,
-    );
-  }
-
-  bool shouldExecute(macro.Phase phase) {
-    return instanceIdentifier.shouldExecute(target.declarationKind, phase);
-  }
-}
-
-class _MacroTarget {
-  final LibraryMacroApplier applier;
-  final MacroTargetElement element;
-  final macro.DeclarationKind declarationKind;
-  final macro.DeclarationImpl declaration;
-  final List<_MacroApplication> applications;
-
-  _MacroTarget({
-    required this.applier,
-    required this.element,
-    required this.declarationKind,
-    required this.declaration,
-    required this.applications,
-  }) {
-    for (final application in applications) {
-      application.target = this;
-    }
-  }
-}
-
-class _MacroTargetElementCollector extends GeneralizingElementVisitor<void> {
-  final List<MacroTargetElement> targets = [];
-
-  @override
-  void visitElement(covariant ElementImpl element) {
-    if (element is MacroTargetElement) {
-      targets.add(element as MacroTargetElement);
-    }
-    if (element is MacroTargetElementContainer) {
-      element.visitChildren(this);
-    }
-  }
-}
-
-class _StaticTypeImpl implements macro.StaticType {
+class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
+    implements macro.DeclarationPhaseIntrospector {
   final TypeSystemImpl typeSystem;
-  final DartType type;
 
-  _StaticTypeImpl(this.typeSystem, this.type);
-
-  @override
-  Future<bool> isExactly(_StaticTypeImpl other) {
-    // TODO: implement isExactly
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<bool> isSubtypeOf(_StaticTypeImpl other) {
-    // TODO(scheglov) write tests
-    return Future.value(
-      typeSystem.isSubtypeOf(type, other.type),
-    );
-  }
-}
-
-class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
-  final DeclarationBuilder declarationBuilder;
-
-  _TypeDeclarationResolver(this.declarationBuilder);
-
-  @override
-  Future<macro.TypeDeclaration> declarationOf(
-    covariant IdentifierImpl identifier,
-  ) async {
-    final element = identifier.element;
-    if (element is ClassElementImpl) {
-      return declarationBuilder.fromElement.classElement(element);
-    } else {
-      throw ArgumentError('element: $element');
-    }
-  }
-}
-
-class _TypeIntrospector implements macro.TypeIntrospector {
-  final DeclarationBuilder declarationBuilder;
-
-  _TypeIntrospector(this.declarationBuilder);
+  _DeclarationPhaseIntrospector(
+      super.elementFactory, super.declarationBuilder, this.typeSystem);
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
@@ -680,24 +539,34 @@ class _TypeIntrospector implements macro.TypeIntrospector {
   }
 
   @override
+  Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) async {
+    var dartType = _resolve(type);
+    return _StaticTypeImpl(typeSystem, dartType);
+  }
+
+  @override
+  Future<macro.TypeDeclaration> typeDeclarationOf(
+    covariant IdentifierImpl identifier,
+  ) async {
+    final element = identifier.element;
+    if (element is ClassElementImpl) {
+      return declarationBuilder.fromElement.classElement(element);
+    } else {
+      throw ArgumentError('element: $element');
+    }
+  }
+
+  @override
+  Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
+    // TODO: implement typesOf
+    throw UnimplementedError();
+  }
+
+  @override
   Future<List<macro.EnumValueDeclaration>> valuesOf(
       covariant macro.IntrospectableEnum type) {
     // TODO: implement valuesOf
     throw UnimplementedError();
-  }
-}
-
-class _TypeResolver implements macro.TypeResolver {
-  final TypeSystemImpl typeSystem;
-
-  _TypeResolver({
-    required this.typeSystem,
-  });
-
-  @override
-  Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) async {
-    var dartType = _resolve(type);
-    return _StaticTypeImpl(typeSystem, dartType);
   }
 
   DartType _resolve(macro.TypeAnnotationCode type) {
@@ -720,6 +589,137 @@ class _TypeResolver implements macro.TypeResolver {
       // TODO(scheglov) Implement other types.
       throw UnimplementedError('(${type.runtimeType}) $type');
     }
+  }
+}
+
+class _MacroApplication {
+  late final _MacroTarget target;
+  final int annotationIndex;
+  final macro.MacroInstanceIdentifier instanceIdentifier;
+
+  _MacroApplication({
+    required this.annotationIndex,
+    required this.instanceIdentifier,
+  });
+
+  Future<macro.MacroExecutionResult> executeDeclarationsPhase() async {
+    final applier = target.applier;
+    final executor = applier.macroExecutor;
+    return await executor.executeDeclarationsPhase(
+      instanceIdentifier,
+      target.declaration,
+      applier._declarationPhaseIntrospector,
+    );
+  }
+
+  Future<macro.MacroExecutionResult> executeTypesPhase() async {
+    final applier = target.applier;
+    final executor = applier.macroExecutor;
+    return await executor.executeTypesPhase(
+      instanceIdentifier,
+      target.declaration,
+      applier._typePhaseIntrospector,
+    );
+  }
+
+  bool shouldExecute(macro.Phase phase) {
+    return instanceIdentifier.shouldExecute(target.declarationKind, phase);
+  }
+}
+
+class _MacroTarget {
+  final LibraryMacroApplier applier;
+  final MacroTargetElement element;
+  final macro.DeclarationKind declarationKind;
+  final macro.DeclarationImpl declaration;
+  final List<_MacroApplication> applications;
+
+  _MacroTarget({
+    required this.applier,
+    required this.element,
+    required this.declarationKind,
+    required this.declaration,
+    required this.applications,
+  }) {
+    for (final application in applications) {
+      application.target = this;
+    }
+  }
+}
+
+class _MacroTargetElement {
+  final LibraryOrAugmentationElementImpl container;
+  final ElementImpl element;
+  final MacroTargetElement target;
+
+  _MacroTargetElement({
+    required this.container,
+    required this.element,
+    required this.target,
+  });
+}
+
+class _MacroTargetElementCollector extends GeneralizingElementVisitor<void> {
+  late final LibraryOrAugmentationElementImpl _container;
+  final List<_MacroTargetElement> targets = [];
+
+  @override
+  void visitElement(covariant ElementImpl element) {
+    if (element is LibraryOrAugmentationElementImpl) {
+      _container = element;
+    }
+    if (element case final MacroTargetElement target) {
+      if (target.macroApplicationErrors.isEmpty) {
+        targets.add(
+          _MacroTargetElement(
+            container: _container,
+            element: element,
+            target: target,
+          ),
+        );
+      }
+    }
+    if (element is MacroTargetElementContainer) {
+      element.visitChildren(this);
+    }
+  }
+}
+
+class _StaticTypeImpl implements macro.StaticType {
+  final TypeSystemImpl typeSystem;
+  final DartType type;
+
+  _StaticTypeImpl(this.typeSystem, this.type);
+
+  @override
+  Future<bool> isExactly(_StaticTypeImpl other) {
+    // TODO: implement isExactly
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> isSubtypeOf(_StaticTypeImpl other) {
+    // TODO(scheglov) write tests
+    return Future.value(
+      typeSystem.isSubtypeOf(type, other.type),
+    );
+  }
+}
+
+class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
+  final LinkedElementFactory elementFactory;
+  final DeclarationBuilder declarationBuilder;
+
+  _TypePhaseIntrospector(
+    this.elementFactory,
+    this.declarationBuilder,
+  );
+
+  @override
+  Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
+    final libraryElement = elementFactory.libraryOfUri2(library);
+    final element = libraryElement.scope.lookup(name).getter!;
+    return declarationBuilder.fromElement.identifier(element);
   }
 }
 

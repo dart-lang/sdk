@@ -55,7 +55,6 @@ const a = A();
 void f() {
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 40, 3),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
           42, 1,
           messageContains: ["expected by 'A.new'"]),
@@ -69,7 +68,6 @@ enum E {
   const E(int a);
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 3),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
           13, 1,
           messageContains: ["expected by 'E'"]),
@@ -83,7 +81,6 @@ enum E {
   const E(int a);
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 1),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
           11, 1,
           messageContains: ["expected by 'E'"]),
@@ -131,7 +128,6 @@ main() {
   const A();
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 41, 9),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
           49, 1,
           messageContains: ["expected by 'A.new'"]),
@@ -147,7 +143,6 @@ main() {
   const A(p: 0);
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 41, 13),
       error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
           49, 1),
       error(CompileTimeErrorCode.UNDEFINED_NAMED_PARAMETER, 49, 1),

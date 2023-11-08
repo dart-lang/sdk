@@ -555,7 +555,7 @@ List<Test> extractTestsFromComment(
 
   Test scanDartDoc(int scanOffset) {
     final Token firstToken =
-        scanRawBytes(utf8.encode(comments.substring(scanOffset)) as Uint8List);
+        scanRawBytes(utf8.encode(comments.substring(scanOffset)));
     final ErrorListener listener = new ErrorListener();
     final Parser parser = new Parser(listener,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe);

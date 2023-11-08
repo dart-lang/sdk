@@ -68,6 +68,8 @@ abstract class StatementVisitor {
   void visitTypeCheck(TypeCheck expr);
   void visitUnaryOperation(UnaryOperation expr);
   void visitBinaryOperation(BinaryOperation expr);
+  void visitReadVariable(ReadVariable expr);
+  void visitWriteVariable(WriteVariable expr);
 }
 
 /// Input parameter of the summary.
@@ -886,6 +888,60 @@ class BinaryOperation extends Statement {
         }
         return typeHierarchy.boolType;
     }
+  }
+}
+
+/// Box holding the value of a variable, shared among multiple summaries.
+/// Used to represent captured variables.
+abstract class SharedVariable {
+  Type getValue(TypeHierarchy typeHierarchy, CallHandler callHandler);
+  void setValue(
+      Type newValue, TypeHierarchy typeHierarchy, CallHandler callHandler);
+}
+
+abstract class SharedVariableBuilder {
+  /// Returns [SharedVariable] representing captured [variable].
+  SharedVariable getSharedVariable(VariableDeclaration variable);
+}
+
+/// Reads value from [variable].
+class ReadVariable extends Statement {
+  final SharedVariable variable;
+
+  ReadVariable(this.variable);
+
+  @override
+  void accept(StatementVisitor visitor) => visitor.visitReadVariable(this);
+
+  @override
+  String dump() => "$label = read $variable$_conditionSuffix";
+
+  @override
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
+      CallHandler callHandler) {
+    return variable.getValue(typeHierarchy, callHandler);
+  }
+}
+
+/// Writes value [arg] to [variable].
+class WriteVariable extends Statement {
+  final SharedVariable variable;
+  TypeExpr arg;
+
+  WriteVariable(this.variable, this.arg);
+
+  @override
+  void accept(StatementVisitor visitor) => visitor.visitWriteVariable(this);
+
+  @override
+  String dump() => "write $variable = $arg$_conditionSuffix";
+
+  @override
+  Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
+      CallHandler callHandler) {
+    variable.setValue(
+        arg.getComputedType(computedTypes), typeHierarchy, callHandler);
+    return emptyType;
   }
 }
 

@@ -1,0 +1,3 @@
+#!/usr/bin/env dart
+part of 'script_tag_in_part_file_lib.dart';
+void run() => print("Running!");

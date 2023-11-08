@@ -37,7 +37,14 @@ const char* const fpu_reg_names[kNumberOfFpuRegisters] = {
 };
 
 const Register CallingConventions::ArgumentRegisters[] = {
-    A0, A1, A2, A3, A4, A5, A6, A7,
+    // A3/A4/A5 are assigned to TMP/TMP2/PP. This assignment is important for
+    // reducing code size. To minimize distruption to the rest of the compiler,
+    // we tell the register allocator and marshaller use T3/T4/T5 for FFI calls,
+    // so they can make use of general moves that assume the availability of
+    // TMP/TMP2/PP, and only move them to A3/A4/A5 at the last momement in
+    // FfiCallInstr and CCallInstr (and NativeEntryInstr in the opposite
+    // direction).
+    A0, A1, A2, T3, T4, T5, A6, A7,
 };
 
 const FpuRegister CallingConventions::FpuArgumentRegisters[] = {

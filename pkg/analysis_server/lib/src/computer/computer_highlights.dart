@@ -21,6 +21,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 
@@ -184,6 +185,8 @@ class DartUnitHighlightsComputer {
       semanticModifiers = {CustomSemanticTokenModifiers.constructor};
     } else if (element is EnumElement) {
       type = HighlightRegionType.ENUM;
+    } else if (element is ExtensionTypeElement) {
+      type = HighlightRegionType.EXTENSION_TYPE;
     } else {
       type = HighlightRegionType.CLASS;
       if (parent is ConstructorDeclaration) {
@@ -685,7 +688,9 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    computer._addRegion_token(node.inlineKeyword, HighlightRegionType.KEYWORD);
+    computer._addRegion_token(
+        node.augmentKeyword, HighlightRegionType.BUILT_IN);
+    computer._addRegion_token(node.macroKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
     computer._addRegion_token(node.sealedKeyword, HighlightRegionType.BUILT_IN);
@@ -861,6 +866,32 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     );
 
     super.visitExtensionOverride(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    computer._addRegion_token(
+      node.extensionKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
+
+    computer._addRegion_token(
+      node.typeKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
+
+    computer._addRegion_token(
+      node.constKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
+
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.EXTENSION_TYPE,
+      semanticTokenModifiers: {SemanticTokenModifiers.declaration},
+    );
+
+    super.visitExtensionTypeDeclaration(node);
   }
 
   @override
@@ -1268,6 +1299,32 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     }
 
     super.visitRecordTypeAnnotation(node);
+  }
+
+  @override
+  void visitRepresentationConstructorName(RepresentationConstructorName node) {
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.CONSTRUCTOR,
+      semanticTokenType: SemanticTokenTypes.method,
+      semanticTokenModifiers: {
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      },
+    );
+
+    super.visitRepresentationConstructorName(node);
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    computer._addRegion_token(
+      node.fieldName,
+      HighlightRegionType.INSTANCE_FIELD_DECLARATION,
+      semanticTokenModifiers: {SemanticTokenModifiers.declaration},
+    );
+
+    super.visitRepresentationDeclaration(node);
   }
 
   @override

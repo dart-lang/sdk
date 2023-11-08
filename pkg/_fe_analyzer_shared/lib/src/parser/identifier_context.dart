@@ -208,6 +208,10 @@ abstract class IdentifierContext {
       const ConstructorReferenceIdentifierContext
           .continuationAfterTypeArguments();
 
+  /// Identifier is the name of a primary constructor declaration.
+  static const IdentifierContext primaryConstructorDeclaration =
+      const MethodDeclarationIdentifierContext.primaryConstructor();
+
   /// Identifier is the declaration of a label (i.e. it is followed by `:` and
   /// then a statement).
   static const LabelDeclarationIdentifierContext labelDeclaration =
@@ -231,30 +235,6 @@ abstract class IdentifierContext {
   /// Identifier appears in an expression, and it immediately follows a `.`.
   static const ExpressionIdentifierContext expressionContinuation =
       const ExpressionIdentifierContext.continuation();
-
-  /// Identifier appears in a show or a hide clause of an extension type
-  /// declaration preceded by 'get'.
-  static const ExtensionShowHideElementIdentifierContext
-      extensionShowHideElementGetter =
-      const ExtensionShowHideElementIdentifierContext.getter();
-
-  /// Identifier appears in a show or a hide clause of an extension type
-  /// declaration, not preceded by 'get', 'set', or 'operator'.
-  static const ExtensionShowHideElementIdentifierContext
-      extensionShowHideElementMemberOrType =
-      const ExtensionShowHideElementIdentifierContext.memberOrType();
-
-  /// Identifier appears in a show or a hide clause of an extension type
-  /// declaration preceded by 'operator'.
-  static const ExtensionShowHideElementIdentifierContext
-      extensionShowHideElementOperator =
-      const ExtensionShowHideElementIdentifierContext.operator();
-
-  /// Identifier appears in a show or a hide clause of an extension type
-  /// declaration preceded by 'set'.
-  static const ExtensionShowHideElementIdentifierContext
-      extensionShowHideElementSetter =
-      const ExtensionShowHideElementIdentifierContext.setter();
 
   /// Identifier is a reference to a named argument of a function or method
   /// invocation (e.g. `foo` in `f(foo: 0);`.

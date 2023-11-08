@@ -1,6 +1,6 @@
 # Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # Test that shows that static interop types work with modular/incremental
 # compilation. Unlike dart2js and dart2wasm, we don't use erasure in DDC, which
@@ -32,7 +32,7 @@ worlds:
           baz = c.instanceGetter;
           c.instanceSetter = (StaticJSClass s) {};
         }
-        
+
         class Subclass extends Class {
           void method() {
             StaticJSClass baz = super.instanceMethod();
@@ -122,7 +122,7 @@ worlds:
 
           print('Hello'); // In-body change.
         }
-        
+
         class Subclass extends Class {
           void method() {
             StaticJSClass baz = super.instanceMethod();

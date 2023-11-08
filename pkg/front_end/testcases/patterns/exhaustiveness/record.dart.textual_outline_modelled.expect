@@ -1,30 +1,19 @@
-exhaustiveWildcard((int, String, {bool named}) r) => 
-switch (r) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-exhaustiveTyped((int, String, {bool named}) r) => 
-switch (r) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-exhaustiveValue((int, String, {bool named}) r) => 
-switch (r) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-nonExhaustiveRestrictedValue1((int, String, {bool named}) r) => 
-switch (r) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-nonExhaustiveRestrictedValue2((int, String, {bool named}) r) => 
-switch (r) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
-nonExhaustiveRestrictedValue3((int, String, {bool named}) r) => 
-switch (r) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
+exhaustiveTyped((int, String, {bool named}) r) => switch (r) {
+      (int(), String(), named: bool()) => 0,
+    };
+exhaustiveValue((int, String, {bool named}) r) => switch (r) {
+      (_, _, named: true) => 0,
+      (_, _, named: false) => 1,
+    };
+exhaustiveWildcard((int, String, {bool named}) r) => switch (r) {
+      (_, _, named: _) => 0,
+    };
+nonExhaustiveRestrictedValue1((int, String, {bool named}) r) => switch (r) {
+      (5, _, named: _) => 1,
+    };
+nonExhaustiveRestrictedValue2((int, String, {bool named}) r) => switch (r) {
+      (_, 'foo', named: _) => 1,
+    };
+nonExhaustiveRestrictedValue3((int, String, {bool named}) r) => switch (r) {
+      (_, _, named: true) => 1,
+    };

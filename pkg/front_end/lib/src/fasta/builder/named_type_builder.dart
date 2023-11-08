@@ -8,7 +8,7 @@ import 'package:front_end/src/fasta/util/helpers.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/legacy_erasure.dart';
-import 'package:kernel/src/unaliasing.dart';
+import 'package:kernel/src/unaliasing.dart' as unaliasing;
 
 import '../fasta_codes.dart'
     show
@@ -31,22 +31,17 @@ import '../fasta_codes.dart'
         templateTypeNotFound;
 import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
 import '../kernel/implicit_field_type.dart';
-import '../kernel/type_algorithms.dart';
 import '../problems.dart' show unhandled;
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../uris.dart';
 import 'builder.dart';
-import 'builtin_type_declaration_builder.dart';
-import 'class_builder.dart';
-import 'invalid_type_declaration_builder.dart';
+import 'declaration_builders.dart';
+import 'inferable_type_builder.dart';
 import 'library_builder.dart';
 import 'nullability_builder.dart';
 import 'prefix_builder.dart';
-import 'type_alias_builder.dart';
 import 'type_builder.dart';
-import 'type_declaration_builder.dart';
-import 'type_variable_builder.dart';
 import 'void_type_declaration_builder.dart';
 
 /// Enum used to determine how instance type variable access is allowed.
@@ -93,10 +88,13 @@ enum InstanceTypeVariableAccessState {
   Unexpected,
 }
 
-abstract class NamedTypeBuilder extends TypeBuilder {
+abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
+  // TODO(johnniwinther): Avoid passing the [Identifier] directly here. We
+  // should have separate fields for name, qualifier and offsets.
   @override
   final Object name;
 
+  @override
   List<TypeBuilder>? arguments;
 
   @override
@@ -116,7 +114,8 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 
   final bool hasExplicitTypeArguments;
 
-  factory NamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
+  factory NamedTypeBuilderImpl(
+      Object name, NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
       int? charOffset,
@@ -145,7 +144,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
             performTypeCanonicalization: performTypeCanonicalization);
   }
 
-  NamedTypeBuilder._(
+  NamedTypeBuilderImpl._(
       {required this.name,
       required this.nullabilityBuilder,
       this.arguments,
@@ -154,19 +153,19 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
       bool performTypeCanonicalization = false,
       TypeDeclarationBuilder? declaration})
-      : assert(name is String || name is QualifiedName),
+      : assert(name is String || name is Identifier),
         this._instanceTypeVariableAccess = instanceTypeVariableAccess,
         this._performTypeCanonicalization = performTypeCanonicalization,
         this.hasExplicitTypeArguments = arguments != null,
         this._declaration = declaration;
 
-  factory NamedTypeBuilder.forDartType(
+  factory NamedTypeBuilderImpl.forDartType(
       DartType type,
       TypeDeclarationBuilder _declaration,
       NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments}) = _ExplicitNamedTypeBuilder.forDartType;
 
-  factory NamedTypeBuilder.fromTypeDeclarationBuilder(
+  factory NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
       TypeDeclarationBuilder declaration, NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments,
       Uri? fileUri,
@@ -174,7 +173,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       required InstanceTypeVariableAccessState instanceTypeVariableAccess,
       DartType? type}) = _ExplicitNamedTypeBuilder.fromTypeDeclarationBuilder;
 
-  factory NamedTypeBuilder.forInvalidType(String name,
+  factory NamedTypeBuilderImpl.forInvalidType(String name,
           NullabilityBuilder nullabilityBuilder, LocatedMessage message,
           {List<LocatedMessage>? context}) =
       _ExplicitNamedTypeBuilder.forInvalidType;
@@ -185,6 +184,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   bool get isVoidType => declaration is VoidTypeDeclarationBuilder;
 
+  @override
   void bind(LibraryBuilder libraryBuilder, TypeDeclarationBuilder declaration) {
     _declaration = declaration.origin;
     _check(libraryBuilder);
@@ -200,18 +200,21 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     }
   }
 
+  @override
   int get nameOffset {
     if (name is Identifier) {
       Identifier identifier = name as Identifier;
-      return identifier.charOffset;
+      return identifier.nameOffset;
     }
     return charOffset!;
   }
 
+  @override
   int get nameLength {
     return nameText.length;
   }
 
+  @override
   void resolveIn(
       Scope scope, int charOffset, Uri fileUri, LibraryBuilder library) {
     if (_declaration != null) return;
@@ -224,6 +227,8 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       if (prefix is PrefixBuilder) {
         member = prefix.lookup(name.name, name.charOffset, fileUri);
       }
+    } else if (name is Identifier) {
+      member = scope.lookup(name.name, charOffset, fileUri);
     } else if (name is String) {
       member = scope.lookup(name, charOffset, fileUri);
     } else {
@@ -287,23 +292,20 @@ abstract class NamedTypeBuilder extends TypeBuilder {
             message.withLocation(fileUri!, typeNameOffset, typeNameLength));
       }
     }
-    if (_declaration!.isExtension &&
-        library is SourceLibraryBuilder &&
-        !library.libraryFeatures.extensionTypes.isEnabled) {
+    if (_declaration!.isExtension && library is SourceLibraryBuilder) {
       int typeNameLength = nameLength;
       int typeNameOffset = nameOffset;
-      Message message = library.reportFeatureNotEnabled(
-          library.libraryFeatures.extensionTypes,
-          fileUri!,
-          typeNameOffset,
-          typeNameLength);
+      // TODO(johnniwinther): Create a custom message.
+      Message message = templateNotAType.withArguments(nameText);
+      library.addProblem(message, typeNameOffset, typeNameLength, fileUri);
       _declaration = buildInvalidTypeDeclarationBuilder(
           message.withLocation(fileUri!, typeNameOffset, typeNameLength));
-    } else if (_declaration!.isTypeVariable) {
+    } else if (_declaration is TypeVariableBuilder) {
       TypeVariableBuilder typeParameterBuilder =
           _declaration as TypeVariableBuilder;
       if (typeParameterBuilder.kind == TypeVariableKind.classMixinOrEnum ||
-          typeParameterBuilder.kind == TypeVariableKind.extension ||
+          typeParameterBuilder.kind ==
+              TypeVariableKind.extensionOrExtensionType ||
           typeParameterBuilder.kind == TypeVariableKind.extensionSynthesized) {
         switch (_instanceTypeVariableAccess) {
           case InstanceTypeVariableAccessState.Disallowed:
@@ -352,6 +354,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     return buffer;
   }
 
+  @override
   InvalidTypeDeclarationBuilder buildInvalidTypeDeclarationBuilder(
       LocatedMessage message,
       {List<LocatedMessage>? context}) {
@@ -406,9 +409,24 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       library.reportFeatureNotEnabled(library.libraryFeatures.records,
           fileUri ?? library.fileUri, charOffset!, nameText.length);
     }
-    return unalias(aliasedType,
+    return unaliasing.unalias(aliasedType,
         legacyEraseAliases:
             !_performTypeCanonicalization && !library.isNonNullableByDefault);
+  }
+
+  @override
+  TypeBuilder? unalias(
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+      List<TypeBuilder>? unboundTypes,
+      List<StructuralVariableBuilder>? unboundTypeVariables}) {
+    assert(declaration != null, "Declaration has not been resolved on $this.");
+    if (declaration is TypeAliasBuilder) {
+      return (declaration as TypeAliasBuilder).unalias(arguments,
+          usedTypeAliasBuilders: usedTypeAliasBuilders,
+          unboundTypes: unboundTypes,
+          unboundTypeVariables: unboundTypeVariables);
+    }
+    return this;
   }
 
   @override
@@ -443,83 +461,93 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   Supertype? buildSupertype(LibraryBuilder library) {
     TypeDeclarationBuilder declaration = this.declaration!;
-    if (declaration is ClassBuilder) {
-      if (declaration.isNullClass) {
-        if (!library.mayImplementRestrictedTypes) {
-          library.addProblem(
-              templateExtendingRestricted.withArguments(declaration.name),
-              charOffset!,
-              noLength,
-              fileUri);
+    switch (declaration) {
+      case ClassBuilder():
+        if (declaration.isNullClass) {
+          if (!library.mayImplementRestrictedTypes) {
+            library.addProblem(
+                templateExtendingRestricted.withArguments(declaration.name),
+                charOffset!,
+                noLength,
+                fileUri);
+          }
         }
-      }
-      DartType type = build(library, TypeUse.superType);
-      if (type is InterfaceType) {
-        if (!library.isNonNullableByDefault) {
-          // This "normalizes" type argument `Never*` to `Null`.
-          type = legacyErasure(type) as InterfaceType;
+        DartType type = build(library, TypeUse.superType);
+        if (type is InterfaceType) {
+          if (!library.isNonNullableByDefault) {
+            // This "normalizes" type argument `Never*` to `Null`.
+            type = legacyErasure(type) as InterfaceType;
+          }
+          return new Supertype(type.classNode, type.typeArguments);
+        } else if (type is FutureOrType) {
+          return new Supertype(declaration.cls, [type.typeArgument]);
+        } else if (type is NullType) {
+          return new Supertype(declaration.cls, []);
         }
-        return new Supertype(type.classNode, type.typeArguments);
-      } else if (type is FutureOrType) {
-        return new Supertype(declaration.cls, [type.typeArgument]);
-      } else if (type is NullType) {
-        return new Supertype(declaration.cls, []);
-      }
-    } else if (declaration is TypeAliasBuilder) {
-      TypeAliasBuilder aliasBuilder = declaration;
-      DartType type = build(library, TypeUse.superType);
-      if (type is InterfaceType && type.nullability != Nullability.nullable) {
-        return new Supertype(type.classNode, type.typeArguments);
-      } else if (type is NullType) {
-        // Even though Null is disallowed as a supertype, ClassHierarchyBuilder
-        // still expects it to be built to the respective InterfaceType
-        // referencing the deprecated class.
-        // TODO(cstefantsova): Remove the dependency on the deprecated Null
-        // class from ClassHierarchyBuilder.
-        TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
-        // The following code assumes that the declaration is a TypeAliasBuilder
-        // that through a chain of other TypeAliasBuilders (possibly, the chain
-        // length is 0) references a ClassBuilder of the Null class.  Otherwise,
-        // it won't produce the NullType on the output.
-        while (unaliasedDeclaration is TypeAliasBuilder) {
-          unaliasedDeclaration = unaliasedDeclaration.type.declaration;
-          assert(unaliasedDeclaration != null);
+      case TypeAliasBuilder():
+        TypeAliasBuilder aliasBuilder = declaration;
+        DartType type = build(library, TypeUse.superType);
+        if (type is InterfaceType && type.nullability != Nullability.nullable) {
+          return new Supertype(type.classNode, type.typeArguments);
+        } else if (type is NullType) {
+          // Even though `Null` is disallowed as a supertype,
+          // [ClassHierarchyBuilder] still expects it to be built to the
+          // respective [InterfaceType] referencing the deprecated class.
+          // TODO(cstefantsova): Remove the dependency on the deprecated Null
+          // class from ClassHierarchyBuilder.
+          TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
+          // The following code assumes that the declaration is a
+          // [TypeAliasBuilder] that through a chain of other
+          // [TypeAliasBuilder]s (possibly, the chain length is 0) references a
+          // [ClassBuilder] of the `Null` class. Otherwise, it won't produce the
+          // [NullType] on the output.
+          while (unaliasedDeclaration is TypeAliasBuilder) {
+            unaliasedDeclaration = unaliasedDeclaration.type.declaration;
+            assert(unaliasedDeclaration != null);
+          }
+          assert(unaliasedDeclaration is ClassBuilder &&
+              unaliasedDeclaration.name == "Null");
+          return new Supertype(
+              (unaliasedDeclaration as ClassBuilder).cls, const <DartType>[]);
+        } else if (type is FutureOrType) {
+          // Even though `FutureOr` is disallowed as a supertype,
+          // [ClassHierarchyBuilder] still expects it to be built to the
+          // respective [InterfaceType] referencing the deprecated class. In
+          // contrast with `Null`, it doesn't surface as an error due to
+          // `FutureOr` class not having any inheritable members.
+          // TODO(cstefantsova): Remove the dependency on the deprecated
+          // FutureOr class from ClassHierarchyBuilder.
+          TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
+          // The following code assumes that the declaration is a
+          // [TypeAliasBuilder] that through a chain of other
+          // [TypeAliasBuilder]s (possibly, the chain length is 0) references a
+          // [ClassBuilder] of the `FutureOr` class. Otherwise, it won't produce
+          // the [FutureOrType] on the output.
+          while (unaliasedDeclaration is TypeAliasBuilder) {
+            unaliasedDeclaration = unaliasedDeclaration.type.declaration;
+            assert(unaliasedDeclaration != null);
+          }
+          assert(unaliasedDeclaration is ClassBuilder &&
+              unaliasedDeclaration.name == "FutureOr");
+          return new Supertype((unaliasedDeclaration as ClassBuilder).cls,
+              <DartType>[type.typeArgument]);
         }
-        assert(unaliasedDeclaration is ClassBuilder &&
-            unaliasedDeclaration.name == "Null");
-        return new Supertype(
-            (unaliasedDeclaration as ClassBuilder).cls, const <DartType>[]);
-      } else if (type is FutureOrType) {
-        // Even though FutureOr is disallowed as a supertype,
-        // ClassHierarchyBuilder still expects it to be built to the respective
-        // InterfaceType referencing the deprecated class.  In contrast with
-        // Null, it doesn't surface as an error due to FutureOr class not having
-        // any inheritable members.
-        // TODO(cstefantsova): Remove the dependency on the deprecated FutureOr
-        // class from ClassHierarchyBuilder.
-        TypeDeclarationBuilder? unaliasedDeclaration = this.declaration;
-        // The following code assumes that the declaration is a TypeAliasBuilder
-        // that through a chain of other TypeAliasBuilders (possibly, the chain
-        // length is 0) references a ClassBuilder of the FutureOr class.
-        // Otherwise, it won't produce the FutureOrType on the output.
-        while (unaliasedDeclaration is TypeAliasBuilder) {
-          unaliasedDeclaration = unaliasedDeclaration.type.declaration;
-          assert(unaliasedDeclaration != null);
-        }
-        assert(unaliasedDeclaration is ClassBuilder &&
-            unaliasedDeclaration.name == "FutureOr");
-        return new Supertype((unaliasedDeclaration as ClassBuilder).cls,
-            <DartType>[type.typeArgument]);
-      }
-      return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
-    } else if (declaration is InvalidTypeDeclarationBuilder) {
-      library.addProblem(
-          declaration.message.messageObject,
-          declaration.message.charOffset,
-          declaration.message.length,
-          declaration.message.uri,
-          severity: Severity.error);
-      return null;
+        return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
+      case InvalidTypeDeclarationBuilder():
+        library.addProblem(
+            declaration.message.messageObject,
+            declaration.message.charOffset,
+            declaration.message.length,
+            declaration.message.uri,
+            severity: Severity.error);
+        return null;
+      case TypeVariableBuilder():
+      case StructuralVariableBuilder():
+      case ExtensionTypeDeclarationBuilder():
+      case ExtensionBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
     }
     return _handleInvalidSupertype(library);
   }
@@ -527,35 +555,33 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
     TypeDeclarationBuilder declaration = this.declaration!;
-    if (declaration is ClassBuilder) {
-      return declaration.buildMixedInType(library, arguments);
-    } else if (declaration is TypeAliasBuilder) {
-      TypeAliasBuilder aliasBuilder = declaration;
-      DartType type = build(library, TypeUse.mixedInType);
-      if (type is InterfaceType && type.nullability != Nullability.nullable) {
-        return new Supertype(type.classNode, type.typeArguments);
-      }
-      return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
-    } else if (declaration is InvalidTypeDeclarationBuilder) {
-      library.addProblem(
-          declaration.message.messageObject,
-          declaration.message.charOffset,
-          declaration.message.length,
-          declaration.message.uri,
-          severity: Severity.error);
-      return null;
+    switch (declaration) {
+      case ClassBuilder():
+        return declaration.buildMixedInType(library, arguments);
+      case TypeAliasBuilder():
+        TypeAliasBuilder aliasBuilder = declaration;
+        DartType type = build(library, TypeUse.mixedInType);
+        if (type is InterfaceType && type.nullability != Nullability.nullable) {
+          return new Supertype(type.classNode, type.typeArguments);
+        }
+        return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
+      case InvalidTypeDeclarationBuilder():
+        library.addProblem(
+            declaration.message.messageObject,
+            declaration.message.charOffset,
+            declaration.message.length,
+            declaration.message.uri,
+            severity: Severity.error);
+        return null;
+      case TypeVariableBuilder():
+      case StructuralVariableBuilder():
+      case ExtensionBuilder():
+      case ExtensionTypeDeclarationBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
     }
     return _handleInvalidSupertype(library);
-  }
-
-  @override
-  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) {
-    List<TypeBuilder> unboundTypes = [];
-    List<TypeVariableBuilder> unboundTypeVariables = [];
-    TypeBuilder result = substitute(this, substitution,
-        unboundTypes: unboundTypes, unboundTypeVariables: unboundTypeVariables);
-    assert(unboundTypes.isEmpty && unboundTypeVariables.isEmpty);
-    return result;
   }
 
   @override
@@ -571,7 +597,8 @@ abstract class NamedTypeBuilder extends TypeBuilder {
             .clone(newTypes, contextLibrary, contextDeclaration);
       }, growable: false);
     }
-    NamedTypeBuilder newType = new NamedTypeBuilder(name, nullabilityBuilder,
+    NamedTypeBuilderImpl newType = new NamedTypeBuilderImpl(
+        name, nullabilityBuilder,
         arguments: clonedArguments,
         fileUri: fileUri,
         charOffset: charOffset,
@@ -587,7 +614,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
   @override
   NamedTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
-    return new NamedTypeBuilder.fromTypeDeclarationBuilder(
+    return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
         declaration!, nullabilityBuilder,
         arguments: arguments,
         fileUri: fileUri,
@@ -597,16 +624,17 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 
   /// Returns a copy of this named type using the provided type [arguments]
   /// instead of the original type arguments.
+  @override
   NamedTypeBuilder withArguments(List<TypeBuilder> arguments) {
     if (_declaration != null) {
-      return new NamedTypeBuilder.fromTypeDeclarationBuilder(
+      return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
           _declaration!, nullabilityBuilder,
           arguments: arguments,
           fileUri: fileUri,
           charOffset: charOffset,
           instanceTypeVariableAccess: _instanceTypeVariableAccess);
     } else {
-      return new NamedTypeBuilder(name, nullabilityBuilder,
+      return new NamedTypeBuilderImpl(name, nullabilityBuilder,
           arguments: arguments,
           fileUri: fileUri,
           charOffset: charOffset,
@@ -619,7 +647,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
 ///
 /// This is the normal function type whose type arguments are either explicit or
 /// omitted.
-class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
+class _ExplicitNamedTypeBuilder extends NamedTypeBuilderImpl {
   DartType? _type;
 
   _ExplicitNamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
@@ -699,7 +727,7 @@ class _ExplicitNamedTypeBuilder extends NamedTypeBuilder {
 ///
 /// This occurs through macros where type arguments can be defined in terms of
 /// inferred types, making this type indirectly depend on type inference.
-class _InferredNamedTypeBuilder extends NamedTypeBuilder
+class _InferredNamedTypeBuilder extends NamedTypeBuilderImpl
     with InferableTypeBuilderMixin {
   _InferredNamedTypeBuilder(Object name, NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments,

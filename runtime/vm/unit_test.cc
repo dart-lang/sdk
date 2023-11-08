@@ -332,8 +332,8 @@ char* TestCase::CompileTestScriptWithDFE(const char* url,
   Zone* zone = Thread::Current()->zone();
   Dart_KernelCompilationResult result = KernelIsolate::CompileToKernel(
       url, platform_strong_dill, platform_strong_dill_size, sourcefiles_count,
-      sourcefiles, incrementally, false, nullptr, multiroot_filepaths,
-      multiroot_scheme);
+      sourcefiles, incrementally, /*for_snapshot=*/false,
+      /*embed_sources=*/true, nullptr, multiroot_filepaths, multiroot_scheme);
   if (result.status == Dart_KernelCompilationStatus_Ok) {
     if (KernelIsolate::AcceptCompilation().status !=
         Dart_KernelCompilationStatus_Ok) {
@@ -611,8 +611,7 @@ Dart_Handle TestCase::ReloadTestScript(const char* script) {
     return result;
   }
 
-  return TriggerReload(/* kernel_buffer= */ nullptr,
-                       /* kernel_buffer_size= */ 0);
+  return TriggerReload(/*kernel_buffer=*/nullptr, /*kernel_buffer_size=*/0);
 }
 
 Dart_Handle TestCase::ReloadTestKernel(const uint8_t* kernel_buffer,

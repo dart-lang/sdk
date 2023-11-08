@@ -1,1 +1,1 @@
---enable-experiment=extension-types
+--enable-experiment=inline-class

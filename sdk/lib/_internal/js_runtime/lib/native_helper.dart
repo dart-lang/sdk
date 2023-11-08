@@ -437,7 +437,7 @@ function() {
     }
   }
   function getUnknownTagGenericBrowser(object, tag) {
-    if (object instanceof HTMLElement) return "HTMLElement";
+    if (self.HTMLElement && object instanceof HTMLElement) return "HTMLElement";
     return getUnknownTag(object, tag);
   }
   function prototypeForTag(tag) {
@@ -449,9 +449,7 @@ function() {
   }
   function discriminator(tag) { return null; }
 
-  // The difference for a browser here is that HTMLElement gets special
-  // treatment in [getUnknownTagGenericBrowser].
-  var isBrowser = typeof HTMLElement == "function";
+  var isBrowser = typeof navigator == "object";
 
   return {
     getTag: getTag,
@@ -478,11 +476,11 @@ function(getTagFallback) {
     // If we are not in a browser, assume we are in d8.
     // TODO(sra): Recognize jsshell.
     if (typeof navigator != "object") return hooks;
-    var userAgent = navigator.userAgent;
-    if (typeof userAgent != "string") return hooks;
+
+    var ua = navigator.userAgent;
     // TODO(antonm): remove a reference to DumpRenderTree.
-    if (userAgent.indexOf("DumpRenderTree") >= 0) return hooks;
-    if (userAgent.indexOf("Chrome") >= 0) {
+    if (ua.indexOf("DumpRenderTree") >= 0) return hooks;
+    if (ua.indexOf("Chrome") >= 0) {
       // Confirm constructor name is usable for dispatch.
       function confirm(p) {
         return typeof window == "object" && window[p] && window[p].name == p;
@@ -496,9 +494,7 @@ function(getTagFallback) {
 
 const _ieHooksTransformer = const JS_CONST(r'''
 function(hooks) {
-  if (typeof navigator != "object") return hooks;
-  var userAgent = navigator.userAgent;
-  if (typeof userAgent != "string") return hooks;
+  var userAgent = typeof navigator == "object" ? navigator.userAgent : "";
   if (userAgent.indexOf("Trident/") == -1) return hooks;
 
   var getTag = hooks.getTag;
@@ -562,9 +558,7 @@ function(hooks) {
 
 const _firefoxHooksTransformer = const JS_CONST(r'''
 function(hooks) {
-  if (typeof navigator != "object") return hooks;
-  var userAgent = navigator.userAgent;
-  if (typeof userAgent != "string") return hooks;
+  var userAgent = typeof navigator == "object" ? navigator.userAgent : "";
   if (userAgent.indexOf("Firefox") == -1) return hooks;
 
   var getTag = hooks.getTag;

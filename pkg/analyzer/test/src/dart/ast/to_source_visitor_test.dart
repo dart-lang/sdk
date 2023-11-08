@@ -342,12 +342,6 @@ void f() {
     _assertSource(code, findNode.classDeclaration(code));
   }
 
-  void test_visitClassDeclaration_abstractAugment() {
-    final code = 'augment abstract class C {}';
-    final findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration('class C'));
-  }
-
   void test_visitClassDeclaration_abstractMacro() {
     final code = 'abstract macro class C {}';
     final findNode = _parseStringToFindNode(code);
@@ -355,13 +349,15 @@ void f() {
   }
 
   void test_visitClassDeclaration_augment() {
-    var findNode = _parseStringToFindNode(r'''
-augment class A {}
-''');
-    _assertSource(
-      'augment class A {}',
-      findNode.classDeclaration('class A'),
-    );
+    final code = 'augment class A {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.singleClassDeclaration);
+  }
+
+  void test_visitClassDeclaration_augment_abstract() {
+    final code = 'augment abstract class C {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.singleClassDeclaration);
   }
 
   void test_visitClassDeclaration_base() {
@@ -2468,6 +2464,16 @@ void f(x) {
     );
   }
 
+  void test_visitMethodDeclaration_augment() {
+    final code = 'augment void foo() {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.singleMethodDeclaration);
+  }
+
   void test_visitMethodDeclaration_external() {
     final code = 'external foo();';
     final findNode = _parseStringToFindNode('''
@@ -2658,6 +2664,24 @@ void f() {
     _assertSource(code, findNode.methodInvocation(code));
   }
 
+  void test_visitMixinDeclaration_augment() {
+    final code = 'augment mixin M {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(
+      code,
+      findNode.singleMixinDeclaration,
+    );
+  }
+
+  void test_visitMixinDeclaration_augment_base() {
+    final code = 'augment base mixin M {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(
+      code,
+      findNode.singleMixinDeclaration,
+    );
+  }
+
   void test_visitMixinDeclaration_base() {
     var findNode = _parseStringToFindNode(r'''
 base mixin M {}
@@ -2684,6 +2708,54 @@ void f() {
 void f({$code}) {}
 ''');
     _assertSource(code, findNode.defaultParameter(code));
+  }
+
+  void test_visitNamedType_multipleArgs() {
+    final code = 'Map<int, String>';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_nestedArg() {
+    final code = 'List<Set<int>>';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_noArgs() {
+    final code = 'int';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_noArgs_withQuestion() {
+    final code = 'int?';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_singleArg() {
+    final code = 'Set<int>';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_singleArg_withQuestion() {
+    final code = 'Set<int>?';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
   }
 
   void test_visitNativeClause() {
@@ -3661,54 +3733,6 @@ final x = $code[];
 final x = $code[];
 ''');
     _assertSource(code, findNode.typeArgumentList(code));
-  }
-
-  void test_visitTypeName_multipleArgs() {
-    final code = 'Map<int, String>';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_nestedArg() {
-    final code = 'List<Set<int>>';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_noArgs() {
-    final code = 'int';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_noArgs_withQuestion() {
-    final code = 'int?';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_singleArg() {
-    final code = 'Set<int>';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_singleArg_withQuestion() {
-    final code = 'Set<int>?';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
   }
 
   void test_visitTypeParameter_variance_contravariant() {

@@ -70,8 +70,16 @@ get topLevelGetter => 42;
 set topLevelSetter(/*dynamic*/ _) {}
 topLevelMethod() {}
 
-T genericTopLevelMethod1<T>(T /*T%*/ t) => t;
-T genericTopLevelMethod2<T, S>(T /*T%*/ t, S /*S%*/ s) => t;
+T genericTopLevelMethod1<T>(
+        T /*normal|limited.genericTopLevelMethod1.T%*/ /*verbose.expressions::genericTopLevelMethod1.T%*/
+            t) =>
+    t;
+T genericTopLevelMethod2<T, S>(
+        T /*normal|limited.genericTopLevelMethod2.T%*/ /*verbose.expressions::genericTopLevelMethod2.T%*/
+            t,
+        S /*normal|limited.genericTopLevelMethod2.S%*/ /*verbose.expressions::genericTopLevelMethod2.S%*/
+            s) =>
+    t;
 
 /*member: exprNullLiteral:null*/
 exprNullLiteral() => null;

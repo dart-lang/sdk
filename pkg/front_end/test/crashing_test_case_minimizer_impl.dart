@@ -56,7 +56,8 @@ import 'package:front_end/src/fasta/util/parser_ast_helper.dart';
 import 'package:front_end/src/fasta/util/textual_outline.dart'
     show textualOutline;
 
-import 'package:kernel/ast.dart' show Component, LibraryPart;
+import 'package:kernel/ast.dart'
+    show Component, LibraryPart, Version, defaultLanguageVersion;
 
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 
@@ -293,7 +294,7 @@ class TestMinimizer {
   Future _tryToMinimizeImpl() async {
     // Set main to be basically empty up front.
     _settings._useInitialFs = true;
-    _fs.data[_mainUri] = utf8.encode("main() {}") as Uint8List;
+    _fs.data[_mainUri] = utf8.encode("main() {}");
     Component initialComponent = await _getInitialComponent();
     print("Compiled initially (without data)");
     // Remove fake cache.
@@ -326,7 +327,7 @@ class TestMinimizer {
           if (_knownByCompiler(uri!)) {
             String parsedString =
                 _getFileAsStringContent(_fs.data[uri]!, _isUriNnbd(uri));
-            _fs.data[uri] = utf8.encode(parsedString) as Uint8List;
+            _fs.data[uri] = utf8.encode(parsedString);
           }
         } catch (e) {
           // crash in scanner/parser --- keep original file. This crash might
@@ -628,8 +629,7 @@ class TestMinimizer {
       for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
         builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
       }
-      final Uint8List inlinedWithoutChange =
-          utf8.encode(builder.toString()) as Uint8List;
+      final Uint8List inlinedWithoutChange = utf8.encode(builder.toString());
 
       if (!_parsesWithoutError(inlinedWithoutChange, _isUriNnbd(uri))) {
         print("WARNING: Parser error after stuff at ${StackTrace.current}");
@@ -669,8 +669,7 @@ class TestMinimizer {
         for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
           builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
         }
-        Uint8List inlinedWithChange =
-            utf8.encode(builder.toString()) as Uint8List;
+        Uint8List inlinedWithChange = utf8.encode(builder.toString());
 
         if (!_parsesWithoutError(inlinedWithChange, _isUriNnbd(uri))) {
           print("WARNING: Parser error after stuff at ${StackTrace.current}");
@@ -749,7 +748,7 @@ class TestMinimizer {
     print("""
 # Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # Reproduce a crash.
 
@@ -1009,17 +1008,23 @@ worlds:
       // For dart files we can't truncate completely try to "outline" them
       // instead.
       if (uri.toString().endsWith(".dart")) {
-        String? textualOutlined =
-            textualOutline(data!, _getScannerConfiguration(uri))
-                ?.replaceAll(RegExp(r'\n+'), "\n");
+        Version languageVersion = _getLanguageVersion(uri, crashOnFail: false);
+        String? textualOutlined = textualOutline(
+                data!, _getScannerConfiguration(languageVersion),
+                enablePatterns:
+                    languageVersion >= ExperimentalFlag.patterns.enabledVersion)
+            ?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
         if (textualOutlined != null) {
-          Uint8List candidate = utf8.encode(textualOutlined) as Uint8List;
+          Uint8List candidate = utf8.encode(textualOutlined);
           // Because textual outline doesn't do the right thing for nnbd, only
           // replace if it's syntactically valid.
           if (candidate.length != _fs.data[uri]!.length &&
-              _parsesWithoutError(candidate, _isUriNnbd(uri))) {
+              _parsesWithoutError(
+                  candidate,
+                  languageVersion >=
+                      ExperimentalFlag.nonNullable.enabledVersion)) {
             if (await _shouldQuit()) return;
             _fs.data[uri] = candidate;
             if (!await _crashesOnCompile(initialComponent)) {
@@ -1041,8 +1046,7 @@ worlds:
               if (!string.trim().startsWith("//")) stringsLeft.add(string);
             }
 
-            Uint8List candidate =
-                utf8.encode(stringsLeft.join("\n")) as Uint8List;
+            Uint8List candidate = utf8.encode(stringsLeft.join("\n"));
             if (candidate.length != _fs.data[uri]!.length) {
               if (await _shouldQuit()) return;
               _fs.data[uri] = candidate;
@@ -1088,7 +1092,7 @@ worlds:
         }
       }
       string = lines.join("\n");
-      _fs.data[uri] = utf8.encode(string) as Uint8List;
+      _fs.data[uri] = utf8.encode(string);
       if (!await _crashesOnCompile(initialComponent)) {
         // For some reason that didn't work.
         _fs.data[uri] = data;
@@ -1226,7 +1230,7 @@ worlds:
         }
       }
       string = lines.join("\n");
-      Uint8List candidate = utf8.encode(string) as Uint8List;
+      Uint8List candidate = utf8.encode(string);
       if (candidate.length != data.length) {
         _fs.data[uri] = candidate;
         if (!await _crashesOnCompile(initialComponent)) {
@@ -1248,7 +1252,7 @@ worlds:
         while (i < packagesModified.length) {
           var oldEntry = packagesModified.removeAt(i);
           String jsonString = jsonEncoder.convert(jsonModified);
-          candidate = utf8.encode(jsonString) as Uint8List;
+          candidate = utf8.encode(jsonString);
           Uint8List? previous = _fs.data[uri];
           _fs.data[uri] = candidate;
           if (!await _crashesOnCompile(initialComponent)) {
@@ -1290,7 +1294,7 @@ worlds:
       } else if (child.isMixinDeclaration()) {
         MixinDeclarationEnd decl = child.asMixinDeclaration();
         helper.replacements.add(new _Replacement(
-            decl.mixinKeyword.offset - 1, decl.endToken.offset + 1));
+            decl.beginToken.offset - 1, decl.endToken.offset + 1));
         shouldCompile = true;
         what = "mixin";
       } else if (child.isNamedMixinDeclaration()) {
@@ -1781,41 +1785,49 @@ worlds:
     return false;
   }
 
-  ScannerConfiguration _getScannerConfiguration(Uri uri) {
+  ScannerConfiguration _getScannerConfiguration(Version languageVersion) {
     return new ScannerConfiguration(
-        enableExtensionMethods: true,
-        enableNonNullable: _isUriNnbd(uri, crashOnFail: false),
-        enableTripleShift: false);
+        enableExtensionMethods:
+            languageVersion >= ExperimentalFlag.extensionMethods.enabledVersion,
+        enableNonNullable:
+            languageVersion >= ExperimentalFlag.nonNullable.enabledVersion,
+        enableTripleShift:
+            languageVersion >= ExperimentalFlag.tripleShift.enabledVersion);
   }
 
-  bool _isUriNnbd(Uri uri, {bool crashOnFail = true}) {
+  Version _getLanguageVersion(Uri uri, {bool crashOnFail = true}) {
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder =
         _latestCrashingKnownInitialBuilders![asImportUri];
     if (libraryBuilder != null) {
-      return libraryBuilder.isNonNullableByDefault;
+      return libraryBuilder.library.languageVersion;
     }
     print("Couldn't lookup $uri");
     for (LibraryBuilder libraryBuilder
         in _latestCrashingKnownInitialBuilders!.values) {
       if (libraryBuilder.importUri == uri) {
         print("Found $uri as ${libraryBuilder.importUri} (!= ${asImportUri})");
-        return libraryBuilder.isNonNullableByDefault;
+        return libraryBuilder.library.languageVersion;
       }
       // Check parts too.
       for (LibraryPart part in libraryBuilder.library.parts) {
         Uri thisPartUri = libraryBuilder.importUri.resolve(part.partUri);
         if (thisPartUri == uri || thisPartUri == asImportUri) {
           print("Found $uri as part of ${libraryBuilder.importUri}");
-          return libraryBuilder.isNonNullableByDefault;
+          return libraryBuilder.library.languageVersion;
         }
       }
     }
     if (crashOnFail) {
       throw "Couldn't lookup $uri at all!";
     } else {
-      return false;
+      return defaultLanguageVersion;
     }
+  }
+
+  bool _isUriNnbd(Uri uri, {bool crashOnFail = true}) {
+    return _getLanguageVersion(uri, crashOnFail: crashOnFail) >=
+        ExperimentalFlag.nonNullable.enabledVersion;
   }
 
   Future<bool> _crashesOnCompile(Component initialComponent) async {
@@ -2071,7 +2083,7 @@ worlds:
       builder.writeCharCode(_dataCacheString!.codeUnitAt(j));
     }
 
-    Uint8List candidate = utf8.encode(builder.toString()) as Uint8List;
+    Uint8List candidate = utf8.encode(builder.toString());
     return candidate;
   }
 }
@@ -2130,7 +2142,7 @@ class _FakeFileSystem extends FileSystem {
       if (tmp[i + 1] == null) {
         data[key] = null;
       } else if (tmp[i + 1] is String) {
-        data[key] = utf8.encode(tmp[i + 1]) as Uint8List;
+        data[key] = utf8.encode(tmp[i + 1]);
       } else {
         data[key] = Uint8List.fromList(new List<int>.from(tmp[i + 1]));
       }

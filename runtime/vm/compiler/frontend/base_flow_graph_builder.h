@@ -314,7 +314,8 @@ class BaseFlowGraphBuilder {
   Fragment CheckStackOverflowInPrologue(TokenPosition position);
   Fragment MemoryCopy(classid_t src_cid,
                       classid_t dest_cid,
-                      bool unboxed_length);
+                      bool unboxed_inputs,
+                      bool can_overlap = true);
   Fragment TailCall(const Code& code);
   Fragment Utf8Scan();
 
@@ -461,18 +462,13 @@ class BaseFlowGraphBuilder {
   Fragment InvokeMathCFunction(MethodRecognizer::Kind recognized_kind,
                                intptr_t num_inputs);
 
-  // Pops double value and converts it to double as specified
-  // by the recognized method (kDoubleTruncateToDouble,
-  // kDoubleFloorToDouble or kDoubleCeilToDouble).
-  Fragment DoubleToDouble(MethodRecognizer::Kind recognized_kind);
-
   // Pops double value and converts it to int as specified
   // by the recognized method (kDoubleToInteger,
   // kDoubleFloorToInt or kDoubleCeilToInt).
   Fragment DoubleToInteger(MethodRecognizer::Kind recognized_kind);
 
   // Pops double value and applies unary math operation.
-  Fragment MathUnary(MathUnaryInstr::MathUnaryKind kind);
+  Fragment UnaryDoubleOp(Token::Kind op);
 
   // Records coverage for this position, if the current VM mode supports it.
   Fragment RecordCoverage(TokenPosition position);

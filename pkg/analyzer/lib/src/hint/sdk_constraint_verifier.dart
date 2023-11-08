@@ -10,8 +10,8 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// A visitor that finds code that assumes a later version of the SDK than the
@@ -29,39 +29,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// The version constraint for the SDK.
   final VersionConstraint _versionConstraint;
 
-  /// A cached flag indicating whether references to the constant-update-2018
-  /// features need to be checked. Use [checkConstantUpdate2018] to access this
-  /// field.
-  bool? _checkConstantUpdate2018;
-
   /// A cached flag indicating whether references to the triple-shift features
   /// need to be checked. Use [checkTripleShift] to access this field.
   bool? _checkTripleShift;
-
-  /// A cached flag indicating whether uses of extension method features need to
-  /// be checked. Use [checkExtensionMethods] to access this field.
-  bool? _checkExtensionMethods;
-
-  /// A cached flag indicating whether references to Future and Stream need to
-  /// be checked. Use [checkFutureAndStream] to access this field.
-  bool? _checkFutureAndStream;
-
-  /// A cached flag indicating whether references to set literals need to
-  /// be checked. Use [checkSetLiterals] to access this field.
-  bool? _checkSetLiterals;
-
-  /// A flag indicating whether we are visiting code inside a set literal. Used
-  /// to prevent over-reporting uses of set literals.
-  bool _inSetLiteral = false;
-
-  /// A cached flag indicating whether references to the ui-as-code features
-  /// need to be checked. Use [checkUiAsCode] to access this field.
-  bool? _checkUiAsCode;
-
-  /// A flag indicating whether we are visiting code inside one of the
-  /// ui-as-code features. Used to prevent over-reporting uses of these
-  /// features.
-  bool _inUiAsCode = false;
 
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
@@ -92,37 +62,14 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   VersionRange get before_2_6_0 =>
       VersionRange(max: Version.parse('2.6.0'), includeMax: false);
 
-  /// Return `true` if references to the constant-update-2018 features need to
-  /// be checked.
-  bool get checkConstantUpdate2018 => _checkConstantUpdate2018 ??=
-      !before_2_5_0.intersect(_versionConstraint).isEmpty;
-
-  /// Return `true` if references to the extension method features need to
-  /// be checked.
-  bool get checkExtensionMethods => _checkExtensionMethods ??=
-      !before_2_6_0.intersect(_versionConstraint).isEmpty;
-
-  /// Return `true` if references to Future and Stream need to be checked.
-  bool get checkFutureAndStream => _checkFutureAndStream ??=
-      !before_2_1_0.intersect(_versionConstraint).isEmpty;
-
   /// Return `true` if references to the non-nullable features need to be
   /// checked.
   bool get checkNnbd => !_containingLibrary.isNonNullableByDefault;
-
-  /// Return `true` if references to set literals need to be checked.
-  bool get checkSetLiterals =>
-      _checkSetLiterals ??= !before_2_2_0.intersect(_versionConstraint).isEmpty;
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
   bool get checkTripleShift => _checkTripleShift ??=
       !before_2_14_0.intersect(_versionConstraint).isEmpty;
-
-  /// Return `true` if references to the ui-as-code features (control flow and
-  /// spread collections) need to be checked.
-  bool get checkUiAsCode =>
-      _checkUiAsCode ??= !before_2_2_2.intersect(_versionConstraint).isEmpty;
 
   @override
   void visitArgumentList(ArgumentList node) {
@@ -139,15 +86,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAsExpression(AsExpression node) {
-    if (checkConstantUpdate2018 && node.inConstantContext) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, node);
-    }
-    super.visitAsExpression(node);
-  }
-
-  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _checkSinceSdkVersion(node.readElement, node);
     _checkSinceSdkVersion(node.writeElement, node);
@@ -161,33 +99,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       if (operatorType == TokenType.GT_GT_GT) {
         _errorReporter.reportErrorForToken(
             WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.operator);
-      } else if (checkConstantUpdate2018) {
-        if ((operatorType == TokenType.AMPERSAND ||
-                operatorType == TokenType.BAR ||
-                operatorType == TokenType.CARET) &&
-            node.inConstantContext) {
-          if (node.leftOperand.typeOrThrow.isDartCoreBool) {
-            _errorReporter.reportErrorForToken(
-                WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
-                node.operator,
-                [node.operator.lexeme]);
-          }
-        } else if (operatorType == TokenType.EQ_EQ && node.inConstantContext) {
-          bool primitive(Expression node) {
-            DartType type = node.typeOrThrow;
-            return type.isDartCoreBool ||
-                type.isDartCoreDouble ||
-                type.isDartCoreInt ||
-                type.isDartCoreNull ||
-                type.isDartCoreString;
-          }
-
-          if (!primitive(node.leftOperand) || !primitive(node.rightOperand)) {
-            _errorReporter.reportErrorForToken(
-                WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
-                node.operator);
-          }
-        }
       }
     }
     super.visitBinaryExpression(node);
@@ -197,37 +108,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitConstructorName(ConstructorName node) {
     _checkSinceSdkVersion(node.staticElement, node);
     super.visitConstructorName(node);
-  }
-
-  @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (checkExtensionMethods) {
-      _errorReporter.reportErrorForToken(
-          WarningCode.SDK_VERSION_EXTENSION_METHODS, node.extensionKeyword);
-    }
-    super.visitExtensionDeclaration(node);
-  }
-
-  @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    if (checkExtensionMethods) {
-      _errorReporter.reportErrorForToken(
-        WarningCode.SDK_VERSION_EXTENSION_METHODS,
-        node.name,
-      );
-    }
-    _checkSinceSdkVersion(node.element, node);
-    super.visitExtensionOverride(node);
-  }
-
-  @override
-  void visitForElement(ForElement node) {
-    _validateUiAsCode(node);
-    _validateUiAsCodeInConstContext(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitForElement(node);
-    _inUiAsCode = wasInUiAsCode;
   }
 
   @override
@@ -242,28 +122,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIfElement(IfElement node) {
-    _validateUiAsCode(node);
-    _validateUiAsCodeInConstContext(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitIfElement(node);
-    _inUiAsCode = wasInUiAsCode;
-  }
-
-  @override
   void visitIndexExpression(IndexExpression node) {
     _checkSinceSdkVersion(node.staticElement, node);
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIsExpression(IsExpression node) {
-    if (checkConstantUpdate2018 && node.inConstantContext) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, node);
-    }
-    super.visitIsExpression(node);
   }
 
   @override
@@ -283,11 +144,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _checkAsyncExportedFromCode(
-      name: node.name2,
-      element: node.element,
-    );
-
     if (checkNnbd && node.element == _typeProvider.neverType.element) {
       _errorReporter.reportErrorForNode(WarningCode.SDK_VERSION_NEVER, node);
     }
@@ -309,18 +165,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isSet && checkSetLiterals && !_inSetLiteral) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_SET_LITERAL, node);
-    }
-    bool wasInSetLiteral = _inSetLiteral;
-    _inSetLiteral = true;
-    super.visitSetOrMapLiteral(node);
-    _inSetLiteral = wasInSetLiteral;
-  }
-
-  @override
   void visitShowCombinator(ShowCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
   }
@@ -331,41 +175,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     _checkSinceSdkVersion(node.staticElement, node);
-  }
-
-  @override
-  void visitSpreadElement(SpreadElement node) {
-    _validateUiAsCode(node);
-    _validateUiAsCodeInConstContext(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitSpreadElement(node);
-    _inUiAsCode = wasInUiAsCode;
-  }
-
-  void _checkAsyncExportedFromCode({
-    required Token name,
-    required Element? element,
-  }) {
-    if (checkFutureAndStream &&
-        element is InterfaceElement &&
-        (element == _typeProvider.futureElement ||
-            element == _typeProvider.streamElement)) {
-      for (LibraryElement importedLibrary
-          in _containingLibrary.importedLibraries) {
-        if (!importedLibrary.isDartCore) {
-          var namespace = importedLibrary.exportNamespace;
-          if (namespace.get(element.name) != null) {
-            return;
-          }
-        }
-      }
-      _errorReporter.reportErrorForToken(
-        WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
-        name,
-        [element.name],
-      );
-    }
   }
 
   void _checkSinceSdkVersion(
@@ -420,28 +229,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Given that the [node] is only valid when the ui-as-code feature is
-  /// enabled, check that the code will not be executed with a version of the
-  /// SDK that does not support the feature.
-  void _validateUiAsCode(AstNode node) {
-    if (checkUiAsCode && !_inUiAsCode) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_UI_AS_CODE, node);
-    }
-  }
-
-  /// Given that the [node] is only valid when the ui-as-code feature is
-  /// enabled in a const context, check that the code will not be executed with
-  /// a version of the SDK that does not support the feature.
-  void _validateUiAsCodeInConstContext(AstNode node) {
-    if (checkConstantUpdate2018 &&
-        !_inUiAsCode &&
-        node.thisOrAncestorOfType<TypedLiteral>()!.isConst) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, node);
-    }
-  }
-
   /// Returns `false` if [element] is the `index` property, and the target
   /// of [node] is exactly the `Enum` class from `dart:core`. We have already
   /// checked that the property is not available to the enclosing package.
@@ -465,24 +252,5 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     } else {
       return true;
     }
-  }
-}
-
-extension on VersionConstraint {
-  bool requiresAtLeast(Version version) {
-    final self = this;
-    if (self is Version) {
-      return self >= version;
-    }
-    if (self is VersionRange) {
-      final min = self.min;
-      if (min == null) {
-        return false;
-      } else {
-        return min >= version;
-      }
-    }
-    // We don't know, but will not complain.
-    return true;
   }
 }

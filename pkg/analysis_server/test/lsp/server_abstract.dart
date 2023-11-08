@@ -6,18 +6,15 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -29,11 +26,13 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart' hide expect;
-import 'package:test/test.dart' as test show expect;
+import 'package:unified_analytics/unified_analytics.dart';
 
 import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../src/utilities/mock_packages.dart';
+import 'change_verifier.dart';
+import 'request_helpers_mixin.dart';
 
 const dartLanguageId = 'dart';
 
@@ -45,6 +44,7 @@ abstract class AbstractLspAnalysisServerTest
     with
         ResourceProviderMixin,
         ClientCapabilitiesHelperMixin,
+        LspRequestHelpersMixin,
         LspAnalysisServerTestMixin,
         ConfigurationFilesMixin {
   late MockLspServerChannel channel;
@@ -58,6 +58,9 @@ abstract class AbstractLspAnalysisServerTest
   int _previousContextBuilds = 0;
 
   DartFixPromptManager? get dartFixPromptManager => null;
+
+  @override
+  path.Context get pathContext => server.resourceProvider.pathContext;
 
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
@@ -101,6 +104,43 @@ abstract class AbstractLspAnalysisServerTest
     return info;
   }
 
+  /// Executes [command] which is expected to call back to the client to apply
+  /// a [WorkspaceEdit].
+  ///
+  /// Returns a [LspChangeVerifier] that can be used to verify changes.
+  Future<LspChangeVerifier> executeCommandForEdits(
+    Command command, {
+    ProgressToken? workDoneToken,
+  }) async {
+    ApplyWorkspaceEditParams? editParams;
+
+    final commandResponse = await handleExpectedRequest<Object?,
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
+      Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams.fromJson,
+      () => executeCommand(command, workDoneToken: workDoneToken),
+      handler: (edit) {
+        // When the server sends the edit back, just keep a copy and say we
+        // applied successfully (it'll be verified by the caller).
+        editParams = edit;
+        return ApplyWorkspaceEditResult(applied: true);
+      },
+    );
+    // Successful edits return an empty success() response.
+    expect(commandResponse, isNull);
+
+    // Ensure the edit came back, and using the expected change type.
+    expect(editParams, isNotNull);
+    final edit = editParams!.edit;
+
+    final expectDocumentChanges =
+        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
+    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
+    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
+
+    return LspChangeVerifier(this, edit);
+  }
+
   void expectContextBuilds() =>
       expect(server.contextBuilds - _previousContextBuilds, greaterThan(0),
           reason: 'Contexts should have been rebuilt');
@@ -121,6 +161,32 @@ abstract class AbstractLspAnalysisServerTest
     } else {
       // resp.result should only be null when error != null if T allows null.
       return resp.result == null ? null as T : fromJson(resp.result as R);
+    }
+  }
+
+  List<TextDocumentEdit> extractTextDocumentEdits(
+          DocumentChanges documentChanges) =>
+      // Extract TextDocumentEdits from union of resource changes
+      documentChanges
+          .map(
+            (change) => change.map(
+              (create) => null,
+              (delete) => null,
+              (rename) => null,
+              (textDocEdit) => textDocEdit,
+            ),
+          )
+          .whereNotNull()
+          .toList();
+
+  @override
+  String? getCurrentFileContent(Uri uri) {
+    try {
+      return server.resourceProvider
+          .getFile(pathContext.fromUri(uri))
+          .readAsStringSync();
+    } catch (_) {
+      return null;
     }
   }
 
@@ -202,7 +268,7 @@ abstract class AbstractLspAnalysisServerTest
         resourceProvider,
         serverOptions,
         DartSdkManager(sdkRoot.path),
-        AnalyticsManager(NoopAnalytics()),
+        AnalyticsManager(NoOpAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
         httpClient: httpClient,
@@ -211,32 +277,72 @@ abstract class AbstractLspAnalysisServerTest
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/my_project');
-    projectFolderUri = Uri.file(projectFolderPath);
+    projectFolderUri = toUri(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));
     // Create a folder and file to aid testing that includes imports/completion.
     newFolder(join(projectFolderPath, 'lib', 'folder'));
     newFile(join(projectFolderPath, 'lib', 'file.dart'), '');
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
-    mainFileUri = Uri.file(mainFilePath);
+    mainFileUri = toUri(mainFilePath);
     pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
-    pubspecFileUri = Uri.file(pubspecFilePath);
+    pubspecFileUri = toUri(pubspecFilePath);
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
     newFile(analysisOptionsPath, '''
 analyzer:
   enable-experiment:
+    - inline-class
     - records
     - patterns
     - sealed-class
 ''');
 
-    analysisOptionsUri = Uri.file(analysisOptionsPath);
+    analysisOptionsUri = pathContext.toUri(analysisOptionsPath);
     writePackageConfig(projectFolderPath);
   }
 
   Future<void> tearDown() async {
     channel.close();
     await server.shutdown();
+  }
+
+  /// Verifies that executing the given command on the server results in an edit
+  /// being sent in the client that updates the files to match the expected
+  /// content.
+  Future<LspChangeVerifier> verifyCommandEdits(
+    Command command,
+    String expectedContent, {
+    ProgressToken? workDoneToken,
+  }) async {
+    final verifier = await executeCommandForEdits(
+      command,
+      workDoneToken: workDoneToken,
+    );
+
+    verifier.verifyFiles(expectedContent);
+    return verifier;
+  }
+
+  LspChangeVerifier verifyEdit(
+    WorkspaceEdit edit,
+    String expected, {
+    Map<Uri, int>? expectedVersions,
+  }) {
+    final expectDocumentChanges =
+        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
+    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
+    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
+
+    final verifier = LspChangeVerifier(this, edit);
+    verifier.verifyFiles(expected, expectedVersions: expectedVersions);
+    return verifier;
+  }
+
+  /// Encodes any drive letter colon in the URI.
+  ///
+  /// file:///C:/foo -> file:///C%3A/foo
+  Uri withEncodedDriveLetterColon(Uri uri) {
+    return uri.replace(path: uri.path.replaceAll(':', '%3A'));
   }
 
   /// Adds a trailing slash (direction based on path context) to [path].
@@ -263,6 +369,22 @@ mixin ClientCapabilitiesHelperMixin {
   final emptyWorkspaceClientCapabilities = WorkspaceClientCapabilities();
 
   final emptyWindowClientCapabilities = WindowClientCapabilities();
+
+  /// The set of TextDocument capabilities used if no explicit instance is
+  /// passed to [initialize].
+  var textDocumentCapabilities = TextDocumentClientCapabilities();
+
+  /// The set of Workspace capabilities used if no explicit instance is
+  /// passed to [initialize].
+  var workspaceCapabilities = WorkspaceClientCapabilities();
+
+  /// The set of Window capabilities used if no explicit instance is
+  /// passed to [initialize].
+  var windowCapabilities = WindowClientCapabilities();
+
+  /// The set of experimental capabilities used if no explicit instance is
+  /// passed to [initialize].
+  var experimentalCapabilities = <String, Object?>{};
 
   TextDocumentClientCapabilities extendTextDocumentCapabilities(
     TextDocumentClientCapabilities source,
@@ -304,97 +426,67 @@ mixin ClientCapabilitiesHelperMixin {
     }
   }
 
-  TextDocumentClientCapabilities
-      withAllSupportedTextDocumentDynamicRegistrations(
-    TextDocumentClientCapabilities source,
-  ) {
+  void setAllSupportedTextDocumentDynamicRegistrations() {
     // This list (when combined with the workspace list) should match all of
     // the fields listed in `ClientDynamicRegistrations.supported`.
-    return extendTextDocumentCapabilities(source, {
-      'synchronization': {'dynamicRegistration': true},
-      'callHierarchy': {'dynamicRegistration': true},
-      'completion': {'dynamicRegistration': true},
-      'hover': {'dynamicRegistration': true},
-      'inlayHint': {'dynamicRegistration': true},
-      'signatureHelp': {'dynamicRegistration': true},
-      'references': {'dynamicRegistration': true},
-      'documentHighlight': {'dynamicRegistration': true},
-      'documentSymbol': {'dynamicRegistration': true},
-      'colorProvider': {'dynamicRegistration': true},
-      'formatting': {'dynamicRegistration': true},
-      'onTypeFormatting': {'dynamicRegistration': true},
-      'rangeFormatting': {'dynamicRegistration': true},
-      'declaration': {'dynamicRegistration': true},
-      'definition': {'dynamicRegistration': true},
-      'implementation': {'dynamicRegistration': true},
-      'codeAction': {'dynamicRegistration': true},
-      'rename': {'dynamicRegistration': true},
-      'foldingRange': {'dynamicRegistration': true},
-      'selectionRange': {'dynamicRegistration': true},
-      'semanticTokens': SemanticTokensClientCapabilities(
-          dynamicRegistration: true,
-          requests: SemanticTokensClientCapabilitiesRequests(),
-          formats: [],
-          tokenModifiers: [],
-          tokenTypes: []).toJson(),
-      'typeDefinition': {'dynamicRegistration': true},
-      'typeHierarchy': {'dynamicRegistration': true},
-    });
+
+    setTextDocumentDynamicRegistration('synchronization');
+    setTextDocumentDynamicRegistration('callHierarchy');
+    setTextDocumentDynamicRegistration('completion');
+    setTextDocumentDynamicRegistration('hover');
+    setTextDocumentDynamicRegistration('inlayHint');
+    setTextDocumentDynamicRegistration('signatureHelp');
+    setTextDocumentDynamicRegistration('references');
+    setTextDocumentDynamicRegistration('documentHighlight');
+    setTextDocumentDynamicRegistration('documentSymbol');
+    setTextDocumentDynamicRegistration('colorProvider');
+    setTextDocumentDynamicRegistration('formatting');
+    setTextDocumentDynamicRegistration('onTypeFormatting');
+    setTextDocumentDynamicRegistration('rangeFormatting');
+    setTextDocumentDynamicRegistration('declaration');
+    setTextDocumentDynamicRegistration('definition');
+    setTextDocumentDynamicRegistration('implementation');
+    setTextDocumentDynamicRegistration('codeAction');
+    setTextDocumentDynamicRegistration('rename');
+    setTextDocumentDynamicRegistration('foldingRange');
+    setTextDocumentDynamicRegistration('selectionRange');
+    setTextDocumentDynamicRegistration('semanticTokens');
+    setTextDocumentDynamicRegistration('typeDefinition');
+    setTextDocumentDynamicRegistration('typeHierarchy');
   }
 
-  WorkspaceClientCapabilities withAllSupportedWorkspaceDynamicRegistrations(
-    WorkspaceClientCapabilities source,
-  ) {
+  void setAllSupportedWorkspaceDynamicRegistrations() {
     // This list (when combined with the textDocument list) should match all of
     // the fields listed in `ClientDynamicRegistrations.supported`.
-    return extendWorkspaceCapabilities(source, {
-      'fileOperations': {'dynamicRegistration': true},
-    });
+    setWorkspaceDynamicRegistration('fileOperations');
   }
 
-  WorkspaceClientCapabilities withApplyEditSupport(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {'applyEdit': true});
+  void setApplyEditSupport([bool supported = true]) {
+    workspaceCapabilities = extendWorkspaceCapabilities(
+        workspaceCapabilities, {'applyEdit': supported});
   }
 
-  TextDocumentClientCapabilities withCodeActionKinds(
-    TextDocumentClientCapabilities source,
-    List<CodeActionKind> kinds,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'codeAction': {
-        'codeActionLiteralSupport': {
-          'codeActionKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
-        }
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withCompletionItemDeprecatedFlagSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemDeprecatedFlagSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {'deprecatedSupport': true}
       }
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemInsertReplaceSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemInsertReplaceSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {'insertReplaceSupport': true}
       }
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemInsertTextModeSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemInsertTextModeSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {
           'insertTextModeSupport': {
@@ -407,11 +499,9 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemKinds(
-    TextDocumentClientCapabilities source,
-    List<CompletionItemKind> kinds,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemKinds(List<CompletionItemKind> kinds) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItemKind': {
           'valueSet': kinds.map((k) => k.toJson()).toList()
@@ -420,21 +510,27 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemSnippetSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemLabelDetailsSupport([bool supported = true]) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
-        'completionItem': {'snippetSupport': true}
+        'completionItem': {'labelDetailsSupport': supported}
       }
     });
   }
 
-  TextDocumentClientCapabilities withCompletionItemTagSupport(
-    TextDocumentClientCapabilities source,
-    List<CompletionItemTag> tags,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionItemSnippetSupport([bool supported = true]) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'completion': {
+        'completionItem': {'snippetSupport': supported}
+      }
+    });
+  }
+
+  void setCompletionItemTagSupport(List<CompletionItemTag> tags) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionItem': {
           'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
@@ -443,11 +539,9 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  TextDocumentClientCapabilities withCompletionListDefaults(
-    TextDocumentClientCapabilities source,
-    List<String> defaults,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setCompletionListDefaults(List<String> defaults) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'completion': {
         'completionList': {
           'itemDefaults': defaults,
@@ -456,80 +550,156 @@ mixin ClientCapabilitiesHelperMixin {
     });
   }
 
-  WorkspaceClientCapabilities withConfigurationSupport(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {'configuration': true});
+  void setConfigurationSupport() {
+    workspaceCapabilities = extendWorkspaceCapabilities(
+        workspaceCapabilities, {'configuration': true});
   }
 
-  TextDocumentClientCapabilities withDiagnosticCodeDescriptionSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setDiagnosticCodeDescriptionSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'publishDiagnostics': {
         'codeDescriptionSupport': true,
       }
     });
   }
 
-  TextDocumentClientCapabilities withDiagnosticTagSupport(
-    TextDocumentClientCapabilities source,
-    List<DiagnosticTag> tags,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setDiagnosticTagSupport(List<DiagnosticTag> tags) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'publishDiagnostics': {
         'tagSupport': {'valueSet': tags.map((k) => k.toJson()).toList()}
       }
     });
   }
 
-  WorkspaceClientCapabilities withDidChangeConfigurationDynamicRegistration(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {
+  void setDidChangeConfigurationDynamicRegistration() {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       'didChangeConfiguration': {'dynamicRegistration': true}
     });
   }
 
-  WorkspaceClientCapabilities withDocumentChangesSupport(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {
-      'workspaceEdit': {'documentChanges': true}
+  void setDocumentChangesSupport([bool supported = true]) {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
+      'workspaceEdit': {'documentChanges': supported}
     });
   }
 
-  TextDocumentClientCapabilities withDocumentFormattingDynamicRegistration(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'formatting': {'dynamicRegistration': true},
-      'onTypeFormatting': {'dynamicRegistration': true},
-      'rangeFormatting': {'dynamicRegistration': true},
-    });
+  void setDocumentFormattingDynamicRegistration() {
+    setTextDocumentDynamicRegistration('formatting');
+    setTextDocumentDynamicRegistration('onTypeFormatting');
+    setTextDocumentDynamicRegistration('rangeFormatting');
   }
 
-  TextDocumentClientCapabilities withDocumentSymbolKinds(
-    TextDocumentClientCapabilities source,
-    List<SymbolKind> kinds,
-  ) {
-    return extendTextDocumentCapabilities(source, {
+  void setDocumentSymbolKinds(List<SymbolKind> kinds) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       'documentSymbol': {
         'symbolKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
       }
     });
   }
 
-  WorkspaceClientCapabilities withFileOperationDynamicRegistration(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {
+  void setFileCreateSupport([bool supported = true]) {
+    if (supported) {
+      setDocumentChangesSupport();
+      workspaceCapabilities = _withResourceOperationKinds(
+          workspaceCapabilities, [ResourceOperationKind.Create]);
+    } else {
+      workspaceCapabilities.workspaceEdit?.resourceOperations
+          ?.remove(ResourceOperationKind.Create);
+    }
+  }
+
+  void setFileOperationDynamicRegistration() {
+    setWorkspaceDynamicRegistration('fileOperations');
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       'fileOperations': {'dynamicRegistration': true}
     });
   }
 
-  TextDocumentClientCapabilities withGivenTextDocumentDynamicRegistrations(
-    TextDocumentClientCapabilities source,
+  void setFileRenameSupport([bool supported = true]) {
+    if (supported) {
+      setDocumentChangesSupport();
+      workspaceCapabilities = _withResourceOperationKinds(
+          workspaceCapabilities, [ResourceOperationKind.Rename]);
+    } else {
+      workspaceCapabilities.workspaceEdit?.resourceOperations
+          ?.remove(ResourceOperationKind.Rename);
+    }
+  }
+
+  void setHierarchicalDocumentSymbolSupport() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
+    });
+  }
+
+  void setHoverContentFormat(List<MarkupKind> formats) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
+    });
+  }
+
+  void setHoverDynamicRegistration() {
+    setTextDocumentDynamicRegistration('hover');
+  }
+
+  void setLineFoldingOnly() {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'foldingRange': {'lineFoldingOnly': true},
+    });
+  }
+
+  void setLocationLinkSupport([bool supported = true]) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'definition': {'linkSupport': supported},
+      'typeDefinition': {'linkSupport': supported},
+      'implementation': {'linkSupport': supported}
+    });
+  }
+
+  void setSignatureHelpContentFormat(List<MarkupKind>? formats) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'signatureHelp': {
+        'signatureInformation': {
+          'documentationFormat': formats?.map((k) => k.toJson()).toList()
+        }
+      }
+    });
+  }
+
+  void setSnippetTextEditSupport([bool supported = true]) {
+    experimentalCapabilities['snippetTextEdit'] = supported;
+  }
+
+  void setSupportedCodeActionKinds(List<CodeActionKind>? kinds) {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
+      'codeAction': {
+        'codeActionLiteralSupport': kinds != null
+            ? {
+                'codeActionKind': {
+                  'valueSet': kinds.map((k) => k.toJson()).toList()
+                }
+              }
+            : null,
+      }
+    });
+  }
+
+  void setSupportedCommandParameterKinds(Set<String>? kinds) {
+    experimentalCapabilities['dartCodeAction'] = {
+      'commandParameterSupport': {'supportedKinds': kinds?.toList()},
+    };
+  }
+
+  void setTextDocumentDynamicRegistration(
     String name,
   ) {
     final json = name == 'semanticTokens'
@@ -540,64 +710,30 @@ mixin ClientCapabilitiesHelperMixin {
             tokenModifiers: [],
             tokenTypes: []).toJson()
         : {'dynamicRegistration': true};
-    return extendTextDocumentCapabilities(source, {
+    textDocumentCapabilities =
+        extendTextDocumentCapabilities(textDocumentCapabilities, {
       name: json,
     });
   }
 
-  WorkspaceClientCapabilities withGivenWorkspaceDynamicRegistrations(
-    WorkspaceClientCapabilities source,
+  void setTextSyncDynamicRegistration() {
+    setTextDocumentDynamicRegistration('synchronization');
+  }
+
+  void setWorkDoneProgressSupport() {
+    windowCapabilities = extendWindowCapabilities(
+        windowCapabilities, {'workDoneProgress': true});
+  }
+
+  void setWorkspaceDynamicRegistration(
     String name,
   ) {
-    return extendWorkspaceCapabilities(source, {
+    workspaceCapabilities = extendWorkspaceCapabilities(workspaceCapabilities, {
       name: {'dynamicRegistration': true},
     });
   }
 
-  TextDocumentClientCapabilities withHierarchicalDocumentSymbolSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'documentSymbol': {'hierarchicalDocumentSymbolSupport': true}
-    });
-  }
-
-  TextDocumentClientCapabilities withHoverContentFormat(
-    TextDocumentClientCapabilities source,
-    List<MarkupKind> formats,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'hover': {'contentFormat': formats.map((k) => k.toJson()).toList()}
-    });
-  }
-
-  TextDocumentClientCapabilities withHoverDynamicRegistration(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'hover': {'dynamicRegistration': true}
-    });
-  }
-
-  TextDocumentClientCapabilities withLineFoldingOnly(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'foldingRange': {'lineFoldingOnly': true},
-    });
-  }
-
-  TextDocumentClientCapabilities withLocationLinkSupport(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'definition': {'linkSupport': true},
-      'typeDefinition': {'linkSupport': true},
-      'implementation': {'linkSupport': true}
-    });
-  }
-
-  WorkspaceClientCapabilities withResourceOperationKinds(
+  WorkspaceClientCapabilities _withResourceOperationKinds(
     WorkspaceClientCapabilities source,
     List<ResourceOperationKind> kinds,
   ) {
@@ -608,32 +744,6 @@ mixin ClientCapabilitiesHelperMixin {
         'resourceOperations': kinds.map((k) => k.toJson()).toList(),
       }
     });
-  }
-
-  TextDocumentClientCapabilities withSignatureHelpContentFormat(
-    TextDocumentClientCapabilities source,
-    List<MarkupKind> formats,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'signatureHelp': {
-        'signatureInformation': {
-          'documentationFormat': formats.map((k) => k.toJson()).toList()
-        }
-      }
-    });
-  }
-
-  TextDocumentClientCapabilities withTextSyncDynamicRegistration(
-    TextDocumentClientCapabilities source,
-  ) {
-    return extendTextDocumentCapabilities(source, {
-      'synchronization': {'dynamicRegistration': true}
-    });
-  }
-
-  WindowClientCapabilities withWorkDoneProgressSupport(
-      WindowClientCapabilities source) {
-    return extendWindowCapabilities(source, {'workDoneProgress': true});
   }
 }
 
@@ -697,7 +807,8 @@ mixin ConfigurationFilesMixin on ResourceProviderMixin {
   }
 }
 
-mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
+mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
+    implements ClientCapabilitiesHelperMixin {
   static const positionMarker = '^';
   static const rangeMarkerStart = '[[';
   static const rangeMarkerEnd = ']]';
@@ -709,17 +820,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   /// should not be validated as being created by the server first.
   final clientProvidedTestWorkDoneToken = ProgressToken.t2('client-test');
 
-  int _id = 0;
   late String projectFolderPath,
       mainFilePath,
       pubspecFilePath,
       analysisOptionsPath;
   late Uri projectFolderUri, mainFileUri, pubspecFileUri, analysisOptionsUri;
   final String simplePubspecContent = 'name: my_project';
-  final startOfDocPos = Position(line: 0, character: 0);
-  final startOfDocRange = Range(
-      start: Position(line: 0, character: 0),
-      end: Position(line: 0, character: 0));
 
   /// The client capabilities sent to the server during initialization.
   ///
@@ -733,9 +839,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   ServerCapabilities? _serverCapabilities;
 
   final validProgressTokens = <ProgressToken>{};
-
-  /// Whether to include 'clientRequestTime' fields in outgoing messages.
-  bool includeClientRequestTime = false;
 
   /// Default initialization options to be used if [initialize] is not provided
   /// options explicitly.
@@ -761,6 +864,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       .map((message) =>
           OpenUriParams.fromJson(message.params as Map<String, Object?>));
 
+  path.Context get pathContext;
+
   /// A stream of [RequestMessage]s from the server.
   Stream<RequestMessage> get requestsFromServer {
     return serverToClient
@@ -769,169 +874,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   Stream<Message> get serverToClient;
-
-  void applyChanges(
-    Map<String, String> fileContents,
-    Map<Uri, List<TextEdit>> changes,
-  ) {
-    changes.forEach((fileUri, edits) {
-      final path = fileUri.toFilePath();
-      fileContents[path] = applyTextEdits(fileContents[path]!, edits);
-    });
-  }
-
-  void applyDocumentChanges(
-    Map<String, String> fileContents,
-    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
-        documentChanges, {
-    Map<String, int>? expectedVersions,
-  }) {
-    // If we were supplied with expected versions, ensure that all returned
-    // edits match the versions.
-    if (expectedVersions != null) {
-      expectDocumentVersions(documentChanges, expectedVersions);
-    }
-    applyResourceChanges(fileContents, documentChanges);
-  }
-
-  void applyResourceChanges(
-    Map<String, String> oldFileContent,
-    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>> changes,
-  ) {
-    for (final change in changes) {
-      change.map(
-        (create) => applyResourceCreate(oldFileContent, create),
-        (delete) => throw 'applyResourceChanges:Delete not currently supported',
-        (rename) => applyResourceRename(oldFileContent, rename),
-        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
-      );
-    }
-  }
-
-  void applyResourceCreate(
-      Map<String, String> oldFileContent, CreateFile create) {
-    final path = create.uri.toFilePath();
-    if (oldFileContent.containsKey(path)) {
-      throw 'Received create instruction for $path which already existed.';
-    }
-    oldFileContent[path] = '';
-  }
-
-  void applyResourceRename(
-      Map<String, String> oldFileContent, RenameFile rename) {
-    final oldPath = rename.oldUri.toFilePath();
-    final newPath = rename.newUri.toFilePath();
-    if (!oldFileContent.containsKey(oldPath)) {
-      throw 'Received rename instruction for $oldPath which did not exist.';
-    }
-    oldFileContent[newPath] = oldFileContent[oldPath]!;
-    oldFileContent.remove(oldPath);
-  }
-
-  String applyTextDocumentEdit(String content, TextDocumentEdit edit) {
-    // To simulate the behaviour we'll get from an LSP client, apply edits from
-    // the latest offset to the earliest, but with items at the same offset
-    // being reversed so that when applied sequentially they appear in the
-    // document in-order.
-    //
-    // This is essentially a stable sort over the offset (descending), but since
-    // List.sort() is not stable so we additionally sort by index).
-    final indexedEdits =
-        edit.edits.mapIndexed(_TextEditWithIndex.fromUnion).toList();
-    indexedEdits.sort(_TextEditWithIndex.compare);
-    return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
-  }
-
-  void applyTextDocumentEdits(
-      Map<String, String> oldFileContent, List<TextDocumentEdit> edits) {
-    for (var edit in edits) {
-      final path = edit.textDocument.uri.toFilePath();
-      if (!oldFileContent.containsKey(path)) {
-        throw 'Received edits for $path which was not provided as a file to be edited. '
-            'Perhaps a CreateFile change was missing from the edits?';
-      }
-      oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path]!, edit);
-    }
-  }
-
-  String applyTextEdit(String content, TextEdit edit) {
-    final startPos = edit.range.start;
-    final endPos = edit.range.end;
-    final lineInfo = LineInfo.fromContent(content);
-    final start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
-    final end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
-    return content.replaceRange(start, end, edit.newText);
-  }
-
-  String applyTextEdits(String content, List<TextEdit> changes) {
-    // Complex text manipulations are described with an array of TextEdit's,
-    // representing a single change to the document.
-    //
-    // All text edits ranges refer to positions in the original document. Text
-    // edits ranges must never overlap, that means no part of the original
-    // document must be manipulated by more than one edit. It is possible
-    // that multiple edits have the same start position (eg. multiple inserts in
-    // reverse order), however since that involves complicated tracking and we
-    // only apply edits here sequentially, we don't supported them. We do sort
-    // edits to ensure we apply the later ones first, so we can assume the locations
-    // in the edit are still valid against the new string as each edit is applied.
-
-    /// Ensures changes are simple enough to apply easily without any complicated
-    /// logic.
-    void validateChangesCanBeApplied() {
-      /// Check if a position is before (but not equal) to another position.
-      bool isBeforeOrEqual(Position p, Position other) =>
-          p.line < other.line ||
-          (p.line == other.line && p.character <= other.character);
-
-      /// Check if a position is after (but not equal) to another position.
-      bool isAfterOrEqual(Position p, Position other) =>
-          p.line > other.line ||
-          (p.line == other.line && p.character >= other.character);
-      // Check if two ranges intersect.
-      bool rangesIntersect(Range r1, Range r2) {
-        var endsBefore = isBeforeOrEqual(r1.end, r2.start);
-        var startsAfter = isAfterOrEqual(r1.start, r2.end);
-        return !(endsBefore || startsAfter);
-      }
-
-      for (final change1 in changes) {
-        for (final change2 in changes) {
-          if (change1 != change2 &&
-              rangesIntersect(change1.range, change2.range)) {
-            throw 'Test helper applyTextEdits does not support applying multiple edits '
-                'where the edits are not in reverse order.';
-          }
-        }
-      }
-    }
-
-    validateChangesCanBeApplied();
-
-    final indexedEdits = changes.mapIndexed(_TextEditWithIndex.new).toList();
-    indexedEdits.sort(_TextEditWithIndex.compare);
-    return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
-  }
-
-  Future<List<CallHierarchyIncomingCall>?> callHierarchyIncoming(
-      CallHierarchyItem item) {
-    final request = makeRequest(
-      Method.callHierarchy_incomingCalls,
-      CallHierarchyIncomingCallsParams(item: item),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(CallHierarchyIncomingCall.fromJson));
-  }
-
-  Future<List<CallHierarchyOutgoingCall>?> callHierarchyOutgoing(
-      CallHierarchyItem item) {
-    final request = makeRequest(
-      Method.callHierarchy_outgoingCalls,
-      CallHierarchyOutgoingCallsParams(item: item),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(CallHierarchyOutgoingCall.fromJson));
-  }
 
   Future<void> changeFile(
     int newVersion,
@@ -972,12 +914,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     await sendNotificationToServer(notification);
   }
 
-  /// Gets the entire range for [code].
-  Range entireRange(String code) => Range(
-        start: startOfDocPos,
-        end: positionFromOffset(code.length, code),
-      );
-
   Future<Object?> executeCodeAction(
       Either2<Command, CodeAction> codeAction) async {
     final command = codeAction.map(
@@ -1008,38 +944,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
     return expectSuccessfulResponseTo<T, Map<String, Object?>>(
         request, decoder ?? (result) => result as T);
-  }
-
-  void expect(Object? actual, Matcher matcher, {String? reason}) =>
-      test.expect(actual, matcher, reason: reason);
-
-  void expectDocumentVersion(
-    TextDocumentEdit edit,
-    Map<String, int> expectedVersions,
-  ) {
-    final path = edit.textDocument.uri.toFilePath();
-    final expectedVersion = expectedVersions[path];
-
-    expect(edit.textDocument.version, equals(expectedVersion));
-  }
-
-  /// Validates the document versions for a set of edits match the versions in
-  /// the supplied map.
-  void expectDocumentVersions(
-    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
-        documentChanges,
-    Map<String, int> expectedVersions,
-  ) {
-    // For resource changes, we only need to validate changes since
-    // creates/renames/deletes do not supply versions.
-    for (var change in documentChanges) {
-      change.map(
-        (create) {},
-        (delete) {},
-        (rename) {},
-        (edit) => expectDocumentVersion(edit, expectedVersions),
-      );
-    }
   }
 
   Future<ShowMessageParams> expectErrorNotification(
@@ -1086,414 +990,12 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     return requestFromServer;
   }
 
-  Future<T> expectSuccessfulResponseTo<T, R>(
-      RequestMessage request, T Function(R) fromJson);
-
-  Future<List<TextEdit>?> formatDocument(Uri fileUri) {
-    final request = makeRequest(
-      Method.textDocument_formatting,
-      DocumentFormattingParams(
-        textDocument: TextDocumentIdentifier(uri: fileUri),
-        options: FormattingOptions(
-            tabSize: 2,
-            insertSpaces: true), // These currently don't do anything
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(TextEdit.fromJson));
-  }
-
-  Future<List<TextEdit>?> formatOnType(
-      Uri fileUri, Position pos, String character) {
-    final request = makeRequest(
-      Method.textDocument_onTypeFormatting,
-      DocumentOnTypeFormattingParams(
-        ch: character,
-        options: FormattingOptions(
-            tabSize: 2,
-            insertSpaces: true), // These currently don't do anything
-        textDocument: TextDocumentIdentifier(uri: fileUri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(TextEdit.fromJson));
-  }
-
-  Future<List<TextEdit>?> formatRange(Uri fileUri, Range range) {
-    final request = makeRequest(
-      Method.textDocument_rangeFormatting,
-      DocumentRangeFormattingParams(
-        options: FormattingOptions(
-            tabSize: 2,
-            insertSpaces: true), // These currently don't do anything
-        textDocument: TextDocumentIdentifier(uri: fileUri),
-        range: range,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(TextEdit.fromJson));
-  }
-
-  Future<List<Either2<Command, CodeAction>>> getCodeActions(
-    Uri fileUri, {
-    Range? range,
-    Position? position,
-    List<CodeActionKind>? kinds,
-    CodeActionTriggerKind? triggerKind,
-  }) {
-    range ??= position != null
-        ? Range(start: position, end: position)
-        : throw 'Supply either a Range or Position for CodeActions requests';
-    final request = makeRequest(
-      Method.textDocument_codeAction,
-      CodeActionParams(
-        textDocument: TextDocumentIdentifier(uri: fileUri),
-        range: range,
-        context: CodeActionContext(
-          // TODO(dantup): We may need to revise the tests/implementation when
-          // it's clear how we're supposed to handle diagnostics:
-          // https://github.com/Microsoft/language-server-protocol/issues/583
-          diagnostics: [],
-          only: kinds,
-          triggerKind: triggerKind,
-        ),
-      ),
-    );
-    return expectSuccessfulResponseTo(
-      request,
-      _fromJsonList(_generateFromJsonFor(Command.canParse, Command.fromJson,
-          CodeAction.canParse, CodeAction.fromJson)),
-    );
-  }
-
-  Future<List<ColorPresentation>> getColorPresentation(
-      Uri fileUri, Range range, Color color) {
-    final request = makeRequest(
-      Method.textDocument_colorPresentation,
-      ColorPresentationParams(
-        textDocument: TextDocumentIdentifier(uri: fileUri),
-        range: range,
-        color: color,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-      request,
-      _fromJsonList(ColorPresentation.fromJson),
-    );
-  }
-
-  Future<List<CompletionItem>> getCompletion(Uri uri, Position pos,
-      {CompletionContext? context}) async {
-    final response = await getCompletionList(uri, pos, context: context);
-    return response.items;
-  }
-
-  Future<CompletionList> getCompletionList(Uri uri, Position pos,
-      {CompletionContext? context}) {
-    final request = makeRequest(
-      Method.textDocument_completion,
-      CompletionParams(
-        context: context,
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(request, CompletionList.fromJson);
-  }
-
-  Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
-      Uri uri, Position pos) {
-    final request = makeRequest(
-      Method.textDocument_definition,
-      TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-      request,
-      _generateFromJsonFor(
-          _canParseList(Location.canParse),
-          _fromJsonList(Location.fromJson),
-          _canParseList(LocationLink.canParse),
-          _fromJsonList(LocationLink.fromJson)),
-    );
-  }
-
-  Future<List<Location>> getDefinitionAsLocation(Uri uri, Position pos) async {
-    final results = await getDefinition(uri, pos);
-    return results.map(
-      (locations) => locations,
-      (locationLinks) => throw 'Expected List<Location> got List<LocationLink>',
-    );
-  }
-
-  Future<List<LocationLink>> getDefinitionAsLocationLinks(
-      Uri uri, Position pos) async {
-    final results = await getDefinition(uri, pos);
-    return results.map(
-      (locations) => throw 'Expected List<LocationLink> got List<Location>',
-      (locationLinks) => locationLinks,
-    );
-  }
-
-  Future<DartDiagnosticServer> getDiagnosticServer() {
-    final request = makeRequest(
-      CustomMethods.diagnosticServer,
-      null,
-    );
-    return expectSuccessfulResponseTo(request, DartDiagnosticServer.fromJson);
-  }
-
-  Future<List<ColorInformation>> getDocumentColors(Uri fileUri) {
-    final request = makeRequest(
-      Method.textDocument_documentColor,
-      DocumentColorParams(
-        textDocument: TextDocumentIdentifier(uri: fileUri),
-      ),
-    );
-    return expectSuccessfulResponseTo(
-      request,
-      _fromJsonList(ColorInformation.fromJson),
-    );
-  }
-
-  Future<List<DocumentHighlight>?> getDocumentHighlights(
-      Uri uri, Position pos) {
-    final request = makeRequest(
-      Method.textDocument_documentHighlight,
-      TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(DocumentHighlight.fromJson));
-  }
-
-  Future<Either2<List<DocumentSymbol>, List<SymbolInformation>>>
-      getDocumentSymbols(Uri uri) {
-    final request = makeRequest(
-      Method.textDocument_documentSymbol,
-      DocumentSymbolParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-      ),
-    );
-    return expectSuccessfulResponseTo(
-      request,
-      _generateFromJsonFor(
-          _canParseList(DocumentSymbol.canParse),
-          _fromJsonList(DocumentSymbol.fromJson),
-          _canParseList(SymbolInformation.canParse),
-          _fromJsonList(SymbolInformation.fromJson)),
-    );
-  }
-
-  Future<List<FoldingRange>> getFoldingRanges(Uri uri) {
-    final request = makeRequest(
-      Method.textDocument_foldingRange,
-      FoldingRangeParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(FoldingRange.fromJson));
-  }
-
-  Future<Hover?> getHover(Uri uri, Position pos) {
-    final request = makeRequest(
-      Method.textDocument_hover,
-      TextDocumentPositionParams(
-          textDocument: TextDocumentIdentifier(uri: uri), position: pos),
-    );
-    return expectSuccessfulResponseTo(request, Hover.fromJson);
-  }
-
-  Future<List<Location>> getImplementations(
-    Uri uri,
-    Position pos, {
-    includeDeclarations = false,
-  }) {
-    final request = makeRequest(
-      Method.textDocument_implementation,
-      TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(Location.fromJson));
-  }
-
-  Future<List<InlayHint>> getInlayHints(Uri uri, Range range) {
-    final request = makeRequest(
-      Method.textDocument_inlayHint,
-      InlayHintParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        range: range,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(InlayHint.fromJson));
-  }
-
-  Future<List<Location>> getReferences(
-    Uri uri,
-    Position pos, {
-    bool includeDeclarations = false,
-  }) {
-    final request = makeRequest(
-      Method.textDocument_references,
-      ReferenceParams(
-        context: ReferenceContext(includeDeclaration: includeDeclarations),
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(Location.fromJson));
-  }
-
-  Future<CompletionItem> getResolvedCompletion(
-    Uri uri,
-    Position pos,
-    String label, {
-    CompletionContext? context,
-  }) async {
-    final completions = await getCompletion(uri, pos, context: context);
-
-    final completion = completions.singleWhere((c) => c.label == label);
-    expect(completion, isNotNull);
-
-    return resolveCompletion(completion);
-  }
-
-  Future<List<SelectionRange>?> getSelectionRanges(
-      Uri uri, List<Position> positions) {
-    final request = makeRequest(
-      Method.textDocument_selectionRange,
-      SelectionRangeParams(
-          textDocument: TextDocumentIdentifier(uri: uri), positions: positions),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(SelectionRange.fromJson));
-  }
-
-  Future<SemanticTokens> getSemanticTokens(Uri uri) {
-    final request = makeRequest(
-      Method.textDocument_semanticTokens_full,
-      SemanticTokensParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-      ),
-    );
-    return expectSuccessfulResponseTo(request, SemanticTokens.fromJson);
-  }
-
-  Future<SemanticTokens> getSemanticTokensRange(Uri uri, Range range) {
-    final request = makeRequest(
-      Method.textDocument_semanticTokens_range,
-      SemanticTokensRangeParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        range: range,
-      ),
-    );
-    return expectSuccessfulResponseTo(request, SemanticTokens.fromJson);
-  }
-
-  Future<SignatureHelp?> getSignatureHelp(Uri uri, Position pos,
-      [SignatureHelpContext? context]) {
-    final request = makeRequest(
-      Method.textDocument_signatureHelp,
-      SignatureHelpParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-        context: context,
-      ),
-    );
-    return expectSuccessfulResponseTo(request, SignatureHelp.fromJson);
-  }
-
-  Future<Location> getSuper(
-    Uri uri,
-    Position pos,
-  ) {
-    final request = makeRequest(
-      CustomMethods.super_,
-      TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(request, Location.fromJson);
-  }
-
-  Future<TextDocumentTypeDefinitionResult> getTypeDefinition(
-      Uri uri, Position pos) {
-    final request = makeRequest(
-      Method.textDocument_typeDefinition,
-      TypeDefinitionParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-
-    // TextDocumentTypeDefinitionResult is a nested Either, so we need to handle
-    // nested fromJson/canParse here.
-    // TextDocumentTypeDefinitionResult: Either2<Definition, List<DefinitionLink>>?
-    // Definition: Either2<List<Location>, Location>
-
-    // Definition = Either2<List<Location>, Location>
-    final definitionCanParse = _generateCanParseFor(
-      _canParseList(Location.canParse),
-      Location.canParse,
-    );
-    final definitionFromJson = _generateFromJsonFor(
-      _canParseList(Location.canParse),
-      _fromJsonList(Location.fromJson),
-      Location.canParse,
-      Location.fromJson,
-    );
-
-    return expectSuccessfulResponseTo(
-      request,
-      _generateFromJsonFor(
-          definitionCanParse,
-          definitionFromJson,
-          _canParseList(DefinitionLink.canParse),
-          _fromJsonList(DefinitionLink.fromJson)),
-    );
-  }
-
-  Future<List<Location>> getTypeDefinitionAsLocation(
-      Uri uri, Position pos) async {
-    final results = (await getTypeDefinition(uri, pos))!;
-    return results.map(
-      (locationOrList) => locationOrList.map(
-        (locations) => locations,
-        (location) => [location],
-      ),
-      (locationLinks) => throw 'Expected Locations, got LocationLinks',
-    );
-  }
-
-  Future<List<LocationLink>> getTypeDefinitionAsLocationLinks(
-      Uri uri, Position pos) async {
-    final results = (await getTypeDefinition(uri, pos))!;
-    return results.map(
-      (locationOrList) => throw 'Expected LocationLinks, got Locations',
-      (locationLinks) => locationLinks,
-    );
-  }
-
-  Future<List<SymbolInformation>> getWorkspaceSymbols(String query) {
-    final request = makeRequest(
-      Method.workspace_symbol,
-      WorkspaceSymbolParams(query: query),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(SymbolInformation.fromJson));
-  }
+  /// Gets the current contents of a file.
+  ///
+  /// This is used to apply edits when the server sends workspace/applyEdit. It
+  /// should reflect the content that the client would have in this case, which
+  /// would be an overlay (if the file is open) or the underlying file.
+  String? getCurrentFileContent(Uri uri);
 
   /// Executes [f] then waits for a request of type [method] from the server which
   /// is passed to [handler] to process, then waits for (and returns) the
@@ -1559,9 +1061,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     String? rootPath,
     Uri? rootUri,
     List<Uri>? workspaceFolders,
-    TextDocumentClientCapabilities? textDocumentCapabilities,
-    WorkspaceClientCapabilities? workspaceCapabilities,
-    WindowClientCapabilities? windowCapabilities,
     Map<String, Object?>? experimentalCapabilities,
     Map<String, Object?>? initializationOptions,
     bool throwOnFailure = true,
@@ -1581,7 +1080,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       workspace: workspaceCapabilities,
       textDocument: textDocumentCapabilities,
       window: windowCapabilities,
-      experimental: experimentalCapabilities,
+      experimental: experimentalCapabilities ?? this.experimentalCapabilities,
     );
     _clientCapabilities = clientCapabilities;
 
@@ -1605,7 +1104,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         rootUri == null &&
         workspaceFolders == null &&
         !allowEmptyRootUri) {
-      rootUri = Uri.file(projectFolderPath);
+      rootUri = pathContext.toUri(projectFolderPath);
     }
     final request = makeRequest(
         Method.initialize,
@@ -1660,19 +1159,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           newName: newName, textDocument: docIdentifier, position: pos),
     );
     return request;
-  }
-
-  RequestMessage makeRequest(Method method, ToJsonable? params) {
-    final id = Either2<int, String>.t1(_id++);
-    return RequestMessage(
-      id: id,
-      method: method,
-      params: params,
-      jsonrpc: jsonRpcVersion,
-      clientRequestTime: includeClientRequestTime
-          ? DateTime.now().millisecondsSinceEpoch
-          : null,
-    );
   }
 
   /// Watches for `client/registerCapability` requests and updates
@@ -1754,53 +1240,24 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Position positionFromMarker(String contents) =>
       positionFromOffset(withoutRangeMarkers(contents).indexOf('^'), contents);
 
+  @override
   Position positionFromOffset(int offset, String contents) {
-    final lineInfo = LineInfo.fromContent(withoutMarkers(contents));
-    return toPosition(lineInfo.getLocation(offset));
-  }
-
-  Future<List<CallHierarchyItem>?> prepareCallHierarchy(Uri uri, Position pos) {
-    final request = makeRequest(
-      Method.textDocument_prepareCallHierarchy,
-      CallHierarchyPrepareParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(CallHierarchyItem.fromJson));
-  }
-
-  Future<PlaceholderAndRange?> prepareRename(Uri uri, Position pos) {
-    final request = makeRequest(
-      Method.textDocument_prepareRename,
-      TextDocumentPositionParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(request, PlaceholderAndRange.fromJson);
-  }
-
-  Future<List<TypeHierarchyItem>?> prepareTypeHierarchy(Uri uri, Position pos) {
-    final request = makeRequest(
-      Method.textDocument_prepareTypeHierarchy,
-      TypeHierarchyPrepareParams(
-        textDocument: TextDocumentIdentifier(uri: uri),
-        position: pos,
-      ),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(TypeHierarchyItem.fromJson));
+    return super.positionFromOffset(offset, withoutMarkers(contents));
   }
 
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
+  ///
+  /// Automatically enables `workspace/configuration` support.
   Future<T> provideConfig<T>(
     Future<T> Function() f,
     FutureOr<Map<String, Object?>> globalConfig, {
     FutureOr<Map<String, Map<String, Object?>>>? folderConfig,
   }) {
+    final self = this;
+    if (self is AbstractLspAnalysisServerTest) {
+      self.setConfigurationSupport();
+    }
     return handleExpectedRequest<T, ConfigurationParams,
         List<Map<String, Object?>>>(
       Method.workspace_configuration,
@@ -1817,7 +1274,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         return configurationParams.items.map(
           (requestedConfig) {
             final uri = requestedConfig.scopeUri;
-            final path = uri != null ? Uri.parse(uri).toFilePath() : null;
+            final path =
+                uri != null ? pathContext.fromUri(Uri.parse(uri)) : null;
             // Use the config the test provided for this path, or fall back to
             // global.
             return (folders != null ? folders[path] : null) ?? global;
@@ -1912,6 +1370,18 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
+  /// Formats a path relative to the project root always using forward slashes.
+  ///
+  /// This is used in the text format for comparing edits.
+  String relativePath(String filePath) => pathContext
+      .relative(filePath, from: projectFolderPath)
+      .replaceAll(r'\', '/');
+
+  /// Formats a path relative to the project root always using forward slashes.
+  ///
+  /// This is used in the text format for comparing edits.
+  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
+
   Future<WorkspaceEdit?> rename(
     Uri uri,
     int? version,
@@ -1943,14 +1413,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
   }
 
-  Future<CompletionItem> resolveCompletion(CompletionItem item) {
-    final request = makeRequest(
-      Method.completionItem_resolve,
-      item,
-    );
-    return expectSuccessfulResponseTo(request, CompletionItem.fromJson);
-  }
-
   /// Sends [responseParams] to the server as a successful response to
   /// a server-initiated [request].
   void respondTo<T>(RequestMessage request, T responseParams) {
@@ -1977,6 +1439,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   void sendResponseToServer(ResponseMessage response);
 
+  // This is the signature expected for LSP.
+  // https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#:~:text=Response%3A-,result%3A%20null,-error%3A%20code%20and
+  // ignore: prefer_void_to_null
   Future<Null> sendShutdown() {
     final request = makeRequest(Method.shutdown, null);
     return expectSuccessfulResponseTo(request, (result) => result as Null);
@@ -2020,28 +1485,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
         .map((notification) => PublishDiagnosticsParams.fromJson(
             notification.params as Map<String, Object?>))
         .listen((diagnostics) {
-      latestDiagnostics[diagnostics.uri.toFilePath()] = diagnostics.diagnostics;
+      latestDiagnostics[pathContext.fromUri(diagnostics.uri)] =
+          diagnostics.diagnostics;
     });
-  }
-
-  Future<List<TypeHierarchyItem>?> typeHierarchySubtypes(
-      TypeHierarchyItem item) {
-    final request = makeRequest(
-      Method.typeHierarchy_subtypes,
-      TypeHierarchySubtypesParams(item: item),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(TypeHierarchyItem.fromJson));
-  }
-
-  Future<List<TypeHierarchyItem>?> typeHierarchySupertypes(
-      TypeHierarchyItem item) {
-    final request = makeRequest(
-      Method.typeHierarchy_supertypes,
-      TypeHierarchySupertypesParams(item: item),
-    );
-    return expectSuccessfulResponseTo(
-        request, _fromJsonList(TypeHierarchyItem.fromJson));
   }
 
   /// Tells the server the config has changed, and provides the supplied config
@@ -2166,18 +1612,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   String withoutRangeMarkers(String contents) =>
       contents.replaceAll(rangeMarkerStart, '').replaceAll(rangeMarkerEnd, '');
 
-  bool Function(Object?, LspJsonReporter) _canParseList<T>(
-          bool Function(Map<String, Object?>, LspJsonReporter) canParse) =>
-      (input, reporter) =>
-          input is List &&
-          input
-              .cast<Map<String, Object?>>()
-              .every((item) => canParse(item, reporter));
-
-  List<T> Function(List<Object?>) _fromJsonList<T>(
-          T Function(Map<String, Object?>) fromJson) =>
-      (input) => input.cast<Map<String, Object?>>().map(fromJson).toList();
-
   Future<void> _handleProgress(NotificationMessage request) async {
     final params =
         ProgressParams.fromJson(request.params as Map<String, Object?>);
@@ -2212,66 +1646,5 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   bool _isErrorNotification(NotificationMessage notification) {
     return notification.method == Method.window_logMessage ||
         notification.method == Method.window_showMessage;
-  }
-
-  /// Creates a `canParse()` function for an `Either2<T1, T2>` using
-  /// the `canParse` function for each type.
-  static bool Function(Object?, LspJsonReporter) _generateCanParseFor<T1, T2>(
-    bool Function(Object?, LspJsonReporter) canParse1,
-    bool Function(Object?, LspJsonReporter) canParse2,
-  ) {
-    return (input, reporter) =>
-        canParse1(input, reporter) || canParse2(input, reporter);
-  }
-
-  /// Creates a `fromJson()` function for an `Either2<T1, T2>` using
-  /// the `canParse` and `fromJson` functions for each type.
-  static Either2<T1, T2> Function(Object?) _generateFromJsonFor<T1, T2, R1, R2>(
-      bool Function(Object?, LspJsonReporter) canParse1,
-      T1 Function(R1) fromJson1,
-      bool Function(Object?, LspJsonReporter) canParse2,
-      T2 Function(R2) fromJson2,
-      [LspJsonReporter? reporter]) {
-    reporter ??= nullLspJsonReporter;
-    return (input) {
-      reporter!;
-      if (canParse1(input, reporter)) {
-        return Either2<T1, T2>.t1(fromJson1(input as R1));
-      }
-      if (canParse2(input, reporter)) {
-        return Either2<T1, T2>.t2(fromJson2(input as R2));
-      }
-      throw '$input was not one of ($T1, $T2)';
-    };
-  }
-}
-
-class _TextEditWithIndex {
-  final int index;
-  final TextEdit edit;
-
-  _TextEditWithIndex(this.index, this.edit);
-
-  _TextEditWithIndex.fromUnion(
-      this.index, Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit)
-      : edit = edit.map((e) => e, (e) => e, (e) => e);
-
-  /// Compares two [_TextEditWithIndex] to sort them by the order in which they
-  /// can be sequentially applied to a String to match the behaviour of an LSP
-  /// client.
-  static int compare(_TextEditWithIndex edit1, _TextEditWithIndex edit2) {
-    final end1 = edit1.edit.range.end;
-    final end2 = edit2.edit.range.end;
-
-    // VS Code's implementation of this is here:
-    // https://github.com/microsoft/vscode/blob/856a306d1a9b0879727421daf21a8059e671e3ea/src/vs/editor/common/model/pieceTreeTextBuffer/pieceTreeTextBuffer.ts#L475
-
-    if (end1.line != end2.line) {
-      return end1.line.compareTo(end2.line) * -1;
-    } else if (end1.character != end2.character) {
-      return end1.character.compareTo(end2.character) * -1;
-    } else {
-      return edit1.index.compareTo(edit2.index) * -1;
-    }
   }
 }

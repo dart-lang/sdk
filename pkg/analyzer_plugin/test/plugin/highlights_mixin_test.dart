@@ -4,7 +4,6 @@
 
 import 'dart:async';
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/plugin/highlights_mixin.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
@@ -74,8 +73,7 @@ class _TestHighlightsContributor implements HighlightsContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with HighlightsMixin {
-  _TestServerPlugin(ResourceProvider resourceProvider)
-      : super(resourceProvider);
+  _TestServerPlugin(super.resourceProvider);
 
   @override
   List<HighlightsContributor> getHighlightsContributors(String path) {

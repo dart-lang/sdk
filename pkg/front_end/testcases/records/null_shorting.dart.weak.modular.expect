@@ -73,15 +73,15 @@ class Class extends core::Object {
 }
 extension /* unnamed */ _extension#0 on core::int {
   method call = self::_extension#0|call;
-  tearoff call = self::_extension#0|get#call;
+  method tearoff call = self::_extension#0|get#call;
 }
 extension /* unnamed */ _extension#1 on core::String {
   method call = self::_extension#1|call;
-  tearoff call = self::_extension#1|get#call;
+  method tearoff call = self::_extension#1|get#call;
 }
 extension /* unnamed */ _extension#2 on core::double {
   method call = self::_extension#2|call;
-  tearoff call = self::_extension#2|get#call;
+  method tearoff call = self::_extension#2|get#call;
 }
 static method test((core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})? record, core::List<(core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})>? list) → dynamic {
   invalid-expression "pkg/front_end/testcases/records/null_shorting.dart:7:10: Error: Property '\$1' cannot be accessed on '(int, String, {Class c, double d, void Function() f})?' because it is potentially null.

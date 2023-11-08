@@ -8,12 +8,10 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../builder/builder.dart';
-import '../builder/declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_class_builder.dart';
@@ -25,10 +23,10 @@ import '../source/source_class_builder.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
+import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
 import '../source/source_function_builder.dart';
-import '../source/source_inline_class_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_procedure_builder.dart';
@@ -234,8 +232,8 @@ abstract class BodyBuilderDeclarationContext {
       } else if (declarationBuilder is DillClassBuilder) {
         return new _DillClassBodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
-      } else if (declarationBuilder is SourceInlineClassBuilder) {
-        return new _SourceInlineClassBodyBuilderDeclarationContext(
+      } else if (declarationBuilder is SourceExtensionTypeDeclarationBuilder) {
+        return new _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext(
             libraryBuilder, declarationBuilder);
       } else {
         return new _DeclarationBodyBuilderDeclarationContext(
@@ -424,12 +422,12 @@ class _DillClassBodyBuilderDeclarationContext
   }
 }
 
-class _SourceInlineClassBodyBuilderDeclarationContext
+class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
     extends BodyBuilderDeclarationContext
     with _DeclarationBodyBuilderDeclarationContextMixin {
-  final SourceInlineClassBuilder _sourceClassBuilder;
+  final SourceExtensionTypeDeclarationBuilder _sourceClassBuilder;
 
-  _SourceInlineClassBodyBuilderDeclarationContext(
+  _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext(
       LibraryBuilder libraryBuilder, this._sourceClassBuilder)
       : super._(libraryBuilder);
 
@@ -452,7 +450,7 @@ class _SourceInlineClassBodyBuilderDeclarationContext
       covariant SourceConstructorBuilder constructorBuilder,
       Arguments arguments,
       {required int fileOffset}) {
-    return new InlineClassRedirectingInitializer(
+    return new ExtensionTypeRedirectingInitializer(
         constructorBuilder.invokeTarget as Procedure, arguments)
       ..fileOffset = fileOffset;
   }
@@ -519,11 +517,13 @@ class ExtensionBodyBuilderContext extends BodyBuilderContext
             isDeclarationInstanceMember: false);
 }
 
-class InlineClassBodyBuilderContext extends BodyBuilderContext
-    with _DeclarationBodyBuilderContext<SourceInlineClassBuilder> {
-  InlineClassBodyBuilderContext(
-      SourceInlineClassBuilder sourceInlineClassBuilder)
-      : super(sourceInlineClassBuilder.libraryBuilder, sourceInlineClassBuilder,
+class ExtensionTypeBodyBuilderContext extends BodyBuilderContext
+    with _DeclarationBodyBuilderContext<SourceExtensionTypeDeclarationBuilder> {
+  ExtensionTypeBodyBuilderContext(
+      SourceExtensionTypeDeclarationBuilder
+          sourceExtensionTypeDeclarationBuilder)
+      : super(sourceExtensionTypeDeclarationBuilder.libraryBuilder,
+            sourceExtensionTypeDeclarationBuilder,
             isDeclarationInstanceMember: false);
 }
 
@@ -769,16 +769,16 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext
   }
 }
 
-class InlineClassConstructorBodyBuilderContext extends BodyBuilderContext
+class ExtensionTypeConstructorBodyBuilderContext extends BodyBuilderContext
     with
-        _FunctionBodyBuilderContextMixin<SourceInlineClassConstructorBuilder>,
+        _FunctionBodyBuilderContextMixin<SourceExtensionTypeConstructorBuilder>,
         _ConstructorBodyBuilderContextMixin<
-            SourceInlineClassConstructorBuilder>,
-        _MemberBodyBuilderContext<SourceInlineClassConstructorBuilder> {
+            SourceExtensionTypeConstructorBuilder>,
+        _MemberBodyBuilderContext<SourceExtensionTypeConstructorBuilder> {
   @override
-  final SourceInlineClassConstructorBuilder _member;
+  final SourceExtensionTypeConstructorBuilder _member;
 
-  InlineClassConstructorBodyBuilderContext(this._member)
+  ExtensionTypeConstructorBodyBuilderContext(this._member)
       : super(_member.libraryBuilder, _member.declarationBuilder,
             isDeclarationInstanceMember: _member.isDeclarationInstanceMember);
 

@@ -13,17 +13,10 @@ class List<E> {
   }
 
   @patch
-  factory List.filled(int length, E fill, {bool growable = false}) {
-    // All error handling on the length parameter is done at the implementation
-    // of new _List.
-    var result = growable ? new _GrowableList<E>(length) : new _List<E>(length);
-    if (fill != null) {
-      for (int i = 0; i < length; i++) {
-        result[i] = fill;
-      }
-    }
-    return result;
-  }
+  @pragma("vm:prefer-inline")
+  factory List.filled(int length, E fill, {bool growable = false}) => growable
+      ? _GrowableList<E>.filled(length, fill)
+      : _List<E>.filled(length, fill);
 
   @patch
   factory List.from(Iterable elements, {bool growable = true}) {
@@ -32,8 +25,7 @@ class List<E> {
     if (elements is Iterable<E>) {
       return List.of(elements, growable: growable);
     }
-
-    List<E> list = new _GrowableList<E>(0);
+    List<E> list = _GrowableList<E>(0);
     for (E e in elements) {
       list.add(e);
     }
@@ -42,29 +34,21 @@ class List<E> {
   }
 
   @patch
-  factory List.of(Iterable<E> elements, {bool growable = true}) {
-    if (growable) {
-      return _GrowableList.of(elements);
-    } else {
-      return _List.of(elements);
-    }
-  }
+  @pragma("vm:prefer-inline")
+  factory List.of(Iterable<E> elements, {bool growable = true}) =>
+      growable ? _GrowableList<E>.of(elements) : _List<E>.of(elements);
 
   @patch
   @pragma("vm:prefer-inline")
   factory List.generate(int length, E generator(int index),
-      {bool growable = true}) {
-    final List<E> result =
-        growable ? new _GrowableList<E>(length) : new _List<E>(length);
-    for (int i = 0; i < result.length; ++i) {
-      result[i] = generator(i);
-    }
-    return result;
-  }
+          {bool growable = true}) =>
+      growable
+          ? _GrowableList<E>.generate(length, generator)
+          : _List<E>.generate(length, generator);
 
   @patch
   factory List.unmodifiable(Iterable elements) {
-    final result = new List<E>.from(elements, growable: false);
+    final result = List<E>.from(elements, growable: false);
     return makeFixedListUnmodifiable(result);
   }
 }

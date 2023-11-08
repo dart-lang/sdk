@@ -477,6 +477,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.nullabilitySuffix,
     super.alias,
   }) {
+    if (element.isAugmentation) {
+      throw ArgumentError(
+        'InterfaceType(s) can only be created for declarations',
+      );
+    }
     var typeParameters = element.typeParameters;
     if (typeArguments.length != typeParameters.length) {
       throw ArgumentError(
@@ -651,6 +656,27 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   String get name => element.name;
 
+  /// The instantiated representation type, if [element] is an extension type.
+  DartType? get representationType {
+    if (element case ExtensionTypeElement element) {
+      final substitution = Substitution.fromInterfaceType(this);
+      final representationType = element.representation.type;
+      return substitution.substituteType(representationType);
+    }
+    return null;
+  }
+
+  /// The instantiated representation type erasure, if [element] is an
+  /// extension type.
+  DartType? get representationTypeErasure {
+    if (element case ExtensionTypeElement element) {
+      final substitution = Substitution.fromInterfaceType(this);
+      final typeErasure = element.typeErasure;
+      return substitution.substituteType(typeErasure);
+    }
+    return null;
+  }
+
   @override
   InterfaceType? get superclass {
     var supertype = element.supertype;
@@ -789,7 +815,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as AbstractClassElementImpl;
+      final element = this.element as InterfaceElementImpl;
       return element.lookupStaticGetter(name, library);
     }
 
@@ -828,7 +854,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as AbstractClassElementImpl;
+      final element = this.element as InterfaceElementImpl;
       return element.lookupStaticMethod(name, library);
     }
 
@@ -867,7 +893,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as AbstractClassElementImpl;
+      final element = this.element as InterfaceElementImpl;
       return element.lookupStaticSetter(name, library);
     }
 

@@ -25,6 +25,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
@@ -326,7 +327,8 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         final selectionFunctionExpression = _selectionFunctionExpression;
         if (selectionFunctionExpression != null) {
           var returnTypeCode = _getExpectedClosureReturnTypeCode();
-          declarationSource = '$returnTypeCode$name$returnExpressionSource';
+          declarationSource =
+              '$annotations$returnTypeCode$name$returnExpressionSource';
           if (selectionFunctionExpression.body is ExpressionFunctionBody) {
             declarationSource += ';';
           }
@@ -444,6 +446,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
     if (parent is ClassDeclaration) {
       interfaceElement = parent.declaredElement!;
     } else if (parent is EnumDeclaration) {
+      interfaceElement = parent.declaredElement!;
+    } else if (parent is ExtensionTypeDeclaration) {
+      interfaceElement = parent.declaredElement!;
+    } else if (parent is MixinDeclaration) {
       interfaceElement = parent.declaredElement!;
     }
     if (interfaceElement != null) {
@@ -1227,6 +1233,16 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
       _tryToFindOccurrence(nodeRange);
     }
     super.visitExpression(node);
+  }
+
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    forceStatic = node.isStatic;
+    try {
+      super.visitFieldDeclaration(node);
+    } finally {
+      forceStatic = false;
+    }
   }
 
   @override

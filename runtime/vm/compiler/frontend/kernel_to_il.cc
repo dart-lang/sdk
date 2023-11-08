@@ -84,7 +84,6 @@ FlowGraphBuilder::FlowGraphBuilder(
       loop_depth_(0),
       try_depth_(0),
       catch_depth_(0),
-      for_in_depth_(0),
       block_expression_depth_(0),
       graph_entry_(nullptr),
       scopes_(nullptr),
@@ -95,9 +94,9 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_block_(nullptr),
       prepend_type_arguments_(Function::ZoneHandle(zone_)),
       throw_new_null_assertion_(Function::ZoneHandle(zone_)) {
-  const Script& script =
-      Script::Handle(Z, parsed_function->function().script());
-  H.InitFromScript(script);
+  const auto& info = KernelProgramInfo::Handle(
+      Z, parsed_function->function().KernelProgramInfo());
+  H.InitFromKernelProgramInfo(info);
 }
 
 FlowGraphBuilder::~FlowGraphBuilder() {}
@@ -491,8 +490,9 @@ Fragment FlowGraphBuilder::ThrowLateInitializationError(
     TokenPosition position,
     const char* throw_method_name,
     const String& name) {
+  const auto& dart_internal = Library::Handle(Z, Library::InternalLibrary());
   const Class& klass =
-      Class::ZoneHandle(Z, Library::LookupCoreClass(Symbols::LateError()));
+      Class::ZoneHandle(Z, dart_internal.LookupClass(Symbols::LateError()));
   ASSERT(!klass.IsNull());
 
   const auto& error = klass.EnsureIsFinalized(thread_);
@@ -810,8 +810,8 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   }
 #endif
 
-  auto& kernel_data = ExternalTypedData::Handle(Z, function.KernelData());
-  intptr_t kernel_data_program_offset = function.KernelDataProgramOffset();
+  auto& kernel_data = TypedDataView::Handle(Z, function.KernelLibrary());
+  intptr_t kernel_data_program_offset = function.KernelLibraryOffset();
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, kernel_data, kernel_data_program_offset);
@@ -925,6 +925,11 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kSuspendState_clone:
     case MethodRecognizer::kSuspendState_resume:
+    case MethodRecognizer::kTypedData_memMove1:
+    case MethodRecognizer::kTypedData_memMove2:
+    case MethodRecognizer::kTypedData_memMove4:
+    case MethodRecognizer::kTypedData_memMove8:
+    case MethodRecognizer::kTypedData_memMove16:
     case MethodRecognizer::kTypedData_ByteDataView_factory:
     case MethodRecognizer::kTypedData_Int8ArrayView_factory:
     case MethodRecognizer::kTypedData_Uint8ArrayView_factory:
@@ -985,6 +990,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadPointer:
     case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1132,6 +1138,22 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += TailCall(resume_stub);
       break;
     }
+    case MethodRecognizer::kTypedData_memMove1:
+      // Pick an appropriate typed data cid based on the element size.
+      body += BuildTypedDataMemMove(function, kTypedDataUint8ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_memMove2:
+      body += BuildTypedDataMemMove(function, kTypedDataUint16ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_memMove4:
+      body += BuildTypedDataMemMove(function, kTypedDataUint32ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_memMove8:
+      body += BuildTypedDataMemMove(function, kTypedDataUint64ArrayCid);
+      break;
+    case MethodRecognizer::kTypedData_memMove16:
+      body += BuildTypedDataMemMove(function, kTypedDataInt32x4ArrayCid);
+      break;
 #define CASE(name)                                                             \
   case MethodRecognizer::kTypedData_##name##_factory:                          \
     body += BuildTypedDataFactoryConstructor(function, kTypedData##name##Cid); \
@@ -1214,7 +1236,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(parsed_function_->RawParameterVariable(3));
       body += LoadLocal(parsed_function_->RawParameterVariable(4));
       body += MemoryCopy(kTypedDataUint8ArrayCid, kOneByteStringCid,
-                         /*unboxed_length=*/false);
+                         /*unboxed_inputs=*/false,
+                         /*can_overlap=*/false);
       body += NullConstant();
       break;
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
@@ -1260,7 +1283,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadLocal(arg_length_in_bytes);
       // Pointers and TypedData have the same layout.
       body += MemoryCopy(kTypedDataUint8ArrayCid, kTypedDataUint8ArrayCid,
-                         /*unboxed_length=*/false);
+                         /*unboxed_inputs=*/false,
+                         /*can_overlap=*/true);
       body += NullConstant();
     } break;
     case MethodRecognizer::kFfiAbi:
@@ -1268,7 +1292,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
     case MethodRecognizer::kFfiNativeCallbackFunction:
-    case MethodRecognizer::kFfiNativeAsyncCallbackFunction: {
+    case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
+    case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction: {
       const auto& error = String::ZoneHandle(
           Z, Symbols::New(thread_,
                           "This function should be handled on call site."));
@@ -1552,14 +1577,26 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
           ((kind == MethodRecognizer::kDoubleTruncateToDouble) ||
            (kind == MethodRecognizer::kDoubleFloorToDouble) ||
            (kind == MethodRecognizer::kDoubleCeilToDouble))) {
-        body += DoubleToDouble(kind);
+        switch (kind) {
+          case MethodRecognizer::kDoubleTruncateToDouble:
+            body += UnaryDoubleOp(Token::kTRUNCATE);
+            break;
+          case MethodRecognizer::kDoubleFloorToDouble:
+            body += UnaryDoubleOp(Token::kFLOOR);
+            break;
+          case MethodRecognizer::kDoubleCeilToDouble:
+            body += UnaryDoubleOp(Token::kCEILING);
+            break;
+          default:
+            UNREACHABLE();
+        }
       } else {
         body += InvokeMathCFunction(kind, function.NumParameters());
       }
     } break;
     case MethodRecognizer::kMathSqrt: {
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += MathUnary(MathUnaryInstr::kSqrt);
+      body += UnaryDoubleOp(Token::kSQRT);
     } break;
     case MethodRecognizer::kFinalizerBase_setIsolate:
       ASSERT_EQUAL(function.NumParameters(), 1);
@@ -1728,6 +1765,89 @@ Fragment FlowGraphBuilder::BuildTypedDataViewFactoryConstructor(
   return body;
 }
 
+Fragment FlowGraphBuilder::BuildTypedDataMemMove(const Function& function,
+                                                 intptr_t cid) {
+  ASSERT_EQUAL(parsed_function_->function().NumParameters(), 5);
+  LocalVariable* arg_to = parsed_function_->RawParameterVariable(0);
+  LocalVariable* arg_to_start = parsed_function_->RawParameterVariable(1);
+  LocalVariable* arg_count = parsed_function_->RawParameterVariable(2);
+  LocalVariable* arg_from = parsed_function_->RawParameterVariable(3);
+  LocalVariable* arg_from_start = parsed_function_->RawParameterVariable(4);
+
+  Fragment body;
+  // If we're copying at least this many elements, calling memmove via CCall
+  // is faster than using the code currently emitted by MemoryCopy.
+#if defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_IA32)
+  // On X86, the breakpoint for using CCall instead of generating a loop via
+  // MemoryCopy() is around the same as the largest benchmark (1048576 elements)
+  // on the machines we use.
+  const intptr_t kCopyLengthForCCall = 1024 * 1024;
+#else
+  // On other architectures, when the element size is less than a word,
+  // we copy in word-sized chunks when possible to get back some speed without
+  // increasing the number of emitted instructions for MemoryCopy too much, but
+  // memmove is even more aggressive, copying in 64-byte chunks when possible.
+  // Thus, the breakpoint for a call to memmove being faster is much lower for
+  // our benchmarks than for X86.
+  const intptr_t kCopyLengthForCCall = 1024;
+#endif
+
+  JoinEntryInstr* done = BuildJoinEntry();
+  TargetEntryInstr *is_small_enough, *is_too_large;
+  body += LoadLocal(arg_count);
+  body += IntConstant(kCopyLengthForCCall);
+  body += SmiRelationalOp(Token::kLT);
+  body += BranchIfTrue(&is_small_enough, &is_too_large);
+
+  Fragment use_instruction(is_small_enough);
+  use_instruction += LoadLocal(arg_from);
+  use_instruction += LoadLocal(arg_to);
+  use_instruction += LoadLocal(arg_from_start);
+  use_instruction += LoadLocal(arg_to_start);
+  use_instruction += LoadLocal(arg_count);
+  use_instruction += MemoryCopy(cid, cid,
+                                /*unboxed_inputs=*/false, /*can_overlap=*/true);
+  use_instruction += Goto(done);
+
+  const intptr_t element_size = Instance::ElementSizeFor(cid);
+  Fragment call_memmove(is_too_large);
+  call_memmove += LoadLocal(arg_to);
+  call_memmove += LoadUntagged(compiler::target::PointerBase::data_offset());
+  call_memmove += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  call_memmove += LoadLocal(arg_to_start);
+  call_memmove += IntConstant(element_size);
+  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove +=
+      BinaryIntegerOp(Token::kADD, kUnboxedIntPtr, /*is_truncating=*/true);
+  call_memmove += LoadLocal(arg_from);
+  call_memmove += LoadUntagged(compiler::target::PointerBase::data_offset());
+  call_memmove += ConvertUntaggedToUnboxed(kUnboxedIntPtr);
+  call_memmove += LoadLocal(arg_from_start);
+  call_memmove += IntConstant(element_size);
+  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove +=
+      BinaryIntegerOp(Token::kADD, kUnboxedIntPtr, /*is_truncating=*/true);
+  call_memmove += LoadLocal(arg_count);
+  call_memmove += IntConstant(element_size);
+  call_memmove += SmiBinaryOp(Token::kMUL, /*is_truncating=*/true);
+  call_memmove += UnboxTruncate(kUnboxedIntPtr);
+  call_memmove += LoadThread();
+  call_memmove += LoadUntagged(
+      compiler::target::Thread::OffsetFromThread(&kMemoryMoveRuntimeEntry));
+  call_memmove +=
+      ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);  // function address.
+  call_memmove += CCall(3);
+  call_memmove += Drop();
+  call_memmove += Goto(done);
+
+  body.current = done;
+  body += NullConstant();
+
+  return body;
+}
+
 Fragment FlowGraphBuilder::BuildTypedDataFactoryConstructor(
     const Function& function,
     classid_t cid) {
@@ -1752,9 +1872,9 @@ static const LocalScope* MakeImplicitClosureScope(Zone* Z, const Class& klass) {
   // and not the signature type.
   Type& klass_type = Type::ZoneHandle(Z, klass.DeclarationType());
 
-  LocalVariable* receiver_variable = new (Z) LocalVariable(
-      TokenPosition::kNoSource, TokenPosition::kNoSource, Symbols::This(),
-      klass_type, LocalVariable::kNoKernelOffset, /*param_type=*/nullptr);
+  LocalVariable* receiver_variable =
+      new (Z) LocalVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
+                            Symbols::This(), klass_type);
 
   receiver_variable->set_is_captured();
   //  receiver_variable->set_is_final();
@@ -2036,7 +2156,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
       param = parsed_function_->RawParameterVariable(i);
     }
 
-    const AbstractType* target_type = &param->type();
+    const AbstractType* target_type = &param->static_type();
     if (forwarding_target != nullptr) {
       // We add 1 to the parameter index to account for the receiver.
       target_type =
@@ -2545,9 +2665,9 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   LocalVariable* closure_data = MakeTemporary("closure_data");
 
   store_default += LoadLocal(closure_data);
-  const auto& slot = Slot::ClosureData_default_type_arguments_kind();
-  store_default += LoadNativeField(slot);
-  store_default += Box(slot.representation());
+  store_default += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      ClosureData::PackedDefaultTypeArgumentsKind>(
+      Slot::ClosureData_packed_fields());
   LocalVariable* default_tav_kind = MakeTemporary("default_tav_kind");
 
   // Two locals to drop after join, closure_data and default_tav_kind.
@@ -3853,7 +3973,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFieldAccessor(
     const bool needs_type_check = function.IsDynamicInvocationForwarder() ||
                                   setter_value->needs_type_check();
     if (needs_type_check) {
-      body += CheckAssignable(setter_value->type(), setter_value->name(),
+      body += CheckAssignable(setter_value->static_type(), setter_value->name(),
                               AssertAssignableInstr::kParameterCheck,
                               field.token_pos());
     }
@@ -4141,7 +4261,7 @@ Fragment FlowGraphBuilder::AllocateHandle() {
       compiler::target::Thread::OffsetFromThread(&kAllocateHandleRuntimeEntry));
   code += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);  // function address.
 
-  code += CCall(/*num_arguments=*/1);
+  code += CCall(/*num_arguments=*/1, kUnboxedIntPtr);
 
   return code;
 }
@@ -4740,15 +4860,17 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
-  if (function.FfiCallbackTarget() != Function::null()) {
-    if (function.GetFfiCallbackKind() == FfiCallbackKind::kSync) {
+  switch (function.GetFfiFunctionKind()) {
+    case FfiFunctionKind::kIsolateLocalStaticCallback:
+    case FfiFunctionKind::kIsolateLocalClosureCallback:
       return BuildGraphOfSyncFfiCallback(function);
-    } else {
+    case FfiFunctionKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
-    }
-  } else {
-    return BuildGraphOfFfiNative(function);
+    case FfiFunctionKind::kCall:
+      return BuildGraphOfFfiNative(function);
   }
+  UNREACHABLE();
+  return nullptr;
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
@@ -4966,6 +5088,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
+  const bool is_closure = function.GetFfiFunctionKind() ==
+                          FfiFunctionKind::kIsolateLocalClosureCallback;
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
@@ -4985,19 +5109,46 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   Fragment body = TryCatch(try_handler_index);
   ++try_depth_;
 
+  LocalVariable* closure = nullptr;
+  if (is_closure) {
+    // Load and unwrap closure persistent handle.
+    body += LoadThread();
+    body +=
+        LoadUntagged(compiler::target::Thread::unboxed_runtime_arg_offset());
+    body += RawLoadField(compiler::target::PersistentHandle::ptr_offset());
+    closure = MakeTemporary();
+  }
+
   // Box and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
     body += LoadNativeArg(marshaller, i);
   }
 
-  // Call the target.
-  //
-  // TODO(36748): Determine the hot-reload semantics of callbacks and update the
-  // rebind-rule accordingly.
-  body += StaticCall(TokenPosition::kNoSource,
-                     Function::ZoneHandle(Z, function.FfiCallbackTarget()),
-                     marshaller.num_args(), Array::empty_array(),
-                     ICData::kNoRebind);
+  if (is_closure) {
+    // Call the target. The +1 in the argument count is because the closure
+    // itself is the first argument.
+    const intptr_t argument_count = marshaller.num_args() + 1;
+    body += LoadLocal(closure);
+    if (!FLAG_precompiled_mode) {
+      // The ClosureCallInstr() takes one explicit input (apart from arguments).
+      // It uses it to find the target address (in AOT from
+      // Closure::entry_point, in JIT from Closure::function_::entry_point).
+      body += LoadNativeField(Slot::Closure_function());
+    }
+    body +=
+        ClosureCall(Function::null_function(), TokenPosition::kNoSource,
+                    /*type_args_len=*/0, argument_count, Array::null_array());
+  } else {
+    // Call the target.
+    //
+    // TODO(36748): Determine the hot-reload semantics of callbacks and update
+    // the rebind-rule accordingly.
+    body += StaticCall(TokenPosition::kNoSource,
+                       Function::ZoneHandle(Z, function.FfiCallbackTarget()),
+                       marshaller.num_args(), Array::empty_array(),
+                       ICData::kNoRebind);
+  }
+
   if (marshaller.IsVoid(compiler::ffi::kResultIndex)) {
     body += Drop();
     body += IntConstant(0);
@@ -5150,7 +5301,7 @@ void FlowGraphBuilder::SetCurrentTryCatchBlock(TryCatchBlock* try_catch_block) {
 
 Fragment FlowGraphBuilder::NullAssertion(LocalVariable* variable) {
   Fragment code;
-  if (!variable->type().NeedsNullAssertion()) {
+  if (!variable->static_type().NeedsNullAssertion()) {
     return code;
   }
 

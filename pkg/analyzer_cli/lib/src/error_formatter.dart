@@ -223,10 +223,8 @@ class HumanErrorFormatter extends ErrorFormatter {
   // This is a Set in order to de-dup CLI errors.
   final Set<CLIError> batchedErrors = {};
 
-  HumanErrorFormatter(
-      StringSink out, CommandLineOptions options, AnalysisStats stats,
-      {SeverityProcessor? severityProcessor})
-      : super(out, options, stats, severityProcessor: severityProcessor);
+  HumanErrorFormatter(super.out, super.options, super.stats,
+      {super.severityProcessor});
 
   @override
   void flush() {
@@ -340,10 +338,8 @@ class HumanErrorFormatter extends ErrorFormatter {
 }
 
 class JsonErrorFormatter extends ErrorFormatter {
-  JsonErrorFormatter(
-      StringSink out, CommandLineOptions options, AnalysisStats stats,
-      {SeverityProcessor? severityProcessor})
-      : super(out, options, stats, severityProcessor: severityProcessor);
+  JsonErrorFormatter(super.out, super.options, super.stats,
+      {super.severityProcessor});
 
   @override
   void flush() {}
@@ -431,10 +427,8 @@ class MachineErrorFormatter extends ErrorFormatter {
   static final int _return = '\r'.codeUnitAt(0);
   final Set<AnalysisError> _seenErrors = <AnalysisError>{};
 
-  MachineErrorFormatter(
-      StringSink out, CommandLineOptions options, AnalysisStats stats,
-      {SeverityProcessor? severityProcessor})
-      : super(out, options, stats, severityProcessor: severityProcessor);
+  MachineErrorFormatter(super.out, super.options, super.stats,
+      {super.severityProcessor});
 
   @override
   void flush() {}

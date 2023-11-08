@@ -432,6 +432,8 @@ class MicroAssembler : public AssemblerBase {
   void feqs(Register rd, FRegister rs1, FRegister rs2);
   void flts(Register rd, FRegister rs1, FRegister rs2);
   void fles(Register rd, FRegister rs1, FRegister rs2);
+  void fgts(Register rd, FRegister rs1, FRegister rs2) { flts(rd, rs2, rs1); }
+  void fges(Register rd, FRegister rs1, FRegister rs2) { fles(rd, rs2, rs1); }
   void fclasss(Register rd, FRegister rs1);
   // int32_t <- float
   void fcvtws(Register rd, FRegister rs1, RoundingMode rounding = RNE);
@@ -517,6 +519,8 @@ class MicroAssembler : public AssemblerBase {
   void feqd(Register rd, FRegister rs1, FRegister rs2);
   void fltd(Register rd, FRegister rs1, FRegister rs2);
   void fled(Register rd, FRegister rs1, FRegister rs2);
+  void fgtd(Register rd, FRegister rs1, FRegister rs2) { fltd(rd, rs2, rs1); }
+  void fged(Register rd, FRegister rs1, FRegister rs2) { fled(rd, rs2, rs1); }
   void fclassd(Register rd, FRegister rs1);
   // int32_t <- double
   void fcvtwd(Register rd, FRegister rs1, RoundingMode rounding = RNE);
@@ -872,7 +876,7 @@ class Assembler : public MicroAssembler {
     StoreToOffset(src, base, offset, kWordBytes);
   }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Register addr);
   void TsanStoreRelease(Register addr);
 #endif
@@ -953,6 +957,47 @@ class Assembler : public MicroAssembler {
   void SmiUntag(Register dst, Register src) { srai(dst, src, kSmiTagSize); }
   void SmiTag(Register reg) override { SmiTag(reg, reg); }
   void SmiTag(Register dst, Register src) { slli(dst, src, kSmiTagSize); }
+
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+#if XLEN == 32
+    LoadInt32FromBoxOrSmi(result, value);
+#else
+    LoadInt64FromBoxOrSmi(result, value);
+#endif
+  }
+
+  void LoadInt32FromBoxOrSmi(Register result, Register value) {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+    ASSERT(value != result);
+    compiler::Label done;
+    SmiUntag(result, value);
+    BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
+    LoadFieldFromOffset(result, value, target::Mint::value_offset(),
+                        compiler::kFourBytes);
+    Bind(&done);
+  }
+
+  void LoadInt64FromBoxOrSmi(Register result, Register value) {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+#if XLEN == 32
+    UNIMPLEMENTED();
+#else
+    ASSERT(value != result);
+    compiler::Label done;
+    SmiUntag(result, value);
+    BranchIfSmi(value, &done, compiler::Assembler::kNearJump);
+    LoadFieldFromOffset(result, value, target::Mint::value_offset());
+    Bind(&done);
+#endif
+  }
 
   void BranchIfNotSmi(Register reg,
                       Label* label,
@@ -1121,6 +1166,9 @@ class Assembler : public MicroAssembler {
                              Register index);
   void LoadSFromOffset(FRegister dest, Register base, int32_t offset);
   void LoadDFromOffset(FRegister dest, Register base, int32_t offset);
+  void LoadSFieldFromOffset(FRegister dest, Register base, int32_t offset) {
+    LoadSFromOffset(dest, base, offset - kHeapObjectTag);
+  }
   void LoadDFieldFromOffset(FRegister dest, Register base, int32_t offset) {
     LoadDFromOffset(dest, base, offset - kHeapObjectTag);
   }
@@ -1148,6 +1196,9 @@ class Assembler : public MicroAssembler {
     StoreToOffset(ZR, address);
   }
   void StoreSToOffset(FRegister src, Register base, int32_t offset);
+  void StoreSFieldToOffset(FRegister src, Register base, int32_t offset) {
+    StoreSToOffset(src, base, offset - kHeapObjectTag);
+  }
   void StoreDToOffset(FRegister src, Register base, int32_t offset);
   void StoreDFieldToOffset(FRegister src, Register base, int32_t offset) {
     StoreDToOffset(src, base, offset - kHeapObjectTag);
@@ -1307,6 +1358,7 @@ class Assembler : public MicroAssembler {
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadImmediate(Register reg, intx_t imm);
 
+  void LoadSImmediate(FRegister reg, float imms);
   void LoadDImmediate(FRegister reg, double immd);
   void LoadQImmediate(FRegister reg, simd128_value_t immq);
 
@@ -1446,6 +1498,24 @@ class Assembler : public MicroAssembler {
                         Register end_address,
                         Register temp1,
                         Register temp2);
+
+  void CheckAllocationCanary(Register top, Register tmp = TMP) {
+#if defined(DEBUG)
+    Label okay;
+    lx(tmp, Address(top, 0));
+    subi(tmp, tmp, kAllocationCanary);
+    beqz(tmp, &okay, Assembler::kNearJump);
+    Stop("Allocation canary");
+    Bind(&okay);
+#endif
+  }
+  void WriteAllocationCanary(Register top) {
+#if defined(DEBUG)
+    ASSERT(top != TMP);
+    li(TMP, kAllocationCanary);
+    sx(TMP, Address(top, 0));
+#endif
+  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

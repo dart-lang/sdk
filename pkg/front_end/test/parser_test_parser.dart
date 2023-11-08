@@ -181,29 +181,29 @@ class TestParser extends Parser {
 
   @override
   Token parseTopLevelKeywordDeclaration(
-      Token start,
+      Token beginToken,
+      Token modifierStart,
       Token keyword,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
       DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
-        '$start, '
+        '$beginToken, '
+        '$modifierStart, '
         '$keyword, '
         '$macroToken, '
-        '$inlineToken, '
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '
         '$directiveState)');
     indent++;
     var result = super.parseTopLevelKeywordDeclaration(
-        start,
+        beginToken,
+        modifierStart,
         keyword,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -607,10 +607,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseEnum(Token enumKeyword) {
-    doPrint('parseEnum(' '$enumKeyword)');
+  Token parseEnum(Token beginToken, Token enumKeyword) {
+    doPrint('parseEnum(' '$beginToken, ' '$enumKeyword)');
     indent++;
-    var result = super.parseEnum(enumKeyword);
+    var result = super.parseEnum(beginToken, enumKeyword);
     indent--;
     return result;
   }
@@ -663,9 +663,9 @@ class TestParser extends Parser {
 
   @override
   Token parseClassOrNamedMixinApplication(
+      Token beginToken,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -674,9 +674,9 @@ class TestParser extends Parser {
       Token? mixinToken,
       Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
+        '$beginToken, '
         '$abstractToken, '
         '$macroToken, '
-        '$inlineToken, '
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '
@@ -686,9 +686,9 @@ class TestParser extends Parser {
         '$classKeyword)');
     indent++;
     var result = super.parseClassOrNamedMixinApplication(
+        beginToken,
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -713,11 +713,14 @@ class TestParser extends Parser {
 
   @override
   Token parseClass(
-      Token token, Token begin, Token classKeyword, String className) {
-    doPrint(
-        'parseClass(' '$token, ' '$begin, ' '$classKeyword, ' '$className)');
+      Token token, Token beginToken, Token classKeyword, String className) {
+    doPrint('parseClass('
+        '$token, '
+        '$beginToken, '
+        '$classKeyword, '
+        '$className)');
     indent++;
-    var result = super.parseClass(token, begin, classKeyword, className);
+    var result = super.parseClass(token, beginToken, classKeyword, className);
     indent--;
     return result;
   }
@@ -741,21 +744,50 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseClassExtendsOpt(Token token) {
-    doPrint('parseClassExtendsOpt(' '$token)');
+  Token parseExtensionTypeHeaderRecovery(Token token, Token extensionKeyword) {
+    doPrint(
+        'parseExtensionTypeHeaderRecovery(' '$token, ' '$extensionKeyword)');
     indent++;
-    var result = super.parseClassExtendsOpt(token);
+    var result =
+        super.parseExtensionTypeHeaderRecovery(token, extensionKeyword);
     indent--;
     return result;
   }
 
   @override
-  Token parseClassExtendsSeenExtendsClause(Token extendsKeyword, Token token) {
-    doPrint(
-        'parseClassExtendsSeenExtendsClause(' '$extendsKeyword, ' '$token)');
+  Token parseDeclarationHeaderRecoveryInternal(Token token, Token begin,
+      Token declarationKeyword, DeclarationHeaderKind kind) {
+    doPrint('parseDeclarationHeaderRecoveryInternal('
+        '$token, '
+        '$begin, '
+        '$declarationKeyword, '
+        '$kind)');
+    indent++;
+    var result = super.parseDeclarationHeaderRecoveryInternal(
+        token, begin, declarationKeyword, kind);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseClassExtendsOpt(Token token, DeclarationHeaderKind kind) {
+    doPrint('parseClassExtendsOpt(' '$token, ' '$kind)');
+    indent++;
+    var result = super.parseClassExtendsOpt(token, kind);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseClassExtendsSeenExtendsClause(
+      Token extendsKeyword, Token token, DeclarationHeaderKind kind) {
+    doPrint('parseClassExtendsSeenExtendsClause('
+        '$extendsKeyword, '
+        '$token, '
+        '$kind)');
     indent++;
     var result =
-        super.parseClassExtendsSeenExtendsClause(extendsKeyword, token);
+        super.parseClassExtendsSeenExtendsClause(extendsKeyword, token, kind);
     indent--;
     return result;
   }
@@ -770,10 +802,16 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixin(Token? augmentToken, Token? baseToken, Token mixinKeyword) {
-    doPrint('parseMixin(' '$augmentToken, ' '$baseToken, ' '$mixinKeyword)');
+  Token parseMixin(Token beginToken, Token? augmentToken, Token? baseToken,
+      Token mixinKeyword) {
+    doPrint('parseMixin('
+        '$beginToken, '
+        '$augmentToken, '
+        '$baseToken, '
+        '$mixinKeyword)');
     indent++;
-    var result = super.parseMixin(augmentToken, baseToken, mixinKeyword);
+    var result =
+        super.parseMixin(beginToken, augmentToken, baseToken, mixinKeyword);
     indent--;
     return result;
   }
@@ -820,10 +858,39 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExtension(Token extensionKeyword) {
-    doPrint('parseExtension(' '$extensionKeyword)');
+  Token parseExtension(Token beginToken, Token extensionKeyword) {
+    doPrint('parseExtension(' '$beginToken, ' '$extensionKeyword)');
     indent++;
-    var result = super.parseExtension(extensionKeyword);
+    var result = super.parseExtension(beginToken, extensionKeyword);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseExtensionDeclaration(
+      Token beginToken, Token token, Token extensionKeyword) {
+    doPrint('parseExtensionDeclaration('
+        '$beginToken, '
+        '$token, '
+        '$extensionKeyword)');
+    indent++;
+    var result =
+        super.parseExtensionDeclaration(beginToken, token, extensionKeyword);
+    indent--;
+    return result;
+  }
+
+  @override
+  Token parseExtensionTypeDeclaration(Token beginToken, Token token,
+      Token extensionKeyword, Token typeKeyword) {
+    doPrint('parseExtensionTypeDeclaration('
+        '$beginToken, '
+        '$token, '
+        '$extensionKeyword, '
+        '$typeKeyword)');
+    indent++;
+    var result = super.parseExtensionTypeDeclaration(
+        beginToken, token, extensionKeyword, typeKeyword);
     indent--;
     return result;
   }
@@ -1097,13 +1164,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token ensureBlock(
-      Token token,
-      codes.Template<codes.Message Function(Token token)>? template,
-      String? missingBlockName) {
-    doPrint('ensureBlock(' '$token, ' '$template, ' '$missingBlockName)');
+  Token ensureBlock(Token token, BlockKind? missingBlockKind) {
+    doPrint('ensureBlock(' '$token, ' '$missingBlockKind)');
     indent++;
-    var result = super.ensureBlock(token, template, missingBlockName);
+    var result = super.ensureBlock(token, missingBlockKind);
     indent--;
     return result;
   }
@@ -2620,103 +2684,6 @@ class TestParser extends Parser {
     doPrint('findDartDoc(' '$token)');
     indent++;
     var result = super.findDartDoc(token);
-    indent--;
-    return result;
-  }
-
-  @override
-  int parseCommentReferences(Token dartdoc) {
-    doPrint('parseCommentReferences(' '$dartdoc)');
-    indent++;
-    var result = super.parseCommentReferences(dartdoc);
-    indent--;
-    return result;
-  }
-
-  @override
-  int parseReferencesInMultiLineComment(Token multiLineDoc) {
-    doPrint('parseReferencesInMultiLineComment(' '$multiLineDoc)');
-    indent++;
-    var result = super.parseReferencesInMultiLineComment(multiLineDoc);
-    indent--;
-    return result;
-  }
-
-  @override
-  int parseReferencesInSingleLineComments(Token? token) {
-    doPrint('parseReferencesInSingleLineComments(' '$token)');
-    indent++;
-    var result = super.parseReferencesInSingleLineComments(token);
-    indent--;
-    return result;
-  }
-
-  @override
-  int parseCommentReferencesInText(Token commentToken, int start, int end) {
-    doPrint(
-        'parseCommentReferencesInText(' '$commentToken, ' '$start, ' '$end)');
-    indent++;
-    var result = super.parseCommentReferencesInText(commentToken, start, end);
-    indent--;
-    return result;
-  }
-
-  @override
-  int findReferenceEnd(String comment, int index, int end) {
-    doPrint('findReferenceEnd(' '$comment, ' '$index, ' '$end)');
-    indent++;
-    var result = super.findReferenceEnd(comment, index, end);
-    indent--;
-    return result;
-  }
-
-  @override
-  bool parseOneCommentReference(Token token, int referenceOffset) {
-    doPrint('parseOneCommentReference(' '$token, ' '$referenceOffset)');
-    indent++;
-    var result = super.parseOneCommentReference(token, referenceOffset);
-    indent--;
-    return result;
-  }
-
-  @override
-  void parseOneCommentReferenceRest(
-      Token begin,
-      int referenceOffset,
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token identifierOrOperator) {
-    doPrint('parseOneCommentReferenceRest('
-        '$begin, '
-        '$referenceOffset, '
-        '$newKeyword, '
-        '$firstToken, '
-        '$firstPeriod, '
-        '$secondToken, '
-        '$secondPeriod, '
-        '$identifierOrOperator)');
-    indent++;
-    var result = super.parseOneCommentReferenceRest(
-        begin,
-        referenceOffset,
-        newKeyword,
-        firstToken,
-        firstPeriod,
-        secondToken,
-        secondPeriod,
-        identifierOrOperator);
-    indent--;
-    return result;
-  }
-
-  @override
-  bool isLinkText(String comment, int rightIndex) {
-    doPrint('isLinkText(' '$comment, ' '$rightIndex)');
-    indent++;
-    var result = super.isLinkText(comment, rightIndex);
     indent--;
     return result;
   }

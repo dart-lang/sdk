@@ -6,6 +6,7 @@ part of dart.async;
 
 abstract class _Completer<T> implements Completer<T> {
   @pragma("wasm:entry-point")
+  @pragma("vm:entry-point")
   final _Future<T> future = new _Future<T>();
 
   // Overridden by either a synchronous or asynchronous implementation.
@@ -35,6 +36,7 @@ abstract class _Completer<T> implements Completer<T> {
 }
 
 /// Completer which completes future asynchronously.
+@pragma("vm:entry-point")
 class _AsyncCompleter<T> extends _Completer<T> {
   @pragma("wasm:entry-point")
   void complete([FutureOr<T>? value]) {
@@ -50,6 +52,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
 /// Completer which completes future synchronously.
 ///
 /// Created by [Completer.sync]. Use with caution.
+@pragma("vm:entry-point")
 class _SyncCompleter<T> extends _Completer<T> {
   void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
@@ -63,15 +66,18 @@ class _SyncCompleter<T> extends _Completer<T> {
 
 class _FutureListener<S, T> {
   // Keep in sync with sdk/runtime/vm/stack_trace.cc.
-  static const int maskValue = 1;
-  static const int maskError = 2;
-  static const int maskTestError = 4;
-  static const int maskWhenComplete = 8;
+  static const int maskValue = 1 << 0;
+  static const int maskError = 1 << 1;
+  static const int maskTestError = 1 << 2;
+  static const int maskWhenComplete = 1 << 3;
+  static const int maskAwait = 1 << 4;
   static const int stateChain = 0;
   // Handles values, passes errors on.
   static const int stateThen = maskValue;
   // Handles values and errors.
   static const int stateThenOnerror = maskValue | maskError;
+  // Handles values and error. Created by the implementation of `await`.
+  static const int stateThenAwait = stateThenOnerror | maskAwait;
   // Handles errors, has errorCallback.
   static const int stateCatchError = maskError;
   // Ignores both values and errors. Has no callback or errorCallback.
@@ -109,7 +115,7 @@ class _FutureListener<S, T> {
       this.result, FutureOr<T> Function(S) onValue, Function errorCallback)
       : callback = onValue,
         errorCallback = errorCallback,
-        state = stateThenOnerror;
+        state = stateThenAwait;
 
   _FutureListener.catchError(this.result, this.errorCallback, this.callback)
       : state = (callback == null) ? stateCatchError : stateCatchErrorTest;
@@ -914,12 +920,10 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  @pragma("vm:recognized", "other")
   @pragma("vm:entry-point")
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
     if (_isComplete) return new _Future.immediate(this);
-    // This is a VM recognised method, and the _future variable is deliberately
-    // allocated in a specific slot in the closure context for stack unwinding.
+    @pragma('vm:awaiter-link')
     _Future<T> _future = new _Future<T>();
     Timer timer;
     if (onTimeout == null) {

@@ -39,7 +39,7 @@ extension Extension on self::Class* {
   get setterWithReturn = self::Extension|get#setterWithReturn;
   get setterWithClosure = self::Extension|get#setterWithClosure;
   method testInternal = self::Extension|testInternal;
-  tearoff testInternal = self::Extension|get#testInternal;
+  method tearoff testInternal = self::Extension|get#testInternal;
   set simpleSetter = self::Extension|set#simpleSetter;
   set mutatingSetter = self::Extension|set#mutatingSetter;
   set setterWithReturn = self::Extension|set#setterWithReturn;

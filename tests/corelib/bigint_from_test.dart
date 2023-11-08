@@ -6,6 +6,9 @@
 // VMOptions=--intrinsify --no-enable-asserts
 // VMOptions=--intrinsify --enable-asserts
 // VMOptions=--no-intrinsify --enable-asserts
+// VMOptions=--no-intrinsify --no-enable-asserts
+// VMOptions=--runtime_allocate_old
+// VMOptions=--runtime_allocate_spill_tlab
 // VMOptions=--optimization-counter-threshold=20 --no-background-compilation
 // VMOptions=--dwarf_stack_traces --no-retain_function_objects --no-retain_code_objects
 

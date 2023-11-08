@@ -190,9 +190,9 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
 // - kInstanceReg: instance.
 // - kDstTypeReg: destination type (for test_kind == kTestTypeSevenArg).
 // - kInstantiatorTypeArgumentsReg: instantiator type arguments
-//   (for test_kind == kTestTypeFourArg, kTestTypeSixArg, or kTestTypeSevenArg).
+//   (for test_kind >= kTestTypeThreeArg).
 // - kFunctionTypeArgumentsReg: function type arguments
-//   (for test_kind == kTestTypeFourArg, kTestTypeSixArg, or kTestTypeSevenArg).
+//   (for test_kind >= kTestTypeFourArg).
 //
 // Only preserves kInstanceReg from TypeTestABI, all other TypeTestABI
 // registers may be used and thus must be saved by the caller.

@@ -5,23 +5,26 @@
 library fasta.function_type_builder;
 
 import 'package:kernel/ast.dart'
-    show DartType, FunctionType, NamedType, Supertype, TypeParameter;
+    show DartType, FunctionType, StructuralParameter, NamedType, Supertype;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/unaliasing.dart';
 
 import '../fasta_codes.dart' show messageSupertypeIsFunction, noLength;
 import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
+import 'declaration_builders.dart';
 import 'formal_parameter_builder.dart';
+import 'inferable_type_builder.dart';
 import 'library_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
-import 'type_variable_builder.dart';
 
-abstract class FunctionTypeBuilder extends TypeBuilder {
+abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
+  @override
   final TypeBuilder returnType;
-  final List<TypeVariableBuilder>? typeVariables;
+  @override
+  final List<StructuralVariableBuilder>? typeVariables;
+  @override
   final List<ParameterBuilder>? formals;
   @override
   final NullabilityBuilder nullabilityBuilder;
@@ -30,9 +33,9 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   @override
   final int charOffset;
 
-  factory FunctionTypeBuilder(
+  factory FunctionTypeBuilderImpl(
       TypeBuilder returnType,
-      List<TypeVariableBuilder>? typeVariables,
+      List<StructuralVariableBuilder>? typeVariables,
       List<ParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri? fileUri,
@@ -50,7 +53,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
       }
     }
     if (isExplicit && typeVariables != null) {
-      for (TypeVariableBuilder typeVariable in typeVariables) {
+      for (StructuralVariableBuilder typeVariable in typeVariables) {
         if (!(typeVariable.bound?.isExplicit ?? true)) {
           isExplicit = false;
           break;
@@ -64,7 +67,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
             nullabilityBuilder, fileUri, charOffset);
   }
 
-  FunctionTypeBuilder._(this.returnType, this.typeVariables, this.formals,
+  FunctionTypeBuilderImpl._(this.returnType, this.typeVariables, this.formals,
       this.nullabilityBuilder, this.fileUri, this.charOffset);
 
   @override
@@ -81,7 +84,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
     if (typeVariables != null) {
       buffer.write("<");
       bool isFirst = true;
-      for (TypeVariableBuilder t in typeVariables!) {
+      for (StructuralVariableBuilder t in typeVariables!) {
         if (!isFirst) {
           buffer.write(", ");
         } else {
@@ -143,10 +146,10 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
         namedParameters.sort();
       }
     }
-    List<TypeParameter>? typeParameters;
+    List<StructuralParameter>? typeParameters;
     if (typeVariables != null) {
-      typeParameters = <TypeParameter>[];
-      for (TypeVariableBuilder t in typeVariables!) {
+      typeParameters = <StructuralParameter>[];
+      for (StructuralVariableBuilder t in typeVariables!) {
         typeParameters.add(t.parameter);
         // Build the bound to detect cycles in typedefs.
         t.bound?.build(library, TypeUse.typeParameterBound);
@@ -155,7 +158,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
     return new FunctionType(positionalParameters, builtReturnType,
         nullabilityBuilder.build(library),
         namedParameters: namedParameters ?? const <NamedType>[],
-        typeParameters: typeParameters ?? const <TypeParameter>[],
+        typeParameters: typeParameters ?? const <StructuralParameter>[],
         requiredParameterCount: requiredParameterCount);
   }
 
@@ -176,9 +179,9 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
       List<NamedTypeBuilder> newTypes,
       SourceLibraryBuilder contextLibrary,
       TypeParameterScopeBuilder contextDeclaration) {
-    List<TypeVariableBuilder>? clonedTypeVariables;
+    List<StructuralVariableBuilder>? clonedTypeVariables;
     if (typeVariables != null) {
-      clonedTypeVariables = contextLibrary.copyTypeVariables(
+      clonedTypeVariables = contextLibrary.copyStructuralVariables(
           typeVariables!, contextDeclaration,
           kind: TypeVariableKind.function);
     }
@@ -190,7 +193,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
         return formal.clone(newTypes, contextLibrary, contextDeclaration);
       }, growable: false);
     }
-    return new FunctionTypeBuilder(
+    return new FunctionTypeBuilderImpl(
         returnType.clone(newTypes, contextLibrary, contextDeclaration),
         clonedTypeVariables,
         clonedFormals,
@@ -202,7 +205,7 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   @override
   FunctionTypeBuilder withNullabilityBuilder(
       NullabilityBuilder nullabilityBuilder) {
-    return new FunctionTypeBuilder(returnType, typeVariables, formals,
+    return new FunctionTypeBuilderImpl(returnType, typeVariables, formals,
         nullabilityBuilder, fileUri, charOffset);
   }
 }
@@ -211,10 +214,10 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
 ///
 /// This is the normal function type whose return type or parameter types are
 /// either explicit or omitted.
-class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilder {
+class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilderImpl {
   _ExplicitFunctionTypeBuilder(
       TypeBuilder returnType,
-      List<TypeVariableBuilder>? typeVariables,
+      List<StructuralVariableBuilder>? typeVariables,
       List<ParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri? fileUri,
@@ -239,11 +242,11 @@ class _ExplicitFunctionTypeBuilder extends FunctionTypeBuilder {
 /// This occurs through macros where return type or parameter types can be
 /// defined in terms of inferred types, making this type indirectly depend
 /// on type inference.
-class _InferredFunctionTypeBuilder extends FunctionTypeBuilder
+class _InferredFunctionTypeBuilder extends FunctionTypeBuilderImpl
     with InferableTypeBuilderMixin {
   _InferredFunctionTypeBuilder(
       TypeBuilder returnType,
-      List<TypeVariableBuilder>? typeVariables,
+      List<StructuralVariableBuilder>? typeVariables,
       List<ParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri? fileUri,

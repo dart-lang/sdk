@@ -329,7 +329,7 @@ class VariableUse {
       'instantiation=$instantiation)';
 }
 
-enum TypeVariableKind { cls, method, local, function }
+enum TypeVariableKind { cls, method, local }
 
 /// A fake ir.Node that holds the TypeParameterType as well as the context in
 /// which it occurs.
@@ -344,41 +344,32 @@ class TypeVariableTypeWithContext implements ir.Node {
   factory TypeVariableTypeWithContext(
       ir.TypeParameterType type, ir.TreeNode? context) {
     TypeVariableKind kind;
-    ir.TreeNode? typeDeclaration = type.parameter.parent;
-    if (typeDeclaration == null) {
-      // We have a function type variable, like `T` in `void Function<T>(int)`.
-      kind = TypeVariableKind.function;
-    } else if (typeDeclaration is ir.Class) {
+    ir.GenericDeclaration? typeDeclaration = type.parameter.declaration;
+    // TODO(fishythefish): Use exhaustive pattern switch.
+    if (typeDeclaration is ir.Class) {
       // We have a class type variable, like `T` in `class Class<T> { ... }`.
       kind = TypeVariableKind.cls;
-    } else {
-      final parent = typeDeclaration.parent;
-      if (parent is ir.Member) {
-        ir.Member member = parent;
-        if (member is ir.Constructor ||
-            (member is ir.Procedure && member.isFactory)) {
-          // We have a synthesized generic method type variable for a class type
-          // variable.
-          // TODO(johnniwinther): Handle constructor/factory type variables as
-          // method type variables.
-          kind = TypeVariableKind.cls;
-          typeDeclaration = member.enclosingClass;
-        } else {
-          // We have a generic method type variable, like `T` in
-          // `m<T>() { ... }`.
-          kind = TypeVariableKind.method;
-          typeDeclaration = parent;
-          context = typeDeclaration;
-        }
+    } else if (typeDeclaration is ir.Procedure) {
+      if (typeDeclaration.isFactory) {
+        // We have a synthesized generic method type variable for a class type
+        // variable.
+        // TODO(johnniwinther): Handle constructor/factory type variables as
+        // method type variables.
+        kind = TypeVariableKind.cls;
+        typeDeclaration = typeDeclaration.enclosingClass;
       } else {
-        // We have a generic local function type variable, like `T` in
-        // `m() { local<T>() { ... } ... }`.
-        assert(parent is ir.LocalFunction,
-            "Unexpected type declaration: $typeDeclaration");
-        kind = TypeVariableKind.local;
-        typeDeclaration = parent;
+        // We have a generic method type variable, like `T` in
+        // `m<T>() { ... }`.
+        kind = TypeVariableKind.method;
         context = typeDeclaration;
       }
+    } else {
+      // We have a generic local function type variable, like `T` in
+      // `m() { local<T>() { ... } ... }`.
+      assert(typeDeclaration is ir.LocalFunction,
+          "Unexpected type declaration: $typeDeclaration");
+      kind = TypeVariableKind.local;
+      context = typeDeclaration;
     }
     return TypeVariableTypeWithContext.internal(
         type, context, kind, typeDeclaration);

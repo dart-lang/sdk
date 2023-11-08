@@ -77,6 +77,8 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       collections_(0),
       mark_words_per_micro_(kConservativeInitialMarkSpeed),
       enable_concurrent_mark_(FLAG_concurrent_mark) {
+  ASSERT(heap != nullptr);
+
   // We aren't holding the lock but no one can reference us yet.
   UpdateMaxCapacityLocked();
   UpdateMaxUsed();
@@ -326,10 +328,8 @@ uword PageSpace::TryAllocateInFreshPage(intptr_t size,
 
   if (growth_policy != kForceGrowth) {
     ASSERT(!Thread::Current()->force_growth());
-    if (heap_ != nullptr) {  // Some unit tests.
-      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
-                                    kPageSize);
-    }
+    heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
+                                  kPageSize);
   }
 
   uword result = 0;
@@ -368,10 +368,7 @@ uword PageSpace::TryAllocateInFreshLargePage(intptr_t size,
 
   if (growth_policy != kForceGrowth) {
     ASSERT(!Thread::Current()->force_growth());
-    if (heap_ != nullptr) {  // Some unit tests.
-      heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace,
-                                    size);
-    }
+    heap_->CheckConcurrentMarking(Thread::Current(), GCReason::kOldSpace, size);
   }
 
   intptr_t page_size_in_words = LargePageSizeInWordsFor(size);
@@ -585,10 +582,6 @@ void PageSpace::AbandonMarkingForShutdown() {
 }
 
 void PageSpace::UpdateMaxCapacityLocked() {
-  if (heap_ == nullptr) {
-    // Some unit tests.
-    return;
-  }
   ASSERT(heap_ != nullptr);
   ASSERT(heap_->isolate_group() != nullptr);
   auto isolate_group = heap_->isolate_group();
@@ -597,10 +590,6 @@ void PageSpace::UpdateMaxCapacityLocked() {
 }
 
 void PageSpace::UpdateMaxUsed() {
-  if (heap_ == nullptr) {
-    // Some unit tests.
-    return;
-  }
   ASSERT(heap_ != nullptr);
   ASSERT(heap_->isolate_group() != nullptr);
   auto isolate_group = heap_->isolate_group();

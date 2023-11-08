@@ -15,7 +15,7 @@ const var1 = str[2];
 
 const var2 = fn();
 //           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 fn() {
   String local = "str";
   return local[0];
@@ -27,7 +27,7 @@ const var3 = "str"[0];
 
 const var4 = fn2();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 fn2() {
   try {
     var x = str[-1];

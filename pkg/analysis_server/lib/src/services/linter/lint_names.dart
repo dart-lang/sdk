@@ -15,6 +15,7 @@ class LintNames {
   static const String always_specify_types = 'always_specify_types';
   static const String always_use_package_imports = 'always_use_package_imports';
   static const String annotate_overrides = 'annotate_overrides';
+  static const String annotate_redeclares = 'annotate_redeclares';
   static const String avoid_annotating_with_dynamic =
       'avoid_annotating_with_dynamic';
   static const String avoid_empty_else = 'avoid_empty_else';
@@ -184,6 +185,7 @@ class LintNames {
   static const String unnecessary_to_list_in_spreads =
       'unnecessary_to_list_in_spreads';
   static const String unnecessary_this = 'unnecessary_this';
+  static const String unreachable_from_main = 'unreachable_from_main';
   static const String use_decorated_box = 'use_decorated_box';
   static const String use_enums = 'use_enums';
   static const String use_full_hex_values_for_flutter_colors =

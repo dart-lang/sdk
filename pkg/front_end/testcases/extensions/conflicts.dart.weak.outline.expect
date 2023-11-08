@@ -29,13 +29,13 @@ class Class2 extends core::Object {
 }
 extension DuplicateExtensionName on self::Class1 {
   method uniqueMethod1 = self::DuplicateExtensionName|uniqueMethod1;
-  tearoff uniqueMethod1 = self::DuplicateExtensionName|get#uniqueMethod1;
+  method tearoff uniqueMethod1 = self::DuplicateExtensionName|get#uniqueMethod1;
   method duplicateMethodName2 = self::DuplicateExtensionName|duplicateMethodName2;
-  tearoff duplicateMethodName2 = self::DuplicateExtensionName|get#duplicateMethodName2;
+  method tearoff duplicateMethodName2 = self::DuplicateExtensionName|get#duplicateMethodName2;
 }
 extension UniqueExtensionName on self::Class1 {
   method duplicateMethodName1 = self::UniqueExtensionName|duplicateMethodName1;
-  tearoff duplicateMethodName1 = self::UniqueExtensionName|get#duplicateMethodName1;
+  method tearoff duplicateMethodName1 = self::UniqueExtensionName|get#duplicateMethodName1;
 }
 static extension-member method DuplicateExtensionName|uniqueMethod1(lowered final self::Class1 #this) → dynamic
   ;

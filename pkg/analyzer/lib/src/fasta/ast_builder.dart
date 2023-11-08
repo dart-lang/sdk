@@ -38,6 +38,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         Assert,
         BlockKind,
         ConstructorReferenceContext,
+        DeclarationHeaderKind,
         DeclarationKind,
         FormalParameterKind,
         IdentifierContext,
@@ -53,6 +54,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, StringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
@@ -62,10 +64,12 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/fasta/doc_comment_builder.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:collection/collection.dart';
+import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// A parser listener that builds the analyzer's AST structure.
@@ -121,9 +125,6 @@ class AstBuilder extends StackListener {
   /// `true` if constructor tearoffs are enabled
   final bool enableConstructorTearoffs;
 
-  /// `true` if extension types are enabled
-  final bool enableExtensionTypes;
-
   /// `true` if named arguments anywhere are enabled
   final bool enableNamedArgumentsAnywhere;
 
@@ -166,7 +167,6 @@ class AstBuilder extends StackListener {
         enableVariance = _featureSet.isEnabled(Feature.variance),
         enableConstructorTearoffs =
             _featureSet.isEnabled(Feature.constructor_tearoffs),
-        enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
         enableNamedArgumentsAnywhere =
             _featureSet.isEnabled(Feature.named_arguments_anywhere),
         enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
@@ -223,7 +223,6 @@ class AstBuilder extends StackListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -241,16 +240,6 @@ class AstBuilder extends StackListener {
         );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
-      }
-    }
-    if (!enableInlineClass) {
-      if (inlineToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.inline_class,
-          startToken: inlineToken,
-        );
-        // Pretend that 'inline' didn't occur while this feature is incomplete.
-        inlineToken = null;
       }
     }
     if (!enableSealedClass) {
@@ -300,7 +289,6 @@ class AstBuilder extends StackListener {
       }
     }
     push(macroToken ?? NullValues.Token);
-    push(inlineToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -335,6 +323,26 @@ class AstBuilder extends StackListener {
       metadata: metadata,
       extensionKeyword: extensionKeyword,
       name: nameToken,
+      typeParameters: typeParameters,
+      leftBracket: Tokens.openCurlyBracket(),
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    assert(optional('extension', extensionKeyword));
+    assert(_classLikeBuilder == null);
+
+    final typeParameters = pop() as TypeParameterListImpl?;
+    final metadata = pop() as List<AnnotationImpl>?;
+    final comment = _findComment(metadata, extensionKeyword);
+
+    _classLikeBuilder = _ExtensionTypeDeclarationBuilder(
+      comment: comment,
+      metadata: metadata,
+      extensionKeyword: extensionKeyword,
+      name: name,
       typeParameters: typeParameters,
       leftBracket: Tokens.openCurlyBracket(),
       rightBracket: Tokens.closeCurlyBracket(),
@@ -425,8 +433,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     assert(_classLikeBuilder == null);
     if (!enableClassModifiers) {
       if (baseToken != null) {
@@ -447,7 +455,6 @@ class AstBuilder extends StackListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -464,16 +471,6 @@ class AstBuilder extends StackListener {
         );
         // Pretend that 'macro' didn't occur while this feature is incomplete.
         macroToken = null;
-      }
-    }
-    if (!enableInlineClass) {
-      if (inlineToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.inline_class,
-          startToken: inlineToken,
-        );
-        // Pretend that 'inline' didn't occur while this feature is incomplete.
-        inlineToken = null;
       }
     }
     if (!enableSealedClass) {
@@ -522,7 +519,6 @@ class AstBuilder extends StackListener {
       }
     }
     push(macroToken ?? NullValues.Token);
-    push(inlineToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -539,6 +535,11 @@ class AstBuilder extends StackListener {
   @override
   void beginPatternGuard(Token when) {
     debugEvent("PatternGuard");
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    debugEvent("PrimaryConstructor");
   }
 
   @override
@@ -652,12 +653,7 @@ class AstBuilder extends StackListener {
       } else if (left is SimpleIdentifierImpl) {
         fieldName = left;
       } else {
-        // Recovery:
-        // Parser has reported invalid assignment.
-        var superExpression = left as SuperExpressionImpl;
-        fieldName = SimpleIdentifierImpl(
-          superExpression.superKeyword,
-        );
+        return null;
       }
       return ConstructorFieldInitializerImpl(
         thisKeyword: thisKeyword,
@@ -752,7 +748,6 @@ class AstBuilder extends StackListener {
       metadata: null,
       abstractKeyword: null,
       macroKeyword: null,
-      inlineKeyword: null,
       sealedKeyword: null,
       baseKeyword: null,
       interfaceKeyword: null,
@@ -1165,6 +1160,7 @@ class AstBuilder extends StackListener {
     declarations.add(
       builder.build(),
     );
+
     _classLikeBuilder = null;
   }
 
@@ -1309,6 +1305,7 @@ class AstBuilder extends StackListener {
       MethodDeclarationImpl(
         comment: comment,
         metadata: metadata,
+        augmentKeyword: modifiers?.augmentKeyword,
         externalKeyword: modifiers?.externalKeyword,
         modifierKeyword: modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
         returnType: returnType,
@@ -1501,7 +1498,8 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     assert(optional('enum', enumKeyword));
     assert(optional('{', leftBrace));
     debugEvent("Enum");
@@ -1559,24 +1557,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token token) {
+  void endExtensionDeclaration(
+      Token beginToken, Token extensionKeyword, Token onKeyword, Token token) {
     final builder = _classLikeBuilder as _ExtensionDeclarationBuilder;
-
-    if (typeKeyword != null && !enableExtensionTypes) {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.extension_types,
-        startToken: typeKeyword,
-      );
-    }
-
-    final showOrHideKeyword = showKeyword ?? hideKeyword;
-    if (showOrHideKeyword != null && !enableExtensionTypes) {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.extension_types,
-        startToken: showOrHideKeyword,
-      );
-    }
 
     final type = pop() as TypeAnnotationImpl;
 
@@ -1584,7 +1567,7 @@ class AstBuilder extends StackListener {
       builder.build(
         extendedType: type,
         onKeyword: onKeyword,
-        typeKeyword: typeKeyword,
+        typeKeyword: null,
       ),
     );
 
@@ -1644,6 +1627,38 @@ class AstBuilder extends StackListener {
     debugEvent("ExtensionMethod");
     endClassMethod(
         getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
+    final implementsClause =
+        pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
+    final representation = pop(const NullValue<RepresentationDeclarationImpl>())
+        as RepresentationDeclarationImpl?;
+    final constKeyword = pop() as Token?;
+
+    if (enableInlineClass) {
+      final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
+      if (representation != null) {
+        // TODO(scheglov): Handle missing primary constructor.
+        declarations.add(
+          builder.build(
+            typeKeyword: typeKeyword,
+            constKeyword: constKeyword,
+            representation: representation,
+            implementsClause: implementsClause,
+          ),
+        );
+      }
+    } else {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.inline_class,
+        startToken: typeKeyword,
+      );
+    }
+
+    _classLikeBuilder = null;
   }
 
   @override
@@ -2488,13 +2503,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     debugEvent("MixinDeclaration");
 
     final builder = _classLikeBuilder as _MixinDeclarationBuilder;
     declarations.add(
       builder.build(),
     );
+
     _classLikeBuilder = null;
   }
 
@@ -2613,7 +2629,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var inlineKeyword = pop(NullValues.Token) as Token?;
     var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -2631,7 +2646,6 @@ class AstBuilder extends StackListener {
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
         macroKeyword: macroKeyword,
-        inlineKeyword: inlineKeyword,
         sealedKeyword: sealedKeyword,
         baseKeyword: baseKeyword,
         interfaceKeyword: interfaceKeyword,
@@ -2752,6 +2766,95 @@ class AstBuilder extends StackListener {
       WhenClauseImpl(
         whenKeyword: when,
         expression: expression,
+      ),
+    );
+  }
+
+  @override
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    final formalParameterList = pop() as FormalParameterListImpl;
+    final leftParenthesis = formalParameterList.leftParenthesis;
+
+    RepresentationConstructorNameImpl? constructorName;
+    if (hasConstructorName) {
+      final nameIdentifier = pop() as SimpleIdentifierImpl;
+      constructorName = RepresentationConstructorNameImpl(
+        period: beginToken,
+        name: nameIdentifier.token,
+      );
+    }
+
+    final List<AnnotationImpl> fieldMetadata;
+    final TypeAnnotationImpl fieldType;
+    final Token fieldName;
+    final firstFormalParameter = formalParameterList.parameters.firstOrNull;
+    if (firstFormalParameter is SimpleFormalParameterImpl) {
+      fieldMetadata = firstFormalParameter.metadata;
+      switch (firstFormalParameter.type) {
+        case final formalParameterType?:
+          fieldType = formalParameterType;
+        case null:
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
+            leftParenthesis.next!,
+          );
+          final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
+            leftParenthesis,
+          );
+          fieldType = NamedTypeImpl(
+            importPrefix: null,
+            name2: typeNameToken,
+            typeArguments: null,
+            question: null,
+          );
+          break;
+      }
+      if (firstFormalParameter.keyword case final keyword?) {
+        errorReporter.errorReporter?.reportErrorForToken(
+          ParserErrorCode.REPRESENTATION_FIELD_MODIFIER,
+          keyword,
+        );
+      }
+      fieldName = firstFormalParameter.name!;
+      // Check for multiple fields.
+      final maybeComma = firstFormalParameter.endToken.next;
+      if (maybeComma != null && maybeComma != formalParameterList.endToken) {
+        errorReporter.errorReporter?.reportErrorForToken(
+          ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS,
+          maybeComma,
+        );
+      }
+    } else {
+      errorReporter.errorReporter?.reportErrorForToken(
+        ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
+        leftParenthesis.next!,
+      );
+      fieldMetadata = [];
+      final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
+        leftParenthesis,
+      );
+      fieldType = NamedTypeImpl(
+        importPrefix: null,
+        name2: typeNameToken,
+        typeArguments: null,
+        question: null,
+      );
+      fieldName = parser.rewriter.insertSyntheticIdentifier(
+        typeNameToken,
+      );
+    }
+
+    push(constKeyword ?? const NullValue<Token>());
+
+    push(
+      RepresentationDeclarationImpl(
+        constructorName: constructorName,
+        leftParenthesis: leftParenthesis,
+        fieldMetadata: fieldMetadata,
+        fieldType: fieldType,
+        fieldName: fieldName,
+        rightParenthesis: formalParameterList.rightParenthesis,
       ),
     );
   }
@@ -3673,7 +3776,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var inlineKeyword = pop(NullValues.Token) as Token?;
     var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -3688,7 +3790,6 @@ class AstBuilder extends StackListener {
       metadata: metadata,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
-      inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
@@ -3724,61 +3825,6 @@ class AstBuilder extends StackListener {
         mixinTypes: mixinTypes,
       ),
     );
-  }
-
-  @override
-  void handleCommentReference(
-    Token? newKeyword,
-    Token? firstToken,
-    Token? firstPeriod,
-    Token? secondToken,
-    Token? secondPeriod,
-    Token thirdToken,
-  ) {
-    var identifier = SimpleIdentifierImpl(thirdToken);
-    if (firstToken != null) {
-      var target = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(firstToken),
-        period: firstPeriod!,
-        identifier: SimpleIdentifierImpl(secondToken!),
-      );
-      var expression = PropertyAccessImpl(
-        target: target,
-        operator: secondPeriod!,
-        propertyName: identifier,
-      );
-      push(
-        CommentReferenceImpl(
-          newKeyword: newKeyword,
-          expression: expression,
-        ),
-      );
-    } else if (secondToken != null) {
-      var expression = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(secondToken),
-        period: secondPeriod!,
-        identifier: identifier,
-      );
-      push(
-        CommentReferenceImpl(
-          newKeyword: newKeyword,
-          expression: expression,
-        ),
-      );
-    } else {
-      push(
-        CommentReferenceImpl(
-          newKeyword: newKeyword,
-          expression: identifier,
-        ),
-      );
-    }
-  }
-
-  @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    push(referenceSource);
-    push(referenceOffset);
   }
 
   @override
@@ -4803,6 +4849,13 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    push(constKeyword ?? const NullValue<Token>());
+
+    push(const NullValue<RepresentationDeclarationImpl>());
+  }
+
+  @override
   void handleNoTypeNameInConstructorReference(Token token) {
     debugEvent("NoTypeNameInConstructorReference");
     final builder = _classLikeBuilder as _EnumDeclarationBuilder;
@@ -5044,46 +5097,52 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     debugEvent("RecoverClassHeader");
 
     var implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     var withClause = pop(NullValues.WithClause) as WithClauseImpl?;
     var extendsClause = pop(NullValues.ExtendsClause) as ExtendsClauseImpl?;
-    var declaration = _classLikeBuilder as _ClassDeclarationBuilder;
-    if (extendsClause != null) {
-      if (declaration.extendsClause?.superclass == null) {
-        declaration.extendsClause = extendsClause;
-      }
-    }
-    if (withClause != null) {
-      final existingClause = declaration.withClause;
-      if (existingClause == null) {
-        declaration.withClause = withClause;
-      } else {
-        declaration.withClause = WithClauseImpl(
-          withKeyword: existingClause.withKeyword,
-          mixinTypes: [
-            ...existingClause.mixinTypes,
-            ...withClause.mixinTypes,
-          ],
-        );
-      }
-    }
-    if (implementsClause != null) {
-      final existingClause = declaration.implementsClause;
-      if (existingClause == null) {
-        declaration.implementsClause = implementsClause;
-      } else {
-        declaration.implementsClause = ImplementsClauseImpl(
-          implementsKeyword: existingClause.implementsKeyword,
-          interfaces: [
-            ...existingClause.interfaces,
-            ...implementsClause.interfaces,
-          ],
-        );
-      }
+    switch (kind) {
+      case DeclarationHeaderKind.Class:
+        var declaration = _classLikeBuilder as _ClassDeclarationBuilder;
+        if (extendsClause != null) {
+          if (declaration.extendsClause?.superclass == null) {
+            declaration.extendsClause = extendsClause;
+          }
+        }
+        if (withClause != null) {
+          final existingClause = declaration.withClause;
+          if (existingClause == null) {
+            declaration.withClause = withClause;
+          } else {
+            declaration.withClause = WithClauseImpl(
+              withKeyword: existingClause.withKeyword,
+              mixinTypes: [
+                ...existingClause.mixinTypes,
+                ...withClause.mixinTypes,
+              ],
+            );
+          }
+        }
+        if (implementsClause != null) {
+          final existingClause = declaration.implementsClause;
+          if (existingClause == null) {
+            declaration.implementsClause = implementsClause;
+          } else {
+            declaration.implementsClause = ImplementsClauseImpl(
+              implementsKeyword: existingClause.implementsKeyword,
+              interfaces: [
+                ...existingClause.interfaces,
+                ...implementsClause.interfaces,
+              ],
+            );
+          }
+        }
+      case DeclarationHeaderKind.ExtensionType:
+      // TODO(scheglov): Support header recovery on extension type
+      //  declaration.
     }
   }
 
@@ -5446,28 +5505,19 @@ class AstBuilder extends StackListener {
     return token == null || identical(value, token.stringValue);
   }
 
-  List<CommentReferenceImpl> parseCommentReferences(Token dartdoc) {
-    // Parse dartdoc into potential comment reference source/offset pairs
-    int count = parser.parseCommentReferences(dartdoc);
-    List sourcesAndOffsets = List.filled(count * 2, null);
-    popList(count * 2, sourcesAndOffsets);
-
-    // Parse each of the source/offset pairs into actual comment references
-    count = 0;
-    int index = 0;
-    while (index < sourcesAndOffsets.length) {
-      var referenceSource = sourcesAndOffsets[index++] as String;
-      var referenceOffset = sourcesAndOffsets[index++] as int;
-      ScannerResult result = scanString(referenceSource);
-      if (!result.hasErrors) {
-        Token token = result.tokens;
-        if (parser.parseOneCommentReference(token, referenceOffset)) {
-          ++count;
-        }
-      }
-    }
-
-    return popTypedList<CommentReferenceImpl>(count) ?? const [];
+  /// Parses the comment references in a sequence of comment tokens where
+  /// [dartdoc] is the first token in the sequence.
+  @visibleForTesting
+  CommentImpl parseDocComment(Token dartdoc) {
+    // Build and return the comment.
+    return DocCommentBuilder(
+      parser,
+      errorReporter.errorReporter,
+      uri,
+      _featureSet,
+      _lineInfo,
+      dartdoc,
+    ).build();
   }
 
   List<CollectionElementImpl> popCollectionElements(int count) {
@@ -5587,6 +5637,7 @@ class AstBuilder extends StackListener {
     var constructor = ConstructorDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: modifiers?.augmentKeyword,
       externalKeyword: modifiers?.externalKeyword,
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: null,
@@ -5659,6 +5710,7 @@ class AstBuilder extends StackListener {
     final constructor = ConstructorDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: modifiers?.augmentKeyword,
       externalKeyword: modifiers?.externalKeyword,
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: factoryKeyword,
@@ -5676,7 +5728,7 @@ class AstBuilder extends StackListener {
 
   CommentImpl? _findComment(
       List<AnnotationImpl>? metadata, Token tokenAfterMetadata) {
-    // Find the dartdoc tokens
+    // Find the dartdoc tokens.
     var dartdoc = parser.findDartDoc(tokenAfterMetadata);
     if (dartdoc == null) {
       if (metadata == null) {
@@ -5695,23 +5747,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    // Build and return the comment
-    var references = parseCommentReferences(dartdoc);
-    List<Token> tokens = <Token>[dartdoc];
-    if (dartdoc.lexeme.startsWith('///')) {
-      dartdoc = dartdoc.next;
-      while (dartdoc != null) {
-        if (dartdoc.lexeme.startsWith('///')) {
-          tokens.add(dartdoc);
-        }
-        dartdoc = dartdoc.next;
-      }
-    }
-    return CommentImpl(
-      tokens: tokens,
-      type: CommentType.DOCUMENTATION,
-      references: references,
-    );
+    return parseDocComment(dartdoc);
   }
 
   void _handleInstanceCreation(Token? token) {
@@ -5805,14 +5841,13 @@ class AstBuilder extends StackListener {
 }
 
 class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? augmentKeyword;
   final Token? abstractKeyword;
   final Token? macroKeyword;
-  final Token? inlineKeyword;
   final Token? sealedKeyword;
   final Token? baseKeyword;
   final Token? interfaceKeyword;
   final Token? finalKeyword;
-  final Token? augmentKeyword;
   final Token? mixinKeyword;
   final Token classKeyword;
   final Token name;
@@ -5827,14 +5862,13 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.typeParameters,
     required super.leftBracket,
     required super.rightBracket,
+    required this.augmentKeyword,
     required this.abstractKeyword,
     required this.macroKeyword,
-    required this.inlineKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
     required this.finalKeyword,
-    required this.augmentKeyword,
     required this.mixinKeyword,
     required this.classKeyword,
     required this.name,
@@ -5848,14 +5882,13 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     return ClassDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
-      inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
       finalKeyword: finalKeyword,
-      augmentKeyword: augmentKeyword,
       mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
       name: name,
@@ -5963,6 +5996,43 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       typeParameters: typeParameters,
       onKeyword: onKeyword,
       extendedType: extendedType,
+      leftBracket: leftBracket,
+      members: members,
+      rightBracket: rightBracket,
+    );
+  }
+}
+
+class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token extensionKeyword;
+  final Token name;
+
+  _ExtensionTypeDeclarationBuilder({
+    required super.comment,
+    required super.metadata,
+    required super.typeParameters,
+    required super.leftBracket,
+    required super.rightBracket,
+    required this.extensionKeyword,
+    required this.name,
+  });
+
+  ExtensionTypeDeclarationImpl build({
+    required Token typeKeyword,
+    required Token? constKeyword,
+    required RepresentationDeclarationImpl representation,
+    required ImplementsClauseImpl? implementsClause,
+  }) {
+    return ExtensionTypeDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      extensionKeyword: extensionKeyword,
+      typeKeyword: typeKeyword,
+      constKeyword: constKeyword,
+      name: name,
+      typeParameters: typeParameters,
+      representation: representation,
+      implementsClause: implementsClause,
       leftBracket: leftBracket,
       members: members,
       rightBracket: rightBracket,

@@ -248,6 +248,8 @@ void Dwarf::WriteAbbreviations(DwarfWriteStream* stream) {
   stream->uleb128(DW_FORM_udata);
   stream->uleb128(DW_AT_call_column);
   stream->uleb128(DW_FORM_udata);
+  stream->uleb128(DW_AT_artificial);
+  stream->uleb128(DW_FORM_flag);
   stream->uleb128(0);
   stream->uleb128(0);  // End of attributes.
 
@@ -415,6 +417,14 @@ InliningNode* Dwarf::ExpandInliningTree(const Code& code) {
       }
       case CodeSourceMapOps::kAdvancePC: {
         current_pc_offset += arg1;
+        if (arg1 == 0) {
+          // This happens at the start of the function where we emit a special
+          // kAdvancePC 0 instruction to record information about the function
+          // itself. We need to advance current_pc_offset a bit to prevent
+          // starting inlining interval directy at the start of the function
+          // itself.
+          current_pc_offset += 1;
+        }
         break;
       }
       case CodeSourceMapOps::kPushFunction: {
@@ -476,8 +486,10 @@ void Dwarf::WriteInliningNode(DwarfWriteStream* stream,
 
   // DW_AT_call_line
   stream->uleb128(node->position.line());
-  // DW_at_call_column
+  // DW_AT_call_column
   stream->uleb128(node->position.column());
+  // DW_AT_artificial
+  stream->u1(node->function.is_visible() ? 0 : 1);
 
   for (InliningNode* child = node->children_head; child != nullptr;
        child = child->children_next) {
@@ -594,7 +606,7 @@ class LineNumberProgramWriter {
   intptr_t file_ = 1;
   intptr_t line_ = 1;
   intptr_t column_ = 0;
-  intptr_t end_sequence_ = false;
+  bool end_sequence_ = false;
 
   // Other info not stored in the state machine registers.
   intptr_t label_ = 0;

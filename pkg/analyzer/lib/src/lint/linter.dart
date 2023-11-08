@@ -46,7 +46,7 @@ import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
-export 'package:analyzer/src/lint/state.dart' show dart3, State;
+export 'package:analyzer/src/lint/state.dart' show dart2_12, dart3, State;
 
 typedef Printer = void Function(String msg);
 
@@ -283,13 +283,6 @@ abstract class LinterContext {
 
 /// Implementation of [LinterContext]
 class LinterContextImpl implements LinterContext {
-  static final testDirectories = [
-    '${p.separator}test${p.separator}',
-    '${p.separator}integration_test${p.separator}',
-    '${p.separator}test_driver${p.separator}',
-    '${p.separator}testing${p.separator}',
-  ];
-
   @override
   final List<LinterContextUnit> allUnits;
 
@@ -314,6 +307,8 @@ class LinterContextImpl implements LinterContext {
   @override
   final InheritanceManager3 inheritanceManager;
 
+  final List<String> testDirectories;
+
   LinterContextImpl(
     this.allUnits,
     this.currentUnit,
@@ -323,7 +318,8 @@ class LinterContextImpl implements LinterContext {
     this.inheritanceManager,
     this.analysisOptions,
     this.package,
-  );
+    p.Context pathContext,
+  ) : testDirectories = LinterContextImpl.getTestDirectories(pathContext);
 
   @override
   bool canBeConst(Expression expression) {
@@ -393,10 +389,9 @@ class LinterContextImpl implements LinterContext {
       errorReporter,
     );
 
-    // TODO(kallentu): Remove unwrapping of Constant
-    var constant = node.accept(visitor);
-    var value = constant is DartObjectImpl ? constant : null;
-    return LinterConstantEvaluationResult(value, errorListener.errors);
+    var constant = visitor.evaluateAndReportInvalidConstant(node);
+    var dartObject = constant is DartObjectImpl ? constant : null;
+    return LinterConstantEvaluationResult(dartObject, errorListener.errors);
   }
 
   @override
@@ -512,6 +507,76 @@ class LinterContextImpl implements LinterContext {
     );
     return listener.hasConstError;
   }
+
+  static List<String> getTestDirectories(p.Context pathContext) {
+    final separator = pathContext.separator;
+    return [
+      '${separator}test$separator',
+      '${separator}integration_test$separator',
+      '${separator}test_driver$separator',
+      '${separator}testing$separator',
+    ];
+  }
+}
+
+class LinterContextParsedImpl implements LinterContext {
+  @override
+  final List<LinterContextUnit> allUnits;
+
+  @override
+  final LinterContextUnit currentUnit;
+
+  @override
+  final WorkspacePackage? package = null;
+
+  @override
+  final InheritanceManager3 inheritanceManager = InheritanceManager3();
+
+  LinterContextParsedImpl(
+    this.allUnits,
+    this.currentUnit,
+    //  this.package,
+  );
+
+  @override
+  AnalysisOptions get analysisOptions => throw UnimplementedError();
+
+  @override
+  DeclaredVariables get declaredVariables =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  TypeProvider get typeProvider =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  TypeSystem get typeSystem =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  bool canBeConst(Expression expression) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  bool canBeConstConstructor(ConstructorDeclaration node) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  LinterConstantEvaluationResult evaluateConstant(Expression node) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  bool inTestDir(CompilationUnit unit) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  bool isEnabled(Feature feature) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  LinterNameInScopeResolutionResult resolveNameInScope(
+          String id, bool setter, AstNode node) =>
+      throw UnsupportedError('LinterContext with parsed results');
 }
 
 class LinterContextUnit {
@@ -635,6 +700,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   /// constitute AnalysisErrorInfos.
   final List<AnalysisErrorInfo> _locationInfo = <AnalysisErrorInfo>[];
 
+  /// The state of a lint, and optionally since when the state began.
   final State state;
 
   LintRule({
@@ -642,11 +708,10 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     required this.group,
     required this.description,
     required this.details,
-    @Deprecated("Use 'state' instead.") Maturity? maturity,
     State? state,
     this.documentation,
     this.hasDocumentation = false,
-  }) : state = state ?? _toState(maturity);
+  }) : state = state ?? State.stable();
 
   /// Indicates whether the lint rule can work with just the parsed information
   /// or if it requires a resolved unit.
@@ -657,14 +722,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
 
   @override
   LintCode get lintCode => _LintCode(name, description);
-
-  /// Lint maturity (stable|deprecated|experimental).
-  @Deprecated("Use 'state' instead.")
-  Maturity get maturity {
-    if (state.isDeprecated) return Maturity.deprecated;
-    if (state.isExperimental) return Maturity.experimental;
-    return Maturity.stable;
-  }
 
   @override
   int compareTo(LintRule other) {
@@ -734,39 +791,6 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     // Then do the reporting
     reporter.reportError(error);
   }
-
-  static State _toState(Maturity? maturity) {
-    if (maturity == Maturity.deprecated) return State.deprecated();
-    if (maturity == Maturity.experimental) return State.experimental();
-    return State.stable();
-  }
-}
-
-class Maturity implements Comparable<Maturity> {
-  static const Maturity stable = Maturity._('stable', ordinal: 0);
-  static const Maturity experimental = Maturity._('experimental', ordinal: 1);
-  static const Maturity deprecated = Maturity._('deprecated', ordinal: 2);
-
-  final String name;
-  final int ordinal;
-
-  factory Maturity(String name, {required int ordinal}) {
-    switch (name.toLowerCase()) {
-      case 'stable':
-        return stable;
-      case 'experimental':
-        return experimental;
-      case 'deprecated':
-        return deprecated;
-      default:
-        return Maturity._(name, ordinal: ordinal);
-    }
-  }
-
-  const Maturity._(this.name, {required this.ordinal});
-
-  @override
-  int compareTo(Maturity other) => ordinal - other.ordinal;
 }
 
 /// [LintRule]s that implement this interface want to process only some types
@@ -903,18 +927,24 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode
+              .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+        case CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
+        case CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
+        case CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+        case CompileTimeErrorCode.CONST_EVAL_TYPE_STRING:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
         case CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
         case CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
         case CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
+        case CompileTimeErrorCode.CONST_TYPE_PARAMETER:
         case CompileTimeErrorCode.CONST_WITH_NON_CONST:
         case CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
         case CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS:
@@ -922,6 +952,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL:
         case CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL:
+        case CompileTimeErrorCode.NON_BOOL_CONDITION:
         case CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT:
         case CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT:
         case CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:

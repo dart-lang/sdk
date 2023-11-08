@@ -1,0 +1,17 @@
+expectEquals(x, y) {}
+expectThrows(void Function() f) {}
+listToString(List list) => "[${list.map((e) => '${e}').join(',')}]";
+main() {}
+mapToString(Map map) {}
+test1(dynamic x) => [for (var [int i, int n] = x; i < n; i++) i];
+test2(dynamic x) => {
+      -1: -1,
+      for (var [int i, int n] = x; i < n; i++) i: i,
+      -2: -2,
+    };
+test3(dynamic x, dynamic another) => {
+      -1: -1,
+      for (var [int i1, n1, ...] = x; i1 < n1; i1++)
+        for (var [_, _, int i2, n2, ...] = x; i2 < n2; i2++) ...another,
+      -2: -2,
+    };

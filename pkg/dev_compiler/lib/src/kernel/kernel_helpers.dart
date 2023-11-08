@@ -6,6 +6,7 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
+import 'package:kernel/src/replacement_visitor.dart';
 
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
@@ -44,7 +45,16 @@ String getLocalClassName(Class node) => escapeIdentifier(node.name)!;
 ///
 /// In the current encoding, generic classes are generated in a function scope
 /// which avoids name clashes of the escaped parameter name.
-String getTypeParameterName(TypeParameter node) => escapeIdentifier(node.name)!;
+String getTypeParameterName(
+    /* TypeParameter | StructuralParameter */ Object node) {
+  assert(node is TypeParameter || node is StructuralParameter);
+  if (node is TypeParameter) {
+    return escapeIdentifier(node.name)!;
+  } else {
+    node as StructuralParameter;
+    return escapeIdentifier(node.name)!;
+  }
+}
 
 String getTopLevelName(NamedNode n) {
   if (n is Procedure) return n.name.text;
@@ -290,6 +300,7 @@ class LabelContinueFinder extends RecursiveVisitor<void> {
 /// code if used in an assert.
 bool isKnownDartTypeImplementor(DartType t) {
   return t is DynamicType ||
+      t is ExtensionType ||
       t is FunctionType ||
       t is FutureOrType ||
       t is InterfaceType ||
@@ -297,6 +308,7 @@ bool isKnownDartTypeImplementor(DartType t) {
       t is NeverType ||
       t is NullType ||
       t is RecordType ||
+      t is StructuralParameterType ||
       t is TypeParameterType ||
       t is TypedefType ||
       t is VoidType;
@@ -330,7 +342,7 @@ bool _isDartInternal(Uri uri) =>
 /// Collects all `TypeParameter`s from the `TypeParameterType`s present in the
 /// visited `DartType`.
 class TypeParameterFinder extends RecursiveVisitor<void> {
-  final _found = <TypeParameter>{};
+  final _found = < /* TypeParameter | StructuralParameter */ Object>{};
   static TypeParameterFinder? _instance;
 
   TypeParameterFinder._();
@@ -339,7 +351,7 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
     return TypeParameterFinder._();
   }
 
-  Set<TypeParameter> find(DartType type) {
+  Set< /* TypeParameter | StructuralParameter */ Object> find(DartType type) {
     _found.clear();
     type.accept(this);
     return _found;
@@ -347,6 +359,10 @@ class TypeParameterFinder extends RecursiveVisitor<void> {
 
   @override
   void visitTypeParameterType(TypeParameterType node) =>
+      _found.add(node.parameter);
+
+  @override
+  void visitStructuralParameterType(StructuralParameterType node) =>
       _found.add(node.parameter);
 }
 
@@ -365,4 +381,16 @@ class InterfaceTypeExtractor extends RecursiveVisitor<DartType> {
     type.accept(this);
     return _found;
   }
+}
+
+class ExtensionTypeEraser extends ReplacementVisitor {
+  const ExtensionTypeEraser();
+
+  /// Erases all `ExtensionType` nodes found in [type].
+  DartType erase(DartType type) =>
+      type.accept1(this, Variance.unrelated) ?? type;
+
+  @override
+  DartType? visitExtensionType(ExtensionType node, int variance) =>
+      node.typeErasure.accept1(this, Variance.unrelated) ?? node.typeErasure;
 }

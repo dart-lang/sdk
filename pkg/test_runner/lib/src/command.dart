@@ -692,7 +692,7 @@ class RRCommand extends Command {
   late io.Directory savedDir;
 
   RRCommand(this.originalCommand)
-      : super._("rr", index: originalCommand.index) {
+      : super._(originalCommand.displayName, index: originalCommand.index) {
     final suffix = "/rr-trace-${originalCommand.hashCode}";
     recordingDir = io.Directory(io.Directory.systemTemp.path + suffix);
     savedDir = io.Directory("out$suffix");
@@ -703,10 +703,15 @@ class RRCommand extends Command {
       "--output-trace-dir=${recordingDir.path}",
     ];
     arguments.add(originalCommand.executable);
+    arguments.addAll(originalCommand.nonBatchArguments);
     arguments.addAll(originalCommand.arguments);
-    wrappedCommand = VMCommand(
-        executable, arguments, originalCommand.environmentOverrides,
-        index: originalCommand.index);
+    wrappedCommand = ProcessCommand(
+        originalCommand.displayName,
+        executable,
+        arguments,
+        originalCommand.environmentOverrides,
+        originalCommand.workingDirectory,
+        originalCommand.index);
   }
 
   @override
@@ -732,12 +737,48 @@ class RRCommand extends Command {
           .writeAsString(wrappedCommand.reproductionCommand);
       await io.File("${savedDir.path}/stdout.txt").writeAsBytes(output.stdout);
       await io.File("${savedDir.path}/stderr.txt").writeAsBytes(output.stderr);
-    } else {
+    } else if (await recordingDir.exists()) {
       await recordingDir.delete(recursive: true);
     }
 
-    return VMCommandOutput(this, output.exitCode, output.hasTimedOut,
-        output.stdout, output.stderr, output.time, output.pid);
+    final compilationSkipped = false;
+    switch (displayName) {
+      case 'app_jit':
+      case 'precompiler':
+      case 'run_vm_unittest':
+      case 'vm':
+        return VMCommandOutput(this, output.exitCode, output.hasTimedOut,
+            output.stdout, output.stderr, output.time, output.pid);
+      case 'dart2wasm':
+        return Dart2WasmCompilerCommandOutput(
+            this,
+            output.exitCode,
+            output.hasTimedOut,
+            output.stdout,
+            output.stderr,
+            output.time,
+            compilationSkipped);
+      case 'dart2js':
+        return Dart2jsCompilerCommandOutput(
+            this,
+            output.exitCode,
+            output.hasTimedOut,
+            output.stdout,
+            output.stderr,
+            output.time,
+            compilationSkipped);
+      case 'ddc':
+        return DevCompilerCommandOutput(
+            this,
+            output.exitCode,
+            output.hasTimedOut,
+            output.stdout,
+            output.stderr,
+            output.time,
+            compilationSkipped,
+            output.pid);
+    }
+    throw "Don't know how to interpret output for $displayName";
   }
 
   @override

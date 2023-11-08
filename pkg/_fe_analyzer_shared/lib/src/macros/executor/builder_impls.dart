@@ -10,46 +10,72 @@ import '../executor.dart';
 import '../api.dart';
 import 'response_impls.dart';
 
-class TypeBuilderBase implements IdentifierResolver {
-  /// The final result, will be built up over `augment` calls.
+abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
+  /// All the collected diagnostics for this builder.
+  final List<Diagnostic> _diagnostics = [];
+
+  /// All the enum values to be added, indexed by the identifier for the
+  /// augmented enum declaration.
   final Map<IdentifierImpl, List<DeclarationCode>> _enumValueAugmentations;
 
-  /// The final result, will be built up over `augment` calls.
+  /// All the interfaces to be added, indexed by the identifier for the
+  /// augmented type declaration.
+  final Map<IdentifierImpl, List<TypeAnnotationCode>> _interfaceAugmentations;
+
+  /// All the top level declarations to add to the current library.
   final List<DeclarationCode> _libraryAugmentations;
+
+  /// All the mixins to be added, indexed by the identifier for the
+  /// augmented type declaration.
+  final Map<IdentifierImpl, List<TypeAnnotationCode>> _mixinAugmentations;
 
   /// The names of any new types added in [_libraryAugmentations].
   final List<String> _newTypeNames = [];
 
-  /// The final result, will be built up over `augment` calls.
+  /// All the declarations to be added to types, indexed by the identifier for
+  /// the augmented type.
   final Map<IdentifierImpl, List<DeclarationCode>> _typeAugmentations;
 
-  final IdentifierResolver identifierResolver;
+  TypePhaseIntrospector get introspector;
 
   /// Creates and returns a [MacroExecutionResult] out of the [_augmentations]
   /// created by this builder.
   MacroExecutionResult get result => new MacroExecutionResultImpl(
+        diagnostics: _diagnostics,
         enumValueAugmentations: _enumValueAugmentations,
+        interfaceAugmentations: _interfaceAugmentations,
         libraryAugmentations: _libraryAugmentations,
+        mixinAugmentations: _mixinAugmentations,
         newTypeNames: _newTypeNames,
         typeAugmentations: _typeAugmentations,
       );
 
-  TypeBuilderBase(this.identifierResolver,
-      {Map<IdentifierImpl, List<DeclarationCode>>? parentTypeAugmentations,
-      Map<IdentifierImpl, List<DeclarationCode>>? parentEnumValueAugmentations,
-      List<DeclarationCode>? parentLibraryAugmentations})
-      : _typeAugmentations = parentTypeAugmentations ?? {},
-        _enumValueAugmentations = parentEnumValueAugmentations ?? {},
-        _libraryAugmentations = parentLibraryAugmentations ?? [];
+  TypeBuilderBase({
+    Map<IdentifierImpl, List<DeclarationCode>>? parentEnumValueAugmentations,
+    Map<IdentifierImpl, List<TypeAnnotationCode>>? parentInterfaceAugmentations,
+    List<DeclarationCode>? parentLibraryAugmentations,
+    Map<IdentifierImpl, List<TypeAnnotationCode>>? parentMixinAugmentations,
+    Map<IdentifierImpl, List<DeclarationCode>>? parentTypeAugmentations,
+  })  : _enumValueAugmentations = parentEnumValueAugmentations ?? {},
+        _interfaceAugmentations = parentInterfaceAugmentations ?? {},
+        _libraryAugmentations = parentLibraryAugmentations ?? [],
+        _mixinAugmentations = parentMixinAugmentations ?? {},
+        _typeAugmentations = parentTypeAugmentations ?? {};
+
+  @override
+  void report(Diagnostic diagnostic) => _diagnostics.add(diagnostic);
 
   @override
   Future<Identifier> resolveIdentifier(Uri library, String identifier) =>
       // ignore: deprecated_member_use_from_same_package
-      identifierResolver.resolveIdentifier(library, identifier);
+      introspector.resolveIdentifier(library, identifier);
 }
 
 class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
-  TypeBuilderImpl(super.identifierResolver);
+  @override
+  final TypePhaseIntrospector introspector;
+
+  TypeBuilderImpl(this.introspector);
 
   @override
   void declareType(String name, DeclarationCode typeDeclaration) {
@@ -58,54 +84,109 @@ class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
   }
 }
 
-/// Base class for all [DeclarationBuilder]s.
-class DeclarationBuilderBase extends TypeBuilderBase
-    implements TypeIntrospector, TypeDeclarationResolver, TypeResolver {
-  final TypeIntrospector typeIntrospector;
-  final TypeDeclarationResolver typeDeclarationResolver;
-  final TypeResolver typeResolver;
+mixin InterfaceTypesBuilderImpl on TypeBuilderImpl
+    implements InterfaceTypesBuilder {
+  /// The type that we are going to be adding interfaces to.
+  IdentifierImpl get originalType;
 
-  DeclarationBuilderBase(super.identifierResolver, this.typeIntrospector,
-      this.typeDeclarationResolver, this.typeResolver,
-      {super.parentTypeAugmentations,
-      super.parentEnumValueAugmentations,
-      super.parentLibraryAugmentations});
+  /// Appends [interfaces] to the list of interfaces for this type.
+  @override
+  void appendInterfaces(Iterable<TypeAnnotationCode> interfaces) {
+    _interfaceAugmentations
+        .putIfAbsent(originalType, () => [])
+        .addAll(interfaces);
+  }
+}
+
+mixin MixinTypesBuilderImpl on TypeBuilderImpl implements MixinTypesBuilder {
+  /// The type that we are going to be adding mixins to.
+  IdentifierImpl get originalType;
+
+  /// Appends [mixins] to the list of mixins for this type.
+  @override
+  void appendMixins(Iterable<TypeAnnotationCode> mixins) {
+    (_mixinAugmentations[originalType] ??= []).addAll(mixins);
+  }
+}
+
+class ClassTypeBuilderImpl extends TypeBuilderImpl
+    with InterfaceTypesBuilderImpl, MixinTypesBuilderImpl
+    implements ClassTypeBuilder {
+  @override
+  final IdentifierImpl originalType;
+
+  ClassTypeBuilderImpl(this.originalType, super.introspector);
+}
+
+class EnumTypeBuilderImpl extends TypeBuilderImpl
+    with InterfaceTypesBuilderImpl, MixinTypesBuilderImpl
+    implements EnumTypeBuilder {
+  @override
+  final IdentifierImpl originalType;
+
+  EnumTypeBuilderImpl(this.originalType, super.introspector);
+}
+
+class MixinTypeBuilderImpl extends TypeBuilderImpl
+    with InterfaceTypesBuilderImpl
+    implements MixinTypeBuilder {
+  @override
+  final IdentifierImpl originalType;
+
+  MixinTypeBuilderImpl(this.originalType, super.introspector);
+}
+
+/// Base class for all [DeclarationBuilder]s.
+abstract class DeclarationBuilderBase extends TypeBuilderBase
+    implements DeclarationPhaseIntrospector {
+  @override
+  DeclarationPhaseIntrospector get introspector;
+
+  DeclarationBuilderBase({
+    super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
+    super.parentLibraryAugmentations,
+    super.parentTypeAugmentations,
+    super.parentMixinAugmentations,
+  });
 
   @override
-  Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) =>
-      typeDeclarationResolver.declarationOf(identifier);
+  Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) =>
+      introspector.typeDeclarationOf(identifier);
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
           IntrospectableType type) =>
-      typeIntrospector.constructorsOf(type);
+      introspector.constructorsOf(type);
 
   @override
   Future<List<EnumValueDeclaration>> valuesOf(
           covariant IntrospectableEnumDeclaration enuum) =>
-      typeIntrospector.valuesOf(enuum);
+      introspector.valuesOf(enuum);
 
   @override
   Future<List<FieldDeclaration>> fieldsOf(IntrospectableType type) =>
-      typeIntrospector.fieldsOf(type);
+      introspector.fieldsOf(type);
 
   @override
   Future<List<MethodDeclaration>> methodsOf(IntrospectableType type) =>
-      typeIntrospector.methodsOf(type);
+      introspector.methodsOf(type);
 
   @override
   Future<StaticType> resolve(TypeAnnotationCode code) =>
-      typeResolver.resolve(code);
+      introspector.resolve(code);
+
+  @override
+  Future<List<TypeDeclaration>> typesOf(Library library) =>
+      introspector.typesOf(library);
 }
 
 class DeclarationBuilderImpl extends DeclarationBuilderBase
     implements DeclarationBuilder {
-  DeclarationBuilderImpl(
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
-  );
+  @override
+  final DeclarationPhaseIntrospector introspector;
+
+  DeclarationBuilderImpl(this.introspector);
 
   @override
   void declareInLibrary(DeclarationCode declaration) {
@@ -119,10 +200,7 @@ class MemberDeclarationBuilderImpl extends DeclarationBuilderImpl
 
   MemberDeclarationBuilderImpl(
     this.definingType,
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
+    super.introspector,
   );
 
   @override
@@ -136,10 +214,7 @@ class EnumDeclarationBuilderImpl extends MemberDeclarationBuilderImpl
     implements EnumDeclarationBuilder {
   EnumDeclarationBuilderImpl(
     super.definingType,
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
+    super.introspector,
   );
 
   @override
@@ -152,23 +227,34 @@ class EnumDeclarationBuilderImpl extends MemberDeclarationBuilderImpl
 
 /// Base class for all [DefinitionBuilder]s.
 class DefinitionBuilderBase extends DeclarationBuilderBase
-    implements TypeInferrer {
-  final TypeInferrer typeInferrer;
+    implements DefinitionPhaseIntrospector {
+  @override
+  final DefinitionPhaseIntrospector introspector;
 
   DefinitionBuilderBase(
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
-    this.typeInferrer, {
-    super.parentTypeAugmentations,
+    this.introspector, {
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentTypeAugmentations,
+    super.parentMixinAugmentations,
   });
 
   @override
+  Future<Declaration> declarationOf(Identifier identifier) =>
+      introspector.declarationOf(identifier);
+
+  @override
   Future<TypeAnnotation> inferType(OmittedTypeAnnotationImpl omittedType) =>
-      typeInferrer.inferType(omittedType);
+      introspector.inferType(omittedType);
+
+  @override
+  Future<List<Declaration>> topLevelDeclarationsOf(Library library) =>
+      introspector.topLevelDeclarationsOf(library);
+
+  @override
+  Future<IntrospectableType> typeDeclarationOf(Identifier identifier) =>
+      introspector.typeDeclarationOf(identifier);
 }
 
 class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
@@ -178,47 +264,41 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
 
   TypeDefinitionBuilderImpl(
     this.declaration,
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
-    super.typeInferrer, {
-    super.parentTypeAugmentations,
+    super.introspector, {
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentTypeAugmentations,
+    super.parentMixinAugmentations,
   });
 
   @override
   Future<ConstructorDefinitionBuilder> buildConstructor(
       Identifier identifier) async {
-    ConstructorDeclarationImpl constructor = (await typeIntrospector
+    ConstructorDeclarationImpl constructor = (await introspector
                 .constructorsOf(declaration))
             .firstWhere((constructor) => constructor.identifier == identifier)
         as ConstructorDeclarationImpl;
-    return new ConstructorDefinitionBuilderImpl(constructor, identifierResolver,
-        typeIntrospector, typeDeclarationResolver, typeResolver, typeInferrer,
+    return new ConstructorDefinitionBuilderImpl(constructor, introspector,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
 
   @override
   Future<VariableDefinitionBuilder> buildField(Identifier identifier) async {
-    FieldDeclaration field = (await typeIntrospector.fieldsOf(declaration))
+    FieldDeclaration field = (await introspector.fieldsOf(declaration))
         .firstWhere((field) => field.identifier == identifier);
-    return new VariableDefinitionBuilderImpl(field, identifierResolver,
-        typeIntrospector, typeDeclarationResolver, typeResolver, typeInferrer,
+    return new VariableDefinitionBuilderImpl(field, introspector,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
 
   @override
   Future<FunctionDefinitionBuilder> buildMethod(Identifier identifier) async {
-    MethodDeclarationImpl method =
-        (await typeIntrospector.methodsOf(declaration))
-                .firstWhere((method) => method.identifier == identifier)
-            as MethodDeclarationImpl;
-    return new FunctionDefinitionBuilderImpl(method, identifierResolver,
-        typeIntrospector, typeDeclarationResolver, typeResolver, typeInferrer,
+    MethodDeclarationImpl method = (await introspector.methodsOf(declaration))
+            .firstWhere((method) => method.identifier == identifier)
+        as MethodDeclarationImpl;
+    return new FunctionDefinitionBuilderImpl(method, introspector,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);
   }
@@ -232,28 +312,29 @@ class EnumDefinitionBuilderImpl extends TypeDefinitionBuilderImpl
 
   EnumDefinitionBuilderImpl(
     IntrospectableEnumDeclaration super.declaration,
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
-    super.typeInferrer, {
-    super.parentTypeAugmentations,
+    super.introspector, {
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentTypeAugmentations,
+    super.parentMixinAugmentations,
   });
 
   @override
   Future<EnumValueDefinitionBuilder> buildEnumValue(
       Identifier identifier) async {
-    EnumValueDeclarationImpl entry =
-        (await typeIntrospector.valuesOf(declaration))
-                .firstWhere((entry) => entry.identifier == identifier)
-            as EnumValueDeclarationImpl;
-    return new EnumValueDefinitionBuilderImpl(entry, identifierResolver,
-        typeIntrospector, typeDeclarationResolver, typeResolver, typeInferrer,
-        parentTypeAugmentations: _typeAugmentations,
-        parentEnumValueAugmentations: _enumValueAugmentations,
-        parentLibraryAugmentations: _libraryAugmentations);
+    EnumValueDeclarationImpl entry = (await introspector.valuesOf(declaration))
+            .firstWhere((entry) => entry.identifier == identifier)
+        as EnumValueDeclarationImpl;
+    return new EnumValueDefinitionBuilderImpl(
+      entry,
+      introspector,
+      parentEnumValueAugmentations: _enumValueAugmentations,
+      parentInterfaceAugmentations: _interfaceAugmentations,
+      parentLibraryAugmentations: _libraryAugmentations,
+      parentMixinAugmentations: _mixinAugmentations,
+      parentTypeAugmentations: _typeAugmentations,
+    );
   }
 }
 
@@ -263,14 +344,12 @@ class EnumValueDefinitionBuilderImpl extends DefinitionBuilderBase
 
   EnumValueDefinitionBuilderImpl(
     this.declaration,
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
-    super.typeInferrer, {
-    super.parentTypeAugmentations,
+    super.introspector, {
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
   });
 
   @override
@@ -288,14 +367,12 @@ class FunctionDefinitionBuilderImpl extends DefinitionBuilderBase
 
   FunctionDefinitionBuilderImpl(
     this.declaration,
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
-    super.typeInferrer, {
-    super.parentTypeAugmentations,
+    super.introspector, {
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
   });
 
   @override
@@ -319,14 +396,12 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
 
   ConstructorDefinitionBuilderImpl(
     this.declaration,
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
-    super.typeInferrer, {
-    super.parentTypeAugmentations,
+    super.introspector, {
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
   });
 
   @override
@@ -351,14 +426,12 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
 
   VariableDefinitionBuilderImpl(
     this.declaration,
-    super.identifierResolver,
-    super.typeIntrospector,
-    super.typeDeclarationResolver,
-    super.typeResolver,
-    super.typeInferrer, {
-    super.parentTypeAugmentations,
+    super.introspector, {
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
   });
 
   @override
@@ -381,6 +454,54 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
     } else {
       _libraryAugmentations.addAll(augmentations);
     }
+  }
+}
+
+class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
+    implements LibraryDefinitionBuilder {
+  final Library library;
+
+  LibraryDefinitionBuilderImpl(
+    this.library,
+    super.introspector, {
+    super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
+    super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
+  });
+
+  @override
+  Future<FunctionDefinitionBuilder> buildFunction(Identifier identifier) async {
+    FunctionDeclarationImpl function = (await introspector
+                .topLevelDeclarationsOf(library))
+            .firstWhere((declaration) => declaration.identifier == identifier)
+        as FunctionDeclarationImpl;
+    return new FunctionDefinitionBuilderImpl(function, introspector,
+        parentTypeAugmentations: _typeAugmentations,
+        parentLibraryAugmentations: _libraryAugmentations);
+  }
+
+  @override
+  Future<TypeDefinitionBuilder> buildType(Identifier identifier) async {
+    IntrospectableType type = (await introspector
+                .topLevelDeclarationsOf(library))
+            .firstWhere((declaration) => declaration.identifier == identifier)
+        as IntrospectableType;
+    return new TypeDefinitionBuilderImpl(type, introspector,
+        parentTypeAugmentations: _typeAugmentations,
+        parentLibraryAugmentations: _libraryAugmentations);
+  }
+
+  @override
+  Future<VariableDefinitionBuilder> buildVariable(Identifier identifier) async {
+    VariableDeclarationImpl variable = (await introspector
+                .topLevelDeclarationsOf(library))
+            .firstWhere((declaration) => declaration.identifier == identifier)
+        as VariableDeclarationImpl;
+    return new VariableDefinitionBuilderImpl(variable, introspector,
+        parentTypeAugmentations: _typeAugmentations,
+        parentLibraryAugmentations: _libraryAugmentations);
   }
 }
 
@@ -416,7 +537,7 @@ List<DeclarationCode> _buildVariableAugmentations(
       if (initializerDocComments != null) initializerDocComments,
       'augment ',
       if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
-      if (declaration.isFinal) 'final ',
+      if (declaration.hasFinal) 'final ',
       declaration.type.code,
       ' ',
       declaration.identifier,
@@ -451,41 +572,47 @@ DeclarationCode _buildFunctionAugmentation(
       ' ',
       if (declaration.isOperator) 'operator ',
     ],
+    if (declaration.isGetter) 'get ',
     declaration.identifier.name,
-    if (declaration.typeParameters.isNotEmpty) ...[
-      '<',
-      for (TypeParameterDeclaration typeParam
-          in declaration.typeParameters) ...[
-        typeParam.identifier.name,
-        if (typeParam.bound != null) ...[' extends ', typeParam.bound!.code],
-        if (typeParam != declaration.typeParameters.last) ', ',
+    if (!declaration.isGetter) ...[
+      if (declaration.typeParameters.isNotEmpty) ...[
+        '<',
+        for (TypeParameterDeclaration typeParam
+            in declaration.typeParameters) ...[
+          typeParam.identifier.name,
+          if (typeParam.bound != null) ...[' extends ', typeParam.bound!.code],
+          if (typeParam != declaration.typeParameters.last) ', ',
+        ],
+        '>',
       ],
-      '>',
-    ],
-    '(',
-    for (ParameterDeclaration positionalRequired
-        in declaration.positionalParameters.takeWhile((p) => p.isRequired)) ...[
-      positionalRequired.code,
-      ', ',
-    ],
-    if (declaration.positionalParameters.any((p) => !p.isRequired)) ...[
-      '[',
-      for (ParameterDeclaration positionalOptional
-          in declaration.positionalParameters.where((p) => !p.isRequired)) ...[
-        positionalOptional.code,
+      '(',
+      for (ParameterDeclaration positionalRequired in declaration
+          .positionalParameters
+          .takeWhile((p) => p.isRequired)) ...[
+        positionalRequired.code,
         ', ',
       ],
-      ']',
-    ],
-    if (declaration.namedParameters.isNotEmpty) ...[
-      '{',
-      for (ParameterDeclaration named in declaration.namedParameters) ...[
-        named.code,
-        ', ',
+      if (declaration.positionalParameters.any((p) => !p.isRequired)) ...[
+        '[',
+        for (ParameterDeclaration positionalOptional in declaration
+            .positionalParameters
+            .where((p) => !p.isRequired)) ...[
+          positionalOptional.code,
+          ', ',
+        ],
+        ']',
       ],
-      '}',
+      if (declaration.namedParameters.isNotEmpty) ...[
+        '{',
+        for (ParameterDeclaration named in declaration.namedParameters) ...[
+          named.code,
+          ', ',
+        ],
+        '}',
+      ],
+      ')',
     ],
-    ') ',
+    ' ',
     if (initializers != null && initializers.isNotEmpty) ...[
       ' : ',
       initializers.first,

@@ -27,39 +27,54 @@ import "package:expect/expect.dart";
 
 import 'dylib_utils.dart';
 
-main() async {
+main(args, message) async {
+  if (message != null) {
+    // We've been spawned by Isolate.spawnUri. Run IsolateB.
+    await IsolateB.entryPoint(message);
+    return;
+  }
+
+  // Simple tests.
   await testNativeCallableHelloWorld();
   testNativeCallableDoubleCloseError();
   await testNativeCallableUseAfterFree();
   await testNativeCallableNestedCloseCall();
   await testNativeCallableThrowInsideCallback();
+  await testNativeCallableDontKeepAlive();
+  testNativeCallableKeepAliveGetter();
+  await testNativeCallableClosure();
 
+  // Message passing tests.
   globalVar = 1000;
-  final isolateA = IsolateA([
-    SanityCheck(),
-    CallFromIsoAToIsoB(),
-    CallFromIsoBToIsoA(),
-    CallFromIsoAToIsoBViaNewThreadBlocking(),
-    CallFromIsoBToIsoAViaNewThreadBlocking(),
-    CallFromIsoAToIsoBViaNewThreadNonBlocking(),
-    CallFromIsoBToIsoAViaNewThreadNonBlocking(),
-    CallFromIsoAToBToA(),
-    CallFromIsoBToAToB(),
-    ManyCallsBetweenIsolates(),
-    ManyCallsBetweenIsolatesViaNewThreadBlocking(),
-    ManyCallsBetweenIsolatesViaNewThreadNonBlocking(),
-  ]);
-  await isolateA.messageLoop();
+  for (final sameGroup in [true, false]) {
+    final isolateA = IsolateA(sameGroup);
+    await isolateA.messageLoop();
+    isolateA.close();
+  }
   print("All tests completed :)");
-  isolateA.close();
 }
+
+final List<TestCase> messagePassingTestCases = [
+  SanityCheck(),
+  CallFromIsoAToIsoB(),
+  CallFromIsoBToIsoA(),
+  CallFromIsoAToIsoBViaNewThreadBlocking(),
+  CallFromIsoBToIsoAViaNewThreadBlocking(),
+  CallFromIsoAToIsoBViaNewThreadNonBlocking(),
+  CallFromIsoBToIsoAViaNewThreadNonBlocking(),
+  CallFromIsoAToBToA(),
+  CallFromIsoBToAToB(),
+  ManyCallsBetweenIsolates(),
+  ManyCallsBetweenIsolatesViaNewThreadBlocking(),
+  ManyCallsBetweenIsolatesViaNewThreadNonBlocking(),
+];
 
 var simpleFunctionResult = Completer<int>();
 void simpleFunction(int a, int b) {
   simpleFunctionResult.complete(a + b);
 }
 
-testNativeCallableHelloWorld() async {
+Future<void> testNativeCallableHelloWorld() async {
   final lib = NativeLibrary();
   final callback = NativeCallable<CallbackNativeType>.listener(simpleFunction);
 
@@ -74,13 +89,18 @@ testNativeCallableDoubleCloseError() {
   final callback = NativeCallable<CallbackNativeType>.listener(simpleFunction);
   Expect.notEquals(nullptr, callback.nativeFunction);
   callback.close();
-  Expect.equals(nullptr, callback.nativeFunction);
+
   Expect.throwsStateError(() {
-    callback.close();
+    final _ = callback.nativeFunction;
   });
+
+  // Expect that these do not throw.
+  callback.close();
+  callback.keepIsolateAlive = true;
+  Expect.isFalse(callback.keepIsolateAlive);
 }
 
-testNativeCallableUseAfterFree() async {
+Future<void> testNativeCallableUseAfterFree() async {
   final lib = NativeLibrary();
 
   final callback = NativeCallable<CallbackNativeType>.listener(simpleFunction);
@@ -102,7 +122,7 @@ void simpleFunctionAndCloseSelf(int a, int b) {
   simpleFunctionResult.complete(a + b);
 }
 
-testNativeCallableNestedCloseCall() async {
+Future<void> testNativeCallableNestedCloseCall() async {
   final lib = NativeLibrary();
   simpleFunctionAndCloseSelf_callable =
       NativeCallable<CallbackNativeType>.listener(simpleFunctionAndCloseSelf);
@@ -114,14 +134,16 @@ testNativeCallableNestedCloseCall() async {
   Expect.equals(1123, await simpleFunctionResult.future);
 
   // The callback is already closed.
-  Expect.equals(nullptr, simpleFunctionAndCloseSelf_callable!.nativeFunction);
+  Expect.throwsStateError(() {
+    final _ = simpleFunctionAndCloseSelf_callable!.nativeFunction;
+  });
 }
 
 void simpleFunctionThrows(int a, int b) {
   throw a + b;
 }
 
-testNativeCallableThrowInsideCallback() async {
+Future<void> testNativeCallableThrowInsideCallback() async {
   final lib = NativeLibrary();
   var caughtError;
   late final callback;
@@ -141,6 +163,54 @@ testNativeCallableThrowInsideCallback() async {
   callback.close();
 }
 
+Future<void> testNativeCallableDontKeepAlive() async {
+  final exitPort = ReceivePort();
+  await Isolate.spawn((_) async {
+    final lib = NativeLibrary();
+    final callback =
+        NativeCallable<CallbackNativeType>.listener(simpleFunction);
+
+    simpleFunctionResult = Completer<int>();
+    lib.callFunctionOnSameThread(1000, callback.nativeFunction);
+
+    Expect.equals(1123, await simpleFunctionResult.future);
+    callback.keepIsolateAlive = false;
+  }, null, onExit: exitPort.sendPort);
+  await exitPort.first;
+  exitPort.close();
+}
+
+testNativeCallableKeepAliveGetter() {
+  final callback = NativeCallable<CallbackNativeType>.listener(simpleFunction);
+  Expect.isTrue(callback.keepIsolateAlive);
+  callback.keepIsolateAlive = false;
+  Expect.isFalse(callback.keepIsolateAlive);
+  callback.keepIsolateAlive = true;
+  Expect.isTrue(callback.keepIsolateAlive);
+  callback.close();
+}
+
+Future<void> testNativeCallableClosure() async {
+  final lib = NativeLibrary();
+  int c = 70000;
+  void foo(int a, int b) {
+    simpleFunctionResult.complete(a + b + c);
+  }
+
+  final callback = NativeCallable<CallbackNativeType>.listener(foo);
+
+  simpleFunctionResult = Completer<int>();
+  lib.callFunctionOnSameThread(1000, callback.nativeFunction);
+  Expect.equals(71123, await simpleFunctionResult.future);
+
+  c = 80000;
+  simpleFunctionResult = Completer<int>();
+  lib.callFunctionOnSameThread(4000, callback.nativeFunction);
+  Expect.equals(84123, await simpleFunctionResult.future);
+
+  callback.close();
+}
+
 final ffiTestFunctions = dlopenPlatformSpecific("ffi_test_functions");
 
 // Global variable that is 1000 on isolate A, and 2000 on isolate B.
@@ -148,10 +218,10 @@ late final int globalVar;
 
 class SanityCheck extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoA;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoA;
 
   @override
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoB;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoB;
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
@@ -176,7 +246,7 @@ class SanityCheck extends TestCase {
 
 class CallFromIsoAToIsoB extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
@@ -190,7 +260,7 @@ class CallFromIsoAToIsoB extends TestCase {
 
 class CallFromIsoBToIsoA extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
@@ -204,7 +274,7 @@ class CallFromIsoBToIsoA extends TestCase {
 
 class CallFromIsoAToIsoBViaNewThreadBlocking extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
@@ -219,7 +289,7 @@ class CallFromIsoAToIsoBViaNewThreadBlocking extends TestCase {
 
 class CallFromIsoBToIsoAViaNewThreadBlocking extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
@@ -234,7 +304,7 @@ class CallFromIsoBToIsoAViaNewThreadBlocking extends TestCase {
 
 class CallFromIsoAToIsoBViaNewThreadNonBlocking extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
@@ -249,7 +319,7 @@ class CallFromIsoAToIsoBViaNewThreadNonBlocking extends TestCase {
 
 class CallFromIsoBToIsoAViaNewThreadNonBlocking extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
@@ -264,10 +334,10 @@ class CallFromIsoBToIsoAViaNewThreadNonBlocking extends TestCase {
 
 class CallFromIsoAToBToA extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
 
   @override
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
@@ -283,10 +353,10 @@ class CallFromIsoAToBToA extends TestCase {
 
 class CallFromIsoBToAToB extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
 
   @override
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
 
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
@@ -302,10 +372,10 @@ class CallFromIsoBToAToB extends TestCase {
 
 class ManyCallsBetweenIsolates extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
 
   @override
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
@@ -332,10 +402,10 @@ class ManyCallsBetweenIsolates extends TestCase {
 
 class ManyCallsBetweenIsolatesViaNewThreadBlocking extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
 
   @override
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
@@ -364,10 +434,10 @@ class ManyCallsBetweenIsolatesViaNewThreadBlocking extends TestCase {
 
 class ManyCallsBetweenIsolatesViaNewThreadNonBlocking extends TestCase {
   @override
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => atm.toIsoB;
 
   @override
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => atm.toIsoA;
 
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
@@ -394,31 +464,22 @@ class ManyCallsBetweenIsolatesViaNewThreadNonBlocking extends TestCase {
   }
 }
 
-class AsyncTestResponse {
-  int id;
-  Object value;
-  AsyncTestResponse(this.id, this.value);
-}
-
-class AsyncTestSendPort {
-  SendPort port;
-  AsyncTestSendPort(this.port);
-}
-
 class AsyncTestManager {
   int _lastResponseId = 0;
   final _pending = <int, Completer<Object>>{};
   final _recvPort = ReceivePort("AsyncTestManager");
 
-  late final AsyncTestSendPort toIsoA;
-  late final AsyncTestSendPort toIsoB;
-  AsyncTestSendPort get toThis => AsyncTestSendPort(_recvPort.sendPort);
+  late final SendPort toIsoA;
+  late final SendPort toIsoB;
+  SendPort get toThis => _recvPort.sendPort;
 
   AsyncTestManager(this._lastResponseId) {
     _recvPort.listen((msg) {
-      final response = msg as AsyncTestResponse;
-      _pending[response.id]!.complete(response.value);
-      _pending.remove(response.id);
+      final response = msg as List;
+      final id = response[0];
+      final value = response[1];
+      _pending[id]!.complete(value);
+      _pending.remove(id);
     });
   }
 
@@ -435,33 +496,33 @@ class AsyncTestManager {
   }
 }
 
-AsyncTestSendPort? _callbackResultPort;
+SendPort? _callbackResultPort;
 
 void addGlobalVar(int responseId, int x) {
   final result = x + globalVar;
-  _callbackResultPort!.port.send(AsyncTestResponse(responseId, result));
+  _callbackResultPort!.send([responseId, result]);
 }
 
 void callFromIsoBToAAndMultByGlobalVar(int responseIdToA, int x) {
-  final iso = IsolateB.instance;
+  final iso = IsolateB.instance!;
   iso.atm
       .call((responseIdToB) => iso.natLib.callFunctionOnSameThread(
           responseIdToB, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)))
       .then((response) {
     final result = (response as int) * globalVar;
-    _callbackResultPort!.port.send(AsyncTestResponse(responseIdToA, result));
+    _callbackResultPort!.send([responseIdToA, result]);
   });
   print("callFromIsoBToAAndMultByGlobalVar message sent. Awaiting result...");
 }
 
 void callFromIsoAToBAndMultByGlobalVar(int responseIdToB, int x) {
-  final iso = IsolateA.instance;
+  final iso = IsolateA.instance!;
   iso.atm
       .call((responseIdToA) => iso.natLib.callFunctionOnSameThread(
           responseIdToA, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)))
       .then((response) {
     final result = (response as int) * globalVar;
-    _callbackResultPort!.port.send(AsyncTestResponse(responseIdToB, result));
+    _callbackResultPort!.send([responseIdToB, result]);
   });
   print("callFromIsoAToBAndMultByGlobalVar message sent. Awaiting result...");
 }
@@ -496,12 +557,21 @@ class FnPtrs {
   final int callFromIsoBToAAndMultByGlobalVarPtr;
   final int callFromIsoAToBAndMultByGlobalVarPtr;
 
-  FnPtrs(Callbacks callbacks)
-      : addGlobalVarPtr = callbacks.addGlobalVarFn.nativeFunction.address,
-        callFromIsoBToAAndMultByGlobalVarPtr = callbacks
-            .callFromIsoBToAAndMultByGlobalVarFn.nativeFunction.address,
-        callFromIsoAToBAndMultByGlobalVarPtr = callbacks
-            .callFromIsoAToBAndMultByGlobalVarFn.nativeFunction.address;
+  FnPtrs._(this.addGlobalVarPtr, this.callFromIsoBToAAndMultByGlobalVarPtr,
+      this.callFromIsoAToBAndMultByGlobalVarPtr);
+
+  static FnPtrs fromCallbacks(Callbacks callbacks) => FnPtrs._(
+        callbacks.addGlobalVarFn.nativeFunction.address,
+        callbacks.callFromIsoBToAAndMultByGlobalVarFn.nativeFunction.address,
+        callbacks.callFromIsoAToBAndMultByGlobalVarFn.nativeFunction.address,
+      );
+
+  static FnPtrs fromList(List<int> ptrs) => FnPtrs._(ptrs[0], ptrs[1], ptrs[2]);
+  List<int> toList() => [
+        addGlobalVarPtr,
+        callFromIsoBToAAndMultByGlobalVarPtr,
+        callFromIsoAToBAndMultByGlobalVarPtr,
+      ];
 }
 
 typedef FnRunnerNativeType = Void Function(Int64, Pointer);
@@ -526,8 +596,8 @@ class NativeLibrary {
 }
 
 class TestCase {
-  AsyncTestSendPort? sendIsoAResultsTo(AsyncTestManager atm) => null;
-  AsyncTestSendPort? sendIsoBResultsTo(AsyncTestManager atm) => null;
+  SendPort? sendIsoAResultsTo(AsyncTestManager atm) => null;
+  SendPort? sendIsoBResultsTo(AsyncTestManager atm) => null;
   Future<void> runOnIsoA(IsolateA isoA) async {}
   Future<void> runOnIsoB(IsolateB isoB) async {}
 }
@@ -539,7 +609,7 @@ class TestCaseSendPort {
 
 // IsolateA is the main isolate of the test. It spawns IsolateB.
 class IsolateA {
-  static late final IsolateA instance;
+  static IsolateA? instance;
   late final SendPort sendPort;
   final recvPort = ReceivePort("Isolate A ReceivePort");
   final atm = AsyncTestManager(1000000);
@@ -547,43 +617,49 @@ class IsolateA {
   final callbacksA = Callbacks();
   late final FnPtrs fnPtrsA;
   late final FnPtrs fnPtrsB;
-  final List<TestCase> testCases;
+  final bool sameGroup;
 
-  IsolateA(this.testCases) {
+  IsolateA(this.sameGroup) {
     instance = this;
-    fnPtrsA = FnPtrs(callbacksA);
+    fnPtrsA = FnPtrs.fromCallbacks(callbacksA);
     atm.toIsoA = atm.toThis;
-    print("IsolateA fn ptr: ${fnPtrsA.addGlobalVarPtr.toRadixString(16)}");
   }
 
   Future<void> messageLoop() async {
-    await Isolate.spawn(IsolateB.entryPoint, recvPort.sendPort);
+    if (sameGroup) {
+      await Isolate.spawn(IsolateB.entryPoint, recvPort.sendPort);
+    } else {
+      await Isolate.spawnUri(Platform.script, [], recvPort.sendPort);
+    }
     int testIndex = 0;
-    await for (final msg in recvPort) {
-      if (msg is SendPort) {
-        sendPort = msg;
-        sendPort.send(atm.toThis);
-        sendPort.send(fnPtrsA);
-      } else if (msg is FnPtrs) {
-        fnPtrsB = msg;
-      } else if (msg is AsyncTestSendPort) {
-        atm.toIsoB = msg;
-      } else if (msg == 'next') {
-        if (testIndex >= testCases.length) {
-          sendPort.send('exit');
+    await for (final List msg in recvPort) {
+      final cmd = msg[0] as String;
+      final arg = msg[1];
+      if (cmd == 'sendPort') {
+        sendPort = arg;
+        sendPort.send(['testPort', atm.toThis]);
+        sendPort.send(['fnPtrs', fnPtrsA.toList()]);
+      } else if (cmd == 'fnPtrs') {
+        fnPtrsB = FnPtrs.fromList(arg);
+      } else if (cmd == 'testPort') {
+        atm.toIsoB = arg;
+      } else if (cmd == 'next') {
+        if (testIndex >= messagePassingTestCases.length) {
+          sendPort.send(['exit', null]);
         } else {
           _callbackResultPort = null;
-          final testCase = testCases[testIndex];
-          sendPort.send(testCase);
-          print('\nRunning ${testCases[testIndex]} on IsoA');
+          sendPort.send(['testCase', testIndex]);
+          final testCase = messagePassingTestCases[testIndex];
+          print('\nRunning $testCase on IsoA');
           _callbackResultPort = testCase.sendIsoAResultsTo(atm);
         }
-      } else if (msg == 'run') {
-        await testCases[testIndex].runOnIsoA(this);
-        print('Running ${testCases[testIndex]} on IsoA DONE\n');
+      } else if (cmd == 'run') {
+        final testCase = messagePassingTestCases[testIndex];
+        await testCase.runOnIsoA(this);
+        print('Running $testCase on IsoA DONE\n');
         testIndex += 1;
-        sendPort.send('next');
-      } else if (msg == 'exit') {
+        sendPort.send(['next', null]);
+      } else if (cmd == 'exit') {
         break;
       } else {
         Expect.fail('Unknown message: $msg');
@@ -602,7 +678,7 @@ class IsolateA {
 
 // IsolateB is the secondary isolate of the test. It's spawned by IsolateA.
 class IsolateB {
-  static late final IsolateB instance;
+  static IsolateB? instance;
   final SendPort sendPort;
   final recvPort = ReceivePort("Isolate B ReceivePort");
   final atm = AsyncTestManager(2000000);
@@ -613,32 +689,34 @@ class IsolateB {
 
   IsolateB(this.sendPort) {
     instance = this;
-    fnPtrsB = FnPtrs(callbacksB);
+    fnPtrsB = FnPtrs.fromCallbacks(callbacksB);
     atm.toIsoB = atm.toThis;
-    print("IsolateB fn ptr: ${fnPtrsB.addGlobalVarPtr.toRadixString(16)}");
-    sendPort.send(recvPort.sendPort);
-    sendPort.send(atm.toThis);
-    sendPort.send(fnPtrsB);
-    sendPort.send('next');
+    sendPort.send(['sendPort', recvPort.sendPort]);
+    sendPort.send(['testPort', atm.toThis]);
+    sendPort.send(['fnPtrs', fnPtrsB.toList()]);
+    sendPort.send(['next', null]);
   }
 
   Future<void> messageLoop() async {
-    await for (final msg in recvPort) {
-      if (msg is FnPtrs) {
-        fnPtrsA = msg;
-      } else if (msg is AsyncTestSendPort) {
-        atm.toIsoA = msg;
-      } else if (msg is TestCase) {
-        _callbackResultPort = msg.sendIsoBResultsTo(atm);
-        sendPort.send('run');
-        print('\nRunning $msg on IsoB');
-        await msg.runOnIsoB(this);
-        print('Running $msg on IsoB DONE\n');
-      } else if (msg == 'next') {
+    await for (final List msg in recvPort) {
+      final cmd = msg[0] as String;
+      final arg = msg[1];
+      if (cmd == 'fnPtrs') {
+        fnPtrsA = FnPtrs.fromList(arg);
+      } else if (cmd == 'testPort') {
+        atm.toIsoA = arg;
+      } else if (cmd == 'testCase') {
+        final testCase = messagePassingTestCases[arg];
+        _callbackResultPort = testCase.sendIsoBResultsTo(atm);
+        sendPort.send(['run', null]);
+        print('\nRunning $testCase on IsoB');
+        await testCase.runOnIsoB(this);
+        print('Running $testCase on IsoB DONE\n');
+      } else if (cmd == 'next') {
         _callbackResultPort = null;
-        sendPort.send('next');
-      } else if (msg == 'exit') {
-        sendPort.send('exit');
+        sendPort.send(['next', null]);
+      } else if (cmd == 'exit') {
+        sendPort.send(['exit', null]);
         break;
       } else {
         Expect.fail('Unknown message: $msg');
@@ -654,7 +732,7 @@ class IsolateB {
     callbacksB.close();
   }
 
-  static void entryPoint(SendPort sendPort) async {
+  static Future<void> entryPoint(SendPort sendPort) async {
     globalVar = 2000;
     final isolateB = IsolateB(sendPort);
     await isolateB.messageLoop();

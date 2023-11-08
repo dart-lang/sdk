@@ -27,7 +27,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test({required int? a}) {}
 
 void f() {
@@ -45,7 +46,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test({required int a}) {}
 
 void f() {
@@ -63,7 +65,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test({required int? a}) {}
 
 void f() {
@@ -81,7 +84,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test({required int a}) {}
 
 void f() {
@@ -93,7 +97,7 @@ void f() {
   Future<void> test_multiple_files() async {
     // TODO(scheglov) Unify behind `testPackageLibPath`
     final a = getFile('$projectFolderPath/lib/a.dart');
-    addSource(a.path, r'''
+    newFile(a.path, r'''
 import 'main.dart';
 
 void f2() {
@@ -109,32 +113,18 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
-void test({required int a}) {}
-
-void f() {
-  test(a: 0);
-}
-''');
-
-    // TODO(scheglov) Ask me, if you want more of this opinion.
-    // This is bad code.
-    // I don't like using content for verifying refactoring results.
-    // We need to check all changes, without a way to check only some portion.
-    // See how _writeSourceChangeToBuffer is done.
-    //
-    // And addSource() above is another hack that we rely on to support these
-    // checks here.
-    // I don't like these too.
-    // We have newFile() already, this should be enough.
-    // Don't invent more way to add files.
-    // I worked hard in DAS legacy tests to get away from it.
-    // Don't add them back.
-    assertTextExpectation(content[a.path]!, r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/a.dart
 import 'main.dart';
 
 void f2() {
   test(a: 1);
+}
+>>>>>>>>>> lib/main.dart
+void test({required int a}) {}
+
+void f() {
+  test(a: 0);
 }
 ''');
   }
@@ -168,7 +158,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test({required int a}) {}
 
 void f() {
@@ -186,7 +177,8 @@ void f() {
 }
 ''');
 
-    await _executeRefactoring(r'''
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
 void test({required int a}) {}
 
 void f() {
@@ -195,23 +187,21 @@ void f() {
 ''');
   }
 
-  Future<void> _assertNoRefactoring() async {
-    await initializeServer();
-
-    await expectNoCodeAction(
-      ConvertAllFormalParametersToNamed.constTitle,
-    );
-  }
-
-  Future<void> _executeRefactoring(String expected) async {
+  Future<void> verifyRefactoring(String expected) async {
     await initializeServer();
 
     final codeAction = await expectCodeAction(
       ConvertAllFormalParametersToNamed.constTitle,
     );
 
-    await executeRefactor(codeAction);
+    await verifyCommandEdits(codeAction.command!, expected);
+  }
 
-    assertTextExpectation(content[mainFilePath]!, expected);
+  Future<void> _assertNoRefactoring() async {
+    await initializeServer();
+
+    await expectNoCodeAction(
+      ConvertAllFormalParametersToNamed.constTitle,
+    );
   }
 }

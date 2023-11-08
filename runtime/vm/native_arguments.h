@@ -41,8 +41,6 @@ class Thread;
   }
 #endif
 
-void VerifyOnTransition();
-
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
     DeoptimizeFunctionsOnStack();                                              \
@@ -229,7 +227,7 @@ class NativeArguments {
   friend class NativeEntry;
   friend class Simulator;
 
-  // Since this function is passed a RawObject directly, we need to be
+  // Since this function is passed an ObjectPtr directly, we need to be
   // exceedingly careful when we use it.  If there are any other side
   // effects in the statement that may cause GC, it could lead to
   // bugs.

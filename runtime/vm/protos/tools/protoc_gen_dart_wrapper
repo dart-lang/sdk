@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# This is a wrapper that runs
+# //third_party/pkg/protobuf/protoc_plugin/bin/protoc-gen-dart using dart from
+# //tools/sdks/dart-sdk instead of from PATH.
+ROOT_BUILD_DIR=$(dirname "$0")/../../../..
+PATH=$ROOT_BUILD_DIR/tools/sdks/dart-sdk/bin:$PATH $ROOT_BUILD_DIR/third_party/pkg/protobuf/protoc_plugin/bin/protoc-gen-dart

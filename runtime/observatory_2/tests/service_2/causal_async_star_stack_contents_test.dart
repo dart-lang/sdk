@@ -94,7 +94,7 @@ var tests = <IsolateTest>[
         await asyncStack[0].location.toUserString(), contains('.dart:$LINE_C'));
     expect(asyncStack[1].kind, equals(M.FrameKind.asyncSuspensionMarker));
     expect(asyncStack[2].toString(), contains('helper'));
-    expect(await asyncStack[2].location.toUserString(), contains('.dart:30'));
+    expect(await asyncStack[2].location.toUserString(), contains('.dart:34'));
     expect(asyncStack[3].kind, equals(M.FrameKind.asyncSuspensionMarker));
     // helper isn't awaited.
   },

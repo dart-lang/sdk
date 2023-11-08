@@ -5,11 +5,9 @@
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/function_builder.dart';
-import '../builder/inline_class_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
@@ -23,9 +21,11 @@ import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 
 /// Common interface for builders for a class declarations in source code, such
-/// as a regular class declaration and an inline class declaration.
+/// as a regular class declaration and an extension type declaration.
+// TODO(johnniwinther): Should this be renamed now that inline classes are
+//  renamed to extension type declarations?
 abstract class ClassDeclaration
-    implements DeclarationBuilder, ClassMemberAccess {
+    implements IDeclarationBuilder, ClassMemberAccess {
   @override
   SourceLibraryBuilder get libraryBuilder;
 
@@ -146,10 +146,12 @@ mixin ClassDeclarationMixin implements ClassDeclaration {
             List<DartType>? typeArguments = declaration.typeArguments;
             if (typeArguments == null) {
               int typeArgumentCount;
-              if (targetBuilder!.isInlineClassMember) {
-                InlineClassBuilder inlineClassBuilder =
-                    targetBuilder.parent as InlineClassBuilder;
-                typeArgumentCount = inlineClassBuilder.typeVariablesCount;
+              if (targetBuilder!.isExtensionTypeMember) {
+                ExtensionTypeDeclarationBuilder
+                    extensionTypeDeclarationBuilder =
+                    targetBuilder.parent as ExtensionTypeDeclarationBuilder;
+                typeArgumentCount =
+                    extensionTypeDeclarationBuilder.typeVariablesCount;
               } else {
                 typeArgumentCount =
                     targetNode.enclosingClass!.typeParameters.length;

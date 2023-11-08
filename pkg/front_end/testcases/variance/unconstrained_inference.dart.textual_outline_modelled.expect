@@ -1,0 +1,7 @@
+class Contravariant<in T> {}
+class Covariant<out T> {}
+class Invariant<inout T> {}
+main() {}
+void contravariantListInfer<T>(Contravariant<List<T>> x) {}
+void covariantListInfer<T>(Covariant<List<T>> x) {}
+void invariantListInfer<T>(Invariant<List<T>> x) {}

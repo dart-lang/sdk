@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  field core::bool v1;
+  field core::num v2;
+  constructor •(core::bool v1, {required core::num v2 = null}) → self::A
+    ;
+}
+mixin class M1 extends core::Object {
+  field core::num v2;
+  synthetic constructor •() → self::M1
+    ;
+}
+class C = self::A with self::M1 {
+  synthetic constructor •(core::bool v1, {required core::num v2 = null}) → self::C
+    : super self::A::•(v1, v2: v2)
+    ;
+  mixin-super-stub get v2() → core::num
+    return super.{self::M1::v2};
+  mixin-super-stub set v2(core::num value) → void
+    return super.{self::M1::v2} = value;
+}
+static method test() → dynamic
+  ;

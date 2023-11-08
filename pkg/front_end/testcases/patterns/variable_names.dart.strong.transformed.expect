@@ -82,22 +82,14 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
       }
     }
   }
-  block {
-    dynamic #t15;
-    dynamic #t16;
+  {
     final synthesized dynamic #4#0 = y as{TypeError,ForDynamic} self::A;
-    if(!(#4#0 is self::A && (let final core::bool #t17 = #t15 = #4#0{self::A}.{self::A::qux}{core::bool} in true) && (let final core::String #t18 = #t16 = #4#0{self::A}.{self::A::quux}{core::String} in true)))
+    if(!(#4#0 is self::A && (let final core::bool #t15 = qux = #4#0{self::A}.{self::A::qux}{core::bool} in true) && (let final core::String #t16 = quux = #4#0{self::A}.{self::A::quux}{core::String} in true)))
       throw new core::StateError::•("Pattern matching error");
-    qux = #t15;
-    quux = #t16;
-  } =>#4#0;
-  block {
-    dynamic #t19;
-    dynamic #t20;
+  }
+  {
     final synthesized dynamic #5#0 = z as{TypeError,ForDynamic} (dynamic, {quux: dynamic});
-    if(!(#5#0 is (core::Object?, {quux: core::Object?}) && (let final core::Object? #t21 = #t19 = #5#0{(core::Object?, {quux: core::Object?})}.$1{core::Object?} in true) && (let final core::Object? #t22 = #t20 = #5#0{(core::Object?, {quux: core::Object?})}.quux{core::Object?} in true)))
+    if(!(#5#0 is (core::Object?, {quux: core::Object?}) && (let final core::Object? #t17 = qux = #5#0{(core::Object?, {quux: core::Object?})}.$1{core::Object?} in true) && (let final core::Object? #t18 = quux = #5#0{(core::Object?, {quux: core::Object?})}.quux{core::Object?} in true)))
       throw new core::StateError::•("Pattern matching error");
-    qux = #t19;
-    quux = #t20;
-  } =>#5#0;
+  }
 }

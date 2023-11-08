@@ -4,7 +4,10 @@
 
 /*library: nnbd=true*/
 
-T id<T>(T /*T%*/ t) => t;
+T id<T>(
+        T /*normal|limited.id.T%*/ /*verbose.library org-dartlang-test:///a/b/c/main.dart::id.T%*/
+            t) =>
+    t;
 
 class Class1<T> {
   const Class1();

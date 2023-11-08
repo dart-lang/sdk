@@ -12992,6 +12992,130 @@ class LibraryPathSet implements HasToJson {
       );
 }
 
+/// lsp.handle params
+///
+/// {
+///   "lspMessage": object
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class LspHandleParams implements RequestParams {
+  /// The LSP RequestMessage.
+  Object lspMessage;
+
+  LspHandleParams(this.lspMessage);
+
+  factory LspHandleParams.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      Object lspMessage;
+      if (json.containsKey('lspMessage')) {
+        lspMessage = json['lspMessage'] as Object;
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'lspMessage');
+      }
+      return LspHandleParams(lspMessage);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'lsp.handle params', json);
+    }
+  }
+
+  factory LspHandleParams.fromRequest(Request request) {
+    return LspHandleParams.fromJson(
+        RequestDecoder(request), 'params', request.params);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['lspMessage'] = lspMessage;
+    return result;
+  }
+
+  @override
+  Request toRequest(String id) {
+    return Request(id, 'lsp.handle', toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is LspHandleParams) {
+      return lspMessage == other.lspMessage;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => lspMessage.hashCode;
+}
+
+/// lsp.handle result
+///
+/// {
+///   "lspResponse": object
+/// }
+///
+/// Clients may not extend, implement or mix-in this class.
+class LspHandleResult implements ResponseResult {
+  /// The LSP ResponseMessage returned by the handler.
+  Object lspResponse;
+
+  LspHandleResult(this.lspResponse);
+
+  factory LspHandleResult.fromJson(
+      JsonDecoder jsonDecoder, String jsonPath, Object? json) {
+    json ??= {};
+    if (json is Map) {
+      Object lspResponse;
+      if (json.containsKey('lspResponse')) {
+        lspResponse = json['lspResponse'] as Object;
+      } else {
+        throw jsonDecoder.mismatch(jsonPath, 'lspResponse');
+      }
+      return LspHandleResult(lspResponse);
+    } else {
+      throw jsonDecoder.mismatch(jsonPath, 'lsp.handle result', json);
+    }
+  }
+
+  factory LspHandleResult.fromResponse(Response response) {
+    return LspHandleResult.fromJson(
+        ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+        'result',
+        response.result);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    result['lspResponse'] = lspResponse;
+    return result;
+  }
+
+  @override
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(other) {
+    if (other is LspHandleResult) {
+      return lspResponse == other.lspResponse;
+    }
+    return false;
+  }
+
+  @override
+  int get hashCode => lspResponse.hashCode;
+}
+
 /// MessageAction
 ///
 /// {

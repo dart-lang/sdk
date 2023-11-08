@@ -21,12 +21,15 @@ import 'dart:_foreign_helper'
         spread;
 import 'dart:_interceptors'
     show
+        JavaScriptBigInt,
         JavaScriptFunction,
+        JavaScriptObject,
+        JavaScriptSymbol,
         JSArray,
+        JSFunction,
         JSInt,
         jsNull,
         JSNumNotInt,
-        JSFunction,
         LegacyJavaScriptObject,
         NativeError;
 
@@ -53,19 +56,24 @@ import 'dart:_js_shared_embedded_names';
 import 'dart:_rti' as rti
     show
         bindingRtiFromList,
-        createRuntimeType,
         constructorRtiCachePropertyName,
+        createRuntimeType,
         findType,
         getFunctionParametersForDynamicChecks,
         getGenericFunctionBounds,
+        getLegacyErasedRti,
+        getRecordTypeElementTypes,
+        getRecordTypeShapeKey,
         instanceType,
         instantiatedGenericFunctionType,
         interfaceTypeRecipePropertyName,
         isGenericFunctionType,
+        isNullable,
+        isRecordType,
         isSubtype,
         Rti,
-        substitute,
-        rtiToString;
+        rtiToString,
+        substitute;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
@@ -76,6 +84,7 @@ part 'types.dart';
 part 'records.dart';
 part 'errors.dart';
 part 'operations.dart';
+part 'debugger.dart';
 
 // TODO(vsm): Move polyfill code to dart:html.
 // Note, native extensions are registered onto types in dart.global.

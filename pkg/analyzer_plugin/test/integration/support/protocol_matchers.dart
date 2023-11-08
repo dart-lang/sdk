@@ -254,6 +254,7 @@ final Matcher isElement = LazyMatcher(() => MatchesJsonObject('Element', {
 ///   ENUM
 ///   ENUM_CONSTANT
 ///   EXTENSION
+///   EXTENSION_TYPE
 ///   FIELD
 ///   FILE
 ///   FUNCTION
@@ -284,6 +285,7 @@ final Matcher isElementKind = MatchesEnum('ElementKind', [
   'ENUM',
   'ENUM_CONSTANT',
   'EXTENSION',
+  'EXTENSION_TYPE',
   'FIELD',
   'FILE',
   'FUNCTION',
@@ -382,6 +384,7 @@ final Matcher isHighlightRegion = LazyMatcher(() => MatchesJsonObject(
 ///   ENUM
 ///   ENUM_CONSTANT
 ///   EXTENSION
+///   EXTENSION_TYPE
 ///   FIELD
 ///   FIELD_STATIC
 ///   FUNCTION
@@ -466,6 +469,7 @@ final Matcher isHighlightRegionType = MatchesEnum('HighlightRegionType', [
   'ENUM',
   'ENUM_CONSTANT',
   'EXTENSION',
+  'EXTENSION_TYPE',
   'FIELD',
   'FIELD_STATIC',
   'FUNCTION',

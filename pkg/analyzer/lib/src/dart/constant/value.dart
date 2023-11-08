@@ -9,12 +9,14 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/constant/has_invalid_type.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -176,14 +178,14 @@ class DartObjectImpl implements DartObject, Constant {
   final InstanceState state;
 
   @override
-  final VariableElement? variable;
+  final VariableElementImpl? variable;
 
   /// Initialize a newly created object to have the given [type] and [state].
   DartObjectImpl(this._typeSystem, this.type, this.state, {this.variable});
 
   /// Creates a duplicate instance of [other], tied to [variable].
   factory DartObjectImpl.forVariable(
-      DartObjectImpl other, VariableElement variable) {
+      DartObjectImpl other, VariableElementImpl variable) {
     return DartObjectImpl(other._typeSystem, other.type, other.state,
         variable: variable);
   }
@@ -226,6 +228,10 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Return `true` if this object represents an object whose type is 'int'.
   bool get isInt => state.isInt;
+
+  /// Return `true` if this object represents an object whose type is an invalid
+  /// type.
+  bool get isInvalid => state.isInvalid || hasInvalidType(type);
 
   @override
   bool get isNull => state is NullState;
@@ -302,6 +308,11 @@ class DartObjectImpl implements DartObject, Constant {
       return this;
     }
 
+    // If any type is unresolved, we cannot prove that the cast will fail.
+    if (isInvalid || castType.isInvalid) {
+      return this;
+    }
+
     // We don't know the actual value of a type parameter.
     // So, the object type might be a subtype of the result type.
     if (hasTypeParameterReference(resultType)) {
@@ -309,6 +320,7 @@ class DartObjectImpl implements DartObject, Constant {
     }
 
     if (!typeSystem.isSubtypeOf(type, resultType)) {
+      // TODO(kallentu): Make a more specific error for casting.
       throw EvaluationException(
           CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
     }
@@ -565,7 +577,6 @@ class DartObjectImpl implements DartObject, Constant {
   DartObjectImpl isIdentical(
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     var typeSystem = TypeSystemImpl(
-      implicitCasts: false,
       isNonNullableByDefault: false,
       strictCasts: false,
       strictInference: false,
@@ -609,11 +620,11 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lazyAnd(TypeSystemImpl typeSystem,
-      DartObjectImpl? Function() rightOperandComputer) {
+      DartObjectImpl Function() rightOperandComputer) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      state.lazyAnd(() => rightOperandComputer()?.state),
+      state.lazyAnd(() => rightOperandComputer().state),
     );
   }
 
@@ -623,12 +634,13 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lazyOr(TypeSystemImpl typeSystem,
-          DartObjectImpl? Function() rightOperandComputer) =>
-      DartObjectImpl(
-        typeSystem,
-        typeSystem.typeProvider.boolType,
-        state.lazyOr(() => rightOperandComputer()?.state),
-      );
+      DartObjectImpl Function() rightOperandComputer) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.boolType,
+      state.lazyOr(() => rightOperandComputer().state),
+    );
+  }
 
   /// Return the result of invoking the '&lt;' operator on this object with the
   /// [rightOperand].
@@ -883,7 +895,7 @@ class DartObjectImpl implements DartObject, Constant {
   List<DartObjectImpl>? toListValue() {
     final state = this.state;
     if (state is ListState) {
-      return state._elements;
+      return state.elements;
     }
     return null;
   }
@@ -892,7 +904,7 @@ class DartObjectImpl implements DartObject, Constant {
   Map<DartObjectImpl, DartObjectImpl>? toMapValue() {
     final state = this.state;
     if (state is MapState) {
-      return state._entries;
+      return state.entries;
     }
     return null;
   }
@@ -901,7 +913,7 @@ class DartObjectImpl implements DartObject, Constant {
   Set<DartObjectImpl>? toSetValue() {
     final state = this.state;
     if (state is SetState) {
-      return state._elements;
+      return state.elements;
     }
     return null;
   }
@@ -1008,7 +1020,7 @@ class DoubleState extends NumState {
 
   @override
   bool operator ==(Object other) =>
-      other is DoubleState && (value == other.value);
+      other is DoubleState && identical(value, other.value);
 
   @override
   NumState add(InstanceState rightOperand) {
@@ -1144,13 +1156,13 @@ class DoubleState extends NumState {
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value == rightValue);
+      return BoolState.from(identical(value, rightValue));
     } else if (rightOperand is IntState) {
       var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
       }
-      return BoolState.from(value == rightValue.toDouble());
+      return BoolState.from(identical(value, rightValue.toDouble()));
     }
     return BoolState.FALSE_STATE;
   }
@@ -1282,8 +1294,11 @@ class EvaluationException {
   /// The error code associated with the exception.
   final ErrorCode errorCode;
 
+  /// Returns `true` if the evaluation exception is a runtime exception.
+  final bool isRuntimeException;
+
   /// Initialize a newly created exception to have the given [errorCode].
-  EvaluationException(this.errorCode);
+  EvaluationException(this.errorCode, {this.isRuntimeException = false});
 }
 
 /// The state of an object representing a function.
@@ -1531,6 +1546,10 @@ abstract class InstanceState {
   /// Return `true` if this object represents an object whose type is 'int'.
   bool get isInt => false;
 
+  /// Return `true` if this object represents an object whose type is an invalid
+  /// type.
+  bool get isInvalid => false;
+
   /// Return `true` if this object represents the value 'null'.
   bool get isNull => false;
 
@@ -1580,7 +1599,7 @@ abstract class InstanceState {
   /// Throw an exception if the given [state] does not represent a String value.
   void assertString(InstanceState state) {
     if (state is! StringState) {
-      throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
+      throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_TYPE_STRING);
     }
   }
 
@@ -2098,7 +2117,8 @@ class IntState extends NumState {
       if (rightValue == null) {
         return UNKNOWN_VALUE;
       } else if (rightValue == 0) {
-        throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE);
+        throw EvaluationException(CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE,
+            isRuntimeException: true);
       }
       return IntState(value! ~/ rightValue);
     } else if (rightOperand is DoubleState) {
@@ -2332,37 +2352,137 @@ class IntState extends NumState {
 
 /// An invalid constant that contains diagnostic information.
 class InvalidConstant implements Constant {
-  /// The node where we could not compute a valid constant.
-  final AstNode node;
+  /// The length of the entity that the evaluation error is reported at.
+  final int length;
 
-  /// The error code that is reported at the location of the [node].
+  /// The offset of the entity that the evaluation error is reported at.
+  final int offset;
+
+  /// The error code that is being reported.
   final ErrorCode errorCode;
+
+  /// The arguments required to complete the message.
+  final List<Object> arguments;
 
   /// Additional context messages for the error, including stack trace
   /// information if the error occurs within a constructor.
   final List<DiagnosticMessage> contextMessages;
 
-  InvalidConstant(this.node, this.errorCode) : contextMessages = [];
+  /// Whether to omit reporting this error.
+  ///
+  /// If set to `true`, error reporting will ignore this invalid constant.
+  /// Defaults to `false`.
+  ///
+  /// The `ConstantVisitor` can change this to `true` when there's already an
+  /// error reported and this invalid constant would be an unnecessary follow-on
+  /// error.
+  bool avoidReporting;
 
-  InvalidConstant.withContextMessages(
-      this.node, this.errorCode, this.contextMessages);
+  /// Whether this error was an exception thrown during constant evaluation.
+  ///
+  /// In [ConstantEvaluationEngine.evaluateAndFormatErrorsInConstructorCall],
+  /// we convert this error into a
+  /// [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION] with a context message
+  /// pointing to where the exception was thrown.
+  final bool isRuntimeException;
+
+  /// Whether the constant evaluation encounters an unresolved expression.
+  final bool isUnresolved;
+
+  /// Creates a duplicate instance of [other], with a different [entity].
+  factory InvalidConstant.copyWithEntity(
+      InvalidConstant other, SyntacticEntity entity) {
+    return InvalidConstant.forEntity(
+      entity,
+      other.errorCode,
+      arguments: other.arguments,
+      contextMessages: other.contextMessages,
+      avoidReporting: other.avoidReporting,
+      isUnresolved: other.isUnresolved,
+      isRuntimeException: other.isRuntimeException,
+    );
+  }
+
+  /// Creates a constant evaluation error associated with an [element].
+  InvalidConstant.forElement(Element element, ErrorCode errorCode,
+      {List<Object>? arguments,
+      List<DiagnosticMessage>? contextMessages,
+      bool avoidReporting = false,
+      bool isUnresolved = false,
+      bool isRuntimeException = false})
+      : this._(
+          element.nameLength,
+          element.nameOffset,
+          errorCode,
+          arguments: arguments,
+          contextMessages: contextMessages,
+          avoidReporting: avoidReporting,
+          isUnresolved: isUnresolved,
+          isRuntimeException: isRuntimeException,
+        );
+
+  /// Creates a constant evaluation error associated with a token or node
+  /// [entity].
+  InvalidConstant.forEntity(SyntacticEntity entity, ErrorCode errorCode,
+      {List<Object>? arguments,
+      List<DiagnosticMessage>? contextMessages,
+      bool avoidReporting = false,
+      bool isUnresolved = false,
+      bool isRuntimeException = false})
+      : this._(
+          entity.length,
+          entity.offset,
+          errorCode,
+          arguments: arguments,
+          contextMessages: contextMessages,
+          avoidReporting: avoidReporting,
+          isUnresolved: isUnresolved,
+          isRuntimeException: isRuntimeException,
+        );
+
+  /// Creates a generic error depending on the [node] provided.
+  factory InvalidConstant.genericError(AstNode node,
+      {bool isUnresolved = false}) {
+    final parent = node.parent;
+    final parent2 = parent?.parent;
+    if (parent is ArgumentList &&
+        parent2 is InstanceCreationExpression &&
+        parent2.isConst) {
+      return InvalidConstant.forEntity(
+          node, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT,
+          isUnresolved: isUnresolved);
+    }
+    return InvalidConstant.forEntity(
+        node, CompileTimeErrorCode.INVALID_CONSTANT,
+        isUnresolved: isUnresolved);
+  }
+
+  InvalidConstant._(this.length, this.offset, this.errorCode,
+      {List<Object>? arguments,
+      List<DiagnosticMessage>? contextMessages,
+      this.avoidReporting = false,
+      this.isUnresolved = false,
+      this.isRuntimeException = false})
+      : arguments = arguments ?? [],
+        contextMessages = contextMessages ?? [];
 }
 
 /// The state of an object representing a list.
 class ListState extends InstanceState {
-  /// The elements of the list.
-  final List<DartObjectImpl> _elements;
+  final DartType elementType;
+  final List<DartObjectImpl> elements;
 
-  /// Initialize a newly created state to represent a list with the given
-  /// [elements].
-  ListState(this._elements);
+  ListState({
+    required this.elementType,
+    required this.elements,
+  });
 
   @override
   int get hashCode {
     int value = 0;
-    int count = _elements.length;
+    int count = elements.length;
     for (int i = 0; i < count; i++) {
-      value = (value << 3) ^ _elements[i].hashCode;
+      value = (value << 3) ^ elements[i].hashCode;
     }
     return value;
   }
@@ -2373,15 +2493,15 @@ class ListState extends InstanceState {
   @override
   bool operator ==(Object other) {
     if (other is ListState) {
-      List<DartObjectImpl> otherElements = other._elements;
-      int count = _elements.length;
+      List<DartObjectImpl> otherElements = other.elements;
+      int count = elements.length;
       if (otherElements.length != count) {
         return false;
       } else if (count == 0) {
         return true;
       }
       for (int i = 0; i < count; i++) {
-        if (_elements[i] != otherElements[i]) {
+        if (elements[i] != otherElements[i]) {
           return false;
         }
       }
@@ -2411,7 +2531,7 @@ class ListState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('[');
     bool first = true;
-    for (var element in _elements) {
+    for (var element in elements) {
       if (first) {
         first = false;
       } else {
@@ -2427,16 +2547,16 @@ class ListState extends InstanceState {
 /// The state of an object representing a map.
 class MapState extends InstanceState {
   /// The entries in the map.
-  final Map<DartObjectImpl, DartObjectImpl> _entries;
+  final Map<DartObjectImpl, DartObjectImpl> entries;
 
   /// Initialize a newly created state to represent a map with the given
   /// [entries].
-  MapState(this._entries);
+  MapState(this.entries);
 
   @override
   int get hashCode {
     int value = 0;
-    for (DartObjectImpl key in _entries.keys.toSet()) {
+    for (DartObjectImpl key in entries.keys.toSet()) {
       value = (value << 3) ^ key.hashCode;
     }
     return value;
@@ -2448,15 +2568,15 @@ class MapState extends InstanceState {
   @override
   bool operator ==(Object other) {
     if (other is MapState) {
-      Map<DartObjectImpl, DartObjectImpl> otherElements = other._entries;
-      int count = _entries.length;
+      Map<DartObjectImpl, DartObjectImpl> otherElements = other.entries;
+      int count = entries.length;
       if (otherElements.length != count) {
         return false;
       } else if (count == 0) {
         return true;
       }
-      for (DartObjectImpl key in _entries.keys) {
-        var value = _entries[key];
+      for (DartObjectImpl key in entries.keys) {
+        var value = entries[key];
         var otherValue = otherElements[key];
         if (value != otherValue) {
           return false;
@@ -2488,7 +2608,7 @@ class MapState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('{');
     bool first = true;
-    _entries.forEach((DartObjectImpl key, DartObjectImpl value) {
+    entries.forEach((DartObjectImpl key, DartObjectImpl value) {
       if (first) {
         first = false;
       } else {
@@ -2507,6 +2627,13 @@ class MapState extends InstanceState {
 class NullState extends InstanceState {
   /// An instance representing the boolean value 'null'.
   static NullState NULL_STATE = NullState();
+
+  @override
+  final bool isInvalid;
+
+  NullState({
+    this.isInvalid = false,
+  });
 
   @override
   int get hashCode => 0;
@@ -2692,16 +2819,16 @@ class RecordState extends InstanceState {
 /// The state of an object representing a set.
 class SetState extends InstanceState {
   /// The elements of the set.
-  final Set<DartObjectImpl> _elements;
+  final Set<DartObjectImpl> elements;
 
   /// Initialize a newly created state to represent a set with the given
   /// [elements].
-  SetState(this._elements);
+  SetState(this.elements);
 
   @override
   int get hashCode {
     int value = 0;
-    for (DartObjectImpl element in _elements) {
+    for (DartObjectImpl element in elements) {
       value = (value << 3) ^ element.hashCode;
     }
     return value;
@@ -2713,16 +2840,16 @@ class SetState extends InstanceState {
   @override
   bool operator ==(Object other) {
     if (other is SetState) {
-      List<DartObjectImpl> elements = _elements.toList();
-      List<DartObjectImpl> otherElements = other._elements.toList();
-      int count = elements.length;
+      List<DartObjectImpl> currentElements = elements.toList();
+      List<DartObjectImpl> otherElements = other.elements.toList();
+      int count = currentElements.length;
       if (otherElements.length != count) {
         return false;
       } else if (count == 0) {
         return true;
       }
       for (int i = 0; i < count; i++) {
-        if (elements[i] != otherElements[i]) {
+        if (currentElements[i] != otherElements[i]) {
           return false;
         }
       }
@@ -2752,7 +2879,7 @@ class SetState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('{');
     bool first = true;
-    for (var element in _elements) {
+    for (var element in elements) {
       if (first) {
         first = false;
       } else {

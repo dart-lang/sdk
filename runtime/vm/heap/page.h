@@ -228,16 +228,20 @@ class Page {
     thread->set_end(end_);
     thread->set_true_end(end_);
   }
-  void Release(Thread* thread) {
+  intptr_t Release(Thread* thread) {
     ASSERT(owner_ == thread);
     owner_ = nullptr;
-    top_ = thread->top();
+    uword old_top = top_;
+    uword new_top = thread->top();
+    top_ = new_top;
     thread->set_top(0);
     thread->set_end(0);
     thread->set_true_end(0);
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
     thread->heap_sampler().HandleReleasedTLAB(Thread::Current());
 #endif
+    ASSERT(new_top >= old_top);
+    return new_top - old_top;
   }
   void Release() {
     if (owner_ != nullptr) {
@@ -258,6 +262,15 @@ class Page {
 
   void Unallocate(uword addr, intptr_t size) {
     ASSERT((addr + size) == top_);
+
+#if defined(DEBUG)
+    uword* cursor = reinterpret_cast<uword*>(addr);
+    uword* end = reinterpret_cast<uword*>(addr + size);
+    while (cursor < end) {
+      *cursor++ = kAllocationCanary;
+    }
+#endif
+
     top_ -= size;
   }
 
@@ -337,11 +350,12 @@ class Page {
   // value meets the allocation top. Called "SCAN" in the original Cheney paper.
   uword resolved_top_;
 
+  friend class CheckStoreBufferVisitor;
+  friend class GCCompactor;
+  friend class PageSpace;
   template <bool>
   friend class ScavengerVisitorBase;
   friend class SemiSpace;
-  friend class PageSpace;
-  friend class GCCompactor;
   friend class UnwindingRecords;
 
   DISALLOW_ALLOCATION();

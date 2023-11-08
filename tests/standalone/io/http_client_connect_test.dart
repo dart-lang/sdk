@@ -431,6 +431,7 @@ Future<void> testHttpAbortAfterClose() async {
 }
 
 void main() async {
+  asyncStart();
   testGetEmptyRequest();
   testGetDataRequest();
   testGetInvalidHost();
@@ -450,4 +451,5 @@ void main() async {
   await testHttpAbortBeforeWrite();
   await testHttpAbortBeforeClose();
   await testHttpAbortAfterClose();
+  asyncEnd();
 }

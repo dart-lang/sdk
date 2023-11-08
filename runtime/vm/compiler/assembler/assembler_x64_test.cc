@@ -6227,7 +6227,7 @@ IMMEDIATE_TEST(AddrImmRAXByte,
                __ popq(RAX))
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   // On TSAN builds StoreRelease/LoadAcquire will do a runtime
   // call to tell TSAN about our action.
   __ MoveRegister(THR, CallingConventions::kArg2Reg);
@@ -6306,7 +6306,7 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   // On TSAN builds StoreRelease/LoadAcquire will do a runtime
   // call to tell TSAN about our action.
   __ MoveRegister(THR, CallingConventions::kArg2Reg);
@@ -6327,7 +6327,7 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
 ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
   const intptr_t res = test->InvokeWithCodeAndThread<intptr_t>(123);
   EXPECT_EQ(123, res);
-#if !defined(USING_THREAD_SANITIZER)
+#if !defined(TARGET_USES_THREAD_SANITIZER)
   EXPECT_DISASSEMBLY_NOT_WINDOWS(
       "push rcx\n"
       "xorq rcx,rcx\n"
@@ -6445,6 +6445,41 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   result = test->Invoke<intptr_t, intptr_t>(kMintCid);
   EXPECT_EQ(kMintCid, result);
 }
+
+#define LOAD_FROM_BOX_TEST(VALUE, SAME_REGISTER)                               \
+  ASSEMBLER_TEST_GENERATE(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER,          \
+                          assembler) {                                         \
+    const bool same_register = SAME_REGISTER;                                  \
+    const Register src = CallingConventions::ArgumentRegisters[0];             \
+    const Register dst =                                                       \
+        same_register ? src : CallingConventions::ArgumentRegisters[1];        \
+    const intptr_t value = VALUE;                                              \
+                                                                               \
+    EnterTestFrame(assembler);                                                 \
+                                                                               \
+    __ LoadObject(src, Integer::ZoneHandle(Integer::New(value, Heap::kOld)));  \
+    __ LoadWordFromBoxOrSmi(dst, src);                                         \
+    __ MoveRegister(CallingConventions::kReturnReg, dst);                      \
+                                                                               \
+    LeaveTestFrame(assembler);                                                 \
+    __ Ret();                                                                  \
+  }                                                                            \
+                                                                               \
+  ASSEMBLER_TEST_RUN(LoadWordFromBoxOrSmi##VALUE##SAME_REGISTER, test) {       \
+    const intptr_t res = test->InvokeWithCodeAndThread<intptr_t>(0x0);         \
+    EXPECT_EQ(static_cast<intptr_t>(VALUE), res);                              \
+  }
+
+LOAD_FROM_BOX_TEST(0, true)
+LOAD_FROM_BOX_TEST(0, false)
+LOAD_FROM_BOX_TEST(1, true)
+LOAD_FROM_BOX_TEST(1, false)
+LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, true)
+LOAD_FROM_BOX_TEST(0x7FFFFFFFFFFFFFFF, false)
+LOAD_FROM_BOX_TEST(0x8000000000000000, true)
+LOAD_FROM_BOX_TEST(0x8000000000000000, false)
+LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, true)
+LOAD_FROM_BOX_TEST(0xFFFFFFFFFFFFFFFF, false)
 
 }  // namespace compiler
 }  // namespace dart

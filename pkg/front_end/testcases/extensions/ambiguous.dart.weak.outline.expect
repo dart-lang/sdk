@@ -8,7 +8,7 @@ class C extends core::Object {
 }
 extension A on self::C {
   method method = self::A|method;
-  tearoff method = self::A|get#method;
+  method tearoff method = self::A|get#method;
   get getter = self::A|get#getter;
   get property = self::A|get#property;
   operator + = self::A|+;
@@ -18,7 +18,7 @@ extension A on self::C {
 }
 extension B on self::C {
   method method = self::B|method;
-  tearoff method = self::B|get#method;
+  method tearoff method = self::B|get#method;
   get getter = self::B|get#getter;
   operator + = self::B|+;
   operator unary- = self::B|unary-;

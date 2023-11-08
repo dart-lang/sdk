@@ -30,6 +30,14 @@ RefactoringStatus validateConstructorName(String name) {
 /// - OK if the name is valid;
 /// - WARNING if the name is discouraged;
 /// - FATAL if the name is illegal.
+RefactoringStatus validateExtensionTypeName(String name) {
+  return _validateUpperCamelCase(name, 'Extension type');
+}
+
+/// Returns the [RefactoringStatus] with severity:
+/// - OK if the name is valid;
+/// - WARNING if the name is discouraged;
+/// - FATAL if the name is illegal.
 RefactoringStatus validateFieldName(String name) {
   return _validateLowerCamelCase(name, 'Field', allowBuiltIn: true);
 }

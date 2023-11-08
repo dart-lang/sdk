@@ -10,6 +10,9 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
+// Several "report" functions intentionally return a `Null`-typed value.
+// ignore_for_file: prefer_void_to_null
+
 /// A parser used to parse the content of a configuration file.
 class TransformOverrideSetParser {
   // TODO(brianwilkerson) Create a class or mixin that would allow this class

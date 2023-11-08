@@ -16,7 +16,8 @@ import 'kernel_helpers.dart';
 ///
 /// This class can also analyze the nullability of local variables, if
 /// [enterFunction] and [exitFunction] are used.
-class NullableInference extends ExpressionVisitor<bool> {
+class NullableInference extends ExpressionVisitor<bool>
+    with ExpressionVisitorDefaultMixin<bool> {
   final StaticTypeContext _staticTypeContext;
   final JSTypeRep jsTypeRep;
   final CoreTypes coreTypes;
@@ -38,6 +39,15 @@ class NullableInference extends ExpressionVisitor<bool> {
   /// This is currently used by tests, in conjunction with
   /// [allowNotNullDeclarations].
   bool allowPackageMetaAnnotations = false;
+
+  /// Whether or not to treat type declarations as sound regardless of sound
+  /// null safety mode.
+  ///
+  /// This is used to avoid emitting extraneous null checks in internal SDK
+  /// libraries in legacy or mixed mode.
+  ///
+  /// Only used in dart:_runtime and dart:_rti.
+  bool treatDeclaredTypesAsSound = false;
 
   final _variableInference = _NullableVariableInference();
 
@@ -194,8 +204,10 @@ class NullableInference extends ExpressionVisitor<bool> {
     return _returnValueIsNullable(target);
   }
 
+  bool get soundNullSafety => _soundNullSafety || treatDeclaredTypesAsSound;
+
   bool _staticallyNonNullable(DartType type) =>
-      _soundNullSafety && type.nullability == Nullability.nonNullable;
+      soundNullSafety && type.nullability == Nullability.nonNullable;
 
   bool _returnValueIsNullable(Member target) {
     var targetClass = target.enclosingClass;
@@ -400,7 +412,7 @@ class _NullableVariableInference extends RecursiveVisitor {
   void visitFunctionNode(FunctionNode node) {
     _functions.add(node);
     if (_nullInference.allowNotNullDeclarations ||
-        _nullInference._soundNullSafety) {
+        _nullInference.soundNullSafety) {
       visitList(node.positionalParameters, this);
       visitList(node.namedParameters, this);
     }
@@ -426,7 +438,7 @@ class _NullableVariableInference extends RecursiveVisitor {
       }
     }
     var initializer = node.initializer;
-    if (_nullInference._soundNullSafety &&
+    if (_nullInference.soundNullSafety &&
         node.type.nullability == Nullability.nonNullable) {
       // Avoid null checks for variables when the type system guarantees they
       // can never be null.

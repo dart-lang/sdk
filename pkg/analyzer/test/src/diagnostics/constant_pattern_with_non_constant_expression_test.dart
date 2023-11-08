@@ -290,7 +290,6 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
           47, 1),
-      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 47, 1),
     ]);
   }
 
@@ -397,7 +396,6 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
           47, 1),
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_KEY, 47, 1),
     ]);
   }
 
@@ -442,7 +440,6 @@ void f(x) {
 ''', [
       error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
           50, 1),
-      error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE, 50, 1),
     ]);
   }
 
@@ -555,39 +552,6 @@ GuardedPattern
       staticType: int
     matchedValueType: dynamic
 ''');
-  }
-
-  test_typeLiteral_typeParameter() async {
-    await assertErrorsInCode(r'''
-void f<T>(x) {
-  if (x case T) {}
-}
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          28, 1),
-    ]);
-  }
-
-  test_typeLiteral_typeParameter_nested() async {
-    await assertErrorsInCode(r'''
-void f<T>(Object? x) {
-  if (x case const (T)) {}
-}
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          43, 1),
-    ]);
-  }
-
-  test_typeLiteral_typeParameter_nested2() async {
-    await assertErrorsInCode(r'''
-void f<T>(Object? x) {
-  if (x case const (List<T>)) {}
-}
-''', [
-      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
-          43, 7),
-    ]);
   }
 
   test_unresolvedIdentifier() async {

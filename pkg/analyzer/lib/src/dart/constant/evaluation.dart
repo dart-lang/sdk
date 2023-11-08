@@ -4,15 +4,16 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -20,13 +21,17 @@ import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
+import 'package:analyzer/src/dart/constant/utilities.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -92,70 +97,70 @@ class ConstantEvaluationEngine {
       if (constant is ConstVariableElement) {
         var defaultValue = constant.constantInitializer;
         if (defaultValue != null) {
-          RecordingErrorListener errorListener = RecordingErrorListener();
-          ErrorReporter errorReporter = ErrorReporter(
+          var errorListener = RecordingErrorListener();
+          var errorReporter = ErrorReporter(
             errorListener,
             constant.source!,
             isNonNullableByDefault: library.isNonNullableByDefault,
           );
-          // TODO(kallentu): Remove unwrapping of Constant.
-          var dartConstant = defaultValue
-              .accept(ConstantVisitor(this, library, errorReporter));
-          var dartObject = dartConstant is DartObjectImpl ? dartConstant : null;
-          constant.evaluationResult =
-              EvaluationResultImpl(dartObject, errorListener.errors);
+          var constantVisitor = ConstantVisitor(this, library, errorReporter);
+          var dartConstant = constantVisitor.evaluateConstant(defaultValue);
+          constant.evaluationResult = dartConstant;
         } else {
-          constant.evaluationResult = EvaluationResultImpl(
-            _nullObject(library),
-          );
+          constant.evaluationResult = _nullObject(library);
         }
       }
     } else if (constant is VariableElementImpl) {
       var constantInitializer = constant.constantInitializer;
       if (constantInitializer != null) {
-        RecordingErrorListener errorListener = RecordingErrorListener();
-        ErrorReporter errorReporter = ErrorReporter(
+        var errorListener = RecordingErrorListener();
+        var errorReporter = ErrorReporter(
           errorListener,
           constant.source!,
           isNonNullableByDefault: library.isNonNullableByDefault,
         );
-        // TODO(kallentu): Remove unwrapping of Constant.
-        var dartConstant = constantInitializer
-            .accept(ConstantVisitor(this, library, errorReporter));
-        var dartObject = dartConstant is DartObjectImpl ? dartConstant : null;
-        // Only check the type for truly const declarations (don't check final
-        // fields with initializers, since their types may be generic.  The type
-        // of the final field will be checked later, when the constructor is
-        // invoked).
-        if (dartObject != null && constant.isConst) {
-          if (!library.typeSystem.runtimeTypeMatch(dartObject, constant.type)) {
-            // If the static types are mismatched, an error would have already
-            // been reported.
-            if (library.typeSystem.isAssignableTo(
-                constantInitializer.typeOrThrow, constant.type)) {
-              errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
-                  constantInitializer,
-                  [dartObject.type, constant.type]);
+        var constantVisitor = ConstantVisitor(this, library, errorReporter);
+        var dartConstant =
+            constantVisitor.evaluateConstant(constantInitializer);
+        if (dartConstant is DartObjectImpl) {
+          // Only check the type for truly const declarations (don't check final
+          // fields with initializers, since their types may be generic.  The type
+          // of the final field will be checked later, when the constructor is
+          // invoked).
+          if (constant.isConst) {
+            if (!library.typeSystem
+                .runtimeTypeMatch(dartConstant, constant.type)) {
+              // If the static types are mismatched, an error would have already
+              // been reported.
+              if (library.typeSystem.isAssignableTo(
+                  constantInitializer.typeOrThrow, constant.type)) {
+                constant.evaluationResult = InvalidConstant.forEntity(
+                    constantInitializer,
+                    CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH,
+                    arguments: [
+                      dartConstant.type.getDisplayString(
+                          withNullability: _isNonNullableByDefault),
+                      constant.type.getDisplayString(
+                          withNullability: _isNonNullableByDefault),
+                    ]);
+                return;
+              }
             }
+
+            // Associate with the variable.
+            dartConstant = DartObjectImpl.forVariable(dartConstant, constant);
           }
 
-          // Associate with the variable.
-          dartObject = DartObjectImpl.forVariable(dartObject, constant);
-        }
-
-        if (dartObject != null) {
           var enumConstant = _enumConstant(constant);
           if (enumConstant != null) {
-            dartObject.updateEnumConstant(
+            dartConstant.updateEnumConstant(
               index: enumConstant.index,
               name: enumConstant.name,
             );
           }
         }
 
-        constant.evaluationResult =
-            EvaluationResultImpl(dartObject, errorListener.errors);
+        constant.evaluationResult = dartConstant;
       }
     } else if (constant is ConstructorElementImpl) {
       if (constant.isConst) {
@@ -179,34 +184,32 @@ class ConstantEvaluationEngine {
           // This could happen in the event that the annotation refers to a
           // non-constant.  The error is detected elsewhere, so just silently
           // ignore it here.
-          constant.evaluationResult = EvaluationResultImpl(null);
+          constant.evaluationResult = null;
         }
       } else if (element is ConstructorElement &&
           element.isConst &&
           constNode.arguments != null) {
-        RecordingErrorListener errorListener = RecordingErrorListener();
-        ErrorReporter errorReporter = ErrorReporter(
+        var errorListener = RecordingErrorListener();
+        var errorReporter = ErrorReporter(
           errorListener,
           constant.source,
           isNonNullableByDefault: library.isNonNullableByDefault,
         );
-        ConstantVisitor constantVisitor =
-            ConstantVisitor(this, library, errorReporter);
-        var result = evaluateConstructorCall(
+        var constantVisitor = ConstantVisitor(this, library, errorReporter);
+        final result = evaluateAndFormatErrorsInConstructorCall(
             library,
             constNode,
             element.returnType.typeArguments,
             constNode.arguments!.arguments,
             element,
-            constantVisitor,
-            errorReporter);
-        constant.evaluationResult =
-            EvaluationResultImpl(result, errorListener.errors);
+            constantVisitor);
+        constant.evaluationResult = result;
+        constant.additionalErrors = errorListener.errors;
       } else {
         // This may happen for invalid code (e.g. failing to pass arguments
         // to an annotation which references a const constructor).  The error
         // is detected elsewhere, so just silently ignore it here.
-        constant.evaluationResult = EvaluationResultImpl(null);
+        constant.evaluationResult = null;
       }
     } else if (constant is VariableElement) {
       // constant is a VariableElement but not a VariableElementImpl.  This can
@@ -336,20 +339,66 @@ class ConstantEvaluationEngine {
     }
   }
 
-  DartObjectImpl? evaluateConstructorCall(
+  /// Evaluate the constructor call and format any [InvalidConstants] if found.
+  Constant evaluateAndFormatErrorsInConstructorCall(
     LibraryElementImpl library,
     AstNode node,
     List<DartType>? typeArguments,
     List<Expression> arguments,
     ConstructorElement constructor,
-    ConstantVisitor constantVisitor,
-    ErrorReporter errorReporter, {
+    ConstantVisitor constantVisitor, {
+    ConstructorInvocation? invocation,
+  }) {
+    var result = _InstanceCreationEvaluator.evaluate(
+      this,
+      _declaredVariables,
+      library,
+      node,
+      constructor,
+      typeArguments,
+      arguments,
+      constantVisitor,
+      isNullSafe: _isNonNullableByDefault,
+      invocation: invocation,
+    );
+    if (result is! InvalidConstant) {
+      return result;
+    }
+
+    // If we found an evaluation exception, report a context message linking to
+    // where the exception was found.
+    if (result.isRuntimeException) {
+      final formattedMessage =
+          formatList(result.errorCode.problemMessage, result.arguments);
+      final contextMessage = DiagnosticMessageImpl(
+        filePath: library.source.fullName,
+        length: result.length,
+        message: "The exception is '$formattedMessage' and occurs here.",
+        offset: result.offset,
+        url: null,
+      );
+      final errorNode = configuration.errorNode(node);
+      result = InvalidConstant.forEntity(
+          errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          arguments: [],
+          contextMessages: [...result.contextMessages, contextMessage]);
+    }
+
+    return result;
+  }
+
+  Constant evaluateConstructorCall(
+    LibraryElementImpl library,
+    AstNode node,
+    List<DartType>? typeArguments,
+    List<Expression> arguments,
+    ConstructorElement constructor,
+    ConstantVisitor constantVisitor, {
     ConstructorInvocation? invocation,
   }) {
     return _InstanceCreationEvaluator.evaluate(
       this,
       _declaredVariables,
-      errorReporter,
       library,
       node,
       constructor,
@@ -382,10 +431,14 @@ class ConstantEvaluationEngine {
       errorReporter.reportErrorForElement(
           CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, constant, []);
       (constant as VariableElementImpl).evaluationResult =
-          EvaluationResultImpl(null, errorListener.errors);
+          InvalidConstant.forElement(
+              constant, CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
     } else if (constant is ConstructorElement) {
-      // We don't report cycle errors on constructor declarations since there
-      // is nowhere to put the error information.
+      // We don't report cycle errors on constructor declarations here since
+      // there is nowhere to put the error information.
+      //
+      // Instead we will report an error at each constructor in
+      // [ConstantVerifier.visitConstructorDeclaration].
     } else {
       // Should not happen.  Formal parameter defaults and annotations should
       // never appear as part of a cycle because they can't be referred to.
@@ -448,6 +501,19 @@ class ConstantEvaluationEngine {
       NullState.NULL_STATE,
     );
   }
+
+  /// Returns the representation of a constant expression which has an
+  /// [InvalidType], with the given [defaultType].
+  static DartObjectImpl _unresolvedObject(
+      LibraryElementImpl library, DartType defaultType) {
+    // TODO(kallentu): Use a better representation of an unresolved object that
+    // doesn't need to rely on NullState.
+    return DartObjectImpl(
+      library.typeSystem,
+      defaultType,
+      NullState(isInvalid: true),
+    );
+  }
 }
 
 /// Interface for [AnalysisTarget]s for which constant evaluation can be
@@ -462,55 +528,6 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
 
   /// The library with this constant.
   LibraryElement? get library;
-}
-
-/// Interface used by unit tests to verify correct dependency analysis during
-/// constant evaluation.
-abstract class ConstantEvaluationValidator {
-  /// This method is called just before computing the constant value associated
-  /// with [constant]. Unit tests will override this method to introduce
-  /// additional error checking.
-  void beforeComputeValue(ConstantEvaluationTarget constant);
-
-  /// This method is called just before getting the constant initializers
-  /// associated with the [constructor]. Unit tests will override this method to
-  /// introduce additional error checking.
-  void beforeGetConstantInitializers(ConstructorElement constructor);
-
-  /// This method is called just before retrieving an evaluation result from an
-  /// element. Unit tests will override it to introduce additional error
-  /// checking.
-  void beforeGetEvaluationResult(ConstantEvaluationTarget constant);
-
-  /// This method is called just before getting the constant value of a field
-  /// with an initializer.  Unit tests will override this method to introduce
-  /// additional error checking.
-  void beforeGetFieldEvaluationResult(FieldElementImpl field);
-
-  /// This method is called just before getting a parameter's default value.
-  /// Unit tests will override this method to introduce additional error
-  /// checking.
-  void beforeGetParameterDefault(ParameterElement parameter);
-}
-
-/// Implementation of [ConstantEvaluationValidator] used in production; does no
-/// validation.
-class ConstantEvaluationValidator_ForProduction
-    implements ConstantEvaluationValidator {
-  @override
-  void beforeComputeValue(ConstantEvaluationTarget constant) {}
-
-  @override
-  void beforeGetConstantInitializers(ConstructorElement constructor) {}
-
-  @override
-  void beforeGetEvaluationResult(ConstantEvaluationTarget constant) {}
-
-  @override
-  void beforeGetFieldEvaluationResult(FieldElementImpl field) {}
-
-  @override
-  void beforeGetParameterDefault(ParameterElement parameter) {}
 }
 
 /// A visitor used to evaluate constant expressions to produce their
@@ -559,7 +576,6 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     _dartObjectComputer = DartObjectComputer(
       typeSystem,
       _library.featureSet,
-      _errorReporter,
     );
   }
 
@@ -572,6 +588,44 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// provider.
   TypeProvider get _typeProvider => _library.typeProvider;
 
+  /// Evaluates and reports an error if the evaluation result of [node] is an
+  /// [InvalidConstant].
+  ///
+  /// If [InvalidConstant.avoidReporting] is marked `true`, no error is
+  /// reported.
+  Constant evaluateAndReportInvalidConstant(AstNode node) {
+    var result = evaluateConstant(node);
+    if (result case InvalidConstant(avoidReporting: false)) {
+      _errorReporter.reportErrorForOffset(
+        result.errorCode,
+        result.offset,
+        result.length,
+        result.arguments,
+        result.contextMessages,
+      );
+    }
+    return result;
+  }
+
+  /// Evaluates the expression of [node] using this [ConstantVisitor].
+  ///
+  /// Returns the resulting constant value, which can be an [InvalidConstant]
+  /// if the expression fails to evaluate to a constant value.
+  ///
+  /// The [ConstantVisitor] can't return any `null` values even though
+  /// [UnifyingAstVisitor] allows it. If we encounter an unexpected `null`
+  /// value, we will return an [InvalidConstant] instead.
+  Constant evaluateConstant(AstNode node) {
+    var result = node.accept(this);
+    if (result == null) {
+      // Should never reach this.
+      throw UnsupportedError(
+        'The constant evaluator returned an unexpected null value.',
+      );
+    }
+    return result;
+  }
+
   @override
   Constant visitAdjacentStrings(AdjacentStrings node) {
     return _concatenateNodes(node, node.strings);
@@ -579,11 +633,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitAsExpression(AsExpression node) {
-    var expression = _getConstant(node.expression);
+    var expression = evaluateConstant(node.expression);
     if (expression is! DartObjectImpl) {
       return expression;
     }
-    var type = _getConstant(node.type);
+    var type = evaluateConstant(node.type);
     if (type is! DartObjectImpl) {
       return type;
     }
@@ -591,51 +645,65 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitBinaryExpression(BinaryExpression node) {
+  Constant visitBinaryExpression(BinaryExpression node) {
     if (node.staticElement?.enclosingElement is ExtensionElement) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, node);
-      return InvalidConstant(
+      return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
     }
 
     TokenType operatorType = node.operator.type;
-    // TODO(kallentu): Remove this unwrapping when helpers can handle Constant.
-    var leftConstant = node.leftOperand.accept(this);
-    var leftResult = leftConstant is DartObjectImpl ? leftConstant : null;
-    // evaluate lazy operators
-    // TODO(kallentu): Remove unwrapping when lazyAnd, lazyOr, lazy?? handles
-    // Constant
-    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-      if (leftResult?.toBoolValue() == false) {
-        _reportNotPotentialConstants(node.rightOperand);
-      }
-      return _dartObjectComputer.lazyAnd(node, leftResult, () {
-        var rightConstant = node.rightOperand.accept(this);
-        return rightConstant is DartObjectImpl ? rightConstant : null;
-      });
-    } else if (operatorType == TokenType.BAR_BAR) {
-      if (leftResult?.toBoolValue() == true) {
-        _reportNotPotentialConstants(node.rightOperand);
-      }
-      return _dartObjectComputer.lazyOr(node, leftResult, () {
-        var rightConstant = node.rightOperand.accept(this);
-        return rightConstant is DartObjectImpl ? rightConstant : null;
-      });
-    } else if (operatorType == TokenType.QUESTION_QUESTION) {
-      if (leftResult?.isNull != true) {
-        _reportNotPotentialConstants(node.rightOperand);
-      }
-      return _dartObjectComputer.lazyQuestionQuestion(node, leftResult, () {
-        var rightConstant = node.rightOperand.accept(this);
-        return rightConstant is DartObjectImpl ? rightConstant : null;
-      });
+    var leftResult = evaluateConstant(node.leftOperand);
+    if (leftResult is! DartObjectImpl) {
+      return leftResult;
     }
-    // evaluate eager operators
-    // TODO(kallentu): Remove this unwrapping when helpers can handle Constant.
-    var rightConstant = node.rightOperand.accept(this);
-    var rightResult = rightConstant is DartObjectImpl ? rightConstant : null;
+
+    // Used for the [DartObjectComputer], which will handle any exceptions.
+    DartObjectImpl rightOperandComputer() {
+      var constant = evaluateConstant(node.rightOperand);
+      switch (constant) {
+        case DartObjectImpl():
+          return constant;
+        case InvalidConstant():
+          throw EvaluationException(constant.errorCode);
+        default:
+          throw EvaluationException(CompileTimeErrorCode.INVALID_CONSTANT);
+      }
+    }
+
+    // Evaluate lazy operators.
+    if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
+      if (leftResult.toBoolValue() == false) {
+        var error = _reportNotPotentialConstants(node.rightOperand);
+        if (error is InvalidConstant) {
+          return error;
+        }
+      }
+      return _dartObjectComputer.lazyAnd(
+          node, leftResult, rightOperandComputer);
+    } else if (operatorType == TokenType.BAR_BAR) {
+      if (leftResult.toBoolValue() == true) {
+        var error = _reportNotPotentialConstants(node.rightOperand);
+        if (error is InvalidConstant) {
+          return error;
+        }
+      }
+      return _dartObjectComputer.lazyOr(node, leftResult, rightOperandComputer);
+    } else if (operatorType == TokenType.QUESTION_QUESTION) {
+      if (leftResult.isNull != true) {
+        var error = _reportNotPotentialConstants(node.rightOperand);
+        if (error is InvalidConstant) {
+          return error;
+        }
+      }
+      return _dartObjectComputer.lazyQuestionQuestion(
+          node, leftResult, () => evaluateConstant(node.rightOperand));
+    }
+
+    // Evaluate eager operators.
+    var rightResult = evaluateConstant(node.rightOperand);
+    if (rightResult is! DartObjectImpl) {
+      return rightResult;
+    }
     if (operatorType == TokenType.AMPERSAND) {
       return _dartObjectComputer.eagerAnd(node, leftResult, rightResult);
     } else if (operatorType == TokenType.BANG_EQ) {
@@ -677,8 +745,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     } else {
       // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
       // error code.
-      _error(node, null);
-      return null;
+      return InvalidConstant.genericError(node);
     }
   }
 
@@ -694,16 +761,13 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitConditionalExpression(ConditionalExpression node) {
     var condition = node.condition;
-    var conditionConstant = _getConstant(condition);
+    var conditionConstant = evaluateConstant(condition);
     if (conditionConstant is! DartObjectImpl) {
       return conditionConstant;
     }
 
     if (!conditionConstant.isBool) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, condition);
-      return InvalidConstant(
+      return InvalidConstant.forEntity(
           condition, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL);
     }
     conditionConstant = _dartObjectComputer.applyBooleanConversion(
@@ -714,17 +778,23 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     var conditionResultBool = conditionConstant.toBoolValue();
     if (conditionResultBool == true) {
-      _reportNotPotentialConstants(node.elseExpression);
-      return _getConstant(node.thenExpression);
+      var error = _reportNotPotentialConstants(node.elseExpression);
+      if (error is InvalidConstant) {
+        return error;
+      }
+      return evaluateConstant(node.thenExpression);
     } else if (conditionResultBool == false) {
-      _reportNotPotentialConstants(node.thenExpression);
-      return _getConstant(node.elseExpression);
+      var error = _reportNotPotentialConstants(node.thenExpression);
+      if (error is InvalidConstant) {
+        return error;
+      }
+      return evaluateConstant(node.elseExpression);
     } else {
-      var thenConstant = _getConstant(node.thenExpression);
+      var thenConstant = evaluateConstant(node.thenExpression);
       if (thenConstant is InvalidConstant) {
         return thenConstant;
       }
-      var elseConstant = _getConstant(node.elseExpression);
+      var elseConstant = evaluateConstant(node.elseExpression);
       if (elseConstant is InvalidConstant) {
         return elseConstant;
       }
@@ -739,7 +809,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant visitConstructorReference(ConstructorReference node) {
     var constructorFunctionType = node.typeOrThrow;
     if (constructorFunctionType is! FunctionType) {
-      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
+      return InvalidConstant.forEntity(
+          node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
     var classType = constructorFunctionType.returnType as InterfaceType;
     var typeArguments = classType.typeArguments;
@@ -761,7 +832,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     final constructorElement = node.constructorName.staticElement?.declaration
         .ifTypeOrNull<ConstructorElementImpl>();
     if (constructorElement == null) {
-      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
+      return InvalidConstant.forEntity(
+          node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
 
     return DartObjectImpl(
@@ -783,7 +855,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitFunctionReference(FunctionReference node) {
-    var functionResult = _getConstant(node.function);
+    var functionResult = evaluateConstant(node.function);
     if (functionResult is! DartObjectImpl) {
       return functionResult;
     }
@@ -803,11 +875,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           }
         });
         if (instantiatedTypeArgumentTypes.any(hasTypeParameterReference)) {
-          // TODO(kallentu): Don't report error here.
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
-              node);
-          return InvalidConstant(node,
+          return InvalidConstant.forEntity(node,
               CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF);
         }
       }
@@ -820,22 +888,31 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     var typeArguments = <DartType>[];
     for (var typeArgument in typeArgumentList.arguments) {
-      var object = _getConstant(typeArgument);
-      if (object is! DartObjectImpl) {
-        return object;
+      var typeArgumentConstant = evaluateConstant(typeArgument);
+      switch (typeArgumentConstant) {
+        case InvalidConstant(
+            errorCode: CompileTimeErrorCode.CONST_TYPE_PARAMETER
+          ):
+          // If there's a type parameter error in the evaluated constant, we
+          // convert the message to a more specific function reference error.
+          return InvalidConstant.forEntity(typeArgument,
+              CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF);
+        case InvalidConstant():
+          return typeArgumentConstant;
+        case DartObjectImpl():
+          var typeArgumentType = typeArgumentConstant.toTypeValue();
+          if (typeArgumentType == null) {
+            return InvalidConstant.forEntity(
+                typeArgument, CompileTimeErrorCode.INVALID_CONSTANT);
+          }
+          // TODO(srawlins): Test type alias types (`typedef i = int`) used as
+          // type arguments. Possibly change implementation based on
+          // canonicalization rules.
+          typeArguments.add(typeArgumentType);
       }
-      var typeArgumentType = object.toTypeValue();
-      if (typeArgumentType == null) {
-        return InvalidConstant(
-            typeArgument, CompileTimeErrorCode.INVALID_CONSTANT);
-      }
-      // TODO(srawlins): Test type alias types (`typedef i = int`) used as
-      // type arguments. Possibly change implementation based on
-      // canonicalization rules.
-      typeArguments.add(typeArgumentType);
     }
     return _dartObjectComputer.typeInstantiate(
-        functionResult, typeArguments, node.function);
+        functionResult, typeArguments, node.function, typeArgumentList);
   }
 
   @override
@@ -848,28 +925,28 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitInstanceCreationExpression(InstanceCreationExpression node) {
+  Constant visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst) {
       // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
       // error code.
-      _error(node, null);
-      return null;
+      return InvalidConstant.genericError(node);
     }
     var constructor = node.constructorName.staticElement;
     if (constructor == null) {
       // Couldn't resolve the constructor so we can't compute a value.  No
       // problem - the error has already been reported.
-      return null;
+      // TODO(kallentu): Use a better error code for this.
+      return InvalidConstant.forEntity(
+          node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
 
-    return evaluationEngine.evaluateConstructorCall(
+    return evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
       _library,
       node,
       constructor.returnType.typeArguments,
       node.argumentList.arguments,
       constructor,
       this,
-      _errorReporter,
     );
   }
 
@@ -891,15 +968,13 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitInterpolationExpression(InterpolationExpression node) {
-    var result = _getConstant(node.expression);
+    var result = evaluateConstant(node.expression);
     if (result is! DartObjectImpl) {
       return result;
     }
 
     if (!result.isBoolNumStringOrNull) {
-      // TODO(kallentu): Don't report error here.
-      _error(node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
-      return InvalidConstant(
+      return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING);
     }
     return _dartObjectComputer.performToString(node, result);
@@ -916,11 +991,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitIsExpression(IsExpression node) {
-    var expression = _getConstant(node.expression);
+    var expression = evaluateConstant(node.expression);
     if (expression is! DartObjectImpl) {
       return expression;
     }
-    var type = _getConstant(node.type);
+    var type = evaluateConstant(node.type);
     if (type is! DartObjectImpl) {
       return type;
     }
@@ -930,15 +1005,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitListLiteral(ListLiteral node) {
     if (!node.isConst) {
-      // TODO(kallentu): Don't report the error here.
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
-      return InvalidConstant(
+      return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
     }
-    List<DartObjectImpl> list = [];
+    var elements = <DartObjectImpl>[];
     for (CollectionElement element in node.elements) {
-      var result = _addElementsToList(list, element);
+      var result = _addElementsToList(elements, element);
       if (result is InvalidConstant) {
         return result;
       }
@@ -949,11 +1021,18 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             ? nodeType.typeArguments[0]
             : _typeProvider.dynamicType;
     InterfaceType listType = _typeProvider.listType(elementType);
-    return DartObjectImpl(typeSystem, listType, ListState(list));
+    return DartObjectImpl(
+      typeSystem,
+      listType,
+      ListState(
+        elementType: elementType,
+        elements: elements,
+      ),
+    );
   }
 
   @override
-  Constant? visitMethodInvocation(MethodInvocation node) {
+  Constant visitMethodInvocation(MethodInvocation node) {
     var element = node.methodName.staticElement;
     if (element is FunctionElement) {
       if (element.name == "identical") {
@@ -963,14 +1042,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           if (enclosingElement is CompilationUnitElement) {
             LibraryElement library = enclosingElement.library;
             if (library.isDartCore) {
-              var leftConstant = arguments[0].accept(this);
-              var rightConstant = arguments[1].accept(this);
-              // TODO(kallentu): Remove unwrapping when isIdentical handles
-              // Constant.
-              var leftArgument =
-                  leftConstant is DartObjectImpl ? leftConstant : null;
-              var rightArgument =
-                  rightConstant is DartObjectImpl ? rightConstant : null;
+              var leftArgument = evaluateConstant(arguments[0]);
+              if (leftArgument is! DartObjectImpl) {
+                return leftArgument;
+              }
+              var rightArgument = evaluateConstant(arguments[1]);
+              if (rightArgument is! DartObjectImpl) {
+                return rightArgument;
+              }
               return _dartObjectComputer.isIdentical(
                   node, leftArgument, rightArgument);
             }
@@ -978,57 +1057,55 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         }
       }
     }
-    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-    // error code.
-    _error(node, null);
-    return null;
+
+    // Some methods aren't resolved by the time we are evaluating it. We'll mark
+    // it and return immediately.
+    if (node.staticType is InvalidType) {
+      return InvalidConstant.forEntity(
+          node, CompileTimeErrorCode.INVALID_CONSTANT,
+          isUnresolved: true);
+    }
+
+    return InvalidConstant.forEntity(
+        node, CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION);
   }
 
   @override
   Constant visitNamedExpression(NamedExpression node) =>
-      _getConstant(node.expression);
+      evaluateConstant(node.expression);
 
   @override
-  Constant? visitNamedType(NamedType node) {
-    var type = node.type;
-
-    if (type == null) {
-      return null;
-    }
+  Constant visitNamedType(NamedType node) {
+    var type = node.typeOrThrow;
 
     if ((!_isNonNullableByDefault || node.isTypeLiteralInConstantPattern) &&
         hasTypeParameterReference(type)) {
-      return super.visitNamedType(node);
-    } else {
-      if (node.isDeferred) {
-        _reportFromDeferredLibrary(node, node.name2);
-        return null;
-      }
-      _getConstantValue(
-        errorNode: node,
-        expression: null,
-        identifier: null,
-        element: node.element,
-      );
+      return InvalidConstant.forEntity(
+          node, CompileTimeErrorCode.CONST_TYPE_PARAMETER);
+    } else if (node.isDeferred) {
+      return _getDeferredLibraryError(node, node.name2) ??
+          InvalidConstant.forEntity(
+              node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
 
     if (_substitution != null) {
       type = _substitution!.substituteType(type);
     }
 
-    return DartObjectImpl(
-      typeSystem,
-      _typeProvider.typeType,
-      TypeState(type),
+    return _getConstantValue(
+      errorNode: node,
+      expression: null,
+      identifier: null,
+      element: node.element,
+      givenType: type,
     );
   }
 
   @override
-  Constant? visitNode(AstNode node) {
+  Constant visitNode(AstNode node) {
     // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
     // error code.
-    _error(node, null);
-    return null;
+    return InvalidConstant.genericError(node);
   }
 
   @override
@@ -1038,36 +1115,36 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitParenthesizedExpression(ParenthesizedExpression node) =>
-      _getConstant(node.expression);
+      evaluateConstant(node.expression);
 
   @override
-  Constant? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    SimpleIdentifier prefixNode = node.prefix;
+  Constant visitPrefixedIdentifier(PrefixedIdentifier node) {
+    var prefixNode = node.prefix;
     var prefixElement = prefixNode.staticElement;
-    // String.length
-    if (prefixElement is! PrefixElement &&
-        prefixElement is! InterfaceElement &&
-        prefixElement is! ExtensionElement) {
-      var prefixResult = prefixNode.accept(this);
-      if (prefixResult is DartObjectImpl &&
-          _isStringLength(prefixResult, node.identifier)) {
-        return prefixResult.stringLength(typeSystem);
-      }
-    }
+
     // importPrefix.CONST
     if (prefixElement is PrefixElement) {
       if (node.isDeferred) {
-        _reportFromDeferredLibrary(node, node.identifier);
-        return null;
+        return _getDeferredLibraryError(node, node.identifier) ??
+            InvalidConstant.forEntity(
+                node, CompileTimeErrorCode.INVALID_CONSTANT);
+      }
+    } else if (prefixElement is! ExtensionElement) {
+      var prefixResult = evaluateConstant(prefixNode);
+      if (prefixResult is! DartObjectImpl) {
+        return prefixResult;
+      }
+
+      // String.length
+      if (prefixElement is! InterfaceElement) {
+        var propertyAccessResult =
+            _evaluatePropertyAccess(prefixResult, node.identifier, node);
+        if (propertyAccessResult != null) {
+          return propertyAccessResult;
+        }
       }
     }
-    if (prefixElement is! PrefixElement && prefixElement is! ExtensionElement) {
-      var prefixResult = prefixNode.accept(this);
-      if (prefixResult == null) {
-        // The error has already been reported.
-        return null;
-      }
-    }
+
     // Validate prefixed identifier.
     return _getConstantValue(
       errorNode: node,
@@ -1079,15 +1156,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitPrefixExpression(PrefixExpression node) {
-    var operand = _getConstant(node.operand);
+    var operand = evaluateConstant(node.operand);
     if (operand is! DartObjectImpl) {
       return operand;
     }
     if (node.staticElement?.enclosingElement is ExtensionElement) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, node);
-      return InvalidConstant(
+      return InvalidConstant.forEntity(
           node, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
     }
     if (node.operator.type == TokenType.BANG) {
@@ -1099,19 +1173,23 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     } else {
       // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
       // error code.
-      _error(node, null);
-      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
+      return InvalidConstant.genericError(node);
     }
   }
 
   @override
-  Constant? visitPropertyAccess(PropertyAccess node) {
+  Constant visitPropertyAccess(PropertyAccess node) {
     var target = node.target;
     if (target != null) {
-      var prefixResult = target.accept(this);
-      if (prefixResult is DartObjectImpl &&
-          _isStringLength(prefixResult, node.propertyName)) {
-        return prefixResult.stringLength(typeSystem);
+      var prefixResult = evaluateConstant(target);
+      if (prefixResult is! DartObjectImpl) {
+        return prefixResult;
+      }
+
+      var propertyAccessResult =
+          _evaluatePropertyAccess(prefixResult, node.propertyName, node);
+      if (propertyAccessResult != null) {
+        return propertyAccessResult;
       }
     }
     return _getConstantValue(
@@ -1123,27 +1201,27 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitRecordLiteral(RecordLiteral node) {
+  Constant visitRecordLiteral(RecordLiteral node) {
     var positionalFields = <DartObjectImpl>[];
     var namedFields = <String, DartObjectImpl>{};
     for (var field in node.fields) {
       if (field is NamedExpression) {
         var name = field.name.label.name;
-        var value = field.expression.accept(this);
-        if (value == null || value is! DartObjectImpl) {
-          return null;
+        var value = evaluateConstant(field.expression);
+        if (value is! DartObjectImpl) {
+          return value;
         }
         namedFields[name] = value;
       } else {
-        var value = field.accept(this);
-        if (value == null || value is! DartObjectImpl) {
-          return null;
+        var value = evaluateConstant(field);
+        if (value is! DartObjectImpl) {
+          return value;
         }
         positionalFields.add(value);
       }
     }
 
-    final nodeType = RecordType(
+    var nodeType = RecordType(
       positional: positionalFields.map((e) => e.type).toList(),
       named: namedFields.map((name, value) => MapEntry(name, value.type)),
       nullabilitySuffix: NullabilitySuffix.none,
@@ -1154,7 +1232,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitSetOrMapLiteral(SetOrMapLiteral node) {
+  Constant visitSetOrMapLiteral(SetOrMapLiteral node) {
     // Note: due to dartbug.com/33441, it's possible that a set/map literal
     // resynthesized from a summary will have neither its `isSet` or `isMap`
     // boolean set to `true`.  We work around the problem by assuming such
@@ -1164,17 +1242,22 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     bool isMap = !node.isSet;
     if (isMap) {
       if (!node.isConst) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL, node);
-        return null;
+        return InvalidConstant.forEntity(
+            node, CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL);
       }
-      bool errorOccurred = false;
       Map<DartObjectImpl, DartObjectImpl> map = {};
       for (CollectionElement element in node.elements) {
-        errorOccurred = errorOccurred | _addElementsToMap(map, element);
-      }
-      if (errorOccurred) {
-        return null;
+        var result = _addElementsToMap(map, element);
+        if (result is InvalidConstant) {
+          if (!node.isMap) {
+            // We don't report the error if we know this is an ambiguous map or
+            // set. [CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_BOTH]
+            // or [CompileTimeErrorCode.AMBIGUOUS_SET_OR_MAP_LITERAL_EITHER] is
+            // already reported elsewhere.
+            result.avoidReporting = true;
+          }
+          return result;
+        }
       }
       DartType keyType = _typeProvider.dynamicType;
       DartType valueType = _typeProvider.dynamicType;
@@ -1190,17 +1273,15 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return DartObjectImpl(typeSystem, mapType, MapState(map));
     } else {
       if (!node.isConst) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL, node);
-        return null;
+        return InvalidConstant.forEntity(
+            node, CompileTimeErrorCode.MISSING_CONST_IN_SET_LITERAL);
       }
-      bool errorOccurred = false;
       Set<DartObjectImpl> set = <DartObjectImpl>{};
       for (CollectionElement element in node.elements) {
-        errorOccurred = errorOccurred | _addElementsToSet(set, element);
-      }
-      if (errorOccurred) {
-        return null;
+        var result = _addElementsToSet(set, element);
+        if (result is InvalidConstant) {
+          return result;
+        }
       }
       var nodeType = node.staticType;
       DartType elementType =
@@ -1213,7 +1294,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitSimpleIdentifier(SimpleIdentifier node) {
+  Constant visitSimpleIdentifier(SimpleIdentifier node) {
     var value = _lexicalEnvironment?[node.name];
     if (value != null) {
       return _instantiateFunctionTypeForSimpleIdentifier(node, value);
@@ -1259,9 +1340,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitTypeLiteral(TypeLiteral node) {
-    return node.type.accept(this);
-  }
+  Constant visitTypeLiteral(TypeLiteral node) => evaluateConstant(node.type);
 
   /// Add the entries produced by evaluating the given collection [element] to
   /// the given [list]. Return an [InvalidConstant] if the evaluation of one or
@@ -1270,7 +1349,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       List<DartObject> list, CollectionElement element) {
     switch (element) {
       case Expression():
-        var expression = _getConstant(element);
+        var expression = evaluateConstant(element);
         switch (expression) {
           case InvalidConstant():
             return expression;
@@ -1279,23 +1358,17 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             return null;
         }
       case ForElement():
-        // TODO(kallentu): Don't report error here.
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, element);
-        return InvalidConstant(
+        return InvalidConstant.forEntity(
             element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
       case IfElement():
-        var condition = _getConstant(element.expression);
+        var condition = evaluateConstant(element.expression);
         switch (condition) {
           case InvalidConstant():
             return condition;
           case DartObjectImpl():
             var conditionValue = condition.toBoolValue();
             if (conditionValue == null) {
-              // TODO(kallentu): Don't report error here.
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.NON_BOOL_CONDITION, element.expression);
-              return InvalidConstant(
+              return InvalidConstant.forEntity(
                   element.expression, CompileTimeErrorCode.NON_BOOL_CONDITION);
             } else if (conditionValue) {
               return _addElementsToList(list, element.thenElement);
@@ -1306,16 +1379,21 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             return null;
         }
       case MapLiteralEntry():
-        return InvalidConstant(element, CompileTimeErrorCode.INVALID_CONSTANT);
+        return InvalidConstant.forEntity(
+            element, CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP);
       case SpreadElement():
-        var spread = _getConstant(element.expression);
+        var spread = evaluateConstant(element.expression);
         switch (spread) {
           case InvalidConstant():
             return spread;
           case DartObjectImpl():
-            var listValue = spread.toListValue();
+            // Special case for ...?
+            if (spread.isNull && element.isNullAware) {
+              return null;
+            }
+            var listValue = spread.toListValue() ?? spread.toSetValue();
             if (listValue == null) {
-              return InvalidConstant(element.expression,
+              return InvalidConstant.forEntity(element.expression,
                   CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
             }
             list.addAll(listValue);
@@ -1325,89 +1403,129 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   /// Add the entries produced by evaluating the given map [element] to the
-  /// given [map]. Return `true` if the evaluation of one or more of the entries
-  /// failed.
-  bool _addElementsToMap(
+  /// given [map]. Return an [InvalidConstant] if the evaluation of one or
+  /// more of the elements failed.
+  InvalidConstant? _addElementsToMap(
       Map<DartObjectImpl, DartObjectImpl> map, CollectionElement element) {
-    if (element is ForElement) {
-      _error(element, null);
-    } else if (element is IfElement) {
-      var conditionValue = _evaluateCondition(element.expression);
-      if (conditionValue == null) {
-        return true;
-      } else if (conditionValue) {
-        return _addElementsToMap(map, element.thenElement);
-      } else if (element.elseElement != null) {
-        return _addElementsToMap(map, element.elseElement!);
-      }
-      return false;
-    } else if (element is MapLiteralEntry) {
-      var keyResult = element.key.accept(this);
-      var valueResult = element.value.accept(this);
-      if (keyResult == null || valueResult == null) {
-        return true;
-      }
-      if (keyResult is! DartObjectImpl) {
-        return true;
-      }
-      if (valueResult is! DartObjectImpl) {
-        return true;
-      }
-      map[keyResult] = valueResult;
-      return false;
-    } else if (element is SpreadElement) {
-      // TODO(kallentu): Remove constant unwrapping.
-      var elementConstant = element.expression.accept(this);
-      var elementResult =
-          elementConstant is DartObjectImpl ? elementConstant : null;
-      var value = elementResult?.toMapValue();
-      if (value == null) {
-        return true;
-      }
-      map.addAll(value);
-      return false;
+    switch (element) {
+      case Expression():
+        return InvalidConstant.forEntity(
+            element, CompileTimeErrorCode.EXPRESSION_IN_MAP);
+      case ForElement():
+        return InvalidConstant.forEntity(
+            element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
+      case IfElement():
+        var condition = evaluateConstant(element.expression);
+        switch (condition) {
+          case InvalidConstant():
+            return condition;
+          case DartObjectImpl():
+            var conditionValue = condition.toBoolValue();
+            if (conditionValue == null) {
+              return InvalidConstant.forEntity(
+                  element.expression, CompileTimeErrorCode.NON_BOOL_CONDITION);
+            } else if (conditionValue) {
+              return _addElementsToMap(map, element.thenElement);
+            } else if (element.elseElement != null) {
+              return _addElementsToMap(map, element.elseElement!);
+            }
+            // There's no else element, but the condition value is false.
+            return null;
+        }
+      case MapLiteralEntry():
+        var keyResult = evaluateConstant(element.key);
+        var valueResult = evaluateConstant(element.value);
+        switch (keyResult) {
+          case InvalidConstant():
+            return keyResult;
+          case DartObjectImpl():
+            switch (valueResult) {
+              case InvalidConstant():
+                return valueResult;
+              case DartObjectImpl():
+                map[keyResult] = valueResult;
+            }
+        }
+        return null;
+      case SpreadElement():
+        var spread = evaluateConstant(element.expression);
+        switch (spread) {
+          case InvalidConstant():
+            return spread;
+          case DartObjectImpl():
+            // Special case for ...?
+            if (spread.isNull && element.isNullAware) {
+              return null;
+            }
+            var mapValue = spread.toMapValue();
+            if (mapValue == null) {
+              return InvalidConstant.forEntity(element.expression,
+                  CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP);
+            }
+            map.addAll(mapValue);
+            return null;
+        }
     }
-    // This error should have been reported elsewhere.
-    return true;
   }
 
   /// Add the entries produced by evaluating the given collection [element] to
-  /// the given [set]. Return `true` if the evaluation of one or more of the
-  /// elements failed.
-  bool _addElementsToSet(Set<DartObject> set, CollectionElement element) {
-    if (element is ForElement) {
-      _error(element, null);
-    } else if (element is IfElement) {
-      var conditionValue = _evaluateCondition(element.expression);
-      if (conditionValue == null) {
-        return true;
-      } else if (conditionValue) {
-        return _addElementsToSet(set, element.thenElement);
-      } else if (element.elseElement != null) {
-        return _addElementsToSet(set, element.elseElement!);
-      }
-      return false;
-    } else if (element is Expression) {
-      var value = element.accept(this);
-      if (value == null || value is! DartObjectImpl) {
-        return true;
-      }
-      set.add(value);
-      return false;
-    } else if (element is SpreadElement) {
-      // TODO(kallentu): Remove constant unwrapping.
-      var elementConstant = element.expression.accept(this);
-      var elementResult =
-          elementConstant is DartObjectImpl ? elementConstant : null;
-      var value = elementResult?.toSetValue();
-      if (value == null) {
-        return true;
-      }
-      set.addAll(value);
-      return false;
+  /// the given [set]. Return an [InvalidConstant] if the evaluation of one or
+  /// more of the elements failed.
+  InvalidConstant? _addElementsToSet(
+      Set<DartObject> set, CollectionElement element) {
+    switch (element) {
+      case Expression():
+        var expression = evaluateConstant(element);
+        switch (expression) {
+          case InvalidConstant():
+            return expression;
+          case DartObjectImpl():
+            set.add(expression);
+            return null;
+        }
+      case ForElement():
+        return InvalidConstant.forEntity(
+            element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
+      case IfElement():
+        var condition = evaluateConstant(element.expression);
+        switch (condition) {
+          case InvalidConstant():
+            return condition;
+          case DartObjectImpl():
+            var conditionValue = condition.toBoolValue();
+            if (conditionValue == null) {
+              return InvalidConstant.forEntity(
+                  element.expression, CompileTimeErrorCode.NON_BOOL_CONDITION);
+            } else if (conditionValue) {
+              return _addElementsToSet(set, element.thenElement);
+            } else if (element.elseElement != null) {
+              return _addElementsToSet(set, element.elseElement!);
+            }
+            // There's no else element, but the condition value is false.
+            return null;
+        }
+      case MapLiteralEntry():
+        return InvalidConstant.forEntity(
+            element, CompileTimeErrorCode.MAP_ENTRY_NOT_IN_MAP);
+      case SpreadElement():
+        var spread = evaluateConstant(element.expression);
+        switch (spread) {
+          case InvalidConstant():
+            return spread;
+          case DartObjectImpl():
+            // Special case for ...?
+            if (spread.isNull && element.isNullAware) {
+              return null;
+            }
+            var setValue = spread.toSetValue() ?? spread.toListValue();
+            if (setValue == null) {
+              return InvalidConstant.forEntity(element.expression,
+                  CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
+            }
+            set.addAll(setValue);
+            return null;
+        }
     }
-    // This error should have been reported elsewhere.
-    return true;
   }
 
   /// Returns the result of concatenating [astNodes].
@@ -1416,7 +1534,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   Constant _concatenateNodes(Expression node, List<AstNode> astNodes) {
     Constant? result;
     for (AstNode astNode in astNodes) {
-      var constant = _getConstant(astNode);
+      var constant = evaluateConstant(astNode);
       if (constant is! DartObjectImpl) {
         return constant;
       }
@@ -1442,74 +1560,56 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     return result;
   }
 
-  /// Create an error associated with the given [node]. The error will have the
-  /// given error [code].
-  void _error(AstNode node, ErrorCode? code) {
-    if (code == null) {
-      var parent = node.parent;
-      var parent2 = parent?.parent;
-      if (parent is ArgumentList &&
-          parent2 is InstanceCreationExpression &&
-          parent2.isConst) {
-        code = CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT;
-      } else {
-        code = CompileTimeErrorCode.INVALID_CONSTANT;
-      }
-    }
-    _errorReporter.reportErrorForNode(code, node);
-  }
-
-  /// Evaluate the given [condition] with the assumption that it must be a
-  /// `bool`.
+  /// Attempt to evaluate a constant property access.
   ///
-  /// TODO(kallentu): Remove once all methods that call [_evaluateCondition] now
-  /// uses [_getInvalidConstantForConditionTypeMismatch]
-  bool? _evaluateCondition(Expression condition) {
-    // TODO(kallentu): Remove constant unwrapping.
-    var conditionConstant = condition.accept(this);
-    var conditionResult =
-        conditionConstant is DartObjectImpl ? conditionConstant : null;
-    var conditionValue = conditionResult?.toBoolValue();
-    if (conditionValue == null) {
-      if (conditionResult?.type != _typeProvider.boolType) {
-        // TODO(brianwilkerson) Figure out why the static type is sometimes null.
-        var staticType = condition.staticType;
-        if (staticType == null ||
-            typeSystem.isAssignableTo(staticType, _typeProvider.boolType)) {
-          // If the static type is not assignable, then we will have already
-          // reported this error.
-          // TODO(mfairhurst) get the FeatureSet to suppress this for nnbd too.
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, condition);
-        }
-      }
+  /// Return a valid [DartObjectImpl] if the given [targetResult] represents a
+  /// `String` and the [identifier] is `length`, an [InvalidConstant] if there's
+  /// an error, and `null` otherwise.
+  Constant? _evaluatePropertyAccess(DartObjectImpl targetResult,
+      SimpleIdentifier identifier, AstNode errorNode) {
+    if (identifier.staticElement?.enclosingElement is ExtensionElement) {
+      return InvalidConstant.forEntity(
+          errorNode, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
     }
-    return conditionValue;
+
+    var targetType = targetResult.type;
+
+    // Evaluate a constant that reads the length of a `String`.
+    if (identifier.name == 'length' &&
+        targetType is InterfaceType &&
+        targetType.isDartCoreString) {
+      return _dartObjectComputer.stringLength(errorNode, targetResult);
+    }
+
+    var element = identifier.staticElement;
+    if (element != null && element is ExecutableElement && element.isStatic) {
+      return null;
+    }
+
+    // No other property access is allowed except for `.length` of a `String`.
+    return InvalidConstant.forEntity(
+        errorNode, CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS,
+        arguments: [
+          identifier.name,
+          targetType.getDisplayString(withNullability: _isNonNullableByDefault)
+        ]);
   }
 
-  /// Return a [Constant], evaluated by the [ConstantVisitor].
+  /// Returns a [Constant] based on the [element] provided.
   ///
-  /// The [ConstantVisitor] shouldn't return any `null` values even though
-  /// [UnifyingAstVisitor] allows it. If we encounter an unexpected `null`
-  /// value, we will return an [InvalidConstant] instead.
-  Constant _getConstant(AstNode node) {
-    var result = node.accept(this);
-    if (result == null) {
-      // Should never reach this.
-      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
-    }
-    return result;
-  }
-
-  /// Return the constant value of the static constant represented by the given
-  /// [identifier]. The [expression] is the node to be used if an error needs to be
-  /// reported.
-  DartObjectImpl? _getConstantValue({
+  /// The [errorNode] is the node to be used if an error needs to be reported,
+  /// the [expression] is used to identify type parameter errors, and
+  /// [identifier] to determine the constant of any [ExecutableElement]s.
+  ///
+  /// TODO(kallentu): Revisit this method and clean it up a bit.
+  Constant _getConstantValue({
     required AstNode errorNode,
     required Expression? expression,
     required SimpleIdentifier? identifier,
     required Element? element,
+    DartType? givenType,
   }) {
+    var errorNode2 = evaluationEngine.configuration.errorNode(errorNode);
     element = element?.declaration;
     var variableElement =
         element is PropertyAccessorElement ? element.variable : element;
@@ -1519,7 +1619,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (expression is SimpleIdentifier &&
         (expression.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
             false)) {
-      _error(expression, null);
+      return InvalidConstant.forEntity(
+          expression, CompileTimeErrorCode.CONST_TYPE_PARAMETER);
     }
 
     if (variableElement is VariableElementImpl) {
@@ -1528,13 +1629,30 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // and errors for other constant expressions. In either case we have
       // already computed values of all dependencies first (or detect a cycle),
       // so the value has already been computed and we can just return it.
-      var result = variableElement.evaluationResult;
-      if (variableElement.isConst && result != null) {
-        var value = result.value;
-        if (value == null) {
-          return value;
+      var evaluationResult = variableElement.evaluationResult;
+      var isConstField = variableElement is FieldElement &&
+          (variableElement.isConst || variableElement.isFinal);
+      if (isConstField || variableElement.isConst) {
+        switch (evaluationResult) {
+          case null:
+            // The constant value isn't computed yet, or there is an error while
+            // computing. We will mark it and determine whether or not to continue
+            // the evaluation upstream.
+            return InvalidConstant.genericError(errorNode, isUnresolved: true);
+          case DartObjectImpl():
+            if (identifier == null) {
+              return InvalidConstant.forEntity(
+                  errorNode, CompileTimeErrorCode.INVALID_CONSTANT);
+            }
+            return _instantiateFunctionTypeForSimpleIdentifier(
+                identifier, evaluationResult);
+          case InvalidConstant():
+            // TODO(kallentu): Investigate and fix the test failures that occur if
+            // we remove `avoidReporting`
+            return InvalidConstant.forEntity(
+                errorNode, CompileTimeErrorCode.INVALID_CONSTANT,
+                isUnresolved: true, avoidReporting: true);
         }
-        return _instantiateFunctionTypeForSimpleIdentifier(identifier, value);
       }
     } else if (variableElement is ConstructorElementImpl &&
         expression != null) {
@@ -1550,15 +1668,20 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           variableElement.type,
           FunctionState(variableElement),
         );
+        if (identifier == null) {
+          return InvalidConstant.forEntity(
+              errorNode, CompileTimeErrorCode.INVALID_CONSTANT);
+        }
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
       }
     } else if (variableElement is InterfaceElement) {
-      var type = variableElement.instantiate(
-        typeArguments: variableElement.typeParameters
-            .map((t) => _typeProvider.dynamicType)
-            .toFixedList(),
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
+      var type = givenType ??
+          variableElement.instantiate(
+            typeArguments: variableElement.typeParameters
+                .map((t) => _typeProvider.dynamicType)
+                .toFixedList(),
+            nullabilitySuffix: NullabilitySuffix.star,
+          );
       return DartObjectImpl(
         typeSystem,
         _typeProvider.typeType,
@@ -1571,12 +1694,13 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         TypeState(_typeProvider.dynamicType),
       );
     } else if (variableElement is TypeAliasElement) {
-      var type = variableElement.instantiate(
-        typeArguments: variableElement.typeParameters
-            .map((t) => t.bound ?? _typeProvider.dynamicType)
-            .toList(),
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
+      var type = givenType ??
+          variableElement.instantiate(
+            typeArguments: variableElement.typeParameters
+                .map((t) => t.bound ?? _typeProvider.dynamicType)
+                .toList(),
+            nullabilitySuffix: NullabilitySuffix.star,
+          );
       return DartObjectImpl(
         typeSystem,
         _typeProvider.typeType,
@@ -1600,13 +1724,73 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             TypeState(typeArgument),
           );
         }
+        return InvalidConstant.forEntity(
+            errorNode2, CompileTimeErrorCode.CONST_TYPE_PARAMETER);
       }
+    }
+
+    // The expression is unresolved by the time we are evaluating it. We'll mark
+    // it and return immediately.
+    if (expression != null && expression.staticType is InvalidType) {
+      return InvalidConstant.genericError(errorNode, isUnresolved: true);
     }
 
     // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
     // error code.
-    final errorNode2 = evaluationEngine.configuration.errorNode(errorNode);
-    _error(errorNode2, null);
+    return InvalidConstant.genericError(errorNode2);
+  }
+
+  InvalidConstant? _getDeferredLibraryError(
+      AstNode node, SyntacticEntity errorTarget) {
+    var errorCode = () {
+      AstNode? previous;
+      for (AstNode? current = node; current != null;) {
+        if (current is Annotation) {
+          return CompileTimeErrorCode
+              .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;
+        } else if (current is ConstantContextForExpressionImpl) {
+          return CompileTimeErrorCode
+              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;
+        } else if (current is DefaultFormalParameter) {
+          return CompileTimeErrorCode
+              .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY;
+        } else if (current is IfElement && current.expression == node) {
+          return CompileTimeErrorCode
+              .IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY;
+        } else if (current is InstanceCreationExpression) {
+          return CompileTimeErrorCode
+              .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY;
+        } else if (current is ListLiteral) {
+          return CompileTimeErrorCode
+              .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY;
+        } else if (current is MapLiteralEntry) {
+          if (previous == current.key) {
+            return CompileTimeErrorCode
+                .NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY;
+          } else {
+            return CompileTimeErrorCode
+                .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY;
+          }
+        } else if (current is SetOrMapLiteral) {
+          return CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY;
+        } else if (current is SpreadElement) {
+          return CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY;
+        } else if (current is SwitchCase) {
+          return CompileTimeErrorCode
+              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
+        } else if (current is SwitchPatternCase) {
+          return CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
+        } else if (current is VariableDeclaration) {
+          return CompileTimeErrorCode
+              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;
+        }
+        previous = current;
+        current = current.parent;
+      }
+    }();
+    if (errorCode != null) {
+      return InvalidConstant.forEntity(errorTarget, errorCode);
+    }
     return null;
   }
 
@@ -1641,12 +1825,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// [SimpleIdentifier] with tear-off type argument types, returns [value]
   /// type-instantiated with those [node]'s tear-off type argument types,
   /// otherwise returns [value].
-  DartObjectImpl? _instantiateFunctionTypeForSimpleIdentifier(
-      SimpleIdentifier? node, DartObjectImpl value) {
-    if (node == null) {
-      return null;
-    }
-
+  Constant _instantiateFunctionTypeForSimpleIdentifier(
+      SimpleIdentifier node, DartObjectImpl value) {
     // TODO(srawlins): When all code uses [FunctionReference]s generated via
     // generic function instantiation, remove this method and all call sites.
     var functionElement = value.toFunctionValue();
@@ -1667,95 +1847,43 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     return value;
   }
 
-  /// Return `true` if the given [targetResult] represents a string and the
-  /// [identifier] is "length".
-  bool _isStringLength(
-      DartObjectImpl targetResult, SimpleIdentifier identifier) {
-    final targetType = targetResult.type;
-    if (!(targetType is InterfaceType &&
-        targetType.element == _typeProvider.stringElement)) {
-      return false;
-    }
-    return identifier.name == 'length' &&
-        identifier.staticElement?.enclosingElement is! ExtensionElement;
-  }
-
-  void _reportFromDeferredLibrary(AstNode node, SyntacticEntity errorTarget) {
-    var errorCode = () {
-      AstNode? previous;
-      for (AstNode? current = node; current != null;) {
-        if (current is Annotation) {
-          return CompileTimeErrorCode
-              .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;
-        } else if (current is ConstantContextForExpressionImpl) {
-          return CompileTimeErrorCode
-              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;
-        } else if (current is DefaultFormalParameter) {
-          return CompileTimeErrorCode
-              .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY;
-        } else if (current is IfElement && current.expression == node) {
-          return CompileTimeErrorCode
-              .IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY;
-        } else if (current is ListLiteral) {
-          return CompileTimeErrorCode
-              .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY;
-        } else if (current is MapLiteralEntry) {
-          if (previous == current.key) {
-            return CompileTimeErrorCode
-                .NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY;
-          } else {
-            return CompileTimeErrorCode
-                .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY;
-          }
-        } else if (current is SetOrMapLiteral) {
-          return CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY;
-        } else if (current is SpreadElement) {
-          return CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY;
-        } else if (current is SwitchCase) {
-          return CompileTimeErrorCode
-              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
-        } else if (current is SwitchPatternCase) {
-          return CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
-        } else if (current is VariableDeclaration) {
-          return CompileTimeErrorCode
-              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;
-        }
-        previous = current;
-        current = current.parent;
-      }
-    }();
-    if (errorCode != null) {
-      _errorReporter.reportErrorForOffset(
-        errorCode,
-        errorTarget.offset,
-        errorTarget.length,
-      );
-    }
-  }
-
-  void _reportNotPotentialConstants(AstNode node) {
+  /// Returns the first not-potentially constant error found with [node] or
+  /// `null` if there are none.
+  InvalidConstant? _reportNotPotentialConstants(AstNode node) {
     var notPotentiallyConstants = getNotPotentiallyConstants(
       node,
       featureSet: _library.featureSet,
     );
-    if (notPotentiallyConstants.isEmpty) return;
+    if (notPotentiallyConstants.isEmpty) return null;
 
-    for (var notConst in notPotentiallyConstants) {
-      _errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.INVALID_CONSTANT,
-        notConst,
-      );
-    }
+    // Only report the first invalid constant we see.
+    return InvalidConstant.forEntity(
+        notPotentiallyConstants.first, CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
-  /// Return the value of the given [expression], or a representation of 'null'
-  /// if the expression cannot be evaluated.
-  DartObjectImpl _valueOf(Expression expression) {
-    var expressionValue = expression.accept(this);
-    if (expressionValue is DartObjectImpl) {
-      return expressionValue;
+  /// Return the value of the given [expression], or a representation of a fake
+  /// constant to continue the evaluation if the expression is unresolved.
+  Constant _valueOf(Expression expression, DartType defaultType) {
+    var expressionValue = evaluateConstant(expression);
+    switch (expressionValue) {
+      // TODO(kallentu): g3 relies on reporting errors found here, but also
+      // being able to continue the evaluation with populating fields. Fix the
+      // interaction with g3 more elegantly.
+      case InvalidConstant(isUnresolved: true):
+        if (!expressionValue.avoidReporting) {
+          _errorReporter.reportErrorForOffset(
+            expressionValue.errorCode,
+            expressionValue.offset,
+            expressionValue.length,
+            expressionValue.arguments,
+            expressionValue.contextMessages,
+          );
+        }
+        return ConstantEvaluationEngine._unresolvedObject(
+            _library, defaultType);
+      case Constant():
+        return expressionValue;
     }
-    return ConstantEvaluationEngine._nullObject(_library);
   }
 }
 
@@ -1765,22 +1893,15 @@ class DartObjectComputer {
   final TypeSystemImpl _typeSystem;
   final FeatureSet _featureSet;
 
-  /// The error reporter that we are using to collect errors.
-  final ErrorReporter _errorReporter;
+  DartObjectComputer(this._typeSystem, this._featureSet);
 
-  DartObjectComputer(this._typeSystem, this._featureSet, this._errorReporter);
-
-  DartObjectImpl? add(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.add(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-        return null;
-      }
+  Constant add(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.add(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
   /// Return the result of applying boolean conversion to the
@@ -1791,9 +1912,7 @@ class DartObjectComputer {
     try {
       return evaluationResult.convertToBool(_typeSystem);
     } on EvaluationException catch (exception) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(exception.errorCode, node);
-      return InvalidConstant(node, exception.errorCode);
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
   }
 
@@ -1801,9 +1920,7 @@ class DartObjectComputer {
     try {
       return evaluationResult.bitNot(_typeSystem);
     } on EvaluationException catch (exception) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(exception.errorCode, node);
-      return InvalidConstant(node, exception.errorCode);
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
   }
 
@@ -1812,9 +1929,7 @@ class DartObjectComputer {
     try {
       return expression.castToType(_typeSystem, type);
     } on EvaluationException catch (exception) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(exception.errorCode, node);
-      return InvalidConstant(node, exception.errorCode);
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
   }
 
@@ -1823,337 +1938,263 @@ class DartObjectComputer {
     try {
       return leftOperand.concatenate(_typeSystem, rightOperand);
     } on EvaluationException catch (exception) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(exception.errorCode, node);
-      return InvalidConstant(node, exception.errorCode);
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
   }
 
-  DartObjectImpl? divide(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.divide(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant divide(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.divide(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? eagerAnd(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.eagerAnd(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant eagerAnd(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.eagerAnd(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? eagerOr(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.eagerOr(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant eagerOr(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.eagerOr(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? eagerQuestionQuestion(Expression node,
-      DartObjectImpl? leftOperand, DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      if (leftOperand.isNull) {
-        return rightOperand;
-      }
-      return leftOperand;
+  Constant eagerXor(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.eagerXor(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? eagerXor(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.eagerXor(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant equalEqual(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.equalEqual(_typeSystem, _featureSet, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? equalEqual(Expression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.equalEqual(_typeSystem, _featureSet, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant greaterThan(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.greaterThan(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? greaterThan(BinaryExpression node,
-      DartObjectImpl? leftOperand, DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.greaterThan(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant greaterThanOrEqual(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.greaterThanOrEqual(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? greaterThanOrEqual(BinaryExpression node,
-      DartObjectImpl? leftOperand, DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.greaterThanOrEqual(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant integerDivide(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.integerDivide(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(
+        node,
+        exception.errorCode,
+        isRuntimeException: exception.isRuntimeException,
+      );
     }
-    return null;
   }
 
-  DartObjectImpl? integerDivide(BinaryExpression node,
-      DartObjectImpl? leftOperand, DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.integerDivide(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant isIdentical(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.isIdentical2(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? isIdentical(Expression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.isIdentical2(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant lazyAnd(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl Function() rightOperandComputer) {
+    try {
+      return leftOperand.lazyAnd(_typeSystem, rightOperandComputer);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? lazyAnd(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? Function() rightOperandComputer) {
-    if (leftOperand != null) {
-      try {
-        return leftOperand.lazyAnd(_typeSystem, rightOperandComputer);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant lazyOr(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl Function() rightOperandComputer) {
+    try {
+      return leftOperand.lazyOr(_typeSystem, rightOperandComputer);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? lazyOr(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? Function() rightOperandComputer) {
-    if (leftOperand != null) {
-      try {
-        return leftOperand.lazyOr(_typeSystem, rightOperandComputer);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant lazyQuestionQuestion(Expression node, DartObjectImpl leftOperand,
+      Constant Function() rightOperandComputer) {
+    if (leftOperand.isNull) {
+      return rightOperandComputer();
     }
-    return null;
+    return leftOperand;
   }
 
-  DartObjectImpl? lazyQuestionQuestion(
-      Expression node,
-      DartObjectImpl? leftOperand,
-      DartObjectImpl? Function() rightOperandComputer) {
-    if (leftOperand != null) {
-      if (leftOperand.isNull) {
-        return rightOperandComputer();
-      }
-      return leftOperand;
+  Constant lessThan(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.lessThan(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? lessThan(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.lessThan(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant lessThanOrEqual(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.lessThanOrEqual(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
-  }
-
-  DartObjectImpl? lessThanOrEqual(BinaryExpression node,
-      DartObjectImpl? leftOperand, DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.lessThanOrEqual(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return null;
   }
 
   Constant logicalNot(Expression node, DartObjectImpl evaluationResult) {
     try {
       return evaluationResult.logicalNot(_typeSystem);
     } on EvaluationException catch (exception) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(exception.errorCode, node);
-      return InvalidConstant(node, exception.errorCode);
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
   }
 
-  DartObjectImpl? logicalShiftRight(BinaryExpression node,
-      DartObjectImpl? leftOperand, DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.logicalShiftRight(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant logicalShiftRight(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.logicalShiftRight(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? minus(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.minus(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant minus(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.minus(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
   Constant negated(Expression node, DartObjectImpl evaluationResult) {
     try {
       return evaluationResult.negated(_typeSystem);
     } on EvaluationException catch (exception) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(exception.errorCode, node);
-      return InvalidConstant(node, exception.errorCode);
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
   }
 
-  DartObjectImpl? notEqual(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.notEqual(_typeSystem, _featureSet, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant notEqual(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.notEqual(_typeSystem, _featureSet, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
   Constant performToString(AstNode node, DartObjectImpl evaluationResult) {
     try {
       return evaluationResult.performToString(_typeSystem);
     } on EvaluationException catch (exception) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(exception.errorCode, node);
-      return InvalidConstant(node, exception.errorCode);
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
   }
 
-  DartObjectImpl? remainder(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.remainder(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant remainder(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.remainder(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? shiftLeft(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.shiftLeft(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant shiftLeft(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.shiftLeft(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  DartObjectImpl? shiftRight(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.shiftRight(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant shiftRight(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.shiftRight(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
-  /// Return the result of invoking the 'length' getter on the
-  /// [evaluationResult]. The [node] is the node against which errors should be
-  /// reported.
-  EvaluationResultImpl? stringLength(
-      Expression node, EvaluationResultImpl evaluationResult) {
-    var value = evaluationResult.value;
-    if (value != null) {
-      try {
-        return EvaluationResultImpl(value.stringLength(_typeSystem));
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant stringLength(AstNode node, DartObjectImpl evaluationResult) {
+    try {
+      return evaluationResult.stringLength(_typeSystem);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return EvaluationResultImpl(null);
   }
 
-  DartObjectImpl? times(BinaryExpression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.times(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant times(BinaryExpression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.times(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-    return null;
   }
 
   Constant typeInstantiate(
     DartObjectImpl function,
     List<DartType> typeArguments,
     Expression node,
+    TypeArgumentList typeArgumentsErrorNode,
   ) {
     var rawType = function.type;
     if (rawType is FunctionType) {
       if (typeArguments.length != rawType.typeFormals.length) {
-        return InvalidConstant(
-            node, CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION);
+        if (node is SimpleIdentifier) {
+          return InvalidConstant.forEntity(typeArgumentsErrorNode,
+              CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION,
+              arguments: [
+                node.name,
+                rawType.typeFormals.length,
+                typeArguments.length
+              ]);
+        }
+        return InvalidConstant.forEntity(
+            typeArgumentsErrorNode,
+            CompileTimeErrorCode
+                .WRONG_NUMBER_OF_TYPE_ARGUMENTS_ANONYMOUS_FUNCTION,
+            arguments: [rawType.typeFormals.length, typeArguments.length]);
       }
       var type = rawType.instantiate(typeArguments);
       return function.typeInstantiate(_typeSystem, type, typeArguments);
     } else {
-      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
+      return InvalidConstant.forEntity(
+          node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
   }
 
@@ -2166,87 +2207,8 @@ class DartObjectComputer {
       }
       return result;
     } on EvaluationException catch (exception) {
-      // TODO(kallentu): Don't report error here.
-      _errorReporter.reportErrorForNode(exception.errorCode, node);
-      return InvalidConstant(node, exception.errorCode);
+      return InvalidConstant.forEntity(node, exception.errorCode);
     }
-  }
-}
-
-/// The result of attempting to evaluate an expression.
-class EvaluationResult {
-  // TODO(brianwilkerson) Merge with EvaluationResultImpl
-  /// The value of the expression.
-  final DartObject? value;
-
-  /// The errors that should be reported for the expression(s) that were
-  /// evaluated.
-  final List<AnalysisError>? _errors;
-
-  /// Initialize a newly created result object with the given [value] and set of
-  /// [_errors]. Clients should use one of the factory methods: [forErrors] and
-  /// [forValue].
-  EvaluationResult(this.value, this._errors);
-
-  /// Return a list containing the errors that should be reported for the
-  /// expression(s) that were evaluated. If there are no such errors, the list
-  /// will be empty. The list can be empty even if the expression is not a valid
-  /// compile time constant if the errors would have been reported by other
-  /// parts of the analysis engine.
-  List<AnalysisError> get errors => _errors ?? AnalysisError.NO_ERRORS;
-
-  /// Return `true` if the expression is a compile-time constant expression that
-  /// would not throw an exception when evaluated.
-  bool get isValid => _errors == null;
-
-  /// Return an evaluation result representing the result of evaluating an
-  /// expression that is not a compile-time constant because of the given
-  /// [errors].
-  static EvaluationResult forErrors(List<AnalysisError> errors) =>
-      EvaluationResult(null, errors);
-
-  /// Return an evaluation result representing the result of evaluating an
-  /// expression that is a compile-time constant that evaluates to the given
-  /// [value].
-  static EvaluationResult forValue(DartObject value) =>
-      EvaluationResult(value, null);
-}
-
-/// The result of attempting to evaluate a expression.
-class EvaluationResultImpl {
-  /// The errors encountered while trying to evaluate the compile time constant.
-  /// These errors may or may not have prevented the expression from being a
-  /// valid compile time constant.
-  final List<AnalysisError> _errors;
-
-  /// The value of the expression, or `null` if the value couldn't be computed
-  /// due to errors.
-  final DartObjectImpl? value;
-
-  EvaluationResultImpl(
-    this.value, [
-    this._errors = const [],
-  ]);
-
-  List<AnalysisError> get errors => _errors;
-
-  bool equalValues(TypeProvider typeProvider, EvaluationResultImpl result) {
-    if (value != null) {
-      if (result.value == null) {
-        return false;
-      }
-      return value == result.value;
-    } else {
-      return false;
-    }
-  }
-
-  @override
-  String toString() {
-    if (value == null) {
-      return "error";
-    }
-    return value.toString();
   }
 }
 
@@ -2262,15 +2224,17 @@ class _EnumConstant {
 
 /// The result of evaluation the initializers declared on a const constructor.
 class _InitializersEvaluationResult {
-  /// The result of a const evaluation of an initializer, if one was performed,
-  /// otherwise `null`.
+  /// The result of a const evaluation of an initializer.
+  ///
+  /// If the evaluation of the const instance creation expression is incomplete,
+  /// then [result] will be `null`.
   ///
   /// If a redirecting initializer which redirects to a const constructor was
   /// encountered, [result] is the result of evaluating that call.
   ///
   /// If an assert initializer is encountered, and the evaluation of this assert
-  /// results in an error or a `false` value, [result] is `null`.
-  final DartObjectImpl? result;
+  /// results in an error or a `false` value, [result] is an [InvalidConstant].
+  final Constant? result;
 
   /// Whether evaluation of the const instance creation expression which led to
   /// evaluating constructor initializers is complete.
@@ -2332,8 +2296,6 @@ class _InstanceCreationEvaluator {
 
   final LibraryElementImpl _library;
 
-  final ErrorReporter _errorReporter;
-
   final BooleanErrorListener _externalErrorListener = BooleanErrorListener();
 
   /// An error reporter for errors determined while computing values for field
@@ -2386,7 +2348,6 @@ class _InstanceCreationEvaluator {
   _InstanceCreationEvaluator._(
     this._evaluationEngine,
     this._declaredVariables,
-    this._errorReporter,
     this._library,
     this._errorNode,
     this._constructor,
@@ -2409,17 +2370,16 @@ class _InstanceCreationEvaluator {
   TypeSystemImpl get typeSystem => _library.typeSystem;
 
   /// Evaluates this constructor call as a factory constructor call.
-  DartObjectImpl? evaluateFactoryConstructorCall(
+  Constant evaluateFactoryConstructorCall(
     List<Expression> arguments, {
     required bool isNullSafe,
   }) {
-    final definingClass = _constructor.enclosingElement;
+    var definingClass = _constructor.enclosingElement;
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
-        return null;
+        return InvalidConstant.forEntity(
+            _errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       }
       String? variableName =
           argumentCount < 1 ? null : firstArgument?.toStringValue();
@@ -2450,9 +2410,8 @@ class _InstanceCreationEvaluator {
         definingClass == typeProvider.symbolElement &&
         argumentCount == 1) {
       if (!_checkSymbolArguments(arguments, isNullSafe: isNullSafe)) {
-        _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
-        return null;
+        return InvalidConstant.forEntity(
+            _errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
       }
       return DartObjectImpl(
         typeSystem,
@@ -2470,24 +2429,35 @@ class _InstanceCreationEvaluator {
     return DartObjectImpl.validWithUnknownValue(typeSystem, definingType);
   }
 
-  DartObjectImpl? evaluateGenerativeConstructorCall(
-      List<Expression> arguments) {
+  Constant evaluateGenerativeConstructorCall(List<Expression> arguments) {
+    InvalidConstant? error;
+
     // Start with final fields that are initialized at their declaration site.
-    _checkFields();
+    error = _checkFields();
+    if (error != null) {
+      return error;
+    }
 
     _checkTypeParameters();
-    _checkParameters(arguments);
-    var evaluationResult = _checkInitializers();
-    if (evaluationResult.evaluationIsComplete) {
-      return evaluationResult.result;
+
+    error = _checkParameters(arguments);
+    if (error != null) {
+      return error;
     }
-    _checkSuperConstructorCall(
+
+    var evaluationResult = _checkInitializers();
+    var result = evaluationResult.result;
+    if (result != null && evaluationResult.evaluationIsComplete) {
+      return result;
+    }
+
+    error = _checkSuperConstructorCall(
         superName: evaluationResult.superName,
         superArguments: evaluationResult.superArguments);
-    if (_externalErrorListener.errorReported) {
-      _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
+    if (error != null) {
+      return error;
     }
+
     return DartObjectImpl(
       typeSystem,
       definingType,
@@ -2523,31 +2493,43 @@ class _InstanceCreationEvaluator {
     }
   }
 
-  void _checkFields() {
+  /// Checks for any errors in the fields of [_constructor].
+  ///
+  /// Returns an [InvalidConstant] if one is found, or `null` otherwise.
+  InvalidConstant? _checkFields() {
     var fields = _constructor.enclosingElement.fields;
     for (var field in fields) {
       if ((field.isFinal || field.isConst) &&
           !field.isStatic &&
           field is ConstFieldElementImpl) {
-        var fieldValue = field.evaluationResult?.value;
+        var fieldValue = field.evaluationResult;
 
         // It is possible that the evaluation result is null.
         // This happens for example when we have duplicate fields.
         // `class Test {final x = 1; final x = 2; const Test();}`
-        if (fieldValue == null) {
+        if (fieldValue == null || fieldValue is! DartObjectImpl) {
           continue;
         }
         // Match the value and the type.
         var fieldType = FieldMember.from(field, _constructor.returnType).type;
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
-          _errorReporter.reportErrorForNode(
+          var isRuntimeException = hasTypeParameterReference(field.type);
+          var errorNode = field.constantInitializer ?? _errorNode;
+          return InvalidConstant.forEntity(errorNode,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-              _errorNode,
-              [fieldValue.type, field.name, fieldType]);
+              arguments: [
+                fieldValue.type.getDisplayString(
+                    withNullability: _library.isNonNullableByDefault),
+                field.name,
+                fieldType.getDisplayString(
+                    withNullability: _library.isNonNullableByDefault),
+              ],
+              isRuntimeException: isRuntimeException);
         }
         _fieldMap[field.name] = fieldValue;
       }
     }
+    return null;
   }
 
   /// Check that the arguments to a call to `fromEnvironment()` are correct.
@@ -2590,6 +2572,11 @@ class _InstanceCreationEvaluator {
     return true;
   }
 
+  /// Checks for any errors in the constant initializers of [_constructor].
+  ///
+  /// Returns an [_InitializersEvaluationResult] which contain a result from a
+  /// redirecting constructor invocation, an [InvalidConstant], or an
+  /// incomplete state for further evaluation.
   _InitializersEvaluationResult _checkInitializers() {
     var constructorBase = _constructor.declaration as ConstructorElementImpl;
     // If we encounter a superinitializer, store the name of the constructor,
@@ -2600,27 +2587,63 @@ class _InstanceCreationEvaluator {
       if (initializer is ConstructorFieldInitializer) {
         var initializerExpression = initializer.expression;
         var evaluationResult =
-            initializerExpression.accept(_initializerVisitor);
-        if (evaluationResult is DartObjectImpl) {
-          var fieldName = initializer.fieldName.name;
-          if (_fieldMap.containsKey(fieldName)) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
-          }
-          _fieldMap[fieldName] = evaluationResult;
-          var getter = definingType.getGetter(fieldName);
-          if (getter != null) {
-            var field = getter.variable;
-            if (!typeSystem.runtimeTypeMatch(evaluationResult, field.type)) {
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
-                  _errorNode,
-                  [evaluationResult.type, fieldName, field.type]);
+            _initializerVisitor.evaluateConstant(initializerExpression);
+        switch (evaluationResult) {
+          case DartObjectImpl():
+            var fieldName = initializer.fieldName.name;
+            if (_fieldMap.containsKey(fieldName)) {
+              return _InitializersEvaluationResult(
+                  InvalidConstant.forEntity(_errorNode,
+                      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION),
+                  evaluationIsComplete: true);
             }
-          }
-        } else {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
+            _fieldMap[fieldName] = evaluationResult;
+            var getter = definingType.getGetter(fieldName);
+            if (getter != null) {
+              var field = getter.variable;
+              if (!typeSystem.runtimeTypeMatch(evaluationResult, field.type)) {
+                // Mark the type mismatch error as a runtime exception if the
+                // initializer is statically assignable to the field.
+                // TODO(kallentu): https://github.com/dart-lang/sdk/issues/53263
+                var isRuntimeException = _library.typeSystem.isAssignableTo(
+                    initializerExpression.typeOrThrow, field.type);
+                var errorNode =
+                    isRuntimeException ? initializerExpression : _errorNode;
+                return _InitializersEvaluationResult(
+                    InvalidConstant.forEntity(
+                        errorNode,
+                        CompileTimeErrorCode
+                            .CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
+                        arguments: [
+                          evaluationResult.type.getDisplayString(
+                              withNullability: _library.isNonNullableByDefault),
+                          fieldName,
+                          field.type.getDisplayString(
+                              withNullability: _library.isNonNullableByDefault),
+                        ],
+                        isRuntimeException: isRuntimeException),
+                    evaluationIsComplete: true);
+              }
+            }
+          case InvalidConstant(isRuntimeException: false):
+            // Add additional information to the error in the field initializer
+            // because the error is reported at the location of [_errorNode].
+            if (evaluationResult.contextMessages.isEmpty) {
+              evaluationResult.contextMessages.add(DiagnosticMessageImpl(
+                filePath: _constructor.source.fullName,
+                length: evaluationResult.length,
+                message: "The error is in the field initializer of "
+                    "'${_constructor.displayName}', and occurs here.",
+                offset: evaluationResult.offset,
+                url: null,
+              ));
+            }
+            return _InitializersEvaluationResult(
+                InvalidConstant.copyWithEntity(evaluationResult, _errorNode),
+                evaluationIsComplete: true);
+          case InvalidConstant():
+            return _InitializersEvaluationResult(evaluationResult,
+                evaluationIsComplete: true);
         }
       } else if (initializer is SuperConstructorInvocation) {
         var name = initializer.constructorName;
@@ -2643,28 +2666,42 @@ class _InstanceCreationEvaluator {
               initializer.argumentList.arguments,
               constructor,
               _initializerVisitor,
-              _externalErrorReporter,
               invocation: _invocation);
-          if (_externalErrorListener.errorReported) {
-            _errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
-          }
           return _InitializersEvaluationResult(result,
               evaluationIsComplete: true);
         }
       } else if (initializer is AssertInitializer) {
         var condition = initializer.condition;
-        // TODO(kallentu): Rewrite this to handle the constant unwrapping.
-        var evaluationConstant = condition.accept(_initializerVisitor);
-        var evaluationResult =
-            evaluationConstant is DartObjectImpl ? evaluationConstant : null;
-        if (evaluationResult == null ||
-            !evaluationResult.isBool ||
-            evaluationResult.toBoolValue() == false) {
-          _errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
-          return _InitializersEvaluationResult(null,
-              evaluationIsComplete: true);
+        var evaluationResult = _initializerVisitor.evaluateConstant(condition);
+        switch (evaluationResult) {
+          case DartObjectImpl():
+            if (!evaluationResult.isBool ||
+                evaluationResult.toBoolValue() == false) {
+              return _InitializersEvaluationResult(
+                  InvalidConstant.forEntity(initializer,
+                      CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE,
+                      isRuntimeException: true),
+                  evaluationIsComplete: true);
+            }
+          case InvalidConstant(isRuntimeException: false):
+            // Add additional information to the error in the assert initializer
+            // because the error is reported at the location of [_errorNode].
+            if (evaluationResult.contextMessages.isEmpty) {
+              evaluationResult.contextMessages.add(DiagnosticMessageImpl(
+                filePath: _constructor.source.fullName,
+                length: evaluationResult.length,
+                message: "The error is in the assert initializer of "
+                    "'${_constructor.displayName}', and occurs here.",
+                offset: evaluationResult.offset,
+                url: null,
+              ));
+            }
+            return _InitializersEvaluationResult(
+                InvalidConstant.copyWithEntity(evaluationResult, _errorNode),
+                evaluationIsComplete: true);
+          case InvalidConstant():
+            return _InitializersEvaluationResult(evaluationResult,
+                evaluationIsComplete: true);
         }
       }
     }
@@ -2680,7 +2717,10 @@ class _InstanceCreationEvaluator {
         superArguments: superArguments);
   }
 
-  void _checkParameters(List<Expression> arguments) {
+  /// Checks for any errors in the parameters of [_constructor].
+  ///
+  /// Returns an [InvalidConstant] if one is found, or `null` otherwise.
+  InvalidConstant? _checkParameters(List<Expression> arguments) {
     var parameters = _constructor.parameters;
     var parameterCount = parameters.length;
 
@@ -2700,24 +2740,37 @@ class _InstanceCreationEvaluator {
       // are handling an optional parameter that wasn't specified.  So just
       // direct error messages to the constructor call.
       errorTarget ??= _errorNode;
-      if (argumentValue == null && baseParameter is ParameterElementImpl) {
+      if (argumentValue == null &&
+          baseParameter is ParameterElementImpl &&
+          baseParameter.isOptional) {
         // The parameter is an optional positional parameter for which no value
         // was provided, so use the default value.
         var evaluationResult = baseParameter.evaluationResult;
         if (evaluationResult == null) {
           // No default was provided, so the default value is null.
           argumentValue = ConstantEvaluationEngine._nullObject(_library);
-        } else if (evaluationResult.value != null) {
-          argumentValue = evaluationResult.value;
+        } else if (evaluationResult is DartObjectImpl) {
+          argumentValue = evaluationResult;
         }
       }
       if (argumentValue != null) {
-        if (!typeSystem.runtimeTypeMatch(argumentValue, parameter.type)) {
-          _errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-            errorTarget,
-            [argumentValue.type, parameter.type],
-          );
+        if (!argumentValue.isInvalid &&
+            !typeSystem.runtimeTypeMatch(argumentValue, parameter.type)) {
+          // Mark the type mismatch error as a runtime exception if the argument
+          // is statically assignable to the parameter.
+          // TODO(kallentu): https://github.com/dart-lang/sdk/issues/53263
+          var isEvaluationException = errorTarget is Expression &&
+              _library.typeSystem
+                  .isAssignableTo(errorTarget.typeOrThrow, parameter.type);
+          return InvalidConstant.forEntity(errorTarget,
+              CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+              arguments: [
+                argumentValue.type.getDisplayString(
+                    withNullability: _library.isNonNullableByDefault),
+                parameter.type.getDisplayString(
+                    withNullability: _library.isNonNullableByDefault),
+              ],
+              isRuntimeException: isEvaluationException);
         }
         if (baseParameter.isInitializingFormal) {
           var field = (parameter as FieldFormalParameterElement).field;
@@ -2727,18 +2780,22 @@ class _InstanceCreationEvaluator {
               // We've already checked that the argument can be assigned to the
               // parameter; we also need to check that it can be assigned to
               // the field.
-              if (!typeSystem.runtimeTypeMatch(argumentValue, fieldType)) {
-                _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
-                  errorTarget,
-                  [argumentValue.type, fieldType],
-                );
+              if (!argumentValue.isInvalid &&
+                  !typeSystem.runtimeTypeMatch(argumentValue, fieldType)) {
+                return InvalidConstant.forEntity(errorTarget,
+                    CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
+                    arguments: [
+                      argumentValue.type.getDisplayString(
+                          withNullability: _library.isNonNullableByDefault),
+                      fieldType.getDisplayString(
+                          withNullability: _library.isNonNullableByDefault),
+                    ]);
               }
             }
             var fieldName = field.name;
             if (_fieldMap.containsKey(fieldName)) {
-              _errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
+              return InvalidConstant.forEntity(
+                  _errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
             }
             _fieldMap[fieldName] = argumentValue;
           }
@@ -2746,15 +2803,18 @@ class _InstanceCreationEvaluator {
         _parameterMap[baseParameter.name] = argumentValue;
       }
     }
+    return null;
   }
 
-  /// Checks an explicit or implicit call to `super()`.
+  /// Checks for errors in an explicit or implicit call to `super()`
+  ///
+  /// Returns an [InvalidConstant] if an error is found, or `null` otherwise.
   ///
   /// If a superinitializer was declared on the constructor declaration,
   /// [superName] and [superArguments] are the name of the super constructor
   /// referenced therein, and the arguments passed to the super constructor.
   /// Otherwise these parameters are `null`.
-  void _checkSuperConstructorCall({
+  InvalidConstant? _checkSuperConstructorCall({
     required String? superName,
     required List<Expression>? superArguments,
   }) {
@@ -2763,7 +2823,7 @@ class _InstanceCreationEvaluator {
       var superConstructor =
           superclass.lookUpConstructor(superName, _constructor.library);
       if (superConstructor == null) {
-        return;
+        return null;
       }
 
       var constructor = _constructor;
@@ -2779,13 +2839,36 @@ class _InstanceCreationEvaluator {
           superArguments ?? const [],
           superConstructor,
           _initializerVisitor,
-          _externalErrorReporter,
         );
-        if (evaluationResult != null) {
-          _fieldMap[GenericState.SUPERCLASS_FIELD] = evaluationResult;
+        switch (evaluationResult) {
+          case DartObjectImpl():
+            _fieldMap[GenericState.SUPERCLASS_FIELD] = evaluationResult;
+          case InvalidConstant(isRuntimeException: false):
+            // Add additional information to the error in the super constructor
+            // call because the error is reported at the location of
+            // [_errorNode].
+            if (evaluationResult.contextMessages.isEmpty) {
+              evaluationResult.contextMessages.add(DiagnosticMessageImpl(
+                filePath: _constructor.source.fullName,
+                length: evaluationResult.length,
+                message: "The error is in the super constructor invocation "
+                    "of '${_constructor.displayName}', and occurs here.",
+                offset: evaluationResult.offset,
+                url: null,
+              ));
+            } else {
+              evaluationResult.contextMessages.add(
+                  _stackTraceContextMessage(superConstructor, _constructor));
+            }
+            return InvalidConstant.copyWithEntity(evaluationResult, _errorNode);
+          case InvalidConstant():
+            evaluationResult.contextMessages
+                .add(_stackTraceContextMessage(superConstructor, _constructor));
+            return evaluationResult;
         }
       }
     }
+    return null;
   }
 
   /// Checks that the arguments to a call to [Symbol.new] are correct.
@@ -2829,11 +2912,25 @@ class _InstanceCreationEvaluator {
     }
   }
 
+  /// Returns a context message that mimics a stack trace where [superConstructor] is
+  /// called by [constructor]
+  DiagnosticMessageImpl _stackTraceContextMessage(
+      ConstructorElement superConstructor, ConstructorElement constructor) {
+    return DiagnosticMessageImpl(
+      filePath: constructor.source.fullName,
+      length: constructor.nameLength,
+      message: "The evaluated constructor '${superConstructor.displayName}' "
+          "is called by '${constructor.displayName}' and "
+          "'${constructor.displayName}' is defined here.",
+      offset: constructor.nameOffset,
+      url: null,
+    );
+  }
+
   /// Evaluates [node] as an instance creation expression using [constructor].
-  static DartObjectImpl? evaluate(
+  static Constant evaluate(
     ConstantEvaluationEngine evaluationEngine,
     DeclaredVariables declaredVariables,
-    ErrorReporter errorReporter,
     LibraryElementImpl library,
     AstNode node,
     ConstructorElement constructor,
@@ -2844,39 +2941,60 @@ class _InstanceCreationEvaluator {
     ConstructorInvocation? invocation,
   }) {
     if (!constructor.isConst) {
-      if (node is InstanceCreationExpression && node.keyword != null) {
-        errorReporter.reportErrorForToken(
-            CompileTimeErrorCode.CONST_WITH_NON_CONST, node.keyword!);
-      } else {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONST_WITH_NON_CONST, node);
+      if (node is InstanceCreationExpression) {
+        var newKeyword = node.keyword;
+        if (newKeyword != null) {
+          return InvalidConstant.forEntity(
+              newKeyword, CompileTimeErrorCode.CONST_WITH_NON_CONST);
+        }
       }
-      return null;
+      return InvalidConstant.forEntity(
+          node, CompileTimeErrorCode.CONST_WITH_NON_CONST);
     }
 
     if (!(constructor.declaration as ConstructorElementImpl).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
-      // TODO(paulberry): ensure that a reasonable error message is produced
-      // in this case, as well as other cases involving constant expression
-      // cycles (e.g. "compile-time constant expression depends on itself").
+      //
+      // Instead of reporting an error at the call-sites, we will report an
+      // error at each constructor in
+      // [ConstantVerifier.visitConstructorDeclaration].
       return DartObjectImpl.validWithUnknownValue(
         library.typeSystem,
         constructor.returnType,
       );
     }
 
-    var argumentCount = arguments.length;
     var argumentValues = <DartObjectImpl>[];
     var namedNodes = <String, NamedExpression>{};
     var namedValues = <String, DartObjectImpl>{};
-    for (var i = 0; i < argumentCount; i++) {
+    for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
+
+      // Use the corresponding parameter type as the default value if
+      // an unresolved expression is evaluated. We do this to continue the
+      // rest of the evaluation without producing unrelated errors.
       if (argument is NamedExpression) {
+        var parameterType = argument.element?.type ?? InvalidTypeImpl.instance;
+        var argumentConstant =
+            constantVisitor._valueOf(argument.expression, parameterType);
+        if (argumentConstant is! DartObjectImpl) {
+          return argumentConstant;
+        }
+
         var name = argument.name.label.name;
         namedNodes[name] = argument;
-        namedValues[name] = constantVisitor._valueOf(argument.expression);
+        namedValues[name] = argumentConstant;
       } else {
-        argumentValues.add(constantVisitor._valueOf(argument));
+        var parameterType = i < constructor.parameters.length
+            ? constructor.parameters[i].type
+            : InvalidTypeImpl.instance;
+        var argumentConstant =
+            constantVisitor._valueOf(argument, parameterType);
+        if (argumentConstant is! DartObjectImpl) {
+          return argumentConstant;
+        }
+
+        argumentValues.add(argumentConstant);
       }
     }
 
@@ -2887,11 +3005,9 @@ class _InstanceCreationEvaluator {
     );
 
     constructor = _followConstantRedirectionChain(constructor);
-
     var evaluator = _InstanceCreationEvaluator._(
       evaluationEngine,
       declaredVariables,
-      errorReporter,
       library,
       evaluationEngine.configuration.errorNode(node),
       constructor,

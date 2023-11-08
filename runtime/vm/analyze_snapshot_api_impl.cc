@@ -1,9 +1,13 @@
 // Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+#include <map>
 #include <set>
 #include <sstream>
+
 #include "include/analyze_snapshot_api.h"
+#include "vm/compiler/runtime_api.h"
 #include "vm/dart_api_impl.h"
 #include "vm/json_writer.h"
 #include "vm/object.h"
@@ -13,226 +17,333 @@
 namespace dart {
 namespace snapshot_analyzer {
 
-void DumpFunctionJSON(Dart_SnapshotAnalyzerInformation* info,
-                      dart::JSONWriter* js,
-                      const Function& function) {
-  String& signature = String::Handle(function.InternalSignature());
-  Code& code = Code::Handle(function.CurrentCode());
+constexpr intptr_t kSnapshotAnalyzerVersion = 2;
+constexpr intptr_t kStartIndex = 1;
+
+class FieldVisitor : public ObjectPointerVisitor {
+ public:
+  explicit FieldVisitor(IsolateGroup* isolate_group)
+      : ObjectPointerVisitor(isolate_group) {}
+
+  void init(std::function<void(ObjectPtr)>* fun) { callback_ = fun; }
+
+  void VisitPointers(ObjectPtr* first, ObjectPtr* last) override {
+    for (ObjectPtr* current = first; current <= last; current++) {
+      (*callback_)(*current);
+    }
+  }
+
+#if defined(DART_COMPRESSED_POINTERS)
+  void VisitCompressedPointers(uword heap_base,
+                               CompressedObjectPtr* first,
+                               CompressedObjectPtr* last) override {
+    for (CompressedObjectPtr* current = first; current <= last; current++) {
+      (*callback_)(current->Decompress(heap_base));
+    }
+  }
+#endif
+
+ private:
+  std::function<void(ObjectPtr object)>* callback_ = nullptr;
+};
+
+class SnapshotAnalyzer {
+ public:
+  explicit SnapshotAnalyzer(const Dart_SnapshotAnalyzerInformation& info)
+      : info_(info) {}
+
+  // Saves JSON format snapshot information in the output character buffer.
+  void DumpSnapshotInformation(char** buffer, intptr_t* buffer_length);
+
+ private:
+  void DumpLibrary(const Library& library);
+  void DumpArray(const Array& array, const char* name);
+  void DumpClass(const Class& klass);
+  void DumpFunction(const Function& function);
+  void DumpCode(const Code& code);
+  void DumpField(const Field& field);
+  void DumpString(const String& string);
+  void DumpInstance(const Object& object);
+  void DumpType(const Type& type);
+  void DumpObjectPool(const ObjectPool& pool);
+
+  void DumpInterestingObjects();
+  void DumpMetadata();
+
+  intptr_t GetObjectId(ObjectPtr obj) { return heap_->GetObjectId(obj); }
+
+  const Dart_SnapshotAnalyzerInformation& info_;
+  JSONWriter js_;
+  Thread* thread_;
+  Heap* heap_;
+};
+
+void SnapshotAnalyzer::DumpLibrary(const Library& library) {
+  js_.PrintProperty("type", "Library");
+  js_.PrintProperty("url", String::Handle(library.url()).ToCString());
+
+  js_.PrintProperty("toplevel_class",
+                    GetObjectId(Object::RawCast(library.toplevel_class())));
+}
+
+void SnapshotAnalyzer::DumpArray(const Array& array, const char* name) {
+  js_.OpenArray(name);
+  for (intptr_t i = 0; i < array.Length(); ++i) {
+    js_.PrintValue64(GetObjectId(array.At(i)));
+  }
+  js_.CloseArray();
+}
+
+void SnapshotAnalyzer::DumpClass(const Class& klass) {
+  js_.PrintProperty("type", "Class");
+
+  js_.PrintProperty("class_id", klass.id());
+  js_.PrintProperty("name", String::Handle(klass.Name()).ToCString());
+  js_.PrintProperty("super_class", GetObjectId(klass.SuperClass()));
+
+  Zone* zone = thread_->zone();
+  Array& array = Array::Handle(zone);
+
+  // To avoid depending on layout of VM internal classes we don't use
+  //   js_.PrintProperty("fields", GetObjectId(heap, klass.fields());
+  // here and instead iterate and refer to them manually.
+  array = klass.fields();
+  if (!array.IsNull()) {
+    DumpArray(array, "fields");
+  }
+
+  array = klass.functions();
+  if (!array.IsNull()) {
+    DumpArray(array, "functions");
+  }
+
+  array = klass.interfaces();
+  if (!array.IsNull()) {
+    DumpArray(array, "interfaces");
+  }
+
+  Library& library = Library::Handle(klass.library());
+  if (!library.IsNull()) {
+    js_.PrintProperty("library", GetObjectId(klass.library()));
+  }
+}
+
+void SnapshotAnalyzer::DumpFunction(const Function& function) {
+  js_.PrintProperty("type", "Function");
+  js_.PrintProperty("name", function.ToCString());
+
+  js_.PrintProperty("signature",
+                    String::Handle(function.InternalSignature()).ToCString());
+
+  js_.PrintProperty("code", GetObjectId(function.CurrentCode()));
+  if (function.IsClosureFunction()) {
+    js_.PrintProperty("parent_function",
+                      GetObjectId(function.parent_function()));
+  }
+}
+
+void SnapshotAnalyzer::DumpCode(const Code& code) {
+  js_.PrintProperty("type", "Code");
+  const auto instruction_base =
+      reinterpret_cast<uint64_t>(info_.vm_isolate_instructions);
+
   // On different architectures the type of the underlying
   // dart::uword can result in an unsigned long long vs unsigned long
   // mismatch.
   const auto code_addr = static_cast<uint64_t>(code.PayloadStart());
-
-  const auto isolate_instructions_base =
-      reinterpret_cast<uint64_t>(info->vm_isolate_instructions);
-  uint64_t relative_offset;
-  uint64_t size;
-  const char* section;
-
-  js->OpenObject();
-  js->PrintProperty("name", function.ToCString());
-  js->PrintProperty("signature", signature.ToCString());
   // Invoking code.PayloadStart() for _kDartVmSnapshotInstructions
   // when the tree has been shaken always returns 0
   if (code_addr == 0) {
-    relative_offset = 0;
-    size = 0;
-    section = "_kDartVmSnapshotInstructions";
+    js_.PrintProperty64("offset", 0);
+    js_.PrintProperty64("size", 0);
+    js_.PrintProperty("section", "_kDartVmSnapshotInstructions");
   } else {
-    relative_offset = code_addr - isolate_instructions_base;
-    size = static_cast<uint64_t>(code.Size());
-    section = "_kDartIsolateSnapshotInstructions";
+    js_.PrintProperty64("offset", code_addr - instruction_base);
+    js_.PrintProperty64("size", static_cast<uint64_t>(code.Size()));
+    js_.PrintProperty("section", "_kDartIsolateSnapshotInstructions");
   }
-  js->PrintProperty("section", section);
-  js->PrintProperty64("offset", relative_offset);
-  js->PrintProperty64("size", size);
-  js->CloseObject();
 }
-void DumpClassTableJSON(Thread* thread,
-                        Dart_SnapshotAnalyzerInformation* info,
-                        dart::JSONWriter* js) {
-  auto class_table = thread->isolate_group()->class_table();
 
-  Class& cls = Class::Handle();
-  js->OpenObject("class_table");
-
-  // Note: Parse all top-level library functions first
-  // separately, then on second pass just include name of
-  // the library the class belongs to
-  // TODO(#47924): Can clean this up to require single pass
-  js->OpenArray("libs");
-  std::set<uintptr_t> lib_hashes;
-
-  // Note: We start counting at index = 1 mirroring other
-  // locations that iterate through class_table().
-  // HasValidClassAt(0) will crash on DEBUG ASSERT.
-  for (intptr_t i = 1; i < class_table->NumCids(); i++) {
-    if (!class_table->HasValidClassAt(i)) {
-      continue;
-    }
-    cls = class_table->At(i);
-    if (cls.IsNull()) {
-      continue;
-    }
-    const Library& lib = Library::Handle(cls.library());
-    if (lib.IsNull()) {
-      continue;
-    }
-    String& lib_name = String::Handle(lib.url());
-    uintptr_t lib_hash = lib_name.Hash();
-    if (lib_hashes.count(lib_hash) != 0u) {
-      continue;
-    }
-    lib_hashes.insert(lib_hash);
-    Class& toplevel_cls = Class::Handle(lib.toplevel_class());
-    Array& toplevel_funcs = Array::Handle(toplevel_cls.functions());
-
-    js->OpenObject();
-    js->PrintProperty("name", lib_name.ToCString());
-    if (toplevel_funcs.Length() > 0) {
-      js->OpenArray("functions");
-      for (intptr_t j = 0; j < toplevel_funcs.Length(); j++) {
-        Function& function =
-            Function::Handle(toplevel_cls.FunctionFromIndex(j));
-        DumpFunctionJSON(info, js, function);
-      }
-      js->CloseArray();
-    }
-    js->CloseObject();
+void SnapshotAnalyzer::DumpField(const Field& field) {
+  js_.PrintProperty("type", "Field");
+  js_.PrintProperty("name", String::Handle(field.name()).ToCString());
+  js_.PrintProperty64("type_class", GetObjectId(field.type()));
+  if (field.is_static()) {
+    js_.PrintProperty("instance", GetObjectId(field.StaticValue()));
   }
-  js->CloseArray();
-
-  js->OpenArray("classes");
-  for (intptr_t i = 1; i < class_table->NumCids(); i++) {
-    if (!class_table->HasValidClassAt(i)) {
-      continue;
-    }
-    cls = class_table->At(i);
-    if (cls.IsNull()) {
-      continue;
-    }
-
-    js->OpenObject();
-    String& name = String::Handle();
-    name = cls.Name();
-    js->PrintProperty("id", i);
-    js->PrintProperty("name", name.ToCString());
-
-    // Note: Some meta info is stripped from the snapshot, it's important
-    // to check for nullptr periodically to avoid segfaults.
-    const AbstractType& super_type = AbstractType::Handle(cls.super_type());
-    if (!super_type.IsNull()) {
-      const String& super_name = String::Handle(super_type.Name());
-      js->PrintProperty("super_class", super_name.ToCString());
-    }
-
-    const Array& interfaces_array = Array::Handle(cls.interfaces());
-    if (!interfaces_array.IsNull() && interfaces_array.Length() > 0) {
-      js->OpenArray("interfaces");
-      AbstractType& interface = AbstractType::Handle();
-      intptr_t len = interfaces_array.Length();
-      for (intptr_t i = 0; i < len; i++) {
-        interface ^= interfaces_array.At(i);
-        js->PrintValue(interface.ToCString());
-      }
-      js->CloseArray();
-    }
-
-    const Array& fields_array = Array::Handle(cls.fields());
-    if (!fields_array.IsNull() && fields_array.Length() > 0) {
-      js->OpenArray("fields");
-      Field& field = Field::Handle();
-      AbstractType& field_type = AbstractType::Handle();
-      for (intptr_t i = 0; i < fields_array.Length(); i++) {
-        field ^= fields_array.At(i);
-        if (!field.IsNull()) {
-          field_type = field.type();
-          js->OpenObject();
-          js->PrintProperty("name", String::Handle(field.name()).ToCString());
-          js->PrintProperty("type",
-                            String::Handle(field_type.Name()).ToCString());
-          if (field.is_static()) {
-            Object& field_instance = Object::Handle();
-            field_instance = field.StaticValue();
-            js->PrintProperty("value", field_instance.ToCString());
-          } else {
-            js->PrintProperty("value", "non-static");
-          }
-          js->CloseObject();
-        }
-      }
-      js->CloseArray();
-    }
-
-    const Array& functions_array = Array::Handle(cls.functions());
-    if (!functions_array.IsNull() && functions_array.Length() > 0) {
-      js->OpenArray("functions");
-      Function& function = Function::Handle();
-
-      intptr_t len = functions_array.Length();
-      for (intptr_t i = 0; i < len; i++) {
-        function ^= functions_array.At(i);
-        if (function.IsNull() || !function.HasCode()) {
-          continue;
-        }
-        if (function.IsLocalFunction()) {
-          function = function.parent_function();
-        }
-        DumpFunctionJSON(info, js, function);
-      }
-      js->CloseArray();
-    }
-
-    Library& library = Library::Handle(cls.library());
-    if (!library.IsNull()) {
-      js->PrintProperty("lib", String::Handle(library.url()).ToCString());
-    }
-    js->CloseObject();
+  if (field.HasInitializerFunction()) {
+    js_.PrintProperty("initializer_function",
+                      GetObjectId(field.InitializerFunction()));
   }
-  js->CloseArray();
-
-  js->CloseObject();
 }
-void DumpObjectPoolJSON(Thread* thread, dart::JSONWriter* js) {
-  js->OpenArray("object_pool");
-  auto pool_ptr = thread->isolate_group()->object_store()->global_object_pool();
-  const auto& pool = ObjectPool::Handle(ObjectPool::RawCast(pool_ptr));
-  for (intptr_t i = 0; i < pool.Length(); i++) {
-    auto type = pool.TypeAt(i);
-    // Only interested in tagged objects.
-    // All these checks are required otherwise ToCString() will segfault.
-    if (type != ObjectPool::EntryType::kTaggedObject) {
-      continue;
-    }
 
-    auto entry = pool.ObjectAt(i);
-    if (!entry.IsHeapObject()) {
-      continue;
-    }
+void SnapshotAnalyzer::DumpString(const String& string) {
+  js_.PrintProperty("type", "String");
+  js_.PrintProperty("value", string.ToCString());
+}
 
-    intptr_t cid = entry.GetClassId();
-    switch (cid) {
-      case kOneByteStringCid: {
-        js->OpenObject();
-        js->PrintProperty("type", "kOneByteString");
-        js->PrintProperty("id", i);
-        js->PrintProperty("offset", pool.element_offset(i));
-        js->PrintProperty("value", Object::Handle(entry).ToCString());
-        js->CloseObject();
-        break;
-      }
-      case kTwoByteStringCid: {
-        // TODO(#47924): Add support.
-        break;
-      }
+void SnapshotAnalyzer::DumpInstance(const Object& object) {
+  js_.PrintProperty("type", "Instance");
 
-      default:
-        // TODO(#47924): Investigate other types of objects to parse.
-        break;
+  js_.PrintProperty("class", GetObjectId(object.clazz()));
+
+  FieldVisitor visitor(thread_->isolate_group());
+  // Two phase algorithm, first discover all relevant objects
+  // and assign ids, then write them out.
+  std::function<void(ObjectPtr)> print_reference = [&](ObjectPtr value) {
+    if (!value.IsHeapObject()) return;
+    intptr_t index = GetObjectId(value);
+    js_.PrintValue64(index);
+  };
+  visitor.init(&print_reference);
+
+  js_.OpenArray("references");
+  object.ptr().untag()->VisitPointers(&visitor);
+  js_.CloseArray();
+}
+
+void SnapshotAnalyzer::DumpType(const Type& type) {
+  js_.PrintProperty("type", "Type");
+
+  js_.PrintProperty("type_class", GetObjectId(type.type_class()));
+
+  const TypeArguments& arguments = TypeArguments::Handle(type.arguments());
+  js_.OpenArray("type_arguments");
+  for (intptr_t i = 0; i < arguments.Length(); ++i) {
+    js_.PrintValue64(GetObjectId(arguments.TypeAt(i)));
+  }
+  js_.CloseArray();
+}
+
+void SnapshotAnalyzer::DumpObjectPool(const ObjectPool& pool) {
+  js_.PrintProperty("type", "ObjectPool");
+  js_.OpenArray("references");
+  for (intptr_t i = 0; i < pool.Length(); ++i) {
+    if (pool.TypeAt(i) == ObjectPool::EntryType::kTaggedObject) {
+      // We write (index, offset, value) triplets.
+      js_.PrintValue64(i);
+      js_.PrintValue64(pool.OffsetFromIndex(i));
+      js_.PrintValue64(GetObjectId(pool.ObjectAt(i)));
     }
   }
-  js->CloseArray();
+  js_.CloseArray();
 }
+
+void SnapshotAnalyzer::DumpInterestingObjects() {
+  Zone* zone = thread_->zone();
+
+  heap_->ResetObjectIdTable();
+  std::vector<const Object*> discovered_objects;
+  Object& object = Object::Handle(zone);
+  {
+    NoSafepointScope ns(thread_);
+
+    FieldVisitor visitor(thread_->isolate_group());
+    std::function<void(ObjectPtr)> handle_object = [&](ObjectPtr value) {
+      if (!value.IsHeapObject()) return;
+
+      // Ensure we never handle an object more than once.
+      if (heap_->GetObjectId(value) != 0) return;
+
+      heap_->SetObjectId(value, kStartIndex + discovered_objects.size());
+      discovered_objects.push_back(&Object::Handle(zone, value));
+
+      // Ensure all references of this object are visited first.
+      value->untag()->VisitPointers(&visitor);
+    };
+    visitor.init(&handle_object);
+
+    // BEGIN Visit all things we are interested in.
+
+    // - All constants reachable via object pool
+    object = thread_->isolate_group()->object_store()->global_object_pool();
+    handle_object(object.ptr());
+
+    // - All libraries
+    object = thread_->isolate_group()->object_store()->libraries();
+    object = GrowableObjectArray::Cast(object).data();
+    object.ptr().untag()->VisitPointers(&visitor);
+
+    // - All classes
+    auto class_table = thread_->isolate_group()->class_table();
+    for (intptr_t cid = 0; cid < class_table->NumCids(); ++cid) {
+      if (!class_table->HasValidClassAt(cid)) continue;
+      object = class_table->At(cid);
+      handle_object(object.ptr());
+    }
+  }
+
+  // Print information about objects
+  js_.OpenArray("objects");
+
+  // The 0 object id is used in the VM's weak hashmap implementation
+  // to indicate no value.
+  js_.OpenObject();
+  js_.PrintProperty("type", "NoValue");
+  js_.CloseObject();
+
+  for (size_t id = 0; id < discovered_objects.size(); ++id) {
+    const auto* object = discovered_objects[id];
+    js_.OpenObject();
+    // TODO(balid): Remove this as it can be inferred from the array position.
+    // Used for manual debugging at the moment.
+    js_.PrintProperty64("id", id + kStartIndex);
+    // Order matters here, Strings are a subtype of Instance, for example.
+    if (object->IsNull()) {
+      js_.PrintProperty("type", "Null");
+    } else if (object->IsLibrary()) {
+      DumpLibrary(Library::Cast(*object));
+    } else if (object->IsObjectPool()) {
+      DumpObjectPool(ObjectPool::Cast(*object));
+    } else if (object->IsClass()) {
+      DumpClass(Class::Cast(*object));
+    } else if (object->IsFunction()) {
+      DumpFunction(Function::Cast(*object));
+    } else if (object->IsCode()) {
+      DumpCode(Code::Cast(*object));
+    } else if (object->IsField()) {
+      DumpField(Field::Cast(*object));
+    } else if (object->IsString()) {
+      DumpString(String::Cast(*object));
+    } else if (object->IsArray()) {
+      js_.PrintProperty("type", "Array");
+      const Array& array = Array::Handle(Array::RawCast(object->ptr()));
+      DumpArray(array, "elements");
+    } else if (object->IsType()) {
+      DumpType(Type::Cast(*object));
+    } else if (object->IsInstance()) {
+      DumpInstance(*object);
+    }
+
+    js_.CloseObject();
+  }
+  js_.CloseArray();
+}
+
+void SnapshotAnalyzer::DumpMetadata() {
+  js_.OpenObject("metadata");
+  js_.OpenObject("offsets");
+  js_.OpenObject("thread");
+  // TODO(balid): Use `dart::compiler::target::` versions.
+  js_.PrintProperty("isolate", Thread::isolate_offset());
+  js_.PrintProperty("isolate_group", Thread::isolate_group_offset());
+  js_.PrintProperty("dispatch_table_array",
+                    Thread::dispatch_table_array_offset());
+  js_.CloseObject();
+  js_.OpenObject("isolate_group");
+  js_.PrintProperty("class_table", IsolateGroup::class_table_offset());
+  js_.PrintProperty("cached_class_table",
+                    IsolateGroup::cached_class_table_table_offset());
+  js_.PrintProperty("object_store_offset", IsolateGroup::object_store_offset());
+  js_.CloseObject();
+  js_.CloseObject();
+  js_.PrintProperty64("word_size", dart::compiler::target::kWordSize);
+  js_.PrintProperty64("compressed_word_size",
+                      dart::compiler::target::kCompressedWordSize);
+  js_.PrintProperty64("analyzer_version", kSnapshotAnalyzerVersion);
+  js_.CloseObject();
+}
+
 // TODO(#47924): Add processing of the entires in the dispatch table.
 // Below is an example skeleton
 // void DumpDispatchTable(dart::Thread* thread) {
@@ -245,195 +356,45 @@ void DumpObjectPoolJSON(Thread* thread, dart::JSONWriter* js) {
 //   }
 // }
 
-void DumpFunctionPP(Dart_SnapshotAnalyzerInformation* info,
-                    std::stringstream& ss,
-                    const Function& function) {
-  String& signature = String::Handle(function.InternalSignature());
-  Code& code = Code::Handle(function.CurrentCode());
-  // On different architectures the type of the underlying
-  // dart::uword can result in an unsigned long long vs unsigned long
-  // mismatch.
-  const auto code_addr = static_cast<uint64_t>(code.PayloadStart());
+void SnapshotAnalyzer::DumpSnapshotInformation(char** buffer,
+                                               intptr_t* buffer_length) {
+  thread_ = Thread::Current();
+  heap_ = thread_->isolate_group()->heap();
+  DARTSCOPE(thread_);
 
-  const auto isolate_instructions_base =
-      reinterpret_cast<uint64_t>(info->vm_isolate_instructions);
-  uint64_t relative_offset;
-  const char* section;
-
-  ss << "\t" << function.ToCString() << " " << signature.ToCString()
-     << " {\n\n";
-  char offset_buff[100] = "";
-  // Invoking code.PayloadStart() for _kDartVmSnapshotInstructions
-  // when the tree has been shaken always returns 0
-  if (code_addr == 0) {
-    section = "_kDartVmSnapshotInstructions";
-    snprintf(offset_buff, sizeof(offset_buff), "Offset: <Could not read>");
-  } else {
-    relative_offset = code_addr - isolate_instructions_base;
-    section = "_kDartIsolateSnapshotInstructions";
-    snprintf(offset_buff, sizeof(offset_buff), "Offset: %s + 0x%" PRIx64 "",
-             section, relative_offset);
-  }
-
-  ss << "\t\t" << offset_buff << "\n\n\t}\n";
-}
-// TODO(#47924): Refactor and reduce code duplication.
-void DumpClassTablePP(Thread* thread, Dart_SnapshotAnalyzerInformation* info) {
-  std::stringstream ss;
-  auto class_table = thread->isolate_group()->class_table();
-  Class& cls = Class::Handle();
-  std::set<uintptr_t> lib_hashes;
-  for (intptr_t i = 1; i < class_table->NumCids(); i++) {
-    if (!class_table->HasValidClassAt(i)) {
-      continue;
-    }
-    cls = class_table->At(i);
-    if (cls.IsNull()) {
-      continue;
-    }
-    const Library& lib = Library::Handle(cls.library());
-    if (lib.IsNull()) {
-      continue;
-    }
-    String& lib_name = String::Handle(lib.url());
-    uintptr_t lib_hash = lib_name.Hash();
-    if (lib_hashes.count(lib_hash) != 0u) {
-      continue;
-    }
-    lib_hashes.insert(lib_hash);
-    Class& toplevel_cls = Class::Handle(lib.toplevel_class());
-    Array& toplevel_funcs = Array::Handle(toplevel_cls.functions());
-    if (toplevel_funcs.Length() > 0) {
-      ss << "\nLibrary: " << lib_name.ToCString() << " {\n\n";
-      for (intptr_t i = 0; i < toplevel_funcs.Length(); i++) {
-        Function& function =
-            Function::Handle(toplevel_cls.FunctionFromIndex(i));
-        DumpFunctionPP(info, ss, function);
-      }
-      ss << "}\n";
-    }
-  }
-
-  for (intptr_t i = 1; i < class_table->NumCids(); i++) {
-    if (!class_table->HasValidClassAt(i)) {
-      continue;
-    }
-    cls = class_table->At(i);
-    if (cls.IsNull()) {
-      continue;
-    }
-
-    ss << "\n";
-    ss << cls.ToCString();
-    const AbstractType& super_type = AbstractType::Handle(cls.super_type());
-    if (!super_type.IsNull()) {
-      const String& super_name = String::Handle(super_type.Name());
-      ss << " extends " << super_name.ToCString();
-    }
-
-    const Array& interfaces_array = Array::Handle(cls.interfaces());
-    if (!interfaces_array.IsNull() && interfaces_array.Length() > 0) {
-      AbstractType& interface = AbstractType::Handle();
-      intptr_t len = interfaces_array.Length();
-      bool implements_flag = true;
-      for (intptr_t i = 0; i < len; i++) {
-        interface ^= interfaces_array.At(i);
-        if (implements_flag) {
-          ss << " implements ";
-          implements_flag = false;
-        } else {
-          ss << ", ";
-        }
-        ss << interface.ToCString();
-      }
-    }
-    ss << " {\n\n";
-    const Array& fields_array = Array::Handle(cls.fields());
-    if (!fields_array.IsNull() && fields_array.Length() > 0) {
-      Field& field = Field::Handle();
-      AbstractType& field_type = AbstractType::Handle();
-      for (intptr_t i = 0; i < fields_array.Length(); i++) {
-        field ^= fields_array.At(i);
-        if (!field.IsNull()) {
-          field_type = field.type();
-          ss << " " << String::Handle(field_type.Name()).ToCString();
-          ss << " " << String::Handle(field.name()).ToCString();
-          ss << " = ";
-          if (field.is_static()) {
-            Object& field_instance = Object::Handle();
-            field_instance = field.StaticValue();
-            ss << field_instance.ToCString() << "\n";
-          } else {
-            ss << "non-static;\n";
-          }
-        }
-      }
-    }
-    const Array& functions_array = Array::Handle(cls.functions());
-    if (!functions_array.IsNull() && functions_array.Length() > 0) {
-      Function& function = Function::Handle();
-      intptr_t len = functions_array.Length();
-      for (intptr_t i = 0; i < len; i++) {
-        function ^= functions_array.At(i);
-        if (function.IsNull() || !function.HasCode()) {
-          continue;
-        }
-        if (function.IsLocalFunction()) {
-          function = function.parent_function();
-        }
-        DumpFunctionPP(info, ss, function);
-      }
-    }
-    ss << "\n}\n";
-  }
-  OS::Print("%s", ss.str().c_str());
-}
-
-void Dart_DumpSnapshotInformationAsJson(
-    char** buffer,
-    intptr_t* buffer_length,
-    Dart_SnapshotAnalyzerInformation* info) {
-  Thread* thread = Thread::Current();
-  DARTSCOPE(thread);
-  JSONWriter js;
   // Open empty object so output is valid/parsable JSON.
-  js.OpenObject();
-  js.OpenObject("snapshot_data");
+  js_.OpenObject();
+  js_.OpenObject("snapshot_data");
   // Base addresses of the snapshot data, useful to calculate relative offsets.
-  js.PrintfProperty("vm_data", "%p", info->vm_snapshot_data);
-  js.PrintfProperty("vm_instructions", "%p", info->vm_snapshot_instructions);
-  js.PrintfProperty("isolate_data", "%p", info->vm_isolate_data);
-  js.PrintfProperty("isolate_instructions", "%p",
-                    info->vm_isolate_instructions);
-  js.CloseObject();
+  js_.PrintfProperty("vm_data", "%p", info_.vm_snapshot_data);
+  js_.PrintfProperty("vm_instructions", "%p", info_.vm_snapshot_instructions);
+  js_.PrintfProperty("isolate_data", "%p", info_.vm_isolate_data);
+  js_.PrintfProperty("isolate_instructions", "%p",
+                     info_.vm_isolate_instructions);
+  js_.CloseObject();
 
   {
     // Debug builds assert that our thread has a lock before accessing
     // vm internal fields.
-    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-    DumpClassTableJSON(thread, info, &js);
-    DumpObjectPoolJSON(thread, &js);
+    SafepointReadRwLocker ml(thread_, thread_->isolate_group()->program_lock());
+    DumpInterestingObjects();
+    DumpMetadata();
   }
 
   // Close our empty object.
-  js.CloseObject();
+  js_.CloseObject();
 
   // Give ownership to caller.
-  js.Steal(buffer, buffer_length);
+  js_.Steal(buffer, buffer_length);
 }
 
-void Dart_DumpSnapshotInformationPP(Dart_SnapshotAnalyzerInformation* info) {
-  Thread* thread = Thread::Current();
-  DARTSCOPE(thread);
-  OS::Print("File information:\n\n");
-  OS::Print("vm_data: %p\n", info->vm_snapshot_data);
-  OS::Print("vm_instructions: %p\n", info->vm_snapshot_instructions);
-  OS::Print("isolate_data: %p\n", info->vm_isolate_data);
-  OS::Print("isolate_instructions: %p\n", info->vm_isolate_instructions);
-  {
-    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
-    DumpClassTablePP(thread, info);
-  }
+void Dart_DumpSnapshotInformationAsJson(
+    const Dart_SnapshotAnalyzerInformation& info,
+    char** out,
+    intptr_t* out_len) {
+  SnapshotAnalyzer analyzer(info);
+  analyzer.DumpSnapshotInformation(out, out_len);
 }
+
 }  // namespace snapshot_analyzer
 }  // namespace dart

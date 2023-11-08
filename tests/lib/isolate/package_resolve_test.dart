@@ -5,7 +5,7 @@
 import 'dart:io';
 import 'dart:isolate';
 
-final packageUriToResolve = "package:foo/bar.dart";
+final packageUriToResolve = Uri.parse("package:foo/bar.dart");
 final packageResolvedUri = "file:///no/such/directory/lib/bar.dart";
 
 final packageConfigJson = """
@@ -54,8 +54,13 @@ testPackageResolution(port) async {
   try {
     var packageConfigStr = Platform.packageConfig;
     var packageConfig = await Isolate.packageConfig;
-    var resolvedPkg =
-        await Isolate.resolvePackageUri(Uri.parse(packageUriToResolve));
+    if (packageConfig != Isolate.packageConfigSync) {
+      throw "Isolate.packageConfig != Isolate.packageConfigSync";
+    }
+    var resolvedPkg = await Isolate.resolvePackageUri(packageUriToResolve);
+    if (resolvedPkg != Isolate.resolvePackageUriSync(packageUriToResolve)) {
+      throw "Isolate.resolvePackageUri != Isolate.resolvePackageUriSync";
+    }
     print("Spawned isolate's package config flag: $packageConfigStr");
     print("Spawned isolate's loaded package config: $packageConfig");
     print("Spawned isolate's resolved package path: $resolvedPkg");

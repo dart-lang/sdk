@@ -1,0 +1,11 @@
+abstract class B {
+  set a();
+  set d(x, y);
+}
+class A {
+  set a();
+  set d(x, y);
+}
+set b();
+set c(x, y);
+test() {}

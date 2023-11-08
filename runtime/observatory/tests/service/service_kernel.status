@@ -9,6 +9,7 @@ valid_source_locations_test: Pass, Slow
 add_breakpoint_rpc_kernel_test: SkipByDesign # No incremental compiler available.
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 break_on_activation_test: SkipByDesign # No incremental compiler available.
+breakpoint_in_package_parts_class_file_uri_test: SkipByDesign # incorrect url used for breakpoint in app-jit mode
 debugger_inspect_test: SkipByDesign # No incremental compiler available.
 debugger_location_second_test: SkipByDesign # No script sources available.
 eval_internal_class_test: SkipByDesign # No incremental compiler available.
@@ -18,6 +19,7 @@ evaluate_*: SkipByDesign # No incremental compiler available.
 get_allocation_traces_test: SkipByDesign # Allocation traces aren't consistent when running from snapshot.
 get_instances_as_array_rpc_expression_evaluation_on_internal_test: SkipByDesign # No incremental compiler available.
 get_object_rpc_test: SkipByDesign # App-JIT snapshots don't contain script sources.
+get_source_report_const_coverage_test: SkipByDesign # AppJit doesn't include sources & therefore no coverage of sources.
 pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.
@@ -154,6 +156,7 @@ positive_token_pos_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28443_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28980_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_34841_test: SkipByDesign # Debugger is disabled in AOT mode.
+regress_45684_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_46419_test: SkipByDesign # Debugger is disabled in AOT mode.
 reload_sources_test: SkipByDesign # Hot reload is disabled in AOT mode.
 rewind_optimized_out_test: SkipByDesign # Debugger is disabled in AOT mode.

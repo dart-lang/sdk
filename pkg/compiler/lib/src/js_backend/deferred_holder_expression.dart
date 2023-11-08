@@ -539,6 +539,7 @@ class DeferredHolderExpressionFinalizerImpl
   /// Generates code to declare holders for a given [resourceName].
   HolderInitCode declareHolders(String resourceName, Iterable<Holder> holders,
       {bool initializeEmptyHolders = false}) {
+    holders = [...holders]..sort((a, b) => a.key.compareTo(b.key));
     // Create holder initialization code. If there are no properties
     // associated with a given holder in this specific [DeferredHolderResource]
     // then it will be omitted. However, in some cases, i.e. the main output
@@ -815,7 +816,17 @@ class _DeferredHolderExpressionCollectorVisitor extends js.BaseVisitorVoid {
         element.accept(this);
       }
     } else {
-      super.visitNode(node);
+      final deferredExpressionData = js.getNodeDeferredExpressionData(node);
+      if (deferredExpressionData != null) {
+        deferredExpressionData.deferredHolderExpressions.forEach((e) =>
+            _finalizer.registerDeferredHolderExpression(resourceName!, e));
+        deferredExpressionData.modularNames.forEach(visitNode);
+        deferredExpressionData.modularExpressions.forEach(visitNode);
+        deferredExpressionData.stringReferences.forEach(visitNode);
+        deferredExpressionData.typeReferences.forEach(visitNode);
+      } else {
+        super.visitNode(node);
+      }
     }
   }
 

@@ -212,37 +212,37 @@ class Class1 extends core::Object {
 }
 extension Extension1 on core::int {
   method t1 = self::Extension1|t1;
-  tearoff t1 = self::Extension1|get#t1;
+  method tearoff t1 = self::Extension1|get#t1;
   method t2 = self::Extension1|t2;
-  tearoff t2 = self::Extension1|get#t2;
+  method tearoff t2 = self::Extension1|get#t2;
   method t3 = self::Extension1|t3;
-  tearoff t3 = self::Extension1|get#t3;
+  method tearoff t3 = self::Extension1|get#t3;
   method t4 = self::Extension1|t4;
-  tearoff t4 = self::Extension1|get#t4;
+  method tearoff t4 = self::Extension1|get#t4;
   method t5 = self::Extension1|t5;
-  tearoff t5 = self::Extension1|get#t5;
+  method tearoff t5 = self::Extension1|get#t5;
   method t6 = self::Extension1|t6;
-  tearoff t6 = self::Extension1|get#t6;
+  method tearoff t6 = self::Extension1|get#t6;
   method t7 = self::Extension1|t7;
-  tearoff t7 = self::Extension1|get#t7;
+  method tearoff t7 = self::Extension1|get#t7;
   method t8 = self::Extension1|t8;
-  tearoff t8 = self::Extension1|get#t8;
+  method tearoff t8 = self::Extension1|get#t8;
   method s1 = self::Extension1|s1;
-  tearoff s1 = self::Extension1|get#s1;
+  method tearoff s1 = self::Extension1|get#s1;
   method s2 = self::Extension1|s2;
-  tearoff s2 = self::Extension1|get#s2;
+  method tearoff s2 = self::Extension1|get#s2;
   method s3 = self::Extension1|s3;
-  tearoff s3 = self::Extension1|get#s3;
+  method tearoff s3 = self::Extension1|get#s3;
   method s4 = self::Extension1|s4;
-  tearoff s4 = self::Extension1|get#s4;
+  method tearoff s4 = self::Extension1|get#s4;
   method s5 = self::Extension1|s5;
-  tearoff s5 = self::Extension1|get#s5;
+  method tearoff s5 = self::Extension1|get#s5;
   method s6 = self::Extension1|s6;
-  tearoff s6 = self::Extension1|get#s6;
+  method tearoff s6 = self::Extension1|get#s6;
   method s7 = self::Extension1|s7;
-  tearoff s7 = self::Extension1|get#s7;
+  method tearoff s7 = self::Extension1|get#s7;
   method s8 = self::Extension1|s8;
-  tearoff s8 = self::Extension1|get#s8;
+  method tearoff s8 = self::Extension1|get#s8;
 }
 static method t1() → self::Class<dynamic>
   return throw "";

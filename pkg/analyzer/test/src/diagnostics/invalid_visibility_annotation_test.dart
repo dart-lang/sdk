@@ -87,6 +87,16 @@ void f(_E e) => e == _E.a || e == _E.b;
     ]);
   }
 
+  test_privateExtensionType() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@visibleForTesting extension type _E(int i) {}
+''', [
+      error(WarningCode.INVALID_VISIBILITY_ANNOTATION, 33, 18),
+      error(WarningCode.UNUSED_ELEMENT, 67, 2),
+    ]);
+  }
+
   test_privateField() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -187,6 +197,10 @@ import 'package:meta/meta.dart';
 @visibleForTesting enum E {a, b, c}
 @visibleForTesting typedef T = Function();
 @visibleForTesting class C1 {}
+@visibleForTesting extension type ET1(int i) {}
+extension type ET2(int i) {
+  @visibleForTesting void m() {}
+}
 @visibleForTesting mixin M {}
 class C2 {
   @visibleForTesting C2.named() {}

@@ -104,10 +104,7 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
         closedWorld,
         globalTypeInferenceResultsSource);
     return DataAndIndices(
-        results,
-        globalTypeInferenceResultsSource.enableDeferredStrategy
-            ? globalTypeInferenceResultsSource.exportIndices()
-            : indices);
+        results, globalTypeInferenceResultsSource.exportIndices());
   }
 
   @override
@@ -178,9 +175,7 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
             component,
             closedWorld,
             globalTypeInferenceResultsSource),
-        globalTypeInferenceResultsSource.enableDeferredStrategy
-            ? globalTypeInferenceResultsSource.exportIndices()
-            : indices);
+        globalTypeInferenceResultsSource.exportIndices());
   }
 
   @override
@@ -251,9 +246,7 @@ class ObjectsInMemorySerializationStrategy
             component,
             closedWorld,
             globalTypeInferenceResultsSource),
-        globalTypeInferenceResultsSource.enableDeferredStrategy
-            ? globalTypeInferenceResultsSource.exportIndices()
-            : indices);
+        globalTypeInferenceResultsSource.exportIndices());
   }
 
   @override

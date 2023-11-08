@@ -9,16 +9,16 @@ import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
 import 'builder.dart';
-import 'declaration_builder.dart';
+import 'declaration_builders.dart';
 import 'field_builder.dart';
 import 'library_builder.dart';
 import 'member_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
-import 'type_variable_builder.dart';
 
-/// Shared implementation between extension and inline class builders.
-mixin DeclarationBuilderMixin implements DeclarationBuilder {
+/// Shared implementation between extension and extension type declaration
+/// builders.
+mixin DeclarationBuilderMixin implements IDeclarationBuilder {
   /// Type parameters declared.
   ///
   /// This is `null` if the declaration is not generic.
@@ -37,7 +37,8 @@ mixin DeclarationBuilderMixin implements DeclarationBuilder {
     Builder? declaration = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
-    // TODO(johnniwinther): Handle patched extensions/inline classes.
+    // TODO(johnniwinther): Handle patched extensions/extension type
+    //  declarations.
     return declaration;
   }
 
@@ -113,7 +114,8 @@ mixin DeclarationBuilderMixin implements DeclarationBuilder {
   @override
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
-    // TODO(johnniwinther): Support patching on extensions/inline classes.
+    // TODO(johnniwinther): Support patching on extensions/extension type
+    //  declarations.
     Builder? builder = scope.lookupLocalMember(name, setter: setter);
     if (required && builder == null) {
       internalProblem(

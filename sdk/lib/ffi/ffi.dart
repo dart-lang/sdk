@@ -58,8 +58,9 @@ final class Pointer<T extends NativeType> extends NativeType {
   /// isolate's lifetime. After the isolate it was created in is terminated,
   /// invoking it from native code will cause undefined behavior.
   ///
-  /// Does not accept dynamic invocations -- where the type of the receiver is
-  /// [dynamic].
+  /// [Pointer.fromFunction] only accepts static or top level functions. Use
+  /// [NativeCallable.isolateLocal] to create callbacks from any Dart function
+  /// or closure.
   external static Pointer<NativeFunction<T>> fromFunction<T extends Function>(
       @DartRepresentationOf('T') Function f,
       [Object? exceptionalReturn]);
@@ -146,12 +147,21 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
-  /// Convert to Dart function, automatically marshalling the arguments
-  /// and return value.
+  /// Convert to Dart function, automatically marshalling the arguments and
+  /// return value.
   ///
-  /// [isLeaf] specifies whether the function is a leaf function.
-  /// A leaf function must not run Dart code or call back into the Dart VM.
-  /// Leaf calls are faster than non-leaf calls.
+  /// [isLeaf] specifies whether the function is a leaf function. Leaf functions
+  /// are small, short-running, non-blocking functions which are not allowed to
+  /// call back into Dart or use any Dart VM APIs. Leaf functions are invoked
+  /// bypassing some of the heavier parts of the standard Dart-to-Native calling
+  /// sequence which reduces the invocation overhead, making leaf calls faster
+  /// than non-leaf calls. However, this implies that a thread executing a leaf
+  /// function can't cooperate with the Dart runtime. A long running or blocking
+  /// leaf function will delay any operation which requires synchronization
+  /// between all threads associated with an isolate group until after the leaf
+  /// function returns. For example, if one isolate in a group is trying to
+  /// perform a GC and a second isolate is blocked in a leaf call, then the
+  /// first isolate will have to pause and wait until this leaf call returns.
   external DF asFunction<@DartRepresentationOf('NF') DF extends Function>(
       {bool isLeaf = false});
 }
@@ -162,7 +172,32 @@ extension NativeFunctionPointer<NF extends Function>
 /// native function will call the Dart function in some way, with the arguments
 /// converted to Dart values.
 @Since('3.1')
-final class NativeCallable<T extends Function> {
+abstract final class NativeCallable<T extends Function> {
+  /// Constructs a [NativeCallable] that must be invoked from the same thread
+  /// that created it.
+  ///
+  /// If an exception is thrown by the [callback], the native function will
+  /// return the `exceptionalReturn`, which must be assignable to the return
+  /// type of the [callback].
+  ///
+  /// The returned function address can only be invoked on the mutator (main)
+  /// thread of the current isolate. It will abort the process if invoked on any
+  /// other thread. Use [NativeCallable.listener] to create callbacks that can
+  /// be invoked from any thread.
+  ///
+  /// Unlike [Pointer.fromFunction], [NativeCallable]s can be constructed from
+  /// any Dart function or closure, not just static or top level functions.
+  ///
+  /// This callback must be [close]d when it is no longer needed, but it will
+  /// *not* keep its [Isolate] alive. After the isolate is terminated, or
+  /// [NativeCallable.close] is called, invoking the [nativeFunction] from
+  /// native code will cause undefined behavior.
+  factory NativeCallable.isolateLocal(
+      @DartRepresentationOf("T") Function callback,
+      {Object? exceptionalReturn}) {
+    throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
+  }
+
   /// Constructs a [NativeCallable] that can be invoked from any thread.
   ///
   /// When the native code invokes the function [nativeFunction], the arguments
@@ -179,24 +214,81 @@ final class NativeCallable<T extends Function> {
   ///
   /// This callback must be [close]d when it is no longer needed. The [Isolate]
   /// that created the callback will be kept alive until [close] is called.
-  external NativeCallable.listener(
-      @DartRepresentationOf("T") Function callback);
+  ///
+  /// For example:
+  ///
+  /// ```dart
+  /// import 'dart:async';
+  /// import 'dart:ffi';
+  /// import 'package:ffi/ffi.dart';
+  ///
+  /// // Processes a simple HTTP GET request using a native HTTP library that
+  /// // processes the request on a background thread.
+  /// Future<String> httpGet(String uri) async {
+  ///   final uriPointer = uri.toNativeUtf8();
+  ///
+  ///   // Create the NativeCallable.listener.
+  ///   final completer = Completer<String>();
+  ///   late final NativeCallable<NativeHttpCallback> callback;
+  ///   void onResponse(Pointer<Utf8> responsePointer) {
+  ///     completer.complete(responsePointer.toDartString());
+  ///     calloc.free(responsePointer);
+  ///     calloc.free(uriPointer);
+  ///
+  ///     // Remember to close the NativeCallable once the native API is
+  ///     // finished with it, otherwise this isolate will stay alive
+  ///     // indefinitely.
+  ///     callback.close();
+  ///   }
+  ///   callback = NativeCallable<NativeHttpCallback>.listener(onResponse);
+  ///
+  ///   // Invoke the native HTTP API. Our example HTTP library processes our
+  ///   // request on a background thread, and calls the callback on that same
+  ///   // thread when it receives the response.
+  ///   nativeHttpGet(uriPointer, callback.nativeFunction);
+  ///
+  ///   return completer.future;
+  /// }
+  ///
+  /// // Load the native functions from a DynamicLibrary.
+  /// final DynamicLibrary dylib = DynamicLibrary.process();
+  /// typedef NativeHttpCallback = Void Function(Pointer<Utf8>);
+  ///
+  /// typedef HttpGetFunction = void Function(
+  ///     Pointer<Utf8>, Pointer<NativeFunction<NativeHttpCallback>>);
+  /// typedef HttpGetNativeFunction = Void Function(
+  ///     Pointer<Utf8>, Pointer<NativeFunction<NativeHttpCallback>>);
+  /// final nativeHttpGet =
+  ///     dylib.lookupFunction<HttpGetNativeFunction, HttpGetFunction>(
+  ///         'http_get');
+  /// ```
+  factory NativeCallable.listener(
+      @DartRepresentationOf("T") Function callback) {
+    throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
+  }
 
   /// The native function pointer which can be used to invoke the `callback`
   /// passed to the constructor.
   ///
-  /// If this receiver has been [close]d, the pointer is a [nullptr].
-  external Pointer<NativeFunction<T>> get nativeFunction;
+  /// This pointer must not be read after the callable has been [close]d.
+  Pointer<NativeFunction<T>> get nativeFunction;
 
   /// Closes this callback and releases its resources.
   ///
   /// Further calls to existing [nativeFunction]s will result in undefined
-  /// behavior. New accesses to [nativeFunction] will give a [nullptr].
+  /// behavior.
   ///
-  /// This method must not be called more than once on each native callback.
+  /// Subsequent calls to [close] will be ignored.
   ///
   /// It is safe to call [close] inside the [callback].
-  external void close();
+  void close();
+
+  /// Whether this [NativeCallable] keeps its [Isolate] alive.
+  ///
+  /// By default, [NativeCallable]s keep the [Isolate] that created them alive
+  /// until [close] is called. If [keepIsolateAlive] is set to `false`, the
+  /// isolate may exit even if the [NativeCallable] isn't closed.
+  external bool keepIsolateAlive;
 }
 
 //
@@ -1045,10 +1137,20 @@ abstract final class NativeApi {
 final class FfiNative<T> {
   final String nativeName;
 
-  /// Specifies whether the function is a leaf function.
+  /// Whether the function is a leaf function.
   ///
-  /// A leaf function must not run Dart code or call back into the Dart VM.
-  /// Leaf calls are faster than non-leaf calls.
+  /// Leaf functions are small, short-running, non-blocking functions which are
+  /// not allowed to call back into Dart or use any Dart VM APIs. Leaf functions
+  /// are invoked bypassing some of the heavier parts of the standard
+  /// Dart-to-Native calling sequence which reduces the invocation overhead,
+  /// making leaf calls faster than non-leaf calls. However, this implies that a
+  /// thread executing a leaf function can't cooperate with the Dart runtime. A
+  /// long running or blocking leaf function will delay any operation which
+  /// requires synchronization between all threads associated with an isolate
+  /// group until after the leaf function returns. For example, if one isolate
+  /// in a group is trying to perform a GC and a second isolate is blocked in a
+  /// leaf call, then the first isolate will have to pause and wait until this
+  /// leaf call returns.
   final bool isLeaf;
 
   const FfiNative(this.nativeName, {this.isLeaf = false});
@@ -1160,9 +1262,18 @@ final class Native<T> {
 
   /// Whether the function is a leaf function.
   ///
-  /// A leaf function must not run Dart code or call back into the Dart VM.
-  ///
-  /// Leaf calls are faster than non-leaf calls.
+  /// Leaf functions are small, short-running, non-blocking functions which are
+  /// not allowed to call back into Dart or use any Dart VM APIs. Leaf functions
+  /// are invoked bypassing some of the heavier parts of the standard
+  /// Dart-to-Native calling sequence which reduces the invocation overhead,
+  /// making leaf calls faster than non-leaf calls. However, this implies that a
+  /// thread executing a leaf function can't cooperate with the Dart runtime. A
+  /// long running or blocking leaf function will delay any operation which
+  /// requires synchronization between all threads associated with an isolate
+  /// group until after the leaf function returns. For example, if one isolate
+  /// in a group is trying to perform a GC and a second isolate is blocked in a
+  /// leaf call, then the first isolate will have to pause and wait until this
+  /// leaf call returns.
   final bool isLeaf;
 
   const Native({

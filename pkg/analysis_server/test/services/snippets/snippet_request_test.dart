@@ -32,6 +32,14 @@ class A {}
 ''', SnippetContext.inAnnotation);
   }
 
+  Future<void> test_argumentName() async {
+    await testRequest(r'''
+void({required int switch}) {
+  f([!sw^!]:);
+}
+''', SnippetContext.inName);
+  }
+
   Future<void> test_block_forBody() async {
     await testRequest(r'''
 foo() {
@@ -290,6 +298,15 @@ foo() {
   [!mysnip^!]
 }
 ''', SnippetContext.inBlock);
+  }
+
+  Future<void> test_initializingFormal() async {
+    await testRequest(r'''
+class A {
+  int a;
+  A(this.[!f^!]);
+}
+''', SnippetContext.inQualifiedMemberAccess);
   }
 
   Future<void> test_method_atEnd() async {

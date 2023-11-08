@@ -227,11 +227,6 @@ void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
 }
 
 void Class::CopyCanonicalConstants(const Class& old_cls) const {
-  if (is_enum_class()) {
-    // We do not copy enum classes's canonical constants because we explicitly
-    // become the old enum values to the new enum values.
-    return;
-  }
 #if defined(DEBUG)
   {
     // Class has no canonical constants allocated.
@@ -275,12 +270,12 @@ class EnumMapTraits {
 void Class::PatchFieldsAndFunctions() const {
   // Move all old functions and fields to a patch class so that they
   // still refer to their original script.
-  const PatchClass& patch =
-      PatchClass::Handle(PatchClass::New(*this, Script::Handle(script())));
+  const auto& kernel_info = KernelProgramInfo::Handle(KernelProgramInfo());
+  const PatchClass& patch = PatchClass::Handle(
+      PatchClass::New(*this, kernel_info, Script::Handle(script())));
   ASSERT(!patch.IsNull());
   const Library& lib = Library::Handle(library());
-  patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
-  patch.set_library_kernel_offset(lib.kernel_offset());
+  patch.set_kernel_library_index(lib.kernel_library_index());
 
   const Array& funcs = Array::Handle(current_functions());
   Function& func = Function::Handle();
@@ -613,10 +608,6 @@ bool Class::RequiresInstanceMorphing(ClassTable* class_table,
   if (!is_allocate_finalized()) {
     // No instances of this class exists on the heap - nothing to morph.
     return false;
-  }
-
-  if (replacement.is_enum_class()) {
-    return true;
   }
 
   // Get the field maps for both classes. These field maps walk the class

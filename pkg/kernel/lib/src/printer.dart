@@ -127,8 +127,9 @@ class AstPrinter {
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
-  void writeInlineClassName(Reference? reference) {
-    _sb.write(qualifiedInlineClassNameToStringByReference(reference,
+  void writeExtensionTypeDeclarationName(Reference? reference) {
+    _sb.write(qualifiedExtensionTypeDeclarationNameToStringByReference(
+        reference,
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
@@ -168,6 +169,13 @@ class AstPrinter {
         ? qualifiedTypeParameterNameToString(parameter,
             includeLibraryName: _strategy.includeLibraryNamesInTypes)
         : typeParameterNameToString(parameter));
+  }
+
+  void writeStructuralParameterName(StructuralParameter parameter) {
+    _sb.write(_strategy.useQualifiedTypeParameterNames
+        ? qualifiedStructuralParameterNameToString(parameter,
+            includeLibraryName: _strategy.includeLibraryNamesInTypes)
+        : structuralParameterNameToString(parameter));
   }
 
   void newLine() {
@@ -299,6 +307,44 @@ class AstPrinter {
       _sb.write("<");
       String comma = "";
       for (TypeParameter typeParameter in typeParameters) {
+        _sb.write(comma);
+        _sb.write(typeParameter.name);
+        DartType bound = typeParameter.bound;
+
+        bool isTopObject(DartType type) {
+          if (type is InterfaceType &&
+              type.classReference.node != null &&
+              type.classNode.name == 'Object') {
+            Uri uri = type.classNode.enclosingLibrary.importUri;
+            return uri.isScheme('dart') &&
+                uri.path == 'core' &&
+                (type.nullability == Nullability.legacy ||
+                    type.nullability == Nullability.nullable);
+          }
+          return false;
+        }
+
+        if (!isTopObject(bound) || isTopObject(typeParameter.defaultType)) {
+          // Include explicit bounds only.
+          _sb.write(' extends ');
+          writeType(bound);
+        }
+        comma = ", ";
+      }
+      _sb.write(">");
+    }
+  }
+
+  /// If [typeParameters] is non-empty, writes [typeParameters] to the printer
+  /// buffer delimited by '<' and '>', and separated by ', '.
+  ///
+  /// The bound of a type parameter is included, as 'T extends Bound', if the
+  /// bound is neither `Object?` nor `Object*`.
+  void writeStructuralParameters(List<StructuralParameter> typeParameters) {
+    if (typeParameters.isNotEmpty) {
+      _sb.write("<");
+      String comma = "";
+      for (StructuralParameter typeParameter in typeParameters) {
         _sb.write(comma);
         _sb.write(typeParameter.name);
         DartType bound = typeParameter.bound;

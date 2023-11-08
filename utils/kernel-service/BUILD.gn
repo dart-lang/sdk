@@ -5,6 +5,7 @@
 import("../../build/dart/dart_action.gni")
 import("../../runtime/runtime_args.gni")
 import("../../sdk_args.gni")
+import("../aot_snapshot.gni")
 import("../application_snapshot.gni")
 import("../create_timestamp.gni")
 
@@ -60,6 +61,19 @@ application_snapshot("frontend_server") {
     rebase_path(main_dart),
   ]
   output = "$root_out_dir/frontend_server.dart.snapshot"
+}
+
+aot_snapshot("frontend_server_aot") {
+  main_dart = "../../pkg/frontend_server/bin/frontend_server_starter.dart"
+  name = "frontend_server_aot"
+  output = "$root_out_dir/frontend_server_aot.dart.snapshot"
+
+  # dartaotruntime has dart_product_config applied to it, so it is built in
+  # product mode in both release and product builds, and is only built in debug
+  # mode in debug builds. The following line ensures that the dartaotruntime and
+  # frontend_server_aot snapshot in an SDK build are always compatible with
+  # each other.
+  force_product_mode = !dart_debug
 }
 
 template("kernel_service_dill") {

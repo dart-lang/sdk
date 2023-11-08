@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:dap/dap.dart';
 import 'package:test/test.dart';
 
@@ -13,6 +14,8 @@ main() {
   late DapTestSession dap;
   setUp(() async {
     dap = await DapTestSession.setUp(additionalArgs: ['--test']);
+    // For "dart run test:test" to work we must always have a cwd set.
+    dap.client.defaultCwd = dap.testAppDir.path;
     await dap.addPackageDependency(dap.testAppDir, 'test');
   });
   tearDown(() => dap.tearDown());
@@ -58,7 +61,6 @@ main() {
         launch: () => client.launch(
           testFile.path,
           noDebug: true,
-          cwd: dap.testAppDir.path,
           args: ['--chain-stack-traces'], // to suppress warnings in the output
         ),
       );
@@ -80,7 +82,6 @@ main() {
         launch: () => client.launch(
           testFile.path,
           noDebug: true,
-          cwd: dap.testAppDir.path,
           // It's up to the calling IDE to pass the correct args for 'dart test'
           // if it wants to run a subset of tests.
           args: [
@@ -99,6 +100,24 @@ main() {
       expect(testsNames, isNot(contains('group 1 failing test')));
     });
 
+    test('includes absolute paths in OutputEvent metadata', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleFailingTestProgram);
+
+      // Collect output and test events while running the script.
+      final outputEvents = await client.collectTestOutput(
+        launch: () => client.launch(testFile.path),
+      );
+
+      // Collect paths from any OutputEvents that had them.
+      final stackFramePaths = outputEvents.output
+          .map((event) => event.source?.path)
+          .whereNotNull()
+          .toList();
+      // Ensure we had a frame with the absolute path of the test script.
+      expect(stackFramePaths, contains(testFile.path));
+    });
+
     test('can hit and resume from a breakpoint', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleTestProgram);
@@ -110,7 +129,6 @@ main() {
         start: () => client.hitBreakpoint(
           testFile,
           breakpointLine,
-          cwd: dap.testAppDir.path,
           args: ['--chain-stack-traces'], // to suppress warnings in the output
         ).then((stop) => client.continue_(stop.threadId!)),
       );
@@ -125,24 +143,43 @@ main() {
       expectStandardSimpleTestResults(outputEvents);
     });
 
+    test('has locations for all function stack frames', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleTestProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        args: ['--chain-stack-traces'], // to suppress warnings in the output
+      );
+
+      // Check the top few frames all have locations.
+      final stack = await client.getValidStack(
+        stop.threadId!,
+        startFrame: 0,
+        numFrames: 5,
+      );
+      for (final frame in stack.stackFrames) {
+        // Skip labels frames (eg. "<async gap>").
+        if (frame.presentationHint == "label") continue;
+
+        expect(frame.line, isPositive);
+        expect(frame.column, isPositive);
+      }
+    });
+
     test('can cleanly terminate from a breakpoint', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleTestProgram);
       final breakpointLine = lineWith(testFile, breakpointMarker);
 
       // Hit the breakpoint inside the test.
-      await client.hitBreakpoint(
-        testFile,
-        breakpointLine,
-        cwd: dap.testAppDir.path,
-      );
+      await client.hitBreakpoint(testFile, breakpointLine);
 
       // Send a single terminate, and expect a clean exit (with a `terminated`
       // event).
-      await Future.wait([
-        dap.client.event('terminated'),
-        dap.client.terminate(),
-      ], eagerError: true);
+      await client.terminate();
     });
 
     test('resolves and updates breakpoints', () async {
@@ -224,17 +261,12 @@ main() {
     test('responds to setBreakpoints before any breakpoint events', () async {
       final client = dap.client;
       final testFile =
-          dap.createTestFile(simpleTestBreakpointResolutionProgram);
+          dap.createTestFile(simpleTestBreakpointProgramWith50ExtraLines);
       final setBreakpointLine = lineWith(testFile, breakpointMarker);
 
       // Run the app and get to a breakpoint. This will allow us to add new
       // breakpoints in the same file that are _immediately_ resolved.
-      await Future.wait([
-        client.initialize(),
-        client.expectStop('breakpoint'),
-        client.setBreakpoint(testFile, setBreakpointLine),
-        client.launch(testFile.path),
-      ], eagerError: true);
+      await client.hitBreakpoint(testFile, setBreakpointLine);
 
       // Call setBreakpoint again, and ensure it response before we get any
       // breakpoint change events because we require their IDs before the change
@@ -252,7 +284,8 @@ main() {
             // sending requests to the VM to allow events to start coming back
             // from the VM before we complete. Without this, the test can pass
             // even without the fix.
-            .setBreakpoints(testFile, List.generate(50, (index) => index))
+            .setBreakpoints(testFile,
+                List.generate(50, (index) => setBreakpointLine + index))
             .then((_) => setBreakpointsResponded = true),
       ]);
     });

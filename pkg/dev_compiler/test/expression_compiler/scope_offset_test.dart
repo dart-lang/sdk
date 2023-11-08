@@ -42,7 +42,7 @@ void main(List<String> args) {
   });
 }
 
-class ScopeOffsetValidator extends Visitor<void> with VisitorVoidMixin {
+class ScopeOffsetValidator extends VisitorDefault<void> with VisitorVoidMixin {
   int classCount = 0;
   int memberCount = 0;
   int blockCount = 0;

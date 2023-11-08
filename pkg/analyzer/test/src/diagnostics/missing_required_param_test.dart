@@ -184,7 +184,6 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 3),
     ]);
   }
 
@@ -196,7 +195,6 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT, 11, 1),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 11, 1),
     ]);
   }
 

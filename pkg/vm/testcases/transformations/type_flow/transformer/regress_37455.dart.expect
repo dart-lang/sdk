@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
 [@vm.inferred-type.metadata=!] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  final field core::List<dynamic> afield;
-  constructor •([@vm.inferred-type.metadata=!] core::List<dynamic> afield) → self::A
+  constructor •([@vm.inferred-arg-type.metadata=!] core::List<dynamic> afield) → self::A
     : self::A::afield = afield, super core::Object::•()
     ;
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method toString() → core::String
@@ -14,7 +14,7 @@ class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method _foo([@vm.inferred-type.metadata=dart._internal::ListIterator<dart.core::int>] core::Iterator<core::int> iter) → core::List<dynamic> {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  method _foo([@vm.inferred-arg-type.metadata=dart._internal::ListIterator<dart.core::int>] core::Iterator<core::int> iter) → core::List<dynamic> {
     core::List<dynamic> result = [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic>] core::_GrowableList::•<dynamic>(0);
     while ([@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] iter.{core::Iterator::moveNext}(){() → core::bool}) {
       if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.<] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=int] iter.{core::Iterator::current}{core::int}.{core::num::<}(0){(core::num) → core::bool}) {

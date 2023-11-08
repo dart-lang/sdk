@@ -274,21 +274,11 @@ abstract class FileSystemEntity {
   ///
   /// Returns a `Future<FileSystemEntity>` that completes with a
   /// [FileSystemEntity] instance for the renamed file system entity.
-  ///
-  /// If [newPath] identifies an existing entity of the same type,
-  /// that entity is removed first.
-  /// If [newPath] identifies an existing entity of a different type,
-  /// the operation fails and the future completes with an exception.
   Future<FileSystemEntity> rename(String newPath);
 
   /// Synchronously renames this file system entity.
   ///
   /// Returns a [FileSystemEntity] instance for the renamed entity.
-  ///
-  /// If [newPath] identifies an existing entity of the same type,
-  /// that entity is removed first.
-  /// If [newPath] identifies an existing entity of a different type,
-  /// the operation fails and an exception is thrown.
   FileSystemEntity renameSync(String newPath);
 
   /// Resolves the path of a file system object relative to the
@@ -663,7 +653,7 @@ abstract class FileSystemEntity {
   // The native methods which determine type of the FileSystemEntity require
   // that the buffer provided is null terminated.
   static Uint8List _toUtf8Array(String s) =>
-      _toNullTerminatedUtf8Array(utf8.encoder.convert(s));
+      _toNullTerminatedUtf8Array(utf8.encode(s));
 
   static Uint8List _toNullTerminatedUtf8Array(Uint8List l) {
     if (l.isEmpty || (l.isNotEmpty && l.last != 0)) {

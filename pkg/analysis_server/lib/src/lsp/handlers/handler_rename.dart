@@ -8,13 +8,16 @@ import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_unit_member.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
-class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
+typedef StaticOptions = Either2<bool, RenameOptions>;
+
+class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
     TextDocumentPrepareRenameResult> {
   PrepareRenameHandler(super.server);
   @override
@@ -80,10 +83,12 @@ class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
   }
 }
 
-class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
+class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?>
+    with LspHandlerHelperMixin {
   RenameHandler(super.server);
 
-  LspGlobalClientConfiguration get config => server.clientConfiguration.global;
+  LspGlobalClientConfiguration get config =>
+      server.lspClientConfiguration.global;
 
   @override
   Method get handlesMessage => Method.textDocument_rename;
@@ -93,7 +98,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
   /// Checks whether a client supports Rename resource operations.
   bool get _clientSupportsRename {
-    final capabilities = server.clientCapabilities;
+    final capabilities = server.lspClientCapabilities;
     return (capabilities?.documentChanges ?? false) &&
         (capabilities?.renameResourceOperations ?? false);
   }
@@ -170,14 +175,16 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
         return error(ServerErrorCodes.RenameNotValid,
             finalStatus.problem!.message, null);
       } else if (finalStatus.hasError || finalStatus.hasWarning) {
-        // If this change would produce errors but we can't prompt the user, just
-        // fail with the message.
-        if (!server.supportsShowMessageRequest) {
+        final prompt = server.userPromptSender;
+
+        // If this change would produce errors but we can't prompt the user,
+        // just fail with the message.
+        if (prompt == null) {
           return error(ServerErrorCodes.RenameNotValid, finalStatus.message!);
         }
 
         // Otherwise, ask the user whether to proceed with the rename.
-        final userChoice = await server.showUserPrompt(
+        final userChoice = await prompt(
           MessageType.warning,
           finalStatus.message!,
           [
@@ -221,7 +228,6 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
       // Check whether we should handle renaming the file to match the class.
       if (_clientSupportsRename && _isClassRename(refactoring)) {
-        final pathContext = server.resourceProvider.pathContext;
         // The rename must always be performed on the file that defines the
         // class which is not necessarily the one where the rename was invoked.
         final declaringFile = (refactoring as RenameUnitMemberRefactoringImpl)
@@ -244,7 +250,8 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
                     await _promptToRenameFile(actualFilename, newFilename));
             if (shouldRename) {
               final newPath = pathContext.join(folder, newFilename);
-              final renameEdit = createRenameEdit(declaringFile, newPath);
+              final renameEdit =
+                  createRenameEdit(pathContext, declaringFile, newPath);
               workspaceEdit = mergeWorkspaceEdits([workspaceEdit, renameEdit]);
             }
           }
@@ -263,12 +270,13 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
   /// class.
   Future<bool> _promptToRenameFile(
       String oldFilename, String newFilename) async {
+    final prompt = server.userPromptSender;
     // If we can't prompt, do the same as if they said no.
-    if (!server.supportsShowMessageRequest) {
+    if (prompt == null) {
       return false;
     }
 
-    final userChoice = await server.showUserPrompt(
+    final userChoice = await prompt(
       MessageType.info,
       "Rename '$oldFilename' to '$newFilename'?",
       [
@@ -279,4 +287,24 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
     return userChoice == UserPromptActions.yes;
   }
+}
+
+class RenameRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  RenameRegistrations(super.info);
+
+  @override
+  ToJsonable? get options => RenameRegistrationOptions(
+      documentSelector: fullySupportedTypes, prepareProvider: true);
+
+  @override
+  Method get registrationMethod => Method.textDocument_rename;
+
+  @override
+  StaticOptions get staticOptions => clientCapabilities.renameValidation
+      ? Either2<bool, RenameOptions>.t2(RenameOptions(prepareProvider: true))
+      : Either2<bool, RenameOptions>.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.rename;
 }

@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
@@ -378,13 +377,12 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     String? path,
     Map<String, String>? errors,
     List<String>? experiments,
-    bool? implicitCasts,
     List<String>? lints,
   }) {
     path ??= '$testPackageRootPath/analysis_options.yaml';
     var buffer = StringBuffer();
 
-    if (errors != null || experiments != null || implicitCasts != null) {
+    if (errors != null || experiments != null) {
       buffer.writeln('analyzer:');
     }
 
@@ -400,11 +398,6 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       for (var experiment in experiments) {
         buffer.writeln('    - $experiment');
       }
-    }
-
-    if (implicitCasts != null) {
-      buffer.writeln('  strong-mode:');
-      buffer.writeln('    implicit-casts: $implicitCasts');
     }
 
     if (lints != null) {
@@ -564,7 +557,7 @@ class _IsPositiveInt extends Matcher {
 }
 
 /// An implementation of [Analytics] specialized for testing.
-class _MockAnalytics implements NoopAnalytics {
+class _MockAnalytics implements NoOpAnalytics {
   List<Event> events = [];
 
   _MockAnalytics();
@@ -608,6 +601,9 @@ class _MockAnalytics implements NoopAnalytics {
     events.add(event);
     return http.Response('', 200);
   }
+
+  @override
+  void suppressTelemetry() {}
 }
 
 class _MockPluginInfo implements PluginInfo {

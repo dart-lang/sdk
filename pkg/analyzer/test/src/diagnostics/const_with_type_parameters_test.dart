@@ -135,6 +135,66 @@ class A<T> {
 @reflectiveTest
 class ConstWithTypeParametersFunctionTearoffTest
     extends PubPackageResolutionTest {
+  test_appliedTypeParameter_defaultConstructorValue() async {
+    await assertErrorsInCode(r'''
+void f<T>(T t) => t;
+
+class C<T> {
+  final void Function(T) p;
+  const C({this.p = f});
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          83, 1),
+    ]);
+  }
+
+  test_appliedTypeParameter_defaultFunctionValue() async {
+    await assertErrorsInCode(r'''
+void f<T>(T t) => t;
+
+void bar<T>([void Function(T) p = f]) {}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          56, 1),
+    ]);
+  }
+
+  test_appliedTypeParameter_defaultMethodValue() async {
+    await assertErrorsInCode(r'''
+void f<T>(T t) => t;
+
+class C<T> {
+  void foo([void Function(T) p = f]) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          68, 1),
+    ]);
+  }
+
+  test_appliedTypeParameter_nested() async {
+    await assertErrorsInCode(r'''
+void f<T>(T t) => t;
+
+void bar<T>([void Function(List<T>) p = f]) {}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          62, 1),
+    ]);
+  }
+
+  test_appliedTypeParameter_nestedFunction() async {
+    await assertErrorsInCode(r'''
+void f<T>(T t) => t;
+
+void bar<T>([void Function(T Function()) p = f]) {}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          67, 1)
+    ]);
+  }
+
   test_defaultValue() async {
     await assertErrorsInCode('''
 void f<T>(T a) {}
@@ -144,7 +204,6 @@ class A<U> {
 ''', [
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           65, 1),
-      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 65, 1),
     ]);
   }
 
@@ -160,8 +219,6 @@ class A<U> {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           60, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 60,
-          1),
     ]);
   }
 
@@ -173,6 +230,11 @@ class A<U> {
   final x = f<U>;
 }
 ''', [
+      error(
+          CompileTimeErrorCode
+              .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+          33,
+          5),
       error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
           58, 1),
     ]);

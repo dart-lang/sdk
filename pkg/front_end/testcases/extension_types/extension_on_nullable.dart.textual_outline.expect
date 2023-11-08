@@ -1,8 +1,0 @@
-class A {}
-
-extension E on A? {
-  void foo() {}
-}
-
-bar(E e) => e.foo();
-main() {}

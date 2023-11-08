@@ -836,17 +836,20 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
     writeln('@override');
     writeln('Map<String, Object> toJson() {');
     indent(() {
-      writeln('var result = <String, Object>{};');
+      var resultMapName = type.fields.any((field) => field.name == 'result')
+          ? 'result_'
+          : 'result';
+      writeln('var $resultMapName = <String, Object>{};');
       for (var field in type.fields) {
         var fieldNameString = literalString(field.name);
         var fieldValue = field.value;
         if (fieldValue is String) {
           var valueString = literalString(fieldValue);
-          writeln('result[$fieldNameString] = $valueString;');
+          writeln('$resultMapName[$fieldNameString] = $valueString;');
           continue;
         }
         var fieldToJson = toJsonCode(field.type).asSnippet(field.name);
-        var populateField = 'result[$fieldNameString] = $fieldToJson;';
+        var populateField = '$resultMapName[$fieldNameString] = $fieldToJson;';
         if (field.optional) {
           var name = field.name;
           writeln('var $name = this.$name;');
@@ -859,7 +862,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           writeln(populateField);
         }
       }
-      writeln('return result;');
+      writeln('return $resultMapName;');
     });
     writeln('}');
   }
@@ -956,7 +959,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           case 'long':
             return FromJsonFunction('jsonDecoder.decodeInt');
           case 'object':
-            return FromJsonIdentity();
+            return FromJsonSnippet((jsonPath, json) => '$json as Object');
           default:
             throw Exception('Unexpected type name ${type.typeName}');
         }

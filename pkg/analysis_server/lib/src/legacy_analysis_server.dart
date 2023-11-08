@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
@@ -63,6 +64,7 @@ import 'package:analysis_server/src/handler/legacy/flutter_get_widget_descriptio
 import 'package:analysis_server/src/handler/legacy/flutter_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/flutter_set_widget_property_value.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/handler/legacy/lsp_over_legacy_handler.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_element_references.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_member_declarations.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_member_references.dart';
@@ -75,6 +77,8 @@ import 'package:analysis_server/src/handler/legacy/server_set_client_capabilitie
 import 'package:analysis_server/src/handler/legacy/server_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
+import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -169,6 +173,9 @@ class AnalysisServerOptions {
 class LegacyAnalysisServer extends AnalysisServer {
   /// A map from the name of a request to a function used to create a request
   /// handler.
+  ///
+  /// Requests that don't match anything in this map will be passed to
+  /// [_LspOverLegacyHandler] for possible handling before returning an error.
   static final Map<String, HandlerGenerator> requestHandlerGenerators = {
     ANALYSIS_REQUEST_GET_ERRORS: AnalysisGetErrorsHandler.new,
     ANALYSIS_REQUEST_GET_HOVER: AnalysisGetHoverHandler.new,
@@ -252,6 +259,9 @@ class LegacyAnalysisServer extends AnalysisServer {
         ServerSetClientCapabilitiesHandler.new,
     SERVER_REQUEST_SET_SUBSCRIPTIONS: ServerSetSubscriptionsHandler.new,
     SERVER_REQUEST_SHUTDOWN: ServerShutdownHandler.new,
+
+    //
+    LSP_REQUEST_HANDLE: LspOverLegacyHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
@@ -283,6 +293,22 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// have no registered requests.
   ServerSetClientCapabilitiesParams clientCapabilities =
       ServerSetClientCapabilitiesParams([]);
+
+  @override
+  final lspClientCapabilities = lsp.LspClientCapabilities(
+    lsp.ClientCapabilities(
+      textDocument: lsp.TextDocumentClientCapabilities(
+        hover: lsp.HoverClientCapabilities(
+          contentFormat: [
+            lsp.MarkupKind.Markdown,
+          ],
+        ),
+      ),
+    ),
+  );
+
+  @override
+  final lsp.LspClientConfiguration lspClientConfiguration;
 
   /// A table mapping [FlutterService]s to the file paths for which these
   /// notifications should be sent.
@@ -365,7 +391,9 @@ class LegacyAnalysisServer extends AnalysisServer {
     // Disable to avoid using this in unit tests.
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
-  }) : super(
+  })  : lspClientConfiguration =
+            lsp.LspClientConfiguration(baseResourceProvider.pathContext),
+        super(
           options,
           sdkManager,
           diagnosticServer,
@@ -457,6 +485,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   @override
+  @protected
   bool get supportsShowMessageRequest =>
       clientCapabilities.requests.contains('showMessageRequest');
 
@@ -493,7 +522,6 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
     final startTime = DateTime.now();
-    analyticsManager.startedRequest(request: request, startTime: startTime);
     performance.logRequestTiming(request.clientRequestTime);
 
     // Because we don't `await` the execution of the handlers, we wrap the
@@ -517,8 +545,14 @@ class LegacyAnalysisServer extends AnalysisServer {
         if (generator != null) {
           var handler =
               generator(this, request, cancellationToken, performance);
+          if (!handler.recordsOwnAnalytics) {
+            analyticsManager.startedRequest(
+                request: request, startTime: startTime);
+          }
           await handler.handle();
         } else {
+          analyticsManager.startedRequest(
+              request: request, startTime: startTime);
           sendResponse(Response.unknownRequest(request));
         }
       });
@@ -704,14 +738,19 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// projects/contexts support.
   Future<void> setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths) async {
-    notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+    final completer = analysisContextRebuildCompleter = Completer();
     try {
-      await contextManager.setRoots(includedPaths, excludedPaths);
-    } on UnimplementedError catch (e) {
-      throw RequestFailure(Response.unsupportedFeature(
-          requestId, e.message ?? 'Unsupported feature.'));
+      notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+      try {
+        await contextManager.setRoots(includedPaths, excludedPaths);
+      } on UnimplementedError catch (e) {
+        throw RequestFailure(Response.unsupportedFeature(
+            requestId, e.message ?? 'Unsupported feature.'));
+      }
+      analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
+    } finally {
+      completer.complete();
     }
-    analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
   }
 
   /// Implementation for `analysis.setSubscriptions`.
@@ -766,6 +805,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   }
 
   @override
+  @visibleForOverriding
   Future<String?> showUserPrompt(
     MessageType type,
     String message,

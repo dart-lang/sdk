@@ -11,8 +11,8 @@ import 'package:front_end/src/api_prototype/file_system.dart' as api;
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
+import 'package:front_end/src/fasta/builder/declaration_builders.dart';
 import 'package:front_end/src/fasta/builder/type_builder.dart';
-import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/constant_context.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart';

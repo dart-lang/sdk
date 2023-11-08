@@ -1,2 +1,11 @@
 void main() {}
-List<List<A>> subs<A>(List<A> list) => switch (list) {};
+List<List<A>> subs<A>(List<A> list) => switch (list) {
+      [] => [],
+      [var x, ...var xs] => [
+          for (var ys in subs(xs)) ...[
+            [x] + ys,
+            ys
+          ],
+          [x]
+        ],
+    };

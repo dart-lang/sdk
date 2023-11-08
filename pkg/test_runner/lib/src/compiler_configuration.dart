@@ -422,9 +422,18 @@ class Dart2jsCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add('--out=$outputFileName');
 
-    return Dart2jsCompilationCommand(outputFileName, bootstrapDependencies(),
-        computeCompilerPath(), arguments, environmentOverrides,
-        useSdk: _useSdk, alwaysCompile: !_useSdk);
+    var command = Dart2jsCompilationCommand(
+        outputFileName,
+        bootstrapDependencies(),
+        computeCompilerPath(),
+        arguments,
+        environmentOverrides,
+        useSdk: _useSdk,
+        alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -556,7 +565,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     arguments = arguments.toList();
     arguments.add(outputFileName);
 
-    return CompilationCommand(
+    var command = CompilationCommand(
         'dart2wasm',
         outputFileName,
         bootstrapDependencies(),
@@ -564,6 +573,10 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
         arguments,
         environmentOverrides,
         alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -571,6 +584,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       List<String> arguments, Map<String, String> environmentOverrides) {
     var compilerArguments = [
       ...arguments,
+      ..._configuration.dart2wasmOptions,
     ];
 
     var inputFile = arguments.last;
@@ -595,6 +609,8 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     return [
       '--experimental-wasm-gc',
       '--experimental-wasm-type-reflection',
+      '--wasm-final-types',
+      '--wasm-disable-deprecated',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
       '${filename.substring(0, filename.lastIndexOf('.'))}.mjs',
@@ -609,8 +625,23 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
 
 /// Configuration for "ddc".
 class DevCompilerConfiguration extends CompilerConfiguration {
+  final bool _soundNullSafety;
+
+  /// The output directory under `_configuration.buildDirectory` where DDC build
+  /// targets are output.
+  final String genDir;
+
   DevCompilerConfiguration(TestConfiguration configuration)
-      : super._subclass(configuration);
+      : _soundNullSafety = configuration.nnbdMode == NnbdMode.strong,
+        genDir = [
+          'gen/utils/ddc/',
+          if (configuration.ddcOptions.contains('--canary'))
+            'canary'
+          else
+            'stable',
+          if (configuration.nnbdMode != NnbdMode.strong) '_unsound'
+        ].join(),
+        super._subclass(configuration);
 
   @override
   String computeCompilerPath() {
@@ -632,10 +663,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._configuration.ddcOptions,
       ..._experimentsArgument(_configuration, testFile),
-      if (_configuration.nnbdMode == NnbdMode.strong)
-        '--sound-null-safety'
-      else
-        '--no-sound-null-safety',
+      if (_soundNullSafety) '--sound-null-safety' else '--no-sound-null-safety',
       // The file being compiled is the last argument.
       args.last
     ];
@@ -649,7 +677,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     // the bootstrapping code, instead of a compiler option.
     var options = sharedOptions.toList();
     options.remove('--null-assertions');
-    if (!_useSdk || _configuration.nnbdMode != NnbdMode.strong) {
+    if (!_useSdk || !_soundNullSafety) {
       // If we're testing a built SDK, DDC will find its own summary.
       //
       // Unsound summary files are not longer bundled with the built SDK so they
@@ -657,9 +685,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       //
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
-      var sdkSummaryFile = _configuration.nnbdMode == NnbdMode.strong
-          ? 'ddc_outline.dill'
-          : 'ddc_outline_unsound.dill';
+      var sdkSummaryFile =
+          _soundNullSafety ? 'ddc_outline.dill' : 'ddc_outline_unsound.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
           .append(sdkSummaryFile)
           .absolute
@@ -684,9 +711,6 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // TODO(sigmund): allow caching of shared packages in legacy mode too.
       // Link to the summaries for the available packages, so that they don't
       // get recompiled into the test's own module.
-      var packageSummaryDir = _configuration.nnbdMode == NnbdMode.strong
-          ? 'pkg_sound'
-          : 'pkg_kernel';
       for (var package in testPackages) {
         args.add("-s");
 
@@ -694,7 +718,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         // dartdevc explicit module paths for each one. When the test is run, we
         // will tell require.js where to find each package's compiled JS.
         var summary = Path(_configuration.buildDirectory)
-            .append("/gen/utils/dartdevc/$packageSummaryDir/$package.dill")
+            .append('$genDir/pkg/$package.dill')
             .absolute
             .toNativePath();
         args.add("$summary=$package");
@@ -704,9 +728,13 @@ class DevCompilerConfiguration extends CompilerConfiguration {
     var compilerPath = _useSdk
         ? '${_configuration.buildDirectory}/dart-sdk/bin/snapshots/dartdevc.dart.snapshot'
         : Repository.uri.resolve('pkg/dev_compiler/bin/dartdevc.dart').path;
-    return DevCompilerCompilationCommand(outputFile, bootstrapDependencies(),
-        computeCompilerPath(), args, environment,
+    var command = DevCompilerCompilationCommand(outputFile,
+        bootstrapDependencies(), computeCompilerPath(), args, environment,
         compilerPath: compilerPath, alwaysCompile: false);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -735,17 +763,14 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       var nativeNonNullAsserts = arguments.contains('--native-null-assertions');
       var weakNullSafetyErrors =
           arguments.contains('--weak-null-safety-errors');
-      var soundNullSafety = _configuration.nnbdMode == NnbdMode.strong;
-      var weakNullSafetyWarnings = !(weakNullSafetyErrors || soundNullSafety);
+      var weakNullSafetyWarnings = !(weakNullSafetyErrors || _soundNullSafety);
       var repositoryUri = Uri.directory(Repository.dir.toNativePath());
       var dartLibraryPath = repositoryUri
           .resolve('pkg/dev_compiler/lib/js/legacy/dart_library.js')
           .path;
-      var sdkJsDir = Uri.directory(_configuration.buildDirectory)
-          .resolve('gen/utils/dartdevc/');
-      var sdkJsPath = soundNullSafety
-          ? 'sound/legacy/dart_sdk.js'
-          : 'kernel/legacy/dart_sdk.js';
+      var sdkJsDir =
+          Uri.directory(_configuration.buildDirectory).resolve('$genDir/sdk');
+      var sdkJsPath = 'dart_sdk.js';
       var libraryName = inputUri.path
           .substring(repositoryUri.path.length)
           .replaceAll("/", "__")
@@ -953,7 +978,10 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
         "--snapshot-kind=app-aot-assembly",
         "--assembly=$tempDir/out.S",
       ],
-      if (_isAndroid && _isArm) '--no-sim-use-hardfp',
+      if (_isAndroid && (_isArm || _isArmX64)) ...[
+        '--no-sim-use-hardfp',
+        '--no-use-integer-division',
+      ],
       if (_configuration.isMinified) '--obfuscate',
       ..._nnbdModeArgument(_configuration),
       // The SIMARM precompiler assumes support for integer division, but the
@@ -1011,10 +1039,21 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var ldFlags = <String>[];
     List<String>? target;
     if (_isAndroid) {
-      cc = "$ndkPath/toolchains/$abiTriple-4.9/prebuilt/"
-          "$host-x86_64/bin/$abiTriple-gcc";
+      if (_isArm || _isArmX64) {
+        cc =
+            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/armv7a-linux-androideabi21-clang';
+      } else if (_isArm64) {
+        cc =
+            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/aarch64-linux-android21-clang';
+      } else if (_isX64) {
+        cc =
+            '$ndkPath/toolchains/llvm/prebuilt/$host-x86_64/bin/x86_64-linux-android21-clang';
+      } else {
+        throw 'Unimplemented';
+      }
       shared = '-shared';
       ldFlags.add('-Wl,--no-undefined');
+      ldFlags.add('-Wl,-z,max-page-size=65536');
     } else if (Platform.isLinux) {
       if (_isSimArm || (_isArm && _configuration.useQemu)) {
         cc = 'arm-linux-gnueabihf-gcc';
@@ -1170,6 +1209,7 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
     var multiplier = 1;
     if (_isDebug) multiplier *= 2;
     if (_enableAsserts) multiplier *= 2;
+    if (_configuration.rr) multiplier *= 2;
     return multiplier;
   }
 
@@ -1198,9 +1238,13 @@ class AppJitCompilerConfiguration extends CompilerConfiguration {
       arguments.insertAll(0, config.arguments);
       executable = config.executable;
     }
-    return CompilationCommand('app_jit', tempDir, bootstrapDependencies(),
-        executable, arguments, environmentOverrides,
+    var command = CompilationCommand('app_jit', tempDir,
+        bootstrapDependencies(), executable, arguments, environmentOverrides,
         alwaysCompile: !_useSdk);
+    if (_configuration.rr) {
+      return RRCommand(command);
+    }
+    return command;
   }
 
   @override
@@ -1377,7 +1421,8 @@ abstract class VMKernelCompilerMixin {
           name.startsWith('-D') ||
           name.startsWith('--define') ||
           name.startsWith('--packages=') ||
-          name.startsWith('--enable-experiment=')),
+          name.startsWith('--enable-experiment=') ||
+          name.startsWith('--keep-class-names-implementing=')),
       '-Ddart.vm.product=$isProductMode',
       if (_enableAsserts ||
           arguments.contains('--enable-asserts') ||

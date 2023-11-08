@@ -230,7 +230,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
         type is VoidType ||
         type is NeverType ||
         type is NullType ||
-        type is InlineType ||
+        type is ExtensionType ||
         // TODO(johnniwinther): What about intersection types?
         type is TypeParameterType;
   }
@@ -644,17 +644,13 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
   const ExhaustiveDartTypeVisitor();
 
   @override
-  bool defaultDartType(DartType type, CoreTypes coreTypes) {
-    throw new UnsupportedError('Unsupported type $type');
+  bool visitAuxiliaryType(AuxiliaryType node, CoreTypes coreTypes) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type $node (${node.runtimeType}).");
   }
 
   @override
   bool visitDynamicType(DynamicType type, CoreTypes coreTypes) {
-    return false;
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType type, CoreTypes coreTypes) {
     return false;
   }
 
@@ -669,8 +665,8 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
   }
 
   @override
-  bool visitInlineType(InlineType type, CoreTypes coreTypes) {
-    return type.instantiatedRepresentationType.accept1(this, coreTypes);
+  bool visitExtensionType(ExtensionType type, CoreTypes coreTypes) {
+    return type.typeErasure.accept1(this, coreTypes);
   }
 
   @override
@@ -723,6 +719,12 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
 
   @override
   bool visitTypeParameterType(TypeParameterType type, CoreTypes coreTypes) {
+    return type.bound.accept1(this, coreTypes);
+  }
+
+  @override
+  bool visitStructuralParameterType(
+      StructuralParameterType type, CoreTypes coreTypes) {
     return type.bound.accept1(this, coreTypes);
   }
 

@@ -149,16 +149,20 @@ class HInstructionStringifier implements HVisitor<String> {
   AbstractValueDomain get _abstractValueDomain =>
       closedWorld.abstractValueDomain;
 
-  visit(HInstruction node) => '${node.accept(this)} ${node.instructionType}';
+  visit(HInstruction node) => node is HControlFlow
+      ? '${node.accept(this)}'
+      : '${node.accept(this)} ${node.instructionType}';
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    if (instruction.isNull(_abstractValueDomain).isDefinitelyTrue) {
+    if (instruction is HControlFlow) {
+      prefix = 'c';
+    } else if (instruction.isNull(_abstractValueDomain).isDefinitelyTrue) {
       prefix = 'u';
     } else if (instruction
         .isConflicting(_abstractValueDomain)
         .isDefinitelyTrue) {
-      prefix = 'c';
+      prefix = 'x';
     } else if (instruction
         .isExtendableArray(_abstractValueDomain)
         .isDefinitelyTrue) {

@@ -42,16 +42,29 @@ abstract class ClassHierarchyBase {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
 
-  /// Returns the instantiation of [superclass] that is implemented by [type],
-  /// or `null` if [type] does not implement [superclass] at all.
-  InlineType? getInlineTypeAsInstanceOf(InlineType type, InlineClass superclass,
+  /// Returns the instantiation of [superDeclaration] that is implemented by
+  /// [type], or `null` if [type] does not implement [superDeclaration] at all.
+  ExtensionType? getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
+      ExtensionType type, ExtensionTypeDeclaration superDeclaration,
       {required bool isNonNullableByDefault});
 
-  /// Returns the type arguments of the instantiation of [superclass] that is
-  /// implemented by [type], or `null` if [type] does not implement [superclass]
-  /// at all.
-  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
-      InlineType type, InlineClass superclass);
+  /// Returns the instantiation of [superclass] that is implemented by [type],
+  /// or `null` if [type] does not implement [superclass] at all.
+  InterfaceType? getExtensionTypeAsInstanceOfClass(
+      ExtensionType type, Class superclass,
+      {required bool isNonNullableByDefault});
+
+  /// Returns the type arguments of the instantiation of [superDeclaration] that
+  /// is implemented by [type], or `null` if [type] does not implement
+  /// [superDeclaration] at all.
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
+      ExtensionType type, ExtensionTypeDeclaration superDeclaration);
+
+  /// Returns the type arguments of the instantiation of [superDeclaration] that
+  /// is implemented by [type], or `null` if [type] does not implement
+  /// [superDeclaration] at all.
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOfClass(
+      ExtensionType type, Class superclass);
 
   /// True if [subtype] inherits from [superclass] though zero or more
   /// `extends`, `with`, and `implements` relationships.
@@ -77,53 +90,130 @@ abstract class ClassHierarchyBase {
       {required bool isNonNullableByDefault});
 }
 
-mixin ClassHierarchyInlineClassMixin {
-  CoreTypes get coreTypes;
-
-  InlineType? getInlineClassAsInstanceOf(
-      InlineClass subclass, InlineClass superclass,
-      {required bool isNonNullableByDefault}) {
+mixin ClassHierarchyExtensionTypeMixin implements ClassHierarchyBase {
+  ExtensionType?
+      getExtensionTypeDeclarationAsInstanceOfExtensionTypeDeclaration(
+          ExtensionTypeDeclaration subDeclaration,
+          ExtensionTypeDeclaration superDeclaration,
+          {required bool isNonNullableByDefault}) {
     // TODO(johnniwinther): Improve lookup performance.
-    if (identical(subclass, superclass)) {
-      return coreTypes.thisInlineType(
-          subclass,
+    if (identical(subDeclaration, superDeclaration)) {
+      return coreTypes.thisExtensionType(
+          subDeclaration,
           isNonNullableByDefault
               ? Nullability.nonNullable
               : Nullability.legacy);
     }
-    for (InlineType implement in subclass.implements) {
-      InlineType? supertype = getInlineClassAsInstanceOf(
-          implement.inlineClass, superclass,
-          isNonNullableByDefault: isNonNullableByDefault);
-      if (supertype != null) {
-        if (implement.typeArguments.isNotEmpty) {
-          supertype = Substitution.fromInlineType(implement)
-              .substituteType(supertype) as InlineType;
+    for (DartType implement in subDeclaration.implements) {
+      if (implement is ExtensionType) {
+        ExtensionType? supertype =
+            getExtensionTypeDeclarationAsInstanceOfExtensionTypeDeclaration(
+                implement.extensionTypeDeclaration, superDeclaration,
+                isNonNullableByDefault: isNonNullableByDefault);
+        if (supertype != null) {
+          if (implement.typeArguments.isNotEmpty) {
+            supertype = Substitution.fromExtensionType(implement)
+                .substituteType(supertype) as ExtensionType;
+          }
+          return supertype;
         }
-        return supertype;
+      } else if (implement is InterfaceType) {
+        // Extension type declarations cannot be implemented through classes.
+      } else {
+        assert(
+            false,
+            "Unexpected supertype $implement extension type declaration of "
+            "$subDeclaration.");
       }
     }
     return null;
   }
 
-  InlineType? getInlineTypeAsInstanceOf(InlineType type, InlineClass superclass,
+  InterfaceType? getExtensionTypeDeclarationAsInstanceOfClass(
+      ExtensionTypeDeclaration subDeclaration, Class superclass,
       {required bool isNonNullableByDefault}) {
-    InlineType? supertype = getInlineClassAsInstanceOf(
-        type.inlineClass, superclass,
-        isNonNullableByDefault: isNonNullableByDefault);
+    // TODO(johnniwinther): Improve lookup performance.
+    for (DartType implement in subDeclaration.implements) {
+      if (implement is ExtensionType) {
+        InterfaceType? supertype = getExtensionTypeDeclarationAsInstanceOfClass(
+            implement.extensionTypeDeclaration, superclass,
+            isNonNullableByDefault: isNonNullableByDefault);
+        if (supertype != null) {
+          if (implement.typeArguments.isNotEmpty) {
+            supertype = Substitution.fromExtensionType(implement)
+                .substituteType(supertype) as InterfaceType;
+          }
+          return supertype;
+        }
+      } else if (implement is InterfaceType) {
+        Supertype? supertype =
+            getClassAsInstanceOf(implement.classNode, superclass);
+        if (supertype != null) {
+          if (implement.typeArguments.isNotEmpty) {
+            supertype = Substitution.fromInterfaceType(implement)
+                .substituteSupertype(supertype);
+          }
+          return new InterfaceType(supertype.classNode, Nullability.nonNullable,
+              supertype.typeArguments);
+        }
+      } else {
+        assert(
+            false,
+            "Unexpected supertype $implement extension type declaration of "
+            "$subDeclaration.");
+      }
+    }
+    return null;
+  }
+
+  @override
+  ExtensionType? getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
+      ExtensionType type, ExtensionTypeDeclaration superclass,
+      {required bool isNonNullableByDefault}) {
+    ExtensionType? supertype =
+        getExtensionTypeDeclarationAsInstanceOfExtensionTypeDeclaration(
+            type.extensionTypeDeclaration, superclass,
+            isNonNullableByDefault: isNonNullableByDefault);
     if (supertype != null) {
       if (type.typeArguments.isNotEmpty) {
-        supertype = Substitution.fromInlineType(type).substituteType(supertype)
-            as InlineType;
+        supertype = Substitution.fromExtensionType(type)
+            .substituteType(supertype) as ExtensionType;
       }
       return supertype;
     }
     return null;
   }
 
-  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
-      InlineType type, InlineClass superclass) {
-    return getInlineTypeAsInstanceOf(type, superclass,
+  @override
+  InterfaceType? getExtensionTypeAsInstanceOfClass(
+      ExtensionType type, Class superclass,
+      {required bool isNonNullableByDefault}) {
+    InterfaceType? supertype = getExtensionTypeDeclarationAsInstanceOfClass(
+        type.extensionTypeDeclaration, superclass,
+        isNonNullableByDefault: isNonNullableByDefault);
+    if (supertype != null) {
+      if (type.typeArguments.isNotEmpty) {
+        supertype = Substitution.fromExtensionType(type)
+            .substituteType(supertype) as InterfaceType;
+      }
+      return supertype;
+    }
+    return null;
+  }
+
+  @override
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
+      ExtensionType type, ExtensionTypeDeclaration superDeclaration) {
+    return getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
+            type, superDeclaration,
+            isNonNullableByDefault: true)
+        ?.typeArguments;
+  }
+
+  @override
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOfClass(
+      ExtensionType type, Class superclass) {
+    return getExtensionTypeAsInstanceOfClass(type, superclass,
             isNonNullableByDefault: true)
         ?.typeArguments;
   }
@@ -519,7 +609,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy
-    with ClassHierarchyInlineClassMixin
+    with ClassHierarchyExtensionTypeMixin
     implements ClassHierarchy {
   @override
   CoreTypes coreTypes;

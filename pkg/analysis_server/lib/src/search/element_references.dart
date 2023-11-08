@@ -19,11 +19,11 @@ class ElementReferencesComputer {
   Future<List<SearchMatch>> compute(Element element, bool withPotential,
       {OperationPerformanceImpl? performance}) async {
     var results = <SearchMatch>[];
-    performance ??= OperationPerformanceImpl("<root>");
+    performance ??= OperationPerformanceImpl('<root>');
 
     // Add element references.
     results.addAll(await performance.runAsync(
-        "_findElementsReferences",
+        '_findElementsReferences',
         (childPerformance) =>
             _findElementsReferences(element, childPerformance)));
 
@@ -31,7 +31,7 @@ class ElementReferencesComputer {
     if (withPotential && _isMemberElement(element)) {
       var name = element.displayName;
       var matches = await performance.runAsync(
-          "searchEngine.searchMemberReferences",
+          'searchEngine.searchMemberReferences',
           (_) => searchEngine.searchMemberReferences(name));
       results.addAll(matches.where((match) => !match.isResolved));
     }
@@ -44,11 +44,11 @@ class ElementReferencesComputer {
   Future<List<SearchMatch>> _findElementsReferences(
       Element element, OperationPerformanceImpl performance) async {
     var allResults = <SearchMatch>[];
-    var refElements = await performance.runAsync("_getRefElements",
+    var refElements = await performance.runAsync('_getRefElements',
         (childPerformance) => _getRefElements(element, childPerformance));
     for (var refElement in refElements) {
       var elementResults = await performance.runAsync(
-          "_findSingleElementReferences",
+          '_findSingleElementReferences',
           (_) => _findSingleElementReferences(refElement));
       allResults.addAll(elementResults);
     }
@@ -70,12 +70,12 @@ class ElementReferencesComputer {
   Future<Iterable<Element>> _getRefElements(
       Element element, OperationPerformanceImpl performance) {
     if (element is ParameterElement && element.isNamed) {
-      return performance.runAsync("getHierarchyNamedParameters",
+      return performance.runAsync('getHierarchyNamedParameters',
           (_) => getHierarchyNamedParameters(searchEngine, element));
     }
     if (element is ClassMemberElement) {
       return performance.runAsync(
-          "getHierarchyMembers",
+          'getHierarchyMembers',
           (performance) => getHierarchyMembers(searchEngine, element,
               performance: performance));
     }

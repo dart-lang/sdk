@@ -28,7 +28,7 @@ class BytesBacked {
 }
 
 class CoffFileHeader extends BytesBacked {
-  CoffFileHeader._(ByteData data) : super(data);
+  CoffFileHeader._(super.data);
 
   static const _fileHeaderSize = 20;
   static const _sectionCountOffset = 2;
@@ -53,7 +53,7 @@ class CoffFileHeader extends BytesBacked {
 }
 
 class CoffOptionalHeader extends BytesBacked {
-  CoffOptionalHeader._(ByteData data) : super(data);
+  CoffOptionalHeader._(super.data);
 
   static const _pe32Magic = 0x10b;
   static const _pe32PlusMagic = 0x20b;
@@ -96,7 +96,7 @@ class CoffOptionalHeader extends BytesBacked {
 }
 
 class CoffSectionHeader extends BytesBacked {
-  CoffSectionHeader._(ByteData data) : super(data);
+  CoffSectionHeader._(super.data);
 
   static const _virtualSizeOffset = 8;
   static const _virtualAddressOffset = 12;
@@ -148,7 +148,7 @@ class CoffSectionHeader extends BytesBacked {
 }
 
 class CoffSectionTable extends BytesBacked {
-  CoffSectionTable._(ByteData data) : super(data);
+  CoffSectionTable._(super.data);
 
   static const _entrySize = 40;
 

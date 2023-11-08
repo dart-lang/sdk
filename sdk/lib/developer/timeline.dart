@@ -17,7 +17,9 @@ typedef TimelineSyncFunction<T> = T Function();
 typedef Future TimelineAsyncFunction();
 
 // These values must be kept in sync with the enum "EventType" in
-// runtime/vm/timeline.h.
+// runtime/vm/timeline.h, along with the JS-specific implementations in:
+// - _internal/js_runtime/lib/developer_patch.dart
+// - _internal/js_dev_runtime/patch/developer_patch.dart
 const int _begin = 1;
 const int _end = 2;
 const int _instant = 4;
@@ -244,7 +246,7 @@ final class TimelineTask {
         map[key] = arguments[key];
       }
     }
-    if (_parent != null) map['parentId'] = _parent!._taskId.toRadixString(16);
+    if (_parent != null) map['parentId'] = _parent._taskId.toRadixString(16);
     if (_filterKey != null) map[_kFilterKey] = _filterKey;
     block._start(map);
   }

@@ -18,11 +18,20 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// the class ID of the masquerade.
 class TypeCategory {
   static const abstractClass = 0;
-  static const function = 1;
-  static const record = 2;
-  static const notMasqueraded = 3;
-  static const minMasqueradeClassId = 4;
+  static const object = 1;
+  static const function = 2;
+  static const record = 3;
+  static const notMasqueraded = 4;
+  static const minMasqueradeClassId = 5;
   static const maxMasqueradeClassId = 63; // Leaves 2 unused bits for future use
+}
+
+/// Values for the `_kind` field in `_TopType`. Must match the definitions in
+/// `_TopType`.
+class TopTypeKind {
+  static const int objectKind = 0;
+  static const int dynamicKind = 1;
+  static const int voidKind = 2;
 }
 
 class InterfaceTypeEnvironment {
@@ -48,8 +57,16 @@ class Types {
       translator.classInfo[translator.typeClass]!;
 
   /// Wasm value type of `List<_Type>`
-  late final w.ValueType typeListExpectedType = classAndFieldToType(
-      translator.interfaceTypeClass, FieldIndex.interfaceTypeTypeArguments);
+  late final w.ValueType typeListExpectedType =
+      translator.classInfo[translator.listBaseClass]!.nonNullableType;
+
+  /// Wasm array type of `WasmObjectArray<_Type>`
+  late final w.ArrayType typeArrayArrayType =
+      translator.arrayTypeForDartType(typeType);
+
+  /// Wasm value type of `WasmObjectArray<_Type>`
+  late final w.ValueType typeArrayExpectedType =
+      w.RefType.def(typeArrayArrayType, nullable: false);
 
   /// Wasm value type of `List<_NamedParameter>`
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
@@ -94,7 +111,7 @@ class Types {
 
   /// Index value for function type parameter types, indexing into the type
   /// parameter index range of their corresponding function type.
-  Map<TypeParameter, int> functionTypeParameterIndex = Map.identity();
+  Map<StructuralParameter, int> functionTypeParameterIndex = Map.identity();
 
   /// An `i8` array of type category values, indexed by class ID.
   late final w.Global typeCategoryTable = _buildTypeCategoryTable();
@@ -202,7 +219,7 @@ class Types {
   /// implement.
   /// TODO(joshualitt): This implementation is just temporary. Eventually we
   /// should move to a data structure more closely resembling [typeRules].
-  w.ValueType makeTypeRulesSupers(w.Instructions b) {
+  w.ValueType makeTypeRulesSupers(w.InstructionsBuilder b) {
     w.ValueType expectedType =
         translator.classInfo[translator.immutableListClass]!.nonNullableType;
     DartType listIntType = InterfaceType(translator.immutableListClass,
@@ -222,7 +239,7 @@ class Types {
   /// Similar to the above, but provides the substitutions required for each
   /// supertype.
   /// TODO(joshualitt): Like [makeTypeRulesSupers], this is just temporary.
-  w.ValueType makeTypeRulesSubstitutions(w.Instructions b) {
+  w.ValueType makeTypeRulesSubstitutions(w.InstructionsBuilder b) {
     w.ValueType expectedType =
         translator.classInfo[translator.immutableListClass]!.nonNullableType;
     DartType listTypeType = InterfaceType(
@@ -252,7 +269,7 @@ class Types {
   }
 
   /// Returns a list of string type names for pretty printing types.
-  w.ValueType makeTypeNames(w.Instructions b) {
+  w.ValueType makeTypeNames(w.InstructionsBuilder b) {
     w.ValueType expectedType =
         translator.classInfo[translator.immutableListClass]!.nonNullableType;
     List<StringConstant> listStringConstant = [];
@@ -279,6 +296,8 @@ class Types {
       int category;
       if (cls == null || cls.isAbstract) {
         category = TypeCategory.abstractClass;
+      } else if (cls == coreTypes.objectClass) {
+        category = TypeCategory.object;
       } else if (cls == translator.closureClass) {
         category = TypeCategory.function;
       } else if (recordClasses.contains(cls)) {
@@ -288,7 +307,6 @@ class Types {
       } else {
         // Masqueraded class
         assert(cls.enclosingLibrary.importUri.scheme == "dart");
-        assert(cls.name.startsWith('_'));
         assert(masquerade.classId >= TypeCategory.minMasqueradeClassId);
         assert(masquerade.classId <= TypeCategory.maxMasqueradeClassId);
         category = masquerade.classId;
@@ -296,17 +314,17 @@ class Types {
       table[i] = category;
     }
 
-    w.DataSegment segment = translator.m.addDataSegment(table);
+    final segment = translator.m.dataSegments.define(table);
     w.ArrayType arrayType =
         translator.wasmArrayType(w.PackedType.i8, "const i8", mutable: false);
-    w.DefinedGlobal global = translator.m
-        .addGlobal(w.GlobalType(w.RefType.def(arrayType, nullable: false)));
+    final global = translator.m.globals
+        .define(w.GlobalType(w.RefType.def(arrayType, nullable: false)));
     // Initialize the global to a dummy array, since `array.new_data` is not
     // a constant instruction and thus can't be used in the initializer.
     global.initializer.array_new_fixed(arrayType, 0);
     global.initializer.end();
     // Create the actual table in the init function.
-    w.Instructions b = translator.initFunction.body;
+    final b = translator.initFunction.body;
     b.i32_const(0);
     b.i32_const(table.length);
     b.array_new_data(arrayType, segment);
@@ -314,9 +332,6 @@ class Types {
 
     return global;
   }
-
-  bool isFunctionTypeParameter(TypeParameterType type) =>
-      type.parameter.parent == null;
 
   bool _isTypeConstant(DartType type) {
     return type is DynamicType ||
@@ -333,44 +348,58 @@ class Types {
         (type is RecordType &&
             type.positional.every(_isTypeConstant) &&
             type.named.every((n) => _isTypeConstant(n.type))) ||
-        type is TypeParameterType && isFunctionTypeParameter(type) ||
-        type is InlineType &&
-            _isTypeConstant(type.instantiatedRepresentationType);
+        type is StructuralParameterType ||
+        type is ExtensionType && _isTypeConstant(type.typeErasure);
   }
 
   Class classForType(DartType type) {
     if (type is DynamicType) {
-      return translator.dynamicTypeClass;
+      return translator.topTypeClass;
     } else if (type is VoidType) {
-      return translator.voidTypeClass;
+      return translator.topTypeClass;
     } else if (type is NeverType) {
-      // For runtime types with sound null safety, `Never?` is the same as
-      // `Null`.
-      if (type.nullability == Nullability.nullable) {
-        return translator.nullTypeClass;
-      } else {
-        return translator.neverTypeClass;
-      }
+      return translator.bottomTypeClass;
     } else if (type is NullType) {
-      return translator.nullTypeClass;
+      return translator.bottomTypeClass;
     } else if (type is FutureOrType) {
       return translator.futureOrTypeClass;
     } else if (type is InterfaceType) {
+      if (type.classNode == coreTypes.objectClass) {
+        return translator.topTypeClass;
+      }
+      if (type.classNode == coreTypes.functionClass) {
+        return translator.abstractFunctionTypeClass;
+      }
+      if (type.classNode == coreTypes.recordClass) {
+        return translator.abstractRecordTypeClass;
+      }
       return translator.interfaceTypeClass;
     } else if (type is FunctionType) {
       return translator.functionTypeClass;
     } else if (type is TypeParameterType) {
-      if (isFunctionTypeParameter(type)) {
-        return translator.functionTypeParameterTypeClass;
-      } else {
-        return translator.interfaceTypeParameterTypeClass;
-      }
-    } else if (type is InlineType) {
-      return classForType(type.instantiatedRepresentationType);
+      return translator.interfaceTypeParameterTypeClass;
+    } else if (type is StructuralParameterType) {
+      return translator.functionTypeParameterTypeClass;
+    } else if (type is ExtensionType) {
+      return classForType(type.typeErasure);
     } else if (type is RecordType) {
       return translator.recordTypeClass;
     }
     throw "Unexpected DartType: $type";
+  }
+
+  bool isSpecializedClass(Class cls) {
+    return cls == coreTypes.objectClass ||
+        cls == coreTypes.functionClass ||
+        cls == coreTypes.recordClass;
+  }
+
+  int topTypeKind(DartType type) {
+    return type is VoidType
+        ? TopTypeKind.voidKind
+        : type is DynamicType
+            ? TopTypeKind.dynamicKind
+            : TopTypeKind.objectKind;
   }
 
   /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
@@ -385,12 +414,26 @@ class Types {
     }
   }
 
+  /// Allocates a `WasmObjectArray<_Type>` from [types] and pushes it to the
+  /// stack.
+  void _makeTypeArray(CodeGenerator codeGen, Iterable<DartType> types) {
+    if (types.every(_isTypeConstant)) {
+      translator.constants.instantiateConstant(codeGen.function, codeGen.b,
+          translator.constants.makeTypeArray(types), typeArrayExpectedType);
+    } else {
+      for (DartType type in types) {
+        makeType(codeGen, type);
+      }
+      codeGen.b.array_new_fixed(typeArrayArrayType, types.length);
+    }
+  }
+
   void _makeInterfaceType(CodeGenerator codeGen, InterfaceType type) {
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
     b.i32_const(encodedNullability(type));
     b.i64_const(typeInfo.classId);
-    _makeTypeList(codeGen, type.typeArguments);
+    _makeTypeArray(codeGen, type.typeArguments);
   }
 
   void _makeRecordType(CodeGenerator codeGen, RecordType type) {
@@ -409,16 +452,22 @@ class Types {
   }
 
   /// Normalizes a Dart type. Many rules are already applied for us, but we
-  /// still have to manually normalize [FutureOr].
+  /// still have to manually turn `Never?` into `Null` and normalize `FutureOr`.
   DartType normalize(DartType type) {
+    if (type is NeverType && type.declaredNullability == Nullability.nullable) {
+      return const NullType();
+    }
+
     if (type is! FutureOrType) return type;
 
     final s = normalize(type.typeArgument);
 
-    // `coreTypes.isTope` and `coreTypes.isObject` take into account the
-    // normalization rules of `futureOr`.
+    // `coreTypes.isTop` and `coreTypes.isObject` take into account the
+    // normalization rules of `FutureOr`.
     if (coreTypes.isTop(type) || coreTypes.isObject(type)) {
-      return s;
+      return type.declaredNullability == Nullability.nullable
+          ? s.withDeclaredNullability(Nullability.nullable)
+          : s;
     } else if (s is NeverType) {
       return InterfaceType(coreTypes.futureClass, Nullability.nonNullable,
           const [const NeverType.nonNullable()]);
@@ -436,7 +485,7 @@ class Types {
   }
 
   void _makeFutureOrType(CodeGenerator codeGen, FutureOrType type) {
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     b.i32_const(encodedNullability(type));
     makeType(codeGen, type.typeArgument);
     codeGen.call(translator.createNormalizedFutureOrType.reference);
@@ -444,7 +493,7 @@ class Types {
 
   void _makeFunctionType(CodeGenerator codeGen, FunctionType type) {
     int typeParameterOffset = computeFunctionTypeParameterOffset(type);
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     b.i32_const(encodedNullability(type));
     b.i64_const(typeParameterOffset);
 
@@ -501,7 +550,7 @@ class Types {
   w.ValueType makeType(CodeGenerator codeGen, DartType type) {
     // Always ensure type is normalized before making a type.
     type = normalize(type);
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     if (_isTypeConstant(type)) {
       translator.constants.instantiateConstant(
           codeGen.function, b, TypeLiteralConstant(type), nonNullableTypeType);
@@ -510,13 +559,12 @@ class Types {
     // All of the singleton types represented by canonical objects should be
     // created const.
     assert(type is TypeParameterType ||
-        type is InlineType ||
+        type is ExtensionType ||
         type is InterfaceType ||
         type is FutureOrType ||
         type is FunctionType ||
         type is RecordType);
     if (type is TypeParameterType) {
-      assert(!isFunctionTypeParameter(type));
       codeGen.instantiateTypeParameter(type.parameter);
       if (type.declaredNullability == Nullability.nullable) {
         codeGen.call(translator.typeAsNullable.reference);
@@ -524,8 +572,8 @@ class Types {
       return nonNullableTypeType;
     }
 
-    if (type is InlineType) {
-      return makeType(codeGen, type.instantiatedRepresentationType);
+    if (type is ExtensionType) {
+      return makeType(codeGen, type.typeErasure);
     }
 
     ClassInfo info = translator.classInfo[classForType(type)]!;
@@ -569,7 +617,7 @@ class Types {
 
   /// Get the index value for a function type parameter, indexing into the
   /// type parameter index range of its corresponding function type.
-  int getFunctionTypeParameterIndex(TypeParameter type) {
+  int getFunctionTypeParameterIndex(StructuralParameter type) {
     assert(functionTypeParameterIndex.containsKey(type),
         "Type parameter offset has not been computed for function type");
     return functionTypeParameterIndex[type]!;
@@ -580,7 +628,7 @@ class Types {
   /// TODO(joshualitt): Remove dependency on [CodeGenerator]
   void emitTypeTest(
       CodeGenerator codeGen, DartType type, DartType operandType) {
-    w.Instructions b = codeGen.b;
+    final b = codeGen.b;
     if (type is! InterfaceType) {
       makeType(codeGen, type);
       codeGen.call(translator.isSubtype.reference);
@@ -689,7 +737,7 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
 
   final List<FunctionType> _functionStack = [];
   final List<Set<FunctionType>> _functionsContainingParameters = [];
-  final Map<TypeParameter, int> _functionForParameter = {};
+  final Map<StructuralParameter, int> _functionForParameter = {};
 
   _FunctionTypeParameterOffsetCollector(this.types);
 
@@ -700,7 +748,7 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
     _functionsContainingParameters.add({});
 
     for (int i = 0; i < node.typeParameters.length; i++) {
-      TypeParameter parameter = node.typeParameters[i];
+      StructuralParameter parameter = node.typeParameters[i];
       _functionForParameter[parameter] = slot;
     }
 
@@ -716,7 +764,7 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
     types.functionTypeParameterOffset[node] = offset;
 
     for (int i = 0; i < node.typeParameters.length; i++) {
-      TypeParameter parameter = node.typeParameters[i];
+      StructuralParameter parameter = node.typeParameters[i];
       types.functionTypeParameterIndex[parameter] = offset + i;
     }
 
@@ -725,12 +773,10 @@ class _FunctionTypeParameterOffsetCollector extends RecursiveVisitor {
   }
 
   @override
-  void visitTypeParameterType(TypeParameterType node) {
-    if (types.isFunctionTypeParameter(node)) {
-      int slot = _functionForParameter[node.parameter]!;
-      for (int inner = slot + 1; inner < _functionStack.length; inner++) {
-        _functionsContainingParameters[slot].add(_functionStack[inner]);
-      }
+  void visitStructuralParameterType(StructuralParameterType node) {
+    int slot = _functionForParameter[node.parameter]!;
+    for (int inner = slot + 1; inner < _functionStack.length; inner++) {
+      _functionsContainingParameters[slot].add(_functionStack[inner]);
     }
   }
 }

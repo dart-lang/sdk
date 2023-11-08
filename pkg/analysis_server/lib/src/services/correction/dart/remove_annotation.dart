@@ -56,6 +56,7 @@ class RemoveAnnotation extends ResolvedCorrectionProducer {
       await addFix(findAnnotation(node.metadata, 'required'));
     } else if (node is MethodDeclaration) {
       await addFix(findAnnotation(node.metadata, 'override'));
+      await addFix(findAnnotation(node.metadata, 'redeclare'));
     } else if (node is VariableDeclaration) {
       var fieldDeclaration = node.thisOrAncestorOfType<FieldDeclaration>();
       if (fieldDeclaration != null) {

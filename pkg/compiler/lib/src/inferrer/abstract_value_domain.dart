@@ -94,7 +94,7 @@ class AbstractValueWithPrecision {
 }
 
 /// A system that implements an abstraction over runtime values.
-abstract class AbstractValueDomain {
+mixin AbstractValueDomain {
   /// The [AbstractValue] that represents a type which has not yet been
   /// computed. Type graph nodes may carry this type during construction of the
   /// graph, but it should be replaced by a computed type by the time the graph
@@ -660,7 +660,7 @@ abstract class AbstractValueDomain {
   /// Serializes this [value] for this domain to [sink].
   void writeAbstractValueToDataSink(DataSinkWriter sink, AbstractValue? value);
 
-  bool isValidRefinement(AbstractValue before, AbstractValue after);
+  bool isInvalidRefinement(AbstractValue before, AbstractValue after);
 
   void finalizeMetrics() {}
 

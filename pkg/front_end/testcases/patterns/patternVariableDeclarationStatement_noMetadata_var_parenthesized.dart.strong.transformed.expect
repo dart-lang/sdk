@@ -1,12 +1,10 @@
 library;
 import self as self;
-import "dart:core" as core;
 
 static method f(dynamic x) → dynamic {
   hoisted has-declared-initializer dynamic a;
   {
     final synthesized dynamic #0#0 = x;
-    if(!(let final dynamic #t1 = a = #0#0 in true))
-      throw new core::StateError::•("Pattern matching error");
+    a = #0#0;
   }
 }

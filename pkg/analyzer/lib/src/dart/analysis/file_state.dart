@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
@@ -39,8 +40,9 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 
 /// The file has a `library augment` directive.
@@ -172,6 +174,15 @@ class AugmentationKnownFileKind extends AugmentationFileKind {
   @override
   void dispose() {
     super.dispose();
+
+    // We dispose partial macro augmentations when we are about to add the
+    // merged macro augmentation with all execution results. These macro
+    // augmentations never add new dependencies, other than already present
+    // via the augmented library. So, there is no reason to invalidate.
+    if (file.isMacroAugmentation) {
+      return;
+    }
+
     invalidateLibraryCycle();
   }
 
@@ -401,6 +412,8 @@ class FileState {
 
   FileKind? _kind;
 
+  bool isMacroAugmentation = false;
+
   /// Files that reference this file.
   final Set<FileState> referencingFiles = {};
 
@@ -502,7 +515,15 @@ class FileState {
   FileStateRefreshResult refresh() {
     _invalidateCurrentUnresolvedData();
 
-    final rawFileState = _fsState.fileContentStrategy.get(path);
+    final FileContent rawFileState;
+    if (_fsState._macroFileContent case final macroFileContent?) {
+      _fsState._macroFileContent = null;
+      rawFileState = macroFileContent;
+      isMacroAugmentation = true;
+    } else {
+      rawFileState = _fsState.fileContentStrategy.get(path);
+    }
+
     final contentChanged =
         _fileContent?.contentHash != rawFileState.contentHash;
     _fileContent = rawFileState;
@@ -721,7 +742,6 @@ class FileState {
       featureSet: scanner.featureSet,
       lineInfo: lineInfo,
     );
-    parser.enableOptionalNewAndConst = true;
 
     var unit = parser.parseCompilationUnit(token);
     unit.languageVersion = LibraryLanguageVersion(
@@ -1110,7 +1130,7 @@ class FileSystemState {
   final Set<String> knownFilePaths = <String>{};
 
   /// All known files.
-  final List<FileState> knownFiles = [];
+  final Set<FileState> knownFiles = {};
 
   /// Mapping from a path to the flag whether there is a URI for the path.
   final Map<String, bool> _hasUriForPath = {};
@@ -1145,6 +1165,10 @@ class FileSystemState {
 
   final FileSystemTestData? testData;
 
+  /// We set a value for this field when we are about to refresh the current
+  /// macro [FileState]. During the refresh, this will is reset back to `null`.
+  FileContent? _macroFileContent;
+
   FileSystemState(
     this._logger,
     this._byteStore,
@@ -1166,7 +1190,7 @@ class FileSystemState {
     _testView = FileSystemStateTestView(this);
   }
 
-  package_path.Context get pathContext => resourceProvider.pathContext;
+  path.Context get pathContext => resourceProvider.pathContext;
 
   @visibleForTesting
   FileSystemStateTestView get test => _testView;
@@ -1185,6 +1209,7 @@ class FileSystemState {
     }
 
     _uriToFile.remove(file.uri);
+    knownFiles.remove(file);
 
     // The removed file does not reference other files anymore.
     file._kind?.dispose();
@@ -1253,6 +1278,7 @@ class FileSystemState {
     }
     _pathToFile.clear();
     _uriToFile.clear();
+    knownFiles.clear();
     return result;
   }
 
@@ -1262,6 +1288,10 @@ class FileSystemState {
 
   FileState? getExistingFromPath(String path) {
     return _pathToFile[path];
+  }
+
+  FileState? getExistingFromUri(Uri uri) {
+    return _uriToFile[uri];
   }
 
   /// Return the [FileState] for the given absolute [path]. The returned file
@@ -1465,6 +1495,8 @@ class FileSystemStateTestView {
   final FileSystemState state;
 
   FileSystemStateTestView(this.state);
+
+  Map<Uri, FileState> get uriToFile => state._uriToFile;
 }
 
 class FileSystemTestData {
@@ -1658,6 +1690,11 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   List<PartState>? _parts;
 
+  /// The synthetic augmentation imports added to [augmentationImports] for
+  /// the macro application results of this library. It is filled only if the
+  /// library uses any macros.
+  List<AugmentationImportWithFile> _macroImports = const [];
+
   LibraryCycle? _libraryCycle;
 
   LibraryFileKind({
@@ -1750,6 +1787,76 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     }).toFixedList();
   }
 
+  /// [addLibraryAugmentDirective] is set to `false` when we are reading
+  /// a summary bundle, because it already has full macro augmentation code.
+  ///
+  /// [partialIndex] is provided while we run phases of macros, and accumulate
+  /// results in separate augmentation libraries with names `foo.macroX.dart`.
+  /// For the merged augmentation we pass `null` here, so a single
+  /// `foo.macro.dart` is created.
+  AugmentationImportWithFile? addMacroAugmentation(
+    String code, {
+    required bool addLibraryAugmentDirective,
+    required int? partialIndex,
+  }) {
+    final pathContext = file._fsState.pathContext;
+    final libraryFileName = pathContext.basename(file.path);
+
+    final String macroFileName = pathContext.setExtension(
+      libraryFileName,
+      '.macro${partialIndex != null ? '$partialIndex' : ''}.dart',
+    );
+
+    final String augmentationContent;
+    if (addLibraryAugmentDirective) {
+      augmentationContent = '''
+library augment '$libraryFileName';
+
+$code
+''';
+    } else {
+      augmentationContent = code;
+    }
+
+    final contentBytes = utf8.encoder.convert(augmentationContent);
+    final hashBytes = md5.convert(contentBytes).bytes;
+    final hashStr = hex.encode(hashBytes);
+    file._fsState._macroFileContent = StoredFileContent(
+      content: augmentationContent,
+      contentHash: hashStr,
+      exists: true,
+    );
+
+    final macroRelativeUri = uriCache.parse(macroFileName);
+    final macroUri = uriCache.resolveRelative(file.uri, macroRelativeUri);
+
+    final macroFileResolution = file._fsState.getFileForUri(macroUri);
+    if (macroFileResolution is! UriResolutionFile) {
+      return null;
+    }
+    final macroFile = macroFileResolution.file;
+
+    final import = AugmentationImportWithFile(
+      container: this,
+      unlinked: UnlinkedAugmentationImportDirective(
+        importKeywordOffset: -1,
+        augmentKeywordOffset: -1,
+        uri: macroFileName,
+      ),
+      uri: DirectiveUriWithFile(
+        relativeUriStr: macroFileName,
+        relativeUri: macroRelativeUri,
+        file: macroFile,
+      ),
+    );
+    _macroImports = [..._macroImports, import].toFixedList();
+
+    // We cannot add, because the list is not growable.
+    _augmentationImports = [...augmentationImports, import].toFixedList();
+
+    return import;
+  }
+
   @override
   void collectTransitive(Set<FileState> files) {
     super.collectTransitive(files);
@@ -1774,6 +1881,23 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     super.dispose();
   }
 
+  /// When the library cycle that contains this library is invalidated, the
+  /// macros might potentially generate different code, or no code at all. So,
+  /// we discard the existing macro augmentation library, it will be rebuilt
+  /// during linking.
+  void disposeMacroAugmentations() {
+    for (final macroImport in _macroImports) {
+      _augmentationImports = augmentationImports.withoutLast.toFixedList();
+      // Discard the file.
+      final macroFile = macroImport.importedFile;
+      macroFile.kind.dispose();
+      file._fsState._pathToFile.remove(macroFile.path);
+      file._fsState._uriToFile.remove(macroFile.uri);
+      file._fsState.knownFiles.remove(macroFile);
+    }
+    _macroImports = const [];
+  }
+
   bool hasPart(PartFileKind partKind) {
     for (final partDirective in parts) {
       if (partDirective is PartWithFile) {
@@ -1787,12 +1911,18 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   void internal_setLibraryCycle(LibraryCycle? cycle) {
     _libraryCycle = cycle;
+    disposeMacroAugmentations();
   }
 
   @override
   void invalidateLibraryCycle() {
     _libraryCycle?.invalidate();
     _libraryCycle = null;
+  }
+
+  @override
+  String toString() {
+    return 'LibraryFileKind($file)';
   }
 }
 

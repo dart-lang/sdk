@@ -658,6 +658,21 @@ void f(A a) {}
 ''');
   }
 
+  test_constraints_greaterOrEq_equal_preRelease() async {
+    _addDartFooLibrary(r'''
+import 'dart:_internal';
+
+@Since('2.15')
+class A {}
+''');
+
+    await verifyVersion('>=2.15.0-pre', '''
+import 'dart:foo';
+
+void f(A a) {}
+''');
+  }
+
   test_constraints_greaterOrEq_greater() async {
     _addDartFooLibrary(r'''
 import 'dart:_internal';
@@ -806,7 +821,6 @@ void f() {
   E(0).foo();
 }
 ''', expectedErrors: [
-      error(WarningCode.SDK_VERSION_SINCE, 33, 1),
       error(WarningCode.SDK_VERSION_SINCE, 38, 3),
     ]);
   }

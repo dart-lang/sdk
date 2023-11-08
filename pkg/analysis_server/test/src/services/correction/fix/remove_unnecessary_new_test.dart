@@ -44,7 +44,7 @@ class RemoveUnnecessaryNewBulkTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unnecessary_new;
 
   Future<void> test_singleFile() async {
-    await resolveTestCode('''
+    await parseTestCode('''
 C f() => new C();
 
 class C {
@@ -65,7 +65,7 @@ class C {
     C();
   }
 }
-''');
+''', isParse: true);
   }
 }
 

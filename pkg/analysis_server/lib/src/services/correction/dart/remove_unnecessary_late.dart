@@ -24,11 +24,7 @@ class RemoveUnnecessaryLate extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    final declaration = node;
-    if (declaration is! VariableDeclaration) {
-      return;
-    }
-    final declarationList = declaration.parent;
+    final declarationList = node;
     if (declarationList is! VariableDeclarationList) {
       return;
     }

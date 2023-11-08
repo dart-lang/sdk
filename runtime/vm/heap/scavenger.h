@@ -32,7 +32,7 @@ class ScavengerVisitorBase;
 
 class SemiSpace {
  public:
-  explicit SemiSpace(intptr_t max_capacity_in_words);
+  explicit SemiSpace(intptr_t gc_threshold_in_words);
   ~SemiSpace();
 
   Page* TryAllocatePageLocked(bool link);
@@ -48,18 +48,19 @@ class SemiSpace {
     return size >> kWordSizeLog2;
   }
   intptr_t capacity_in_words() const { return capacity_in_words_; }
-  intptr_t max_capacity_in_words() const { return max_capacity_in_words_; }
+  intptr_t gc_threshold_in_words() const { return gc_threshold_in_words_; }
 
   Page* head() const { return head_; }
 
   void AddList(Page* head, Page* tail);
 
  private:
-  // Size of NewPages in this semi-space.
+  // Size of Pages in this semi-space.
   intptr_t capacity_in_words_ = 0;
 
-  // Size of NewPages before we trigger a scavenge.
-  intptr_t max_capacity_in_words_;
+  // Size of Pages before we trigger a scavenge. Compare old-space's
+  // hard_gc_threshold_in_words_.
+  intptr_t gc_threshold_in_words_;
 
   Page* head_ = nullptr;
   Page* tail_ = nullptr;
@@ -87,10 +88,10 @@ class ScavengeStats {
   // Of all data before scavenge, what fraction was found to be garbage?
   // If this scavenge included growth, assume the extra capacity would become
   // garbage to give the scavenger a chance to stabilize at the new capacity.
-  double ExpectedGarbageFraction() const {
+  double ExpectedGarbageFraction(intptr_t old_threshold_in_words) const {
     double work =
         after_.used_in_words + promoted_in_words_ + abandoned_in_words_;
-    return 1.0 - (work / after_.capacity_in_words);
+    return 1.0 - (work / old_threshold_in_words);
   }
 
   // Fraction of promotion candidates that survived and was thereby promoted.
@@ -146,18 +147,21 @@ class Scavenger {
     TryAllocateNewTLAB(thread, size, false);
     return TryAllocateFromTLAB(thread, size);
   }
-  void AbandonRemainingTLAB(Thread* thread);
+  intptr_t AbandonRemainingTLAB(Thread* thread);
   void AbandonRemainingTLABForDebugging(Thread* thread);
 
   // Collect the garbage in this scavenger.
   void Scavenge(Thread* thread, GCType type, GCReason reason);
 
-  int64_t UsedInWords() const {
+  intptr_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
     return to_->used_in_words();
   }
-  int64_t CapacityInWords() const { return to_->max_capacity_in_words(); }
-  int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
+  intptr_t CapacityInWords() const {
+    MutexLocker ml(&space_lock_);
+    return to_->capacity_in_words();
+  }
+  intptr_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
   SpaceUsage GetCurrentUsage() const {
     SpaceUsage usage;
     usage.used_in_words = UsedInWords();
@@ -165,6 +169,7 @@ class Scavenger {
     usage.external_in_words = ExternalInWords();
     return usage;
   }
+  intptr_t ThresholdInWords() const { return to_->gc_threshold_in_words(); }
 
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
@@ -211,8 +216,6 @@ class Scavenger {
     external_size_ -= size;
     ASSERT(external_size_ >= 0);
   }
-
-  int64_t FreeSpaceInWords(Isolate* isolate) const;
 
   // The maximum number of Dart mutator threads we allow to execute at the same
   // time.
@@ -270,15 +273,15 @@ class Scavenger {
   void IterateObjectIdTable(ObjectPointerVisitor* visitor);
   template <bool parallel>
   void IterateRoots(ScavengerVisitorBase<parallel>* visitor);
+  void IterateWeak();
   void MournWeakHandles();
+  void MournWeakTables();
   void Epilogue(SemiSpace* from);
 
   void VerifyStoreBuffers(const char* msg);
 
   void UpdateMaxHeapCapacity();
   void UpdateMaxHeapUsage();
-
-  void MournWeakTables();
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words, GCReason reason) const;
 
@@ -294,6 +297,7 @@ class Scavenger {
   bool scavenging_;
   bool early_tenure_ = false;
   RelaxedAtomic<intptr_t> root_slices_started_;
+  RelaxedAtomic<intptr_t> weak_slices_started_;
   StoreBufferBlock* blocks_ = nullptr;
 
   int64_t gc_time_micros_;
@@ -315,8 +319,6 @@ class Scavenger {
 
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class ScavengerWeakVisitor;
-  friend class ScavengerFinalizerVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);
 };

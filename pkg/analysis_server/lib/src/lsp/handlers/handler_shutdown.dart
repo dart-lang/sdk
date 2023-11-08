@@ -6,7 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
-class ShutdownMessageHandler extends MessageHandler<void, void> {
+class ShutdownMessageHandler extends LspMessageHandler<void, void> {
   ShutdownMessageHandler(super.server);
 
   @override

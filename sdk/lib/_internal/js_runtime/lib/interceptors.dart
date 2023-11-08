@@ -22,6 +22,7 @@ import 'dart:_js_helper'
         checkNull,
         checkNum,
         checkString,
+        convertDartClosureToJS,
         defineProperty,
         diagnoseIndexError,
         getIsolateAffinityTag,
@@ -462,4 +463,42 @@ final class JavaScriptFunction extends LegacyJavaScriptObject
     if (dartClosure == null) return super.toString();
     return 'JavaScript function for ${dartClosure.toString()}';
   }
+}
+
+/// Interceptor for JavaScript BigInt primitive values, i.e. values `x` for
+/// which `typeof x == "bigint"`.
+final class JavaScriptBigInt extends Interceptor {
+  const JavaScriptBigInt();
+
+  // JavaScript BigInt objects don't have any operations that look efficient
+  // enough to generate a good hash code.
+  //
+  // TODO(https://dartbug.com/53162): "bigint" primitive values might be used as
+  // keys without using the `hashCode`, but that will not help for compound hash
+  // values, e.g. produced by `Object.hash`.
+  int get hashCode => 0;
+
+  /// Returns the result of the JavaScript BigInt's `toString` method.
+  String toString() => JS('String', 'String(#)', this);
+}
+
+/// Interceptor for JavaScript Symbol primitive values, i.e. values `x` for
+/// which `typeof x == "symbol"`.
+final class JavaScriptSymbol extends Interceptor {
+  const JavaScriptSymbol();
+
+  // It is not clear what to do for a Symbol's hashCode.  Registered Symbols
+  // [can't be keys of WeakMaps][1].  Using a property won't work because the
+  // property will be added to the ephmeral Object wrapper, either being an
+  // incorrect operation or an error in strict mode.
+  //
+  // TODO(https://dartbug.com/53162): "symbol" primitive values might be used as
+  // keys without using the `hashCode`, but that will not help for compound hash
+  // values, e.g. produced by `Object.hash`.
+  //
+  // [1]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Symbol#shared_symbols_in_the_global_symbol_registry
+  int get hashCode => 0;
+
+  /// Returns the result of the JavaScript Symbol's `toString` method.
+  String toString() => JS('String', 'String(#)', this);
 }

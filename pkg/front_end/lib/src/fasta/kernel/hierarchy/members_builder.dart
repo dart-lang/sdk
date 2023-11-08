@@ -7,7 +7,7 @@ library fasta.class_hierarchy_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchyMembers;
 
-import '../../builder/class_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../builder/type_builder.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_field_builder.dart';
@@ -119,9 +119,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
 
   ClassMembersNode getNodeFromClassBuilder(ClassBuilder classBuilder) {
     return nodes[classBuilder.cls] ??= new ClassMembersNodeBuilder(
-            this,
-            hierarchyBuilder.getNodeFromClassBuilder(classBuilder),
-            hierarchyBuilder.substitutions[classBuilder] ??= {})
+            this, hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
         .build();
   }
 
@@ -169,8 +167,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       if (!classBuilder.isPatch) {
         membersBuilder.nodes[classBuilder.cls] = new ClassMembersNodeBuilder(
                 membersBuilder,
-                hierarchyBuilder.getNodeFromClassBuilder(classBuilder),
-                hierarchyBuilder.substitutions[classBuilder] ??= {})
+                hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
             .build();
       } else {
         // TODO(ahe): Merge the injected members of patch into the hierarchy

@@ -13,9 +13,9 @@ import 'dart:js_util';
 import 'package:expect/minitest.dart';
 
 @JS()
-inline class Literal {
-  final JSObject obj;
+extension type Literal._(JSObject _) {
   external Literal({double? a, String b, bool? c});
+  external factory Literal.fact({double? a, String b, bool? c});
 }
 
 @JS('Object.keys')
@@ -42,17 +42,17 @@ void main() {
   }
 
   testProperties(Literal());
-  testProperties(Literal(a: 0.0), a: 0.0);
+  testProperties(Literal.fact(a: 0.0), a: 0.0);
   testProperties(Literal(b: ''), b: '');
-  testProperties(Literal(c: true), c: true);
+  testProperties(Literal.fact(c: true), c: true);
 
   testProperties(Literal(a: 0.0, b: ''), a: 0.0, b: '');
-  testProperties(Literal(a: 0.0, c: true), a: 0.0, c: true);
+  testProperties(Literal.fact(a: 0.0, c: true), a: 0.0, c: true);
   testProperties(Literal(b: '', c: true), b: '', c: true);
 
-  testProperties(Literal(a: 0.0, b: '', c: true), a: 0.0, b: '', c: true);
+  testProperties(Literal.fact(a: 0.0, b: '', c: true), a: 0.0, b: '', c: true);
   // Re-run with the same shape for dart2wasm optimization check.
   testProperties(Literal(a: 0.0, b: '', c: true), a: 0.0, b: '', c: true);
   // Test that passing in a different order doesn't change the values.
-  testProperties(Literal(c: true, a: 0.0, b: ''), a: 0.0, b: '', c: true);
+  testProperties(Literal.fact(c: true, a: 0.0, b: ''), a: 0.0, b: '', c: true);
 }

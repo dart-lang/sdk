@@ -16,13 +16,13 @@ class A extends core::Object {
     return new self::A::•();
 }
 @js_::JS::•()
-inline class B /* declaredRepresentationType = self::A */ {
+extension type B(self::A a) {
   get field = self::B|get#field;
   set field = self::B|set#field;
   method method = self::B|method;
-  tearoff method = self::B|get#method;
+  method tearoff method = self::B|get#method;
   method genericMethod = self::B|genericMethod;
-  tearoff genericMethod = self::B|get#genericMethod;
+  method tearoff genericMethod = self::B|get#genericMethod;
   get getter = self::B|get#getter;
   static get staticField = get self::B|staticField;
   static set staticField = set self::B|staticField;
@@ -31,33 +31,39 @@ inline class B /* declaredRepresentationType = self::A */ {
   static get staticGetter = get self::B|staticGetter;
   set setter = self::B|set#setter;
   static set staticSetter = set self::B|staticSetter;
-  constructor • = self::B|;
-  tearoff • = self::B|_#new#tearOff;
-  constructor named = self::B|named;
-  tearoff named = self::B|_#named#tearOff;
+  constructor _ = self::B|constructor#_;
+  constructor tearoff _ = self::B|constructor#_#_#tearOff;
+  constructor • = self::B|constructor#;
+  constructor tearoff • = self::B|constructor#_#new#tearOff;
+  constructor named = self::B|constructor#named;
+  constructor tearoff named = self::B|constructor#_#named#tearOff;
 }
-external static inline-class-member method B|(self::A a) → self::B;
-static inline-class-member method B|_#new#tearOff(self::A a) → self::B
-  return self::B|(a);
-external static inline-class-member method B|named(core::int i) → self::B;
-static inline-class-member method B|_#named#tearOff(core::int i) → self::B
-  return self::B|named(i);
+static inline-class-member method B|constructor#_(self::A a) → self::B /* = self::A */
+  ;
+static inline-class-member method B|constructor#_#_#tearOff(self::A a) → self::B /* = self::A */
+  return self::B|constructor#_(a);
+external static inline-class-member method B|constructor#(self::A a) → self::B /* = self::A */;
+static inline-class-member method B|constructor#_#new#tearOff(self::A a) → self::B /* = self::A */
+  return self::B|constructor#(a);
+external static inline-class-member method B|constructor#named(core::int i) → self::B /* = self::A */;
+static inline-class-member method B|constructor#_#named#tearOff(core::int i) → self::B /* = self::A */
+  return self::B|constructor#named(i);
 external static inline-class-member method B|get#field(lowered self::A #this) → self::A;
 external static inline-class-member method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void;
-external static inline-class-member method B|method(lowered final self::B #this) → self::A;
-static inline-class-member method B|get#method(lowered final self::B #this) → () → self::A
+external static inline-class-member method B|method(lowered final self::B /* = self::A */ #this) → self::A;
+static inline-class-member method B|get#method(lowered final self::B /* = self::A */ #this) → () → self::A
   return () → self::A => self::B|method(#this);
-external static inline-class-member method B|genericMethod<T extends core::Object? = dynamic>(lowered final self::B #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%;
-static inline-class-member method B|get#genericMethod(lowered final self::B #this) → <T extends core::Object? = dynamic>(T%) → T%
-  return <T extends core::Object? = dynamic>(T% t) → T% => self::B|genericMethod<T%>(#this, t);
-external static inline-class-member method B|get#getter(lowered final self::B #this) → self::B;
-external static inline-class-member method B|set#setter(lowered final self::B #this, self::B b) → void;
+external static inline-class-member method B|genericMethod<T extends self::B /* = self::A */>(lowered final self::B /* = self::A */ #this, self::B|genericMethod::T t) → self::B|genericMethod::T;
+static inline-class-member method B|get#genericMethod(lowered final self::B /* = self::A */ #this) → <T extends self::B /* = self::A */>(T) → T
+  return <T extends self::B /* = self::A */>(T t) → T => self::B|genericMethod<T>(#this, t);
+external static inline-class-member method B|get#getter(lowered final self::B /* = self::A */ #this) → self::B /* = self::A */;
+external static inline-class-member method B|set#setter(lowered final self::B /* = self::A */ #this, self::B /* = self::A */ b) → void;
 external static inline-class-member get B|staticField() → self::A;
 external static inline-class-member set B|staticField(self::A #externalFieldValue) → void;
 external static inline-class-member method B|staticMethod() → self::A;
-external static inline-class-member method B|staticGenericMethod<T extends core::Object? = dynamic>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%;
-external static inline-class-member get B|staticGetter() → self::B;
-external static inline-class-member set B|staticSetter(self::B b) → void;
+external static inline-class-member method B|staticGenericMethod<T extends self::B /* = self::A */>(self::B|staticGenericMethod::T t) → self::B|staticGenericMethod::T;
+external static inline-class-member get B|staticGetter() → self::B /* = self::A */;
+external static inline-class-member set B|staticSetter(self::B /* = self::A */ b) → void;
 static method method(self::A a) → void
   ;
 
@@ -67,4 +73,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:6:2 ->
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:11:2 -> InstanceConstant(const JS{JS.name: null})
 Evaluated: StaticGet @ org-dartlang-testcase:///external.dart:12:2 -> InstanceConstant(const _StaticInterop{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:15:2 -> InstanceConstant(const JS{JS.name: null})
-Extra constant evaluation: evaluated: 16, effectively constant: 4
+Extra constant evaluation: evaluated: 18, effectively constant: 4

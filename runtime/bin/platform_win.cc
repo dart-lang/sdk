@@ -307,6 +307,15 @@ void Platform::Exit(int exit_code) {
   ::ExitProcess(exit_code);
 }
 
+void Platform::_Exit(int exit_code) {
+  // Restore the console's output code page
+  Console::RestoreConfig();
+  // On Windows we use ExitProcess so that threads can't clobber the exit_code.
+  // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
+  Dart_PrepareToAbort();
+  ::ExitProcess(exit_code);
+}
+
 void Platform::SetCoreDumpResourceLimit(int value) {
   // Not supported.
 }

@@ -11,8 +11,7 @@ library;
 //   Extension(c) = 42;
 //             ^
 //
-// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:11:3: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:11:3: Error: 'Extension' isn't a type.
 //   Extension(c) = 42;
 //   ^^^^^^^^^
 //
@@ -42,11 +41,11 @@ static method errors(self::Class c) → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:10:3: Error: Explicit extension application cannot be used as an expression.
   Extension(c);
   ^^^^^^^^^";
-  block {
-    final synthesized dynamic #0#0 = 42;
+  {
+    final synthesized core::int #0#0 = 42;
     if(!true)
       throw new core::StateError::•("Pattern matching error");
-  } =>#0#0;
+  }
   invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:12:3: Error: Explicit extension application cannot be used as an expression.
   Extension(c) += 42;
   ^^^^^^^^^";
@@ -62,4 +61,4 @@ static method main() → dynamic {}
 
 Extra constant evaluation status:
 Evaluated: Not @ org-dartlang-testcase:///explicit_invalid_access.dart:11:3 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 5, effectively constant: 1
+Extra constant evaluation: evaluated: 3, effectively constant: 1

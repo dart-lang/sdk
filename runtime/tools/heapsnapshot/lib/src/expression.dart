@@ -145,7 +145,7 @@ class OrExpression extends SetExpression {
   OrExpression(this.exprs);
 
   IntSet? evaluate(NamedSets namedSets, Analysis analysis, Output output) {
-    final result = IntSet();
+    final result = SpecializedIntSet(analysis.graph.objects.length);
     for (int i = 0; i < exprs.length; ++i) {
       final oids = exprs[i].evaluate(namedSets, analysis, output);
       if (oids == null) return null;

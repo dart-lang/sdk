@@ -10,10 +10,10 @@ import "package:expect/expect.dart";
 
 const var1 = fn("s");
 //           ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var2 = fn(1);
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn(dynamic error) {
   try {
     throw error;
@@ -26,10 +26,10 @@ int fn(dynamic error) {
 
 const var3 = fn1(10);
 //           ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var4 = fn1("s");
 //           ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn1(dynamic error) {
   try {
     throw error;
@@ -42,13 +42,13 @@ int fn1(dynamic error) {
 
 const var5 = finallyReturn(10);
 //           ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var6 = finallyReturn("s");
 //           ^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var7 = finallyReturn(1);
 //           ^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int finallyReturn(dynamic error) {
   try {
     if (error != 1) throw error;
@@ -63,10 +63,10 @@ int finallyReturn(dynamic error) {
 
 const var8 = finallyReturn1(0);
 //           ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var9 = finallyReturn1(1);
 //           ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int finallyReturn1(int x) {
   try {
     if (x == 1) {
@@ -81,7 +81,7 @@ int finallyReturn1(int x) {
 
 const var10 = finallyMutate();
 //            ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int finallyMutate() {
   int x = 0;
   try {
@@ -93,7 +93,7 @@ int finallyMutate() {
 
 const var11 = subtypeFn();
 //            ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int subtypeFn() {
   try {
     throw 2.5;
@@ -104,7 +104,7 @@ int subtypeFn() {
 
 const var12 = orderFn();
 //            ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 String orderFn() {
   String x = "st";
   try {
@@ -119,7 +119,7 @@ String orderFn() {
 
 const var13 = notThrowStatement();
 //            ^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int notThrowStatement() {
   int count = 0;
   try {

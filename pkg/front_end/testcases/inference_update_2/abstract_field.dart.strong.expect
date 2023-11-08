@@ -20,7 +20,7 @@ class D extends core::Object {
 static method acceptsInt(core::int x) → void {}
 static method testAbstractFinalFieldIsPromotable(self::C c) → void {
   if(!(c.{self::C::_f1}{core::int?} == null)) {
-    core::int x = c.{self::C::_f1}{core::int};
+    core::int x = c.{self::C::_f1}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }
@@ -32,7 +32,7 @@ static method testAbstractNonFinalFieldIsNotPromotable(self::C c) → void {
 }
 static method testAbstractFinalFieldDoesNotBlockPromotionElsewhere(self::D d) → void {
   if(!(d.{self::D::_f1}{core::int?} == null)) {
-    core::int x = d.{self::D::_f1}{core::int};
+    core::int x = d.{self::D::_f1}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }

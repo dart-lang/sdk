@@ -17,6 +17,15 @@ main() {
 @reflectiveTest
 class ImplementsNonClassTest extends PubPackageResolutionTest
     with ImplementsNonClassTestCases {
+  test_inClass_extensionType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+class B implements A {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1),
+    ]);
+  }
+
   test_inEnum_topLevelVariable() async {
     await assertErrorsInCode(r'''
 int A = 7;
@@ -25,6 +34,15 @@ enum E implements A {
 }
 ''', [
       error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 29, 1),
+    ]);
+  }
+
+  test_inMixin_extensionType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+mixin M implements A {}
+''', [
+      error(CompileTimeErrorCode.IMPLEMENTS_NON_CLASS, 47, 1),
     ]);
   }
 

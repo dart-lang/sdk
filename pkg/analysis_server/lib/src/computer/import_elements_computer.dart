@@ -65,7 +65,7 @@ class ImportElementsComputer {
             for (var i = 0; i < description.newLinesBefore; i++) {
               builder.writeln();
             }
-            builder.write("import $quote");
+            builder.write('import $quote');
             builder.write(importUri);
             builder.write(quote);
             if (importedElements.prefix.isNotEmpty) {

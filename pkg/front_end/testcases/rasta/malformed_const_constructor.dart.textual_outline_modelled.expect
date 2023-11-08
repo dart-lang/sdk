@@ -1,0 +1,8 @@
+class A {
+  const A() : x = 'foo' {}
+  ---- unknown chunk starts ----
+:
+---- unknown chunk ends ----
+  x = 'foo' ;
+}
+main() {}

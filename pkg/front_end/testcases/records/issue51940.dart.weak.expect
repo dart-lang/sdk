@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
-typedef Parser<unrelated T extends core::Object? = dynamic> = (core::String) → (self::Result<T%>, core::String);
+typedef Parser<T extends core::Object? = dynamic> = (core::String) → (self::Result<T%>, core::String);
 abstract sealed class Result<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   const constructor •() → self::Result<self::Result::T%>
     : super core::Object::•()

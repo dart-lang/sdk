@@ -1,12 +1,12 @@
 // Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:async_helper/async_helper.dart' show asyncTest;
 
 import 'package:expect/expect.dart' show Expect;
 
-import 'package:front_end/src/fasta/builder/invalid_type_declaration_builder.dart';
+import 'package:front_end/src/fasta/builder/declaration_builders.dart';
 
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 

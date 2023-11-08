@@ -266,11 +266,6 @@ class CompileNativeCommand extends CompileSubcommandCommand {
         abbr: defineOption.abbr,
         valueHelp: defineOption.valueHelp,
       );
-    if (commandName != exeCmdName) {
-      // dart compile exe creates a product mode binary, which doesn't support asserts.
-      argParser.addFlag('enable-asserts',
-          negatable: false, help: 'Enable assert statements.');
-    }
     argParser
       ..addOption(
         packagesOption.flag,
@@ -310,7 +305,7 @@ Remove debugging information from the output and save it separately to the speci
     // executable only supports AOT runtimes, so these commands are disabled.
     if (Platform.version.contains('ia32')) {
       stderr.write(
-          "'dart compile $format' is not supported on x86 architectures");
+          "'dart compile $commandName' is not supported on x86 architectures");
       return 64;
     }
     final args = argResults!;
@@ -329,13 +324,33 @@ Remove debugging information from the output and save it separately to the speci
       return compileErrorExitCode;
     }
 
-    if (nativeAssetsExperimentEnabled) {
-      final assets = await compileNativeAssetsJit();
-      if (assets?.isNotEmpty ?? false) {
+    if (!nativeAssetsExperimentEnabled) {
+      if (await warnOnNativeAssets()) {
+        return 255;
+      }
+    } else {
+      final (_, assets) = await compileNativeAssetsJit(verbose: verbose);
+      if (assets.isNotEmpty) {
         stderr.writeln(
             "'dart compile' does currently not support native assets.");
         return 255;
       }
+    }
+
+    String? targetOS = args['target-os'];
+    if (format != 'exe') {
+      assert(format == 'aot');
+      // If we're generating an AOT snapshot and not an executable, then
+      // targetOS is allowed to be null for a platform-independent snapshot
+      // or a different platform than the host.
+    } else if (targetOS == null) {
+      targetOS = Platform.operatingSystem;
+    } else if (targetOS != Platform.operatingSystem) {
+      stderr.writeln(
+          "'dart compile $commandName' does not support cross-OS compilation.");
+      stderr.writeln('Host OS: ${Platform.operatingSystem}');
+      stderr.writeln('Target OS: $targetOS');
+      return 128;
     }
 
     try {
@@ -345,15 +360,13 @@ Remove debugging information from the output and save it separately to the speci
         outputFile: args['output'],
         defines: args['define'],
         packages: args['packages'],
-        enableAsserts:
-            commandName != exeCmdName ? args['enable-asserts'] : false,
         enableExperiment: args.enabledExperiments.join(','),
         soundNullSafety: args['sound-null-safety'],
         debugFile: args['save-debugging-info'],
         verbose: verbose,
         verbosity: args['verbosity'],
         extraOptions: args['extra-gen-snapshot-options'],
-        targetOS: args['target-os'],
+        targetOS: targetOS,
       );
       return 0;
     } catch (e, st) {
@@ -394,8 +407,8 @@ Sets the verbosity level of the compilation.
   late final Option defineOption;
   late final Option packagesOption;
 
-  CompileSubcommandCommand(String name, String description, bool verbose,
-      {bool hidden = false})
+  CompileSubcommandCommand(super.name, super.description, super.verbose,
+      {super.hidden})
       : defineOption = Option(
           flag: 'define',
           abbr: 'D',
@@ -411,8 +424,7 @@ For example: dart compile $name -Da=1,b=2 main.dart''',
             help:
                 '''Get package locations from the specified file instead of .dart_tool/package_config.json.
 <path> can be relative or absolute.
-For example: dart compile $name --packages=/tmp/pkgs.json main.dart'''),
-        super(name, description, verbose, hidden: hidden);
+For example: dart compile $name --packages=/tmp/pkgs.json main.dart''');
 
   bool shouldAllowNoSoundNullSafety() {
     // We need to maintain support for generating AOT snapshots and kernel

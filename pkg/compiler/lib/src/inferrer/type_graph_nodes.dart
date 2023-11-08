@@ -299,7 +299,7 @@ abstract class TypeInformation {
   }
 }
 
-abstract class ApplyableTypeInformation implements TypeInformation {
+mixin ApplyableTypeInformation implements TypeInformation {
   bool get mightBePassedToFunctionApply =>
       _flags.hasFlag(_Flag.mightBePassedToFunctionApply);
   set mightBePassedToFunctionApply(bool value) =>
@@ -2276,7 +2276,7 @@ class ClosureTypeInformation extends TypeInformation
 }
 
 /// Mixin for [TypeInformation] nodes that can bail out during tracing.
-abstract class TracedTypeInformation implements TypeInformation {
+mixin TracedTypeInformation implements TypeInformation {
   /// Set to false once analysis has succeeded.
   bool get bailedOut => !_flags.hasFlag(_Flag.notBailedOut);
   set bailedOut(bool value) =>
@@ -2306,15 +2306,23 @@ abstract class TracedTypeInformation implements TypeInformation {
 }
 
 class AwaitTypeInformation extends TypeInformation {
-  final ir.Node _node;
+  final ir.AwaitExpression _node;
 
   AwaitTypeInformation(AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context, this._node)
       : super(abstractValueDomain.uncomputedType, context);
 
-  // TODO(22894): Compute a better type here.
   @override
-  AbstractValue computeType(InferrerEngine inferrer) => safeType(inferrer);
+  AbstractValue computeType(InferrerEngine inferrer) {
+    final elementMap = inferrer.closedWorld.elementMap;
+    final staticTypeProvider =
+        elementMap.getStaticTypeProvider(context!.member);
+    final staticType =
+        elementMap.getDartType(staticTypeProvider.getStaticType(_node));
+    return inferrer.abstractValueDomain
+        .createFromStaticType(staticType, nullable: true)
+        .abstractValue;
+  }
 
   String get debugName => '$_node';
 

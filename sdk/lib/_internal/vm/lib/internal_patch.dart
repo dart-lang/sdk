@@ -86,8 +86,8 @@ class VMLibraryHooks {
   // Implementation of package root/map provision.
   static String? packageRootString;
   static String? packageConfigString;
-  static Future<Uri?> Function()? packageConfigUriFuture;
-  static Future<Uri?> Function(Uri)? resolvePackageUriFuture;
+  static Uri? Function()? packageConfigUriSync;
+  static Uri? Function(Uri)? resolvePackageUriSync;
 
   static Uri Function()? _computeScriptUri;
   static Uri? _cachedScript;
@@ -104,14 +104,6 @@ class VMLibraryHooks {
 @pragma("vm:recognized", "other")
 @pragma('vm:prefer-inline')
 external bool get has63BitSmis;
-
-@pragma("vm:recognized", "other")
-@pragma("vm:entry-point", "call")
-@pragma("vm:exact-result-type", bool)
-@pragma("vm:prefer-inline")
-bool _classRangeCheck(int cid, int lowerLimit, int upperLimit) {
-  return cid >= lowerLimit && cid <= upperLimit;
-}
 
 // Utility class now only used by the VM.
 class Lists {
@@ -230,9 +222,11 @@ class FinalizerBase {
   /// mechanism to hold on weakly to things.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external static List<WeakReference<FinalizerBase>>? get _isolateFinalizers;
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external static set _isolateFinalizers(
       List<WeakReference<FinalizerBase>>? value);
 
@@ -268,6 +262,7 @@ class FinalizerBase {
   /// without a Dart_Port.
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external _setIsolate();
 
   /// All active attachments.
@@ -422,6 +417,7 @@ class FinalizerEntry {
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
   external int get externalSize;
 
   /// Update the external size.

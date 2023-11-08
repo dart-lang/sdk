@@ -6,7 +6,6 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
@@ -15,6 +14,7 @@ import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 void main() {
   group('SocketServer', () {
@@ -73,7 +73,7 @@ class SocketServerTest {
         errorNotifier,
         null,
         null,
-        AnalyticsManager(NoopAnalytics()),
+        AnalyticsManager(NoOpAnalytics()),
         null);
 
     server.createAnalysisServer(channel);

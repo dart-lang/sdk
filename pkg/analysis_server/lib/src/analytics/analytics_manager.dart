@@ -9,7 +9,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/active_request_data.dart';
 import 'package:analysis_server/src/analytics/context_structure.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/analytics/notification_data.dart';
 import 'package:analysis_server/src/analytics/plugin_data.dart';
 import 'package:analysis_server/src/analytics/request_data.dart';
@@ -90,7 +89,7 @@ class AnalyticsManager {
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
   AnalyticsManager(this.analytics) {
-    if (analytics is! NoopAnalytics) {
+    if (analytics is! NoOpAnalytics) {
       periodicTimer = Timer.periodic(Duration(minutes: 30), (_) {
         _sendPeriodicData();
       });
@@ -245,7 +244,7 @@ class AnalyticsManager {
   /// Record that the given [response] was sent to the client.
   void sentResponseMessage({required ResponseMessage response}) {
     var sendTime = DateTime.now();
-    var id = response.id?.asString;
+    var id = response.id?.asLspIdString;
     if (id == null) {
       return;
     }
@@ -285,7 +284,7 @@ class AnalyticsManager {
   /// [startTime].
   void startedRequestMessage(
       {required RequestMessage request, required DateTime startTime}) {
-    _activeRequests[request.id.asString] = ActiveRequestData(
+    _activeRequests[request.id.asLspIdString] = ActiveRequestData(
         request.method.toString(), request.clientRequestTime, startTime);
   }
 
@@ -617,7 +616,12 @@ class AnalyticsManager {
 }
 
 extension on Either2<int, String> {
-  String get asString {
-    return map((value) => value.toString(), (value) => value);
+  /// Returns a String ID for this LSP request ID.
+  ///
+  /// Prefixes with "LSP:" to avoid collisions with legacy IDs when both kinds
+  /// of requests are being used (and may have independent/overlapping IDs).
+  String get asLspIdString {
+    var idString = map((value) => value.toString(), (value) => value);
+    return 'LSP:$idString';
   }
 }

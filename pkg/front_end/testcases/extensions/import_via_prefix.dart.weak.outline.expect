@@ -14,7 +14,7 @@ import "dart:core" as core;
 
 extension Extension on core::String {
   method method = self2::Extension|method;
-  tearoff method = self2::Extension|get#method;
+  method tearoff method = self2::Extension|get#method;
 }
 static extension-member method Extension|method(lowered final core::String #this) → core::int
   ;

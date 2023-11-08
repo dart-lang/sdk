@@ -20,13 +20,6 @@ constexpr bool kDartPrecompiledRuntime = true;
 constexpr bool kDartPrecompiledRuntime = false;
 #endif
 
-#if defined(USING_THREAD_SANITIZER)
-// TODO(39611): Address races in the background compiler.
-constexpr bool kDartUseBackgroundCompilation = false;
-#else
-constexpr bool kDartUseBackgroundCompilation = true;
-#endif
-
 constexpr intptr_t kDefaultOptimizationCounterThreshold = 30000;
 
 // The disassembler might be force included even in product builds so we need
@@ -92,7 +85,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   P(add_readonly_data_symbols, bool, false,                                    \
     "Add static symbols for objects in snapshot read-only data")               \
-  P(background_compilation, bool, kDartUseBackgroundCompilation,               \
+  P(background_compilation, bool, true,                                        \
     "Run optimizing compilation in background")                                \
   P(check_token_positions, bool, false,                                        \
     "Check validity of token positions while compiling flow graphs")           \

@@ -221,12 +221,11 @@ final Map<String, String> typeToLibraryMethodsListName = () {
     unsupportedErrorEncoding: unsupportedErrorLibs,
     voidEncoding: voidLibs,
   };
-  var result = <String, String>{};
-  encodings.forEach((key, value) {
-    result[key] = value;
-    result[key + "_NULLABLE"] = value + "Nullable";
-  });
-  return result;
+  return {
+    for (var MapEntry(:key, :value) in encodings.entries) key: value,
+    for (var MapEntry(:key, :value) in encodings.entries)
+      if (key != voidEncoding) '${key}_NULLABLE': '${value}Nullable',
+  };
 }();
 
 // Map from return type encoding to list of recognized methods with that

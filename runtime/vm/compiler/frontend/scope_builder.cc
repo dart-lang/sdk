@@ -29,18 +29,22 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
       helper_(
           zone_,
           &translation_helper_,
-          Script::Handle(Z, parsed_function->function().script()),
-          ExternalTypedData::Handle(Z,
-                                    parsed_function->function().KernelData()),
-          parsed_function->function().KernelDataProgramOffset()),
+          TypedDataView::Handle(Z, parsed_function->function().KernelLibrary()),
+          parsed_function->function().KernelLibraryOffset()),
       constant_reader_(&helper_, &active_class_),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
+      inferred_arg_type_metadata_helper_(
+          &helper_,
+          &constant_reader_,
+          InferredTypeMetadataHelper::Kind::ArgType),
       procedure_attributes_metadata_helper_(&helper_),
       type_translator_(&helper_,
                        &constant_reader_,
                        &active_class_,
                        /*finalize=*/true) {
-  H.InitFromScript(helper_.script());
+  const auto& kernel_program_info = KernelProgramInfo::Handle(
+      Z, parsed_function->function().KernelProgramInfo());
+  H.InitFromKernelProgramInfo(kernel_program_info);
   ASSERT(type_translator_.active_class_ == &active_class_);
 }
 
@@ -177,8 +181,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           for (intptr_t i = 0; i < class_fields.Length(); ++i) {
             class_field ^= class_fields.At(i);
             if (!class_field.is_static()) {
-              ExternalTypedData& kernel_data =
-                  ExternalTypedData::Handle(Z, class_field.KernelData());
+              const auto& kernel_data =
+                  TypedDataView::Handle(Z, class_field.KernelLibrary());
               ASSERT(!kernel_data.IsNull());
               intptr_t field_offset = class_field.kernel_offset();
               AlternativeReadingScopeWithNewData alt(
@@ -278,7 +282,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
               TokenPosition::kNoSource, TokenPosition::kNoSource,
               Symbols::Value(),
               AbstractType::ZoneHandle(Z, function.ParameterTypeAt(pos)),
-              LocalVariable::kNoKernelOffset, &parameter_type);
+              LocalVariable::kNoKernelOffset, /*is_late=*/false,
+              /*inferred_type=*/nullptr,
+              /*inferred_arg_type=*/&parameter_type);
         } else {
           result_->setter_value = MakeVariable(
               TokenPosition::kNoSource, TokenPosition::kNoSource,
@@ -389,7 +395,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     case UntaggedFunction::kFfiTrampoline: {
       needs_expr_temp_ = true;
       // Callbacks and calls with handles need try/catch variables.
-      if ((function.FfiCallbackTarget() != Function::null() ||
+      if ((function.GetFfiFunctionKind() != FfiFunctionKind::kCall ||
            function.FfiCSignatureContainsHandles())) {
         ++depth_.try_;
         AddTryVariables();
@@ -462,7 +468,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 }
 
 void ScopeBuilder::ReportUnexpectedTag(const char* variant, Tag tag) {
-  H.ReportError(helper_.script(), TokenPosition::kNoSource,
+  const auto& script = Script::Handle(Z, Script());
+  H.ReportError(script, TokenPosition::kNoSource,
                 "Unexpected tag %d (%s) in %s, expected %s", tag,
                 Reader::TagName(tag),
                 parsed_function_->function().ToQualifiedCString(), variant);
@@ -505,8 +512,8 @@ void ScopeBuilder::VisitConstructor() {
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        ExternalTypedData& kernel_data =
-            ExternalTypedData::Handle(Z, class_field.KernelData());
+        const auto& kernel_data =
+            TypedDataView::Handle(Z, class_field.KernelLibrary());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
         AlternativeReadingScopeWithNewData alt(&helper_.reader_, &kernel_data,
@@ -550,8 +557,6 @@ void ScopeBuilder::VisitFunctionNode() {
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
-  const auto& function = parsed_function_->function();
-
   intptr_t list_length =
       helper_.ReadListLength();  // read type_parameters list length.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -573,19 +578,6 @@ void ScopeBuilder::VisitFunctionNode() {
     VisitStatement();  // Read body
     first_body_token_position_ = helper_.reader_.min_position();
   }
-
-  // Mark known chained futures such as _Future::timeout()'s _future.
-  if (function.recognized_kind() == MethodRecognizer::kFutureTimeout &&
-      depth_.function_ == 1) {
-    LocalVariable* future = scope_->LookupVariableByName(Symbols::_future());
-    ASSERT(future != nullptr);
-    future->set_is_chained_future();
-  } else if (function.recognized_kind() == MethodRecognizer::kFutureWait &&
-             depth_.function_ == 1) {
-    LocalVariable* future = scope_->LookupVariableByName(Symbols::_future());
-    ASSERT(future != nullptr);
-    future->set_is_chained_future();
-  }
 }
 
 void ScopeBuilder::VisitInitializer() {
@@ -595,6 +587,7 @@ void ScopeBuilder::VisitInitializer() {
     case kInvalidInitializer:
       return;
     case kFieldInitializer:
+      helper_.ReadPosition();                // read position.
       helper_.SkipCanonicalNameReference();  // read field_reference.
       VisitExpression();                     // read value.
       return;
@@ -689,9 +682,9 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipInterfaceMemberNameReference();
       return;
     case kFunctionTearOff:
-      helper_.ReadPosition();  // read position.
-      VisitExpression();       // read receiver.
-      return;
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       helper_.ReadByte();      // read kind.
       helper_.ReadPosition();  // read position.
@@ -832,7 +825,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     }
     case kStringConcatenation: {
-      helper_.ReadPosition();                           // read position.
+      helper_.ReadPosition();  // read position.
       VisitListOfExpressions();
       return;
     }
@@ -840,8 +833,8 @@ void ScopeBuilder::VisitExpression() {
       needs_expr_temp_ = true;
       helper_.ReadPosition();  // read position.
       helper_.ReadFlags();     // read flags.
-      VisitExpression();  // read operand.
-      VisitDartType();    // read type.
+      VisitExpression();       // read operand.
+      VisitDartType();         // read type.
       return;
     case kAsExpression:
       helper_.ReadPosition();  // read position.
@@ -850,10 +843,12 @@ void ScopeBuilder::VisitExpression() {
       VisitDartType();         // read type.
       return;
     case kTypeLiteral:
-      VisitDartType();  // read type.
+      helper_.ReadPosition();  // read file offset.
+      VisitDartType();         // read type.
       return;
     case kThisExpression:
       HandleLoadReceiver();
+      helper_.ReadPosition();  // read file offset.
       return;
     case kRethrow:
       helper_.ReadPosition();  // read position.
@@ -863,8 +858,8 @@ void ScopeBuilder::VisitExpression() {
       VisitExpression();       // read expression.
       return;
     case kListLiteral: {
-      helper_.ReadPosition();                           // read position.
-      VisitDartType();                                  // read type.
+      helper_.ReadPosition();  // read position.
+      VisitDartType();         // read type.
       VisitListOfExpressions();
       return;
     }
@@ -939,27 +934,36 @@ void ScopeBuilder::VisitExpression() {
       return;
     }
     case kBigIntLiteral:
+      helper_.ReadPosition();         // read position.
       helper_.SkipStringReference();  // read string reference.
       return;
     case kStringLiteral:
+      helper_.ReadPosition();         // read position.
       helper_.SkipStringReference();  // read string reference.
       return;
     case kSpecializedIntLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kNegativeIntLiteral:
-      helper_.ReadUInt();  // read value.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadUInt();      // read value.
       return;
     case kPositiveIntLiteral:
-      helper_.ReadUInt();  // read value.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadUInt();      // read value.
       return;
     case kDoubleLiteral:
-      helper_.ReadDouble();  // read value.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadDouble();    // read value.
       return;
     case kTrueLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kFalseLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kNullLiteral:
+      helper_.ReadPosition();  // read position.
       return;
     case kConstantExpression:
       helper_.ReadPosition();
@@ -983,7 +987,8 @@ void ScopeBuilder::VisitExpression() {
     }
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
-      helper_.ReadUInt();  // library index
+      helper_.ReadPosition();  // read file offset.
+      helper_.ReadUInt();      // library index
       break;
     case kAwaitExpression:
       helper_.ReadPosition();  // read position.
@@ -1082,7 +1087,8 @@ void ScopeBuilder::VisitStatement() {
       }
       return;
     case kLabeledStatement:
-      VisitStatement();  // read body.
+      helper_.ReadPosition();  // read position.
+      VisitStatement();        // read body.
       return;
     case kBreakStatement:
       helper_.ReadPosition();  // read position.
@@ -1122,48 +1128,10 @@ void ScopeBuilder::VisitStatement() {
         VisitExpression();  // read rest of condition.
       }
       VisitListOfExpressions();  // read updates.
-      VisitStatement();  // read body.
+      VisitStatement();          // read body.
 
       ExitScope(position, helper_.reader_.max_position());
       --depth_.loop_;
-      return;
-    }
-    case kForInStatement:
-    case kAsyncForInStatement: {
-      PositionScope scope(&helper_.reader_);
-
-      intptr_t start_offset =
-          helper_.ReaderOffset() - 1;  // -1 to include tag byte.
-
-      helper_.ReadPosition();  // read position.
-      TokenPosition body_position =
-          helper_.ReadPosition();  // read body position.
-
-      // Notice the ordering: We skip the variable, read the iterable, go back,
-      // re-read the variable, go forward to after having read the iterable.
-      intptr_t offset = helper_.ReaderOffset();
-      helper_.SkipVariableDeclaration();  // read variable.
-      VisitExpression();                  // read iterable.
-
-      ++depth_.for_in_;
-      AddIteratorVariable();
-      ++depth_.loop_;
-      EnterScope(start_offset);
-
-      {
-        AlternativeReadingScope alt(&helper_.reader_, offset);
-        VisitVariableDeclaration();  // read variable.
-      }
-      VisitStatement();  // read body.
-
-      if (!body_position.IsReal()) {
-        body_position = helper_.reader_.min_position();
-      }
-      // TODO(jensj): From kernel_binary.cc
-      // forinstmt->variable_->set_end_position(forinstmt->position_);
-      ExitScope(body_position, helper_.reader_.max_position());
-      --depth_.loop_;
-      --depth_.for_in_;
       return;
     }
     case kSwitchStatement: {
@@ -1174,6 +1142,7 @@ void ScopeBuilder::VisitStatement() {
       helper_.SkipOptionalDartType();             // read expression type.
       int case_count = helper_.ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
+        helper_.ReadPosition();  // read file offset.
         int expression_count =
             helper_.ReadListLength();  // read number of expressions.
         for (intptr_t j = 0; j < expression_count; ++j) {
@@ -1216,7 +1185,8 @@ void ScopeBuilder::VisitStatement() {
     case kTryCatch: {
       ++depth_.try_;
       AddTryVariables();
-      VisitStatement();  // read body.
+      helper_.ReadPosition();  // read position.
+      VisitStatement();        // read body.
       --depth_.try_;
 
       ++depth_.catch_;
@@ -1257,7 +1227,8 @@ void ScopeBuilder::VisitStatement() {
       ++depth_.finally_;
       AddTryVariables();
 
-      VisitStatement();  // read body.
+      helper_.ReadPosition();  // read position.
+      VisitStatement();        // read body.
 
       --depth_.finally_;
       --depth_.try_;
@@ -1272,9 +1243,9 @@ void ScopeBuilder::VisitStatement() {
       return;
     }
     case kYieldStatement: {
-      helper_.ReadPosition();           // read position.
-      helper_.ReadByte();               // read flags.
-      VisitExpression();                // read expression.
+      helper_.ReadPosition();  // read position.
+      helper_.ReadByte();      // read flags.
+      VisitExpression();       // read expression.
       return;
     }
     case kVariableDeclaration:
@@ -1287,6 +1258,8 @@ void ScopeBuilder::VisitStatement() {
       HandleLocalFunction(offset);  // read function node.
       return;
     }
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:
@@ -1331,13 +1304,15 @@ void ScopeBuilder::VisitVariableDeclaration() {
 
   const intptr_t kernel_offset =
       helper_.data_program_offset_ + helper_.ReaderOffset();
+  // MetadataHelper expects relative offsets and adjusts them internally
+  const InferredTypeMetadata inferred_type =
+      inferred_type_metadata_helper_.GetInferredType(helper_.ReaderOffset());
   VariableDeclarationHelper helper(&helper_);
+  helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+  const intptr_t annotations_offset = helper_.ReaderOffset();
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   AbstractType& type = BuildAndVisitVariableType();
 
-  // In case `declaration->IsConst()` the flow graph building will take care of
-  // evaluating the constant and setting it via
-  // `declaration->SetConstantValue()`.
   const String& name = (H.StringSize(helper.name_index_) == 0)
                            ? GenerateName(":var", name_index_++)
                            : H.DartSymbolObfuscate(helper.name_index_);
@@ -1355,7 +1330,11 @@ void ScopeBuilder::VisitVariableDeclaration() {
     end_position = end_position.Next();
   }
   LocalVariable* variable =
-      MakeVariable(helper.position_, end_position, name, type, kernel_offset);
+      MakeVariable(helper.position_, end_position, name, type, kernel_offset,
+                   helper.IsLate(), &inferred_type);
+  if (helper.annotation_count_ > 0) {
+    variable->set_annotations_offset(annotations_offset);
+  }
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
@@ -1412,8 +1391,8 @@ void ScopeBuilder::VisitDartType() {
     case kIntersectionType:
       VisitIntersectionType();
       return;
-    case kInlineType:
-      VisitInlineType();
+    case kExtensionType:
+      VisitExtensionType();
       return;
     case kFutureOrType:
       VisitFutureOrType();
@@ -1531,12 +1510,12 @@ void ScopeBuilder::VisitIntersectionType() {
   helper_.SkipDartType();  // read right.
 }
 
-void ScopeBuilder::VisitInlineType() {
-  // We skip the inline type and only use the representation type.
+void ScopeBuilder::VisitExtensionType() {
+  // We skip the extension type and only use the type erasure.
   helper_.ReadNullability();
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments
-  VisitDartType();  // read instantiated representation type.
+  VisitDartType();                       // read type erasure.
 }
 
 void ScopeBuilder::VisitFutureOrType() {
@@ -1643,9 +1622,14 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   const intptr_t kernel_offset =
       helper_.data_program_offset_ + helper_.ReaderOffset();
   // MetadataHelper expects relative offsets and adjusts them internally
-  const InferredTypeMetadata parameter_type =
+  const InferredTypeMetadata inferred_type =
       inferred_type_metadata_helper_.GetInferredType(helper_.ReaderOffset());
+  const InferredTypeMetadata inferred_arg_type =
+      inferred_arg_type_metadata_helper_.GetInferredType(
+          helper_.ReaderOffset());
   VariableDeclarationHelper helper(&helper_);
+  helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+  const intptr_t annotations_offset = helper_.ReaderOffset();
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   String& name = H.DartSymbolObfuscate(helper.name_index_);
   ASSERT(name.Length() > 0);
@@ -1653,9 +1637,12 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   helper.SetJustRead(VariableDeclarationHelper::kType);
   helper.ReadUntilExcluding(VariableDeclarationHelper::kInitializer);
 
-  LocalVariable* variable =
-      MakeVariable(helper.position_, helper.position_, name, type,
-                   kernel_offset, &parameter_type);
+  LocalVariable* variable = MakeVariable(
+      helper.position_, helper.position_, name, type, kernel_offset,
+      /*is_late=*/false, &inferred_type, &inferred_arg_type);
+  if (helper.annotation_count_ > 0) {
+    variable->set_annotations_offset(annotations_offset);
+  }
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
@@ -1711,7 +1698,7 @@ void ScopeBuilder::AddVariableDeclarationParameter(
 
   // TODO(sjindel): We can also skip these checks on dynamic invocations as
   // well.
-  if (parameter_type.IsSkipCheck()) {
+  if (inferred_arg_type.IsSkipCheck()) {
     variable->set_type_check_mode(LocalVariable::kTypeCheckedByCaller);
   }
 
@@ -1730,19 +1717,31 @@ LocalVariable* ScopeBuilder::MakeVariable(
     TokenPosition declaration_pos,
     TokenPosition token_pos,
     const String& name,
-    const AbstractType& type,
-    intptr_t kernel_offset,
-    const InferredTypeMetadata* param_type_md /* = nullptr */) {
-  CompileType* param_type = nullptr;
-  const Object* param_value = nullptr;
-  if (param_type_md != nullptr && !param_type_md->IsTrivial()) {
-    param_type = new (Z) CompileType(param_type_md->ToCompileType(Z));
-    if (param_type_md->IsConstant()) {
-      param_value = &param_type_md->constant_value;
+    const AbstractType& static_type,
+    intptr_t kernel_offset /* = LocalVariable::kNoKernelOffset */,
+    bool is_late /* = false */,
+    const InferredTypeMetadata* inferred_type_md /* = nullptr */,
+    const InferredTypeMetadata* inferred_arg_type_md /* = nullptr */) {
+  CompileType* inferred_type = nullptr;
+  if (inferred_type_md != nullptr && !inferred_type_md->IsTrivial()) {
+    inferred_type = new (Z)
+        CompileType(inferred_type_md->ToCompileType(Z, &static_type, is_late));
+  } else {
+    inferred_type = new (Z) CompileType(CompileType::FromAbstractType(
+        static_type, CompileType::kCanBeNull, is_late));
+  }
+  CompileType* inferred_arg_type = nullptr;
+  const Object* inferred_arg_value = nullptr;
+  if (inferred_arg_type_md != nullptr && !inferred_arg_type_md->IsTrivial()) {
+    inferred_arg_type =
+        new (Z) CompileType(inferred_arg_type_md->ToCompileType(Z));
+    if (inferred_arg_type_md->IsConstant()) {
+      inferred_arg_value = &inferred_arg_type_md->constant_value;
     }
   }
-  return new (Z) LocalVariable(declaration_pos, token_pos, name, type,
-                               kernel_offset, param_type, param_value);
+  return new (Z) LocalVariable(declaration_pos, token_pos, name, static_type,
+                               kernel_offset, inferred_type, inferred_arg_type,
+                               inferred_arg_value);
 }
 
 void ScopeBuilder::AddExceptionVariable(
@@ -1819,19 +1818,6 @@ void ScopeBuilder::FinalizeCatchVariables() {
       GenerateName(":raw_stacktrace", unique_id), depth_.catch_);
 }
 
-void ScopeBuilder::AddIteratorVariable() {
-  if (depth_.function_ > 0) return;
-  if (result_->iterator_variables.length() >= depth_.for_in_) return;
-
-  ASSERT(result_->iterator_variables.length() == depth_.for_in_ - 1);
-  LocalVariable* iterator =
-      MakeVariable(TokenPosition::kNoSource, TokenPosition::kNoSource,
-                   GenerateName(":iterator", depth_.for_in_ - 1),
-                   AbstractType::dynamic_type());
-  current_function_scope_->AddVariable(iterator);
-  result_->iterator_variables.Add(iterator);
-}
-
 void ScopeBuilder::AddSwitchVariable() {
   if ((depth_.function_ == 0) && (result_->switch_variable == nullptr)) {
     LocalVariable* variable =
@@ -1899,8 +1885,7 @@ LocalVariable* ScopeBuilder::LookupVariable(
 StringIndex ScopeBuilder::GetNameFromVariableDeclaration(
     intptr_t kernel_offset,
     const Function& function) {
-  ExternalTypedData& kernel_data =
-      ExternalTypedData::Handle(Z, function.KernelData());
+  const auto& kernel_data = TypedDataView::Handle(Z, function.KernelLibrary());
   ASSERT(!kernel_data.IsNull());
 
   // Temporarily go to the variable declaration, read the name.
@@ -1933,6 +1918,8 @@ void ScopeBuilder::HandleLoadReceiver() {
     // use-site also includes the [receiver].
     scope_->CaptureVariable(parsed_function_->receiver_var());
   }
+
+  parsed_function_->set_receiver_used();
 }
 
 void ScopeBuilder::HandleSpecialLoad(LocalVariable** variable,

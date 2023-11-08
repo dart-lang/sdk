@@ -191,7 +191,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
         FunctionNode(null,
             positionalParameters: wasmImportProcedureArgs,
             returnType: retWasmType_),
-        fileUri: currentLibrary.fileUri,
+        fileUri: node.fileUri,
         isExternal: true,
         isStatic: true,
         isSynthetic: true)

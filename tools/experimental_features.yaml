@@ -109,17 +109,11 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '3.1.0'
+current-version: '3.2.0'
 
 features:
   variance:
     help: "Sound variance"
-
-  value-class:
-    help: "Value class"
-
-  extension-types:
-    help: "Extension Types"
 
   const-functions:
     help: "Allow more of the Dart language to be executed in const expressions."
@@ -127,11 +121,8 @@ features:
   macros:
     help: "Static meta-programming"
 
-  inference-update-2:
-    help: "Type promotion for fields"
-
   inline-class:
-    help: "Inline class"
+    help: "Extension Types"
 
   native-assets:
     help: "Compile and bundle native assets."
@@ -148,6 +139,19 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+
+  inference-update-2:
+    enabledIn: '3.2.0'
+    validation: |
+      class C {
+        final String? _x;
+        C(this._x);
+      }
+      String f(C c) => c._x == null ? 'no' : c._x;
+      main() {
+        print(f(C('feature enabled')));
+      }
+    help: "Type promotion for fields"
 
   sealed-class:
     help: "Sealed class"

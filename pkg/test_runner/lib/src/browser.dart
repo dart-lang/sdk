@@ -145,17 +145,17 @@ String ddcHtml(
     String testJSDir,
     Compiler compiler,
     NnbdMode mode,
+    String genDir,
     bool nonNullAsserts,
     bool weakNullSafetyErrors) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
-  var isNnbdStrong = mode == NnbdMode.strong;
-  var sdkPath = isNnbdStrong ? 'sound/amd/dart_sdk' : 'kernel/amd/dart_sdk';
-  var pkgDir = isNnbdStrong ? 'pkg_sound' : 'pkg_kernel';
-  var packagePaths = testPackages
-      .map((p) => '    "$p": "/root_build/gen/utils/dartdevc/$pkgDir/$p",')
-      .join("\n");
-
+  var soundNullSafety = mode == NnbdMode.strong;
+  var ddcGenDir = '/root_build/$genDir';
+  var packagePaths =
+      testPackages.map((p) => '    "$p": "$ddcGenDir/pkg/$p",').join("\n");
+  // Seal the native JavaScript Object prototype to avoid pollution before
+  // loading the Dart SDK module.
   return """
 <!DOCTYPE html>
 <html>
@@ -170,6 +170,10 @@ String ddcHtml(
      .unittest-fail { background: #d55;}
      .unittest-error { background: #a11;}
   </style>
+  <script>
+  delete Object.prototype.__proto__;
+  Object.seal(Object.prototype);
+  </script>
 </head>
 <body>
 <h1>Running $testName</h1>
@@ -180,7 +184,7 @@ String ddcHtml(
 var require = {
   baseUrl: "/root_dart/$testJSDir",
   paths: {
-    "dart_sdk": "/root_build/gen/utils/dartdevc/$sdkPath",
+    "dart_sdk": "$ddcGenDir/sdk/amd/dart_sdk",
 $packagePaths
   },
   waitSeconds: 30,
@@ -229,7 +233,7 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
     }, 0);
   };
 
-  sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $isNnbdStrong));
+  sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
   sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
   sdk.dart.nonNullAsserts($nonNullAsserts);
 

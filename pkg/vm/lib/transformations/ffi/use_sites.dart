@@ -23,7 +23,8 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/library_index.dart' show LibraryIndex;
 import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart'
+    show FunctionTypeInstantiator, Substitution;
 import 'package:kernel/type_environment.dart';
 
 import 'abi.dart' show wordSize;
@@ -134,46 +135,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         target.name != Name("#fromTypedDataBase")) {
       diagnosticReporter.report(messageFfiCreateOfStructOrUnion,
           node.fileOffset, 1, node.location?.file);
-    } else if (target == nativeCallableListenerConstructor) {
-      try {
-        final DartType nativeType = InterfaceType(nativeFunctionClass,
-            currentLibrary.nonNullable, [node.arguments.types[0]]);
-        final Expression func = node.arguments.positional[0];
-        final DartType dartType = func.getStaticType(staticTypeContext!);
-
-        _ensureIsStaticFunction(
-            func, nativeCallableListenerConstructor.name.text);
-
-        ensureNativeTypeValid(nativeType, node);
-        ensureNativeTypeToDartType(nativeType, dartType, node);
-
-        final funcType = dartType as FunctionType;
-
-        // Check return type.
-        if (funcType.returnType != VoidType()) {
-          diagnosticReporter.report(
-              templateFfiNativeCallableListenerReturnVoid.withArguments(
-                  funcType.returnType, currentLibrary.isNonNullableByDefault),
-              func.fileOffset,
-              1,
-              func.location?.file);
-          return node;
-        }
-
-        final replacement = _replaceNativeCallableListenerConstructor(node);
-
-        final compoundClasses = funcType.positionalParameters
-            .whereType<InterfaceType>()
-            .map((t) => t.classNode)
-            .where((c) =>
-                c.superclass == structClass || c.superclass == unionClass)
-            .toList();
-        return _invokeCompoundConstructors(replacement, compoundClasses);
-      } on FfiStaticTypeError {
-        // It's OK to swallow the exception because the diagnostics issued will
-        // cause compilation to fail. By continuing, we can report more
-        // diagnostics before compilation ends.
-      }
     }
     return super.visitConstructorInvocation(node);
   }
@@ -357,90 +318,33 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           fileOffset: node.fileOffset,
         );
       } else if (target == fromFunctionMethod) {
+        return _verifyAndReplaceNativeCallableIsolateLocal(node,
+            fromFunction: true);
+      } else if (target == nativeCallableIsolateLocalConstructor) {
+        return _verifyAndReplaceNativeCallableIsolateLocal(node);
+      } else if (target == nativeCallableListenerConstructor) {
         final DartType nativeType = InterfaceType(nativeFunctionClass,
             currentLibrary.nonNullable, [node.arguments.types[0]]);
         final Expression func = node.arguments.positional[0];
         final DartType dartType = func.getStaticType(staticTypeContext!);
-
-        _ensureIsStaticFunction(func, fromFunctionMethod.name.text);
 
         ensureNativeTypeValid(nativeType, node);
         ensureNativeTypeToDartType(nativeType, dartType, node);
 
         final funcType = dartType as FunctionType;
 
-        // Check `exceptionalReturn`'s type.
-        final Class expectedReturnClass =
-            ((node.arguments.types[0] as FunctionType).returnType
-                    as InterfaceType)
-                .classNode;
-        final NativeType? expectedReturn = getType(expectedReturnClass);
-
-        if (expectedReturn == NativeType.kVoid ||
-            expectedReturn == NativeType.kPointer ||
-            expectedReturn == NativeType.kHandle ||
-            expectedReturnClass.superclass == structClass ||
-            expectedReturnClass.superclass == unionClass) {
-          if (node.arguments.positional.length > 1) {
-            diagnosticReporter.report(
-                templateFfiExpectedNoExceptionalReturn.withArguments(
-                    funcType.returnType, currentLibrary.isNonNullableByDefault),
-                node.fileOffset,
-                1,
-                node.location?.file);
-            return node;
-          }
-          node.arguments.positional.add(NullLiteral()..parent = node);
-        } else {
-          // The exceptional return value is not optional for other return
-          // types.
-          if (node.arguments.positional.length < 2) {
-            diagnosticReporter.report(
-                templateFfiExpectedExceptionalReturn.withArguments(
-                    funcType.returnType, currentLibrary.isNonNullableByDefault),
-                node.fileOffset,
-                1,
-                node.location?.file);
-            return node;
-          }
-
-          final Expression exceptionalReturn = node.arguments.positional[1];
-
-          // The exceptional return value must be a constant so that it be
-          // referenced by precompiled trampoline's object pool.
-          if (exceptionalReturn is! BasicLiteral &&
-              !(exceptionalReturn is ConstantExpression &&
-                  exceptionalReturn.constant is PrimitiveConstant)) {
-            diagnosticReporter.report(messageFfiExpectedConstant,
-                node.fileOffset, 1, node.location?.file);
-            return node;
-          }
-
-          // Moreover it may not be null.
-          if (exceptionalReturn is NullLiteral ||
-              (exceptionalReturn is ConstantExpression &&
-                  exceptionalReturn.constant is NullConstant)) {
-            diagnosticReporter.report(messageFfiExceptionalReturnNull,
-                node.fileOffset, 1, node.location?.file);
-            return node;
-          }
-
-          final DartType returnType =
-              exceptionalReturn.getStaticType(staticTypeContext!);
-
-          if (!env.isSubtypeOf(returnType, funcType.returnType,
-              SubtypeCheckMode.ignoringNullabilities)) {
-            diagnosticReporter.report(
-                templateFfiDartTypeMismatch.withArguments(returnType,
-                    funcType.returnType, currentLibrary.isNonNullableByDefault),
-                exceptionalReturn.fileOffset,
-                1,
-                exceptionalReturn.location?.file);
-            return node;
-          }
+        // Check return type.
+        if (funcType.returnType != VoidType()) {
+          diagnosticReporter.report(
+              templateFfiNativeCallableListenerReturnVoid.withArguments(
+                  funcType.returnType, currentLibrary.isNonNullableByDefault),
+              func.fileOffset,
+              1,
+              func.location?.file);
+          return node;
         }
 
-        final replacement = _replaceFromFunction(node);
+        final replacement = _replaceNativeCallableListenerConstructor(node);
 
         final compoundClasses = funcType.positionalParameters
             .whereType<InterfaceType>()
@@ -470,10 +374,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
               allocatorAllocateMethod.name,
               Arguments([sizeInBytes], types: node.arguments.types),
               interfaceTarget: allocatorAllocateMethod,
-              functionType: Substitution.fromPairs(
-                      allocateFunctionType.typeParameters, node.arguments.types)
-                  .substituteType(allocateFunctionType
-                      .withoutTypeParameters) as FunctionType);
+              functionType: FunctionTypeInstantiator.instantiate(
+                  allocateFunctionType, node.arguments.types));
         }
       }
     } on FfiStaticTypeError {
@@ -541,10 +443,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         libraryLookupMethod.name,
         lookupArgs,
         interfaceTarget: libraryLookupMethod,
-        functionType: Substitution.fromPairs(
-                    lookupFunctionType.typeParameters, lookupTypeArgs)
-                .substituteType(lookupFunctionType.withoutTypeParameters)
-            as FunctionType);
+        functionType: FunctionTypeInstantiator.instantiate(
+            lookupFunctionType, lookupTypeArgs));
 
     final isLeaf = getIsLeafBoolean(node) ?? false;
 
@@ -561,8 +461,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   // compile-time and run-time aspects of creating the closure:
   //
   // final dynamic _#ffiCallback0 = Pointer.fromFunction<T>(f, e) =>
-  //   _pointerFromFunction<NativeFunction<T>>(
-  //     _nativeCallbackFunction<T>(f, e));
+  //   _createNativeCallableIsolateLocal<NativeFunction<T>>(
+  //     _nativeCallbackFunction<T>(f, e), null, false);
   //
   //  ... _#ffiCallback0 ...
   //
@@ -571,7 +471,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   //
   // Creating this closure requires a runtime call, so we save the result in a
   // synthetic top-level field to avoid recomputing it.
-  Expression _replaceFromFunction(StaticInvocation node) {
+  Expression _replaceFromFunction(
+      StaticInvocation node, Expression exceptionalReturn) {
     final nativeFunctionType = InterfaceType(
         nativeFunctionClass, currentLibrary.nonNullable, node.arguments.types);
     var name = Name("_#ffiCallback${callbackCount++}", currentLibrary);
@@ -580,9 +481,16 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         type: InterfaceType(
             pointerClass, currentLibrary.nonNullable, [nativeFunctionType]),
         initializer: StaticInvocation(
-            pointerFromFunctionProcedure,
+            createNativeCallableIsolateLocalProcedure,
             Arguments([
-              StaticInvocation(nativeCallbackFunctionProcedure, node.arguments)
+              StaticInvocation(
+                  nativeCallbackFunctionProcedure,
+                  Arguments([
+                    node.arguments.positional[0],
+                    exceptionalReturn,
+                  ], types: node.arguments.types)),
+              NullLiteral(),
+              BoolLiteral(false),
             ], types: [
               nativeFunctionType
             ])),
@@ -595,14 +503,65 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return StaticGet(field);
   }
 
+  // NativeCallable<T>.isolateLocal(target, exceptionalReturn) calls become:
+  // isStaticFunction is false:
+  //   _NativeCallableIsolateLocal<T>(
+  //       _createNativeCallableIsolateLocal<NativeFunction<T>>(
+  //           _nativeIsolateLocalCallbackFunction<T>(exceptionalReturn),
+  //           target,
+  //           true));
+  // isStaticFunction is true:
+  //   _NativeCallableIsolateLocal<T>(
+  //       _createNativeCallableIsolateLocal<NativeFunction<T>>(
+  //           _nativeCallbackFunction<T>(target, exceptionalReturn),
+  //           null,
+  //           true);
+  Expression _replaceNativeCallableIsolateLocalConstructor(
+      StaticInvocation node,
+      Expression exceptionalReturn,
+      bool isStaticFunction) {
+    final nativeFunctionType = InterfaceType(
+        nativeFunctionClass, currentLibrary.nonNullable, node.arguments.types);
+    final target = node.arguments.positional[0];
+    late StaticInvocation pointerValue;
+    if (isStaticFunction) {
+      pointerValue = StaticInvocation(
+          createNativeCallableIsolateLocalProcedure,
+          Arguments([
+            StaticInvocation(
+                nativeCallbackFunctionProcedure,
+                Arguments([
+                  target,
+                  exceptionalReturn,
+                ], types: node.arguments.types)),
+            NullLiteral(),
+            BoolLiteral(true),
+          ], types: [
+            nativeFunctionType,
+          ]));
+    } else {
+      pointerValue = StaticInvocation(
+          createNativeCallableIsolateLocalProcedure,
+          Arguments([
+            StaticInvocation(nativeIsolateLocalCallbackFunctionProcedure,
+                Arguments([exceptionalReturn], types: node.arguments.types)),
+            target,
+            BoolLiteral(true),
+          ], types: [
+            nativeFunctionType,
+          ]));
+    }
+    return ConstructorInvocation(nativeCallablePrivateIsolateLocalConstructor,
+        Arguments([pointerValue], types: node.arguments.types));
+  }
+
   // NativeCallable<T>.listener(target) calls become:
   // void _handler(List args) => target(args[0], args[1], ...)
-  // final _callback = NativeCallable<T>._(_handler, debugName);
-  // _callback._pointer = _pointerAsyncFromFunction<NativeFunction<T>>(
-  //       _nativeAsyncCallbackFunction<T>(target), _callback._rawPort);
+  // final _callback = _NativeCallableListener<T>(_handler, debugName);
+  // _callback._pointer = _createNativeCallableListener<NativeFunction<T>>(
+  //       _nativeAsyncCallbackFunction<T>(), _callback._rawPort);
   // expression result: _callback;
-  Expression _replaceNativeCallableListenerConstructor(
-      ConstructorInvocation node) {
+  Expression _replaceNativeCallableListenerConstructor(StaticInvocation node) {
     final nativeFunctionType = InterfaceType(
         nativeFunctionClass, currentLibrary.nonNullable, node.arguments.types);
     final listType = InterfaceType(listClass, currentLibrary.nonNullable);
@@ -615,27 +574,30 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       ..fileOffset = node.fileOffset;
     final targetArgs = <Expression>[];
     for (int i = 0; i < targetType.positionalParameters.length; ++i) {
-      // Do we need an `as` expression?
       targetArgs.add(InstanceInvocation(InstanceAccessKind.Instance,
           VariableGet(args), listElementAt.name, Arguments([IntLiteral(i)]),
           interfaceTarget: listElementAt,
           functionType: Substitution.fromInterfaceType(listType)
               .substituteType(listElementAt.getterType) as FunctionType));
     }
-    final target = _getStaticFunctionTarget(node.arguments.positional[0]);
-    final handlerBody =
-        ExpressionStatement(StaticInvocation(target, Arguments(targetArgs)));
+    final target = node.arguments.positional[0];
+    final handlerBody = ExpressionStatement(FunctionInvocation(
+      FunctionAccessKind.FunctionType,
+      target,
+      Arguments(targetArgs),
+      functionType: targetType,
+    ));
     final handler = FunctionNode(handlerBody,
         positionalParameters: [args], returnType: VoidType())
       ..fileOffset = node.fileOffset;
 
-    // final _callback = NativeCallable<T>._(_handler, debugName);
+    // final _callback = NativeCallable<T>._listener(_handler, debugName);
     final nativeCallable = VariableDeclaration.forValue(
         ConstructorInvocation(
-            nativeCallablePrivateConstructor,
+            nativeCallablePrivateListenerConstructor,
             Arguments([
               FunctionExpression(handler),
-              StringLiteral('NativeCallable(${target.name})'),
+              StringLiteral('NativeCallable($target)'),
             ], types: [
               targetType,
             ])),
@@ -643,13 +605,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         isFinal: true)
       ..fileOffset = node.fileOffset;
 
-    // _callback._pointer = _pointerAsyncFromFunction<NativeFunction<T>>(
-    //       _nativeAsyncCallbackFunction<T>(target), _callback._rawPort);
+    // _callback._pointer = _createNativeCallableListener<NativeFunction<T>>(
+    //       _nativeAsyncCallbackFunction<T>(), _callback._rawPort);
     final pointerValue = StaticInvocation(
-        pointerAsyncFromFunctionProcedure,
+        createNativeCallableListenerProcedure,
         Arguments([
-          StaticInvocation(
-              nativeAsyncCallbackFunctionProcedure, node.arguments),
+          StaticInvocation(nativeAsyncCallbackFunctionProcedure,
+              Arguments([], types: [targetType])),
           InstanceGet(InstanceAccessKind.Instance, VariableGet(nativeCallable),
               nativeCallablePortField.name,
               interfaceTarget: nativeCallablePortField,
@@ -672,6 +634,121 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           pointerSetter,
         ]),
         VariableGet(nativeCallable));
+  }
+
+  Expression _verifyAndReplaceNativeCallableIsolateLocal(StaticInvocation node,
+      {bool fromFunction = false}) {
+    final DartType nativeType = InterfaceType(nativeFunctionClass,
+        currentLibrary.nonNullable, [node.arguments.types[0]]);
+    final Expression func = node.arguments.positional[0];
+    final DartType dartType = func.getStaticType(staticTypeContext!);
+
+    final isStaticFunction = _isStaticFunction(func);
+    if (fromFunction && !isStaticFunction) {
+      diagnosticReporter.report(
+          templateFfiNotStatic.withArguments(fromFunctionMethod.name.text),
+          func.fileOffset,
+          1,
+          func.location?.file);
+      return node;
+    }
+
+    ensureNativeTypeValid(nativeType, node);
+    ensureNativeTypeToDartType(nativeType, dartType, node);
+
+    final funcType = dartType as FunctionType;
+
+    // Check `exceptionalReturn`'s type.
+    final Class expectedReturnClass =
+        ((node.arguments.types[0] as FunctionType).returnType as InterfaceType)
+            .classNode;
+    final NativeType? expectedReturn = getType(expectedReturnClass);
+
+    Expression exceptionalReturn = NullLiteral();
+    bool hasExceptionalReturn = false;
+    if (fromFunction) {
+      if (node.arguments.positional.length > 1) {
+        exceptionalReturn = node.arguments.positional[1];
+        hasExceptionalReturn = true;
+      }
+    } else {
+      if (node.arguments.named.isNotEmpty) {
+        exceptionalReturn = node.arguments.named[0].value;
+        hasExceptionalReturn = true;
+      }
+    }
+
+    if (expectedReturn == NativeType.kVoid ||
+        expectedReturn == NativeType.kPointer ||
+        expectedReturn == NativeType.kHandle ||
+        expectedReturnClass.superclass == structClass ||
+        expectedReturnClass.superclass == unionClass) {
+      if (hasExceptionalReturn) {
+        diagnosticReporter.report(
+            templateFfiExpectedNoExceptionalReturn.withArguments(
+                funcType.returnType, currentLibrary.isNonNullableByDefault),
+            node.fileOffset,
+            1,
+            node.location?.file);
+        return node;
+      }
+    } else {
+      // The exceptional return value is not optional for other return types.
+      if (!hasExceptionalReturn) {
+        diagnosticReporter.report(
+            templateFfiExpectedExceptionalReturn.withArguments(
+                funcType.returnType, currentLibrary.isNonNullableByDefault),
+            node.fileOffset,
+            1,
+            node.location?.file);
+        return node;
+      }
+
+      // The exceptional return value must be a constant so that it can be
+      // referenced by precompiled trampoline's object pool.
+      if (exceptionalReturn is! BasicLiteral &&
+          !(exceptionalReturn is ConstantExpression &&
+              exceptionalReturn.constant is PrimitiveConstant)) {
+        diagnosticReporter.report(messageFfiExpectedConstant, node.fileOffset,
+            1, node.location?.file);
+        return node;
+      }
+
+      // Moreover it may not be null.
+      if (exceptionalReturn is NullLiteral ||
+          (exceptionalReturn is ConstantExpression &&
+              exceptionalReturn.constant is NullConstant)) {
+        diagnosticReporter.report(messageFfiExceptionalReturnNull,
+            node.fileOffset, 1, node.location?.file);
+        return node;
+      }
+
+      final DartType returnType =
+          exceptionalReturn.getStaticType(staticTypeContext!);
+
+      if (!env.isSubtypeOf(returnType, funcType.returnType,
+          SubtypeCheckMode.ignoringNullabilities)) {
+        diagnosticReporter.report(
+            templateFfiDartTypeMismatch.withArguments(returnType,
+                funcType.returnType, currentLibrary.isNonNullableByDefault),
+            exceptionalReturn.fileOffset,
+            1,
+            exceptionalReturn.location?.file);
+        return node;
+      }
+    }
+
+    final replacement = fromFunction
+        ? _replaceFromFunction(node, exceptionalReturn)
+        : _replaceNativeCallableIsolateLocalConstructor(
+            node, exceptionalReturn, isStaticFunction);
+
+    final compoundClasses = funcType.positionalParameters
+        .whereType<InterfaceType>()
+        .map((t) => t.classNode)
+        .where((c) => c.superclass == structClass || c.superclass == unionClass)
+        .toList();
+    return _invokeCompoundConstructors(replacement, compoundClasses);
   }
 
   Expression _replaceGetRef(StaticInvocation node) {
@@ -881,26 +958,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           ..fileOffset = node.fileOffset);
   }
 
-  void _ensureIsStaticFunction(Expression node, String methodName) {
-    if ((node is StaticGet && node.target is Procedure) ||
-        (node is ConstantExpression &&
-            node.constant is StaticTearOffConstant)) {
-      return;
-    }
-    diagnosticReporter.report(templateFfiNotStatic.withArguments(methodName),
-        node.fileOffset, 1, node.location?.file);
-    throw FfiStaticTypeError();
-  }
-
-  Procedure _getStaticFunctionTarget(Expression node) {
-    if (node is StaticGet) {
-      return node.target as Procedure;
-    }
-    if (node is ConstantExpression) {
-      return (node.constant as StaticTearOffConstant).target;
-    }
-    throw ArgumentError.value(node, "node", "Not a static function");
-  }
+  bool _isStaticFunction(Expression node) =>
+      (node is StaticGet && node.target is Procedure) ||
+      (node is ConstantExpression && node.constant is StaticTearOffConstant);
 
   /// Returns the class that should not be implemented or extended.
   ///

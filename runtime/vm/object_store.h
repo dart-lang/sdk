@@ -82,6 +82,7 @@ class ObjectPointerVisitor;
   RW(Class, closure_class)                                                     \
   RW(Class, record_class)                                                      \
   RW(Type, number_type)                                                        \
+  RW(Type, nullable_number_type)                                               \
   RW(Type, int_type)                                                           \
   RW(Type, legacy_int_type)                                                    \
   RW(Type, non_nullable_int_type)                                              \
@@ -199,8 +200,6 @@ class ObjectPointerVisitor;
   RW(Field, sync_star_iterator_current)                                        \
   RW(Field, sync_star_iterator_state)                                          \
   RW(Field, sync_star_iterator_yield_star_iterable)                            \
-  ARW_RELAXED(Smi, future_timeout_future_index)                                \
-  ARW_RELAXED(Smi, future_wait_future_index)                                   \
   RW(CompressedStackMaps, canonicalized_stack_map_entries)                     \
   RW(ObjectPool, global_object_pool)                                           \
   RW(Array, unique_dynamic_targets)                                            \

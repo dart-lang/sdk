@@ -512,10 +512,6 @@ class ClassTable : public MallocAllocated {
 
  private:
   friend class ClassTableAllocator;
-  friend class GCMarker;
-  friend class MarkingWeakVisitor;
-  friend class Scavenger;
-  friend class ScavengerWeakVisitor;
   friend class Dart;
   friend Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
                                                    const char* name,

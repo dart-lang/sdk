@@ -33,10 +33,10 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
     uri ??= mainFileUri;
 
     code = TestCode.parse(sourceContent);
-    final textDocCapabilities = lineFoldingOnly
-        ? withLineFoldingOnly(emptyTextDocumentClientCapabilities)
-        : emptyTextDocumentClientCapabilities;
-    await initialize(textDocumentCapabilities: textDocCapabilities);
+    if (lineFoldingOnly) {
+      setLineFoldingOnly();
+    }
+    await initialize();
     await openFile(uri, code.code);
 
     initializePlugin?.call();
@@ -144,7 +144,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_fromPlugins_dartFile() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.dart');
-    final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
+    final pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
 
     const content = '''
     // /*[0*/contributed by fake plugin/*0]*/
@@ -173,7 +173,7 @@ class FoldingTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_fromPlugins_nonDartFile() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.sql');
-    final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
+    final pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
 
     const content = '''
       CREATE TABLE foo(

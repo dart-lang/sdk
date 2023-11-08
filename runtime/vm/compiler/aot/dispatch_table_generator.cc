@@ -421,8 +421,8 @@ void DispatchTableGenerator::Initialize(ClassTable* table) {
 
 void DispatchTableGenerator::ReadTableSelectorInfo() {
   const auto& object_class = Class::Handle(Z, classes_->At(kInstanceCid));
-  const auto& script = Script::Handle(Z, object_class.script());
-  const auto& info = KernelProgramInfo::Handle(Z, script.kernel_program_info());
+  const auto& info =
+      KernelProgramInfo::Handle(Z, object_class.KernelProgramInfo());
   kernel::TableSelectorMetadata* metadata =
       kernel::TableSelectorMetadataForProgram(info, Z);
   // Errors out if gen_kernel was run in non-AOT mode or without TFA.

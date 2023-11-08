@@ -25,8 +25,7 @@ void FUNCTION_NAME(FileSystemWatcher_InitWatcher)(Dart_NativeArguments args) {
   if (id >= 0) {
     Dart_SetReturnValue(args, Dart_NewInteger(id));
   } else {
-    OSError os_error;
-    Dart_ThrowException(DartUtils::NewDartOSError(&os_error));
+    Dart_ThrowException(DartUtils::NewDartOSError());
   }
 }
 

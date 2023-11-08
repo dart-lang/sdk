@@ -97,10 +97,6 @@ suggestions
   }
 
   Future<void> test_afterCaseClause_inIfStatement_beforeExpression2() async {
-    // The `true` isn't in the `IfStatement`. The only reason we don't suggest
-    // `when` in this case is because the completion point is computed to be
-    // just before the closing paren, but because the previous token is a number
-    // we short circuit the `KeywordContributor`.
     await computeSuggestions('''
 void f(Object o) {
   if (o case != '' ^ o.length > 3) {}
@@ -108,6 +104,8 @@ void f(Object o) {
 ''');
     assertResponse(r'''
 suggestions
+  when
+    kind: keyword
 ''');
   }
 

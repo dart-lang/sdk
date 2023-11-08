@@ -34,7 +34,7 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [EAX], [THR] and [FP].
 // The caller should simply call LeaveFrame() and return.
-void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
+void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -44,7 +44,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
   {
     LeafRuntimeScope rt(assembler,
                         /*frame_size=*/2 * target::kWordSize,
-                        preserve_registers);
+                        /*preserve_registers=*/false);
     __ movl(Address(ESP, 1 * target::kWordSize), THR);
     __ movl(Address(ESP, 0 * target::kWordSize), EAX);
     rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
@@ -925,6 +925,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // AllocateArrayABI::kLengthReg: array length as Smi).
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
+    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -998,6 +999,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ addl(EDI, Immediate(target::kObjectAlignment));
     __ cmpl(EDI, EBX);
     __ j(UNSIGNED_LESS, &loop);
+    __ WriteAllocationCanary(EBX);  // Fix overshoot.
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1011,15 +1013,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
   __ pushl(AllocateArrayABI::kLengthReg);         // Array length as Smi.
   __ pushl(AllocateArrayABI::kTypeArgumentsReg);  // Type arguments.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
-  __ popl(AllocateArrayABI::kTypeArgumentsReg);  // Pop type arguments.
-  __ popl(AllocateArrayABI::kLengthReg);         // Pop array length argument.
-  __ popl(AllocateArrayABI::kResultReg);  // Pop return value from return slot.
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(assembler);
+  __ movl(AllocateArrayABI::kResultReg, Address(ESP, 2 * target::kWordSize));
+  EnsureIsNewOrRemembered();
 
+  __ popl(AllocateArrayABI::kTypeArgumentsReg);  // Pop type arguments.
+  __ popl(AllocateArrayABI::kLengthReg);         // Pop array length argument.
+  __ popl(AllocateArrayABI::kResultReg);  // Pop return value from return slot.
   __ LeaveFrame();
   __ ret();
 }
@@ -1187,6 +1190,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   static auto const kJumpLength = Assembler::kNearJump;
 #endif  // DEBUG
   __ j(ABOVE_EQUAL, slow_case, kJumpLength);
+  __ CheckAllocationCanary(EAX);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1288,7 +1292,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // EAX: new object
   // Restore the frame pointer.
@@ -1362,7 +1366,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // EAX: new object
   // Restore the frame pointer.
@@ -1403,10 +1407,60 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   __ pushl(EAX);
   __ pushl(ECX);
 
-  Label add_to_mark_stack, remember_card, lost_race;
-  __ testl(EBX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
-  __ j(ZERO, &add_to_mark_stack);
+  Label skip_marking;
+  __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
+  __ andl(EAX, Address(THR, target::Thread::write_barrier_mask_offset()));
+  __ testl(EAX, Immediate(target::UntaggedObject::kIncrementalBarrierMask));
+  __ j(ZERO, &skip_marking);
 
+  {
+    // Atomically clear kOldAndNotMarkedBit.
+    Label retry, done;
+    __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
+    __ Bind(&retry);
+    __ movl(ECX, EAX);
+    __ testl(ECX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ j(ZERO, &done);  // Marked by another thread.
+    __ andl(ECX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+    // Cmpxchgq: compare value = implicit operand EAX, new value = ECX.
+    // On failure, EAX is updated with the current value.
+    __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);
+    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+
+    __ movl(EAX, Address(THR, target::Thread::marking_stack_block_offset()));
+    __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
+    __ movl(Address(EAX, ECX, TIMES_4,
+                    target::MarkingStackBlock::pointers_offset()),
+            EBX);
+    __ incl(ECX);
+    __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
+    __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
+    __ j(NOT_EQUAL, &done);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/1 * target::kWordSize,
+                          /*preserve_registers=*/true);
+      __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
+    }
+
+    __ Bind(&done);
+  }
+
+  Label add_to_remembered_set, remember_card;
+  __ Bind(&skip_marking);
+  __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
+  __ shrl(EAX, Immediate(target::UntaggedObject::kBarrierOverlapShift));
+  __ andl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
+  __ testl(EAX, Immediate(target::UntaggedObject::kGenerationalBarrierMask));
+  __ j(NOT_ZERO, &add_to_remembered_set, Assembler::kNearJump);
+  __ popl(ECX);  // Unspill.
+  __ popl(EAX);  // Unspill.
+  __ ret();
+
+  __ Bind(&add_to_remembered_set);
   if (cards) {
     __ testl(FieldAddress(EDX, target::Object::tags_offset()),
              Immediate(1 << target::UntaggedObject::kCardRememberedBit));
@@ -1422,99 +1476,54 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 #endif
   }
 
-  // Atomically clear kOldAndNotRememberedBit.
-  Label retry;
-  __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
-  __ Bind(&retry);
-  __ movl(ECX, EAX);
-  __ testl(ECX,
-           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  __ j(ZERO, &lost_race);  // Remembered by another thread.
-  __ andl(ECX,
-          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
-  // Cmpxchgl: compare value = implicit operand EAX, new value = ECX.
-  // On failure, EAX is updated with the current value.
-  __ LockCmpxchgl(FieldAddress(EDX, target::Object::tags_offset()), ECX);
-  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
-
-  // Load the StoreBuffer block out of the thread. Then load top_ out of the
-  // StoreBufferBlock and add the address to the pointers_.
-  // Spilled: EAX, ECX
-  // EDX: Address being stored
-  __ movl(EAX, Address(THR, target::Thread::store_buffer_block_offset()));
-  __ movl(ECX, Address(EAX, target::StoreBufferBlock::top_offset()));
-  __ movl(
-      Address(EAX, ECX, TIMES_4, target::StoreBufferBlock::pointers_offset()),
-      EDX);
-
-  // Increment top_ and check for overflow.
-  // Spilled: EAX, ECX
-  // ECX: top_
-  // EAX: StoreBufferBlock
-  Label overflow;
-  __ incl(ECX);
-  __ movl(Address(EAX, target::StoreBufferBlock::top_offset()), ECX);
-  __ cmpl(ECX, Immediate(target::StoreBufferBlock::kSize));
-  // Restore values.
-  // Spilled: EAX, ECX
-  __ popl(ECX);
-  __ popl(EAX);
-  __ j(EQUAL, &overflow, Assembler::kNearJump);
-  __ ret();
-
-  // Handle overflow: Call the runtime leaf function.
-  __ Bind(&overflow);
   {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/1 * target::kWordSize,
-                        /*preserve_registers=*/true);
-    __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
-    rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+    // Atomically clear kOldAndNotRememberedBit.
+    Label retry, done;
+    __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
+    __ Bind(&retry);
+    __ movl(ECX, EAX);
+    __ testl(ECX,
+             Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+    __ j(ZERO, &done);  // Remembered by another thread.
+    __ andl(ECX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
+    // Cmpxchgl: compare value = implicit operand EAX, new value = ECX.
+    // On failure, EAX is updated with the current value.
+    __ LockCmpxchgl(FieldAddress(EDX, target::Object::tags_offset()), ECX);
+    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+
+    // Load the StoreBuffer block out of the thread. Then load top_ out of the
+    // StoreBufferBlock and add the address to the pointers_.
+    // Spilled: EAX, ECX
+    // EDX: Address being stored
+    __ movl(EAX, Address(THR, target::Thread::store_buffer_block_offset()));
+    __ movl(ECX, Address(EAX, target::StoreBufferBlock::top_offset()));
+    __ movl(
+        Address(EAX, ECX, TIMES_4, target::StoreBufferBlock::pointers_offset()),
+        EDX);
+
+    // Increment top_ and check for overflow.
+    // Spilled: EAX, ECX
+    // ECX: top_
+    // EAX: StoreBufferBlock
+    __ incl(ECX);
+    __ movl(Address(EAX, target::StoreBufferBlock::top_offset()), ECX);
+    __ cmpl(ECX, Immediate(target::StoreBufferBlock::kSize));
+    __ j(NOT_EQUAL, &done);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/1 * target::kWordSize,
+                          /*preserve_registers=*/true);
+      __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+      rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+    }
+
+    __ Bind(&done);
+    __ popl(ECX);
+    __ popl(EAX);
+    __ ret();
   }
-  __ ret();
-
-  __ Bind(&add_to_mark_stack);
-  // Atomically clear kOldAndNotMarkedBit.
-  Label retry_marking, marking_overflow;
-  __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
-  __ Bind(&retry_marking);
-  __ movl(ECX, EAX);
-  __ testl(ECX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
-  __ j(ZERO, &lost_race);  // Marked by another thread.
-  __ andl(ECX, Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
-  // Cmpxchgq: compare value = implicit operand EAX, new value = ECX.
-  // On failure, EAX is updated with the current value.
-  __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);
-  __ j(NOT_EQUAL, &retry_marking, Assembler::kNearJump);
-
-  __ movl(EAX, Address(THR, target::Thread::marking_stack_block_offset()));
-  __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
-  __ movl(
-      Address(EAX, ECX, TIMES_4, target::MarkingStackBlock::pointers_offset()),
-      EBX);
-  __ incl(ECX);
-  __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
-  __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
-  __ popl(ECX);  // Unspill.
-  __ popl(EAX);  // Unspill.
-  __ j(EQUAL, &marking_overflow, Assembler::kNearJump);
-  __ ret();
-
-  __ Bind(&marking_overflow);
-  {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/1 * target::kWordSize,
-                        /*preserve_registers=*/true);
-    __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
-    rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-  }
-  __ ret();
-
-  __ Bind(&lost_race);
-  __ popl(ECX);  // Unspill.
-  __ popl(EAX);  // Unspill.
-  __ ret();
-
   if (cards) {
     Label remember_card_slow;
 
@@ -1624,6 +1633,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
     // EBX: potential next object start.
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
+    __ CheckAllocationCanary(AllocateObjectABI::kResultReg);
     __ movl(Address(THR, target::Thread::top_offset()), EBX);
 
     // AllocateObjectABI::kResultReg: new object start (untagged).
@@ -1678,6 +1688,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
       __ addl(ECX, Immediate(target::kObjectAlignment));
       __ cmpl(ECX, EBX);
       __ j(UNSIGNED_LESS, &loop);
+      __ WriteAllocationCanary(EBX);  // Fix overshoot.
     }
     if (is_cls_parameterized) {
       // AllocateObjectABI::kResultReg: new object (tagged).
@@ -1717,7 +1728,7 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   if (AllocateObjectInstr::WillAllocateNewOrRemembered(cls)) {
     // Write-barrier elimination is enabled for [cls] and we therefore need to
     // ensure that the object is in new-space or has remembered bit set.
-    EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+    EnsureIsNewOrRemembered();
   }
 
   // AllocateObjectABI::kResultReg: new object
@@ -1917,7 +1928,6 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
     GenerateUsageCounterIncrement(/* scratch */ EAX);
   }
 
-  ASSERT(exactness == kIgnoreExactness);  // Unimplemented.
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -1986,6 +1996,8 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
       target::ICData::TargetIndexFor(num_args) * target::kWordSize;
   const intptr_t count_offset =
       target::ICData::CountIndexFor(num_args) * target::kWordSize;
+  const intptr_t exactness_offset =
+      target::ICData::ExactnessIndexFor(num_args) * target::kWordSize;
   const intptr_t entry_size = target::ICData::TestEntryLengthFor(
                                   num_args, exactness == kCheckExactness) *
                               target::kWordSize;
@@ -2062,8 +2074,40 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   }
 
   __ Bind(&found);
-
   // EBX: Pointer to an IC data check group.
+  Label call_target_function_through_unchecked_entry;
+  if (exactness == kCheckExactness) {
+    Label exactness_ok;
+    ASSERT(num_args == 1);
+    __ movl(EDI, Address(EBX, exactness_offset));
+    __ cmpl(EDI, Immediate(target::ToRawSmi(
+                     StaticTypeExactnessState::HasExactSuperType().Encode())));
+    __ j(LESS, &exactness_ok);
+    __ j(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Check trivial exactness.
+    // Note: UntaggedICData::receivers_static_type_ is guaranteed to be not null
+    // because we only emit calls to this stub when it is not null.
+    __ movl(EAX, FieldAddress(ARGS_DESC_REG,
+                              target::ArgumentsDescriptor::count_offset()));
+    __ movl(EAX, Address(ESP, EAX, TIMES_2, 0));  // Receiver
+    // EDI contains an offset to type arguments in words as a smi,
+    // hence TIMES_2. EAX is guaranteed to be non-smi because it is expected
+    // to have type arguments.
+    __ movl(EDI,
+            FieldAddress(EAX, EDI, TIMES_2, 0));  // Receiver's type arguments
+    __ movl(EAX,
+            FieldAddress(ECX, target::ICData::receivers_static_type_offset()));
+    __ cmpl(EDI, FieldAddress(EAX, target::Type::arguments_offset()));
+    __ j(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Update exactness state (not-exact anymore).
+    __ movl(Address(EBX, exactness_offset),
+            Immediate(target::ToRawSmi(
+                StaticTypeExactnessState::NotExact().Encode())));
+    __ Bind(&exactness_ok);
+  }
+
   if (FLAG_optimization_counter_threshold >= 0) {
     __ Comment("Update caller's counter");
     // Ignore overflow.
@@ -2076,6 +2120,19 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStubForEntryKind(
   // EAX: Target function.
   __ jmp(FieldAddress(FUNCTION_REG,
                       target::Function::entry_point_offset(entry_kind)));
+
+  if (exactness == kCheckExactness) {
+    __ Bind(&call_target_function_through_unchecked_entry);
+    if (FLAG_optimization_counter_threshold >= 0) {
+      __ Comment("Update ICData counter");
+      // Ignore overflow.
+      __ addl(Address(EBX, count_offset), Immediate(target::ToRawSmi(1)));
+    }
+    __ Comment("Call target (via unchecked entry point)");
+    __ LoadCompressed(FUNCTION_REG, Address(EBX, target_offset));
+    __ jmp(FieldAddress(FUNCTION_REG, target::Function::entry_point_offset(
+                                          CodeEntryKind::kUnchecked)));
+  }
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -2105,7 +2162,9 @@ void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub() {
 // ECX: ICData
 // ESP[0]: return address
 void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      kUnoptimized, kInstanceCall, kCheckExactness);
 }
 
 void StubCodeCompiler::GenerateAllocateMintSharedWithFPURegsStub() {
@@ -2168,7 +2227,9 @@ void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub() {
 // ESP[0]: return address
 void StubCodeCompiler::
     GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL, kOptimized,
+      kInstanceCall, kCheckExactness);
 }
 
 // EBX: receiver
@@ -2496,7 +2557,11 @@ static void GenerateSubtypeTestCacheLoop(
 // result (true or false).
 void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
                                                      int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
+  ASSERT(n >= 1);
+  ASSERT(n <= SubtypeTestCache::kMaxInputs);
+  // If we need the parent function type arguments for a closure, we also need
+  // the delayed type arguments, so this case will never happen.
+  ASSERT(n != 5);
 
   const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
 
@@ -2540,7 +2605,7 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
                   target::Array::data_offset() - kHeapObjectTag);
 
   Label loop, not_closure;
-  if (n >= 4) {
+  if (n >= 3) {
     __ LoadClassIdMayBeSmi(STCInternal::kInstanceCidOrSignatureReg,
                            TypeTestABI::kInstanceReg);
   } else {
@@ -3059,6 +3124,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     /* EDI: allocation size. */
     __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &call_runtime);
+    __ CheckAllocationCanary(EAX);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3115,6 +3181,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ addl(EDI, Immediate(target::kObjectAlignment));
     __ cmpl(EDI, EBX);
     __ j(UNSIGNED_LESS, &loop);
+    __ WriteAllocationCanary(EBX);  // Fix overshoot.
 
     __ ret();
 

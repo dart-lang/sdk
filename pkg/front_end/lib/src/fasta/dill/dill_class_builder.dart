@@ -8,12 +8,11 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 import '../problems.dart' show unimplemented;
 import '../scope.dart';
@@ -24,16 +23,17 @@ class DillClassBuilder extends ClassBuilderImpl {
   @override
   final Class cls;
 
-  DillClassBuilder(Class cls, DillLibraryBuilder parent)
-      : cls = cls,
-        super(
-            null,
+  List<TypeVariableBuilder>? _typeVariables;
+
+  TypeBuilder? _supertypeBuilder;
+
+  List<TypeBuilder>? _interfaceBuilders;
+
+  DillClassBuilder(this.cls, DillLibraryBuilder parent)
+      : super(
+            /*metadata builders*/ null,
             computeModifiers(cls),
             cls.name,
-            null,
-            null,
-            null,
-            null,
             new Scope(
                 kind: ScopeKind.declaration,
                 local: <String, MemberBuilder>{},
@@ -81,10 +81,10 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   List<TypeVariableBuilder>? get typeVariables {
-    List<TypeVariableBuilder>? typeVariables = super.typeVariables;
+    List<TypeVariableBuilder>? typeVariables = _typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
-      typeVariables = super.typeVariables =
-          computeTypeVariableBuilders(libraryBuilder, cls.typeParameters);
+      typeVariables =
+          _typeVariables = computeTypeVariableBuilders(cls.typeParameters);
     }
     return typeVariables;
   }
@@ -94,15 +94,18 @@ class DillClassBuilder extends ClassBuilderImpl {
 
   @override
   TypeBuilder? get supertypeBuilder {
-    TypeBuilder? supertype = super.supertypeBuilder;
+    TypeBuilder? supertype = _supertypeBuilder;
     if (supertype == null) {
       Supertype? targetSupertype = cls.supertype;
       if (targetSupertype == null) return null;
-      super.supertypeBuilder =
+      _supertypeBuilder =
           supertype = computeTypeBuilder(libraryBuilder, targetSupertype);
     }
     return supertype;
   }
+
+  @override
+  List<TypeBuilder>? get onTypes => null;
 
   void addField(Field field) {
     DillFieldBuilder builder = new DillFieldBuilder(field, this);
@@ -192,15 +195,15 @@ class DillClassBuilder extends ClassBuilderImpl {
   @override
   List<TypeBuilder>? get interfaceBuilders {
     if (cls.implementedTypes.isEmpty) return null;
-    if (super.interfaceBuilders == null) {
-      List<TypeBuilder> result = new List<TypeBuilder>.generate(
+    List<TypeBuilder>? interfaceBuilders = _interfaceBuilders;
+    if (interfaceBuilders == null) {
+      interfaceBuilders = _interfaceBuilders = new List<TypeBuilder>.generate(
           cls.implementedTypes.length,
           (int i) =>
               computeTypeBuilder(libraryBuilder, cls.implementedTypes[i])!,
           growable: false);
-      super.interfaceBuilders = result;
     }
-    return super.interfaceBuilders;
+    return interfaceBuilders;
   }
 
   @override
@@ -224,8 +227,9 @@ class DillClassBuilder extends ClassBuilderImpl {
           includeAugmentations: true, includeDuplicates: false);
 
   void clearCachedValues() {
-    supertypeBuilder = null;
-    interfaceBuilders = null;
+    _supertypeBuilder = null;
+    _interfaceBuilders = null;
+    _typeVariables = null;
   }
 }
 
@@ -248,9 +252,9 @@ TypeBuilder? computeTypeBuilder(
 }
 
 List<TypeVariableBuilder>? computeTypeVariableBuilders(
-    LibraryBuilder library, List<TypeParameter>? typeParameters) {
+    List<TypeParameter>? typeParameters) {
   if (typeParameters == null || typeParameters.length == 0) return null;
   return new List.generate(typeParameters.length,
-      (int i) => new TypeVariableBuilder.fromKernel(typeParameters[i], library),
+      (int i) => new TypeVariableBuilder.fromKernel(typeParameters[i]),
       growable: false);
 }

@@ -81,6 +81,9 @@ class Flutter {
       String Function(int) getLinePrefix,
       String Function(int) getIndent,
       String Function(int, int) getText,
+      String Function(String, String, String,
+              {bool includeLeading, bool includeTrailingNewline})
+          replaceSourceIndent,
       SourceRange Function(Expression) rangeNode) {
     var childLoc = namedExp.offset + 'child'.length;
     builder.addSimpleInsertion(childLoc, 'ren');
@@ -106,8 +109,13 @@ class Flutter {
       } else {
         builder.addSimpleInsertion(listLoc, '[');
       }
-      var newChildArgSrc = childArgSrc.replaceAll(
-          RegExp('^$indentOld', multiLine: true), indentNew);
+      var newChildArgSrc = replaceSourceIndent(
+        childArgSrc,
+        indentOld,
+        indentNew,
+        includeLeading: false,
+        includeTrailingNewline: false,
+      );
       newChildArgSrc = '$prefix$newChildArgSrc,$eol$indentOld]';
       builder.addSimpleReplacement(rangeNode(childArg), newChildArgSrc);
     }
@@ -203,7 +211,8 @@ class Flutter {
 
   /// Return the presentation for the given Flutter `Widget` creation [node].
   String? getWidgetPresentationText(InstanceCreationExpression node) {
-    var element = node.constructorName.staticElement?.enclosingElement;
+    var element = node
+        .constructorName.staticElement?.enclosingElement.augmented?.declaration;
     if (!isWidget(element)) {
       return null;
     }
@@ -283,6 +292,7 @@ class Flutter {
             parent is ListLiteral ||
             parent is NamedExpression && parent.expression == node ||
             parent is Statement ||
+            parent is SwitchExpressionCase && parent.expression == node ||
             parent is VariableDeclaration) {
           return node as Expression;
         }
@@ -524,7 +534,8 @@ class Flutter {
   /// Return `true` if the given [expr] is a constructor invocation for a
   /// class that has the Flutter class `Widget` as a superclass.
   bool isWidgetCreation(InstanceCreationExpression? expr) {
-    var element = expr?.constructorName.staticElement?.enclosingElement;
+    var element = expr?.constructorName.staticElement?.enclosingElement
+        .augmented?.declaration;
     return isWidget(element);
   }
 

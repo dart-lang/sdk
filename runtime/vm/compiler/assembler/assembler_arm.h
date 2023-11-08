@@ -257,6 +257,9 @@ class Address : public ValueObject {
     kind_ = Immediate;
     base_ = rn;
     offset_ = offset;
+    // If the offset can't be encoded in fewer bits, then it'll conflict with
+    // the encoding of the mode and we won't be able to retrieve it later.
+    ASSERT(Utils::MagnitudeIsUint(kOpcodeShift, offset));
     if (offset < 0) {
       encoding_ = (am ^ (1 << kUShift)) | -offset;  // Flip U to adjust sign.
     } else {
@@ -310,7 +313,7 @@ class Address : public ValueObject {
                : kNoRegister;
   }
 
-  Mode mode() const { return static_cast<Mode>(encoding() & kModeMask); }
+  Mode mode() const { return static_cast<Mode>(encoding_ & kModeMask); }
 
   bool has_writeback() const {
     return (mode() == PreIndex) || (mode() == PostIndex) ||
@@ -1369,6 +1372,23 @@ class Assembler : public AssemblerBase {
     b(label, NE);
   }
 
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+    LoadInt32FromBoxOrSmi(result, value);
+  }
+
+  void LoadInt32FromBoxOrSmi(Register result, Register value) {
+    if (result == value) {
+      ASSERT(TMP != value);
+      MoveRegister(TMP, value);
+      value = TMP;
+    }
+    ASSERT(value != result);
+    compiler::Label done;
+    SmiUntag(result, value, &done);
+    LoadFieldFromOffset(result, value, compiler::target::Mint::value_offset());
+    Bind(&done);
+  }
+
   // For ARM, the near argument is ignored.
   void BranchIfSmi(Register reg,
                    Label* label,
@@ -1547,6 +1567,24 @@ class Assembler : public AssemblerBase {
                         Register end_address,
                         Register temp1,
                         Register temp2);
+
+  void CheckAllocationCanary(Register top, Register tmp = TMP) {
+#if defined(DEBUG)
+    Label okay;
+    ldr(tmp, Address(top, 0));
+    cmp(tmp, Operand(kAllocationCanary));
+    b(&okay, EQUAL);
+    Stop("Allocation canary");
+    Bind(&okay);
+#endif
+  }
+  void WriteAllocationCanary(Register top) {
+#if defined(DEBUG)
+    ASSERT(top != TMP);
+    LoadImmediate(TMP, kAllocationCanary);
+    str(TMP, Address(top, 0));
+#endif
+  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

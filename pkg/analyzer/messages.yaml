@@ -54,10 +54,31 @@ AnalysisOptionsErrorCode:
       Parameters:
       0: the error message from the parse error
 AnalysisOptionsHintCode:
-  STRONG_MODE_SETTING_DEPRECATED:
-    problemMessage: "The 'strong-mode: true' setting is deprecated."
-    correctionMessage: It is no longer necessary to explicitly enable strong mode.
-    comment: "An error code indicating that strong-mode: true is deprecated."
+  DEPRECATED_LINT:
+    problemMessage: "'{0}' is a deprecated lint rule and should not be used."
+    correctionMessage: Try removing '{0}'.
+    comment: |-
+      A hint code indicating reference to a deprecated lint.
+
+      Parameters:
+      0: the rule name
+  DEPRECATED_LINT_WITH_REPLACEMENT:
+    problemMessage: "'{0}' is deprecated and should be replaced by '{1}'."
+    correctionMessage: "Try replacing '{0}' with '{1}'."
+    comment: |-
+      A hint code indicating reference to a deprecated lint.
+
+      Parameters:
+      0: the deprecated lint name
+      1: the replacing rule name
+  DUPLICATE_RULE:
+    problemMessage: "The rule {0} is already specified and doesn't need to be specified again."
+    correctionMessage: "Try removing all but one specification of the rule."
+    comment: |-
+      Duplicate rules.
+
+      Parameters:
+      0: the rule name
 AnalysisOptionsWarningCode:
   ANALYSIS_OPTION_DEPRECATED:
     problemMessage: "The option '{0}' is no longer supported."
@@ -95,6 +116,15 @@ AnalysisOptionsWarningCode:
       0: the URI of the file to be included
       1: the path of the file containing the include directive
       2: the path of the context being analyzed
+  INCOMPATIBLE_LINT:
+    problemMessage: "The rule '{0}' is incompatible with the rule '{1}'."
+    correctionMessage: "Try removing one of the incompatible rules."
+    comment: |-
+      An error code indicating an incompatible rule.
+
+      Parameters:
+      0: the rule name
+      1: the incompatible rule
   INVALID_OPTION:
     problemMessage: "Invalid option specified for '{0}': {1}"
     comment: |-
@@ -147,10 +177,14 @@ AnalysisOptionsWarningCode:
       0: the rule name
       1: the SDK version in which the lint was removed
       2: the name of a replacing lint
-  SPEC_MODE_REMOVED:
-    problemMessage: "The option 'strong-mode: false' is no longer supported."
-    correctionMessage: "It's recommended to remove the 'strong-mode:' setting (and make your code Dart 2 compliant)."
-    comment: "An error code indicating that strong-mode: false is has been removed."
+  UNDEFINED_LINT:
+    problemMessage: "'{0}' is not a recognized lint rule."
+    correctionMessage: "Try using the name of a recognized lint rule."
+    comment: |-
+      An error code indicating an undefined lint rule.
+
+      Parameters:
+      0: the rule name
   UNRECOGNIZED_ERROR_CODE:
     problemMessage: "'{0}' isn't a recognized error code."
     comment: |-
@@ -1127,6 +1161,9 @@ CompileTimeErrorCode:
       16.30 Await Expressions: It is a compile-time error if the function
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
       await expression.)
+  AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE:
+    problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
+    correctionMessage: Try updating the extension type to implement 'Future'.
   BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The class '{0}' can't be implemented outside of its library because it's a base class."
@@ -2076,13 +2113,14 @@ CompileTimeErrorCode:
       1: the name of the conflicting field
       2: the name of the class defining the method with which the field conflicts
   CONFLICTING_GENERIC_INTERFACES:
-    problemMessage: "The class '{0}' can't implement both '{1}' and '{2}' because the type arguments are different."
+    problemMessage: "The {0} '{1}' can't implement both '{2}' and '{3}' because the type arguments are different."
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the name of the class implementing the conflicting interface
-      1: the first conflicting type
-      2: the second conflicting type
+      0: the name of the kind of the element implementing the conflicting interface
+      1: the name of the element implementing the conflicting interface
+      2: the first conflicting type
+      3: the second conflicting type
     documentation: |-
       #### Description
 
@@ -2264,6 +2302,12 @@ CompileTimeErrorCode:
       0: the type of the runtime value of the argument
       1: the name of the field
       2: the type of the field
+  CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+    sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
+    problemMessage: "Constant values from a deferred library can't be used as values in a 'const' constructor."
+    correctionMessage: "Try removing the keyword 'const' from the constructor or removing the keyword 'deferred' from the import."
+    hasPublishedDocs: true
+    comment: No parameters.
   CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
     problemMessage: "A value of type '{0}' can't be assigned to a parameter of type '{1}' in a const constructor."
     correctionMessage: "Try using a subtype, or removing the keyword 'const'."
@@ -2340,8 +2384,9 @@ CompileTimeErrorCode:
       initialized to a non-constant value:
 
       ```dart
+      String x = '3';
       class C {
-        final String s = 3.toString();
+        final String s = x;
         [!const!] C();
       }
       ```
@@ -2362,8 +2407,9 @@ CompileTimeErrorCode:
       keyword `const` from the constructor:
 
       ```dart
+      String x = '3';
       class C {
-        final String s = 3.toString();
+        final String s = x;
         C();
       }
       ```
@@ -2568,11 +2614,21 @@ CompileTimeErrorCode:
 
       const json2 = convert.JsonCodec();
       ```
+  CONST_EVAL_ASSERTION_FAILURE:
+    problemMessage: "The assertion in this constant expression failed."
   CONST_EVAL_EXTENSION_METHOD:
     problemMessage: "Extension methods can't be used in constant expressions."
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
+  CONST_EVAL_PROPERTY_ACCESS:
+    problemMessage: "The property '{0}' can't be accessed on the type '{1}' in a constant expression."
+    comment: |-
+      Parameters:
+      0: the name of the property being accessed
+      1: the type with the property being accessed
+  CONST_EVAL_METHOD_INVOCATION:
+    problemMessage: "Methods can't be invoked in constant expressions."
   CONST_EVAL_THROWS_EXCEPTION:
     problemMessage: Evaluation of this constant expression throws an exception.
     comment: |-
@@ -2614,6 +2670,9 @@ CompileTimeErrorCode:
       e2, e1 / e2, e1 ~/ e2, e1 > e2, e1 < e2, e1 >= e2, e1 <= e2 or e1 % e2,
       where e, e1 and e2 are constant expressions that evaluate to a numeric
       value or to null.
+  CONST_EVAL_TYPE_STRING:
+    problemMessage: "In constant expressions, operands of this operator must be of type 'String'."
+    comment: No parameters.
   CONST_EVAL_TYPE_TYPE:
     problemMessage: "In constant expressions, operands of this operator must be of type 'Type'."
   CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
@@ -2975,6 +3034,10 @@ CompileTimeErrorCode:
       const Map<String, int> map1 = {};
       const Map<String, int> map2 = {...map1};
       ```
+  CONST_TYPE_PARAMETER:
+    problemMessage: "Type parameters can't be used in a constant expression."
+    correctionMessage: Try replacing the type parameter with a different type.
+    comment: No parameters.
   CONST_WITH_NON_CONST:
     problemMessage: "The constructor being called isn't a const constructor."
     correctionMessage: "Try removing 'const' from the constructor invocation."
@@ -3280,6 +3343,7 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the non-type element
   DEFAULT_LIST_CONSTRUCTOR:
+    removedIn: "3.2"
     problemMessage: "The default 'List' constructor isn't available when null safety is enabled."
     correctionMessage: "Try using a list literal, 'List.filled' or 'List.generate'."
     hasPublishedDocs: true
@@ -4066,7 +4130,7 @@ CompileTimeErrorCode:
   EMPTY_MAP_PATTERN:
     problemMessage: A map pattern must have at least one entry.
     correctionMessage: Try replacing it with an object pattern 'Map()'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5041,6 +5105,66 @@ CompileTimeErrorCode:
 
       If there are multiple cascaded accesses, you'll need to duplicate the
       extension override for each one.
+  EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
+    problemMessage: "Extension type constructors can't declare super formal parameters."
+    correctionMessage: Try removing the super formal parameter declaration.
+    comment: No parameters.
+  EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
+    problemMessage: "Extension type constructors can't include superinitializers."
+    correctionMessage: Try removing the superconstructor invocation.
+    comment: No parameters.
+  EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
+    problemMessage: "Extension types can't declare instance fields."
+    correctionMessage: Try replacing the field with a getter.
+    comment: No parameters.
+  EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
+    problemMessage: "Extension types can't declare members with the same name as a member declared by 'Object'."
+    correctionMessage: Try specifying a different name for the member.
+    comment: No parameters.
+  EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
+    problemMessage: "Extension types can't implement '{0}'."
+    correctionMessage: Try specifying a different type, or remove the type from the list.
+    comment: |-
+      Parameters:
+      0: the display string of the disallowed type
+  EXTENSION_TYPE_IMPLEMENTS_ITSELF:
+    problemMessage: "The extension type can't implement itself."
+    correctionMessage: Try removing the superinterface that references this extension type.
+    comment: No parameters.
+  EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
+    problemMessage: "'{0}' is not a supertype of '{1}', the representation type."
+    correctionMessage: Try specifying a different type, or remove the type from the list.
+    comment: |-
+      Parameters:
+      0: the implemented not extension type
+      1: the ultimate representation type
+  EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
+    problemMessage: "'{0}', the representation type of '{1}', is not a supertype of '{2}', the representation type of '{3}'."
+    correctionMessage: Try specifying a different type, or remove the type from the list.
+    comment: |-
+      Parameters:
+      0: the representation type of the implemented extension type
+      1: the name of the implemented extension type
+      2: the representation type of the this extension type
+      3: the name of the this extension type
+  EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
+    problemMessage: "The extension type '{0}' has more than one distinct member named '{1}' from implemented types."
+    correctionMessage: Try redeclaring the corresponding member in this extension type.
+    comment: |-
+      Parameters:
+      0: the name of the extension type
+      1: the name of the conflicting member
+  EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
+    problemMessage: "The extension type representation can't depend on itself."
+    correctionMessage: Try specifying a different type.
+    comment: No parameters.
+  EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
+    problemMessage: "'{0}' must have a method body because '{1}' is an extension type."
+    correctionMessage: "Try adding a body to '{0}'."
+    comment: |-
+      Parameters:
+      0: the name of the abstract method
+      1: the name of the enclosing extension type
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External fields can't have initializers.
@@ -8258,8 +8382,8 @@ CompileTimeErrorCode:
 
       The analyzer produces this diagnostic when `this` is used outside of an
       instance method or a generative constructor. The reserved word `this` is
-      only defined in the context of an instance method or a generative
-      constructor.
+      only defined in the context of an instance method, a generative
+      constructor, or the initializer of a late instance field declaration.
 
       #### Example
 
@@ -8483,7 +8607,7 @@ CompileTimeErrorCode:
 
       ```dart
       int f(Null x) {
-        return [!x!].length;
+        return x.[!length!];
       }
       ```
 
@@ -9047,7 +9171,7 @@ CompileTimeErrorCode:
       entry even though it's a set literal:
 
       ```dart
-      const collection = <String>{[!'a' : 'b'!]};
+      var collection = <String>{[!'a' : 'b'!]};
       ```
 
       #### Common fixes
@@ -9057,7 +9181,7 @@ CompileTimeErrorCode:
       another type argument:
 
       ```dart
-      const collection = <String, String>{'a' : 'b'};
+      var collection = <String, String>{'a' : 'b'};
       ```
 
       In other cases, you might need to change the explicit type from `Set` to
@@ -9068,7 +9192,7 @@ CompileTimeErrorCode:
       included in the set:
 
       ```dart
-      const collection = <String>{'a', 'b'};
+      var collection = <String>{'a', 'b'};
       ```
   MAP_KEY_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the map key type '{1}'."
@@ -9253,7 +9377,7 @@ CompileTimeErrorCode:
   MISSING_NAMED_PATTERN_FIELD_NAME:
     problemMessage: The getter name is not specified explicitly, and the pattern is not a variable.
     correctionMessage: Try specifying the getter name explicitly, or using a variable pattern.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -9261,6 +9385,7 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when, within an object pattern, the
       specification of a property and the pattern used to match the property's
       value doesn't have either:
+
       - a getter name before the colon
       - a variable pattern from which the getter name can be inferred
 
@@ -10945,6 +11070,10 @@ CompileTimeErrorCode:
       13.2 Expression Statements: It is a compile-time error if a non-constant
       map literal that has no explicit type arguments appears in a place where a
       statement is expected.
+  NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
+    problemMessage: "An extension type parameter can't be used in a non-covariant position of its representation type."
+    correctionMessage: "Try removing the type parameters from function parameter types and type parameter bounds."
+    comment: No parameters.
   NON_EXHAUSTIVE_SWITCH_EXPRESSION:
     problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
     correctionMessage: "Try adding a wildcard pattern or cases that match '{2}'."
@@ -10977,7 +11106,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Add a case for each of the constants that aren't currently being matched:
+      If the missing values are distinctly meaningful to the switch expression,
+      then add a case for each of the values missing a match:
 
       ```dart
       enum E { one, two, three }
@@ -10989,8 +11119,8 @@ CompileTimeErrorCode:
         };
       ```
 
-      If the missing values don't need to be matched, then add  a wildcard
-      pattern:
+      If the missing values don't need to be matched, then add a wildcard
+      pattern that returns a simple default:
 
       ```dart
       enum E { one, two, three }
@@ -11002,9 +11132,9 @@ CompileTimeErrorCode:
         };
       ```
 
-      But be aware that adding a wildcard pattern will cause any future values
-      of the type to also be handled, so you will have lost the ability for the
-      compiler to warn you if the `switch` needs to be updated.
+      Be aware that a wildcard pattern will handle any values added to the type
+      in the future. You will lose the ability to have the compiler warn you if
+      the `switch` needs to be updated to account for newly added types.
   NON_EXHAUSTIVE_SWITCH_STATEMENT:
     problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
     correctionMessage: "Try adding a default case or cases that match '{2}'."
@@ -12208,17 +12338,17 @@ CompileTimeErrorCode:
       7.9 Superclasses: It is a compile-time error to specify an extends clause
       for class Object.
   OBSOLETE_COLON_FOR_DEFAULT_VALUE:
-    problemMessage: Using a colon as a separator before a default value is no longer supported.
+    problemMessage: Using a colon as the separator before a default value is no longer supported.
     correctionMessage: Try replacing the colon with an equal sign.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a colon is used as the
-      separator before the default value of an optional parameter. While this
-      syntax used to be allowed, it's deprecated in favor of using an equal
-      sign.
+      The analyzer produces this diagnostic when a colon (`:`) is used as the
+      separator before the default value of an optional named parameter.
+      While this syntax used to be allowed, it was removed in favor of
+      using an equal sign (`=`).
 
       #### Example
 
@@ -12764,15 +12894,15 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when an object pattern contains a
-      field that doesn't have a getter name. The fields provide a pattern to
-      match against the value returned by a getter, and not specifying the name
-      of the getter means that there's no way to access the value that the
-      pattern is intended to match against.
+      field without specifying the getter name. Object pattern fields match
+      against values that the object's getters return. Without a getter name
+      specified, the pattern field can't access a value to attempt to match against.
 
       #### Example
 
       The following code produces this diagnostic because the object pattern
-      `String(1)` doesn't say which value to compare with `1`:
+      `String(1)` doesn't specify which getter of `String` to access and compare
+      with the value `1`:
 
       ```dart
       void f(Object o) {
@@ -12782,8 +12912,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Add both the name of the getter to use to access the value and a colon
-      before the value:
+      Add the getter name to access the value, followed
+      by a colon before the pattern to match against:
 
       ```dart
       void f(Object o) {
@@ -13195,6 +13325,9 @@ CompileTimeErrorCode:
       const secondsPerHour = minutesPerHour * 60;
       const minutesPerHour = 60;
       ```
+  RECURSIVE_CONSTANT_CONSTRUCTOR:
+    problemMessage: "The constant constructor depends on itself."
+    comment: No parameters.
   RECURSIVE_CONSTRUCTOR_REDIRECT:
     problemMessage: "Constructors can't redirect to themselves either directly or indirectly."
     correctionMessage: Try changing one of the constructors in the loop to not redirect.
@@ -14074,20 +14207,20 @@ CompileTimeErrorCode:
   REST_ELEMENT_IN_MAP_PATTERN:
     problemMessage: A map pattern can't contain a rest pattern.
     correctionMessage: Try removing the rest pattern.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when a map pattern contains a rest
-      pattern. The matching for map patterns already allows the map to have
-      more keys than those explicitly given in the pattern, so a rest pattern
-      wouldn't add anything.
+      pattern. Map patterns match a map with more keys
+      than those explicitly given in the pattern (as long as the given keys match),
+      so a rest pattern is unnecessary.
 
       #### Example
 
-      The following code produces this diagnostic because there's a rest
-      pattern in a map pattern:
+      The following code produces this diagnostic because the map pattern contains
+      a rest pattern:
 
       ```dart
       void f(Map<int, String> x) {
@@ -14222,7 +14355,7 @@ CompileTimeErrorCode:
 
       ```dart
       Iterable<int> f() sync* {
-        [!return 3!];
+        [!return!] 3;
       }
       ```
 
@@ -18016,7 +18149,8 @@ FfiCode:
       argument whose value isn't a constant expression.
 
       The analyzer also produces this diagnostic when the value of the
-      `exceptionalReturn` argument of `Pointer.fromFunction`.
+      `exceptionalReturn` argument of `Pointer.fromFunction` or
+      `NativeCallable.isolateLocal`.
 
       For more information about FFI, see [C interop using dart:ffi][ffi].
 
@@ -18472,15 +18606,18 @@ FfiCode:
       }
       ```
   INVALID_EXCEPTION_VALUE:
-    problemMessage: "The method 'Pointer.fromFunction' can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
+    problemMessage: "The method {0} can't have an exceptional return value (the second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'."
     correctionMessage: Try removing the exceptional return value.
-    comment: No parameters.
+    comment: |-
+      Parameters:
+      0: the name of the method
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when an invocation of the method
-      `Pointer.fromFunction` has a second argument (the exceptional return
+      `Pointer.fromFunction` or `NativeCallable.isolateLocal`
+      has a second argument (the exceptional return
       value) and the type to be returned from the invocation is either `void`,
       `Handle` or `Pointer`.
 
@@ -18769,15 +18906,18 @@ FfiCode:
       }
       ```
   MISSING_EXCEPTION_VALUE:
-    problemMessage: "The method 'Pointer.fromFunction' must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'."
+    problemMessage: "The method {0} must have an exceptional return value (the second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'."
     correctionMessage: Try adding an exceptional return value.
-    comment: No parameters.
+    comment: |-
+      Parameters:
+      0: the name of the method
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
       The analyzer produces this diagnostic when an invocation of the method
-      `Pointer.fromFunction` doesn't have a second argument (the exceptional
+      `Pointer.fromFunction` or `NativeCallable.isolateLocal`
+      doesn't have a second argument (the exceptional
       return value) when the type to be returned from the invocation is neither
       `void`, `Handle`, nor `Pointer`.
 
@@ -18909,7 +19049,8 @@ FfiCode:
       #### Description
 
       The analyzer produces this diagnostic when an invocation of either
-      `Pointer.fromFunction` or `DynamicLibrary.lookupFunction` has a type
+      `Pointer.fromFunction`, `DynamicLibrary.lookupFunction`,
+      or a `NativeCallable` constructor, has a type
       argument(whether explicit or inferred) that isn't a native function type.
 
       For more information about FFI, see [C interop using dart:ffi][ffi].
@@ -18960,7 +19101,8 @@ FfiCode:
       #### Description
 
       The analyzer produces this diagnostic in two cases:
-      - In an invocation of `Pointer.fromFunction` where the type argument
+      - In an invocation of `Pointer.fromFunction`, or a
+        `NativeCallable` constructor where the type argument
         (whether explicit or inferred) isn't a supertype of the type of the
         function passed as the first argument to the method.
       - In an invocation of `DynamicLibrary.lookupFunction` where the first type
@@ -19021,7 +19163,7 @@ FfiCode:
     comment: |-
       Parameters:
       0: the return type that should be 'void'.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -19378,7 +19520,7 @@ FfiCode:
       }
       ```
   SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
-    removed: 3.0
+    removedIn: "3.0"
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't extend '{1}'."
     correctionMessage: "Try extending 'Struct' or 'Union'."
@@ -19429,7 +19571,7 @@ FfiCode:
       final class C {}
       ```
   SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
-    removed: 3.0
+    removedIn: "3.0"
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't implement '{1}'."
     correctionMessage: "Try implementing 'Allocator' or 'Finalizable'."
@@ -19439,7 +19581,7 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
     hasPublishedDocs: true
   SUBTYPE_OF_FFI_CLASS_IN_WITH:
-    removed: 3.0
+    removedIn: "3.0"
     sharedName: SUBTYPE_OF_FFI_CLASS
     problemMessage: "The class '{0}' can't mix in '{1}'."
     correctionMessage: "Try extending 'Struct' or 'Union'."
@@ -19533,7 +19675,7 @@ HintCode:
       Note: Since this diagnostic is only produced in pre-null safe code, we do
       not plan to go through the exercise of converting it to a Warning.
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
-    problemMessage: Using a colon as a separator before a default value is deprecated and will not be supported in language version 3.0 and later.
+    problemMessage: Using a colon as the separator before a default value is deprecated and will not be supported in language version 3.0 and later.
     correctionMessage: Try replacing the colon with an equal sign.
     hasPublishedDocs: true
     comment: |-
@@ -19544,9 +19686,10 @@ HintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a colon is used as the
-      separator before the default value of an optional parameter. While this
-      syntax is allowed, it's being deprecated in favor of using an equal sign.
+      The analyzer produces this diagnostic when a colon (`:`) is used as the
+      separator before the default value of an optional named parameter.
+      While this syntax is allowed, it is deprecated in favor of
+      using an equal sign (`=`).
 
       #### Example
 
@@ -19564,64 +19707,6 @@ HintCode:
       ```dart
       void f({int i = 0}) {}
       ```
-  DEPRECATED_EXPORT_USE:
-    problemMessage: "The ability to import '{0}' indirectly is deprecated."
-    correctionMessage: "Try importing '{0}' directly."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the element
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when one library imports a name from
-      a second library, and the second library exports the name from a third
-      library but has indicated that it won't export the third library in the
-      future.
-
-      #### Example
-
-      Given a library `a.dart` defining the class `A`:
-
-      ```dart
-      %uri="lib/a.dart"
-      class A {}
-      ```
-
-      And a second library `b.dart` that exports `a.dart` but has marked the
-      export as being deprecated:
-
-      ```dart
-      %uri="lib/b.dart"
-      import 'a.dart';
-
-      @deprecated
-      export 'a.dart';
-      ```
-
-      The following code produces this diagnostic because the class `A` won't be
-      exported from `b.dart` in some future version:
-
-      ```dart
-      import 'b.dart';
-
-      [!A!]? a;
-      ```
-
-      #### Common fixes
-
-      If the name is available from a different library that you can import,
-      then replace the existing import with an import for that library (or add
-      an import for the defining library if you still need the old import):
-
-      ```dart
-      import 'a.dart';
-
-      A? a;
-      ```
-
-      If the name isn't available, then look for instructions from the library
-      author or contact them directly to find out how to update your code.
   DEPRECATED_MEMBER_USE:
     problemMessage: "'{0}' is deprecated and shouldn't be used."
     correctionMessage: Try replacing the use of the deprecated member with the replacement.
@@ -19846,12 +19931,6 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
-  UNIGNORABLE_IGNORE:
-    problemMessage: "The diagnostic '{0}' can't be ignored."
-    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
-    comment: |-
-      Parameters:
-      0: the name of the non-diagnostic being ignored
   UNNECESSARY_CAST:
     problemMessage: Unnecessary cast.
     correctionMessage: Try removing the cast.
@@ -19955,7 +20034,7 @@ HintCode:
       #### Example
 
       The following code produces this diagnostic because the value `1` was
-      matched in the preceeding case:
+      matched in the preceding case:
 
       ```dart
       void f(int x) {
@@ -20056,63 +20135,6 @@ HintCode:
   UNUSED_LOCAL_VARIABLE:
     aliasFor: WarningCode.UNUSED_LOCAL_VARIABLE
     comment: This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
-LanguageCode:
-  IMPLICIT_DYNAMIC_FIELD:
-    problemMessage: "Missing field type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the field
-  IMPLICIT_DYNAMIC_FUNCTION:
-    problemMessage: "Missing type arguments for generic function '{0}<{1}>'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function
-      1: the names of the type arguments
-  IMPLICIT_DYNAMIC_INVOKE:
-    problemMessage: "Missing type arguments for calling generic function type '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of type
-  IMPLICIT_DYNAMIC_LIST_LITERAL:
-    problemMessage: Missing type argument for list literal.
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-  IMPLICIT_DYNAMIC_MAP_LITERAL:
-    problemMessage: Missing type arguments for map literal.
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-  IMPLICIT_DYNAMIC_METHOD:
-    problemMessage: "Missing type arguments for generic method '{0}<{1}>'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function
-      1: the names of the type arguments
-  IMPLICIT_DYNAMIC_PARAMETER:
-    problemMessage: "Missing parameter type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the parameter
-  IMPLICIT_DYNAMIC_RETURN:
-    problemMessage: "Missing return type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function or method
-  IMPLICIT_DYNAMIC_TYPE:
-    problemMessage: "Missing type arguments for generic type '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the type
-  IMPLICIT_DYNAMIC_VARIABLE:
-    problemMessage: "Missing variable type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the variable
 ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".
@@ -20259,6 +20281,12 @@ ParserErrorCode:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected a mixin name.
     correctionMessage: Try using a mixin name, possibly with type arguments.
+  EXPECTED_REPRESENTATION_FIELD:
+    problemMessage: Expected a representation field.
+    correctionMessage: Try providing the representation field for this extension type.
+  EXPECTED_REPRESENTATION_TYPE:
+    problemMessage: Expected a representation type.
+    correctionMessage: Try providing the representation type for this extension type.
   EXPECTED_STRING_LITERAL:
     problemMessage: Expected a string literal.
   EXPECTED_TOKEN:
@@ -20393,6 +20421,9 @@ ParserErrorCode:
   MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
     problemMessage: "Can't have multiple groups of positional parameters in a single parameter list."
     correctionMessage: Try combining all of the groups into a single group.
+  MULTIPLE_REPRESENTATION_FIELDS:
+    problemMessage: Each extension type should have exactly one representation field.
+    correctionMessage: Try combining fields into a record, or removing extra fields.
   MULTIPLE_VARIABLES_IN_FOR_EACH:
     problemMessage: "A single loop variable must be declared in a for-each loop before the 'in', but {0} were found."
     correctionMessage: Try moving all but one of the declarations inside the loop body.
@@ -20440,6 +20471,9 @@ ParserErrorCode:
   POSITIONAL_PARAMETER_OUTSIDE_GROUP:
     problemMessage: "Positional parameters must be enclosed in square brackets ('[' and ']')."
     correctionMessage: Try surrounding the positional parameters in square brackets.
+  REPRESENTATION_FIELD_MODIFIER:
+    problemMessage: "Representation fields can't have modifiers."
+    correctionMessage: Try removing the modifier.
   SETTER_IN_FUNCTION:
     problemMessage: "Setters can't be defined within methods or functions."
     correctionMessage: Try moving the setter outside the method or function.
@@ -20508,7 +20542,7 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - assets/
+          - [!assets/!]
       ```
 
       #### Common fixes
@@ -20540,7 +20574,7 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - doesNotExist.gif
+          - [!doesNotExist.gif!]
       ```
 
       #### Common fixes
@@ -20569,7 +20603,7 @@ PubspecWarningCode:
       %uri="pubspec.yaml"
       name: example
       flutter:
-        assets: assets/
+        assets: [!assets/!]
       ```
 
       #### Common fixes
@@ -20604,7 +20638,7 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - image.gif: true
+          - [!image.gif: true!]
       ```
 
       #### Common fixes
@@ -20641,7 +20675,7 @@ PubspecWarningCode:
       %uri="pubspec.yaml"
       name: example
       dependencies:
-        - meta
+        [!- meta!]
       ```
 
       #### Common fixes
@@ -20706,7 +20740,7 @@ PubspecWarningCode:
       ```yaml
       %uri="pubspec.yaml"
       name: example
-      flutter: true
+      flutter: [!true!]
       ```
 
       #### Common fixes
@@ -20781,6 +20815,144 @@ PubspecWarningCode:
             url: http://your-package-server.com
           version: ^1.4.0
       ```
+  INVALID_PLATFORMS_FIELD:
+    problemMessage: "The 'platforms' field must be a map with platforms as keys."
+    correctionMessage: "Try changing the 'platforms' field to a map with platforms as keys."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a top-level `platforms`
+      field is specified, but its value is not a map with keys.
+      To learn more about specifying your package's supported platforms,
+      check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
+
+      #### Example
+
+      The following `pubspec.yaml` produces this diagnostic because `platforms`
+      should be a map.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        [!- android
+        - web
+        - ios!]
+      ```
+
+      #### Common fixes
+
+      If you can rely on automatic platform detection, then omit the
+      top-level `platforms` field. 
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      ```
+
+      If you need to manually specify the list of supported platforms, then
+      write the `platforms` field as a map with platform names as keys.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        android:
+        web:
+        ios:
+      ```
+  UNKNOWN_PLATFORM:
+    problemMessage: "The platform '{0}' is not a recognized platform."
+    correctionMessage: "Try correcting the platform name or removing it."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the unknown platform.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an unknown platform name is
+      used as a key in the `platforms` map.
+      To learn more about specifying your package's supported platforms,
+      check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
+
+      #### Example
+
+      The following `pubspec.yaml` produces this diagnostic because the platform
+      `browser` is unknown.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        [!browser:!]
+      ```
+
+      #### Common fixes
+
+      If you can rely on automatic platform detection, then omit the
+      top-level `platforms` key.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      ```
+
+      If you need to manually specify the list of supported platforms, then
+      write the `platforms` field as a map with known platform names as keys.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        # These are the known platforms
+        android:
+        ios:
+        linux:
+        macos:
+        web:
+        windows:
+      ```
+  PLATFORM_VALUE_DISALLOWED:
+    problemMessage: "Keys in the `platforms` field can't have values."
+    correctionMessage: "Try removing the value, while keeping the key."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a key in the `platforms` map
+      has a value.
+      To learn more about specifying your package's supported platforms,
+      check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
+
+      #### Example
+
+      The following `pubspec.yaml` produces this diagnostic because the key
+      `web` has a value.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        web: [!"chrome"!]
+      ```
+
+      #### Common fixes
+
+      Omit the value and leave the key without a value:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        web:
+      ```
+
+      Values for keys in the `platforms` field are currently reserved for
+      potential future behavior.
   MISSING_NAME:
     problemMessage: "The 'name' field is required but missing."
     correctionMessage: "Try adding a field named 'name'."
@@ -20832,7 +21004,7 @@ PubspecWarningCode:
       ```yaml
       %uri="pubspec.yaml"
       name:
-        - example
+        [!- example!]
       ```
 
       #### Common fixes
@@ -20866,7 +21038,7 @@ PubspecWarningCode:
       name: example
       dependencies:
         local_package:
-          path: doesNotExist
+          path: [!doesNotExist!]
       ```
 
       #### Common fixes
@@ -20898,7 +21070,7 @@ PubspecWarningCode:
       name: example
       dependencies:
         local_package:
-          path: E:\local_package
+          path: [!E:\local_package!]
       ```
 
       #### Common fixes
@@ -20928,7 +21100,7 @@ PubspecWarningCode:
       name: example
       dependencies:
         local_package:
-          path: local_package
+          path: [!local_package!]
       ```
 
       #### Common fixes
@@ -20968,7 +21140,7 @@ PubspecWarningCode:
       dependencies:
         meta: ^1.0.2
       dev_dependencies:
-        meta: ^1.0.2
+        [!meta!]: ^1.0.2
       ```
 
       #### Common fixes
@@ -21789,6 +21961,64 @@ WarningCode:
         }
       }
       ```
+  DEPRECATED_EXPORT_USE:
+    problemMessage: "The ability to import '{0}' indirectly is deprecated."
+    correctionMessage: "Try importing '{0}' directly."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the element
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when one library imports a name from
+      a second library, and the second library exports the name from a third
+      library but has indicated that it won't export the third library in the
+      future.
+
+      #### Example
+
+      Given a library `a.dart` defining the class `A`:
+
+      ```dart
+      %uri="lib/a.dart"
+      class A {}
+      ```
+
+      And a second library `b.dart` that exports `a.dart` but has marked the
+      export as being deprecated:
+
+      ```dart
+      %uri="lib/b.dart"
+      import 'a.dart';
+
+      @deprecated
+      export 'a.dart';
+      ```
+
+      The following code produces this diagnostic because the class `A` won't be
+      exported from `b.dart` in some future version:
+
+      ```dart
+      import 'b.dart';
+
+      [!A!]? a;
+      ```
+
+      #### Common fixes
+
+      If the name is available from a different library that you can import,
+      then replace the existing import with an import for that library (or add
+      an import for the defining library if you still need the old import):
+
+      ```dart
+      import 'a.dart';
+
+      A? a;
+      ```
+
+      If the name isn't available, then look for instructions from the library
+      author or contact them directly to find out how to update your code.
   DEPRECATED_EXTENDS_FUNCTION:
     sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
     problemMessage: "Extending 'Function' is deprecated."
@@ -21886,6 +22116,94 @@ WarningCode:
         C.c();
       }
       ```
+  DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
+    problemMessage: "The '{0}' directive has '{1}' arguments, but only '{2}' are expected."
+    correctionMessage: Try removing the extra arguments.
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the actual number of arguments
+      2: the expected number of arguments
+  DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
+    problemMessage: "The '{0}' directive has an unexpected named argument, '{1}'."
+    correctionMessage: "Try removing the unexpected argument."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the unexpected argument
+  DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
+    problemMessage: "Doc directive is missing a closing curly brace ('}')."
+    correctionMessage: "Try closing the directive with a curly brace."
+    hasPublishedDocs: false
+  DOC_DIRECTIVE_MISSING_CLOSING_TAG:
+    problemMessage: "Doc directive is missing a closing tag."
+    correctionMessage: "Try closing the directive with the appropriate closing tag, '{0}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the corresponding doc directive tag
+  DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
+    sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+    problemMessage: "The '{0}' directive is missing a '{1}' argument."
+    correctionMessage: "Try adding a '{1}' argument before the closing '}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the missing argument
+  DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+    problemMessage: "The '{0}' argument must be formatted as {1}."
+    correctionMessage: "Try formatting '{0}' as {1}."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive argument
+      1: the expected format
+  DOC_DIRECTIVE_MISSING_OPENING_TAG:
+    problemMessage: "Doc directive is missing an opening tag."
+    correctionMessage: "Try opening the directive with the appropriate opening tag, '{0}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the corresponding doc directive tag
+  DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
+    sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+    problemMessage: "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument."
+    correctionMessage: "Try adding the missing arguments before the closing '}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the first missing argument
+      2: the name of the second missing argument
+      3: the name of the third missing argument
+  DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
+   sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+   problemMessage: "The '{0}' directive is missing a '{1}' and a '{2}' argument."
+   correctionMessage: "Try adding the missing arguments before the closing '}'."
+   hasPublishedDocs: false
+   comment: |-
+     Parameters:
+     0: the name of the doc directive
+     1: the name of the first missing argument
+     2: the name of the second missing argument
+  DOC_DIRECTIVE_UNKNOWN:
+    problemMessage: "Doc directive '{0}' is unknown."
+    correctionMessage: 'Try using one of the supported doc directives.'
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the unknown doc directive.
+  DOC_IMPORT_CANNOT_BE_DEFERRED:
+    problemMessage: "Doc imports can't be deferred."
+    correctionMessage: Try removing the 'deferred' keyword.
+    hasPublishedDocs: false
+  DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+    problemMessage: "Doc imports can't have configurations."
+    correctionMessage: Try removing the configurations.
+    hasPublishedDocs: false
   DUPLICATE_EXPORT:
     problemMessage: Duplicate export.
     correctionMessage: Try removing all but one export of the library.
@@ -23083,7 +23401,7 @@ WarningCode:
       ```
   INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
     problemMessage: "The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -23869,6 +24187,14 @@ WarningCode:
     problemMessage: "A record literal with exactly one positional field requires a trailing comma."
     correctionMessage: Try adding a trailing comma.
     hasPublishedDocs: true
+  REDECLARE_ON_NON_REDECLARING_MEMBER:
+    problemMessage: "The {0} doesn't redeclare a {0} declared in a superinterface."
+    correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.
+    comment: |-
+      An error code indicating the use of a redeclare annotation on a member that does not redeclare.
+
+      Parameters:
+      0: the kind of member
   REMOVED_LINT_USE:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."
@@ -23944,6 +24270,7 @@ WarningCode:
       int g() => 0;
       ```
   SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
+    removedIn: "3.2"
     problemMessage: "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions."
     correctionMessage: "Try either importing 'dart:async' or updating the SDK constraints."
     hasPublishedDocs: true
@@ -23996,6 +24323,7 @@ WarningCode:
       void f(Future f) {}
       ```
   SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
+    removedIn: "3.2"
     problemMessage: "The use of an as expression in a constant expression wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true
@@ -24047,6 +24375,7 @@ WarningCode:
       int y = x as int;
       ```
   SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT:
+    removedIn: "3.2"
     problemMessage: "The use of the operator '{0}' for 'bool' operands in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true
@@ -24158,6 +24487,7 @@ WarningCode:
       var setConstructor = () => Set.identity();
       ```
   SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT:
+    removedIn: "3.2"
     problemMessage: "Using the operator '==' for non-primitive types wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true
@@ -24215,6 +24545,7 @@ WarningCode:
       bool same = a == b;
       ```
   SDK_VERSION_EXTENSION_METHODS:
+    removedIn: "3.2"
     problemMessage: "Extension methods weren't supported until version 2.6.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true
@@ -24326,6 +24657,7 @@ WarningCode:
       }
       ```
   SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
+    removedIn: "3.2"
     problemMessage: "The use of an is expression in a constant context wasn't supported until version 2.3.2, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true
@@ -24426,6 +24758,7 @@ WarningCode:
       dynamic x;
       ```
   SDK_VERSION_SET_LITERAL:
+    removedIn: "3.2"
     problemMessage: "Set literals weren't supported until version 2.2, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true
@@ -24480,6 +24813,7 @@ WarningCode:
       0: the version specified in the `@Since()` annotation
       1: the SDK version constraints
   SDK_VERSION_UI_AS_CODE:
+    removedIn: "3.2"
     problemMessage: "The for, if, and spread elements weren't supported until version 2.3.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true
@@ -24536,6 +24870,7 @@ WarningCode:
       }
       ```
   SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
+    removedIn: "3.2"
     problemMessage: "The if and spread elements weren't supported in constant expressions until version 2.5.0, but this code is required to be able to run on earlier versions."
     correctionMessage: Try updating the SDK constraints.
     hasPublishedDocs: true
@@ -24903,6 +25238,12 @@ WarningCode:
 
       var x = min(0, 1);
       ```
+  UNIGNORABLE_IGNORE:
+    problemMessage: "The diagnostic '{0}' can't be ignored."
+    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
+    comment: |-
+      Parameters:
+      0: the name of the non-diagnostic being ignored
   UNNECESSARY_CAST:
     aliasFor: HintCode.UNNECESSARY_CAST
     comment: This is the new replacement for [HintCode.UNNECESSARY_CAST].

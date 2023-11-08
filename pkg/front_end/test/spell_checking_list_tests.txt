@@ -52,6 +52,7 @@ augmented
 auth
 authority
 autobianchi
+autofocus
 automatic
 averaged
 averages
@@ -81,6 +82,7 @@ besides
 beta
 bigger
 bitmask
+bivariant
 bkonyi
 bla
 blah
@@ -289,6 +291,7 @@ expansive
 explainer
 extern
 f\u
+fa
 fac
 faking
 falling
@@ -320,6 +323,7 @@ foundation
 fox
 frequency
 frozen
+fruits
 fulfill
 func
 futornullable
@@ -346,9 +350,12 @@ greeting
 gtgt
 gulp
 gunk
+ha
 hackish
 hardcoding
 hardly
+hb
+hc
 hest
 heuristics
 hi
@@ -408,6 +415,8 @@ ish
 it'll
 italic
 iter
+ja
+jc
 jlcontreras
 joo
 jumped
@@ -614,6 +623,7 @@ rk
 row
 rows
 rr
+rt
 ruin
 runtimes
 rv
@@ -644,6 +654,7 @@ sheets
 shipped
 shortest
 shot
+shuffle
 sidebar
 sigint
 signalled
@@ -754,6 +765,7 @@ unpacked
 unpatched
 unpaused
 unregistered
+unreleased
 unsurprisingly
 untracked
 untransformed

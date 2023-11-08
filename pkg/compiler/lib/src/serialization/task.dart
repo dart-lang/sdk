@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'package:compiler/src/js/js.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
@@ -12,6 +13,7 @@ import '../commandline_options.dart' show Flags;
 import '../common/codegen.dart';
 import '../common/tasks.dart';
 import '../diagnostics/diagnostic_listener.dart';
+import '../dump_info.dart';
 import '../elements/entities.dart';
 import '../environment.dart';
 import '../inferrer/abstract_value_strategy.dart';
@@ -26,6 +28,7 @@ import '../js_model/js_strategy.dart';
 import '../js_model/locals.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
+import 'deferrable.dart';
 import 'serialization.dart';
 
 class _StringInterner implements ir.StringInterner, StringInterner {
@@ -262,9 +265,7 @@ class SerializationTask extends CompilerTask {
               component,
               closedWorldAndIndices.data!,
               source),
-          source.enableDeferredStrategy
-              ? source.exportIndices()
-              : closedWorldAndIndices.indices);
+          source.exportIndices());
     });
   }
 
@@ -295,11 +296,11 @@ class SerializationTask extends CompilerTask {
           importedIndices: indices);
       _reporter.log('Writing data to ${uri}');
       sink.registerEntityWriter(entityWriter);
-      sink.registerCodegenWriter(CodegenWriterImpl(closedWorld));
-      sink.writeMemberMap(
-          results,
-          (MemberEntity member, CodegenResult result) =>
-              result.writeToDataSink(sink));
+      sink.writeMemberMap(results, (MemberEntity member, CodegenResult result) {
+        sink.registerCodegenWriter(
+            CodegenWriterImpl(closedWorld, result.deferredExpressionData));
+        sink.writeDeferrable(() => result.writeToDataSink(sink));
+      });
       sink.close();
     });
   }
@@ -313,7 +314,7 @@ class SerializationTask extends CompilerTask {
       SourceLookup sourceLookup) async {
     int shards = _options.codegenShards!;
     JClosedWorld closedWorld = globalTypeInferenceResults.closedWorld;
-    Map<MemberEntity, CodegenResult> results = {};
+    Map<MemberEntity, Deferrable<CodegenResult>> results = {};
     for (int shard = 0; shard < shards; shard++) {
       Uri uri = Uri.parse(
           '${_options.dataInputUriForStage(Dart2JSStage.codegenSharded)}$shard');
@@ -329,7 +330,15 @@ class SerializationTask extends CompilerTask {
       });
     }
     return DeserializedCodegenResults(
-        globalTypeInferenceResults, codegenInputs, results);
+        globalTypeInferenceResults, codegenInputs, DeferrableValueMap(results));
+  }
+
+  static CodegenResult _readCodegenResult(
+      DataSourceReader source, JClosedWorld closedWorld) {
+    CodegenReader reader = CodegenReaderImpl(closedWorld);
+    source.registerCodegenReader(reader);
+    CodegenResult result = CodegenResult.readFromDataSource(source);
+    return result;
   }
 
   void _deserializeCodegenInput(
@@ -338,7 +347,7 @@ class SerializationTask extends CompilerTask {
       Uri uri,
       api.Input<List<int>> dataInput,
       DataSourceIndices importedIndices,
-      Map<MemberEntity, CodegenResult> results,
+      Map<MemberEntity, Deferrable<CodegenResult>> results,
       bool useDeferredSourceReads,
       SourceLookup sourceLookup) {
     DataSourceReader source = DataSourceReader(
@@ -349,20 +358,49 @@ class SerializationTask extends CompilerTask {
         useDeferredStrategy: useDeferredSourceReads);
     backendStrategy.prepareCodegenReader(source);
     source.registerSourceLookup(sourceLookup);
-    Map<MemberEntity, CodegenResult> codegenResults =
+    Map<MemberEntity, Deferrable<CodegenResult>> codegenResults =
         source.readMemberMap((MemberEntity member) {
-      List<ModularName> modularNames = [];
-      List<ModularExpression> modularExpressions = [];
-      CodegenReader reader =
-          CodegenReaderImpl(closedWorld, modularNames, modularExpressions);
-      source.registerCodegenReader(reader);
-      CodegenResult result = CodegenResult.readFromDataSource(
-          source, modularNames, modularExpressions);
-      source.deregisterCodegenReader(reader);
-      return result;
+      return source.readDeferrableWithArg(_readCodegenResult, closedWorld,
+          cacheData: false);
     });
     _reporter.log('Read ${codegenResults.length} members from ${uri}');
     results.addAll(codegenResults);
+  }
+
+  void serializeDumpInfoProgramData(
+      JsBackendStrategy backendStrategy,
+      DumpInfoProgramData dumpInfoProgramData,
+      JClosedWorld closedWorld,
+      DataSourceIndices? importedIndices) {
+    final outputUri = _options.dumpInfoWriteUri!;
+    api.BinaryOutputSink dataOutput =
+        _outputProvider.createBinarySink(outputUri);
+    final sink = DataSinkWriter(
+        BinaryDataSink(BinaryOutputSinkAdapter(dataOutput)), _options,
+        importedIndices: importedIndices);
+    EntityWriter entityWriter = backendStrategy.forEachCodegenMember((_) {});
+    sink.registerEntityWriter(entityWriter);
+    sink.registerCodegenWriter(
+        CodegenWriterImpl(closedWorld, DeferredExpressionData([], [])));
+    dumpInfoProgramData.writeToDataSink(sink);
+    sink.close();
+  }
+
+  Future<DumpInfoProgramData> deserializeDumpInfoProgramData(
+      JsBackendStrategy backendStrategy,
+      JClosedWorld closedWorld,
+      DataSourceIndices? importedIndices) async {
+    final inputUri = _options.dumpInfoReadUri!;
+    final dataInput =
+        await _provider.readFromUri(inputUri, inputKind: api.InputKind.binary);
+    final source = DataSourceReader(
+        BinaryDataSource(dataInput.data, stringInterner: _stringInterner),
+        _options,
+        importedIndices: importedIndices);
+    backendStrategy.prepareCodegenReader(source);
+    source.registerCodegenReader(CodegenReaderImpl(closedWorld));
+    return DumpInfoProgramData.readFromDataSource(source, closedWorld,
+        includeCodeText: !_options.useDumpInfoBinaryFormat);
   }
 }
 

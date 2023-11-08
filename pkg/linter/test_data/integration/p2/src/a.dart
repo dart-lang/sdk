@@ -1,0 +1,2 @@
+/// Test class.
+class a {}

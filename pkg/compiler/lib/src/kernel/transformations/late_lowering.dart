@@ -11,11 +11,8 @@ import '../../options.dart';
 class _Reader {
   final Procedure _procedure;
   final FunctionType _type;
-  late final FunctionType _typeWithoutTypeParameters;
 
-  _Reader(this._procedure) : _type = _procedure.getterType as FunctionType {
-    _typeWithoutTypeParameters = _type.withoutTypeParameters;
-  }
+  _Reader(this._procedure) : _type = _procedure.getterType as FunctionType;
 }
 
 const _lateInstanceFieldPrefix = '_#';
@@ -164,9 +161,7 @@ class LateLowering {
         Arguments(const [], types: typeArguments)..fileOffset = fileOffset,
         interfaceTarget: procedure,
         functionType:
-            Substitution.fromPairs(reader._type.typeParameters, typeArguments)
-                    .substituteType(reader._typeWithoutTypeParameters)
-                as FunctionType)
+            FunctionTypeInstantiator.instantiate(reader._type, typeArguments))
       ..fileOffset = fileOffset;
   }
 
@@ -334,9 +329,9 @@ class LateLowering {
         ..fileOffset = fileOffset
         ..isNonNullableByDefault = true
         // TODO(fishythefish,srujzs,johnniwinther): Also mark the getter/setter
-        //  as extension/inline class members.
+        //  as extension/extension type members.
         ..isExtensionMember = field.isExtensionMember
-        ..isInlineClassMember = field.isInlineClassMember;
+        ..isExtensionTypeMember = field.isExtensionTypeMember;
       StaticGet fieldCellAccess() =>
           StaticGet(fieldCell)..fileOffset = fileOffset;
 

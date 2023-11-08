@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 extension Extension on core::int {
   method syncStarMethod = self::Extension|syncStarMethod;
-  tearoff syncStarMethod = self::Extension|get#syncStarMethod;
+  method tearoff syncStarMethod = self::Extension|get#syncStarMethod;
   method asyncMethod = self::Extension|asyncMethod;
-  tearoff asyncMethod = self::Extension|get#asyncMethod;
+  method tearoff asyncMethod = self::Extension|get#asyncMethod;
   method asyncStarMethod = self::Extension|asyncStarMethod;
-  tearoff asyncStarMethod = self::Extension|get#asyncStarMethod;
+  method tearoff asyncStarMethod = self::Extension|get#asyncStarMethod;
 }
 static extension-member method Extension|syncStarMethod(lowered final core::int #this) → dynamic sync* {}
 static extension-member method Extension|get#syncStarMethod(lowered final core::int #this) → () → dynamic

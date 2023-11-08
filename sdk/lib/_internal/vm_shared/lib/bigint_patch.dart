@@ -678,7 +678,8 @@ class _BigIntImpl implements BigInt {
       return _isNegative ? _minusOne : zero;
     }
     final digits = _digits;
-    final resultDigits = _newDigits(resultUsed);
+    // The 64-bit intrinsic requires one extra pair to work with.
+    final resultDigits = _newDigits(resultUsed + 1);
     _rsh(digits, used, shiftAmount, resultDigits);
     final result = new _BigIntImpl._(_isNegative, resultUsed, resultDigits);
     if (_isNegative) {
@@ -708,7 +709,8 @@ class _BigIntImpl implements BigInt {
     if (resultUsed <= 0) {
       return 0;
     }
-    assert(resultDigits.length >= resultUsed + (resultUsed & 1));
+    // The 64-bit intrinsic requires one extra pair to work with.
+    assert(resultDigits.length >= resultUsed + 1 + (resultUsed + 1 & 1));
     _rsh(xDigits, xUsed, n, resultDigits);
     if (resultDigits[resultUsed - 1] == 0) {
       resultUsed--; // Clamp result.

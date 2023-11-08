@@ -400,6 +400,7 @@ void Flags::Parse(const char* option) {
     char* new_flag = new char[name_len + 1];
     strncpy(new_flag, option, name_len);
     new_flag[name_len] = '\0';
+    Normalize(new_flag);  // Or a later lookup may fail.
     Flags::Register_bool(nullptr, new_flag, true, nullptr);
   } else {
     // Only set values for recognized flags, skip collected

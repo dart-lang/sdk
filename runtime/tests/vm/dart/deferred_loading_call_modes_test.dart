@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "splay_test.dart" deferred as splay; // Some non-trivial code.
+import "gc/splay_test.dart" deferred as splay; // Some non-trivial code.
 
 main() async {
   await splay.loadLibrary();

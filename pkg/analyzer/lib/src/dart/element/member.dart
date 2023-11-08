@@ -33,9 +33,13 @@ class ConstructorMember extends ExecutableMember
             const <TypeParameterElement>[]);
 
   @override
-  ConstructorAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
+  ConstructorElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  ConstructorElement? get augmentationTarget {
+    return declaration.augmentationTarget;
   }
 
   @override
@@ -67,7 +71,32 @@ class ConstructorMember extends ExecutableMember
 
   @override
   ConstructorElement? get redirectedConstructor {
-    var element = this.declaration.redirectedConstructor;
+    var element = declaration.redirectedConstructor;
+    return _from2(element);
+  }
+
+  @override
+  InterfaceType get returnType => type.returnType as InterfaceType;
+
+  @override
+  Source get source => _declaration.source!;
+
+  @override
+  ConstructorElement? get superConstructor {
+    var element = declaration.superConstructor;
+    return _from2(element);
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) =>
+      visitor.visitConstructorElement(this);
+
+  @override
+  void appendTo(ElementDisplayStringBuilder builder) {
+    builder.writeConstructorElement(this);
+  }
+
+  ConstructorMember? _from2(ConstructorElement? element) {
     if (element == null) {
       return null;
     }
@@ -89,21 +118,6 @@ class ConstructorMember extends ExecutableMember
     }
 
     return ConstructorMember(_typeProvider, declaration, substitution, false);
-  }
-
-  @override
-  InterfaceType get returnType => type.returnType as InterfaceType;
-
-  @override
-  Source get source => _declaration.source!;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) =>
-      visitor.visitConstructorElement(this);
-
-  @override
-  void appendTo(ElementDisplayStringBuilder builder) {
-    builder.writeConstructorElement(this);
   }
 
   /// If the given [constructor]'s type is different when any type parameters
@@ -172,6 +186,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   bool get isAsynchronous => declaration.isAsynchronous;
+
+  @override
+  bool get isAugmentation => declaration.isAugmentation;
 
   @override
   bool get isExternal => declaration.isExternal;
@@ -339,9 +356,13 @@ class FieldMember extends VariableMember implements FieldElement {
   );
 
   @override
-  FieldAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
+  FieldElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  FieldElement? get augmentationTarget {
+    return declaration.augmentationTarget;
   }
 
   @override
@@ -368,6 +389,9 @@ class FieldMember extends VariableMember implements FieldElement {
 
   @override
   bool get isAbstract => declaration.isAbstract;
+
+  @override
+  bool get isAugmentation => declaration.isAugmentation;
 
   @override
   bool get isCovariant => declaration.isCovariant;
@@ -442,6 +466,16 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
           isLegacy,
           declaration.typeParameters,
         );
+
+  @override
+  FunctionElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  FunctionElement? get augmentationTarget {
+    return declaration.augmentationTarget;
+  }
 
   @override
   FunctionElement get declaration => super.declaration as FunctionElement;
@@ -558,6 +592,9 @@ abstract class Member implements Element {
 
   @override
   bool get hasProtected => _declaration.hasProtected;
+
+  @override
+  bool get hasRedeclare => _declaration.hasRedeclare;
 
   @override
   bool get hasReopen => _declaration.hasReopen;
@@ -790,9 +827,14 @@ class MethodMember extends ExecutableMember implements MethodElement {
   );
 
   @override
-  MethodAugmentationElement? get augmentation {
+  MethodElement? get augmentation {
     // TODO(scheglov) implement
     throw UnimplementedError();
+  }
+
+  @override
+  MethodElement? get augmentationTarget {
+    return declaration.augmentationTarget;
   }
 
   @override
@@ -997,9 +1039,14 @@ class PropertyAccessorMember extends ExecutableMember
   );
 
   @override
-  PropertyAccessorAugmentationElement? get augmentation {
+  PropertyAccessorElement? get augmentation {
     // TODO(scheglov) implement
     throw UnimplementedError();
+  }
+
+  @override
+  PropertyAccessorElement? get augmentationTarget {
+    return declaration.augmentationTarget;
   }
 
   @override
@@ -1148,6 +1195,16 @@ class TopLevelVariableMember extends VariableMember
   );
 
   @override
+  TopLevelVariableElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  TopLevelVariableElement? get augmentationTarget {
+    return declaration.augmentationTarget;
+  }
+
+  @override
   TopLevelVariableElement get declaration =>
       _declaration as TopLevelVariableElement;
 
@@ -1166,6 +1223,9 @@ class TopLevelVariableMember extends VariableMember
 
   @override
   bool get hasInitializer => declaration.hasInitializer;
+
+  @override
+  bool get isAugmentation => declaration.isAugmentation;
 
   @override
   bool get isExternal => declaration.isExternal;
@@ -1282,8 +1342,8 @@ class _SubstitutedTypeParameters {
       var newElement = newElements[i] as TypeParameterElementImpl;
       var bound = element.bound;
       if (bound != null) {
-        var newBound = substitution.substituteType(bound);
-        newBound = substitution2.substituteType(newBound);
+        var newBound = substitution2.substituteType(bound);
+        newBound = substitution.substituteType(newBound);
         newElement.bound = newBound;
       }
     }

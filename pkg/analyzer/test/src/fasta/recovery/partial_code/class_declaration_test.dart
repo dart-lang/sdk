@@ -20,19 +20,19 @@ class ClassDeclarationTest extends PartialCodeTest {
               'class',
               [
                 ParserErrorCode.MISSING_IDENTIFIER,
-                ParserErrorCode.EXPECTED_BODY
+                ParserErrorCode.EXPECTED_CLASS_BODY
               ],
               'class _s_ {}',
               failing: ['functionNonVoid', 'getter']),
-          TestDescriptor('named', 'class A', [ParserErrorCode.EXPECTED_BODY],
-              'class A {}'),
+          TestDescriptor('named', 'class A',
+              [ParserErrorCode.EXPECTED_CLASS_BODY], 'class A {}'),
           TestDescriptor(
               'extend',
               'class A extend',
               [
                 ParserErrorCode.EXPECTED_INSTEAD,
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY
+                ParserErrorCode.EXPECTED_CLASS_BODY
               ],
               'class A extend _s_ {}',
               expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_INSTEAD],
@@ -42,7 +42,7 @@ class ClassDeclarationTest extends PartialCodeTest {
               'class A extends',
               [
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY
+                ParserErrorCode.EXPECTED_CLASS_BODY
               ],
               'class A extends _s_ {}',
               failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
@@ -52,7 +52,7 @@ class ClassDeclarationTest extends PartialCodeTest {
               [
                 ParserErrorCode.EXPECTED_INSTEAD,
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY
+                ParserErrorCode.EXPECTED_CLASS_BODY
               ],
               'class A on _s_ {}',
               expectedErrorsInValidCode: [ParserErrorCode.EXPECTED_INSTEAD],
@@ -75,7 +75,7 @@ class ClassDeclarationTest extends PartialCodeTest {
               'class A extends B with',
               [
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY
+                ParserErrorCode.EXPECTED_CLASS_BODY
               ],
               'class A extends B with _s_ {}',
               failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
@@ -89,7 +89,7 @@ class ClassDeclarationTest extends PartialCodeTest {
               'class A extends B implements',
               [
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY
+                ParserErrorCode.EXPECTED_CLASS_BODY
               ],
               'class A extends B implements _s_ {}',
               failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
@@ -103,7 +103,7 @@ class ClassDeclarationTest extends PartialCodeTest {
               'class A extends B with C implements',
               [
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY
+                ParserErrorCode.EXPECTED_CLASS_BODY
               ],
               'class A extends B with C implements _s_ {}',
               failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
@@ -117,7 +117,7 @@ class ClassDeclarationTest extends PartialCodeTest {
               'class A implements',
               [
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY
+                ParserErrorCode.EXPECTED_CLASS_BODY
               ],
               'class A implements _s_ {}',
               failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),
@@ -131,7 +131,7 @@ class ClassDeclarationTest extends PartialCodeTest {
               'class A implements B,',
               [
                 ParserErrorCode.EXPECTED_TYPE_NAME,
-                ParserErrorCode.EXPECTED_BODY
+                ParserErrorCode.EXPECTED_CLASS_BODY
               ],
               'class A implements B, _s_ {}',
               failing: ['functionVoid', 'functionNonVoid', 'getter', 'mixin']),

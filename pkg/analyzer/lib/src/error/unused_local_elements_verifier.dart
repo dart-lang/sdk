@@ -70,6 +70,13 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var element = node.declaredElement;
+    if (element != null) {
+      if (element.hasJS) {
+        usedElements.addElement(element);
+      }
+    }
+
     var enclosingClassOld = _enclosingClass;
     try {
       _enclosingClass = node.declaredElement;
@@ -537,6 +544,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
     _visitClassElement(declaredElement);
 
     super.visitEnumDeclaration(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    final declaredElement = node.declaredElement!;
+    _visitClassElement(declaredElement);
+
+    super.visitExtensionTypeDeclaration(node);
   }
 
   @override

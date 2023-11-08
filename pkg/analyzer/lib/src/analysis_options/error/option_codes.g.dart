@@ -63,13 +63,37 @@ class AnalysisOptionsErrorCode extends ErrorCode {
 }
 
 class AnalysisOptionsHintCode extends ErrorCode {
-  ///  An error code indicating that strong-mode: true is deprecated.
-  static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
+  ///  A hint code indicating reference to a deprecated lint.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  static const AnalysisOptionsHintCode DEPRECATED_LINT =
       AnalysisOptionsHintCode(
-    'STRONG_MODE_SETTING_DEPRECATED',
-    "The 'strong-mode: true' setting is deprecated.",
-    correctionMessage:
-        "It is no longer necessary to explicitly enable strong mode.",
+    'DEPRECATED_LINT',
+    "'{0}' is a deprecated lint rule and should not be used.",
+    correctionMessage: "Try removing '{0}'.",
+  );
+
+  ///  A hint code indicating reference to a deprecated lint.
+  ///
+  ///  Parameters:
+  ///  0: the deprecated lint name
+  ///  1: the replacing rule name
+  static const AnalysisOptionsHintCode DEPRECATED_LINT_WITH_REPLACEMENT =
+      AnalysisOptionsHintCode(
+    'DEPRECATED_LINT_WITH_REPLACEMENT',
+    "'{0}' is deprecated and should be replaced by '{1}'.",
+    correctionMessage: "Try replacing '{0}' with '{1}'.",
+  );
+
+  ///  Duplicate rules.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  static const AnalysisOptionsHintCode DUPLICATE_RULE = AnalysisOptionsHintCode(
+    'DUPLICATE_RULE',
+    "The rule {0} is already specified and doesn't need to be specified again.",
+    correctionMessage: "Try removing all but one specification of the rule.",
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -143,6 +167,18 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     "The include file '{0}' in '{1}' can't be found when analyzing '{2}'.",
   );
 
+  ///  An error code indicating an incompatible rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the incompatible rule
+  static const AnalysisOptionsWarningCode INCOMPATIBLE_LINT =
+      AnalysisOptionsWarningCode(
+    'INCOMPATIBLE_LINT',
+    "The rule '{0}' is incompatible with the rule '{1}'.",
+    correctionMessage: "Try removing one of the incompatible rules.",
+  );
+
   ///  An error code indicating that a plugin is being configured with an invalid
   ///  value for an option and a detail message is provided.
   ///
@@ -214,14 +250,15 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     correctionMessage: "Replace '{0}' with '{1}'.",
   );
 
-  ///  An error code indicating that strong-mode: false is has been removed.
-  static const AnalysisOptionsWarningCode SPEC_MODE_REMOVED =
+  ///  An error code indicating an undefined lint rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  static const AnalysisOptionsWarningCode UNDEFINED_LINT =
       AnalysisOptionsWarningCode(
-    'SPEC_MODE_REMOVED',
-    "The option 'strong-mode: false' is no longer supported.",
-    correctionMessage:
-        "It's recommended to remove the 'strong-mode:' setting (and make your "
-        "code Dart 2 compliant).",
+    'UNDEFINED_LINT',
+    "'{0}' is not a recognized lint rule.",
+    correctionMessage: "Try using the name of a recognized lint rule.",
   );
 
   ///  An error code indicating that an unrecognized error code is being used to

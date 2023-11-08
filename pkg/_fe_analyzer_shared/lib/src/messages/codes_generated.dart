@@ -23,7 +23,7 @@ const MessageCode messageAbstractClassConstructorTearOff = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateAbstractClassInstantiation =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("AbstractClassInstantiation",
         problemMessageTemplate:
             r"""The class '#name' is abstract and can't be instantiated.""",
         withArguments: _withArgumentsAbstractClassInstantiation);
@@ -121,7 +121,7 @@ const Template<
     Message Function(
         String
             name)> templateAbstractRedirectedClassInstantiation = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("AbstractRedirectedClassInstantiation",
     problemMessageTemplate:
         r"""Factory redirects to class '#name', which is abstract and can't be instantiated.""",
     withArguments: _withArgumentsAbstractRedirectedClassInstantiation);
@@ -166,7 +166,7 @@ const MessageCode messageAbstractStaticField = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateAccessError =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("AccessError",
         problemMessageTemplate: r"""Access error: '#name'.""",
         withArguments: _withArgumentsAccessError);
 
@@ -263,7 +263,7 @@ const Template<
     Message Function(
         int
             codePoint)> templateAsciiControlCharacter = const Template<
-        Message Function(int codePoint)>(
+        Message Function(int codePoint)>("AsciiControlCharacter",
     problemMessageTemplate:
         r"""The control character #unicode can only be used in strings and comments.""",
     withArguments: _withArgumentsAsciiControlCharacter);
@@ -345,7 +345,7 @@ const Template<
     Message Function(
         String
             name)> templateBaseClassImplementedOutsideOfLibrary = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("BaseClassImplementedOutsideOfLibrary",
     problemMessageTemplate:
         r"""The class '#name' can't be implemented outside of its library because it's a base class.""",
     withArguments: _withArgumentsBaseClassImplementedOutsideOfLibrary);
@@ -381,7 +381,7 @@ const Template<
     Message Function(
         String
             name)> templateBaseMixinImplementedOutsideOfLibrary = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("BaseMixinImplementedOutsideOfLibrary",
     problemMessageTemplate:
         r"""The mixin '#name' can't be implemented outside of its library because it's a base mixin.""",
     withArguments: _withArgumentsBaseMixinImplementedOutsideOfLibrary);
@@ -407,6 +407,7 @@ Message _withArgumentsBaseMixinImplementedOutsideOfLibrary(String name) {
 const Template<Message Function(String name, String name2)>
     templateBaseOrFinalClassImplementedOutsideOfLibraryCause =
     const Template<Message Function(String name, String name2)>(
+        "BaseOrFinalClassImplementedOutsideOfLibraryCause",
         problemMessageTemplate:
             r"""The type '#name' is a subtype of '#name2', and '#name2' is defined here.""",
         withArguments:
@@ -439,6 +440,7 @@ const Template<
         String
             string2)> templateBinaryOperatorWrittenOut = const Template<
         Message Function(String string, String string2)>(
+    "BinaryOperatorWrittenOut",
     problemMessageTemplate:
         r"""Binary operator '#string' is written as '#string2' instead of the written out word.""",
     correctionMessageTemplate: r"""Try replacing '#string' with '#string2'.""",
@@ -469,6 +471,7 @@ const Template<
         String
             name2)> templateBoundIssueViaCycleNonSimplicity = const Template<
         Message Function(String name, String name2)>(
+    "BoundIssueViaCycleNonSimplicity",
     problemMessageTemplate:
         r"""Generic type '#name' can't be used without type arguments in the bounds of its own type variables. It is referenced indirectly through '#name2'.""",
     correctionMessageTemplate:
@@ -503,6 +506,7 @@ const Template<
             name)> templateBoundIssueViaLoopNonSimplicity = const Template<
         Message Function(
             String name)>(
+    "BoundIssueViaLoopNonSimplicity",
     problemMessageTemplate:
         r"""Generic type '#name' can't be used without type arguments in the bounds of its own type variables.""",
     correctionMessageTemplate:
@@ -529,6 +533,7 @@ Message _withArgumentsBoundIssueViaLoopNonSimplicity(String name) {
 const Template<Message Function(String name)>
     templateBoundIssueViaRawTypeWithNonSimpleBounds =
     const Template<Message Function(String name)>(
+        "BoundIssueViaRawTypeWithNonSimpleBounds",
         problemMessageTemplate:
             r"""Generic type '#name' can't be used without type arguments in a type variable bound.""",
         correctionMessageTemplate:
@@ -567,7 +572,7 @@ const MessageCode messageBreakOutsideOfLoop = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateBreakTargetOutsideFunction =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("BreakTargetOutsideFunction",
         problemMessageTemplate:
             r"""Can't break to '#name' in a different function.""",
         withArguments: _withArgumentsBreakTargetOutsideFunction);
@@ -588,7 +593,7 @@ Message _withArgumentsBreakTargetOutsideFunction(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateBuiltInIdentifierAsType =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("BuiltInIdentifierAsType",
         problemMessageTemplate:
             r"""The built-in identifier '#lexeme' can't be used as a type.""",
         withArguments: _withArgumentsBuiltInIdentifierAsType);
@@ -611,6 +616,7 @@ Message _withArgumentsBuiltInIdentifierAsType(Token token) {
 const Template<Message Function(Token token)>
     templateBuiltInIdentifierInDeclaration =
     const Template<Message Function(Token token)>(
+        "BuiltInIdentifierInDeclaration",
         problemMessageTemplate: r"""Can't use '#lexeme' as a name here.""",
         withArguments: _withArgumentsBuiltInIdentifierInDeclaration);
 
@@ -640,6 +646,7 @@ const MessageCode messageCandidateFound = const MessageCode("CandidateFound",
 const Template<Message Function(String name)>
     templateCandidateFoundIsDefaultConstructor =
     const Template<Message Function(String name)>(
+        "CandidateFoundIsDefaultConstructor",
         problemMessageTemplate:
             r"""The class '#name' has a constructor that takes no arguments.""",
         withArguments: _withArgumentsCandidateFoundIsDefaultConstructor);
@@ -664,7 +671,7 @@ Message _withArgumentsCandidateFoundIsDefaultConstructor(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(String name)> templateCannotAssignToConstVariable =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("CannotAssignToConstVariable",
         problemMessageTemplate:
             r"""Can't assign to the const variable '#name'.""",
         withArguments: _withArgumentsCannotAssignToConstVariable);
@@ -696,7 +703,7 @@ const MessageCode messageCannotAssignToExtensionThis = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
         Message Function(String name)> templateCannotAssignToFinalVariable =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("CannotAssignToFinalVariable",
         problemMessageTemplate:
             r"""Can't assign to the final variable '#name'.""",
         withArguments: _withArgumentsCannotAssignToFinalVariable);
@@ -748,6 +755,7 @@ const MessageCode messageCannotAssignToTypeLiteral = const MessageCode(
 const Template<Message Function(String string)>
     templateCannotReadSdkSpecification =
     const Template<Message Function(String string)>(
+        "CannotReadSdkSpecification",
         problemMessageTemplate:
             r"""Unable to read the 'libraries.json' specification file:
   #string.""",
@@ -791,7 +799,7 @@ const MessageCode messageCantDisambiguateNotEnoughInformation = const MessageCod
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateCantHaveNamedParameters =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("CantHaveNamedParameters",
         problemMessageTemplate:
             r"""'#name' can't be declared with named parameters.""",
         withArguments: _withArgumentsCantHaveNamedParameters);
@@ -814,7 +822,7 @@ Message _withArgumentsCantHaveNamedParameters(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateCantHaveOptionalParameters =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("CantHaveOptionalParameters",
         problemMessageTemplate:
             r"""'#name' can't be declared with optional parameters.""",
         withArguments: _withArgumentsCantHaveOptionalParameters);
@@ -863,6 +871,7 @@ const MessageCode messageCantInferPackagesFromPackageUri = const MessageCode(
 const Template<Message Function(String name)>
     templateCantInferReturnTypeDueToNoCombinedSignature =
     const Template<Message Function(String name)>(
+        "CantInferReturnTypeDueToNoCombinedSignature",
         problemMessageTemplate:
             r"""Can't infer a return type for '#name' as the overridden members don't have a combined signature.""",
         correctionMessageTemplate: r"""Try adding an explicit type.""",
@@ -894,7 +903,7 @@ const Template<
     Message Function(
         String
             string)> templateCantInferTypeDueToCircularity = const Template<
-        Message Function(String string)>(
+        Message Function(String string)>("CantInferTypeDueToCircularity",
     problemMessageTemplate:
         r"""Can't infer the type of '#string': circularity found during type inference.""",
     correctionMessageTemplate: r"""Specify the type explicitly.""",
@@ -920,7 +929,7 @@ const Template<
     Message Function(
         String
             name)> templateCantInferTypeDueToNoCombinedSignature = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("CantInferTypeDueToNoCombinedSignature",
     problemMessageTemplate:
         r"""Can't infer a type for '#name' as the overridden members don't have a combined signature.""",
     correctionMessageTemplate: r"""Try adding an explicit type.""",
@@ -951,7 +960,7 @@ const Template<
     Message Function(
         String
             name)> templateCantInferTypesDueToNoCombinedSignature = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("CantInferTypesDueToNoCombinedSignature",
     problemMessageTemplate:
         r"""Can't infer types for '#name' as the overridden members don't have a combined signature.""",
     correctionMessageTemplate: r"""Try adding explicit types.""",
@@ -979,7 +988,7 @@ Message _withArgumentsCantInferTypesDueToNoCombinedSignature(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_, String string)> templateCantReadFile =
-    const Template<Message Function(Uri uri_, String string)>(
+    const Template<Message Function(Uri uri_, String string)>("CantReadFile",
         problemMessageTemplate: r"""Error when reading '#uri': #string""",
         withArguments: _withArgumentsCantReadFile);
 
@@ -1000,7 +1009,7 @@ Message _withArgumentsCantReadFile(Uri uri_, String string) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateCantUseClassAsMixin = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("CantUseClassAsMixin",
     problemMessageTemplate:
         r"""The class '#name' can't be used as a mixin because it isn't a mixin class nor a mixin.""",
     withArguments: _withArgumentsCantUseClassAsMixin);
@@ -1024,6 +1033,7 @@ Message _withArgumentsCantUseClassAsMixin(String name) {
 const Template<Message Function(Token token)>
     templateCantUseControlFlowOrSpreadAsConstant =
     const Template<Message Function(Token token)>(
+        "CantUseControlFlowOrSpreadAsConstant",
         problemMessageTemplate:
             r"""'#lexeme' is not supported in constant expressions.""",
         withArguments: _withArgumentsCantUseControlFlowOrSpreadAsConstant);
@@ -1049,7 +1059,7 @@ const Template<
     Message Function(
         Token
             token)> templateCantUseDeferredPrefixAsConstant = const Template<
-        Message Function(Token token)>(
+        Message Function(Token token)>("CantUseDeferredPrefixAsConstant",
     problemMessageTemplate:
         r"""'#lexeme' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
     correctionMessageTemplate:
@@ -1129,7 +1139,7 @@ const MessageCode messageClassInClass = const MessageCode("ClassInClass",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateClassInNullAwareReceiver =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ClassInNullAwareReceiver",
         problemMessageTemplate: r"""The class '#name' cannot be null.""",
         correctionMessageTemplate: r"""Try replacing '?.' with '.'""",
         withArguments: _withArgumentsClassInNullAwareReceiver);
@@ -1166,6 +1176,7 @@ const Template<
         String
             name2)> templateCombinedMemberSignatureFailed = const Template<
         Message Function(String name, String name2)>(
+    "CombinedMemberSignatureFailed",
     problemMessageTemplate:
         r"""Class '#name' inherits multiple members named '#name2' with incompatible signatures.""",
     correctionMessageTemplate:
@@ -1209,7 +1220,7 @@ const Template<
         String string,
         String
             string2)> templateConflictingModifiers = const Template<
-        Message Function(String string, String string2)>(
+        Message Function(String string, String string2)>("ConflictingModifiers",
     problemMessageTemplate:
         r"""Members can't be declared to be both '#string' and '#string2'.""",
     correctionMessageTemplate: r"""Try removing one of the keywords.""",
@@ -1235,7 +1246,7 @@ Message _withArgumentsConflictingModifiers(String string, String string2) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConflictsWithConstructor =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ConflictsWithConstructor",
         problemMessageTemplate: r"""Conflicts with constructor '#name'.""",
         withArguments: _withArgumentsConflictsWithConstructor);
 
@@ -1255,7 +1266,7 @@ Message _withArgumentsConflictsWithConstructor(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConflictsWithFactory =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ConflictsWithFactory",
         problemMessageTemplate: r"""Conflicts with factory '#name'.""",
         withArguments: _withArgumentsConflictsWithFactory);
 
@@ -1277,7 +1288,7 @@ Message _withArgumentsConflictsWithFactory(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateConflictsWithImplicitSetter =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ConflictsWithImplicitSetter",
         problemMessageTemplate:
             r"""Conflicts with the implicit setter of the field '#name'.""",
         withArguments: _withArgumentsConflictsWithImplicitSetter);
@@ -1299,7 +1310,7 @@ Message _withArgumentsConflictsWithImplicitSetter(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConflictsWithMember =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ConflictsWithMember",
         problemMessageTemplate: r"""Conflicts with member '#name'.""",
         withArguments: _withArgumentsConflictsWithMember);
 
@@ -1319,7 +1330,7 @@ Message _withArgumentsConflictsWithMember(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConflictsWithSetter =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ConflictsWithSetter",
         problemMessageTemplate: r"""Conflicts with setter '#name'.""",
         withArguments: _withArgumentsConflictsWithSetter);
 
@@ -1340,7 +1351,7 @@ Message _withArgumentsConflictsWithSetter(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateConflictsWithTypeVariable =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ConflictsWithTypeVariable",
         problemMessageTemplate: r"""Conflicts with type variable '#name'.""",
         withArguments: _withArgumentsConflictsWithTypeVariable);
 
@@ -1484,7 +1495,7 @@ const Template<
     Message Function(
         String
             nameOKEmpty)> templateConstEvalDeferredLibrary = const Template<
-        Message Function(String nameOKEmpty)>(
+        Message Function(String nameOKEmpty)>("ConstEvalDeferredLibrary",
     problemMessageTemplate:
         r"""'#nameOKEmpty' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
     correctionMessageTemplate:
@@ -1512,7 +1523,7 @@ Message _withArgumentsConstEvalDeferredLibrary(String nameOKEmpty) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateConstEvalError =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String string)>("ConstEvalError",
         problemMessageTemplate:
             r"""Error evaluating constant expression: #string""",
         withArguments: _withArgumentsConstEvalError);
@@ -1573,6 +1584,7 @@ const MessageCode messageConstEvalFailedAssertion = const MessageCode(
 const Template<Message Function(String stringOKEmpty)>
     templateConstEvalFailedAssertionWithMessage =
     const Template<Message Function(String stringOKEmpty)>(
+        "ConstEvalFailedAssertionWithMessage",
         problemMessageTemplate:
             r"""This assertion failed with message: #stringOKEmpty""",
         withArguments: _withArgumentsConstEvalFailedAssertionWithMessage);
@@ -1609,6 +1621,7 @@ const MessageCode messageConstEvalFailedAssertionWithNonStringMessage =
 const Template<Message Function(String nameOKEmpty)>
     templateConstEvalGetterNotFound =
     const Template<Message Function(String nameOKEmpty)>(
+        "ConstEvalGetterNotFound",
         problemMessageTemplate: r"""Variable get not found: '#nameOKEmpty'""",
         withArguments: _withArgumentsConstEvalGetterNotFound);
 
@@ -1630,6 +1643,7 @@ Message _withArgumentsConstEvalGetterNotFound(String nameOKEmpty) {
 const Template<Message Function(String nameOKEmpty)>
     templateConstEvalInvalidStaticInvocation =
     const Template<Message Function(String nameOKEmpty)>(
+        "ConstEvalInvalidStaticInvocation",
         problemMessageTemplate:
             r"""The invocation of '#nameOKEmpty' is not allowed in a constant expression.""",
         withArguments: _withArgumentsConstEvalInvalidStaticInvocation);
@@ -1658,6 +1672,7 @@ const Template<
         String
             string3)> templateConstEvalNegativeShift = const Template<
         Message Function(String string, String string2, String string3)>(
+    "ConstEvalNegativeShift",
     problemMessageTemplate:
         r"""Binary operator '#string' on '#string2' requires non-negative operand, but was '#string3'.""",
     withArguments: _withArgumentsConstEvalNegativeShift);
@@ -1686,7 +1701,7 @@ const Template<
     Message Function(
         String
             nameOKEmpty)> templateConstEvalNonConstantVariableGet = const Template<
-        Message Function(String nameOKEmpty)>(
+        Message Function(String nameOKEmpty)>("ConstEvalNonConstantVariableGet",
     problemMessageTemplate:
         r"""The variable '#nameOKEmpty' is not a constant, only constant expressions are allowed.""",
     withArguments: _withArgumentsConstEvalNonConstantVariableGet);
@@ -1759,6 +1774,7 @@ const Template<
         String
             string2)> templateConstEvalTruncateError = const Template<
         Message Function(String string, String string2)>(
+    "ConstEvalTruncateError",
     problemMessageTemplate:
         r"""Binary operator '#string ~/ #string2' results is Infinity or NaN.""",
     withArguments: _withArgumentsConstEvalTruncateError);
@@ -1792,6 +1808,7 @@ const MessageCode messageConstEvalUnevaluated = const MessageCode(
 const Template<Message Function(String stringOKEmpty)>
     templateConstEvalUnhandledCoreException =
     const Template<Message Function(String stringOKEmpty)>(
+        "ConstEvalUnhandledCoreException",
         problemMessageTemplate: r"""Unhandled core exception: #stringOKEmpty""",
         withArguments: _withArgumentsConstEvalUnhandledCoreException);
 
@@ -1816,7 +1833,7 @@ const Template<
         String string,
         String
             string2)> templateConstEvalZeroDivisor = const Template<
-        Message Function(String string, String string2)>(
+        Message Function(String string, String string2)>("ConstEvalZeroDivisor",
     problemMessageTemplate:
         r"""Binary operator '#string' on '#string2' requires non-zero divisor, but divisor was '0'.""",
     withArguments: _withArgumentsConstEvalZeroDivisor);
@@ -1867,7 +1884,7 @@ const Template<
     Message Function(
         String
             name)> templateConstFieldWithoutInitializer = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("ConstFieldWithoutInitializer",
     problemMessageTemplate:
         r"""The const variable '#name' must be initialized.""",
     correctionMessageTemplate:
@@ -1926,6 +1943,7 @@ const MessageCode messageConstructorCyclic = const MessageCode(
 const Template<Message Function(String name)>
     templateConstructorInitializeSameInstanceVariableSeveralTimes =
     const Template<Message Function(String name)>(
+        "ConstructorInitializeSameInstanceVariableSeveralTimes",
         problemMessageTemplate:
             r"""'#name' was already initialized by this constructor.""",
         withArguments:
@@ -1951,7 +1969,7 @@ Message _withArgumentsConstructorInitializeSameInstanceVariableSeveralTimes(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateConstructorNotFound =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ConstructorNotFound",
         problemMessageTemplate: r"""Couldn't find constructor '#name'.""",
         withArguments: _withArgumentsConstructorNotFound);
 
@@ -2040,6 +2058,7 @@ const MessageCode messageConstructorWithWrongName = const MessageCode(
 const Template<Message Function(String name)>
     templateConstructorWithWrongNameContext =
     const Template<Message Function(String name)>(
+        "ConstructorWithWrongNameContext",
         problemMessageTemplate:
             r"""The name of the enclosing class is '#name'.""",
         withArguments: _withArgumentsConstructorWithWrongNameContext);
@@ -2083,6 +2102,7 @@ const MessageCode messageContinueOutsideOfLoop = const MessageCode(
 const Template<Message Function(String name)>
     templateContinueTargetOutsideFunction =
     const Template<Message Function(String name)>(
+        "ContinueTargetOutsideFunction",
         problemMessageTemplate:
             r"""Can't continue at '#name' in a different function.""",
         withArguments: _withArgumentsContinueTargetOutsideFunction);
@@ -2119,8 +2139,10 @@ const MessageCode messageContinueWithoutLabelInCase = const MessageCode(
 const Template<Message Function(String string, String string2)>
     templateCouldNotParseUri =
     const Template<Message Function(String string, String string2)>(
+        "CouldNotParseUri",
         problemMessageTemplate: r"""Couldn't parse URI '#string':
-  #string2.""", withArguments: _withArgumentsCouldNotParseUri);
+  #string2.""",
+        withArguments: _withArgumentsCouldNotParseUri);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String string, String string2)>
@@ -2164,6 +2186,7 @@ const MessageCode messageCovariantMember = const MessageCode("CovariantMember",
 const Template<Message Function(String name, String string)>
     templateCycleInTypeVariables =
     const Template<Message Function(String name, String string)>(
+        "CycleInTypeVariables",
         problemMessageTemplate:
             r"""Type '#name' is a bound of itself via '#string'.""",
         correctionMessageTemplate:
@@ -2192,7 +2215,7 @@ Message _withArgumentsCycleInTypeVariables(String name, String string) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateCyclicClassHierarchy =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("CyclicClassHierarchy",
         problemMessageTemplate: r"""'#name' is a supertype of itself.""",
         withArguments: _withArgumentsCyclicClassHierarchy);
 
@@ -2214,6 +2237,7 @@ Message _withArgumentsCyclicClassHierarchy(String name) {
 const Template<Message Function(String name)>
     templateCyclicRedirectingFactoryConstructors =
     const Template<Message Function(String name)>(
+        "CyclicRedirectingFactoryConstructors",
         problemMessageTemplate: r"""Cyclic definition of factory '#name'.""",
         withArguments: _withArgumentsCyclicRedirectingFactoryConstructors);
 
@@ -2234,8 +2258,18 @@ Message _withArgumentsCyclicRedirectingFactoryConstructors(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCyclicRepresentationDependency =
+    messageCyclicRepresentationDependency;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCyclicRepresentationDependency = const MessageCode(
+    "CyclicRepresentationDependency",
+    problemMessage:
+        r"""An extension type can't depend on itself through its representation type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateCyclicTypedef =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("CyclicTypedef",
         problemMessageTemplate:
             r"""The typedef '#name' has a reference to itself.""",
         withArguments: _withArgumentsCyclicTypedef);
@@ -2257,9 +2291,10 @@ Message _withArgumentsCyclicTypedef(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String string)>
     templateDebugTrace =
-    const Template<Message Function(String name, String string)>(
+    const Template<Message Function(String name, String string)>("DebugTrace",
         problemMessageTemplate: r"""Fatal '#name' at:
-#string""", withArguments: _withArgumentsDebugTrace);
+#string""",
+        withArguments: _withArgumentsDebugTrace);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, String string)> codeDebugTrace =
@@ -2322,6 +2357,7 @@ const MessageCode messageDefaultInSwitchExpression = const MessageCode(
 const Template<Message Function(String name)>
     templateDefaultValueInRedirectingFactoryConstructor =
     const Template<Message Function(String name)>(
+        "DefaultValueInRedirectingFactoryConstructor",
         problemMessageTemplate:
             r"""Can't have a default value here because any default values of '#name' would be used instead.""",
         correctionMessageTemplate: r"""Try removing the default value.""",
@@ -2365,7 +2401,7 @@ const Template<
     Message Function(
         String
             name)> templateDeferredExtensionImport = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("DeferredExtensionImport",
     problemMessageTemplate:
         r"""Extension '#name' cannot be imported through a deferred import.""",
     correctionMessageTemplate:
@@ -2394,7 +2430,7 @@ const Template<
     Message Function(
         String
             name)> templateDeferredPrefixDuplicated = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("DeferredPrefixDuplicated",
     problemMessageTemplate:
         r"""Can't use the name '#name' for a deferred library, as the name is used elsewhere.""",
     withArguments: _withArgumentsDeferredPrefixDuplicated);
@@ -2418,6 +2454,7 @@ Message _withArgumentsDeferredPrefixDuplicated(String name) {
 const Template<Message Function(String name)>
     templateDeferredPrefixDuplicatedCause =
     const Template<Message Function(String name)>(
+        "DeferredPrefixDuplicatedCause",
         problemMessageTemplate: r"""'#name' is used here.""",
         withArguments: _withArgumentsDeferredPrefixDuplicatedCause);
 
@@ -2441,6 +2478,7 @@ const Template<
     templateDillOutlineSummary = const Template<
             Message Function(
                 int count, int count2, num _num1, num _num2, num _num3)>(
+        "DillOutlineSummary",
         problemMessageTemplate:
             r"""Indexed #count libraries (#count2 bytes) in #num1%.3ms, that is,
 #num2%12.3 bytes/ms, and
@@ -2480,7 +2518,7 @@ const Template<
     Message Function(
         String
             name)> templateDirectCycleInTypeVariables = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("DirectCycleInTypeVariables",
     problemMessageTemplate: r"""Type '#name' can't use itself as a bound.""",
     correctionMessageTemplate:
         r"""Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
@@ -2529,6 +2567,7 @@ const MessageCode messageDuplicateDeferred = const MessageCode(
 const Template<Message Function(String name)>
     templateDuplicateLabelInSwitchStatement =
     const Template<Message Function(String name)>(
+        "DuplicateLabelInSwitchStatement",
         problemMessageTemplate:
             r"""The label '#name' was already used in this switch statement.""",
         correctionMessageTemplate:
@@ -2555,6 +2594,7 @@ Message _withArgumentsDuplicateLabelInSwitchStatement(String name) {
 const Template<Message Function(String name)>
     templateDuplicatePatternAssignmentVariable =
     const Template<Message Function(String name)>(
+        "DuplicatePatternAssignmentVariable",
         problemMessageTemplate:
             r"""The variable '#name' is already assigned in this pattern.""",
         correctionMessageTemplate: r"""Try renaming the variable.""",
@@ -2601,7 +2641,7 @@ const MessageCode messageDuplicatePrefix = const MessageCode("DuplicatePrefix",
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateDuplicateRecordPatternField =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("DuplicateRecordPatternField",
         problemMessageTemplate:
             r"""The field '#name' is already matched in this pattern.""",
         correctionMessageTemplate: r"""Try removing the duplicate field.""",
@@ -2657,7 +2697,7 @@ const MessageCode messageDuplicateRestElementInPatternContext =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedDeclaration =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("DuplicatedDeclaration",
         problemMessageTemplate:
             r"""'#name' is already declared in this scope.""",
         withArguments: _withArgumentsDuplicatedDeclaration);
@@ -2679,7 +2719,7 @@ Message _withArgumentsDuplicatedDeclaration(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateDuplicatedDeclarationCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("DuplicatedDeclarationCause",
         problemMessageTemplate: r"""Previous declaration of '#name'.""",
         withArguments: _withArgumentsDuplicatedDeclarationCause);
 
@@ -2702,7 +2742,7 @@ const Template<
     Message Function(
         String
             name)> templateDuplicatedDeclarationSyntheticCause = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("DuplicatedDeclarationSyntheticCause",
     problemMessageTemplate:
         r"""Previous declaration of '#name' is implied by this definition.""",
     withArguments: _withArgumentsDuplicatedDeclarationSyntheticCause);
@@ -2726,7 +2766,7 @@ Message _withArgumentsDuplicatedDeclarationSyntheticCause(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedDeclarationUse =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("DuplicatedDeclarationUse",
         problemMessageTemplate:
             r"""Can't use '#name' because it is declared more than once.""",
         withArguments: _withArgumentsDuplicatedDeclarationUse);
@@ -2751,6 +2791,7 @@ Message _withArgumentsDuplicatedDeclarationUse(String name) {
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
     templateDuplicatedExport =
     const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        "DuplicatedExport",
         problemMessageTemplate:
             r"""'#name' is exported from both '#uri' and '#uri2'.""",
         withArguments: _withArgumentsDuplicatedExport);
@@ -2778,6 +2819,7 @@ Message _withArgumentsDuplicatedExport(String name, Uri uri_, Uri uri2_) {
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
     templateDuplicatedExportInType =
     const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        "DuplicatedExportInType",
         problemMessageTemplate:
             r"""'#name' is exported from both '#uri' and '#uri2'.""",
         withArguments: _withArgumentsDuplicatedExportInType);
@@ -2805,6 +2847,7 @@ Message _withArgumentsDuplicatedExportInType(String name, Uri uri_, Uri uri2_) {
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
     templateDuplicatedImportInType =
     const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        "DuplicatedImportInType",
         problemMessageTemplate:
             r"""'#name' is imported from both '#uri' and '#uri2'.""",
         withArguments: _withArgumentsDuplicatedImportInType);
@@ -2830,7 +2873,7 @@ Message _withArgumentsDuplicatedImportInType(String name, Uri uri_, Uri uri2_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateDuplicatedModifier =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("DuplicatedModifier",
         problemMessageTemplate:
             r"""The modifier '#lexeme' was already specified.""",
         correctionMessageTemplate:
@@ -2856,7 +2899,7 @@ const Template<
     Message Function(
         String
             name)> templateDuplicatedNamePreviouslyUsed = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("DuplicatedNamePreviouslyUsed",
     problemMessageTemplate:
         r"""Can't declare '#name' because it was already used in this scope.""",
     withArguments: _withArgumentsDuplicatedNamePreviouslyUsed);
@@ -2880,6 +2923,7 @@ Message _withArgumentsDuplicatedNamePreviouslyUsed(String name) {
 const Template<Message Function(String name)>
     templateDuplicatedNamePreviouslyUsedCause =
     const Template<Message Function(String name)>(
+        "DuplicatedNamePreviouslyUsedCause",
         problemMessageTemplate: r"""Previous use of '#name'.""",
         withArguments: _withArgumentsDuplicatedNamePreviouslyUsedCause);
 
@@ -2901,7 +2945,7 @@ Message _withArgumentsDuplicatedNamePreviouslyUsedCause(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedNamedArgument =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("DuplicatedNamedArgument",
         problemMessageTemplate: r"""Duplicated named argument '#name'.""",
         withArguments: _withArgumentsDuplicatedNamedArgument);
 
@@ -2921,7 +2965,7 @@ Message _withArgumentsDuplicatedNamedArgument(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateDuplicatedParameterName =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("DuplicatedParameterName",
         problemMessageTemplate: r"""Duplicated parameter name '#name'.""",
         withArguments: _withArgumentsDuplicatedParameterName);
 
@@ -2943,6 +2987,7 @@ Message _withArgumentsDuplicatedParameterName(String name) {
 const Template<Message Function(String name)>
     templateDuplicatedParameterNameCause =
     const Template<Message Function(String name)>(
+        "DuplicatedParameterNameCause",
         problemMessageTemplate: r"""Other parameter named '#name'.""",
         withArguments: _withArgumentsDuplicatedParameterNameCause);
 
@@ -2965,7 +3010,7 @@ const Template<
     Message Function(
         String
             name)> templateDuplicatedRecordLiteralFieldName = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("DuplicatedRecordLiteralFieldName",
     problemMessageTemplate:
         r"""Duplicated record literal field name '#name'.""",
     correctionMessageTemplate:
@@ -2993,6 +3038,7 @@ Message _withArgumentsDuplicatedRecordLiteralFieldName(String name) {
 const Template<Message Function(String name)>
     templateDuplicatedRecordLiteralFieldNameContext =
     const Template<Message Function(String name)>(
+        "DuplicatedRecordLiteralFieldNameContext",
         problemMessageTemplate:
             r"""This is the existing record literal field named '#name'.""",
         withArguments: _withArgumentsDuplicatedRecordLiteralFieldNameContext);
@@ -3019,7 +3065,7 @@ const Template<
     Message Function(
         String
             name)> templateDuplicatedRecordTypeFieldName = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("DuplicatedRecordTypeFieldName",
     problemMessageTemplate: r"""Duplicated record type field name '#name'.""",
     correctionMessageTemplate:
         r"""Try renaming or removing one of the named record type fields.""",
@@ -3046,6 +3092,7 @@ Message _withArgumentsDuplicatedRecordTypeFieldName(String name) {
 const Template<Message Function(String name)>
     templateDuplicatedRecordTypeFieldNameContext =
     const Template<Message Function(String name)>(
+        "DuplicatedRecordTypeFieldNameContext",
         problemMessageTemplate:
             r"""This is the existing record type field named '#name'.""",
         withArguments: _withArgumentsDuplicatedRecordTypeFieldNameContext);
@@ -3129,7 +3176,7 @@ const Template<
     Message Function(
         String
             name)> templateEnumConstantSameNameAsEnclosing = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("EnumConstantSameNameAsEnclosing",
     problemMessageTemplate:
         r"""Name of enum constant '#name' can't be the same as the enum's own name.""",
     withArguments: _withArgumentsEnumConstantSameNameAsEnclosing);
@@ -3170,6 +3217,7 @@ const MessageCode messageEnumConstructorTearoff = const MessageCode(
 const Template<Message Function(String name)>
     templateEnumContainsRestrictedInstanceDeclaration =
     const Template<Message Function(String name)>(
+        "EnumContainsRestrictedInstanceDeclaration",
         problemMessageTemplate:
             r"""An enum can't declare a non-abstract member named '#name'.""",
         withArguments: _withArgumentsEnumContainsRestrictedInstanceDeclaration);
@@ -3233,6 +3281,7 @@ const MessageCode messageEnumFactoryRedirectsToConstructor = const MessageCode(
 const Template<Message Function(String name, String name2)>
     templateEnumImplementerContainsRestrictedInstanceDeclaration =
     const Template<Message Function(String name, String name2)>(
+        "EnumImplementerContainsRestrictedInstanceDeclaration",
         problemMessageTemplate:
             r"""'#name' has 'Enum' as a superinterface and can't contain non-static members with name '#name2'.""",
         withArguments:
@@ -3262,6 +3311,7 @@ Message _withArgumentsEnumImplementerContainsRestrictedInstanceDeclaration(
 const Template<Message Function(String name)>
     templateEnumImplementerContainsValuesDeclaration =
     const Template<Message Function(String name)>(
+        "EnumImplementerContainsValuesDeclaration",
         problemMessageTemplate:
             r"""'#name' has 'Enum' as a superinterface and can't contain non-static member with name 'values'.""",
         withArguments: _withArgumentsEnumImplementerContainsValuesDeclaration);
@@ -3294,7 +3344,7 @@ const MessageCode messageEnumInClass = const MessageCode("EnumInClass",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateEnumInheritsRestricted =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("EnumInheritsRestricted",
         problemMessageTemplate:
             r"""An enum can't inherit a member named '#name'.""",
         withArguments: _withArgumentsEnumInheritsRestricted);
@@ -3346,6 +3396,7 @@ const MessageCode messageEnumNonConstConstructor = const MessageCode(
 const Template<Message Function(String name)>
     templateEnumSupertypeOfNonAbstractClass =
     const Template<Message Function(String name)>(
+        "EnumSupertypeOfNonAbstractClass",
         problemMessageTemplate:
             r"""Non-abstract class '#name' has 'Enum' as a superinterface.""",
         withArguments: _withArgumentsEnumSupertypeOfNonAbstractClass);
@@ -3413,6 +3464,7 @@ const MessageCode messageEqualityCannotBeEqualityOperand = const MessageCode(
 const Template<Message Function(Uri uri_, String string)>
     templateExceptionReadingFile =
     const Template<Message Function(Uri uri_, String string)>(
+        "ExceptionReadingFile",
         problemMessageTemplate: r"""Exception when reading '#uri': #string""",
         withArguments: _withArgumentsExceptionReadingFile);
 
@@ -3433,7 +3485,7 @@ Message _withArgumentsExceptionReadingFile(Uri uri_, String string) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateExpectedAfterButGot =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String string)>("ExpectedAfterButGot",
         problemMessageTemplate: r"""Expected '#string' after this.""",
         withArguments: _withArgumentsExpectedAfterButGot);
 
@@ -3489,7 +3541,7 @@ const MessageCode messageExpectedBody = const MessageCode("ExpectedBody",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateExpectedButGot =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String string)>("ExpectedButGot",
         problemMessageTemplate: r"""Expected '#string' before this.""",
         withArguments: _withArgumentsExpectedButGot);
 
@@ -3507,8 +3559,30 @@ Message _withArgumentsExpectedButGot(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedCatchClauseBody = messageExpectedCatchClauseBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedCatchClauseBody = const MessageCode(
+    "ExpectedCatchClauseBody",
+    index: 169,
+    problemMessage:
+        r"""A catch clause must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedClassBody = messageExpectedClassBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedClassBody = const MessageCode(
+    "ExpectedClassBody",
+    index: 8,
+    problemMessage:
+        r"""A class declaration must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedClassMember =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("ExpectedClassMember",
         problemMessageTemplate:
             r"""Expected a class member, but got '#lexeme'.""",
         withArguments: _withArgumentsExpectedClassMember);
@@ -3527,31 +3601,8 @@ Message _withArgumentsExpectedClassMember(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String string)>
-    templateExpectedClassOrMixinBody =
-    const Template<Message Function(String string)>(
-        problemMessageTemplate:
-            r"""A #string must have a body, even if it is empty.""",
-        correctionMessageTemplate: r"""Try adding an empty body.""",
-        withArguments: _withArgumentsExpectedClassOrMixinBody);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String string)> codeExpectedClassOrMixinBody =
-    const Code<Message Function(String string)>("ExpectedClassOrMixinBody",
-        index: 8);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExpectedClassOrMixinBody(String string) {
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(codeExpectedClassOrMixinBody,
-      problemMessage: """A ${string} must have a body, even if it is empty.""",
-      correctionMessage: """Try adding an empty body.""",
-      arguments: {'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedDeclaration =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("ExpectedDeclaration",
         problemMessageTemplate:
             r"""Expected a declaration, but got '#lexeme'.""",
         withArguments: _withArgumentsExpectedDeclaration);
@@ -3581,7 +3632,7 @@ const MessageCode messageExpectedElseOrComma = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Token token)> templateExpectedEnumBody = const Template<
-        Message Function(Token token)>(
+        Message Function(Token token)>("ExpectedEnumBody",
     problemMessageTemplate: r"""Expected a enum body, but got '#lexeme'.""",
     correctionMessageTemplate:
         r"""An enum definition must have a body with at least one constant name.""",
@@ -3603,8 +3654,43 @@ Message _withArgumentsExpectedEnumBody(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedExtensionBody = messageExpectedExtensionBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedExtensionBody = const MessageCode(
+    "ExpectedExtensionBody",
+    index: 173,
+    problemMessage:
+        r"""An extension declaration must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedExtensionTypeBody =
+    messageExpectedExtensionTypeBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedExtensionTypeBody = const MessageCode(
+    "ExpectedExtensionTypeBody",
+    index: 167,
+    problemMessage:
+        r"""An extension type declaration must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedFinallyClauseBody =
+    messageExpectedFinallyClauseBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedFinallyClauseBody = const MessageCode(
+    "ExpectedFinallyClauseBody",
+    index: 170,
+    problemMessage:
+        r"""A finally clause must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedFunctionBody =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("ExpectedFunctionBody",
         problemMessageTemplate:
             r"""Expected a function body, but got '#lexeme'.""",
         withArguments: _withArgumentsExpectedFunctionBody);
@@ -3633,7 +3719,7 @@ const MessageCode messageExpectedHexDigit = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedIdentifier =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("ExpectedIdentifier",
         problemMessageTemplate:
             r"""Expected an identifier, but got '#lexeme'.""",
         correctionMessageTemplate:
@@ -3659,7 +3745,7 @@ const Template<
     Message Function(
         Token
             token)> templateExpectedIdentifierButGotKeyword = const Template<
-        Message Function(Token token)>(
+        Message Function(Token token)>("ExpectedIdentifierButGotKeyword",
     problemMessageTemplate:
         r"""'#lexeme' can't be used as an identifier because it's a keyword.""",
     correctionMessageTemplate:
@@ -3683,7 +3769,7 @@ Message _withArgumentsExpectedIdentifierButGotKeyword(Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateExpectedInstead =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String string)>("ExpectedInstead",
         problemMessageTemplate: r"""Expected '#string' instead of this.""",
         withArguments: _withArgumentsExpectedInstead);
 
@@ -3698,6 +3784,17 @@ Message _withArgumentsExpectedInstead(String string) {
       problemMessage: """Expected '${string}' instead of this.""",
       arguments: {'string': string});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedMixinBody = messageExpectedMixinBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedMixinBody = const MessageCode(
+    "ExpectedMixinBody",
+    index: 166,
+    problemMessage:
+        r"""A mixin declaration must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExpectedNamedArgument = messageExpectedNamedArgument;
@@ -3736,7 +3833,7 @@ const MessageCode messageExpectedStatement = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedString =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("ExpectedString",
         problemMessageTemplate: r"""Expected a String, but got '#lexeme'.""",
         withArguments: _withArgumentsExpectedString);
 
@@ -3754,8 +3851,32 @@ Message _withArgumentsExpectedString(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedSwitchExpressionBody =
+    messageExpectedSwitchExpressionBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedSwitchExpressionBody = const MessageCode(
+    "ExpectedSwitchExpressionBody",
+    index: 171,
+    problemMessage:
+        r"""A switch expression must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedSwitchStatementBody =
+    messageExpectedSwitchStatementBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedSwitchStatementBody = const MessageCode(
+    "ExpectedSwitchStatementBody",
+    index: 172,
+    problemMessage:
+        r"""A switch statement must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateExpectedToken =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String string)>("ExpectedToken",
         problemMessageTemplate: r"""Expected to find '#string'.""",
         withArguments: _withArgumentsExpectedToken);
 
@@ -3773,8 +3894,19 @@ Message _withArgumentsExpectedToken(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExpectedTryStatementBody = messageExpectedTryStatementBody;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExpectedTryStatementBody = const MessageCode(
+    "ExpectedTryStatementBody",
+    index: 168,
+    problemMessage:
+        r"""A try statement must have a body, even if it is empty.""",
+    correctionMessage: r"""Try adding an empty body.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExpectedType =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("ExpectedType",
         problemMessageTemplate: r"""Expected a type, but got '#lexeme'.""",
         withArguments: _withArgumentsExpectedType);
 
@@ -3803,7 +3935,7 @@ const Template<
     Message Function(
         String
             string)> templateExperimentDisabled = const Template<
-        Message Function(String string)>(
+        Message Function(String string)>("ExperimentDisabled",
     problemMessageTemplate:
         r"""This requires the '#string' language feature to be enabled.""",
     correctionMessageTemplate:
@@ -3830,6 +3962,7 @@ Message _withArgumentsExperimentDisabled(String string) {
 const Template<Message Function(String string, String string2)>
     templateExperimentDisabledInvalidLanguageVersion =
     const Template<Message Function(String string, String string2)>(
+        "ExperimentDisabledInvalidLanguageVersion",
         problemMessageTemplate:
             r"""This requires the '#string' language feature, which requires language version of #string2 or higher.""",
         withArguments: _withArgumentsExperimentDisabledInvalidLanguageVersion);
@@ -3858,7 +3991,7 @@ const Template<
         String string,
         String
             string2)> templateExperimentNotEnabled = const Template<
-        Message Function(String string, String string2)>(
+        Message Function(String string, String string2)>("ExperimentNotEnabled",
     problemMessageTemplate:
         r"""This requires the '#string' language feature to be enabled.""",
     correctionMessageTemplate:
@@ -3889,7 +4022,7 @@ const Template<
     Message Function(
         String
             string)> templateExperimentNotEnabledOffByDefault = const Template<
-        Message Function(String string)>(
+        Message Function(String string)>("ExperimentNotEnabledOffByDefault",
     problemMessageTemplate:
         r"""This requires the experimental '#string' language feature to be enabled.""",
     correctionMessageTemplate:
@@ -3918,7 +4051,7 @@ const Template<
     Message Function(
         String
             string)> templateExperimentOptOutComment = const Template<
-        Message Function(String string)>(
+        Message Function(String string)>("ExperimentOptOutComment",
     problemMessageTemplate:
         r"""This is the annotation that opts out this library from the '#string' language feature.""",
     withArguments: _withArgumentsExperimentOptOutComment);
@@ -3944,6 +4077,7 @@ const Template<
         String
             string2)> templateExperimentOptOutExplicit = const Template<
         Message Function(String string, String string2)>(
+    "ExperimentOptOutExplicit",
     problemMessageTemplate:
         r"""The '#string' language feature is disabled for this library.""",
     correctionMessageTemplate:
@@ -3976,6 +4110,7 @@ const Template<
         String
             string2)> templateExperimentOptOutImplicit = const Template<
         Message Function(String string, String string2)>(
+    "ExperimentOptOutImplicit",
     problemMessageTemplate:
         r"""The '#string' language feature is disabled for this library.""",
     correctionMessageTemplate:
@@ -4038,6 +4173,7 @@ const Template<
         int
             count)> templateExplicitExtensionTypeArgumentMismatch = const Template<
         Message Function(String name, int count)>(
+    "ExplicitExtensionTypeArgumentMismatch",
     problemMessageTemplate:
         r"""Explicit extension application of extension '#name' takes '#count' type argument(s).""",
     withArguments: _withArgumentsExplicitExtensionTypeArgumentMismatch);
@@ -4098,7 +4234,7 @@ const MessageCode messageExpressionNotMetadata = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateExtendingEnum =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ExtendingEnum",
         problemMessageTemplate:
             r"""'#name' is an enum and can't be extended or implemented.""",
         withArguments: _withArgumentsExtendingEnum);
@@ -4120,7 +4256,7 @@ Message _withArgumentsExtendingEnum(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateExtendingRestricted =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("ExtendingRestricted",
         problemMessageTemplate:
             r"""'#name' is restricted and can't be extended or implemented.""",
         withArguments: _withArgumentsExtendingRestricted);
@@ -4202,6 +4338,7 @@ const MessageCode messageExtensionDeclaresInstanceField = const MessageCode(
 const Template<Message Function(String name)>
     templateExtensionInNullAwareReceiver =
     const Template<Message Function(String name)>(
+        "ExtensionInNullAwareReceiver",
         problemMessageTemplate: r"""The extension '#name' cannot be null.""",
         correctionMessageTemplate: r"""Try replacing '?.' with '.'""",
         withArguments: _withArgumentsExtensionInNullAwareReceiver);
@@ -4225,6 +4362,7 @@ Message _withArgumentsExtensionInNullAwareReceiver(String name) {
 const Template<Message Function(String name)>
     templateExtensionMemberConflictsWithObjectMember =
     const Template<Message Function(String name)>(
+        "ExtensionMemberConflictsWithObjectMember",
         problemMessageTemplate:
             r"""This extension member conflicts with Object member '#name'.""",
         withArguments: _withArgumentsExtensionMemberConflictsWithObjectMember);
@@ -4245,6 +4383,41 @@ Message _withArgumentsExtensionMemberConflictsWithObjectMember(String name) {
           """This extension member conflicts with Object member '${name}'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeDeclarationCause =
+    messageExtensionTypeDeclarationCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeDeclarationCause = const MessageCode(
+    "ExtensionTypeDeclarationCause",
+    severity: Severity.context,
+    problemMessage:
+        r"""The issue arises via this extension type declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeExtends = messageExtensionTypeExtends;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeExtends = const MessageCode(
+    "ExtensionTypeExtends",
+    index: 164,
+    problemMessage:
+        r"""An extension type declaration can't have an 'extends' clause.""",
+    correctionMessage:
+        r"""Try removing the 'extends' clause or replacing the 'extends' with 'implements'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeWith = messageExtensionTypeWith;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeWith = const MessageCode(
+    "ExtensionTypeWith",
+    index: 165,
+    problemMessage:
+        r"""An extension type declaration can't have a 'with' clause.""",
+    correctionMessage:
+        r"""Try removing the 'with' clause or replacing the 'with' with 'implements'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalClass = messageExternalClass;
@@ -4382,7 +4555,7 @@ const MessageCode messageExternalTypedef = const MessageCode("ExternalTypedef",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateExtraneousModifier =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("ExtraneousModifier",
         problemMessageTemplate: r"""Can't have modifier '#lexeme' here.""",
         correctionMessageTemplate: r"""Try removing '#lexeme'.""",
         withArguments: _withArgumentsExtraneousModifier);
@@ -4404,6 +4577,7 @@ Message _withArgumentsExtraneousModifier(Token token) {
 const Template<Message Function(Token token)>
     templateExtraneousModifierInExtension =
     const Template<Message Function(Token token)>(
+        "ExtraneousModifierInExtension",
         problemMessageTemplate:
             r"""Can't have modifier '#lexeme' in an extension.""",
         correctionMessageTemplate: r"""Try removing '#lexeme'.""",
@@ -4446,7 +4620,7 @@ const MessageCode messageFactoryTopLevelDeclaration = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFastaCLIArgumentRequired =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("FastaCLIArgumentRequired",
         problemMessageTemplate: r"""Expected value after '#name'.""",
         withArguments: _withArgumentsFastaCLIArgumentRequired);
 
@@ -4500,7 +4674,7 @@ const MessageCode messageFastaUsageLong =
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts
@@ -4590,6 +4764,7 @@ const MessageCode messageFfiAbiSpecificIntegerMappingInvalid = const MessageCode
 const Template<Message Function(String string, String name)>
     templateFfiCompoundImplementsFinalizable =
     const Template<Message Function(String string, String name)>(
+        "FfiCompoundImplementsFinalizable",
         problemMessageTemplate:
             r"""#string '#name' can't implement Finalizable.""",
         correctionMessageTemplate:
@@ -4631,7 +4806,7 @@ const Template<
         String string,
         String
             name)> templateFfiEmptyStruct = const Template<
-        Message Function(String string, String name)>(
+        Message Function(String string, String name)>("FfiEmptyStruct",
     problemMessageTemplate:
         r"""#string '#name' is empty. Empty structs and unions are undefined behavior.""",
     withArguments: _withArgumentsFfiEmptyStruct);
@@ -4671,7 +4846,7 @@ const MessageCode messageFfiExpectedConstant = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFfiExpectedConstantArg =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("FfiExpectedConstantArg",
         problemMessageTemplate: r"""Argument '#name' must be a constant.""",
         withArguments: _withArgumentsFfiExpectedConstantArg);
 
@@ -4694,6 +4869,7 @@ Message _withArgumentsFfiExpectedConstantArg(String name) {
 const Template<Message Function(String name)>
     templateFfiExtendsOrImplementsSealedClass =
     const Template<Message Function(String name)>(
+        "FfiExtendsOrImplementsSealedClass",
         problemMessageTemplate:
             r"""Class '#name' cannot be extended or implemented.""",
         withArguments: _withArgumentsFfiExtendsOrImplementsSealedClass);
@@ -4717,7 +4893,7 @@ Message _withArgumentsFfiExtendsOrImplementsSealedClass(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiFieldAnnotation = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FfiFieldAnnotation",
     problemMessageTemplate:
         r"""Field '#name' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.""",
     withArguments: _withArgumentsFfiFieldAnnotation);
@@ -4743,6 +4919,7 @@ const Template<
         Message Function(String string, String name, List<String> _names)>
     templateFfiFieldCyclic = const Template<
             Message Function(String string, String name, List<String> _names)>(
+        "FfiFieldCyclic",
         problemMessageTemplate:
             r"""#string '#name' contains itself. Cycle elements:
 #names""",
@@ -4771,7 +4948,7 @@ ${names}""", arguments: {'string': string, 'name': name, 'names': _names});
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiFieldInitializer = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FfiFieldInitializer",
     problemMessageTemplate:
         r"""Field '#name' is a dart:ffi Pointer to a struct field and therefore cannot be initialized before constructor execution.""",
     correctionMessageTemplate:
@@ -4800,7 +4977,7 @@ const Template<
     Message Function(
         String
             name)> templateFfiFieldNoAnnotation = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FfiFieldNoAnnotation",
     problemMessageTemplate:
         r"""Field '#name' requires no annotation to declare its native type, it is a Pointer which is represented by the same type in Dart and native code.""",
     withArguments: _withArgumentsFfiFieldNoAnnotation);
@@ -4824,7 +5001,7 @@ Message _withArgumentsFfiFieldNoAnnotation(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiFieldNull = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FfiFieldNull",
     problemMessageTemplate:
         r"""Field '#name' cannot be nullable or have type 'Null', it must be `int`, `double`, `Pointer`, or a subtype of `Struct` or `Union`.""",
     withArguments: _withArgumentsFfiFieldNull);
@@ -4885,6 +5062,7 @@ const MessageCode messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
 const Template<Message Function(int count, int count2)>
     templateFfiNativeUnexpectedNumberOfParameters =
     const Template<Message Function(int count, int count2)>(
+        "FfiNativeUnexpectedNumberOfParameters",
         problemMessageTemplate:
             r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2.""",
         withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters);
@@ -4909,6 +5087,7 @@ Message _withArgumentsFfiNativeUnexpectedNumberOfParameters(
 const Template<Message Function(int count, int count2)>
     templateFfiNativeUnexpectedNumberOfParametersWithReceiver =
     const Template<Message Function(int count, int count2)>(
+        "FfiNativeUnexpectedNumberOfParametersWithReceiver",
         problemMessageTemplate:
             r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2. FfiNative instance method annotation must have receiver as first argument.""",
         withArguments:
@@ -4933,7 +5112,7 @@ Message _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateFfiNotStatic = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FfiNotStatic",
     problemMessageTemplate:
         r"""#name expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.""",
     withArguments: _withArgumentsFfiNotStatic);
@@ -4956,7 +5135,7 @@ Message _withArgumentsFfiNotStatic(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFfiPackedAnnotation =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("FfiPackedAnnotation",
         problemMessageTemplate:
             r"""Struct '#name' must have at most one 'Packed' annotation.""",
         withArguments: _withArgumentsFfiPackedAnnotation);
@@ -4989,7 +5168,7 @@ const MessageCode messageFfiPackedAnnotationAlignment = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateFfiSizeAnnotation =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("FfiSizeAnnotation",
         problemMessageTemplate:
             r"""Field '#name' must have exactly one 'Array' annotation.""",
         withArguments: _withArgumentsFfiSizeAnnotation);
@@ -5015,7 +5194,7 @@ const Template<
     Message Function(
         String
             name)> templateFfiSizeAnnotationDimensions = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FfiSizeAnnotationDimensions",
     problemMessageTemplate:
         r"""Field '#name' must have an 'Array' annotation that matches the dimensions.""",
     withArguments: _withArgumentsFfiSizeAnnotationDimensions);
@@ -5040,6 +5219,7 @@ Message _withArgumentsFfiSizeAnnotationDimensions(String name) {
 const Template<Message Function(String string, String name)>
     templateFfiStructGeneric =
     const Template<Message Function(String string, String name)>(
+        "FfiStructGeneric",
         problemMessageTemplate: r"""#string '#name' should not be generic.""",
         withArguments: _withArgumentsFfiStructGeneric);
 
@@ -5064,7 +5244,7 @@ const Template<
     Message Function(
         String
             name)> templateFieldAlreadyInitializedAtDeclaration = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FieldAlreadyInitializedAtDeclaration",
     problemMessageTemplate:
         r"""'#name' is a final instance variable that was initialized at the declaration.""",
     withArguments: _withArgumentsFieldAlreadyInitializedAtDeclaration);
@@ -5092,6 +5272,7 @@ Message _withArgumentsFieldAlreadyInitializedAtDeclaration(String name) {
 const Template<Message Function(String name)>
     templateFieldAlreadyInitializedAtDeclarationCause =
     const Template<Message Function(String name)>(
+        "FieldAlreadyInitializedAtDeclarationCause",
         problemMessageTemplate: r"""'#name' was initialized here.""",
         withArguments: _withArgumentsFieldAlreadyInitializedAtDeclarationCause);
 
@@ -5137,28 +5318,257 @@ const MessageCode messageFieldInitializerOutsideConstructor = const MessageCode(
     correctionMessage: r"""Try removing 'this.'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateFieldNotPromoted =
-    const Template<Message Function(String name, String string)>(
+const Template<Message Function(String name, String name2, String string)>
+    templateFieldNotPromotedBecauseConflictingField =
+    const Template<Message Function(String name, String name2, String string)>(
+        "FieldNotPromotedBecauseConflictingField",
         problemMessageTemplate:
-            r"""'#name' refers to a property so it couldn't be promoted.""",
+            r"""'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'.""",
         correctionMessageTemplate: r"""See #string""",
-        withArguments: _withArgumentsFieldNotPromoted);
+        withArguments: _withArgumentsFieldNotPromotedBecauseConflictingField);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)> codeFieldNotPromoted =
-    const Code<Message Function(String name, String string)>(
-  "FieldNotPromoted",
+const Code<Message Function(String name, String name2, String string)>
+    codeFieldNotPromotedBecauseConflictingField =
+    const Code<Message Function(String name, String name2, String string)>(
+  "FieldNotPromotedBecauseConflictingField",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsFieldNotPromoted(String name, String string) {
+Message _withArgumentsFieldNotPromotedBecauseConflictingField(
+    String name, String name2, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseConflictingField,
+      problemMessage:
+          """'${name}' couldn't be promoted because there is a conflicting non-promotable field in class '${name2}'.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String string)>
+    templateFieldNotPromotedBecauseConflictingGetter =
+    const Template<Message Function(String name, String name2, String string)>(
+        "FieldNotPromotedBecauseConflictingGetter",
+        problemMessageTemplate:
+            r"""'#name' couldn't be promoted because there is a conflicting getter in class '#name2'.""",
+        correctionMessageTemplate: r"""See #string""",
+        withArguments: _withArgumentsFieldNotPromotedBecauseConflictingGetter);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String string)>
+    codeFieldNotPromotedBecauseConflictingGetter =
+    const Code<Message Function(String name, String name2, String string)>(
+  "FieldNotPromotedBecauseConflictingGetter",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseConflictingGetter(
+    String name, String name2, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseConflictingGetter,
+      problemMessage:
+          """'${name}' couldn't be promoted because there is a conflicting getter in class '${name2}'.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2, String string)>
+    templateFieldNotPromotedBecauseConflictingNsmForwarder =
+    const Template<Message Function(String name, String name2, String string)>(
+        "FieldNotPromotedBecauseConflictingNsmForwarder",
+        problemMessageTemplate:
+            r"""'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'.""",
+        correctionMessageTemplate: r"""See #string""",
+        withArguments:
+            _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2, String string)>
+    codeFieldNotPromotedBecauseConflictingNsmForwarder =
+    const Code<Message Function(String name, String name2, String string)>(
+  "FieldNotPromotedBecauseConflictingNsmForwarder",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseConflictingNsmForwarder(
+    String name, String name2, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseConflictingNsmForwarder,
+      problemMessage:
+          """'${name}' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '${name2}'.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'name2': name2, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateFieldNotPromotedBecauseExternal = const Template<
+        Message Function(String name, String string)>(
+    "FieldNotPromotedBecauseExternal",
+    problemMessageTemplate:
+        r"""'#name' refers to an external field so it couldn't be promoted.""",
+    correctionMessageTemplate: r"""See #string""",
+    withArguments: _withArgumentsFieldNotPromotedBecauseExternal);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseExternal =
+    const Code<Message Function(String name, String string)>(
+  "FieldNotPromotedBecauseExternal",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseExternal(
+    String name, String string) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
   if (string.isEmpty) throw 'No string provided';
-  return new Message(codeFieldNotPromoted,
+  return new Message(codeFieldNotPromotedBecauseExternal,
       problemMessage:
-          """'${name}' refers to a property so it couldn't be promoted.""",
+          """'${name}' refers to an external field so it couldn't be promoted.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateFieldNotPromotedBecauseNotEnabled = const Template<
+        Message Function(String name, String string)>(
+    "FieldNotPromotedBecauseNotEnabled",
+    problemMessageTemplate:
+        r"""'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
+    correctionMessageTemplate: r"""See #string""",
+    withArguments: _withArgumentsFieldNotPromotedBecauseNotEnabled);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseNotEnabled =
+    const Code<Message Function(String name, String string)>(
+  "FieldNotPromotedBecauseNotEnabled",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseNotEnabled(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseNotEnabled,
+      problemMessage:
+          """'${name}' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateFieldNotPromotedBecauseNotField =
+    const Template<Message Function(String name, String string)>(
+        "FieldNotPromotedBecauseNotField",
+        problemMessageTemplate:
+            r"""'#name' refers to a getter so it couldn't be promoted.""",
+        correctionMessageTemplate: r"""See #string""",
+        withArguments: _withArgumentsFieldNotPromotedBecauseNotField);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseNotField =
+    const Code<Message Function(String name, String string)>(
+  "FieldNotPromotedBecauseNotField",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseNotField(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseNotField,
+      problemMessage:
+          """'${name}' refers to a getter so it couldn't be promoted.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateFieldNotPromotedBecauseNotFinal = const Template<
+        Message Function(String name, String string)>(
+    "FieldNotPromotedBecauseNotFinal",
+    problemMessageTemplate:
+        r"""'#name' refers to a non-final field so it couldn't be promoted.""",
+    correctionMessageTemplate: r"""See #string""",
+    withArguments: _withArgumentsFieldNotPromotedBecauseNotFinal);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseNotFinal =
+    const Code<Message Function(String name, String string)>(
+  "FieldNotPromotedBecauseNotFinal",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseNotFinal(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseNotFinal,
+      problemMessage:
+          """'${name}' refers to a non-final field so it couldn't be promoted.""",
+      correctionMessage: """See ${string}""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String string)>
+    templateFieldNotPromotedBecauseNotPrivate =
+    const Template<Message Function(String name, String string)>(
+        "FieldNotPromotedBecauseNotPrivate",
+        problemMessageTemplate:
+            r"""'#name' refers to a public field so it couldn't be promoted.""",
+        correctionMessageTemplate: r"""See #string""",
+        withArguments: _withArgumentsFieldNotPromotedBecauseNotPrivate);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeFieldNotPromotedBecauseNotPrivate =
+    const Code<Message Function(String name, String string)>(
+  "FieldNotPromotedBecauseNotPrivate",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFieldNotPromotedBecauseNotPrivate(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeFieldNotPromotedBecauseNotPrivate,
+      problemMessage:
+          """'${name}' refers to a public field so it couldn't be promoted.""",
       correctionMessage: """See ${string}""",
       arguments: {'name': name, 'string': string});
 }
@@ -5203,7 +5613,7 @@ const Template<
     Message Function(
         String
             name)> templateFinalClassExtendedOutsideOfLibrary = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FinalClassExtendedOutsideOfLibrary",
     problemMessageTemplate:
         r"""The class '#name' can't be extended outside of its library because it's a final class.""",
     withArguments: _withArgumentsFinalClassExtendedOutsideOfLibrary);
@@ -5230,7 +5640,7 @@ const Template<
     Message Function(
         String
             name)> templateFinalClassImplementedOutsideOfLibrary = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FinalClassImplementedOutsideOfLibrary",
     problemMessageTemplate:
         r"""The class '#name' can't be implemented outside of its library because it's a final class.""",
     withArguments: _withArgumentsFinalClassImplementedOutsideOfLibrary);
@@ -5256,6 +5666,7 @@ Message _withArgumentsFinalClassImplementedOutsideOfLibrary(String name) {
 const Template<Message Function(String name)>
     templateFinalClassUsedAsMixinConstraintOutsideOfLibrary =
     const Template<Message Function(String name)>(
+        "FinalClassUsedAsMixinConstraintOutsideOfLibrary",
         problemMessageTemplate:
             r"""The class '#name' can't be used as a mixin superclass constraint outside of its library because it's a final class.""",
         withArguments:
@@ -5295,7 +5706,7 @@ const Template<
     Message Function(
         String
             name)> templateFinalFieldNotInitialized = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FinalFieldNotInitialized",
     problemMessageTemplate: r"""Final field '#name' is not initialized.""",
     correctionMessageTemplate:
         r"""Try to initialize the field in the declaration or in every constructor.""",
@@ -5322,7 +5733,7 @@ const Template<
     Message Function(
         String
             name)> templateFinalFieldNotInitializedByConstructor = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FinalFieldNotInitializedByConstructor",
     problemMessageTemplate:
         r"""Final field '#name' is not initialized by this constructor.""",
     correctionMessageTemplate:
@@ -5353,7 +5764,7 @@ const Template<
     Message Function(
         String
             name)> templateFinalFieldWithoutInitializer = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FinalFieldWithoutInitializer",
     problemMessageTemplate:
         r"""The final variable '#name' must be initialized.""",
     correctionMessageTemplate:
@@ -5399,7 +5810,7 @@ const Template<
     Message Function(
         String
             name)> templateFinalNotAssignedError = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FinalNotAssignedError",
     problemMessageTemplate:
         r"""Final variable '#name' must be assigned before it can be used.""",
     withArguments: _withArgumentsFinalNotAssignedError);
@@ -5424,7 +5835,7 @@ const Template<
     Message Function(
         String
             name)> templateFinalPossiblyAssignedError = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("FinalPossiblyAssignedError",
     problemMessageTemplate:
         r"""Final variable '#name' might already be assigned at this point.""",
     withArguments: _withArgumentsFinalPossiblyAssignedError);
@@ -5539,7 +5950,7 @@ const MessageCode messageGetterConstructor = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateGetterNotFound =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("GetterNotFound",
         problemMessageTemplate: r"""Getter not found: '#name'.""",
         withArguments: _withArgumentsGetterNotFound);
 
@@ -5610,7 +6021,7 @@ const MessageCode messageIllegalAsyncReturnType = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateIllegalMixin =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("IllegalMixin",
         problemMessageTemplate: r"""The type '#name' can't be mixed in.""",
         withArguments: _withArgumentsIllegalMixin);
 
@@ -5632,6 +6043,7 @@ Message _withArgumentsIllegalMixin(String name) {
 const Template<Message Function(String name)>
     templateIllegalMixinDueToConstructors =
     const Template<Message Function(String name)>(
+        "IllegalMixinDueToConstructors",
         problemMessageTemplate:
             r"""Can't use '#name' as a mixin because it has constructors.""",
         withArguments: _withArgumentsIllegalMixinDueToConstructors);
@@ -5655,6 +6067,7 @@ Message _withArgumentsIllegalMixinDueToConstructors(String name) {
 const Template<Message Function(String name)>
     templateIllegalMixinDueToConstructorsCause =
     const Template<Message Function(String name)>(
+        "IllegalMixinDueToConstructorsCause",
         problemMessageTemplate:
             r"""This constructor prevents using '#name' as a mixin.""",
         withArguments: _withArgumentsIllegalMixinDueToConstructorsCause);
@@ -5681,7 +6094,7 @@ const Template<
     Message Function(
         Token
             token)> templateIllegalPatternAssignmentVariableName = const Template<
-        Message Function(Token token)>(
+        Message Function(Token token)>("IllegalPatternAssignmentVariableName",
     problemMessageTemplate:
         r"""A variable assigned by a pattern assignment can't be named '#lexeme'.""",
     correctionMessageTemplate: r"""Choose a different name.""",
@@ -5708,6 +6121,7 @@ Message _withArgumentsIllegalPatternAssignmentVariableName(Token token) {
 const Template<Message Function(Token token)>
     templateIllegalPatternIdentifierName =
     const Template<Message Function(Token token)>(
+        "IllegalPatternIdentifierName",
         problemMessageTemplate:
             r"""A pattern can't refer to an identifier named '#lexeme'.""",
         correctionMessageTemplate: r"""Match the identifier using '==""",
@@ -5733,7 +6147,7 @@ const Template<
     Message Function(
         Token
             token)> templateIllegalPatternVariableName = const Template<
-        Message Function(Token token)>(
+        Message Function(Token token)>("IllegalPatternVariableName",
     problemMessageTemplate:
         r"""The variable declared by a variable pattern can't be named '#lexeme'.""",
     correctionMessageTemplate: r"""Choose a different name.""",
@@ -5831,6 +6245,7 @@ const MessageCode messageImplementsNever = const MessageCode("ImplementsNever",
 const Template<Message Function(String name, int count)>
     templateImplementsRepeated =
     const Template<Message Function(String name, int count)>(
+        "ImplementsRepeated",
         problemMessageTemplate: r"""'#name' can only be implemented once.""",
         correctionMessageTemplate:
             r"""Try removing #count of the occurrences.""",
@@ -5856,7 +6271,7 @@ const Template<
     Message Function(
         String
             name)> templateImplementsSuperClass = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("ImplementsSuperClass",
     problemMessageTemplate:
         r"""'#name' can't be used in both 'extends' and 'implements' clauses.""",
     correctionMessageTemplate: r"""Try removing one of the occurrences.""",
@@ -5894,6 +6309,7 @@ const Template<
         String
             name3)> templateImplicitMixinOverride = const Template<
         Message Function(String name, String name2, String name3)>(
+    "ImplicitMixinOverride",
     problemMessageTemplate:
         r"""Applying the mixin '#name' to '#name2' introduces an erroneous override of '#name3'.""",
     withArguments: _withArgumentsImplicitMixinOverride);
@@ -5951,6 +6367,7 @@ const Template<
         String
             string2)> templateImportChainContext = const Template<
         Message Function(Uri uri_, String string, String string2)>(
+    "ImportChainContext",
     problemMessageTemplate:
         r"""The unavailable library '#uri' is imported through these packages:
 
@@ -5988,6 +6405,7 @@ ${string2}""",
 const Template<Message Function(Uri uri_, String string)>
     templateImportChainContextSimple =
     const Template<Message Function(Uri uri_, String string)>(
+        "ImportChainContextSimple",
         problemMessageTemplate:
             r"""The unavailable library '#uri' is imported through these paths:
 
@@ -6029,7 +6447,7 @@ const Template<
     Message Function(
         String
             string)> templateIncrementalCompilerIllegalParameter = const Template<
-        Message Function(String string)>(
+        Message Function(String string)>("IncrementalCompilerIllegalParameter",
     problemMessageTemplate:
         r"""Illegal parameter name '#string' found during expression compilation.""",
     withArguments: _withArgumentsIncrementalCompilerIllegalParameter);
@@ -6054,6 +6472,7 @@ Message _withArgumentsIncrementalCompilerIllegalParameter(String string) {
 const Template<Message Function(String string)>
     templateIncrementalCompilerIllegalTypeParameter =
     const Template<Message Function(String string)>(
+        "IncrementalCompilerIllegalTypeParameter",
         problemMessageTemplate:
             r"""Illegal type parameter name '#string' found during expression compilation.""",
         withArguments: _withArgumentsIncrementalCompilerIllegalTypeParameter);
@@ -6108,6 +6527,7 @@ const MessageCode messageInheritedMembersConflictCause2 = const MessageCode(
 const Template<Message Function(String name, String name2)>
     templateInheritedRestrictedMemberOfEnumImplementer =
     const Template<Message Function(String name, String name2)>(
+        "InheritedRestrictedMemberOfEnumImplementer",
         problemMessageTemplate:
             r"""A concrete instance member named '#name' can't be inherited from '#name2' in a class that implements 'Enum'.""",
         withArguments:
@@ -6140,6 +6560,7 @@ const Template<
         Uri
             uri_)> templateInitializeFromDillNotSelfContained = const Template<
         Message Function(String string, Uri uri_)>(
+    "InitializeFromDillNotSelfContained",
     problemMessageTemplate:
         r"""Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
 
@@ -6174,6 +6595,7 @@ Either way, you should probably delete the file so it doesn't use unnecessary di
 const Template<Message Function(String string)>
     templateInitializeFromDillNotSelfContainedNoDump =
     const Template<Message Function(String string)>(
+        "InitializeFromDillNotSelfContainedNoDump",
         problemMessageTemplate:
             r"""Tried to initialize from a previous compilation (#string), but the file was not self-contained. This might be a bug.
 
@@ -6208,6 +6630,7 @@ const Template<
             uri_)> templateInitializeFromDillUnknownProblem = const Template<
         Message Function(
             String string, String string2, String string3, Uri uri_)>(
+    "InitializeFromDillUnknownProblem",
     problemMessageTemplate:
         r"""Tried to initialize from a previous compilation (#string), but couldn't.
 Error message was '#string2'.
@@ -6258,6 +6681,7 @@ Either way, you should probably delete the file so it doesn't use unnecessary di
 const Template<Message Function(String string, String string2, String string3)>
     templateInitializeFromDillUnknownProblemNoDump = const Template<
             Message Function(String string, String string2, String string3)>(
+        "InitializeFromDillUnknownProblemNoDump",
         problemMessageTemplate:
             r"""Tried to initialize from a previous compilation (#string), but couldn't.
 Error message was '#string2'.
@@ -6307,7 +6731,7 @@ const MessageCode messageInitializedVariableInForEach = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateInitializerForStaticField =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("InitializerForStaticField",
         problemMessageTemplate:
             r"""'#name' isn't an instance field of this class.""",
         withArguments: _withArgumentsInitializerForStaticField);
@@ -6338,7 +6762,7 @@ const MessageCode messageInitializingFormalTypeMismatchField =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateInputFileNotFound =
-    const Template<Message Function(Uri uri_)>(
+    const Template<Message Function(Uri uri_)>("InputFileNotFound",
         problemMessageTemplate: r"""Input file not found: #uri.""",
         withArguments: _withArgumentsInputFileNotFound);
 
@@ -6361,7 +6785,7 @@ const Template<
     Message Function(
         String
             name)> templateInstanceAndSynthesizedStaticConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("InstanceAndSynthesizedStaticConflict",
     problemMessageTemplate:
         r"""This instance member conflicts with the synthesized static member called '#name'.""",
     withArguments: _withArgumentsInstanceAndSynthesizedStaticConflict);
@@ -6387,6 +6811,7 @@ Message _withArgumentsInstanceAndSynthesizedStaticConflict(String name) {
 const Template<Message Function(int count, int count2)>
     templateInstantiationTooFewArguments =
     const Template<Message Function(int count, int count2)>(
+        "InstantiationTooFewArguments",
         problemMessageTemplate:
             r"""Too few type arguments: #count required, #count2 given.""",
         correctionMessageTemplate:
@@ -6413,6 +6838,7 @@ Message _withArgumentsInstantiationTooFewArguments(int count, int count2) {
 const Template<Message Function(int count, int count2)>
     templateInstantiationTooManyArguments =
     const Template<Message Function(int count, int count2)>(
+        "InstantiationTooManyArguments",
         problemMessageTemplate:
             r"""Too many type arguments: #count allowed, but #count2 found.""",
         correctionMessageTemplate:
@@ -6440,7 +6866,7 @@ const Template<
     Message Function(
         String
             string)> templateIntegerLiteralIsOutOfRange = const Template<
-        Message Function(String string)>(
+        Message Function(String string)>("IntegerLiteralIsOutOfRange",
     problemMessageTemplate:
         r"""The integer literal #string can't be represented in 64 bits.""",
     correctionMessageTemplate:
@@ -6469,7 +6895,7 @@ const Template<
         String name,
         String
             name2)> templateInterfaceCheck = const Template<
-        Message Function(String name, String name2)>(
+        Message Function(String name, String name2)>("InterfaceCheck",
     problemMessageTemplate:
         r"""The implementation of '#name' in the non-abstract class '#name2' does not conform to its interface.""",
     withArguments: _withArgumentsInterfaceCheck);
@@ -6497,7 +6923,7 @@ const Template<
     Message Function(
         String
             name)> templateInterfaceClassExtendedOutsideOfLibrary = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("InterfaceClassExtendedOutsideOfLibrary",
     problemMessageTemplate:
         r"""The class '#name' can't be extended outside of its library because it's an interface class.""",
     withArguments: _withArgumentsInterfaceClassExtendedOutsideOfLibrary);
@@ -6572,6 +6998,7 @@ const MessageCode messageInternalProblemBodyOnAbstractMethod =
 const Template<Message Function(String name, Uri uri_)>
     templateInternalProblemConstructorNotFound =
     const Template<Message Function(String name, Uri uri_)>(
+        "InternalProblemConstructorNotFound",
         problemMessageTemplate: r"""No constructor named '#name' in '#uri'.""",
         withArguments: _withArgumentsInternalProblemConstructorNotFound);
 
@@ -6597,6 +7024,7 @@ Message _withArgumentsInternalProblemConstructorNotFound(
 const Template<Message Function(String string)>
     templateInternalProblemContextSeverity =
     const Template<Message Function(String string)>(
+        "InternalProblemContextSeverity",
         problemMessageTemplate:
             r"""Non-context message has context severity: #string""",
         withArguments: _withArgumentsInternalProblemContextSeverity);
@@ -6619,8 +7047,10 @@ Message _withArgumentsInternalProblemContextSeverity(String string) {
 const Template<Message Function(String name, String string)>
     templateInternalProblemDebugAbort =
     const Template<Message Function(String name, String string)>(
+        "InternalProblemDebugAbort",
         problemMessageTemplate: r"""Compilation aborted due to fatal '#name' at:
-#string""", withArguments: _withArgumentsInternalProblemDebugAbort);
+#string""",
+        withArguments: _withArgumentsInternalProblemDebugAbort);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, String string)>
@@ -6674,7 +7104,7 @@ const MessageCode messageInternalProblemMissingContext = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInternalProblemNotFound =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("InternalProblemNotFound",
         problemMessageTemplate: r"""Couldn't find '#name'.""",
         withArguments: _withArgumentsInternalProblemNotFound);
 
@@ -6696,6 +7126,7 @@ Message _withArgumentsInternalProblemNotFound(String name) {
 const Template<Message Function(String name, String name2)>
     templateInternalProblemNotFoundIn =
     const Template<Message Function(String name, String name2)>(
+        "InternalProblemNotFoundIn",
         problemMessageTemplate: r"""Couldn't find '#name' in '#name2'.""",
         withArguments: _withArgumentsInternalProblemNotFoundIn);
 
@@ -6742,6 +7173,7 @@ const MessageCode messageInternalProblemPreviousTokenNotFound =
 const Template<Message Function(String name)>
     templateInternalProblemPrivateConstructorAccess =
     const Template<Message Function(String name)>(
+        "InternalProblemPrivateConstructorAccess",
         problemMessageTemplate:
             r"""Can't access private constructor '#name'.""",
         withArguments: _withArgumentsInternalProblemPrivateConstructorAccess);
@@ -6777,8 +7209,10 @@ const MessageCode messageInternalProblemProvidedBothCompileSdkAndSdkSummary =
 const Template<Message Function(String name, String string)>
     templateInternalProblemStackNotEmpty =
     const Template<Message Function(String name, String string)>(
+        "InternalProblemStackNotEmpty",
         problemMessageTemplate: r"""#name.stack isn't empty:
-  #string""", withArguments: _withArgumentsInternalProblemStackNotEmpty);
+  #string""",
+        withArguments: _withArgumentsInternalProblemStackNotEmpty);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, String string)>
@@ -6801,6 +7235,7 @@ Message _withArgumentsInternalProblemStackNotEmpty(String name, String string) {
 const Template<Message Function(String string, String string2)>
     templateInternalProblemUnexpected =
     const Template<Message Function(String string, String string2)>(
+        "InternalProblemUnexpected",
         problemMessageTemplate: r"""Expected '#string', but got '#string2'.""",
         withArguments: _withArgumentsInternalProblemUnexpected);
 
@@ -6827,6 +7262,7 @@ const Template<
         Uri
             uri_)> templateInternalProblemUnfinishedTypeVariable = const Template<
         Message Function(String name, Uri uri_)>(
+    "InternalProblemUnfinishedTypeVariable",
     problemMessageTemplate:
         r"""Unfinished type variable '#name' found in non-source library '#uri'.""",
     withArguments: _withArgumentsInternalProblemUnfinishedTypeVariable);
@@ -6854,6 +7290,7 @@ Message _withArgumentsInternalProblemUnfinishedTypeVariable(
 const Template<Message Function(String string, String string2)>
     templateInternalProblemUnhandled =
     const Template<Message Function(String string, String string2)>(
+        "InternalProblemUnhandled",
         problemMessageTemplate: r"""Unhandled #string in #string2.""",
         withArguments: _withArgumentsInternalProblemUnhandled);
 
@@ -6877,6 +7314,7 @@ Message _withArgumentsInternalProblemUnhandled(String string, String string2) {
 const Template<Message Function(String string)>
     templateInternalProblemUnimplemented =
     const Template<Message Function(String string)>(
+        "InternalProblemUnimplemented",
         problemMessageTemplate: r"""Unimplemented #string.""",
         withArguments: _withArgumentsInternalProblemUnimplemented);
 
@@ -6896,7 +7334,7 @@ Message _withArgumentsInternalProblemUnimplemented(String string) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateInternalProblemUnsupported =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("InternalProblemUnsupported",
         problemMessageTemplate: r"""Unsupported operation: '#name'.""",
         withArguments: _withArgumentsInternalProblemUnsupported);
 
@@ -6918,6 +7356,7 @@ Message _withArgumentsInternalProblemUnsupported(String name) {
 const Template<Message Function(Uri uri_)>
     templateInternalProblemUriMissingScheme =
     const Template<Message Function(Uri uri_)>(
+        "InternalProblemUriMissingScheme",
         problemMessageTemplate: r"""The URI '#uri' has no scheme.""",
         withArguments: _withArgumentsInternalProblemUriMissingScheme);
 
@@ -6938,6 +7377,7 @@ Message _withArgumentsInternalProblemUriMissingScheme(Uri uri_) {
 const Template<Message Function(String string)>
     templateInternalProblemVerificationError =
     const Template<Message Function(String string)>(
+        "InternalProblemVerificationError",
         problemMessageTemplate:
             r"""Verification of the generated program failed:
 #string""",
@@ -6989,7 +7429,7 @@ const MessageCode messageInvalidAwaitFor = const MessageCode("InvalidAwaitFor",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInvalidBreakTarget =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("InvalidBreakTarget",
         problemMessageTemplate: r"""Can't break to '#name'.""",
         withArguments: _withArgumentsInvalidBreakTarget);
 
@@ -7032,7 +7472,7 @@ const Template<
     Message Function(
         String
             name)> templateInvalidConstantPatternBinary = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("InvalidConstantPatternBinary",
     problemMessageTemplate:
         r"""The binary operator #name is not supported as a constant pattern.""",
     correctionMessageTemplate:
@@ -7120,7 +7560,7 @@ const Template<
     Message Function(
         String
             name)> templateInvalidConstantPatternUnary = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("InvalidConstantPatternUnary",
     problemMessageTemplate:
         r"""The unary operator #name is not supported as a constant pattern.""",
     correctionMessageTemplate:
@@ -7145,7 +7585,7 @@ Message _withArgumentsInvalidConstantPatternUnary(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInvalidContinueTarget =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("InvalidContinueTarget",
         problemMessageTemplate: r"""Can't continue at '#name'.""",
         withArguments: _withArgumentsInvalidContinueTarget);
 
@@ -7179,6 +7619,7 @@ const MessageCode messageInvalidEscapeStarted = const MessageCode(
 const Template<Message Function(String name)>
     templateInvalidGetterSetterTypeFieldContext =
     const Template<Message Function(String name)>(
+        "InvalidGetterSetterTypeFieldContext",
         problemMessageTemplate:
             r"""This is the declaration of the field '#name'.""",
         withArguments: _withArgumentsInvalidGetterSetterTypeFieldContext);
@@ -7203,6 +7644,7 @@ Message _withArgumentsInvalidGetterSetterTypeFieldContext(String name) {
 const Template<Message Function(String name)>
     templateInvalidGetterSetterTypeGetterContext =
     const Template<Message Function(String name)>(
+        "InvalidGetterSetterTypeGetterContext",
         problemMessageTemplate:
             r"""This is the declaration of the getter '#name'.""",
         withArguments: _withArgumentsInvalidGetterSetterTypeGetterContext);
@@ -7227,6 +7669,7 @@ Message _withArgumentsInvalidGetterSetterTypeGetterContext(String name) {
 const Template<Message Function(String name)>
     templateInvalidGetterSetterTypeSetterContext =
     const Template<Message Function(String name)>(
+        "InvalidGetterSetterTypeSetterContext",
         problemMessageTemplate:
             r"""This is the declaration of the setter '#name'.""",
         withArguments: _withArgumentsInvalidGetterSetterTypeSetterContext);
@@ -7304,7 +7747,7 @@ const MessageCode messageInvalidNnbdDillLibrary = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateInvalidOperator =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("InvalidOperator",
         problemMessageTemplate:
             r"""The string '#lexeme' isn't a user-definable operator.""",
         withArguments: _withArgumentsInvalidOperator);
@@ -7326,8 +7769,10 @@ Message _withArgumentsInvalidOperator(Token token) {
 const Template<Message Function(Uri uri_, String string)>
     templateInvalidPackageUri =
     const Template<Message Function(Uri uri_, String string)>(
+        "InvalidPackageUri",
         problemMessageTemplate: r"""Invalid package URI '#uri':
-  #string.""", withArguments: _withArgumentsInvalidPackageUri);
+  #string.""",
+        withArguments: _withArgumentsInvalidPackageUri);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(Uri uri_, String string)> codeInvalidPackageUri =
@@ -7384,6 +7829,7 @@ const Template<
             name2)> templateInvalidTypeVariableInSupertype = const Template<
         Message Function(
             String name, String string2, String name2)>(
+    "InvalidTypeVariableInSupertype",
     problemMessageTemplate:
         r"""Can't use implicitly 'out' variable '#name' in an '#string2' position in supertype '#name2'.""",
     withArguments: _withArgumentsInvalidTypeVariableInSupertype);
@@ -7416,6 +7862,7 @@ const Template<
     templateInvalidTypeVariableInSupertypeWithVariance = const Template<
             Message Function(
                 String string, String name, String string2, String name2)>(
+        "InvalidTypeVariableInSupertypeWithVariance",
         problemMessageTemplate:
             r"""Can't use '#string' type variable '#name' in an '#string2' position in supertype '#name2'.""",
         withArguments:
@@ -7459,6 +7906,7 @@ const Template<
         String
             string2)> templateInvalidTypeVariableVariancePosition = const Template<
         Message Function(String string, String name, String string2)>(
+    "InvalidTypeVariableVariancePosition",
     problemMessageTemplate:
         r"""Can't use '#string' type variable '#name' in an '#string2' position.""",
     withArguments: _withArgumentsInvalidTypeVariableVariancePosition);
@@ -7487,6 +7935,7 @@ Message _withArgumentsInvalidTypeVariableVariancePosition(
 const Template<Message Function(String string, String name, String string2)>
     templateInvalidTypeVariableVariancePositionInReturnType = const Template<
             Message Function(String string, String name, String string2)>(
+        "InvalidTypeVariableVariancePositionInReturnType",
         problemMessageTemplate:
             r"""Can't use '#string' type variable '#name' in an '#string2' position in the return type.""",
         withArguments:
@@ -7568,7 +8017,7 @@ const MessageCode messageInvalidVoid = const MessageCode("InvalidVoid",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateInvokeNonFunction =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("InvokeNonFunction",
         problemMessageTemplate:
             r"""'#name' isn't a function or method and can't be invoked.""",
         withArguments: _withArgumentsInvokeNonFunction);
@@ -7593,7 +8042,7 @@ const Template<
     Message Function(
         String
             name)> templateJointPatternVariableNotInAll = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("JointPatternVariableNotInAll",
     problemMessageTemplate:
         r"""The variable '#name' is available in some, but not all cases that share this body.""",
     withArguments: _withArgumentsJointPatternVariableNotInAll);
@@ -7620,7 +8069,7 @@ const Template<
     Message Function(
         String
             name)> templateJointPatternVariableWithLabelDefault = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("JointPatternVariableWithLabelDefault",
     problemMessageTemplate:
         r"""The variable '#name' is not available because there is a label or 'default' case.""",
     withArguments: _withArgumentsJointPatternVariableWithLabelDefault);
@@ -7649,7 +8098,7 @@ const Template<
     Message Function(
         String
             name)> templateJointPatternVariablesMismatch = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("JointPatternVariablesMismatch",
     problemMessageTemplate:
         r"""Variable pattern '#name' doesn't have the same type or finality in all cases.""",
     withArguments: _withArgumentsJointPatternVariablesMismatch);
@@ -7677,6 +8126,7 @@ const Template<
         String
             name2)> templateJsInteropDartClassExtendsJSClass = const Template<
         Message Function(String name, String name2)>(
+    "JsInteropDartClassExtendsJSClass",
     problemMessageTemplate:
         r"""Dart class '#name' cannot extend JS interop class '#name2'.""",
     correctionMessageTemplate:
@@ -7713,9 +8163,9 @@ const Code<Null> codeJsInteropDartJsInteropAnnotationForStaticInteropOnly =
 const MessageCode messageJsInteropDartJsInteropAnnotationForStaticInteropOnly =
     const MessageCode("JsInteropDartJsInteropAnnotationForStaticInteropOnly",
         problemMessage:
-            r"""The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'.""",
+            r"""The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes.""",
         correctionMessage:
-            r"""Try making this class an inline class or marking it as '@staticInterop'.""");
+            r"""Try making this class an extension type or marking it as '@staticInterop'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
@@ -7743,6 +8193,7 @@ const MessageCode messageJsInteropEnclosingClassJSAnnotationContext =
 const Template<Message Function(String name)>
     templateJsInteropExportClassNotMarkedExportable =
     const Template<Message Function(String name)>(
+        "JsInteropExportClassNotMarkedExportable",
         problemMessageTemplate:
             r"""Class '#name' does not have a `@JSExport` on it or any of its members.""",
         correctionMessageTemplate:
@@ -7771,6 +8222,7 @@ Message _withArgumentsJsInteropExportClassNotMarkedExportable(String name) {
 const Template<Message Function(String name)>
     templateJsInteropExportDartInterfaceHasNonEmptyJSExportValue =
     const Template<Message Function(String name)>(
+        "JsInteropExportDartInterfaceHasNonEmptyJSExportValue",
         problemMessageTemplate:
             r"""The value in the `@JSExport` annotation on the class or mixin '#name' will be ignored.""",
         correctionMessageTemplate: r"""Remove the value in the annotation.""",
@@ -7801,9 +8253,9 @@ const Template<
     Message Function(
         String
             name)> templateJsInteropExportDisallowedMember = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("JsInteropExportDisallowedMember",
     problemMessageTemplate:
-        r"""Member '#name' is not a concrete instance member, and therefore can't be exported.""",
+        r"""Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
     correctionMessageTemplate:
         r"""Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
     withArguments: _withArgumentsJsInteropExportDisallowedMember);
@@ -7820,7 +8272,7 @@ Message _withArgumentsJsInteropExportDisallowedMember(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeJsInteropExportDisallowedMember,
       problemMessage:
-          """Member '${name}' is not a concrete instance member, and therefore can't be exported.""",
+          """Member '${name}' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
       correctionMessage: """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
       arguments: {'name': name});
 }
@@ -7832,6 +8284,7 @@ const Template<
         String
             string)> templateJsInteropExportMemberCollision = const Template<
         Message Function(String name, String string)>(
+    "JsInteropExportMemberCollision",
     problemMessageTemplate:
         r"""The following class members collide with the same export '#name': #string.""",
     correctionMessageTemplate:
@@ -7863,7 +8316,7 @@ const Template<
     Message Function(
         String
             name)> templateJsInteropExportNoExportableMembers = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("JsInteropExportNoExportableMembers",
     problemMessageTemplate:
         r"""Class '#name' has no exportable members in the class or the inheritance chain.""",
     correctionMessageTemplate:
@@ -7887,6 +8340,30 @@ Message _withArgumentsJsInteropExportNoExportableMembers(String name) {
       correctionMessage: """Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropExtensionTypeMemberNotInterop =
+    messageJsInteropExtensionTypeMemberNotInterop;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropExtensionTypeMemberNotInterop = const MessageCode(
+    "JsInteropExtensionTypeMemberNotInterop",
+    problemMessage:
+        r"""Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.""",
+    correctionMessage:
+        r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropExtensionTypeUsedWithWrongJsAnnotation =
+    messageJsInteropExtensionTypeUsedWithWrongJsAnnotation;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropExtensionTypeUsedWithWrongJsAnnotation =
+    const MessageCode("JsInteropExtensionTypeUsedWithWrongJsAnnotation",
+        problemMessage:
+            r"""Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
+        correctionMessage:
+            r"""Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropExternalExtensionMemberOnTypeInvalid =
@@ -7924,63 +8401,6 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropInlineClassMemberNotInterop =
-    messageJsInteropInlineClassMemberNotInterop;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropInlineClassMemberNotInterop = const MessageCode(
-    "JsInteropInlineClassMemberNotInterop",
-    problemMessage:
-        r"""Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type.""",
-    correctionMessage:
-        r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        String name,
-        String
-            string)> templateJsInteropInlineClassNotInterop = const Template<
-        Message Function(String name, String string)>(
-    problemMessageTemplate:
-        r"""Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#string'.""",
-    correctionMessageTemplate:
-        r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
-    withArguments: _withArgumentsJsInteropInlineClassNotInterop);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name, String string)>
-    codeJsInteropInlineClassNotInterop =
-    const Code<Message Function(String name, String string)>(
-  "JsInteropInlineClassNotInterop",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropInlineClassNotInterop(
-    String name, String string) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  if (string.isEmpty) throw 'No string provided';
-  return new Message(codeJsInteropInlineClassNotInterop,
-      problemMessage:
-          """Inline class '${name}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${string}'.""",
-      correctionMessage: """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
-      arguments: {'name': name, 'string': string});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeJsInteropInlineClassUsedWithWrongJsAnnotation =
-    messageJsInteropInlineClassUsedWithWrongJsAnnotation;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageJsInteropInlineClassUsedWithWrongJsAnnotation =
-    const MessageCode("JsInteropInlineClassUsedWithWrongJsAnnotation",
-        problemMessage:
-            r"""Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.""",
-        correctionMessage:
-            r"""Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInvalidStaticClassMemberName =
     messageJsInteropInvalidStaticClassMemberName;
 
@@ -7997,6 +8417,7 @@ const Template<
         String
             name2)> templateJsInteropJSClassExtendsDartClass = const Template<
         Message Function(String name, String name2)>(
+    "JsInteropJSClassExtendsDartClass",
     problemMessageTemplate:
         r"""JS interop class '#name' cannot extend Dart class '#name2'.""",
     correctionMessageTemplate:
@@ -8045,6 +8466,7 @@ const Template<
             string3)> templateJsInteropNativeClassInAnnotation = const Template<
         Message Function(
             String name, String name2, String string3)>(
+    "JsInteropNativeClassInAnnotation",
     problemMessageTemplate:
         r"""Non-static JS interop class '#name' conflicts with natively supported class '#name2' in '#string3'.""",
     correctionMessageTemplate:
@@ -8099,6 +8521,7 @@ const MessageCode messageJsInteropNonExternalMember = const MessageCode(
 const Template<Message Function(String name, String name2)>
     templateJsInteropNonStaticWithStaticInteropSupertype =
     const Template<Message Function(String name, String name2)>(
+        "JsInteropNonStaticWithStaticInteropSupertype",
         problemMessageTemplate:
             r"""Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does.""",
         correctionMessageTemplate:
@@ -8131,6 +8554,7 @@ Message _withArgumentsJsInteropNonStaticWithStaticInteropSupertype(
 const Template<Message Function(String string)>
     templateJsInteropObjectLiteralConstructorPositionalParameters =
     const Template<Message Function(String string)>(
+        "JsInteropObjectLiteralConstructorPositionalParameters",
         problemMessageTemplate:
             r"""#string should not contain any positional parameters.""",
         correctionMessageTemplate:
@@ -8182,18 +8606,18 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null>
-    codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
-    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;
+    codeJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
+    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
-    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
     const MessageCode(
-        "JsInteropStaticInteropExternalExtensionMembersWithTypeParameters",
+        "JsInteropStaticInteropExternalMemberWithInvalidTypeParameters",
         problemMessage:
-            r"""`@staticInterop` classes cannot have external extension members with type parameters.""",
+            r"""External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.""",
         correctionMessage:
-            r"""Try using a Dart extension member if you need type parameters instead.""");
+            r"""Try adding a valid bound to the type parameters used in this member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =
@@ -8217,7 +8641,7 @@ const Template<
                 String string2,
                 String name2,
                 String
-                    string3)>(
+                    string3)>("JsInteropStaticInteropMockMissingGetterOrSetter",
         problemMessageTemplate:
             r"""Dart class '#name' has a #string, but does not have a #string2 to implement any of the following extension member(s) with export name '#name2': #string3.""",
         correctionMessageTemplate:
@@ -8263,6 +8687,7 @@ Message _withArgumentsJsInteropStaticInteropMockMissingGetterOrSetter(
 const Template<Message Function(String name, String name2, String string)>
     templateJsInteropStaticInteropMockMissingImplements =
     const Template<Message Function(String name, String name2, String string)>(
+        "JsInteropStaticInteropMockMissingImplements",
         problemMessageTemplate:
             r"""Dart class '#name' does not have any members that implement any of the following extension member(s) with export name '#name2': #string.""",
         correctionMessageTemplate:
@@ -8297,7 +8722,7 @@ const Template<
     Message Function(
         String
             name)> templateJsInteropStaticInteropNoJSAnnotation = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("JsInteropStaticInteropNoJSAnnotation",
     problemMessageTemplate:
         r"""`@staticInterop` classes should also have the `@JS` annotation.""",
     correctionMessageTemplate: r"""Add `@JS` to class '#name'.""",
@@ -8350,6 +8775,7 @@ const MessageCode messageJsInteropStaticInteropSyntheticConstructor = const Mess
 const Template<Message Function(String string, String name)>
     templateJsInteropStaticInteropTearOffsDisallowed =
     const Template<Message Function(String string, String name)>(
+        "JsInteropStaticInteropTearOffsDisallowed",
         problemMessageTemplate:
             r"""Tear-offs of external #string '#name' are disallowed.""",
         correctionMessageTemplate:
@@ -8381,6 +8807,7 @@ Message _withArgumentsJsInteropStaticInteropTearOffsDisallowed(
 const Template<Message Function(String name)>
     templateJsInteropStaticInteropTrustTypesUsageNotAllowed =
     const Template<Message Function(String name)>(
+        "JsInteropStaticInteropTrustTypesUsageNotAllowed",
         problemMessageTemplate:
             r"""JS interop class '#name' has an `@trustTypes` annotation, but `@trustTypes` is only supported within the sdk.""",
         correctionMessageTemplate:
@@ -8411,6 +8838,7 @@ Message _withArgumentsJsInteropStaticInteropTrustTypesUsageNotAllowed(
 const Template<Message Function(String name)>
     templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop =
     const Template<Message Function(String name)>(
+        "JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop",
         problemMessageTemplate:
             r"""JS interop class '#name' has an `@trustTypes` annotation, but no `@staticInterop` annotation.""",
         correctionMessageTemplate:
@@ -8442,6 +8870,7 @@ Message _withArgumentsJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop(
 const Template<Message Function(String name)>
     templateJsInteropStaticInteropWithInstanceMembers =
     const Template<Message Function(String name)>(
+        "JsInteropStaticInteropWithInstanceMembers",
         problemMessageTemplate:
             r"""JS interop class '#name' with `@staticInterop` annotation cannot declare instance members.""",
         correctionMessageTemplate:
@@ -8468,8 +8897,42 @@ Message _withArgumentsJsInteropStaticInteropWithInstanceMembers(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String name2)>
+    templateJsInteropStaticInteropWithInvalidJsTypesSupertype =
+    const Template<Message Function(String name, String name2)>(
+        "JsInteropStaticInteropWithInvalidJsTypesSupertype",
+        problemMessageTemplate:
+            r"""`@staticInterop` class '#name' cannot have '#name2' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes.""",
+        correctionMessageTemplate:
+            r"""Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '#name' to '#name2' when needed.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropWithInvalidJsTypesSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeJsInteropStaticInteropWithInvalidJsTypesSupertype =
+    const Code<Message Function(String name, String name2)>(
+  "JsInteropStaticInteropWithInvalidJsTypesSupertype",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropWithInvalidJsTypesSupertype(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeJsInteropStaticInteropWithInvalidJsTypesSupertype,
+      problemMessage:
+          """`@staticInterop` class '${name}' cannot have '${name2}' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes.""",
+      correctionMessage: """Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '${name}' to '${name2}' when needed.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
     templateJsInteropStaticInteropWithNonStaticSupertype =
     const Template<Message Function(String name, String name2)>(
+        "JsInteropStaticInteropWithNonStaticSupertype",
         problemMessageTemplate:
             r"""JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not.""",
         correctionMessageTemplate:
@@ -8502,6 +8965,7 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
 const Template<Message Function(String name)>
     templateJsInteropStrictModeForbiddenLibrary =
     const Template<Message Function(String name)>(
+        "JsInteropStrictModeForbiddenLibrary",
         problemMessageTemplate:
             r"""Library '#name' is forbidden when strict mode is enabled.""",
         correctionMessageTemplate:
@@ -8529,7 +8993,7 @@ Message _withArgumentsJsInteropStrictModeForbiddenLibrary(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateLabelNotFound = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("LabelNotFound",
     problemMessageTemplate: r"""Can't find label '#name'.""",
     correctionMessageTemplate:
         r"""Try defining the label, or correcting the name to match an existing label.""",
@@ -8617,7 +9081,7 @@ const Template<
         int count,
         int
             count2)> templateLanguageVersionTooHigh = const Template<
-        Message Function(int count, int count2)>(
+        Message Function(int count, int count2)>("LanguageVersionTooHigh",
     problemMessageTemplate:
         r"""The specified language version is too high. The highest supported language version is #count.#count2.""",
     withArguments: _withArgumentsLanguageVersionTooHigh);
@@ -8639,7 +9103,7 @@ Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateLateDefinitelyAssignedError =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("LateDefinitelyAssignedError",
         problemMessageTemplate:
             r"""Late final variable '#name' definitely assigned.""",
         withArguments: _withArgumentsLateDefinitelyAssignedError);
@@ -8664,7 +9128,7 @@ const Template<
     Message Function(
         String
             name)> templateLateDefinitelyUnassignedError = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("LateDefinitelyUnassignedError",
     problemMessageTemplate:
         r"""Late variable '#name' without initializer is definitely unassigned.""",
     withArguments: _withArgumentsLateDefinitelyUnassignedError);
@@ -8733,6 +9197,7 @@ const MessageCode messageListPatternTooManyTypeArguments = const MessageCode(
 const Template<Message Function(String string, Token token)>
     templateLiteralWithClass =
     const Template<Message Function(String string, Token token)>(
+        "LiteralWithClass",
         problemMessageTemplate:
             r"""A #string literal can't be prefixed by '#lexeme'.""",
         correctionMessageTemplate: r"""Try removing '#lexeme'""",
@@ -8759,6 +9224,7 @@ const Template<
         Message Function(String string, Token token)>
     templateLiteralWithClassAndNew =
     const Template<Message Function(String string, Token token)>(
+        "LiteralWithClassAndNew",
         problemMessageTemplate:
             r"""A #string literal can't be prefixed by 'new #lexeme'.""",
         correctionMessageTemplate: r"""Try removing 'new' and '#lexeme'""",
@@ -8806,7 +9272,7 @@ const Template<
     Message Function(
         String
             name)> templateMacroClassNotDeclaredMacro = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("MacroClassNotDeclaredMacro",
     problemMessageTemplate:
         r"""Non-abstract class '#name' implements 'Macro' but isn't declared as a macro class.""",
     correctionMessageTemplate: r"""Try adding the 'macro' class modifier.""",
@@ -8911,7 +9377,7 @@ const MessageCode messageMapPatternTypeArgumentMismatch = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateMemberNotFound =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("MemberNotFound",
         problemMessageTemplate: r"""Member not found: '#name'.""",
         withArguments: _withArgumentsMemberNotFound);
 
@@ -8976,7 +9442,7 @@ const MessageCode messageMetadataTypeArgumentsUninstantiated = const MessageCode
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateMethodNotFound =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("MethodNotFound",
         problemMessageTemplate: r"""Method not found: '#name'.""",
         withArguments: _withArgumentsMethodNotFound);
 
@@ -9086,7 +9552,7 @@ const MessageCode messageMissingFunctionParameters = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateMissingImplementationCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("MissingImplementationCause",
         problemMessageTemplate: r"""'#name' is defined here.""",
         withArguments: _withArgumentsMissingImplementationCause);
 
@@ -9111,6 +9577,7 @@ const Template<
         List<String>
             _names)> templateMissingImplementationNotAbstract = const Template<
         Message Function(String name, List<String> _names)>(
+    "MissingImplementationNotAbstract",
     problemMessageTemplate:
         r"""The non-abstract class '#name' is missing implementations for these members:
 #names""",
@@ -9191,7 +9658,7 @@ const MessageCode messageMissingOperatorKeyword = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Uri uri_)> templateMissingPartOf = const Template<
-        Message Function(Uri uri_)>(
+        Message Function(Uri uri_)>("MissingPartOf",
     problemMessageTemplate:
         r"""Can't use '#uri' as a part, because it has no 'part of' declaration.""",
     withArguments: _withArgumentsMissingPartOf);
@@ -9223,6 +9690,32 @@ const MessageCode messageMissingPrefixInDeferredImport = const MessageCode(
         r"""Try adding a prefix to the import by adding an 'as' clause.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingPrimaryConstructor =
+    messageMissingPrimaryConstructor;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingPrimaryConstructor = const MessageCode(
+    "MissingPrimaryConstructor",
+    index: 162,
+    problemMessage:
+        r"""An extension type declaration must have a primary constructor declaration.""",
+    correctionMessage:
+        r"""Try adding a primary constructor to the extension type declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMissingPrimaryConstructorParameters =
+    messageMissingPrimaryConstructorParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMissingPrimaryConstructorParameters = const MessageCode(
+    "MissingPrimaryConstructorParameters",
+    index: 163,
+    problemMessage:
+        r"""A primary constructor declaration must have formal parameters.""",
+    correctionMessage:
+        r"""Try adding formal parameters after the primary constructor name.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMissingTypedefParameters = messageMissingTypedefParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9237,7 +9730,7 @@ const Template<
     Message Function(
         String
             name)> templateMissingVariablePattern = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("MissingVariablePattern",
     problemMessageTemplate:
         r"""Variable pattern '#name' is missing in this branch of the logical-or pattern.""",
     correctionMessageTemplate:
@@ -9265,7 +9758,7 @@ const Template<
     Message Function(
         String
             name)> templateMixinApplicationNoConcreteGetter = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("MixinApplicationNoConcreteGetter",
     problemMessageTemplate:
         r"""The class doesn't have a concrete implementation of the super-accessed member '#name'.""",
     withArguments: _withArgumentsMixinApplicationNoConcreteGetter);
@@ -9304,7 +9797,7 @@ const Template<
     Message Function(
         String
             name)> templateMixinApplicationNoConcreteMethod = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("MixinApplicationNoConcreteMethod",
     problemMessageTemplate:
         r"""The class doesn't have a concrete implementation of the super-invoked member '#name'.""",
     withArguments: _withArgumentsMixinApplicationNoConcreteMethod);
@@ -9332,7 +9825,7 @@ const Template<
     Message Function(
         String
             name)> templateMixinApplicationNoConcreteSetter = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("MixinApplicationNoConcreteSetter",
     problemMessageTemplate:
         r"""The class doesn't have a concrete implementation of the super-accessed setter '#name'.""",
     withArguments: _withArgumentsMixinApplicationNoConcreteSetter);
@@ -9369,7 +9862,7 @@ const Template<
     Message Function(
         String
             name)> templateMixinInheritsFromNotObject = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("MixinInheritsFromNotObject",
     problemMessageTemplate:
         r"""The class '#name' can't be used as a mixin because it extends a class other than 'Object'.""",
     withArguments: _withArgumentsMixinInheritsFromNotObject);
@@ -9396,6 +9889,7 @@ const Template<
         String
             name2)> templateMixinSubtypeOfBaseIsNotBase = const Template<
         Message Function(String name, String name2)>(
+    "MixinSubtypeOfBaseIsNotBase",
     problemMessageTemplate:
         r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'base'.""",
     correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
@@ -9428,6 +9922,7 @@ const Template<
         String
             name2)> templateMixinSubtypeOfFinalIsNotBase = const Template<
         Message Function(String name, String name2)>(
+    "MixinSubtypeOfFinalIsNotBase",
     problemMessageTemplate:
         r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'final'.""",
     correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
@@ -9466,7 +9961,7 @@ const Template<
         String string,
         String
             string2)> templateModifierOutOfOrder = const Template<
-        Message Function(String string, String string2)>(
+        Message Function(String string, String string2)>("ModifierOutOfOrder",
     problemMessageTemplate:
         r"""The modifier '#string' should be before the modifier '#string2'.""",
     correctionMessageTemplate: r"""Try re-ordering the modifiers.""",
@@ -9506,7 +10001,7 @@ const Template<
         String string,
         String
             string2)> templateMultipleClauses = const Template<
-        Message Function(String string, String string2)>(
+        Message Function(String string, String string2)>("MultipleClauses",
     problemMessageTemplate:
         r"""Each '#string' definition can have at most one '#string2' clause.""",
     correctionMessageTemplate:
@@ -9605,7 +10100,7 @@ const MessageCode messageMultipleWith = const MessageCode("MultipleWith",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNameNotFound =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("NameNotFound",
         problemMessageTemplate: r"""Undefined name '#name'.""",
         withArguments: _withArgumentsNameNotFound);
 
@@ -9649,7 +10144,7 @@ const Template<
         String name,
         String
             name2)> templateNamedMixinOverride = const Template<
-        Message Function(String name, String name2)>(
+        Message Function(String name, String name2)>("NamedMixinOverride",
     problemMessageTemplate:
         r"""The mixin application class '#name' introduces an erroneous override of '#name2'.""",
     withArguments: _withArgumentsNamedMixinOverride);
@@ -9779,7 +10274,7 @@ const MessageCode messageNoAugmentSuperWriteTarget = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Token token)> templateNoFormals = const Template<
-        Message Function(Token token)>(
+        Message Function(Token token)>("NoFormals",
     problemMessageTemplate: r"""A function should have formal parameters.""",
     correctionMessageTemplate:
         r"""Try adding '()' after '#lexeme', or add 'get' before '#lexeme' to declare a getter.""",
@@ -9802,7 +10297,7 @@ Message _withArgumentsNoFormals(Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNoSuchNamedParameter =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("NoSuchNamedParameter",
         problemMessageTemplate:
             r"""No named parameter with the name '#name'.""",
         withArguments: _withArgumentsNoSuchNamedParameter);
@@ -9844,7 +10339,7 @@ const Template<
         String character,
         int
             codePoint)> templateNonAsciiIdentifier = const Template<
-        Message Function(String character, int codePoint)>(
+        Message Function(String character, int codePoint)>("NonAsciiIdentifier",
     problemMessageTemplate:
         r"""The non-ASCII character '#character' (#unicode) can't be used in identifiers, only in strings and comments.""",
     correctionMessageTemplate:
@@ -9875,7 +10370,7 @@ const Template<
     Message Function(
         int
             codePoint)> templateNonAsciiWhitespace = const Template<
-        Message Function(int codePoint)>(
+        Message Function(int codePoint)>("NonAsciiWhitespace",
     problemMessageTemplate:
         r"""The non-ASCII space character #unicode can only be used in strings and comments.""",
     withArguments: _withArgumentsNonAsciiWhitespace);
@@ -9900,7 +10395,7 @@ const Template<
     Message Function(
         String
             name)> templateNonAugmentationClassConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonAugmentationClassConflict",
     problemMessageTemplate:
         r"""Class '#name' conflicts with an existing class of the same name in the augmented library.""",
     correctionMessageTemplate:
@@ -9939,7 +10434,7 @@ const Template<
     Message Function(
         String
             name)> templateNonAugmentationClassMemberConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonAugmentationClassMemberConflict",
     problemMessageTemplate:
         r"""Member '#name' conflicts with an existing member of the same name in the augmented class.""",
     correctionMessageTemplate:
@@ -9969,7 +10464,7 @@ const Template<
     Message Function(
         String
             name)> templateNonAugmentationConstructorConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonAugmentationConstructorConflict",
     problemMessageTemplate:
         r"""Constructor '#name' conflicts with an existing constructor of the same name in the augmented class.""",
     correctionMessageTemplate:
@@ -10019,7 +10514,7 @@ const Template<
     Message Function(
         String
             name)> templateNonAugmentationLibraryConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonAugmentationLibraryConflict",
     problemMessageTemplate:
         r"""Declaration '#name' conflicts with an existing declaration of the same name in the augmented library.""",
     correctionMessageTemplate: r"""Try changing the name of the declaration.""",
@@ -10047,7 +10542,7 @@ const Template<
     Message Function(
         String
             name)> templateNonAugmentationLibraryMemberConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonAugmentationLibraryMemberConflict",
     problemMessageTemplate:
         r"""Member '#name' conflicts with an existing member of the same name in the augmented library.""",
     correctionMessageTemplate:
@@ -10116,11 +10611,23 @@ const MessageCode messageNonConstFactory = const MessageCode("NonConstFactory",
         r"""Try using a constructor or factory that is 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonCovariantTypeParameterInRepresentationType =
+    messageNonCovariantTypeParameterInRepresentationType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonCovariantTypeParameterInRepresentationType =
+    const MessageCode("NonCovariantTypeParameterInRepresentationType",
+        problemMessage:
+            r"""An extension type parameter can't be used non-covariantly in its representation type.""",
+        correctionMessage:
+            r"""Try removing the type parameters from function parameter types and type parameter bounds.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
             name)> templateNonNullableNotAssignedError = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonNullableNotAssignedError",
     problemMessageTemplate:
         r"""Non-nullable variable '#name' must be assigned before it can be used.""",
     withArguments: _withArgumentsNonNullableNotAssignedError);
@@ -10158,7 +10665,7 @@ const Template<
     Message Function(
         String
             name)> templateNonPatchClassConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonPatchClassConflict",
     problemMessageTemplate:
         r"""Class '#name' conflicts with an existing class of the same name in the origin library.""",
     correctionMessageTemplate:
@@ -10187,7 +10694,7 @@ const Template<
     Message Function(
         String
             name)> templateNonPatchClassMemberConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonPatchClassMemberConflict",
     problemMessageTemplate:
         r"""Member '#name' conflicts with an existing member of the same name in the origin class.""",
     correctionMessageTemplate:
@@ -10216,7 +10723,7 @@ const Template<
     Message Function(
         String
             name)> templateNonPatchConstructorConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonPatchConstructorConflict",
     problemMessageTemplate:
         r"""Constructor '#name' conflicts with an existing constructor of the same name in the origin class.""",
     correctionMessageTemplate:
@@ -10245,7 +10752,7 @@ const Template<
     Message Function(
         String
             name)> templateNonPatchLibraryConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonPatchLibraryConflict",
     problemMessageTemplate:
         r"""Declaration '#name' conflicts with an existing declaration of the same name in the origin library.""",
     correctionMessageTemplate: r"""Try changing the name of the declaration.""",
@@ -10273,7 +10780,7 @@ const Template<
     Message Function(
         String
             name)> templateNonPatchLibraryMemberConflict = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonPatchLibraryMemberConflict",
     problemMessageTemplate:
         r"""Member '#name' conflicts with an existing member of the same name in the origin library.""",
     correctionMessageTemplate:
@@ -10309,7 +10816,7 @@ const MessageCode messageNonPositiveArrayDimensions = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateNonSimpleBoundViaReference =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("NonSimpleBoundViaReference",
         problemMessageTemplate:
             r"""Bound of this variable references raw type '#name'.""",
         withArguments: _withArgumentsNonSimpleBoundViaReference);
@@ -10334,7 +10841,7 @@ const Template<
     Message Function(
         String
             name)> templateNonSimpleBoundViaVariable = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("NonSimpleBoundViaVariable",
     problemMessageTemplate:
         r"""Bound of this variable references variable '#name' from the same declaration.""",
     withArguments: _withArgumentsNonSimpleBoundViaVariable);
@@ -10392,6 +10899,7 @@ const Template<
         String
             name2)> templateNotAPrefixInTypeAnnotation = const Template<
         Message Function(String name, String name2)>(
+    "NotAPrefixInTypeAnnotation",
     problemMessageTemplate:
         r"""'#name.#name2' can't be used as a type because '#name' doesn't refer to an import prefix.""",
     withArguments: _withArgumentsNotAPrefixInTypeAnnotation);
@@ -10417,7 +10925,7 @@ Message _withArgumentsNotAPrefixInTypeAnnotation(String name, String name2) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNotAType =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("NotAType",
         problemMessageTemplate: r"""'#name' isn't a type.""",
         withArguments: _withArgumentsNotAType);
 
@@ -10451,7 +10959,7 @@ const MessageCode messageNotAnLvalue = const MessageCode("NotAnLvalue",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateNotBinaryOperator =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("NotBinaryOperator",
         problemMessageTemplate: r"""'#lexeme' isn't a binary operator.""",
         withArguments: _withArgumentsNotBinaryOperator);
 
@@ -10471,7 +10979,7 @@ Message _withArgumentsNotBinaryOperator(Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateNotConstantExpression =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String string)>("NotConstantExpression",
         problemMessageTemplate: r"""#string is not a constant expression.""",
         withArguments: _withArgumentsNotConstantExpression);
 
@@ -10505,6 +11013,7 @@ const MessageCode messageNullAwareCascadeOutOfOrder = const MessageCode(
 const Template<Message Function(String string2)>
     templateNullSafetyDisabledInvalidLanguageVersion =
     const Template<Message Function(String string2)>(
+        "NullSafetyDisabledInvalidLanguageVersion",
         problemMessageTemplate:
             r"""This requires null safety, which requires language version of #string2 or higher.""",
         withArguments: _withArgumentsNullSafetyDisabledInvalidLanguageVersion);
@@ -10540,7 +11049,7 @@ const Template<
     Message Function(
         String
             string)> templateNullSafetyOptOutExplicit = const Template<
-        Message Function(String string)>(
+        Message Function(String string)>("NullSafetyOptOutExplicit",
     problemMessageTemplate: r"""Null safety is disabled for this library.""",
     correctionMessageTemplate:
         r"""Try removing the `@dart=` annotation or setting the language version to #string or higher.""",
@@ -10567,7 +11076,7 @@ const Template<
     Message Function(
         String
             string)> templateNullSafetyOptOutImplicit = const Template<
-        Message Function(String string)>(
+        Message Function(String string)>("NullSafetyOptOutImplicit",
     problemMessageTemplate: r"""Null safety is disabled for this library.""",
     correctionMessageTemplate:
         r"""Try removing the package language version or setting the language version to #string or higher.""",
@@ -10591,7 +11100,7 @@ Message _withArgumentsNullSafetyOptOutImplicit(String string) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNullableInterfaceError =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("NullableInterfaceError",
         problemMessageTemplate:
             r"""Can't implement '#name' because it's marked with '?'.""",
         withArguments: _withArgumentsNullableInterfaceError);
@@ -10614,7 +11123,7 @@ Message _withArgumentsNullableInterfaceError(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNullableMixinError =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("NullableMixinError",
         problemMessageTemplate:
             r"""Can't mix '#name' in because it's marked with '?'.""",
         withArguments: _withArgumentsNullableMixinError);
@@ -10646,7 +11155,7 @@ const MessageCode messageNullableSpreadError = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNullableSuperclassError =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("NullableSuperclassError",
         problemMessageTemplate:
             r"""Can't extend '#name' because it's marked with '?'.""",
         withArguments: _withArgumentsNullableSuperclassError);
@@ -10669,7 +11178,7 @@ Message _withArgumentsNullableSuperclassError(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateNullableTearoffError =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("NullableTearoffError",
         problemMessageTemplate:
             r"""Can't tear off method '#name' from a potentially null value.""",
         withArguments: _withArgumentsNullableTearoffError);
@@ -10749,7 +11258,7 @@ const Template<
     Message Function(
         String
             name)> templateOperatorMinusParameterMismatch = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("OperatorMinusParameterMismatch",
     problemMessageTemplate:
         r"""Operator '#name' should have zero or one parameter.""",
     correctionMessageTemplate:
@@ -10778,7 +11287,7 @@ Message _withArgumentsOperatorMinusParameterMismatch(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateOperatorParameterMismatch0 =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("OperatorParameterMismatch0",
         problemMessageTemplate:
             r"""Operator '#name' shouldn't have any parameters.""",
         withArguments: _withArgumentsOperatorParameterMismatch0);
@@ -10801,7 +11310,7 @@ Message _withArgumentsOperatorParameterMismatch0(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateOperatorParameterMismatch1 =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("OperatorParameterMismatch1",
         problemMessageTemplate:
             r"""Operator '#name' should have exactly one parameter.""",
         withArguments: _withArgumentsOperatorParameterMismatch1);
@@ -10824,7 +11333,7 @@ Message _withArgumentsOperatorParameterMismatch1(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateOperatorParameterMismatch2 =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("OperatorParameterMismatch2",
         problemMessageTemplate:
             r"""Operator '#name' should have exactly two parameters.""",
         withArguments: _withArgumentsOperatorParameterMismatch2);
@@ -10871,7 +11380,7 @@ const Template<
         String string,
         String
             string2)> templateOutOfOrderClauses = const Template<
-        Message Function(String string, String string2)>(
+        Message Function(String string, String string2)>("OutOfOrderClauses",
     problemMessageTemplate:
         r"""The '#string' clause must come before the '#string2' clause.""",
     correctionMessageTemplate:
@@ -10898,7 +11407,7 @@ Message _withArgumentsOutOfOrderClauses(String string, String string2) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateOverriddenMethodCause =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("OverriddenMethodCause",
         problemMessageTemplate: r"""This is the overridden method ('#name').""",
         withArguments: _withArgumentsOverriddenMethodCause);
 
@@ -10923,6 +11432,7 @@ const Template<
         String
             name2)> templateOverrideFewerNamedArguments = const Template<
         Message Function(String name, String name2)>(
+    "OverrideFewerNamedArguments",
     problemMessageTemplate:
         r"""The method '#name' has fewer named arguments than those of overridden method '#name2'.""",
     withArguments: _withArgumentsOverrideFewerNamedArguments);
@@ -10953,6 +11463,7 @@ const Template<
         String
             name2)> templateOverrideFewerPositionalArguments = const Template<
         Message Function(String name, String name2)>(
+    "OverrideFewerPositionalArguments",
     problemMessageTemplate:
         r"""The method '#name' has fewer positional arguments than those of overridden method '#name2'.""",
     withArguments: _withArgumentsOverrideFewerPositionalArguments);
@@ -10985,6 +11496,7 @@ const Template<
         String
             name3)> templateOverrideMismatchNamedParameter = const Template<
         Message Function(String name, String name2, String name3)>(
+    "OverrideMismatchNamedParameter",
     problemMessageTemplate:
         r"""The method '#name' doesn't have the named parameter '#name2' of overridden method '#name3'.""",
     withArguments: _withArgumentsOverrideMismatchNamedParameter);
@@ -11015,6 +11527,7 @@ Message _withArgumentsOverrideMismatchNamedParameter(
 const Template<Message Function(String name, String name2, String name3)>
     templateOverrideMismatchRequiredNamedParameter =
     const Template<Message Function(String name, String name2, String name3)>(
+        "OverrideMismatchRequiredNamedParameter",
         problemMessageTemplate:
             r"""The required named parameter '#name' in method '#name2' is not required in overridden method '#name3'.""",
         withArguments: _withArgumentsOverrideMismatchRequiredNamedParameter);
@@ -11048,6 +11561,7 @@ const Template<
         String
             name2)> templateOverrideMoreRequiredArguments = const Template<
         Message Function(String name, String name2)>(
+    "OverrideMoreRequiredArguments",
     problemMessageTemplate:
         r"""The method '#name' has more required arguments than those of overridden method '#name2'.""",
     withArguments: _withArgumentsOverrideMoreRequiredArguments);
@@ -11078,6 +11592,7 @@ const Template<
         String
             name2)> templateOverrideTypeVariablesMismatch = const Template<
         Message Function(String name, String name2)>(
+    "OverrideTypeVariablesMismatch",
     problemMessageTemplate:
         r"""Declared type variables of '#name' doesn't match those on overridden method '#name2'.""",
     withArguments: _withArgumentsOverrideTypeVariablesMismatch);
@@ -11104,7 +11619,7 @@ Message _withArgumentsOverrideTypeVariablesMismatch(String name, String name2) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_)>
     templatePackageNotFound =
-    const Template<Message Function(String name, Uri uri_)>(
+    const Template<Message Function(String name, Uri uri_)>("PackageNotFound",
         problemMessageTemplate:
             r"""Couldn't resolve the package '#name' in '#uri'.""",
         withArguments: _withArgumentsPackageNotFound);
@@ -11127,7 +11642,7 @@ Message _withArgumentsPackageNotFound(String name, Uri uri_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templatePackagesFileFormat =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String string)>("PackagesFileFormat",
         problemMessageTemplate:
             r"""Problem in packages configuration file: #string""",
         withArguments: _withArgumentsPackagesFileFormat);
@@ -11187,7 +11702,7 @@ const MessageCode messagePartInPartLibraryContext = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(Uri uri_)> templatePartOfInLibrary = const Template<
-        Message Function(Uri uri_)>(
+        Message Function(Uri uri_)>("PartOfInLibrary",
     problemMessageTemplate:
         r"""Can't import '#uri', because it has a 'part of' declaration.""",
     correctionMessageTemplate:
@@ -11218,6 +11733,7 @@ const Template<
         String
             name2)> templatePartOfLibraryNameMismatch = const Template<
         Message Function(Uri uri_, String name, String name2)>(
+    "PartOfLibraryNameMismatch",
     problemMessageTemplate:
         r"""Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'.""",
     withArguments: _withArgumentsPartOfLibraryNameMismatch);
@@ -11290,7 +11806,7 @@ const Template<
         Uri uri2_,
         Uri
             uri3_)> templatePartOfUriMismatch = const Template<
-        Message Function(Uri uri_, Uri uri2_, Uri uri3_)>(
+        Message Function(Uri uri_, Uri uri2_, Uri uri3_)>("PartOfUriMismatch",
     problemMessageTemplate:
         r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#uri3'.""",
     withArguments: _withArgumentsPartOfUriMismatch);
@@ -11320,7 +11836,7 @@ const Template<
         Uri uri2_,
         String
             name)> templatePartOfUseUri = const Template<
-        Message Function(Uri uri_, Uri uri2_, String name)>(
+        Message Function(Uri uri_, Uri uri2_, String name)>("PartOfUseUri",
     problemMessageTemplate:
         r"""Using '#uri' as part of '#uri2' but its 'part of' declaration says '#name'.""",
     correctionMessageTemplate:
@@ -11357,7 +11873,7 @@ const MessageCode messagePartOrphan = const MessageCode("PartOrphan",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templatePartTwice =
-    const Template<Message Function(Uri uri_)>(
+    const Template<Message Function(Uri uri_)>("PartTwice",
         problemMessageTemplate:
             r"""Can't use '#uri' as a part more than once.""",
         withArguments: _withArgumentsPartTwice);
@@ -11417,7 +11933,7 @@ const Template<
         String name,
         Uri
             uri_)> templatePatchInjectionFailed = const Template<
-        Message Function(String name, Uri uri_)>(
+        Message Function(String name, Uri uri_)>("PatchInjectionFailed",
     problemMessageTemplate: r"""Can't inject public '#name' into '#uri'.""",
     correctionMessageTemplate:
         r"""Make '#name' private, or make sure injected library has "dart" scheme and is private (e.g. "dart:_internal").""",
@@ -11456,7 +11972,7 @@ const Template<
     Message Function(
         String
             name)> templatePatternAssignmentDeclaresVariable = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("PatternAssignmentDeclaresVariable",
     problemMessageTemplate:
         r"""Variable '#name' can't be declared in a pattern assignment.""",
     correctionMessageTemplate:
@@ -11710,7 +12226,7 @@ const MessageCode messageRedirectionInNonFactory = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateRedirectionTargetNotFound =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("RedirectionTargetNotFound",
         problemMessageTemplate:
             r"""Redirection constructor target not found: '#name'""",
         withArguments: _withArgumentsRedirectionTargetNotFound);
@@ -11746,6 +12262,7 @@ const MessageCode messageRefutablePatternInIrrefutableContext = const MessageCod
 const Template<Message Function(String name)>
     templateRequiredNamedParameterHasDefaultValueError =
     const Template<Message Function(String name)>(
+        "RequiredNamedParameterHasDefaultValueError",
         problemMessageTemplate:
             r"""Named parameter '#name' is required and can't have a default value.""",
         withArguments:
@@ -11846,8 +12363,18 @@ const MessageCode messageReturnWithoutExpressionSync = const MessageCode(
         r"""A value must be explicitly returned from a non-void function.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeScriptTagInPartFile = messageScriptTagInPartFile;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageScriptTagInPartFile = const MessageCode(
+    "ScriptTagInPartFile",
+    problemMessage: r"""A part file cannot have script tag.""",
+    correctionMessage:
+        r"""Try removing the script tag or the 'part of' directive.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateSdkRootNotFound =
-    const Template<Message Function(Uri uri_)>(
+    const Template<Message Function(Uri uri_)>("SdkRootNotFound",
         problemMessageTemplate: r"""SDK root directory not found: #uri.""",
         withArguments: _withArgumentsSdkRootNotFound);
 
@@ -11870,7 +12397,7 @@ const Template<
     Message Function(
         Uri
             uri_)> templateSdkSpecificationNotFound = const Template<
-        Message Function(Uri uri_)>(
+        Message Function(Uri uri_)>("SdkSpecificationNotFound",
     problemMessageTemplate: r"""SDK libraries specification not found: #uri.""",
     correctionMessageTemplate:
         r"""Normally, the specification is a file named 'libraries.json' in the Dart SDK install location.""",
@@ -11894,7 +12421,7 @@ Message _withArgumentsSdkSpecificationNotFound(Uri uri_) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateSdkSummaryNotFound =
-    const Template<Message Function(Uri uri_)>(
+    const Template<Message Function(Uri uri_)>("SdkSummaryNotFound",
         problemMessageTemplate: r"""SDK summary not found: #uri.""",
         withArguments: _withArgumentsSdkSummaryNotFound);
 
@@ -11917,7 +12444,7 @@ const Template<
     Message Function(
         String
             name)> templateSealedClassSubtypeOutsideOfLibrary = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("SealedClassSubtypeOutsideOfLibrary",
     problemMessageTemplate:
         r"""The class '#name' can't be extended, implemented, or mixed in outside of its library because it's a sealed class.""",
     withArguments: _withArgumentsSealedClassSubtypeOutsideOfLibrary);
@@ -11998,7 +12525,7 @@ const MessageCode messageSetterConstructor = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSetterNotFound =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("SetterNotFound",
         problemMessageTemplate: r"""Setter not found: '#name'.""",
         withArguments: _withArgumentsSetterNotFound);
 
@@ -12045,6 +12572,7 @@ const Template<
             _num3)> templateSourceBodySummary = const Template<
         Message Function(
             int count, int count2, num _num1, num _num2, num _num3)>(
+    "SourceBodySummary",
     problemMessageTemplate:
         r"""Built bodies for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
 #num2%12.3 bytes/ms, and
@@ -12090,6 +12618,7 @@ const Template<
             _num3)> templateSourceOutlineSummary = const Template<
         Message Function(
             int count, int count2, num _num1, num _num2, num _num3)>(
+    "SourceOutlineSummary",
     problemMessageTemplate:
         r"""Built outlines for #count compilation units (#count2 bytes) in #num1%.3ms, that is,
 #num2%12.3 bytes/ms, and
@@ -12214,6 +12743,7 @@ const MessageCode messageStrongModeNNBDButOptOut = const MessageCode(
 const Template<Message Function(List<String> _names)>
     templateStrongModeNNBDPackageOptOut =
     const Template<Message Function(List<String> _names)>(
+        "StrongModeNNBDPackageOptOut",
         problemMessageTemplate:
             r"""The following dependencies don't support null safety:
 
@@ -12259,6 +12789,7 @@ const Template<
         String
             name2)> templateSubtypeOfBaseIsNotBaseFinalOrSealed = const Template<
         Message Function(String name, String name2)>(
+    "SubtypeOfBaseIsNotBaseFinalOrSealed",
     problemMessageTemplate:
         r"""The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'base'.""",
     correctionMessageTemplate:
@@ -12293,6 +12824,7 @@ const Template<
         String
             name2)> templateSubtypeOfFinalIsNotBaseFinalOrSealed = const Template<
         Message Function(String name, String name2)>(
+    "SubtypeOfFinalIsNotBaseFinalOrSealed",
     problemMessageTemplate:
         r"""The type '#name' must be 'base', 'final' or 'sealed' because the supertype '#name2' is 'final'.""",
     correctionMessageTemplate:
@@ -12343,6 +12875,56 @@ const MessageCode messageSuperAsIdentifier = const MessageCode(
     problemMessage: r"""Expected identifier, but got 'super'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateSuperExtensionTypeIsIllegal =
+    const Template<Message Function(String name)>("SuperExtensionTypeIsIllegal",
+        problemMessageTemplate:
+            r"""The type '#name' can't be implemented by an extension type.""",
+        withArguments: _withArgumentsSuperExtensionTypeIsIllegal);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperExtensionTypeIsIllegal =
+    const Code<Message Function(String name)>(
+  "SuperExtensionTypeIsIllegal",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsIllegal(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSuperExtensionTypeIsIllegal,
+      problemMessage:
+          """The type '${name}' can't be implemented by an extension type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateSuperExtensionTypeIsTypeVariable = const Template<
+        Message Function(String name)>("SuperExtensionTypeIsTypeVariable",
+    problemMessageTemplate:
+        r"""The type variable '#name' can't be implemented by an extension type.""",
+    withArguments: _withArgumentsSuperExtensionTypeIsTypeVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperExtensionTypeIsTypeVariable =
+    const Code<Message Function(String name)>(
+  "SuperExtensionTypeIsTypeVariable",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsTypeVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSuperExtensionTypeIsTypeVariable,
+      problemMessage:
+          """The type variable '${name}' can't be implemented by an extension type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperInitializerNotLast = messageSuperInitializerNotLast;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12385,7 +12967,7 @@ const MessageCode messageSuperParameterInitializerOutsideConstructor =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateSuperclassHasNoConstructor =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("SuperclassHasNoConstructor",
         problemMessageTemplate:
             r"""Superclass has no constructor named '#name'.""",
         withArguments: _withArgumentsSuperclassHasNoConstructor);
@@ -12412,7 +12994,7 @@ const Template<
     Message Function(
         String
             name)> templateSuperclassHasNoDefaultConstructor = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("SuperclassHasNoDefaultConstructor",
     problemMessageTemplate:
         r"""The superclass, '#name', has no unnamed constructor that takes no arguments.""",
     withArguments: _withArgumentsSuperclassHasNoDefaultConstructor);
@@ -12436,7 +13018,7 @@ Message _withArgumentsSuperclassHasNoDefaultConstructor(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSuperclassHasNoGetter =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("SuperclassHasNoGetter",
         problemMessageTemplate: r"""Superclass has no getter named '#name'.""",
         withArguments: _withArgumentsSuperclassHasNoGetter);
 
@@ -12456,7 +13038,7 @@ Message _withArgumentsSuperclassHasNoGetter(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSuperclassHasNoMember =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("SuperclassHasNoMember",
         problemMessageTemplate: r"""Superclass has no member named '#name'.""",
         withArguments: _withArgumentsSuperclassHasNoMember);
 
@@ -12476,7 +13058,7 @@ Message _withArgumentsSuperclassHasNoMember(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSuperclassHasNoMethod =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("SuperclassHasNoMethod",
         problemMessageTemplate: r"""Superclass has no method named '#name'.""",
         withArguments: _withArgumentsSuperclassHasNoMethod);
 
@@ -12496,7 +13078,7 @@ Message _withArgumentsSuperclassHasNoMethod(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSuperclassHasNoSetter =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("SuperclassHasNoSetter",
         problemMessageTemplate: r"""Superclass has no setter named '#name'.""",
         withArguments: _withArgumentsSuperclassHasNoSetter);
 
@@ -12519,7 +13101,7 @@ const Template<
     Message Function(
         String
             name)> templateSuperclassMethodArgumentMismatch = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("SuperclassMethodArgumentMismatch",
     problemMessageTemplate:
         r"""Superclass doesn't have a method named '#name' with matching arguments.""",
     withArguments: _withArgumentsSuperclassMethodArgumentMismatch);
@@ -12550,7 +13132,7 @@ const MessageCode messageSupertypeIsFunction = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSupertypeIsIllegal =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("SupertypeIsIllegal",
         problemMessageTemplate:
             r"""The type '#name' can't be used as supertype.""",
         withArguments: _withArgumentsSupertypeIsIllegal);
@@ -12571,7 +13153,7 @@ Message _withArgumentsSupertypeIsIllegal(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateSupertypeIsTypeVariable =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("SupertypeIsTypeVariable",
         problemMessageTemplate:
             r"""The type variable '#name' can't be used as supertype.""",
         withArguments: _withArgumentsSupertypeIsTypeVariable);
@@ -12645,6 +13227,7 @@ const MessageCode messageSyntheticToken = const MessageCode("SyntheticToken",
 const Template<Message Function(String name)>
     templateThisAccessInFieldInitializer =
     const Template<Message Function(String name)>(
+        "ThisAccessInFieldInitializer",
         problemMessageTemplate:
             r"""Can't access 'this' in a field initializer to read '#name'.""",
         withArguments: _withArgumentsThisAccessInFieldInitializer);
@@ -12685,7 +13268,7 @@ const MessageCode messageThisInNullAwareReceiver = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateThisNotPromoted =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String string)>("ThisNotPromoted",
         problemMessageTemplate: r"""'this' can't be promoted.""",
         correctionMessageTemplate: r"""See #string""",
         withArguments: _withArgumentsThisNotPromoted);
@@ -12709,6 +13292,7 @@ Message _withArgumentsThisNotPromoted(String string) {
 const Template<Message Function(String string)>
     templateThisOrSuperAccessInFieldInitializer =
     const Template<Message Function(String string)>(
+        "ThisOrSuperAccessInFieldInitializer",
         problemMessageTemplate:
             r"""Can't access '#string' in a field initializer.""",
         withArguments: _withArgumentsThisOrSuperAccessInFieldInitializer);
@@ -12734,7 +13318,7 @@ const Template<
         int count,
         int
             count2)> templateTooFewArguments = const Template<
-        Message Function(int count, int count2)>(
+        Message Function(int count, int count2)>("TooFewArguments",
     problemMessageTemplate:
         r"""Too few positional arguments: #count required, #count2 given.""",
     withArguments: _withArgumentsTooFewArguments);
@@ -12758,7 +13342,7 @@ const Template<
         int count,
         int
             count2)> templateTooManyArguments = const Template<
-        Message Function(int count, int count2)>(
+        Message Function(int count, int count2)>("TooManyArguments",
     problemMessageTemplate:
         r"""Too many positional arguments: #count allowed, but #count2 found.""",
     correctionMessageTemplate:
@@ -12802,7 +13386,7 @@ const MessageCode messageTypeAfterVar = const MessageCode("TypeAfterVar",
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(int count)> templateTypeArgumentMismatch =
-    const Template<Message Function(int count)>(
+    const Template<Message Function(int count)>("TypeArgumentMismatch",
         problemMessageTemplate: r"""Expected #count type arguments.""",
         withArguments: _withArgumentsTypeArgumentMismatch);
 
@@ -12821,7 +13405,7 @@ Message _withArgumentsTypeArgumentMismatch(int count) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateTypeArgumentsOnTypeVariable =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("TypeArgumentsOnTypeVariable",
         problemMessageTemplate:
             r"""Can't use type arguments with type variable '#name'.""",
         correctionMessageTemplate: r"""Try removing the type arguments.""",
@@ -12856,7 +13440,7 @@ const MessageCode messageTypeBeforeFactory = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateTypeNotFound =
-    const Template<Message Function(String name)>(
+    const Template<Message Function(String name)>("TypeNotFound",
         problemMessageTemplate: r"""Type '#name' not found.""",
         withArguments: _withArgumentsTypeNotFound);
 
@@ -12876,7 +13460,7 @@ Message _withArgumentsTypeNotFound(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, Uri uri_)> templateTypeOrigin =
-    const Template<Message Function(String name, Uri uri_)>(
+    const Template<Message Function(String name, Uri uri_)>("TypeOrigin",
         problemMessageTemplate: r"""'#name' is from '#uri'.""",
         withArguments: _withArgumentsTypeOrigin);
 
@@ -12900,6 +13484,7 @@ Message _withArgumentsTypeOrigin(String name, Uri uri_) {
 const Template<Message Function(String name, Uri uri_, Uri uri2_)>
     templateTypeOriginWithFileUri =
     const Template<Message Function(String name, Uri uri_, Uri uri2_)>(
+        "TypeOriginWithFileUri",
         problemMessageTemplate: r"""'#name' is from '#uri' ('#uri2').""",
         withArguments: _withArgumentsTypeOriginWithFileUri);
 
@@ -12936,6 +13521,7 @@ const MessageCode messageTypeVariableDuplicatedName = const MessageCode(
 const Template<Message Function(String name)>
     templateTypeVariableDuplicatedNameCause =
     const Template<Message Function(String name)>(
+        "TypeVariableDuplicatedNameCause",
         problemMessageTemplate: r"""The other type variable named '#name'.""",
         withArguments: _withArgumentsTypeVariableDuplicatedNameCause);
 
@@ -13058,7 +13644,7 @@ const MessageCode messageTypedefUnaliasedTypeCause = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateUnavailableDartLibrary =
-    const Template<Message Function(Uri uri_)>(
+    const Template<Message Function(Uri uri_)>("UnavailableDartLibrary",
         problemMessageTemplate:
             r"""Dart library '#uri' is not available on this platform.""",
         withArguments: _withArgumentsUnavailableDartLibrary);
@@ -13093,7 +13679,7 @@ const Template<
     Message Function(
         Token
             token)> templateUnexpectedModifierInNonNnbd = const Template<
-        Message Function(Token token)>(
+        Message Function(Token token)>("UnexpectedModifierInNonNnbd",
     problemMessageTemplate:
         r"""The modifier '#lexeme' is only available in null safe libraries.""",
     withArguments: _withArgumentsUnexpectedModifierInNonNnbd);
@@ -13114,7 +13700,7 @@ Message _withArgumentsUnexpectedModifierInNonNnbd(Token token) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateUnexpectedToken =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("UnexpectedToken",
         problemMessageTemplate: r"""Unexpected token '#lexeme'.""",
         withArguments: _withArgumentsUnexpectedToken);
 
@@ -13145,7 +13731,7 @@ const Template<
     Message Function(
         String
             name)> templateUnmatchedAugmentationClass = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedAugmentationClass",
     problemMessageTemplate:
         r"""Augmentation class '#name' doesn't match a class in the augmented library.""",
     correctionMessageTemplate:
@@ -13174,7 +13760,7 @@ const Template<
     Message Function(
         String
             name)> templateUnmatchedAugmentationClassMember = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedAugmentationClassMember",
     problemMessageTemplate:
         r"""Augmentation member '#name' doesn't match a member in the augmented class.""",
     correctionMessageTemplate:
@@ -13203,7 +13789,7 @@ const Template<
     Message Function(
         String
             name)> templateUnmatchedAugmentationConstructor = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedAugmentationConstructor",
     problemMessageTemplate:
         r"""Augmentation constructor '#name' doesn't match a constructor in the augmented class.""",
     correctionMessageTemplate:
@@ -13232,7 +13818,7 @@ const Template<
     Message Function(
         String
             name)> templateUnmatchedAugmentationDeclaration = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedAugmentationDeclaration",
     problemMessageTemplate:
         r"""Augmentation '#name' doesn't match a declaration in the augmented library.""",
     correctionMessageTemplate:
@@ -13261,7 +13847,7 @@ const Template<
     Message Function(
         String
             name)> templateUnmatchedAugmentationLibraryMember = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedAugmentationLibraryMember",
     problemMessageTemplate:
         r"""Augmentation member '#name' doesn't match a member in the augmented library.""",
     correctionMessageTemplate:
@@ -13289,7 +13875,7 @@ Message _withArgumentsUnmatchedAugmentationLibraryMember(String name) {
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(String name)> templateUnmatchedPatchClass = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedPatchClass",
     problemMessageTemplate:
         r"""Patch class '#name' doesn't match a class in the origin library.""",
     correctionMessageTemplate:
@@ -13318,7 +13904,7 @@ const Template<
     Message Function(
         String
             name)> templateUnmatchedPatchClassMember = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedPatchClassMember",
     problemMessageTemplate:
         r"""Patch member '#name' doesn't match a member in the origin class.""",
     correctionMessageTemplate:
@@ -13347,7 +13933,7 @@ const Template<
     Message Function(
         String
             name)> templateUnmatchedPatchConstructor = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedPatchConstructor",
     problemMessageTemplate:
         r"""Patch constructor '#name' doesn't match a constructor in the origin class.""",
     correctionMessageTemplate:
@@ -13376,7 +13962,7 @@ const Template<
     Message Function(
         String
             name)> templateUnmatchedPatchDeclaration = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedPatchDeclaration",
     problemMessageTemplate:
         r"""Patch '#name' doesn't match a declaration in the origin library.""",
     correctionMessageTemplate:
@@ -13405,7 +13991,7 @@ const Template<
     Message Function(
         String
             name)> templateUnmatchedPatchLibraryMember = const Template<
-        Message Function(String name)>(
+        Message Function(String name)>("UnmatchedPatchLibraryMember",
     problemMessageTemplate:
         r"""Patch member '#name' doesn't match a member in the origin library.""",
     correctionMessageTemplate:
@@ -13433,6 +14019,7 @@ Message _withArgumentsUnmatchedPatchLibraryMember(String name) {
 const Template<Message Function(String string, Token token)>
     templateUnmatchedToken =
     const Template<Message Function(String string, Token token)>(
+        "UnmatchedToken",
         problemMessageTemplate: r"""Can't find '#string' to match '#lexeme'.""",
         withArguments: _withArgumentsUnmatchedToken);
 
@@ -13506,6 +14093,7 @@ const Template<
         String
             name2)> templateUnresolvedPrefixInTypeAnnotation = const Template<
         Message Function(String name, String name2)>(
+    "UnresolvedPrefixInTypeAnnotation",
     problemMessageTemplate:
         r"""'#name.#name2' can't be used as a type because '#name' isn't defined.""",
     withArguments: _withArgumentsUnresolvedPrefixInTypeAnnotation);
@@ -13532,7 +14120,7 @@ Message _withArgumentsUnresolvedPrefixInTypeAnnotation(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateUnspecified =
-    const Template<Message Function(String string)>(
+    const Template<Message Function(String string)>("Unspecified",
         problemMessageTemplate: r"""#string""",
         withArguments: _withArgumentsUnspecified);
 
@@ -13581,7 +14169,7 @@ const MessageCode messageUnsupportedMacroApplication = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateUnsupportedOperator =
-    const Template<Message Function(Token token)>(
+    const Template<Message Function(Token token)>("UnsupportedOperator",
         problemMessageTemplate: r"""The '#lexeme' operator is not supported.""",
         withArguments: _withArgumentsUnsupportedOperator);
 
@@ -13622,6 +14210,7 @@ const Template<
         Message Function(String string, String string2)>
     templateUnterminatedString =
     const Template<Message Function(String string, String string2)>(
+        "UnterminatedString",
         problemMessageTemplate:
             r"""String starting with #string must end with #string2.""",
         withArguments: _withArgumentsUnterminatedString);
@@ -13653,7 +14242,7 @@ const MessageCode messageUnterminatedToken = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateUntranslatableUri =
-    const Template<Message Function(Uri uri_)>(
+    const Template<Message Function(Uri uri_)>("UntranslatableUri",
         problemMessageTemplate: r"""Not found: '#uri'""",
         withArguments: _withArgumentsUntranslatableUri);
 
@@ -13673,6 +14262,7 @@ Message _withArgumentsUntranslatableUri(Uri uri_) {
 const Template<Message Function(String name)>
     templateValueForRequiredParameterNotProvidedError =
     const Template<Message Function(String name)>(
+        "ValueForRequiredParameterNotProvidedError",
         problemMessageTemplate:
             r"""Required named parameter '#name' must be provided.""",
         withArguments: _withArgumentsValueForRequiredParameterNotProvidedError);
@@ -13719,6 +14309,7 @@ const Template<
         String
             string)> templateVariableCouldBeNullDueToWrite = const Template<
         Message Function(String name, String string)>(
+    "VariableCouldBeNullDueToWrite",
     problemMessageTemplate:
         r"""Variable '#name' could not be promoted due to an assignment.""",
     correctionMessageTemplate:
@@ -13861,7 +14452,9 @@ const Template<
         String string,
         String
             string2)> templateWebLiteralCannotBeRepresentedExactly = const Template<
-        Message Function(String string, String string2)>(
+        Message Function(
+            String string, String string2)>(
+    "WebLiteralCannotBeRepresentedExactly",
     problemMessageTemplate:
         r"""The integer literal #string can't be represented exactly in JavaScript.""",
     correctionMessageTemplate:

@@ -321,7 +321,6 @@ class FixBuilder {
     // TODO(paulberry): do we need to test both possible values of
     // strictInference?
     return TypeSystemImpl(
-        implicitCasts: typeSystem.implicitCasts,
         isNonNullableByDefault: true,
         strictCasts: typeSystem.strictCasts,
         strictInference: typeSystem.strictInference,
@@ -374,7 +373,7 @@ class MigrationResolutionHooksImpl
   }
 
   @override
-  List<InterfaceType> getClassInterfaces(AbstractClassElementImpl element) {
+  List<InterfaceType> getClassInterfaces(InterfaceElementImpl element) {
     return _wrapExceptions(
         _fixBuilder.unit,
         () => element.interfacesInternal,
@@ -701,7 +700,7 @@ class MigrationResolutionHooksImpl
     } else {
       _flowAnalysis!.asExpression_end(node, contextType);
       var glb = _fixBuilder._typeSystem
-          .getGreatestLowerBound(contextType, expressionType);
+          .greatestLowerBound(contextType, expressionType);
 
       if (glb != _fixBuilder._typeSystem.typeProvider.neverType &&
           !identical(glb, expressionType)) {

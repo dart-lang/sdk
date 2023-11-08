@@ -104,32 +104,6 @@ var v = const A(null);
     ]);
   }
 
-  test_enum_int_null() async {
-    await assertErrorsInCode(r'''
-const dynamic a = null;
-
-enum E {
-  v(a);
-  const E(int a);
-}
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 38, 1),
-    ]);
-  }
-
-  test_enum_int_String() async {
-    await assertErrorsInCode(r'''
-const dynamic a = '0';
-
-enum E {
-  v(a);
-  const E(int a);
-}
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 37, 1),
-    ]);
-  }
-
   test_int_to_double_reference_from_other_library_other_file_after() async {
     newFile('$testPackageLibPath/other.dart', '''
 import 'test.dart';
@@ -243,9 +217,8 @@ class C {
 const A u = const A();
 var v = const C(u);
 ''', [
-      // TODO(srawlins): It would be best to report only the first one.
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 143, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 143, 1),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 143, 1),
     ]);
   }
 
@@ -274,8 +247,8 @@ class A {
 }
 var v = const A('foo');
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 62, 5),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 62, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 62, 5),
     ]);
   }
 
@@ -310,8 +283,8 @@ class A {
 }
 var v = const A('foo');
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 46, 5),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 46, 5),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 46, 5),
     ]);
   }
 
@@ -355,38 +328,6 @@ class B extends A<int> {
 
 const b = const B();
 ''');
-  }
-
-  test_unknown_conditionalExpression_unknownCondition() async {
-    await assertNoErrorsInCode(r'''
-const bool kIsWeb = identical(0, 0.0);
-
-void f() {
-  const A(kIsWeb ? 0 : 1);
-}
-
-class A {
-  const A(int _);
-}
-''');
-  }
-
-  test_unknown_conditionalExpression_unknownCondition_errorInBranch() async {
-    await assertErrorsInCode(r'''
-const bool kIsWeb = identical(0, 0.0);
-
-void f() {
-  var x = 2;
-  const A(kIsWeb ? 0 : x);
-}
-
-class A {
-  const A(int _);
-}
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 74, 14),
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 87, 1),
-    ]);
   }
 }
 

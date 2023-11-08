@@ -110,7 +110,7 @@ class UnknownTypeTest {
   }
 }
 
-class _OrdinaryVisitor<R> extends Visitor<R?> with VisitorNullMixin<R> {
+class _OrdinaryVisitor<R> extends VisitorDefault<R?> with VisitorNullMixin<R> {
   final _UnaryFunction<DartType, R>? _defaultDartType;
 
   _OrdinaryVisitor({_UnaryFunction<DartType, R>? defaultDartType})
@@ -119,14 +119,15 @@ class _OrdinaryVisitor<R> extends Visitor<R?> with VisitorNullMixin<R> {
   @override
   R? defaultDartType(DartType node) {
     if (_defaultDartType != null) {
-      return _defaultDartType!(node);
+      return _defaultDartType(node);
     } else {
       return super.defaultDartType(node);
     }
   }
 }
 
-class _TypeSchemaVisitor<R> extends Visitor<R?> with VisitorNullMixin<R> {
+class _TypeSchemaVisitor<R> extends VisitorDefault<R?>
+    with VisitorNullMixin<R> {
   final _UnaryFunction<DartType, R>? _defaultDartType;
   final _UnaryFunction<UnknownType, R>? _visitUnknownType;
 
@@ -139,9 +140,9 @@ class _TypeSchemaVisitor<R> extends Visitor<R?> with VisitorNullMixin<R> {
   @override
   R? defaultDartType(DartType node) {
     if (node is UnknownType && _visitUnknownType != null) {
-      return _visitUnknownType!(node);
+      return _visitUnknownType(node);
     } else if (_defaultDartType != null) {
-      return _defaultDartType!(node);
+      return _defaultDartType(node);
     } else {
       return super.defaultDartType(node);
     }

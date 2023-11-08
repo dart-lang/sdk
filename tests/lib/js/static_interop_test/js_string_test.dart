@@ -1,5 +1,5 @@
 // Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
-// for details. All jsStringImplArguments reserved. Use of this source code is governed by a
+// for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // Check that JSStringImpl behaves correctly as a subtype of String.

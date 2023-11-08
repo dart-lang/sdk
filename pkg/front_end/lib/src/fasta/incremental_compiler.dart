@@ -63,6 +63,7 @@ import 'package:kernel/target/changed_structure_notifier.dart'
 
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
+import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
 
 import '../api_prototype/incremental_kernel_generator.dart'
@@ -83,9 +84,8 @@ import '../kernel_generator_impl.dart' show precompileMacros;
 
 import 'builder/builder.dart' show Builder;
 
-import 'builder/class_builder.dart' show ClassBuilder;
-
-import 'builder/extension_builder.dart' show ExtensionBuilder;
+import 'builder/declaration_builders.dart'
+    show ClassBuilder, ExtensionBuilder, TypeDeclarationBuilder;
 
 import 'builder/field_builder.dart' show FieldBuilder;
 
@@ -95,11 +95,7 @@ import 'builder/member_builder.dart' show MemberBuilder;
 
 import 'builder/name_iterator.dart' show NameIterator;
 
-import 'builder/named_type_builder.dart' show NamedTypeBuilder;
-
-import 'builder/type_builder.dart' show TypeBuilder;
-
-import 'builder/type_declaration_builder.dart' show TypeDeclarationBuilder;
+import 'builder/type_builder.dart' show NamedTypeBuilder, TypeBuilder;
 
 import 'builder_graph.dart' show BuilderGraph;
 
@@ -1257,8 +1253,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 /* should this be on the library? */
                 /* this is effectively what the constant evaluator does */
                 context.options.globalFeatures.tripleShift.isEnabled);
+        bool enablePatterns = builder.library.languageVersion >=
+            ExperimentalFlag.patterns.enabledVersion;
         String? before = textualOutline(previousSource, scannerConfiguration,
-            performModelling: true);
+            performModelling: true, enablePatterns: enablePatterns);
         if (before == null) {
           recorderForTesting?.recordAdvancedInvalidationResult(
               AdvancedInvalidationResult.noPreviousOutline);
@@ -1268,7 +1266,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         FileSystemEntity entity = c.options.fileSystem.entityForUri(uri);
         if (await entity.exists()) {
           now = textualOutline(await entity.readAsBytes(), scannerConfiguration,
-              performModelling: true);
+              performModelling: true, enablePatterns: enablePatterns);
         }
         if (before != now) {
           recorderForTesting?.recordAdvancedInvalidationResult(
@@ -1497,7 +1495,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
 
       // Get all classes touched by fasta class hierarchy.
       if (builderHierarchy != null) {
-        for (Class c in builderHierarchy.nodes.keys) {
+        for (Class c in builderHierarchy.classNodes.keys) {
           if (classes.add(c)) worklist.add(c);
         }
       }

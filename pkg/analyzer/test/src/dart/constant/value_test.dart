@@ -6,8 +6,8 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -364,6 +364,10 @@ class DartObjectImplTest {
   void test_equalEqual_double_false_language219() {
     _featureSet = FeatureSets.language_2_19;
     _assertEqualEqual(_boolValue(false), _doubleValue(2.0), _doubleValue(4.0));
+  }
+
+  void test_equalEqual_double_false_zeros() {
+    _assertEqualEqual(_boolValue(false), _doubleValue(0.0), _doubleValue(-0.0));
   }
 
   void test_equalEqual_double_true() {
@@ -2356,7 +2360,10 @@ class DartObjectImplTest {
     return DartObjectImpl(
       _typeSystem,
       _typeProvider.listType(elementType),
-      ListState(elements),
+      ListState(
+        elementType: elementType,
+        elements: elements,
+      ),
     );
   }
 

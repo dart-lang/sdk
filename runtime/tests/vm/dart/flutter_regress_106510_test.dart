@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--use_slow_path --stress_write_barrier_elimination
+// VMOptions=--use_slow_path --runtime_allocate_old
 
 // Test that array allocation in noSuchMethod dispatcher is preserving the
 // length register correctly.

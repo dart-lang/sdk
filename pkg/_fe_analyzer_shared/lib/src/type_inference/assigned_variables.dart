@@ -177,19 +177,20 @@ class AssignedVariables<Node extends Object, Variable extends Object> {
       assert(
           _deferredInfos.isEmpty, "Deferred infos not stored: $_deferredInfos");
       assert(_stack.length == 1, "Unexpected stack: $_stack");
+      Set<Variable?> vars(Set<int> keys) =>
+          {for (int key in keys) promotionKeyStore.variableForKey(key)};
       AssignedVariablesNodeInfo last = _stack.last;
       Set<int> undeclaredReads = last.read.difference(last.declared);
-      List<Variable?> undeclaredReadVars = [
-        for (int key in undeclaredReads) promotionKeyStore.variableForKey(key)
-      ];
-      assert(undeclaredReadVars.isEmpty,
-          'Variables read from but not declared: $undeclaredReadVars');
+      assert(undeclaredReads.isEmpty,
+          'Variables read from but not declared: ${vars(undeclaredReads)}');
       Set<int> undeclaredWrites = last.written.difference(last.declared);
       assert(undeclaredWrites.isEmpty,
-          'Variables written to but not declared: $undeclaredWrites');
-      Set<int> undeclaredCaptures = last.captured.difference(last.declared);
-      assert(undeclaredCaptures.isEmpty,
-          'Variables captured but not declared: $undeclaredCaptures');
+          'Variables written to but not declared: ${vars(undeclaredWrites)}');
+      // Note that it's not necessary to check `last.captured` and
+      // `last.readCaptured`, because a variable can't be captured (or
+      // readCaptured) without writing (or reading) it; thus a variable that's
+      // captured (or readCaptured) without being declared will already be
+      // caught by the above checks.
       return true;
     }());
     _isFinished = true;

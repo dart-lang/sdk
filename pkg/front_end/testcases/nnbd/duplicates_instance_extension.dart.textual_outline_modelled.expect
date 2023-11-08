@@ -1,0 +1,37 @@
+expect(expected, actual) {}
+extension Extension on int {
+  final int instanceDuplicateFieldAndDuplicateSetter = 1;
+  final int instanceDuplicateFieldAndDuplicateSetter = 2;
+  final int instanceDuplicateFieldAndSetter = 1;
+  final int instanceDuplicateFieldAndSetter = 2;
+  final int instanceFieldAndDuplicateSetter = 1;
+  int get instanceGetter => 1;
+  int get instanceGetter => 2;
+  int instanceField = 1;
+  int instanceField = 2;
+  int instanceFieldAndSetter1 = 1;
+  int instanceFieldAndSetter2 = 1;
+  int instanceMethod() => 1;
+  int instanceMethod() => 2;
+  int instanceMethodAndSetter1() => 1;
+  int instanceMethodAndSetter2() => 1;
+  late final int instanceLateFinalFieldAndSetter1;
+  late final int instanceLateFinalFieldAndSetter2;
+  void set instanceDuplicateFieldAndDuplicateSetter(int value) {}
+  void set instanceDuplicateFieldAndDuplicateSetter(int value) {}
+  void set instanceDuplicateFieldAndSetter(int value) {}
+  void set instanceFieldAndDuplicateSetter(int value) {}
+  void set instanceFieldAndDuplicateSetter(int value) {}
+  void set instanceFieldAndSetter1(int value) {}
+  void set instanceFieldAndSetter2(int value) {}
+  void set instanceLateFinalFieldAndSetter1(int value) {}
+  void set instanceLateFinalFieldAndSetter2(int value) {}
+  void set instanceMethodAndSetter1(int value) {}
+  void set instanceMethodAndSetter2(int value) {}
+  void set instanceSetter(value) {}
+  void set instanceSetter(value) {}
+}
+main() {}
+test() {}
+throws(dynamic Function() f) {}
+var result;

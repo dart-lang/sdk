@@ -42,7 +42,7 @@ Uint8List createSampleJson(final size) {
   for (int i = 0; i < size; i++) {
     map['$i'] = list;
   }
-  return utf8.encode(json.encode(map)) as Uint8List;
+  return utf8.encode(json.encode(map));
 }
 
 class JsonDecodeRequest {
@@ -113,7 +113,7 @@ class BenchmarkConfig {
 Future<void> main() async {
   final jsonString =
       File('benchmarks/IsolateJson/dart/sample.json').readAsStringSync();
-  final json250KB = utf8.encode(jsonString) as Uint8List; // 294356 bytes
+  final json250KB = utf8.encode(jsonString); // 294356 bytes
   final decoded = json.decode(utf8.decode(json250KB));
   final decoded1MB = <dynamic, dynamic>{
     '1': decoded['1'],
@@ -121,14 +121,11 @@ Future<void> main() async {
     '3': decoded['1'],
     '4': decoded['1'],
   };
-  final json1MB =
-      utf8.encode(json.encode(decoded1MB)) as Uint8List; // 1177397 bytes
+  final json1MB = utf8.encode(json.encode(decoded1MB)); // 1177397 bytes
   decoded['1'] = (decoded['1'] as List).sublist(0, 200);
-  final json100KB =
-      utf8.encode(json.encode(decoded)) as Uint8List; // 104685 bytes
+  final json100KB = utf8.encode(json.encode(decoded)); // 104685 bytes
   decoded['1'] = (decoded['1'] as List).sublist(0, 100);
-  final json50KB =
-      utf8.encode(json.encode(decoded)) as Uint8List; // 51760 bytes
+  final json50KB = utf8.encode(json.encode(decoded)); // 51760 bytes
 
   final configs = <BenchmarkConfig>[
     BenchmarkConfig('50KB', json50KB),

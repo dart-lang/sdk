@@ -209,7 +209,7 @@ class C implements B {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl("<root>"));
+        element, subtypes, OperationPerformanceImpl('<root>'));
     expect(subtypes, hasLength(3));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -235,9 +235,26 @@ class C extends B {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl("<root>"));
+        element, subtypes, OperationPerformanceImpl('<root>'));
     expect(subtypes, hasLength(3));
     _assertContainsClass(subtypes, 'A');
+    _assertContainsClass(subtypes, 'B');
+    _assertContainsClass(subtypes, 'C');
+  }
+
+  Future<void> test_searchAllSubtypes_extensionType() async {
+    await resolveTestCode('''
+class A {}
+extension type B(int it) implements A {}
+extension type C(int it) implements A {}
+''');
+
+    var element = findElement.class_('A');
+
+    var subtypes = <InterfaceElement>{};
+    await searchEngine.appendAllSubtypes(
+        element, subtypes, OperationPerformanceImpl('<root>'));
+    expect(subtypes, hasLength(2));
     _assertContainsClass(subtypes, 'B');
     _assertContainsClass(subtypes, 'C');
   }
@@ -259,7 +276,7 @@ mixin E implements C {}
 
     var subtypes = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        element, subtypes, OperationPerformanceImpl("<root>"));
+        element, subtypes, OperationPerformanceImpl('<root>'));
     expect(subtypes, hasLength(5));
     _assertContainsClass(subtypes, 'A');
     _assertContainsClass(subtypes, 'B');
@@ -439,6 +456,29 @@ enum E {
               identical(m.element, findElement.field('v3')) &&
               m.sourceRange.offset == code.indexOf('.new(), // 3') &&
               m.sourceRange.length == '.new'.length;
+        }),
+      ]),
+    );
+  }
+
+  Future<void> test_searchReferences_extensionType() async {
+    final code = '''
+extension type A(int it) {}
+
+void f(A a) {}
+''';
+    await resolveTestCode(code);
+
+    final element = findElement.extensionType('A');
+    final matches = await searchEngine.searchReferences(element);
+    expect(
+      matches,
+      unorderedEquals([
+        predicate((SearchMatch m) {
+          return m.kind == MatchKind.REFERENCE &&
+              identical(m.element, findElement.parameter('a')) &&
+              m.sourceRange.offset == code.indexOf('A a) {}') &&
+              m.sourceRange.length == 'A'.length;
         }),
       ]),
     );

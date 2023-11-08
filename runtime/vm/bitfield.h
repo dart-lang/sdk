@@ -7,6 +7,7 @@
 
 #include <type_traits>
 
+#include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/globals.h"
 #include "platform/thread_sanitizer.h"

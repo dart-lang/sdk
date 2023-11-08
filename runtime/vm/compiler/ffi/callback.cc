@@ -15,10 +15,28 @@ namespace compiler {
 
 namespace ffi {
 
+const String& NativeCallbackFunctionName(Thread* thread,
+                                         Zone* zone,
+                                         const Function& dart_target,
+                                         FfiFunctionKind kind) {
+  switch (kind) {
+    case FfiFunctionKind::kAsyncCallback:
+      return Symbols::FfiAsyncCallback();
+    case FfiFunctionKind::kIsolateLocalClosureCallback:
+      return Symbols::FfiIsolateLocalCallback();
+    case FfiFunctionKind::kIsolateLocalStaticCallback:
+      return String::Handle(
+          zone, Symbols::FromConcat(thread, Symbols::FfiCallback(),
+                                    String::Handle(zone, dart_target.name())));
+    default:
+      UNREACHABLE();
+  }
+}
+
 FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
                                    const Instance& exceptional_return,
-                                   FfiCallbackKind kind) {
+                                   FfiFunctionKind kind) {
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   Function& function = Function::Handle(zone);
@@ -28,9 +46,8 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   // Create a new Function named '<target>_FfiCallback' and stick it in the
   // 'dart:ffi' library. Note that these functions will never be invoked by
   // Dart, so they may have duplicate names.
-  const auto& name = String::Handle(
-      zone, Symbols::FromConcat(thread, Symbols::FfiCallback(),
-                                String::Handle(zone, dart_target.name())));
+  const auto& name =
+      NativeCallbackFunctionName(thread, zone, dart_target, kind);
   const Library& lib = Library::Handle(zone, Library::FfiLibrary());
   const Class& owner_class = Class::Handle(zone, lib.toplevel_class());
   auto& signature = FunctionType::Handle(zone, FunctionType::New());
@@ -47,7 +64,7 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   // the body.
   function.SetFfiCSignature(c_signature);
   function.SetFfiCallbackTarget(dart_target);
-  function.SetFfiCallbackKind(kind);
+  function.SetFfiFunctionKind(kind);
 
   // We need to load the exceptional return value as a constant in the generated
   // function. Even though the FE ensures that it is a constant, it could still

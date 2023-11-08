@@ -24,6 +24,10 @@ import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
+import 'package:kernel/ast.dart' show Version;
+
+import '../../api_prototype/experimental_flags.dart' show ExperimentalFlag;
+
 import '../fasta_codes.dart' show codeNativeClauseShouldBeAnnotation;
 
 import '../messages.dart' show Message;
@@ -329,6 +333,11 @@ class _ExtensionDeclarationChunk extends _ClassChunk {
       : super(startToken, endToken);
 }
 
+class _ExtensionTypeDeclarationChunk extends _ClassChunk {
+  _ExtensionTypeDeclarationChunk(Token startToken, Token endToken)
+      : super(startToken, endToken);
+}
+
 class _NamedMixinApplicationChunk extends _ClassChunk {
   _NamedMixinApplicationChunk(Token startToken, Token endToken)
       : super(startToken, endToken);
@@ -390,6 +399,10 @@ class _MetadataChunk extends _TokenChunk {
   }
 }
 
+class _ScriptTagChunk extends _TokenChunk {
+  _ScriptTagChunk(Token token) : super(token, token);
+}
+
 class _UnknownChunk extends _TokenChunk {
   final bool addMarkerForUnknownForTest;
   _UnknownChunk(
@@ -433,6 +446,7 @@ String? textualOutline(
   bool performModelling = false,
   bool addMarkerForUnknownForTest = false,
   bool returnNullOnError = true,
+  required bool enablePatterns,
 }) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
@@ -444,14 +458,20 @@ String? textualOutline(
   Utf8BytesScanner scanner = new Utf8BytesScanner(bytes,
       includeComments: false,
       configuration: configuration, languageVersionChanged:
-          (Scanner scanner, LanguageVersionToken languageVersion) {
-    parsedChunks.add(
-        new _LanguageVersionChunk(languageVersion.major, languageVersion.minor)
-          ..originalPosition = originalPosition.value++);
+          (Scanner scanner, LanguageVersionToken languageVersionToken) {
+    Version languageVersion =
+        new Version(languageVersionToken.major, languageVersionToken.minor);
+    if (ExperimentalFlag.patterns.enabledVersion >= languageVersion) {
+      enablePatterns = true;
+    }
+    parsedChunks.add(new _LanguageVersionChunk(
+        languageVersionToken.major, languageVersionToken.minor)
+      ..originalPosition = originalPosition.value++);
   });
   Token firstToken = scanner.tokenize();
   TextualOutlineListener listener = new TextualOutlineListener();
-  ClassMemberParser classMemberParser = new ClassMemberParser(listener);
+  ClassMemberParser classMemberParser =
+      new ClassMemberParser(listener, allowPatterns: enablePatterns);
   classMemberParser.parseUnit(firstToken);
   if (listener.gotError && returnNullOnError) {
     return null;
@@ -657,7 +677,7 @@ void main(List<String> args) {
   Uint8List data = f.readAsBytesSync();
   ScannerConfiguration scannerConfiguration = new ScannerConfiguration();
   String outline = textualOutline(data, scannerConfiguration,
-      throwOnUnexpected: true, performModelling: true)!;
+      throwOnUnexpected: true, performModelling: true, enablePatterns: true)!;
   if (args.length > 1 && args[1] == "--overwrite") {
     f.writeAsStringSync(outline);
   } else if (args.length > 1 && args[1] == "--benchmark") {
@@ -665,7 +685,9 @@ void main(List<String> args) {
     int numRuns = 100;
     for (int i = 0; i < numRuns; i++) {
       String? outline2 = textualOutline(data, scannerConfiguration,
-          throwOnUnexpected: true, performModelling: true);
+          throwOnUnexpected: true,
+          performModelling: true,
+          enablePatterns: true);
       if (outline2 != outline) throw "Not the same result every time";
     }
     stopwatch.stop();
@@ -675,7 +697,9 @@ void main(List<String> args) {
     numRuns = 2500;
     for (int i = 0; i < numRuns; i++) {
       String? outline2 = textualOutline(data, scannerConfiguration,
-          throwOnUnexpected: true, performModelling: true);
+          throwOnUnexpected: true,
+          performModelling: true,
+          enablePatterns: true);
       if (outline2 != outline) throw "Not the same result every time";
     }
     stopwatch.stop();
@@ -693,6 +717,11 @@ class TextualOutlineListener extends Listener {
   final Map<Token, _MetadataChunk> metadataStartToChunk = {};
   final Map<Token, _SingleImportExportChunk> importExportsStartToChunk = {};
   final Map<Token, _TokenChunk> unsortableElementStartToChunk = {};
+
+  @override
+  void handleScript(Token token) {
+    unsortableElementStartToChunk[token] = new _ScriptTagChunk(token);
+  }
 
   @override
   void endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
@@ -756,9 +785,9 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void handleEnumHeader(Token enumKeyword, Token leftBrace) {
-    elementStartToChunk[enumKeyword] =
-        new _EnumChunk(enumKeyword, leftBrace.endGroup!);
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
+    elementStartToChunk[beginToken] = new _EnumChunk(beginToken, endToken);
   }
 
   @override
@@ -794,16 +823,23 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
-    classStartToChunk[mixinKeyword] =
-        new _MixinDeclarationChunk(mixinKeyword, endToken);
+  void endMixinDeclaration(Token beginToken, Token endToken) {
+    classStartToChunk[beginToken] =
+        new _MixinDeclarationChunk(beginToken, endToken);
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
-    classStartToChunk[extensionKeyword] =
-        new _ExtensionDeclarationChunk(extensionKeyword, endToken);
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
+    classStartToChunk[beginToken] =
+        new _ExtensionDeclarationChunk(beginToken, endToken);
+  }
+
+  @override
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
+    classStartToChunk[beginToken] =
+        new _ExtensionTypeDeclarationChunk(beginToken, endToken);
   }
 
   @override

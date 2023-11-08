@@ -36,6 +36,9 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printWasm),
   Flag("stringref", (o, value) => o.translatorOptions.useStringref = value,
       defaultsTo: _d.translatorOptions.useStringref),
+  Flag("js-compatibility",
+      (o, value) => o.translatorOptions.jsCompatibility = value,
+      defaultsTo: _d.translatorOptions.jsCompatibility),
   Flag(
       "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
       defaultsTo: _d.translatorOptions.enableAsserts),
@@ -66,6 +69,15 @@ final List<Option> options = [
   StringOption("depfile", (o, value) => o.depFile = value),
   StringOption(
       "js-runtime-output", (o, value) => o.outputJSRuntimeFile = value),
+  StringOption(
+      "dump-kernel-after-cfe", (o, value) => o.dumpKernelAfterCfe = value,
+      hide: true),
+  StringOption(
+      "dump-kernel-before-tfa", (o, value) => o.dumpKernelBeforeTfa = value,
+      hide: true),
+  StringOption(
+      "dump-kernel-after-tfa", (o, value) => o.dumpKernelAfterTfa = value,
+      hide: true),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

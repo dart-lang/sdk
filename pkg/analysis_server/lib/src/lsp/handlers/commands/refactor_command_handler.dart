@@ -47,7 +47,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
               'arguments: List'));
     }
 
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -68,7 +68,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
         selectionOffset: offset,
         selectionLength: length,
         includeExperimental:
-            server.clientConfiguration.global.experimentalRefactors,
+            server.lspClientConfiguration.global.experimentalRefactors,
       );
       var producer = generator(context);
       var builder = ChangeBuilder(

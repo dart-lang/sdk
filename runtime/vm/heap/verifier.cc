@@ -104,24 +104,4 @@ void VerifyPointersVisitor::VerifyPointers(const char* msg,
   isolate_group->VisitWeakPersistentHandles(&weak_visitor);
 }
 
-#if defined(DEBUG)
-VerifyCanonicalVisitor::VerifyCanonicalVisitor(Thread* thread)
-    : thread_(thread), instanceHandle_(Instance::Handle(thread->zone())) {}
-
-void VerifyCanonicalVisitor::VisitObject(ObjectPtr obj) {
-  if (!IsInternalOnlyClassId(obj->GetClassId()) &&
-      (obj->GetClassId() != kTypeArgumentsCid)) {
-    if (obj->untag()->IsCanonical()) {
-      instanceHandle_ ^= obj;
-      const bool is_canonical = instanceHandle_.CheckIsCanonical(thread_);
-      if (!is_canonical) {
-        OS::PrintErr("Instance `%s` is not canonical!\n",
-                     instanceHandle_.ToCString());
-      }
-      ASSERT(is_canonical);
-    }
-  }
-}
-#endif  // defined(DEBUG)
-
 }  // namespace dart

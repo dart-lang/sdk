@@ -27,8 +27,8 @@ static method foo<T extends core::Object? = dynamic>((self::foo::T%) → void f)
 static method test1() → dynamic {
   hoisted has-declared-initializer self::A x;
   {
-    final synthesized dynamic #0#0 = self::foo<self::A>((self::A a) → void => a.{self::A::foo}{core::int});
-    if(!(#0#0{core::List<self::A>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = x = #0#0{core::List<self::A>}.{core::List::[]}(0){(core::int) → self::A} in true)))
+    final synthesized core::List<self::A> #0#0 = self::foo<self::A>((self::A a) → void => a.{self::A::foo}{core::int});
+    if(!(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t1 = x = #0#0.{core::List::[]}(0){(core::int) → self::A} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }
@@ -36,8 +36,8 @@ static method test2() → dynamic {
   hoisted has-declared-initializer core::Object? x;
   hoisted has-declared-initializer core::List<core::Object?> y;
   {
-    final synthesized dynamic #0#0 = self::foo<core::Object?>((core::Object? e) → void => e);
-    if(!(#0#0{core::List<core::Object?>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t2 = x = #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} in true) && (let final dynamic #t3 = y = #0#0{core::List<core::Object?>}.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::Object?>} in true)))
+    final synthesized core::List<core::Object?> #0#0 = self::foo<core::Object?>((core::Object? e) → void => e);
+    if(!(#0#0.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t2 = x = #0#0.{core::List::[]}(0){(core::int) → core::Object?} in true) && (let final dynamic #t3 = y = #0#0.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<core::Object?>} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }

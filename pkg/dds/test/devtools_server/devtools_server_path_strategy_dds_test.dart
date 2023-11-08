@@ -36,7 +36,7 @@ void main() {
         (String line) {
           final match = devToolsBannerRegex.firstMatch(line);
           if (match != null) {
-            completer.complete(match.group(1));
+            completer.complete(match.group(1)!);
           }
         },
         onDone: () {

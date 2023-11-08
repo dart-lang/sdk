@@ -263,7 +263,10 @@ void FUNCTION_NAME(Process_Exit)(Dart_NativeArguments args) {
   DartUtils::GetInt64Value(Dart_GetNativeArgument(args, 0), &status);
   Process::RunExitHook(status);
   Dart_ExitIsolate();
-  Platform::Exit(static_cast<int>(status));
+  // We're not doing a full VM shutdown with Dart_Cleanup, which might block,
+  // and other VM threads may be accessing state with global destructors, so
+  // we skip global destructors by using _exit instead of exit.
+  Platform::_Exit(static_cast<int>(status));
 }
 
 void FUNCTION_NAME(Process_SetExitCode)(Dart_NativeArguments args) {

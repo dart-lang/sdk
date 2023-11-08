@@ -7,9 +7,10 @@ import 'dart:math' as math;
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/src/computer/computer_hover.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
@@ -33,8 +34,9 @@ import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart'
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
-class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
-    with LspPluginRequestHandlerMixin {
+class CompletionHandler
+    extends LspMessageHandler<CompletionParams, CompletionList>
+    with LspPluginRequestHandlerMixin, LspHandlerHelperMixin {
   /// A [Future] used by tests to allow inserting a delay between resolving
   /// the initial unit and the completion code running.
   @visibleForTesting
@@ -59,10 +61,11 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   /// already completed, cancelling this token will not do anything.
   CancelableToken? previousRequestCancellationToken;
 
-  CompletionHandler(super.server, LspInitializationOptions options)
+  CompletionHandler(super.server)
       : suggestFromUnimportedLibraries =
-            options.suggestFromUnimportedLibraries {
-    final budgetMs = options.completionBudgetMilliseconds;
+            server.initializationOptions?.suggestFromUnimportedLibraries ??
+                true {
+    final budgetMs = server.initializationOptions?.completionBudgetMilliseconds;
     completionBudgetDuration = budgetMs != null
         ? Duration(milliseconds: budgetMs)
         : CompletionBudget.defaultDuration;
@@ -78,7 +81,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
   @override
   Future<ErrorOr<CompletionList>> handle(CompletionParams params,
       MessageInfo message, CancellationToken token) async {
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -136,11 +139,11 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     final offset = offsetResult.result;
 
     Future<ErrorOr<_CompletionResults>>? serverResultsFuture;
-    final pathContext = server.resourceProvider.pathContext;
     final fileExtension = pathContext.extension(path.result);
 
-    final maxResults =
-        server.clientConfiguration.forResource(path.result).maxCompletionItems;
+    final maxResults = server.lspClientConfiguration
+        .forResource(path.result)
+        .maxCompletionItems;
 
     CompletionPerformance? completionPerformance;
     if (fileExtension == '.dart' && !unit.isError) {
@@ -425,7 +428,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       /// insert dupes.
       final completeFunctionCalls = _hasExistingArgList(target.entity)
           ? false
-          : server.clientConfiguration.global.completeFunctionCalls;
+          : server.lspClientConfiguration.global.completeFunctionCalls;
 
       // Compute defaults that will allow us to reduce payload size.
       final defaultReplacementRange =
@@ -483,14 +486,14 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           replacementRange: replacementRange,
           insertionRange: insertionRange,
           commitCharactersEnabled:
-              server.clientConfiguration.global.previewCommitCharacters,
+              server.lspClientConfiguration.global.previewCommitCharacters,
           completeFunctionCalls: completeFunctionCalls,
           resolutionData: resolutionInfo,
           // Exclude docs if we will be providing them via
           // `completionItem/resolve`, otherwise use users preference.
           includeDocumentation: resolutionInfo != null
               ? DocumentationPreference.none
-              : server.clientConfiguration.global.preferredDocumentation,
+              : server.lspClientConfiguration.global.preferredDocumentation,
         );
       }
 
@@ -503,7 +506,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
       // Add in any snippets.
       final snippetsEnabled =
-          server.clientConfiguration.forResource(unit.path).enableSnippets;
+          server.lspClientConfiguration.forResource(unit.path).enableSnippets;
       // We can only produce edits with edit builders for files inside
       // the root, so skip snippets entirely if not.
       final isEditableFile =
@@ -611,7 +614,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         // `completionItem/resolve`, otherwise use users preference.
         includeDocumentation: resolutionInfo != null
             ? DocumentationPreference.none
-            : server.clientConfiguration.global.preferredDocumentation,
+            : server.lspClientConfiguration.global.preferredDocumentation,
         // Add on any completion-kind-specific resolution data that will be
         // used during resolve() calls to provide additional information.
         resolutionData: resolutionInfo,
@@ -682,7 +685,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           replacementRange: replacementRange,
           insertionRange: insertionRange,
           includeDocumentation:
-              server.clientConfiguration.global.preferredDocumentation,
+              server.lspClientConfiguration.global.preferredDocumentation,
           // Plugins cannot currently contribute commit characters and we should
           // not assume that the Dart ones would be correct for all of their
           // completions.
@@ -788,6 +791,70 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
     return item1Text.compareTo(item2Text);
   }
+}
+
+class CompletionRegistrations extends FeatureRegistration
+    with StaticRegistration<CompletionOptions> {
+  CompletionRegistrations(super.info);
+
+  @override
+  List<LspDynamicRegistration> get dynamicRegistrations {
+    return [
+      // Trigger and commit characters are specific to Dart, so register them
+      // separately to the others.
+      (
+        Method.textDocument_completion,
+        CompletionRegistrationOptions(
+          documentSelector: [dartFiles],
+          triggerCharacters: dartCompletionTriggerCharacters,
+          allCommitCharacters:
+              previewCommitCharacters ? dartCompletionCommitCharacters : null,
+          resolveProvider: true,
+          completionItem:
+              CompletionOptionsCompletionItem(labelDetailsSupport: true),
+        ),
+      ),
+      (
+        Method.textDocument_completion,
+        CompletionRegistrationOptions(
+          documentSelector: nonDartCompletionTypes,
+          resolveProvider: true,
+        ),
+      ),
+    ];
+  }
+
+  /// Types of documents we support completion for that are not Dart.
+  ///
+  /// We use two dynamic registrations because for Dart we support trigger
+  /// characters but for other kinds of files we do not.
+  List<TextDocumentFilterWithScheme> get nonDartCompletionTypes {
+    final pluginTypesExcludingDart =
+        pluginTypes.where((filter) => filter.pattern != '**/*.dart');
+
+    return {
+      ...pluginTypesExcludingDart,
+      pubspecFile,
+      analysisOptionsFile,
+      fixDataFile,
+    }.toList();
+  }
+
+  bool get previewCommitCharacters =>
+      clientConfiguration.global.previewCommitCharacters;
+
+  @override
+  CompletionOptions get staticOptions => CompletionOptions(
+        triggerCharacters: dartCompletionTriggerCharacters,
+        allCommitCharacters:
+            previewCommitCharacters ? dartCompletionCommitCharacters : null,
+        resolveProvider: true,
+        completionItem:
+            CompletionOptionsCompletionItem(labelDetailsSupport: true),
+      );
+
+  @override
+  bool get supportsDynamic => clientDynamic.completion;
 }
 
 /// A set of completion items split into ranked and unranked items.

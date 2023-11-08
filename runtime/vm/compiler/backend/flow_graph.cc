@@ -145,12 +145,12 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
     current_defn->ReplaceUsesWith(replacement_defn);
     EnsureSSATempIndex(current_defn, replacement_defn);
 
-    if (FLAG_trace_optimization) {
+    if (FLAG_trace_optimization && should_print()) {
       THR_Print("Replacing v%" Pd " with v%" Pd "\n",
                 current_defn->ssa_temp_index(),
                 replacement_defn->ssa_temp_index());
     }
-  } else if (FLAG_trace_optimization) {
+  } else if (FLAG_trace_optimization && should_print()) {
     if (current_defn == nullptr) {
       THR_Print("Removing %s\n", current->DebugName());
     } else {
@@ -223,6 +223,7 @@ bool FlowGraph::IsConstantRepresentable(const Object& value,
     case kUnboxedInt64:
       return value.IsInteger();
 
+    case kUnboxedFloat:
     case kUnboxedDouble:
       return value.IsInteger() || value.IsDouble();
 
@@ -241,11 +242,13 @@ Definition* FlowGraph::TryCreateConstantReplacementFor(Definition* op,
     return op;
   }
 
-  if (representation == kUnboxedDouble && value.IsInteger()) {
-    // Convert the boxed constant from int to double.
+  if (((representation == kUnboxedFloat) ||
+       (representation == kUnboxedDouble)) &&
+      value.IsInteger()) {
+    // Convert the boxed constant from int to float/double.
     return GetConstant(Double::Handle(Double::NewCanonical(
                            Integer::Cast(value).AsDoubleValue())),
-                       kUnboxedDouble);
+                       representation);
   }
 
   return GetConstant(value, representation);
@@ -415,7 +418,7 @@ void FlowGraph::MergeBlocks() {
       merged->Add(successor->postorder_number());
       last_merged_block = successor;
       changed = true;
-      if (FLAG_trace_optimization) {
+      if (FLAG_trace_optimization && should_print()) {
         THR_Print("Merged blocks B%" Pd " and B%" Pd "\n", block->block_id(),
                   successor->block_id());
       }
@@ -1523,9 +1526,7 @@ void FlowGraph::RenameRecursive(
             // Check if phi corresponds to the same slot.
             auto* phis = phi->block()->phis();
             if ((index < phis->length()) && (*phis)[index] == phi) {
-              phi->UpdateType(CompileType::FromAbstractType(
-                  load->local().type(), CompileType::kCanBeNull,
-                  /*can_be_sentinel=*/load->local().is_late()));
+              phi->UpdateType(*load->local().inferred_type());
             } else {
               ASSERT(IsCompiledForOsr() && (phi->block()->stack_depth() > 0));
             }
@@ -1856,7 +1857,7 @@ LoopHierarchy* FlowGraph::ComputeLoops() const {
 
   // Build the loop hierarchy and link every entry block to
   // the closest enveloping loop in loop hierarchy.
-  return new (zone()) LoopHierarchy(loop_headers, preorder_);
+  return new (zone()) LoopHierarchy(loop_headers, preorder_, should_print());
 }
 
 intptr_t FlowGraph::InstructionCount() const {

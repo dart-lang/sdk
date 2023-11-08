@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as path;
 
 /// Computer for dart:ui/Flutter Color references.
 class ColorComputer {
@@ -22,7 +23,7 @@ class ColorComputer {
   final List<ColorReference> _colors = [];
   final Flutter _flutter = Flutter.instance;
 
-  ColorComputer(this.resolvedUnit)
+  ColorComputer(this.resolvedUnit, path.Context pathContext)
       : _linterContext = LinterContextImpl(
           [], // unused
           LinterContextUnit(resolvedUnit.content, resolvedUnit.unit),
@@ -32,6 +33,7 @@ class ColorComputer {
           InheritanceManager3(), // unused
           resolvedUnit.session.analysisContext.analysisOptions,
           null,
+          pathContext,
         );
 
   /// Returns information about the color references in [resolvedUnit].

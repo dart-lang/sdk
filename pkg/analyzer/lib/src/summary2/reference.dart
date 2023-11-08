@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:meta/meta.dart';
 
 /// Indirection between a name and the corresponding [Element].
 ///
@@ -36,15 +37,22 @@ class Reference {
   /// Temporary index used during serialization and linking.
   int? index;
 
-  Map<String, Reference>? _children;
+  // null, Reference or Map<String, Reference>.
+  Object? _childrenUnion;
 
   Reference.root() : this._(null, '');
 
   Reference._(this.parent, this.name);
 
   Iterable<Reference> get children {
-    return _children?.values ?? const [];
+    final childrenUnion = _childrenUnion;
+    if (childrenUnion == null) return const [];
+    if (childrenUnion is Reference) return [childrenUnion];
+    return (childrenUnion as Map<String, Reference>).values;
   }
+
+  @visibleForTesting
+  Object? get childrenUnionForTesting => _childrenUnion;
 
   bool get isLibrary => parent?.isRoot == true;
 
@@ -57,19 +65,57 @@ class Reference {
   /// Return the child with the given name, or `null` if does not exist.
   Reference? operator [](String name) {
     name = _rewriteDartUi(name);
-    return _children?[name];
+
+    final childrenUnion = _childrenUnion;
+    if (childrenUnion == null) return null;
+    if (childrenUnion is Reference) {
+      if (childrenUnion.name == name) return childrenUnion;
+      return null;
+    }
+    return (childrenUnion as Map<String, Reference>)[name];
   }
 
   /// Return the child with the given name, create if does not exist yet.
   Reference getChild(String name) {
     name = _rewriteDartUi(name);
-    var map = _children ??= <String, Reference>{};
-    return map[name] ??= Reference._(this, name);
+
+    final childrenUnion = _childrenUnion;
+    if (childrenUnion == null) {
+      // 0 -> 1 children.
+      return _childrenUnion = Reference._(this, name);
+    }
+    if (childrenUnion is Reference) {
+      if (childrenUnion.name == name) return childrenUnion;
+
+      // 1 -> 2 children.
+      final childrenUnionAsMap = _childrenUnion = <String, Reference>{};
+      childrenUnionAsMap[childrenUnion.name] = childrenUnion;
+      return childrenUnionAsMap[name] = Reference._(this, name);
+    }
+    return (childrenUnion as Map<String, Reference>)[name] ??=
+        Reference._(this, name);
   }
 
   Reference? removeChild(String name) {
     name = _rewriteDartUi(name);
-    return _children?.remove(name);
+
+    final childrenUnion = _childrenUnion;
+    if (childrenUnion == null) return null;
+    if (childrenUnion is Reference) {
+      if (childrenUnion.name == name) {
+        // 1 -> 0 children.
+        _childrenUnion = null;
+        return childrenUnion;
+      }
+      return null;
+    }
+    final childrenUnionAsMap = childrenUnion as Map<String, Reference>;
+    final result = childrenUnionAsMap.remove(name);
+    if (childrenUnionAsMap.length == 1) {
+      // 2 -> 1 children.
+      _childrenUnion = childrenUnionAsMap.values.single;
+    }
+    return result;
   }
 
   @override

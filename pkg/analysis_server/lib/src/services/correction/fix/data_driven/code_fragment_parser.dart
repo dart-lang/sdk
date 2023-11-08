@@ -9,6 +9,9 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/variable
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/error/listener.dart';
 
+// Several "report" functions intentionally return a `Null`-typed value.
+// ignore_for_file: prefer_void_to_null
+
 /// A parser for the textual representation of a code fragment.
 class CodeFragmentParser {
   /// The error reporter to which diagnostics will be reported.

@@ -219,9 +219,11 @@ error.errorCode: ${error.errorCode}
     if (yamlContent is! YamlMap) {
       yamlContent = YamlMap();
     }
-    var validator =
-        PubspecValidator(resourceProvider, pubspecFile.createSource());
-    var errors = validator.validate(yamlContent.nodes);
+    final errors = validatePubspec(
+      contents: yamlContent.nodes,
+      source: pubspecFile.createSource(),
+      provider: resourceProvider,
+    );
     for (var error in errors) {
       var generator =
           PubspecFixGenerator(resourceProvider, error, content, document);

@@ -6,7 +6,6 @@ import 'dart:async';
 
 import '../api.dart';
 import '../executor/augmentation_library.dart';
-import '../executor/introspection_impls.dart';
 import '../executor.dart';
 
 /// A [MacroExecutor] implementation which delegates most work to other
@@ -97,44 +96,24 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
   @override
   Future<MacroExecutionResult> executeDeclarationsPhase(
           MacroInstanceIdentifier macro,
-          DeclarationImpl declaration,
-          IdentifierResolver identifierResolver,
-          TypeDeclarationResolver typeDeclarationResolver,
-          TypeResolver typeResolver,
-          TypeIntrospector typeIntrospector) =>
+          MacroTarget target,
+          DeclarationPhaseIntrospector introspector) =>
       _instanceExecutors[macro]!._withInstance((executor) =>
-          executor.executeDeclarationsPhase(
-              macro,
-              declaration,
-              identifierResolver,
-              typeDeclarationResolver,
-              typeResolver,
-              typeIntrospector));
+          executor.executeDeclarationsPhase(macro, target, introspector));
 
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
-          DeclarationImpl declaration,
-          IdentifierResolver identifierResolver,
-          TypeDeclarationResolver typeDeclarationResolver,
-          TypeResolver typeResolver,
-          TypeIntrospector typeIntrospector,
-          TypeInferrer typeInferrer) =>
+          MacroTarget target,
+          DefinitionPhaseIntrospector introspector) =>
       _instanceExecutors[macro]!._withInstance((executor) =>
-          executor.executeDefinitionsPhase(
-              macro,
-              declaration,
-              identifierResolver,
-              typeDeclarationResolver,
-              typeResolver,
-              typeIntrospector,
-              typeInferrer));
+          executor.executeDefinitionsPhase(macro, target, introspector));
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-          DeclarationImpl declaration, IdentifierResolver identifierResolver) =>
+          MacroTarget target, TypePhaseIntrospector introspector) =>
       _instanceExecutors[macro]!._withInstance((executor) =>
-          executor.executeTypesPhase(macro, declaration, identifierResolver));
+          executor.executeTypesPhase(macro, target, introspector));
 
   @override
   Future<MacroInstanceIdentifier> instantiateMacro(
@@ -149,6 +128,13 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
           library, name, constructor, arguments);
       _instanceExecutors[instance] = token;
       return instance;
+    });
+  }
+
+  @override
+  void disposeMacro(MacroInstanceIdentifier instance) {
+    _instanceExecutors[instance]!._withInstance((executor) {
+      executor.disposeMacro(instance);
     });
   }
 }
@@ -167,17 +153,9 @@ class ExecutorFactoryToken {
   /// Runs [callback] with an actual instance once available.
   ///
   /// This will spin up an instance if one is not currently running.
-  Future<T> _withInstance<T>(Future<T> Function(MacroExecutor) callback) {
-    FutureOr<MacroExecutor>? instance = _instance;
-    if (instance == null) {
-      instance = _instance = _factory();
-    }
-    if (instance is Future<MacroExecutor>) {
-      return instance.then(callback);
-    } else {
-      return callback(instance);
-    }
-  }
+  Future<T> _withInstance<T>(
+          FutureOr<T> Function(MacroExecutor) callback) async =>
+      callback(await (_instance ??= _factory()));
 
   /// Closes [_instance] if non-null, and sets it to `null`.
   Future<void> _close() async {

@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection' show UnmodifiableMapView;
+
 import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import 'nodes.dart';
 import 'optimize.dart' show OptimizationPhase, SsaOptimizerTask;
+
+bool _DEBUG = false;
 
 class ValueRangeInfo {
   late final IntValue intZero;
@@ -57,8 +61,8 @@ class ValueRangeInfo {
     return Range.normalize(low, up, this);
   }
 
-  Range newMarkerRange() {
-    return Range(MarkerValue(false, this), MarkerValue(true, this), this);
+  Value newMarkerValue({required bool isLower, required bool isPositive}) {
+    return MarkerValue(isLower, isPositive, this);
   }
 }
 
@@ -94,36 +98,13 @@ abstract class Value {
     return info.unknownValue;
   }
 
+  Value replaceMarkers(Value lowerBound, Value upperBound) {
+    return this;
+  }
+
   bool get isNegative => false;
   bool get isPositive => false;
   bool get isZero => false;
-}
-
-/// The [MarkerValue] class is used to recognize ranges of loop
-/// updates.
-class MarkerValue extends Value {
-  /// If [positive] is true (respectively false), the marker goes
-  /// to [MaxIntValue] (respectively [MinIntValue]) when being added
-  /// to a positive (respectively negative) value.
-  final bool positive;
-
-  const MarkerValue(this.positive, info) : super(info);
-
-  @override
-  Value operator +(Value other) {
-    if (other.isPositive && positive) return info.maxIntValue;
-    if (other.isNegative && !positive) return info.minIntValue;
-    if (other is IntValue) return this;
-    return info.unknownValue;
-  }
-
-  @override
-  Value operator -(Value other) {
-    if (other.isPositive && !positive) return info.minIntValue;
-    if (other.isNegative && positive) return info.maxIntValue;
-    if (other is IntValue) return this;
-    return info.unknownValue;
-  }
 }
 
 /// An [IntValue] contains a constant integer value.
@@ -210,7 +191,7 @@ class IntValue extends Value {
   int get hashCode => throw UnsupportedError('IntValue.hashCode');
 
   @override
-  String toString() => 'IntValue $value';
+  String toString() => 'Int($value)';
   @override
   bool get isNegative => value < BigInt.zero;
   @override
@@ -285,19 +266,14 @@ class UnknownValue extends Value {
   String toString() => 'Unknown';
 }
 
-/// A symbolic value representing an [HInstruction].
-class InstructionValue extends Value {
-  final HInstruction instruction;
-  InstructionValue(this.instruction, info) : super(info);
+abstract class VariableValue extends Value {
+  VariableValue(super.info);
 
   @override
-  bool operator ==(other) {
-    if (other is! InstructionValue) return false;
-    return this.instruction == other.instruction;
-  }
+  bool operator ==(other) => throw UnsupportedError('VariableValue.==');
 
   @override
-  int get hashCode => throw UnsupportedError('InstructionValue.hashCode');
+  int get hashCode => throw UnsupportedError('VariableValue.hashCode');
 
   @override
   Value operator +(Value other) {
@@ -308,7 +284,7 @@ class InstructionValue extends Value {
       }
       return info.newAddValue(this, other);
     }
-    if (other is InstructionValue) {
+    if (other is VariableValue) {
       return info.newAddValue(this, other);
     }
     return other + this;
@@ -324,7 +300,7 @@ class InstructionValue extends Value {
       }
       return info.newSubtractValue(this, other);
     }
-    if (other is InstructionValue) {
+    if (other is VariableValue) {
       return info.newSubtractValue(this, other);
     }
     return -other + this;
@@ -341,7 +317,51 @@ class InstructionValue extends Value {
   bool get isPositive => false;
 
   @override
-  String toString() => 'Instruction: $instruction';
+  String toString() => throw UnsupportedError('VariableValue.toString');
+}
+
+/// The [MarkerValue] class is a symbolc variable used to recognize ranges of
+/// loop updates.
+class MarkerValue extends VariableValue {
+  /// There are two marker values in the marker range - a lower value and an
+  /// upper value. [isLower] is true for the lower marker value.
+  final bool isLower;
+  @override
+  final bool isPositive;
+
+  MarkerValue(this.isLower, this.isPositive, super.info);
+
+  @override
+  bool operator ==(other) {
+    return other is MarkerValue && isLower == other.isLower;
+  }
+
+  @override
+  Value replaceMarkers(Value lowerBound, Value upperBound) {
+    return isLower ? lowerBound : upperBound;
+  }
+
+  @override
+  String toString() =>
+      'Marker(${isLower ? "lower" : "upper"}${isPositive ? ",>=0" : ""})';
+}
+
+/// A symbolic value representing an [HInstruction].
+class InstructionValue extends VariableValue {
+  final HInstruction instruction;
+  InstructionValue(this.instruction, super.info);
+
+  @override
+  bool operator ==(other) {
+    if (other is! InstructionValue) return false;
+    return this.instruction == other.instruction;
+  }
+
+  @override
+  int get hashCode => throw UnsupportedError('InstructionValue.hashCode');
+
+  @override
+  String toString() => 'Instruction($instruction)';
 }
 
 /// Special value for instructions whose type is a positive integer.
@@ -408,6 +428,14 @@ class AddValue extends BinaryOperationValue {
   }
 
   @override
+  Value replaceMarkers(Value lowerBound, Value upperBound) {
+    final newLeft = left.replaceMarkers(lowerBound, upperBound);
+    final newRight = right.replaceMarkers(lowerBound, upperBound);
+    if (left == newLeft && right == newRight) return this;
+    return newLeft + newRight;
+  }
+
+  @override
   bool get isNegative => left.isNegative && right.isNegative;
   @override
   bool get isPositive => left.isPositive && right.isPositive;
@@ -460,6 +488,14 @@ class SubtractValue extends BinaryOperationValue {
       return left - value;
     }
     return info.unknownValue;
+  }
+
+  @override
+  Value replaceMarkers(Value lowerBound, Value upperBound) {
+    final newLeft = left.replaceMarkers(lowerBound, upperBound);
+    final newRight = right.replaceMarkers(lowerBound, upperBound);
+    if (left == newLeft && right == newRight) return this;
+    return newLeft - newRight;
   }
 
   @override
@@ -521,6 +557,13 @@ class NegateValue extends Value {
 
   @override
   Value operator -() => value;
+
+  @override
+  Value replaceMarkers(Value lowerBound, Value upperBound) {
+    final newValue = value.replaceMarkers(lowerBound, upperBound);
+    if (value == newValue) return this;
+    return -newValue;
+  }
 
   @override
   bool get isNegative => value.isPositive;
@@ -622,6 +665,13 @@ class Range {
     }
   }
 
+  Range replaceMarkers(Value lowerBound, Value upperBound) {
+    final newLower = lower.replaceMarkers(lowerBound, upperBound);
+    final newUpper = upper.replaceMarkers(lowerBound, upperBound);
+    if (lower == newLower && upper == newUpper) return this;
+    return info.newNormalizedRange(newLower, newUpper);
+  }
+
   @override
   bool operator ==(other) {
     if (other is! Range) return false;
@@ -664,7 +714,7 @@ typedef BinaryRangeOperation = Range Function(Range, Range);
 class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
     implements OptimizationPhase {
   @override
-  String get name => 'SSA value range builder';
+  String get name => 'SsaValueRangeAnalyzer';
 
   /// List of [HRangeConversion] instructions created by the phase. We
   /// save them here in order to remove them once the phase is done.
@@ -675,17 +725,19 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
   final Map<HInstruction, Range> ranges = {};
 
   final JClosedWorld closedWorld;
-  final ValueRangeInfo info;
+  final ValueRangeInfo info = ValueRangeInfo();
   final SsaOptimizerTask optimizer;
 
   late HGraph graph;
 
-  SsaValueRangeAnalyzer(JClosedWorld closedWorld, this.optimizer)
-      : info = ValueRangeInfo(),
-        this.closedWorld = closedWorld;
+  SsaValueRangeAnalyzer(this.closedWorld, this.optimizer);
 
   @override
   void visitGraph(HGraph graph) {
+    // Example debugging code:
+    //
+    //    _DEBUG = graph.element.toString().contains('(main)');
+
     this.graph = graph;
     visitDominatorTree(graph);
     // We remove the range conversions after visiting the graph so
@@ -711,9 +763,10 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
   void visitBasicBlock(HBasicBlock block) {
     void visit(HInstruction instruction) {
       Range range = instruction.accept(this);
-      if (instruction
-          .isInteger(closedWorld.abstractValueDomain)
-          .isDefinitelyTrue) {
+      if (instruction is! HControlFlow &&
+          instruction
+              .isInteger(closedWorld.abstractValueDomain)
+              .isDefinitelyTrue) {
         ranges[instruction] = range;
       }
     }
@@ -740,9 +793,15 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
   }
 
   @override
+  Range visitControlFlow(HControlFlow instruction) {
+    return info.newUnboundRange();
+  }
+
+  @override
   Range visitPhi(HPhi phi) {
-    if (phi.isInteger(closedWorld.abstractValueDomain).isPotentiallyFalse)
+    if (phi.isInteger(closedWorld.abstractValueDomain).isPotentiallyFalse) {
       return info.newUnboundRange();
+    }
     // Some phases may replace instructions that change the inputs of
     // this phi. Only the [SsaTypesPropagation] phase will update the
     // phi type. Play it safe by assuming the [SsaTypesPropagation]
@@ -752,7 +811,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
       return info.newUnboundRange();
     }
     if (phi.block!.isLoopHeader()) {
-      final range = LoopUpdateRecognizer(closedWorld, ranges, info).run(phi);
+      final range =
+          LoopUpdateRecognizer(closedWorld, UnmodifiableMapView(ranges), info)
+              .run(phi);
       if (range == null) return info.newUnboundRange();
       return range;
     }
@@ -1200,30 +1261,65 @@ class SsaValueRangeAnalyzer extends HBaseVisitor<Range>
 /// Tries to find a range for the update instruction of a loop phi.
 class LoopUpdateRecognizer extends HBaseVisitor<Range?> {
   final JClosedWorld closedWorld;
-  final Map<HInstruction, Range> ranges;
+  // Ranges from outside the loop, which never contain a marker value.
+  final UnmodifiableMapView<HInstruction, Range> ranges;
   final ValueRangeInfo info;
+
+  // Ranges inside the loop which may contain marker values specific to the loop
+  // phi.
+  final Map<HInstruction, Range?> temporaryRanges = {};
+
   LoopUpdateRecognizer(this.closedWorld, this.ranges, this.info);
 
   Range? run(HPhi loopPhi) {
-    // Create a marker range for the loop phi, so that if the update
-    // uses the loop phi, it has a range to use.
-    ranges[loopPhi] = info.newMarkerRange();
+    // Create a marker range for the loop phi. This is the symbolic initial
+    // value of the loop variable for one iteration.
+    bool isPositive = loopPhi
+        .isPositiveInteger(closedWorld.abstractValueDomain)
+        .isDefinitelyTrue;
+    final lowerMarker =
+        info.newMarkerValue(isLower: true, isPositive: isPositive);
+    final upperMarker =
+        info.newMarkerValue(isLower: false, isPositive: isPositive);
+    final markerRange = info.newNormalizedRange(lowerMarker, upperMarker);
+
+    // Compute the update range as a function of the initial marker range.
+    temporaryRanges[loopPhi] = markerRange;
     final updateRange = visit(loopPhi.inputs[1]);
-    ranges.remove(loopPhi);
     if (updateRange == null) return null;
+
+    // Use 'union' to compare the marker with the loop update to find out if the
+    // lower or upper value did not change.
+    final deltaRange = markerRange.union(updateRange);
+
+    // If the lower (respectively upper) value is the marker, we know the loop
+    // does not change it, so we can use the [startRange]'s lower (upper) value.
+    // Otherwise the lower (upper) value changes and needs to be widened to the
+    // minimum (maximum) value.
     final startRange = ranges[loopPhi.inputs[0]]!;
-    // If the lower (respectively upper) value is the marker, we know
-    // the loop does not change it, so we can just use the
-    // [startRange]'s lower (upper) value. Otherwise the lower (upper) value
-    // is the minimum of the [startRange]'s lower (upper) and the
-    // [updateRange]'s lower (upper).
-    Value low = updateRange.lower is MarkerValue
-        ? startRange.lower
-        : updateRange.lower.min(startRange.lower);
-    Value up = updateRange.upper is MarkerValue
-        ? startRange.upper
-        : updateRange.upper.max(startRange.upper);
-    return info.newNormalizedRange(low, up);
+
+    Value lowerLimit = isPositive ? info.intZero : info.minIntValue;
+    Value upperLimit = info.maxIntValue;
+    Value lowerBound =
+        deltaRange.lower == lowerMarker ? startRange.lower : lowerLimit;
+    Value upperBound =
+        deltaRange.upper == upperMarker ? startRange.upper : upperLimit;
+
+    // Widen the update range and union with the start range.
+    final widened = updateRange.replaceMarkers(lowerBound, upperBound);
+    final result = startRange.union(widened);
+
+    if (_DEBUG) {
+      print('------- ${loopPhi.sourceElement}'
+          '\n    marker  $markerRange'
+          '\n    update  $updateRange'
+          '\n    delta   $deltaRange'
+          '\n    start   $startRange'
+          '\n    widened $widened'
+          '\n    result= $result');
+    }
+
+    return result;
   }
 
   Range? visit(HInstruction instruction) {
@@ -1232,13 +1328,14 @@ class LoopUpdateRecognizer extends HBaseVisitor<Range?> {
         .isPotentiallyFalse) {
       return null;
     }
-    return ranges[instruction] ?? instruction.accept(this);
+    Range? result = ranges[instruction];
+    if (result != null) return result;
+    return temporaryRanges[instruction] ??= instruction.accept(this);
   }
 
   @override
   Range? visitPhi(HPhi phi) {
-    // If the update of a loop phi involves another loop phi, we give
-    // up.
+    // If the update of a loop phi involves another loop phi, we give up.
     if (phi.block!.isLoopHeader()) return null;
     Range? phiRange;
     for (HInstruction input in phi.inputs) {

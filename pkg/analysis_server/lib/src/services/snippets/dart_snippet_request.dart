@@ -60,6 +60,10 @@ class DartSnippetRequest {
           tokenType == TokenType.STRING_INTERPOLATION_IDENTIFIER) {
         return SnippetContext.inString;
       }
+    } else if (entity is NamedExpression &&
+        target.offset >= entity.name.offset &&
+        target.offset <= entity.name.end) {
+      return SnippetContext.inName;
     }
 
     AstNode? node = target.containingNode;
@@ -80,7 +84,7 @@ class DartSnippetRequest {
         return SnippetContext.inIdentifierDeclaration;
       }
 
-      if (node is PropertyAccess) {
+      if (node is PropertyAccess || node is FieldFormalParameter) {
         return SnippetContext.inQualifiedMemberAccess;
       }
 

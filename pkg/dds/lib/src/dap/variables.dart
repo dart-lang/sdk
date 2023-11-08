@@ -53,6 +53,15 @@ class InspectData {
   InspectData(this.instance);
 }
 
+/// A wrapper around an Instance ID that will result in a variable with a single
+/// field `value` that can be used by DAP-over-DDS clients wanting to use
+/// variables requests for variable display.
+class WrappedInstanceVariable {
+  final String instanceId;
+
+  WrappedInstanceVariable(this.instanceId);
+}
+
 /// Formatting preferences for a variable.
 class VariableFormat {
   /// Whether to supress quotes around [String]s.

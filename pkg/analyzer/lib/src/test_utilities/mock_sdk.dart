@@ -259,6 +259,9 @@ class JsonCodec {
 abstract mixin class StringConversionSink { }
 
 typedef StringConversionSinkMixin = StringConversionSink;
+
+String jsonEncode(Object? object,
+        {Object? toEncodable(Object? nonEncodable)?}) => '';
 ''',
     )
   ],
@@ -776,7 +779,11 @@ final class Pointer<T extends NativeType> extends NativeType {
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
 class NativeCallable<T extends Function> {
-  NativeCallable.listener(@DartRepresentationOf('T') Function callback) {}
+  NativeCallable.isolateLocal(
+      @DartRepresentationOf("T") Function callback,
+      {Object? exceptionalReturn}) {}
+
+  NativeCallable.listener(@DartRepresentationOf("T") Function callback) {}
 
   Pointer<NativeFunction<T>> get nativeFunction;
 
@@ -1211,12 +1218,6 @@ abstract class Directory implements FileSystemEntity {
   factory Directory(String path) {
     throw 0;
   }
-
-  Future<bool> exists() async => true;
-  bool existsSync() => true;
-
-  Future<FileStat> stat() async => throw 0;
-  FileStat statSync() => throw 0;
 }
 
 abstract class File implements FileSystemEntity {
@@ -1226,12 +1227,7 @@ abstract class File implements FileSystemEntity {
 
   Future<DateTime> lastModified();
   DateTime lastModifiedSync();
-
-  Future<bool> exists();
-  bool existsSync();
-
-  Future<FileStat> stat();
-  FileStat statSync();
+  IOSink openWrite();
 }
 
 abstract class FileSystemEntity {
@@ -1250,6 +1246,16 @@ abstract class FileSystemEntity {
   static FileSystemEntityType typeSync(String path,
           {bool followLinks = true}) =>
       throw 0;
+
+  Future<bool> exists();
+  bool existsSync();
+
+  Future<FileStat> stat();
+  FileStat statSync();
+}
+
+class IOSink implements Sink<List<int>> {
+  Future<dynamic> close() {}
 }
 
 class ProcessStartMode {
@@ -1282,6 +1288,8 @@ abstract class Process {
 
 abstract class Socket {
   void destroy() {}
+
+  static Future<Socket> connect(dynamic host, int port) async => Socket();
 }
 ''',
     )
@@ -1348,6 +1356,10 @@ class Point<T extends num> {}
   ],
 );
 
+final MockSdkLibrary _LIB_WASM = MockSdkLibrary('_wasm', [
+  MockSdkLibraryUnit('_wasm/wasm.dart', ''),
+]);
+
 final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_CORE,
   _LIB_ASYNC,
@@ -1361,6 +1373,7 @@ final List<MockSdkLibrary> _LIBRARIES = [
   _LIB_HTML_DART2JS,
   _LIB_INTERCEPTORS,
   _LIB_INTERNAL,
+  _LIB_WASM,
 ];
 
 /// Create a reduced approximation of Dart SDK in the [path].

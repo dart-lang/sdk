@@ -4,9 +4,10 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 
 class WorkspaceDidChangeConfigurationMessageHandler
-    extends MessageHandler<DidChangeConfigurationParams, void> {
+    extends LspMessageHandler<DidChangeConfigurationParams, void> {
   WorkspaceDidChangeConfigurationMessageHandler(super.server);
 
   @override
@@ -27,4 +28,18 @@ class WorkspaceDidChangeConfigurationMessageHandler
 
     return success(null);
   }
+}
+
+class WorkspaceDidChangeConfigurationRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration {
+  WorkspaceDidChangeConfigurationRegistrations(super.info);
+
+  @override
+  ToJsonable? get options => null;
+
+  @override
+  Method get registrationMethod => Method.workspace_didChangeConfiguration;
+
+  @override
+  bool get supportsDynamic => clientDynamic.didChangeConfiguration;
 }

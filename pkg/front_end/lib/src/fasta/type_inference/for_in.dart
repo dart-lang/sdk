@@ -106,9 +106,7 @@ class PropertyForInVariable implements ForInVariable {
     DartType receiverType = receiverResult.inferredType;
     ObjectAccessTarget writeTarget = visitor.findInterfaceMember(
         receiverType, propertySet.name, propertySet.fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
-        instrumented: true,
-        includeExtensionMethods: true);
+        isSetter: true, instrumented: true, includeExtensionMethods: true);
     DartType elementType = _writeType = writeTarget.getSetterType(visitor);
     Expression? error = visitor.reportMissingInterfaceMember(
         writeTarget,
@@ -164,8 +162,7 @@ class AbstractSuperPropertyForInVariable implements ForInVariable {
     DartType receiverType = visitor.thisType!;
     ObjectAccessTarget writeTarget = visitor.findInterfaceMember(
         receiverType, superPropertySet.name, superPropertySet.fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
-        instrumented: true);
+        isSetter: true, instrumented: true);
     assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
     return _writeType = writeTarget.getSetterType(visitor);
   }
@@ -202,8 +199,7 @@ class SuperPropertyForInVariable implements ForInVariable {
     DartType receiverType = visitor.thisType!;
     ObjectAccessTarget writeTarget = visitor.findInterfaceMember(
         receiverType, superPropertySet.name, superPropertySet.fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
-        instrumented: true);
+        isSetter: true, instrumented: true);
     assert(writeTarget.isInstanceMember || writeTarget.isObjectMember);
     return _writeType = writeTarget.getSetterType(visitor);
   }

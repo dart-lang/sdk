@@ -11,8 +11,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ArgumentTypeNotAssignableTest);
-    defineReflectiveTests(
-        ArgumentTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(ArgumentTypeNotAssignableWithoutNullSafetyTest);
     defineReflectiveTests(ArgumentTypeNotAssignableWithStrictCastsTest);
   });
@@ -48,6 +46,19 @@ void f(A a, A? aq) {
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 88, 1),
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
+    ]);
+  }
+
+  test_const() async {
+    await assertErrorsInCode('''
+class A {
+  const A(String p);
+}
+main() {
+  const A(42);
+}''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2),
+      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 52, 2),
     ]);
   }
 
@@ -315,19 +326,6 @@ main() {
   a..  ma().mb(0);
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 186, 1),
-    ]);
-  }
-
-  test_const() async {
-    await assertErrorsInCode('''
-class A {
-  const A(String p);
-}
-main() {
-  const A(42);
-}''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 52, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2),
     ]);
   }
 
@@ -697,31 +695,6 @@ g(C c) {
 }
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 99, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class ArgumentTypeNotAssignableWithoutNullSafetyAndNoImplicitCastsTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
-  test_functionCall() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-int f(int i) => i;
-num n = 0;
-var v = f(n);
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 40, 1),
-    ]);
-  }
-
-  test_operator() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-num n = 0;
-int i = 0;
-var v = i & n;
-''', [
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 34, 1),
     ]);
   }
 }

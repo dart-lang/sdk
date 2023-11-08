@@ -1,0 +1,7 @@
+import 'dart:async';
+
+FutureOr<Iterable<int>> f() sync* {}
+FutureOr<Stream<int>> g() async* {}
+expectAsyncThrows(f) async {}
+expectThrows(f) {}
+main() async {}

@@ -163,11 +163,10 @@ void MournFinalizerEntry(GCVisitorType* visitor,
                          FinalizerEntryPtr current_entry) {
   TRACE_FINALIZER("Processing Entry %p", current_entry->untag());
 
-  uword heap_base = current_entry->heap_base();
   const Heap::Space before_gc_space = SpaceForExternal(current_entry);
   const bool value_collected_this_gc =
       GCVisitorType::ForwardOrSetNullIfCollected(
-          heap_base, &current_entry->untag()->value_);
+          current_entry, &current_entry->untag()->value_);
   if (!value_collected_this_gc && before_gc_space == Heap::kNew) {
     const Heap::Space after_gc_space = SpaceForExternal(current_entry);
     if (after_gc_space == Heap::kOld) {
@@ -178,10 +177,10 @@ void MournFinalizerEntry(GCVisitorType* visitor,
       visitor->isolate_group()->heap()->PromotedExternal(external_size);
     }
   }
-  GCVisitorType::ForwardOrSetNullIfCollected(heap_base,
+  GCVisitorType::ForwardOrSetNullIfCollected(current_entry,
                                              &current_entry->untag()->detach_);
   GCVisitorType::ForwardOrSetNullIfCollected(
-      heap_base, &current_entry->untag()->finalizer_);
+      current_entry, &current_entry->untag()->finalizer_);
 
   ObjectPtr token_object = current_entry->untag()->token();
   // See sdk/lib/_internal/vm/lib/internal_patch.dart FinalizerBase.detach.

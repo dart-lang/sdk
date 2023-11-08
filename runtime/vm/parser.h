@@ -141,6 +141,13 @@ class ParsedFunction : public ZoneAllocated {
   }
   bool has_receiver_var() const { return receiver_var_ != nullptr; }
 
+  void set_receiver_used() { receiver_used_ = true; }
+  bool is_receiver_used() const {
+    ASSERT(kernel_scopes_ != nullptr);
+    ASSERT(!receiver_used_ || receiver_var() != nullptr);
+    return receiver_used_;
+  }
+
   LocalVariable* expression_temp_var() const {
     ASSERT(has_expression_temp_var());
     return expression_temp_var_;
@@ -302,6 +309,7 @@ class ParsedFunction : public ZoneAllocated {
   DynamicClosureCallVars* dynamic_closure_call_vars_;
   mutable FieldSet guarded_fields_;
   ZoneGrowableArray<const Instance*>* default_parameter_values_;
+  bool receiver_used_ = false;
 
   LocalVariable* raw_type_arguments_var_;
   ZoneGrowableArray<LocalVariable*>* raw_parameters_ = nullptr;

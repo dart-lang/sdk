@@ -100,7 +100,7 @@ B<Y> Function<Y>() test17() => DB2.new; // Error.
                                ^" in invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:42:32: Error: A value of type 'B<X> Function<X extends num>()' can't be assigned to a variable of type 'B<Y> Function<Y>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y>() test17() => DB2.new; // Error.
-                               ^" in #C12 as{TypeError} <Y extends core::Object? = dynamic>() → self::B<Y%> as{TypeError} <Y extends core::Object? = dynamic>() → self::B<Y%>;
+                               ^" in #C12 as{TypeError} Never as{TypeError} Never;
 static method test18() → () → self::B<core::num>
   return #C9;
 static method test19() → () → self::B<core::num>
@@ -118,7 +118,7 @@ B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
                                   ^" in invalid-expression "pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart:49:35: Error: A value of type 'B<X> Function<X extends num, Y extends String>()' can't be assigned to a variable of type 'B<Y> Function<Y, Z>()'.
  - 'B' is from 'pkg/front_end/testcases/constructor_tearoffs/typedef_tearoffs.dart'.
 B<Y> Function<Y, Z>() test23() => DB3.new; // Error.
-                                  ^" in #C13 as{TypeError} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%> as{TypeError} <Y extends core::Object? = dynamic, Z extends core::Object? = dynamic>() → self::B<Y%>;
+                                  ^" in #C13 as{TypeError} Never as{TypeError} Never;
 static method test24() → () → self::B<core::String>
   return #C14;
 static method main() → dynamic {}

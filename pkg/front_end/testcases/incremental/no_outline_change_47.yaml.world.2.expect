@@ -3,7 +3,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   extension Foo on dart.core::int {
     method x = main::Foo|x;
-    tearoff x = main::Foo|get#x;
+    method tearoff x = main::Foo|get#x;
   }
   late static final field dart.core::int x = 42;
   static extension-member method Foo|x(lowered final dart.core::int #this) → void {}

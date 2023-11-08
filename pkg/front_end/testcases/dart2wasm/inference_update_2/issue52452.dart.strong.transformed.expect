@@ -128,13 +128,13 @@ static method testConflictWithNoSuchMethodForwarderIfImplementedInMixin(self::C 
 }
 static method testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin1(self::C c) → void {
   if(!(c.{self::C::_f3}{core::int?} == null)) {
-    core::int x = c.{self::C::_f3}{core::int};
+    core::int x = c.{self::C::_f3}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }
 static method testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin2(self::C c) → void {
   if(!(c.{self::C::_f4}{core::int?} == null)) {
-    core::int x = c.{self::C::_f4}{core::int};
+    core::int x = c.{self::C::_f4}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }

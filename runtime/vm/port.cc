@@ -19,24 +19,7 @@ namespace dart {
 
 Mutex* PortMap::mutex_ = nullptr;
 PortSet<PortMap::Entry>* PortMap::ports_ = nullptr;
-MessageHandler* PortMap::deleted_entry_ = reinterpret_cast<MessageHandler*>(1);
 Random* PortMap::prng_ = nullptr;
-
-const char* PortMap::PortStateString(PortState kind) {
-  switch (kind) {
-    case kNewPort:
-      return "new";
-    case kLivePort:
-      return "live";
-    case kControlPort:
-      return "control";
-    case kInactivePort:
-      return "inactive";
-    default:
-      UNREACHABLE();
-      return "UNKNOWN";
-  }
-}
 
 Dart_Port PortMap::AllocatePort() {
   Dart_Port result;
@@ -46,13 +29,13 @@ Dart_Port PortMap::AllocatePort() {
   // Keep getting new values while we have an illegal port number or the port
   // number is already in use.
   do {
-    // Ensure port ids are representable in JavaScript for the benefit of
-    // vm-service clients such as Observatory.
-    const Dart_Port kMask1 = 0xFFFFFFFFFFFFF;
     // Ensure port ids are never valid object pointers so that reinterpreting
     // an object pointer as a port id never produces a used port id.
     const Dart_Port kMask2 = 0x3;
-    result = (prng_->NextUInt64() & kMask1) | kMask2;
+
+    // Ensure port ids are representable in JavaScript for the benefit of
+    // vm-service clients such as Observatory.
+    result = prng_->NextJSInt() | kMask2;
 
     // The two special marker ports are used for the hashset implementation and
     // cannot be used as actual ports.
@@ -67,33 +50,6 @@ Dart_Port PortMap::AllocatePort() {
   ASSERT(result != 0);
   ASSERT(!ports_->Contains(result));
   return result;
-}
-
-void PortMap::SetPortState(Dart_Port port, PortState state) {
-  MutexLocker ml(mutex_);
-  if (ports_ == nullptr) {
-    return;
-  }
-
-  auto it = ports_->TryLookup(port);
-  ASSERT(it != ports_->end());
-
-  Entry& entry = *it;
-  PortState old_state = entry.state;
-  entry.state = state;
-  if (state == kLivePort) {
-    entry.handler->increment_live_ports();
-  } else if (state == kInactivePort && old_state == kLivePort) {
-    entry.handler->decrement_live_ports();
-  }
-  if (FLAG_trace_isolates) {
-    OS::PrintErr(
-        "[^] Port (%s) -> (%s): \n"
-        "\thandler:    %s\n"
-        "\tport:       %" Pd64 "\n",
-        PortStateString(old_state), PortStateString(state),
-        entry.handler->name(), port);
-  }
 }
 
 Dart_Port PortMap::CreatePort(MessageHandler* handler) {
@@ -118,7 +74,6 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   Entry entry;
   entry.port = port;
   entry.handler = handler;
-  entry.state = kNewPort;
   ports_->Insert(entry);
 
   if (FLAG_trace_isolates) {
@@ -132,7 +87,9 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   return entry.port;
 }
 
-bool PortMap::ClosePort(Dart_Port port) {
+bool PortMap::ClosePort(Dart_Port port, MessageHandler** message_handler) {
+  if (message_handler != nullptr) *message_handler = nullptr;
+
   MessageHandler* handler = nullptr;
   {
     MutexLocker ml(mutex_);
@@ -151,10 +108,6 @@ bool PortMap::ClosePort(Dart_Port port) {
     handler->CheckAccess();
 #endif
 
-    if (entry.state == kLivePort) {
-      handler->decrement_live_ports();
-    }
-
     // Delete the port entry before releasing the lock to avoid holding the lock
     // while flushing the messages below.
     it.Delete();
@@ -168,10 +121,7 @@ bool PortMap::ClosePort(Dart_Port port) {
     handler->ports_.Rebalance();
   }
   handler->ClosePort(port);
-  if (!handler->HasLivePorts() && handler->OwnedByPortMap()) {
-    // Delete handler as soon as it isn't busy with a task.
-    handler->RequestDeletion();
-  }
+  if (message_handler != nullptr) *message_handler = handler;
   return true;
 }
 
@@ -190,9 +140,6 @@ void PortMap::ClosePorts(MessageHandler* handler) {
       Entry entry = *it;
       ASSERT(entry.port == (*isolate_it).port);
       ASSERT(entry.handler == handler);
-      if (entry.state == kLivePort) {
-        handler->decrement_live_ports();
-      }
       it.Delete();
       isolate_it.Delete();
     }
@@ -220,36 +167,16 @@ bool PortMap::PostMessage(std::unique_ptr<Message> message,
   return true;
 }
 
-bool PortMap::IsLocalPort(Dart_Port id) {
+#if defined(TESTING)
+bool PortMap::PortExists(Dart_Port id) {
   MutexLocker ml(mutex_);
   if (ports_ == nullptr) {
     return false;
   }
   auto it = ports_->TryLookup(id);
-  if (it == ports_->end()) {
-    // Port does not exist.
-    return false;
-  }
-
-  MessageHandler* handler = (*it).handler;
-  ASSERT(handler != nullptr);
-  return handler->IsCurrentIsolate();
+  return it != ports_->end();
 }
-
-bool PortMap::IsLivePort(Dart_Port id) {
-  MutexLocker ml(mutex_);
-  if (ports_ == nullptr) {
-    return false;
-  }
-  auto it = ports_->TryLookup(id);
-  if (it == ports_->end()) {
-    // Port does not exist.
-    return false;
-  }
-
-  PortState state = (*it).state;
-  return (state == kLivePort || state == kControlPort);
-}
+#endif  // defined(TESTING)
 
 Isolate* PortMap::GetIsolate(Dart_Port id) {
   MutexLocker ml(mutex_);
@@ -285,6 +212,18 @@ Dart_Port PortMap::GetOriginId(Dart_Port id) {
   }
   return isolate->origin_id();
 }
+
+#if defined(TESTING)
+bool PortMap::HasPorts(MessageHandler* handler) {
+  MutexLocker ml(mutex_);
+  if (ports_ == nullptr) {
+    return false;
+  }
+  // The MessageHandler::ports_ is only accessed by [PortMap], it is guarded
+  // by the [PortMap::mutex_] we already hold.
+  return !handler->ports_.IsEmpty();
+}
+#endif
 
 bool PortMap::IsReceiverInThisIsolateGroupOrClosed(Dart_Port receiver,
                                                    IsolateGroup* group) {
@@ -325,9 +264,6 @@ void PortMap::Cleanup() {
   for (auto it = ports_->begin(); it != ports_->end(); ++it) {
     const auto& entry = *it;
     ASSERT(entry.handler != nullptr);
-    if (entry.state == kLivePort) {
-      entry.handler->decrement_live_ports();
-    }
     delete entry.handler;
     it.Delete();
   }
@@ -355,13 +291,11 @@ void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
     }
     for (auto& entry : *ports_) {
       if (entry.handler == handler) {
-        if (entry.state == kLivePort) {
-          JSONObject port(&ports);
-          port.AddProperty("type", "_Port");
-          port.AddPropertyF("name", "Isolate Port (%" Pd64 ")", entry.port);
-          msg_handler = DartLibraryCalls::LookupHandler(entry.port);
-          port.AddProperty("handler", msg_handler);
-        }
+        JSONObject port(&ports);
+        port.AddProperty("type", "_Port");
+        port.AddPropertyF("name", "Isolate Port (%" Pd64 ")", entry.port);
+        msg_handler = DartLibraryCalls::LookupHandler(entry.port);
+        port.AddProperty("handler", msg_handler);
       }
     }
   }
@@ -376,11 +310,9 @@ void PortMap::DebugDumpForMessageHandler(MessageHandler* handler) {
   Object& msg_handler = Object::Handle();
   for (auto& entry : *ports_) {
     if (entry.handler == handler) {
-      if (entry.state == kLivePort) {
-        OS::PrintErr("Live Port = %" Pd64 "\n", entry.port);
-        msg_handler = DartLibraryCalls::LookupHandler(entry.port);
-        OS::PrintErr("Handler = %s\n", msg_handler.ToCString());
-      }
+      OS::PrintErr("Port = %" Pd64 "\n", entry.port);
+      msg_handler = DartLibraryCalls::LookupHandler(entry.port);
+      OS::PrintErr("Handler = %s\n", msg_handler.ToCString());
     }
   }
 }

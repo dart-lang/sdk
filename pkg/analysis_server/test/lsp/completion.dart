@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'server_abstract.dart';
 
 mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
@@ -25,26 +27,23 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
     bool verifyInsertReplaceRanges = false,
     bool openCloseFile = true,
   }) async {
+    final code = TestCode.parse(content);
     // If verifyInsertReplaceRanges is true, we need both expected contents.
     assert(verifyInsertReplaceRanges == false ||
         (expectedContent != null && expectedContentIfInserting != null));
 
     if (!initialized) {
-      var textDocCapabilities =
-          withCompletionItemSnippetSupport(emptyTextDocumentClientCapabilities);
-
+      setCompletionItemSnippetSupport();
       if (verifyInsertReplaceRanges) {
-        textDocCapabilities =
-            withCompletionItemInsertReplaceSupport(textDocCapabilities);
+        setCompletionItemInsertReplaceSupport();
       }
-      await initialize(textDocumentCapabilities: textDocCapabilities);
+      await initialize();
     }
 
     if (openCloseFile) {
-      await openFile(fileUri, withoutMarkers(content));
+      await openFile(fileUri, code.code);
     }
-    completionResults =
-        await getCompletion(fileUri, positionFromMarker(content));
+    completionResults = await getCompletion(fileUri, code.position.position);
     if (openCloseFile) {
       await closeFile(fileUri);
     }
@@ -72,7 +71,7 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
           expectedContent != expectedContentIfInserting) {
         // Replacing.
         updatedContent = applyTextEdits(
-          withoutMarkers(content),
+          code.code,
           [textEditForReplace(item.textEdit!)],
         );
         expect(
@@ -80,14 +79,14 @@ mixin CompletionTestMixin on AbstractLspAnalysisServerTest {
 
         // Inserting.
         final inserted = applyTextEdits(
-          withoutMarkers(content),
+          code.code,
           [textEditForInsert(item.textEdit!)],
         );
         expect(withCaret(inserted, insertFormat),
             equals(expectedContentIfInserting));
       } else {
         updatedContent = applyTextEdits(
-          withoutMarkers(content),
+          code.code,
           [toTextEdit(item.textEdit!)],
         );
         if (expectedContent != null) {

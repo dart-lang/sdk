@@ -8,6 +8,7 @@ import 'package:collection/collection.dart' show IterableExtension;
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
+import 'templates/cli.dart';
 import 'templates/console.dart';
 import 'templates/console_simple.dart';
 import 'templates/package.dart';
@@ -18,6 +19,7 @@ final _substituteRegExp = RegExp(r'__([a-zA-Z]+)__');
 final _nonValidSubstituteRegExp = RegExp(r'[^a-zA-Z]');
 
 final List<Generator> generators = [
+  CliGenerator(),
   ConsoleGenerator(),
   PackageGenerator(),
   ServerShelfGenerator(),
@@ -140,20 +142,13 @@ abstract class Generator implements Comparable<Generator> {
 /// An abstract implementation of a [Generator].
 abstract class DefaultGenerator extends Generator {
   DefaultGenerator(
-    String id,
-    String label,
-    String description, {
-    String? alternateId,
-    List<String> categories = const [],
-    bool deprecated = false,
-  }) : super(
-          id,
-          label,
-          description,
-          categories: categories,
-          alternateId: alternateId,
-          deprecated: deprecated,
-        );
+    super.id,
+    super.label,
+    super.description, {
+    super.alternateId,
+    super.categories,
+    super.deprecated,
+  });
 }
 
 /// A target for a [Generator]. This class knows how to create files given a

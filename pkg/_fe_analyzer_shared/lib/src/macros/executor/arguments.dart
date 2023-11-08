@@ -186,54 +186,35 @@ abstract base class _CollectionArgument extends Argument {
 
   _CollectionArgument(this._typeArguments);
 
-  /// Creates a one or two element list, based on [_typeArguments]. These lists
-  /// each contain reified generic type arguments that match the serialized
-  /// [_typeArguments].
-  ///
-  /// You can extract the type arguments to build up the actual collection type
-  /// that you need.
+  /// Creates a one or two element list, based on [_typeArguments], but
+  /// converted into deep [Cast] objects.
   ///
   /// For an iterable, this will always have a single value, and for a map it
   /// will always have two values.
-  List<List<Object?>> _extractTypeArguments() {
-    List<List<Object?>> typedInstanceStack = [];
+  List<Cast> _extractTypeArgumentCasts() {
+    List<Cast> castStack = [];
 
     // We build up the list type backwards.
     for (ArgumentKind type in _typeArguments.reversed) {
-      typedInstanceStack.add(switch (type) {
-        ArgumentKind.bool => const <bool>[],
-        ArgumentKind.double => const <double>[],
-        ArgumentKind.int => const <int>[],
+      castStack.add(switch (type) {
+        ArgumentKind.bool => const Cast<bool>(),
+        ArgumentKind.double => const Cast<double>(),
+        ArgumentKind.int => const Cast<int>(),
         ArgumentKind.map =>
-          extractIterableTypeArgument(typedInstanceStack.removeLast(), <K>() {
-            return extractIterableTypeArgument(typedInstanceStack.removeLast(),
-                <V>() {
-              return new List<Map<K, V>>.empty();
-            });
-          }) as List<Object?>,
-        ArgumentKind.nil => const <Null>[],
-        ArgumentKind.set =>
-          extractIterableTypeArgument(typedInstanceStack.removeLast(), <S>() {
-            return new List<Set<S>>.empty();
-          }) as List<Object?>,
-        ArgumentKind.string => const <String>[],
-        ArgumentKind.list =>
-          extractIterableTypeArgument(typedInstanceStack.removeLast(), <S>() {
-            return new List<List<S>>.empty();
-          }) as List<Object?>,
-        ArgumentKind.typeAnnotation => const <TypeAnnotation>[],
-        ArgumentKind.code => const <Code>[],
-        ArgumentKind.object => const <Object>[],
-        ArgumentKind.dynamic => const <dynamic>[],
-        ArgumentKind.num => const <num>[],
-        ArgumentKind.nullable =>
-          extractIterableTypeArgument(typedInstanceStack.removeLast(), <S>() {
-            return new List<S?>.empty();
-          }) as List<Object?>,
+          MapCast.from(castStack.removeLast(), castStack.removeLast()),
+        ArgumentKind.nil => const Cast<Null>(),
+        ArgumentKind.set => SetCast.from(castStack.removeLast()),
+        ArgumentKind.string => const Cast<String>(),
+        ArgumentKind.list => ListCast.from(castStack.removeLast()),
+        ArgumentKind.typeAnnotation => const Cast<TypeAnnotation>(),
+        ArgumentKind.code => const Cast<Code>(),
+        ArgumentKind.object => const Cast<Object>(),
+        ArgumentKind.dynamic => const Cast<dynamic>(),
+        ArgumentKind.num => const Cast<num>(),
+        ArgumentKind.nullable => castStack.removeLast().nullable,
       });
     }
-
-    return typedInstanceStack;
+    return castStack;
   }
 
   @override
@@ -262,18 +243,14 @@ abstract base class _IterableArgument<T extends Iterable<Object?>>
       ..moveNext()
       ..expectList();
     final List<ArgumentKind> typeArguments = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         ArgumentKind.values[deserializer.expectInt()],
     ];
     deserializer
       ..moveNext()
       ..expectList();
     final List<Argument> values = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         new Argument.deserialize(deserializer, alreadyMoved: true),
     ];
     return switch (kind) {
@@ -301,11 +278,10 @@ final class ListArgument extends _IterableArgument<List<Object?>> {
 
   /// Materializes all the `_arguments` as actual values.
   @override
-  List<Object?> get value {
-    return extractIterableTypeArgument(_extractTypeArguments().single, <S>() {
-      return <S>[for (Argument arg in _arguments) arg.value as S];
-    }) as List<Object?>;
-  }
+  List<Object?> get value =>
+      ListCast.from(_extractTypeArgumentCasts().single).cast([
+        for (Argument arg in _arguments) arg.value,
+      ]);
 
   ListArgument(super._arguments, super._typeArguments);
 
@@ -319,11 +295,10 @@ final class SetArgument extends _IterableArgument<Set<Object?>> {
 
   /// Materializes all the `_arguments` as actual values.
   @override
-  Set<Object?> get value {
-    return extractIterableTypeArgument(_extractTypeArguments().single, <S>() {
-      return <S>{for (Argument arg in _arguments) arg.value as S};
-    }) as Set<Object?>;
-  }
+  Set<Object?> get value =>
+      SetCast.from(_extractTypeArgumentCasts().single).cast({
+        for (Argument arg in _arguments) arg.value,
+      });
 
   SetArgument(super._arguments, super._typeArguments);
 
@@ -342,16 +317,12 @@ final class MapArgument extends _CollectionArgument {
   @override
   Map<Object?, Object?> get value {
     // We should have exactly two type arguments, the key and value types.
-    final List<List<Object?>> extractedTypes = _extractTypeArguments();
+    final List<Cast> extractedTypes = _extractTypeArgumentCasts();
     assert(extractedTypes.length == 2);
-    return extractIterableTypeArgument(extractedTypes.removeLast(), <K>() {
-      return extractIterableTypeArgument(extractedTypes.removeLast(), <V>() {
-        return <K, V>{
-          for (MapEntry<Argument, Argument> argument in _arguments.entries)
-            argument.key.value as K: argument.value.value as V,
-        };
-      });
-    }) as Map<Object?, Object?>;
+    return MapCast.from(extractedTypes[1], extractedTypes[0]).cast({
+      for (MapEntry<Argument, Argument> argument in _arguments.entries)
+        argument.key.value: argument.value.value,
+    });
   }
 
   MapArgument(this._arguments, super._typeArguments);
@@ -361,18 +332,14 @@ final class MapArgument extends _CollectionArgument {
       ..moveNext()
       ..expectList();
     final List<ArgumentKind> typeArguments = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         ArgumentKind.values[deserializer.expectInt()],
     ];
     deserializer
       ..moveNext()
       ..expectList();
     final Map<Argument, Argument> arguments = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         new Argument.deserialize(deserializer, alreadyMoved: true):
             new Argument.deserialize(deserializer),
     };
@@ -407,18 +374,14 @@ class Arguments implements Serializable {
       ..moveNext()
       ..expectList();
     final List<Argument> positionalArgs = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         new Argument.deserialize(deserializer, alreadyMoved: true),
     ];
     deserializer
       ..moveNext()
       ..expectList();
     final Map<String, Argument> namedArgs = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         deserializer.expectString(): new Argument.deserialize(deserializer),
     };
     return new Arguments(positionalArgs, namedArgs);

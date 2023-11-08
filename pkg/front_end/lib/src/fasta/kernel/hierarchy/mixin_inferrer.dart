@@ -9,7 +9,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/standard_bounds.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../../builder/class_builder.dart';
+import '../../builder/declaration_builders.dart';
 import '../../messages.dart' show Message;
 import '../../type_inference/standard_bounds.dart'
     show TypeSchemaStandardBounds;
@@ -23,8 +23,12 @@ class BuilderMixinInferrer extends MixinInferrer {
   final ClassBuilder cls;
 
   BuilderMixinInferrer(
-      this.cls, CoreTypes coreTypes, TypeBuilderConstraintGatherer gatherer)
-      : super(coreTypes, gatherer);
+      this.cls,
+      CoreTypes coreTypes,
+      TypeBuilderConstraintGatherer gatherer,
+      Map<TypeParameter, StructuralParameterType>
+          inferableParameterByDeclaredParameter)
+      : super(coreTypes, gatherer, inferableParameterByDeclaredParameter);
 
   @override
   Supertype? asInstantiationOf(Supertype type, Class superclass) {
@@ -47,7 +51,7 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   final ClassHierarchyBuilder hierarchy;
 
   TypeBuilderConstraintGatherer(
-      this.hierarchy, Iterable<TypeParameter> typeParameters,
+      this.hierarchy, Iterable<StructuralParameter> typeParameters,
       {required bool isNonNullableByDefault})
       : super.subclassing(typeParameters,
             isNonNullableByDefault: isNonNullableByDefault);
@@ -89,9 +93,11 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
-      InlineType type, InlineClass superclass) {
-    return hierarchy.getInlineTypeArgumentsAsInstanceOf(type, superclass);
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
+      ExtensionType type, ExtensionTypeDeclaration superclass) {
+    return hierarchy
+        .getExtensionTypeArgumentsAsInstanceOfExtensionTypeDeclaration(
+            type, superclass);
   }
 
   @override

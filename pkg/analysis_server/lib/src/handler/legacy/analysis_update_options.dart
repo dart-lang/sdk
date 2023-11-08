@@ -25,7 +25,7 @@ class AnalysisUpdateOptionsHandler extends LegacyHandler {
     var generateHints = newOptions.generateHints;
     if (generateHints != null) {
       updaters.add((engine.AnalysisOptionsImpl options) {
-        options.hint = generateHints;
+        options.warning = generateHints;
       });
     }
     var generateLints = newOptions.generateLints;

@@ -5,7 +5,7 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
 
   extension Extension1 on main::A {
     method baz = lib1::Extension1|baz;
-    tearoff baz = lib1::Extension1|get#baz;
+    method tearoff baz = lib1::Extension1|get#baz;
   }
   static extension-member method Extension1|baz(lowered final main::A #this) → dynamic
     return 42;
@@ -13,10 +13,10 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     return () → dynamic => lib1::Extension1|baz(#this);
 }
 library from "org-dartlang-test:///lib2.dart" as lib2 {
-additionalExports = (lib1::Extension1,
-  main::main,
-  main::A,
-  main::Extension2)
+additionalExports = (main::A,
+  lib1::Extension1,
+  main::Extension2,
+  main::main)
 
   import "org-dartlang-test:///main.dart";
   import "org-dartlang-test:///lib1.dart";
@@ -42,7 +42,7 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   extension Extension2 on main::A {
     method boz = main::Extension2|boz;
-    tearoff boz = main::Extension2|get#boz;
+    method tearoff boz = main::Extension2|get#boz;
   }
   static method main() → dynamic {
     lib2::method(new main::A::•());

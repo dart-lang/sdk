@@ -8,7 +8,8 @@
 #
 # to regenerate messages after having edited this file.
 #
-# If entries with 'analyzerCode' and 'index' have been changed, run
+# If entries with 'analyzerCode', 'sharedName', or 'index' have been changed,
+# run
 #
 #     dart run pkg/analyzer/tool/messages/generate.dart
 #
@@ -61,6 +62,9 @@
 # (e.g. ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND)
 # which will be used when generating code in Analyzer for translating
 # fasta error codes to Analyzer error codes.
+# If `sharedName` is defined, the generated analyzer code will use this as the
+# user-facing analyzer code instead of `analyzerCode`. Multiple messages can share
+# the `sharedName`.
 #
 # Errors with an `index` can also optionally contain user-facing documentation
 # for the problem (documentation), which will be extracted to
@@ -792,11 +796,95 @@ ExtendsVoid:
 ImplementsVoid:
   problemMessage: "The type 'void' can't be used in an 'implements' clause."
 
-ExpectedClassOrMixinBody:
+ExpectedClassBody:
   index: 8
-  problemMessage: "A #string must have a body, even if it is empty."
+  problemMessage: "A class declaration must have a body, even if it is empty."
   correctionMessage: "Try adding an empty body."
-  analyzerCode: ParserErrorCode.EXPECTED_BODY
+  analyzerCode: ParserErrorCode.EXPECTED_CLASS_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    class Class
+
+ExpectedMixinBody:
+  index: 166
+  problemMessage: "A mixin declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_MIXIN_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    mixin Mixin
+
+ExpectedExtensionBody:
+  index: 173
+  problemMessage: "An extension declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_EXTENSION_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    extension Extension on int
+
+ExpectedExtensionTypeBody:
+  index: 167
+  problemMessage: "An extension type declaration must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY
+  sharedName: EXPECTED_BODY
+  experiments: inline-class
+  script: |
+    extension type ExtensionType(int i)
+
+ExpectedTryStatementBody:
+  index: 168
+  problemMessage: "A try statement must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method() {
+      try finally {}
+    }
+
+ExpectedCatchClauseBody:
+  index: 169
+  problemMessage: "A catch clause must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method() {
+      try {} catch (_);
+    }
+
+ExpectedFinallyClauseBody:
+  index: 170
+  problemMessage: "A finally clause must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method() {
+      try {} finally;
+    }
+
+ExpectedSwitchExpressionBody:
+  index: 171
+  problemMessage: "A switch expression must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method(Never n) => switch (n);
+
+ExpectedSwitchStatementBody:
+  index: 172
+  problemMessage: "A switch statement must have a body, even if it is empty."
+  correctionMessage: "Try adding an empty body."
+  analyzerCode: ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY
+  sharedName: EXPECTED_BODY
+  script: |
+    method(Never n) {
+      switch (n);
+    }
 
 ExpectedDeclaration:
   problemMessage: "Expected a declaration, but got '#lexeme'."
@@ -2271,7 +2359,7 @@ FastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --enable-asserts
@@ -3518,8 +3606,6 @@ SupertypeIsIllegal:
   problemMessage: "The type '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
   script: |
-
-
     class C extends dynamic {}
 
 SupertypeIsIllegalAliased:
@@ -3543,6 +3629,33 @@ SupertypeIsTypeVariable:
   analyzerCode: EXTENDS_NON_CLASS
   script: |
     class C<T> extends T {}
+
+SuperExtensionTypeIsIllegal:
+  problemMessage: "The type '#name' can't be implemented by an extension type."
+  experiments: inline-class
+  script: |
+    extension type E(dynamic it) implements dynamic {}
+
+SuperExtensionTypeIsIllegalAliased:
+  problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type."
+  experiments: inline-class
+  script: |
+    typedef F = void Function();
+    extension type E(F it) implements F {}
+
+SuperExtensionTypeIsNullableAliased:
+  problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable."
+  experiments: inline-class
+  script: |
+    class A {}
+    typedef B = A?;
+    extension type E(B it) implements B {}
+
+SuperExtensionTypeIsTypeVariable:
+  problemMessage: "The type variable '#name' can't be implemented by an extension type."
+  experiments: inline-class
+  script: |
+    extension type E<T>(T it) implements T {}
 
 PartOfLibraryNameMismatch:
   problemMessage: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."
@@ -5355,9 +5468,126 @@ VariableCouldBeNullDueToWrite:
   problemMessage: "Variable '#name' could not be promoted due to an assignment."
   correctionMessage: "Try null checking the variable after the assignment.  See #string"
 
-FieldNotPromoted:
-  problemMessage: "'#name' refers to a property so it couldn't be promoted."
+FieldNotPromotedBecauseNotEnabled:
+  problemMessage: "'#name' refers to a field. It couldn't be promoted because field promotion is only available in Dart 3.2 and above."
   correctionMessage: "See #string"
+  script: >
+    // @dart=3.1
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseNotField:
+  problemMessage: "'#name' refers to a getter so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      int? get _i => 0;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseNotPrivate:
+  problemMessage: "'#name' refers to a public field so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? i;
+      C(this.i);
+    }
+    test(C c) {
+      if (c.i != null) {
+        c.i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseExternal:
+  problemMessage: "'#name' refers to an external field so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      external final int? _i;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseNotFinal:
+  problemMessage: "'#name' refers to a non-final field so it couldn't be promoted."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      int? _i;
+      C(this._i);
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseConflictingGetter:
+  problemMessage: "'#name' couldn't be promoted because there is a conflicting getter in class '#name2'."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    class D {
+      int? get _i => 0;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseConflictingField:
+  problemMessage: "'#name' couldn't be promoted because there is a conflicting non-promotable field in class '#name2'."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    class D {
+      int? _i;
+      D(this._i);
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
+
+FieldNotPromotedBecauseConflictingNsmForwarder:
+  problemMessage: "'#name' couldn't be promoted because there is a conflicting noSuchMethod forwarder in class '#name2'."
+  correctionMessage: "See #string"
+  script: >
+    class C {
+      final int? _i;
+      C(this._i);
+    }
+    class D implements C {
+      noSuchMethod(invocation) => 0;
+    }
+    test(C c) {
+      if (c._i != null) {
+        c._i.isEven;
+      }
+    }
 
 ThisNotPromoted:
   problemMessage: "'this' can't be promoted."
@@ -5449,8 +5679,8 @@ JsInteropDartClassExtendsJSClass:
   correctionMessage: "Try adding the JS interop annotation or removing it from the parent class."
 
 JsInteropDartJsInteropAnnotationForStaticInteropOnly:
-  problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through inline classes or '@staticInterop'."
-  correctionMessage: "Try making this class an inline class or marking it as '@staticInterop'."
+  problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes."
+  correctionMessage: "Try making this class an extension type or marking it as '@staticInterop'."
 
 JsInteropEnclosingClassJSAnnotation:
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."
@@ -5470,7 +5700,7 @@ JsInteropExportDartInterfaceHasNonEmptyJSExportValue:
   severity: WARNING
 
 JsInteropExportDisallowedMember:
-  problemMessage: "Member '#name' is not a concrete instance member, and therefore can't be exported."
+  problemMessage: "Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported."
   correctionMessage: "Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead."
 
 JsInteropExportInvalidInteropTypeArgument:
@@ -5489,6 +5719,18 @@ JsInteropExportNoExportableMembers:
   problemMessage: "Class '#name' has no exportable members in the class or the inheritance chain."
   correctionMessage: "Using `@JSExport`, annotate at least one instance member with a body or annotate a class that has such a member in the inheritance chain."
 
+JsInteropExtensionTypeNotInterop:
+  problemMessage: "Extension type '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types."
+
+JsInteropExtensionTypeMemberNotInterop:
+  problemMessage: "Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop extension types."
+
+JsInteropExtensionTypeUsedWithWrongJsAnnotation:
+  problemMessage: "Extension types should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
+  correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this extension type instead."
+
 JsInteropExternalExtensionMemberOnTypeInvalid:
   problemMessage: "JS interop or Native class required for 'external' extension members."
   correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."
@@ -5500,18 +5742,6 @@ JsInteropExternalExtensionMemberWithStaticDisallowed:
 JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
-
-JsInteropInlineClassNotInterop:
-  problemMessage: "Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#string'."
-  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
-
-JsInteropInlineClassMemberNotInterop:
-  problemMessage: "Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type."
-  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
-
-JsInteropInlineClassUsedWithWrongJsAnnotation:
-  problemMessage: "Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
-  correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead."
 
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
@@ -5552,9 +5782,13 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
-JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
-  problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
-  correctionMessage: "Try using a Dart extension member if you need type parameters instead."
+JsInteropStaticInteropExternalMemberWithInvalidTypeParameters:
+  problemMessage: "External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types."
+  correctionMessage: "Try adding a valid bound to the type parameters used in this member."
+
+JsInteropStaticInteropExternalTypeViolation:
+  problemMessage: "Type '#type' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types."
+  correctionMessage: "Use one of the valid types instead."
 
 JsInteropStaticInteropGenerativeConstructor:
   problemMessage: "`@staticInterop` classes should not contain any generative constructors."
@@ -5571,6 +5805,10 @@ JsInteropStaticInteropMockMissingImplements:
 JsInteropStaticInteropMockNotStaticInteropType:
   problemMessage: "Type argument '#type' needs to be a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
+
+JsInteropStaticInteropMockTypeParametersNotAllowed:
+  problemMessage: "Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance."
+  correctionMessage: "Remove the type parameter in the type argument or replace it with its bound."
 
 JsInteropStaticInteropNoJSAnnotation:
   problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
@@ -5601,13 +5839,13 @@ JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
 
+JsInteropStaticInteropWithInvalidJsTypesSupertype:
+  problemMessage: "`@staticInterop` class '#name' cannot have '#name2' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes."
+  correctionMessage: "Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '#name' to '#name2' when needed."
+
 JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
-
-JsInteropStrictModeViolation:
-  problemMessage: "JS interop requires JS types when strict mode is enabled, but Type '#type' is not a type or subtype of a type from `dart:js_interop`."
-  correctionMessage: "Use a JS type instead."
 
 JsInteropStrictModeForbiddenLibrary:
   problemMessage: "Library '#name' is forbidden when strict mode is enabled."
@@ -7029,3 +7267,77 @@ JointPatternVariableWithLabelDefault:
 
 UnsupportedMacroApplication:
   problemMessage: "This macro application didn't apply correctly."
+
+ScriptTagInPartFile:
+  problemMessage: "A part file cannot have script tag."
+  correctionMessage: "Try removing the script tag or the 'part of' directive."
+
+NonCovariantTypeParameterInRepresentationType:
+  problemMessage: "An extension type parameter can't be used non-covariantly in its representation type."
+  correctionMessage: "Try removing the type parameters from function parameter types and type parameter bounds."
+  experiments: inline-class
+  script: |
+    extension type E<T>(void Function(T) f) {}
+
+CyclicRepresentationDependency:
+  problemMessage: "An extension type can't depend on itself through its representation type."
+  experiments: inline-class
+  script: |
+    extension type E(E it) {}
+
+ExtensionTypeDeclarationCause:
+  problemMessage: "The issue arises via this extension type declaration."
+  severity: CONTEXT
+
+InvalidExtensionTypeSuperInterface:
+  problemMessage: "The implemented interface '#type' must be a supertype of the representation type '#type2' of extension type '#name'."
+  correctionMessage: "Try changing the interface type to a supertype of '#type2' or the representation type to a subtype of '#type'."
+  experiments: inline-class
+  script: |
+    extension type E(num n) implements int {}
+
+InvalidExtensionTypeSuperExtensionType:
+  problemMessage: "The representation type '#type' of extension type '#name' must be a subtype of the representation type '#type2' of the implemented extension type '#type3'."
+  correctionMessage: "Try changing the representation type to a subtype of '#type2'."
+  experiments: inline-class
+  script: |
+    extension type E1(int i) {}
+    extension type E2(num n) implements E1 {}
+
+MissingPrimaryConstructor:
+  problemMessage: "An extension type declaration must have a primary constructor declaration."
+  correctionMessage: "Try adding a primary constructor to the extension type declaration."
+  index: 162
+  analyzerCode: ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR
+  experiments: inline-class
+  script: |
+    extension type E {}
+
+MissingPrimaryConstructorParameters:
+  problemMessage: "A primary constructor declaration must have formal parameters."
+  correctionMessage: "Try adding formal parameters after the primary constructor name."
+  index: 163
+  analyzerCode: ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS
+  experiments: inline-class
+  script: |
+    extension type E.name {}
+
+ExtensionTypeExtends:
+  problemMessage: "An extension type declaration can't have an 'extends' clause."
+  correctionMessage: "Try removing the 'extends' clause or replacing the 'extends' with 'implements'."
+  index: 164
+  analyzerCode: ParserErrorCode.EXTENSION_TYPE_EXTENDS
+  experiments: inline-class
+  script: |
+    extension type F(int i) {}
+    extension type E(int i) extends F {}
+
+ExtensionTypeWith:
+  problemMessage: "An extension type declaration can't have a 'with' clause."
+  correctionMessage: "Try removing the 'with' clause or replacing the 'with' with 'implements'."
+  index: 165
+  analyzerCode: ParserErrorCode.EXTENSION_TYPE_WITH
+  experiments: inline-class
+  script: |
+    extension type F(int i) {}
+    extension type E(int i) with F {}

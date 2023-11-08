@@ -44,9 +44,9 @@
 #   issue created for it.
 #
 # Stats:
-# -   0 "needsEvaluation"
-# - 381 "needsFix"
-# - 352 "hasFix"
+# -  18 "needsEvaluation"
+# - 362 "needsFix"
+# - 366 "hasFix"
 # - 490 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
@@ -58,9 +58,18 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
   notes: |-
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
-AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
+AnalysisOptionsHintCode.DEPRECATED_LINT:
   status: needsFix
-  notes: Fixed.
+  notes: |-
+    We should be able to remove the lint rule.
+AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
+  status: needsFix
+  notes: |-
+    We should be able to replace the deprecated lint rule with its replacement.
+AnalysisOptionsHintCode.DUPLICATE_RULE:
+  status: needsFix
+  notes: |-
+    We could offer to remove the duplicate rule.
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   status: needsFix
   notes: |-
@@ -82,6 +91,11 @@ AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING:
   status: noFix
   notes: |-
     The fix needs to be made in the included file.
+AnalysisOptionsWarningCode.INCOMPATIBLE_LINT:
+  status: noFix
+  notes: |-
+    Without knowing which rule the user would prefer to use, we cannot remove
+    the reported one.
 AnalysisOptionsWarningCode.INVALID_OPTION:
   status: needsFix
   notes: |-
@@ -106,16 +120,13 @@ AnalysisOptionsWarningCode.RECURSIVE_INCLUDE_FILE:
 AnalysisOptionsWarningCode.REMOVED_LINT:
   status: needsFix
   notes: |-
-    The fix is to remove the name of the removed lint.
+    The fix is to remove the name of the removed lint rule.
 AnalysisOptionsWarningCode.REPLACED_LINT:
   status: needsFix
-  notes: |-
-    The fix is to replace the replaced lint name with the name of the replacing
-    lint.
-AnalysisOptionsWarningCode.SPEC_MODE_REMOVED:
+AnalysisOptionsWarningCode.UNDEFINED_LINT:
   status: needsFix
   notes: |-
-    Provide a fix to remove the deprecated setting.
+    The fix is to remove the name of the lint rule.
 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE:
   status: needsFix
   notes: |-
@@ -212,6 +223,8 @@ CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER:
     The fix is to remove the `late` modifier.
 CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT:
   status: hasFix
+CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE:
+  status: noFix
 CompileTimeErrorCode.BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
   status: noFix
   notes: |-
@@ -360,6 +373,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
   status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
@@ -380,9 +397,15 @@ CompileTimeErrorCode.CONST_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
+CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_PROPERTY_ACCESS:
   status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
   status: noFix
@@ -397,6 +420,8 @@ CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
 CompileTimeErrorCode.CONST_EVAL_TYPE_INT:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
+  status: noFix
+CompileTimeErrorCode.CONST_EVAL_TYPE_STRING:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_TYPE_TYPE:
   status: noFix
@@ -420,6 +445,8 @@ CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET:
   status: noFix
 CompileTimeErrorCode.CONST_SPREAD_EXPECTED_MAP:
   status: noFix
+CompileTimeErrorCode.CONST_TYPE_PARAMETER:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_WITH_NON_CONST:
   status: hasFix
 CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT:
@@ -447,10 +474,6 @@ CompileTimeErrorCode.CONTINUE_LABEL_INVALID:
   status: noFix
 CompileTimeErrorCode.COULD_NOT_INFER:
   status: noFix
-CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR:
-  status: noFix
-  notes: |-
-    Removed in Dart 3.0.
 CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
@@ -626,6 +649,36 @@ CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE:
     Replace the `..` with `.`.
 CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS:
   status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
+  status: needsFix
+  notes: |-
+    Remove it.
+CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
+  status: needsFix
+  notes: |-
+    Remove it.
+CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
+  status: needsFix
+  notes: |-
+    Offer to delete the invalid member.
+CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
+  status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
+  status: needsFix
+  notes: |-
+    Convert to block body.
 CompileTimeErrorCode.EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
   status: needsFix
   notes: |-
@@ -1178,6 +1231,8 @@ CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
     Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: noFix
+CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
+  status: noFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
   status: hasFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT:
@@ -1309,6 +1364,8 @@ CompileTimeErrorCode.PRIVATE_OPTIONAL_PARAMETER:
 CompileTimeErrorCode.PRIVATE_SETTER:
   status: noFix
 CompileTimeErrorCode.READ_POTENTIALLY_UNASSIGNED_FINAL:
+  status: noFix
+CompileTimeErrorCode.RECURSIVE_CONSTANT_CONSTRUCTOR:
   status: noFix
 CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT:
   status: noFix
@@ -1736,12 +1793,6 @@ FfiCode.PACKED_ANNOTATION_ALIGNMENT:
   status: noFix
 FfiCode.SIZE_ANNOTATION_DIMENSIONS:
   status: noFix
-FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
-  status: noFix
-FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
-  status: noFix
-FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH:
-  status: noFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
   status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
@@ -1752,14 +1803,6 @@ HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
 HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
-HintCode.DEPRECATED_EXPORT_USE:
-  status: needsFix
-  notes: |-
-    Low priority, because this is likely not encountered often.
-
-    The fix is to look for a non-deprecated way to import the name and to add a
-    new import for it. It might be possible to remove the old import if all of
-    the names being imported through it are available through the new import.
 HintCode.DEPRECATED_MEMBER_USE:
   status: hasFix
 HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
@@ -1779,10 +1822,6 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
-HintCode.UNIGNORABLE_IGNORE:
-  status: needsFix
-  notes: |-
-    Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_CAST:
   status: hasFix
 HintCode.UNNECESSARY_IMPORT:
@@ -1793,56 +1832,6 @@ HintCode.UNUSED_ELEMENT:
   status: hasFix
 HintCode.UNUSED_ELEMENT_PARAMETER:
   status: hasFix
-LanguageCode.IMPLICIT_DYNAMIC_FIELD:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_FUNCTION:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_INVOKE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_METHOD:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_PARAMETER:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_RETURN:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_TYPE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
 LintCode.always_declare_return_types:
   status: hasFix
 LintCode.always_put_control_body_on_new_line:
@@ -1858,6 +1847,8 @@ LintCode.always_specify_types:
 LintCode.always_use_package_imports:
   status: hasFix
 LintCode.annotate_overrides:
+  status: hasFix
+LintCode.annotate_redeclares:
   status: hasFix
 LintCode.avoid_annotating_with_dynamic:
   status: hasFix
@@ -2398,10 +2389,7 @@ LintCode.unnecessary_this:
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
 LintCode.unreachable_from_main:
-  status: noFix
-  notes: |-
-    Theoretically we could remove the unreachable declaration, but that seems
-    like a dangerous option to provide.
+  status: hasFix
 LintCode.unrelated_type_equality_checks_expression:
   status: needsEvaluation
 LintCode.unrelated_type_equality_checks_pattern:
@@ -2666,18 +2654,34 @@ ParserErrorCode.ENUM_IN_CLASS:
     Move the nested enum to the top level.
 ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND:
   status: noFix
-ParserErrorCode.EXPECTED_BODY:
+ParserErrorCode.EXPECTED_CASE_OR_DEFAULT:
+  status: noFix
+ParserErrorCode.EXPECTED_CATCH_CLAUSE_BODY:
   status: needsFix
   notes: |-
     Add an empty body.
-ParserErrorCode.EXPECTED_CASE_OR_DEFAULT:
-  status: noFix
+ParserErrorCode.EXPECTED_CLASS_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_CLASS_MEMBER:
   status: noFix
 ParserErrorCode.EXPECTED_ELSE_OR_COMMA:
   status: noFix
 ParserErrorCode.EXPECTED_EXECUTABLE:
   status: noFix
+ParserErrorCode.EXPECTED_EXTENSION_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
+ParserErrorCode.EXPECTED_EXTENSION_TYPE_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
+ParserErrorCode.EXPECTED_FINALLY_CLAUSE_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD:
   status: noFix
 ParserErrorCode.EXPECTED_INSTEAD:
@@ -2686,6 +2690,10 @@ ParserErrorCode.EXPECTED_LIST_OR_MAP_LITERAL:
   status: needsFix
   notes: |-
     Add the braces or brackets for the literal.
+ParserErrorCode.EXPECTED_MIXIN_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS:
   status: noFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS:
@@ -2694,10 +2702,26 @@ ParserErrorCode.EXPECTED_NAMED_TYPE_ON:
   status: noFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_WITH:
   status: noFix
+ParserErrorCode.EXPECTED_REPRESENTATION_FIELD:
+  status: noFix
+ParserErrorCode.EXPECTED_REPRESENTATION_TYPE:
+  status: noFix
 ParserErrorCode.EXPECTED_STRING_LITERAL:
   status: noFix
+ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
+ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_TOKEN:
   status: hasFix
+ParserErrorCode.EXPECTED_TRY_STATEMENT_BODY:
+  status: needsFix
+  notes: |-
+    Add an empty body.
 ParserErrorCode.EXPECTED_TYPE_NAME:
   status: noFix
 ParserErrorCode.EXPERIMENT_NOT_ENABLED:
@@ -2722,6 +2746,10 @@ ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
   status: needsFix
   notes: |-
     Remove the field, or add `static`.
+ParserErrorCode.EXTENSION_TYPE_EXTENDS:
+  status: needsEvaluation
+ParserErrorCode.EXTENSION_TYPE_WITH:
+  status: needsEvaluation
 ParserErrorCode.EXTERNAL_CLASS:
   status: needsFix
   notes: |-
@@ -3031,6 +3059,10 @@ ParserErrorCode.MISSING_NAME_IN_PART_OF_DIRECTIVE:
   status: noFix
 ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT:
   status: noFix
+ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR:
+  status: needsEvaluation
+ParserErrorCode.MISSING_PRIMARY_CONSTRUCTOR_PARAMETERS:
+  status: needsEvaluation
 ParserErrorCode.MISSING_STAR_AFTER_SYNC:
   status: needsFix
   notes: |-
@@ -3085,6 +3117,11 @@ ParserErrorCode.MULTIPLE_POSITIONAL_PARAMETER_GROUPS:
   status: needsFix
   notes: |-
     Merge the groups.
+ParserErrorCode.MULTIPLE_REPRESENTATION_FIELDS:
+  status: needsFix
+  notes: |-
+    Remove extra fields.
+    Maybe wrap into a record.
 ParserErrorCode.MULTIPLE_VARIABLES_IN_FOR_EACH:
   status: noFix
 ParserErrorCode.MULTIPLE_VARIANCE_MODIFIERS:
@@ -3143,7 +3180,7 @@ ParserErrorCode.OUT_OF_ORDER_CLAUSES:
     There isn't enough information for a fix. Consider splitting this diagnostic
     so that each variant has enough information.
 ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE:
-  status: noFix
+  status: hasFix
 ParserErrorCode.PATTERN_VARIABLE_DECLARATION_OUTSIDE_FUNCTION_OR_METHOD:
   status: noFix
 ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT:
@@ -3170,6 +3207,9 @@ ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR:
   status: needsFix
   notes: |-
     Remove the redirection.
+ParserErrorCode.REPRESENTATION_FIELD_MODIFIER:
+  status: needsFix
+  notes: Remove it.
 ParserErrorCode.SEALED_ENUM:
   status: needsEvaluation
 ParserErrorCode.SEALED_MIXIN:
@@ -3310,6 +3350,8 @@ PubspecWarningCode.FLUTTER_FIELD_NOT_MAP:
   since: ~2.15
 PubspecWarningCode.INVALID_DEPENDENCY:
   status: noFix
+PubspecWarningCode.INVALID_PLATFORMS_FIELD:
+  status: needsEvaluation
 PubspecWarningCode.MISSING_NAME:
   status: noFix
   since: ~2.15
@@ -3325,6 +3367,10 @@ PubspecWarningCode.PATH_NOT_POSIX:
     If the path is a windows path, then we should be able to convert it.
 PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST:
   status: noFix
+PubspecWarningCode.PLATFORM_VALUE_DISALLOWED:
+  status: needsEvaluation
+PubspecWarningCode.UNKNOWN_PLATFORM:
+  status: needsEvaluation
 PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY:
   status: needsFix
   since: ~2.15
@@ -3390,6 +3436,10 @@ WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
   status: hasFix
 WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE:
   status: hasFix
+WarningCode.DEPRECATED_EXPORT_USE:
+  status: hasFix
+  notes: |-
+    A data driven fix using `replacedBy`.
 WarningCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-
@@ -3402,6 +3452,39 @@ WarningCode.DEPRECATED_MIXIN_FUNCTION:
     The fix is to remove `Function` from where it's referenced.
 WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
+WarningCode.DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT:
+  status: noFix
+WarningCode.DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS:
+  status: needsFix
+  notes: |-
+    The fix is to remove the extra arguments.
+WarningCode.DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT:
+  status: needsFix
+  notes: |-
+    The fix is to remove the unexpected named argument.
+WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_BRACE:
+  status: needsFix
+  notes: Add the closing brace at the end of the line.
+WarningCode.DOC_DIRECTIVE_MISSING_CLOSING_TAG:
+  status: needsFix
+  notes: Add the appropriate closing tag, perhaps on the line just following.
+WarningCode.DOC_DIRECTIVE_MISSING_ONE_ARGUMENT:
+  status: noFix
+WarningCode.DOC_DIRECTIVE_MISSING_OPENING_TAG:
+  status: needsFix
+  notes: |-
+    I can think of two: Offer to insert the appropriate starting tag (maybe
+    on the preceding line), and offer to change the end-tag to the start-tag.
+WarningCode.DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS:
+  status: noFix
+WarningCode.DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
+  status: noFix
+WarningCode.DOC_DIRECTIVE_UNKNOWN:
+  status: noFix
+WarningCode.DOC_IMPORT_CANNOT_BE_DEFERRED:
+  status: needsFix
+WarningCode.DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS:
+  status: needsFix
 WarningCode.DUPLICATE_EXPORT:
   status: needsFix
   notes: |-
@@ -3605,6 +3688,8 @@ WarningCode.RECEIVER_OF_TYPE_NEVER:
     We _could_ remove the thing being received (method invocation, etc.)
 WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA:
   status: hasFix
+WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER:
+  status: hasFix
 WarningCode.REMOVED_LINT_USE:
   status: needsFix
 WarningCode.REPLACED_LINT_USE:
@@ -3617,39 +3702,20 @@ WarningCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
   status: noFix
 WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
   status: noFix
-WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
-  status: hasFix
-WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
-  status: hasFix
-WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT:
-  status: hasFix
 WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS:
   status: needsFix
   since: 2.15
-WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT:
-  status: hasFix
-WarningCode.SDK_VERSION_EXTENSION_METHODS:
-  status: hasFix
 WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR:
-  status: hasFix
-WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
   status: hasFix
 WarningCode.SDK_VERSION_NEVER:
   status: noFix
   notes: Deprecated
-WarningCode.SDK_VERSION_SET_LITERAL:
-  status: hasFix
 WarningCode.SDK_VERSION_SINCE:
   status: needsFix
   notes: |-
     The fix would be to update the SDK constraints. The user would still need to
     run `dart pub` before the diagnostic would go away, and there's a question
     whether a fix that doesn't actually fix the problem is something we want.
-WarningCode.SDK_VERSION_UI_AS_CODE:
-  status: hasFix
-WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
-  status: noFix
-  notes: Deprecated
 WarningCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
@@ -3680,6 +3746,10 @@ WarningCode.UNDEFINED_REFERENCED_PARAMETER:
     Can try to find the correct parameter name.
 WarningCode.UNDEFINED_SHOWN_NAME:
   status: hasFix
+WarningCode.UNIGNORABLE_IGNORE:
+  status: needsFix
+  notes: |-
+    Remove the ignore comment (or one code in the comment).
 WarningCode.UNNECESSARY_CAST_PATTERN:
   status: needsFix
   notes: |-

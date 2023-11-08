@@ -135,6 +135,16 @@ E
 ''');
   }
 
+  test_location_extensionType_representation() async {
+    await assertNoErrorsInCode(r'''
+const foo = 42;
+
+extension type A(@foo int it) {}
+''');
+
+    _assertAtFoo42();
+  }
+
   test_location_fieldFormal() async {
     await assertNoErrorsInCode(r'''
 class A {

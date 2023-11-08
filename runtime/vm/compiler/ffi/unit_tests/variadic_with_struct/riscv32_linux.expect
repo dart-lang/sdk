@@ -1,5 +1,5 @@
 fa0 double
 P(a0 uint32) Struct(size: 20)
-(a2, a3) int64[double]
+(a2, t3) int64[double]
 =>
 fa0 double

@@ -30,7 +30,7 @@ void main() {
 }
 
 Uint8List encodeAsNullTerminatedUtf8(String source) {
-  final sourceBytes = const Utf8Encoder().convert(source);
+  final sourceBytes = utf8.encode(source);
   return Uint8List(sourceBytes.length + 1)
     ..setRange(0, sourceBytes.length, sourceBytes);
 }

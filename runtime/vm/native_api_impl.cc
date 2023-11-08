@@ -91,9 +91,9 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   NativeMessageHandler* nmh = new NativeMessageHandler(name, handler);
   Dart_Port port_id = PortMap::CreatePort(nmh);
   if (port_id != ILLEGAL_PORT) {
-    PortMap::SetPortState(port_id, PortMap::kLivePort);
     if (!nmh->Run(Dart::thread_pool(), nullptr, nullptr, 0)) {
       PortMap::ClosePort(port_id);
+      nmh->RequestDeletion();
       port_id = ILLEGAL_PORT;
     }
   }
@@ -105,8 +105,12 @@ DART_EXPORT bool Dart_CloseNativePort(Dart_Port native_port_id) {
   // Close the native port without a current isolate.
   IsolateLeaveScope saver(Isolate::Current());
 
-  // TODO(turnidge): Check that the port is native before trying to close.
-  return PortMap::ClosePort(native_port_id);
+  MessageHandler* handler = nullptr;
+  const bool was_closed = PortMap::ClosePort(native_port_id, &handler);
+  if (was_closed) {
+    handler->RequestDeletion();
+  }
+  return was_closed;
 }
 
 static Monitor* vm_service_calls_monitor = new Monitor();

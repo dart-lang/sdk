@@ -22,8 +22,6 @@ class B extends A {
 }
 
 var b = const B();
-//      ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 
 main() {
   Expect.equals(null, b.x);

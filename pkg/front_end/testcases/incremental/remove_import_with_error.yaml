@@ -1,6 +1,6 @@
 # Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # First compile a file (a) that imports a file (b) with errors in it.
 # Then change a to not import b, but leave b as-is, thus rightfully only

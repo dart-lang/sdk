@@ -11,7 +11,7 @@ Definitions:
 import 'dart:core' as prefix0;
 
 augment class Foo {
-augment prefix0.int hashCode() {
+augment prefix0.int get hashCode {
     return this.bar.hashCode ^ this.baz.hashCode;
   }
 augment prefix0.bool operator ==(prefix0.Object other, ) {
@@ -38,7 +38,7 @@ external prefix0.String toString();
 }
 definitions:
 augment class Foo {
-augment int hashCode() {
+augment int get hashCode {
     return bar.hashCode ^ baz.hashCode;
   }
 augment bool operator ==(Object other, ) {

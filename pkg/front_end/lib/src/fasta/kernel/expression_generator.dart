@@ -14,21 +14,14 @@ import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/type_algebra.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
-import '../builder/declaration_builder.dart';
-import '../builder/extension_builder.dart';
-import '../builder/inline_class_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../fasta_codes.dart';
 import '../names.dart'
@@ -260,7 +253,9 @@ abstract class Generator {
     Message message = templateNotAType.withArguments(token.lexeme);
     _helper.libraryBuilder
         .addProblem(message, fileOffset, lengthForToken(token), _uri);
-    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
+    return new NamedTypeBuilderImpl.forInvalidType(
+        token.lexeme,
+        nullabilityBuilder,
         message.withLocation(_uri, fileOffset, lengthForToken(token)));
   }
 
@@ -620,7 +615,7 @@ class ThisPropertyAccessGenerator extends Generator {
   final bool isNullAware;
 
   /// The synthetic variable used for 'this' in instance extension members
-  /// and instance inline class members/constructor bodies.
+  /// and instance extension type members/constructor bodies.
   VariableDeclaration? thisVariable;
 
   ThisPropertyAccessGenerator(
@@ -2966,7 +2961,7 @@ class DeferredAccessGenerator extends Generator {
     }
     _helper.libraryBuilder.addProblem(
         message.messageObject, message.charOffset, message.length, message.uri);
-    return new NamedTypeBuilder.forInvalidType(
+    return new NamedTypeBuilderImpl.forInvalidType(
         name, nullabilityBuilder, message);
   }
 
@@ -3073,7 +3068,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       return new DependentTypeBuilder(
           (declaration as OmittedTypeDeclarationBuilder).omittedTypeBuilder);
     }
-    return new NamedTypeBuilder(targetName, nullabilityBuilder,
+    return new NamedTypeBuilderImpl(targetName, nullabilityBuilder,
         arguments: arguments,
         fileUri: _uri,
         charOffset: fileOffset,
@@ -3153,10 +3148,23 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           usedAsClassCharOffset: this.fileOffset,
           usedAsClassFileUri: _uri);
 
-      bool isConstructorTearOff = send is PropertySelector &&
-              _helper.libraryFeatures.constructorTearoffs.isEnabled &&
-              declarationBuilder is ClassBuilder ||
-          declarationBuilder is InlineClassBuilder;
+      bool supportsConstructorTearOff =
+          _helper.libraryFeatures.constructorTearoffs.isEnabled &&
+              switch (declarationBuilder) {
+                ClassBuilder() => true,
+                ExtensionBuilder() => false,
+                ExtensionTypeDeclarationBuilder() => true,
+                TypeAliasBuilder() => false,
+                TypeVariableBuilder() => false,
+                StructuralVariableBuilder() => false,
+                InvalidTypeDeclarationBuilder() => false,
+                BuiltinTypeDeclarationBuilder() => false,
+                // TODO(johnniwinther): How should we handle this case?
+                OmittedTypeDeclarationBuilder() => false,
+                null => false,
+              };
+      bool isConstructorTearOff =
+          send is PropertySelector && supportsConstructorTearOff;
       List<TypeBuilder>? aliasedTypeArguments = typeArguments
           ?.map((unknownType) => _helper.validateTypeVariableUse(unknownType,
               allowPotentiallyConstantType: isConstructorTearOff))
@@ -3172,7 +3180,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       } else {
         if (declarationBuilder is DeclarationBuilder) {
           if (aliasedTypeArguments != null) {
-            new NamedTypeBuilder(
+            new NamedTypeBuilderImpl(
                 aliasBuilder.name, const NullabilityBuilder.omitted(),
                 arguments: aliasedTypeArguments,
                 fileUri: _uri,
@@ -3192,7 +3200,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
             aliasedTypeArguments = <TypeBuilder>[];
             for (TypeVariableBuilder typeVariable
                 in aliasBuilder.typeVariables!) {
-              aliasedTypeArguments.add(new NamedTypeBuilder(
+              aliasedTypeArguments.add(new NamedTypeBuilderImpl(
                   typeVariable.name, const NullabilityBuilder.omitted(),
                   fileUri: _uri,
                   charOffset: fileOffset,
@@ -3207,10 +3215,16 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
       }
     }
     if (declarationBuilder is DeclarationBuilder) {
-      DeclarationBuilder declaration = declarationBuilder;
-      Builder? member = declaration.findStaticBuilder(
+      Builder? member = declarationBuilder.findStaticBuilder(
           name.text, nameOffset, _uri, _helper.libraryBuilder);
       Generator generator;
+      bool supportsConstructorTearOff =
+          _helper.libraryFeatures.constructorTearoffs.isEnabled &&
+              switch (declarationBuilder) {
+                ClassBuilder() => true,
+                ExtensionBuilder() => false,
+                ExtensionTypeDeclarationBuilder() => true,
+              };
       if (member == null) {
         // If we find a setter, [member] is an [AccessErrorBuilder], not null.
         if (send is PropertySelector) {
@@ -3219,9 +3233,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               "Unexpected non-null typeArguments of "
               "an IncompletePropertyAccessGenerator object: "
               "'${send.typeArguments.runtimeType}'.");
-          if (_helper.libraryFeatures.constructorTearoffs.isEnabled &&
-                  declarationBuilder is ClassBuilder ||
-              declarationBuilder is InlineClassBuilder) {
+          if (supportsConstructorTearOff) {
             MemberBuilder? constructor =
                 declarationBuilder.findConstructorOrFactory(
                     name.text, nameOffset, _uri, _helper.libraryBuilder);
@@ -3268,17 +3280,20 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                   // fallback, as the error is reported during a check on the
                   // typedef.
                   builtTypeArguments = <DartType>[];
-                  if (declarationBuilder is ClassBuilder) {
-                    for (TypeParameter typeParameter
-                        in declarationBuilder.cls.typeParameters) {
-                      builtTypeArguments.add(typeParameter.defaultType);
-                    }
-                  } else {
-                    declarationBuilder as InlineClassBuilder;
-                    for (TypeParameter typeParameter
-                        in declarationBuilder.inlineClass.typeParameters) {
-                      builtTypeArguments.add(typeParameter.defaultType);
-                    }
+                  switch (declarationBuilder) {
+                    case ClassBuilder():
+                      for (TypeParameter typeParameter
+                          in declarationBuilder.cls.typeParameters) {
+                        builtTypeArguments.add(typeParameter.defaultType);
+                      }
+                    case ExtensionTypeDeclarationBuilder():
+                      for (TypeParameter typeParameter in declarationBuilder
+                          .extensionTypeDeclaration.typeParameters) {
+                        builtTypeArguments.add(typeParameter.defaultType);
+                      }
+                    case ExtensionBuilder():
+                      throw new UnsupportedError(
+                          "Unexpected declaration $declarationBuilder");
                   }
                 } else {
                   builtTypeArguments = unaliasTypes(
@@ -3351,7 +3366,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
               unresolvedReadKind: UnresolvedKind.Member);
         } else {
           return _helper.buildConstructorInvocation(
-              declaration,
+              declarationBuilder,
               send.token,
               send.token,
               arguments!,
@@ -3378,13 +3393,13 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
           setter = member;
           member = null;
         } else if (member.isGetter) {
-          setter = declaration.findStaticBuilder(
+          setter = declarationBuilder.findStaticBuilder(
               name.text, fileOffset, _uri, _helper.libraryBuilder,
               isSetter: true);
         } else if (member.isField) {
           MemberBuilder fieldBuilder = member as MemberBuilder;
           if (!fieldBuilder.isAssignable) {
-            setter = declaration.findStaticBuilder(
+            setter = declarationBuilder.findStaticBuilder(
                 name.text, fileOffset, _uri, _helper.libraryBuilder,
                 isSetter: true);
           } else {
@@ -4211,7 +4226,7 @@ class UnexpectedQualifiedUseGenerator extends Generator {
         offsetForToken(prefixGenerator.token),
         lengthOfSpan(prefixGenerator.token, token),
         _uri);
-    return new NamedTypeBuilder.forInvalidType(
+    return new NamedTypeBuilderImpl.forInvalidType(
         _plainNameForRead,
         nullabilityBuilder,
         message.withLocation(_uri, offsetForToken(prefixGenerator.token),
@@ -4319,14 +4334,14 @@ class ParserErrorGenerator extends Generator {
       {required bool allowPotentiallyConstantType,
       required bool performTypeCanonicalization}) {
     _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
-    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
-        message.withLocation(_uri, fileOffset, noLength));
+    return new NamedTypeBuilderImpl.forInvalidType(token.lexeme,
+        nullabilityBuilder, message.withLocation(_uri, fileOffset, noLength));
   }
 
   TypeBuilder buildTypeWithResolvedArgumentsDoNotAddProblem(
       NullabilityBuilder nullabilityBuilder) {
-    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
-        message.withLocation(_uri, fileOffset, noLength));
+    return new NamedTypeBuilderImpl.forInvalidType(token.lexeme,
+        nullabilityBuilder, message.withLocation(_uri, fileOffset, noLength));
   }
 
   @override

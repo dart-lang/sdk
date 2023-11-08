@@ -572,6 +572,9 @@ class Assembler : public AssemblerBase {
   void lock();
   void cmpxchgl(const Address& address, Register reg);
 
+  void cld();
+  void std();
+
   void cpuid();
 
   /*
@@ -821,6 +824,7 @@ class Assembler : public AssemblerBase {
     LoadImmediate(reg, immediate.value());
   }
 
+  void LoadSImmediate(XmmRegister dst, float value);
   void LoadDImmediate(XmmRegister dst, double value);
 
   void Drop(intptr_t stack_elements);
@@ -1071,6 +1075,10 @@ class Assembler : public AssemblerBase {
 
   void SmiUntag(Register reg) { sarl(reg, Immediate(kSmiTagSize)); }
 
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+    UNIMPLEMENTED();
+  }
+
   void BranchIfNotSmi(Register reg,
                       Label* label,
                       JumpDistance distance = kFarJump) {
@@ -1189,6 +1197,21 @@ class Assembler : public AssemblerBase {
                         Register instance,
                         Register end_address,
                         Register temp);
+
+  void CheckAllocationCanary(Register top) {
+#if defined(DEBUG)
+    Label okay;
+    cmpl(Address(top, 0), Immediate(kAllocationCanary));
+    j(EQUAL, &okay, Assembler::kNearJump);
+    Stop("Allocation canary");
+    Bind(&okay);
+#endif
+  }
+  void WriteAllocationCanary(Register top) {
+#if defined(DEBUG)
+    movl(Address(top, 0), Immediate(kAllocationCanary));
+#endif
+  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

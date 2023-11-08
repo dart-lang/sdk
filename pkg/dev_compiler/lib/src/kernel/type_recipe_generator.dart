@@ -124,7 +124,15 @@ class TypeRecipeGenerator {
           // No need to add any more live types at this time. Any "new" types
           // seen in this process are not live.
           addLiveInterfaceTypes: false);
-      var supertypeEntries = <String, List<String>>{};
+      var supertypeEntries = <String, Object>{};
+      // Encode the type argument mapping portion of this type rule.
+      for (var i = 0; i < cls.typeParameters.length; i++) {
+        var paramRecipe = '${cls.name}.${cls.typeParameters[i].name!}';
+        var argumentRecipe = _futureOrNormalizer
+            .normalize(type.typeArguments[i])
+            .accept(_recipeVisitor);
+        supertypeEntries[paramRecipe] = argumentRecipe;
+      }
       // Encode type rules for all supers.
       var toVisit = ListQueue<Supertype>.from(cls.supers);
       var visited = <Supertype>{};
@@ -138,12 +146,21 @@ class TypeRecipeGenerator {
         // Skip encoding the synthetic classes in the type rules because they
         // will never be instantiated or appear in type tests.
         if (currentClass.isAnonymousMixin) continue;
-        // Encode this type rule.
+        // Encode the supertype portion of this type rule.
         var recipe = interfaceTypeRecipe(currentClass);
         var typeArgumentRecipes = [
           for (var typeArgument in currentType.typeArguments)
             _futureOrNormalizer.normalize(typeArgument).accept(_recipeVisitor)
         ];
+        // Encode the type argument mapping portion of this type rule.
+        for (var i = 0; i < currentClass.typeParameters.length; i++) {
+          var paramRecipe =
+              '${currentClass.name}.${currentClass.typeParameters[i].name!}';
+          var argumentRecipe = _futureOrNormalizer
+              .normalize(currentType.typeArguments[i])
+              .accept(_recipeVisitor);
+          supertypeEntries[paramRecipe] = argumentRecipe;
+        }
         supertypeEntries[recipe] = typeArgumentRecipes;
         visited.add(currentType);
       }
@@ -235,7 +252,13 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       Set.unmodifiable(_visitedJsInteropTypes);
 
   @override
-  String defaultDartType(DartType node) =>
+  String visitAuxiliaryType(AuxiliaryType node) {
+    throw UnsupportedError(
+        'Unsupported auxiliary type $node (${node.runtimeType}).');
+  }
+
+  @override
+  String visitInvalidType(DartType node) =>
       throw UnimplementedError('Unknown DartType: $node');
 
   @override
@@ -346,8 +369,8 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   }
 
   @override
-  String visitInlineType(InlineType node) =>
-      node.instantiatedRepresentationType.accept(this);
+  String visitExtensionType(ExtensionType node) =>
+      node.typeErasure.accept(this);
 
   @override
   String visitRecordType(RecordType node) {
@@ -388,7 +411,26 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   }
 
   @override
-  String visitTypedefType(TypedefType node) => defaultDartType(node);
+  String visitTypedefType(TypedefType node) =>
+      throw UnimplementedError('Unknown DartType: $node');
+
+  @override
+  String visitStructuralParameterType(StructuralParameterType node) {
+    var i = _unboundTypeParameters.indexOf(node.parameter.name!);
+    if (i >= 0) {
+      return '$i'
+          '${Recipe.genericFunctionTypeParameterIndexString}'
+          '${_nullabilityRecipe(node)}';
+    }
+    i = _typeEnvironment.recipeIndexOf(node.parameter);
+    if (i < 0) {
+      throw UnsupportedError(
+          'Type parameter $node was not found in the environment '
+          '$_typeEnvironment or in the unbound parameters '
+          '$_unboundTypeParameters.');
+    }
+    return '$i${_nullabilityRecipe(node)}';
+  }
 
   @override
   String visitNeverType(NeverType node) =>
@@ -402,9 +444,6 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   @override
   String visitNullType(NullType node) =>
       interfaceTypeRecipe(_coreTypes.deprecatedNullClass);
-
-  @override
-  String visitExtensionType(ExtensionType node) => defaultDartType(node);
 
   @override
   String visitIntersectionType(IntersectionType node) =>
@@ -421,7 +460,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   String _nullabilityRecipe(DartType type) {
     switch (type.declaredNullability) {
       case Nullability.undetermined:
-        if (type is TypeParameterType) {
+        if (type is TypeParameterType || type is StructuralParameterType) {
           // Type parameters are expected to appear with undetermined
           // nullability since they could be instantiated with nullable type.
           // In this case we allow the type to flow without adding any

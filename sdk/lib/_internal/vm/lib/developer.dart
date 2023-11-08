@@ -177,8 +177,12 @@ external void _webServerControl(
     SendPort sendPort, bool enable, bool? silenceOutput);
 
 @patch
-@pragma("vm:external-name", "Developer_getIsolateIDFromSendPort")
-external String _getIsolateIDFromSendPort(SendPort sendPort);
+@pragma("vm:external-name", "Developer_getIsolateIdFromSendPort")
+external String _getIsolateIdFromSendPort(SendPort sendPort);
+
+@patch
+@pragma("vm:external-name", "Developer_getObjectId")
+external String _getObjectId(Object object);
 
 @patch
 abstract final class NativeRuntime {

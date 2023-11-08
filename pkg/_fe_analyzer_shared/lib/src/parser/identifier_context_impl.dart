@@ -66,6 +66,8 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
       'implements',
       'on',
       '=',
+      '(',
+      '.',
     ];
     if (identifier.isEof ||
         (looksLikeStartOfNextTopLevelDeclaration(identifier) &&
@@ -974,13 +976,18 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.methodDeclaration],
 /// and [IdentifierContext.methodDeclarationContinuation],
-/// and [IdentifierContext.operatorName].
+/// and [IdentifierContext.operatorName],
+/// and [IdentifierContext.primaryConstructorDeclaration].
 class MethodDeclarationIdentifierContext extends IdentifierContext {
   const MethodDeclarationIdentifierContext()
       : super('methodDeclaration', inDeclaration: true);
 
   const MethodDeclarationIdentifierContext.continuation()
       : super('methodDeclarationContinuation',
+            inDeclaration: true, isContinuation: true);
+
+  const MethodDeclarationIdentifierContext.primaryConstructor()
+      : super('primaryConstructorDeclaration',
             inDeclaration: true, isContinuation: true);
 
   const MethodDeclarationIdentifierContext.operatorName()

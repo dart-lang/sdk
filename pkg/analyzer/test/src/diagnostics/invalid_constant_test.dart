@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -17,6 +18,37 @@ main() {
 @reflectiveTest
 class InvalidConstantTest extends PubPackageResolutionTest
     with InvalidConstantTestCases {
+  test_conditionalExpression_unknownCondition() async {
+    await assertNoErrorsInCode('''
+const bool kIsWeb = identical(0, 0.0);
+
+void f() {
+  const A(kIsWeb ? 0 : 1);
+}
+
+class A {
+  const A(int _);
+}
+''');
+  }
+
+  test_conditionalExpression_unknownCondition_errorInBranch() async {
+    await assertErrorsInCode('''
+const bool kIsWeb = identical(0, 0.0);
+
+void f() {
+  var x = 2;
+  const A(kIsWeb ? 0 : x);
+}
+
+class A {
+  const A(int _);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 87, 1),
+    ]);
+  }
+
   test_in_initializer_field_as() async {
     await assertNoErrorsInCode('''
 class C<T> {
@@ -24,6 +56,22 @@ class C<T> {
   const C.test(dynamic x) : l = x as List<T>;
 }
 ''');
+  }
+
+  test_issue49389() async {
+    await assertErrorsInCode(r'''
+class Foo {
+  const Foo({required this.bar});
+  final Map<String, String> bar;
+}
+
+void main() {
+  final data = <String, String>{};
+  const Foo(bar: data);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
+    ]);
   }
 }
 
@@ -130,8 +178,6 @@ class B extends A {
   }
 
   test_in_initializer_instanceCreation() async {
-    // TODO(scheglov): the error CONST_EVAL_THROWS_EXCEPTION is redundant and
-    // ought to be suppressed. Or not?
     await assertErrorsInCode(r'''
 class A {
   A();
@@ -143,7 +189,16 @@ class B {
 var b = const B();
 ''', [
       error(CompileTimeErrorCode.INVALID_CONSTANT, 47, 7),
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 77, 9),
+      error(
+        CompileTimeErrorCode.INVALID_CONSTANT,
+        77,
+        9,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 47, 7,
+              text:
+                  "The error is in the field initializer of 'B', and occurs here."),
+        ],
+      ),
     ]);
   }
 

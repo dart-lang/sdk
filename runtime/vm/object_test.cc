@@ -2636,8 +2636,9 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   EXPECT(found_captured_vars);
 
   const intptr_t local_scope_context_level = 5;
-  const ContextScope& context_scope = ContextScope::Handle(
-      local_scope->PreserveOuterScope(local_scope_context_level));
+  const ContextScope& context_scope =
+      ContextScope::Handle(local_scope->PreserveOuterScope(
+          Function::null_function(), local_scope_context_level));
   LocalScope* outer_scope = LocalScope::RestoreOuterScope(context_scope);
   EXPECT_EQ(3, outer_scope->num_variables());
 
@@ -3579,120 +3580,6 @@ TEST_CASE(StackTraceFormat) {
            lib_url);
 
   EXPECT_ERROR(result, expected);
-}
-
-ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveCrossGen) {
-  WeakProperty& weak = WeakProperty::Handle();
-  {
-    // Weak property and value in new. Key in old.
-    HANDLESCOPE(thread);
-    String& key = String::Handle();
-    key ^= OneByteString::New("key", Heap::kOld);
-    String& value = String::Handle();
-    value ^= OneByteString::New("value", Heap::kNew);
-    weak ^= WeakProperty::New(Heap::kNew);
-    weak.set_key(key);
-    weak.set_value(value);
-    key ^= OneByteString::null();
-    value ^= OneByteString::null();
-  }
-  GCTestHelper::CollectNewSpace();
-  GCTestHelper::CollectOldSpace();
-  // Weak property key and value should survive due to cross-generation
-  // pointers.
-  EXPECT(weak.key() != Object::null());
-  EXPECT(weak.value() != Object::null());
-  {
-    // Weak property and value in old. Key in new.
-    HANDLESCOPE(thread);
-    String& key = String::Handle();
-    key ^= OneByteString::New("key", Heap::kNew);
-    String& value = String::Handle();
-    value ^= OneByteString::New("value", Heap::kOld);
-    weak ^= WeakProperty::New(Heap::kOld);
-    weak.set_key(key);
-    weak.set_value(value);
-    key ^= OneByteString::null();
-    value ^= OneByteString::null();
-  }
-  GCTestHelper::CollectNewSpace();
-  GCTestHelper::CollectOldSpace();
-  // Weak property key and value should survive due to cross-generation
-  // pointers.
-  EXPECT(weak.key() != Object::null());
-  EXPECT(weak.value() != Object::null());
-  {
-    // Weak property and value in new. Key is a Smi.
-    HANDLESCOPE(thread);
-    Integer& key = Integer::Handle();
-    key ^= Integer::New(31);
-    String& value = String::Handle();
-    value ^= OneByteString::New("value", Heap::kNew);
-    weak ^= WeakProperty::New(Heap::kNew);
-    weak.set_key(key);
-    weak.set_value(value);
-    key ^= Integer::null();
-    value ^= OneByteString::null();
-  }
-  GCTestHelper::CollectAllGarbage();
-  // Weak property key and value should survive due implicit liveness of
-  // non-heap objects.
-  EXPECT(weak.key() != Object::null());
-  EXPECT(weak.value() != Object::null());
-  {
-    // Weak property and value in old. Key is a Smi.
-    HANDLESCOPE(thread);
-    Integer& key = Integer::Handle();
-    key ^= Integer::New(32);
-    String& value = String::Handle();
-    value ^= OneByteString::New("value", Heap::kOld);
-    weak ^= WeakProperty::New(Heap::kOld);
-    weak.set_key(key);
-    weak.set_value(value);
-    key ^= OneByteString::null();
-    value ^= OneByteString::null();
-  }
-  GCTestHelper::CollectAllGarbage();
-  // Weak property key and value should survive due implicit liveness of
-  // non-heap objects.
-  EXPECT(weak.key() != Object::null());
-  EXPECT(weak.value() != Object::null());
-  {
-    // Weak property and value in new. Key in VM isolate.
-    HANDLESCOPE(thread);
-    String& value = String::Handle();
-    value ^= OneByteString::New("value", Heap::kNew);
-    weak ^= WeakProperty::New(Heap::kNew);
-    weak.set_key(Symbols::Dot());
-    weak.set_value(value);
-    String& key = String::Handle();
-    key ^= OneByteString::null();
-    value ^= OneByteString::null();
-  }
-  GCTestHelper::CollectNewSpace();
-  GCTestHelper::CollectOldSpace();
-  // Weak property key and value should survive due to cross-generation
-  // pointers.
-  EXPECT(weak.key() != Object::null());
-  EXPECT(weak.value() != Object::null());
-  {
-    // Weak property and value in old. Key in VM isolate.
-    HANDLESCOPE(thread);
-    String& value = String::Handle();
-    value ^= OneByteString::New("value", Heap::kOld);
-    weak ^= WeakProperty::New(Heap::kOld);
-    weak.set_key(Symbols::Dot());
-    weak.set_value(value);
-    String& key = String::Handle();
-    key ^= OneByteString::null();
-    value ^= OneByteString::null();
-  }
-  GCTestHelper::CollectNewSpace();
-  GCTestHelper::CollectOldSpace();
-  // Weak property key and value should survive due to cross-generation
-  // pointers.
-  EXPECT(weak.key() != Object::null());
-  EXPECT(weak.value() != Object::null());
 }
 
 ISOLATE_UNIT_TEST_CASE(WeakProperty_PreserveRecurse) {
@@ -5779,18 +5666,20 @@ TEST_CASE(Metadata) {
   res = lib.GetMetadata(func);
   PrintMetadata("A.aFunc", res);
 
-  func = lib.LookupLocalFunction(String::Handle(Symbols::New(thread, "main")));
+  func = lib.LookupFunctionAllowPrivate(
+      String::Handle(Symbols::New(thread, "main")));
   EXPECT(!func.IsNull());
   res = lib.GetMetadata(func);
   PrintMetadata("main", res);
 
-  func = lib.LookupLocalFunction(
+  func = lib.LookupFunctionAllowPrivate(
       String::Handle(Symbols::New(thread, "get:tlGetter")));
   EXPECT(!func.IsNull());
   res = lib.GetMetadata(func);
   PrintMetadata("tlGetter", res);
 
-  field = lib.LookupLocalField(String::Handle(Symbols::New(thread, "gVar")));
+  field =
+      lib.LookupFieldAllowPrivate(String::Handle(Symbols::New(thread, "gVar")));
   EXPECT(!field.IsNull());
   res = lib.GetMetadata(field);
   PrintMetadata("gVar", res);
@@ -6084,8 +5973,8 @@ ISOLATE_UNIT_TEST_CASE(PrintJSONPrimitives) {
         "\"name\":\"dart.core\",\"uri\":\"dart:core\"}},"
         "\"_kind\":\"RegularFunction\",\"static\":false,\"const\":false,"
         "\"implicit\":false,\"abstract\":false,"
-        "\"_intrinsic\":false,\"_native\":false,"
-        "\"location\":{\"type\":\"SourceLocation\","
+        "\"_intrinsic\":false,\"_native\":false,\"isGetter\":false,"
+        "\"isSetter\":false,\"location\":{\"type\":\"SourceLocation\","
         "\"script\":{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
         "\"uri\":\"dart:core\\/bool.dart\",\"_kind\":\"kernel\"}}}",
         buffer);

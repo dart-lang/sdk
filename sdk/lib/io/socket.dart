@@ -205,7 +205,7 @@ abstract interface class NetworkInterface {
 /// A `RawServerSocket` and provides a stream of low-level [RawSocket] objects,
 /// one for each connection made to the listening socket.
 ///
-/// See [RawSocket] for more info.
+/// See [RawSocket] for more information.
 abstract interface class RawServerSocket implements Stream<RawSocket> {
   /// Listens on a given address and port.
   ///
@@ -610,9 +610,13 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
   /// Writes up to [count] bytes of the buffer from [offset] buffer offset to
   /// the socket.
   ///
-  /// The number of successfully written bytes is returned.
-  /// This function is non-blocking and will only write data
-  /// if buffer space is available in the socket.
+  /// The number of successfully written bytes is returned. This function is
+  /// non-blocking and will only write data if buffer space is available in
+  /// the socket. This means that the number of successfully written bytes may
+  /// be less than `count` or even 0.
+  ///
+  /// Transmission of the buffer may be delayed unless
+  /// [SocketOption.tcpNoDelay] is set with [RawSocket.setOption].
   ///
   /// The default value for [offset] is 0, and the default value for [count] is
   /// `buffer.length - offset`.
@@ -719,6 +723,10 @@ abstract interface class RawSocket implements Stream<RawSocketEvent> {
 /// Data, as [Uint8List]s, is received by the local socket, made available
 /// by the [Stream] interface of this class, and can be sent to the remote
 /// socket through the [IOSink] interface of this class.
+///
+/// Transmission of the data sent through the [IOSink] interface may be
+/// delayed unless [SocketOption.tcpNoDelay] is set with
+/// [Socket.setOption].
 abstract interface class Socket implements Stream<Uint8List>, IOSink {
   /// Creates a new socket connection to the host and port and returns a [Future]
   /// that will complete with either a [Socket] once connected or an error

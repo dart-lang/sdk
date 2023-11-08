@@ -14,12 +14,13 @@ import 'package:analysis_server/src/lsp/handlers/commands/sort_members.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/validate_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 
 /// Handles workspace/executeCommand messages by delegating to a specific
 /// handler based on the command.
 class ExecuteCommandHandler
-    extends MessageHandler<ExecuteCommandParams, Object?> {
+    extends LspMessageHandler<ExecuteCommandParams, Object?> {
   final Map<String, CommandHandler<ExecuteCommandParams, Object>>
       commandHandlers;
 
@@ -59,7 +60,7 @@ class ExecuteCommandHandler
     final workDoneToken = params.workDoneToken;
     final progress = workDoneToken != null
         ? ProgressReporter.clientProvided(server, workDoneToken)
-        : server.clientCapabilities?.workDoneProgress ?? false
+        : server.lspClientCapabilities?.workDoneProgress ?? false
             ? ProgressReporter.serverCreated(server)
             : ProgressReporter.noop;
 
@@ -83,4 +84,21 @@ class ExecuteCommandHandler
 
     return handler.handle(message, commandParams, progress, token);
   }
+}
+
+class ExecuteCommandRegistrations extends FeatureRegistration
+    with StaticRegistration<ExecuteCommandOptions> {
+  ExecuteCommandRegistrations(super.info);
+
+  @override
+  List<LspDynamicRegistration> get dynamicRegistrations => [];
+
+  @override
+  ExecuteCommandOptions get staticOptions => ExecuteCommandOptions(
+        commands: Commands.serverSupportedCommands,
+        workDoneProgress: true,
+      );
+
+  @override
+  bool get supportsDynamic => false;
 }

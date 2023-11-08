@@ -35,14 +35,15 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [R0], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
-void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
+void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
   __ tbnz(&done, R0, target::ObjectAlignment::kNewObjectBitPosition);
 
   {
-    LeafRuntimeScope rt(assembler, /*frame_size=*/0, preserve_registers);
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                        /*preserve_registers=*/false);
     // R0 already loaded.
     __ mov(R1, THR);
     rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry,
@@ -67,7 +68,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
 // [Thread::tsan_utils_->setjmp_buffer_]).
 static void WithExceptionCatchingTrampoline(Assembler* assembler,
                                             std::function<void()> fun) {
-#if defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#if defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
   const Register kTsanUtilsReg = R3;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -132,11 +133,11 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   // pushed old [Thread::tsan_utils_->setjmp_buffer_].
   __ Bind(&do_native_call);
   __ MoveRegister(kSavedRspReg, SP);
-#endif  // defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#endif  // defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
 
   fun();
 
-#if defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#if defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
   __ MoveRegister(SP, kSavedRspReg);
   __ AddImmediate(SP, kJumpBufferSize);
   const Register kTsanUtilsReg2 = kSavedRspReg;
@@ -144,7 +145,7 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   __ Pop(TMP);
   __ str(TMP,
          Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
-#endif  // defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#endif  // defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
 }
 
 // Input parameters:
@@ -510,7 +511,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    __ mov(SP, CSP);
+    __ SetupDartSP();
 
     __ EnterFrame(0);
     __ PushRegisters(all_registers);
@@ -531,8 +532,6 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ mov(CSP, SP);
-
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
@@ -549,7 +548,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
+    __ mov(CSP, SP);
     __ blr(R4);
+    __ mov(SP, CSP);
     __ mov(THR, R0);
 
     __ LeaveFrame();
@@ -564,7 +565,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ PopRegisters(all_registers);
     __ LeaveFrame();
 
-    __ mov(CSP, SP);
+    __ RestoreCSP();
   }
 
   Label async_callback;
@@ -605,19 +606,19 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Exit the temporary isolate.
   {
-    __ mov(SP, CSP);
+    __ SetupDartSP();
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, R4, R9);
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitTemporaryIsolate, R4, R9);
     } else {
       Label call;
       __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
       __ b(&call);
-      __ Emit64(reinterpret_cast<int64_t>(&DLRT_GetFfiCallbackMetadata));
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitTemporaryIsolate));
       __ Bind(&call);
     }
 #else
@@ -631,7 +632,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ mov(THR, R0);
 
     __ LeaveFrame();
-    __ mov(CSP, SP);
+    __ RestoreCSP();
   }
 
   __ Bind(&done);
@@ -1433,6 +1434,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ LoadFromOffset(TMP, THR, target::Thread::end_offset());
     __ CompareRegisters(R7, TMP);
     __ b(&slow_case, CS);  // Branch if unsigned higher or equal.
+    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1505,6 +1507,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
     __ CompareRegisters(R3, R7);
     __ b(&loop, UNSIGNED_LESS);
+    __ WriteAllocationCanary(R7);  // Fix overshoot.
 
     // Done allocating and initializing the array.
     // AllocateArrayABI::kResultReg: new object.
@@ -1524,17 +1527,18 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
   __ Push(AllocateArrayABI::kLengthReg);
   __ Push(AllocateArrayABI::kTypeArgumentsReg);
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  __ ldr(AllocateArrayABI::kResultReg, Address(SP, 2 * target::kWordSize));
+  EnsureIsNewOrRemembered();
+
   // Pop arguments; result is popped in IP.
   __ Pop(AllocateArrayABI::kTypeArgumentsReg);
   __ Pop(AllocateArrayABI::kLengthReg);
   __ Pop(AllocateArrayABI::kResultReg);
   __ LeaveStubFrame();
-
-  // Write-barrier elimination might be enabled for this array (depending on the
-  // array length). To be sure we will check if the allocated object is in old
-  // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(assembler);
-
   __ ret();
 }
 
@@ -1753,6 +1757,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   __ ldr(TMP, Address(THR, target::Thread::end_offset()));
   __ CompareRegisters(R3, TMP);
   __ b(slow_case, CS);  // Branch if unsigned higher or equal.
+  __ CheckAllocationCanary(R0);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1832,6 +1837,10 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
     __ subs(R1, R1,
             Operand(target::kObjectAlignment / target::kCompressedWordSize));
     __ b(&loop, HI);
+#if defined(DEBUG)
+    __ ldr(TMP2, Address(THR, target::Thread::top_offset()));
+    __ WriteAllocationCanary(TMP2);  // Fix overshoot.
+#endif
 
     // Done allocating and initializing the context.
     // R0: new object.
@@ -1853,7 +1862,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // R0: new object
   // Restore the frame pointer.
@@ -1929,7 +1938,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // R0: new object
   // Restore the frame pointer.
@@ -1968,10 +1977,70 @@ COMPILE_ASSERT(kWriteBarrierValueReg == R0);
 COMPILE_ASSERT(kWriteBarrierSlotReg == R25);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
                                            bool cards) {
-  Label add_to_mark_stack, remember_card, lost_race;
-  __ tbz(&add_to_mark_stack, R0,
-         target::ObjectAlignment::kNewObjectBitPosition);
+  RegisterSet spill_set((1 << R2) | (1 << R3) | (1 << R4), 0);
 
+  Label skip_marking;
+  __ ldr(TMP, FieldAddress(R0, target::Object::tags_offset()));
+  __ ldr(TMP2, Address(THR, target::Thread::write_barrier_mask_offset()));
+  __ and_(TMP, TMP, Operand(TMP2));
+  __ tsti(TMP, Immediate(target::UntaggedObject::kIncrementalBarrierMask));
+  __ b(&skip_marking, ZERO);
+
+  {
+    // Atomically clear kOldAndNotMarkedBit.
+    Label retry, done;
+    __ PushRegisters(spill_set);
+    __ AddImmediate(R3, R0, target::Object::tags_offset() - kHeapObjectTag);
+    // R3: Untagged address of header word (atomics do not support offsets).
+    if (TargetCPUFeatures::atomic_memory_supported()) {
+      __ LoadImmediate(TMP, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
+      __ ldclr(TMP, TMP, R3);
+      __ tbz(&done, TMP, target::UntaggedObject::kOldAndNotMarkedBit);
+    } else {
+      __ Bind(&retry);
+      __ ldxr(R2, R3, kEightBytes);
+      __ tbz(&done, R2, target::UntaggedObject::kOldAndNotMarkedBit);
+      __ AndImmediate(R2, R2,
+                      ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+      __ stxr(R4, R2, R3, kEightBytes);
+      __ cbnz(&retry, R4);
+    }
+
+    __ LoadFromOffset(R4, THR, target::Thread::marking_stack_block_offset());
+    __ LoadFromOffset(R2, R4, target::MarkingStackBlock::top_offset(),
+                      kUnsignedFourBytes);
+    __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
+    __ StoreToOffset(R0, R3, target::MarkingStackBlock::pointers_offset());
+    __ add(R2, R2, Operand(1));
+    __ StoreToOffset(R2, R4, target::MarkingStackBlock::top_offset(),
+                     kUnsignedFourBytes);
+    __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
+    __ b(&done, NE);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ mov(R0, THR);
+      rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
+    }
+
+    __ Bind(&done);
+    __ clrex();
+    __ PopRegisters(spill_set);
+  }
+
+  Label add_to_remembered_set, remember_card;
+  __ Bind(&skip_marking);
+  __ ldr(TMP, FieldAddress(R1, target::Object::tags_offset()));
+  __ ldr(TMP2, FieldAddress(R0, target::Object::tags_offset()));
+  __ and_(TMP, TMP2,
+          Operand(TMP, LSR, target::UntaggedObject::kBarrierOverlapShift));
+  __ tsti(TMP, Immediate(target::UntaggedObject::kGenerationalBarrierMask));
+  __ b(&add_to_remembered_set, NOT_ZERO);
+  __ ret();
+
+  __ Bind(&add_to_remembered_set);
   if (cards) {
     __ LoadFieldFromOffset(TMP, R1, target::Object::tags_offset(), kFourBytes);
     __ tbnz(&remember_card, TMP, target::UntaggedObject::kCardRememberedBit);
@@ -1984,121 +2053,56 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     __ Bind(&ok);
 #endif
   }
-
-  // Save values being destroyed.
-  __ Push(R2);
-  __ Push(R3);
-  __ Push(R4);
-
-  // Atomically clear kOldAndNotRememberedBit.
-  ASSERT(target::Object::tags_offset() == 0);
-  __ sub(R3, R1, Operand(kHeapObjectTag));
-  // R3: Untagged address of header word (atomics do not support offsets).
-  if (TargetCPUFeatures::atomic_memory_supported()) {
-    __ LoadImmediate(TMP, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
-    __ ldclr(TMP, TMP, R3);
-    __ tbz(&lost_race, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
-  } else {
-    Label retry;
-    __ Bind(&retry);
-    __ ldxr(R2, R3, kEightBytes);
-    __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotRememberedBit);
-    __ AndImmediate(R2, R2,
-                    ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-    __ stxr(R4, R2, R3, kEightBytes);
-    __ cbnz(&retry, R4);
-  }
-
-  // Load the StoreBuffer block out of the thread. Then load top_ out of the
-  // StoreBufferBlock and add the address to the pointers_.
-  __ LoadFromOffset(R4, THR, target::Thread::store_buffer_block_offset());
-  __ LoadFromOffset(R2, R4, target::StoreBufferBlock::top_offset(),
-                    kUnsignedFourBytes);
-  __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
-  __ StoreToOffset(R1, R3, target::StoreBufferBlock::pointers_offset());
-
-  // Increment top_ and check for overflow.
-  // R2: top_.
-  // R4: StoreBufferBlock.
-  Label overflow;
-  __ add(R2, R2, Operand(1));
-  __ StoreToOffset(R2, R4, target::StoreBufferBlock::top_offset(),
-                   kUnsignedFourBytes);
-  __ CompareImmediate(R2, target::StoreBufferBlock::kSize);
-  // Restore values.
-  __ Pop(R4);
-  __ Pop(R3);
-  __ Pop(R2);
-  __ b(&overflow, EQ);
-  __ ret();
-
-  // Handle overflow: Call the runtime leaf function.
-  __ Bind(&overflow);
   {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/0,
-                        /*preserve_registers=*/true);
-    __ mov(R0, THR);
-    rt.Call(kStoreBufferBlockProcessRuntimeEntry, /*argument_count=*/1);
+    // Atomically clear kOldAndNotRememberedBit.
+    Label retry, done;
+    __ PushRegisters(spill_set);
+    __ AddImmediate(R3, R1, target::Object::tags_offset() - kHeapObjectTag);
+    // R3: Untagged address of header word (atomics do not support offsets).
+    if (TargetCPUFeatures::atomic_memory_supported()) {
+      __ LoadImmediate(TMP,
+                       1 << target::UntaggedObject::kOldAndNotRememberedBit);
+      __ ldclr(TMP, TMP, R3);
+      __ tbz(&done, TMP, target::UntaggedObject::kOldAndNotRememberedBit);
+    } else {
+      __ Bind(&retry);
+      __ ldxr(R2, R3, kEightBytes);
+      __ tbz(&done, R2, target::UntaggedObject::kOldAndNotRememberedBit);
+      __ AndImmediate(R2, R2,
+                      ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+      __ stxr(R4, R2, R3, kEightBytes);
+      __ cbnz(&retry, R4);
+    }
+
+    // Load the StoreBuffer block out of the thread. Then load top_ out of the
+    // StoreBufferBlock and add the address to the pointers_.
+    __ LoadFromOffset(R4, THR, target::Thread::store_buffer_block_offset());
+    __ LoadFromOffset(R2, R4, target::StoreBufferBlock::top_offset(),
+                      kUnsignedFourBytes);
+    __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
+    __ StoreToOffset(R1, R3, target::StoreBufferBlock::pointers_offset());
+
+    // Increment top_ and check for overflow.
+    // R2: top_.
+    // R4: StoreBufferBlock.
+    __ add(R2, R2, Operand(1));
+    __ StoreToOffset(R2, R4, target::StoreBufferBlock::top_offset(),
+                     kUnsignedFourBytes);
+    __ CompareImmediate(R2, target::StoreBufferBlock::kSize);
+    __ b(&done, NE);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ mov(R0, THR);
+      rt.Call(kStoreBufferBlockProcessRuntimeEntry, /*argument_count=*/1);
+    }
+
+    __ Bind(&done);
+    __ PopRegisters(spill_set);
+    __ ret();
   }
-  __ ret();
-
-  __ Bind(&add_to_mark_stack);
-  __ Push(R2);  // Spill.
-  __ Push(R3);  // Spill.
-  __ Push(R4);  // Spill.
-
-  // Atomically clear kOldAndNotMarkedBit.
-  Label marking_retry, marking_overflow;
-  ASSERT(target::Object::tags_offset() == 0);
-  __ sub(R3, R0, Operand(kHeapObjectTag));
-  // R3: Untagged address of header word (atomics do not support offsets).
-  if (TargetCPUFeatures::atomic_memory_supported()) {
-    __ LoadImmediate(TMP, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
-    __ ldclr(TMP, TMP, R3);
-    __ tbz(&lost_race, TMP, target::UntaggedObject::kOldAndNotMarkedBit);
-  } else {
-    __ Bind(&marking_retry);
-    __ ldxr(R2, R3, kEightBytes);
-    __ tbz(&lost_race, R2, target::UntaggedObject::kOldAndNotMarkedBit);
-    __ AndImmediate(R2, R2,
-                    ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
-    __ stxr(R4, R2, R3, kEightBytes);
-    __ cbnz(&marking_retry, R4);
-  }
-
-  __ LoadFromOffset(R4, THR, target::Thread::marking_stack_block_offset());
-  __ LoadFromOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                    kUnsignedFourBytes);
-  __ add(R3, R4, Operand(R2, LSL, target::kWordSizeLog2));
-  __ StoreToOffset(R0, R3, target::MarkingStackBlock::pointers_offset());
-  __ add(R2, R2, Operand(1));
-  __ StoreToOffset(R2, R4, target::MarkingStackBlock::top_offset(),
-                   kUnsignedFourBytes);
-  __ CompareImmediate(R2, target::MarkingStackBlock::kSize);
-  __ Pop(R4);  // Unspill.
-  __ Pop(R3);  // Unspill.
-  __ Pop(R2);  // Unspill.
-  __ b(&marking_overflow, EQ);
-  __ ret();
-
-  __ Bind(&marking_overflow);
-  {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/0,
-                        /*preserve_registers=*/true);
-    __ mov(R0, THR);
-    rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
-  }
-  __ ret();
-
-  __ Bind(&lost_race);
-  __ clrex();
-  __ Pop(R4);  // Unspill.
-  __ Pop(R3);  // Unspill.
-  __ Pop(R2);  // Unspill.
-  __ ret();
-
   if (cards) {
     Label remember_card_slow;
 
@@ -2201,6 +2205,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
       __ CompareRegisters(kFieldReg, kNewTopReg);
       __ b(&loop, UNSIGNED_LESS);
+      __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
     }  // kFieldReg = R4
 
     if (is_cls_parameterized) {
@@ -2284,7 +2289,7 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub() {
 
   // Write-barrier elimination is enabled for [cls] and we therefore need to
   // ensure that the object is in new-space or has remembered bit set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   __ LeaveStubFrame();
 
@@ -2567,7 +2572,6 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     GenerateUsageCounterIncrement(/*scratch=*/R6);
   }
 
-  ASSERT(exactness == kIgnoreExactness);  // Unimplemented.
   ASSERT(num_args == 1 || num_args == 2);
 #if defined(DEBUG)
   {
@@ -2613,7 +2617,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   // R6: points directly to the first ic data array element.
 
   if (type == kInstanceCall) {
-    __ LoadTaggedClassIdMayBeSmi(R0, R0);
+    __ LoadTaggedClassIdMayBeSmi(R3, R0);
     __ LoadFieldFromOffset(ARGS_DESC_REG, R5,
                            target::CallSiteData::arguments_descriptor_offset());
     if (num_args == 2) {
@@ -2636,7 +2640,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ sub(R7, R7, Operand(1));
     // R0 <- [SP + (R7 << 3)]
     __ ldr(R0, Address(SP, R7, UXTX, Address::Scaled));
-    __ LoadTaggedClassIdMayBeSmi(R0, R0);
+    __ LoadTaggedClassIdMayBeSmi(R3, R0);
     if (num_args == 2) {
       __ AddImmediate(R1, R7, -1);
       // R1 <- [SP + (R1 << 3)]
@@ -2644,7 +2648,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       __ LoadTaggedClassIdMayBeSmi(R1, R1);
     }
   }
-  // R0: first argument class ID as Smi.
+  // R3: first argument class ID as Smi.
   // R1: second argument class ID as Smi.
   // R4: args descriptor
 
@@ -2660,7 +2664,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     Label update;
 
     __ LoadCompressedSmiFromOffset(R2, R6, 0);
-    __ CompareObjectRegisters(R0, R2);  // Class id match?
+    __ CompareObjectRegisters(R3, R2);  // Class id match?
     if (num_args == 2) {
       __ b(&update, NE);  // Continue.
       __ LoadCompressedSmiFromOffset(R2, R6, target::kCompressedWordSize);
@@ -2737,18 +2741,57 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
   }
 
   __ Bind(&found);
-  __ Comment("Update caller's counter");
   // R6: pointer to an IC data check group.
   const intptr_t target_offset =
       target::ICData::TargetIndexFor(num_args) * target::kCompressedWordSize;
   const intptr_t count_offset =
       target::ICData::CountIndexFor(num_args) * target::kCompressedWordSize;
+  const intptr_t exactness_offset =
+      target::ICData::ExactnessIndexFor(num_args) * target::kCompressedWordSize;
+
+  Label call_target_function_through_unchecked_entry;
+  if (exactness == kCheckExactness) {
+    Label exactness_ok;
+    ASSERT(num_args == 1);
+    __ LoadCompressedSmi(R1, Address(R6, exactness_offset));
+    __ CompareImmediate(
+        R1,
+        target::ToRawSmi(
+            StaticTypeExactnessState::HasExactSuperType().Encode()),
+        kObjectBytes);
+    __ BranchIf(LESS, &exactness_ok);
+    __ BranchIf(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Check trivial exactness.
+    // Note: UntaggedICData::receivers_static_type_ is guaranteed to be not null
+    // because we only emit calls to this stub when it is not null.
+    __ LoadCompressed(
+        R2, FieldAddress(R5, target::ICData::receivers_static_type_offset()));
+    __ LoadCompressed(R2, FieldAddress(R2, target::Type::arguments_offset()));
+    // R1 contains an offset to type arguments in words as a smi,
+    // hence TIMES_4. R0 is guaranteed to be non-smi because it is expected
+    // to have type arguments.
+#if defined(DART_COMPRESSED_POINTERS)
+    __ sxtw(R1, R1);
+#endif
+    __ LoadIndexedPayload(R3, R0, 0, R1, TIMES_COMPRESSED_HALF_WORD_SIZE,
+                          kObjectBytes);
+    __ CompareObjectRegisters(R2, R3);
+    __ BranchIf(EQUAL, &call_target_function_through_unchecked_entry);
+
+    // Update exactness state (not-exact anymore).
+    __ LoadImmediate(
+        R1, target::ToRawSmi(StaticTypeExactnessState::NotExact().Encode()));
+    __ StoreToOffset(R1, R6, exactness_offset, kObjectBytes);
+    __ Bind(&exactness_ok);
+  }
   __ LoadCompressedFromOffset(FUNCTION_REG, R6, target_offset);
 
   if (FLAG_optimization_counter_threshold >= 0) {
-    // Update counter, ignore overflow.
+    __ Comment("Update caller's counter");
     __ LoadCompressedSmiFromOffset(R1, R6, count_offset);
-    __ adds(R1, R1, Operand(target::ToRawSmi(1)), kObjectBytes);
+    // Ignore overflow.
+    __ add(R1, R1, Operand(target::ToRawSmi(1)), kObjectBytes);
     __ StoreToOffset(R1, R6, count_offset, kObjectBytes);
   }
 
@@ -2765,6 +2808,25 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
                            target::Function::entry_point_offset());
   }
   __ br(R2);
+
+  if (exactness == kCheckExactness) {
+    __ Bind(&call_target_function_through_unchecked_entry);
+    if (FLAG_optimization_counter_threshold >= 0) {
+      __ Comment("Update ICData counter");
+      __ LoadCompressedSmiFromOffset(R1, R6, count_offset);
+      // Ignore overflow.
+      __ add(R1, R1, Operand(target::ToRawSmi(1)), kObjectBytes);
+      __ StoreToOffset(R1, R6, count_offset, kObjectBytes);
+    }
+    __ Comment("Call target (via unchecked entry point)");
+    __ LoadCompressedFromOffset(FUNCTION_REG, R6, target_offset);
+    __ LoadCompressedFieldFromOffset(CODE_REG, FUNCTION_REG,
+                                     target::Function::code_offset());
+    __ LoadFieldFromOffset(
+        R2, FUNCTION_REG,
+        target::Function::entry_point_offset(CodeEntryKind::kUnchecked));
+    __ br(R2);
+  }
 
 #if !defined(PRODUCT)
   if (optimized == kUnoptimized) {
@@ -2807,7 +2869,9 @@ void StubCodeCompiler::GenerateOneArgCheckInlineCacheStub() {
 // R5: ICData
 // LR: return address
 void StubCodeCompiler::GenerateOneArgCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL,
+      kUnoptimized, kInstanceCall, kCheckExactness);
 }
 
 // R0: receiver
@@ -2862,7 +2926,9 @@ void StubCodeCompiler::GenerateOneArgOptimizedCheckInlineCacheStub() {
 // LR: return address
 void StubCodeCompiler::
     GenerateOneArgOptimizedCheckInlineCacheWithExactnessCheckStub() {
-  __ Stop("Unimplemented");
+  GenerateNArgsCheckInlineCacheStub(
+      1, kInlineCacheMissHandlerOneArgRuntimeEntry, Token::kILLEGAL, kOptimized,
+      kInstanceCall, kCheckExactness);
 }
 
 // R0: receiver
@@ -3077,7 +3143,11 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 //   - kSubtypeTestCacheResultReg: the cached result, or null if not found.
 void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
                                                      int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
+  ASSERT(n >= 1);
+  ASSERT(n <= SubtypeTestCache::kMaxInputs);
+  // If we need the parent function type arguments for a closure, we also need
+  // the delayed type arguments, so this case will never happen.
+  ASSERT(n != 5);
 
   // We could initialize kSubtypeTestCacheResultReg with null and use that as
   // the null register up until exit, which means we'd just need to return
@@ -3621,6 +3691,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ ldr(R6, Address(THR, target::Thread::end_offset()));
     __ cmp(R1, Operand(R6));
     __ b(&call_runtime, CS);
+    __ CheckAllocationCanary(R0);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3664,6 +3735,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ stp(ZR, ZR, Address(R2, 2 * target::kWordSize, Address::PairPostIndex));
     __ cmp(R2, Operand(R1));
     __ b(&loop, UNSIGNED_LESS);
+    __ WriteAllocationCanary(R1);  // Fix overshoot.
 
     __ Ret();
 

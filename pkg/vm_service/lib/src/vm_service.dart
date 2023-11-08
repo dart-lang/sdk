@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.10.0';
+const String vmServiceVersion = '4.13.0';
 
 /// @optional
 const String optional = 'optional';
@@ -189,6 +189,7 @@ Map<String, Function> _typeFactories = {
   'Timestamp': Timestamp.parse,
   '@TypeArguments': TypeArgumentsRef.parse,
   'TypeArguments': TypeArguments.parse,
+  '@TypeParameters': TypeParametersRef.parse,
   'TypeParameters': TypeParameters.parse,
   'UnresolvedSourceLocation': UnresolvedSourceLocation.parse,
   'UriList': UriList.parse,
@@ -974,6 +975,15 @@ abstract class VmServiceInterface {
   /// filter strings. For example, pass `["package:foo/"]` to only include
   /// scripts from the foo package.
   ///
+  /// The `librariesAlreadyCompiled` parameter overrides the `forceCompilation`
+  /// parameter on a per-library basis, setting it to `false` for any libary in
+  /// this list. This is useful for cases where multiple `getSourceReport` RPCs
+  /// are sent with `forceCompilation` enabled, to avoid recompiling the same
+  /// libraries repeatedly. To use this parameter, enable `forceCompilation`,
+  /// cache the results of each `getSourceReport` RPC, and pass all the
+  /// libraries mentioned in the `SourceReport` to subsequent RPCs in the
+  /// `librariesAlreadyCompiled`.
+  ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
   ///
@@ -990,6 +1000,7 @@ abstract class VmServiceInterface {
     bool? forceCompile,
     bool? reportLines,
     List<String>? libraryFilters,
+    List<String>? librariesAlreadyCompiled,
   });
 
   /// The `getVersion` RPC is used to determine what version of the Service
@@ -1125,20 +1136,21 @@ abstract class VmServiceInterface {
   /// See [Success].
   Future<Success> registerService(String service, String alias);
 
-  /// The `reloadSources` RPC is used to perform a hot reload of an Isolate's
-  /// sources.
+  /// The `reloadSources` RPC is used to perform a hot reload of the sources of
+  /// all isolates in the same isolate group as the isolate specified by
+  /// `isolateId`.
   ///
-  /// if the `force` parameter is provided, it indicates that all of the
-  /// Isolate's sources should be reloaded regardless of modification time.
+  /// If the `force` parameter is provided, it indicates that all sources should
+  /// be reloaded regardless of modification time.
   ///
-  /// if the `pause` parameter is provided, the isolate will pause immediately
-  /// after the reload.
+  /// The `pause` parameter has been deprecated, so providing it no longer has
+  /// any effect.
   ///
-  /// if the `rootLibUri` parameter is provided, it indicates the new uri to the
-  /// Isolate's root library.
+  /// If the `rootLibUri` parameter is provided, it indicates the new uri to the
+  /// isolate group's root library.
   ///
-  /// if the `packagesUri` parameter is provided, it indicates the new uri to
-  /// the Isolate's package map (.packages) file.
+  /// If the `packagesUri` parameter is provided, it indicates the new uri to
+  /// the isolate group's package map (.packages) file.
   ///
   /// If `isolateId` refers to an isolate which has exited, then the `Collected`
   /// [Sentinel] is returned.
@@ -1697,6 +1709,7 @@ class VmServerConnection {
             forceCompile: params['forceCompile'],
             reportLines: params['reportLines'],
             libraryFilters: params['libraryFilters'],
+            librariesAlreadyCompiled: params['librariesAlreadyCompiled'],
           );
           break;
         case 'getVersion':
@@ -1942,6 +1955,9 @@ class VmService implements VmServiceInterface {
   final Map<String, ServiceCallback> _services = {};
   late final Log _log;
 
+  /// The web socket URI pointing to the target VM service instance.
+  final String? wsUri;
+
   final StreamController<String> _onSend =
       StreamController.broadcast(sync: true);
   final StreamController<String> _onReceive =
@@ -1968,6 +1984,7 @@ class VmService implements VmServiceInterface {
     Log? log,
     DisposeHandler? disposeHandler,
     Future? streamClosed,
+    this.wsUri,
   }) {
     _streamSub = inStream.listen(_processMessage,
         onDone: () => _onDoneCompleter.complete());
@@ -2280,6 +2297,7 @@ class VmService implements VmServiceInterface {
     bool? forceCompile,
     bool? reportLines,
     List<String>? libraryFilters,
+    List<String>? librariesAlreadyCompiled,
   }) =>
       _call('getSourceReport', {
         'isolateId': isolateId,
@@ -2290,6 +2308,8 @@ class VmService implements VmServiceInterface {
         if (forceCompile != null) 'forceCompile': forceCompile,
         if (reportLines != null) 'reportLines': reportLines,
         if (libraryFilters != null) 'libraryFilters': libraryFilters,
+        if (librariesAlreadyCompiled != null)
+          'librariesAlreadyCompiled': librariesAlreadyCompiled,
       });
 
   @override
@@ -2806,9 +2826,7 @@ class _NullLog implements Log {
 }
 // enums
 
-class CodeKind {
-  CodeKind._();
-
+abstract class CodeKind {
   static const String kDart = 'Dart';
   static const String kNative = 'Native';
   static const String kStub = 'Stub';
@@ -2816,9 +2834,7 @@ class CodeKind {
   static const String kCollected = 'Collected';
 }
 
-class ErrorKind {
-  ErrorKind._();
-
+abstract class ErrorKind {
   /// The isolate has encountered an unhandled Dart exception.
   static const String kUnhandledException = 'UnhandledException';
 
@@ -2959,9 +2975,7 @@ abstract class EventKind {
 
 /// Adding new values to `InstanceKind` is considered a backwards compatible
 /// change. Clients should treat unrecognized instance kinds as `PlainInstance`.
-class InstanceKind {
-  InstanceKind._();
-
+abstract class InstanceKind {
   /// A general instance of the Dart class Object.
   static const String kPlainInstance = 'PlainInstance';
 
@@ -3067,9 +3081,7 @@ class InstanceKind {
 ///
 /// Adding new values to `SentinelKind` is considered a backwards compatible
 /// change. Clients must handle this gracefully.
-class SentinelKind {
-  SentinelKind._();
-
+abstract class SentinelKind {
   /// Indicates that the object referred to has been collected by the GC.
   static const String kCollected = 'Collected';
 
@@ -3090,9 +3102,7 @@ class SentinelKind {
 }
 
 /// A `FrameKind` is used to distinguish different kinds of `Frame` objects.
-class FrameKind {
-  FrameKind._();
-
+abstract class FrameKind {
   static const String kRegular = 'Regular';
   static const String kAsyncCausal = 'AsyncCausal';
   static const String kAsyncSuspensionMarker = 'AsyncSuspensionMarker';
@@ -3101,9 +3111,7 @@ class FrameKind {
   static const String kAsyncActivation = 'AsyncActivation';
 }
 
-class SourceReportKind {
-  SourceReportKind._();
-
+abstract class SourceReportKind {
   /// Used to request a code coverage information.
   static const String kCoverage = 'Coverage';
 
@@ -3116,9 +3124,7 @@ class SourceReportKind {
 
 /// An `ExceptionPauseMode` indicates how the isolate pauses when an exception
 /// is thrown.
-class ExceptionPauseMode {
-  ExceptionPauseMode._();
-
+abstract class ExceptionPauseMode {
   static const String kNone = 'None';
   static const String kUnhandled = 'Unhandled';
   static const String kAll = 'All';
@@ -3126,9 +3132,7 @@ class ExceptionPauseMode {
 
 /// A `StepOption` indicates which form of stepping is requested in a [resume]
 /// RPC.
-class StepOption {
-  StepOption._();
-
+abstract class StepOption {
   static const String kInto = 'Into';
   static const String kOver = 'Over';
   static const String kOverAsyncSuspension = 'OverAsyncSuspension';
@@ -5103,6 +5107,12 @@ class FuncRef extends ObjRef {
   /// Is this function an abstract method?
   bool? isAbstract;
 
+  /// Is this function a getter?
+  bool? isGetter;
+
+  /// Is this function a setter?
+  bool? isSetter;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -5118,6 +5128,8 @@ class FuncRef extends ObjRef {
     this.isConst,
     this.implicit,
     this.isAbstract,
+    this.isGetter,
+    this.isSetter,
     required String id,
     this.location,
   }) : super(
@@ -5132,6 +5144,8 @@ class FuncRef extends ObjRef {
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
     isAbstract = json['abstract'] ?? false;
+    isGetter = json['isGetter'] ?? false;
+    isSetter = json['isSetter'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }
@@ -5150,6 +5164,8 @@ class FuncRef extends ObjRef {
       'const': isConst ?? false,
       'implicit': implicit ?? false,
       'abstract': isAbstract ?? false,
+      'isGetter': isGetter ?? false,
+      'isSetter': isSetter ?? false,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     return json;
@@ -5162,9 +5178,7 @@ class FuncRef extends ObjRef {
   bool operator ==(Object other) => other is FuncRef && id == other.id;
 
   @override
-  String toString() => '[FuncRef ' //
-      'id: $id, name: $name, owner: $owner, isStatic: $isStatic, ' //
-      'isConst: $isConst, implicit: $implicit, isAbstract: $isAbstract]';
+  String toString() => '[FuncRef]';
 }
 
 /// A `Func` represents a Dart language function.
@@ -5202,6 +5216,14 @@ class Func extends Obj implements FuncRef {
   @override
   bool? isAbstract;
 
+  /// Is this function a getter?
+  @override
+  bool? isGetter;
+
+  /// Is this function a setter?
+  @override
+  bool? isSetter;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -5225,6 +5247,8 @@ class Func extends Obj implements FuncRef {
     this.isConst,
     this.implicit,
     this.isAbstract,
+    this.isGetter,
+    this.isSetter,
     this.signature,
     required String id,
     this.location,
@@ -5241,6 +5265,8 @@ class Func extends Obj implements FuncRef {
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
     isAbstract = json['abstract'] ?? false;
+    isGetter = json['isGetter'] ?? false;
+    isSetter = json['isSetter'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
     signature = createServiceObject(json['signature'], const ['InstanceRef'])
@@ -5262,6 +5288,8 @@ class Func extends Obj implements FuncRef {
       'const': isConst ?? false,
       'implicit': implicit ?? false,
       'abstract': isAbstract ?? false,
+      'isGetter': isGetter ?? false,
+      'isSetter': isSetter ?? false,
       'signature': signature?.toJson(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
@@ -5276,9 +5304,7 @@ class Func extends Obj implements FuncRef {
   bool operator ==(Object other) => other is Func && id == other.id;
 
   @override
-  String toString() => '[Func ' //
-      'id: $id, name: $name, owner: $owner, isStatic: $isStatic, ' //
-      'isConst: $isConst, implicit: $implicit, isAbstract: $isAbstract, signature: $signature]';
+  String toString() => '[Func]';
 }
 
 /// `InstanceRef` is a reference to an `Instance`.
@@ -8820,14 +8846,49 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
   String toString() => '[TypeArguments id: $id, name: $name, types: $types]';
 }
 
+/// `TypeParametersRef` is a reference to a `TypeParameters` object.
+class TypeParametersRef extends ObjRef {
+  static TypeParametersRef? parse(Map<String, dynamic>? json) =>
+      json == null ? null : TypeParametersRef._fromJson(json);
+
+  TypeParametersRef({
+    required String id,
+  }) : super(
+          id: id,
+        );
+
+  TypeParametersRef._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json);
+
+  @override
+  String get type => '@TypeParameters';
+
+  @override
+  Map<String, dynamic> toJson() {
+    final json = super.toJson();
+    json['type'] = type;
+    return json;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is TypeParametersRef && id == other.id;
+
+  @override
+  String toString() => '[TypeParametersRef id: $id]';
+}
+
 /// A `TypeParameters` object represents the type argument vector for some
 /// uninstantiated generic type.
-class TypeParameters {
+class TypeParameters extends Obj implements TypeParametersRef {
   static TypeParameters? parse(Map<String, dynamic>? json) =>
       json == null ? null : TypeParameters._fromJson(json);
 
   /// The names of the type parameters.
-  List<String>? names;
+  InstanceRef? names;
 
   /// The bounds set on each type parameter.
   TypeArgumentsRef? bounds;
@@ -8839,20 +8900,29 @@ class TypeParameters {
     this.names,
     this.bounds,
     this.defaults,
-  });
+    required String id,
+  }) : super(
+          id: id,
+        );
 
-  TypeParameters._fromJson(Map<String, dynamic> json) {
-    names = List<String>.from(json['names']);
+  TypeParameters._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    names = createServiceObject(json['names'], const ['InstanceRef'])
+        as InstanceRef?;
     bounds = createServiceObject(json['bounds'], const ['TypeArgumentsRef'])
         as TypeArgumentsRef?;
     defaults = createServiceObject(json['defaults'], const ['TypeArgumentsRef'])
         as TypeArgumentsRef?;
   }
 
+  @override
+  String get type => 'TypeParameters';
+
+  @override
   Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
+    final json = super.toJson();
+    json['type'] = type;
     json.addAll({
-      'names': names?.map((f) => f).toList(),
+      'names': names?.toJson(),
       'bounds': bounds?.toJson(),
       'defaults': defaults?.toJson(),
     });
@@ -8860,8 +8930,14 @@ class TypeParameters {
   }
 
   @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is TypeParameters && id == other.id;
+
+  @override
   String toString() =>
-      '[TypeParameters names: $names, bounds: $bounds, defaults: $defaults]';
+      '[TypeParameters id: $id, names: $names, bounds: $bounds, defaults: $defaults]';
 }
 
 /// The `UnresolvedSourceLocation` class is used to refer to an unresolved

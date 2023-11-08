@@ -32,7 +32,7 @@ extension /* unnamed */ _extension#0<T extends core::Object? = dynamic> on self:
 }
 extension /* unnamed */ _extension#1<T extends core::Object? = dynamic> on self::A<T%> {
   method member = self::_extension#1|member;
-  tearoff member = self::_extension#1|get#member;
+  method tearoff member = self::_extension#1|get#member;
 }
 static extension-member method _extension#0|get#member<T extends core::Object? = dynamic>(lowered final self::I<self::_extension#0|get#member::T%> #this) → core::num {
   return self::_extension#0|get#member::T% =={core::Type::==}{(core::Object) → core::bool} #C1 ?{core::num} 0.5 : 1;

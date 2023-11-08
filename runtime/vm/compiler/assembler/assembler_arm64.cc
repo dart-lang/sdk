@@ -254,7 +254,7 @@ void Assembler::Bind(Label* label) {
   label->BindTo(bound_pc, lr_state());
 }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   MoveRegister(R0, addr);
@@ -659,6 +659,20 @@ void Assembler::LoadImmediate(Register reg, int64_t imm) {
     } else {
       movz(reg, Immediate(h3), 3);
     }
+  }
+}
+
+void Assembler::LoadSImmediate(VRegister vd, float imms) {
+  int32_t imm32 = bit_cast<int32_t, float>(imms);
+  if (imm32 == 0) {
+    veor(vd, vd, vd);
+  } else if (constant_pool_allowed()) {
+    intptr_t index = object_pool_builder().FindImmediate(imm32);
+    intptr_t offset = target::ObjectPool::element_offset(index);
+    LoadSFromOffset(vd, PP, offset);
+  } else {
+    LoadImmediate(TMP, imm32);
+    fmovsr(vd, TMP);
   }
 }
 
@@ -1650,7 +1664,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
+  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
     b(&slow_path);
   }
 
@@ -1665,7 +1679,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
+  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
     b(&retry);
   }
 
@@ -1709,7 +1723,7 @@ void Assembler::ExitFullSafepoint(Register state,
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
+  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
     b(&slow_path);
   }
 
@@ -1724,7 +1738,7 @@ void Assembler::ExitFullSafepoint(Register state,
   stxr(TMP, state, addr);
   cbz(&done, TMP);  // 0 means stxr was successful.
 
-  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
+  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
     b(&retry);
   }
 
@@ -2037,6 +2051,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // fail if heap end unsigned less than or equal to new heap top.
     cmp(temp_reg, Operand(instance_reg));
     b(failure, LS);
+    CheckAllocationCanary(instance_reg, temp_reg);
 
     // Successfully allocated the object, now update temp to point to
     // next object start and store the class in the class field of object.
@@ -2077,6 +2092,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     ldr(temp2, Address(THR, target::Thread::end_offset()));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
+    CheckAllocationCanary(instance, temp2);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

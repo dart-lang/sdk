@@ -35,6 +35,9 @@ declare_args() {
   # code coverage enabled.
   dart_debug_optimization_level = "2"
 
+  # The optimization level to use for non-debug builds.
+  dart_default_optimization_level = "2"
+
   # Whether to enable code coverage for the standalone VM.
   dart_vm_code_coverage = false
 

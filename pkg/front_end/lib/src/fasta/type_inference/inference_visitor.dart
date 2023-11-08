@@ -152,6 +152,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// `null` if no cascade's expressions are currently being visited.
   Cascade? _enclosingCascade;
 
+  /// Set to `true` when we are inside a try-statement or a local function.
+  ///
+  /// This is used to optimize the encoding of [AssignedVariablePattern]. When
+  /// a pattern assignment occurs in a try block or a local function, a
+  /// partially matched pattern is observable, since exceptions occurring during
+  /// the matching can be caught.
+  // TODO(johnniwinther): This can be improved by detecting whether the assigned
+  // variable was declared outside the try statement or local function.
+  bool _inTryOrLocalFunction = false;
+
   InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
       this.constructorDeclaration, this.operations)
       : options = new TypeAnalyzerOptions(
@@ -365,18 +375,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  ExpressionInferenceResult defaultExpression(
-      Expression node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
-  ExpressionInferenceResult defaultBasicLiteral(
-      BasicLiteral node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
-  }
-
-  @override
   ExpressionInferenceResult visitBlockExpression(
       BlockExpression node, DartType typeContext) {
     // This is only used for error cases. The spec doesn't use this and
@@ -569,12 +567,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     FunctionType expressionType = expressionResult.inferredType as FunctionType;
 
     assert(expressionType.typeParameters.length == node.typeArguments.length);
-    Substitution substitution = Substitution.fromPairs(
-        expressionType.typeParameters, node.typeArguments);
-    FunctionType resultType = substitution
-        .substituteType(expressionType.withoutTypeParameters) as FunctionType;
-    FreshTypeParameters freshTypeParameters =
-        getFreshTypeParameters(node.typeParameters);
+    FunctionType resultType = FunctionTypeInstantiator.instantiate(
+        expressionType, node.typeArguments);
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(node.typeParameters);
     resultType = freshTypeParameters.substitute(resultType) as FunctionType;
     resultType = new FunctionType(resultType.positionalParameters,
         resultType.returnType, resultType.declaredNullability,
@@ -611,11 +607,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  StatementInferenceResult defaultStatement(Statement node) {
-    return _unhandledStatement(node);
-  }
-
-  @override
   StatementInferenceResult visitAssertBlock(AssertBlock node) {
     return _unhandledStatement(node);
   }
@@ -633,11 +624,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Never _unhandledInitializer(Initializer node) {
     problems.unhandled("${node.runtimeType}", "InferenceVisitor",
         node.fileOffset, node.location!.file);
-  }
-
-  @override
-  InitializerInferenceResult defaultInitializer(Initializer node) {
-    _unhandledInitializer(node);
   }
 
   @override
@@ -672,8 +658,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (operandType is! FunctionType) {
       ObjectAccessTarget callMember = findInterfaceMember(
           operandType, callName, operand.fileOffset,
-          callSiteAccessKind: CallSiteAccessKind.getterInvocation,
-          includeExtensionMethods: true);
+          isSetter: false, includeExtensionMethods: true);
       switch (callMember.kind) {
         case ObjectAccessTargetKind.instanceMember:
           Member? target = callMember.member;
@@ -686,7 +671,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           break;
         case ObjectAccessTargetKind.extensionMember:
-        case ObjectAccessTargetKind.inlineClassMember:
+        case ObjectAccessTargetKind.extensionTypeMember:
           if (callMember.tearoffTarget != null &&
               callMember.declarationMethodKind == ProcedureKind.Method) {
             operandType = callMember.getGetterType(this);
@@ -713,9 +698,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.nullableRecordIndexed:
         case ObjectAccessTargetKind.nullableRecordNamed:
         case ObjectAccessTargetKind.recordNamed:
-        case ObjectAccessTargetKind.nullableInlineClassMember:
-        case ObjectAccessTargetKind.inlineClassRepresentation:
-        case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+        case ObjectAccessTargetKind.nullableExtensionTypeMember:
+        case ObjectAccessTargetKind.extensionTypeRepresentation:
+        case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
           break;
       }
     }
@@ -734,9 +719,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               node.fileOffset,
               noLength);
         } else {
-          resultType = Substitution.fromPairs(
-                  operandType.typeParameters, node.typeArguments)
-              .substituteType(operandType.withoutTypeParameters);
+          resultType = FunctionTypeInstantiator.instantiate(
+              operandType, node.typeArguments);
         }
       } else {
         if (operandType.typeParameters.isEmpty) {
@@ -1315,10 +1299,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // transformations like erasure don't work.
     List<TypeParameter> classTypeParametersCopy =
         new List.of(constructor.enclosingClass.typeParameters);
-    List<TypeParameter> typedefTypeParametersCopy =
-        new List.of(typedef.typeParameters);
-    List<DartType> asTypeArguments =
-        getAsTypeArguments(typedefTypeParametersCopy, libraryBuilder.library);
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(typedef.typeParameters);
+    List<StructuralParameter> typedefTypeParametersCopy =
+        freshTypeParameters.freshTypeParameters;
+    List<DartType> asTypeArguments = freshTypeParameters.freshTypeArguments;
     TypedefType typedefType = new TypedefType(
         typedef, libraryBuilder.library.nonNullable, asTypeArguments);
     DartType unaliasedTypedef = typedefType.unalias;
@@ -1371,10 +1356,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // transformations like erasure don't work.
     List<TypeParameter> classTypeParametersCopy =
         new List.of(function.typeParameters);
-    List<TypeParameter> typedefTypeParametersCopy =
-        new List.of(typedef.typeParameters);
-    List<DartType> asTypeArguments =
-        getAsTypeArguments(typedefTypeParametersCopy, libraryBuilder.library);
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(typedef.typeParameters);
+    List<StructuralParameter> typedefTypeParametersCopy =
+        freshTypeParameters.freshTypeParameters;
+    List<DartType> asTypeArguments = freshTypeParameters.freshTypeArguments;
     TypedefType typedefType = new TypedefType(
         typedef, libraryBuilder.library.nonNullable, asTypeArguments);
     DartType unaliasedTypedef = typedefType.unalias;
@@ -1596,12 +1582,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    PatternForInResult<InvalidExpression> result = analyzePatternForIn(
-        node: node,
-        hasAwait: isAsync,
-        pattern: patternVariableDeclaration.pattern,
-        expression: iterable,
-        dispatchBody: () {});
+    PatternForInResult<DartType, InvalidExpression> result =
+        analyzePatternForIn(
+            node: node,
+            hasAwait: isAsync,
+            pattern: patternVariableDeclaration.pattern,
+            expression: iterable,
+            dispatchBody: () {});
+    patternVariableDeclaration.matchedValueType = result.elementType;
     if (result.patternForInExpressionIsNotIterableError != null) {
       // The error is reported elsewhere.
     }
@@ -1625,20 +1613,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ForInVariable forInVariable =
         new PatternVariableDeclarationForInVariable(patternVariableDeclaration);
 
-    DartType elementType = forInVariable.computeElementType(this);
-    ExpressionInferenceResult iterableResult =
-        inferForInIterable(iterable, elementType, isAsync: isAsync);
-    DartType inferredType = iterableResult.inferredType;
-    variable.type = inferredType;
+    variable.type = result.elementType;
+    iterable = ensureAssignable(
+        wrapType(
+            const DynamicType(),
+            isAsync ? coreTypes.streamClass : coreTypes.iterableClass,
+            libraryBuilder.nonNullable),
+        result.expressionType,
+        iterable,
+        errorTemplate: templateForInLoopTypeNotIterable,
+        nullabilityErrorTemplate: templateForInLoopTypeNotIterableNullability,
+        nullabilityPartErrorTemplate:
+            templateForInLoopTypeNotIterablePartNullability);
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
     flowAnalysis.forEach_bodyBegin(node);
-    syntheticAssignment = forInVariable.inferAssignment(this, inferredType);
+    syntheticAssignment =
+        forInVariable.inferAssignment(this, result.elementType);
     if (syntheticAssignment is VariableSet) {
-      flowAnalysis.write(node, variable, inferredType, null);
+      flowAnalysis.write(node, variable, result.elementType, null);
     }
 
-    return new ForInResult(variable, iterableResult.expression,
+    return new ForInResult(variable, /*iterableResult.expression*/ iterable,
         syntheticAssignment, patternVariableDeclaration);
   }
 
@@ -1791,6 +1787,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   StatementInferenceResult visitFunctionDeclaration(
       covariant FunctionDeclarationImpl node) {
+    bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
+    _inTryOrLocalFunction = true;
     VariableDeclaration variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
     inferMetadata(this, variable, variable.annotations);
@@ -1805,12 +1803,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     variable.type = inferredType;
     flowAnalysis.declare(variable, variable.type, initialized: true);
     flowAnalysis.functionExpression_end();
+    _inTryOrLocalFunction = oldInTryOrLocalFunction;
     return const StatementInferenceResult();
   }
 
   @override
   ExpressionInferenceResult visitFunctionExpression(
       FunctionExpression node, DartType typeContext) {
+    bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
+    _inTryOrLocalFunction = true;
     flowAnalysis.functionExpression_begin(node);
     FunctionType inferredType =
         visitFunctionNode(node.function, typeContext, null, node.fileOffset);
@@ -1819,6 +1820,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           inferredType.returnType;
     }
     flowAnalysis.functionExpression_end();
+    _inTryOrLocalFunction = oldInTryOrLocalFunction;
     return new ExpressionInferenceResult(inferredType, node);
   }
 
@@ -2357,11 +2359,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       PatternVariableDeclaration patternVariableDeclaration =
           element.patternVariableDeclaration;
-      analyzePatternVariableDeclaration(
-          patternVariableDeclaration,
-          patternVariableDeclaration.pattern,
-          patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal);
+      PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
+          analyzePatternVariableDeclaration(
+              patternVariableDeclaration,
+              patternVariableDeclaration.pattern,
+              patternVariableDeclaration.initializer,
+              isFinal: patternVariableDeclaration.isFinal);
+      patternVariableDeclaration.matchedValueType =
+          analysisResult.initializerType;
 
       assert(checkStack(element, stackBase, [
         /* pattern = */ ValueKinds.Pattern,
@@ -2593,13 +2598,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes =
         new Map<Expression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(
+            listClass.typeParameters);
+    List<StructuralParameter> typeParametersToInfer =
+        freshTypeParameters.freshTypeParameters;
+    listType = freshTypeParameters.substitute(listType) as InterfaceType;
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
-          listType, listClass.typeParameters, typeContext,
+          listType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, listClass.typeParameters, null,
+          gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
     } else {
@@ -2617,7 +2628,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, listClass.typeParameters, inferredTypes!,
+          gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -4230,11 +4241,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       PatternVariableDeclaration patternVariableDeclaration =
           entry.patternVariableDeclaration;
-      analyzePatternVariableDeclaration(
-          patternVariableDeclaration,
-          patternVariableDeclaration.pattern,
-          patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal);
+      PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
+          analyzePatternVariableDeclaration(
+              patternVariableDeclaration,
+              patternVariableDeclaration.pattern,
+              patternVariableDeclaration.initializer,
+              isFinal: patternVariableDeclaration.isFinal);
+      patternVariableDeclaration.matchedValueType =
+          analysisResult.initializerType;
 
       assert(checkStack(entry, stackBase, [
         /* pattern = */ ValueKinds.Pattern,
@@ -4587,13 +4601,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes =
         new Map<Expression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(mapClass.typeParameters);
+    List<StructuralParameter> typeParametersToInfer =
+        freshTypeParameters.freshTypeParameters;
+    mapType = freshTypeParameters.substitute(mapType) as InterfaceType;
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
-          mapType, mapClass.typeParameters, typeContext,
+          mapType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, mapClass.typeParameters, null,
+          gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredKeyType = inferredTypes[0];
       inferredValueType = inferredTypes[1];
@@ -4647,6 +4666,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         List<DartType> formalTypesForSet = <DartType>[];
         InterfaceType setType = coreTypes.thisInterfaceType(
             coreTypes.setClass, libraryBuilder.nonNullable);
+        FreshStructuralParametersFromTypeParameters freshTypeParameters =
+            getFreshStructuralParametersFromTypeParameters(
+                coreTypes.setClass.typeParameters);
+        List<StructuralParameter> typeParametersToInfer =
+            freshTypeParameters.freshTypeParameters;
+        setType = freshTypeParameters.substitute(setType) as InterfaceType;
         for (int i = 0; i < node.entries.length; ++i) {
           setElements.add(convertToElement(
             node.entries[i],
@@ -4662,16 +4687,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         // needs to be a set.
         TypeConstraintGatherer gatherer =
             typeSchemaEnvironment.setupGenericTypeInference(
-                setType, coreTypes.setClass.typeParameters, typeContext,
+                setType, typeParametersToInfer, typeContext,
                 isNonNullableByDefault: isNonNullableByDefault,
                 isConst: node.isConst);
-        List<DartType> inferredTypesForSet =
-            typeSchemaEnvironment.choosePreliminaryTypes(
-                gatherer, coreTypes.setClass.typeParameters, null,
+        List<DartType> inferredTypesForSet = typeSchemaEnvironment
+            .choosePreliminaryTypes(gatherer, typeParametersToInfer, null,
                 isNonNullableByDefault: isNonNullableByDefault);
         gatherer.constrainArguments(formalTypesForSet, actualTypesForSet);
         inferredTypesForSet = typeSchemaEnvironment.chooseFinalTypes(
-            gatherer, coreTypes.setClass.typeParameters, inferredTypesForSet,
+            gatherer, typeParametersToInfer, inferredTypesForSet,
             isNonNullableByDefault: isNonNullableByDefault);
         DartType inferredTypeArgument = inferredTypesForSet[0];
         instrumentation?.record(
@@ -4711,7 +4735,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       gatherer!.constrainArguments(formalTypes, actualTypes);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, mapClass.typeParameters, inferredTypes!,
+          gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -5029,9 +5053,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget writeTarget = findInterfaceMember(
         receiverType, node.propertyName, node.writeOffset,
-        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
-        instrumented: true,
-        includeExtensionMethods: true);
+        isSetter: true, instrumented: true, includeExtensionMethods: true);
     DartType writeType = writeTarget.getSetterType(this);
 
     ExpressionInferenceResult binaryResult = _computeBinaryExpression(
@@ -5096,9 +5118,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget writeTarget = findInterfaceMember(
         receiverType, node.propertyName, receiver.fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
-        instrumented: true,
-        includeExtensionMethods: true);
+        isSetter: true, instrumented: true, includeExtensionMethods: true);
     DartType writeContext = writeTarget.getSetterType(this);
 
     flowAnalysis.ifNullExpression_rightBegin(read, readType);
@@ -5234,8 +5254,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget indexGetTarget = findInterfaceMember(
         receiverType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     DartType indexType = indexGetTarget.getIndexKeyType(this);
 
@@ -5278,8 +5297,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget indexSetTarget = findInterfaceMember(
         receiverType, indexSetName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     DartType indexType = indexSetTarget.getIndexKeyType(this);
     DartType valueType = indexSetTarget.getIndexSetValueType(this);
@@ -5498,8 +5516,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget readTarget = findInterfaceMember(
         receiverType, indexGetName, node.readOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     MethodContravarianceCheckKind checkKind = preCheckInvocationContravariance(
         receiverType, readTarget,
@@ -5509,8 +5526,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget writeTarget = findInterfaceMember(
         receiverType, indexSetName, node.writeOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     DartType writeIndexType = writeTarget.getIndexKeyType(this);
     DartType valueType = writeTarget.getIndexSetValueType(this);
@@ -6013,8 +6029,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget equalsTarget = findInterfaceMember(
         leftType, equalsName, fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     assert(
         equalsTarget.isInstanceMember ||
@@ -6060,8 +6075,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           const NeverType.nonNullable(), libraryBuilder.nonNullable);
       // Ensure operator == member even for `Never`.
       Member target = findInterfaceMember(const DynamicType(), equalsName, -1,
-              instrumented: false,
-              callSiteAccessKind: CallSiteAccessKind.operatorInvocation)
+              instrumented: false, isSetter: false)
           .member!;
       equals = new EqualsCall(left, right,
           functionType: functionType, interfaceTarget: target as Procedure)
@@ -6099,8 +6113,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget binaryTarget = findInterfaceMember(
         leftType, binaryName, fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     MethodContravarianceCheckKind binaryCheckKind =
         preCheckInvocationContravariance(leftType, binaryTarget,
@@ -6149,8 +6162,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         assert(binaryTarget.declarationMethodKind != ProcedureKind.Setter);
         binary = new StaticInvocation(
             binaryTarget.member as Procedure,
@@ -6237,8 +6250,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError('Unexpected binary target ${binaryTarget}');
     }
 
@@ -6273,8 +6286,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Map<DartType, NonPromotionReason> Function() whyNotPromoted) {
     ObjectAccessTarget unaryTarget = findInterfaceMember(
         expressionType, unaryName, fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     MethodContravarianceCheckKind unaryCheckKind =
         preCheckInvocationContravariance(expressionType, unaryTarget,
@@ -6295,8 +6307,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         assert(unaryTarget.declarationMethodKind != ProcedureKind.Setter);
         unary = new StaticInvocation(
             unaryTarget.member as Procedure,
@@ -6357,8 +6369,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError('Unexpected unary target ${unaryTarget}');
     }
 
@@ -6412,8 +6424,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         read = new StaticInvocation(
             readTarget.member as Procedure,
             new Arguments(<Expression>[
@@ -6504,8 +6516,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError('Unexpected index get target ${readTarget}');
     }
 
@@ -6555,8 +6567,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         assert(writeTarget.declarationMethodKind != ProcedureKind.Setter);
         write = new StaticInvocation(
             writeTarget.member as Procedure,
@@ -6620,8 +6632,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError(
             'Unexpected index set target ${writeTarget}');
     }
@@ -6657,17 +6669,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         flowAnalysis.whyNotPromoted(receiver);
 
     readTarget ??= findInterfaceMember(receiverType, propertyName, fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     DartType readType = readTarget.getGetterType(this);
-    readType = flowAnalysis.propertyGet(
-            propertyGetNode,
-            computePropertyTarget(receiver),
-            propertyName.text,
-            readTarget.member,
-            readType) ??
-        readType;
+    DartType? promotedReadType = flowAnalysis.propertyGet(
+        propertyGetNode,
+        computePropertyTarget(receiver),
+        propertyName.text,
+        readTarget.member,
+        readType);
     return createPropertyGet(
         fileOffset: fileOffset,
         receiver: receiver,
@@ -6676,6 +6686,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         typeContext: typeContext,
         readTarget: readTarget,
         readType: readType,
+        promotedReadType: promotedReadType,
         isThisReceiver: isThisReceiver,
         whyNotPromoted: whyNotPromoted);
   }
@@ -6721,8 +6732,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         if (forEffect) {
           write = new StaticInvocation(
               writeTarget.member as Procedure,
@@ -6789,10 +6800,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError('Unexpected write target ${writeTarget}');
     }
     Expression result;
@@ -6832,8 +6843,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget readTarget = findInterfaceMember(
         receiverType, indexGetName, node.readOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     MethodContravarianceCheckKind readCheckKind =
         preCheckInvocationContravariance(receiverType, readTarget,
@@ -6885,8 +6895,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget writeTarget = findInterfaceMember(
         receiverType, indexSetName, node.writeOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
 
     DartType writeIndexType = writeTarget.getIndexKeyType(this);
 
@@ -7029,8 +7038,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget writeTarget = findInterfaceMember(
         nonNullReceiverType, node.propertyName, node.writeOffset,
-        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
-        includeExtensionMethods: true);
+        isSetter: true, includeExtensionMethods: true);
 
     DartType valueType = writeTarget.getSetterType(this);
 
@@ -7478,9 +7486,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget target = findInterfaceMember(
         receiverType, node.name, node.fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
-        instrumented: true,
-        includeExtensionMethods: true);
+        isSetter: true, instrumented: true, includeExtensionMethods: true);
     if (target.isInstanceMember || target.isObjectMember) {
       if (instrumentation != null && receiverType == const DynamicType()) {
         instrumentation!.record(uriForInstrumentation, node.fileOffset,
@@ -7587,8 +7593,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget writeTarget = findInterfaceMember(
         nonNullReceiverType, node.name, node.writeOffset,
-        callSiteAccessKind: CallSiteAccessKind.setterInvocation,
-        includeExtensionMethods: true);
+        isSetter: true, includeExtensionMethods: true);
 
     DartType valueType = writeTarget.getSetterType(this);
 
@@ -7674,15 +7679,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isThisReceiver: node.receiver is ThisExpression, propertyGetNode: node);
     ExpressionInferenceResult readResult =
         propertyGetInferenceResult.expressionInferenceResult;
-    // TODO(johnniwinther,paulberry): Should the we pass the resulting node
-    // as the "whole-expression" instead of [node] ? (We do this for field
-    // invocation).
-    flowAnalysis.propertyGet(
-        node,
-        computePropertyTarget(node.receiver),
-        node.name.text,
-        propertyGetInferenceResult.member,
-        readResult.inferredType);
     ExpressionInferenceResult expressionInferenceResult =
         createNullAwareExpressionInferenceResult(
             readResult.inferredType, readResult.expression, nullAwareGuards);
@@ -7841,8 +7837,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferenceResult);
   }
 
-  InitializerInferenceResult visitInlineClassRedirectingInitializer(
-      InlineClassRedirectingInitializer node) {
+  InitializerInferenceResult visitExtensionTypeRedirectingInitializer(
+      ExtensionTypeRedirectingInitializer node) {
     ensureMemberType(node.target);
     List<TypeParameter> constructorTypeParameters =
         constructorDeclaration!.function.typeParameters;
@@ -7918,13 +7914,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Map<Expression, DartType> inferredConditionTypes =
         new Map<Expression, DartType>.identity();
     TypeConstraintGatherer? gatherer;
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(setClass.typeParameters);
+    List<StructuralParameter> typeParametersToInfer =
+        freshTypeParameters.freshTypeParameters;
+    setType = freshTypeParameters.substitute(setType) as InterfaceType;
     if (inferenceNeeded) {
       gatherer = typeSchemaEnvironment.setupGenericTypeInference(
-          setType, setClass.typeParameters, typeContext,
+          setType, typeParametersToInfer, typeContext,
           isNonNullableByDefault: isNonNullableByDefault,
           isConst: node.isConst);
       inferredTypes = typeSchemaEnvironment.choosePreliminaryTypes(
-          gatherer, setClass.typeParameters, null,
+          gatherer, typeParametersToInfer, null,
           isNonNullableByDefault: isNonNullableByDefault);
       inferredTypeArgument = inferredTypes[0];
     } else {
@@ -7943,7 +7944,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (inferenceNeeded) {
       gatherer!.constrainArguments(formalTypes, actualTypes);
       inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
-          gatherer, setClass.typeParameters, inferredTypes!,
+          gatherer, typeParametersToInfer, inferredTypes!,
           isNonNullableByDefault: isNonNullableByDefault);
       if (dataForTesting != null) {
         dataForTesting!.typeInferenceResult.inferredTypeArguments[node] =
@@ -8094,14 +8095,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   InitializerInferenceResult visitSuperInitializer(SuperInitializer node) {
     ensureMemberType(node.target);
-    Substitution substitution = Substitution.fromSupertype(
-        hierarchyBuilder.getClassAsInstanceOf(
-            thisType!.classNode, node.target.enclosingClass)!);
-    FunctionType functionType = replaceReturnType(
-        substitution.substituteType(node.target.function
-            .computeThisFunctionType(libraryBuilder.nonNullable)
-            .withoutTypeParameters) as FunctionType,
-        thisType!);
+
+    Supertype asSuperClass = hierarchyBuilder.getClassAsInstanceOf(
+        thisType!.classNode, node.target.enclosingClass)!;
+
+    FunctionType targetType = node.target.function
+        .computeThisFunctionType(libraryBuilder.nonNullable);
+
+    FunctionType instantiatedTargetType = FunctionTypeInstantiator.instantiate(
+        targetType, asSuperClass.typeArguments);
+
+    FunctionType functionType =
+        replaceReturnType(instantiatedTargetType, thisType!);
+
     InvocationInferenceResult inferenceResult = inferInvocation(
         this,
         const UnknownType(),
@@ -8496,6 +8502,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitTryStatement(TryStatement node) {
+    bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
+    _inTryOrLocalFunction = true;
     if (node.finallyBlock != null) {
       flowAnalysis.tryFinallyStatement_bodyBegin();
     }
@@ -8542,6 +8550,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ..fileOffset = node.fileOffset;
     }
     libraryBuilder.loader.dataForTesting?.registerAlias(node, result);
+    _inTryOrLocalFunction = oldInTryOrLocalFunction;
     return new StatementInferenceResult.single(result);
   }
 
@@ -8817,8 +8826,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
-        isFinal: node.isFinal);
+    PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
+        analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
+            isFinal: node.isFinal);
+    node.matchedValueType = analysisResult.initializerType;
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -9967,8 +9978,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
         expressionType, equalsName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
     assert(equalsInvokeTarget.isInstanceMember ||
         equalsInvokeTarget.isObjectMember ||
         equalsInvokeTarget.isNever);
@@ -10236,8 +10246,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget lengthTarget = findInterfaceMember(
         lookupType, lengthName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+        includeExtensionMethods: true, isSetter: false);
     assert(lengthTarget.isInstanceMember);
 
     DartType lengthType = node.lengthType = lengthTarget.getGetterType(this);
@@ -10245,8 +10254,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget sublistInvokeTarget = findInterfaceMember(
         lookupType, sublistName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
     assert(sublistInvokeTarget.isInstanceMember);
 
     node.sublistTarget = sublistInvokeTarget.member as Procedure;
@@ -10254,8 +10262,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget minusTarget = findInterfaceMember(
         lengthType, minusName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
     assert(minusTarget.isInstanceMember);
     assert(minusTarget.isSpecialCasedBinaryOperator(this));
 
@@ -10268,8 +10275,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget indexGetTarget = findInterfaceMember(
         lookupType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
     assert(indexGetTarget.isInstanceMember);
 
     node.indexGetTarget = indexGetTarget.member as Procedure;
@@ -10285,8 +10291,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.hasRestPattern) {
       ObjectAccessTarget greaterThanOrEqualTarget = findInterfaceMember(
           lengthType, greaterThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+          includeExtensionMethods: true, isSetter: false);
       assert(greaterThanOrEqualTarget.isInstanceMember);
 
       node.lengthCheckTarget = greaterThanOrEqualTarget.member as Procedure;
@@ -10294,8 +10299,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else if (node.patterns.isEmpty) {
       ObjectAccessTarget lessThanOrEqualsInvokeTarget = findInterfaceMember(
           lengthType, lessThanOrEqualsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+          includeExtensionMethods: true, isSetter: false);
       assert(lessThanOrEqualsInvokeTarget.isInstanceMember ||
           lessThanOrEqualsInvokeTarget.isObjectMember);
 
@@ -10304,8 +10308,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       ObjectAccessTarget equalsInvokeTarget = findInterfaceMember(
           lengthType, equalsName, node.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+          includeExtensionMethods: true, isSetter: false);
       assert(equalsInvokeTarget.isInstanceMember ||
           equalsInvokeTarget.isObjectMember);
 
@@ -10396,8 +10399,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       ObjectAccessTarget fieldTarget = findInterfaceMember(
           node.requiredType, field.fieldName, field.fileOffset,
-          includeExtensionMethods: true,
-          callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+          includeExtensionMethods: true, isSetter: false);
 
       switch (fieldTarget.kind) {
         case ObjectAccessTargetKind.instanceMember:
@@ -10423,12 +10425,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           break;
         case ObjectAccessTargetKind.nullableInstanceMember:
         case ObjectAccessTargetKind.nullableExtensionMember:
-        case ObjectAccessTargetKind.nullableInlineClassMember:
+        case ObjectAccessTargetKind.nullableExtensionTypeMember:
         case ObjectAccessTargetKind.nullableRecordIndexed:
         case ObjectAccessTargetKind.nullableRecordNamed:
         case ObjectAccessTargetKind.nullableCallFunction:
         case ObjectAccessTargetKind.missing:
         case ObjectAccessTargetKind.ambiguous:
+        case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
           field.pattern = new InvalidPattern(
               createMissingPropertyGet(
                   field.fileOffset, node.requiredType, field.fieldName),
@@ -10443,13 +10446,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.callFunction:
           field.accessKind = ObjectAccessKind.FunctionTearOff;
           break;
+        case ObjectAccessTargetKind.extensionTypeRepresentation:
+          field.accessKind = ObjectAccessKind.Direct;
+          field.resultType = fieldTarget.getGetterType(this);
         case ObjectAccessTargetKind.superMember:
-        case ObjectAccessTargetKind.inlineClassRepresentation:
-        case ObjectAccessTargetKind.nullableInlineClassRepresentation:
           problems.unsupported(
               'Object field target $fieldTarget', node.fileOffset, helper.uri);
         case ObjectAccessTargetKind.extensionMember:
-        case ObjectAccessTargetKind.inlineClassMember:
+        case ObjectAccessTargetKind.extensionTypeMember:
           field.accessKind = ObjectAccessKind.Static;
           field.resultType = fieldTarget.getGetterType(this);
           field.typeArguments = fieldTarget.receiverTypeArguments;
@@ -10568,8 +10572,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     ObjectAccessTarget invokeTarget = findInterfaceMember(
         matchedValueType, name, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
     switch (node.kind) {
       case RelationalPatternKind.equals:
       case RelationalPatternKind.notEquals:
@@ -10583,8 +10586,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (target == null) {
           target = findInterfaceMember(
                   const DynamicType(), equalsName, node.fileOffset,
-                  instrumented: false,
-                  callSiteAccessKind: CallSiteAccessKind.operatorInvocation)
+                  instrumented: false, isSetter: false)
               .member as Procedure;
           node.functionType = new FunctionType([const DynamicType()],
               const NeverType.nonNullable(), libraryBuilder.nonNullable);
@@ -10603,7 +10605,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             break;
           case ObjectAccessTargetKind.nullableInstanceMember:
           case ObjectAccessTargetKind.nullableExtensionMember:
-          case ObjectAccessTargetKind.nullableInlineClassMember:
+          case ObjectAccessTargetKind.nullableExtensionTypeMember:
           case ObjectAccessTargetKind.missing:
           case ObjectAccessTargetKind.ambiguous:
             replacement ??= new InvalidPattern(
@@ -10621,12 +10623,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.recordNamed:
           case ObjectAccessTargetKind.nullableRecordIndexed:
           case ObjectAccessTargetKind.nullableRecordNamed:
-          case ObjectAccessTargetKind.inlineClassRepresentation:
-          case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+          case ObjectAccessTargetKind.extensionTypeRepresentation:
+          case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
             problems.unsupported('Relational pattern target $invokeTarget',
                 node.fileOffset, helper.uri);
           case ObjectAccessTargetKind.extensionMember:
-          case ObjectAccessTargetKind.inlineClassMember:
+          case ObjectAccessTargetKind.extensionTypeMember:
             node.functionType = invokeTarget.getFunctionType(this);
             node.typeArguments = invokeTarget.receiverTypeArguments;
             node.target = invokeTarget.member as Procedure;
@@ -10704,8 +10706,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget containsKeyTarget = findInterfaceMember(
         lookupType, containsKeyName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.methodInvocation);
+        includeExtensionMethods: true, isSetter: false);
     assert(containsKeyTarget.isInstanceMember);
 
     node.containsKeyTarget = containsKeyTarget.member as Procedure;
@@ -10713,8 +10714,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     ObjectAccessTarget indexGetTarget = findInterfaceMember(
         lookupType, indexGetName, node.fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        includeExtensionMethods: true, isSetter: false);
     assert(indexGetTarget.isInstanceMember);
 
     node.indexGetTarget = indexGetTarget.member as Procedure;
@@ -10854,8 +10854,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    ExpressionTypeAnalysisResult<DartType> analysisResult =
+    PatternAssignmentAnalysisResult<DartType> analysisResult =
         analyzePatternAssignment(node, node.pattern, node.expression);
+    node.matchedValueType = analysisResult.type;
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10892,6 +10893,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.matchedValueType = flow.getMatchedValueType();
     node.needsCast = _needsCast(
         matchedType: matchedValueType, requiredType: node.variable.type);
+    node.hasObservableEffect = _inTryOrLocalFunction;
 
     // TODO(johnniwinther): Share this through the type analyzer.
     Pattern? replacement;
@@ -10984,11 +10986,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       {required List<TypeParameter> typeParameters,
       required DartType declaredType,
       required DartType contextType}) {
-    TypeConstraintGatherer gatherer = typeSchemaEnvironment
-        .setupGenericTypeInference(declaredType, typeParameters, contextType,
+    FreshStructuralParametersFromTypeParameters freshTypeParameters =
+        getFreshStructuralParametersFromTypeParameters(typeParameters);
+    List<StructuralParameter> typeParametersToInfer =
+        freshTypeParameters.freshTypeParameters;
+    declaredType = freshTypeParameters.substitute(declaredType);
+    TypeConstraintGatherer gatherer =
+        typeSchemaEnvironment.setupGenericTypeInference(
+            declaredType, typeParametersToInfer, contextType,
             isNonNullableByDefault: isNonNullableByDefault);
     return typeSchemaEnvironment.chooseFinalTypes(
-        gatherer, typeParameters, null,
+        gatherer, typeParametersToInfer, null,
         isNonNullableByDefault: isNonNullableByDefault);
   }
 
@@ -11078,7 +11086,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  DartType resolveObjectPatternPropertyGet({
+  (Member?, DartType) resolveObjectPatternPropertyGet({
     required Pattern objectPattern,
     required DartType receiverType,
     required shared.RecordPatternField<TreeNode, Pattern> field,
@@ -11086,9 +11094,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     String fieldName = field.name!;
     ObjectAccessTarget fieldAccessTarget = findInterfaceMember(receiverType,
         new Name(fieldName, libraryBuilder.library), field.pattern.fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation,
-        includeExtensionMethods: true);
-    return fieldAccessTarget.getGetterType(this);
+        isSetter: false, includeExtensionMethods: true);
+    return (fieldAccessTarget.member, fieldAccessTarget.getGetterType(this));
   }
 
   @override
@@ -11231,7 +11238,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     ObjectAccessTarget binaryTarget = findInterfaceMember(
         matchedValueType, operatorName, node.fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        isSetter: false);
 
     DartType returnType = binaryTarget.getReturnType(this);
     DartType parameterType = binaryTarget.getBinaryOperandType(this);
@@ -11243,9 +11250,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void defaultPattern(Pattern node, SharedMatchContext arg) {
-    problems.unhandled("$node (${node.runtimeType})", "InferenceVisitor",
-        node.fileOffset, helper.uri);
+  ExpressionInferenceResult visitAuxiliaryExpression(
+      AuxiliaryExpression node, DartType typeContext) {
+    return _unhandledExpression(node, typeContext);
+  }
+
+  @override
+  InitializerInferenceResult visitAuxiliaryInitializer(
+      AuxiliaryInitializer node) {
+    if (node is InternalInitializer) {
+      return node.acceptInference(this);
+    }
+    return _unhandledInitializer(node);
+  }
+
+  @override
+  StatementInferenceResult visitAuxiliaryStatement(AuxiliaryStatement node) {
+    return _unhandledStatement(node);
   }
 }
 

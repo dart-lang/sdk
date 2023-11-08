@@ -23,7 +23,7 @@ void main() {
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerTest {
   Future<void> checkPluginErrorsForFile(String pluginAnalyzedFilePath) async {
-    final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
+    final pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
 
     newFile(pluginAnalyzedFilePath, '''String a = "Test";
 String b = "Test";
@@ -99,7 +99,7 @@ linter:
     final initialDiagnostics = await firstDiagnosticsUpdate;
     expect(initialDiagnostics, hasLength(1));
     expect(initialDiagnostics!.first.severity, DiagnosticSeverity.Warning);
-    expect(initialDiagnostics.first.code, 'undefined_lint_warning');
+    expect(initialDiagnostics.first.code, 'undefined_lint');
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/43926')
@@ -176,6 +176,8 @@ void f() {
   }
 
   Future<void> test_diagnosticTag_deprecated() async {
+    setDiagnosticTagSupport([DiagnosticTag.Deprecated]);
+
     var onePackagePath = convertPath('/home/one');
     writePackageConfig(
       projectFolderPath,
@@ -192,9 +194,7 @@ void f() {
     ''');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await initialize(
-        textDocumentCapabilities: withDiagnosticTagSupport(
-            emptyTextDocumentClientCapabilities, [DiagnosticTag.Deprecated]));
+    await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics!.first;
@@ -228,6 +228,8 @@ void f() {
   }
 
   Future<void> test_diagnosticTag_unnecessary() async {
+    setDiagnosticTagSupport([DiagnosticTag.Unnecessary]);
+
     newFile(mainFilePath, '''
     void f() {
       return;
@@ -236,9 +238,7 @@ void f() {
     ''');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await initialize(
-        textDocumentCapabilities: withDiagnosticTagSupport(
-            emptyTextDocumentClientCapabilities, [DiagnosticTag.Unnecessary]));
+    await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics!.first;
@@ -247,15 +247,15 @@ void f() {
   }
 
   Future<void> test_documentationUrl() async {
+    setDiagnosticCodeDescriptionSupport();
+
     newFile(mainFilePath, '''
     // ignore: unused_import
     import 'dart:async' as import; // produces BUILT_IN_IDENTIFIER_IN_DECLARATION
     ''');
 
     final diagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await initialize(
-        textDocumentCapabilities: withDiagnosticCodeDescriptionSupport(
-            emptyTextDocumentClientCapabilities));
+    await initialize();
     final diagnostics = await diagnosticsUpdate;
     expect(diagnostics, hasLength(1));
     final diagnostic = diagnostics!.first;
@@ -285,7 +285,7 @@ void f() {
   Future<void> test_dotFilesExcluded() async {
     var dotFolderFilePath =
         join(projectFolderPath, '.dart_tool', 'tool_file.dart');
-    var dotFolderFileUri = Uri.file(dotFolderFilePath);
+    var dotFolderFileUri = pathContext.toUri(dotFolderFilePath);
 
     newFile(dotFolderFilePath, 'String a = 1;');
 
@@ -307,7 +307,7 @@ void f() {
 
   Future<void> test_fixDataFile() async {
     var fixDataPath = join(projectFolderPath, 'lib', 'fix_data.yaml');
-    var fixDataUri = Uri.file(fixDataPath);
+    var fixDataUri = pathContext.toUri(fixDataPath);
     newFile(fixDataPath, '''
 version: latest
 ''').path;
@@ -504,9 +504,7 @@ analyzer:
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       {'showTodos': true},
     );
     final initialDiagnostics = await firstDiagnosticsUpdate;
@@ -536,9 +534,7 @@ analyzer:
     final initialAnalysis = waitForAnalysisComplete();
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       {},
     );
     await openFile(mainFileUri, contents);
@@ -572,9 +568,7 @@ analyzer:
 
     final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       {
         // Include both casings, since this comes from the user we should handle
         // either.

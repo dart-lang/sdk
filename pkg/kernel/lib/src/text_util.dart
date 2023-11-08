@@ -150,24 +150,29 @@ String extensionNameToString(Extension? node) {
   return node == null ? 'null' : node.name;
 }
 
-String qualifiedInlineClassNameToString(InlineClass node,
+String qualifiedExtensionTypeDeclarationNameToString(
+    ExtensionTypeDeclaration node,
     {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
-    return libraryNameToString(parent) + '::' + inlineClassNameToString(node);
+    return libraryNameToString(parent) +
+        '::' +
+        extensionTypeDeclarationNameToString(node);
   } else {
-    return inlineClassNameToString(node);
+    return extensionTypeDeclarationNameToString(node);
   }
 }
 
-String qualifiedInlineClassNameToStringByReference(Reference? reference,
+String qualifiedExtensionTypeDeclarationNameToStringByReference(
+    Reference? reference,
     {bool includeLibraryName = false}) {
   if (reference == null) {
-    return '<missing-inline-class-reference>';
+    return '<missing-extension-type-declaration-reference>';
   } else {
-    InlineClass? node = reference.node as InlineClass?;
+    ExtensionTypeDeclaration? node =
+        reference.node as ExtensionTypeDeclaration?;
     if (node != null) {
-      return qualifiedInlineClassNameToString(node,
+      return qualifiedExtensionTypeDeclarationNameToString(node,
           includeLibraryName: includeLibraryName);
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
@@ -175,13 +180,13 @@ String qualifiedInlineClassNameToStringByReference(Reference? reference,
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
       } else {
-        return '<unlinked-inline-class-reference>';
+        return '<unlinked-extension-type-declaration-reference>';
       }
     }
   }
 }
 
-String inlineClassNameToString(InlineClass? node) {
+String extensionTypeDeclarationNameToString(ExtensionTypeDeclaration? node) {
   return node == null ? 'null' : node.name;
 }
 
@@ -262,29 +267,53 @@ String memberNameToString(Member node) {
 
 String qualifiedTypeParameterNameToString(TypeParameter node,
     {bool includeLibraryName = false}) {
-  TreeNode? parent = node.parent;
-  if (parent is Class) {
-    return qualifiedClassNameToString(parent,
-            includeLibraryName: includeLibraryName) +
-        '.' +
-        typeParameterNameToString(node);
-  } else if (parent is Extension) {
-    return qualifiedExtensionNameToString(parent,
-            includeLibraryName: includeLibraryName) +
-        '.' +
-        typeParameterNameToString(node);
-  } else if (parent is Member) {
-    return qualifiedMemberNameToString(parent,
-            includeLibraryName: includeLibraryName) +
-        '.' +
-        typeParameterNameToString(node);
+  GenericDeclaration? declaration = node.declaration;
+  switch (declaration) {
+    case Class():
+      return qualifiedClassNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case Extension():
+      return qualifiedExtensionNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case ExtensionTypeDeclaration():
+      return qualifiedExtensionTypeDeclarationNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case Typedef():
+      return qualifiedTypedefNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case Procedure():
+      return qualifiedMemberNameToString(declaration,
+              includeLibraryName: includeLibraryName) +
+          '.' +
+          typeParameterNameToString(node);
+    case LocalFunction():
+    case null:
+      return typeParameterNameToString(node);
   }
-  return typeParameterNameToString(node);
+}
+
+String qualifiedStructuralParameterNameToString(StructuralParameter node,
+    {bool includeLibraryName = false}) {
+  return structuralParameterNameToString(node);
 }
 
 String typeParameterNameToString(TypeParameter node) {
   return node.name ??
       "null-named TypeParameter ${node.runtimeType} ${node.hashCode}";
+}
+
+String structuralParameterNameToString(StructuralParameter node) {
+  return node.name ??
+      "null-named StructuralParameter "
+          "${node.runtimeType} ${node.hashCode}";
 }
 
 String? getEscapedCharacter(int codeUnit) {

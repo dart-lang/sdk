@@ -169,10 +169,12 @@ class ImportOrganizer {
     {
       var sb = StringBuffer();
       _DirectivePriority? currentPriority;
+      var previousDirectiveText = '';
       for (var directiveInfo in directives) {
         if (!hasUnresolvedIdentifierError) {
           var directive = directiveInfo.directive;
-          if (removeUnused && _isUnusedImport(directive)) {
+          if (removeUnused && _isUnusedImport(directive) ||
+              (removeUnused && previousDirectiveText == directiveInfo.text)) {
             continue;
           }
         }
@@ -184,6 +186,7 @@ class ImportOrganizer {
         }
         sb.write(directiveInfo.text);
         sb.write(endOfLine);
+        previousDirectiveText = directiveInfo.text;
       }
       directivesCode = sb.toString();
       directivesCode = directivesCode.trimRight();
@@ -253,6 +256,17 @@ class ImportOrganizer {
     var previousDirectiveLine =
         lineInfo.getLocation(beginToken.previous!.end).lineNumber;
     comment = firstComment;
+    // For first directive, do not attach comment if there is a line break
+    // between comment and directive.
+    if (isPseudoLibraryDirective && comment != null) {
+      var directiveLine = lineInfo.getLocation(beginToken.offset).lineNumber;
+      if ((directiveLine - 1) ==
+          lineInfo.getLocation(comment.offset).lineNumber) {
+        return comment;
+      } else {
+        return null;
+      }
+    }
     while (comment != null &&
         previousDirectiveLine ==
             lineInfo.getLocation(comment.offset).lineNumber) {
@@ -334,19 +348,17 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   /// The text excluding comments, documentation and annotations.
   final String text;
 
-  _DirectiveInfo(
-    this.directive,
-    this.priority,
-    this.uri,
-    this.offset,
-    this.end,
-    this.text,
-  );
+  _DirectiveInfo(this.directive, this.priority, this.uri, this.offset, this.end,
+      this.text);
 
   @override
   int compareTo(_DirectiveInfo other) {
     if (priority == other.priority) {
-      return _compareUri(uri, other.uri);
+      var compare = _compareUri(uri, other.uri);
+      if (compare != 0) {
+        return compare;
+      }
+      return text.compareTo(other.text);
     }
     return priority.ordinal - other.priority.ordinal;
   }
@@ -358,6 +370,9 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   /// https://github.com/dart-lang/linter/blob/658f497eef/lib/src/rules/directives_ordering.dart#L380-L387
   /// Consider finding a way to share this code!
   static int _compareUri(String a, String b) {
+    if (!a.startsWith('package:') || !b.startsWith('package:')) {
+      return a.compareTo(b);
+    }
     var indexA = a.indexOf('/');
     var indexB = b.indexOf('/');
     if (indexA == -1 || indexB == -1) return a.compareTo(b);

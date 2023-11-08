@@ -17,6 +17,7 @@ These pragmas are part of the VM's API and are safe for use in external code.
 | `vm:platform-const` | Marks a static getter or a static field with an initializer where the getter body or field initializer evaluates to a constant value if the target operating system is known. |
 | `weak-tearoff-reference` | [Declaring a static weak reference intrinsic method.](compiler/pragmas_recognized_by_compiler.md#declaring-a-static-weak-reference-intrinsic-method) |
 | `vm:isolate-unsendable` | Marks a class, instances of which won't be allowed to be passed through ports or sent between isolates. |
+| `vm:awaiter-link` | [Specifying variable to follow for awaiter stack unwinding](awaiter_stack_traces.md) |
 
 ## Unsafe pragmas for general use
 
@@ -36,6 +37,7 @@ These pragmas can cause unsound behavior if used incorrectly and therefore are o
 | --- | --- |
 | `vm:exact-result-type` | [Declaring an exact result type of a method](compiler/pragmas_recognized_by_compiler.md#providing-an-exact-result-type) |
 | `vm:recognized` | [Marking this as a recognized method](compiler/pragmas_recognized_by_compiler.md#marking-recognized-methods) |
+| `vm:idempotent` | Method marked with this pragma can be repeated or restarted multiple times without change to its effect. Loading, storing of memory values are examples of this, while reads and writes from file are examples of non-idempotent methods. At present, use of this pragma is limited to driving inlining of force-optimized functions. |
 
 ## Pragmas ignored in user code
 

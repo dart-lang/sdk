@@ -7,7 +7,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -101,7 +100,7 @@ class OptionsRuleValidatorTest
 linter:
   rules:
     - deprecated_lint_with_replacement
-      ''', [DEPRECATED_LINT_HINT_WITH_REPLACEMENT]);
+      ''', [AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT]);
   }
 
   test_deprecated_rule_map() {
@@ -109,7 +108,7 @@ linter:
 linter:
   rules:
     deprecated_lint: false
-      ''', [DEPRECATED_LINT_HINT]);
+      ''', [AnalysisOptionsHintCode.DEPRECATED_LINT]);
   }
 
   test_deprecated_rule_withReplacement() {
@@ -117,7 +116,7 @@ linter:
 linter:
   rules:
     - deprecated_lint
-      ''', [DEPRECATED_LINT_HINT]);
+      ''', [AnalysisOptionsHintCode.DEPRECATED_LINT]);
   }
 
   test_deprecated_rule_withSince_inCurrentSdk() {
@@ -127,7 +126,7 @@ linter:
   rules:
     - deprecated_since_3_lint
       ''',
-      [DEPRECATED_LINT_HINT],
+      [AnalysisOptionsHintCode.DEPRECATED_LINT],
       sdk: dart3,
     );
   }
@@ -163,7 +162,7 @@ linter:
   rules:
     - stable_lint
     - stable_lint
-      ''', [DUPLICATE_RULE_HINT]);
+      ''', [AnalysisOptionsHintCode.DUPLICATE_RULE]);
   }
 
   test_incompatible_rule() {
@@ -172,7 +171,7 @@ linter:
   rules:
     - rule_pos
     - rule_neg
-      ''', [INCOMPATIBLE_LINT_WARNING]);
+      ''', [AnalysisOptionsWarningCode.INCOMPATIBLE_LINT]);
   }
 
   test_incompatible_rule_map() {
@@ -181,7 +180,7 @@ linter:
   rules:
     rule_pos: true
     rule_neg: true
-      ''', [INCOMPATIBLE_LINT_WARNING]);
+      ''', [AnalysisOptionsWarningCode.INCOMPATIBLE_LINT]);
   }
 
   test_incompatible_rule_map_disabled() {
@@ -250,7 +249,7 @@ linter:
 linter:
   rules:
     - this_rule_does_not_exist
-      ''', [UNDEFINED_LINT_WARNING]);
+      ''', [AnalysisOptionsWarningCode.UNDEFINED_LINT]);
   }
 
   test_undefined_rule_map() {
@@ -258,7 +257,7 @@ linter:
 linter:
   rules:
     this_rule_does_not_exist: false
-      ''', [UNDEFINED_LINT_WARNING]);
+      ''', [AnalysisOptionsWarningCode.UNDEFINED_LINT]);
   }
 }
 

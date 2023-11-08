@@ -2,14 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+//
+// Packages=.dart_tool/package_config.json
+//
+
 library package_isolate_test;
 
-import 'packages/shared.dart' as shared;
+import 'dart:io';
 import 'dart:isolate';
+import 'package:path/path.dart' as path;
+
+import 'pkgs/shared/shared.dart' as shared;
+
 import '../../../pkg/async_helper/lib/async_helper.dart';
 import '../../../pkg/expect/lib/expect.dart';
 
-expectResponse() {
+ReceivePort expectResponse() {
   asyncStart();
   var receivePort = new ReceivePort();
   receivePort.first.then((msg) {
@@ -21,8 +29,15 @@ expectResponse() {
 }
 
 void main() {
+  // No support for tests that attempt to Isolate.spawnUri() in AOT of some
+  // script other than self.
+  if (path.basenameWithoutExtension(Platform.executable) ==
+      "dart_precompiled_runtime") {
+    return;
+  }
+
   {
-    var replyPort = expectResponse().sendPort;
+    final replyPort = expectResponse().sendPort;
     shared.output = 'main';
     Isolate.spawn(isolate_main, replyPort);
   }
@@ -39,11 +54,13 @@ void main() {
     var replyPort = expectResponse().sendPort;
     shared.output = 'main';
     Isolate.spawnUri(
-        Uri.parse('test_folder/folder_isolate.dart'), [], replyPort);
+        Uri.parse('test_folder/folder_isolate.dart'), [], replyPort,
+        packageConfig: Uri.parse(
+            'tests/standalone/package/test_folder/.dart_tool/package_config.json'));
   }
 }
 
 void isolate_main(SendPort replyTo) {
   shared.output = 'isolate';
-  replyTo.send(shared.output);
+  (replyTo as SendPort).send(shared.output);
 }

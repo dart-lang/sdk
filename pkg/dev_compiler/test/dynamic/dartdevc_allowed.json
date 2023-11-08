@@ -1,0 +1,9 @@
+{
+  "pkg/dev_compiler/lib/src/kernel/expression_compiler_worker.dart": {
+    "Dynamic invocation of '[]'.": 3
+  },
+  "pkg/dev_compiler/lib/src/js_ast/template.dart": {
+    "Dynamic invocation of '[]'.": 10,
+    "Dynamic invocation of 'toAssignExpression'.": 1
+  }
+}

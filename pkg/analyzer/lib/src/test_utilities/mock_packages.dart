@@ -104,6 +104,9 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 
 const _Protected protected = _Protected();
 
+@experimental
+const _Redeclare redeclare = _Redeclare();
+
 const _Reopen reopen = _Reopen();
 
 const Required required = Required();
@@ -123,6 +126,15 @@ class Immutable {
   final String reason;
 
   const Immutable([this.reason = '']);
+}
+
+@Target({
+  TargetKind.getter,
+  TargetKind.setter,
+  TargetKind.method,
+})
+class _Redeclare {
+  const _Redeclare();
 }
 
 @Target({
@@ -226,6 +238,7 @@ class _NonVirtual {
 @Target({
   TargetKind.classType,
   TargetKind.extension,
+  TargetKind.extensionType,
   TargetKind.function,
   TargetKind.method,
   TargetKind.mixinType,
@@ -260,21 +273,53 @@ class Target {
   const Target(this.kinds);
 }
 
-enum TargetKind {
-  classType,
-  enumType,
-  extension,
-  field,
-  function,
-  library,
-  getter,
-  method,
-  mixinType,
-  parameter,
-  setter,
-  topLevelVariable,
-  type,
-  typedefType,
+
+class TargetKind {
+  const TargetKind._(this.displayString, this.name);
+
+  int get index => values.indexOf(this);
+
+  final String displayString;
+  final String name;
+
+  static const classType = TargetKind._('classes', 'classType');
+  static const enumType = TargetKind._('enums', 'enumType');
+  static const extension = TargetKind._('extensions', 'extension');
+  static const extensionType = TargetKind._('extension types', 'extensionType');
+  static const field = TargetKind._('fields', 'field');
+  static const function = TargetKind._('top-level functions', 'function');
+  static const library = TargetKind._('libraries', 'library');
+  static const getter = TargetKind._('getters', 'getter');
+  static const method = TargetKind._('methods', 'method');
+  static const mixinType = TargetKind._('mixins', 'mixinType');
+  static const parameter = TargetKind._('parameters', 'parameter');
+  static const setter = TargetKind._('setters', 'setter');
+  static const topLevelVariable =
+      TargetKind._('top-level variables', 'topLevelVariable');
+  static const type =
+      TargetKind._('types (classes, enums, mixins, or typedefs)', 'type');
+  static const typedefType = TargetKind._('typedefs', 'typedefType');
+
+  static const values = [
+    classType,
+    enumType,
+    extension,
+    extensionType,
+    field,
+    function,
+    library,
+    getter,
+    method,
+    mixinType,
+    parameter,
+    setter,
+    topLevelVariable,
+    type,
+    typedefType,
+  ];
+
+  @override
+  String toString() => 'TargetKind.$name';
 }
 ''');
   }

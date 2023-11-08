@@ -5,7 +5,7 @@
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart';
 import 'package:expect/expect.dart';
 import 'package:front_end/src/base/processed_options.dart';
-import 'package:front_end/src/fasta/builder/type_alias_builder.dart';
+import 'package:front_end/src/fasta/builder/declaration_builders.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/dill/dill_library_builder.dart';
 import 'package:front_end/src/fasta/dill/dill_loader.dart';
@@ -140,7 +140,7 @@ void main() {
     _testPatternSwitchStatement();
     _testSwitchExpression();
     _testPatternVariableDeclaration();
-    _testInlineClassRedirectingInitializer();
+    _testExtensionTypeRedirectingInitializer();
   });
 }
 
@@ -1320,7 +1320,7 @@ var 0 = 1;''');
 final 0 = 1;''');
 }
 
-void _testInlineClassRedirectingInitializer() {
+void _testExtensionTypeRedirectingInitializer() {
   Procedure unnamedTarget = new Procedure(
       new Name(""), ProcedureKind.Method, new FunctionNode(null),
       fileUri: dummyUri);
@@ -1330,12 +1330,12 @@ void _testInlineClassRedirectingInitializer() {
       fileUri: dummyUri);
 
   testInitializer(
-      new InlineClassRedirectingInitializer(unnamedTarget, new Arguments([])),
+      new ExtensionTypeRedirectingInitializer(unnamedTarget, new Arguments([])),
       '''
 this()''');
 
   testInitializer(
-      new InlineClassRedirectingInitializer(
+      new ExtensionTypeRedirectingInitializer(
           namedTarget, new Arguments([new IntLiteral(0)])),
       '''
 this.named(0)''');

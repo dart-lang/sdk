@@ -107,6 +107,19 @@ void f(double x) {
 ''');
   }
 
+  test_interfaceType2_matchedFinal_enumSubtype() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case E _) {}
+}
+
+final class A {}
+enum E implements A {
+  v
+}
+''');
+  }
+
   test_interfaceType2_matchedFinal_hasSubtypes_noneImplementsRequired() async {
     await assertErrorsInCode('''
 void f(A x) {
@@ -364,6 +377,19 @@ void f(Object? x) {
 ''');
   }
 
+  test_interfaceType2_matchedSealed_enumSubtype() async {
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case E _) {}
+}
+
+sealed class A {}
+enum E implements A {
+  v
+}
+''');
+  }
+
   test_interfaceType2_matchedSealed_hasNonFinalSubtype() async {
     await assertNoErrorsInCode('''
 void f(A x) {
@@ -374,6 +400,18 @@ sealed class A {}
 final class A2 extends A {}
 class A3 implements A {}
 class R {}
+''');
+  }
+
+  test_interfaceType2_matchedSealed_mixinSubtype() async {
+    // No warning, because `M` can be implemented outside.
+    await assertNoErrorsInCode('''
+void f(A x) {
+  if (x case M _) {}
+}
+
+sealed class A {}
+mixin M implements A {}
 ''');
   }
 
@@ -999,6 +1037,34 @@ void f(String x) {
 }
 ''', [
       error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 32, 3),
+    ]);
+  }
+
+  test_refutable_pattern_reportPattern_match() async {
+    await assertErrorsInCode('''
+void f((int,) x) {
+  switch (x) {
+    case (int f,):
+      break;
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
+  }
+
+  test_refutable_pattern_reportPattern_notMatch() async {
+    await assertErrorsInCode('''
+void f((int,) x) {
+  switch (x) {
+    case (int f1, int f2):
+      break;
+  }
+}
+''', [
+      error(WarningCode.PATTERN_NEVER_MATCHES_VALUE_TYPE, 43, 16),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 2),
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 56, 2),
     ]);
   }
 

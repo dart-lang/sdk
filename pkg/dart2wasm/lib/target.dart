@@ -25,7 +25,7 @@ import 'package:vm/transformations/ffi/definitions.dart'
 import 'package:vm/transformations/ffi/use_sites.dart' as transformFfiUseSites
     show transformLibraries;
 import 'package:front_end/src/api_prototype/constant_evaluator.dart'
-    as constantEvaluator show EvaluationMode;
+    as constantEvaluator show ConstantEvaluator, EvaluationMode;
 import 'package:front_end/src/api_prototype/const_conditional_simplifier.dart'
     show ConstConditionalSimplifier;
 
@@ -34,11 +34,66 @@ import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'package:dart2wasm/records.dart' show RecordShape;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
+enum Mode {
+  regular,
+  stringref,
+  jsCompatibility,
+}
+
+class Dart2WasmConstantsBackend extends ConstantsBackend {
+  const Dart2WasmConstantsBackend();
+
+  @override
+  bool get supportsUnevaluatedConstants => true;
+}
+
+class ConstantResolver extends Transformer {
+  ConstantResolver(this.evaluator);
+
+  final constantEvaluator.ConstantEvaluator evaluator;
+
+  StaticTypeContext? _context;
+
+  @override
+  TreeNode visitLibrary(Library library) {
+    final oldContext = _context;
+    _context =
+        StaticTypeContext.forAnnotations(library, evaluator.typeEnvironment);
+    final result = super.visitLibrary(library);
+    _context = oldContext;
+    return result;
+  }
+
+  @override
+  TreeNode defaultMember(Member member) {
+    final oldContext = _context;
+    _context = StaticTypeContext(member, evaluator.typeEnvironment);
+    final result = super.defaultMember(member);
+    _context = oldContext;
+    return result;
+  }
+
+  @override
+  TreeNode visitConstantExpression(ConstantExpression node) {
+    final constant = node.constant;
+    if (constant is UnevaluatedConstant) {
+      final expression = constant.expression;
+      final newConstant = evaluator.evaluate(_context!, expression);
+      ConstantExpression result =
+          new ConstantExpression(newConstant, node.getStaticType(_context!))
+            ..fileOffset = node.fileOffset;
+
+      return result;
+    }
+    return node;
+  }
+}
+
 class WasmTarget extends Target {
-  WasmTarget({this.removeAsserts = true, this.useStringref = false});
+  WasmTarget({this.removeAsserts = true, this.mode = Mode.regular});
 
   bool removeAsserts;
-  bool useStringref;
+  Mode mode;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -53,59 +108,88 @@ class WasmTarget extends Target {
   bool get enableNoSuchMethodForwarders => true;
 
   @override
-  ConstantsBackend get constantsBackend => const ConstantsBackend();
+  ConstantsBackend get constantsBackend => const Dart2WasmConstantsBackend();
 
   @override
   Verification get verification => const WasmVerification();
 
   @override
-  String get name => useStringref ? 'wasm_stringref' : 'wasm';
+  String get name {
+    switch (mode) {
+      case Mode.regular:
+        return 'wasm';
+      case Mode.stringref:
+        return 'wasm_stringref';
+      case Mode.jsCompatibility:
+        return 'wasm_js_compatibility';
+    }
+  }
+
+  String get platformFile {
+    switch (mode) {
+      case Mode.regular:
+        return 'dart2wasm_platform.dill';
+      case Mode.stringref:
+        return 'dart2wasm_stringref_platform.dill';
+      case Mode.jsCompatibility:
+        return 'dart2wasm_js_compatibility_platform.dill';
+    }
+  }
 
   @override
   TargetFlags get flags => TargetFlags();
 
   @override
   List<String> get extraRequiredLibraries => const <String>[
-        'dart:async',
-        'dart:ffi',
-        'dart:_internal',
         'dart:_http',
+        'dart:_internal',
         'dart:_js_helper',
         'dart:_js_types',
-        'dart:typed_data',
-        'dart:nativewrappers',
+        'dart:_string',
+        'dart:_wasm',
+        'dart:async',
+        'dart:developer',
+        'dart:ffi',
         'dart:io',
+        'dart:js',
         'dart:js_interop',
         'dart:js_interop_unsafe',
-        'dart:js',
         'dart:js_util',
-        'dart:_wasm',
-        'dart:developer',
+        'dart:nativewrappers',
+        'dart:typed_data',
       ];
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
         'dart:_js_helper',
         'dart:_js_types',
-        'dart:collection',
-        'dart:typed_data',
-        'dart:js_interop',
-        'dart:js_util',
+        'dart:_string',
         'dart:_wasm',
+        'dart:collection',
+        'dart:js_interop',
+        'dart:js_interop_unsafe',
+        'dart:js_util',
+        'dart:typed_data',
       ];
 
   @override
   bool mayDefineRestrictedType(Uri uri) =>
       uri.isScheme('dart') &&
       (uri.path == 'core' ||
+          uri.path == '_string' ||
           uri.path == 'typed_data' ||
-          uri.path == '_js_types');
+          uri.path == '_typed_data' ||
+          uri.path == '_js_types' ||
+          uri.path == '_typed_data_helper');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       importer.path.contains('tests/web/wasm') ||
-      importer.isScheme('package') && importer.path == 'js/js.dart';
+      importer.isScheme('package') &&
+          (importer.path == 'js/js.dart' ||
+              importer.path.startsWith('ui/') &&
+                  imported.toString() == 'dart:_wasm');
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -134,7 +218,7 @@ class WasmTarget extends Target {
         diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>);
     final jsInteropChecks = JsInteropChecks(
         coreTypes, hierarchy, jsInteropReporter, _nativeClasses!,
-        isDart2Wasm: true, enableStrictMode: true);
+        isDart2Wasm: true);
     // Process and validate first before doing anything with exports.
     for (Library library in interopDependentLibraries) {
       jsInteropChecks.visitLibrary(library);
@@ -184,29 +268,36 @@ class WasmTarget extends Target {
       logger?.call("Transformed JS interop classes");
     }
 
-    final reportError =
-        (LocatedMessage message, [List<LocatedMessage>? context]) {
-      diagnosticReporter.report(message.messageObject, message.charOffset,
-          message.length, message.uri);
-      if (context != null) {
-        for (final m in context) {
-          diagnosticReporter.report(
-              m.messageObject, m.charOffset, m.length, m.uri);
+    // If we are compiling with a null environment, skip constant resolution
+    // and simplification.
+    if (environmentDefines != null) {
+      final reportError =
+          (LocatedMessage message, [List<LocatedMessage>? context]) {
+        diagnosticReporter.report(message.messageObject, message.charOffset,
+            message.length, message.uri);
+        if (context != null) {
+          for (final m in context) {
+            diagnosticReporter.report(
+                m.messageObject, m.charOffset, m.length, m.uri);
+          }
         }
-      }
-    };
+      };
 
-    ConstConditionalSimplifier(
-      dartLibrarySupport,
-      constantsBackend,
-      component,
-      reportError,
-      environmentDefines: environmentDefines ?? {},
-      evaluationMode: constantEvaluator.EvaluationMode.strong,
-      coreTypes: coreTypes,
-      classHierarchy: hierarchy,
-      removeAsserts: removeAsserts,
-    ).run();
+      final simplifier = ConstConditionalSimplifier(
+        dartLibrarySupport,
+        constantsBackend,
+        component,
+        reportError,
+        environmentDefines: environmentDefines,
+        evaluationMode: constantEvaluator.EvaluationMode.strong,
+        coreTypes: coreTypes,
+        classHierarchy: hierarchy,
+        removeAsserts: removeAsserts,
+      );
+      final evaluator = simplifier.constantEvaluator;
+      ConstantResolver(evaluator).transform(component);
+      simplifier.run();
+    }
 
     transformMixins.transformLibraries(
         this, coreTypes, hierarchy, libraries, referenceFromIndex);
@@ -381,11 +472,11 @@ class WasmTarget extends Target {
     for (int i = 0; i < value.length; ++i) {
       if (value.codeUnitAt(i) > maxLatin1) {
         return _twoByteString ??=
-            coreTypes.index.getClass('dart:core', '_TwoByteString');
+            coreTypes.index.getClass('dart:_string', 'TwoByteString');
       }
     }
     return _oneByteString ??=
-        coreTypes.index.getClass('dart:core', '_OneByteString');
+        coreTypes.index.getClass('dart:_string', 'OneByteString');
   }
 
   @override

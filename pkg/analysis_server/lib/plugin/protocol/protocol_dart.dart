@@ -64,6 +64,9 @@ ElementKind convertElementKind(engine.ElementKind kind) {
   if (kind == engine.ElementKind.EXTENSION) {
     return ElementKind.EXTENSION;
   }
+  if (kind == engine.ElementKind.EXTENSION_TYPE) {
+    return ElementKind.EXTENSION_TYPE;
+  }
   if (kind == engine.ElementKind.FIELD) {
     return ElementKind.FIELD;
   }

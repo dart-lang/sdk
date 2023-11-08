@@ -135,16 +135,30 @@ Future<void> ensureCompilationServerIsRunning(
   }
   try {
     Directory(p.dirname(serverInfoFile.path)).createSync(recursive: true);
-    // TODO: replace this with the AOT executable when that is built.
-    final frontendServerProcess = await Process.start(
-      sdk.dart,
-      [
-        sdk.frontendServerSnapshot,
-        '--resident-info-file-name=${serverInfoFile.path}'
-      ],
-      workingDirectory: homeDir?.path,
-      mode: ProcessStartMode.detachedWithStdio,
-    );
+    late final Process frontendServerProcess;
+    if (File(sdk.frontendServerAotSnapshot).existsSync()) {
+      frontendServerProcess = await Process.start(
+        sdk.dartAotRuntime,
+        [
+          sdk.frontendServerAotSnapshot,
+          '--resident-info-file-name=${serverInfoFile.path}'
+        ],
+        workingDirectory: homeDir?.path,
+        mode: ProcessStartMode.detachedWithStdio,
+      );
+    } else {
+      // AOT snapshots cannot be generated on IA32, so we need this fallback
+      // branch until support for IA32 is dropped (https://dartbug.com/49969).
+      frontendServerProcess = await Process.start(
+        sdk.dart,
+        [
+          sdk.frontendServerSnapshot,
+          '--resident-info-file-name=${serverInfoFile.path}'
+        ],
+        workingDirectory: homeDir?.path,
+        mode: ProcessStartMode.detachedWithStdio,
+      );
+    }
 
     final serverOutput =
         String.fromCharCodes(await frontendServerProcess.stdout.first).trim();

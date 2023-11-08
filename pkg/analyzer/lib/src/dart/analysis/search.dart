@@ -39,6 +39,10 @@ DeclarationKind? _getSearchElementKind(Element element) {
     return DeclarationKind.ENUM;
   }
 
+  if (element is ExtensionTypeElement) {
+    return DeclarationKind.EXTENSION_TYPE;
+  }
+
   if (element is MixinElement) {
     return DeclarationKind.MIXIN;
   }
@@ -125,6 +129,7 @@ enum DeclarationKind {
   ENUM,
   ENUM_CONSTANT,
   EXTENSION,
+  EXTENSION_TYPE,
   FIELD,
   FUNCTION,
   FUNCTION_TYPE_ALIAS,
@@ -306,6 +311,7 @@ class Search {
         if (unitResult is UnitElementResult) {
           unitResult.element.classes.forEach(addElements);
           unitResult.element.enums.forEach(addElements);
+          unitResult.element.extensionTypes.forEach(addElements);
           unitResult.element.mixins.forEach(addElements);
         }
       }
@@ -462,6 +468,7 @@ class Search {
         unitElement.classes.forEach(addElement);
         unitElement.enums.forEach(addElement);
         unitElement.extensions.forEach(addElement);
+        unitElement.extensionTypes.forEach(addElement);
         unitElement.functions.forEach(addElement);
         unitElement.mixins.forEach(addElement);
         unitElement.topLevelVariables.forEach(addElement);
@@ -1026,6 +1033,7 @@ class _FindCompilationUnitDeclarations {
     _addClasses(unit.enums);
     _addClasses(unit.mixins);
     _addExtensions(unit.extensions);
+    _addClasses(unit.extensionTypes);
     _addFunctions(unit.functions);
     _addTypeAliases(unit.typeAliases);
     _addVariables(unit.topLevelVariables);

@@ -1,4 +1,4 @@
-name: observatory
+name: observatory_2
 environment:
   sdk: '>=2.6.0 <3.0.0'
 

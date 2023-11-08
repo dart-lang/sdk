@@ -9,4 +9,5 @@ class B {}
 
 class C extends B implements A {}
 
+expectThrows(f()) {}
 main() {}

@@ -260,7 +260,7 @@ window.ExampleJSClass = function ExampleJSClass(x) {
     // was shown for this case.
     var testClass = new TestClass(17);
     var dartConstructor = js_util.getProperty(
-        js_util.getProperty(testClass, '__proto__'), 'constructor');
+        js_util.objectGetPrototypeOf(testClass), 'constructor');
     addFormatterGoldens('Raw reference to dart constructor', dartConstructor);
   });
 

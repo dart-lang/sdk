@@ -24,11 +24,10 @@ import '../source/source_library_builder.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'constructor_builder.dart';
-import 'declaration_builder.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
-import 'named_type_builder.dart';
 import 'omitted_type_builder.dart';
 import 'type_builder.dart';
 import 'variable_builder.dart';
@@ -73,7 +72,7 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   final int modifiers;
 
   @override
-  final TypeBuilder type;
+  TypeBuilder type;
 
   @override
   final String name;
@@ -97,14 +96,21 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   bool initializerWasInferred = false;
 
   /// True if the initializer was declared by the programmer.
-  bool hasDeclaredInitializer = false;
+  final bool hasImmediatelyDeclaredInitializer;
+
+  /// True if the initializer was declared by the programmer, either directly
+  /// or inferred from a super parameter.
+  bool hasDeclaredInitializer;
 
   final bool isExtensionThis;
 
   FormalParameterBuilder(this.metadata, this.kind, this.modifiers, this.type,
       this.name, LibraryBuilder? compilationUnit, int charOffset,
-      {Uri? fileUri, this.isExtensionThis = false})
+      {Uri? fileUri,
+      this.isExtensionThis = false,
+      required this.hasImmediatelyDeclaredInitializer})
       : this.fileUri = fileUri ?? compilationUnit?.fileUri,
+        this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
         super(compilationUnit, charOffset) {
     type.registerInferredTypeListener(this);
   }
@@ -192,6 +198,23 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         type.clone(newTypes, contextLibrary, contextDeclaration), name);
   }
 
+  FormalParameterBuilder forPrimaryConstructor(
+      SourceLibraryBuilder sourceLibraryBuilder) {
+    return new FormalParameterBuilder(
+        metadata,
+        kind,
+        modifiers | initializingFormalMask,
+        sourceLibraryBuilder.addInferableType(),
+        name,
+        null,
+        charOffset,
+        fileUri: fileUri,
+        isExtensionThis: isExtensionThis,
+        hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
+      ..parent = parent
+      ..variable = variable;
+  }
+
   FormalParameterBuilder forFormalParameterInitializerScope() {
     if (isInitializingFormal) {
       return new FormalParameterBuilder(
@@ -203,7 +226,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           null,
           charOffset,
           fileUri: fileUri,
-          isExtensionThis: isExtensionThis)
+          isExtensionThis: isExtensionThis,
+          hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
         ..parent = parent
         ..variable = variable;
     } else if (isSuperInitializingFormal) {
@@ -216,7 +240,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           null,
           charOffset,
           fileUri: fileUri,
-          isExtensionThis: isExtensionThis)
+          isExtensionThis: isExtensionThis,
+          hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
         ..parent = parent
         ..variable = variable;
     } else {
@@ -278,7 +303,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         bodyBuilder.performBacklogComputations(
             delayedActionPerformers: delayedActionPerformers,
             allowFurtherDelays: false);
-      } else if (kind != FormalParameterKind.requiredPositional) {
+      } else if (kind != FormalParameterKind.requiredPositional &&
+          !isSuperInitializingFormal) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;
       }

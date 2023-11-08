@@ -33,12 +33,12 @@ static method test2(core::Iterable<core::List<core::String>> x) → dynamic {
       {
         hoisted core::String y;
         {
-          final synthesized dynamic #0#0 = #t3;
+          final synthesized core::List<core::String> #0#0 = #t3;
           function ##0#1#initializer() → core::int
-            return (#0#0 as{Unchecked} core::List<core::String>).{core::List::length}{core::int};
+            return #0#0.{core::List::length}{core::int};
           late final synthesized core::int #0#1 = ##0#1#initializer(){() → core::int};
           function ##0#4#initializer() → core::String
-            return (#0#0 as{Unchecked} core::List<core::String>).{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String};
+            return #0#0.{core::List::[]}(#0#1.{core::num::-}(1){(core::num) → core::int}){(core::int) → core::String};
           late final synthesized core::String #0#4 = ##0#4#initializer(){() → core::String};
           if(!(#0#1.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#4 is core::String && (let final core::String #t4 = y = #0#4 in true))))
             throw new core::StateError::•("Pattern matching error");
@@ -107,4 +107,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.d
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:23:10 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:27:40 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_pattern_for_in.dart:32:27 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 139, effectively constant: 4
+Extra constant evaluation: evaluated: 137, effectively constant: 4

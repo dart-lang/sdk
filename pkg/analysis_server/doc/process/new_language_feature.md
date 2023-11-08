@@ -22,12 +22,17 @@ The features are listed in alphabetical order.
 - [ ] Closing Labels
 - [ ] Code Completion
 - [ ] Code Folding
-- [ ] documentSymbol
+- [ ] Document Symbols
+- [ ] Document Colors
 - [ ] Flutter Outline
 - [ ] Hovers
 - [ ] Implemented Markers
-- [ ] Navigation
-- [ ] Occurrences
+- [ ] Inlay Hints
+- [ ] Navigation - legacy
+- [ ] Navigation - LSP Go to Definition
+- [ ] Navigation - LSP Go to Type Definition
+- [ ] Occurrences - legacy
+- [ ] Occurrences - LSP Document Highlights
 - [ ] Organize Imports
 - [ ] Outline
 - [ ] Overrides Markers
@@ -36,13 +41,17 @@ The features are listed in alphabetical order.
 - [ ] Refactorings - legacy
 - [ ] Refactorings - self describing
 - [ ] Search - Find References
+- [ ] Search - Implementations - LSP
 - [ ] Search - Member Declarations
 - [ ] Search - Member References
 - [ ] Search - Top-level Declarations
-- [ ] selectionRange
-- [ ] Semantic Highlights
-- [ ] Semantic Tokens
-- [ ] signatureHelp
+- [ ] Selection Range
+- Syntax Highlighting
+  - [ ] Semantic Highlights
+  - [ ] LSP Semantic Tokens
+- [ ] Signature Help
 - [ ] Snippets
 - [ ] Sort Members
-- [ ] Type Hierarchy
+- [ ] Type Hierarchy - legacy
+- [ ] Type Hierarchy - LSP
+- [ ] Workspace Symbols

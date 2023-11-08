@@ -304,6 +304,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final FieldMorpher fieldMorpher;
   final DirectCallMetadataRepository _directCallMetadataRepository;
   final InferredTypeMetadataRepository _inferredTypeMetadata;
+  final InferredArgTypeMetadataRepository _inferredArgTypeMetadata;
   final UnreachableNodeMetadataRepository _unreachableNodeMetadata;
   final ProcedureAttributesMetadataRepository _procedureAttributesMetadata;
   final TableSelectorMetadataRepository _tableSelectorMetadata;
@@ -318,14 +319,15 @@ class AnnotateKernel extends RecursiveVisitor {
       : _directCallMetadataRepository =
             component.metadata[DirectCallMetadataRepository.repositoryTag]
                 as DirectCallMetadataRepository,
-        _inferredTypeMetadata = new InferredTypeMetadataRepository(),
-        _unreachableNodeMetadata = new UnreachableNodeMetadataRepository(),
-        _procedureAttributesMetadata =
-            new ProcedureAttributesMetadataRepository(),
-        _tableSelectorMetadata = new TableSelectorMetadataRepository(),
-        _unboxingInfoMetadata = new UnboxingInfoMetadataRepository(),
+        _inferredTypeMetadata = InferredTypeMetadataRepository(),
+        _inferredArgTypeMetadata = InferredArgTypeMetadataRepository(),
+        _unreachableNodeMetadata = UnreachableNodeMetadataRepository(),
+        _procedureAttributesMetadata = ProcedureAttributesMetadataRepository(),
+        _tableSelectorMetadata = TableSelectorMetadataRepository(),
+        _unboxingInfoMetadata = UnboxingInfoMetadataRepository(),
         _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
     component.addMetadataRepository(_inferredTypeMetadata);
+    component.addMetadataRepository(_inferredArgTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
     component.addMetadataRepository(_procedureAttributesMetadata);
     component.addMetadataRepository(_tableSelectorMetadata);
@@ -394,6 +396,13 @@ class AnnotateKernel extends RecursiveVisitor {
         skipCheck: skipCheck, receiverNotInt: receiverNotInt);
     if (inferredType != null) {
       _inferredTypeMetadata.mapping[node] = inferredType;
+    }
+  }
+
+  void _setInferredArgType(TreeNode node, Type type, {bool skipCheck = false}) {
+    final inferredType = _convertType(type, skipCheck: skipCheck);
+    if (inferredType != null) {
+      _inferredArgTypeMetadata.mapping[node] = inferredType;
     }
   }
 
@@ -484,7 +493,7 @@ class AnnotateKernel extends RecursiveVisitor {
             firstParamIndex + positionalParams.length);
 
         for (int i = 0; i < positionalParams.length; i++) {
-          _setInferredType(
+          _setInferredArgType(
               positionalParams[i], argTypes.values[firstParamIndex + i],
               skipCheck: uncheckedParameters!.contains(positionalParams[i]));
         }
@@ -494,7 +503,7 @@ class AnnotateKernel extends RecursiveVisitor {
         final names = argTypes.names;
         for (int i = 0; i < names.length; i++) {
           final param = findNamedParameter(member.function!, names[i])!;
-          _setInferredType(param,
+          _setInferredArgType(param,
               argTypes.values[firstParamIndex + positionalParams.length + i],
               skipCheck: uncheckedParameters!.contains(param));
         }
@@ -615,12 +624,6 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
-  visitFunctionTearOff(FunctionTearOff node) {
-    _annotateCallSite(node, null);
-    super.visitFunctionTearOff(node);
-  }
-
-  @override
   visitDynamicGet(DynamicGet node) {
     _annotateCallSite(node, null);
     super.visitDynamicGet(node);
@@ -675,6 +678,15 @@ class AnnotateKernel extends RecursiveVisitor {
   }
 
   @override
+  visitVariableDeclaration(VariableDeclaration node) {
+    final inferredType = _typeFlowAnalysis.capturedVariableType(node);
+    if (inferredType != null) {
+      _setInferredType(node, inferredType);
+    }
+    super.visitVariableDeclaration(node);
+  }
+
+  @override
   visitComponent(Component node) {
     super.visitComponent(node);
     _tableSelectorMetadata.mapping[node] = _tableSelectorAssigner.metadata;
@@ -706,7 +718,8 @@ class TreeShaker {
   final Set<Class> _classesUsedInType = new Set<Class>();
   final Set<Member> _usedMembers = new Set<Member>();
   final Set<Extension> _usedExtensions = new Set<Extension>();
-  final Set<InlineClass> _usedInlineClasses = new Set<InlineClass>();
+  final Set<ExtensionTypeDeclaration> _usedExtensionTypeDeclarations =
+      new Set<ExtensionTypeDeclaration>();
   final Set<Typedef> _usedTypedefs = new Set<Typedef>();
   final FinalizableTypes _finalizableTypes;
   late final FieldMorpher fieldMorpher;
@@ -743,7 +756,8 @@ class TreeShaker {
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
   bool isMemberUsed(Member m) => _usedMembers.contains(m);
   bool isExtensionUsed(Extension e) => _usedExtensions.contains(e);
-  bool isInlineClassUsed(InlineClass e) => _usedInlineClasses.contains(e);
+  bool isExtensionTypeDeclarationUsed(ExtensionTypeDeclaration e) =>
+      _usedExtensionTypeDeclarations.contains(e);
   bool isMemberBodyReachable(Member m) =>
       typeFlowAnalysis.isMemberUsed(m) ||
       fieldMorpher.isExtraMemberWithReachableBody(m);
@@ -841,8 +855,9 @@ class TreeShaker {
       if (m.isExtensionMember) {
         // The AST should have exactly one [Extension] for [m].
         final extension = m.enclosingLibrary.extensions.firstWhere((extension) {
-          return extension.members
-              .any((descriptor) => descriptor.member.asMember == m);
+          return extension.members.any((descriptor) =>
+              descriptor.member.asMember == m ||
+              descriptor.tearOff?.asMember == m);
         });
 
         // Ensure we retain the [Extension] itself (though members might be
@@ -850,19 +865,21 @@ class TreeShaker {
         addUsedExtension(extension);
       }
 
-      // If the member is kept alive we need to keep the inline class alive
-      // to maintain consistency of the AST.
-      if (m.isInlineClassMember) {
-        // The AST should have exactly one [InlineClass] for [m].
-        final inlineClass =
-            m.enclosingLibrary.inlineClasses.firstWhere((inlineClass) {
-          return inlineClass.members
-              .any((descriptor) => descriptor.member.asMember == m);
+      // If the member is kept alive we need to keep the extension type
+      // declaration alive to maintain consistency of the AST.
+      if (m.isExtensionTypeMember) {
+        // The AST should have exactly one [ExtensionTypeDeclaration] for [m].
+        final extensionTypeDeclaration = m
+            .enclosingLibrary.extensionTypeDeclarations
+            .firstWhere((extensionTypeDeclaration) {
+          return extensionTypeDeclaration.members.any((descriptor) =>
+              descriptor.member.asMember == m ||
+              descriptor.tearOff?.asMember == m);
         });
 
-        // Ensure we retain the [InlineClass] itself (though members might be
-        // shaken)
-        addUsedInlineClass(inlineClass);
+        // Ensure we retain the [ExtensionTypeDeclaration] itself (though
+        // members might be shaken)
+        addUsedExtensionTypeDeclaration(extensionTypeDeclaration);
       }
     }
   }
@@ -884,8 +901,8 @@ class TreeShaker {
     }
   }
 
-  void addUsedInlineClass(InlineClass node) {
-    if (_usedInlineClasses.add(node)) {
+  void addUsedExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (_usedExtensionTypeDeclarations.add(node)) {
       node.annotations = const <Expression>[];
       _pass1.transformTypeParameterList(node.typeParameters, node);
       node.declaredRepresentationType.accept(typeVisitor);
@@ -1012,9 +1029,9 @@ class _TreeShakerTypeVisitor extends RecursiveVisitor {
 
   @override
   visitTypeParameterType(TypeParameterType node) {
-    final parent = node.parameter.parent;
-    if (parent is Class) {
-      shaker.addClassUsedInType(parent);
+    final declaration = node.parameter.declaration;
+    if (declaration is Class) {
+      shaker.addClassUsedInType(declaration);
     }
     node.visitChildren(this);
   }
@@ -1160,9 +1177,10 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   @override
-  TreeNode visitInlineClass(InlineClass node, TreeNode? removalSentinel) {
-    // The inline class can be considered a weak node, we'll only retain it if
-    // normal code references any of it's members.
+  TreeNode visitExtensionTypeDeclaration(
+      ExtensionTypeDeclaration node, TreeNode? removalSentinel) {
+    // The extension type declaration can be considered a weak node, we'll only
+    // retain it if normal code references any of it's members.
     return node;
   }
 
@@ -1336,17 +1354,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
 
   @override
   TreeNode visitDynamicGet(DynamicGet node, TreeNode? removalSentinel) {
-    node.transformOrRemoveChildren(this);
-    if (_isUnreachable(node)) {
-      return _makeUnreachableCall([node.receiver]);
-    } else {
-      return node;
-    }
-  }
-
-  @override
-  TreeNode visitFunctionTearOff(
-      FunctionTearOff node, TreeNode? removalSentinel) {
     node.transformOrRemoveChildren(this);
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver]);
@@ -1794,8 +1801,8 @@ class _TreeShakerPass2 extends RemovingTransformer {
         return !shaker.isTypedefUsed(node);
       } else if (node is Extension) {
         return !shaker.isExtensionUsed(node);
-      } else if (node is InlineClass) {
-        return !shaker.isInlineClassUsed(node);
+      } else if (node is ExtensionTypeDeclaration) {
+        return !shaker.isExtensionTypeDeclarationUsed(node);
       } else {
         return !shaker.isMemberUsed(node as Member);
       }
@@ -1957,14 +1964,31 @@ class _TreeShakerPass2 extends RemovingTransformer {
     if (shaker.isExtensionUsed(node)) {
       int writeIndex = 0;
       for (int i = 0; i < node.members.length; ++i) {
-        final ExtensionMemberDescriptor descriptor = node.members[i];
+        ExtensionMemberDescriptor descriptor = node.members[i];
 
         // To avoid depending on the order in which members and extensions are
         // visited during the transformation, we handle both cases: either the
         // member was already removed or it will be removed later.
         final Reference memberReference = descriptor.member;
-        final bool isBound = memberReference.node != null;
-        if (isBound && shaker.isMemberUsed(memberReference.asMember)) {
+        final bool memberIsBound = memberReference.node != null;
+        final bool isMemberUsed =
+            memberIsBound && shaker.isMemberUsed(memberReference.asMember);
+        final Reference? tearOffReference = descriptor.tearOff;
+        final bool tearOffIsBound = tearOffReference?.node != null;
+        final bool isTearOffUsed =
+            tearOffIsBound && shaker.isMemberUsed(tearOffReference!.asMember);
+        if (isMemberUsed || isTearOffUsed) {
+          assert(!isTearOffUsed || isMemberUsed,
+              "Tear-off used without the member of $descriptor");
+          if (!isTearOffUsed) {
+            // Clear the tear-off reference since it is not used.
+            descriptor = ExtensionMemberDescriptor(
+                name: descriptor.name,
+                kind: descriptor.kind,
+                isStatic: descriptor.isStatic,
+                member: descriptor.member,
+                tearOff: null);
+          }
           node.members[writeIndex++] = descriptor;
         }
       }
@@ -1978,24 +2002,44 @@ class _TreeShakerPass2 extends RemovingTransformer {
   }
 
   @override
-  TreeNode visitInlineClass(InlineClass node, TreeNode? removalSentinel) {
-    if (shaker.isInlineClassUsed(node)) {
+  TreeNode visitExtensionTypeDeclaration(
+      ExtensionTypeDeclaration node, TreeNode? removalSentinel) {
+    if (shaker.isExtensionTypeDeclarationUsed(node)) {
       int writeIndex = 0;
       for (int i = 0; i < node.members.length; ++i) {
-        final InlineClassMemberDescriptor descriptor = node.members[i];
+        ExtensionTypeMemberDescriptor descriptor = node.members[i];
 
-        // To avoid depending on the order in which members and inline classes are
-        // visited during the transformation, we handle both cases: either the
-        // member was already removed or it will be removed later.
+        // To avoid depending on the order in which members and extension type
+        // declarations are visited during the transformation, we handle both
+        // cases: either the member was already removed or it will be removed
+        // later.
         final Reference memberReference = descriptor.member;
-        final bool isBound = memberReference.node != null;
-        if (isBound && shaker.isMemberUsed(memberReference.asMember)) {
+        final bool memberIsBound = memberReference.node != null;
+        final bool isMemberUsed =
+            memberIsBound && shaker.isMemberUsed(memberReference.asMember);
+        final Reference? tearOffReference = descriptor.tearOff;
+        final bool tearOffIsBound = tearOffReference?.node != null;
+        final bool isTearOffUsed =
+            tearOffIsBound && shaker.isMemberUsed(tearOffReference!.asMember);
+        if (isMemberUsed || isTearOffUsed) {
+          assert(!isTearOffUsed || isMemberUsed,
+              "Tear-off used without the member of $descriptor");
+          if (!isTearOffUsed) {
+            // Clear the tear-off reference since it is not used.
+            descriptor = ExtensionTypeMemberDescriptor(
+                name: descriptor.name,
+                kind: descriptor.kind,
+                isStatic: descriptor.isStatic,
+                member: descriptor.member,
+                tearOff: null);
+          }
           node.members[writeIndex++] = descriptor;
         }
       }
       node.members.length = writeIndex;
 
-      // We only retain the inline class if at least one member is retained.
+      // We only retain the extension type declaration if at least one member is
+      // retained.
       assert(node.members.isNotEmpty);
       return node;
     }
@@ -2025,7 +2069,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
   }
 }
 
-class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
+class _TreeShakerConstantVisitor implements ConstantVisitor<void> {
   final TreeShaker shaker;
   final _TreeShakerTypeVisitor typeVisitor;
   final Set<Constant> constants = new Set<Constant>();
@@ -2037,11 +2081,6 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
     if (constants.add(constant)) {
       constant.accept(this);
     }
-  }
-
-  @override
-  defaultConstant(Constant constant) {
-    throw 'There is no support for constant "$constant" in TFA yet!';
   }
 
   @override
@@ -2138,5 +2177,21 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
   @override
   visitTypeLiteralConstant(TypeLiteralConstant constant) {
     constant.type.accept(typeVisitor);
+  }
+
+  @override
+  visitTypedefTearOffConstant(TypedefTearOffConstant constant) =>
+      throw 'TypedefTearOffConstant is not supported '
+          '(should be constant evaluated).';
+
+  @override
+  visitUnevaluatedConstant(UnevaluatedConstant constant) =>
+      throw 'UnevaluatedConstant is not supported '
+          '(should be constant evaluated).';
+
+  @override
+  visitAuxiliaryConstant(AuxiliaryConstant constant) {
+    throw new UnsupportedError("Unsupported auxiliary constant "
+        "${constant} (${constant.runtimeType}).");
   }
 }

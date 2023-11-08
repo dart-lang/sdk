@@ -1,6 +1,6 @@
 // Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/src/future_value_type.dart';
@@ -53,12 +53,16 @@ abstract class ClosureContext {
     if (isGenerator) {
       if (isAsync) {
         DartType yieldContext = inferrer.getTypeArgumentOf(
-            returnContext, inferrer.coreTypes.streamClass);
+            inferrer.typeSchemaEnvironment.getUnionFreeType(returnContext,
+                isNonNullableByDefault: inferrer.isNonNullableByDefault),
+            inferrer.coreTypes.streamClass);
         return new _AsyncStarClosureContext(
             inferrer, yieldContext, declaredReturnType, needToInferReturnType);
       } else {
         DartType yieldContext = inferrer.getTypeArgumentOf(
-            returnContext, inferrer.coreTypes.iterableClass);
+            inferrer.typeSchemaEnvironment.getUnionFreeType(returnContext,
+                isNonNullableByDefault: inferrer.isNonNullableByDefault),
+            inferrer.coreTypes.iterableClass);
         return new _SyncStarClosureContext(
             inferrer, yieldContext, declaredReturnType, needToInferReturnType);
       }

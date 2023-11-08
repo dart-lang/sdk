@@ -8,12 +8,12 @@ import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../kernel/augmentation_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart';
@@ -25,8 +25,8 @@ import '../source/source_loader.dart' show SourceLoader;
 import 'source_builder_mixins.dart';
 import 'source_class_builder.dart';
 import 'source_extension_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_function_builder.dart';
-import 'source_inline_class_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceProcedureBuilder extends SourceFunctionBuilderImpl
@@ -39,7 +39,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   final bool isExtensionInstanceMember;
 
   @override
-  final bool isInlineClassInstanceMember;
+  final bool isExtensionTypeInstanceMember;
 
   @override
   final TypeBuilder returnType;
@@ -96,13 +96,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       : assert(kind != ProcedureKind.Factory),
         this.isExtensionInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionMember,
-        this.isInlineClassInstanceMember =
-            nameScheme.isInstanceMember && nameScheme.isInlineClassMember,
+        this.isExtensionTypeInstanceMember =
+            nameScheme.isInstanceMember && nameScheme.isExtensionTypeMember,
         super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedure = new Procedure(
         dummyName,
-        isExtensionInstanceMember || isInlineClassInstanceMember
+        isExtensionInstanceMember || isExtensionTypeInstanceMember
             ? ProcedureKind.Method
             : kind,
         new FunctionNode(null),
@@ -115,13 +115,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
     nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
-    if ((isExtensionInstanceMember || isInlineClassInstanceMember) &&
+    if ((isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
         kind == ProcedureKind.Method) {
       _extensionTearOff = new Procedure(
           dummyName, ProcedureKind.Method, new FunctionNode(null),
           isStatic: true,
           isExtensionMember: isExtensionInstanceMember,
-          isInlineClassMember: isInlineClassInstanceMember,
+          isExtensionTypeMember: isExtensionTypeInstanceMember,
           reference: _tearOffReference,
           fileUri: fileUri)
         ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
@@ -154,8 +154,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     return parent is SourceExtensionBuilder;
   }
 
-  bool get isInlineClassMethod {
-    return parent is SourceInlineClassBuilder;
+  bool get isExtensionTypeMethod {
+    return parent is SourceExtensionTypeDeclarationBuilder;
   }
 
   @override
@@ -254,52 +254,61 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   Iterable<Member> get exportedMembers => [procedure];
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     _build();
     if (isExtensionMethod) {
       switch (kind) {
         case ProcedureKind.Method:
-          f(_procedure, BuiltMemberKind.ExtensionMethod);
+          f(
+              member: _procedure,
+              tearOff: extensionTearOff,
+              kind: BuiltMemberKind.ExtensionMethod);
           break;
         case ProcedureKind.Getter:
-          f(_procedure, BuiltMemberKind.ExtensionGetter);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionGetter);
           break;
         case ProcedureKind.Setter:
-          f(_procedure, BuiltMemberKind.ExtensionSetter);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionSetter);
           break;
         case ProcedureKind.Operator:
-          f(_procedure, BuiltMemberKind.ExtensionOperator);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionOperator);
           break;
         case ProcedureKind.Factory:
           throw new UnsupportedError(
               'Unexpected extension method kind ${kind}');
       }
-      if (extensionTearOff != null) {
-        f(extensionTearOff!, BuiltMemberKind.ExtensionTearOff);
-      }
-    } else if (isInlineClassMethod) {
+    } else if (isExtensionTypeMethod) {
       switch (kind) {
         case ProcedureKind.Method:
-          f(_procedure, BuiltMemberKind.InlineClassMethod);
+          f(
+              member: _procedure,
+              tearOff: extensionTearOff,
+              kind: BuiltMemberKind.ExtensionTypeMethod);
           break;
         case ProcedureKind.Getter:
-          f(_procedure, BuiltMemberKind.InlineClassGetter);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeGetter);
           break;
         case ProcedureKind.Setter:
-          f(_procedure, BuiltMemberKind.InlineClassSetter);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeSetter);
           break;
         case ProcedureKind.Operator:
-          f(_procedure, BuiltMemberKind.InlineClassOperator);
+          assert(extensionTearOff == null, "Unexpected extension tear-off.");
+          f(member: _procedure, kind: BuiltMemberKind.ExtensionTypeOperator);
           break;
         case ProcedureKind.Factory:
-          f(_procedure, BuiltMemberKind.InlineClassFactory);
+          f(
+              member: _procedure,
+              tearOff: extensionTearOff,
+              kind: BuiltMemberKind.ExtensionTypeFactory);
           break;
       }
-      if (extensionTearOff != null) {
-        f(extensionTearOff!, BuiltMemberKind.InlineClassTearOff);
-      }
     } else {
-      f(member, BuiltMemberKind.Method);
+      f(member: member, kind: BuiltMemberKind.Method);
     }
   }
 
@@ -316,10 +325,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       if (isExtensionInstanceMember) {
         assert(_procedure.kind == ProcedureKind.Method);
       }
-    } else if (isInlineClassMethod) {
-      _procedure.isInlineClassMember = true;
+    } else if (isExtensionTypeMethod) {
+      _procedure.isExtensionTypeMember = true;
       _procedure.isStatic = true;
-      if (isInlineClassInstanceMember) {
+      if (isExtensionTypeInstanceMember) {
         assert(_procedure.kind == ProcedureKind.Method);
       }
     } else {
@@ -581,7 +590,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       origin._getAugmentSuperTarget(this);
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     List<SourceProcedureBuilder>? patches = _patches;
     if (patches != null) {
       void addAugmentedProcedure(SourceProcedureBuilder builder) {
@@ -593,7 +602,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
             ..fileStartOffset = builder.actualProcedure.fileStartOffset
             ..signatureType = builder.actualProcedure.signatureType
             ..flags = builder.actualProcedure.flags;
-          f(augmentedProcedure, BuiltMemberKind.Method);
+          f(member: augmentedProcedure, kind: BuiltMemberKind.Method);
         }
       }
 

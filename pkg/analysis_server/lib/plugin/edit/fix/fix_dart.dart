@@ -12,6 +12,15 @@ import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartFixContext implements FixContext {
+  /// Whether fixes were triggered automatically (for example by a save
+  /// operation).
+  ///
+  /// Some fixes may be excluded when running automatically. For example
+  /// removing unused imports or parameters is less acceptable while the code is
+  /// incomplete and being worked on than when manually executing fixes ready
+  /// for committing.
+  bool get autoTriggered;
+
   /// Return the instrumentation service used to report errors that prevent a
   /// fix from being composed.
   InstrumentationService get instrumentationService;

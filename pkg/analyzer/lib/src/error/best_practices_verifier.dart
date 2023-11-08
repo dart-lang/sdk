@@ -4,10 +4,12 @@
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -28,14 +30,15 @@ import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/annotation_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
+import 'package:analyzer/src/error/doc_comment_verifier.dart';
 import 'package:analyzer/src/error/error_handler_verifier.dart';
 import 'package:analyzer/src/error/must_call_super_verifier.dart';
 import 'package:analyzer/src/error/null_safe_api_verifier.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as path;
 
 /// Instances of the class `BestPracticesVerifier` traverse an AST structure
 /// looking for violations of Dart best practices.
@@ -56,13 +59,13 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// The type [Null].
   final InterfaceType _nullType;
 
-  /// The type system primitives
+  /// The type system primitives.
   final TypeSystemImpl _typeSystem;
 
   /// The inheritance manager to access interface type hierarchy.
   final InheritanceManager3 _inheritanceManager;
 
-  /// The current library
+  /// The current library.
   final LibraryElement _currentLibrary;
 
   final AnnotationVerifier _annotationVerifier;
@@ -76,6 +79,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   final MustCallSuperVerifier _mustCallSuperVerifier;
 
   final NullSafeApiVerifier _nullSafeApiVerifier;
+
+  late final DocCommentVerifier _docCommentVerifier =
+      DocCommentVerifier(_errorReporter);
 
   /// The [WorkspacePackage] in which [_currentLibrary] is declared.
   final WorkspacePackage? _workspacePackage;
@@ -104,6 +110,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     required DeclaredVariables declaredVariables,
     required AnalysisOptions analysisOptions,
     required WorkspacePackage? workspacePackage,
+    required path.Context pathContext,
   })  : _nullType = typeProvider.nullType,
         _typeSystem = typeSystem,
         _isNonNullableByDefault = typeSystem.isNonNullableByDefault,
@@ -130,6 +137,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           inheritanceManager,
           analysisOptions,
           workspacePackage,
+          pathContext,
         ) {
     _deprecatedVerifier.pushInDeprecatedValue(_currentLibrary.hasDeprecated);
     _inDoNotStoreMember = _currentLibrary.hasDoNotStore;
@@ -195,8 +203,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement as ClassElementImpl;
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+    var element = node.declaredElement!;
+    if (element.isAugmentation) {
+      return;
+    }
+
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = element;
 
@@ -230,6 +242,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     } finally {
       _deprecatedVerifier.popInDeprecated();
     }
+  }
+
+  @override
+  void visitComment(Comment node) {
+    for (var docImport in node.docImports) {
+      _docCommentVerifier.docImport(docImport);
+    }
+    for (var docDirective in node.docDirectives) {
+      _docCommentVerifier.docDirective(docDirective);
+    }
+    super.visitComment(node);
   }
 
   @override
@@ -607,8 +630,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
-    var element = node.declaredElement as MixinElementImpl;
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+    var element = node.declaredElement!;
+    if (element.isAugmentation) {
+      return;
+    }
+
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = _enclosingClass;
 
@@ -2090,6 +2117,11 @@ class _InvalidAccessVerifier {
     }
     if (element is PropertyAccessorElement &&
         element.variable.hasVisibleOutsideTemplate) {
+      return true;
+    }
+    final enclosingElement = element.enclosingElement;
+    if (enclosingElement != null &&
+        _hasVisibleOutsideTemplate(enclosingElement)) {
       return true;
     }
     return false;

@@ -32,7 +32,7 @@ class RemoveNonNullAssertion extends ResolvedCorrectionProducer {
       var bangToken = expression.operator;
 
       await builder.addDartFileEdit(file, (builder) {
-        builder.addDeletion(range.startStart(bangToken, bangToken.next!));
+        builder.addDeletion(range.entity(bangToken));
       });
     }
 

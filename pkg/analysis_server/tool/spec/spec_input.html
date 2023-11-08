@@ -3607,6 +3607,32 @@
     </params>
   </notification>
 </domain>
+<domain name="lsp" experimental="true">
+  <p>
+    The LSP domain contains API's for interacting with LSP handlers.
+  </p>
+  <request method="handle" experimental="true">
+    <p>
+      Call an LSP handler. Message can be requests or notifications.
+    </p>
+    <params>
+      <field name="lspMessage">
+        <p>
+          The LSP RequestMessage.
+        </p>
+        <ref>object</ref>
+      </field>
+    </params>
+    <result>
+      <field name="lspResponse">
+        <p>
+          The LSP ResponseMessage returned by the handler.
+        </p>
+        <ref>object</ref>
+      </field>
+    </result>
+  </request>
+</domain>
 <types>
   <h2 class="domain"><a name="types">Types</a></h2>
   <p>

@@ -1072,6 +1072,6 @@ class ClassHierarchyNodesMap extends MapBase<ClassEntity, ClassHierarchyNode> {
   }
 }
 
-abstract class ClassHierarchyNodesMapKey implements ClassEntity {
+mixin ClassHierarchyNodesMapKey implements ClassEntity {
   ClassHierarchyNode? _classHierarchyNode;
 }

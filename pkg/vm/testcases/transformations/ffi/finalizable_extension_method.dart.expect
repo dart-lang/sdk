@@ -13,11 +13,11 @@ class Foo extends core::Object implements ffi::Finalizable {
 }
 extension /* unnamed */ _extension#0 on ffi::Finalizable {
   method bar = self::_extension#0|bar;
-  tearoff bar = self::_extension#0|get#bar;
+  method tearoff bar = self::_extension#0|get#bar;
 }
 extension /* unnamed */ _extension#1 on core::Object {
   method baz = self::_extension#1|baz;
-  tearoff baz = self::_extension#1|get#baz;
+  method tearoff baz = self::_extension#1|get#baz;
 }
 static method main() → void {
   final self::Foo foo = new self::Foo::•();

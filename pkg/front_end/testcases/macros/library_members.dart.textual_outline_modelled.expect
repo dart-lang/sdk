@@ -1,0 +1,11 @@
+import augment 'library_members_lib.dart';
+class AugmentedClass {}
+class ExistingClass {}
+class existingMethod2 {}
+external void augmentedMethod();
+external void set augmentedSetter(_);
+main() {}
+test() {}
+void ExistingClass2() {}
+void existingMethod() {}
+void set existingSetter(_) {}

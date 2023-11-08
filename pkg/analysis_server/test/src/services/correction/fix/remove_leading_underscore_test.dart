@@ -89,6 +89,21 @@ f() {
 ''');
   }
 
+  Future<void> test_localFunction() async {
+    await resolveTestCode(r'''
+void f() {
+  int _foo() => 1;
+  print(_foo());
+}
+''');
+    await assertHasFix('''
+void f() {
+  int foo() => 1;
+  print(foo());
+}
+''');
+  }
+
   Future<void> test_localVariable() async {
     await resolveTestCode('''
 void f() {
@@ -203,6 +218,23 @@ void f() {
   [0, 1, 2].forEach((foo) {
     print(foo);
   });
+}
+''');
+  }
+
+  Future<void> test_parameter_constructor() async {
+    await resolveTestCode('''
+class A {
+  A(int _foo) {
+    print(_foo);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int foo) {
+    print(foo);
+  }
 }
 ''');
   }

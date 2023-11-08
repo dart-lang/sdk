@@ -40,6 +40,14 @@ class WasmFields {
       "${f32.toDouble()} ${f64.toDouble()}";
 }
 
+class A {
+  const A();
+}
+
+class B extends A {
+  const B();
+}
+
 test() {
   // Some test objects
   Object dartObject1 = "1";
@@ -116,6 +124,29 @@ test() {
   Expect.isFalse(jsObject3.isObject);
 
   Expect.equals(3, funCount);
+
+  // Instantiate some Wasm arrays
+  final arrayAN = WasmObjectArray<A?>(3, null);
+  final arrayA = WasmObjectArray<A>(3, A());
+  Expect.equals(3, arrayAN.length);
+  Expect.equals(3, arrayA.length);
+  Expect.equals(null, arrayAN.read(0));
+  Expect.identical(arrayA.read(0), arrayA.read(2));
+
+  // Instantiate some Wasm arrays as literals
+  final arrayAlit1 = WasmObjectArray<A>.literal([A(), A(), A()]);
+  final arrayAlit2 = WasmObjectArray<A>.literal([A(), B(), A()]);
+  final arrayAlit3 = const WasmObjectArray<A>.literal([A(), B(), A()]);
+  final arrayAlit4 = const WasmObjectArray<A>.literal([A(), B(), A()]);
+  Expect.notIdentical(arrayAlit1.read(0), arrayAlit1.read(2));
+  Expect.notIdentical(arrayAlit2.read(0), arrayAlit2.read(1));
+  Expect.notIdentical(arrayAlit2.read(0), arrayAlit2.read(2));
+  Expect.notIdentical(arrayAlit3.read(0), arrayAlit3.read(1));
+  Expect.identical(arrayAlit3.read(0), arrayAlit3.read(2));
+
+  Expect.isFalse(arrayA == arrayAlit1);
+  Expect.isFalse(arrayAlit2 == arrayAlit3);
+  Expect.isTrue(arrayAlit3 == arrayAlit4);
 }
 
 main() {

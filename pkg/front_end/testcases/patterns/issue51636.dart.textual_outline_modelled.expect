@@ -1,6 +1,5 @@
-int f<A>() => 
-switch (unknownName) {}
----- unknown chunk starts ----
-;
----- unknown chunk ends ----
+int f<A>() => switch (unknownName) {
+      <A>[] => 1,
+      <A>[var x, ...var xs] => 2,
+    };
 void main() {}

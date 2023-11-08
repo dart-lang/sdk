@@ -4,12 +4,17 @@
 
 import 'package:test/test.dart';
 
+import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
 
-void main() async {
-  var driver = await TestDriver.init();
+void main(List<String> args) async {
+  final debug = false;
 
-  group('dart.web.assertions_enabled', () {
+  var driver = await ExpressionEvaluationTestDriver.init();
+  var setup = SetupCompilerOptions(args: args);
+  setup.options.verbose = debug;
+
+  group('Asserts', () {
     const source = r'''
       void main() {
         var b = const bool.fromEnvironment('dart.web.assertions_enabled');
@@ -17,29 +22,71 @@ void main() async {
         // Breakpoint: bp
         print('hello world');
       }
+      int myAssert() {
+        assert(false);
+        return 0;
+      }
     ''';
 
-    tearDown(() async {
-      await driver.cleanupTest();
-    });
-
+    setUpAll(() => driver.initSource(setup, source));
     tearDownAll(() async {
+      await driver.cleanupTest();
       await driver.finish();
     });
 
-    test('is automatically set', () async {
-      var setup = SetupCompilerOptions(enableAsserts: true);
-      await driver.initSource(setup, source);
-      // TODO(43986): Update when assertions are enabled.
-      await driver.check(
-          breakpointId: 'bp', expression: 'b', expectedResult: 'false');
-    });
+    if (setup.enableAsserts) {
+      group('enabled |', () {
+        test('dart.web.assertions_enabled is set', () async {
+          await driver.checkInFrame(
+              breakpointId: 'bp', expression: 'b', expectedResult: 'true');
+        });
 
-    test('is automatically unset', () async {
-      var setup = SetupCompilerOptions(enableAsserts: false);
-      await driver.initSource(setup, source);
-      await driver.check(
-          breakpointId: 'bp', expression: 'b', expectedResult: 'false');
-    });
+        test('assert errors in the source code', () async {
+          await driver.checkInFrame(
+              breakpointId: 'bp',
+              expression: 'myAssert()',
+              expectedError: allOf(
+                contains('Error: Assertion failed:'),
+                contains('test.dart:8:16'),
+                contains('false'),
+                contains('is not true'),
+              ));
+        });
+        test('assert errors in evaluated expression', () async {
+          await driver.checkInFrame(
+              breakpointId: 'bp',
+              expression: '() { assert(false); return 0; } ()',
+              expectedError: allOf(
+                contains('Error: Assertion failed:'),
+                contains('<unknown source>:-1:-1'),
+                contains('BoolLiteral(false)'),
+                contains('is not true'),
+              ));
+        });
+      });
+    }
+
+    if (!setup.enableAsserts) {
+      group('disabled |', () {
+        test('dart.web.assertions_enabled is not set', () async {
+          await driver.checkInFrame(
+              breakpointId: 'bp', expression: 'b', expectedResult: 'false');
+        });
+
+        test('no assert errors in the source code', () async {
+          await driver.checkInFrame(
+              breakpointId: 'bp',
+              expression: 'myAssert()',
+              expectedResult: '0');
+        });
+
+        test('no assert errors in evaluated expression', () async {
+          await driver.checkInFrame(
+              breakpointId: 'bp',
+              expression: '() { assert(false); return 0; } ()',
+              expectedResult: '0');
+        });
+      });
+    }
   });
 }

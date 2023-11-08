@@ -19,7 +19,7 @@ SourceSpan computeSourceSpanFromUriOffset(Uri uri, int offset) {
       : SourceSpan(uri, 0, 0);
 }
 
-abstract class IrDataRegistryMixin<T> implements DataRegistry<T> {
+mixin IrDataRegistryMixin<T> implements DataRegistry<T> {
   DiagnosticReporter get reporter;
 
   @override

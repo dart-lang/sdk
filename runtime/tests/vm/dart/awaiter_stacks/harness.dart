@@ -120,17 +120,15 @@ late final Dwarf? _dwarf;
 
 void configure(List<String> currentExpectations,
     {String debugInfoFilename = 'debug.so'}) {
-  if (debugInfoFilename != null) {
-    try {
-      final testCompilationDir = Platform.environment['TEST_COMPILATION_DIR'];
-      if (testCompilationDir != null) {
-        debugInfoFilename = path.join(testCompilationDir, debugInfoFilename);
-      }
-      _dwarf = Dwarf.fromFile(debugInfoFilename)!;
-    } on FileSystemException {
-      // We're not running in precompiled mode, so the file doesn't exist and
-      // we can continue normally.
+  try {
+    final testCompilationDir = Platform.environment['TEST_COMPILATION_DIR'];
+    if (testCompilationDir != null) {
+      debugInfoFilename = path.join(testCompilationDir, debugInfoFilename);
     }
+    _dwarf = Dwarf.fromFile(debugInfoFilename)!;
+  } on FileSystemException {
+    // We're not running in precompiled mode, so the file doesn't exist and
+    // we can continue normally.
   }
   _currentExpectations = currentExpectations;
 }
@@ -232,5 +230,10 @@ final currentExpectations = [${updatedExpectationsString}];
 // then we don't have a way to deobfuscate the stack trace.
 bool shouldSkip() {
   final stack = StackTrace.current.toString();
-  return !stack.contains('shouldSkip') && !stack.contains('*** ***');
+  final isObfuscateMode = !stack.contains('shouldSkip');
+  final isDwarfStackTracesMode = stack.contains('*** ***');
+
+  // We should skip the test if we are running without DWARF stack
+  // traces enabled but with obfuscation.
+  return !isDwarfStackTracesMode && isObfuscateMode;
 }

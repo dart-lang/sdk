@@ -704,6 +704,55 @@ void f() {
 ''');
   }
 
+  Future<void> test_material_Curve_standardEasing_deprecated() async {
+    setPackageContent('''
+abstract class Curve {
+  const Curve();
+}
+class Cubic extends Curve {
+  const Cubic(this.a, this.b, this.c, this.d);
+}
+
+abstract final class Curves {
+  static const Cubic fastOutSlowIn = Cubic(0.4, 0.0, 0.2, 1.0);
+}
+
+class Easing {
+  static const Curve legacy = Curves.fastOutSlowIn;
+}
+
+@deprecated
+const Curve standardEasing = Curves.fastOutSlowIn;
+''');
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by Easing.legacy'
+    date: 2020-09-24
+    element:
+      uris: [  '$importUri' ]
+      variable: 'standardEasing'
+    changes:
+    - kind: 'replacedBy'
+      newElement:
+        uris: [  '$importUri' ]
+        field: legacy
+        inClass: Easing
+        static: true
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+const Curve c = standardEasing;
+''');
+    await assertHasFix('''
+import '$importUri';
+
+const Curve c = Easing.legacy;
+''');
+  }
+
   Future<void> test_material_FlatButton_deprecated() async {
     setPackageContent('''
 @deprecated
@@ -3512,6 +3561,57 @@ import '$importUri';
 
 void f(StatefulElement element) {
   element.dependOnInheritedElement();
+}
+''');
+  }
+
+  Future<void>
+      test_widgets_WidgetsApp_debugShowWidgetInspectorOverride_replace() async {
+    setPackageContent('''
+class WidgetsApp {
+  @deprecated
+  static bool debugShowWidgetInspectorOverride = false;
+  static ValueNotifier<bool> debugShowWidgetInspectorOverrideNotifier = ValueNotifier<bool>(false);
+}
+
+class ValueNotifier<T> {
+  ValueNotifier(this._value);
+
+  T get value => _value;
+  T _value;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to 'debugShowWidgetInspectorOverrideNotifier'"
+    date: 2023-03-13
+    element:
+      uris: ['$importUri']
+      field: 'debugShowWidgetInspectorOverride'
+      inClass: 'WidgetsApp'
+      static: true
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          field: 'debugShowWidgetInspectorOverrideNotifier.value'
+          inClass: 'WidgetsApp'
+          static: true
+  ''');
+
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  WidgetsApp.debugShowWidgetInspectorOverride = true;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  WidgetsApp.debugShowWidgetInspectorOverrideNotifier.value = true;
 }
 ''');
   }

@@ -75,8 +75,9 @@ class RequestData {
 
   /// Return a future that will complete when a response is received.
   Future<Response> get respondedTo {
-    if (_response != null) {
-      return Future.value(_response);
+    final response = _response;
+    if (response != null) {
+      return Future.value(response);
     }
     var completer = _responseCompleter ??= Completer<Response>();
     return completer.future;
@@ -803,7 +804,7 @@ class Server {
       command['params'] = params;
     }
     var line = json.encode(command);
-    _process!.stdin.add(utf8.encoder.convert('$line\n'));
+    _process!.stdin.add(utf8.encode('$line\n'));
     logger?.log(fromClient, line);
     return requestData;
   }

@@ -322,7 +322,7 @@ class VMTestSuite extends TestSuite {
     }
 
     // Update the new workflow based expectations to include [testExpectation].
-    var testFile = TestFile.vmUnitTest(
+    var testFile = TestFile.vmUnitTest(test.name,
         hasCompileError: testExpectation == Expectation.compileTimeError,
         hasRuntimeError: testExpectation == Expectation.runtimeError,
         hasCrash: testExpectation == Expectation.crash);
@@ -461,7 +461,7 @@ class FfiTestSuite extends TestSuite {
     }
 
     // Update the new workflow based expectations to include [testExpectation].
-    final testFile = TestFile.vmUnitTest(
+    final testFile = TestFile.vmUnitTest(test.name,
         hasCompileError: testExpectation == Expectation.compileTimeError,
         hasRuntimeError: testExpectation == Expectation.runtimeError,
         hasCrash: testExpectation == Expectation.crash);
@@ -957,7 +957,9 @@ class StandardTestSuite extends TestSuite {
             _createUrlPathFromFile(Path('$outputDir/$nameNoExt.mjs'));
         content =
             dart2wasmHtml(testFile.path.toNativePath(), wasmPath, mjsPath);
-      } else {
+      } else if (configuration.compiler == Compiler.ddc) {
+        var ddcConfig =
+            configuration.compilerConfiguration as DevCompilerConfiguration;
         var nameFromModuleRoot = testFile.path.relativeTo(Repository.dir);
         var nameFromModuleRootNoExt =
             "${nameFromModuleRoot.directoryPath}/$nameNoExt";
@@ -973,8 +975,12 @@ class StandardTestSuite extends TestSuite {
             jsDir,
             configuration.compiler,
             configuration.nnbdMode,
+            ddcConfig.genDir,
             nullAssertions,
             weakNullSafetyErrors);
+      } else {
+        throw UnsupportedError(
+            'Unexpected compiler in browser test: ${configuration.compiler}');
       }
     }
 

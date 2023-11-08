@@ -54,7 +54,8 @@ bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
   const intptr_t aligned_size = Utils::RoundUp(size(), PageSize());
   ASSERT_LESS_OR_EQUAL(aligned_size, target->size());
 
-#if defined(DART_HOST_OS_MACOS)
+#if defined(DART_HOST_OS_MACOS) &&                                             \
+    (defined(DART_PRECOMPILED_RUNTIME) || defined(DART_PRECOMPILER))
   // Mac is special cased because iOS doesn't allow allocating new executable
   // memory, so the default approach would fail. We are allowed to make new
   // mappings of existing executable memory using vm_remap though, which is

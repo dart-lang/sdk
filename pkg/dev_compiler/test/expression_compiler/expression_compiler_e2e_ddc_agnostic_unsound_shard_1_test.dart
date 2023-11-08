@@ -6,11 +6,12 @@ import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat;
 import 'package:test/test.dart';
 
+import '../shared_test_options.dart';
 import 'expression_compiler_e2e_shared.dart';
 import 'expression_compiler_e2e_suite.dart';
 
-void main() async {
-  var driver = await TestDriver.init();
+void main(List<String> args) async {
+  var driver = await ExpressionEvaluationTestDriver.init();
 
   group('(Unsound null safety) (Agnostic code shard 1)', () {
     tearDownAll(() async {
@@ -19,9 +20,11 @@ void main() async {
 
     group('(DDC module system)', () {
       var setup = SetupCompilerOptions(
-          soundNullSafety: false,
-          legacyCode: false,
-          moduleFormat: ModuleFormat.ddc);
+        soundNullSafety: false,
+        legacyCode: false,
+        moduleFormat: ModuleFormat.ddc,
+        args: args,
+      );
       runAgnosticSharedTestsShard1(setup, driver);
     });
   });

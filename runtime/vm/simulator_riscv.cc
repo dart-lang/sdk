@@ -687,7 +687,7 @@ void Simulator::Interpret(CInstr instr) {
     }
 #endif
     case C_JR: {
-      if (instr.encoding() & (C_JALR ^ C_JR)) {
+      if ((instr.encoding() & (C_JALR ^ C_JR)) != 0) {
         if ((instr.rs1() == ZR) && (instr.rs2() == ZR)) {
           InterpretEBREAK(instr);
         } else if (instr.rs2() == ZR) {

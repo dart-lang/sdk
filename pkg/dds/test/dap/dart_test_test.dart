@@ -122,5 +122,28 @@ main() {
         expect(adapter.processArgs, contains('tool_args'));
       });
     });
+
+    String converter(input) {
+      return 'converted: $input';
+    }
+
+    test('includes URI converter', () async {
+      final adapter = MockDartTestDebugAdapter();
+      adapter.setUriConverter(converter);
+      final responseCompleter = Completer<void>();
+      final request = MockRequest();
+      final args = DartLaunchRequestArguments(
+        program: 'foo.dart',
+        vmAdditionalArgs: ['vm_arg'],
+        noDebug: true,
+      );
+
+      await adapter.configurationDoneRequest(request, null, () {});
+      await adapter.launchRequest(request, args, responseCompleter.complete);
+      adapter.connectDebugger(Uri());
+      await responseCompleter.future;
+
+      expect(adapter.ddsUriConverter, converter);
+    });
   });
 }

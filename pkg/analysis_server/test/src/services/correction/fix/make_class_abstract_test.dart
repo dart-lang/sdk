@@ -32,6 +32,71 @@ abstract class A {
 ''');
   }
 
+  Future<void> test_declaresAbstractMethod_baseClass() async {
+    await resolveTestCode('''
+base class A {
+  m();
+}
+''');
+    await assertHasFix('''
+abstract base class A {
+  m();
+}
+''');
+  }
+
+  Future<void> test_declaresAbstractMethod_baseMixinClass() async {
+    await resolveTestCode('''
+base mixin class A {
+  m();
+}
+''');
+    await assertHasFix('''
+abstract base mixin class A {
+  m();
+}
+''');
+  }
+
+  Future<void> test_declaresAbstractMethod_finalClass() async {
+    await resolveTestCode('''
+final class A {
+  m();
+}
+''');
+    await assertHasFix('''
+abstract final class A {
+  m();
+}
+''');
+  }
+
+  Future<void> test_declaresAbstractMethod_interfaceClass() async {
+    await resolveTestCode('''
+interface class A {
+  m();
+}
+''');
+    await assertHasFix('''
+abstract interface class A {
+  m();
+}
+''');
+  }
+
+  Future<void> test_declaresAbstractMethod_mixinClass() async {
+    await resolveTestCode('''
+mixin class A {
+  m();
+}
+''');
+    await assertHasFix('''
+abstract mixin class A {
+  m();
+}
+''');
+  }
+
   Future<void> test_inheritsAbstractMethod() async {
     await resolveTestCode('''
 abstract class A {

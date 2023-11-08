@@ -46,8 +46,7 @@ class SsaBranchBuilder {
     checkNotAborted();
     assert(identical(builder.current, builder.lastOpenedBlock));
     HInstruction conditionValue = builder.popBoolified();
-    HIf branch = HIf(_abstractValueDomain, conditionValue)
-      ..sourceInformation = sourceInformation;
+    HIf branch = HIf(conditionValue)..sourceInformation = sourceInformation;
     HBasicBlock conditionExitBlock = builder.current!;
     builder.close(branch);
     conditionBranch.exitLocals = builder.localsHandler;

@@ -42,20 +42,20 @@ class EditGetAssistsHandler extends LegacyHandler
     //
     var requestParams = plugin.EditGetAssistsParams(file, offset, length);
     var driver = performance.run(
-        "getAnalysisDriver", (_) => server.getAnalysisDriver(file));
+        'getAnalysisDriver', (_) => server.getAnalysisDriver(file));
     var pluginFutures = server.broadcastRequestToPlugins(requestParams, driver);
 
     //
     // Compute fixes associated with server-generated errors.
     //
-    var changes = await performance.runAsync("_computeServerAssists",
+    var changes = await performance.runAsync('_computeServerAssists',
         (_) => _computeServerAssists(request, file, offset, length));
 
     //
     // Add the fixes produced by plugins to the server-generated fixes.
     //
     var responses = await performance.runAsync(
-        "waitForResponses",
+        'waitForResponses',
         (_) =>
             waitForResponses(pluginFutures, requestParameters: requestParams));
     server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');

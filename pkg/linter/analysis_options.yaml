@@ -1,0 +1,69 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    todo: ignore
+  exclude:
+    # ignore vscode .history files
+    - .history/**
+    - test_data/**
+  language:
+    strict-casts: true
+linter:
+  rules:
+    - always_put_required_named_parameters_first
+    - avoid_annotating_with_dynamic
+    - avoid_catches_without_on_clauses
+    - avoid_catching_errors
+    - avoid_dynamic_calls
+    - avoid_positional_boolean_parameters
+    - avoid_print
+    - avoid_redundant_argument_values
+    - avoid_returning_null
+    - avoid_returning_null_for_future
+    - avoid_returning_this
+    - avoid_setters_without_getters
+    - avoid_slow_async_io
+    - avoid_unused_constructor_parameters
+    - cancel_subscriptions
+    - cast_nullable_to_non_nullable
+    - collection_methods_unrelated_type
+    - comment_references
+    - dangling_library_doc_comments
+    - directives_ordering
+    - discarded_futures
+    - implicit_call_tearoffs
+    - join_return_with_assignment
+    - library_annotations
+    - literal_only_boolean_expressions
+    - no_adjacent_strings_in_list
+    - noop_primitive_operations
+    - only_throw_errors
+    - package_api_docs
+    - parameter_assignments
+    - prefer_asserts_in_initializer_lists
+    - prefer_const_constructors_in_immutables
+    - prefer_constructors_over_static_methods
+    - prefer_expression_function_bodies
+    - prefer_foreach
+    - prefer_null_aware_method_calls
+    - prefer_relative_imports
+    - prefer_single_quotes
+    - sort_pub_dependencies
+    - test_types_in_equals
+    - throw_in_finally
+    - unawaited_futures # pedantic
+    - unnecessary_breaks
+    - unnecessary_final
+    - unnecessary_lambdas
+    - unnecessary_library_directive
+    - unnecessary_null_checks
+    - unnecessary_parenthesis
+    - unnecessary_statements
+    - unreachable_from_main
+    - use_if_null_to_convert_nulls_to_bools
+    - use_late_for_private_fields_and_variables
+    - use_setters_to_change_properties
+    - use_string_buffers
+    - use_super_parameters
+    - use_to_and_as_if_applicable

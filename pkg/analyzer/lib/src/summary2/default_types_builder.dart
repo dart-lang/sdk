@@ -43,6 +43,11 @@ class DefaultTypesBuilder {
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
+      } else if (node is ExtensionTypeDeclaration) {
+        var element = node.declaredElement!;
+        _breakSelfCycles(node.typeParameters);
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       } else if (node is FunctionTypeAlias) {
         var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
@@ -78,6 +83,8 @@ class DefaultTypesBuilder {
       } else if (node is EnumDeclaration) {
         _build(node.typeParameters);
       } else if (node is ExtensionDeclaration) {
+        _build(node.typeParameters);
+      } else if (node is ExtensionTypeDeclaration) {
         _build(node.typeParameters);
       } else if (node is FunctionTypeAlias) {
         _build(node.typeParameters);

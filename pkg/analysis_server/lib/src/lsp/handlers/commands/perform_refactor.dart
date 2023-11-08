@@ -11,7 +11,8 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 
-class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
+class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler
+    with LspHandlerHelperMixin {
   PerformRefactorCommandHandler(super.server);
 
   @override

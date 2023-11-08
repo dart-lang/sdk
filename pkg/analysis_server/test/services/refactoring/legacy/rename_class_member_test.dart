@@ -13,6 +13,7 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RenameClassMemberClassTest);
     defineReflectiveTests(RenameClassMemberEnumTest);
+    defineReflectiveTests(RenameClassMemberExtensionTypeTest);
   });
 }
 
@@ -1849,6 +1850,380 @@ enum E<NewName> {
   v;
   final NewName? field = null;
   final List<NewName> items = const [];
+  NewName method(NewName a) => a;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RenameClassMemberExtensionTypeTest extends RenameRefactoringTest {
+  Future<void> test_checkFinalConditions_shadowsSuper_MethodElement() async {
+    await indexTestUnit('''
+class A {
+  void newName() {}
+}
+extension type E(A it) implements A {
+  void test() {}
+  void f() {
+    newName();
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage: "Renamed method will shadow method 'A.newName'.",
+        expectedContextSearch: 'newName() {}');
+  }
+
+  Future<void> test_checkNewName_FieldElement_representation() async {
+    await indexTestUnit('''
+extension type E(int test) {}
+''');
+    createRenameRefactoringAtString('test) {}');
+    // OK
+    refactoring.newName = 'newName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_checkNewName_MethodElement() async {
+    await indexTestUnit('''
+extension type E(int it) {
+  void test() {}
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // empty
+    refactoring.newName = '';
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage: 'Method name must not be empty.');
+    // same
+    refactoring.newName = 'test';
+    assertRefactoringStatus(
+        refactoring.checkNewName(), RefactoringProblemSeverity.FATAL,
+        expectedMessage:
+            'The new name must be different than the current name.');
+    // OK
+    refactoring.newName = 'newName';
+    assertRefactoringStatusOK(refactoring.checkNewName());
+  }
+
+  Future<void> test_createChange_FieldElement_implicit() async {
+    verifyNoTestUnitErrors = false;
+    await indexTestUnit('''
+extension type E(int it) {
+  int get test => 0;
+  set test(int _) {}
+  void f() {
+    test;
+    test = 1;
+    test += 2;
+  }
+}
+void f(E e) {
+  e.test;
+  e.test = 1;
+  e.test += 2;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test =>');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension type E(int it) {
+  int get newName => 0;
+  set newName(int _) {}
+  void f() {
+    newName;
+    newName = 1;
+    newName += 2;
+  }
+}
+void f(E e) {
+  e.newName;
+  e.newName = 1;
+  e.newName += 2;
+}
+''');
+  }
+
+  Future<void> test_createChange_FieldElement_representation() async {
+    verifyNoTestUnitErrors = false;
+    await indexTestUnit('''
+extension type E(int test) {
+  void f() {
+    test;
+    test = 1;
+    test += 2;
+  }
+}
+void f(E e) {
+  e.test;
+  e.test = 1;
+  e.test += 2;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test) {');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.elementKindName, 'field');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension type E(int newName) {
+  void f() {
+    newName;
+    newName = 1;
+    newName += 2;
+  }
+}
+void f(E e) {
+  e.newName;
+  e.newName = 1;
+  e.newName += 2;
+}
+''');
+  }
+
+  Future<void> test_createChange_MethodElement() async {
+    await indexTestUnit('''
+extension type E(int it) {
+  void test() {}
+  void foo() {
+    test();
+    test;
+  }
+}
+
+void f(E e) {
+  e.test();
+  e.test;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() {}');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension type E(int it) {
+  void newName() {}
+  void foo() {
+    newName();
+    newName;
+  }
+}
+
+void f(E e) {
+  e.newName();
+  e.newName;
+}
+''');
+  }
+
+  Future<void> test_createChange_MethodElement_implements_class() async {
+    await indexTestUnit('''
+class A {
+  void test() {} // A
+}
+
+extension type E(A it) implements A {
+  void test() {}
+  void foo() {
+    test();
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() {} // A');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class A {
+  void newName() {} // A
+}
+
+extension type E(A it) implements A {
+  void newName() {}
+  void foo() {
+    newName();
+  }
+}
+''');
+  }
+
+  Future<void> test_createChange_MethodElement_implements_class2() async {
+    await indexTestUnit('''
+class A {
+  void test() {}
+}
+
+extension type E(A it) implements A {
+  void test() {} // E
+  void foo() {
+    test();
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() {} // E');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+class A {
+  void newName() {}
+}
+
+extension type E(A it) implements A {
+  void newName() {} // E
+  void foo() {
+    newName();
+  }
+}
+''');
+  }
+
+  Future<void>
+      test_createChange_MethodElement_implements_extensionType() async {
+    await indexTestUnit('''
+extension type E1(int it) {
+  void test() {} // E1
+}
+
+extension type E2(int it) implements E1 {
+  void test() {}
+  void foo() {
+    test();
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() {} // E1');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension type E1(int it) {
+  void newName() {} // E1
+}
+
+extension type E2(int it) implements E1 {
+  void newName() {}
+  void foo() {
+    newName();
+  }
+}
+''');
+  }
+
+  Future<void>
+      test_createChange_MethodElement_implements_extensionType2() async {
+    await indexTestUnit('''
+extension type E1(int it) {
+  void test() {}
+}
+
+extension type E2(int it) implements E1 {
+  void test() {} // E2
+  void foo() {
+    test();
+  }
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test() {} // E2');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension type E1(int it) {
+  void newName() {}
+}
+
+extension type E2(int it) implements E1 {
+  void newName() {} // E2
+  void foo() {
+    newName();
+  }
+}
+''');
+  }
+
+  Future<void> test_createChange_PropertyAccessorElement() async {
+    await indexTestUnit('''
+extension type E(int it) {
+  int get test => 0;
+  set test(int _) {}
+  void f() {
+    test;
+    test = 0;
+  }
+}
+void f(E e) {
+  e.test;
+  e.test = 1;
+  e.test += 2;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('test => 0;');
+    expect(refactoring.refactoringName, 'Rename Field');
+    expect(refactoring.oldName, 'test');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension type E(int it) {
+  int get newName => 0;
+  set newName(int _) {}
+  void f() {
+    newName;
+    newName = 0;
+  }
+}
+void f(E e) {
+  e.newName;
+  e.newName = 1;
+  e.newName += 2;
+}
+''');
+  }
+
+  Future<void> test_createChange_TypeParameterElement() async {
+    await indexTestUnit('''
+extension type E<Test>(int it) {
+  Test method(Test a) => a;
+}
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('Test>(int it)');
+    expect(refactoring.refactoringName, 'Rename Type Parameter');
+    expect(refactoring.elementKindName, 'type parameter');
+    expect(refactoring.oldName, 'Test');
+    refactoring.newName = 'NewName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+extension type E<NewName>(int it) {
   NewName method(NewName a) => a;
 }
 ''');

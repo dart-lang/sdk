@@ -6,10 +6,13 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
-class FormatOnTypeHandler
-    extends MessageHandler<DocumentOnTypeFormattingParams, List<TextEdit>?> {
+typedef StaticOptions = DocumentOnTypeFormattingOptions?;
+
+class FormatOnTypeHandler extends SharedMessageHandler<
+    DocumentOnTypeFormattingParams, List<TextEdit>?> {
   FormatOnTypeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_onTypeFormatting;
@@ -30,7 +33,8 @@ class FormatOnTypeHandler
       return success(null);
     }
 
-    final lineLength = server.clientConfiguration.forResource(path).lineLength;
+    final lineLength =
+        server.lspClientConfiguration.forResource(path).lineLength;
     return generateEditsForFormatting(result, lineLength);
   }
 
@@ -43,7 +47,7 @@ class FormatOnTypeHandler
 
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) {
-      if (!server.clientConfiguration.forResource(path).enableSdkFormatter) {
+      if (!server.lspClientConfiguration.forResource(path).enableSdkFormatter) {
         // Because we now support formatting for just some WorkspaceFolders
         // we should silently do nothing for those that are disabled.
         return success(null);
@@ -52,4 +56,36 @@ class FormatOnTypeHandler
       return formatFile(path);
     });
   }
+}
+
+class FormatOnTypeRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  FormatOnTypeRegistrations(super.info);
+
+  bool get enableFormatter => clientConfiguration.global.enableSdkFormatter;
+
+  @override
+  ToJsonable? get options {
+    return DocumentOnTypeFormattingRegistrationOptions(
+      documentSelector: [dartFiles], // This is currently Dart-specific
+      firstTriggerCharacter: dartTypeFormattingCharacters.first,
+      moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList(),
+    );
+  }
+
+  @override
+  Method get registrationMethod => Method.textDocument_onTypeFormatting;
+
+  @override
+  StaticOptions get staticOptions => enableFormatter
+      ? DocumentOnTypeFormattingOptions(
+          firstTriggerCharacter: dartTypeFormattingCharacters.first,
+          moreTriggerCharacter: dartTypeFormattingCharacters.skip(1).toList())
+      : null;
+
+  @override
+  bool get supportsDynamic => enableFormatter && clientDynamic.typeFormatting;
+
+  @override
+  bool get supportsStatic => enableFormatter;
 }

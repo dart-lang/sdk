@@ -85,7 +85,6 @@ Future generateAotSnapshot(
     String kernelFile,
     String snapshotFile,
     String? debugFile,
-    bool enableAsserts,
     List<String> extraGenSnapshotOptions) {
   return Process.run(genSnapshot, [
     '--snapshot-kind=app-aot-elf',
@@ -93,7 +92,6 @@ Future generateAotSnapshot(
     if (debugFile != null) '--save-debugging-info=$debugFile',
     if (debugFile != null) '--dwarf-stack-traces',
     if (debugFile != null) '--strip',
-    if (enableAsserts) '--enable-asserts',
     ...extraGenSnapshotOptions,
     kernelFile
   ]);

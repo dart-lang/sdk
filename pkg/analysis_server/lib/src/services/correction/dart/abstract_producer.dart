@@ -34,6 +34,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:path/path.dart' as path;
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
 abstract class CorrectionProducer<T extends ParsedUnitResult>
@@ -47,17 +48,36 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   /// if this producer doesn't support assists.
   AssistKind? get assistKind => null;
 
+  /// Return `true` if fixes from this producer are acceptable to run
+  /// automatically (such as during a save operation) when code could be
+  /// incomplete.
+  ///
+  /// By default this value matches [canBeAppliedInBulk] but may return `false`
+  /// for fixes that perform actions like removing unused code, which could be
+  /// unused only because the code is still being worked on.
+  bool get canBeAppliedAutomatically => canBeAppliedInBulk;
+
   /// Return `true` if this producer can be used to fix diagnostics across
-  /// multiple files. Cases where this will return `false` include fixes for
-  /// which
+  /// multiple files and/or at the same time as applying fixes from other
+  /// producers.
+  ///
+  /// This flag is used when the user has chosen to apply fixes but may not have
+  /// chosen to apply a specific fix (such as running `dart fix`).
+  ///
+  /// Cases where this will return `false` include fixes for which
   /// - the modified regions can overlap, and
   /// - fixes that have not been tested to ensure that they can be used this
   ///   way.
   bool get canBeAppliedInBulk => false;
 
   /// Return `true` if this producer can be used to fix multiple diagnostics in
-  /// the same file. Cases where this will return `false` include fixes for
-  /// which
+  /// the same file.
+  ///
+  /// Unlike [canBeAppliedInBulk], this flag is used to provide the option for
+  /// a user to fix a specific diagnostic across a file (such as a quick-fix to
+  /// "fix all x in this file").
+  ///
+  /// Cases where this will return `false` include fixes for which
   /// - the modified regions can overlap,
   /// - the fix for one diagnostic would fix all diagnostics with the same code,
   ///   and,
@@ -319,7 +339,7 @@ abstract class ResolvedCorrectionProducer
     return null;
   }
 
-  LinterContext getLinterContext() {
+  LinterContext getLinterContext(path.Context pathContext) {
     return LinterContextImpl(
       [], // unused
       LinterContextUnit(unitResult.content, unitResult.unit),
@@ -329,6 +349,7 @@ abstract class ResolvedCorrectionProducer
       InheritanceManager3(), // unused
       sessionHelper.session.analysisContext.analysisOptions,
       null,
+      pathContext,
     );
   }
 
@@ -654,13 +675,6 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
       }
     }
     return null;
-  }
-
-  /// Replace all occurrences of the [oldIndent] with the [newIndent] within the
-  /// [source].
-  String replaceSourceIndent(
-      String source, String oldIndent, String newIndent) {
-    return source.replaceAll(RegExp('^$oldIndent', multiLine: true), newIndent);
   }
 
   /// Return `true` if the given [expression] should be wrapped with parenthesis

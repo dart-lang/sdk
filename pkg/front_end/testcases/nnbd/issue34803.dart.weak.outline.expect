@@ -1,17 +1,20 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/nnbd/issue34803.dart:7:9: Error: Type variables can't have generic function types in their bounds.
-// class A<X extends G<num>> {}
-//         ^
-//
 import self as self;
 import "dart:core" as core;
 
-typedef G<invariant X extends core::Object? = dynamic> = <Y extends X% = dynamic>() → void;
-class A<X extends <Y extends core::num = dynamic>() → void = dynamic> extends core::Object {
-  synthetic constructor •() → self::A<self::A::X>
+typedef G<invariant X1 extends core::Object? = dynamic> = <Y1 extends X1% = dynamic>() → void;
+typedef H<invariant X2 extends core::Object? = dynamic> = (<Y2 extends X2% = dynamic>() → void, core::int);
+typedef I<invariant X3 extends core::Object? = dynamic> = ({required a: <Y3 extends X3% = dynamic>() → void, required b: core::int});
+class A<X1 extends <Y1 extends core::num = dynamic>() → void> extends core::Object {
+  synthetic constructor •() → self::A<self::A::X1>
+    ;
+}
+class B<X2 extends (<Y2 extends core::num = dynamic>() → void, core::int)> extends core::Object {
+  synthetic constructor •() → self::B<self::B::X2>
+    ;
+}
+class C<X3 extends ({required a: <Y3 extends core::num = dynamic>() → void, required b: core::int})> extends core::Object {
+  synthetic constructor •() → self::C<self::C::X3>
     ;
 }
 static method main() → dynamic

@@ -9,9 +9,8 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../../api_prototype/lowering_predicates.dart';
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
-import '../builder/declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/library_builder.dart';
@@ -19,7 +18,6 @@ import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../identifiers.dart';
 import '../kernel/internal_ast.dart' show VariableDeclarationImpl;
 import '../kernel/kernel_helper.dart';
@@ -37,7 +35,7 @@ import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_builder_mixins.dart';
-import 'source_inline_class_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_member_builder.dart';
 
 abstract class SourceFunctionBuilder
@@ -146,13 +144,14 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   final List<FormalParameterBuilder>? formals;
 
-  /// If this procedure is an extension instance member or inline class instance
-  /// member, [_thisVariable] holds the synthetically added `this` parameter.
+  /// If this procedure is an extension instance member or extension type
+  /// instance member, [_thisVariable] holds the synthetically added `this`
+  /// parameter.
   VariableDeclaration? _thisVariable;
 
-  /// If this procedure is an extension instance member or inline class instance
-  /// member, [_thisTypeParameters] holds the type parameters copied from the
-  /// extension/inline class declaration.
+  /// If this procedure is an extension instance member or extension type
+  /// instance member, [_thisTypeParameters] holds the type parameters copied
+  /// from the extension/extension type declaration.
   List<TypeParameter>? _thisTypeParameters;
 
   SourceFunctionBuilderImpl(
@@ -278,7 +277,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     if (formals != null) {
       for (FormalParameterBuilder formal in formals!) {
         if (formal.name == identifier.name &&
-            formal.charOffset == identifier.charOffset) {
+            formal.charOffset == identifier.nameOffset) {
           return formal;
         }
       }
@@ -377,7 +376,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         }
       }
     }
-    if (!(isExtensionInstanceMember || isInlineClassInstanceMember) &&
+    if (!(isExtensionInstanceMember || isExtensionTypeInstanceMember) &&
         isSetter &&
         (formals?.length != 1 || formals![0].isOptionalPositional)) {
       // Replace illegal parameters by single dummy parameter.
@@ -394,7 +393,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.returnType =
           returnType.build(libraryBuilder, TypeUse.returnType);
     }
-    if (isExtensionInstanceMember || isInlineClassInstanceMember) {
+    if (isExtensionInstanceMember || isExtensionTypeInstanceMember) {
       SourceDeclarationBuilderMixin declarationBuilder =
           parent as SourceDeclarationBuilderMixin;
       if (declarationBuilder.typeParameters != null) {
@@ -403,9 +402,9 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
             count, (int index) => function.typeParameters[index],
             growable: false);
       }
-      if (isInlineClassInstanceMember && isConstructor) {
-        SourceInlineClassBuilder inlineClassBuilder =
-            parent as SourceInlineClassBuilder;
+      if (isExtensionTypeInstanceMember && isConstructor) {
+        SourceExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+            parent as SourceExtensionTypeDeclarationBuilder;
         List<DartType> typeArguments;
         if (_thisTypeParameters != null) {
           typeArguments = new List<DartType>.generate(
@@ -419,8 +418,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         }
         _thisVariable = new VariableDeclarationImpl(syntheticThisName,
             isFinal: true,
-            type: new InlineType(inlineClassBuilder.inlineClass,
-                libraryBuilder.nonNullable, typeArguments))
+            type: new ExtensionType(
+                extensionTypeDeclarationBuilder.extensionTypeDeclaration,
+                libraryBuilder.nonNullable,
+                typeArguments))
           ..fileOffset = charOffset
           ..isLowered = true;
       } else {
@@ -432,7 +433,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   VariableDeclaration getFormalParameter(int index) {
     if (this is! ConstructorBuilder &&
-        (isExtensionInstanceMember || isInlineClassInstanceMember)) {
+        (isExtensionInstanceMember || isExtensionTypeInstanceMember)) {
       return formals![index + 1].variable!;
     } else {
       return formals![index].variable!;
@@ -446,7 +447,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   VariableDeclaration? get thisVariable {
     assert(
         _thisVariable != null ||
-            !(isExtensionInstanceMember || isInlineClassInstanceMember),
+            !(isExtensionInstanceMember || isExtensionTypeInstanceMember),
         "ProcedureBuilder.thisVariable has not been set.");
     return _thisVariable;
   }
@@ -457,7 +458,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     // been computed.
     assert(
         _thisVariable != null ||
-            !(isExtensionInstanceMember || isInlineClassInstanceMember),
+            !(isExtensionInstanceMember || isExtensionTypeInstanceMember),
         "ProcedureBuilder.thisTypeParameters has not been set.");
     return _thisTypeParameters;
   }
@@ -476,7 +477,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!_hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
-          isClassMember || isExtensionMember || isInlineClassMember
+          isClassMember || isExtensionMember || isExtensionTypeMember
               ? parent as DeclarationBuilder
               : null;
       Scope parentScope =

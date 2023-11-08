@@ -29,6 +29,8 @@ class Sdk {
   // if the SDK isn't completely built.
   String get dart => Platform.resolvedExecutable;
 
+  String get dartAotRuntime => path.join(sdkPath, 'bin', 'dartaotruntime');
+
   String get analysisServerSnapshot => path.absolute(
         sdkPath,
         'bin',
@@ -50,12 +52,27 @@ class Sdk {
         'dds.dart.snapshot',
       );
 
+  String get ddsAotSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dds_aot.dart.snapshot',
+      );
+
   String get frontendServerSnapshot => path.absolute(
         sdkPath,
         'bin',
         'snapshots',
         'frontend_server.dart.snapshot',
       );
+
+  String get frontendServerAotSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'frontend_server_aot.dart.snapshot',
+      );
+
   String get devToolsBinaries => path.absolute(
         sdkPath,
         'bin',

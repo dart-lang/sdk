@@ -76,20 +76,18 @@ class AnalysisOptionsProvider {
     return options;
   }
 
-  /// Provide the options found in [optionsSource].
-  /// An include directive, if present, will be left as-is,
-  /// and the referenced options will NOT be merged into the result.
-  /// Return an empty options map if the source is null.
-  YamlMap getOptionsFromString(String? optionsSource) {
-    if (optionsSource == null) {
+  /// Provide the options found in [content].
+  ///
+  /// An 'include' directive, if present, will be left as-is, and the referenced
+  /// options will NOT be merged into the result. Returns an empty options map
+  /// if the content is null, or not a YAML map.
+  YamlMap getOptionsFromString(String? content) {
+    if (content == null) {
       return YamlMap();
     }
     try {
-      YamlNode doc = loadYamlNode(optionsSource);
-      if (doc is YamlMap) {
-        return doc;
-      }
-      return YamlMap();
+      var doc = loadYamlNode(content);
+      return doc is YamlMap ? doc : YamlMap();
     } on YamlException catch (e) {
       throw OptionsFormatException(e.message, e.span);
     } catch (e) {

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 
@@ -44,7 +44,11 @@ class FindNode {
 
   CascadeExpression get singleCascadeExpression => _single();
 
+  ClassDeclaration get singleClassDeclaration => _single();
+
   ConditionalExpression get singleConditionalExpression => _single();
+
+  ConstructorDeclaration get singleConstructorDeclaration => _single();
 
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
       _single();
@@ -52,6 +56,10 @@ class FindNode {
   ExportDirective get singleExportDirective => _single();
 
   ExtendsClause get singleExtendsClause => _single();
+
+  ExtensionDeclaration get singleExtensionDeclaration => _single();
+
+  ExtensionTypeDeclaration get singleExtensionTypeDeclaration => _single();
 
   FieldDeclaration get singleFieldDeclaration => _single();
 
@@ -132,17 +140,26 @@ class FindNode {
   RedirectingConstructorInvocation get singleRedirectingConstructorInvocation =>
       _single();
 
+  RepresentationConstructorName get singleRepresentationConstructorName =>
+      _single();
+
+  RepresentationDeclaration get singleRepresentationDeclaration => _single();
+
   RethrowExpression get singleRethrowExpression => _single();
 
   SetOrMapLiteral get singleSetOrMapLiteral => _single();
 
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
 
+  SuperFormalParameter get singleSuperFormalParameter => _single();
+
   SwitchCase get singleSwitchCase => _single();
 
   SwitchExpression get singleSwitchExpression => _single();
 
   SwitchPatternCase get singleSwitchPatternCase => _single();
+
+  ThisExpression get singleThisExpression => _single();
 
   TopLevelVariableDeclaration get singleTopLevelVariableDeclaration =>
       _single();

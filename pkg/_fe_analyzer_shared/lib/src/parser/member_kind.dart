@@ -46,4 +46,7 @@ enum MemberKind {
 
   /// A top-level field.
   TopLevelField,
+
+  /// Primary constructor.
+  PrimaryConstructor,
 }

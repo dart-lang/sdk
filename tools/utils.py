@@ -191,7 +191,12 @@ class Version(object):
             return True
         if self.channel == 'stable' and other.channel != 'stable':
             return False
-        # The be channel is ahead of the other channels on the same triplet.
+        # The main channel is ahead of the other channels on the same triplet.
+        if self.channel != 'main' and other.channel == 'main':
+            return True
+        if self.channel == 'main' and other.channel != 'main':
+            return False
+        # The be channel existed before it was renamed to main.
         if self.channel != 'be' and other.channel == 'be':
             return True
         if self.channel == 'be' and other.channel != 'be':
@@ -299,50 +304,6 @@ def IsWindows():
     return GuessOS() == 'win32'
 
 
-# Reads a text file into an array of strings - one for each
-# line. Strips comments in the process.
-def ReadLinesFrom(name):
-    result = []
-    for line in open(name):
-        if '#' in line:
-            line = line[:line.find('#')]
-        line = line.strip()
-        if len(line) == 0:
-            continue
-        result.append(line)
-    return result
-
-
-# Filters out all arguments until the next '--' argument
-# occurs.
-def ListArgCallback(option, value, parser):
-    if value is None:
-        value = []
-
-    for arg in parser.rargs:
-        if arg[:2].startswith('--'):
-            break
-        value.append(arg)
-
-    del parser.rargs[:len(value)]
-    setattr(parser.values, option.dest, value)
-
-
-# Filters out all argument until the first non '-' or the
-# '--' argument occurs.
-def ListDartArgCallback(option, value, parser):
-    if value is None:
-        value = []
-
-    for arg in parser.rargs:
-        if arg[:2].startswith('--') or arg[0] != '-':
-            break
-        value.append(arg)
-
-    del parser.rargs[:len(value)]
-    setattr(parser.values, option.dest, value)
-
-
 def IsCrossBuild(target_os, arch):
     if (target_os not in [None, 'host']) and (target_os != GuessOS()):
         return True
@@ -377,27 +338,13 @@ def GetBuildRoot(host_os, mode=None, arch=None, target_os=None, sanitizer=None):
     return build_root
 
 
-def GetBuildSdkBin(host_os, mode=None, arch=None, target_os=None):
-    build_root = GetBuildRoot(host_os, mode, arch, target_os)
-    return os.path.join(build_root, 'dart-sdk', 'bin')
-
-
-def GetShortVersion(version_file=None):
-    version = ReadVersionFile(version_file)
-    return ('{}.{}.{}.{}.{}'.format(version.major, version.minor, version.patch,
-                                    version.prerelease,
-                                    version.prerelease_patch))
-
-
-def GetSemanticSDKVersion(no_git_hash=False,
-                          version_file=None,
-                          git_revision_file=None):
+def GetVersion(no_git_hash=False, version_file=None, git_revision_file=None):
     version = ReadVersionFile(version_file)
     if not version:
         return None
 
     suffix = ''
-    if version.channel == 'be':
+    if version.channel in ['main', 'be']:
         suffix = '-edge' if no_git_hash else '-edge.{}'.format(
             GetGitRevision(git_revision_file))
     elif version.channel in ('beta', 'dev'):
@@ -410,37 +357,9 @@ def GetSemanticSDKVersion(no_git_hash=False,
                                suffix)
 
 
-def GetVersion(no_git_hash=False, version_file=None, git_revision_file=None):
-    return GetSemanticSDKVersion(no_git_hash, version_file, git_revision_file)
-
-
-# The editor used to produce the VERSION file put on gcs. We now produce this
-# in the bots archiving the sdk.
-# The content looks like this:
-#{
-#  "date": "2015-05-28",
-#  "version": "1.11.0-edge.131653",
-#  "revision": "535394c2657ede445142d8a92486d3899bbf49b5"
-#}
-def GetVersionFileContent():
-    result = {
-        'date': str(datetime.date.today()),
-        'version': GetVersion(),
-        'revision': GetGitRevision()
-    }
-    return json.dumps(result, indent=2)
-
-
 def GetChannel(version_file=None):
     version = ReadVersionFile(version_file)
     return version.channel
-
-
-def GetUserName():
-    key = 'USER'
-    if sys.platform == 'win32':
-        key = 'USERNAME'
-    return os.environ.get(key, '')
 
 
 def ReadVersionFile(version_file=None):
@@ -475,24 +394,6 @@ def ReadVersionFile(version_file=None):
 
     print('Warning: VERSION file ({}) has wrong format'.format(version_file))
     return None
-
-
-# Our schema for releases and archiving is based on an increasing
-# sequence of numbers. In the svn world this was simply the revision of a
-# commit, which would always give us a one to one mapping between the number
-# and the commit. This was true across branches as well, so a number used
-# to archive a build was always unique and unambiguous.
-# In git there is no such global number, so we loosen the requirement a bit.
-# We only use numbers on the master branch (bleeding edge). On branches
-# we use the version number instead for archiving purposes.
-# The number on master is the count of commits on the master branch.
-def GetArchiveVersion(version_file=None):
-    version = ReadVersionFile(version_file=None)
-    if not version:
-        raise 'Could not get the archive version, parsing the version file failed'
-    if version.channel in ['be', 'integration']:
-        return GetGitNumber()
-    return GetSemanticSDKVersion()
 
 
 def GetGitRevision(git_revision_file=None, repo_path=DART_DIR):
@@ -538,32 +439,6 @@ def GetShortGitHash(repo_path=DART_DIR):
     return revision
 
 
-def GetLatestDevTag(repo_path=DART_DIR):
-    # We used the old, pre-git2.13 refname:strip here since lstrip will fail on
-    # older git versions. strip is an alias for lstrip in later versions.
-    cmd = [
-        'git',
-        'for-each-ref',
-        'refs/tags/*dev*',
-        '--sort=-taggerdate',
-        "--format=%(refname:strip=2)",
-        '--count=1',
-    ]
-    p = subprocess.Popen(cmd,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         shell=IsWindows(),
-                         cwd=repo_path)
-    out, err = p.communicate()
-    if p.wait() != 0:
-        print('Warning: Could not get the most recent dev branch tag {}'.format(
-            tag),
-              file=sys.stderr)
-        return None
-    tag = out.decode('utf-8').strip()
-    return tag
-
-
 def GetGitTimestamp(git_timestamp_file=None, repo_path=DART_DIR):
     # When building from tarball use tools/GIT_TIMESTAMP
     if git_timestamp_file is None:
@@ -587,104 +462,9 @@ def GetGitTimestamp(git_timestamp_file=None, repo_path=DART_DIR):
     return timestamp
 
 
-def GetGitNumber(repo_path=DART_DIR):
-    p = subprocess.Popen(['git', 'rev-list', 'HEAD', '--count'],
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE,
-                         shell=IsWindows(),
-                         cwd=repo_path)
-    out, err = p.communicate()
-    # TODO(https://github.com/dart-lang/sdk/issues/51865): Don't ignore errors.
-    # if p.wait() != 0:
-    #     raise Exception('git rev-list failed: ' + str(err))
-    number = out.decode('utf-8').strip()
-    try:
-        number = int(number)
-        return number + GIT_NUMBER_BASE
-    except:
-        print(
-            'Warning: Could not parse git count, output was {}'.format(number),
-            file=sys.stderr)
-    return None
-
-
-def ParseGitInfoOutput(output):
-    """Given a git log, determine the latest corresponding svn revision."""
-    for line in output.split('\n'):
-        tokens = line.split()
-        if len(tokens) > 0 and tokens[0] == 'git-svn-id:':
-            return tokens[1].split('@')[1]
-    return None
-
-
-def ParseSvnInfoOutput(output):
-    revision_match = re.search('Last Changed Rev: (\d+)', output)
-    if revision_match:
-        return revision_match.group(1)
-    return None
-
-
-def RewritePathSeparator(path, workspace):
-    # Paths in test files are always specified using '/'
-    # as the path separator. Replace with the actual
-    # path separator before use.
-    if '/' in path:
-        split_path = path.split('/')
-        path = os.sep.join(split_path)
-        path = os.path.join(workspace, path)
-        if not os.path.exists(path):
-            raise Exception(path)
-    return path
-
-
-def ParseTestOptions(pattern, source, workspace):
-    match = pattern.search(source)
-    if match:
-        return [
-            RewritePathSeparator(o, workspace)
-            for o in match.group(1).split(' ')
-        ]
-    return None
-
-
-def ParseTestOptionsMultiple(pattern, source, workspace):
-    matches = pattern.findall(source)
-    if matches:
-        result = []
-        for match in matches:
-            if len(match) > 0:
-                result.append([
-                    RewritePathSeparator(o, workspace) for o in match.split(' ')
-                ])
-            else:
-                result.append([])
-        return result
-    return None
-
-
-
-def CheckedUnlink(name):
-    """Unlink a file without throwing an exception."""
-    try:
-        os.unlink(name)
-    except OSError as e:
-        sys.stderr.write('os.unlink() ' + str(e))
-        sys.stderr.write('\n')
-
-
 # TODO(42528): Can we remove this? It's basically just an alias for Exception.
 class Error(Exception):
     pass
-
-
-class ToolError(Exception):
-    """Deprecated exception, use Error instead."""
-
-    def __init__(self, value):
-        self.value = value
-
-    def __str__(self):
-        return repr(self.value)
 
 
 def IsCrashExitCode(exit_code):
@@ -700,32 +480,7 @@ def DiagnoseExitCode(exit_code, command):
                 ' '.join(command), exit_code, exit_code & 0xffffffff))
 
 
-def ExecuteCommand(cmd):
-    """Execute a command in a subprocess."""
-    print('Executing: ' + ' '.join(cmd))
-    pipe = subprocess.Popen(cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE,
-                            shell=IsWindows())
-    output = pipe.communicate()
-    if pipe.returncode != 0:
-        raise Exception('Execution failed: ' + str(output))
-    return pipe.returncode, output
-
-
-# The checked-in SDKs are documented at
-#     https://github.com/dart-lang/sdk/wiki/The-checked-in-SDK-in-tools
 def CheckedInSdkPath():
-    # We don't use the normal macos, linux, win32 directory names here, instead,
-    # we use the names that the download_from_google_storage script uses.
-    osdict = {'Darwin': 'mac', 'Linux': 'linux', 'Windows': 'win'}
-    system = platform.system()
-    try:
-        osname = osdict[system]
-    except KeyError:
-        sys.stderr.write(
-            'WARNING: platform "{}" not supported\n'.format(system))
-        return None
     tools_dir = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(tools_dir, 'sdks', 'dart-sdk')
 
@@ -735,20 +490,6 @@ def CheckedInSdkExecutable():
     if IsWindows():
         name = 'dart.exe'
     return os.path.join(CheckedInSdkPath(), 'bin', name)
-
-
-def CheckedInSdkCheckExecutable():
-    executable = CheckedInSdkExecutable()
-    canary_script = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)), 'canary.dart')
-    try:
-        with open(os.devnull, 'wb') as silent_sink:
-            if 0 == subprocess.call([executable, canary_script],
-                                    stdout=silent_sink):
-                return True
-    except OSError as e:
-        pass
-    return False
 
 
 def CheckLinuxCoreDumpPattern(fatal=False):
@@ -781,21 +522,6 @@ class TempDir(object):
 
     def __exit__(self, *_):
         shutil.rmtree(self._temp_dir, ignore_errors=True)
-
-
-class ChangedWorkingDirectory(object):
-
-    def __init__(self, working_directory):
-        self._working_directory = working_directory
-
-    def __enter__(self):
-        self._old_cwd = os.getcwd()
-        print('Enter directory = ', self._working_directory)
-        os.chdir(self._working_directory)
-
-    def __exit__(self, *_):
-        print('Enter directory = ', self._old_cwd)
-        os.chdir(self._old_cwd)
 
 
 class UnexpectedCrash(object):
@@ -1267,8 +993,6 @@ def Main():
     print('IsWindows() -> ', IsWindows())
     print('GetGitRevision() -> ', GetGitRevision())
     print('GetGitTimestamp() -> ', GetGitTimestamp())
-    print('GetVersionFileContent() -> ', GetVersionFileContent())
-    print('GetGitNumber() -> ', GetGitNumber())
 
 
 if __name__ == '__main__':

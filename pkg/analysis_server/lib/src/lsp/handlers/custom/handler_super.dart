@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:collection/collection.dart';
 
 class SuperHandler
-    extends MessageHandler<TextDocumentPositionParams, Location?> {
+    extends LspMessageHandler<TextDocumentPositionParams, Location?> {
   SuperHandler(super.server);
   @override
   Method get handlesMessage => CustomMethods.super_;
@@ -77,7 +77,7 @@ class SuperHandler
         return success(null);
       }
 
-      return success(toLocation(location, locationLineInfo));
+      return success(toLocation(pathContext, location, locationLineInfo));
     });
   }
 }

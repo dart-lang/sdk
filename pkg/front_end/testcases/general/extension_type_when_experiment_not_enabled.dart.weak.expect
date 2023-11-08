@@ -2,8 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/extension_type_when_experiment_not_enabled.dart:11:6: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/general/extension_type_when_experiment_not_enabled.dart:11:6: Error: 'E' isn't a type.
 // test(E e) {} // Error.
 //      ^
 //

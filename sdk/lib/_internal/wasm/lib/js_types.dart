@@ -8,13 +8,35 @@
 /// library.
 library dart._js_types;
 
-import 'dart:_internal' show CodeUnits;
+import 'dart:_internal'
+    show
+        CodeUnits,
+        EfficientLengthIterable,
+        ExpandIterable,
+        FixedLengthListMixin,
+        FollowedByIterable,
+        IterableElementError,
+        ListMapView,
+        Lists,
+        MappedListIterable,
+        ReversedListIterable,
+        SkipWhileIterable,
+        Sort,
+        SubListIterable,
+        TakeWhileIterable,
+        WhereIterable,
+        WhereTypeIterable;
 import 'dart:_js_helper' as js;
 import 'dart:_string_helper';
 import 'dart:_wasm';
+import 'dart:collection';
+import 'dart:typed_data';
 import 'dart:js_interop';
+import 'dart:math';
 
+part 'js_array.dart';
 part 'js_string.dart';
+part 'js_typed_array.dart';
 
 /// Note that the semantics of JS types on Wasm backends are slightly different
 /// from the JS backends. They all use `@staticInterop` currently, but Wasm
@@ -55,11 +77,17 @@ part 'js_string.dart';
 ///    JS and Wasm backends until we have a better story here.
 @JS()
 @staticInterop
-class JSAny {}
+class JSAny {
+  // Unnamed factory constructor so users can only implement JSAny.
+  external factory JSAny._();
+}
 
 @JS()
 @staticInterop
-class JSObject implements JSAny {}
+class JSObject implements JSAny {
+  /// Returns a new object literal.
+  factory JSObject() => js.JSValue(js.newObjectRaw()) as JSObject;
+}
 
 @JS()
 @staticInterop
@@ -69,15 +97,17 @@ class JSFunction implements JSObject {}
 @staticInterop
 class JSExportedDartFunction implements JSFunction {}
 
-@JS()
+@JS('Promise')
 @staticInterop
-class JSPromise implements JSObject {}
+class JSPromise implements JSObject {
+  external factory JSPromise(JSFunction executor);
+}
 
 @JS('Array')
 @staticInterop
 class JSArray implements JSObject {
   external factory JSArray();
-  external factory JSArray.withLength(JSNumber length);
+  external factory JSArray.withLength(int length);
 }
 
 @JS()
@@ -143,6 +173,14 @@ class JSBoolean implements JSAny {}
 @JS()
 @staticInterop
 class JSString implements JSAny {}
+
+@JS()
+@staticInterop
+class JSSymbol implements JSAny {}
+
+@JS()
+@staticInterop
+class JSBigInt implements JSAny {}
 
 /// [JSVoid] is just a typedef for [void]. While we could just use
 /// `JSUndefined`, in the future we may be able to use this to elide `return`s

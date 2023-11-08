@@ -14,7 +14,7 @@ class C_100_0 {
   const C_100_0();
 }
 
-class M_100_0 {}
+mixin M_100_0 {}
 
 class T_100_0 {}
 
@@ -26,7 +26,7 @@ class C_110_0 {
   const C_110_0();
 }
 
-class M_110_0 {}
+mixin M_110_0 {}
 
 class T_110_0 {}
 
@@ -38,7 +38,7 @@ class C_101_1 {
   const C_101_1();
 }
 
-class M_101_1 {}
+mixin M_101_1 {}
 
 class T_101_1 {}
 
@@ -50,7 +50,7 @@ class C_111_1 {
   const C_111_1();
 }
 
-class M_111_1 {}
+mixin M_111_1 {}
 
 class T_111_1 {}
 
@@ -62,7 +62,7 @@ class C_010_0 {
   const C_010_0();
 }
 
-class M_010_0 {}
+mixin M_010_0 {}
 
 class T_010_0 {}
 
@@ -74,7 +74,7 @@ class C_010_1 {
   const C_010_1();
 }
 
-class M_010_1 {}
+mixin M_010_1 {}
 
 class T_010_1 {}
 
@@ -86,7 +86,7 @@ class C_011_1 {
   const C_011_1();
 }
 
-class M_011_1 {}
+mixin M_011_1 {}
 
 class T_011_1 {}
 
@@ -98,7 +98,7 @@ class C_001_0 {
   const C_001_0();
 }
 
-class M_001_0 {}
+mixin M_001_0 {}
 
 class T_001_0 {}
 
@@ -110,7 +110,7 @@ class C_000_1 {
   const C_000_1();
 }
 
-class M_000_1 {}
+mixin M_000_1 {}
 
 class T_000_1 {}
 

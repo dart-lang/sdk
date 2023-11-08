@@ -4,6 +4,14 @@
 
 // CHANGES:
 //
+// v0.37 Correct `libraryExport` to use `configurableUri`, not `uri`.
+//
+// v0.36 Update syntax from `inline class` to `extension type`, including
+// a special case of primary constructors.
+//
+// v0.35 Change named optional parameter syntax to require '=', that is,
+// remove the support for ':' as in `void f({int i: 1})`.
+//
 // v0.34 Add support for inline classes.
 //
 // v0.33 This commit does not change the derived language at all. It just
@@ -246,7 +254,7 @@ libraryDefinition
 topLevelDefinition
     :    classDeclaration
     |    mixinDeclaration
-    |    inlineClassDeclaration
+    |    extensionTypeDeclaration
     |    extensionDeclaration
     |    enumType
     |    typeAlias
@@ -371,7 +379,7 @@ defaultFormalParameter
     ;
 
 defaultNamedParameter
-    :    REQUIRED? normalFormalParameter ((':' | '=') expression)?
+    :    REQUIRED? normalFormalParameter ('=' expression)?
     ;
 
 typeWithParameters
@@ -434,13 +442,20 @@ mixinMemberDeclaration
     :    classMemberDeclaration
     ;
 
-inlineClassDeclaration
-    :    FINAL? INLINE CLASS typeWithParameters interfaces?
-         LBRACE (metadata inlineMemberDeclaration)* RBRACE
+extensionTypeDeclaration
+    :    EXTENSION TYPE CONST? typeWithParameters
+         representationDeclaration
+         interfaces?
+         LBRACE (metadata extensionTypeMemberDeclaration)* RBRACE
     ;
 
+representationDeclaration
+    :    ('.' identifierOrNew)? '(' metadata type identifier ')'
+    ;
+
+
 // TODO: We might want to make this more strict.
-inlineMemberDeclaration
+extensionTypeMemberDeclaration
     :    classMemberDeclaration
     ;
 
@@ -1358,7 +1373,7 @@ libraryImport
     ;
 
 importSpecification
-    :    IMPORT configurableUri (DEFERRED? AS identifier)? combinator* ';'
+    :    IMPORT configurableUri (DEFERRED? AS typeIdentifier)? combinator* ';'
     ;
 
 combinator
@@ -1371,7 +1386,7 @@ identifierList
     ;
 
 libraryExport
-    :    metadata EXPORT uri combinator* ';'
+    :    metadata EXPORT configurableUri combinator* ';'
     ;
 
 partDirective
@@ -1626,12 +1641,12 @@ otherIdentifier
     :    ASYNC
     |    BASE
     |    HIDE
-    |    INLINE
     |    OF
     |    ON
     |    SEALED
     |    SHOW
     |    SYNC
+    |    TYPE
     |    WHEN
     ;
 
@@ -1912,10 +1927,6 @@ HIDE
     :    'hide'
     ;
 
-INLINE
-    :    'inline'
-    ;
-
 OF
     :    'of'
     ;
@@ -1934,6 +1945,10 @@ SHOW
 
 SYNC
     :    'sync'
+    ;
+
+TYPE
+    :    'type'
     ;
 
 WHEN

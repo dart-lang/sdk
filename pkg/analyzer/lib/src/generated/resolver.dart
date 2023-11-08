@@ -4,14 +4,15 @@
 
 import 'dart:collection';
 
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
+    as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide NamedType, RecordType;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
     as shared;
 import 'package:analyzer/dart/analysis/features.dart';
@@ -89,7 +90,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
-import 'package:meta/meta.dart';
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
     DartPattern, DartType, PromotableElement>;
@@ -1615,7 +1615,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType resolveObjectPatternPropertyGet({
+  (ExecutableElement?, DartType) resolveObjectPatternPropertyGet({
     required covariant ObjectPatternImpl objectPattern,
     required DartType receiverType,
     required covariant SharedPatternField field,
@@ -1624,7 +1624,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var nameToken = fieldNode.name?.name;
     nameToken ??= field.pattern.variablePattern?.name;
     if (nameToken == null) {
-      return typeProvider.dynamicType;
+      return (null, typeProvider.dynamicType);
     }
 
     var result = typePropertyResolver.resolve(
@@ -1647,18 +1647,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (getter != null) {
       fieldNode.element = getter;
       if (getter is PropertyAccessorElement) {
-        return getter.returnType;
+        return (getter, getter.returnType);
       } else {
-        return getter.type;
+        return (getter, getter.type);
       }
     }
 
     var recordField = result.recordField;
     if (recordField != null) {
-      return recordField.type;
+      return (null, recordField.type);
     }
 
-    return typeProvider.dynamicType;
+    return (null, typeProvider.dynamicType);
   }
 
   @override
@@ -1750,11 +1750,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       parent.readElement = element;
       parent.readType = readType;
     }
-  }
-
-  @visibleForTesting
-  void setThisInterfaceType(InterfaceType thisType) {
-    _thisType = thisType;
   }
 
   @override
@@ -2103,7 +2098,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     //
     // Continue the class resolution.
     //
@@ -2118,16 +2113,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement as ClassOrMixinElementImpl, node.implementsClause);
+        node.declaredElement!, node.implementsClause);
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitClassTypeAlias(node);
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement as ClassOrMixinElementImpl, node.implementsClause);
+        node.declaredElement!, node.implementsClause);
   }
 
   @override
@@ -2249,19 +2244,24 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
+  void visitConstructorFieldInitializer(
+    covariant ConstructorFieldInitializerImpl node,
+  ) {
+    final augmented = enclosingClass!.augmented;
+    if (augmented == null) return;
+
     //
     // We visit the expression, but do not visit the field name because it needs
     // to be visited in the context of the constructor field initializer node.
     //
-    var fieldElement = enclosingClass!.getField(node.fieldName.name);
+    final fieldName = node.fieldName;
+    var fieldElement = augmented.getField(fieldName.name);
+    fieldName.staticElement = fieldElement;
     var fieldType = fieldElement?.type;
     var expression = node.expression;
     analyzeExpression(expression, fieldType);
     expression = popRewrite()!;
     var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(expression);
-    elementResolver.visitConstructorFieldInitializer(
-        node as ConstructorFieldInitializerImpl);
     if (fieldElement != null) {
       var enclosingConstructor = enclosingFunction as ConstructorElement;
       checkForFieldInitializerNotAssignable(node, fieldElement,
@@ -2372,14 +2372,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    node as EnumConstantDeclarationImpl;
-
+  void visitEnumConstantDeclaration(
+    covariant EnumConstantDeclarationImpl node,
+  ) {
     node.documentationComment?.accept(this);
     node.metadata.accept(this);
     checkUnreachableNode(node);
 
-    var element = node.declaredElement as ConstFieldElementImpl;
+    var element = node.declaredElement!;
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpression) {
       var constructorName = initializer.constructorName;
@@ -2558,6 +2558,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
+    final outerType = enclosingClass;
+    try {
+      enclosingClass = node.declaredElement;
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      elementResolver.visitExtensionTypeDeclaration(node);
+    } finally {
+      enclosingClass = outerType;
+    }
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _thisAccessTracker.enterFieldDeclaration(node);
     try {
@@ -2580,8 +2595,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitForElement(ForElement node, {CollectionLiteralContext? context}) {
-    _forResolver.resolveElement(node as ForElementImpl, context);
+  void visitForElement(
+    covariant ForElementImpl node, {
+    CollectionLiteralContext? context,
+  }) {
+    _forResolver.resolveElement(node, context);
   }
 
   @override
@@ -3038,7 +3056,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     //
     // Continue the class resolution.
     //
@@ -3053,7 +3071,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement as ClassOrMixinElementImpl, node.implementsClause);
+        node.declaredElement!, node.implementsClause);
   }
 
   @override
@@ -3149,8 +3167,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant PatternVariableDeclarationImpl node,
   ) {
     final patternSchema = analyzePatternVariableDeclaration(
-        node, node.pattern, node.expression,
-        isFinal: node.keyword.keyword == Keyword.FINAL);
+            node, node.pattern, node.expression,
+            isFinal: node.keyword.keyword == Keyword.FINAL)
+        .patternSchema;
     node.patternTypeSchema = patternSchema;
     popRewrite(); // expression
   }
@@ -3328,6 +3347,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         .resolveInvocation(rawType: node.staticElement?.type);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
+  }
+
+  @override
+  void visitRepresentationConstructorName(RepresentationConstructorName node) {}
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    elementResolver.visitRepresentationDeclaration(node);
   }
 
   @override
@@ -3838,7 +3867,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void _setupThisType() {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      _thisType = enclosingClass.thisType;
+      final augmented = enclosingClass.augmented;
+      if (augmented != null) {
+        _thisType = augmented.declaration.thisType;
+      } else {
+        _thisType = InvalidTypeImpl.instance;
+      }
     } else {
       var enclosingExtension = this.enclosingExtension;
       if (enclosingExtension != null) {
@@ -4471,6 +4505,32 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   void visitExtensionMembersInScope(ExtensionDeclaration node) {
     node.documentationComment?.accept(this);
     node.members.accept(this);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
+    Scope outerScope = nameScope;
+    try {
+      final element = node.declaredElement!;
+      node.metadata.accept(this);
+
+      nameScope = TypeParameterScope(
+        nameScope,
+        element.typeParameters,
+      );
+      _setNodeNameScope(node, nameScope);
+      node.typeParameters?.accept(this);
+      node.representation.accept(this);
+      node.implementsClause?.accept(this);
+
+      nameScope = InterfaceScope(nameScope, element);
+      node.documentationComment?.accept(this);
+      node.members.accept(this);
+    } finally {
+      nameScope = outerScope;
+    }
   }
 
   @override
@@ -5288,14 +5348,68 @@ class _WhyNotPromotedVisitor
   }
 
   @override
-  DiagnosticMessage? visitPropertyNotPromoted(
-      PropertyNotPromoted<DartType> reason) {
+  DiagnosticMessage? visitPropertyNotPromotedDueToConflict(
+      PropertyNotPromotedDueToConflict<DartType> reason) {
     var receiverElement = reason.propertyMember;
     if (receiverElement is PropertyAccessorElement) {
-      propertyReference = receiverElement;
+      var property = propertyReference = receiverElement;
       propertyType = reason.staticType;
-      return _contextMessageForProperty(
-          receiverElement, reason.propertyName, reason);
+      var propertyName = reason.propertyName;
+      // TODO(paulberry): plumb the necessary data through the element model so
+      // that the analyzer can find the conflicting declaration(s).
+      String message =
+          "'$propertyName' couldn't be promoted because there is a conflicting "
+          "declaration elsewhere in the library.";
+      return DiagnosticMessageImpl(
+          filePath: property.source.fullName,
+          message: message,
+          offset: property.nonSynthetic.nameOffset,
+          length: property.nameLength,
+          url: null);
+    } else {
+      assert(receiverElement == null,
+          'Unrecognized property element: ${receiverElement.runtimeType}');
+      return null;
+    }
+  }
+
+  @override
+  DiagnosticMessage? visitPropertyNotPromotedForInherentReason(
+      PropertyNotPromotedForInherentReason<DartType> reason) {
+    var receiverElement = reason.propertyMember;
+    if (receiverElement is PropertyAccessorElement) {
+      var property = propertyReference = receiverElement;
+      propertyType = reason.staticType;
+      var propertyName = reason.propertyName;
+      String message;
+      switch (reason.whyNotPromotable) {
+        case PropertyNonPromotabilityReason.isNotEnabled:
+          message =
+              "'$propertyName' refers to a field. It couldn't be promoted "
+              "because field promotion is only available in Dart 3.2 and "
+              "above.";
+        case PropertyNonPromotabilityReason.isNotField:
+          message =
+              "'$propertyName' refers to a getter so it couldn't be promoted.";
+        case PropertyNonPromotabilityReason.isNotPrivate:
+          message =
+              "'$propertyName' refers to a public field so it couldn't be "
+              "promoted.";
+        case PropertyNonPromotabilityReason.isExternal:
+          message =
+              "'$propertyName' refers to an external field so it couldn't be "
+              "promoted.";
+        case PropertyNonPromotabilityReason.isNotFinal:
+          message =
+              "'$propertyName' refers to a non-final field so it couldn't be "
+              "promoted.";
+      }
+      return DiagnosticMessageImpl(
+          filePath: property.source.fullName,
+          message: message,
+          offset: property.nonSynthetic.nameOffset,
+          length: property.nameLength,
+          url: reason.documentationLink.url);
     } else {
       assert(receiverElement == null,
           'Unrecognized property element: ${receiverElement.runtimeType}');
@@ -5310,30 +5424,17 @@ class _WhyNotPromotedVisitor
         message: "'this' can't be promoted",
         offset: _errorEntity.offset,
         length: _errorEntity.length,
-        url: reason.documentationLink);
+        url: reason.documentationLink.url);
   }
 
-  DiagnosticMessageImpl _contextMessageForProperty(
-      PropertyAccessorElement property,
-      String propertyName,
-      NonPromotionReason reason) {
-    return DiagnosticMessageImpl(
-        filePath: property.source.fullName,
-        message:
-            "'$propertyName' refers to a property so it couldn't be promoted",
-        offset: property.nonSynthetic.nameOffset,
-        length: property.nameLength,
-        url: reason.documentationLink);
-  }
-
-  DiagnosticMessageImpl _contextMessageForWrite(
-      String variableName, AstNode node, NonPromotionReason reason) {
+  DiagnosticMessageImpl _contextMessageForWrite(String variableName,
+      AstNode node, DemoteViaExplicitWrite<PromotableElement> reason) {
     return DiagnosticMessageImpl(
         filePath: source.fullName,
         message: "Variable '$variableName' could not be promoted due to an "
             "assignment",
         offset: node.offset,
         length: node.length,
-        url: reason.documentationLink);
+        url: reason.documentationLink.url);
   }
 }

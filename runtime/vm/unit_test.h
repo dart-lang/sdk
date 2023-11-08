@@ -533,13 +533,9 @@ class AssemblerTest {
 // ArgNType is the type of the Nth argument.
 #if defined(USING_SIMULATOR)
 
-#if defined(ARCH_IS_64_BIT)
-  // TODO(fschneider): Make InvokeWithCodeAndThread<> more general and work on
-  // 32-bit.
   // Since Simulator::Call always return a int64_t, bit_cast does not work
-  // on 32-bit platforms when returning an int32_t. Since template functions
-  // don't support partial specialization, we'd need to introduce a helper
-  // class to support 32-bit return types.
+  // on 32-bit platforms when returning an int32_t. Use static cast on the
+  // call site in 32-bit to get rid of the upper bits if needed.
   template <typename ResultType>
   ResultType InvokeWithCodeAndThread() {
     const bool fp_return = is_double<ResultType>::value;
@@ -563,7 +559,6 @@ class AssemblerTest {
         reinterpret_cast<intptr_t>(thread), reinterpret_cast<intptr_t>(arg1), 0,
         fp_return, fp_args));
   }
-#endif  // ARCH_IS_64_BIT
 
   template <typename ResultType, typename Arg1Type>
   ResultType Invoke(Arg1Type arg1) {

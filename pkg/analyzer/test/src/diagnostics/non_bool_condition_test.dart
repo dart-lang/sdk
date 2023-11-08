@@ -10,8 +10,6 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonBoolConditionWithoutNullSafetyTest);
-    defineReflectiveTests(
-        NonBoolConditionWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(NonBoolConditionTest);
     defineReflectiveTests(NonBoolConditionWithStrictCastsTest);
   });
@@ -46,6 +44,15 @@ void f() {
     ]);
   }
 
+  test_if_map() async {
+    await assertErrorsInCode(r'''
+const dynamic nonBool = null;
+const c = const {if (nonBool) 'a' : 1};
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7),
+    ]);
+  }
+
   test_if_null() async {
     await assertErrorsInCode(r'''
 void f(Null a) {
@@ -56,6 +63,15 @@ void f(Null a) {
     ]);
   }
 
+  test_if_set() async {
+    await assertErrorsInCode(r'''
+const dynamic nonBool = 'a';
+const c = const {if (nonBool) 3};
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7),
+    ]);
+  }
+
   test_ternary_condition_null() async {
     await assertErrorsInCode(r'''
 void f(Null a) {
@@ -63,51 +79,6 @@ void f(Null a) {
 }
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 19, 1),
-    ]);
-  }
-}
-
-@reflectiveTest
-class NonBoolConditionWithoutNullSafetyAndNoImplicitCastsTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
-  test_map_ifElement_condition_dynamic() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(dynamic c) {
-  <int, int>{if (c) 0: 0};
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 37, 1),
-    ]);
-  }
-
-  test_map_ifElement_condition_object() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(Object c) {
-  <int, int>{if (c) 0: 0};
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 36, 1),
-    ]);
-  }
-
-  test_set_ifElement_condition_dynamic() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(dynamic c) {
-  <int>{if (c) 0};
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 32, 1),
-    ]);
-  }
-
-  test_set_ifElement_condition_object() async {
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(Object c) {
-  <int>{if (c) 0};
-}
-''', [
-      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 1),
     ]);
   }
 }

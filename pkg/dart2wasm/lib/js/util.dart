@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_js_interop_checks/src/js_interop.dart'
-    show hasJSInteropAnnotation, hasStaticInteropAnnotation;
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
+    show ExtensionIndex;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
@@ -11,6 +11,7 @@ enum AnnotationType { import, export }
 
 /// A utility wrapper for [CoreTypes].
 class CoreTypesUtil {
+  final ExtensionIndex _extensionIndex;
   final CoreTypes coreTypes;
   final Procedure allowInteropTarget;
   final Procedure dartifyRawTarget;
@@ -20,13 +21,12 @@ class CoreTypesUtil {
   final Procedure jsifyRawTarget;
   final Procedure jsObjectFromDartObjectTarget;
   final Procedure jsValueBoxTarget;
-  final Constructor jsValueConstructor;
   final Procedure jsValueUnboxTarget;
   final Procedure numToIntTarget;
   final Class wasmExternRefClass;
   final Procedure wrapDartFunctionTarget;
 
-  CoreTypesUtil(this.coreTypes)
+  CoreTypesUtil(this.coreTypes, this._extensionIndex)
       : allowInteropTarget = coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'allowInterop'),
         dartifyRawTarget = coreTypes.index
@@ -49,10 +49,6 @@ class CoreTypesUtil {
             .getClass('dart:_js_helper', 'JSValue')
             .procedures
             .firstWhere((p) => p.name.text == 'box'),
-        jsValueConstructor = coreTypes.index
-            .getClass('dart:_js_helper', 'JSValue')
-            .constructors
-            .single,
         jsValueUnboxTarget = coreTypes.index
             .getClass('dart:_js_helper', 'JSValue')
             .procedures
@@ -72,7 +68,9 @@ class CoreTypesUtil {
       wasmExternRefClass.getThisType(coreTypes, Nullability.nullable);
 
   Procedure jsifyTarget(DartType type) =>
-      type.isStaticInteropType ? jsValueUnboxTarget : jsifyRawTarget;
+      _extensionIndex.isStaticInteropType(type)
+          ? jsValueUnboxTarget
+          : jsifyRawTarget;
 
   void annotateProcedure(
       Procedure procedure, String pragmaOptionString, AnnotationType type) {
@@ -109,7 +107,7 @@ class CoreTypesUtil {
       return invokeOneArg(dartifyRawTarget, invocation);
     } else {
       Expression expression;
-      if (returnType.isStaticInteropType) {
+      if (_extensionIndex.isStaticInteropType(returnType)) {
         // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
         // code after migrating existing users of js interop on Dart2Wasm.
         // expression = _createJSValue(invocation);
@@ -126,20 +124,19 @@ class CoreTypesUtil {
         // an `int` we check that the double is an integer, and then insert a
         // cast. We also let static interop types flow through without
         // conversion, both as arguments, and as the return type.
-        expression = convertReturnType(
+        expression = convertAndCast(
             returnType, invokeOneArg(dartifyRawTarget, invocation));
       }
       return expression;
     }
   }
 
-  // Handles any necessary return type conversions. Today this is just for
-  // handling the case where a user wants us to coerce a JS number to an int
-  // instead of a double.
-  Expression convertReturnType(DartType returnType, Expression expression) {
-    Expression returnExpression = expression;
-    if (returnType == coreTypes.intNullableRawType ||
-        returnType == coreTypes.intNonNullableRawType) {
+  // Handles any necessary type conversions. Today this is just for handling the
+  // case where a user wants us to coerce a JS number to an int instead of a
+  // double. This is okay as long as the value is an integer value.
+  Expression convertAndCast(DartType staticType, Expression expression) {
+    if (staticType == coreTypes.intNullableRawType ||
+        staticType == coreTypes.intNonNullableRawType) {
       // let v = [expression] as double? in
       //  if (v == null) {
       //    return null;
@@ -159,7 +156,7 @@ class CoreTypesUtil {
           initializer: invokeMethod(v, numToIntTarget),
           type: coreTypes.intNonNullableRawType,
           isSynthesized: true);
-      returnExpression = Let(
+      expression = Let(
           v,
           ConditionalExpression(
               variableCheckConstant(v, NullConstant()),
@@ -175,16 +172,7 @@ class CoreTypesUtil {
                       coreTypes.intNonNullableRawType)),
               coreTypes.intNullableRawType));
     }
-    return AsExpression(returnExpression, returnType);
-  }
-}
-
-extension DartTypeExtension on DartType {
-  bool get isStaticInteropType {
-    final type = this;
-    return (type is InterfaceType &&
-            hasStaticInteropAnnotation(type.classReference.asClass)) ||
-        (type is InlineType && hasJSInteropAnnotation(type.inlineClass));
+    return AsExpression(expression, staticType);
   }
 }
 

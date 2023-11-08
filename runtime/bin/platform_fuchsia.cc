@@ -160,6 +160,12 @@ void Platform::Exit(int exit_code) {
   exit(exit_code);
 }
 
+void Platform::_Exit(int exit_code) {
+  Console::RestoreConfig();
+  Dart_PrepareToAbort();
+  _exit(exit_code);
+}
+
 void Platform::SetCoreDumpResourceLimit(int value) {
   // Not supported.
 }

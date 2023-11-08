@@ -26,7 +26,7 @@ import "package:front_end/src/api_prototype/compiler_options.dart"
 import "package:front_end/src/base/processed_options.dart"
     show ProcessedOptions;
 
-import "package:front_end/src/fasta/builder/class_builder.dart";
+import "package:front_end/src/fasta/builder/declaration_builders.dart";
 
 import "package:front_end/src/fasta/compiler_context.dart" show CompilerContext;
 

@@ -33,171 +33,165 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
                 if (macro is ClassTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is ClassDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is ClassDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.constructor:
             switch (phase) {
               case Phase.types:
                 if (macro is ConstructorTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is ConstructorDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is ConstructorDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
+          case DeclarationKind.extension:
+            switch (phase) {
+              case Phase.types:
+                if (macro is ExtensionTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.declarations:
+                if (macro is ExtensionDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.definitions:
+                if (macro is ExtensionDefinitionMacro) {
+                  interfaces |= interfaceMask;
+                }
+            }
           case DeclarationKind.field:
             switch (phase) {
               case Phase.types:
                 if (macro is FieldTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is FieldDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is FieldDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.function:
             switch (phase) {
               case Phase.types:
                 if (macro is FunctionTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is FunctionDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is FunctionDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
+          case DeclarationKind.library:
+            switch (phase) {
+              case Phase.types:
+                if (macro is LibraryTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.declarations:
+                if (macro is LibraryDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.definitions:
+                if (macro is LibraryDefinitionMacro) {
+                  interfaces |= interfaceMask;
+                }
+            }
           case DeclarationKind.method:
             switch (phase) {
               case Phase.types:
                 if (macro is MethodTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is MethodDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is MethodDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.enumType:
             switch (phase) {
               case Phase.types:
                 if (macro is EnumTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is EnumDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is EnumDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.enumValue:
             switch (phase) {
               case Phase.types:
                 if (macro is EnumValueTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is EnumValueDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is EnumValueDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.mixinType:
             switch (phase) {
               case Phase.types:
                 if (macro is MixinTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is MixinDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is MixinDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
           case DeclarationKind.variable:
             switch (phase) {
               case Phase.types:
                 if (macro is VariableTypesMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.declarations:
                 if (macro is VariableDeclarationsMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
               case Phase.definitions:
                 if (macro is VariableDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
-                break;
             }
-            break;
         }
       }
     }
@@ -252,10 +246,19 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
 /// Implementation of [MacroExecutionResult].
 class MacroExecutionResultImpl implements MacroExecutionResult {
   @override
+  final List<Diagnostic> diagnostics;
+
+  @override
   final Map<IdentifierImpl, List<DeclarationCode>> enumValueAugmentations;
 
   @override
+  final Map<IdentifierImpl, List<TypeAnnotationCode>> interfaceAugmentations;
+
+  @override
   final List<DeclarationCode> libraryAugmentations;
+
+  @override
+  final Map<IdentifierImpl, List<TypeAnnotationCode>> mixinAugmentations;
 
   @override
   final List<String> newTypeNames;
@@ -264,8 +267,11 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
   final Map<IdentifierImpl, List<DeclarationCode>> typeAugmentations;
 
   MacroExecutionResultImpl({
+    required this.diagnostics,
     required this.enumValueAugmentations,
+    required this.interfaceAugmentations,
     required this.libraryAugmentations,
+    required this.mixinAugmentations,
     required this.newTypeNames,
     required this.typeAugmentations,
   });
@@ -274,10 +280,31 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     deserializer
       ..moveNext()
       ..expectList();
+    List<Diagnostic> diagnostics = [
+      for (; deserializer.moveNext();) deserializer.expectDiagnostic(),
+    ];
+
+    deserializer
+      ..moveNext()
+      ..expectList();
     Map<IdentifierImpl, List<DeclarationCode>> enumValueAugmentations = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
+        deserializer.expectRemoteInstance(): [
+          for (bool hasNextCode = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
+              hasNextCode;
+              hasNextCode = deserializer.moveNext())
+            deserializer.expectCode(),
+        ]
+    };
+
+    deserializer
+      ..moveNext()
+      ..expectList();
+    Map<IdentifierImpl, List<TypeAnnotationCode>> interfaceAugmentations = {
+      for (; deserializer.moveNext();)
         deserializer.expectRemoteInstance(): [
           for (bool hasNextCode = (deserializer
                     ..moveNext()
@@ -293,29 +320,37 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
       ..moveNext()
       ..expectList();
     List<DeclarationCode> libraryAugmentations = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
-        deserializer.expectCode()
+      for (; deserializer.moveNext();) deserializer.expectCode()
     ];
 
     deserializer
       ..moveNext()
       ..expectList();
+    Map<IdentifierImpl, List<TypeAnnotationCode>> mixinAugmentations = {
+      for (; deserializer.moveNext();)
+        deserializer.expectRemoteInstance(): [
+          for (bool hasNextCode = (deserializer
+                    ..moveNext()
+                    ..expectList())
+                  .moveNext();
+              hasNextCode;
+              hasNextCode = deserializer.moveNext())
+            deserializer.expectCode(),
+        ]
+    };
+
+    deserializer
+      ..moveNext()
+      ..expectList();
     List<String> newTypeNames = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
-        deserializer.expectString()
+      for (; deserializer.moveNext();) deserializer.expectString()
     ];
 
     deserializer
       ..moveNext()
       ..expectList();
     Map<IdentifierImpl, List<DeclarationCode>> typeAugmentations = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         deserializer.expectRemoteInstance(): [
           for (bool hasNextCode = (deserializer
                     ..moveNext()
@@ -328,8 +363,11 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     };
 
     return new MacroExecutionResultImpl(
+      diagnostics: diagnostics,
       enumValueAugmentations: enumValueAugmentations,
+      interfaceAugmentations: interfaceAugmentations,
       libraryAugmentations: libraryAugmentations,
+      mixinAugmentations: mixinAugmentations,
       newTypeNames: newTypeNames,
       typeAugmentations: typeAugmentations,
     );
@@ -337,6 +375,12 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
 
   @override
   void serialize(Serializer serializer) {
+    serializer.startList();
+    for (Diagnostic diagnostic in diagnostics) {
+      diagnostic.serialize(serializer);
+    }
+    serializer.endList();
+
     serializer.startList();
     for (IdentifierImpl enuum in enumValueAugmentations.keys) {
       enuum.serialize(serializer);
@@ -349,10 +393,33 @@ class MacroExecutionResultImpl implements MacroExecutionResult {
     serializer.endList();
 
     serializer.startList();
+    for (IdentifierImpl type in interfaceAugmentations.keys) {
+      type.serialize(serializer);
+      serializer.startList();
+      for (TypeAnnotationCode interface in interfaceAugmentations[type]!) {
+        interface.serialize(serializer);
+      }
+      serializer.endList();
+    }
+    serializer.endList();
+
+    serializer.startList();
     for (DeclarationCode augmentation in libraryAugmentations) {
       augmentation.serialize(serializer);
     }
     serializer.endList();
+
+    serializer.startList();
+    for (IdentifierImpl type in mixinAugmentations.keys) {
+      type.serialize(serializer);
+      serializer.startList();
+      for (TypeAnnotationCode mixin in mixinAugmentations[type]!) {
+        mixin.serialize(serializer);
+      }
+      serializer.endList();
+    }
+    serializer.endList();
+
     serializer.startList();
     for (String name in newTypeNames) {
       serializer.addString(name);

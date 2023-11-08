@@ -13,7 +13,7 @@ final String executableSuffix = Platform.isWindows ? '.exe' : '';
 final String dartaotruntime =
     path.join(binDir.path, 'dartaotruntime$executableSuffix');
 final String genKernel =
-    path.join(binDir.path, 'snapshots', 'gen_kernel.dart.snapshot');
+    path.join(binDir.path, 'snapshots', 'gen_kernel_aot.dart.snapshot');
 final String genSnapshot =
     path.join(binDir.path, 'utils', 'gen_snapshot$executableSuffix');
 final String productPlatformDill = path.join(
@@ -28,7 +28,6 @@ Future<void> generateNative({
   String? targetOS,
   required List<String> defines,
   String enableExperiment = '',
-  bool enableAsserts = false,
   bool soundNullSafety = true,
   bool verbose = false,
   String verbosity = 'all',
@@ -64,7 +63,7 @@ Future<void> generateNative({
 
     final String kernelFile = path.join(tempDir.path, 'kernel.dill');
     final kernelResult = await generateAotKernel(
-      Platform.executable,
+      dartaotruntime,
       genKernel,
       productPlatformDill,
       sourcePath,
@@ -95,8 +94,8 @@ Future<void> generateNative({
     final String snapshotFile = (outputKind == Kind.aot
         ? outputPath
         : path.join(tempDir.path, 'snapshot.aot'));
-    final snapshotResult = await generateAotSnapshot(genSnapshot, kernelFile,
-        snapshotFile, debugPath, enableAsserts, extraAotOptions);
+    final snapshotResult = await generateAotSnapshot(
+        genSnapshot, kernelFile, snapshotFile, debugPath, extraAotOptions);
 
     if (verbose || snapshotResult.exitCode != 0) {
       await _forwardOutput(snapshotResult);

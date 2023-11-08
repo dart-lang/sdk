@@ -84,6 +84,28 @@ void f(Object p) {
 ''');
   }
 
+  test_class_isUsed_jsAnnotation() async {
+    writeTestPackageConfig(
+      PackageConfigFileBuilder()
+        ..add(name: 'js', rootPath: '$workspaceRootPath/js'),
+    );
+
+    newFile('$workspaceRootPath/js/lib/js.dart', r'''
+library _js_annotations;
+
+class JS {
+  const JS();
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'package:js/js.dart';
+
+@JS()
+class _A {}
+''');
+  }
+
   test_class_notUsed_isExpression_typeArgument() async {
     await assertErrorsInCode(r'''
 class _A {}
@@ -224,6 +246,60 @@ extension on int? {
   bool operator >(int other) => true;
 }
 ''');
+  }
+
+  test_extensionType_isUsed_typeName_typeArgument() async {
+    await assertNoErrorsInCode(r'''
+extension type _E(int i) {}
+
+void f() {
+  Map<_E, int>();
+}
+''');
+  }
+
+  test_extensionType_member_notUsed() async {
+    await assertErrorsInCode('''
+extension type E(int i) {
+  void _f() {}
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 33, 2),
+    ]);
+  }
+
+  test_extensionType_notUsed() async {
+    await assertErrorsInCode(r'''
+extension type _E(int i) {}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 15, 2),
+    ]);
+  }
+
+  test_extensionType_notUsed_variableDeclaration() async {
+    await assertErrorsInCode('''
+extension type _E(int i) {}
+
+void f() {
+  _E? v;
+  print(v);
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 15, 2),
+    ]);
+  }
+
+  test_extensionType_notUsed_variableDeclaration_typeArgument() async {
+    await assertErrorsInCode('''
+extension type _E(int i) {}
+
+void f() {
+  List<_E>? v;
+  print(v);
+}
+''', [
+      error(WarningCode.UNUSED_ELEMENT, 15, 2),
+    ]);
   }
 
   test_optionalParameter_isUsed_genericConstructor() async {

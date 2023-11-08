@@ -16,12 +16,14 @@ import 'dds_impl.dart';
 class DapHandler {
   DapHandler(this.dds);
 
+  final _initializedCompleter = Completer<void>();
+
   Future<Map<String, dynamic>> sendRequest(
     DdsHostedAdapter adapter,
     json_rpc.Parameters parameters,
   ) async {
     if (adapter.ddsUri == null) {
-      _startAdapter(adapter);
+      await _startAdapter(adapter);
     }
 
     // TODO(helin24): Consider a sequence offset for incoming messages to avoid
@@ -44,6 +46,9 @@ class DapHandler {
   }
 
   _handleEvent(Event event) {
+    if (event.event == 'initialized') {
+      _initializedCompleter.complete();
+    }
     dds.streamManager.streamNotify(DapEventStreams.kDAP, {
       'streamId': DapEventStreams.kDAP,
       'event': {
@@ -61,8 +66,18 @@ class DapHandler {
     // TODO(helin24): Most likely we'll want the client to do these
     // initialization steps so that clients can differentiate capabilities. This
     // may require a custom stream for the debug adapter.
-    int seq = 1;
-    // TODO(helin24): Add waiting for `InitializedEvent`.
+
+    // Each DAP request has a `seq` number (essentially a message ID) which
+    // should be unique.
+    //
+    // We send a few requsets to initialize the adapter, but these are not
+    // visible to the DDS client so if we start at 1, the IDs will be
+    // reused.
+    //
+    // To avoid that, for our own initialization requests, use negative numbers
+    // (though they must still ascend) so there's no overlay with the messages
+    // we'll forward from the DDS client.
+    int seq = -1000;
     await adapter.initializeRequest(
       Request(
         command: Command.initialize,
@@ -73,6 +88,7 @@ class DapHandler {
       ),
       (capabilities) {},
     );
+    await _initializedCompleter.future;
     await adapter.configurationDoneRequest(
       Request(
         arguments: const {},
@@ -93,6 +109,10 @@ class DapHandler {
       ),
       noopCallback,
     );
+    // Wait for the debugger to fully initialize, because the request that
+    // triggered this initialization may require things like isolates that will
+    // only be known after the debugger has initialized.
+    await adapter.debuggerInitialized;
   }
 
   final DartDevelopmentServiceImpl dds;

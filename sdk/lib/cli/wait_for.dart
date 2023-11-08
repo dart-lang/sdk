@@ -71,29 +71,14 @@ class _WaitForUtils {
  *
  * ## Deprecation notice
  *
- * The `waitFor` feature is deprecated.
- * The feature was intended to solve a particular problem for existing code,
- * a problem introduced by a breaking change to the platform libraries.
- * The `waitFor` function is not suitable for general use.
- * The feature has shortcomings that can affect other code
- * running in the same isolate, including:
- *  * A function call that looks synchronous may cause other asynchronous
- *    events to run before it returns.
- *    This is something synchronous code can usually assume not to happen,
- *    and some code may have been written to take advantage of that
- *    assumed behavior. Such code can fail in unexpected ways.
- *  * Multiple nested calls to `waitFor` may block each other
- *    since the most recent call always needs to complete
- *    before any other call can complete.
- *    Judicious use of `waitFor` is necessary to avoid unexpected deadlocks
- *    which wouldn't happen if using `await` instead.
- *    If more than one library in the same program is using `waitFor`,
- *    then it's hard to avoid or control whether such blocking will happen.
+ * The `waitFor` feature is deprecated, disabled by default and slated for
+ * removal in Dart 3.4 release.
  *
- * The feature is not actively maintained.
- * It will remain as-is to support the original problem it was added to solve,
- * at least until that problem can be solved in some other way.
- * 
+ * See https://dartbug.com/52121
+ *
+ * During transitionary period you can still force enable this feature
+ * by passing --enable-deprecated-wait-for to Dart VM.
+ *
  * ## Call semantics
  *
  * This call does the following:
@@ -137,8 +122,7 @@ class _WaitForUtils {
  * subsequent calls block waiting for a condition that is only satisfied when
  * an earlier call returns.
  */
-@Deprecated(
-    "This functionality is incomplete and may be removed in a later version")
+@Deprecated("This functionality is deprecated and will be removed in Dart 3.4")
 T waitFor<T>(Future<T> future, {Duration? timeout}) {
   late T result;
   bool futureCompleted = false;

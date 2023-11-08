@@ -14,7 +14,7 @@ import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
-    extends MessageHandler<CompletionItem, CompletionItem> {
+    extends LspMessageHandler<CompletionItem, CompletionItem> {
   /// The last completion item we asked to be resolved.
   ///
   /// Used to abort previous requests in async handlers if another resolve request
@@ -52,7 +52,7 @@ class CompletionResolveHandler
     DartCompletionResolutionInfo data,
     CancellationToken token,
   ) async {
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return error(ErrorCodes.ServerNotInitialized,
@@ -131,7 +131,7 @@ class CompletionResolveHandler
           final dartDoc = DartUnitHoverComputer.computePreferredDocumentation(
               dartDocInfo,
               element,
-              server.clientConfiguration.global.preferredDocumentation);
+              server.lspClientConfiguration.global.preferredDocumentation);
           // `dartDoc` can be both null or empty.
           documentation = dartDoc != null && dartDoc.isNotEmpty
               ? asMarkupContentOrString(formats, dartDoc)
@@ -143,13 +143,13 @@ class CompletionResolveHandler
           if (importUris.length == 1) {
             // If the only URI we have is a file:// URI, display it as relative to
             // the file we're importing into, rather than the full URI.
-            final pathContext = server.resourceProvider.pathContext;
+            final pathContext = server.pathContext;
             final libraryUri = importUris.first;
             final autoImportDisplayUri = libraryUri.isScheme('file')
                 // Compute the relative path and then put into a URI so the display
                 // always uses forward slashes (as a URI) regardless of platform.
-                ? Uri.file(pathContext.relative(
-                    libraryUri.toFilePath(),
+                ? pathContext.toUri(pathContext.relative(
+                    pathContext.fromUri(libraryUri),
                     from: pathContext.dirname(file),
                   ))
                 : libraryUri;
@@ -167,6 +167,7 @@ class CompletionResolveHandler
           kind: item.kind,
           tags: item.tags,
           detail: detail,
+          labelDetails: item.labelDetails,
           documentation: documentation,
           deprecated: item.deprecated,
           preselect: item.preselect,

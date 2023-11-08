@@ -10,7 +10,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
 }
 extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   method call = self::Extension|call;
-  tearoff call = self::Extension|get#call;
+  method tearoff call = self::Extension|get#call;
 }
 static extension-member method Extension|call<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|call::T%> #this, self::Extension|call::T% a) → self::Extension|call::T%
   ;

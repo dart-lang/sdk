@@ -71,7 +71,6 @@ class ForwardingListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -83,7 +82,6 @@ class ForwardingListener implements Listener {
         begin,
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -399,10 +397,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
     listener?.beginMixinDeclaration(
-        augmentToken, baseToken, mixinKeyword, name);
+        beginToken, augmentToken, baseToken, mixinKeyword, name);
   }
 
   @override
@@ -412,10 +410,9 @@ class ForwardingListener implements Listener {
 
   @override
   void beginNamedMixinApplication(
-      Token begin,
+      Token beginToken,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -424,10 +421,9 @@ class ForwardingListener implements Listener {
       Token? mixinToken,
       Token name) {
     listener?.beginNamedMixinApplication(
-        begin,
+        beginToken,
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -758,8 +754,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
-    listener?.endEnum(enumKeyword, leftBrace, memberCount);
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
+    listener?.endEnum(
+        beginToken, enumKeyword, leftBrace, memberCount, endToken);
   }
 
   @override
@@ -835,10 +833,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
-    listener?.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
-        showKeyword, hideKeyword, endToken);
+  void endExtensionDeclaration(Token beginToken, Token extensionKeyword,
+      Token onKeyword, Token endToken) {
+    listener?.endExtensionDeclaration(
+        beginToken, extensionKeyword, onKeyword, endToken);
   }
 
   @override
@@ -1087,8 +1085,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
-    listener?.endMixinDeclaration(mixinKeyword, endToken);
+  void endMixinDeclaration(Token beginToken, Token endToken) {
+    listener?.endMixinDeclaration(beginToken, endToken);
   }
 
   @override
@@ -1394,13 +1392,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    listener?.handleExtensionShowHide(
-        showKeyword, showElementCount, hideKeyword, hideElementCount);
-  }
-
-  @override
   void handleClassWithClause(Token withKeyword) {
     listener?.handleClassWithClause(withKeyword);
   }
@@ -1413,23 +1404,6 @@ class ForwardingListener implements Listener {
   @override
   void handleMixinWithClause(Token withKeyword) {
     listener?.handleMixinWithClause(withKeyword);
-  }
-
-  @override
-  void handleCommentReference(
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token thirdToken) {
-    listener?.handleCommentReference(newKeyword, firstToken, firstPeriod,
-        secondToken, secondPeriod, thirdToken);
-  }
-
-  @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    listener?.handleCommentReferenceText(referenceSource, referenceOffset);
   }
 
   @override
@@ -1541,11 +1515,6 @@ class ForwardingListener implements Listener {
   @override
   void handleFunctionBodySkipped(Token token, bool isExpressionBody) {
     listener?.handleFunctionBodySkipped(token, isExpressionBody);
-  }
-
-  @override
-  void handleShowHideIdentifier(Token? modifier, Token identifier) {
-    listener?.handleShowHideIdentifier(modifier, identifier);
   }
 
   @override
@@ -1761,11 +1730,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleNoCommentReference() {
-    listener?.handleNoCommentReference();
-  }
-
-  @override
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     listener?.handleNoConstructorReferenceContinuationAfterTypeArguments(token);
   }
@@ -1952,8 +1916,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleRecoverClassHeader() {
-    listener?.handleRecoverClassHeader();
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
+    listener?.handleRecoverDeclarationHeader(kind);
   }
 
   @override
@@ -2111,6 +2075,81 @@ class ForwardingListener implements Listener {
       ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
     listener?.handleExperimentNotEnabled(
         experimentalFlag, startToken, endToken);
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    listener?.beginExtensionTypeDeclaration(extensionKeyword, name);
+  }
+
+  @override
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    listener?.endExtensionTypeConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endExtensionTypeDeclaration(Token beginToken, Token extensionKeyword,
+      Token typeKeyword, Token endToken) {
+    listener?.endExtensionTypeDeclaration(
+        beginToken, extensionKeyword, typeKeyword, endToken);
+  }
+
+  @override
+  void endExtensionTypeFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    listener?.endExtensionTypeFactoryMethod(
+        beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionTypeFields(
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    listener?.endExtensionTypeFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
+  }
+
+  @override
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    listener?.endExtensionTypeMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    listener?.beginPrimaryConstructor(beginToken);
+  }
+
+  @override
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    listener?.endPrimaryConstructor(
+        beginToken, constKeyword, hasConstructorName);
+  }
+
+  @override
+  void handleNoPrimaryConstructor(Token token, Token? constKeyword) {
+    listener?.handleNoPrimaryConstructor(token, constKeyword);
   }
 }
 

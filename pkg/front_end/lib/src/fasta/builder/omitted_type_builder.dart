@@ -7,14 +7,13 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../kernel/implicit_field_type.dart';
 import '../source/source_library_builder.dart';
+import 'inferable_type_builder.dart';
 import 'library_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
-import 'type_declaration_builder.dart';
 
-abstract class OmittedTypeBuilder extends TypeBuilder {
-  const OmittedTypeBuilder();
+abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
+  const OmittedTypeBuilderImpl();
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
@@ -55,12 +54,21 @@ abstract class OmittedTypeBuilder extends TypeBuilder {
     return this;
   }
 
+  @override
   bool get hasType;
 
+  @override
   DartType get type;
 }
 
-class ImplicitTypeBuilder extends OmittedTypeBuilder {
+/// [TypeBuilder] for when there is no explicit type provided by the user and
+/// the type _cannot_ be inferred from context.
+///
+/// For omitted return types and parameter types of instance method,
+/// field types and initializing formal types, use [InferableTypeBuilder]
+/// instead. This should be created through
+/// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
+class ImplicitTypeBuilder extends OmittedTypeBuilderImpl {
   const ImplicitTypeBuilder();
 
   @override
@@ -89,7 +97,13 @@ class ImplicitTypeBuilder extends OmittedTypeBuilder {
   DartType get type => const DynamicType();
 }
 
-class InferableTypeBuilder extends OmittedTypeBuilder
+/// [TypeBuilder] for when there is no explicit type provided by the user but
+/// the type _can_ be inferred from context. For instance omitted return types
+/// and parameter types of instance method,
+///
+/// [InferableTypeBuilder] should be created through
+/// [SourceLibraryBuilder.addInferableType] to ensure the type is inferred.
+class InferableTypeBuilder extends OmittedTypeBuilderImpl
     with InferableTypeBuilderMixin
     implements InferableType {
   @override
@@ -171,7 +185,7 @@ class InferableTypeBuilder extends OmittedTypeBuilder
 ///
 /// This is used in macro generated code to create type annotations from
 /// inferred types in the original code.
-class DependentTypeBuilder extends OmittedTypeBuilder
+class DependentTypeBuilder extends OmittedTypeBuilderImpl
     with InferableTypeBuilderMixin
     implements InferredTypeListener {
   final OmittedTypeBuilder typeBuilder;
@@ -233,50 +247,4 @@ abstract class Inferable {
   /// Triggers the inference of the types of one or more
   /// [InferableTypeBuilder]s.
   void inferTypes(ClassHierarchyBase hierarchy);
-}
-
-/// [TypeDeclaration] wrapper for an [OmittedTypeBuilder].
-///
-/// This is used in macro generated code to create type annotations from
-/// inferred types in the original code.
-class OmittedTypeDeclarationBuilder extends TypeDeclarationBuilderImpl {
-  OmittedTypeBuilder omittedTypeBuilder;
-
-  OmittedTypeDeclarationBuilder(
-      String name, this.omittedTypeBuilder, SourceLibraryBuilder parent)
-      : super(null, 0, name, parent, TreeNode.noOffset);
-
-  @override
-  DartType buildAliasedType(
-      LibraryBuilder library,
-      NullabilityBuilder nullabilityBuilder,
-      List<TypeBuilder>? arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      ClassHierarchyBase? hierarchy,
-      {required bool hasExplicitTypeArguments}) {
-    // TODO(johnniwinther): This should probably be an error case.
-    throw new UnimplementedError('${runtimeType}.buildAliasedType');
-  }
-
-  @override
-  DartType buildAliasedTypeWithBuiltArguments(
-      LibraryBuilder library,
-      Nullability nullability,
-      List<DartType> arguments,
-      TypeUse typeUse,
-      Uri fileUri,
-      int charOffset,
-      {required bool hasExplicitTypeArguments}) {
-    // TODO(johnniwinther): This should probably be an error case.
-    throw new UnimplementedError(
-        '${runtimeType}.buildAliasedTypeWithBuiltArguments');
-  }
-
-  @override
-  String get debugName => 'OmittedTypeDeclarationBuilder';
-
-  @override
-  Uri? get fileUri => parent!.fileUri;
 }

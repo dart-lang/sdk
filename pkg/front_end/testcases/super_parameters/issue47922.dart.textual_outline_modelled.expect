@@ -1,0 +1,8 @@
+class A {
+  A(this.foo);
+  final String foo;
+}
+class B extends A {
+  B(const super.foo);
+}
+main() {}

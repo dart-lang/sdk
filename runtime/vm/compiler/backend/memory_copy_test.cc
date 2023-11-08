@@ -37,31 +37,115 @@ static classid_t TypedDataCidForElementSize(intptr_t elem_size) {
   UNIMPLEMENTED();
 }
 
+static inline intptr_t ExpectedValue(intptr_t i) {
+  return 1 + i % 100;
+}
+
+static void InitializeMemory(uint8_t* input, uint8_t* output) {
+  const bool use_same_buffer = input == output;
+  for (intptr_t i = 0; i < kMemoryTestLength; i++) {
+    input[i] = ExpectedValue(i);  // Initialized.
+    if (!use_same_buffer) {
+      output[i] = kUnInitialized;  // Empty.
+    }
+  }
+}
+
+static bool CheckMemory(Expect expect,
+                        const uint8_t* input,
+                        const uint8_t* output,
+                        intptr_t dest_start,
+                        intptr_t src_start,
+                        intptr_t length,
+                        intptr_t elem_size) {
+  ASSERT(Utils::IsPowerOfTwo(kMemoryTestLength));
+  expect.LessThan<intptr_t>(0, elem_size);
+  if (!Utils::IsPowerOfTwo(elem_size)) {
+    expect.Fail("Expected %" Pd " to be a power of two", elem_size);
+  }
+  expect.LessEqual<intptr_t>(0, length);
+  expect.LessEqual<intptr_t>(0, dest_start);
+  expect.LessEqual<intptr_t>(dest_start + length,
+                             kMemoryTestLength / elem_size);
+  expect.LessEqual<intptr_t>(0, src_start);
+  expect.LessEqual<intptr_t>(src_start + length, kMemoryTestLength / elem_size);
+  const bool use_same_buffer = input == output;
+  const intptr_t dest_start_in_bytes = dest_start * elem_size;
+  const intptr_t dest_end_in_bytes = dest_start_in_bytes + length * elem_size;
+  const intptr_t index_diff = dest_start_in_bytes - src_start * elem_size;
+  for (intptr_t i = 0; i < kMemoryTestLength; i++) {
+    if (!use_same_buffer) {
+      const intptr_t expected = ExpectedValue(i);
+      const intptr_t got = input[i];
+      if (expected != got) {
+        expect.Fail("Unexpected change to input buffer at index %" Pd
+                    ", expected %" Pd ", got %" Pd "",
+                    i, expected, got);
+      }
+    }
+    const intptr_t unchanged =
+        use_same_buffer ? ExpectedValue(i) : kUnInitialized;
+    const intptr_t got = output[i];
+    if (dest_start_in_bytes <= i && i < dest_end_in_bytes) {
+      // Copied.
+      const intptr_t expected = ExpectedValue(i - index_diff);
+      if (expected != got) {
+        if (got == unchanged) {
+          expect.Fail("No change to output buffer at index %" Pd
+                      ", expected %" Pd ", got %" Pd "",
+                      i, expected, got);
+        } else {
+          expect.Fail("Incorrect change to output buffer at index %" Pd
+                      ", expected %" Pd ", got %" Pd "",
+                      i, expected, got);
+        }
+      }
+    } else {
+      // Untouched.
+      if (got != unchanged) {
+        expect.Fail("Unexpected change to input buffer at index %" Pd
+                    ", expected %" Pd ", got %" Pd "",
+                    i, unchanged, got);
+      }
+    }
+  }
+  return expect.failed();
+}
+
+#define CHECK_DEFAULT_MEMORY(in, out)                                          \
+  do {                                                                         \
+    if (CheckMemory(dart::Expect(__FILE__, __LINE__), in, out, 0, 0, 0, 1)) {  \
+      return;                                                                  \
+    }                                                                          \
+  } while (false)
+#define CHECK_MEMORY(in, out, start, skip, len, size)                          \
+  do {                                                                         \
+    if (CheckMemory(dart::Expect(__FILE__, __LINE__), in, out, start, skip,    \
+                    len, size)) {                                              \
+      return;                                                                  \
+    }                                                                          \
+  } while (false)
+
 static void RunMemoryCopyInstrTest(intptr_t src_start,
                                    intptr_t dest_start,
                                    intptr_t length,
                                    intptr_t elem_size,
-                                   bool length_unboxed) {
+                                   bool unboxed_inputs,
+                                   bool use_same_buffer) {
   OS::Print("==================================================\n");
   OS::Print("RunMemoryCopyInstrTest src_start %" Pd " dest_start %" Pd
             " length "
             "%" Pd "%s elem_size %" Pd "\n",
-            src_start, dest_start, length, length_unboxed ? " (unboxed)" : "",
+            src_start, dest_start, length, unboxed_inputs ? " (unboxed)" : "",
             elem_size);
   OS::Print("==================================================\n");
   classid_t cid = TypedDataCidForElementSize(elem_size);
 
-  intptr_t dest_copied_start = dest_start * elem_size;
-  intptr_t dest_copied_end = dest_copied_start + length * elem_size;
-  ASSERT(dest_copied_end < kMemoryTestLength);
-  intptr_t expect_diff = (dest_start - src_start) * elem_size;
-
   uint8_t* ptr = reinterpret_cast<uint8_t*>(malloc(kMemoryTestLength));
-  uint8_t* ptr2 = reinterpret_cast<uint8_t*>(malloc(kMemoryTestLength));
-  for (intptr_t i = 0; i < kMemoryTestLength; i++) {
-    ptr[i] = 1 + i % 100;      // Initialized.
-    ptr2[i] = kUnInitialized;  // Emtpy.
-  }
+  uint8_t* ptr2 = use_same_buffer
+                      ? ptr
+                      : reinterpret_cast<uint8_t*>(malloc(kMemoryTestLength));
+  InitializeMemory(ptr, ptr2);
 
   OS::Print("&ptr %p &ptr2 %p\n", ptr, ptr2);
 
@@ -69,174 +153,348 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
   auto kScript = Utils::CStringUniquePtr(OS::SCreate(nullptr, R"(
     import 'dart:ffi';
 
-    void myFunction() {
+    void copyConst() {
       final pointer = Pointer<Uint8>.fromAddress(%s%p);
       final pointer2 = Pointer<Uint8>.fromAddress(%s%p);
-      anotherFunction();
+      noop();
     }
 
-    void anotherFunction() {}
-  )", pointer_prefix, ptr, pointer_prefix, ptr2), std::free);
+    void callNonConstCopy() {
+      final pointer = Pointer<Uint8>.fromAddress(%s%p);
+      final pointer2 = Pointer<Uint8>.fromAddress(%s%p);
+      final src_start = %)" Pd R"(;
+      final dest_start = %)" Pd R"(;
+      final length = %)" Pd R"(;
+      copyNonConst(
+          pointer, pointer2, src_start, dest_start, length);
+    }
+
+    void noop() {}
+
+    void copyNonConst(Pointer<Uint8> ptr1,
+                      Pointer<Uint8> ptr2,
+                      int src_start,
+                      int dest_start,
+                      int length) {}
+  )", pointer_prefix, ptr, pointer_prefix, ptr2,
+      pointer_prefix, ptr, pointer_prefix, ptr2,
+      src_start, dest_start, length), std::free);
   // clang-format on
 
   const auto& root_library = Library::Handle(LoadTestScript(kScript.get()));
-  Invoke(root_library, "myFunction");
-  // Running this should be a no-op on the memory.
-  for (intptr_t i = 0; i < kMemoryTestLength; i++) {
-    EXPECT_EQ(1 + i % 100, static_cast<intptr_t>(ptr[i]));
-    EXPECT_EQ(kUnInitialized, static_cast<intptr_t>(ptr2[i]));
-  }
 
-  const auto& my_function =
-      Function::Handle(GetFunction(root_library, "myFunction"));
-
-  TestPipeline pipeline(my_function, CompilerPass::kJIT);
-  FlowGraph* flow_graph = pipeline.RunPasses({
-      CompilerPass::kComputeSSA,
-  });
-
-  StaticCallInstr* pointer = nullptr;
-  StaticCallInstr* pointer2 = nullptr;
-  StaticCallInstr* another_function_call = nullptr;
+  // Test the MemoryCopy instruction when the inputs are constants.
   {
-    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+    Invoke(root_library, "copyConst");
+    // Running this should be a no-op on the memory.
+    CHECK_DEFAULT_MEMORY(ptr, ptr2);
 
-    EXPECT(cursor.TryMatch({
-        kMoveGlob,
-        {kMatchAndMoveStaticCall, &pointer},
-        {kMatchAndMoveStaticCall, &pointer2},
-        {kMatchAndMoveStaticCall, &another_function_call},
-    }));
-  }
+    const auto& const_copy =
+        Function::Handle(GetFunction(root_library, "copyConst"));
 
-  Zone* const zone = Thread::Current()->zone();
+    TestPipeline pipeline(const_copy, CompilerPass::kJIT);
+    FlowGraph* flow_graph = pipeline.RunPasses({
+        CompilerPass::kComputeSSA,
+    });
 
-  auto* const src_start_constant_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(src_start, Heap::kOld)), kTagged);
+    StaticCallInstr* pointer = nullptr;
+    StaticCallInstr* pointer2 = nullptr;
+    StaticCallInstr* another_function_call = nullptr;
+    {
+      ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
 
-  auto* const dest_start_constant_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(dest_start, Heap::kOld)), kTagged);
+      EXPECT(cursor.TryMatch({
+          kMoveGlob,
+          {kMatchAndMoveStaticCall, &pointer},
+          {kMatchAndMoveStaticCall, &pointer2},
+          {kMatchAndMoveStaticCall, &another_function_call},
+      }));
+    }
 
-  auto* const length_constant_instr = flow_graph->GetConstant(
-      Integer::ZoneHandle(zone, Integer::New(length, Heap::kOld)),
-      length_unboxed ? kUnboxedIntPtr : kTagged);
+    Zone* const zone = Thread::Current()->zone();
+    auto const rep = unboxed_inputs ? kUnboxedIntPtr : kTagged;
 
-  auto* const memory_copy_instr = new (zone)
-      MemoryCopyInstr(new (zone) Value(pointer), new (zone) Value(pointer2),
-                      new (zone) Value(src_start_constant_instr),
-                      new (zone) Value(dest_start_constant_instr),
-                      new (zone) Value(length_constant_instr),
-                      /*src_cid=*/cid,
-                      /*dest_cid=*/cid, length_unboxed);
-  flow_graph->InsertBefore(another_function_call, memory_copy_instr, nullptr,
-                           FlowGraph::kEffect);
+    auto* const src_start_constant_instr = flow_graph->GetConstant(
+        Integer::ZoneHandle(zone, Integer::New(src_start, Heap::kOld)), rep);
 
-  another_function_call->RemoveFromGraph();
+    auto* const dest_start_constant_instr = flow_graph->GetConstant(
+        Integer::ZoneHandle(zone, Integer::New(dest_start, Heap::kOld)), rep);
 
-  {
-    // Check we constructed the right graph.
-    ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
-    EXPECT(cursor.TryMatch({
-        kMoveGlob,
-        kMatchAndMoveStaticCall,
-        kMatchAndMoveStaticCall,
-        kMatchAndMoveMemoryCopy,
-    }));
-  }
+    auto* const length_constant_instr = flow_graph->GetConstant(
+        Integer::ZoneHandle(zone, Integer::New(length, Heap::kOld)), rep);
 
-  {
-#if !defined(PRODUCT)
-    SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+    auto* const memory_copy_instr = new (zone) MemoryCopyInstr(
+        new (zone) Value(pointer), new (zone) Value(pointer2),
+        new (zone) Value(src_start_constant_instr),
+        new (zone) Value(dest_start_constant_instr),
+        new (zone) Value(length_constant_instr),
+        /*src_cid=*/cid,
+        /*dest_cid=*/cid, unboxed_inputs, /*can_overlap=*/use_same_buffer);
+    flow_graph->InsertBefore(another_function_call, memory_copy_instr, nullptr,
+                             FlowGraph::kEffect);
+
+    another_function_call->RemoveFromGraph();
+
+    {
+      // Check we constructed the right graph.
+      ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+      EXPECT(cursor.TryMatch({
+          kMoveGlob,
+          kMatchAndMoveStaticCall,
+          kMatchAndMoveStaticCall,
+          kMatchAndMoveMemoryCopy,
+      }));
+    }
+
+    {
+#if !defined(PRODUCT) && !defined(USING_THREAD_SANITIZER)
+      SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
 #endif
 
-    pipeline.RunForcedOptimizedAfterSSAPasses();
-    pipeline.CompileGraphAndAttachFunction();
+      pipeline.RunForcedOptimizedAfterSSAPasses();
+      pipeline.CompileGraphAndAttachFunction();
+    }
+
+    {
+      // Check that the memory copy has constant inputs after optimization.
+      ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+      MemoryCopyInstr* memory_copy;
+      EXPECT(cursor.TryMatch({
+          kMoveGlob,
+          {kMatchAndMoveMemoryCopy, &memory_copy},
+      }));
+      EXPECT(memory_copy->src_start()->BindsToConstant());
+      EXPECT(memory_copy->dest_start()->BindsToConstant());
+      EXPECT(memory_copy->length()->BindsToConstant());
+    }
+
+    // Run the mem copy.
+    Invoke(root_library, "copyConst");
   }
 
-  // Run the mem copy.
-  Invoke(root_library, "myFunction");
-  for (intptr_t i = 0; i < kMemoryTestLength; i++) {
-    EXPECT_EQ(1 + i % 100, static_cast<intptr_t>(ptr[i]));
-    if (dest_copied_start <= i && i < dest_copied_end) {
-      // Copied.
-      EXPECT_EQ(1 + (i - expect_diff) % 100, static_cast<intptr_t>(ptr2[i]));
-    } else {
-      // Untouched.
-      EXPECT_EQ(kUnInitialized, static_cast<intptr_t>(ptr2[i]));
+  CHECK_MEMORY(ptr, ptr2, dest_start, src_start, length, elem_size);
+  // Reinitialize the memory for the non-constant MemoryCopy version.
+  InitializeMemory(ptr, ptr2);
+
+  // Test the MemoryCopy instruction when the inputs are not constants.
+  {
+    Invoke(root_library, "callNonConstCopy");
+    // Running this should be a no-op on the memory.
+    CHECK_DEFAULT_MEMORY(ptr, ptr2);
+
+    const auto& copy_non_const =
+        Function::Handle(GetFunction(root_library, "copyNonConst"));
+
+    TestPipeline pipeline(copy_non_const, CompilerPass::kJIT);
+    FlowGraph* flow_graph = pipeline.RunPasses({
+        CompilerPass::kComputeSSA,
+    });
+
+    auto* const entry_instr = flow_graph->graph_entry()->normal_entry();
+    auto* const initial_defs = entry_instr->initial_definitions();
+    EXPECT(initial_defs != nullptr);
+    EXPECT_EQ(5, initial_defs->length());
+
+    auto* const param_ptr = initial_defs->At(0)->AsParameter();
+    EXPECT(param_ptr != nullptr);
+    auto* const param_ptr2 = initial_defs->At(1)->AsParameter();
+    EXPECT(param_ptr2 != nullptr);
+    auto* const param_src_start = initial_defs->At(2)->AsParameter();
+    EXPECT(param_src_start != nullptr);
+    auto* const param_dest_start = initial_defs->At(3)->AsParameter();
+    EXPECT(param_dest_start != nullptr);
+    auto* const param_length = initial_defs->At(4)->AsParameter();
+    EXPECT(param_length != nullptr);
+
+    ReturnInstr* return_instr;
+    {
+      ILMatcher cursor(flow_graph, entry_instr);
+
+      EXPECT(cursor.TryMatch({
+          kMoveGlob,
+          {kMatchReturn, &return_instr},
+      }));
     }
+
+    Zone* const zone = Thread::Current()->zone();
+
+    Definition* src_start_def = param_src_start;
+    Definition* dest_start_def = param_dest_start;
+    Definition* length_def = param_length;
+    if (unboxed_inputs) {
+      // Manually add the unbox instruction ourselves instead of leaving it
+      // up to the SelectDefinitions pass.
+      length_def =
+          UnboxInstr::Create(kUnboxedWord, new (zone) Value(param_length),
+                             DeoptId::kNone, Instruction::kNotSpeculative);
+      flow_graph->InsertBefore(return_instr, length_def, nullptr,
+                               FlowGraph::kValue);
+      dest_start_def =
+          UnboxInstr::Create(kUnboxedWord, new (zone) Value(param_dest_start),
+                             DeoptId::kNone, Instruction::kNotSpeculative);
+      flow_graph->InsertBefore(length_def, dest_start_def, nullptr,
+                               FlowGraph::kValue);
+      src_start_def =
+          UnboxInstr::Create(kUnboxedWord, new (zone) Value(param_src_start),
+                             DeoptId::kNone, Instruction::kNotSpeculative);
+      flow_graph->InsertBefore(dest_start_def, src_start_def, nullptr,
+                               FlowGraph::kValue);
+    }
+
+    auto* const memory_copy_instr = new (zone) MemoryCopyInstr(
+        new (zone) Value(param_ptr), new (zone) Value(param_ptr2),
+        new (zone) Value(src_start_def), new (zone) Value(dest_start_def),
+        new (zone) Value(length_def),
+        /*src_cid=*/cid,
+        /*dest_cid=*/cid, unboxed_inputs, /*can_overlap=*/use_same_buffer);
+    flow_graph->InsertBefore(return_instr, memory_copy_instr, nullptr,
+                             FlowGraph::kEffect);
+
+    {
+      // Check we constructed the right graph.
+      ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+      if (unboxed_inputs) {
+        EXPECT(cursor.TryMatch({
+            kMoveGlob,
+            kMatchAndMoveUnbox,
+            kMatchAndMoveUnbox,
+            kMatchAndMoveUnbox,
+            kMatchAndMoveMemoryCopy,
+            kMatchReturn,
+        }));
+      } else {
+        EXPECT(cursor.TryMatch({
+            kMoveGlob,
+            kMatchAndMoveMemoryCopy,
+            kMatchReturn,
+        }));
+      }
+    }
+
+    {
+#if !defined(PRODUCT) && !defined(USING_THREAD_SANITIZER)
+      SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
+#endif
+
+      pipeline.RunForcedOptimizedAfterSSAPasses();
+      pipeline.CompileGraphAndAttachFunction();
+    }
+
+    {
+      // Check that the memory copy has non-constant inputs after optimization.
+      ILMatcher cursor(flow_graph, flow_graph->graph_entry()->normal_entry());
+      MemoryCopyInstr* memory_copy;
+      EXPECT(cursor.TryMatch({
+          kMoveGlob,
+          {kMatchAndMoveMemoryCopy, &memory_copy},
+      }));
+      EXPECT(!memory_copy->src_start()->BindsToConstant());
+      EXPECT(!memory_copy->dest_start()->BindsToConstant());
+      EXPECT(!memory_copy->length()->BindsToConstant());
+    }
+
+    // Run the mem copy.
+    Invoke(root_library, "callNonConstCopy");
   }
+
+  CHECK_MEMORY(ptr, ptr2, dest_start, src_start, length, elem_size);
   free(ptr);
-  free(ptr2);
+  if (!use_same_buffer) {
+    free(ptr2);
+  }
 }
 
 #define MEMORY_COPY_TEST_BOXED(src_start, dest_start, length, elem_size)       \
   ISOLATE_UNIT_TEST_CASE(                                                      \
       IRTest_MemoryCopy_##src_start##_##dest_start##_##length##_##elem_size) { \
-    RunMemoryCopyInstrTest(src_start, dest_start, length, elem_size, false);   \
+    RunMemoryCopyInstrTest(src_start, dest_start, length, elem_size, false,    \
+                           false);                                             \
   }
 
 #define MEMORY_COPY_TEST_UNBOXED(src_start, dest_start, length, el_si)         \
   ISOLATE_UNIT_TEST_CASE(                                                      \
       IRTest_MemoryCopy_##src_start##_##dest_start##_##length##_##el_si##_u) { \
-    RunMemoryCopyInstrTest(src_start, dest_start, length, el_si, true);        \
+    RunMemoryCopyInstrTest(src_start, dest_start, length, el_si, true, false); \
+  }
+
+#define MEMORY_MOVE_TEST_BOXED(src_start, dest_start, length, elem_size)       \
+  ISOLATE_UNIT_TEST_CASE(                                                      \
+      IRTest_MemoryMove_##src_start##_##dest_start##_##length##_##elem_size) { \
+    RunMemoryCopyInstrTest(src_start, dest_start, length, elem_size, false,    \
+                           true);                                              \
+  }
+
+#define MEMORY_MOVE_TEST_UNBOXED(src_start, dest_start, length, el_si)         \
+  ISOLATE_UNIT_TEST_CASE(                                                      \
+      IRTest_MemoryMove_##src_start##_##dest_start##_##length##_##el_si##_u) { \
+    RunMemoryCopyInstrTest(src_start, dest_start, length, el_si, true, true);  \
   }
 
 #define MEMORY_COPY_TEST(src_start, dest_start, length, elem_size)             \
   MEMORY_COPY_TEST_BOXED(src_start, dest_start, length, elem_size)             \
   MEMORY_COPY_TEST_UNBOXED(src_start, dest_start, length, elem_size)
 
+#define MEMORY_MOVE_TEST(src_start, dest_start, length, elem_size)             \
+  MEMORY_MOVE_TEST_BOXED(src_start, dest_start, length, elem_size)             \
+  MEMORY_MOVE_TEST_UNBOXED(src_start, dest_start, length, elem_size)
+
+#define MEMORY_TEST(src_start, dest_start, length, elem_size)                  \
+  MEMORY_MOVE_TEST(src_start, dest_start, length, elem_size)                   \
+  MEMORY_COPY_TEST(src_start, dest_start, length, elem_size)
+
 // No offset, varying length.
-MEMORY_COPY_TEST(0, 0, 1, 1)
-MEMORY_COPY_TEST(0, 0, 2, 1)
-MEMORY_COPY_TEST(0, 0, 3, 1)
-MEMORY_COPY_TEST(0, 0, 4, 1)
-MEMORY_COPY_TEST(0, 0, 5, 1)
-MEMORY_COPY_TEST(0, 0, 6, 1)
-MEMORY_COPY_TEST(0, 0, 7, 1)
-MEMORY_COPY_TEST(0, 0, 8, 1)
-MEMORY_COPY_TEST(0, 0, 16, 1)
+MEMORY_TEST(0, 0, 1, 1)
+MEMORY_TEST(0, 0, 2, 1)
+MEMORY_TEST(0, 0, 3, 1)
+MEMORY_TEST(0, 0, 4, 1)
+MEMORY_TEST(0, 0, 5, 1)
+MEMORY_TEST(0, 0, 6, 1)
+MEMORY_TEST(0, 0, 7, 1)
+MEMORY_TEST(0, 0, 8, 1)
+MEMORY_TEST(0, 0, 16, 1)
 
 // Offsets.
-MEMORY_COPY_TEST(2, 2, 1, 1)
-MEMORY_COPY_TEST(2, 17, 3, 1)
-MEMORY_COPY_TEST(20, 5, 17, 1)
+MEMORY_TEST(2, 2, 1, 1)
+MEMORY_TEST(2, 17, 3, 1)
+MEMORY_TEST(20, 5, 17, 1)
 
 // Other element sizes.
-MEMORY_COPY_TEST(0, 0, 1, 2)
-MEMORY_COPY_TEST(0, 0, 1, 4)
-MEMORY_COPY_TEST(0, 0, 1, 8)
-MEMORY_COPY_TEST(0, 0, 2, 2)
-MEMORY_COPY_TEST(0, 0, 2, 4)
-MEMORY_COPY_TEST(0, 0, 2, 8)
-MEMORY_COPY_TEST(0, 0, 4, 2)
-MEMORY_COPY_TEST(0, 0, 4, 4)
-MEMORY_COPY_TEST(0, 0, 4, 8)
-MEMORY_COPY_TEST(0, 0, 8, 2)
-MEMORY_COPY_TEST(0, 0, 8, 4)
-MEMORY_COPY_TEST(0, 0, 8, 8)
-// TODO(http://dartbug.com/51237): Fix arm64 issue.
-#if !defined(TARGET_ARCH_ARM64)
-MEMORY_COPY_TEST(0, 0, 2, 16)
-MEMORY_COPY_TEST(0, 0, 4, 16)
-MEMORY_COPY_TEST(0, 0, 8, 16)
-#endif
+MEMORY_TEST(0, 0, 1, 2)
+MEMORY_TEST(0, 0, 1, 4)
+MEMORY_TEST(0, 0, 1, 8)
+MEMORY_TEST(0, 0, 2, 2)
+MEMORY_TEST(0, 0, 2, 4)
+MEMORY_TEST(0, 0, 2, 8)
+MEMORY_TEST(0, 0, 4, 2)
+MEMORY_TEST(0, 0, 4, 4)
+MEMORY_TEST(0, 0, 4, 8)
+MEMORY_TEST(0, 0, 8, 2)
+MEMORY_TEST(0, 0, 8, 4)
+MEMORY_TEST(0, 0, 8, 8)
+MEMORY_TEST(0, 0, 2, 16)
+MEMORY_TEST(0, 0, 4, 16)
+MEMORY_TEST(0, 0, 8, 16)
 
 // Other element sizes with offsets.
-MEMORY_COPY_TEST(1, 1, 2, 2)
-MEMORY_COPY_TEST(0, 1, 4, 2)
-MEMORY_COPY_TEST(1, 2, 3, 2)
-MEMORY_COPY_TEST(123, 2, 4, 4)
-MEMORY_COPY_TEST(5, 72, 1, 8)
+MEMORY_TEST(1, 1, 2, 2)
+MEMORY_TEST(0, 1, 4, 2)
+MEMORY_TEST(1, 2, 3, 2)
+MEMORY_TEST(2, 1, 3, 2)
+MEMORY_TEST(123, 2, 4, 4)
+MEMORY_TEST(2, 123, 4, 4)
+MEMORY_TEST(24, 23, 8, 4)
+MEMORY_TEST(23, 24, 8, 4)
+MEMORY_TEST(5, 72, 1, 8)
+MEMORY_TEST(12, 13, 3, 8)
+MEMORY_TEST(15, 12, 8, 8)
 
-// TODO(http://dartbug.com/51229): Fix arm issue.
-// TODO(http://dartbug.com/51237): Fix arm64 issue.
-#if !defined(TARGET_ARCH_ARM) && !defined(TARGET_ARCH_ARM64)
-MEMORY_COPY_TEST(13, 14, 15, 16)
-#endif
+MEMORY_TEST(13, 14, 15, 16)
+MEMORY_TEST(14, 13, 15, 16)
 
 // Size promotions with offsets.
-MEMORY_COPY_TEST(2, 2, 8, 1)  // promoted to 2.
-MEMORY_COPY_TEST(4, 4, 8, 1)  // promoted to 4.
-MEMORY_COPY_TEST(8, 8, 8, 1)  // promoted to 8.
+MEMORY_TEST(2, 2, 8, 1)     // promoted to 2.
+MEMORY_TEST(4, 4, 8, 1)     // promoted to 4.
+MEMORY_TEST(8, 8, 8, 1)     // promoted to 8.
+MEMORY_TEST(16, 16, 16, 1)  // promoted to 16 on ARM64.
 
 }  // namespace dart

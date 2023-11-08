@@ -612,7 +612,7 @@ void Heap::CheckConcurrentMarking(Thread* thread,
 
   switch (phase) {
     case PageSpace::kMarking:
-      if ((size != 0) && (mode_ != Dart_PerformanceMode_Latency)) {
+      if (mode_ != Dart_PerformanceMode_Latency) {
         old_space_.IncrementalMarkWithSizeBudget(size);
       }
       return;
@@ -799,36 +799,35 @@ bool Heap::VerifyGC(const char* msg, MarkExpectation mark_expectation) {
 
 void Heap::PrintSizes() const {
   OS::PrintErr(
-      "New space (%" Pd64 "k of %" Pd64
-      "k) "
-      "Old space (%" Pd64 "k of %" Pd64 "k)\n",
+      "New space (%" Pd "k of %" Pd "k) "
+      "Old space (%" Pd "k of %" Pd "k)\n",
       (UsedInWords(kNew) / KBInWords), (CapacityInWords(kNew) / KBInWords),
       (UsedInWords(kOld) / KBInWords), (CapacityInWords(kOld) / KBInWords));
 }
 
-int64_t Heap::UsedInWords(Space space) const {
+intptr_t Heap::UsedInWords(Space space) const {
   return space == kNew ? new_space_.UsedInWords() : old_space_.UsedInWords();
 }
 
-int64_t Heap::CapacityInWords(Space space) const {
+intptr_t Heap::CapacityInWords(Space space) const {
   return space == kNew ? new_space_.CapacityInWords()
                        : old_space_.CapacityInWords();
 }
 
-int64_t Heap::ExternalInWords(Space space) const {
+intptr_t Heap::ExternalInWords(Space space) const {
   return space == kNew ? new_space_.ExternalInWords()
                        : old_space_.ExternalInWords();
 }
 
-int64_t Heap::TotalUsedInWords() const {
+intptr_t Heap::TotalUsedInWords() const {
   return UsedInWords(kNew) + UsedInWords(kOld);
 }
 
-int64_t Heap::TotalCapacityInWords() const {
+intptr_t Heap::TotalCapacityInWords() const {
   return CapacityInWords(kNew) + CapacityInWords(kOld);
 }
 
-int64_t Heap::TotalExternalInWords() const {
+intptr_t Heap::TotalExternalInWords() const {
   return ExternalInWords(kNew) + ExternalInWords(kOld);
 }
 
@@ -1148,7 +1147,7 @@ void Heap::PrintStatsToTimeline(TimelineEventScope* event, GCReason reason) {
 Heap::Space Heap::SpaceForExternal(intptr_t size) const {
   // If 'size' would be a significant fraction of new space, then use old.
   const int kExtNewRatio = 16;
-  if (size > (CapacityInWords(Heap::kNew) * kWordSize) / kExtNewRatio) {
+  if (size > (new_space_.ThresholdInWords() * kWordSize) / kExtNewRatio) {
     return Heap::kOld;
   } else {
     return Heap::kNew;

@@ -11,6 +11,7 @@
 
 #include "vm/longjump.h"
 #include "vm/object_store.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -432,10 +433,16 @@ void RegExpParser::ReportError(const char* message) {
   next_pos_ = in().Length();
 
   // Throw a FormatException on parsing failures.
-  const String& msg = String::Handle(
-      String::Concat(String::Handle(String::New(message)), in()));
-  const Array& args = Array::Handle(Array::New(1));
-  args.SetAt(0, msg);
+  Array& args = Array::Handle();
+  String& str = String::Handle();
+  args ^= Array::New(3);
+  str ^= String::New(message);
+  args.SetAt(0, str);
+  args.SetAt(1, Symbols::Blank());
+  args.SetAt(2, in());
+  str ^= String::ConcatAll(args);
+  args ^= Array::New(1);
+  args.SetAt(0, str);
   Exceptions::ThrowByType(Exceptions::kFormat, args);
   UNREACHABLE();
 }

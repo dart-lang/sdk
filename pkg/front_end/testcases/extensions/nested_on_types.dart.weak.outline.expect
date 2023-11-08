@@ -8,9 +8,9 @@ class A<T extends core::Object? = dynamic> extends core::Object {
 }
 extension Extension<T extends core::Object? = dynamic> on self::A<self::A<T%>> {
   method method1 = self::Extension|method1;
-  tearoff method1 = self::Extension|get#method1;
+  method tearoff method1 = self::Extension|get#method1;
   method method2 = self::Extension|method2;
-  tearoff method2 = self::Extension|get#method2;
+  method tearoff method2 = self::Extension|get#method2;
 }
 static extension-member method Extension|method1<T extends core::Object? = dynamic>(lowered final self::A<self::A<self::Extension|method1::T%>> #this) → dynamic
   ;

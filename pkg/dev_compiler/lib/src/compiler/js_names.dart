@@ -17,7 +17,7 @@ const String dartSdkModule = 'dart_sdk';
 /// `JsGetName` enum.
 abstract class FixedNames {
   static const operatorIsPrefix = r'$is_';
-  static const operatorSignature = r'$signature';
+  static const operatorSignature = r'_functionRti';
   static const rtiName = r'$ti';
   static const rtiAsField = '_as';
   static const rtiIsField = '_is';
@@ -48,7 +48,7 @@ class TemporaryId extends Identifier {
   @override
   set sourceInformation(Object? obj) {}
 
-  TemporaryId(String name) : super(name);
+  TemporaryId(super.name);
 }
 
 /// Creates a qualified identifier, without determining for sure if it needs to

@@ -82,10 +82,6 @@ extension DynamicLibraryExtension on DynamicLibrary {
   ///
   /// [T] is the C function signature, and [F] is the Dart function signature.
   ///
-  /// [isLeaf] specifies whether the function is a leaf function.
-  /// A leaf function must not run Dart code or call back into the Dart VM.
-  /// Leaf calls are faster than non-leaf calls.
-  ///
   /// For example:
   ///
   /// ```c
@@ -99,6 +95,19 @@ extension DynamicLibraryExtension on DynamicLibrary {
   /// final add = dylib.lookupFunction<Int32 Function(Int32, Int32), int Function(int, int)>(
   ///         'add');
   /// ```
+  ///
+  /// [isLeaf] specifies whether the function is a leaf function. Leaf functions
+  /// are small, short-running, non-blocking functions which are not allowed to
+  /// call back into Dart or use any Dart VM APIs. Leaf functions are invoked
+  /// bypassing some of the heavier parts of the standard Dart-to-Native calling
+  /// sequence which reduces the invocation overhead, making leaf calls faster
+  /// than non-leaf calls. However, this implies that a thread executing a leaf
+  /// function can't cooperate with the Dart runtime. A long running or blocking
+  /// leaf function will delay any operation which requires synchronization
+  /// between all threads associated with an isolate group until after the leaf
+  /// function returns. For example, if one isolate in a group is trying to
+  /// perform a GC and a second isolate is blocked in a leaf call, then the
+  /// first isolate will have to pause and wait until this leaf call returns.
   external F lookupFunction<T extends Function, F extends Function>(
       String symbolName,
       {bool isLeaf = false});

@@ -57,7 +57,6 @@ MessageHandler::MessageHandler()
       oob_queue_(new MessageQueue()),
       oob_message_handling_allowed_(true),
       paused_for_messages_(false),
-      live_ports_(0),
       paused_(0),
 #if !defined(PRODUCT)
       should_pause_on_start_(false),
@@ -90,7 +89,7 @@ const char* MessageHandler::name() const {
 }
 
 #if defined(DEBUG)
-void MessageHandler::CheckAccess() {
+void MessageHandler::CheckAccess() const {
   // By default there is no checking.
 }
 #endif
@@ -461,7 +460,7 @@ void MessageHandler::TaskCallback() {
 
     // The isolate exits when it encounters an error or when it no
     // longer has live ports.
-    if (status != kOK || !HasLivePorts()) {
+    if (status != kOK || !KeepAliveLocked()) {
 #if !defined(PRODUCT)
       if (ShouldPauseOnExit(status)) {
         if (FLAG_trace_service_pause_events) {
@@ -531,15 +530,13 @@ void MessageHandler::TaskCallback() {
 }
 
 void MessageHandler::ClosePort(Dart_Port port) {
-  MonitorLocker ml(&monitor_);
   if (FLAG_trace_isolates) {
+    MonitorLocker ml(&monitor_);
     OS::PrintErr(
         "[-] Closing port:\n"
         "\thandler:    %s\n"
-        "\tport:       %" Pd64
-        "\n"
-        "\tports:      live(%" Pd ")\n",
-        name(), port, live_ports_);
+        "\tport:       %" Pd64 "\n",
+        name(), port);
   }
 }
 
@@ -556,7 +553,6 @@ void MessageHandler::CloseAllPorts() {
 }
 
 void MessageHandler::RequestDeletion() {
-  ASSERT(OwnedByPortMap());
   {
     MonitorLocker ml(&monitor_);
     if (task_running_) {
@@ -568,22 +564,6 @@ void MessageHandler::RequestDeletion() {
 
   // This message handler has no current task.  Delete it.
   delete this;
-}
-
-void MessageHandler::increment_live_ports() {
-  MonitorLocker ml(&monitor_);
-#if defined(DEBUG)
-  CheckAccess();
-#endif
-  live_ports_++;
-}
-
-void MessageHandler::decrement_live_ports() {
-  MonitorLocker ml(&monitor_);
-#if defined(DEBUG)
-  CheckAccess();
-#endif
-  live_ports_--;
 }
 
 #if !defined(PRODUCT)

@@ -23,11 +23,11 @@ class SubClass extends self::Class {
 }
 extension Extension<T extends core::Object? = dynamic> on T% {
   method method1 = self::Extension|method1;
-  tearoff method1 = self::Extension|get#method1;
+  method tearoff method1 = self::Extension|get#method1;
 }
 extension BoundExtension<T extends self::Class> on T {
   method method2 = self::BoundExtension|method2;
-  tearoff method2 = self::BoundExtension|get#method2;
+  method tearoff method2 = self::BoundExtension|get#method2;
 }
 static extension-member method Extension|method1<T extends core::Object? = dynamic>(lowered final self::Extension|method1::T% #this) → self::Extension|method1::T%
   return #this;

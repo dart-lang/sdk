@@ -14,7 +14,7 @@ import 'scope.dart';
 /// assigned/captured/free at various points to build a [ClosureScopeModel] and
 /// a [VariableScopeModel] that can respond to queries about how a particular
 /// variable is being used at any point in the code.
-class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
+class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     with VariableCollectorMixin, ir.VisitorThrowingMixin<EvaluationComplexity> {
   final Dart2jsConstantEvaluator _constantEvaluator;
   late final ir.StaticTypeContext _staticTypeContext;
@@ -416,10 +416,10 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
         TypeVariableTypeWithContext(
             ir.TypeParameterType.withDefaultNullabilityForLibrary(
                 typeParameter, library),
-            // If this typeParameter is part of a typedef then its parent is
-            // null because it has no context. Just pass in null for the
-            // context in that case.
-            typeParameter.parent?.parent);
+            // If this typeParameter is part of a function type then its
+            // declaration is null because it has no context. Just pass in null
+            // for the context in that case.
+            typeParameter.declaration);
 
     ir.TreeNode? context = _executableContext;
     if (_isInsideClosure && context is ir.Procedure && context.isFactory) {
@@ -447,6 +447,12 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
 
     visitNode(typeParameter.bound);
 
+    return const EvaluationComplexity.constant();
+  }
+
+  @override
+  EvaluationComplexity visitStructuralParameter(
+      ir.StructuralParameter typeParameter) {
     return const EvaluationComplexity.constant();
   }
 
@@ -770,14 +776,25 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
+  EvaluationComplexity visitStructuralParameterType(
+      ir.StructuralParameterType node) {
+    // The type variable is a function type variable, like `T` in
+    //
+    //     List<void Function<T>(T)> list;
+    //
+    // which doesn't correspond to a captured local variable.
+    return const EvaluationComplexity.lazy();
+  }
+
+  @override
   EvaluationComplexity visitIntersectionType(ir.IntersectionType node) {
     _analyzeTypeVariable(node.left, _currentTypeUsage!);
     return const EvaluationComplexity.lazy();
   }
 
   @override
-  EvaluationComplexity visitInlineType(ir.InlineType type) {
-    return visitNode(type.instantiatedRepresentationType);
+  EvaluationComplexity visitExtensionType(ir.ExtensionType type) {
+    return visitNode(type.typeErasure);
   }
 
   EvaluationComplexity visitInContext(ir.Node node, VariableUse use) {
@@ -1513,12 +1530,6 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
         case TypeVariableKind.local:
           _useTypeVariableAsLocal(typeVariable, usage);
           break;
-        case TypeVariableKind.function:
-        // The type variable is a function type variable, like `T` in
-        //
-        //     List<void Function<T>(T)> list;
-        //
-        // which doesn't correspond to a captured local variable.
       }
     }
   }

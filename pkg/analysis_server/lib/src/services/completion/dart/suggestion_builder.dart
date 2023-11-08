@@ -6,9 +6,9 @@ import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/computer/computer_hover.dart';
-import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/protocol_server.dart'
     hide Element, ElementKind;
+import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
@@ -23,9 +23,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -420,7 +418,12 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement;
+
+    var enclosingClass = constructor.enclosingElement.augmented?.declaration;
+    if (enclosingClass == null) {
+      return;
+    }
+
     var className = enclosingClass.name;
     if (className.isEmpty) {
       return;
@@ -443,7 +446,7 @@ class SuggestionBuilder {
     }
 
     if (_couldMatch(completion, prefix)) {
-      var returnType = _instantiateInterfaceElement(enclosingClass);
+      var returnType = _instantiateInstanceElement(enclosingClass);
       var relevance =
           _computeTopLevelRelevance(constructor, elementType: returnType);
       _addBuilder(
@@ -509,9 +512,8 @@ class SuggestionBuilder {
   void suggestExtension(ExtensionElement extension,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String? prefix}) {
-    var elementData = _getElementCompletionData(extension);
-    if (elementData == null) return;
-    var completion = elementData.completion;
+    var completion = _getCompletionString(extension);
+    if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
       var relevance = _computeTopLevelRelevance(extension,
           elementType: extension.extendedType);
@@ -522,7 +524,6 @@ class SuggestionBuilder {
           prefix: prefix,
           relevance: relevance,
           isNotImported: isNotImportedLibrary,
-          elementData: elementData,
         ),
       );
     }
@@ -534,9 +535,8 @@ class SuggestionBuilder {
   /// value of the inheritance distance feature computed for the field (or
   /// `-1.0` if the field is a static field).
   void suggestField(FieldElement field, {required double inheritanceDistance}) {
-    var elementData = _getElementCompletionData(field);
-    if (elementData == null) return;
-    var completion = elementData.completion;
+    var completion = _getCompletionString(field);
+    if (completion == null) return;
     if (_couldMatch(completion, null)) {
       var featureComputer = request.featureComputer;
       var contextType =
@@ -565,7 +565,6 @@ class SuggestionBuilder {
           kind: CompletionSuggestionKind.IDENTIFIER,
           relevance: relevance,
           isNotImported: isNotImportedLibrary,
-          elementData: elementData,
         ),
       );
     }
@@ -616,12 +615,11 @@ class SuggestionBuilder {
   /// Add a suggestion for an [element]. If the class can only be
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestInterface(InterfaceElement element, {String? prefix}) {
-    var elementData = _getElementCompletionData(element);
-    if (elementData == null) return;
-    var completion = elementData.completion;
+    var completion = _getCompletionString(element);
+    if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
       var relevance = _computeTopLevelRelevance(element,
-          elementType: _instantiateInterfaceElement(element));
+          elementType: _instantiateInstanceElement(element));
       _addBuilder(
         _createCompletionSuggestionBuilder(
           element,
@@ -629,7 +627,6 @@ class SuggestionBuilder {
           prefix: prefix,
           relevance: relevance,
           isNotImported: isNotImportedLibrary,
-          elementData: elementData,
         ),
       );
     }
@@ -828,7 +825,8 @@ class SuggestionBuilder {
     var element = parameter.enclosingElement;
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.instance.isWidget(element.enclosingElement)) {
+      if (Flutter.instance
+          .isWidget(element.enclosingElement.augmented?.declaration)) {
         var codeStyleOptions = request
             .analysisSession.analysisContext.analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.
@@ -1120,9 +1118,8 @@ class SuggestionBuilder {
   void suggestTopLevelFunction(FunctionElement function,
       {CompletionSuggestionKind kind = CompletionSuggestionKind.INVOCATION,
       String? prefix}) {
-    var elementData = _getElementCompletionData(function);
-    if (elementData == null) return;
-    var completion = elementData.completion;
+    var completion = _getCompletionString(function);
+    if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
       var relevance =
           _computeTopLevelRelevance(function, elementType: function.returnType);
@@ -1133,7 +1130,6 @@ class SuggestionBuilder {
           prefix: prefix,
           relevance: relevance,
           isNotImported: isNotImportedLibrary,
-          elementData: elementData,
         ),
       );
     }
@@ -1158,9 +1154,8 @@ class SuggestionBuilder {
         }
       }
     } else {
-      var elementData = _getElementCompletionData(accessor);
-      if (elementData == null) return;
-      var completion = elementData.completion;
+      var completion = _getCompletionString(accessor);
+      if (completion == null) return;
       if (_couldMatch(completion, prefix)) {
         var type = _getPropertyAccessorType(accessor);
         var featureComputer = request.featureComputer;
@@ -1191,7 +1186,6 @@ class SuggestionBuilder {
             prefix: prefix,
             relevance: relevance,
             isNotImported: isNotImportedLibrary,
-            elementData: elementData,
           ),
         );
       }
@@ -1202,9 +1196,8 @@ class SuggestionBuilder {
   /// referenced using a prefix, then the [prefix] should be provided.
   void suggestTopLevelVariable(TopLevelVariableElement variable,
       {String? prefix}) {
-    var elementData = _getElementCompletionData(variable);
-    if (elementData == null) return;
-    var completion = elementData.completion;
+    var completion = _getCompletionString(variable);
+    if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
       assert(variable.enclosingElement is CompilationUnitElement);
       var relevance =
@@ -1216,7 +1209,6 @@ class SuggestionBuilder {
           prefix: prefix,
           relevance: relevance,
           isNotImported: isNotImportedLibrary,
-          elementData: elementData,
         ),
       );
     }
@@ -1225,9 +1217,8 @@ class SuggestionBuilder {
   /// Add a suggestion for a [typeAlias]. If the alias can only be referenced
   /// using a prefix, then the [prefix] should be provided.
   void suggestTypeAlias(TypeAliasElement typeAlias, {String? prefix}) {
-    var elementData = _getElementCompletionData(typeAlias);
-    if (elementData == null) return;
-    var completion = elementData.completion;
+    var completion = _getCompletionString(typeAlias);
+    if (completion == null) return;
     if (_couldMatch(completion, prefix)) {
       var relevance = _computeTopLevelRelevance(typeAlias,
           elementType: _instantiateTypeAlias(typeAlias));
@@ -1238,7 +1229,6 @@ class SuggestionBuilder {
           prefix: prefix,
           relevance: relevance,
           isNotImported: isNotImportedLibrary,
-          elementData: elementData,
         ),
       );
     }
@@ -1426,22 +1416,21 @@ class SuggestionBuilder {
     required int relevance,
     required bool isNotImported,
     String? prefix,
-    _ElementCompletionData? elementData,
   }) {
-    elementData ??= _getElementCompletionData(element);
-    if (elementData == null) {
+    completion ??= _getCompletionString(element);
+    if (completion == null) {
       return null;
     }
 
     if (prefix != null) {
-      completion ??= elementData.completion;
       completion = '$prefix.$completion';
     }
 
     return _CompletionSuggestionBuilderImpl(
-      element: elementData,
+      orgElement: element,
+      suggestionBuilder: this,
       kind: kind,
-      completionOverride: completion,
+      completion: completion,
       relevance: relevance,
       libraryUriStr: libraryUriStr,
       requiredImports: requiredImports.toList(),
@@ -1450,13 +1439,7 @@ class SuggestionBuilder {
   }
 
   /// The non-caching implementation of [_getElementCompletionData].
-  _ElementCompletionData? _createElementCompletionData(Element element) {
-    // Do not include operators in suggestions.
-    if (element is ExecutableElement && element.isOperator) {
-      return null;
-    }
-
-    var completion = element.displayName;
+  _ElementCompletionData _createElementCompletionData(Element element) {
     var documentation = _getDocumentation(element);
 
     var suggestedElement = protocol.convertElement(
@@ -1504,7 +1487,6 @@ class SuggestionBuilder {
     }
 
     return _ElementCompletionData(
-      completion: completion,
       isDeprecated: element.hasOrInheritsDeprecated,
       declaringType: declaringType,
       returnType: returnType,
@@ -1535,6 +1517,14 @@ class SuggestionBuilder {
     }
   }
 
+  String? _getCompletionString(Element element) {
+    if (element is ExecutableElement && element.isOperator) {
+      return null;
+    }
+
+    return element.displayName;
+  }
+
   /// If the [element] has a documentation comment, return it.
   _ElementDocumentation? _getDocumentation(Element element) {
     var doc = DartUnitHoverComputer.computeDocumentation(
@@ -1557,22 +1547,6 @@ class SuggestionBuilder {
     return null;
   }
 
-  /// Return [_ElementCompletionData] for the [element], or `null` if the
-  /// element cannot be suggested for completion.
-  _ElementCompletionData? _getElementCompletionData(Element element) {
-    _ElementCompletionData? result;
-
-    var hasCompletionData = element.ifTypeOrNull<HasCompletionData>();
-    if (hasCompletionData != null) {
-      result = hasCompletionData.completionData.ifTypeOrNull();
-    }
-
-    result ??= _createElementCompletionData(element);
-
-    hasCompletionData?.completionData = result;
-    return result;
-  }
-
   /// Return the type associated with the [accessor], maybe `null` if an
   /// invalid setter with no parameters at all.
   DartType? _getPropertyAccessorType(PropertyAccessorElement accessor) {
@@ -1588,7 +1562,7 @@ class SuggestionBuilder {
     }
   }
 
-  InterfaceType _instantiateInterfaceElement(InterfaceElement element) {
+  InterfaceType _instantiateInstanceElement(InterfaceElement element) {
     var typeParameters = element.typeParameters;
     var typeArguments = const <DartType>[];
     if (typeParameters.isNotEmpty) {
@@ -1710,7 +1684,8 @@ class ValueCompletionSuggestionBuilder implements CompletionSuggestionBuilder {
 /// The implementation of [CompletionSuggestionBuilder] that is based on
 /// [ElementCompletionData] and location specific information.
 class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
-  final _ElementCompletionData element;
+  final Element orgElement;
+  final SuggestionBuilder suggestionBuilder;
 
   @override
   final CompletionSuggestionKind kind;
@@ -1718,29 +1693,28 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
   @override
   final int relevance;
 
-  final String? completionOverride;
+  @override
+  final String completion;
   final String? libraryUriStr;
   final List<Uri> requiredImports;
   final bool isNotImported;
 
   _CompletionSuggestionBuilderImpl({
-    required this.element,
+    required this.orgElement,
+    required this.suggestionBuilder,
     required this.kind,
-    required this.completionOverride,
+    required this.completion,
     required this.relevance,
     required this.libraryUriStr,
     required this.requiredImports,
     required this.isNotImported,
   });
 
-  @override
-  String get completion => completionOverride ?? element.completion;
-
   /// TODO(scheglov) implement better key for not-yet-imported
   @override
   String get key {
     var key = completion;
-    if (element.element.kind == protocol.ElementKind.CONSTRUCTOR) {
+    if (orgElement.kind == ElementKind.CONSTRUCTOR) {
       key = '$key()';
     }
     return key;
@@ -1751,6 +1725,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 
   @override
   CompletionSuggestion build() {
+    final element = suggestionBuilder._createElementCompletionData(orgElement);
     return DartCompletionSuggestion(
       kind,
       relevance,
@@ -1782,7 +1757,6 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
 /// this element is suggested. For some often used elements, such as classes,
 /// it might be cached, so created only once.
 class _ElementCompletionData {
-  final String completion;
   final bool isDeprecated;
   final String? declaringType;
   final String? returnType;
@@ -1796,7 +1770,6 @@ class _ElementCompletionData {
   final ElementLocation? elementLocation;
 
   _ElementCompletionData({
-    required this.completion,
     required this.isDeprecated,
     required this.declaringType,
     required this.returnType,

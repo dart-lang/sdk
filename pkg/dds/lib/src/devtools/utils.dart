@@ -50,3 +50,7 @@ abstract class DevToolsUtils {
     }
   }
 }
+
+extension SafeAccessList<T> on List<T> {
+  T? safeGet(int index) => index < 0 || index >= length ? null : this[index];
+}

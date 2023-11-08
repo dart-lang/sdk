@@ -1,0 +1,8 @@
+(var a, {var b}) missingType = throw '';
+() emptyType = throw '';
+(int) singleType = throw '';
+(int, {String}) missingName = throw '';
+(int, {}) emptyNamedFields = throw '';
+({int a, String a, double a, bool b, num b}) duplicateNamedFields2 = throw '';
+({int a, String a}) duplicateNamedFields = throw '';
+void method() {}

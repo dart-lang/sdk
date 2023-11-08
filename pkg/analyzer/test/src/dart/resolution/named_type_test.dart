@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class NamedTypeResolutionTest extends PubPackageResolutionTest
-    with TypeNameResolutionTestCases {
+    with NamedTypeResolutionTestCases {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
   }
@@ -125,6 +125,59 @@ NamedType
     rightBracket: >
   element: T@8
   type: T
+''');
+  }
+
+  test_extensionType_generic_toBounds() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T extends num>(List<T> it) {}
+void f(A a) {}
+''');
+
+    final node = findNode.namedType('A a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@extensionType::A
+  type: A<num>
+''');
+  }
+
+  test_extensionType_generic_toBounds_dynamic() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T>(List<T> it) {}
+void f(A a) {}
+''');
+
+    final node = findNode.namedType('A a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@extensionType::A
+  type: A<dynamic>
+''');
+  }
+
+  test_extensionType_generic_typeParameters() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T>(List<T> it) {}
+void f(A<int> a) {}
+''');
+
+    final node = findNode.namedType('A<int>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: self::@extensionType::A
+  type: A<int>
 ''');
   }
 
@@ -1175,9 +1228,9 @@ NamedType
 
 @reflectiveTest
 class NamedTypeResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
-    with TypeNameResolutionTestCases, WithoutNullSafetyMixin {}
+    with NamedTypeResolutionTestCases, WithoutNullSafetyMixin {}
 
-mixin TypeNameResolutionTestCases on PubPackageResolutionTest {
+mixin NamedTypeResolutionTestCases on PubPackageResolutionTest {
   test_class() async {
     await assertNoErrorsInCode(r'''
 class A {}

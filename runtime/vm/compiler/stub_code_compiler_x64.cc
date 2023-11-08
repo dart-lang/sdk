@@ -38,7 +38,7 @@ namespace compiler {
 //
 // WARNING: This might clobber all registers except for [RAX], [THR] and [FP].
 // The caller should simply call LeaveStubFrame() and return.
-void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
+void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // If the object is not remembered we call a leaf-runtime to add it to the
   // remembered set.
   Label done;
@@ -46,7 +46,8 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
   __ BranchIf(NOT_ZERO, &done);
 
   {
-    LeafRuntimeScope rt(assembler, /*frame_size=*/0, preserve_registers);
+    LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                        /*preserve_registers=*/false);
     __ movq(CallingConventions::kArg1Reg, RAX);
     __ movq(CallingConventions::kArg2Reg, THR);
     rt.Call(kEnsureRememberedAndMarkingDeferredRuntimeEntry, 2);
@@ -70,7 +71,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered(bool preserve_registers) {
 // [Thread::tsan_utils_->setjmp_buffer_]).
 static void WithExceptionCatchingTrampoline(Assembler* assembler,
                                             std::function<void()> fun) {
-#if defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#if defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
   const Register kTsanUtilsReg = RAX;
 
   // Reserve space for arguments and align frame before entering C++ world.
@@ -138,17 +139,17 @@ static void WithExceptionCatchingTrampoline(Assembler* assembler,
   // pushed old [Thread::tsan_utils_->setjmp_buffer_].
   __ Bind(&do_native_call);
   __ MoveRegister(kSavedRspReg, RSP);
-#endif  // defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#endif  // defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
 
   fun();
 
-#if defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#if defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
   __ MoveRegister(RSP, kSavedRspReg);
   __ AddImmediate(RSP, Immediate(kJumpBufferSize));
   const Register kTsanUtilsReg2 = kSavedRspReg;
   __ movq(kTsanUtilsReg2, Address(THR, target::Thread::tsan_utils_offset()));
   __ popq(Address(kTsanUtilsReg2, target::TsanUtils::setjmp_buffer_offset()));
-#endif  // defined(USING_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
+#endif  // defined(TARGET_USES_THREAD_SANITIZER) && !defined(USING_SIMULATOR)
 }
 
 // Input parameters:
@@ -1367,6 +1368,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     // RDI: allocation size.
     __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &slow_case);
+    __ CheckAllocationCanary(AllocateArrayABI::kResultReg);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.
@@ -1431,6 +1433,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
     __ addq(RDI, Immediate(target::kObjectAlignment));
     __ cmpq(RDI, RCX);
     __ j(UNSIGNED_LESS, &loop);
+    __ WriteAllocationCanary(RCX);
     __ ret();
 
     // Unable to allocate the array using the fast inline code, just call
@@ -1444,15 +1447,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
   __ pushq(AllocateArrayABI::kLengthReg);         // Array length as Smi.
   __ pushq(AllocateArrayABI::kTypeArgumentsReg);  // Element type.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
-  __ popq(AllocateArrayABI::kTypeArgumentsReg);  // Pop element type argument.
-  __ popq(AllocateArrayABI::kLengthReg);         // Pop array length argument.
-  __ popq(AllocateArrayABI::kResultReg);         // Pop allocated object.
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
+  __ movq(AllocateArrayABI::kResultReg, Address(RSP, 2 * target::kWordSize));
   EnsureIsNewOrRemembered();
 
+  __ popq(AllocateArrayABI::kTypeArgumentsReg);  // Pop element type argument.
+  __ popq(AllocateArrayABI::kLengthReg);         // Pop array length argument.
+  __ popq(AllocateArrayABI::kResultReg);         // Pop allocated object.
   __ LeaveStubFrame();
   __ ret();
 }
@@ -1683,6 +1687,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // R10: number of context variables.
   __ cmpq(R13, Address(THR, target::Thread::end_offset()));
   __ j(ABOVE_EQUAL, slow_case);
+  __ CheckAllocationCanary(RAX);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -1788,7 +1793,7 @@ void StubCodeCompiler::GenerateAllocateContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // RAX: new object
   // Restore the frame pointer.
@@ -1861,7 +1866,7 @@ void StubCodeCompiler::GenerateCloneContextStub() {
   // Write-barrier elimination might be enabled for this context (depending on
   // the size). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // RAX: new object
   // Restore the frame pointer.
@@ -1898,10 +1903,65 @@ COMPILE_ASSERT(kWriteBarrierObjectReg == RDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == RAX);
 COMPILE_ASSERT(kWriteBarrierSlotReg == R13);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
-  Label add_to_mark_stack, remember_card, lost_race;
-  __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
-  __ j(ZERO, &add_to_mark_stack);
+  Label skip_marking;
+  __ movq(TMP, FieldAddress(RAX, target::Object::tags_offset()));
+  __ andq(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
+  __ testq(TMP, Immediate(target::UntaggedObject::kIncrementalBarrierMask));
+  __ j(ZERO, &skip_marking);
 
+  {
+    // Atomically clear kOldAndNotMarkedBit.
+    Label retry, done;
+    __ pushq(RAX);      // Spill.
+    __ pushq(RCX);      // Spill.
+    __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
+    __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
+
+    __ Bind(&retry);
+    __ movq(RCX, RAX);
+    __ testq(RCX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ j(ZERO, &done);  // Marked by another thread.
+
+    __ andq(RCX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+    // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
+    // On failure, RAX is updated with the current value.
+    __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
+    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+
+    __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
+    __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
+    __ movq(Address(RAX, RCX, TIMES_8,
+                    target::MarkingStackBlock::pointers_offset()),
+            TMP);
+    __ incq(RCX);
+    __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
+    __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
+    __ j(NOT_EQUAL, &done);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ movq(CallingConventions::kArg1Reg, THR);
+      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
+    }
+
+    __ Bind(&done);
+    __ popq(RCX);  // Unspill.
+    __ popq(RAX);  // Unspill.
+  }
+
+  Label add_to_remembered_set, remember_card;
+  __ Bind(&skip_marking);
+  __ movq(TMP, FieldAddress(RDX, target::Object::tags_offset()));
+  __ shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
+  __ andq(TMP, FieldAddress(RAX, target::Object::tags_offset()));
+  __ testq(TMP, Immediate(target::UntaggedObject::kGenerationalBarrierMask));
+  __ j(NOT_ZERO, &add_to_remembered_set, Assembler::kNearJump);
+  __ ret();
+
+  __ Bind(&add_to_remembered_set);
   if (cards) {
     __ movl(TMP, FieldAddress(RDX, target::Object::tags_offset()));
     __ testl(TMP, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
@@ -1916,102 +1976,56 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ Bind(&ok);
 #endif
   }
-
-  __ pushq(RAX);  // Spill.
-  __ pushq(RCX);  // Spill.
-
-  // Atomically clear kOldAndNotRemembered.
-  Label retry;
-  __ movq(RAX, FieldAddress(RDX, target::Object::tags_offset()));
-  __ Bind(&retry);
-  __ movq(RCX, RAX);
-  __ testq(RCX,
-           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  __ j(ZERO, &lost_race);  // Remembered by another thread.
-  __ andq(RCX,
-          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
-  // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
-  // On failure, RAX is updated with the current value.
-  __ LockCmpxchgq(FieldAddress(RDX, target::Object::tags_offset()), RCX);
-  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
-
-  // Load the StoreBuffer block out of the thread. Then load top_ out of the
-  // StoreBufferBlock and add the address to the pointers_.
-  // RDX: Address being stored
-  __ movq(RAX, Address(THR, target::Thread::store_buffer_block_offset()));
-  __ movl(RCX, Address(RAX, target::StoreBufferBlock::top_offset()));
-  __ movq(
-      Address(RAX, RCX, TIMES_8, target::StoreBufferBlock::pointers_offset()),
-      RDX);
-
-  // Increment top_ and check for overflow.
-  // RCX: top_
-  // RAX: StoreBufferBlock
-  Label overflow;
-  __ incq(RCX);
-  __ movl(Address(RAX, target::StoreBufferBlock::top_offset()), RCX);
-  __ cmpl(RCX, Immediate(target::StoreBufferBlock::kSize));
-  __ popq(RCX);  // Unspill.
-  __ popq(RAX);  // Unspill.
-  __ j(EQUAL, &overflow, Assembler::kNearJump);
-  __ ret();
-
-  // Handle overflow: Call the runtime leaf function.
-  __ Bind(&overflow);
   {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/0,
-                        /*preserve_registers=*/true);
-    __ movq(CallingConventions::kArg1Reg, THR);
-    rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+    // Atomically clear kOldAndNotRemembered.
+    Label retry, done;
+    __ pushq(RAX);  // Spill.
+    __ pushq(RCX);  // Spill.
+    __ movq(RAX, FieldAddress(RDX, target::Object::tags_offset()));
+
+    __ Bind(&retry);
+    __ movq(RCX, RAX);
+    __ testq(RCX,
+             Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+    __ j(ZERO, &done);  // Remembered by another thread.
+    __ andq(RCX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
+    // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
+    // On failure, RAX is updated with the current value.
+    __ LockCmpxchgq(FieldAddress(RDX, target::Object::tags_offset()), RCX);
+    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+
+    // Load the StoreBuffer block out of the thread. Then load top_ out of the
+    // StoreBufferBlock and add the address to the pointers_.
+    // RDX: Address being stored
+    __ movq(RAX, Address(THR, target::Thread::store_buffer_block_offset()));
+    __ movl(RCX, Address(RAX, target::StoreBufferBlock::top_offset()));
+    __ movq(
+        Address(RAX, RCX, TIMES_8, target::StoreBufferBlock::pointers_offset()),
+        RDX);
+
+    // Increment top_ and check for overflow.
+    // RCX: top_
+    // RAX: StoreBufferBlock
+    __ incq(RCX);
+    __ movl(Address(RAX, target::StoreBufferBlock::top_offset()), RCX);
+    __ cmpl(RCX, Immediate(target::StoreBufferBlock::kSize));
+    __ j(NOT_EQUAL, &done);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ movq(CallingConventions::kArg1Reg, THR);
+      rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+    }
+
+    __ Bind(&done);
+    __ popq(RCX);  // Unspill.
+    __ popq(RAX);  // Unspill.
+    __ ret();
   }
-  __ ret();
 
-  __ Bind(&add_to_mark_stack);
-  __ pushq(RAX);      // Spill.
-  __ pushq(RCX);      // Spill.
-  __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
-
-  // Atomically clear kOldAndNotMarkedBit.
-  Label retry_marking, marking_overflow;
-  __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
-  __ Bind(&retry_marking);
-  __ movq(RCX, RAX);
-  __ testq(RCX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
-  __ j(ZERO, &lost_race);  // Marked by another thread.
-  __ andq(RCX, Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
-  // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
-  // On failure, RAX is updated with the current value.
-  __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
-  __ j(NOT_EQUAL, &retry_marking, Assembler::kNearJump);
-
-  __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
-  __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
-  __ movq(
-      Address(RAX, RCX, TIMES_8, target::MarkingStackBlock::pointers_offset()),
-      TMP);
-  __ incq(RCX);
-  __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
-  __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
-  __ popq(RCX);  // Unspill.
-  __ popq(RAX);  // Unspill.
-  __ j(EQUAL, &marking_overflow, Assembler::kNearJump);
-  __ ret();
-
-  __ Bind(&marking_overflow);
-  {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/0,
-                        /*preserve_registers=*/true);
-    __ movq(CallingConventions::kArg1Reg, THR);
-    rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-  }
-  __ ret();
-
-  __ Bind(&lost_race);
-  __ popq(RCX);  // Unspill.
-  __ popq(RAX);  // Unspill.
-  __ ret();
 
   if (cards) {
     Label remember_card_slow;
@@ -2085,6 +2099,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       // Check if the allocation fits into the remaining space.
       __ cmpq(kNewTopReg, Address(THR, target::Thread::end_offset()));
       __ j(ABOVE_EQUAL, &slow_case);
+      __ CheckAllocationCanary(AllocateObjectABI::kResultReg);
 
       __ movq(Address(THR, target::Thread::top_offset()), kNewTopReg);
     }  // kInstanceSizeReg = RSI
@@ -2122,6 +2137,8 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       __ cmpq(kNextFieldReg, kNewTopReg);
       __ j(UNSIGNED_LESS, &loop);
     }  // kNextFieldReg = RDI, kNullReg = R10
+
+    __ WriteAllocationCanary(kNewTopReg);  // Fix overshoot.
 
     if (is_cls_parameterized) {
       Label not_parameterized_case;
@@ -2204,7 +2221,7 @@ void StubCodeCompiler::GenerateAllocateObjectSlowStub() {
 
   // Write-barrier elimination is enabled for [cls] and we therefore need to
   // ensure that the object is in new-space or has remembered bit set.
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
 
   // AllocateObjectABI::kResultReg: new object
   // Restore the frame pointer.
@@ -3027,7 +3044,11 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 //   - kSubtypeTestCacheResultReg: the cached result, or null if not found.
 void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
                                                      int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
+  ASSERT(n >= 1);
+  ASSERT(n <= SubtypeTestCache::kMaxInputs);
+  // If we need the parent function type arguments for a closure, we also need
+  // the delayed type arguments, so this case will never happen.
+  ASSERT(n != 5);
   RegisterSet saved_registers;
 
   // Until we have the result, we use the result register to store the null
@@ -3600,6 +3621,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     /* RDI: allocation size. */
     __ cmpq(RCX, Address(THR, target::Thread::end_offset()));
     __ j(ABOVE_EQUAL, &call_runtime);
+    __ CheckAllocationCanary(RAX);
 
     /* Successfully allocated the object(s), now update top to point to */
     /* next object start and initialize the object. */
@@ -3655,6 +3677,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
     __ cmpq(RDI, RCX);
     __ j(UNSIGNED_LESS, &loop, Assembler::kNearJump);
 
+    __ WriteAllocationCanary(RCX);  // Fix overshoot.
     __ ret();
 
     __ Bind(&call_runtime);

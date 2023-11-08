@@ -27,6 +27,14 @@ const String unsoundNullSafetyError =
     'Error: the flag --no-sound-null-safety is not supported in Dart 3.';
 const String unsoundNullSafetyWarning =
     'Warning: the flag --no-sound-null-safety is deprecated and pending removal.';
+String usingTargetOSMessageForPlatform(String targetOS) =>
+    'Specializing Platform getters for target OS $targetOS.';
+final String usingTargetOSMessage =
+    usingTargetOSMessageForPlatform(Platform.operatingSystem);
+String crossOSNotAllowedError(String command) =>
+    "'dart compile $command' does not support cross-OS compilation.";
+final String hostOSMessage = 'Host OS: ${Platform.operatingSystem}';
+String targetOSMessage(String targetOS) => 'Target OS: $targetOS';
 
 void defineCompileTests() {
   final isRunningOnIA32 = Platform.version.contains('ia32');
@@ -251,6 +259,7 @@ void defineCompileTests() {
       '-v',
       inFile,
     ]);
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
     final file = File(outFile);
@@ -272,10 +281,13 @@ void defineCompileTests() {
       [
         'compile',
         'exe',
+        '-v',
         inFile,
       ],
     );
 
+    // Executables should be (host) OS-specific by default.
+    expect(result.stdout, contains(usingTargetOSMessage));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -337,6 +349,7 @@ void defineCompileTests() {
       [
         'compile',
         'exe',
+        '-v',
         '--define',
         'life=42',
         '-o',
@@ -345,6 +358,7 @@ void defineCompileTests() {
       ],
     );
 
+    expect(result.stdout, contains(usingTargetOSMessage));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -360,6 +374,33 @@ void defineCompileTests() {
     expect(result.stdout, contains('42'));
   }, skip: isRunningOnIA32);
 
+  test('Compile executable cannot compile cross-OS', () async {
+    final p = project(
+        mainSrc: 'void main() {print(const String.fromEnvironment("cross"));}');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
+    final targetOS = Platform.isLinux ? 'macos' : 'linux';
+
+    var result = await p.run(
+      [
+        'compile',
+        'exe',
+        '-v',
+        '--target-os',
+        targetOS,
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
+    expect(result.stderr, contains(crossOSNotAllowedError('exe')));
+    expect(result.stderr, contains(hostOSMessage));
+    expect(result.stderr, contains(targetOSMessage(targetOS)));
+    expect(result.exitCode, 128);
+  }, skip: isRunningOnIA32);
+
   test('Compile and run aot snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love AOT"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
@@ -369,12 +410,15 @@ void defineCompileTests() {
       [
         'compile',
         'aot-snapshot',
+        '-v',
         '-o',
         'main.aot',
         inFile,
       ],
     );
 
+    // AOT snapshots should not be OS-specific by default.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -389,10 +433,79 @@ void defineCompileTests() {
     expect(result.stdout, contains('I love AOT'));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
-  },
-      skip: isRunningOnIA32 ||
-          // Allow on MacOS after dart-lang/sdk#51707 is fixed.
-          Platform.isMacOS);
+  }, skip: isRunningOnIA32);
+
+  test('Compile aot snapshot can compile to host platform', () async {
+    final targetOS = Platform.operatingSystem;
+    final p = project(mainSrc: 'void main() { print("I love $targetOS"); }');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'main.aot'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'aot-snapshot',
+        '-v',
+        '--target-os',
+        targetOS,
+        '-o',
+        'main.aot',
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(usingTargetOSMessageForPlatform(targetOS)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+
+    final Directory binDir = File(Platform.resolvedExecutable).parent;
+    result = Process.runSync(
+      path.join(binDir.path, 'dartaotruntime'),
+      [outFile],
+    );
+
+    expect(result.stdout, contains('I love $targetOS'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  }, skip: isRunningOnIA32);
+
+  test('Compile aot snapshot can compile cross platform', () async {
+    final targetOS = Platform.isLinux ? 'windows' : 'linux';
+    final p = project(mainSrc: 'void main() { print("I love $targetOS"); }');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'main.aot'));
+
+    var result = await p.run(
+      [
+        'compile',
+        'aot-snapshot',
+        '-v',
+        '--target-os',
+        targetOS,
+        '-o',
+        'main.aot',
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains(usingTargetOSMessageForPlatform(targetOS)));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+
+    final Directory binDir = File(Platform.resolvedExecutable).parent;
+    result = Process.runSync(
+      path.join(binDir.path, 'dartaotruntime'),
+      [outFile],
+    );
+
+    expect(result.stdout, contains('I love $targetOS'));
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+  }, skip: isRunningOnIA32);
 
   test('Compile and run kernel snapshot', () async {
     final p = project(mainSrc: 'void main() { print("I love kernel"); }');
@@ -401,6 +514,7 @@ void defineCompileTests() {
       [
         'compile',
         'kernel',
+        '-v',
         '-o',
         outFile,
         p.relativeFilePath,
@@ -408,6 +522,7 @@ void defineCompileTests() {
     );
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
 
@@ -437,6 +552,7 @@ void defineCompileTests() {
       '-v',
       inFile,
     ]);
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     final file = File(outFile);
@@ -601,6 +717,8 @@ void main() {}
       ],
     );
 
+    // Only printed when -v/--verbose is used, not --verbosity.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -629,6 +747,8 @@ void main() {
       ],
     );
 
+    // Only printed when -v/--verbose is used, not --verbosity.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -795,6 +915,8 @@ void main() {}
       ],
     );
 
+    // Only printed when -v/--verbose is used, not --verbosity.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -823,6 +945,8 @@ void main() {
       ],
     );
 
+    // Only printed when -v/--verbose is used, not --verbosity.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
@@ -849,11 +973,36 @@ void main() {
       ],
     );
 
+    // Only printed when -v/--verbose is used, not --verbosity.
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
     expect(result.stdout, contains('Warning: '));
     expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
+
+  test('Compile kernel with invalid output directory', () async {
+    final p = project(mainSrc: '''void main() {}''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+
+    var result = await p.run(
+      [
+        'compile',
+        'kernel',
+        '--verbosity=warning',
+        '-o',
+        '/somewhere/nowhere/test.dill',
+        inFile,
+      ],
+    );
+    expect(
+      result.stderr,
+      predicate(
+        (dynamic o) => '$o'.contains('Unable to open file'),
+      ),
+    );
+    expect(result.exitCode, 255);
+  });
 
   test('Compile kernel with invalid trailing argument', () async {
     final p = project(mainSrc: '''void main() {}''');
@@ -893,12 +1042,14 @@ void main() {
       [
         'compile',
         'kernel',
+        '-v',
         '-o',
         outFile,
         inFile,
       ],
     );
 
+    expect(result.stdout, isNot(contains(usingTargetOSMessage)));
     expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
@@ -1271,9 +1422,6 @@ void main() {
       // Now perform the same basic compile and run test with the signed
       // dartaotruntime.
       await basicCompileTest();
-    },
-        skip: isRunningOnIA32 ||
-            // Allow on MacOS after dart-lang/sdk#51707 is fixed.
-            Platform.isMacOS);
+    }, skip: isRunningOnIA32);
   }
 }

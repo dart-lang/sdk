@@ -40,7 +40,7 @@ class Class5 extends core::Object {
 }
 extension Extension1<V extends core::Object? = dynamic> on self::Class2<V%> {
   method method1 = self::Extension1|method1;
-  tearoff method1 = self::Extension1|get#method1;
+  method tearoff method1 = self::Extension1|get#method1;
 }
 static extension-member method Extension1|method1<V extends core::Object? = dynamic, M extends core::Object? = dynamic>(lowered final self::Class2<self::Extension1|method1::V%> #this, (self::Extension1|method1::V%) → self::Class2<self::Extension1|method1::M%>? f) → self::Class3<self::Extension1|method1::M%, self::Extension1|method1::V%> {
   throw "";

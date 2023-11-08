@@ -6,7 +6,7 @@ import '../scanner/token.dart' show Token;
 
 import 'forwarding_listener.dart' show ForwardingListener;
 
-class ClassHeaderRecoveryListener extends ForwardingListener {
+class DeclarationHeaderRecoveryListener extends ForwardingListener {
   Token? extendsKeyword;
   Token? implementsKeyword;
   Token? withKeyword;

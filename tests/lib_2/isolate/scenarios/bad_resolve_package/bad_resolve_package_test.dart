@@ -36,7 +36,13 @@ testBadResolvePackage(port) async {
     var packageConfigStr = Platform.packageConfig;
     var packageConfig = await Isolate.packageConfig;
     var badPackageUri = Uri.parse("package:asdf/qwerty.dart");
+    if (packageConfig != Isolate.packageConfigSync) {
+      throw "Isolate.packageConfig != Isolate.packageConfigSync";
+    }
     var resolvedPkg = await Isolate.resolvePackageUri(badPackageUri);
+    if (resolvedPkg != Isolate.resolvePackageUriSync(badPackageUri)) {
+      throw "Isolate.resolvePackageUri != Isolate.resolvePackageUriSync";
+    }
     print("Spawned isolate's package config flag: $packageConfigStr");
     print("Spawned isolate's loaded package config: $packageConfig");
     print("Spawned isolate's resolved package path: $resolvedPkg");

@@ -14,6 +14,7 @@ import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
@@ -40,6 +41,7 @@ class LibraryContext {
   final LibraryContextTestData? testData;
   final PerformanceLog logger;
   final ByteStore byteStore;
+  final InfoDeclarationStore infoDeclarationStore;
   final FileSystemState fileSystemState;
   final MacroKernelBuilder? macroKernelBuilder;
   final macro.MultiMacroExecutor? macroExecutor;
@@ -55,6 +57,7 @@ class LibraryContext {
     required AnalysisSessionImpl analysisSession,
     required this.logger,
     required this.byteStore,
+    required this.infoDeclarationStore,
     required this.fileSystemState,
     required AnalysisOptionsImpl analysisOptions,
     required DeclaredVariables declaredVariables,
@@ -81,6 +84,7 @@ class LibraryContext {
             elementFactory: elementFactory,
             resolutionBytes: bundle.resolutionBytes,
             unitsInformativeBytes: {},
+            infoDeclarationStore: infoDeclarationStore,
           ),
         );
       }
@@ -202,13 +206,14 @@ class LibraryContext {
         // TODO(scheglov) Take / clear parsed units in files.
         bytesGet += linkedBytes.length;
         librariesLoaded += cycle.libraries.length;
-        elementFactory.addBundle(
-          BundleReader(
-            elementFactory: elementFactory,
-            unitsInformativeBytes: unitsInformativeBytes,
-            resolutionBytes: linkedBytes,
-          ),
+        final bundleReader = BundleReader(
+          elementFactory: elementFactory,
+          unitsInformativeBytes: unitsInformativeBytes,
+          resolutionBytes: linkedBytes,
+          infoDeclarationStore: infoDeclarationStore,
         );
+        elementFactory.addBundle(bundleReader);
+        _addMacroAugmentations(cycle, bundleReader);
       }
 
       final macroKernelBuilder = this.macroKernelBuilder;
@@ -294,6 +299,24 @@ class LibraryContext {
     return keySet;
   }
 
+  /// Create files with macro generated augmentation libraries.
+  void _addMacroAugmentations(LibraryCycle cycle, BundleReader bundleReader) {
+    for (final libraryReader in bundleReader.libraryMap.values) {
+      final macroGeneratedCode = libraryReader.macroGeneratedCode;
+      if (macroGeneratedCode != null) {
+        for (final libraryKind in cycle.libraries) {
+          if (libraryKind.file.uri == libraryReader.uri) {
+            libraryKind.addMacroAugmentation(
+              macroGeneratedCode,
+              addLibraryAugmentDirective: false,
+              partialIndex: null,
+            );
+          }
+        }
+      }
+    }
+  }
+
   /// Ensure that type provider is created.
   void _createElementFactoryTypeProvider() {
     if (!analysisContext.hasTypeProvider) {
@@ -356,15 +379,16 @@ class LibraryCycleTestData {
 }
 
 class _MacroFileEntry implements MacroFileEntry {
-  final FileState fileState;
-
-  _MacroFileEntry(this.fileState);
+  @override
+  final String content;
 
   @override
-  String get content => fileState.content;
+  final bool exists;
 
-  @override
-  bool get exists => fileState.exists;
+  _MacroFileEntry({
+    required this.content,
+    required this.exists,
+  });
 }
 
 class _MacroFileSystem implements MacroFileSystem {
@@ -377,7 +401,18 @@ class _MacroFileSystem implements MacroFileSystem {
 
   @override
   MacroFileEntry getFile(String path) {
-    var fileState = fileSystemState.getFileForPath(path);
-    return _MacroFileEntry(fileState);
+    final fileState = fileSystemState.getExistingFromPath(path);
+    if (fileState != null) {
+      return _MacroFileEntry(
+        content: fileState.content,
+        exists: fileState.exists,
+      );
+    }
+
+    final fileContent = fileSystemState.fileContentStrategy.get(path);
+    return _MacroFileEntry(
+      content: fileContent.content,
+      exists: fileContent.exists,
+    );
   }
 }

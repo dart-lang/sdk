@@ -4,6 +4,11 @@
 
 part of dart.collection;
 
+/// Helper interface to hide [EfficientLengthIterable] from the public
+/// declaration of [Queue].
+abstract class _QueueIterable<E>
+    implements EfficientLengthIterable<E>, HideEfficientLengthIterable<E> {}
+
 /// A [Queue] is a collection that can be manipulated at both ends. One
 /// can iterate over the elements of a queue through [forEach] or with
 /// an [Iterator].
@@ -32,7 +37,7 @@ part of dart.collection;
 /// queue.removeLast();
 /// print(queue); // {1, 2, 3}
 /// ```
-abstract interface class Queue<E> implements EfficientLengthIterable<E> {
+abstract interface class Queue<E> implements Iterable<E>, _QueueIterable<E> {
   /// Creates a queue.
   factory Queue() = ListQueue<E>;
 

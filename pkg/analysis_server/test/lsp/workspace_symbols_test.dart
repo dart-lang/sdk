@@ -59,9 +59,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dependencies_excluded() async {
     newFile(mainFilePath, 'class LocalClass12345 {}');
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       {
         'includeDependenciesInWorkspaceSymbols': false,
       },
@@ -74,9 +72,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dependencies_included() async {
     newFile(mainFilePath, 'class LocalClass12345 {}');
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       {
         'includeDependenciesInWorkspaceSymbols': true,
       },
@@ -110,6 +106,38 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     expect(namedExtensions.containerName, isNull);
 
     // Unnamed extensions are not returned in Workspace Symbols.
+  }
+
+  Future<void> test_extensionType() async {
+    const content = r'''
+extension type MyExtensionType(int it) {}
+''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final symbols = await getWorkspaceSymbols('MyExt');
+
+    final namedExtensions =
+        symbols.firstWhere((s) => s.name == 'MyExtensionType');
+    expect(namedExtensions.kind, equals(SymbolKind.Class));
+    expect(namedExtensions.containerName, isNull);
+  }
+
+  Future<void> test_extensionType_method() async {
+    const content = r'''
+extension type E(int it) {
+  void foo() {}
+}
+''';
+    newFile(mainFilePath, withoutMarkers(content));
+    await initialize();
+
+    final symbols = await getWorkspaceSymbols('foo');
+
+    final namedExtensions =
+        symbols.firstWhere((s) => s.name == 'foo()' && s.containerName == 'E');
+    expect(namedExtensions.kind, equals(SymbolKind.Method));
+    expect(namedExtensions.containerName, 'E');
   }
 
   Future<void> test_fullMatch() async {
@@ -199,7 +227,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     // Initialize with both projects as roots.
     await initialize(workspaceFolders: [
       projectFolderUri,
-      Uri.file(convertPath('/home/otherProject')),
+      pathContext.toUri(convertPath('/home/otherProject')),
     ]);
 
     // Search for something in the SDK that's referenced by both projects and

@@ -12,6 +12,7 @@ main() {
     defineReflectiveTests(ConflictingStaticAndInstanceClassTest);
     defineReflectiveTests(ConflictingStaticAndInstanceEnumTest);
     defineReflectiveTests(ConflictingStaticAndInstanceMixinTest);
+    defineReflectiveTests(ConflictingStaticAndInstanceExtensionTypeTest);
   });
 }
 
@@ -739,6 +740,221 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 27, 3),
+    ]);
+  }
+}
+
+@reflectiveTest
+class ConflictingStaticAndInstanceExtensionTypeTest
+    extends PubPackageResolutionTest {
+  test_inExtensionType_getter_getter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  static int get foo => 0;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 44, 3),
+    ]);
+  }
+
+  test_inExtensionType_getter_method() async {
+    await assertErrorsInCode(r'''
+extension type A(int t) {
+  static int get foo => 0;
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 43, 3),
+    ]);
+  }
+
+  test_inExtensionType_getter_setter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  static int get foo => 0;
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 44, 3),
+    ]);
+  }
+
+  test_inExtensionType_method_getter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  static void foo() {}
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 41, 3),
+    ]);
+  }
+
+  test_inExtensionType_method_method() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  static void foo() {}
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 41, 3),
+    ]);
+  }
+
+  test_inExtensionType_method_setter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  static void foo() {}
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 41, 3),
+    ]);
+  }
+
+  test_inExtensionType_setter_getter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  static set foo(_) {}
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 40, 3),
+    ]);
+  }
+
+  test_inExtensionType_setter_method() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  static set foo(_) {}
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 40, 3),
+    ]);
+  }
+
+  test_inExtensionType_setter_setter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  static set foo(_) {}
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 40, 3),
+    ]);
+  }
+
+  test_inInterface_getter_getter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+extension type B(int it) implements A {
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 107, 3),
+    ]);
+  }
+
+  test_inInterface_getter_method() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+extension type B(int it) implements A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 104, 3),
+    ]);
+  }
+
+  test_inInterface_getter_setter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  set foo(_) {}
+}
+
+extension type B(int it) implements A {
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 103, 3),
+    ]);
+  }
+
+  test_inInterface_method_getter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+extension type B(int it) implements A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 104, 3),
+    ]);
+  }
+
+  test_inInterface_method_method() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  void foo() {}
+}
+
+extension type B(int it) implements A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 100, 3),
+    ]);
+  }
+
+  test_inInterface_method_setter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  set foo(_) {}
+}
+
+extension type B(int it) implements A {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 100, 3),
+    ]);
+  }
+
+  test_inInterface_setter_method() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  void foo() {}
+}
+
+extension type B(int it) implements A {
+  static set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 99, 3),
+    ]);
+  }
+
+  test_inInterface_setter_setter() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  set foo(_) {}
+}
+
+extension type B(int it) implements A {
+  static set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, 99, 3),
     ]);
   }
 }

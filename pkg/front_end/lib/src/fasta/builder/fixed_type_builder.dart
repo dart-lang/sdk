@@ -8,18 +8,17 @@ import 'package:kernel/class_hierarchy.dart';
 import '../problems.dart';
 import '../source/source_library_builder.dart';
 import 'library_builder.dart';
-import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'type_builder.dart';
 
-class FixedTypeBuilder extends TypeBuilder {
+class FixedTypeBuilderImpl extends FixedTypeBuilder {
   final DartType type;
   @override
   final Uri? fileUri;
   @override
   final int? charOffset;
 
-  const FixedTypeBuilder(this.type, this.fileUri, this.charOffset);
+  const FixedTypeBuilderImpl(this.type, this.fileUri, this.charOffset);
 
   @override
   TypeBuilder clone(

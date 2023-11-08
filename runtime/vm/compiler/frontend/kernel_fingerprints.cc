@@ -15,14 +15,9 @@ class KernelFingerprintHelper : public KernelReaderHelper {
  public:
   KernelFingerprintHelper(Zone* zone,
                           TranslationHelper* translation_helper,
-                          const Script& script,
-                          const ExternalTypedData& data,
+                          const TypedDataView& data,
                           intptr_t data_program_offset)
-      : KernelReaderHelper(zone,
-                           translation_helper,
-                           script,
-                           data,
-                           data_program_offset),
+      : KernelReaderHelper(zone, translation_helper, data, data_program_offset),
         hash_(0) {}
 
   virtual ~KernelFingerprintHelper() {}
@@ -201,6 +196,7 @@ void KernelFingerprintHelper::CalculateInitializerFingerprint() {
     case kInvalidInitializer:
       return;
     case kFieldInitializer:
+      ReadPosition();  // read position.
       BuildHash(H.DartFieldName(ReadCanonicalNameReference()).Hash());
       CalculateExpressionFingerprint();  // read value.
       return;
@@ -273,12 +269,12 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       }
       break;
     }
-    case kInlineType: {
-      // We skip the inline type and only use the representation type.
+    case kExtensionType: {
+      // We skip the extension type and only use the type erasure.
       ReadNullability();
       SkipCanonicalNameReference();    // read index for canonical name.
       SkipListOfDartTypes();           // read type arguments
-      CalculateDartTypeFingerprint();  // read instantiated representation type.
+      CalculateDartTypeFingerprint();  // read type erasure.
       break;
     }
     case kFutureOrType:
@@ -425,9 +421,9 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateGetterNameFingerprint();  // read interface_target_reference.
       return;
     case kFunctionTearOff:
-      ReadPosition();                    // read position.
-      CalculateExpressionFingerprint();  // read receiver.
-      return;
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       ReadByte();                                // read kind.
       ReadPosition();                            // read position.
@@ -571,9 +567,11 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateDartTypeFingerprint();    // read type.
       return;
     case kTypeLiteral:
+      ReadPosition();                  // read position.
       CalculateDartTypeFingerprint();  // read type.
       return;
     case kThisExpression:
+      ReadPosition();  // read position.
       return;
     case kRethrow:
       ReadPosition();  // read position.
@@ -639,20 +637,26 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       CalculateListOfDartTypesFingerprint();  // read type arguments.
       return;
     case kBigIntLiteral:
+      ReadPosition();                         // read position.
       CalculateStringReferenceFingerprint();  // read string reference.
       return;
     case kStringLiteral:
+      ReadPosition();                         // read position.
       CalculateStringReferenceFingerprint();  // read string reference.
       return;
     case kSpecializedIntLiteral:
+      ReadPosition();  // read position.
       return;
     case kNegativeIntLiteral:
+      ReadPosition();         // read position.
       BuildHash(ReadUInt());  // read value.
       return;
     case kPositiveIntLiteral:
+      ReadPosition();         // read position.
       BuildHash(ReadUInt());  // read value.
       return;
     case kDoubleLiteral: {
+      ReadPosition();               // read position.
       double value = ReadDouble();  // read value.
       uint64_t data = bit_cast<uint64_t>(value);
       BuildHash(static_cast<uint32_t>(data >> 32));
@@ -660,10 +664,13 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     }
     case kTrueLiteral:
+      ReadPosition();  // read position.
       return;
     case kFalseLiteral:
+      ReadPosition();  // read position.
       return;
     case kNullLiteral:
+      ReadPosition();  // read position.
       return;
     case kConstantExpression:
       ReadPosition();
@@ -678,7 +685,8 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       return;
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
-      ReadUInt();  // skip library index
+      ReadPosition();  // read file offset.
+      ReadUInt();      // skip library index
       return;
     case kAwaitExpression:
       ReadPosition();                    // read position.
@@ -739,6 +747,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       }
       return;
     case kLabeledStatement:
+      ReadPosition();                   // read position.
       CalculateStatementFingerprint();  // read body.
       return;
     case kBreakStatement:
@@ -766,14 +775,6 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateStatementFingerprint();          // read body.
       return;
     }
-    case kForInStatement:
-    case kAsyncForInStatement:
-      ReadPosition();                             // read position.
-      ReadPosition();                             // read body position.
-      CalculateVariableDeclarationFingerprint();  // read variable.
-      CalculateExpressionFingerprint();           // read iterable.
-      CalculateStatementFingerprint();            // read body.
-      return;
     case kSwitchStatement: {
       ReadPosition();                          // read position.
       ReadBool();                              // read exhaustive flag.
@@ -781,13 +782,14 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateOptionalDartTypeFingerprint();  // read expression type
       int case_count = ReadListLength();       // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
+        ReadPosition();                           // read file offset.
         int expression_count = ReadListLength();  // read number of expressions.
         for (intptr_t j = 0; j < expression_count; ++j) {
           ReadPosition();                    // read jth position.
           CalculateExpressionFingerprint();  // read jth expression.
         }
         BuildHash(static_cast<uint32_t>(ReadBool()));  // read is_default.
-        CalculateStatementFingerprint();  // read body.
+        CalculateStatementFingerprint();               // read body.
       }
       return;
     }
@@ -811,6 +813,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       return;
     }
     case kTryCatch: {
+      ReadPosition();                           // read position.
       CalculateStatementFingerprint();          // read body.
       BuildHash(ReadByte());                    // read flags
       intptr_t catch_count = ReadListLength();  // read number of catches.
@@ -832,6 +835,7 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       return;
     }
     case kTryFinally:
+      ReadPosition();                   // read position.
       CalculateStatementFingerprint();  // read body.
       CalculateStatementFingerprint();  // read finalizer.
       return;
@@ -849,6 +853,8 @@ void KernelFingerprintHelper::CalculateStatementFingerprint() {
       CalculateVariableDeclarationFingerprint();  // read variable.
       CalculateFunctionNodeFingerprint();         // read function node.
       return;
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:
@@ -990,15 +996,15 @@ uint32_t KernelSourceFingerprintHelper::CalculateFieldFingerprint(
     const Field& field) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, field.Script());
+  const auto& info = KernelProgramInfo::Handle(zone, field.KernelProgramInfo());
 
   TranslationHelper translation_helper(thread);
-  translation_helper.InitFromScript(script);
+  translation_helper.InitFromKernelProgramInfo(info);
 
   KernelFingerprintHelper helper(
-      zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, field.KernelData()),
-      field.KernelDataProgramOffset());
+      zone, &translation_helper,
+      TypedDataView::Handle(zone, field.KernelLibrary()),
+      field.KernelLibraryOffset());
   helper.SetOffset(field.kernel_offset());
   return helper.CalculateFieldFingerprint();
 }
@@ -1007,15 +1013,15 @@ uint32_t KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
     const Function& func) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, func.script());
+  const auto& info = KernelProgramInfo::Handle(zone, func.KernelProgramInfo());
 
   TranslationHelper translation_helper(thread);
-  translation_helper.InitFromScript(script);
+  translation_helper.InitFromKernelProgramInfo(info);
 
   KernelFingerprintHelper helper(
-      zone, &translation_helper, script,
-      ExternalTypedData::Handle(zone, func.KernelData()),
-      func.KernelDataProgramOffset());
+      zone, &translation_helper,
+      TypedDataView::Handle(zone, func.KernelLibrary()),
+      func.KernelLibraryOffset());
   helper.SetOffset(func.kernel_offset());
   return helper.CalculateFunctionFingerprint();
 }

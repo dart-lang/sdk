@@ -257,7 +257,7 @@ class _ExceptionHandlerStack {
   /// CFG block.
   ///
   /// Call this when generating a new CFG block.
-  void generateTryBlocks(w.Instructions b) {
+  void generateTryBlocks(w.InstructionsBuilder b) {
     final handlersToCover = _handlers.length - coveredHandlers;
 
     if (handlersToCover == 0) {
@@ -535,15 +535,15 @@ class AsyncCodeGenerator extends CodeGenerator {
 
   @override
   void generate() {
-    closures = Closures(this);
-    setupParametersAndContexts(member);
+    closures = Closures(translator, member);
+    setupParametersAndContexts(member.reference);
     generateTypeChecks(member.function!.typeParameters, member.function!,
         translator.paramInfoFor(reference));
     _generateBodies(member.function!);
   }
 
   @override
-  w.DefinedFunction generateLambda(Lambda lambda, Closures closures) {
+  w.BaseFunction generateLambda(Lambda lambda, Closures closures) {
     this.closures = closures;
     setupLambdaParametersAndContexts(lambda);
     _generateBodies(lambda.functionNode);
@@ -568,8 +568,8 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     // Wasm function containing the body of the `async` function
     // (`_AyncResumeFun`).
-    final w.DefinedFunction resumeFun = m.addFunction(
-        m.addFunctionType([
+    final resumeFun = m.functions.define(
+        m.types.defineFunction([
           asyncSuspendStateInfo.nonNullableType, // _AsyncSuspendState
           translator.topInfo.nullableType, // Object?, await value
           translator.topInfo.nullableType, // Object?, error value
@@ -596,8 +596,8 @@ class AsyncCodeGenerator extends CodeGenerator {
     _generateInner(functionNode, context, resumeFun);
   }
 
-  void _generateOuter(FunctionNode functionNode, Context? context,
-      w.DefinedFunction resumeFun) {
+  void _generateOuter(
+      FunctionNode functionNode, Context? context, w.BaseFunction resumeFun) {
     // Outer (wrapper) function creates async state, calls the inner function
     // (which runs until first suspension point, i.e. `await`), and returns the
     // completer's future.
@@ -633,12 +633,10 @@ class AsyncCodeGenerator extends CodeGenerator {
       completerType = const DynamicType();
     }
     types.makeType(this, completerType);
-    b.call(translator.functions
-        .getFunction(translator.makeAsyncCompleter.reference));
+    call(translator.makeAsyncCompleter.reference);
 
     // Allocate `_AsyncSuspendState`
-    b.call(translator.functions
-        .getFunction(translator.newAsyncSuspendState.reference));
+    call(translator.newAsyncSuspendState.reference);
     b.local_set(asyncStateLocal);
 
     // (2) Call inner function.
@@ -656,15 +654,15 @@ class AsyncCodeGenerator extends CodeGenerator {
     // (3) Return the completer's future.
 
     b.local_get(asyncStateLocal);
-    final completerFutureGetter = translator.functions
-        .getFunction(translator.completerFuture.getterReference);
+    final completerFutureGetterType = translator.functions
+        .getFunctionType(translator.completerFuture.getterReference);
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
     translator.convertType(
         function,
         asyncSuspendStateInfo.struct.fields[5].type.unpacked,
-        completerFutureGetter.type.inputs[0]);
-    b.call(completerFutureGetter);
+        completerFutureGetterType.inputs[0]);
+    call(translator.completerFuture.getterReference);
     b.end();
   }
 
@@ -712,7 +710,7 @@ class AsyncCodeGenerator extends CodeGenerator {
   }
 
   void _generateInner(FunctionNode functionNode, Context? context,
-      w.DefinedFunction resumeFun) {
+      w.FunctionBuilder resumeFun) {
     // void Function(_AsyncSuspendState, Object?)
 
     // Set the current Wasm function for the code generator to the inner
@@ -779,8 +777,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     // Non-null Dart field represented as nullable Wasm field.
     b.ref_as_non_null();
     b.ref_null(translator.topInfo.struct);
-    b.call(translator.functions
-        .getFunction(translator.completerComplete.reference));
+    call(translator.completerComplete.reference);
     b.return_();
     b.end(); // masterLoop
 
@@ -798,8 +795,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.ref_as_non_null();
     b.local_get(exceptionLocal);
     b.local_get(stackTraceLocal);
-    b.call(translator.functions
-        .getFunction(translator.completerCompleteError.reference));
+    call(translator.completerCompleteError.reference);
     b.return_();
 
     b.end(); // end try
@@ -1195,8 +1191,7 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(asyncSuspendStateInfo.struct,
           FieldIndex.asyncSuspendStateCurrentReturnValue);
-      b.call(translator.functions
-          .getFunction(translator.completerComplete.reference));
+      call(translator.completerComplete.reference);
       b.return_();
       b.end();
 
@@ -1262,8 +1257,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     }
 
     if (firstFinalizer == null) {
-      b.call(translator.functions
-          .getFunction(translator.completerComplete.reference));
+      call(translator.completerComplete.reference);
       b.return_();
     } else {
       final returnValueLocal = addLocal(translator.topInfo.nullableType);
@@ -1382,7 +1376,7 @@ class AsyncCodeGenerator extends CodeGenerator {
 
     b.local_get(suspendStateLocal);
     wrap(node.operand, translator.topInfo.nullableType);
-    b.call(translator.functions.getFunction(translator.awaitHelper.reference));
+    call(translator.awaitHelper.reference);
     b.return_();
 
     // Generate resume label

@@ -264,6 +264,7 @@ enum BenchmarkSubdivides {
   diet_listener_buildFields,
   diet_listener_buildFunctionBody,
   diet_listener_buildFunctionBody_parseFunctionBody,
+  diet_listener_buildPrimaryConstructor,
   diet_listener_buildRedirectingFactoryMethod,
 
   inferImplicitFieldType,

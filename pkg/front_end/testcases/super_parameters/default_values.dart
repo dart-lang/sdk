@@ -110,6 +110,74 @@ class S9 {
   S9([int x = 0]) : s = x - 1;
 }
 
+class S5b {
+  num a;
+  S5b({num x = 3.14}) : a = x - 1;
+}
+
+class C5b extends S5b {
+  C5b({int super.x}); // Error.
+}
+
+class S6b {
+  num? a;
+  S6b({num? x = 3.14}) : a = x;
+}
+
+class C6b extends S6b {
+  int? b;
+  C6b({int? super.x}); // Ok.
+}
+
+class D6b extends C6b {
+  D6b({int super.x}); // Error
+}
+
+class S7b {
+  int s;
+  S7b({int x = 0}) : s = x - 1;
+}
+
+class C7b extends S7b {
+  int c;
+  C7b({super.x}) : c = x + 1;
+}
+
+class CC7b extends C7b {
+  int cc;
+  CC7b({super.x}) : cc = x * 1;
+}
+
+class S8b {
+  final int s;
+  const S8b({int x = 0}) : s = x - 1;
+}
+
+class CC8b extends C8b {
+  final int cc;
+  const CC8b({super.x}) : cc = x * 1;
+}
+
+class C8b extends S8b {
+  final int c;
+  const C8b({super.x}) : c = x + 1;
+}
+
+class CC9b extends C9b {
+  int cc;
+  CC9b({super.x}) : cc = x * 1;
+}
+
+class C9b extends S9b {
+  int c;
+  C9b({super.x}) : c = x + 1;
+}
+
+class S9b {
+  int s;
+  S9b({int x = 0}) : s = x - 1;
+}
+
 class Ap {
   Ap([num x = 3.14]);
 }

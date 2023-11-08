@@ -25,7 +25,7 @@ class _Class extends core::Object { // from org-dartlang-testcase:///private_mem
 }
 extension _Extension on core::int { // from org-dartlang-testcase:///private_members_part.dart
   method _privateMethod = self::_Extension|_privateMethod;
-  tearoff _privateMethod = self::_Extension|get#_privateMethod;
+  method tearoff _privateMethod = self::_Extension|get#_privateMethod;
   get _privateGetter = self::_Extension|get#_privateGetter;
   static field _privateField = self::_Extension|_privateField;
   static field _privateFinalField = self::_Extension|_privateFinalField;

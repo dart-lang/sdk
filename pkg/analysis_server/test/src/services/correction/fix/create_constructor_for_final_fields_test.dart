@@ -208,7 +208,7 @@ enum E {
   const E({required this.a, required this.c});
 }
 ''', errorFilter: (error) {
-      return error.offset == 38;
+      return error.message.contains("'a' must be initialized");
     });
   }
 }

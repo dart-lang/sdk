@@ -35,6 +35,7 @@ CompilationUnitEnd getAST(List<int> rawBytes,
     bool enableExtensionMethods = false,
     bool enableNonNullable = false,
     bool enableTripleShift = false,
+    bool allowPatterns = false,
     List<Token>? languageVersionsSeen}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
@@ -58,11 +59,17 @@ CompilationUnitEnd getAST(List<int> rawBytes,
   ParserASTListener listener = new ParserASTListener();
   Parser parser;
   if (includeBody) {
-    parser = new Parser(listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    parser = new Parser(
+      listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: allowPatterns,
+    );
   } else {
-    parser = new ClassMemberParser(listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    parser = new ClassMemberParser(
+      listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: allowPatterns,
+    );
   }
   parser.parseUnit(firstToken);
   return listener.data.single as CompilationUnitEnd;
@@ -130,6 +137,11 @@ class ParserAstVisitor {
       visitExtensionMethod(method, method.beginToken, method.endToken);
       return;
     }
+    if (node is ExtensionTypeMethodEnd) {
+      ExtensionTypeMethodEnd method = node;
+      visitExtensionTypeMethod(method, method.beginToken, method.endToken);
+      return;
+    }
     if (node is MixinMethodEnd) {
       MixinMethodEnd method = node;
       visitMixinMethod(method, method.beginToken, method.endToken);
@@ -166,6 +178,13 @@ class ParserAstVisitor {
       visitExtensionFields(fields, fields.beginToken, fields.endToken);
       return;
     }
+    if (node is ExtensionTypeFieldsEnd) {
+      // TODO(jensj): Possibly this could go into more details too
+      // (e.g. to split up a field declaration).
+      ExtensionTypeFieldsEnd fields = node;
+      visitExtensionTypeFields(fields, fields.beginToken, fields.endToken);
+      return;
+    }
     if (node is MixinFieldsEnd) {
       // TODO(jensj): Possibly this could go into more details too
       // (e.g. to split up a field declaration).
@@ -180,7 +199,7 @@ class ParserAstVisitor {
     }
     if (node is MixinDeclarationEnd) {
       MixinDeclarationEnd declaration = node;
-      visitMixin(declaration, declaration.mixinKeyword, declaration.endToken);
+      visitMixin(declaration, declaration.beginToken, declaration.endToken);
       return;
     }
     if (node is EnumEnd) {
@@ -206,7 +225,12 @@ class ParserAstVisitor {
     }
     if (node is ExtensionDeclarationEnd) {
       ExtensionDeclarationEnd ext = node;
-      visitExtension(ext, ext.extensionKeyword, ext.endToken);
+      visitExtension(ext, ext.beginToken, ext.endToken);
+      return;
+    }
+    if (node is ExtensionTypeDeclarationEnd) {
+      ExtensionTypeDeclarationEnd ext = node;
+      visitExtensionTypeDeclaration(ext, ext.extensionKeyword, ext.endToken);
       return;
     }
     if (node is ClassConstructorEnd) {
@@ -219,6 +243,11 @@ class ParserAstVisitor {
       visitExtensionConstructor(decl, decl.beginToken, decl.endToken);
       return;
     }
+    if (node is ExtensionTypeConstructorEnd) {
+      ExtensionTypeConstructorEnd decl = node;
+      visitExtensionTypeConstructor(decl, decl.beginToken, decl.endToken);
+      return;
+    }
     if (node is ClassFactoryMethodEnd) {
       ClassFactoryMethodEnd decl = node;
       visitClassFactoryMethod(decl, decl.beginToken, decl.endToken);
@@ -227,6 +256,11 @@ class ParserAstVisitor {
     if (node is ExtensionFactoryMethodEnd) {
       ExtensionFactoryMethodEnd decl = node;
       visitExtensionFactoryMethod(decl, decl.beginToken, decl.endToken);
+      return;
+    }
+    if (node is ExtensionTypeFactoryMethodEnd) {
+      ExtensionTypeFactoryMethodEnd decl = node;
+      visitExtensionTypeFactoryMethod(decl, decl.beginToken, decl.endToken);
       return;
     }
     if (node is MetadataEnd) {
@@ -283,6 +317,10 @@ class ParserAstVisitor {
       ExtensionMethodEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionTypeMethod(
+      ExtensionTypeMethodEnd node, Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitMixinMethod(
       MixinMethodEnd node, Token startInclusive, Token endInclusive) {}
 
@@ -297,6 +335,10 @@ class ParserAstVisitor {
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExtensionFields(
       ExtensionFieldsEnd node, Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionTypeFields(
+      ExtensionTypeFieldsEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitMixinFields(
@@ -333,6 +375,12 @@ class ParserAstVisitor {
     visitChildren(node);
   }
 
+  /// Note: Implementers can call visitChildren on this node.
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclarationEnd node,
+      Token startInclusive, Token endInclusive) {
+    visitChildren(node);
+  }
+
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitClassConstructor(
       ClassConstructorEnd node, Token startInclusive, Token endInclusive) {}
@@ -342,11 +390,19 @@ class ParserAstVisitor {
       ExtensionConstructorEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionTypeConstructor(ExtensionTypeConstructorEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitClassFactoryMethod(
       ClassFactoryMethodEnd node, Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
   void visitExtensionFactoryMethod(ExtensionFactoryMethodEnd node,
+      Token startInclusive, Token endInclusive) {}
+
+  /// Note: Implementers are NOT expected to call visitChildren on this node.
+  void visitExtensionTypeFactoryMethod(ExtensionTypeFactoryMethodEnd node,
       Token startInclusive, Token endInclusive) {}
 
   /// Note: Implementers are NOT expected to call visitChildren on this node.
@@ -1509,6 +1565,8 @@ class ParserASTListener extends AbstractParserAstListener {
                 end == "ClassMethod" ||
                 end == "ExtensionConstructor" ||
                 end == "ExtensionMethod" ||
+                end == "ExtensionTypeConstructor" ||
+                end == "ExtensionTypeMethod" ||
                 end == "MixinConstructor" ||
                 end == "MixinMethod" ||
                 end == "EnumConstructor" ||
@@ -1521,6 +1579,7 @@ class ParserASTListener extends AbstractParserAstListener {
                 end == "ClassFields" ||
                 end == "MixinFields" ||
                 end == "ExtensionFields" ||
+                end == "ExtensionTypeFields" ||
                 end == "EnumFields")) {
           // beginFields is ended by one of endTopLevelFields, endMixinFields,
           // endEnumFields or endExtensionFields.
@@ -1530,6 +1589,7 @@ class ParserASTListener extends AbstractParserAstListener {
             (end == "ClassFactoryMethod" ||
                 end == "MixinFactoryMethod" ||
                 end == "ExtensionFactoryMethod" ||
+                end == "ExtensionTypeFactoryMethod" ||
                 end == "EnumFactoryMethod")) {
           // beginFactoryMethod is ended by either endClassFactoryMethod,
           // endMixinFactoryMethod, endExtensionFactoryMethod, or

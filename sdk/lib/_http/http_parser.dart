@@ -680,30 +680,40 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
         case _State.HEADER_VALUE_FOLD_OR_END:
           if (byte == _CharCode.SP || byte == _CharCode.HT) {
-            _state = _State.HEADER_VALUE_START;
+            // This is an obs-fold as defined in RFC 7230 and we should
+            // "...replace each received obs-fold with one or more SP octets
+            // prior to interpreting the field value or forwarding the
+            // message downstream."
+            // See https://www.rfc-editor.org/rfc/rfc7230#section-3.2.4
+            _addWithValidation(_headerValue, _CharCode.SP);
+            _state = _State.HEADER_VALUE_START; // Strips leading whitespace.
           } else {
             String headerField = String.fromCharCodes(_headerField);
+            // The field value does not include any leading or trailing whitespace.
+            // See https://www.rfc-editor.org/rfc/rfc7230#section-3.2.4
+            _removeTrailingSpaces(_headerValue);
             String headerValue = String.fromCharCodes(_headerValue);
-            const errorIfBothText = "Both Content-Length and Transfer-Encoding "
-                "are specified, at most one is allowed";
+
+            // RFC-7230 3.3.3 says:
+            // If a message is received with both a Transfer-Encoding and a
+            // Content-Length header field, the Transfer-Encoding overrides
+            // the Content-Length...
+            // A sender MUST remove the received Content-Length field prior
+            // to forwarding such a message downstream.
             if (headerField == HttpHeaders.contentLengthHeader) {
-              // Content Length header should not have more than one occurrence
-              // or coexist with Transfer Encoding header.
+              // Content Length header should not have more than one occurrence.
               if (_contentLength) {
                 throw HttpException("The Content-Length header occurred "
                     "more than once, at most one is allowed.");
-              } else if (_transferEncoding) {
-                throw HttpException(errorIfBothText);
+              } else if (!_transferEncoding) {
+                _contentLength = true;
               }
-              _contentLength = true;
             } else if (headerField == HttpHeaders.transferEncodingHeader) {
               _transferEncoding = true;
               if (_caseInsensitiveCompare("chunked".codeUnits, _headerValue)) {
                 _chunked = true;
               }
-              if (_contentLength) {
-                throw HttpException(errorIfBothText);
-              }
+              _contentLength = false;
             }
             var headers = _headers!;
             if (headerField == HttpHeaders.connectionHeader) {
@@ -721,7 +731,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
                 }
                 headers._add(headerField, tokens[i]);
               }
-            } else {
+            } else if (headerField != HttpHeaders.contentLengthHeader ||
+                !_transferEncoding) {
+              // Calling `headers._add("transfer-encoding", "chunked")` will
+              // remove the Content-Length header.
               headers._add(headerField, headerValue);
             }
             _headerField.clear();
@@ -1000,6 +1013,17 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
   static bool _isValueChar(int byte) {
     return (byte > 31 && byte < 128) || (byte == _CharCode.HT);
+  }
+
+  static void _removeTrailingSpaces(List<int> value) {
+    var length = value.length;
+    while (length > 0 &&
+        (value[length - 1] == _CharCode.SP ||
+            value[length - 1] == _CharCode.HT)) {
+      --length;
+    }
+
+    value.length = length;
   }
 
   static List<String> _tokenizeFieldValue(String headerValue) {

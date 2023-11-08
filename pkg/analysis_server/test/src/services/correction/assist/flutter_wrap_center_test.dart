@@ -149,6 +149,40 @@ class FakeFlutter {
     expect(assist.selectionLength, 0);
   }
 
+  Future<void> test_switchExpression() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+Widget f(int i) => /*caret*/switch (i) {
+  0 => Row(),
+  _ => Column(),
+};
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+Widget f(int i) => Center(
+  child: switch (i) {
+    0 => Row(),
+    _ => Column(),
+  },
+);
+''');
+  }
+
+  Future<void> test_switchExpression_case() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+Widget f() => switch (1) {
+  _ => /*caret*/Container(),
+};
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+Widget f() => switch (1) {
+  _ => Center(child: Container()),
+};
+''');
+  }
+
   Future<void> test_variableDeclaration() async {
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';

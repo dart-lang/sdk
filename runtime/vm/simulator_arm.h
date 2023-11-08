@@ -232,6 +232,8 @@ class Simulator {
 
   // Executes ARM instructions until the PC reaches kEndSimulatingPC.
   void Execute();
+  void ExecuteNoTrace();
+  void ExecuteTrace();
 
   void ClobberVolatileRegisters();
 

@@ -1,0 +1,2 @@
+interface mixin B {}
+interface mixin class A {}

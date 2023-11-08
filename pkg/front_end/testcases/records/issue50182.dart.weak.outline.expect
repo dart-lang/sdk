@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-typedef Hello<unrelated T extends core::Object? = dynamic> = (T%, {required name: T%});
+typedef Hello<T extends core::Object? = dynamic> = (T%, {required name: T%});
 class MyClass<T extends core::Object? = dynamic> extends core::Object {
   final field () → self::Value<(self::MyClass::T%, {required name: self::MyClass::T%})>? myField;
   constructor •(() → self::Value<(self::MyClass::T%, {required name: self::MyClass::T%})>? myField) → self::MyClass<self::MyClass::T%>

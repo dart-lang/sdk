@@ -22,7 +22,7 @@ import "dart:core" as core;
 
 extension Extension on core::String {
   method foo = ext::Extension|foo;
-  tearoff foo = ext::Extension|get#foo;
+  method tearoff foo = ext::Extension|get#foo;
 }
 static extension-member method Extension|foo(lowered final core::String #this) → dynamic
   return 42;

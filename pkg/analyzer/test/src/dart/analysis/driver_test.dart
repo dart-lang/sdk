@@ -11,10 +11,11 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/constant/evaluation.dart';
+import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -310,6 +311,7 @@ part 'a.dart';
 @reflectiveTest
 class AnalysisDriverSchedulerTest with ResourceProviderMixin {
   final ByteStore byteStore = MemoryByteStore();
+  final InfoDeclarationStore infoDeclarationStore = InfoDeclarationStoreImpl();
 
   final StringBuffer logBuffer = StringBuffer();
   late final PerformanceLog logger;
@@ -327,6 +329,7 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
       logger: logger,
       resourceProvider: resourceProvider,
       byteStore: byteStore,
+      infoDeclarationStore: infoDeclarationStore,
       sourceFactory: SourceFactory(
         [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
       ),
@@ -1348,9 +1351,8 @@ class C {}
     var result = await driver.getResultValid(testFile);
     var atD = AstFinder.getClass(result.unit, 'C').metadata[0];
     var atDI = atD.elementAnnotation as ElementAnnotationImpl;
-    var value = atDI.evaluationResult!.value;
     // That is illegal.
-    expect(value, isNull);
+    expect(atDI.evaluationResult, isNull);
   }
 
   test_const_annotation_withArgs() async {
@@ -1365,12 +1367,11 @@ class D {
     var result = await driver.getResultValid(testFile);
     var atD = AstFinder.getClass(result.unit, 'C').metadata[0];
     var atDI = atD.elementAnnotation as ElementAnnotationImpl;
-    var value = atDI.evaluationResult!.value!;
+    var value = atDI.evaluationResult as DartObjectImpl;
     expect(value.type, isNotNull);
     assertType(value.type, 'D');
     expect(value.fields!.keys, ['value']);
     expect(value.getField('value')!.toIntValue(), 1);
-    expect(atDI.evaluationResult!.errors, isEmpty);
   }
 
   test_const_annotation_withoutArgs() async {
@@ -3733,11 +3734,11 @@ var v = 0
     assertType(variable.declaredElement!.type, expected);
   }
 
-  void _expectCircularityError(EvaluationResultImpl evaluationResult) {
-    expect(evaluationResult, isNotNull);
-    expect(evaluationResult.value, isNull);
-    expect(evaluationResult.errors, hasLength(1));
-    expect(evaluationResult.errors[0].errorCode,
+  void _expectCircularityError(Constant evaluationResult) {
+    if (evaluationResult is! InvalidConstant) {
+      fail('No error found when we expected a circularity error.');
+    }
+    expect(evaluationResult.errorCode,
         CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT);
   }
 

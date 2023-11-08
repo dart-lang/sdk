@@ -1,3 +1,7 @@
+## 0.11.3
+
+- Support version `6.x` of the `analyzer` package
+
 ## 0.11.2
 
 - Support version `5.x` of the `analyzer` package

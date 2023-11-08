@@ -1,0 +1,16 @@
+class C<T extends Object> {
+  void something(T? Function() read) {}
+}
+
+class Foo<T> {}
+
+extension CheckType<T> on T {
+  void expect<S extends Exactly<T>>() {}
+}
+
+extension CheckTypeArgumentOfFoo<T> on Foo<T> {
+  void expect<S extends Exactly<T>>() {}
+}
+
+typedef Exactly<T> = T Function(T);
+void main() {}

@@ -9,13 +9,11 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'builder/builder.dart';
-import 'builder/class_builder.dart';
-import 'builder/extension_builder.dart';
+import 'builder/declaration_builders.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
 import 'builder/metadata_builder.dart';
 import 'builder/name_iterator.dart';
-import 'builder/type_variable_builder.dart';
 import 'fasta_codes.dart';
 import 'kernel/body_builder.dart' show JumpTarget;
 import 'kernel/body_builder_context.dart';
@@ -24,8 +22,8 @@ import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
 import 'source/source_class_builder.dart';
 import 'source/source_extension_builder.dart';
+import 'source/source_extension_type_declaration_builder.dart';
 import 'source/source_function_builder.dart';
-import 'source/source_inline_class_builder.dart';
 import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
@@ -458,6 +456,17 @@ class Scope extends MutableScope {
     Scope newScope = new Scope.nested(this, "type variables",
         isModifiable: false, kind: ScopeKind.typeParameters);
     for (TypeVariableBuilder t in typeVariables) {
+      (newScope._local ??= {})[t.name] = t;
+    }
+    return newScope;
+  }
+
+  Scope withStructuralVariables(
+      List<StructuralVariableBuilder>? typeVariables) {
+    if (typeVariables == null) return this;
+    Scope newScope = new Scope.nested(this, "type variables",
+        isModifiable: false, kind: ScopeKind.typeParameters);
+    for (StructuralVariableBuilder t in typeVariables) {
       (newScope._local ??= {})[t.name] = t;
     }
     return newScope;
@@ -899,7 +908,8 @@ class AccessErrorBuilder extends ProblemBuilder {
   bool get isExtensionInstanceMember => builder.isExtensionInstanceMember;
 
   @override
-  bool get isInlineClassInstanceMember => builder.isInlineClassInstanceMember;
+  bool get isExtensionTypeInstanceMember =>
+      builder.isExtensionTypeInstanceMember;
 
   @override
   bool get isStatic => builder.isStatic;
@@ -1008,12 +1018,12 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
   }
 
   @override
-  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+  void buildOutlineNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildOutlineNodes.");
   }
 
   @override
-  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+  int buildBodyNodes(BuildNodesCallback f) {
     assert(false, "Unexpected call to $runtimeType.buildBodyNodes.");
     return 0;
   }
@@ -1726,7 +1736,7 @@ extension on Builder {
       return _hasPatchAnnotation(self.metadata);
     } else if (self is SourceExtensionBuilder) {
       return _hasPatchAnnotation(self.metadata);
-    } else if (self is SourceInlineClassBuilder) {
+    } else if (self is SourceExtensionTypeDeclarationBuilder) {
       return _hasPatchAnnotation(self.metadata);
     }
     return false;

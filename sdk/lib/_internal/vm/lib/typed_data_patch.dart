@@ -102,19 +102,108 @@ abstract final class _TypedListBase {
     throw new UnsupportedError("Cannot remove from a fixed-length list");
   }
 
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable from, [int skipCount = 0]) {
+    // Range check all numeric inputs.
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+      assert(false);
+    }
+    if (skipCount < 0) {
+      throw RangeError.range(skipCount, 0, null, "skipCount");
+    }
+
+    if (from is _TypedListBase) {
+      // Note: _TypedListBase is not related to Iterable<int> so there is
+      // no promotion here.
+      final fromAsTyped = unsafeCast<_TypedListBase>(from);
+      if (fromAsTyped.elementSizeInBytes == elementSizeInBytes) {
+        // Check that from has enough elements, which is assumed by
+        // _fastSetRange, using the more efficient _TypedListBase length getter.
+        final count = end - start;
+        if ((fromAsTyped.length - skipCount) < count) {
+          throw IterableElementError.tooFew();
+        }
+        if (count == 0) return;
+        return _fastSetRange(start, count, fromAsTyped, skipCount);
+      }
+    }
+    // _slowSetRange checks that from has enough elements internally.
+    return _slowSetRange(start, end, from, skipCount);
+  }
+
   // Method(s) implementing Object interface.
   String toString() => ListBase.listToString(this as List);
 
   // Internal utility methods.
+  void _fastSetRange(int start, int count, _TypedListBase from, int skipCount);
+  void _slowSetRange(int start, int end, Iterable from, int skipCount);
 
-  // Returns true if operation succeeds.
-  // 'fromCid' and 'toCid' may be cid-s of the views and therefore may not
-  // match the cids of 'this' and 'from'.
-  // Uses toCid and fromCid to decide if clamping is necessary.
-  // Element size of toCid and fromCid must match (test at caller).
-  @pragma("vm:external-name", "TypedDataBase_setRange")
-  external bool _setRange(int startInBytes, int lengthInBytes,
-      _TypedListBase from, int startFromInBytes, int toCid, int fromCid);
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => false;
+
+  // Performs a copy of the [count] elements starting at [skipCount] in [from]
+  // to [this] starting at [start].
+  //
+  // Primarily called by Dart code to handle clamping.
+  //
+  // Element sizes of [this] and [from] must match. [this] must be a clamped
+  // typed data object, and the values in [from] must require possible clamping
+  // (tests at caller).
+  @pragma("vm:external-name", "TypedDataBase_setClampedRange")
+  @pragma("vm:entry-point")
+  external void _setClampedRange(
+      int start, int count, _TypedListBase from, int skipOffset);
+
+  // Performs a copy of the [count] elements starting at [skipCount] in [from]
+  // to [this] starting at [start].
+  //
+  // The element sizes of [this] and [from] must be 1 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _memMove1(
+      int start, int count, _TypedListBase from, int skipCount);
+
+  // Performs a copy of the [count] elements starting at [skipCount] in [from]
+  // to [this] starting at [start].
+  //
+  // The element sizes of [this] and [from] must be 2 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _memMove2(
+      int start, int count, _TypedListBase from, int skipCount);
+
+  // Performs a copy of the [count] elements starting at [skipCount] in [from]
+  // to [this] starting at [start].
+  //
+  // The element sizes of [this] and [from] must be 4 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _memMove4(
+      int start, int count, _TypedListBase from, int skipCount);
+
+  // Performs a copy of the [count] elements starting at [skipCount] in [from]
+  // to [this] starting at [start].
+  //
+  // The element sizes of [this] and [from] must be 8 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _memMove8(
+      int start, int count, _TypedListBase from, int skipCount);
+
+  // Performs a copy of the elements starting at [skipCount] in [from] to
+  // [this] starting at [start] (inclusive) and ending at [end] (exclusive).
+  //
+  // The element sizes of [this] and [from] must be 16 (test at caller).
+  @pragma("vm:recognized", "other")
+  @pragma("vm:prefer-inline")
+  @pragma("vm:idempotent")
+  external void _memMove16(
+      int start, int count, _TypedListBase from, int skipCount);
 }
 
 mixin _IntListMixin implements List<int> {
@@ -397,41 +486,19 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
     implements List<int> {
   SpawnedType _createList(int length);
 
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
-
-    if (count == 0) return;
-
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    // The numeric inputs have already been checked, all that's left is to
+    // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
       // Note: _TypedListBase is not related to Iterable<int> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<int>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
+      final fromAsTyped = unsafeCast<_TypedListBase>(from);
+      if (fromAsTyped.buffer == this.buffer) {
+        final count = end - start;
+        if ((fromAsTyped.length - skipCount) < count) {
+          throw IterableElementError.tooFew();
         }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+        if (count == 0) return;
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -456,9 +523,11 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
       otherList = from.skip(skipCount).toList(growable: false);
       otherStart = 0;
     }
-    if (otherStart + count > otherList.length) {
+    final count = end - start;
+    if ((otherList.length - otherStart) < count) {
       throw IterableElementError.tooFew();
     }
+    if (count == 0) return;
     Lists.copy(otherList, otherStart, this, start, count);
   }
 
@@ -754,42 +823,19 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
     on _DoubleListMixin implements List<double> {
   SpawnedType _createList(int length);
 
-  void setRange(int start, int end, Iterable<double> from,
-      [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
-
-    if (count == 0) return;
-
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    // The numeric inputs have already been checked, all that's left is to
+    // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<double> so there is
+      // Note: _TypedListBase is not related to Iterable<int> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<double>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
+      final fromAsTyped = unsafeCast<_TypedListBase>(from);
+      if (fromAsTyped.buffer == this.buffer) {
+        final count = end - start;
+        if ((fromAsTyped.length - skipCount) < count) {
+          throw IterableElementError.tooFew();
         }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+        if (count == 0) return;
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -814,9 +860,11 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
       otherList = from.skip(skipCount).toList(growable: false);
       otherStart = 0;
     }
-    if (otherStart + count > otherList.length) {
+    final count = end - start;
+    if ((otherList.length - otherStart) < count) {
       throw IterableElementError.tooFew();
     }
+    if (count == 0) return;
     Lists.copy(otherList, otherStart, this, start, count);
   }
 
@@ -895,42 +943,19 @@ mixin _Float32x4ListMixin implements List<Float32x4> {
     }
   }
 
-  void setRange(int start, int end, Iterable<Float32x4> from,
-      [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
-
-    if (count == 0) return;
-
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    // The numeric inputs have already been checked, all that's left is to
+    // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<Float32x4> so there is
+      // Note: _TypedListBase is not related to Iterable<int> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<Float32x4>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
+      final fromAsTyped = unsafeCast<_TypedListBase>(from);
+      if (fromAsTyped.buffer == this.buffer) {
+        final count = end - start;
+        if ((fromAsTyped.length - skipCount) < count) {
+          throw IterableElementError.tooFew();
         }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+        if (count == 0) return;
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -955,9 +980,11 @@ mixin _Float32x4ListMixin implements List<Float32x4> {
       otherList = from.skip(skipCount).toList(growable: false);
       otherStart = 0;
     }
-    if (otherStart + count > otherList.length) {
+    final count = end - start;
+    if ((otherList.length - otherStart) < count) {
       throw IterableElementError.tooFew();
     }
+    if (count == 0) return;
     Lists.copy(otherList, otherStart, this, start, count);
   }
 
@@ -1253,42 +1280,19 @@ mixin _Int32x4ListMixin implements List<Int32x4> {
     }
   }
 
-  void setRange(int start, int end, Iterable<Int32x4> from,
-      [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
-
-    if (count == 0) return;
-
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    // The numeric inputs have already been checked, all that's left is to
+    // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<Int32x4> so there is
+      // Note: _TypedListBase is not related to Iterable<int> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<Int32x4>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
+      final fromAsTyped = unsafeCast<_TypedListBase>(from);
+      if (fromAsTyped.buffer == this.buffer) {
+        final count = end - start;
+        if ((fromAsTyped.length - skipCount) < count) {
+          throw IterableElementError.tooFew();
         }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+        if (count == 0) return;
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -1313,9 +1317,11 @@ mixin _Int32x4ListMixin implements List<Int32x4> {
       otherList = from.skip(skipCount).toList(growable: false);
       otherStart = 0;
     }
-    if (otherStart + count > otherList.length) {
+    final count = end - start;
+    if ((otherList.length - otherStart) < count) {
       throw IterableElementError.tooFew();
     }
+    if (count == 0) return;
     Lists.copy(otherList, otherStart, this, start, count);
   }
 
@@ -1610,42 +1616,19 @@ mixin _Float64x2ListMixin implements List<Float64x2> {
     }
   }
 
-  void setRange(int start, int end, Iterable<Float64x2> from,
-      [int skipCount = 0]) {
-    // Check ranges.
-    if (0 > start || start > end || end > length) {
-      RangeError.checkValidRange(start, end, length); // Always throws.
-      assert(false);
-    }
-    if (skipCount < 0) {
-      throw RangeError.range(skipCount, 0, null, "skipCount");
-    }
-
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
-
-    if (count == 0) return;
-
+  void _slowSetRange(int start, int end, Iterable from, int skipCount) {
+    // The numeric inputs have already been checked, all that's left is to
+    // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<Float64x2> so there is
+      // Note: _TypedListBase is not related to Iterable<int> so there is
       // no promotion here.
-      final fromAsTypedList = from as _TypedListBase;
-      if (this.elementSizeInBytes == fromAsTypedList.elementSizeInBytes) {
-        if ((count < 10) && (fromAsTypedList.buffer != this.buffer)) {
-          Lists.copy(from as List<Float64x2>, skipCount, this, start, count);
-          return;
-        } else if (this.buffer._data._setRange(
-            start * elementSizeInBytes + this.offsetInBytes,
-            count * elementSizeInBytes,
-            fromAsTypedList.buffer._data,
-            skipCount * elementSizeInBytes + fromAsTypedList.offsetInBytes,
-            ClassID.getID(this),
-            ClassID.getID(from))) {
-          return;
+      final fromAsTyped = unsafeCast<_TypedListBase>(from);
+      if (fromAsTyped.buffer == this.buffer) {
+        final count = end - start;
+        if ((fromAsTyped.length - skipCount) < count) {
+          throw IterableElementError.tooFew();
         }
-      } else if (fromAsTypedList.buffer == this.buffer) {
+        if (count == 0) return;
         // Different element sizes, but same buffer means that we need
         // an intermediate structure.
         // TODO(srdjan): Optimize to skip copying if the range does not overlap.
@@ -1670,9 +1653,11 @@ mixin _Float64x2ListMixin implements List<Float64x2> {
       otherList = from.skip(skipCount).toList(growable: false);
       otherStart = 0;
     }
-    if (otherStart + count > otherList.length) {
+    final count = end - start;
+    if ((otherList.length - otherStart) < count) {
       throw IterableElementError.tooFew();
     }
+    if (count == 0) return;
     Lists.copy(otherList, otherStart, this, start, count);
   }
 
@@ -2199,7 +2184,6 @@ class Int8List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Int8List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
@@ -2236,6 +2220,11 @@ final class _Int8List extends _TypedList
   Int8List _createList(int length) {
     return new Int8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove1(start, count, from, skipCount);
 }
 
 @patch
@@ -2255,7 +2244,6 @@ class Uint8List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint8List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint8List>
     implements Uint8List {
@@ -2292,6 +2280,14 @@ final class _Uint8List extends _TypedList
   Uint8List _createList(int length) {
     return new Uint8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove1(start, count, from, skipCount);
 }
 
 @patch
@@ -2311,7 +2307,6 @@ class Uint8ClampedList {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint8ClampedList extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
     implements Uint8ClampedList {
@@ -2348,6 +2343,16 @@ final class _Uint8ClampedList extends _TypedList
   Uint8ClampedList _createList(int length) {
     return new Uint8ClampedList(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      from._containsUnsignedBytes
+          ? _memMove1(start, count, from, skipCount)
+          : _setClampedRange(start, count, from, skipCount);
 }
 
 @patch
@@ -2367,7 +2372,6 @@ class Int16List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Int16List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int16List>
     implements Int16List {
@@ -2395,8 +2399,8 @@ final class _Int16List extends _TypedList
     _setIndexedInt16(index, _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable<int> iterable,
-      [int skipCount = 0]) {
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -2416,6 +2420,11 @@ final class _Int16List extends _TypedList
   Int16List _createList(int length) {
     return new Int16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove2(start, count, from, skipCount);
 
   int _getIndexedInt16(int index) {
     return _getInt16(index * Int16List.bytesPerElement);
@@ -2443,7 +2452,6 @@ class Uint16List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint16List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint16List>
     implements Uint16List {
@@ -2471,8 +2479,8 @@ final class _Uint16List extends _TypedList
     _setIndexedUint16(index, _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable<int> iterable,
-      [int skipCount = 0]) {
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -2492,6 +2500,11 @@ final class _Uint16List extends _TypedList
   Uint16List _createList(int length) {
     return new Uint16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove2(start, count, from, skipCount);
 
   int _getIndexedUint16(int index) {
     return _getUint16(index * Uint16List.bytesPerElement);
@@ -2519,7 +2532,6 @@ class Int32List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Int32List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int32List>
     implements Int32List {
@@ -2556,6 +2568,11 @@ final class _Int32List extends _TypedList
     return new Int32List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove4(start, count, from, skipCount);
+
   int _getIndexedInt32(int index) {
     return _getInt32(index * Int32List.bytesPerElement);
   }
@@ -2582,7 +2599,6 @@ class Uint32List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint32List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint32List>
     implements Uint32List {
@@ -2619,6 +2635,11 @@ final class _Uint32List extends _TypedList
     return new Uint32List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove4(start, count, from, skipCount);
+
   int _getIndexedUint32(int index) {
     return _getUint32(index * Uint32List.bytesPerElement);
   }
@@ -2645,7 +2666,6 @@ class Int64List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Int64List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Int64List>
     implements Int64List {
@@ -2682,6 +2702,11 @@ final class _Int64List extends _TypedList
     return new Int64List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove8(start, count, from, skipCount);
+
   int _getIndexedInt64(int index) {
     return _getInt64(index * Int64List.bytesPerElement);
   }
@@ -2708,7 +2733,6 @@ class Uint64List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint64List extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint64List>
     implements Uint64List {
@@ -2745,6 +2769,11 @@ final class _Uint64List extends _TypedList
     return new Uint64List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove8(start, count, from, skipCount);
+
   int _getIndexedUint64(int index) {
     return _getUint64(index * Uint64List.bytesPerElement);
   }
@@ -2771,7 +2800,6 @@ class Float32List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Float32List extends _TypedList
     with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
     implements Float32List {
@@ -2809,6 +2837,11 @@ final class _Float32List extends _TypedList
     return new Float32List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove4(start, count, from, skipCount);
+
   double _getIndexedFloat32(int index) {
     return _getFloat32(index * Float32List.bytesPerElement);
   }
@@ -2835,7 +2868,6 @@ class Float64List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Float64List extends _TypedList
     with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
     implements Float64List {
@@ -2872,6 +2904,11 @@ final class _Float64List extends _TypedList
   Float64List _createList(int length) {
     return new Float64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove8(start, count, from, skipCount);
 
   double _getIndexedFloat64(int index) {
     return _getFloat64(index * Float64List.bytesPerElement);
@@ -2935,6 +2972,11 @@ final class _Float32x4List extends _TypedList
     return new Float32x4List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove16(start, count, from, skipCount);
+
   Float32x4 _getIndexedFloat32x4(int index) {
     return _getFloat32x4(index * Float32x4List.bytesPerElement);
   }
@@ -2996,6 +3038,11 @@ final class _Int32x4List extends _TypedList
   Int32x4List _createList(int length) {
     return new Int32x4List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove16(start, count, from, skipCount);
 
   Int32x4 _getIndexedInt32x4(int index) {
     return _getInt32x4(index * Int32x4List.bytesPerElement);
@@ -3059,6 +3106,11 @@ final class _Float64x2List extends _TypedList
     return new Float64x2List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove16(start, count, from, skipCount);
+
   Float64x2 _getIndexedFloat64x2(int index) {
     return _getFloat64x2(index * Float64x2List.bytesPerElement);
   }
@@ -3102,10 +3154,14 @@ final class _ExternalInt8Array extends _TypedList
   Int8List _createList(int length) {
     return new Int8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove1(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _ExternalUint8Array extends _TypedList
     with _IntListMixin, _TypedIntListMixin<Uint8List>
     implements Uint8List {
@@ -3142,6 +3198,14 @@ final class _ExternalUint8Array extends _TypedList
   Uint8List _createList(int length) {
     return new Uint8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove1(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -3181,6 +3245,16 @@ final class _ExternalUint8ClampedArray extends _TypedList
   Uint8ClampedList _createList(int length) {
     return new Uint8ClampedList(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      from._containsUnsignedBytes
+          ? _memMove1(start, count, from, skipCount)
+          : _setClampedRange(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -3217,6 +3291,11 @@ final class _ExternalInt16Array extends _TypedList
   Int16List _createList(int length) {
     return new Int16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove2(start, count, from, skipCount);
 
   int _getIndexedInt16(int index) {
     return _getInt16(index * Int16List.bytesPerElement);
@@ -3262,6 +3341,11 @@ final class _ExternalUint16Array extends _TypedList
     return new Uint16List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove2(start, count, from, skipCount);
+
   int _getIndexedUint16(int index) {
     return _getUint16(index * Uint16List.bytesPerElement);
   }
@@ -3305,6 +3389,11 @@ final class _ExternalInt32Array extends _TypedList
   Int32List _createList(int length) {
     return new Int32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove4(start, count, from, skipCount);
 
   int _getIndexedInt32(int index) {
     return _getInt32(index * Int32List.bytesPerElement);
@@ -3350,6 +3439,11 @@ final class _ExternalUint32Array extends _TypedList
     return new Uint32List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove4(start, count, from, skipCount);
+
   int _getIndexedUint32(int index) {
     return _getUint32(index * Uint32List.bytesPerElement);
   }
@@ -3393,6 +3487,11 @@ final class _ExternalInt64Array extends _TypedList
   Int64List _createList(int length) {
     return new Int64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove8(start, count, from, skipCount);
 
   int _getIndexedInt64(int index) {
     return _getInt64(index * Int64List.bytesPerElement);
@@ -3438,6 +3537,11 @@ final class _ExternalUint64Array extends _TypedList
     return new Uint64List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove8(start, count, from, skipCount);
+
   int _getIndexedUint64(int index) {
     return _getUint64(index * Uint64List.bytesPerElement);
   }
@@ -3481,6 +3585,11 @@ final class _ExternalFloat32Array extends _TypedList
   Float32List _createList(int length) {
     return new Float32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove4(start, count, from, skipCount);
 
   double _getIndexedFloat32(int index) {
     return _getFloat32(index * Float32List.bytesPerElement);
@@ -3526,6 +3635,11 @@ final class _ExternalFloat64Array extends _TypedList
     return new Float64List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove8(start, count, from, skipCount);
+
   double _getIndexedFloat64(int index) {
     return _getFloat64(index * Float64List.bytesPerElement);
   }
@@ -3569,6 +3683,11 @@ final class _ExternalFloat32x4Array extends _TypedList
   Float32x4List _createList(int length) {
     return new Float32x4List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove16(start, count, from, skipCount);
 
   Float32x4 _getIndexedFloat32x4(int index) {
     return _getFloat32x4(index * Float32x4List.bytesPerElement);
@@ -3614,6 +3733,11 @@ final class _ExternalInt32x4Array extends _TypedList
     return new Int32x4List(length);
   }
 
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove16(start, count, from, skipCount);
+
   Int32x4 _getIndexedInt32x4(int index) {
     return _getInt32x4(index * Int32x4List.bytesPerElement);
   }
@@ -3657,6 +3781,11 @@ final class _ExternalFloat64x2Array extends _TypedList
   Float64x2List _createList(int length) {
     return new Float64x2List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove16(start, count, from, skipCount);
 
   Float64x2 _getIndexedFloat64x2(int index) {
     return _getFloat64x2(index * Float64x2List.bytesPerElement);
@@ -4218,7 +4347,6 @@ abstract final class _TypedListView extends _TypedListBase
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Int8ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Int8List>
     implements Int8List {
@@ -4226,6 +4354,7 @@ final class _Int8ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int8ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int8ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Int8ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4259,10 +4388,14 @@ final class _Int8ArrayView extends _TypedListView
   Int8List _createList(int length) {
     return new Int8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove1(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint8ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint8List>
     implements Uint8List {
@@ -4270,6 +4403,7 @@ final class _Uint8ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint8ArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint8ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Uint8ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4303,10 +4437,17 @@ final class _Uint8ArrayView extends _TypedListView
   Uint8List _createList(int length) {
     return new Uint8List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove1(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint8ClampedArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
     implements Uint8ClampedList {
@@ -4314,6 +4455,7 @@ final class _Uint8ClampedArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint8ClampedArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint8ClampedArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Uint8ClampedArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4347,10 +4489,19 @@ final class _Uint8ClampedArrayView extends _TypedListView
   Uint8ClampedList _createList(int length) {
     return new Uint8ClampedList(length);
   }
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      from._containsUnsignedBytes
+          ? _memMove1(start, count, from, skipCount)
+          : _setClampedRange(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Int16ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Int16List>
     implements Int16List {
@@ -4358,6 +4509,7 @@ final class _Int16ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int16ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int16ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Int16ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4382,8 +4534,8 @@ final class _Int16ArrayView extends _TypedListView
         offsetInBytes + (index * Int16List.bytesPerElement), _toInt16(value));
   }
 
-  void setRange(int start, int end, Iterable<int> iterable,
-      [int skipCount = 0]) {
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -4404,10 +4556,14 @@ final class _Int16ArrayView extends _TypedListView
   Int16List _createList(int length) {
     return new Int16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove2(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint16ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint16List>
     implements Uint16List {
@@ -4415,6 +4571,7 @@ final class _Uint16ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint16ArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint16ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Uint16ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4439,8 +4596,8 @@ final class _Uint16ArrayView extends _TypedListView
         offsetInBytes + (index * Uint16List.bytesPerElement), _toUint16(value));
   }
 
-  void setRange(int start, int end, Iterable<int> iterable,
-      [int skipCount = 0]) {
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
     if (iterable is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
@@ -4462,10 +4619,14 @@ final class _Uint16ArrayView extends _TypedListView
   Uint16List _createList(int length) {
     return new Uint16List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove2(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Int32ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Int32List>
     implements Int32List {
@@ -4473,6 +4634,7 @@ final class _Int32ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int32ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Int32ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4506,10 +4668,14 @@ final class _Int32ArrayView extends _TypedListView
   Int32List _createList(int length) {
     return new Int32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove4(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint32ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint32List>
     implements Uint32List {
@@ -4517,6 +4683,7 @@ final class _Uint32ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint32ArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint32ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Uint32ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4550,10 +4717,14 @@ final class _Uint32ArrayView extends _TypedListView
   Uint32List _createList(int length) {
     return new Uint32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove4(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Int64ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Int64List>
     implements Int64List {
@@ -4561,6 +4732,7 @@ final class _Int64ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int64ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int64ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Int64ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4594,10 +4766,14 @@ final class _Int64ArrayView extends _TypedListView
   Int64List _createList(int length) {
     return new Int64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove8(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Uint64ArrayView extends _TypedListView
     with _IntListMixin, _TypedIntListMixin<Uint64List>
     implements Uint64List {
@@ -4605,6 +4781,7 @@ final class _Uint64ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Uint64ArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint64ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Uint64ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4638,10 +4815,14 @@ final class _Uint64ArrayView extends _TypedListView
   Uint64List _createList(int length) {
     return new Uint64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove8(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Float32ArrayView extends _TypedListView
     with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
     implements Float32List {
@@ -4649,6 +4830,7 @@ final class _Float32ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32ArrayView)
   @pragma("vm:external-name", "TypedDataView_Float32ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Float32ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4682,10 +4864,14 @@ final class _Float32ArrayView extends _TypedListView
   Float32List _createList(int length) {
     return new Float32List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove4(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Float64ArrayView extends _TypedListView
     with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
     implements Float64List {
@@ -4693,6 +4879,7 @@ final class _Float64ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64ArrayView)
   @pragma("vm:external-name", "TypedDataView_Float64ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Float64ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4726,10 +4913,14 @@ final class _Float64ArrayView extends _TypedListView
   Float64List _createList(int length) {
     return new Float64List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove8(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Float32x4ArrayView extends _TypedListView
     with _Float32x4ListMixin
     implements Float32x4List {
@@ -4737,6 +4928,7 @@ final class _Float32x4ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4ArrayView)
   @pragma("vm:external-name", "TypedDataView_Float32x4ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Float32x4ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4768,10 +4960,14 @@ final class _Float32x4ArrayView extends _TypedListView
   Float32x4List _createList(int length) {
     return new Float32x4List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove16(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Int32x4ArrayView extends _TypedListView
     with _Int32x4ListMixin
     implements Int32x4List {
@@ -4779,6 +4975,7 @@ final class _Int32x4ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Int32x4ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int32x4ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Int32x4ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4810,10 +5007,14 @@ final class _Int32x4ArrayView extends _TypedListView
   Int32x4List _createList(int length) {
     return new Int32x4List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove16(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _Float64x2ArrayView extends _TypedListView
     with _Float64x2ListMixin
     implements Float64x2List {
@@ -4821,6 +5022,7 @@ final class _Float64x2ArrayView extends _TypedListView
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2ArrayView)
   @pragma("vm:external-name", "TypedDataView_Float64x2ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _Float64x2ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -4852,14 +5054,19 @@ final class _Float64x2ArrayView extends _TypedListView
   Float64x2List _createList(int length) {
     return new Float64x2List(length);
   }
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+          int start, int count, _TypedListBase from, int skipCount) =>
+      _memMove16(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _ByteDataView implements ByteData {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _ByteDataView)
   @pragma("vm:external-name", "TypedDataView_ByteDataView_new")
+  @pragma("vm:idempotent")
   external factory _ByteDataView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5398,12 +5605,12 @@ abstract class UnmodifiableFloat64ListView implements Float64List {
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableInt8ArrayView extends _Int8ArrayView
     implements UnmodifiableInt8ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt8ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int8ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableInt8ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5415,12 +5622,12 @@ final class _UnmodifiableInt8ArrayView extends _Int8ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableUint8ArrayView extends _Uint8ArrayView
     implements UnmodifiableUint8ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint8ArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint8ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableUint8ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5432,12 +5639,12 @@ final class _UnmodifiableUint8ArrayView extends _Uint8ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView
     implements UnmodifiableUint8ClampedListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint8ClampedArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint8ClampedArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableUint8ClampedArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5449,12 +5656,12 @@ final class _UnmodifiableUint8ClampedArrayView extends _Uint8ClampedArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableInt16ArrayView extends _Int16ArrayView
     implements UnmodifiableInt16ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt16ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int16ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableInt16ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5466,12 +5673,12 @@ final class _UnmodifiableInt16ArrayView extends _Int16ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableUint16ArrayView extends _Uint16ArrayView
     implements UnmodifiableUint16ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint16ArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint16ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableUint16ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5483,12 +5690,12 @@ final class _UnmodifiableUint16ArrayView extends _Uint16ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableInt32ArrayView extends _Int32ArrayView
     implements UnmodifiableInt32ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt32ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int32ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableInt32ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5500,12 +5707,12 @@ final class _UnmodifiableInt32ArrayView extends _Int32ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableUint32ArrayView extends _Uint32ArrayView
     implements UnmodifiableUint32ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint32ArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint32ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableUint32ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5517,12 +5724,12 @@ final class _UnmodifiableUint32ArrayView extends _Uint32ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableInt64ArrayView extends _Int64ArrayView
     implements UnmodifiableInt64ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt64ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int64ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableInt64ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5534,12 +5741,12 @@ final class _UnmodifiableInt64ArrayView extends _Int64ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableUint64ArrayView extends _Uint64ArrayView
     implements UnmodifiableUint64ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableUint64ArrayView)
   @pragma("vm:external-name", "TypedDataView_Uint64ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableUint64ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5551,12 +5758,12 @@ final class _UnmodifiableUint64ArrayView extends _Uint64ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableFloat32ArrayView extends _Float32ArrayView
     implements UnmodifiableFloat32ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat32ArrayView)
   @pragma("vm:external-name", "TypedDataView_Float32ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableFloat32ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5568,12 +5775,12 @@ final class _UnmodifiableFloat32ArrayView extends _Float32ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableFloat64ArrayView extends _Float64ArrayView
     implements UnmodifiableFloat64ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat64ArrayView)
   @pragma("vm:external-name", "TypedDataView_Float64ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableFloat64ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5585,12 +5792,12 @@ final class _UnmodifiableFloat64ArrayView extends _Float64ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView
     implements UnmodifiableFloat32x4ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat32x4ArrayView)
   @pragma("vm:external-name", "TypedDataView_Float32x4ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableFloat32x4ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5602,12 +5809,12 @@ final class _UnmodifiableFloat32x4ArrayView extends _Float32x4ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView
     implements UnmodifiableInt32x4ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableInt32x4ArrayView)
   @pragma("vm:external-name", "TypedDataView_Int32x4ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableInt32x4ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5619,12 +5826,12 @@ final class _UnmodifiableInt32x4ArrayView extends _Int32x4ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView
     implements UnmodifiableFloat64x2ListView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableFloat64x2ArrayView)
   @pragma("vm:external-name", "TypedDataView_Float64x2ArrayView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableFloat64x2ArrayView._(
       _TypedList buffer, int offsetInBytes, int length);
 
@@ -5636,12 +5843,12 @@ final class _UnmodifiableFloat64x2ArrayView extends _Float64x2ArrayView
 }
 
 @pragma("vm:entry-point")
-@pragma("wasm:entry-point")
 final class _UnmodifiableByteDataView extends _ByteDataView
     implements UnmodifiableByteDataView {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _UnmodifiableByteDataView)
   @pragma("vm:external-name", "TypedDataView_ByteDataView_new")
+  @pragma("vm:idempotent")
   external factory _UnmodifiableByteDataView._(
       _TypedList buffer, int offsetInBytes, int length);
 

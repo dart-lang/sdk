@@ -22,18 +22,13 @@ class DefaultValueResolver {
   void resolve() {
     for (var unitElement in _libraryElement.units.impl) {
       _UnitContext(unitElement)
-        ..forEach(unitElement.classes, _class)
-        ..forEach(unitElement.enums, _class)
+        ..forEach(unitElement.classes, _interface)
+        ..forEach(unitElement.enums, _interface)
         ..forEach(unitElement.extensions, _extension)
+        ..forEach(unitElement.extensionTypes, _interface)
         ..forEach(unitElement.functions, _executable)
-        ..forEach(unitElement.mixins, _class);
+        ..forEach(unitElement.mixins, _interface);
     }
-  }
-
-  void _class(_UnitContext context, InterfaceElement element) {
-    _ClassContext(context, element)
-      ..forEach(element.constructors, _constructor)
-      ..forEach(element.methods, _executable);
   }
 
   void _constructor(_ClassContext context, ConstructorElement element) {
@@ -60,6 +55,12 @@ class DefaultValueResolver {
 
   void _extension(_UnitContext context, ExtensionElement element) {
     context.forEach(element.methods, _executable);
+  }
+
+  void _interface(_UnitContext context, InterfaceElement element) {
+    _ClassContext(context, element)
+      ..forEach(element.constructors, _constructor)
+      ..forEach(element.methods, _executable);
   }
 
   void _parameter(_ExecutableContext context, ParameterElement parameter) {

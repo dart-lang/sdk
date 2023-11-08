@@ -7,9 +7,8 @@
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show Token, scanString;
 import 'package:expect/expect.dart' show Expect;
+import 'package:front_end/src/fasta/builder/declaration_builders.dart';
 import 'package:front_end/src/fasta/builder/prefix_builder.dart';
-import 'package:front_end/src/fasta/builder/type_declaration_builder.dart';
-import 'package:front_end/src/fasta/builder/type_variable_builder.dart';
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/fasta_codes.dart'
@@ -101,8 +100,8 @@ Future<void> main() async {
     PrefixBuilder prefixBuilder =
         new PrefixBuilder("myPrefix", false, libraryBuilder, null, -1, -1);
     String assignmentOperator = "+=";
-    TypeDeclarationBuilder declaration = new TypeVariableBuilder.fromKernel(
-        new TypeParameter("T"), libraryBuilder);
+    TypeDeclarationBuilder declaration =
+        new TypeVariableBuilder.fromKernel(new TypeParameter("T"));
     VariableDeclaration variable =
         new VariableDeclaration(null, isSynthesized: true);
 

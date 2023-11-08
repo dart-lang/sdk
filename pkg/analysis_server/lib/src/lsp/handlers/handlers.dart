@@ -19,6 +19,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/utilities/cancellation.dart';
 
@@ -29,6 +30,13 @@ Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   // better to put it, and/or a better name for it?
   return items.map(converter).where((item) => item != null).cast<T>();
 }
+
+/// A base class for LSP handlers that require an LSP analysis server and are
+/// not supported over the legacy protocol.
+typedef LspMessageHandler<P, R> = MessageHandler<P, R, LspAnalysisServer>;
+
+/// A base class for LSP handlers that work with any [AnalysisServer].
+typedef SharedMessageHandler<P, R> = MessageHandler<P, R, AnalysisServer>;
 
 abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
   @override
@@ -61,31 +69,68 @@ mixin Handler<T> {
       'Request not valid before server is initialized');
 }
 
-/// Providers some helpers for request handlers to produce common errors or
+/// Provides some helpers for request handlers to produce common errors or
 /// obtain resolved results after waiting for in-progress analysis.
-mixin HandlerHelperMixin {
-  LspAnalysisServer get server;
+mixin HandlerHelperMixin<S extends AnalysisServer> {
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
+  S get server;
 
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
       ServerErrorCodes.FileAnalysisFailed, 'Analysis failed for file', path);
 
-  bool fileHasBeenModified(String path, num? clientVersion) {
-    final serverDocIdentifier = server.getVersionedDocumentIdentifier(path);
-    return clientVersion != null &&
-        clientVersion != serverDocIdentifier.version;
-  }
-
   ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(
       ServerErrorCodes.FileNotAnalyzed, 'File is not being analyzed', path);
 
-  ErrorOr<LineInfo> getLineInfo(String path) {
-    final lineInfo = server.getLineInfo(path);
+  /// Returns the file system path for a TextDocumentIdentifier.
+  ErrorOr<String> pathOfDoc(TextDocumentIdentifier doc) => pathOfUri(doc.uri);
 
-    if (lineInfo == null) {
-      return error(ServerErrorCodes.InvalidFilePath,
-          'Unable to obtain line information for file', path);
-    } else {
-      return success(lineInfo);
+  /// Returns the file system path for a TextDocumentItem.
+  ErrorOr<String> pathOfDocItem(TextDocumentItem doc) => pathOfUri(doc.uri);
+
+  /// Returns the file system path for a file URI.
+  ErrorOr<String> pathOfUri(Uri? uri) {
+    if (uri == null) {
+      return ErrorOr<String>.error(ResponseError(
+        code: ServerErrorCodes.InvalidFilePath,
+        message: 'Document URI was not supplied',
+      ));
+    }
+    final isValidFileUri = uri.isScheme('file');
+    if (!isValidFileUri) {
+      return ErrorOr<String>.error(ResponseError(
+        code: ServerErrorCodes.InvalidFilePath,
+        message: 'URI was not a valid file:// URI',
+        data: uri.toString(),
+      ));
+    }
+    try {
+      final context = server.resourceProvider.pathContext;
+      final isWindows = context.style == path.Style.windows;
+
+      // Use toFilePath() here and not context.fromUri() because they're not
+      // quite the same. `toFilePath()` will throw for some kinds of invalid
+      // file URIs (such as those with fragments) that context.fromUri() does
+      // not. We want the stricter handling here.
+      final filePath = uri.toFilePath(windows: isWindows);
+      // On Windows, paths that start with \ and not a drive letter are not
+      // supported but will return `true` from `path.isAbsolute` so check for them
+      // specifically.
+      if (isWindows && filePath.startsWith(r'\')) {
+        return ErrorOr<String>.error(ResponseError(
+          code: ServerErrorCodes.InvalidFilePath,
+          message: 'URI was not an absolute file path (missing drive letter)',
+          data: uri.toString(),
+        ));
+      }
+      return ErrorOr<String>.success(filePath);
+    } catch (e) {
+      // Even if tryParse() works and file == scheme, fromUri() can throw on
+      // Windows if there are invalid characters.
+      return ErrorOr<String>.error(ResponseError(
+          code: ServerErrorCodes.InvalidFilePath,
+          message: 'File URI did not contain a valid file path',
+          data: uri.toString()));
     }
   }
 
@@ -173,6 +218,28 @@ mixin HandlerHelperMixin {
   }
 }
 
+/// Provides some helpers for request handlers to produce common errors or
+/// obtain resolved results after waiting for in-progress analysis.
+mixin LspHandlerHelperMixin {
+  LspAnalysisServer get server;
+
+  bool fileHasBeenModified(String path, int? clientVersion) {
+    final serverDocumentVersion = server.getDocumentVersion(path);
+    return clientVersion != null && clientVersion != serverDocumentVersion;
+  }
+
+  ErrorOr<LineInfo> getLineInfo(String path) {
+    final lineInfo = server.getLineInfo(path);
+
+    if (lineInfo == null) {
+      return error(ServerErrorCodes.InvalidFilePath,
+          'Unable to obtain line information for file', path);
+    } else {
+      return success(lineInfo);
+    }
+  }
+}
+
 mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
     on RequestHandlerMixin<T> {
   Future<List<Response>> requestFromPlugins(
@@ -190,13 +257,10 @@ mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MessageHandler<P, R>
-    with
-        Handler<R>,
-        HandlerHelperMixin,
-        RequestHandlerMixin<LspAnalysisServer> {
+abstract class MessageHandler<P, R, S extends AnalysisServer>
+    with Handler<R>, HandlerHelperMixin, RequestHandlerMixin<S> {
   @override
-  final LspAnalysisServer server;
+  final S server;
 
   MessageHandler(this.server);
 
@@ -255,8 +319,9 @@ mixin PositionalArgCommandHandler {
 
 /// A message handler that handles all messages for a given server state.
 abstract class ServerStateMessageHandler {
-  final LspAnalysisServer server;
-  final Map<Method, MessageHandler<Object?, Object?>> _messageHandlers = {};
+  final AnalysisServer server;
+  final Map<Method, SharedMessageHandler<Object?, Object?>> _messageHandlers =
+      {};
   final CancelRequestHandler _cancelHandler;
   final NotCancelableToken _notCancelableToken = NotCancelableToken();
 
@@ -306,7 +371,8 @@ abstract class ServerStateMessageHandler {
         : error(ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
   }
 
-  void registerHandler(MessageHandler<Object?, Object?> handler) {
+  void registerHandler(
+      MessageHandler<Object?, Object?, AnalysisServer> handler) {
     _messageHandlers[handler.handlesMessage] = handler;
   }
 

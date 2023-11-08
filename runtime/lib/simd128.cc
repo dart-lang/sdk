@@ -96,10 +96,10 @@ DEFINE_NATIVE_ENTRY(Float32x4_mul, 0, 2) {
 DEFINE_NATIVE_ENTRY(Float32x4_div, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = self.x() / other.x();
-  float _y = self.y() / other.y();
-  float _z = self.z() / other.z();
-  float _w = self.w() / other.w();
+  float _x = Utils::DivideAllowZero(self.x(), other.x());
+  float _y = Utils::DivideAllowZero(self.y(), other.y());
+  float _z = Utils::DivideAllowZero(self.z(), other.z());
+  float _w = Utils::DivideAllowZero(self.w(), other.w());
   return Float32x4::New(_x, _y, _z, _w);
 }
 
@@ -361,19 +361,19 @@ DEFINE_NATIVE_ENTRY(Float32x4_sqrt, 0, 1) {
 
 DEFINE_NATIVE_ENTRY(Float32x4_reciprocal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  float _x = 1.0f / self.x();
-  float _y = 1.0f / self.y();
-  float _z = 1.0f / self.z();
-  float _w = 1.0f / self.w();
+  float _x = Utils::DivideAllowZero(1.0f, self.x());
+  float _y = Utils::DivideAllowZero(1.0f, self.y());
+  float _z = Utils::DivideAllowZero(1.0f, self.z());
+  float _w = Utils::DivideAllowZero(1.0f, self.w());
   return Float32x4::New(_x, _y, _z, _w);
 }
 
 DEFINE_NATIVE_ENTRY(Float32x4_reciprocalSqrt, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
-  float _x = sqrtf(1.0f / self.x());
-  float _y = sqrtf(1.0f / self.y());
-  float _z = sqrtf(1.0f / self.z());
-  float _w = sqrtf(1.0f / self.w());
+  float _x = sqrtf(Utils::DivideAllowZero(1.0f, self.x()));
+  float _y = sqrtf(Utils::DivideAllowZero(1.0f, self.y()));
+  float _z = sqrtf(Utils::DivideAllowZero(1.0f, self.z()));
+  float _w = sqrtf(Utils::DivideAllowZero(1.0f, self.w()));
   return Float32x4::New(_x, _y, _z, _w);
 }
 
@@ -710,8 +710,8 @@ DEFINE_NATIVE_ENTRY(Float64x2_mul, 0, 2) {
 DEFINE_NATIVE_ENTRY(Float64x2_div, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
-  double _x = self.x() / other.x();
-  double _y = self.y() / other.y();
+  double _x = Utils::DivideAllowZero(self.x(), other.x());
+  double _y = Utils::DivideAllowZero(self.y(), other.y());
   return Float64x2::New(_x, _y);
 }
 

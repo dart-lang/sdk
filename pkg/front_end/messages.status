@@ -1,6 +1,6 @@
 # Copyright (c) 2018, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # Note that test/spelling: Status will have no effect. Spelling errors can
 # always be fixed by either spelling correctly or updating the dictionary.
@@ -188,6 +188,7 @@ CyclicClassHierarchy/script1: Fail # We report an error for each class involved 
 CyclicClassHierarchy/script2: Fail # We report an error for each class involved in the cycle.
 CyclicRedirectingFactoryConstructors/part_wrapped_script: Fail # Error is reported for each factory involved in the cycle.
 CyclicRedirectingFactoryConstructors/script: Fail # Error is reported for each factory involved in the cycle.
+CyclicRepresentationDependency/analyzerCode: Fail
 CyclicTypedef/example: Fail
 DeferredAfterPrefix/example: Fail
 DeferredExtensionImport/analyzerCode: Fail
@@ -422,6 +423,30 @@ FieldNonNullableWithoutInitializerWarning/analyzerCode: Fail
 FieldNonNullableWithoutInitializerWarning/example: Fail
 FieldNotPromoted/analyzerCode: Fail
 FieldNotPromoted/example: Fail
+FieldNotPromotedBecauseConflictingField/analyzerCode: Fail
+FieldNotPromotedBecauseConflictingField/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingField/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingGetter/analyzerCode: Fail
+FieldNotPromotedBecauseConflictingGetter/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingGetter/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingNsmForwarder/analyzerCode: Fail
+FieldNotPromotedBecauseConflictingNsmForwarder/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseConflictingNsmForwarder/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseExternal/analyzerCode: Fail
+FieldNotPromotedBecauseExternal/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseExternal/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotEnabled/analyzerCode: Fail
+FieldNotPromotedBecauseNotEnabled/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotEnabled/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotField/analyzerCode: Fail
+FieldNotPromotedBecauseNotField/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotField/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotFinal/analyzerCode: Fail
+FieldNotPromotedBecauseNotFinal/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotFinal/script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotPrivate/analyzerCode: Fail
+FieldNotPromotedBecauseNotPrivate/part_wrapped_script: Fail # https://github.com/dart-lang/sdk/issues/53634
+FieldNotPromotedBecauseNotPrivate/script: Fail # https://github.com/dart-lang/sdk/issues/53634
 FinalAndCovariant/part_wrapped_script2: Fail
 FinalAndCovariant/script2: Fail
 FinalClassExtendedOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
@@ -520,6 +545,8 @@ InvalidCastTopLevelFunction/example: Fail
 InvalidCatchArguments/example: Fail
 InvalidContinueTarget/analyzerCode: Fail
 InvalidContinueTarget/example: Fail
+InvalidExtensionTypeSuperExtensionType/analyzerCode: Fail
+InvalidExtensionTypeSuperInterface/analyzerCode: Fail
 InvalidGetterSetterType/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedField/analyzerCode: Fail
 InvalidGetterSetterTypeBothInheritedFieldLegacy/analyzerCode: Fail
@@ -587,18 +614,18 @@ JsInteropExportMemberCollision/analyzerCode: Fail # Web compiler specific
 JsInteropExportMemberCollision/example: Fail # Web compiler specific
 JsInteropExportNoExportableMembers/analyzerCode: Fail # Web compiler specific
 JsInteropExportNoExportableMembers/example: Fail # Web compiler specific
+JsInteropExtensionTypeNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropExtensionTypeNotInterop/example: Fail # Web compiler specific
+JsInteropExtensionTypeMemberNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropExtensionTypeMemberNotInterop/example: Fail # Web compiler specific
+JsInteropExtensionTypeUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
+JsInteropExtensionTypeUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/analyzerCode: Fail # Web compiler specific
 JsInteropExternalExtensionMemberOnTypeInvalid/example: Fail # Web compiler specific
 JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: Fail # Web compiler specific
 JsInteropExternalExtensionMemberWithStaticDisallowed/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
-JsInteropInlineClassNotInterop/analyzerCode: Fail # Web compiler specific
-JsInteropInlineClassNotInterop/example: Fail # Web compiler specific
-JsInteropInlineClassMemberNotInterop/analyzerCode: Fail # Web compiler specific
-JsInteropInlineClassMemberNotInterop/example: Fail # Web compiler specific
-JsInteropInlineClassUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
-JsInteropInlineClassUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
@@ -619,8 +646,10 @@ JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
 JsInteropObjectLiteralConstructorPositionalParameters/analyzerCode: Fail # Web compiler specific
 JsInteropObjectLiteralConstructorPositionalParameters/example: Fail # Web compiler specific
-JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalTypeViolation/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific
@@ -629,6 +658,8 @@ JsInteropStaticInteropMockMissingImplements/analyzerCode: Fail # Web compiler sp
 JsInteropStaticInteropMockMissingImplements/example: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropMockNotStaticInteropType/example: Fail # Web compiler specific
+JsInteropStaticInteropMockTypeParametersNotAllowed/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropMockTypeParametersNotAllowed/example: Fail # Web compiler specific
 JsInteropStaticInteropNoJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropNoJSAnnotation/example: Fail # Web compiler specific
 JsInteropStaticInteropParameterInitializersAreIgnored/analyzerCode: Fail # Web compiler specific
@@ -643,12 +674,12 @@ JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # We
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
+JsInteropStaticInteropWithInvalidJsTypesSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInvalidJsTypesSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/example: Fail # Web compiler specific
-JsInteropStrictModeViolation/analyzerCode: Fail # Web compiler specific
-JsInteropStrictModeViolation/example: Fail # Web compiler specific
 JsInteropStrictModeForbiddenLibrary/analyzerCode: Fail # Web compiler specific
 JsInteropStrictModeForbiddenLibrary/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
@@ -755,6 +786,7 @@ NonAugmentationLibraryMemberConflict/analyzerCode: Fail
 NonAugmentationLibraryMemberConflict/part_wrapped_script: Fail # Uses imports
 NonConstConstructor/example: Fail
 NonConstFactory/example: Fail
+NonCovariantTypeParameterInRepresentationType/analyzerCode: Fail
 NonInstanceTypeVariableUse/example: Fail
 NonNullAwareSpreadIsNull/analyzerCode: Fail # There's no analyzer code for that error yet.
 NonNullableInNullAware/analyzerCode: Fail
@@ -903,6 +935,8 @@ ReturnTypeFunctionExpression/example: Fail
 ReturnWithoutExpressionAsync/analyzerCode: Fail
 ReturnWithoutExpressionSync/analyzerCode: Fail
 ReturnWithoutExpressionSync/part_wrapped_script: Fail
+ScriptTagInPartFile/analyzerCode: Fail
+ScriptTagInPartFile/example: Fail
 SdkRootNotFound/analyzerCode: Fail
 SdkRootNotFound/example: Fail
 SdkSpecificationNotFound/analyzerCode: Fail
@@ -935,6 +969,10 @@ StrongWithWeakDillLibrary/example: Fail
 StrongWithWeakDillLibrary/spelling: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
+SuperExtensionTypeIsIllegal/analyzerCode: Fail
+SuperExtensionTypeIsIllegalAliased/analyzerCode: Fail
+SuperExtensionTypeIsNullableAliased/analyzerCode: Fail
+SuperExtensionTypeIsTypeVariable/analyzerCode: Fail
 SuperNullAware/example: Fail
 SuperParameterInitializerOutsideConstructor/analyzerCode: Fail
 SuperParameterInitializerOutsideConstructor/example: Fail

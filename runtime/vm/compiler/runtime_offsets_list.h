@@ -131,7 +131,7 @@
   FIELD(Closure, function_type_arguments_offset)                               \
   FIELD(Closure, hash_offset)                                                  \
   FIELD(Closure, instantiator_type_arguments_offset)                           \
-  FIELD(ClosureData, default_type_arguments_kind_offset)                       \
+  FIELD(ClosureData, packed_fields_offset)                                     \
   FIELD(Code, instructions_offset)                                             \
   FIELD(Code, object_pool_offset)                                              \
   FIELD(Code, owner_offset)                                                    \
@@ -211,6 +211,7 @@
   FIELD(ObjectStore, suspend_state_suspend_sync_star_at_start_offset)          \
   FIELD(ObjectStore, suspend_state_yield_async_star_offset)                    \
   FIELD(OneByteString, data_offset)                                            \
+  FIELD(PersistentHandle, ptr_offset)                                          \
   FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
   FIELD(ReceivePort, send_port_offset)                                         \

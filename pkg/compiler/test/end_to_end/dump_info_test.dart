@@ -66,6 +66,9 @@ void main() {
     Expect.equals(0, result.exitCode);
     String output2 =
         File.fromUri(tmpDir.uri.resolve('json/out.js')).readAsStringSync();
+    String dumpInfoJson1 =
+        File.fromUri(tmpDir.uri.resolve('json/out.js.info.json'))
+            .readAsStringSync();
 
     print('Compare outputs...');
     Expect.equals(output1, output2);
@@ -83,9 +86,143 @@ void main() {
     Expect.equals(0, result.exitCode);
     String output3 =
         File.fromUri(tmpDir.uri.resolve('binary/out.js')).readAsStringSync();
+    List<int> dumpInfoBinary1 =
+        File.fromUri(tmpDir.uri.resolve('binary/out.js.info.data'))
+            .readAsBytesSync();
 
     print('Compare outputs...');
     Expect.equals(output1, output3);
+
+    command = dart2JsCommand([
+      '--cfe-only',
+      '--out=json/cfe.dill',
+      'swarm.dart',
+    ]);
+    print('Run $command');
+    result = Process.runSync(Platform.resolvedExecutable, command,
+        workingDirectory: tmpDir.path);
+    print('exit code: ${result.exitCode}');
+    print('stdout:');
+    print(result.stdout);
+    print('stderr:');
+    print(result.stderr);
+    command = dart2JsCommand([
+      '--input-dill=json/cfe.dill',
+      '--write-closed-world=json/world.data',
+      '--out=json/world.dill',
+      'swarm.dart',
+    ]);
+    print('Run $command');
+    result = Process.runSync(Platform.resolvedExecutable, command,
+        workingDirectory: tmpDir.path);
+    print('exit code: ${result.exitCode}');
+    print('stdout:');
+    print(result.stdout);
+    print('stderr:');
+    print(result.stderr);
+    command = dart2JsCommand([
+      '--input-dill=json/world.dill',
+      '--read-closed-world=json/world.data',
+      '--write-data=json/global.data',
+      'swarm.dart',
+    ]);
+    print('Run $command');
+    result = Process.runSync(Platform.resolvedExecutable, command,
+        workingDirectory: tmpDir.path);
+    print('exit code: ${result.exitCode}');
+    print('stdout:');
+    print(result.stdout);
+    print('stderr:');
+    print(result.stderr);
+    command = dart2JsCommand([
+      '--input-dill=json/world.dill',
+      '--read-closed-world=json/world.data',
+      '--read-data=json/global.data',
+      '--write-codegen=codegen',
+      '--codegen-shards=1',
+      '--codegen-shard=0',
+      'swarm.dart',
+    ]);
+    print('Run $command');
+    result = Process.runSync(Platform.resolvedExecutable, command,
+        workingDirectory: tmpDir.path);
+    print('exit code: ${result.exitCode}');
+    print('stdout:');
+    print(result.stdout);
+    print('stderr:');
+    print(result.stderr);
+    command = dart2JsCommand([
+      '--input-dill=json/world.dill',
+      '--read-closed-world=json/world.data',
+      '--read-data=json/global.data',
+      '--read-codegen=codegen',
+      '--codegen-shards=1',
+      '--out=out.js',
+      '--write-dump-info-data=json/dump.data',
+      'swarm.dart',
+    ]);
+    print('Run $command');
+    result = Process.runSync(Platform.resolvedExecutable, command,
+        workingDirectory: tmpDir.path);
+    print('exit code: ${result.exitCode}');
+    print('stdout:');
+    print(result.stdout);
+    print('stderr:');
+    print(result.stderr);
+    command = dart2JsCommand([
+      '--input-dill=json/world.dill',
+      '--read-closed-world=json/world.data',
+      '--read-data=json/global.data',
+      '--read-codegen=codegen',
+      '--codegen-shards=1',
+      '--read-dump-info-data=json/dump.data',
+      'swarm.dart',
+    ]);
+    print('Run $command');
+    result = Process.runSync(Platform.resolvedExecutable, command,
+        workingDirectory: tmpDir.path);
+    print('exit code: ${result.exitCode}');
+    print('stdout:');
+    print(result.stdout);
+    print('stderr:');
+    print(result.stderr);
+    Expect.equals(0, result.exitCode);
+    String output4 =
+        File.fromUri(tmpDir.uri.resolve('json/out.js')).readAsStringSync();
+    String dumpInfoJson2 =
+        File.fromUri(tmpDir.uri.resolve('json/out.js.info.json'))
+            .readAsStringSync();
+
+    command = dart2JsCommand([
+      '--input-dill=json/world.dill',
+      '--read-closed-world=json/world.data',
+      '--read-data=json/global.data',
+      '--read-codegen=codegen',
+      '--codegen-shards=1',
+      '--read-dump-info-data=json/dump.data',
+      '--dump-info=binary',
+      'swarm.dart',
+    ]);
+    print('Run $command');
+    result = Process.runSync(Platform.resolvedExecutable, command,
+        workingDirectory: tmpDir.path);
+    print('exit code: ${result.exitCode}');
+    print('stdout:');
+    print(result.stdout);
+    print('stderr:');
+    print(result.stderr);
+    Expect.equals(0, result.exitCode);
+    String output5 =
+        File.fromUri(tmpDir.uri.resolve('json/out.js')).readAsStringSync();
+    List<int> dumpInfoBinary2 =
+        File.fromUri(tmpDir.uri.resolve('binary/out.js.info.data'))
+            .readAsBytesSync();
+
+    print('Compare outputs...');
+    Expect.equals(output1, output4);
+    Expect.equals(output1, output5);
+    Expect.equals(dumpInfoJson1, dumpInfoJson2);
+    Expect.listEquals(dumpInfoBinary1, dumpInfoBinary2);
 
     print('Done');
   } finally {

@@ -28,6 +28,10 @@ void main() {
     buildTestsForAnalyzerPlugin();
   });
 
+  group('linter', () {
+    buildTestsForLinter();
+  });
+
   group('nnbd_migration', () {
     buildTestsForNnbdMigration();
   });
@@ -50,13 +54,10 @@ void buildTests({
     excludedPaths: excludedPaths,
     resourceProvider: provider,
   );
-  var contexts = collection.contexts;
-  if (contexts.length != 1) {
-    fail('The directory $packagePath contains multiple analysis contexts.');
+  for (var context in collection.contexts) {
+    buildTestsIn(context.currentSession, packagePath, excludedPaths,
+        provider.getFolder(packagePath));
   }
-
-  buildTestsIn(contexts[0].currentSession, packagePath, excludedPaths,
-      provider.getFolder(packagePath));
 }
 
 void buildTestsForAnalysisServer() {
@@ -118,6 +119,12 @@ void buildTestsForAnalyzerPlugin() {
     packagePath: 'analyzer_plugin',
     excludedPaths: excludedPaths,
   );
+}
+
+void buildTestsForLinter() {
+  buildTests(packagePath: 'linter', excludedPaths: [
+    'test_data',
+  ]);
 }
 
 void buildTestsForNnbdMigration() {

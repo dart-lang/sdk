@@ -6,7 +6,6 @@
 
 #include "platform/assert.h"
 #include "platform/globals.h"
-#include "vm/app_snapshot.h"
 #include "vm/compiler/assembler/disassembler.h"
 #include "vm/flags.h"
 #include "vm/heap/safepoint.h"
@@ -98,6 +97,8 @@ CodePtr StubCode::Generate(const char* name,
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
   compiler::Assembler assembler(object_pool_builder);
+  CompilerState compiler_state(thread, /*is_aot=*/FLAG_precompiled_mode,
+                               /*is_optimizing=*/false);
   Zone* zone = thread->zone();
   auto* pc_descriptors_list = new (zone) DescriptorList(zone);
   compiler::StubCodeCompiler stubCodeCompiler(&assembler, pc_descriptors_list);
@@ -226,6 +227,8 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     }
 
     compiler::Assembler assembler(wrapper);
+    CompilerState compiler_state(thread, /*is_aot=*/FLAG_precompiled_mode,
+                                 /*is_optimizing=*/false);
     compiler::UnresolvedPcRelativeCalls unresolved_calls;
     const char* name = cls.ToCString();
     compiler::StubCodeCompiler stubCodeCompiler(&assembler, nullptr);
@@ -324,6 +327,8 @@ CodePtr StubCode::GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool,
 
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
+  CompilerState compiler_state(thread, /*is_aot=*/FLAG_precompiled_mode,
+                               /*is_optimizing=*/false);
   compiler::StubCodeCompiler stubCodeCompiler(&assembler, nullptr);
   stubCodeCompiler.GenerateBuildMethodExtractorStub(
       closure_allocation_stub, context_allocation_stub, generic);

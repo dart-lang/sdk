@@ -95,13 +95,6 @@ class ExpectedError {
       return false;
     }
     List<DiagnosticMessage> contextMessages = error.contextMessages.toList();
-    contextMessages.sort((first, second) {
-      int result = first.filePath.compareTo(second.filePath);
-      if (result != 0) {
-        return result;
-      }
-      return second.offset - first.offset;
-    });
     if (contextMessages.length != expectedContextMessages.length) {
       return false;
     }

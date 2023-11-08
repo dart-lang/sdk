@@ -36,6 +36,13 @@ class ThreadInterrupter : public AllStatic {
   // Interrupt a thread.
   static void InterruptThread(OSThread* thread);
 
+  // Prepare current thread for handling interrupts. Returns
+  // opaque pointer to the allocated state (if any).
+  static void* PrepareCurrentThread();
+
+  // Cleanup any state which was created by |PrepareCurrentThread|.
+  static void CleanupCurrentThreadState(void* state);
+
  private:
   static constexpr intptr_t kMaxThreads = 4096;
   static bool initialized_;

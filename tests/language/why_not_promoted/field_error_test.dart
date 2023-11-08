@@ -5,25 +5,25 @@
 class C {
   int? i;
   //   ^
-  // [context 1] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 2] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 3] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 4] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 5] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 6] 'i' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 7] 'i' refers to a property so it couldn't be promoted.
-  // [context 8] 'i' refers to a property so it couldn't be promoted.
-  // [context 9] 'i' refers to a property so it couldn't be promoted.
-  // [context 10] 'i' refers to a property so it couldn't be promoted.
-  // [context 11] 'i' refers to a property so it couldn't be promoted.
-  // [context 12] 'i' refers to a property so it couldn't be promoted.
+  // [context 1] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 2] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 4] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 5] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 6] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 7] 'i' refers to a public field so it couldn't be promoted.
+  // [context 8] 'i' refers to a public field so it couldn't be promoted.
+  // [context 9] 'i' refers to a public field so it couldn't be promoted.
+  // [context 10] 'i' refers to a public field so it couldn't be promoted.
+  // [context 11] 'i' refers to a public field so it couldn't be promoted.
+  // [context 12] 'i' refers to a public field so it couldn't be promoted.
   int? j;
 
   get_field_via_explicit_this() {
     if (this.i == null) return;
     this.i.isEven;
 //         ^^^^^^
-// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe 7] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 
@@ -31,7 +31,7 @@ class C {
     if ((this).i == null) return;
     (this).i.isEven;
 //           ^^^^^^
-// [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe 8] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 
@@ -39,7 +39,7 @@ class C {
     if (i == null) return;
     i.isEven;
 //    ^^^^^^
-// [analyzer 5] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 3] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe 9] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 }
@@ -57,7 +57,7 @@ class D extends C {
     if (i == null) return;
     i.isEven;
 //    ^^^^^^
-// [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
+// [analyzer 5] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
 // [cfe 11] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
   }
 }

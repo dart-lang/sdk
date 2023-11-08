@@ -40,9 +40,6 @@ class CompletionState {
     AstNode? node = selection.coveringNode;
     while (node != null) {
       switch (node) {
-        case ClassAugmentationDeclaration():
-          // TODO(brianwilkerson) Implement this.
-          break;
         case ClassDeclaration():
           var element = node.declaredElement;
           if (element != null) {
@@ -55,9 +52,6 @@ class CompletionState {
           }
         case ExtensionDeclaration():
           return node.extendedType.type;
-        case MixinAugmentationDeclaration():
-          // TODO(brianwilkerson) Implement this.
-          break;
         case MixinDeclaration():
           var element = node.declaredElement;
           if (element != null) {

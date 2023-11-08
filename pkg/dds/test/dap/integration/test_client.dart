@@ -55,6 +55,9 @@ class DapTestClient {
   /// All stderr OutputEvents that have occurred so far.
   final StringBuffer _stderr = StringBuffer();
 
+  /// A default cwd to use for all launches.
+  String? defaultCwd;
+
   DapTestClient._(
     this._channel,
     this._logger, {
@@ -143,11 +146,12 @@ class DapTestClient {
         ? expectStop('entry').then((event) => continue_(event.threadId!))
         : null;
 
+    cwd ??= defaultCwd;
     final attachResponse = sendRequest(
       DartAttachRequestArguments(
         vmServiceUri: vmServiceUri,
         vmServiceInfoFile: vmServiceInfoFile,
-        cwd: cwd,
+        cwd: cwd != null ? _normalizePath(cwd) : null,
         additionalProjectPaths: additionalProjectPaths,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
@@ -297,7 +301,9 @@ class DapTestClient {
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
     bool? sendCustomProgressEvents,
+    bool? allowAnsiColorOutput,
   }) {
+    cwd ??= defaultCwd;
     return sendRequest(
       DartLaunchRequestArguments(
         noDebug: noDebug,
@@ -318,6 +324,7 @@ class DapTestClient {
         // traffic in a custom event.
         sendLogsToClient: sendLogsToClient ?? captureVmServiceTraffic,
         sendCustomProgressEvents: sendCustomProgressEvents,
+        allowAnsiColorOutput: allowAnsiColorOutput,
       ),
       // We can't automatically pick the command when using a custom type
       // (DartLaunchRequestArguments).
@@ -442,9 +449,24 @@ class DapTestClient {
   /// Whether or not any `terminate()` request has been sent.
   bool get hasSentTerminateRequest => _hasSentTerminateRequest;
   bool _hasSentTerminateRequest = false;
-  Future<Response?> terminate() async {
+
+  /// Sends a terminate request.
+  ///
+  /// For convenience, returns a Future that completes when either this request
+  /// completes, or when a `terminated` event is received since it is not
+  /// guaranteed that this request will return a response during a shutdown.
+  Future<void> terminate() async {
     _hasSentTerminateRequest = true;
-    return sendRequest(TerminateArguments());
+    return Future.any([
+      event('terminated').then(
+        (event) => event,
+        // Ignore errors caused by this event not occurring before the stream
+        // closes as this is very possible if the application terminated just
+        // before this method was called.
+        onError: (_) => null,
+      ),
+      sendRequest(TerminateArguments()),
+    ]);
   }
 
   /// Sends a threads request to the server to request the list of active
@@ -1163,6 +1185,29 @@ extension DapTestClientExtension on DapTestClient {
     final response = await evaluate(
       expression,
       frameId: frameId,
+      format: format,
+    );
+    expect(response.success, isTrue);
+    expect(response.command, equals('evaluate'));
+    final body =
+        EvaluateResponseBody.fromJson(response.body as Map<String, Object?>);
+
+    expect(body.result, equals(expectedResult));
+
+    return body;
+  }
+
+  /// Evaluates [expression] without a frame and  expects a specific
+  /// [expectedResult].
+  Future<EvaluateResponseBody> expectGlobalEvalResult(
+    String expression,
+    String expectedResult, {
+    String? context,
+    ValueFormat? format,
+  }) async {
+    final response = await evaluate(
+      expression,
+      context: context,
       format: format,
     );
     expect(response.success, isTrue);

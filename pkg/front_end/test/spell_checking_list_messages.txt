@@ -15,6 +15,7 @@ abispecificintegermapping
 adjusting
 annotate
 api
+apis
 argument(s)
 assigning
 augment
@@ -28,9 +29,11 @@ cast
 collide
 compilercontext.runincontext
 compilesdk
+conformance
 constructor(s)
 core
 count.#count
+createstaticinteropmock
 d
 dart.dev
 dart2js_server
@@ -60,13 +63,16 @@ interop
 intervening
 irrefutable
 js_util
+jsany
 jsexport
+jsobject
 libraries.json
 list.filled
 loadlibrary
 macro
 member(s)
 migrate
+mocking
 n
 name.#name
 name.stack

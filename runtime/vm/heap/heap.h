@@ -163,13 +163,13 @@ class Heap {
   void PrintSizes() const;
 
   // Return amount of memory used and capacity in a space, excluding external.
-  int64_t UsedInWords(Space space) const;
-  int64_t CapacityInWords(Space space) const;
-  int64_t ExternalInWords(Space space) const;
+  intptr_t UsedInWords(Space space) const;
+  intptr_t CapacityInWords(Space space) const;
+  intptr_t ExternalInWords(Space space) const;
 
-  int64_t TotalUsedInWords() const;
-  int64_t TotalCapacityInWords() const;
-  int64_t TotalExternalInWords() const;
+  intptr_t TotalUsedInWords() const;
+  intptr_t TotalCapacityInWords() const;
+  intptr_t TotalExternalInWords() const;
   // Return the amount of GCing in microseconds.
   int64_t GCTimeInMicros(Space space) const;
 
@@ -287,9 +287,9 @@ class Heap {
                                 JSONStream* stream) {
     old_space_.PrintHeapMapToJSONStream(isolate_group, stream);
   }
+#endif  // PRODUCT
 
   intptr_t ReachabilityBarrier() { return stats_.reachability_barrier_; }
-#endif  // PRODUCT
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
   bool is_vm_isolate() const { return is_vm_isolate_; }

@@ -1,0 +1,7 @@
+extension CheckType<T> on T {
+  void expect<S extends Exactly<T>>() {}
+}
+
+typedef Exactly<T> = T Function(T);
+void f<X>(X? arg) {}
+void main() {}

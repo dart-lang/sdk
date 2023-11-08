@@ -4,11 +4,11 @@ import "dart:core" as core;
 
 extension HashAll on core::Iterable<dynamic> {
   method hashAll = self::HashAll|hashAll;
-  tearoff hashAll = self::HashAll|get#hashAll;
+  method tearoff hashAll = self::HashAll|get#hashAll;
 }
 extension HashAllList on core::List<dynamic> {
   method hashAll = self::HashAllList|hashAll;
-  tearoff hashAll = self::HashAllList|get#hashAll;
+  method tearoff hashAll = self::HashAllList|get#hashAll;
 }
 static extension-member method HashAll|hashAll(lowered final core::Iterable<dynamic> #this) → core::int
   ;

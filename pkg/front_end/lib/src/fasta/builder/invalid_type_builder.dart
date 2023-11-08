@@ -4,8 +4,6 @@
 
 import 'package:front_end/src/fasta/builder/library_builder.dart';
 
-import 'package:front_end/src/fasta/builder/named_type_builder.dart';
-
 import 'package:front_end/src/fasta/builder/nullability_builder.dart';
 
 import 'package:front_end/src/fasta/source/source_library_builder.dart';
@@ -20,14 +18,14 @@ import 'type_builder.dart';
 ///
 /// This builder results in the creation of an [InvalidType] and can only be
 /// used when an error has already been reported.
-class InvalidTypeBuilder extends TypeBuilder {
+class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   @override
   final Uri fileUri;
 
   @override
   final int charOffset;
 
-  InvalidTypeBuilder(this.fileUri, this.charOffset);
+  InvalidTypeBuilderImpl(this.fileUri, this.charOffset);
 
   @override
   DartType build(LibraryBuilder library, TypeUse typeUse,

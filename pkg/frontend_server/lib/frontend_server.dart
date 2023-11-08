@@ -176,6 +176,12 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
     valueHelp: 'dart:ui',
     defaultsTo: const <String>[],
   )
+  ..addMultiOption(
+    'keep-class-names-implementing',
+    help: 'Prevents obfuscation of the class names of any class implementing '
+        'the given class.',
+    defaultsTo: const <String>[],
+  )
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addFlag('sound-null-safety',
@@ -632,6 +638,7 @@ class FrontendCompiler implements CompilerInterface {
           nativeAssets: _nativeAssets,
           includePlatform: options['link-platform'],
           deleteToStringPackageUris: options['delete-tostring-package-uri'],
+          keepClassNamesImplementing: options['keep-class-names-implementing'],
           aot: options['aot'],
           targetOS: options['target-os'],
           useGlobalTypeFlowAnalysis: options['tfa'],

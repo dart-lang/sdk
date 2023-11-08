@@ -321,10 +321,10 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
   };
 
   // Lookup cache before calling runtime.
-  __ LoadCompressed(
+  __ LoadAcquireCompressed(
       InstantiationABI::kScratchReg,
-      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                             target::TypeArguments::instantiations_offset()));
+      InstantiationABI::kUninstantiatedTypeArgumentsReg,
+      target::TypeArguments::instantiations_offset() - kHeapObjectTag);
   // Go ahead and load the backing array data address into kEntryReg.
   __ LoadFieldAddressForOffset(kEntryReg, InstantiationABI::kScratchReg,
                                target::Array::data_offset());
@@ -1091,15 +1091,17 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
 
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
   __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
-  __ BranchIf(EQUAL, &call_runtime, Assembler::kNearJump);
+  __ BranchIf(EQUAL, &call_runtime);
 
   // Use the number of inputs used by the STC to determine which stub to call.
-  Label call_2, call_4, call_6;
+  Label call_2, call_3, call_4, call_6;
   __ Comment("Check number of STC inputs");
   __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kSubtypeTestCacheReg,
                   Slot::SubtypeTestCache_num_inputs());
   __ CompareImmediate(TypeTestABI::kScratchReg, 2);
   __ BranchIf(EQUAL, &call_2, Assembler::kNearJump);
+  __ CompareImmediate(TypeTestABI::kScratchReg, 3);
+  __ BranchIf(EQUAL, &call_3, Assembler::kNearJump);
   __ CompareImmediate(TypeTestABI::kScratchReg, 4);
   __ BranchIf(EQUAL, &call_4, Assembler::kNearJump);
   __ CompareImmediate(TypeTestABI::kScratchReg, 6);
@@ -1129,6 +1131,16 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   {
     __ Comment("Call 4 input STC check");
     __ Call(StubCodeSubtype4TestCache());
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kNearJump);
+  }
+
+  __ Bind(&call_3);
+  {
+    __ Comment("Call 3 input STC check");
+    __ Call(StubCodeSubtype3TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
@@ -1250,7 +1262,7 @@ void StubCodeCompiler::GenerateAllocateClosureStub() {
   __ PopRegister(AllocateClosureABI::kFunctionReg);
   __ PopRegister(AllocateClosureABI::kResultReg);
   ASSERT(target::WillAllocateNewOrRememberedObject(instance_size));
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
   __ LeaveStubFrame();
 
   // AllocateClosureABI::kResultReg: new object
@@ -1299,97 +1311,102 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
   const Register shape_reg = AllocateRecordABI::kShapeReg;
   const Register temp_reg = AllocateRecordABI::kTemp1Reg;
   const Register new_top_reg = AllocateRecordABI::kTemp2Reg;
-  Label slow_case;
 
-  // Check for allocation tracing.
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kRecordCid, &slow_case, temp_reg));
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label slow_case;
 
-  // Extract number of fields from the shape.
-  __ AndImmediate(
-      temp_reg, shape_reg,
-      compiler::target::RecordShape::kNumFieldsMask << kSmiTagShift);
+    // Check for allocation tracing.
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kRecordCid, &slow_case, temp_reg));
 
-  // Compute the rounded instance size.
-  const intptr_t fixed_size_plus_alignment_padding =
-      (target::Record::field_offset(0) +
-       target::ObjectAlignment::kObjectAlignment - 1);
-  __ AddScaled(temp_reg, temp_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
-               fixed_size_plus_alignment_padding);
-  __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
+    // Extract number of fields from the shape.
+    __ AndImmediate(
+        temp_reg, shape_reg,
+        compiler::target::RecordShape::kNumFieldsMask << kSmiTagShift);
 
-  // Now allocate the object.
-  __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
-  __ MoveRegister(new_top_reg, temp_reg);
-  __ AddRegisters(new_top_reg, result_reg);
-  // Check if the allocation fits into the remaining space.
-  __ CompareWithMemoryValue(new_top_reg,
-                            Address(THR, target::Thread::end_offset()));
-  __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
+    // Compute the rounded instance size.
+    const intptr_t fixed_size_plus_alignment_padding =
+        (target::Record::field_offset(0) +
+         target::ObjectAlignment::kObjectAlignment - 1);
+    __ AddScaled(temp_reg, temp_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
+                 fixed_size_plus_alignment_padding);
+    __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
 
-  // Successfully allocated the object, now update top to point to
-  // next object start and initialize the object.
-  __ StoreToOffset(new_top_reg, Address(THR, target::Thread::top_offset()));
-  __ AddImmediate(result_reg, kHeapObjectTag);
+    // Now allocate the object.
+    __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
+    __ MoveRegister(new_top_reg, temp_reg);
+    __ AddRegisters(new_top_reg, result_reg);
+    // Check if the allocation fits into the remaining space.
+    __ CompareWithMemoryValue(new_top_reg,
+                              Address(THR, target::Thread::end_offset()));
+    __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
+    __ CheckAllocationCanary(result_reg);
 
-  // Calculate the size tag.
-  {
-    Label size_tag_overflow, done;
-    __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
-    __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
-    __ LslImmediate(temp_reg,
-                    target::UntaggedObject::kTagBitsSizeTagPos -
-                        target::ObjectAlignment::kObjectAlignmentLog2);
-    __ Jump(&done, Assembler::kNearJump);
+    // Successfully allocated the object, now update top to point to
+    // next object start and initialize the object.
+    __ StoreToOffset(new_top_reg, Address(THR, target::Thread::top_offset()));
+    __ AddImmediate(result_reg, kHeapObjectTag);
 
-    __ Bind(&size_tag_overflow);
-    // Set overflow size tag value.
-    __ LoadImmediate(temp_reg, 0);
+    // Calculate the size tag.
+    {
+      Label size_tag_overflow, done;
+      __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
+      __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
+      __ LslImmediate(temp_reg,
+                      target::UntaggedObject::kTagBitsSizeTagPos -
+                          target::ObjectAlignment::kObjectAlignmentLog2);
+      __ Jump(&done, Assembler::kNearJump);
 
-    __ Bind(&done);
-    uword tags = target::MakeTagWordForNewSpaceObject(kRecordCid, 0);
-    __ OrImmediate(temp_reg, tags);
-    __ StoreToOffset(
-        temp_reg,
-        FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
-  }
+      __ Bind(&size_tag_overflow);
+      // Set overflow size tag value.
+      __ LoadImmediate(temp_reg, 0);
 
-  __ StoreCompressedIntoObjectNoBarrier(
-      result_reg, FieldAddress(result_reg, target::Record::shape_offset()),
-      shape_reg);
+      __ Bind(&done);
+      uword tags = target::MakeTagWordForNewSpaceObject(kRecordCid, 0);
+      __ OrImmediate(temp_reg, tags);
+      __ StoreToOffset(
+          temp_reg,
+          FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
+    }
 
-  // Initialize the remaining words of the object.
-  {
-    const Register field_reg = shape_reg;
+    __ StoreCompressedIntoObjectNoBarrier(
+        result_reg, FieldAddress(result_reg, target::Record::shape_offset()),
+        shape_reg);
+
+    // Initialize the remaining words of the object.
+    {
+      const Register field_reg = shape_reg;
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
     defined(TARGET_ARCH_RISCV64)
-    const Register null_reg = NULL_REG;
+      const Register null_reg = NULL_REG;
 #else
-    const Register null_reg = temp_reg;
-    __ LoadObject(null_reg, NullObject());
+      const Register null_reg = temp_reg;
+      __ LoadObject(null_reg, NullObject());
 #endif
 
-    Label loop, done;
-    __ AddImmediate(field_reg, result_reg, target::Record::field_offset(0));
-    __ CompareRegisters(field_reg, new_top_reg);
-    __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
+      Label loop, done;
+      __ AddImmediate(field_reg, result_reg, target::Record::field_offset(0));
+      __ CompareRegisters(field_reg, new_top_reg);
+      __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
 
-    __ Bind(&loop);
-    for (intptr_t offset = 0; offset < target::kObjectAlignment;
-         offset += target::kCompressedWordSize) {
-      __ StoreCompressedIntoObjectNoBarrier(
-          result_reg, FieldAddress(field_reg, offset), null_reg);
+      __ Bind(&loop);
+      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+           offset += target::kCompressedWordSize) {
+        __ StoreCompressedIntoObjectNoBarrier(
+            result_reg, FieldAddress(field_reg, offset), null_reg);
+      }
+      // Safe to only check every kObjectAlignment bytes instead of each word.
+      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+      __ AddImmediate(field_reg, target::kObjectAlignment);
+      __ CompareRegisters(field_reg, new_top_reg);
+      __ BranchIf(UNSIGNED_LESS, &loop, Assembler::kNearJump);
+      __ Bind(&done);
     }
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-    __ AddImmediate(field_reg, target::kObjectAlignment);
-    __ CompareRegisters(field_reg, new_top_reg);
-    __ BranchIf(UNSIGNED_LESS, &loop, Assembler::kNearJump);
-    __ Bind(&done);
+
+    __ WriteAllocationCanary(new_top_reg);  // Fix overshoot.
+    __ Ret();
+
+    __ Bind(&slow_case);
   }
-
-  __ Ret();
-
-  __ Bind(&slow_case);
 
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
@@ -1398,7 +1415,7 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
   __ Drop(1);
   __ PopRegister(AllocateRecordABI::kResultReg);
 
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -1474,7 +1491,7 @@ void StubCodeCompiler::GenerateAllocateSmallRecordStub(intptr_t num_fields,
   __ Drop(4);
   __ PopRegister(result_reg);
 
-  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+  EnsureIsNewOrRemembered();
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -1769,6 +1786,11 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
                                          Register result_reg,
                                          Register frame_size_reg,
                                          Register temp_reg) {
+  if (FLAG_use_slow_path || !FLAG_inline_alloc) {
+    __ Jump(slow_case);
+    return;
+  }
+
   // Check for allocation tracing.
   NOT_IN_PRODUCT(
       __ MaybeTraceAllocation(kSuspendStateCid, slow_case, temp_reg));
@@ -1788,6 +1810,7 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
   __ CompareWithMemoryValue(temp_reg,
                             Address(THR, target::Thread::end_offset()));
   __ BranchIf(UNSIGNED_GREATER_EQUAL, slow_case);
+  __ CheckAllocationCanary(result_reg);
 
   // Successfully allocated the object, now update top to point to
   // next object start and initialize the object.
@@ -3101,7 +3124,7 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
 
   // Fill in all the STC input registers.
   Label initialized, not_closure;
-  if (n >= 4) {
+  if (n >= 3) {
     __ LoadClassIdMayBeSmi(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
   } else {
     // If the type is fully instantiated, then it can be determined at compile
@@ -3209,6 +3232,11 @@ void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
 // See comment on [GenerateSubtypeNTestCacheStub].
 void StubCodeCompiler::GenerateSubtype2TestCacheStub() {
   GenerateSubtypeNTestCacheStub(assembler, 2);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].

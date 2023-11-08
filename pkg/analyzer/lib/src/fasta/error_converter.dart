@@ -2,7 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/messages/codes.dart' show Code, Message;
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show
+        Code,
+        Message,
+        codeAssertAsExpression,
+        codeSetOrMapLiteralTooManyTypeArguments;
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -319,9 +324,34 @@ class FastaErrorReporter {
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.YIELD_IN_NON_GENERATOR, offset, length);
         return;
-      default:
-      // fall through
+      case "BUILT_IN_IDENTIFIER_IN_DECLARATION":
+        // Reported by [ErrorVerifier._checkForBuiltInIdentifierAsName].
+        return;
+      case "PRIVATE_OPTIONAL_PARAMETER":
+        // Reported by [ErrorVerifier._checkForPrivateOptionalParameter].
+        return;
+      case "NON_SYNC_ABSTRACT_METHOD":
+        // Not reported but followed by a MISSING_FUNCTION_BODY error.
+        return;
+      case null:
+        switch (message.code) {
+          case codeAssertAsExpression:
+            // Reported as UNDEFINED_IDENTIFIER in
+            // [SimpleIdentifierResolver._resolve1],
+            // followed by an EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD error,
+            // or followed by an EXPECTED_TOKEN error as seen in
+            // `language/constructor/explicit_instantiation_syntax_test`
+            // TODO(johnniwinther,srawlins): How can we be sure that no other
+            // cases exists?
+            return;
+          case codeSetOrMapLiteralTooManyTypeArguments:
+            // Reported as EXPECTED_TWO_MAP_TYPE_ARGUMENTS in
+            // [TypeArgumentsVerifier.checkMapLiteral].
+            return;
+          default:
+        }
     }
+    assert(false, "Unreported message $analyzerCode.");
   }
 
   /// Report an error based on the given [message] whose range is described by

@@ -14,11 +14,9 @@ class A {
 class StringInterpolation1NegativeTest {
   // Dollar not followed by "{" or identifier.
   static const DOLLAR = const A("$");
-  // [error line 16, column 35, length 0]
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   //                              ^
   // [analyzer] SYNTACTIC_ERROR.MISSING_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] A '$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).
   static testMain() {
     print(DOLLAR);

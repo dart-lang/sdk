@@ -8,7 +8,7 @@ import 'package:kernel/class_hierarchy.dart' show ClassHierarchyBase;
 
 import 'package:kernel/core_types.dart' show CoreTypes;
 
-import 'package:kernel/type_algebra.dart' show Substitution;
+import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
 import 'package:kernel/src/legacy_erasure.dart';
@@ -426,7 +426,7 @@ abstract class CombinedMemberSignatureBase<T> {
     }
     int typeParameterCount = typeParameters.length;
     if (type is FunctionType) {
-      List<TypeParameter> signatureTypeParameters = type.typeParameters;
+      List<StructuralParameter> signatureTypeParameters = type.typeParameters;
       if (typeParameterCount != signatureTypeParameters.length) {
         return null;
       }
@@ -436,15 +436,17 @@ abstract class CombinedMemberSignatureBase<T> {
       List<DartType> types =
           new List<DartType>.filled(typeParameterCount, dummyDartType);
       for (int i = 0; i < typeParameterCount; i++) {
-        types[i] = new TypeParameterType.forAlphaRenaming(
-            signatureTypeParameters[i], typeParameters[i]);
+        types[i] =
+            new TypeParameterType.forAlphaRenamingFromStructuralParameters(
+                signatureTypeParameters[i], typeParameters[i]);
       }
-      Substitution substitution =
-          Substitution.fromPairs(signatureTypeParameters, types);
+      FunctionTypeInstantiator instantiator =
+          new FunctionTypeInstantiator.fromIterables(
+              signatureTypeParameters, types);
       for (int i = 0; i < typeParameterCount; i++) {
         DartType typeParameterBound = typeParameters[i].bound;
         DartType signatureTypeParameterBound =
-            substitution.substituteType(signatureTypeParameters[i].bound);
+            instantiator.visit(signatureTypeParameters[i].bound);
         if (!_types
             .performNullabilityAwareMutualSubtypesCheck(
                 typeParameterBound, signatureTypeParameterBound)
@@ -452,7 +454,7 @@ abstract class CombinedMemberSignatureBase<T> {
           return null;
         }
       }
-      return substitution.substituteType(type.withoutTypeParameters);
+      return instantiator.visit(type.withoutTypeParameters);
     } else if (typeParameterCount != 0) {
       return null;
     }
@@ -621,9 +623,13 @@ abstract class CombinedMemberSignatureBase<T> {
     }
     FunctionNode function = procedure.function;
     List<VariableDeclaration> positionalParameters = [];
+    FreshTypeParametersFromStructuralParameters freshTypeParameters =
+        getFreshTypeParametersFromStructuralParameters(
+            functionType.typeParameters);
     for (int i = 0; i < function.positionalParameters.length; i++) {
       VariableDeclaration parameter = function.positionalParameters[i];
-      DartType parameterType = functionType.positionalParameters[i];
+      DartType parameterType =
+          freshTypeParameters.substitute(functionType.positionalParameters[i]);
       positionalParameters.add(new VariableDeclaration(parameter.name,
           type: parameterType,
           isCovariantByDeclaration: parameter.isCovariantByDeclaration)
@@ -636,7 +642,7 @@ abstract class CombinedMemberSignatureBase<T> {
       NamedType namedType = functionType.namedParameters.first;
       VariableDeclaration parameter = function.namedParameters.first;
       namedParameters.add(new VariableDeclaration(parameter.name,
-          type: namedType.type,
+          type: freshTypeParameters.substitute(namedType.type),
           isRequired: namedType.isRequired,
           isCovariantByDeclaration: parameter.isCovariantByDeclaration)
         ..isCovariantByClass = parameter.isCovariantByClass
@@ -650,7 +656,7 @@ abstract class CombinedMemberSignatureBase<T> {
         VariableDeclaration parameter = function.namedParameters[i];
         NamedType namedParameterType = namedTypes[parameter.name]!;
         namedParameters.add(new VariableDeclaration(parameter.name,
-            type: namedParameterType.type,
+            type: freshTypeParameters.substitute(namedParameterType.type),
             isRequired: namedParameterType.isRequired,
             isCovariantByDeclaration: parameter.isCovariantByDeclaration)
           ..isCovariantByClass = parameter.isCovariantByClass
@@ -661,8 +667,8 @@ abstract class CombinedMemberSignatureBase<T> {
       procedure.name,
       procedure.kind,
       new FunctionNode(null,
-          typeParameters: functionType.typeParameters,
-          returnType: functionType.returnType,
+          typeParameters: freshTypeParameters.freshTypeParameters,
+          returnType: freshTypeParameters.substitute(functionType.returnType),
           positionalParameters: positionalParameters,
           namedParameters: namedParameters,
           requiredParameterCount: function.requiredParameterCount),

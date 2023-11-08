@@ -246,10 +246,11 @@ class FfiTransformer extends Transformer {
   final Procedure fromAddressInternal;
   final Procedure libraryLookupMethod;
   final Procedure abiMethod;
-  final Procedure pointerFromFunctionProcedure;
-  final Procedure pointerAsyncFromFunctionProcedure;
+  final Procedure createNativeCallableListenerProcedure;
   final Procedure nativeCallbackFunctionProcedure;
   final Procedure nativeAsyncCallbackFunctionProcedure;
+  final Procedure createNativeCallableIsolateLocalProcedure;
+  final Procedure nativeIsolateLocalCallbackFunctionProcedure;
   final Map<NativeType, Procedure> loadMethods;
   final Map<NativeType, Procedure> loadUnalignedMethods;
   final Map<NativeType, Procedure> storeMethods;
@@ -272,14 +273,20 @@ class FfiTransformer extends Transformer {
   final Procedure checkAbiSpecificIntegerMappingFunction;
   final Class rawRecvPortClass;
   final Class nativeCallableClass;
-  final Constructor nativeCallableListenerConstructor;
-  final Constructor nativeCallablePrivateConstructor;
+  final Procedure nativeCallableIsolateLocalConstructor;
+  final Constructor nativeCallablePrivateIsolateLocalConstructor;
+  final Procedure nativeCallableListenerConstructor;
+  final Constructor nativeCallablePrivateListenerConstructor;
   final Field nativeCallablePortField;
   final Field nativeCallablePointerField;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
   late final InterfaceType pointerVoidType;
+  // The instantiated to bounds type argument for the Pointer class.
+  late final InterfaceType nativeTypeType;
+  // The Pointer type when instantiated to bounds.
+  late final InterfaceType pointerNativeTypeType;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final Map<NativeType, Class> nativeTypesClasses;
@@ -460,14 +467,17 @@ class FfiTransformer extends Transformer {
         libraryLookupMethod =
             index.getProcedure('dart:ffi', 'DynamicLibrary', 'lookup'),
         abiMethod = index.getTopLevelProcedure('dart:ffi', '_abi'),
-        pointerFromFunctionProcedure =
-            index.getTopLevelProcedure('dart:ffi', '_pointerFromFunction'),
-        pointerAsyncFromFunctionProcedure =
-            index.getTopLevelProcedure('dart:ffi', '_pointerAsyncFromFunction'),
+        createNativeCallableListenerProcedure = index.getTopLevelProcedure(
+            'dart:ffi', '_createNativeCallableListener'),
+        createNativeCallableIsolateLocalProcedure = index.getTopLevelProcedure(
+            'dart:ffi', '_createNativeCallableIsolateLocal'),
         nativeCallbackFunctionProcedure =
             index.getTopLevelProcedure('dart:ffi', '_nativeCallbackFunction'),
         nativeAsyncCallbackFunctionProcedure = index.getTopLevelProcedure(
             'dart:ffi', '_nativeAsyncCallbackFunction'),
+        nativeIsolateLocalCallbackFunctionProcedure =
+            index.getTopLevelProcedure(
+                'dart:ffi', '_nativeIsolateLocalCallbackFunction'),
         nativeTypesClasses = nativeTypeClassNames.map((nativeType, name) =>
             MapEntry(nativeType, index.getClass('dart:ffi', name))),
         classNativeTypes = nativeTypeClassNames.map((nativeType, name) =>
@@ -525,20 +535,28 @@ class FfiTransformer extends Transformer {
             'dart:ffi', "_checkAbiSpecificIntegerMapping"),
         rawRecvPortClass = index.getClass('dart:isolate', 'RawReceivePort'),
         nativeCallableClass = index.getClass('dart:ffi', 'NativeCallable'),
+        nativeCallableIsolateLocalConstructor =
+            index.getProcedure('dart:ffi', 'NativeCallable', 'isolateLocal'),
+        nativeCallablePrivateIsolateLocalConstructor =
+            index.getConstructor('dart:ffi', '_NativeCallableIsolateLocal', ''),
         nativeCallableListenerConstructor =
-            index.getConstructor('dart:ffi', 'NativeCallable', 'listener'),
-        nativeCallablePrivateConstructor =
-            index.getConstructor('dart:ffi', 'NativeCallable', '_'),
+            index.getProcedure('dart:ffi', 'NativeCallable', 'listener'),
+        nativeCallablePrivateListenerConstructor =
+            index.getConstructor('dart:ffi', '_NativeCallableListener', ''),
         nativeCallablePortField =
-            index.getField('dart:ffi', 'NativeCallable', '_port'),
+            index.getField('dart:ffi', '_NativeCallableListener', '_port'),
         nativeCallablePointerField =
-            index.getField('dart:ffi', 'NativeCallable', '_pointer') {
+            index.getField('dart:ffi', '_NativeCallableBase', '_pointer') {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!
         .getThisType(coreTypes, Nullability.nonNullable);
     pointerVoidType =
         InterfaceType(pointerClass, Nullability.nonNullable, [voidType]);
+    nativeTypeType = nativeTypesClasses[NativeType.kNativeType]!
+        .getThisType(coreTypes, Nullability.nonNullable);
+    pointerNativeTypeType =
+        InterfaceType(pointerClass, Nullability.nonNullable, [nativeTypeType]);
     intptrNativeTypeCfe =
         NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
             as AbiSpecificNativeTypeCfe;
@@ -849,8 +867,7 @@ class FfiTransformer extends Transformer {
     return BlockExpression(
         Block([typedDataBaseVar, offsetVar]),
         ConditionalExpression(
-            IsExpression(VariableGet(typedDataBaseVar),
-                InterfaceType(pointerClass, Nullability.nonNullable)),
+            IsExpression(VariableGet(typedDataBaseVar), pointerNativeTypeType),
             _pointerOffset(VariableGet(typedDataBaseVar),
                 VariableGet(offsetVar), dartType, fileOffset),
             _typedDataOffset(
@@ -875,10 +892,7 @@ class FfiTransformer extends Transformer {
       return false;
     }
     if (!env.isSubtypeOf(
-        type,
-        InterfaceType(
-            nativeTypesClasses[NativeType.kNativeType]!, Nullability.legacy),
-        SubtypeCheckMode.ignoringNullabilities)) {
+        type, nativeTypeType, SubtypeCheckMode.ignoringNullabilities)) {
       return false;
     }
     if (isPointerType(type)) {
@@ -899,12 +913,7 @@ class FfiTransformer extends Transformer {
       return false;
     }
     return env.isSubtypeOf(
-        type,
-        InterfaceType(pointerClass, Nullability.legacy, [
-          InterfaceType(
-              nativeTypesClasses[NativeType.kNativeType]!, Nullability.legacy)
-        ]),
-        SubtypeCheckMode.ignoringNullabilities);
+        type, pointerNativeTypeType, SubtypeCheckMode.ignoringNullabilities);
   }
 
   bool isArrayType(DartType type) {
@@ -916,10 +925,7 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
         type,
-        InterfaceType(arrayClass, Nullability.legacy, [
-          InterfaceType(
-              nativeTypesClasses[NativeType.kNativeType]!, Nullability.legacy)
-        ]),
+        InterfaceType(arrayClass, Nullability.legacy, [nativeTypeType]),
         SubtypeCheckMode.ignoringNullabilities);
   }
 

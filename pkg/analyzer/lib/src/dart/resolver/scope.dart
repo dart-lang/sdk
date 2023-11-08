@@ -222,6 +222,9 @@ class NamespaceBuilder {
     for (ExtensionElement element in compilationUnit.extensions) {
       _addIfPublic(definedNames, element);
     }
+    for (final element in compilationUnit.extensionTypes) {
+      _addIfPublic(definedNames, element);
+    }
     for (FunctionElement element in compilationUnit.functions) {
       _addIfPublic(definedNames, element);
     }

@@ -278,7 +278,7 @@ class _CreateClassMemberValidator extends _BaseClassMemberValidator {
     // do chained computations
     var subClasses = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        interfaceElement, subClasses, OperationPerformanceImpl("<root>"));
+        interfaceElement, subClasses, OperationPerformanceImpl('<root>'));
     // check shadowing of class names
     if (interfaceElement.name == name) {
       result.addError(
@@ -368,7 +368,7 @@ class _RenameClassMemberValidator extends _BaseClassMemberValidator {
     await _prepareReferences();
     var subClasses = <InterfaceElement>{};
     await searchEngine.appendAllSubtypes(
-        interfaceElement, subClasses, OperationPerformanceImpl("<root>"));
+        interfaceElement, subClasses, OperationPerformanceImpl('<root>'));
     // check shadowing of class names
     for (var element in elements) {
       var enclosingElement = element.enclosingElement;

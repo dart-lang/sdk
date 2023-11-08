@@ -62,6 +62,17 @@ AstNode _getNavigationTargetNode(AstNode node) {
     current = parent;
   }
 
+  // Consider the angle brackets for type arguments part of the leading type,
+  // otherwise we don't navigate in the common situation of having the type name
+  // selected, where VS Code provides the end of the selection as the position
+  // to search.
+  //
+  // In `A^<String>` node will be TypeArgumentList and we will never find A if
+  // we start visiting from there.
+  if (current is TypeArgumentList && parent != null) {
+    current = parent;
+  }
+
   return current;
 }
 
@@ -396,6 +407,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitDeclaredVariablePattern(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     computer._addRegionForToken(node.name, node.constructorElement);
 
@@ -418,6 +435,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       _addUriDirectiveRegion(node, libraryElement);
     }
     super.visitExportDirective(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    computer._addRegionForToken(node.name, node.declaredElement);
+    super.visitExtensionTypeDeclaration(node);
   }
 
   @override
@@ -546,6 +569,15 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     computer._addRegionForNode(node.constructorName, element);
     // process arguments
     node.argumentList.accept(this);
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    if (node.constructorName?.name case final constructorName?) {
+      computer._addRegionForToken(constructorName, node.constructorElement);
+    }
+    computer._addRegionForToken(node.fieldName, node.fieldElement);
+    super.visitRepresentationDeclaration(node);
   }
 
   @override

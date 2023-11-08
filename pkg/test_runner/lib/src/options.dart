@@ -370,6 +370,9 @@ options. Used to be able to make sane updates to the status files.''',
         help: '''Transforms dart2js output with Babel. The value must be
 Babel options JSON.''',
         hide: true)
+    ..addFlag('default-suites',
+        hide: true,
+        help: 'Include the default suites in addition to the requested suites.')
     ..addOption('suite-dir',
         aliases: ['suite_dir'],
         hide: true,
@@ -402,6 +405,7 @@ has been specified on the command line.''')
     'copy-coredumps',
     'dart',
     'debug-output-directory',
+    'default-suites',
     'drt',
     'exclude-suite',
     'firefox',
@@ -839,12 +843,12 @@ has been specified on the command line.''')
   /// If no selectors are explicitly given, uses the default suite patterns.
   Map<String, RegExp> _expandSelectors(
       Map<String, dynamic> configuration, NnbdMode nnbdMode) {
-    var selectors = configuration['selectors'] as List<String>?;
+    var selectors = configuration['selectors'] as List<String>? ?? [];
 
-    if (selectors == null || selectors.isEmpty) {
+    if (selectors.isEmpty || configuration['default-suites'] as bool) {
       if (configuration['suite-dir'] != null) {
         var suitePath = Path(configuration['suite-dir'] as String);
-        selectors = [suitePath.filename];
+        selectors.add(suitePath.filename);
       } else if (configuration['test-list-contents'] != null) {
         selectors = (configuration['test-list-contents'] as List<String>)
             .map((t) => t.split('/').first)
@@ -852,9 +856,9 @@ has been specified on the command line.''')
             .toList();
       } else {
         if (nnbdMode == NnbdMode.legacy) {
-          selectors = _legacyTestSelectors.toList();
+          selectors.addAll(_legacyTestSelectors);
         } else {
-          selectors = _defaultTestSelectors.toList();
+          selectors.addAll(_defaultTestSelectors);
         }
       }
 

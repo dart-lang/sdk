@@ -11,6 +11,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidAnnotationTarget_MustBeOverriddenTest);
     defineReflectiveTests(InvalidAnnotationTarget_MustCallSuperTest);
+    defineReflectiveTests(InvalidAnnotationTarget_RedeclareTest);
     defineReflectiveTests(InvalidAnnotationTargetTest);
   });
 }
@@ -153,6 +154,19 @@ extension E on String {
 }
 ''', [
       error(WarningCode.INVALID_ANNOTATION_TARGET, 60, 17),
+    ]);
+  }
+
+  test_extensionType_instance_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+extension type E(int i) {
+  @mustBeOverridden
+  void m() { }
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 62, 17),
     ]);
   }
 
@@ -320,6 +334,19 @@ extension E on String {
     ]);
   }
 
+  test_extensionType_instance_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+extension type E(int i) {
+  @mustCallSuper
+  void m() { }
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 62, 14),
+    ]);
+  }
+
   test_mixin_instance_method() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -339,6 +366,124 @@ import 'package:meta/meta.dart';
 void m() {}
 ''', [
       error(WarningCode.INVALID_ANNOTATION_TARGET, 35, 13),
+    ]);
+  }
+}
+
+@reflectiveTest
+class InvalidAnnotationTarget_RedeclareTest extends PubPackageResolutionTest {
+  @override
+  void setUp() {
+    super.setUp();
+    writeTestPackageConfigWithMeta();
+  }
+
+  test_class_instance_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  @redeclare
+  void m() {}
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 46, 10),
+    ]);
+  }
+
+  test_extensionType_instance_getter() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  int get g => 0; 
+}
+
+extension type E(C c) implements C {
+  @redeclare
+  int get g => 0; 
+}
+''');
+  }
+
+  test_extensionType_instance_method() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  void m() {}
+}
+
+extension type E(C c) implements C {
+  @redeclare
+  void m() {}
+}
+''');
+  }
+
+  test_extensionType_instance_setter() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  set g(int i) {}
+}
+
+extension type E(C c) implements C {
+  @redeclare
+  set g(int i) {}
+}
+''');
+  }
+
+  test_extensionType_static_getter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  static int get g => 0; 
+}
+
+extension type E(C c) {
+  @redeclare
+  static int get g => 0; 
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 99, 10),
+    ]);
+  }
+
+  test_extensionType_static_method() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  static void m() {}
+}
+
+extension type E(C c) {
+  @redeclare
+  static void m() {}
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 94, 10),
+    ]);
+  }
+
+  test_extensionType_static_setter() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  static set g(int i) {}
+}
+
+extension type E(C c) {
+  @redeclare
+  static set g(int i) {}
+}
+''', [
+      error(WarningCode.INVALID_ANNOTATION_TARGET, 98, 10),
     ]);
   }
 }

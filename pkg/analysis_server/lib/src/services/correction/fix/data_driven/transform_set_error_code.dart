@@ -16,7 +16,7 @@ class TransformSetErrorCode extends ErrorCode {
 
   /// No parameters.
   static const TransformSetErrorCode expectedPrimary = TransformSetErrorCode(
-      'expected_primary', "Expected either an identifier or a string literal.");
+      'expected_primary', 'Expected either an identifier or a string literal.');
 
   /// Parameters:
   /// 0: the old kind
@@ -61,7 +61,7 @@ class TransformSetErrorCode extends ErrorCode {
   /// 0: the list of valid parameter styles
   static const TransformSetErrorCode invalidParameterStyle =
       TransformSetErrorCode('invalid_parameter_style',
-          "The parameter style must be one of the following: {0}.");
+          'The parameter style must be one of the following: {0}.');
 
   /// Parameters:
   /// 0: the key with which the value is associated
@@ -79,20 +79,20 @@ class TransformSetErrorCode extends ErrorCode {
   /// 0: the list of valid keys
   static const TransformSetErrorCode missingOneOfMultipleKeys =
       TransformSetErrorCode('missing_one_of_multiple_keys',
-          "Exactly one of the following keys must be provided: {0}.");
+          'Exactly one of the following keys must be provided: {0}.');
 
   /// No parameters.
   static const TransformSetErrorCode missingTemplateEnd = TransformSetErrorCode(
-      'missing_template_end', "Missing the end brace for the template.");
+      'missing_template_end', 'Missing the end brace for the template.');
 
   /// Parameters:
   /// 0: a description of the expected kinds of tokens
   static const TransformSetErrorCode missingToken =
-      TransformSetErrorCode('missing_token', "Expected to find {0}.");
+      TransformSetErrorCode('missing_token', 'Expected to find {0}.');
 
   /// No parameters.
   static const TransformSetErrorCode missingUri = TransformSetErrorCode(
-      'missing_uri', "At least one URI must be provided.");
+      'missing_uri', 'At least one URI must be provided.');
 
   /// Parameters:
   /// 0: the missing key
@@ -118,7 +118,7 @@ class TransformSetErrorCode extends ErrorCode {
   static const TransformSetErrorCode unsupportedStatic = TransformSetErrorCode(
       'unsupported_static',
       "The key 'static' is only supported for elements in a class, enum, "
-          "extension, or mixin.");
+          'extension, or mixin.');
 
   /// No parameters.
   static const TransformSetErrorCode unsupportedVersion = TransformSetErrorCode(
@@ -128,12 +128,12 @@ class TransformSetErrorCode extends ErrorCode {
   /// 0: a description of the expected kind of token
   /// 1: a description of the actual kind of token
   static const TransformSetErrorCode wrongToken = TransformSetErrorCode(
-      'wrong_token', "Expected to find {0}, but found {1}.");
+      'wrong_token', 'Expected to find {0}, but found {1}.');
 
   /// Parameters:
   /// 0: the message produced by the YAML parser
   static const TransformSetErrorCode yamlSyntaxError =
-      TransformSetErrorCode('yaml_syntax_error', "Parse error: {0}");
+      TransformSetErrorCode('yaml_syntax_error', 'Parse error: {0}');
 
   /// Initialize a newly created error code.
   const TransformSetErrorCode(

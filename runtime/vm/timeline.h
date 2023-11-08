@@ -10,6 +10,7 @@
 
 #include "include/dart_tools_api.h"
 
+#include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/hashmap.h"
 #include "vm/allocation.h"
@@ -164,6 +165,10 @@ class RecorderSynchronizationLock : public AllStatic {
     ASSERT(count >= 0);
   }
 
+  static bool IsUninitialized() {
+    return (recorder_state_.load(std::memory_order_acquire) == kUninitialized);
+  }
+
   static bool IsActive() {
     return (recorder_state_.load(std::memory_order_acquire) == kActive);
   }
@@ -176,7 +181,7 @@ class RecorderSynchronizationLock : public AllStatic {
   }
 
  private:
-  typedef enum { kUnInitialized = 0, kActive, kShuttingDown } RecorderState;
+  typedef enum { kUninitialized = 0, kActive, kShuttingDown } RecorderState;
   static std::atomic<RecorderState> recorder_state_;
   static std::atomic<intptr_t> outstanding_event_writes_;
 
@@ -196,7 +201,11 @@ class RecorderSynchronizationLockScope {
     RecorderSynchronizationLock::ExitLock();
   }
 
-  bool IsActive() { return RecorderSynchronizationLock::IsActive(); }
+  bool IsUninitialized() const {
+    return RecorderSynchronizationLock::IsUninitialized();
+  }
+
+  bool IsActive() const { return RecorderSynchronizationLock::IsActive(); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(RecorderSynchronizationLockScope);
@@ -251,9 +260,6 @@ class Timeline : public AllStatic {
 #undef TIMELINE_STREAM_FLAGS
 
  private:
-  static void ClearUnsafe();
-  static void ReclaimCachedBlocksFromThreadsUnsafe();
-
   static TimelineEventRecorder* recorder_;
   static Dart_TimelineRecorderCallback callback_;
   static MallocGrowableArray<char*>* enabled_streams_;
@@ -810,27 +816,25 @@ class TimelineEventBlock : public MallocAllocated {
   // Only safe to access under the recorder's lock.
   inline bool ContainsEventsThatCanBeSerializedLocked() const;
 
-  // Only safe to access under the recorder's lock.
-  inline ThreadId ThreadIdLocked() const;
-
  protected:
 #ifndef PRODUCT
   void PrintJSON(JSONStream* stream) const;
 #endif
 
-  TimelineEvent* StartEvent();
+  // Only safe to call from the thread that owns this block, while the thread is
+  // holding its block lock.
+  TimelineEvent* StartEventLocked();
 
   TimelineEvent events_[kBlockSize];
   TimelineEventBlock* next_;
   intptr_t length_;
   intptr_t block_index_;
 
-  // Only accessed under the recorder's lock.
-  ThreadId thread_id_;
+  // Only safe to access under the recorder's lock.
+  OSThread* current_owner_;
   bool in_use_;
 
   void Open();
-  void Finish();
 
   friend class Thread;
   friend class TimelineEventRecorder;
@@ -842,6 +846,8 @@ class TimelineEventBlock : public MallocAllocated {
   friend class JSONStream;
 
  private:
+  void Finish();
+
   DISALLOW_COPY_AND_ASSIGN(TimelineEventBlock);
 };
 
@@ -902,7 +908,8 @@ class TimelineEventRecorder : public MallocAllocated {
 #endif  // !defined(PRODUCT)
   virtual const char* name() const = 0;
   virtual intptr_t Size() = 0;
-  TimelineEventBlock* GetNewBlock();
+  // Only safe to call when holding |lock_|.
+  virtual TimelineEventBlock* GetNewBlockLocked() = 0;
   void FinishBlock(TimelineEventBlock* block);
   // This function must be called at least once for each thread that corresponds
   // to a track in the trace.
@@ -931,9 +938,10 @@ class TimelineEventRecorder : public MallocAllocated {
   // Interface method(s) which must be implemented.
   virtual TimelineEvent* StartEvent() = 0;
   virtual void CompleteEvent(TimelineEvent* event) = 0;
+  // Only safe to call when holding |lock_|.
   virtual TimelineEventBlock* GetHeadBlockLocked() = 0;
-  virtual TimelineEventBlock* GetNewBlockLocked() = 0;
-  virtual void Clear() = 0;
+  // Only safe to call when holding |lock_|.
+  virtual void ClearLocked() = 0;
 
   // Utility method(s).
 #ifndef PRODUCT
@@ -963,6 +971,7 @@ class TimelineEventRecorder : public MallocAllocated {
   friend class TimelineStream;
   friend class TimelineTestHelper;
   friend class Timeline;
+  friend class OSThread;
 
  private:
   static constexpr intptr_t kTrackUuidToTrackMetadataInitialCapacity = 1 << 4;
@@ -1005,7 +1014,7 @@ class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
   TimelineEventBlock* GetHeadBlockLocked();
   // Only safe to call when holding |lock_|.
   intptr_t FindOldestBlockIndexLocked() const;
-  void Clear();
+  void ClearLocked();
 
 #ifndef PRODUCT
   void PrintJSONEvents(const JSONArray& array,
@@ -1084,9 +1093,9 @@ class TimelineEventCallbackRecorder : public TimelineEventRecorder {
   }
 
  protected:
-  TimelineEventBlock* GetNewBlockLocked() { return nullptr; }
-  TimelineEventBlock* GetHeadBlockLocked() { return nullptr; }
-  void Clear() {}
+  TimelineEventBlock* GetNewBlockLocked() { UNREACHABLE(); }
+  TimelineEventBlock* GetHeadBlockLocked() { UNREACHABLE(); }
+  void ClearLocked() { ASSERT(lock_.IsOwnedByCurrentThread()); }
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 };
@@ -1136,7 +1145,7 @@ class TimelineEventEndlessRecorder : public TimelineEventRecorder {
   void CompleteEvent(TimelineEvent* event);
   TimelineEventBlock* GetNewBlockLocked();
   TimelineEventBlock* GetHeadBlockLocked();
-  void Clear();
+  void ClearLocked();
 
 #ifndef PRODUCT
   void PrintJSONEvents(const JSONArray& array,
@@ -1185,9 +1194,9 @@ class TimelineEventPlatformRecorder : public TimelineEventRecorder {
   virtual const char* name() const = 0;
 
  protected:
-  TimelineEventBlock* GetNewBlockLocked() { return nullptr; }
-  TimelineEventBlock* GetHeadBlockLocked() { return nullptr; }
-  void Clear() {}
+  TimelineEventBlock* GetNewBlockLocked() { UNREACHABLE(); }
+  TimelineEventBlock* GetHeadBlockLocked() { UNREACHABLE(); }
+  void ClearLocked() { ASSERT(lock_.IsOwnedByCurrentThread()); }
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
 };

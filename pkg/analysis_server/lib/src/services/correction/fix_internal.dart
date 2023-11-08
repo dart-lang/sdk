@@ -30,6 +30,7 @@ import 'package:analysis_server/src/services/correction/dart/add_missing_switch_
 import 'package:analysis_server/src/services/correction/dart/add_ne_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_null_check.dart';
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
+import 'package:analysis_server/src/services/correction/dart/add_redeclare.dart';
 import 'package:analysis_server/src/services/correction/dart/add_reopen.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
@@ -179,6 +180,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_unused_label
 import 'package:analysis_server/src/services/correction/dart/remove_unused_local_variable.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_var.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_var_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_method_parameter.dart';
 import 'package:analysis_server/src/services/correction/dart/rename_to_camel_case.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_Null_with_void.dart';
@@ -238,6 +240,7 @@ import 'package:analyzer/src/dart/error/ffi_code.g.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
@@ -295,6 +298,16 @@ class FixInFileProcessor {
       return const <Fix>[];
     }
 
+    /// Helper to create a [DartFixContextImpl] for a given error.
+    DartFixContextImpl createFixContext(AnalysisError error) {
+      return DartFixContextImpl(
+        instrumentationService,
+        workspace,
+        resolveResult,
+        error,
+      );
+    }
+
     var generators = _getGenerators(error.errorCode);
 
     var fixes = <Fix>[];
@@ -303,13 +316,21 @@ class FixInFileProcessor {
         _FixState fixState = _EmptyFixState(
           ChangeBuilder(workspace: workspace),
         );
-        for (var error in errors) {
-          var fixContext = DartFixContextImpl(
-            instrumentationService,
-            workspace,
-            resolveResult,
-            error,
-          );
+
+        // First try to fix the specific error we started from. We should only
+        // include fix-all-in-file when we produce an individual fix at this
+        // location.
+        fixState = await _fixError(
+            createFixContext(error), fixState, generator(), error);
+
+        // The original error was not fixable, don't continue.
+        if (!(fixState.builder as ChangeBuilderImpl).hasEdits) {
+          continue;
+        }
+
+        // Compute fixes for the rest of the errors.
+        for (var error in errors.where((item) => item != error)) {
+          var fixContext = createFixContext(error);
           fixState = await _fixError(fixContext, fixState, generator(), error);
         }
         if (fixState is _NotEmptyFixState) {
@@ -422,6 +443,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.annotate_overrides: [
       AddOverride.new,
+    ],
+    LintNames.annotate_redeclares: [
+      AddRedeclare.new,
     ],
     LintNames.avoid_annotating_with_dynamic: [
       RemoveTypeAnnotation.other,
@@ -781,6 +805,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_this: [
       RemoveThisExpression.new,
     ],
+    LintNames.unreachable_from_main: [
+      RemoveUnusedElement.new,
+    ],
     LintNames.use_decorated_box: [
       ReplaceWithDecoratedBox.new,
     ],
@@ -967,6 +994,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_METHOD: [
       DataDriven.new,
     ],
+    WarningCode.DEPRECATED_EXPORT_USE: [
+      DataDriven.new,
+    ],
     HintCode.DEPRECATED_MEMBER_USE: [
       DataDriven.new,
     ],
@@ -975,9 +1005,6 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
-    ],
-    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      ImportLibrary.dartAsync,
     ],
   };
 
@@ -1478,6 +1505,9 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR: [
       RemoveConstructor.new,
     ],
+    ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE: [
+      RemoveVarKeyword.new,
+    ],
     ParserErrorCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
       AddTrailingComma.new,
     ],
@@ -1621,32 +1651,11 @@ class FixProcessor extends BaseProcessor {
     WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA: [
       AddTrailingComma.new,
     ],
-    WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      UpdateSdkConstraints.version_2_1_0,
-    ],
-    WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    WarningCode.SDK_VERSION_EXTENSION_METHODS: [
-      UpdateSdkConstraints.version_2_6_0,
+    WarningCode.REDECLARE_ON_NON_REDECLARING_MEMBER: [
+      RemoveAnnotation.new,
     ],
     WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
       UpdateSdkConstraints.version_2_14_0,
-    ],
-    WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    WarningCode.SDK_VERSION_SET_LITERAL: [
-      UpdateSdkConstraints.version_2_2_0,
-    ],
-    WarningCode.SDK_VERSION_UI_AS_CODE: [
-      UpdateSdkConstraints.version_2_2_2,
     ],
     WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
       RemoveCharacter.new,
@@ -1732,6 +1741,29 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.UNUSED_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
+    ],
+  };
+
+  /// A map from error codes to a list of fix generators that work with only
+  /// parsed results.
+  static final Map<String, List<ProducerGenerator>> parseLintProducerMap = {
+    LintNames.prefer_generic_function_type_aliases: [
+      ConvertToGenericFunctionSyntax.new,
+    ],
+    LintNames.slash_for_doc_comments: [
+      ConvertDocumentationIntoLine.new,
+    ],
+    LintNames.unnecessary_const: [
+      RemoveUnnecessaryConst.new,
+    ],
+    LintNames.unnecessary_new: [
+      RemoveUnnecessaryNew.new,
+    ],
+    LintNames.unnecessary_string_escapes: [
+      RemoveUnnecessaryStringEscape.new,
+    ],
+    LintNames.use_function_type_syntax_for_parameters: [
+      ConvertToGenericFunctionSyntax.new,
     ],
   };
 

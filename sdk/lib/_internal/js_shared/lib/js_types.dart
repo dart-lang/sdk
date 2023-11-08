@@ -30,14 +30,21 @@
 library _js_types;
 
 import 'dart:_js_annotations';
+import 'dart:_js_helper' show createObjectLiteral;
 
 @JS()
 @staticInterop
-class JSAny {}
+class JSAny {
+  // Unnamed factory constructor so users can only implement JSAny.
+  external factory JSAny._();
+}
 
 @JS()
 @staticInterop
-class JSObject implements JSAny {}
+class JSObject implements JSAny {
+  /// Returns a new object literal.
+  factory JSObject() => createObjectLiteral<JSObject>();
+}
 
 @JS()
 @staticInterop
@@ -51,7 +58,7 @@ class JSExportedDartFunction implements JSFunction {}
 @staticInterop
 class JSArray implements JSObject {
   external factory JSArray();
-  external factory JSArray.withLength(JSNumber length);
+  external factory JSArray.withLength(int length);
 }
 
 @JS()
@@ -118,11 +125,21 @@ class JSBoolean implements JSAny {}
 @staticInterop
 class JSString implements JSAny {}
 
+@JS()
+@staticInterop
+class JSSymbol implements JSAny {}
+
+@JS()
+@staticInterop
+class JSBigInt implements JSAny {}
+
 /// [JSVoid] is just a typedef for [void]. While we could just use
 /// `JSUndefined`, in the future we may be able to use this to elide `return`s
 /// in JS trampolines.
 typedef JSVoid = void;
 
-@JS()
+@JS('Promise')
 @staticInterop
-class JSPromise implements JSObject {}
+class JSPromise implements JSObject {
+  external factory JSPromise(JSFunction executor);
+}

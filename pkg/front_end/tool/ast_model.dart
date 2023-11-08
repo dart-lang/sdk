@@ -33,6 +33,7 @@ Uri computePackageConfig(Uri repoDir) =>
 const Map<String, String?> _declarativeClassesNames = const {
   'VariableDeclaration': 'name',
   'TypeParameter': 'name',
+  'StructuralParameter': 'name',
   'LabeledStatement': null,
   'SwitchCase': null,
 };
@@ -43,8 +44,7 @@ const Set<String> _utilityClassesAsValues = const {
   'Version',
 };
 
-/// Names of subclasses of [Node] that do _not_ have `visitX` or `defaultX`
-/// methods.
+/// Names of subclasses of [Node] that do _not_ have a `visitX` method.
 const Set<String> _classesWithoutVisitMethods = const {
   'InvocationExpression',
   'InstanceInvocationExpression',
@@ -67,8 +67,8 @@ const Set<String> _interchangeableClasses = const {
   'Pattern',
 };
 
-/// Names of subclasses of [NamedNode] that do _not_ have `visitXReference` or
-/// `defaultXReference` methods.
+/// Names of subclasses of [NamedNode] that do _not_ have a `visitXReference`
+/// method.
 const Set<String> _classesWithoutVisitReference = const {
   'NamedNode',
   'Library',
@@ -96,7 +96,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_classes': FieldRule(name: 'classes'),
     '_typedefs': FieldRule(name: 'typedefs'),
     '_extensions': FieldRule(name: 'extensions'),
-    '_inlineClasses': FieldRule(name: 'inlineClasses'),
+    '_extensionTypeDeclarations': FieldRule(name: 'extensionTypeDeclarations'),
     '_fields': FieldRule(name: 'fields'),
     '_procedures': FieldRule(name: 'procedures'),
   },
@@ -115,13 +115,16 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'Extension': {
     'typeParameters': FieldRule(isDeclaration: true),
   },
-  'InlineClass': {
+  'ExtensionTypeDeclaration': {
     'typeParameters': FieldRule(isDeclaration: true),
   },
   'Field': {
     'reference': FieldRule(name: 'fieldReference'),
   },
   'TypeParameter': {
+    '_variance': FieldRule(name: 'variance'),
+  },
+  'StructuralParameter': {
     '_variance': FieldRule(name: 'variance'),
   },
   'FunctionNode': {
@@ -182,12 +185,8 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'TypeParameterType': {
     'parameter': FieldRule(isDeclaration: false),
   },
-  'ExtensionType': {
-    '_onType': FieldRule(name: 'onType'),
-  },
-  'InlineType': {
-    '_instantiatedRepresentationType':
-        FieldRule(name: 'instantiatedRepresentationType'),
+  'StructuralParameterType': {
+    'parameter': FieldRule(isDeclaration: false),
   },
   'VariableDeclaration': {
     '_name': FieldRule(name: 'name'),
@@ -252,8 +251,7 @@ enum AstClassKind {
   /// The root [Node] class.
   root,
 
-  /// An abstract node class that is a superclass of a public class. Most of
-  /// these have a corresponding `defaultX` visitor method.
+  /// An abstract node class that is a superclass of a public class.
   ///
   /// For instance [Statement] and [Expression].
   inner,
@@ -263,6 +261,13 @@ enum AstClassKind {
   ///
   /// For instance [Procedure] and [VariableGet].
   public,
+
+  /// An abstract node class that is a subclass of sealed class. These classes
+  /// are used to extend the AST and therefore have no known concrete
+  /// subclasses.
+  ///
+  /// For instance [AuxiliaryExpression] and [AuxiliaryType].
+  auxiliary,
 
   /// A concrete node class that serves only as an implementation of public
   /// node class.
@@ -328,7 +333,10 @@ class AstClass {
   AstClassKind get kind {
     if (_kind == null) {
       if (node.isAbstract) {
-        if (subclasses.isNotEmpty) {
+        if (node.name.startsWith("Auxiliary")) {
+          // TODO(johnniwinther): Is there a better way to determine this?
+          _kind = AstClassKind.auxiliary;
+        } else if (subclasses.isNotEmpty) {
           if (subclasses.every(
               (element) => element.kind == AstClassKind.implementation)) {
             _kind = AstClassKind.public;
@@ -349,17 +357,18 @@ class AstClass {
     return _kind!;
   }
 
-  /// Returns `true` if this class has a `visitX` or `defaultX` method.
+  /// Returns `true` if this class has a `visitX` method.
   ///
   /// This is only valid for subclass of [Node].
   bool get hasVisitMethod {
     switch (kind) {
-      case AstClassKind.root:
-      case AstClassKind.inner:
       case AstClassKind.public:
       case AstClassKind.named:
       case AstClassKind.declarative:
+      case AstClassKind.auxiliary:
         return !_classesWithoutVisitMethods.contains(name);
+      case AstClassKind.root:
+      case AstClassKind.inner:
       case AstClassKind.implementation:
       case AstClassKind.interface:
       case AstClassKind.utilityAsStructure:
@@ -368,18 +377,18 @@ class AstClass {
     }
   }
 
-  /// Returns `true` if this class has a `visitXReference` or
-  /// `defaultXReference` method.
+  /// Returns `true` if this class has a `visitXReference` method.
   ///
   /// This is only valid for subclass of [NamedNode] or [Constant].
   bool get hasVisitReferenceMethod {
     switch (kind) {
-      case AstClassKind.root:
-      case AstClassKind.inner:
       case AstClassKind.public:
       case AstClassKind.named:
       case AstClassKind.declarative:
+      case AstClassKind.auxiliary:
         return !_classesWithoutVisitReference.contains(name);
+      case AstClassKind.root:
+      case AstClassKind.inner:
       case AstClassKind.implementation:
       case AstClassKind.interface:
       case AstClassKind.utilityAsStructure:

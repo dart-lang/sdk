@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.7.6
+
+- Allow the old `'patched_class_'` field for `PatchClass` until we change the
+  SDK lower bound for this package to a version that does not have it.
+
+## 0.7.5
+
+- Fix for flutter/flutter#130009 where an attempt to lookup the owner info
+node for type testing stubs would cause a null check error.
+
 ## 0.7.4
 
 - Fix for flutter/flutter#128402 where an attempt to lookup the owner info

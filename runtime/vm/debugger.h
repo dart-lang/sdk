@@ -292,7 +292,12 @@ class ActivationFrame : public ZoneAllocated {
                   const Array& deopt_frame,
                   intptr_t deopt_frame_offset);
 
-  ActivationFrame(uword pc, const Code& code);
+  // Create a |kAsyncAwaiter| frame representing asynchronous awaiter
+  // waiting for the completion of a |Future|.
+  //
+  // |closure| is the listener which will be invoked when awaited
+  // computation completes.
+  ActivationFrame(uword pc, const Code& code, const Closure& closure);
 
   explicit ActivationFrame(Kind kind);
 
@@ -303,6 +308,10 @@ class ActivationFrame : public ZoneAllocated {
   uword sp() const { return sp_; }
 
   uword GetCallerSp() const { return fp() + (kCallerSpSlotFromFp * kWordSize); }
+
+  // For |kAsyncAwaiter| frames this is the listener which will be invoked
+  // when the frame below (callee) completes.
+  const Closure& closure() const { return closure_; }
 
   const Function& function() const {
     return function_;
@@ -374,10 +383,10 @@ class ActivationFrame : public ZoneAllocated {
 
   void PrintToJSONObject(JSONObject* jsobj);
 
-  // Get Closure that await'ed this async frame.
-  ObjectPtr GetAsyncAwaiter(CallerClosureFinder* caller_closure_finder);
-
   bool HandlesException(const Instance& exc_obj);
+
+  bool has_catch_error() const { return has_catch_error_; }
+  void set_has_catch_error(bool value) { has_catch_error_ = value; }
 
  private:
   void PrintToJSONObjectRegular(JSONObject* jsobj);
@@ -423,6 +432,7 @@ class ActivationFrame : public ZoneAllocated {
   Context& ctx_ = Context::ZoneHandle();
   const Code& code_;
   const Function& function_;
+  const Closure& closure_;
 
   bool token_pos_initialized_ = false;
   TokenPosition token_pos_ = TokenPosition::kNoSource;
@@ -443,6 +453,8 @@ class ActivationFrame : public ZoneAllocated {
   LocalVarDescriptors& var_descriptors_ = LocalVarDescriptors::ZoneHandle();
   ZoneGrowableArray<intptr_t> desc_indices_;
   PcDescriptors& pc_desc_ = PcDescriptors::ZoneHandle();
+
+  bool has_catch_error_ = false;
 
   friend class Debugger;
   friend class DebuggerStackTrace;
@@ -471,8 +483,8 @@ class DebuggerStackTrace : public ZoneAllocated {
 
  private:
   void AddActivation(ActivationFrame* frame);
-  void AddAsyncSuspension();
-  void AddAsyncAwaiterFrame(uword pc, const Code& code);
+  void AddAsyncSuspension(bool has_catch_error);
+  void AddAsyncAwaiterFrame(uword pc, const Code& code, const Closure& closure);
 
   void AppendCodeFrames(StackFrame* frame, const Code& code);
 
@@ -597,32 +609,17 @@ class GroupDebugger {
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  SafepointRwLock* code_breakpoints_lock() {
-    return code_breakpoints_lock_.get();
-  }
+  RwLock* code_breakpoints_lock() { return code_breakpoints_lock_.get(); }
 
-  SafepointRwLock* breakpoint_locations_lock() {
+  RwLock* breakpoint_locations_lock() {
     return breakpoint_locations_lock_.get();
   }
 
-  SafepointRwLock* single_stepping_set_lock() {
-    return single_stepping_set_lock_.get();
-  }
+  RwLock* single_stepping_set_lock() { return single_stepping_set_lock_.get(); }
+
   void RegisterSingleSteppingDebugger(Thread* thread, const Debugger* debugger);
   void UnregisterSingleSteppingDebugger(Thread* thread,
                                         const Debugger* debugger);
-
-  bool RunUnderReadLockIfNeededCallable(Thread* thread,
-                                        SafepointRwLock* rw_lock,
-                                        BoolCallable* callable);
-
-  template <typename T>
-  bool RunUnderReadLockIfNeeded(Thread* thread,
-                                SafepointRwLock* rw_lock,
-                                T function) {
-    LambdaBoolCallable<T> callable(function);
-    return RunUnderReadLockIfNeededCallable(thread, rw_lock, &callable);
-  }
 
   // Returns [true] if there is at least one breakpoint set in function or code.
   // Checks for both user-defined and internal temporary breakpoints.
@@ -632,16 +629,16 @@ class GroupDebugger {
  private:
   IsolateGroup* isolate_group_;
 
-  std::unique_ptr<SafepointRwLock> code_breakpoints_lock_;
+  std::unique_ptr<RwLock> code_breakpoints_lock_;
   CodeBreakpoint* code_breakpoints_;
 
   // Secondary list of all breakpoint_locations_(primary is in Debugger class).
   // This list is kept in sync with all the lists in Isolate Debuggers and is
   // used to quickly scan BreakpointLocations when new Function is compiled.
-  std::unique_ptr<SafepointRwLock> breakpoint_locations_lock_;
+  std::unique_ptr<RwLock> breakpoint_locations_lock_;
   MallocGrowableArray<BreakpointLocation*> breakpoint_locations_;
 
-  std::unique_ptr<SafepointRwLock> single_stepping_set_lock_;
+  std::unique_ptr<RwLock> single_stepping_set_lock_;
   DebuggerSet single_stepping_set_;
 
   void RemoveUnlinkedCodeBreakpoints();

@@ -7,8 +7,6 @@
 
 class C {
   const C();
-//^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
 
   final x = 1;
   final y = x;

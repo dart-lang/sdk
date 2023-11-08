@@ -117,6 +117,20 @@ Future<void> hasPausedAtStart(VmService service, IsolateRef isolate) {
   return hasPausedFor(service, isolate, EventKind.kPauseStart);
 }
 
+Future<void> markDartColonLibrariesDebuggable(
+    VmService service, IsolateRef isolateRef) async {
+  final isolateId = isolateRef.id!;
+  final isolate = await service.getIsolate(isolateId);
+  final requests = <Future>[];
+  for (final libRef in isolate.libraries!) {
+    final lib = await service.getObject(isolateId, libRef.id!) as Library;
+    if (lib.uri!.startsWith('dart:') && !lib.uri!.startsWith('dart:_')) {
+      requests.add(service.setLibraryDebuggable(isolateId, lib.id!, true));
+    }
+  }
+  await Future.wait(requests);
+}
+
 // Currying is your friend.
 IsolateTest setBreakpointAtLine(int line) {
   return (VmService service, IsolateRef isolateRef) async {
@@ -199,26 +213,31 @@ IsolateTest stoppedAtLine(int line) {
 Future<void> resumeIsolate(VmService service, IsolateRef isolate) async {
   Completer completer = Completer();
   late var subscription;
+  bool cancelStreamAfterResume = false;
   subscription = service.onDebugEvent.listen((event) async {
     if (event.kind == EventKind.kResume) {
       try {
-        await service.streamCancel(EventStreams.kDebug);
+        if (cancelStreamAfterResume) {
+          await service.streamCancel(EventStreams.kDebug);
+        }
       } catch (_) {/* swallow exception */} finally {
         subscription.cancel();
         completer.complete();
       }
     }
   });
-  await service.streamListen(EventStreams.kDebug);
+  cancelStreamAfterResume = await _subscribeDebugStream(service);
   await service.resume(isolate.id!);
   return completer.future;
 }
 
-Future<void> _subscribeDebugStream(VmService service) async {
+Future<bool> _subscribeDebugStream(VmService service) async {
   try {
     await service.streamListen(EventStreams.kDebug);
+    return true;
   } catch (_) {
     /* swallow exception */
+    return false;
   }
 }
 
@@ -259,7 +278,6 @@ IsolateTest resumeIsolateAndAwaitEvent(
 }
 
 Future<void> stepOver(VmService service, IsolateRef isolateRef) async {
-  await service.streamListen(EventStreams.kDebug);
   await _subscribeDebugStream(service);
   await service.resume(isolateRef.id!, step: 'Over');
   await hasStoppedAtBreakpoint(service, isolateRef);

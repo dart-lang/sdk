@@ -16,6 +16,7 @@ import 'commandline_options.dart';
 import 'common/ram_usage.dart';
 import 'io/mapped_file.dart';
 import 'options.dart' show CompilerOptions, Dart2JSStage, FeatureOptions;
+import 'compiler.dart' as defaultCompiler show Compiler;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -492,9 +493,15 @@ Future<api.CompilationResult> compile(List<String> argv,
     _OneOption(Flags.disableRtiOptimization, passThrough),
     _OneOption(Flags.terse, passThrough),
     _OneOption('--deferred-map=.+', passThrough),
+    _OneOption('${Flags.deferredLoadIdMapUri}=.+',
+        setDataUri(Flags.deferredLoadIdMapUri)),
     _OneOption('${Flags.writeProgramSplit}=.+', passThrough),
     _OneOption('${Flags.readProgramSplit}=.+', passThrough),
     _OneOption('${Flags.dumpInfo}|${Flags.dumpInfo}=.+', setDumpInfo),
+    _OneOption(
+        '${Flags.readDumpInfoData}=.+', setDataUri(Flags.readDumpInfoData)),
+    _OneOption(
+        '${Flags.writeDumpInfoData}=.+', setDataUri(Flags.writeDumpInfoData)),
     _OneOption('--disallow-unsafe-eval', ignoreOption),
     _OneOption(Option.showPackageWarnings, passThrough),
     _OneOption(Option.enableLanguageExperiments, passThrough),
@@ -769,6 +776,13 @@ Future<api.CompilationResult> compile(List<String> argv,
         inputSize = inputProvider.bytesRead;
         summary = 'Dart file $input ';
         break;
+      case Dart2JSStage.deferredLoadIds:
+        final sourceCharCount =
+            _formatCharacterCount(inputProvider.sourceBytesFromDill);
+        inputName = 'input bytes ($sourceCharCount characters source)';
+        inputSize = inputProvider.bytesRead;
+        summary = 'Dart file $input ';
+        break;
       case Dart2JSStage.globalInference:
         inputName = 'bytes data';
         inputSize = inputProvider.bytesRead;
@@ -855,6 +869,16 @@ Future<api.CompilationResult> compile(List<String> argv,
             compilerOptions.dataOutputUriForStage(compilerOptions.stage),
             Platform.isWindows);
         summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
+        break;
+      case Dart2JSStage.deferredLoadIds:
+        processName = 'Serialized';
+        outputName = 'character map';
+        outputSize = outputProvider.totalCharactersWritten;
+        String dataOutput = fe.relativizeUri(
+            Uri.base,
+            compilerOptions.dataOutputUriForStage(compilerOptions.stage),
+            Platform.isWindows);
+        summary += 'mapped to: ${dataOutput}.';
         break;
       case Dart2JSStage.globalInference:
         processName = 'Serialized';
@@ -1226,7 +1250,7 @@ Future<void> main(List<String> arguments) async {
   // provided. It needs to be replaced by reading all the contents of the
   // file and expanding them into the resulting argument list.
   //
-  // TODO: Move this logic to a single place and share it among all tools.
+  // TODO: Remove when internal tooling targets bazelMain instead of this.
   if (arguments.length > 0 && arguments.last.startsWith('@')) {
     var extra = _readLines(arguments.last.substring(1));
     arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
@@ -1239,6 +1263,20 @@ Future<void> main(List<String> arguments) async {
     return;
   }
   await internalMain(arguments);
+}
+
+Future<String?> bazelMain(List<String> arguments) async {
+  if (arguments.length > 0 && arguments.last.startsWith('@')) {
+    var extra = _readLines(arguments.last.substring(1));
+    arguments = arguments.take(arguments.length - 1).followedBy(extra).toList();
+  }
+  final compiler = (await internalMain(arguments)).compiler;
+  if (compiler is defaultCompiler.Compiler) {
+    final buffer = StringBuffer();
+    compiler.collectMetrics(buffer);
+    return buffer.toString();
+  }
+  return null;
 }
 
 /// Return all non-empty lines in a file found at [path].

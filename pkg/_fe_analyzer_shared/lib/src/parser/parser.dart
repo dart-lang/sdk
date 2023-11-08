@@ -1,6 +1,6 @@
 // Copyright (c) 2016, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE.md file.
+// BSD-style license that can be found in the LICENSE file.
 
 library _fe_analyzer_shared.parser;
 
@@ -29,7 +29,7 @@ export 'identifier_context.dart' show IdentifierContext;
 
 export 'listener.dart' show Listener;
 
-export 'declaration_kind.dart' show DeclarationKind;
+export 'declaration_kind.dart' show DeclarationHeaderKind, DeclarationKind;
 
 export 'directive_context.dart' show DirectiveContext;
 

@@ -65,10 +65,10 @@ class FunctionDeclarationsMacro1 implements FunctionDeclarationsMacro {
   FutureOr<void> buildDeclarationsForFunction(FunctionDeclaration function,
       DeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (function.isAbstract) {
+    if (function.hasAbstract) {
       sb.write('a');
     }
-    if (function.isExternal) {
+    if (function.hasExternal) {
       sb.write('e');
     }
     if (function.isGetter) {
@@ -116,10 +116,10 @@ class MethodDeclarationsMacro1 implements MethodDeclarationsMacro {
   FutureOr<void> buildDeclarationsForMethod(MethodDeclaration method,
       MemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (method.isAbstract) {
+    if (method.hasAbstract) {
       sb.write('a');
     }
-    if (method.isExternal) {
+    if (method.hasExternal) {
       sb.write('e');
     }
     if (method.isGetter) {
@@ -151,13 +151,13 @@ class VariableDeclarationsMacro1 implements VariableDeclarationsMacro {
   FutureOr<void> buildDeclarationsForVariable(VariableDeclaration variable,
       DeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (variable.isExternal) {
+    if (variable.hasExternal) {
       sb.write('e');
     }
-    if (variable.isFinal) {
+    if (variable.hasFinal) {
       sb.write('f');
     }
-    if (variable.isLate) {
+    if (variable.hasLate) {
       sb.write('l');
     }
     builder.declareInLibrary(new DeclarationCode.fromString('''
@@ -174,13 +174,13 @@ class FieldDeclarationsMacro1 implements FieldDeclarationsMacro {
   FutureOr<void> buildDeclarationsForField(FieldDeclaration field,
       MemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (field.isExternal) {
+    if (field.hasExternal) {
       sb.write('e');
     }
-    if (field.isFinal) {
+    if (field.hasFinal) {
       sb.write('f');
     }
-    if (field.isLate) {
+    if (field.hasLate) {
       sb.write('l');
     }
     builder.declareInLibrary(new DeclarationCode.fromString('''
@@ -283,10 +283,10 @@ class ConstructorDeclarationsMacro1
       ConstructorDeclaration constructor,
       MemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (constructor.isAbstract) {
+    if (constructor.hasAbstract) {
       sb.write('a');
     }
-    if (constructor.isExternal) {
+    if (constructor.hasExternal) {
       sb.write('e');
     }
     if (constructor.isGetter) {
@@ -365,21 +365,21 @@ class SequenceMacro
       if (cls.superclass != null) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(cls.superclass!.identifier)
+          await builder.typeDeclarationOf(cls.superclass!.identifier)
               as IntrospectableType,
           methods);
       }
       for (NamedTypeAnnotation mixin in cls.mixins) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(mixin.identifier)
+          await builder.typeDeclarationOf(mixin.identifier)
               as IntrospectableType,
           methods);
       }
       for (NamedTypeAnnotation interface in cls.interfaces) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(interface.identifier)
+          await builder.typeDeclarationOf(interface.identifier)
               as IntrospectableType,
           methods);
       }
@@ -388,14 +388,14 @@ class SequenceMacro
       for (NamedTypeAnnotation interface in cls.interfaces) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(interface.identifier)
+          await builder.typeDeclarationOf(interface.identifier)
               as IntrospectableType,
           methods);
       }
       for (NamedTypeAnnotation superclass in cls.superclassConstraints) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(superclass.identifier)
+          await builder.typeDeclarationOf(superclass.identifier)
               as IntrospectableType,
           methods);
       }
@@ -443,7 +443,7 @@ class SupertypesMacro implements ClassDefinitionMacro, MixinDefinitionMacro {
   FutureOr<void> _build(IntrospectableType type, TypeDefinitionBuilder builder) async {
     ParameterizedTypeDeclaration? superClass;
     if (type is IntrospectableClassDeclaration && type.superclass != null) {
-      superClass =  await builder.declarationOf(type.superclass!.identifier)
+      superClass =  await builder.typeDeclarationOf(type.superclass!.identifier)
           as ParameterizedTypeDeclaration?;
     }
     FunctionDefinitionBuilder getSuperClassBuilder = await builder.buildMethod(

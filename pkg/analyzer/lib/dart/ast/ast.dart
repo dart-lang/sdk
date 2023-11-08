@@ -62,10 +62,8 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         CastPattern,
         CatchClause,
         CatchClauseParameter,
-        ClassAugmentationDeclaration,
         ClassDeclaration,
         ClassMember,
-        ClassOrAugmentationDeclaration,
         ClassTypeAlias,
         CollectionElement,
         Combinator,
@@ -107,6 +105,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ExtendsClause,
         ExtensionDeclaration,
         ExtensionOverride,
+        ExtensionTypeDeclaration,
         FieldDeclaration,
         FieldFormalParameter,
         ForEachParts,
@@ -167,9 +166,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         MethodDeclaration,
         MethodInvocation,
         MethodReferenceExpression,
-        MixinAugmentationDeclaration,
         MixinDeclaration,
-        MixinOrAugmentationDeclaration,
         NamedCompilationUnitMember,
         NamedExpression,
         NamedType,
@@ -206,6 +203,8 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         RecordTypeAnnotationPositionalField,
         RedirectingConstructorInvocation,
         RelationalPattern,
+        RepresentationConstructorName,
+        RepresentationDeclaration,
         RestPatternElement,
         RethrowExpression,
         ReturnStatement,
@@ -252,3 +251,9 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         WildcardPattern,
         WithClause,
         YieldStatement;
+
+@Deprecated('This class was removed, use ClassDeclaration instead')
+typedef ClassOrAugmentationDeclaration = ClassDeclaration;
+
+@Deprecated('This class was removed, use MixinDeclaration instead')
+typedef MixinOrAugmentationDeclaration = MixinDeclaration;

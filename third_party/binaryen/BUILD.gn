@@ -4,11 +4,24 @@
 
 import("../../sdk_args.gni")
 
-config("binaryen_warnings") {
+config("binaryen_flags") {
   if (is_clang) {
     cflags = [ "-Wno-unused-but-set-parameter" ]
   } else if (!is_win) {
-    cflags = [ "-Wno-unused-variable" ]
+    cflags = [
+      "-Wno-unused-variable",
+
+      # Bug https://gcc.gnu.org/bugzilla/show_bug.cgi?id=86465#c16 triggered by
+      # https://github.com/WebAssembly/binaryen/blob/cdb7aeab40b4c522de20b242019f7e88641445d5/src/wasm/wasm-type.cpp#L530.
+      "-Wno-maybe-uninitialized",
+    ]
+  }
+
+  # Use legacy encoding for WasmGC instructions
+  defines = [ "USE_LEGACY_GC_ENCODINGS" ]
+
+  if (is_win) {
+    libs = [ "shell32.lib" ]
   }
 }
 
@@ -39,9 +52,10 @@ action("generate_needed_files") {
 
 source_set("binaryen_sources") {
   src_dirs = [
-    "src/src/ir",
+    "src/src/analysis",
     "src/src/asmjs",
     "src/src/cfg",
+    "src/src/ir",
     "src/src/passes",
     "src/src/support",
     "src/src/wasm",
@@ -77,7 +91,7 @@ source_set("binaryen_sources") {
 
   configs += [
     "//build/config/compiler:enable_exceptions",
-    ":binaryen_warnings",
+    ":binaryen_flags",
   ]
 }
 
@@ -95,7 +109,7 @@ template("wasm_tool") {
 
     configs += [
       "//build/config/compiler:enable_exceptions",
-      ":binaryen_warnings",
+      ":binaryen_flags",
     ]
   }
 }

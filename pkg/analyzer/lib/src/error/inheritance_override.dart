@@ -38,6 +38,10 @@ class InheritanceOverrideVerifier {
     for (var declaration in unit.declarations) {
       _ClassVerifier verifier;
       if (declaration is ClassDeclaration) {
+        final element = declaration.declaredElement!;
+        if (element.isAugmentation) {
+          continue;
+        }
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -46,7 +50,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement!,
+          classElement: element,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
@@ -81,6 +85,10 @@ class InheritanceOverrideVerifier {
           withClause: declaration.withClause,
         );
       } else if (declaration is MixinDeclaration) {
+        final element = declaration.declaredElement!;
+        if (element.isAugmentation) {
+          continue;
+        }
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -89,7 +97,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement!,
+          classElement: element,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,
@@ -475,34 +483,12 @@ class _ClassVerifier {
         )) {
           hasError = true;
         }
-        if (classElement is EnumElement && _checkEnumMixin(namedType)) {
+        if (classElement is EnumElement && _checkMixinOfEnum(namedType)) {
           hasError = true;
         }
       }
     }
     return hasError;
-  }
-
-  bool _checkEnumMixin(NamedType namedType) {
-    DartType type = namedType.typeOrThrow;
-    if (type is! InterfaceType) {
-      return false;
-    }
-
-    var interfaceElement = type.element;
-    if (interfaceElement is EnumElement) {
-      return false;
-    }
-
-    if (interfaceElement.fields.every((e) => e.isStatic || e.isSynthetic)) {
-      return false;
-    }
-
-    reporter.reportErrorForNode(
-      CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE,
-      namedType,
-    );
-    return true;
   }
 
   /// Check that [classElement] is not a superinterface to itself.
@@ -665,6 +651,29 @@ class _ClassVerifier {
         );
       }
     }
+  }
+
+  bool _checkMixinOfEnum(NamedType namedType) {
+    DartType type = namedType.typeOrThrow;
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    var interfaceElement = type.element;
+    if (interfaceElement is EnumElement ||
+        interfaceElement is ExtensionTypeElement) {
+      return false;
+    }
+
+    if (interfaceElement.fields.every((e) => e.isStatic || e.isSynthetic)) {
+      return false;
+    }
+
+    reporter.reportErrorForNode(
+      CompileTimeErrorCode.ENUM_MIXIN_WITH_INSTANCE_VARIABLE,
+      namedType,
+    );
+    return true;
   }
 
   /// Return the error code that should be used when the given class [element]

@@ -136,10 +136,10 @@ class C extends B {
     await resolveTestCode(sb.toString());
     var classLast = findElement.class_('X$last');
     ClassMemberElement member =
-        classLast.methods.where((element) => element.name == "foo").single;
-    OperationPerformanceImpl performance = OperationPerformanceImpl("<root>");
+        classLast.methods.where((element) => element.name == 'foo').single;
+    OperationPerformanceImpl performance = OperationPerformanceImpl('<root>');
     var result = await performance.runAsync(
-        "getHierarchyMembers",
+        'getHierarchyMembers',
         (performance) => getHierarchyMembers(searchEngine, member,
             performance: performance));
     expect(result, hasLength(count));

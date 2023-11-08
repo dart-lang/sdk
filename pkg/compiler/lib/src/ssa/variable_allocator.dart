@@ -158,6 +158,9 @@ class LiveEnvironment {
 /// the graph post-dominator tree to find the last uses of an
 /// instruction, and computes the liveIns of each basic block.
 class SsaLiveIntervalBuilder extends HBaseVisitor<void> with CodegenPhase {
+  @override
+  String get name => 'SsaLiveIntervalBuilder';
+
   final Set<HInstruction> generateAtUseSite;
   final Set<HIf> controlFlowOperators;
 
@@ -556,7 +559,10 @@ class VariableNamer {
 /// instruction, it frees the names of the inputs that die at that
 /// instruction, and allocates a name to the instruction. For each phi,
 /// it adds a copy to the CopyHandler of the corresponding predecessor.
-class SsaVariableAllocator extends HBaseVisitor<void> with CodegenPhase {
+class SsaVariableAllocator extends HBaseVisitor<void> implements CodegenPhase {
+  @override
+  String get name => 'SsaVariableAllocator';
+
   final ModularNamer _namer;
   final Map<HBasicBlock, LiveEnvironment> liveInstructions;
   final Map<HInstruction, LiveInterval> liveIntervals;

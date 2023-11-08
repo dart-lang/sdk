@@ -4,13 +4,17 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 
-class WorkspaceFoldersHandler
-    extends MessageHandler<DidChangeWorkspaceFoldersParams, void> {
+typedef StaticOptions = Either2<bool, String>;
+
+class ChangeWorkspaceFoldersHandler
+    extends LspMessageHandler<DidChangeWorkspaceFoldersParams, void> {
   // Whether to update analysis roots based on the open workspace folders.
   bool updateAnalysisRoots;
 
-  WorkspaceFoldersHandler(super.server, this.updateAnalysisRoots);
+  ChangeWorkspaceFoldersHandler(super.server)
+      : updateAnalysisRoots = !server.onlyAnalyzeProjectsWithOpenFiles;
 
   @override
   Method get handlesMessage => Method.workspace_didChangeWorkspaceFolders;
@@ -41,6 +45,20 @@ class WorkspaceFoldersHandler
   /// Return the result of converting the list of workspace [folders] to file
   /// paths.
   List<String> _convertWorkspaceFolders(List<WorkspaceFolder> folders) {
-    return folders.map((wf) => wf.uri.toFilePath()).toList();
+    return folders.map((wf) => pathContext.fromUri(wf.uri)).toList();
   }
+}
+
+class ChangeWorkspaceFoldersRegistrations extends FeatureRegistration
+    with StaticRegistration<StaticOptions> {
+  ChangeWorkspaceFoldersRegistrations(super.info);
+
+  @override
+  List<LspDynamicRegistration> get dynamicRegistrations => [];
+
+  @override
+  StaticOptions get staticOptions => Either2.t1(true);
+
+  @override
+  bool get supportsDynamic => false;
 }

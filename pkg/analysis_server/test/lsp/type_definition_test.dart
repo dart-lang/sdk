@@ -18,7 +18,14 @@ void main() {
 class TypeDefinitionTest extends AbstractLspAnalysisServerTest {
   Uri get sdkCoreUri {
     final sdkCorePath = convertPath('/sdk/lib/core/core.dart');
-    return Uri.file(sdkCorePath);
+    return pathContext.toUri(sdkCorePath);
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+
+    setLocationLinkSupport();
   }
 
   Future<void> test_currentFile() async {
@@ -78,6 +85,8 @@ const a = [[12^3]];
   /// Checks a result when the client does not support [LocationLink], only
   /// the original LSP [Location].
   Future<void> test_location() async {
+    setLocationLinkSupport(false);
+
     final contents = '''
 const a^ = 'test string';
 ''';
@@ -101,7 +110,7 @@ const a = '^';
 
   Future<void> test_otherFile() async {
     final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
     final contents = '''
 import 'other.dart';
 
@@ -288,10 +297,7 @@ void f() {
   Future<LocationLink> _getResult(String contents,
       {Uri? fileUri, bool inOpenFile = true}) async {
     fileUri ??= mainFileUri;
-    await initialize(
-      textDocumentCapabilities:
-          withLocationLinkSupport(emptyTextDocumentClientCapabilities),
-    );
+    await initialize();
     if (inOpenFile) {
       await openFile(fileUri, withoutMarkers(contents));
     }

@@ -258,6 +258,12 @@ class MessageTestSuite extends ChainContext {
                 : new List<String>.from(value);
             break;
 
+          case "sharedName":
+            if (value is! String) {
+              throw new ArgumentError('sharedName should be a string: $value.');
+            }
+            break;
+
           case "exampleAllowMoreCodes":
             exampleAllowMoreCodes = value;
             break;
@@ -872,8 +878,7 @@ class Script {
       preamble = '';
       sourceWithoutPreamble = source;
     }
-    return new Script(new Uint8List.fromList(utf8.encode(source)), preamble,
-        sourceWithoutPreamble);
+    return new Script(utf8.encode(source), preamble, sourceWithoutPreamble);
   }
 }
 

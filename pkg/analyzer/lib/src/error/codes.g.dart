@@ -232,6 +232,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try marking the function body with either 'async' or 'async*'.",
   );
 
+  static const CompileTimeErrorCode AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE =
+      CompileTimeErrorCode(
+    'AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE',
+    "The 'await' expression can't be used for an expression with an extension "
+        "type that is not a subtype of 'Future'.",
+    correctionMessage: "Try updating the extension type to implement 'Future'.",
+  );
+
   ///  Parameters:
   ///  0: the name of the base class being implemented
   static const CompileTimeErrorCode BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY =
@@ -513,13 +521,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the class implementing the conflicting interface
-  ///  1: the first conflicting type
-  ///  2: the second conflicting type
+  ///  0: the name of the kind of the element implementing the conflicting interface
+  ///  1: the name of the element implementing the conflicting interface
+  ///  2: the first conflicting type
+  ///  3: the second conflicting type
   static const CompileTimeErrorCode CONFLICTING_GENERIC_INTERFACES =
       CompileTimeErrorCode(
     'CONFLICTING_GENERIC_INTERFACES',
-    "The class '{0}' can't implement both '{1}' and '{2}' because the type "
+    "The {0} '{1}' can't implement both '{2}' and '{3}' because the type "
         "arguments are different.",
     hasPublishedDocs: true,
   );
@@ -665,6 +674,19 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY = CompileTimeErrorCode(
+    'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+    "Constant values from a deferred library can't be used as values in a "
+        "'const' constructor.",
+    correctionMessage:
+        "Try removing the keyword 'const' from the constructor or removing the "
+        "keyword 'deferred' from the import.",
+    hasPublishedDocs: true,
+    uniqueName: 'CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
+  );
+
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
   ///  object results in an uncaught exception being thrown.
   ///
@@ -795,6 +817,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode CONST_EVAL_ASSERTION_FAILURE =
+      CompileTimeErrorCode(
+    'CONST_EVAL_ASSERTION_FAILURE',
+    "The assertion in this constant expression failed.",
+  );
+
   static const CompileTimeErrorCode CONST_EVAL_EXTENSION_METHOD =
       CompileTimeErrorCode(
     'CONST_EVAL_EXTENSION_METHOD',
@@ -807,6 +835,22 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Constant expressions don't support 'for' elements.",
     correctionMessage:
         "Try replacing the 'for' element with a spread, or removing 'const'.",
+  );
+
+  static const CompileTimeErrorCode CONST_EVAL_METHOD_INVOCATION =
+      CompileTimeErrorCode(
+    'CONST_EVAL_METHOD_INVOCATION',
+    "Methods can't be invoked in constant expressions.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the property being accessed
+  ///  1: the type with the property being accessed
+  static const CompileTimeErrorCode CONST_EVAL_PROPERTY_ACCESS =
+      CompileTimeErrorCode(
+    'CONST_EVAL_PROPERTY_ACCESS',
+    "The property '{0}' can't be accessed on the type '{1}' in a constant "
+        "expression.",
   );
 
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
@@ -870,6 +914,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode CONST_EVAL_TYPE_NUM = CompileTimeErrorCode(
     'CONST_EVAL_TYPE_NUM',
     "In constant expressions, operands of this operator must be of type 'num'.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode CONST_EVAL_TYPE_STRING =
+      CompileTimeErrorCode(
+    'CONST_EVAL_TYPE_STRING',
+    "In constant expressions, operands of this operator must be of type "
+        "'String'.",
   );
 
   static const CompileTimeErrorCode CONST_EVAL_TYPE_TYPE = CompileTimeErrorCode(
@@ -976,6 +1028,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const CompileTimeErrorCode CONST_TYPE_PARAMETER = CompileTimeErrorCode(
+    'CONST_TYPE_PARAMETER',
+    "Type parameters can't be used in a constant expression.",
+    correctionMessage:
+        "Try replacing the type parameter with a different type.",
+  );
+
+  ///  No parameters.
   static const CompileTimeErrorCode CONST_WITH_NON_CONST = CompileTimeErrorCode(
     'CONST_WITH_NON_CONST',
     "The constructor being called isn't a const constructor.",
@@ -1079,17 +1139,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode COULD_NOT_INFER = CompileTimeErrorCode(
     'COULD_NOT_INFER',
     "Couldn't infer type parameter '{0}'.{1}",
-  );
-
-  ///  No parameters.
-  static const CompileTimeErrorCode DEFAULT_LIST_CONSTRUCTOR =
-      CompileTimeErrorCode(
-    'DEFAULT_LIST_CONSTRUCTOR',
-    "The default 'List' constructor isn't available when null safety is "
-        "enabled.",
-    correctionMessage:
-        "Try using a list literal, 'List.filled' or 'List.generate'.",
-    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1275,6 +1324,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EMPTY_MAP_PATTERN',
     "A map pattern must have at least one entry.",
     correctionMessage: "Try replacing it with an object pattern 'Map()'.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
@@ -1562,6 +1612,115 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "of a cascade expression.",
     correctionMessage: "Try using '.' instead of '..'.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
+    "Extension type constructors can't declare super formal parameters.",
+    correctionMessage: "Try removing the super formal parameter declaration.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION = CompileTimeErrorCode(
+    'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
+    "Extension type constructors can't include superinitializers.",
+    correctionMessage: "Try removing the superconstructor invocation.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_DECLARES_INSTANCE_FIELD =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
+    "Extension types can't declare instance fields.",
+    correctionMessage: "Try replacing the field with a getter.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
+    "Extension types can't declare members with the same name as a member "
+        "declared by 'Object'.",
+    correctionMessage: "Try specifying a different name for the member.",
+  );
+
+  ///  Parameters:
+  ///  0: the display string of the disallowed type
+  static const CompileTimeErrorCode EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
+    "Extension types can't implement '{0}'.",
+    correctionMessage:
+        "Try specifying a different type, or remove the type from the list.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_IMPLEMENTS_ITSELF =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_ITSELF',
+    "The extension type can't implement itself.",
+    correctionMessage:
+        "Try removing the superinterface that references this extension type.",
+  );
+
+  ///  Parameters:
+  ///  0: the implemented not extension type
+  ///  1: the ultimate representation type
+  static const CompileTimeErrorCode EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE',
+    "'{0}' is not a supertype of '{1}', the representation type.",
+    correctionMessage:
+        "Try specifying a different type, or remove the type from the list.",
+  );
+
+  ///  Parameters:
+  ///  0: the representation type of the implemented extension type
+  ///  1: the name of the implemented extension type
+  ///  2: the representation type of the this extension type
+  ///  3: the name of the this extension type
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE',
+    "'{0}', the representation type of '{1}', is not a supertype of '{2}', the "
+        "representation type of '{3}'.",
+    correctionMessage:
+        "Try specifying a different type, or remove the type from the list.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the extension type
+  ///  1: the name of the conflicting member
+  static const CompileTimeErrorCode EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT',
+    "The extension type '{0}' has more than one distinct member named '{1}' "
+        "from implemented types.",
+    correctionMessage:
+        "Try redeclaring the corresponding member in this extension type.",
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF = CompileTimeErrorCode(
+    'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
+    "The extension type representation can't depend on itself.",
+    correctionMessage: "Try specifying a different type.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the abstract method
+  ///  1: the name of the enclosing extension type
+  static const CompileTimeErrorCode EXTENSION_TYPE_WITH_ABSTRACT_MEMBER =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
+    "'{0}' must have a method body because '{1}' is an extension type.",
+    correctionMessage: "Try adding a body to '{0}'.",
   );
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
@@ -2953,6 +3112,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try specifying the getter name explicitly, or using a variable "
         "pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -3518,6 +3678,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "an expression statement.",
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE =
+      CompileTimeErrorCode(
+    'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
+    "An extension type parameter can't be used in a non-covariant position of "
+        "its representation type.",
+    correctionMessage:
+        "Try removing the type parameters from function parameter types and "
+        "type parameter bounds.",
+  );
+
   ///  Parameters:
   ///  0: the type of the switch scrutinee
   ///  1: the witness pattern for the unmatched value
@@ -3888,7 +4060,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode OBSOLETE_COLON_FOR_DEFAULT_VALUE =
       CompileTimeErrorCode(
     'OBSOLETE_COLON_FOR_DEFAULT_VALUE',
-    "Using a colon as a separator before a default value is no longer "
+    "Using a colon as the separator before a default value is no longer "
         "supported.",
     correctionMessage: "Try replacing the colon with an equal sign.",
     hasPublishedDocs: true,
@@ -4140,6 +4312,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'RECURSIVE_COMPILE_TIME_CONSTANT',
     "The compile-time constant expression depends on itself.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode RECURSIVE_CONSTANT_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'RECURSIVE_CONSTANT_CONSTRUCTOR',
+    "The constant constructor depends on itself.",
   );
 
   ///  No parameters.
@@ -4401,6 +4580,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'REST_ELEMENT_IN_MAP_PATTERN',
     "A map pattern can't contain a rest pattern.",
     correctionMessage: "Try removing the rest pattern.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -5609,126 +5789,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
-class LanguageCode extends ErrorCode {
-  ///  Parameters:
-  ///  0: the name of the field
-  static const LanguageCode IMPLICIT_DYNAMIC_FIELD = LanguageCode(
-    'IMPLICIT_DYNAMIC_FIELD',
-    "Missing field type for '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the function
-  ///  1: the names of the type arguments
-  static const LanguageCode IMPLICIT_DYNAMIC_FUNCTION = LanguageCode(
-    'IMPLICIT_DYNAMIC_FUNCTION',
-    "Missing type arguments for generic function '{0}<{1}>'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of type
-  static const LanguageCode IMPLICIT_DYNAMIC_INVOKE = LanguageCode(
-    'IMPLICIT_DYNAMIC_INVOKE',
-    "Missing type arguments for calling generic function type '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  static const LanguageCode IMPLICIT_DYNAMIC_LIST_LITERAL = LanguageCode(
-    'IMPLICIT_DYNAMIC_LIST_LITERAL',
-    "Missing type argument for list literal.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  static const LanguageCode IMPLICIT_DYNAMIC_MAP_LITERAL = LanguageCode(
-    'IMPLICIT_DYNAMIC_MAP_LITERAL',
-    "Missing type arguments for map literal.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the function
-  ///  1: the names of the type arguments
-  static const LanguageCode IMPLICIT_DYNAMIC_METHOD = LanguageCode(
-    'IMPLICIT_DYNAMIC_METHOD',
-    "Missing type arguments for generic method '{0}<{1}>'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the parameter
-  static const LanguageCode IMPLICIT_DYNAMIC_PARAMETER = LanguageCode(
-    'IMPLICIT_DYNAMIC_PARAMETER',
-    "Missing parameter type for '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the function or method
-  static const LanguageCode IMPLICIT_DYNAMIC_RETURN = LanguageCode(
-    'IMPLICIT_DYNAMIC_RETURN',
-    "Missing return type for '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the type
-  static const LanguageCode IMPLICIT_DYNAMIC_TYPE = LanguageCode(
-    'IMPLICIT_DYNAMIC_TYPE',
-    "Missing type arguments for generic type '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  ///  Parameters:
-  ///  0: the name of the variable
-  static const LanguageCode IMPLICIT_DYNAMIC_VARIABLE = LanguageCode(
-    'IMPLICIT_DYNAMIC_VARIABLE',
-    "Missing variable type for '{0}'.",
-    correctionMessage:
-        "Try adding an explicit type, or remove implicit-dynamic from your "
-        "analysis options file.",
-  );
-
-  /// Initialize a newly created error code to have the given [name].
-  const LanguageCode(
-    String name,
-    String problemMessage, {
-    super.correctionMessage,
-    super.hasPublishedDocs = false,
-    super.isUnresolvedIdentifier = false,
-    String? uniqueName,
-  }) : super(
-          name: name,
-          problemMessage: problemMessage,
-          uniqueName: 'LanguageCode.${uniqueName ?? name}',
-        );
-
-  @override
-  ErrorSeverity get errorSeverity => ErrorType.COMPILE_TIME_ERROR.severity;
-
-  @override
-  ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
-}
-
 class StaticWarningCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const StaticWarningCode DEAD_NULL_AWARE_EXPRESSION = StaticWarningCode(
@@ -5951,6 +6011,15 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the element
+  static const WarningCode DEPRECATED_EXPORT_USE = WarningCode(
+    'DEPRECATED_EXPORT_USE',
+    "The ability to import '{0}' indirectly is deprecated.",
+    correctionMessage: "Try importing '{0}' directly.",
+    hasPublishedDocs: true,
+  );
+
   ///  No parameters.
   static const WarningCode DEPRECATED_EXTENDS_FUNCTION = WarningCode(
     'DEPRECATED_SUBTYPE_OF_FUNCTION',
@@ -5984,6 +6053,114 @@ class WarningCode extends AnalyzerErrorCode {
     "Using the 'new' keyword in a comment reference is deprecated.",
     correctionMessage: "Try referring to a constructor by its name.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive argument
+  ///  1: the expected format
+  static const WarningCode DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT = WarningCode(
+    'DOC_DIRECTIVE_ARGUMENT_WRONG_FORMAT',
+    "The '{0}' argument must be formatted as {1}.",
+    correctionMessage: "Try formatting '{0}' as {1}.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the actual number of arguments
+  ///  2: the expected number of arguments
+  static const WarningCode DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS = WarningCode(
+    'DOC_DIRECTIVE_HAS_EXTRA_ARGUMENTS',
+    "The '{0}' directive has '{1}' arguments, but only '{2}' are expected.",
+    correctionMessage: "Try removing the extra arguments.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the unexpected argument
+  static const WarningCode DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT =
+      WarningCode(
+    'DOC_DIRECTIVE_HAS_UNEXPECTED_NAMED_ARGUMENT',
+    "The '{0}' directive has an unexpected named argument, '{1}'.",
+    correctionMessage: "Try removing the unexpected argument.",
+  );
+
+  static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_BRACE = WarningCode(
+    'DOC_DIRECTIVE_MISSING_CLOSING_BRACE',
+    "Doc directive is missing a closing curly brace ('}').",
+    correctionMessage: "Try closing the directive with a curly brace.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the corresponding doc directive tag
+  static const WarningCode DOC_DIRECTIVE_MISSING_CLOSING_TAG = WarningCode(
+    'DOC_DIRECTIVE_MISSING_CLOSING_TAG',
+    "Doc directive is missing a closing tag.",
+    correctionMessage:
+        "Try closing the directive with the appropriate closing tag, '{0}'.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the missing argument
+  static const WarningCode DOC_DIRECTIVE_MISSING_ONE_ARGUMENT = WarningCode(
+    'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    "The '{0}' directive is missing a '{1}' argument.",
+    correctionMessage: "Try adding a '{1}' argument before the closing '}'.",
+    uniqueName: 'DOC_DIRECTIVE_MISSING_ONE_ARGUMENT',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the corresponding doc directive tag
+  static const WarningCode DOC_DIRECTIVE_MISSING_OPENING_TAG = WarningCode(
+    'DOC_DIRECTIVE_MISSING_OPENING_TAG',
+    "Doc directive is missing an opening tag.",
+    correctionMessage:
+        "Try opening the directive with the appropriate opening tag, '{0}'.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the first missing argument
+  ///  2: the name of the second missing argument
+  ///  3: the name of the third missing argument
+  static const WarningCode DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS = WarningCode(
+    'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    "The '{0}' directive is missing a '{1}', a '{2}', and a '{3}' argument.",
+    correctionMessage:
+        "Try adding the missing arguments before the closing '}'.",
+    uniqueName: 'DOC_DIRECTIVE_MISSING_THREE_ARGUMENTS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the doc directive
+  ///  1: the name of the first missing argument
+  ///  2: the name of the second missing argument
+  static const WarningCode DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS = WarningCode(
+    'DOC_DIRECTIVE_MISSING_ARGUMENT',
+    "The '{0}' directive is missing a '{1}' and a '{2}' argument.",
+    correctionMessage:
+        "Try adding the missing arguments before the closing '}'.",
+    uniqueName: 'DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the unknown doc directive.
+  static const WarningCode DOC_DIRECTIVE_UNKNOWN = WarningCode(
+    'DOC_DIRECTIVE_UNKNOWN',
+    "Doc directive '{0}' is unknown.",
+    correctionMessage: "Try using one of the supported doc directives.",
+  );
+
+  static const WarningCode DOC_IMPORT_CANNOT_BE_DEFERRED = WarningCode(
+    'DOC_IMPORT_CANNOT_BE_DEFERRED',
+    "Doc imports can't be deferred.",
+    correctionMessage: "Try removing the 'deferred' keyword.",
+  );
+
+  static const WarningCode DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS = WarningCode(
+    'DOC_IMPORT_CANNOT_HAVE_CONFIGURATIONS',
+    "Doc imports can't have configurations.",
+    correctionMessage: "Try removing the configurations.",
   );
 
   ///  Duplicate exports.
@@ -6495,6 +6672,7 @@ class WarningCode extends AnalyzerErrorCode {
     "The annotation 'visibleOutsideTemplate' can only be applied to a member "
         "of a class, enum, or mixin that is annotated with "
         "'visibleForTemplate'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -6777,6 +6955,18 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  An error code indicating the use of a redeclare annotation on a member that does not redeclare.
+  ///
+  ///  Parameters:
+  ///  0: the kind of member
+  static const WarningCode REDECLARE_ON_NON_REDECLARING_MEMBER = WarningCode(
+    'REDECLARE_ON_NON_REDECLARING_MEMBER',
+    "The {0} doesn't redeclare a {0} declared in a superinterface.",
+    correctionMessage:
+        "Try updating this member to match a declaration in a superinterface, "
+        "or removing the redeclare annotation.",
+  );
+
   ///  An error code indicating use of a removed lint rule.
   ///
   ///  Parameters:
@@ -6834,40 +7024,6 @@ class WarningCode extends AnalyzerErrorCode {
     uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
   );
 
-  ///  Parameters:
-  ///  0: the name of the class
-  static const WarningCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = WarningCode(
-    'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
-    "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but "
-        "this code is required to be able to run on earlier versions.",
-    correctionMessage:
-        "Try either importing 'dart:async' or updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an as expression in a constant expression wasn't supported "
-        "until version 2.3.2, but this code is required to be able to run on "
-        "earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the operator
-  static const WarningCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
-    "The use of the operator '{0}' for 'bool' operands in a constant context "
-        "wasn't supported until version 2.3.2, but this code is required to be "
-        "able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
   ///  No parameters.
   ///
   ///  There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
@@ -6885,41 +7041,10 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const WarningCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
-    "Using the operator '==' for non-primitive types wasn't supported until "
-        "version 2.3.2, but this code is required to be able to run on earlier "
-        "versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_EXTENSION_METHODS = WarningCode(
-    'SDK_VERSION_EXTENSION_METHODS',
-    "Extension methods weren't supported until version 2.6.0, but this code is "
-        "required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   static const WarningCode SDK_VERSION_GT_GT_GT_OPERATOR = WarningCode(
     'SDK_VERSION_GT_GT_GT_OPERATOR',
     "The operator '>>>' wasn't supported until version 2.14.0, but this code "
         "is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an is expression in a constant context wasn't supported until "
-        "version 2.3.2, but this code is required to be able to run on earlier "
-        "versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
@@ -6933,15 +7058,6 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_SET_LITERAL = WarningCode(
-    'SDK_VERSION_SET_LITERAL',
-    "Set literals weren't supported until version 2.2, but this code is "
-        "required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
   ///  Parameters:
   ///  0: the version specified in the `@Since()` annotation
   ///  1: the SDK version constraints
@@ -6950,26 +7066,6 @@ class WarningCode extends AnalyzerErrorCode {
     "This API is available since SDK {0}, but constraints '{1}' don't "
         "guarantee it.",
     correctionMessage: "Try updating the SDK constraints.",
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_UI_AS_CODE = WarningCode(
-    'SDK_VERSION_UI_AS_CODE',
-    "The for, if, and spread elements weren't supported until version 2.3.0, "
-        "but this code is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT',
-    "The if and spread elements weren't supported in constant expressions "
-        "until version 2.5.0, but this code is required to be able to run on "
-        "earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
   );
 
   ///  When "strict-raw-types" is enabled, "raw types" must have type arguments.
@@ -7066,6 +7162,16 @@ class WarningCode extends AnalyzerErrorCode {
     "The library '{0}' doesn't export a member with the shown name '{1}'.",
     correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the non-diagnostic being ignored
+  static const WarningCode UNIGNORABLE_IGNORE = WarningCode(
+    'UNIGNORABLE_IGNORE',
+    "The diagnostic '{0}' can't be ignored.",
+    correctionMessage:
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
   );
 
   ///  This is the new replacement for [HintCode.UNNECESSARY_CAST].

@@ -12,21 +12,17 @@ mixin KernelNodes {
 
   late final LibraryIndex index = LibraryIndex(component, [
     "dart:_internal",
-    "dart:_js_types",
     "dart:async",
     "dart:collection",
     "dart:core",
     "dart:ffi",
     "dart:typed_data",
-    "dart:_wasm"
+    "dart:_string",
+    "dart:_wasm",
   ]);
 
   // dart:_internal classes
   late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
-
-  // dart:_js_types classes
-  late final Class jsStringImplClass =
-      index.getClass("dart:_js_types", "JSStringImpl");
 
   // dart:collection classes
   late final Class hashFieldBaseClass =
@@ -48,11 +44,12 @@ mixin KernelNodes {
       index.getClass("dart:core", "_GrowableList");
   late final Class immutableListClass =
       index.getClass("dart:core", "_ImmutableList");
-  late final Class stringBaseClass = index.getClass("dart:core", "_StringBase");
+  late final Class stringBaseClass =
+      index.getClass("dart:_string", "StringBase");
   late final Class oneByteStringClass =
-      index.getClass("dart:core", "_OneByteString");
+      index.getClass("dart:_string", "OneByteString");
   late final Class twoByteStringClass =
-      index.getClass("dart:core", "_TwoByteString");
+      index.getClass("dart:_string", "TwoByteString");
   late final Class invocationClass = index.getClass("dart:core", 'Invocation');
   late final Class noSuchMethodErrorClass =
       index.getClass("dart:core", "NoSuchMethodError");
@@ -62,8 +59,8 @@ mixin KernelNodes {
 
   // dart:core runtime type classes
   late final Class typeClass = index.getClass("dart:core", "_Type");
-  late final Class dynamicTypeClass =
-      index.getClass("dart:core", "_DynamicType");
+  late final Class abstractFunctionTypeClass =
+      index.getClass("dart:core", "_AbstractFunctionType");
   late final Class functionTypeClass =
       index.getClass("dart:core", "_FunctionType");
   late final Class functionTypeParameterTypeClass =
@@ -76,12 +73,13 @@ mixin KernelNodes {
       index.getClass("dart:core", "_InterfaceTypeParameterType");
   late final Class namedParameterClass =
       index.getClass("dart:core", "_NamedParameter");
-  late final Class neverTypeClass = index.getClass("dart:core", "_NeverType");
-  late final Class nullTypeClass = index.getClass("dart:core", "_NullType");
-  late final Class voidTypeClass = index.getClass("dart:core", "_VoidType");
+  late final Class bottomTypeClass = index.getClass("dart:core", "_BottomType");
+  late final Class topTypeClass = index.getClass("dart:core", "_TopType");
   late final Class stackTraceClass = index.getClass("dart:core", "StackTrace");
   late final Class typeUniverseClass =
       index.getClass("dart:core", "_TypeUniverse");
+  late final Class abstractRecordTypeClass =
+      index.getClass("dart:core", "_AbstractRecordType");
   late final Class recordTypeClass = index.getClass("dart:core", "_RecordType");
 
   // dart:core sync* support classes
@@ -112,18 +110,6 @@ mixin KernelNodes {
   late final Class ffiCompoundClass = index.getClass("dart:ffi", "_Compound");
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");
 
-  // dart:typed_data classes
-  late final Class typedListBaseClass =
-      index.getClass("dart:typed_data", "_TypedListBase");
-  late final Class typedListClass =
-      index.getClass("dart:typed_data", "_TypedList");
-  late final Class typedListViewClass =
-      index.getClass("dart:typed_data", "_TypedListView");
-  late final Class byteDataViewClass =
-      index.getClass("dart:typed_data", "_ByteDataView");
-  late final Class unmodifiableByteDataViewClass =
-      index.getClass("dart:typed_data", "_UnmodifiableByteDataView");
-
   // dart:_wasm classes
   late final Class wasmTypesBaseClass =
       index.getClass("dart:_wasm", "_WasmBase");
@@ -147,6 +133,10 @@ mixin KernelNodes {
       index.getClass("dart:_wasm", "WasmFunction");
   late final Class wasmVoidClass = index.getClass("dart:_wasm", "WasmVoid");
   late final Class wasmTableClass = index.getClass("dart:_wasm", "WasmTable");
+  late final Class wasmObjectArrayClass =
+      index.getClass("dart:_wasm", "WasmObjectArray");
+  late final Field wasmObjectArrayValueField =
+      index.getField("dart:_wasm", "WasmObjectArray", "_value");
 
   // dart:_internal procedures
   late final Procedure loadLibrary =
@@ -188,9 +178,9 @@ mixin KernelNodes {
   late final Procedure recordGetRecordRuntimeType =
       index.getProcedure("dart:core", "Record", "_getRecordRuntimeType");
   late final Procedure stringEquals =
-      index.getProcedure("dart:core", "_StringBase", "==");
+      index.getProcedure("dart:_string", "StringBase", "==");
   late final Procedure stringInterpolate =
-      index.getProcedure("dart:core", "_StringBase", "_interpolate");
+      index.getProcedure("dart:_string", "StringBase", "_interpolate");
 
   // dart:core invocation/exception procedures
   late final Procedure invocationGetterFactory =

@@ -45,16 +45,6 @@ class DartEntryScope : public TransitionToGenerated {
     saved_long_jump_base_ = thread->long_jump_base();
     thread->set_long_jump_base(nullptr);
 
-    // Setup the stack limit checked by generated Dart code. This is repeated at
-    // each Dart entry because a given Thread may move between different
-    // OSThreads.
-    saved_stack_limit_ = thread->saved_stack_limit();
-#if defined(USING_SIMULATOR)
-    thread->SetStackLimit(Simulator::Current()->overflow_stack_limit());
-#else
-    thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
-#endif
-
 #if defined(USING_SAFE_STACK)
     // Remember the safestack pointer at entry so it can be restored in
     // Exceptions::JumpToFrame when a Dart exception jumps over C++ frames.
@@ -68,15 +58,12 @@ class DartEntryScope : public TransitionToGenerated {
     thread()->set_saved_safestack_limit(saved_safestack_limit_);
 #endif
 
-    thread()->SetStackLimit(saved_stack_limit_);
-
     ASSERT(thread()->long_jump_base() == nullptr);
     thread()->set_long_jump_base(saved_long_jump_base_);
   }
 
  private:
   LongJumpScope* saved_long_jump_base_;
-  uword saved_stack_limit_ = 0;
 #if defined(USING_SAFE_STACK)
   uword saved_safestack_limit_ = 0;
 #endif

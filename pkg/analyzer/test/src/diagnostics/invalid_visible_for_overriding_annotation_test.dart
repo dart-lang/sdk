@@ -62,6 +62,25 @@ extension E on String {
     ]);
   }
 
+  test_invalid_extensionType() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+@visibleForOverriding
+extension type E(int i) {}
+''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 33, 21)]);
+  }
+
+  test_invalid_extensionType_member() async {
+    await assertErrorsInCode('''
+import 'package:meta/meta.dart';
+
+extension type E(int i) { 
+  @visibleForOverriding
+  void f() { }
+}
+''', [error(WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION, 63, 21)]);
+  }
+
   test_invalid_staticMember() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

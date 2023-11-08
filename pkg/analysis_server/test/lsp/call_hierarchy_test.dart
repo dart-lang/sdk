@@ -48,7 +48,8 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    otherFileUri =
+        pathContext.toUri(join(projectFolderPath, 'lib', 'other.dart'));
   }
 
   Future<void> test_constructor() async {
@@ -243,6 +244,47 @@ class IncomingCallHierarchyTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_method_extension() async {
+    final contents = '''
+extension type E1(int a) {
+  void foo^() {}
+}
+''';
+
+    final otherContents = '''
+import 'main.dart';
+
+extension type E2(E1 a) {
+  void g() {
+    a.foo();
+  }
+}
+''';
+
+    await expectResults(
+      mainContents: contents,
+      otherContents: otherContents,
+      expectedResults: [
+        CallHierarchyIncomingCall(
+          // Container of the call
+          from: CallHierarchyItem(
+            name: 'g',
+            detail: 'E2',
+            kind: SymbolKind.Method,
+            uri: otherFileUri,
+            range: rangeOfPattern(
+                otherContents, RegExp(r'void g\(\) \{.*\  }', dotAll: true)),
+            selectionRange: rangeOfString(otherContents, 'g'),
+          ),
+          // Ranges of calls within this container
+          fromRanges: [
+            rangeOfString(otherContents, 'foo'),
+          ],
+        ),
+      ],
+    );
+  }
+
   Future<void> test_namedConstructor() async {
     final contents = '''
     class Foo {
@@ -315,7 +357,8 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    otherFileUri =
+        pathContext.toUri(join(projectFolderPath, 'lib', 'other.dart'));
   }
 
   Future<void> test_constructor() async {
@@ -515,6 +558,46 @@ class OutgoingCallHierarchyTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  Future<void> test_method_extensionType() async {
+    final contents = '''
+import 'other.dart';
+
+extension type E2(E1 a) {
+  void g^() {
+    a.foo();
+  }
+}
+''';
+
+    final otherContents = '''
+extension type E1(int a) {
+  void foo() {}
+}
+''';
+
+    await expectResults(
+      mainContents: contents,
+      otherContents: otherContents,
+      expectedResults: [
+        CallHierarchyOutgoingCall(
+          // Target of the call.
+          to: CallHierarchyItem(
+            name: 'foo',
+            detail: 'E1',
+            kind: SymbolKind.Method,
+            uri: otherFileUri,
+            range: rangeOfString(otherContents, 'void foo() {}'),
+            selectionRange: rangeOfString(otherContents, 'foo'),
+          ),
+          // Ranges of the outbound call.
+          fromRanges: [
+            rangeOfString(contents, 'foo'),
+          ],
+        ),
+      ],
+    );
+  }
+
   Future<void> test_namedConstructor() async {
     final contents = '''
     import 'other.dart';
@@ -599,7 +682,7 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    otherFileUri = toUri(join(projectFolderPath, 'lib', 'other.dart'));
   }
 
   Future<void> test_args() async {
@@ -776,6 +859,34 @@ class PrepareCallHierarchyTest extends AbstractLspAnalysisServerTest {
           uri: otherFileUri,
           range: rangeOfString(otherContents, 'void myMethod() {}'),
           selectionRange: rangeOfString(otherContents, 'myMethod')),
+    );
+  }
+
+  Future<void> test_methodCall_extension() async {
+    final contents = '''
+import 'other.dart';
+
+void main() {
+  E1(1).f^();
+}
+''';
+
+    final otherContents = '''
+extension type E1(int a) {
+  void f() {}
+}
+''';
+
+    await expectResults(
+      mainContents: contents,
+      otherContents: otherContents,
+      expectedResult: CallHierarchyItem(
+          name: 'f',
+          detail: 'E1',
+          kind: SymbolKind.Method,
+          uri: otherFileUri,
+          range: rangeOfString(otherContents, 'void f() {}'),
+          selectionRange: rangeOfString(otherContents, 'f')),
     );
   }
 

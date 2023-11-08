@@ -16,7 +16,7 @@ abstract class B<D extends core::Object? = dynamic> extends core::Object {
     ;
 }
 abstract class _C&B&Mixin extends self::B<self::A> implements self::Mixin /*isAnonymousMixin,isEliminatedMixin*/  {
-  synthetic constructor •({self::A field = #C1}) → self::_C&B&Mixin
+  synthetic constructor •({required self::A field = #C1}) → self::_C&B&Mixin
     : super self::B::•(field: field)
     ;
 }

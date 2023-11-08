@@ -233,12 +233,15 @@ class Simulator {
 
   // Decode instructions.
   void InstructionDecode(Instr* instr);
+  void InstructionDecodeImpl(Instr* instr);
 #define DECODE_OP(op) void Decode##op(Instr* instr);
   APPLY_OP_LIST(DECODE_OP)
 #undef DECODE_OP
 
   // Executes ARM64 instructions until the PC reaches kEndSimulatingPC.
   void Execute();
+  void ExecuteNoTrace();
+  void ExecuteTrace();
 
   void ClobberVolatileRegisters();
 

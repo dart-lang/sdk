@@ -44,6 +44,15 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) {
+    if (node.name case final name?) {
+      _addOccurrence(node.declaredElement!, name.offset);
+    }
+
+    super.visitConstructorDeclaration(node);
+  }
+
+  @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _addOccurrence(node.declaredElement!, node.name.offset);
 
@@ -69,6 +78,13 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
     _addOccurrence(node.declaredElement!, node.name.offset);
 
     super.visitEnumDeclaration(node);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    _addOccurrence(node.declaredElement!, node.name.offset);
+
+    super.visitExtensionTypeDeclaration(node);
   }
 
   @override
@@ -121,6 +137,15 @@ class _DartUnitOccurrencesComputerVisitor extends RecursiveAstVisitor<void> {
       _addOccurrence(element, name.offset);
     }
     super.visitPatternField(node);
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    if (node.constructorName case final constructorName?) {
+      _addOccurrence(node.constructorElement!, constructorName.name.offset);
+    }
+
+    super.visitRepresentationDeclaration(node);
   }
 
   @override

@@ -21,6 +21,8 @@ import 'is_known_test.dart' as is_known_test;
 import 'least_greatest_closure_test.dart' as least_greatest_closure_test;
 import 'least_upper_bound_helper_test.dart' as least_upper_bound_helper;
 import 'name_union_test.dart' as name_union;
+import 'non_covariant_type_parameter_position_test.dart'
+    as non_covariant_type_parameter_position;
 import 'normalize_type_test.dart' as normalize_type;
 import 'nullability_eliminator_test.dart' as nullability_eliminator;
 import 'nullable_test.dart' as nullable;
@@ -34,6 +36,7 @@ import 'type_bounded_test.dart' as type_bounded;
 import 'type_constraint_gatherer_test.dart' as type_constraint_gatherer;
 import 'type_parameter_element_test.dart' as type_parameter_element;
 import 'type_references_any_test.dart' as type_references_any;
+import 'type_system_test.dart' as type_system;
 import 'type_visitor_test.dart' as type_visitor;
 import 'upper_lower_bound_test.dart' as upper_bound;
 
@@ -57,6 +60,7 @@ main() {
     least_greatest_closure_test.main();
     least_upper_bound_helper.main();
     name_union.main();
+    non_covariant_type_parameter_position.main();
     normalize_type.main();
     nullability_eliminator.main();
     nullable.main();
@@ -70,6 +74,7 @@ main() {
     type_constraint_gatherer.main();
     type_parameter_element.main();
     type_references_any.main();
+    type_system.main();
     type_visitor.main();
     upper_bound.main();
   }, name: 'element');

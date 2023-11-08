@@ -1,0 +1,11 @@
+extension type on (int i) {}
+extension type on (int i,) {}
+extension type on (int i, int j) {}
+extension type on (i, j) {}
+
+
+extension[KeywordToken] type[StringToken] on[KeywordToken] ([BeginToken]int[StringToken] i[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] on[KeywordToken] ([BeginToken]int[StringToken] i[StringToken],[SimpleToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] on[KeywordToken] ([BeginToken]int[StringToken] i[StringToken],[SimpleToken] int[StringToken] j[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+extension[KeywordToken] type[StringToken] on[KeywordToken] ([BeginToken]i[StringToken],[SimpleToken] j[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]
+[SimpleToken]

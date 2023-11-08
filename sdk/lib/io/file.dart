@@ -270,9 +270,9 @@ abstract interface class File implements FileSystemEntity {
   /// different file systems. If that is the case, instead [copy] the
   /// file to the new location and then remove the original.
   ///
-  /// If [newPath] identifies an existing file, that file is
+  /// If [newPath] identifies an existing file or link, that entity is
   /// removed first. If [newPath] identifies an existing directory, the
-  /// operation fails and the future completes with an exception.
+  /// operation fails and the future completes with a [FileSystemException].
   Future<File> rename(String newPath);
 
   /// Synchronously renames this file.
@@ -297,9 +297,9 @@ abstract interface class File implements FileSystemEntity {
   /// different file systems. If that is the case, instead [copySync] the
   /// file to the new location and then [deleteSync] the original.
   ///
-  /// If [newPath] identifies an existing file, that file is
+  /// If [newPath] identifies an existing file or link, that entity is
   /// removed first. If [newPath] identifies an existing directory the
-  /// operation fails and an exception is thrown.
+  /// operation throws a [FileSystemException].
   File renameSync(String newPath);
 
   /// Copies this file.

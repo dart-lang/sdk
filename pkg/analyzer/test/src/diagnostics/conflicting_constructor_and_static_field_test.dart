@@ -132,4 +132,57 @@ enum E {
           3),
     ]);
   }
+
+  test_extensionType_instance_getter() async {
+    await assertNoErrorsInCode(r'''
+extension type A.foo(int it) {
+  int get foo => 0;
+}
+''');
+  }
+
+  test_extensionType_static_field_primary() async {
+    await assertErrorsInCode(r'''
+extension type A.foo(int it) {
+  static int foo = 0;
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 17, 3),
+    ]);
+  }
+
+  test_extensionType_static_field_secondary() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  A.foo(this.it);
+  static int foo = 0;
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_FIELD, 31, 3),
+    ]);
+  }
+
+  test_extensionType_static_getter() async {
+    await assertErrorsInCode(r'''
+extension type A.foo(int it) {
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_GETTER, 17,
+          3),
+    ]);
+  }
+
+  test_extensionType_static_setter() async {
+    await assertErrorsInCode(r'''
+extension type A.foo(int it) {
+  static void set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_SETTER, 17,
+          3),
+    ]);
+  }
 }

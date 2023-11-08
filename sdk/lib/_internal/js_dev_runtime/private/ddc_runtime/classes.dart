@@ -35,7 +35,7 @@ void _copyMembers(@notNull Object to, @notNull Object from) {
   var names = getOwnNamesAndSymbols(from);
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     String name = JS('', '#[#]', names, i);
-    if (name == 'constructor') continue;
+    if ('constructor' == name) continue;
     _copyMember(to, from, name);
   }
 }
@@ -379,12 +379,6 @@ getSetterType(type, name) {
   return null;
 }
 
-finalFieldType(type, metadata) =>
-    JS('', '{ type: #, isFinal: true, metadata: # }', type, metadata);
-
-fieldType(type, metadata) =>
-    JS('', '{ type: #, isFinal: false, metadata: # }', type, metadata);
-
 /// Get the type of a constructor from a class using the stored signature
 /// If name is undefined, returns the type of the default constructor
 /// Returns undefined if the constructor is not found.
@@ -469,17 +463,18 @@ void _installPropertiesForObject(jsProto) {
   var names = getOwnPropertyNames(coreObjProto);
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     var name = JS<String>('!', '#[#]', names, i);
-    if (name == 'constructor') continue;
+    if ('constructor' == name) continue;
     var desc = getOwnPropertyDescriptor(coreObjProto, name);
     defineProperty(jsProto, JS('', '#.#', dartx, name), desc);
   }
 }
 
-void _installPropertiesForGlobalObject(jsProto) {
-  _installPropertiesForObject(jsProto);
-  // Use JS toString for JS objects, rather than the Dart one.
-  JS('', '#[dartx.toString] = function() { return this.toString(); }', jsProto);
-  identityEquals ??= JS('', '#[dartx._equals]', jsProto);
+/// Sets the [identityEquals] method to the equality operator from the Core
+/// Object class.
+///
+/// Only called once by generated code after the Core Object class definition.
+void _installIdentityEquals() {
+  identityEquals ??= JS('', '#.prototype[dartx._equals]', JS_CLASS_REF(Object));
 }
 
 final _extensionMap = JS('', 'new Map()');
@@ -492,10 +487,7 @@ void _applyExtension(jsType, dartExtType) {
   var jsProto = JS<Object?>('', '#.prototype', jsType);
   if (jsProto == null) return;
 
-  if (JS('!', '# === #', dartExtType, JS_CLASS_REF(Object))) {
-    _installPropertiesForGlobalObject(jsProto);
-    return;
-  }
+  if (JS('!', '# === #', dartExtType, JS_CLASS_REF(Object))) return;
 
   if (JS('!', '# === #.Object', jsType, global_)) {
     var extName = JS<String>('!', '#.name', dartExtType);

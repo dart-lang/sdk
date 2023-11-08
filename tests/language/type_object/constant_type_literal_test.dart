@@ -9,10 +9,8 @@ class C<T> {
     const List lst = const [
       T
 //    ^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_TYPE_PARAMETER
 // [cfe] Type variables can't be used as constants.
-//    ^
-// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_LIST_ELEMENT
     ];
   }
 }

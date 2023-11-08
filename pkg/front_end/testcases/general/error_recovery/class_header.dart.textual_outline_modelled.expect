@@ -1,0 +1,142 @@
+B;
+B;
+B;
+B;
+B;
+B;
+B ;
+B ;
+B ;
+B ;
+B implements ;
+C;
+C;
+C;
+C;
+C;
+C ;
+C ;
+C ;
+C implements ;
+C implements ;
+C implements ;
+C implements ;
+D (){}
+D;
+D;
+D;
+D;
+D;
+D;
+class A extends B with C implements D {}
+class A1 extends B implements D with C {}
+class A10 extends B implements D with C implements D {}
+class A11 extends B implements D with C with C {}
+class A12 extends B extends B with C implements D {}
+class A13 extends B with C with C implements D {}
+class A14 extends B with C implements D implements D {}
+class A15 with D extends B {}
+class A16 implements D extends B {}
+class A17 implements D with C {}
+class A18 extends {}
+class A19 extends B with {}
+class A2 implements D extends B with C {}
+class A20 with {}
+class A21 extends B with C implements {}
+class A22 with C implements {}
+class A23 implements {}
+class A24 extends B extends {}
+class A25 with C with {}
+class A26 implements D implements {}
+class A3 implements D with C extends B {}
+class A4 with C implements D extends B {}
+class A5 with C extends B implements D {}
+class A6 extends B with C implements D extends B {}
+class A7 extends B with C implements D implements D {}
+class A8 extends B with C implements D with C {}
+class A9 extends B implements D with C extends B {}
+class B {}
+class C {}
+class D {}
+class N = B with C implements D;
+class N1 = B withimplements D ;
+class N10 = B withimplements D ;
+class N11 = B withimplements D ;
+class N12 = B with;
+class N13 = B with C ;
+class N14 = B with C implements D ;
+class N15 = with D ;
+class N16 = implements withD ;
+class N17 = implements withD ;
+class N18 = with;
+class N19 = B with;
+class N2 = implements withD ;
+class N20 = with;
+class N21 = B with C implements;
+class N22 = with C implements;
+class N23 = implementswith;
+class N24 = B with;
+class N25 = with C ;
+class N26 = implements withD implements;
+class N3 = implements withD ;
+class N4 = with C implements D ;
+class N5 = with C ;
+class N6 = B with C implements D ;
+class N7 = B with C implements D ;
+class N8 = B with C implements D ;
+class N9 = B withimplements D ;
+enum E extends B with C implements D { element }
+enum E1 extends B implements D with C { element }
+enum E10 extends B implements D with C implements D { element }
+enum E11 extends B implements D with C with C { element }
+enum E12 {}
+enum E13 extends B with C with C implements D { element }
+enum E14 extends B with C implements D implements D { element }
+enum E15 with D extends B { element }
+enum E16 implements D extends B { element }
+enum E17 implements D with C { element }
+enum E18 extends { element }
+enum E19 extends B with { element }
+enum E2 implements D extends B with C { element }
+enum E20 with { element }
+enum E21 extends B with C implements { element }
+enum E22 with C implements { element }
+enum E23 implements { element }
+enum E24 extends B extends { element }
+enum E25 with C with { element }
+enum E26 implements D implements { element }
+enum E3 implements D with C extends B { element }
+enum E4 with C implements D extends B { element }
+enum E5 with C extends B implements D { element }
+enum E6 extends B with C implements D extends B { element }
+enum E7 extends B with C implements D implements D { element }
+enum E8 extends B with C implements D with C { element }
+enum E9 extends B implements D with C extends B { element }
+extends ;
+extends ;
+extends ;
+extends ;
+extends ;
+extends ;
+extends ;
+extends ;
+extends ;
+extends ;
+extends ;
+extends;
+implements ;
+implements ;
+main() {}
+with ;
+with ;
+with ;
+with ;
+with ;
+with ;
+with ;
+with ;
+with ;
+with ;
+with ;
+with ;
+with;

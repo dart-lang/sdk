@@ -164,10 +164,11 @@ class /*caret*/MyWidget extends StatefulWidget {
   final String instanceField1;
   final String instanceField2;
   String instanceField3 = '';
+  final void Function(bool) onHover;
   static String staticField2 = '';
   static String staticField3 = '';
 
-  MyWidget(this.instanceField1) : instanceField2 = '' {
+  MyWidget(this.instanceField1, this.onHover) : instanceField2 = '' {
     instanceField3 = '';
   }
 
@@ -189,7 +190,10 @@ class _MyWidgetState extends State<MyWidget> {
         Text(widget.instanceField2),
         Text(widget.instanceField3),
         Text(instanceField4),
-        Text(instanceField5),
+        InkResponse(
+          onHover: (_) => widget.onHover(true),
+          child: Text(instanceField5),
+        ),
         Text(MyWidget.staticField1),
         Text(MyWidget.staticField2),
         Text(MyWidget.staticField3),
@@ -206,10 +210,11 @@ class MyWidget extends StatelessWidget {
   final String instanceField1;
   final String instanceField2;
   String instanceField3 = '';
+  final void Function(bool) onHover;
   static String staticField2 = '';
   static String staticField3 = '';
 
-  MyWidget(this.instanceField1) : instanceField2 = '' {
+  MyWidget(this.instanceField1, this.onHover) : instanceField2 = '' {
     instanceField3 = '';
   }
 
@@ -226,7 +231,10 @@ class MyWidget extends StatelessWidget {
         Text(instanceField2),
         Text(instanceField3),
         Text(instanceField4),
-        Text(instanceField5),
+        InkResponse(
+          onHover: (_) => onHover(true),
+          child: Text(instanceField5),
+        ),
         Text(staticField1),
         Text(staticField2),
         Text(staticField3),

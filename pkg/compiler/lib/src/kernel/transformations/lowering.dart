@@ -8,6 +8,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 
 import '../../options.dart';
 import 'async_lowering.dart';
+import 'await_lowering.dart';
 import 'factory_specializer.dart';
 import 'late_lowering.dart';
 
@@ -25,6 +26,7 @@ void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
 class _Lowering extends Transformer {
   final FactorySpecializer factorySpecializer;
   final LateLowering _lateLowering;
+  final AwaitLowering _awaitLowering;
   final AsyncLowering? _asyncLowering;
 
   Member? _currentMember;
@@ -33,6 +35,7 @@ class _Lowering extends Transformer {
       CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions? _options)
       : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
         _lateLowering = LateLowering(coreTypes, _options),
+        _awaitLowering = AwaitLowering(coreTypes),
         _asyncLowering =
             (_options?.features.simpleAsyncToFuture.isEnabled ?? false)
                 ? AsyncLowering(coreTypes)
@@ -59,8 +62,8 @@ class _Lowering extends Transformer {
 
   @override
   TreeNode visitFunctionNode(FunctionNode node) {
-    _lateLowering.enterScope();
     _asyncLowering?.enterFunction(node);
+    _lateLowering.enterScope();
     node.transformChildren(this);
     _lateLowering.exitScope();
     _asyncLowering?.transformFunctionNodeAndExit(node);
@@ -116,36 +119,37 @@ class _Lowering extends Transformer {
 
   @override
   TreeNode visitAwaitExpression(AwaitExpression expression) {
-    _asyncLowering?.visitAwaitExpression(expression);
     expression.transformChildren(this);
-    return expression;
+    final transformed = _awaitLowering.transformAwaitExpression(expression);
+    _asyncLowering?.visitAwaitExpression(transformed);
+    return transformed;
   }
 
   @override
   TreeNode visitReturnStatement(ReturnStatement statement) {
-    _asyncLowering?.visitReturnStatement(statement);
     statement.transformChildren(this);
+    _asyncLowering?.visitReturnStatement(statement);
     return statement;
   }
 
   @override
   TreeNode visitForInStatement(ForInStatement statement) {
-    _asyncLowering?.visitForInStatement(statement);
     statement.transformChildren(this);
+    _asyncLowering?.visitForInStatement(statement);
     return statement;
   }
 
   @override
   TreeNode visitTryFinally(TryFinally statement) {
-    _asyncLowering?.visitTry();
     statement.transformChildren(this);
+    _asyncLowering?.visitTry();
     return statement;
   }
 
   @override
   TreeNode visitTryCatch(TryCatch statement) {
-    _asyncLowering?.visitTry();
     statement.transformChildren(this);
+    _asyncLowering?.visitTry();
     return statement;
   }
 }

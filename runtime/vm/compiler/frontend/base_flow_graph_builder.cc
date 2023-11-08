@@ -269,14 +269,16 @@ Fragment BaseFlowGraphBuilder::UnboxedIntConstant(
 
 Fragment BaseFlowGraphBuilder::MemoryCopy(classid_t src_cid,
                                           classid_t dest_cid,
-                                          bool unboxed_length) {
+                                          bool unboxed_inputs,
+                                          bool can_overlap) {
   Value* length = Pop();
   Value* dest_start = Pop();
   Value* src_start = Pop();
   Value* dest = Pop();
   Value* src = Pop();
-  auto copy = new (Z) MemoryCopyInstr(src, dest, src_start, dest_start, length,
-                                      src_cid, dest_cid, unboxed_length);
+  auto copy =
+      new (Z) MemoryCopyInstr(src, dest, src_start, dest_start, length, src_cid,
+                              dest_cid, unboxed_inputs, can_overlap);
   return Fragment(copy);
 }
 
@@ -1240,7 +1242,7 @@ Fragment BaseFlowGraphBuilder::InitConstantParameters() {
   const intptr_t parameter_count = parsed_function_->function().NumParameters();
   for (intptr_t i = 0; i < parameter_count; ++i) {
     LocalVariable* raw_parameter = parsed_function_->RawParameterVariable(i);
-    const Object* param_value = raw_parameter->parameter_value();
+    const Object* param_value = raw_parameter->inferred_arg_value();
     if (param_value != nullptr) {
       instructions += Constant(*param_value);
       instructions += StoreLocalRaw(TokenPosition::kNoSource, raw_parameter);
@@ -1261,15 +1263,6 @@ Fragment BaseFlowGraphBuilder::InvokeMathCFunction(
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::DoubleToDouble(
-    MethodRecognizer::Kind recognized_kind) {
-  Value* value = Pop();
-  auto* instr =
-      new (Z) DoubleToDoubleInstr(value, recognized_kind, GetNextDeoptId());
-  Push(instr);
-  return Fragment(instr);
-}
-
 Fragment BaseFlowGraphBuilder::DoubleToInteger(
     MethodRecognizer::Kind recognized_kind) {
   Value* value = Pop();
@@ -1279,9 +1272,10 @@ Fragment BaseFlowGraphBuilder::DoubleToInteger(
   return Fragment(instr);
 }
 
-Fragment BaseFlowGraphBuilder::MathUnary(MathUnaryInstr::MathUnaryKind kind) {
+Fragment BaseFlowGraphBuilder::UnaryDoubleOp(Token::Kind op) {
   Value* value = Pop();
-  auto* instr = new (Z) MathUnaryInstr(kind, value, GetNextDeoptId());
+  auto* instr = new (Z) UnaryDoubleOpInstr(op, value, GetNextDeoptId(),
+                                           Instruction::kNotSpeculative);
   Push(instr);
   return Fragment(instr);
 }

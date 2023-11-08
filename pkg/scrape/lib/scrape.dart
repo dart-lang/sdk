@@ -280,8 +280,6 @@ class Scrape {
     // Parse it.
     var parser = Parser(stringSource, errorListener,
         featureSet: featureSet, lineInfo: lineInfo);
-    parser.enableOptionalNewAndConst = true;
-    parser.enableSetLiterals = true;
 
     if (_printFiles) {
       var line =

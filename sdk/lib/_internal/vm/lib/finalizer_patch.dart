@@ -38,6 +38,9 @@ class _FinalizerImpl<T> extends FinalizerBase implements Finalizer<T> {
   }
 
   void attach(Object value, T token, {Object? detach}) {
+    assert(!identical(value, token),
+        "The token should not be the value being attached");
+
     checkValidWeakTarget(value, 'value');
     if (detach != null) {
       checkValidWeakTarget(detach, 'detach');

@@ -358,10 +358,10 @@ class HGraph {
       addConstant(LateSentinelConstantValue(), closedWorld,
           sourceInformation: sourceInformation);
 
-  void finalize(AbstractValueDomain domain) {
+  void finalize() {
     addBlock(exit);
     exit.open();
-    exit.close(HExit(domain));
+    exit.close(HExit());
     assignDominators();
   }
 
@@ -1067,6 +1067,9 @@ abstract class HInstruction implements SpannableWithEntity {
   HInstruction? previous = null;
   HInstruction? next = null;
 
+  /// Type of the instruction.
+  late AbstractValue instructionType;
+
   SideEffects sideEffects = SideEffects.empty();
   bool _useGvn = false;
 
@@ -1134,6 +1137,9 @@ abstract class HInstruction implements SpannableWithEntity {
   static const int CHAR_CODE_AT_TYPECODE = 64;
 
   HInstruction(this.inputs, this.instructionType);
+
+  HInstruction.noType(this.inputs);
+
   @override
   Entity? get sourceEntity => sourceElement;
 
@@ -1254,9 +1260,6 @@ abstract class HInstruction implements SpannableWithEntity {
 
   AbstractBool isPrimitiveOrNull(AbstractValueDomain domain) =>
       domain.isPrimitiveOrNull(instructionType);
-
-  /// Type of the instruction.
-  AbstractValue instructionType;
 
   HInstruction? getDartReceiver(JClosedWorld closedWorld) => null;
   bool onlyThrowsNSM() => false;
@@ -1656,23 +1659,23 @@ class HBoundsCheck extends HCheck {
 }
 
 abstract class HConditionalBranch extends HControlFlow {
-  HConditionalBranch(AbstractValueDomain domain, List<HInstruction> inputs)
-      : super(domain, inputs);
+  HConditionalBranch(List<HInstruction> inputs) : super(inputs);
   HInstruction get condition => inputs[0];
   HBasicBlock get trueBranch => block!.successors[0];
   HBasicBlock get falseBranch => block!.successors[1];
 }
 
 abstract class HControlFlow extends HInstruction {
-  HControlFlow(AbstractValueDomain domain, List<HInstruction> inputs)
-      // TODO(johnniwinther): May only expression-like [HInstruction]s should
-      // have an `instructionType`, or statement-like [HInstruction]s should
-      // have a throwing getter.
-      : super(inputs, domain.emptyType);
+  HControlFlow(List<HInstruction> inputs) : super.noType(inputs);
   @override
   bool isControlFlow() => true;
   @override
   bool isJsStatement() => true;
+
+  /// HControlFlow instructions don't have an abstract value.
+  @override
+  AbstractValue get instructionType =>
+      throw UnsupportedError('HControlFlow.instructionType');
 }
 
 // Allocates and initializes an instance.
@@ -2146,9 +2149,8 @@ class HFieldGet extends HFieldAccess {
 }
 
 class HFieldSet extends HFieldAccess {
-  HFieldSet(AbstractValueDomain domain, FieldEntity element,
-      HInstruction receiver, HInstruction value)
-      : super(element, [receiver, value], domain.emptyType) {
+  HFieldSet(FieldEntity element, HInstruction receiver, HInstruction value)
+      : super(element, [receiver, value], value.instructionType) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     sideEffects.setChangesInstanceProperty();
@@ -2318,9 +2320,9 @@ class HLocalGet extends HLocalAccess {
 }
 
 class HLocalSet extends HLocalAccess {
-  HLocalSet(AbstractValueDomain domain, Local variable, HLocalValue local,
-      HInstruction value)
-      : super(variable, [local, value], domain.emptyType);
+  HLocalSet(
+      Local variable, HLocalValue local, HInstruction value, AbstractValue type)
+      : super(variable, [local, value], type);
 
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitLocalSet(this);
@@ -2643,8 +2645,7 @@ class HRemainder extends HBinaryArithmetic {
 /// value, and one input per constant that it can switch on.
 /// Its block has one successor per constant, and one for the default.
 class HSwitch extends HControlFlow {
-  HSwitch(AbstractValueDomain domain, List<HInstruction> inputs)
-      : super(domain, inputs);
+  HSwitch(List<HInstruction> inputs) : super(inputs);
 
   HConstant constant(int index) => inputs[index + 1] as HConstant;
   HInstruction get expression => inputs[0];
@@ -2817,7 +2818,7 @@ class HBitNot extends HInvokeUnary {
 }
 
 class HExit extends HControlFlow {
-  HExit(AbstractValueDomain domain) : super(domain, const []);
+  HExit() : super(const []);
   @override
   toString() => 'exit';
   @override
@@ -2825,7 +2826,7 @@ class HExit extends HControlFlow {
 }
 
 class HGoto extends HControlFlow {
-  HGoto(AbstractValueDomain domain) : super(domain, const []);
+  HGoto() : super(const []);
   @override
   toString() => 'goto';
   @override
@@ -2835,17 +2836,15 @@ class HGoto extends HControlFlow {
 abstract class HJump extends HControlFlow {
   final JumpTarget target;
   final LabelDefinition? label;
-  HJump(AbstractValueDomain domain, this.target,
-      SourceInformation? sourceInformation)
+  HJump(this.target, SourceInformation? sourceInformation)
       : label = null,
-        super(domain, const []) {
+        super(const []) {
     this.sourceInformation = sourceInformation;
   }
-  HJump.toLabel(AbstractValueDomain domain, LabelDefinition label,
-      SourceInformation? sourceInformation)
+  HJump.toLabel(LabelDefinition label, SourceInformation? sourceInformation)
       : label = label,
         target = label.target,
-        super(domain, const []) {
+        super(const []) {
     this.sourceInformation = sourceInformation;
   }
 }
@@ -2856,15 +2855,13 @@ class HBreak extends HJump {
   /// [SsaFromAstMixin.buildComplexSwitchStatement] for detail.
   final bool breakSwitchContinueLoop;
 
-  HBreak(AbstractValueDomain domain, JumpTarget target,
-      SourceInformation? sourceInformation,
+  HBreak(JumpTarget target, SourceInformation? sourceInformation,
       {this.breakSwitchContinueLoop = false})
-      : super(domain, target, sourceInformation);
+      : super(target, sourceInformation);
 
-  HBreak.toLabel(AbstractValueDomain domain, LabelDefinition label,
-      SourceInformation? sourceInformation)
+  HBreak.toLabel(LabelDefinition label, SourceInformation? sourceInformation)
       : breakSwitchContinueLoop = false,
-        super.toLabel(domain, label, sourceInformation);
+        super.toLabel(label, sourceInformation);
 
   @override
   String toString() => (label != null) ? 'break ${label!.labelName}' : 'break';
@@ -2874,13 +2871,11 @@ class HBreak extends HJump {
 }
 
 class HContinue extends HJump {
-  HContinue(AbstractValueDomain domain, JumpTarget target,
-      SourceInformation? sourceInformation)
-      : super(domain, target, sourceInformation);
+  HContinue(JumpTarget target, SourceInformation? sourceInformation)
+      : super(target, sourceInformation);
 
-  HContinue.toLabel(AbstractValueDomain domain, LabelDefinition label,
-      SourceInformation? sourceInformation)
-      : super.toLabel(domain, label, sourceInformation);
+  HContinue.toLabel(LabelDefinition label, SourceInformation? sourceInformation)
+      : super.toLabel(label, sourceInformation);
 
   @override
   String toString() =>
@@ -2894,7 +2889,7 @@ class HTry extends HControlFlow {
   HLocalValue? exception;
   HBasicBlock? catchBlock;
   HBasicBlock? finallyBlock;
-  HTry(AbstractValueDomain domain) : super(domain, const []);
+  HTry() : super(const []);
   @override
   toString() => 'try';
   @override
@@ -2908,7 +2903,7 @@ class HTry extends HControlFlow {
 // leads to one of this instruction a predecessor of catch and
 // finally.
 class HExitTry extends HControlFlow {
-  HExitTry(AbstractValueDomain domain) : super(domain, const []);
+  HExitTry() : super(const []);
   @override
   toString() => 'exit try';
   @override
@@ -2918,8 +2913,7 @@ class HExitTry extends HControlFlow {
 
 class HIf extends HConditionalBranch {
   HBlockFlow? blockInformation = null;
-  HIf(AbstractValueDomain domain, HInstruction condition)
-      : super(domain, [condition]);
+  HIf(HInstruction condition) : super([condition]);
   @override
   toString() => 'if';
   @override
@@ -2943,9 +2937,8 @@ class HLoopBranch extends HConditionalBranch {
   static const int DO_WHILE_LOOP = 1;
 
   final int kind;
-  HLoopBranch(AbstractValueDomain domain, HInstruction condition,
-      [this.kind = CONDITION_FIRST_LOOP])
-      : super(domain, [condition]);
+  HLoopBranch(HInstruction condition, [this.kind = CONDITION_FIRST_LOOP])
+      : super([condition]);
   @override
   toString() => 'loop-branch';
   @override
@@ -3210,9 +3203,8 @@ class HLessEqual extends HRelational {
 
 /// Return statement, either with or without a value.
 class HReturn extends HControlFlow {
-  HReturn(AbstractValueDomain domain, HInstruction? value,
-      SourceInformation? sourceInformation)
-      : super(domain, [if (value != null) value]) {
+  HReturn(HInstruction? value, SourceInformation? sourceInformation)
+      : super([if (value != null) value]) {
     this.sourceInformation = sourceInformation;
   }
   @override
@@ -3222,9 +3214,9 @@ class HReturn extends HControlFlow {
 }
 
 class HThrowExpression extends HInstruction {
-  HThrowExpression(AbstractValueDomain domain, HInstruction value,
+  HThrowExpression(HInstruction value, AbstractValue type,
       SourceInformation? sourceInformation)
-      : super([value], domain.emptyType) {
+      : super([value], type) {
     this.sourceInformation = sourceInformation;
   }
   @override
@@ -3249,9 +3241,9 @@ class HAwait extends HInstruction {
 }
 
 class HYield extends HInstruction {
-  HYield(AbstractValueDomain domain, HInstruction value, this.hasStar,
+  HYield(HInstruction value, this.hasStar, AbstractValue type,
       SourceInformation? sourceInformation)
-      : super([value], domain.emptyType) {
+      : super([value], type) {
     this.sourceInformation = sourceInformation;
   }
   bool hasStar;
@@ -3267,10 +3259,9 @@ class HYield extends HInstruction {
 
 class HThrow extends HControlFlow {
   final bool isRethrow;
-  HThrow(AbstractValueDomain domain, HInstruction value,
-      SourceInformation? sourceInformation,
+  HThrow(HInstruction value, SourceInformation? sourceInformation,
       {this.isRethrow = false})
-      : super(domain, [value]) {
+      : super([value]) {
     this.sourceInformation = sourceInformation;
   }
   @override
@@ -3425,8 +3416,8 @@ class HLazyStatic extends HInstruction {
 
 class HStaticStore extends HInstruction {
   FieldEntity element;
-  HStaticStore(AbstractValueDomain domain, this.element, HInstruction value)
-      : super([value], domain.emptyType) {
+  HStaticStore(this.element, HInstruction value)
+      : super([value], value.instructionType) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     sideEffects.setChangesStaticProperty();
@@ -3504,9 +3495,8 @@ class HIndex extends HInstruction {
 /// The primitive array assignment operation. Note that this instruction
 /// does not throw because we generate the checks explicitly.
 class HIndexAssign extends HInstruction {
-  HIndexAssign(AbstractValueDomain domain, HInstruction receiver,
-      HInstruction index, HInstruction value)
-      : super([receiver, index, value], domain.emptyType) {
+  HIndexAssign(HInstruction receiver, HInstruction index, HInstruction value)
+      : super([receiver, index, value], value.instructionType) {
     sideEffects.clearAllSideEffects();
     sideEffects.clearAllDependencies();
     sideEffects.setChangesIndex();

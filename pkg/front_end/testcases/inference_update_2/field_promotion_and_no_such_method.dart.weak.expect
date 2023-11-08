@@ -47,7 +47,7 @@ static method testConflictsWithNoSuchMethodForwarder(self::C c) → void {
 }
 static method testNoConflictWithNoSuchMethodForwarderForDifferentLib(self::C c) → void {
   if(!(c.{self::C::_f2}{core::int?} == null)) {
-    core::int x = c.{self::C::_f2}{core::int};
+    core::int x = c.{self::C::_f2}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }

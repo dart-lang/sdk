@@ -2571,7 +2571,7 @@ void Assembler::LoadField(Register dst, const FieldAddress& address) {
   lx(dst, address);
 }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   MoveRegister(A0, addr);
@@ -2592,7 +2592,7 @@ void Assembler::LoadAcquire(Register dst,
   LoadFromOffset(dst, address, offset, size);
   fence(HartEffects::kRead, HartEffects::kMemory);
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   if (offset == 0) {
     TsanLoadAcquire(address);
   } else {
@@ -3657,6 +3657,18 @@ void Assembler::LoadImmediate(Register reg, intx_t imm) {
   }
 }
 
+void Assembler::LoadSImmediate(FRegister reg, float imms) {
+  int32_t imm = bit_cast<int32_t, float>(imms);
+  if (imm == 0) {
+    fmvwx(reg, ZR);  // bit_cast uint32_t -> float
+  } else {
+    ASSERT(constant_pool_allowed());
+    intptr_t index = object_pool_builder().FindImmediate(imm);
+    intptr_t offset = target::ObjectPool::element_offset(index);
+    LoadSFromOffset(reg, PP, offset);
+  }
+}
+
 void Assembler::LoadDImmediate(FRegister reg, double immd) {
   int64_t imm = bit_cast<int64_t, double>(immd);
   if (imm == 0) {
@@ -3873,7 +3885,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
+  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
     j(&slow_path, Assembler::kNearJump);
   }
 
@@ -3887,7 +3899,7 @@ void Assembler::EnterFullSafepoint(Register state) {
   sc(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
-  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
+  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
     j(&retry, Assembler::kNearJump);
   }
 
@@ -3909,7 +3921,7 @@ void Assembler::ExitFullSafepoint(Register state,
   ASSERT(addr != state);
 
   Label slow_path, done, retry;
-  if (FLAG_use_slow_path || kUsingThreadSanitizer) {
+  if (FLAG_use_slow_path || kTargetUsesThreadSanitizer) {
     j(&slow_path, Assembler::kNearJump);
   }
 
@@ -3923,7 +3935,7 @@ void Assembler::ExitFullSafepoint(Register state,
   sc(state, state, Address(addr, 0));
   beqz(state, &done, Assembler::kNearJump);  // 0 means sc was successful.
 
-  if (!FLAG_use_slow_path && !kUsingThreadSanitizer) {
+  if (!FLAG_use_slow_path && !kTargetUsesThreadSanitizer) {
     j(&retry, Assembler::kNearJump);
   }
 
@@ -4433,6 +4445,7 @@ void Assembler::TryAllocateObject(intptr_t cid,
     // instance_reg: potential top (next object start).
     // fail if heap end unsigned less than or equal to new heap top.
     bleu(temp_reg, instance_reg, failure, distance);
+    CheckAllocationCanary(instance_reg, temp_reg);
 
     // Successfully allocated the object, now update temp to point to
     // next object start and store the class in the class field of object.
@@ -4472,6 +4485,7 @@ void Assembler::TryAllocateArray(intptr_t cid,
     // end_address: potential next object start.
     lx(temp2, Address(THR, target::Thread::end_offset()));
     bgeu(end_address, temp2, failure);
+    CheckAllocationCanary(instance, temp2);
 
     // Successfully allocated the object(s), now update top to point to
     // next object start and initialize the object.

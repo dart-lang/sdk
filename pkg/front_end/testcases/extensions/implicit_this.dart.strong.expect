@@ -11,11 +11,11 @@ class A1 extends core::Object {
 }
 extension A2 on self::A1 {
   method method2 = self::A2|method2;
-  tearoff method2 = self::A2|get#method2;
+  method tearoff method2 = self::A2|get#method2;
   method method3 = self::A2|method3;
-  tearoff method3 = self::A2|get#method3;
+  method tearoff method3 = self::A2|get#method3;
   method method4 = self::A2|method4;
-  tearoff method4 = self::A2|get#method4;
+  method tearoff method4 = self::A2|get#method4;
 }
 static extension-member method A2|method2(lowered final self::A1 #this) → void
   return #this.{self::A1::method1}(){() → void};

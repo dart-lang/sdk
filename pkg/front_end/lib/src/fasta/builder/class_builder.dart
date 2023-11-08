@@ -2,43 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library fasta.class_builder;
-
-import 'package:kernel/ast.dart'
-    show
-        Class,
-        DartType,
-        DynamicType,
-        FutureOrType,
-        InterfaceType,
-        InvalidType,
-        Member,
-        Name,
-        NullType,
-        Nullability,
-        Supertype,
-        TreeNode,
-        getAsTypeArguments;
-import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, ClassHierarchyBase;
-import 'package:kernel/src/unaliasing.dart';
-
-import '../fasta_codes.dart';
-import '../modifier.dart';
-import '../problems.dart' show internalProblem, unhandled;
-import '../scope.dart';
-import '../source/source_library_builder.dart';
-import '../type_inference/type_schema.dart' show UnknownType;
-import '../util/helpers.dart';
-import 'builder.dart';
-import 'declaration_builder.dart';
-import 'library_builder.dart';
-import 'member_builder.dart';
-import 'metadata_builder.dart';
-import 'name_iterator.dart';
-import 'nullability_builder.dart';
-import 'type_builder.dart';
-import 'type_variable_builder.dart';
+part of 'declaration_builders.dart';
 
 const Uri? noUri = null;
 
@@ -76,10 +40,10 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   ///
   /// Currently this also holds the synthesized super class for a mixin
   /// declaration.
-  abstract TypeBuilder? supertypeBuilder;
+  TypeBuilder? get supertypeBuilder;
 
   /// The type in the `implements` clause of a class or mixin declaration.
-  abstract List<TypeBuilder>? interfaceBuilders;
+  List<TypeBuilder>? get interfaceBuilders;
 
   /// The types in the `on` clause of an extension or mixin declaration.
   List<TypeBuilder>? get onTypes;
@@ -160,18 +124,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     implements ClassBuilder {
   @override
-  List<TypeVariableBuilder>? typeVariables;
-
-  @override
-  TypeBuilder? supertypeBuilder;
-
-  @override
-  List<TypeBuilder>? interfaceBuilders;
-
-  @override
-  List<TypeBuilder>? onTypes;
-
-  @override
   bool isNullClass = false;
 
   InterfaceType? _legacyRawType;
@@ -183,10 +135,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
-      this.typeVariables,
-      this.supertypeBuilder,
-      this.interfaceBuilders,
-      this.onTypes,
       Scope scope,
       ConstructorScope constructorScope,
       LibraryBuilder parent,

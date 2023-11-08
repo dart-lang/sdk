@@ -1,4 +1,0 @@
-extension E on double show num {}
-expectIdentical(dynamic a, dynamic b) {}
-test(E e, int value) {}
-main() {}

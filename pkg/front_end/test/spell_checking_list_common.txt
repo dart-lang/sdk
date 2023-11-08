@@ -532,6 +532,7 @@ comma
 command
 commas
 comment
+commented
 comments
 common
 commonly
@@ -737,6 +738,7 @@ cyclic
 dart
 dart2js
 dart2wasm
+dart2wasm_js_compatibility
 dart2wasm_stringref
 dartdevc
 data
@@ -871,6 +873,7 @@ devise
 dfs
 diagnostic
 diagnostics
+diamond
 did
 didn't
 diet
@@ -1062,6 +1065,7 @@ equate
 equivalence
 equivalent
 equivalents
+erases
 erasure
 erroneous
 erroneously
@@ -1238,6 +1242,7 @@ finding
 finds
 fine
 finish
+finish'ed
 finished
 finishes
 finishing
@@ -2030,6 +2035,7 @@ no
 nobody
 node
 nodes
+nominal
 non
 none
 nonfunction
@@ -2239,6 +2245,7 @@ phases
 physical
 pick
 picked
+picture
 piece
 pipeline
 piping

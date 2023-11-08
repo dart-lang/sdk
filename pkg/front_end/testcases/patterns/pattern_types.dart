@@ -46,18 +46,16 @@ extension on String {
 }
 
 
-/* // TODO(johnniwinther): Enable this when inline classes are supported.
-inline class Inline {
-  final int it;
-  Inline(this.it);
-
-  int get inlineGetter => 42;
-  void inlineMethod() {}
+/* // TODO(johnniwinther): Enable this when extension type declarations are
+       supported.
+extension type ExtensionType(int it) {
+  int get getter => 42;
+  void method() {}
 
   bool operator <(int i) => true;
   int operator >(int i) => 0;
 }
-typedef Inline_ = Inline?;
+typedef ExtensionType_ = ExtensionType?;
 */
 
 objectPattern(o) {
@@ -82,18 +80,20 @@ objectPattern(o) {
     case Record1_(: var named): // Error: nullable record named get
     case Class(: var ambiguousField): // Error: ambiguous get
     case Invalid(: field): // invalid get
-/* // TODO(johnniwinther): Enable this when inline classes are supported.
-    case Inline(: var it): // inline representation field get
-    case Inline(: var inlineGetter): // inline member get
-    case Inline(: var inlineMethod): // inline member tear-off
+/* // TODO(johnniwinther): Enable this when extension type declarations are
+       supported.
+    case ExtensionType(: var it): // extension type representation field get
+    case ExtensionType(: var getter): // extension type member get
+    case ExtensionType(: var method): // extension type member tear-off
 */
   }
 }
 
 relationalPattern(dynamic dyn, Never never, Class cls, Class? cls_,
     Invalid invalid, String string, Class2 cls2, Class2? cls2_,
-    /* // TODO(johnniwinther): Enable this when inline classes are supported.
-    , Inline inline*/) {
+    /* // TODO(johnniwinther): Enable this when extension type declarations are
+           supported.
+    , ExtensionType extensionType*/) {
   if (dyn case == 0) {} // object ==
   if (dyn case != 0) {} // object == negated
   if (dyn case < 0) {} // dynamic <
@@ -129,9 +129,10 @@ relationalPattern(dynamic dyn, Never never, Class cls, Class? cls_,
   if (cls2 case < const Class2()) {} // instance <
   if (cls2 case < 0) {} // Error: invalid instance < argument
   if (cls2_ case == null) {} // instance ==
-  /* // TODO(johnniwinther): Enable this when inline classes are supported.
-  if (inline case < 0) {} // inline <
-  if (inline case < '0') {} // Error: invalid inline < argument
-  if (inline case > 0) {} // Error: invalid inline >
+  /* // TODO(johnniwinther): Enable this when extension type declarations are
+         supported.
+  if (extensionType case < 0) {} // extension type <
+  if (extensionType case < '0') {} // Error: invalid extension type < argument
+  if (extensionType case > 0) {} // Error: invalid extension type >
   */
 }

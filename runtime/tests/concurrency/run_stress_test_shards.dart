@@ -179,7 +179,9 @@ main(List<String> arguments) async {
     ..addOption('output-directory',
         help: 'unused parameter to make sharding infra work', defaultsTo: '')
     ..addFlag('copy-coredumps',
-        help: 'whether to copy binaries for coredumps', defaultsTo: false);
+        help: 'whether to copy binaries for coredumps', defaultsTo: false)
+    ..addOption("previous-results",
+        help: "An earlier results.json for balancing tests across shards.");
 
   final options = parser.parse(arguments);
   final shards = int.parse(options['shards']);

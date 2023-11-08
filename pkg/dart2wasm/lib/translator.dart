@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:typed_data';
-
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/closures.dart';
 import 'package:dart2wasm/code_generator.dart';
@@ -42,9 +40,10 @@ class TranslatorOptions {
   // If the default value for [useStringref] is changed, also update the
   // `sdk/bin/dart2wasm` script.
   bool useStringref = false;
+  bool jsCompatibility = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
-  List<int>? watchPoints = null;
+  List<int> watchPoints = [];
 }
 
 /// The main entry point for the translation from kernel to Wasm and the hub for
@@ -89,18 +88,19 @@ class Translator with KernelNodes {
   final Map<Field, int> fieldIndex = {};
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
-  final Map<Field, w.DefinedTable> declaredTables = {};
+  final Map<Field, w.Table> declaredTables = {};
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
+  final Map<Reference, Closures> constructorClosures = {};
   final List<_FunctionGenerator> _pendingFunctions = [];
   late final Procedure mainFunction;
-  late final w.Module m;
-  late final w.DefinedFunction initFunction;
+  late final w.ModuleBuilder m;
+  late final w.FunctionBuilder initFunction;
   late final w.ValueType voidMarker;
   // Lazily create exception tag if used.
   late final w.Tag exceptionTag = createExceptionTag();
   // Lazily import FFI memory if used.
-  late final w.Memory ffiMemory = m.importMemory("ffi", "memory",
+  late final w.Memory ffiMemory = m.memories.import("ffi", "memory",
       options.importSharedMemory, 0, options.sharedMemoryMaxPages);
 
   /// Maps record shapes to the record class for the shape. Classes generated
@@ -109,7 +109,7 @@ class Translator with KernelNodes {
 
   // Caches for when identical source constructs need a common representation.
   final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
-  final Map<w.BaseFunction, w.DefinedGlobal> functionRefCache = {};
+  final Map<w.BaseFunction, w.Global> functionRefCache = {};
   final Map<Procedure, ClosureImplementation> tearOffFunctionCache = {};
 
   // Some convenience accessors for commonly used values.
@@ -168,7 +168,7 @@ class Translator with KernelNodes {
   /// Type for vtable entries for dynamic calls. These entries are used in
   /// dynamic invocations and `Function.apply`.
   late final w.FunctionType dynamicCallVtableEntryFunctionType =
-      m.addFunctionType([
+      m.types.defineFunction([
     // Closure
     w.RefType.def(closureLayouter.closureBaseStruct, nullable: false),
 
@@ -186,7 +186,7 @@ class Translator with KernelNodes {
 
   /// Type of a dynamic invocation forwarder function.
   late final w.FunctionType dynamicInvocationForwarderFunctionType =
-      m.addFunctionType([
+      m.types.defineFunction([
     // Receiver
     topInfo.nonNullableType,
 
@@ -204,7 +204,7 @@ class Translator with KernelNodes {
 
   /// Type of a dynamic get forwarder function.
   late final w.FunctionType dynamicGetForwarderFunctionType =
-      m.addFunctionType([
+      m.types.defineFunction([
     // Receiver
     topInfo.nonNullableType,
   ], [
@@ -213,7 +213,7 @@ class Translator with KernelNodes {
 
   /// Type of a dynamic set forwarder function.
   late final w.FunctionType dynamicSetForwarderFunctionType =
-      m.addFunctionType([
+      m.types.defineFunction([
     // Receiver
     topInfo.nonNullableType,
 
@@ -259,8 +259,8 @@ class Translator with KernelNodes {
         'Entry uri ${entryLibrary.fileUri} has no main method.');
   }
 
-  Uint8List translate() {
-    m = w.Module(watchPoints: options.watchPoints);
+  w.Module translate() {
+    m = w.ModuleBuilder(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
     mainFunction = _findMainMethod(libraries.first);
 
@@ -272,22 +272,21 @@ class Translator with KernelNodes {
     classInfoCollector.collect();
 
     initFunction =
-        m.addFunction(m.addFunctionType(const [], const []), "#init");
-    m.startFunction = initFunction;
+        m.functions.define(m.types.defineFunction(const [], const []), "#init");
+    m.functions.start = initFunction;
 
     globals = Globals(this);
     constants = Constants(this);
 
     dispatchTable.build();
 
-    m.exportFunction("\$getMain", generateGetMain(mainFunction));
+    m.exports.export("\$getMain", generateGetMain(mainFunction));
 
     functions.initialize();
     while (!functions.isWorkListEmpty()) {
       Reference reference = functions.popWorkList();
       Member member = reference.asMember;
-      var function =
-          functions.getExistingFunction(reference) as w.DefinedFunction;
+      var function = functions.getExistingFunction(reference) as w.BaseFunction;
 
       String canonicalName = "$member";
       if (reference.isSetter) {
@@ -305,7 +304,7 @@ class Translator with KernelNodes {
       String? exportName = functions.getExport(reference);
 
       if (options.printKernel || options.printWasm) {
-        String header = "#${function.index}: $canonicalName";
+        String header = "#${function.name}: $canonicalName";
         if (exportName != null) {
           header = "$header (exported as $exportName)";
         }
@@ -337,11 +336,11 @@ class Translator with KernelNodes {
       }
 
       if (options.exportAll && exportName == null) {
-        m.exportFunction(canonicalName, function);
+        m.exports.export(canonicalName, function);
       }
 
-      final CodeGenerator codeGen =
-          CodeGenerator.forFunction(this, member.function, function, reference);
+      final CodeGenerator codeGen = CodeGenerator.forFunction(
+          this, member.function, function as w.FunctionBuilder, reference);
       codeGen.generate();
 
       if (options.printWasm) {
@@ -349,11 +348,18 @@ class Translator with KernelNodes {
         print(codeGen.function.body.trace);
       }
 
-      for (Lambda lambda in codeGen.closures.lambdas.values) {
-        w.DefinedFunction lambdaFunction = CodeGenerator.forFunction(
-                this, lambda.functionNode, lambda.function, reference)
-            .generateLambda(lambda, codeGen.closures);
-        _printFunction(lambdaFunction, "$canonicalName (closure)");
+      // The constructor allocator, initializer, and body functions all
+      // share the same Closures, which will contain all the lambdas in the
+      // constructor initializer and body. But, we only want to generate
+      // the lambda functions once, so we only generate lambdas when the
+      // constructor initializer methods are generated.
+      if (member is! Constructor || reference.isInitializerReference) {
+        for (Lambda lambda in codeGen.closures.lambdas.values) {
+          w.BaseFunction lambdaFunction = CodeGenerator.forFunction(
+                  this, lambda.functionNode, lambda.function, reference)
+              .generateLambda(lambda, codeGen.closures);
+          _printFunction(lambdaFunction, "$canonicalName (closure)");
+        }
       }
 
       // Use an indexed loop to handle pending closure trampolines, since new
@@ -364,35 +370,42 @@ class Translator with KernelNodes {
       _pendingFunctions.clear();
     }
 
+    constructorClosures.clear();
     dispatchTable.output();
     initFunction.body.end();
 
     for (ConstantInfo info in constants.constantInfo.values) {
-      w.DefinedFunction? function = info.function;
+      w.BaseFunction? function = info.function;
       if (function != null) {
         _printFunction(function, info.constant);
       } else {
         if (options.printWasm) {
-          print("Global #${info.global.index}: ${info.constant}");
-          print(info.global.initializer.trace);
+          print("Global #${info.global.name}: ${info.constant}");
+          final global = info.global;
+          if (global is w.GlobalBuilder) {
+            print(global.initializer.trace);
+          }
         }
       }
     }
     _printFunction(initFunction, "init");
 
-    return m.encode(emitNameSection: options.nameSection);
+    return m.build();
   }
 
-  void _printFunction(w.DefinedFunction function, Object name) {
+  void _printFunction(w.BaseFunction function, Object name) {
     if (options.printWasm) {
-      print("#${function.index}: $name");
-      print(function.body.trace);
+      print("#${function.name}: $name");
+      final f = function;
+      if (f is w.FunctionBuilder) {
+        print(f.body.trace);
+      }
     }
   }
 
-  w.DefinedFunction generateGetMain(Procedure mainFunction) {
-    w.DefinedFunction getMain = m.addFunction(
-        m.addFunctionType(const [], const [w.RefType.any(nullable: true)]));
+  w.BaseFunction generateGetMain(Procedure mainFunction) {
+    final getMain = m.functions.define(m.types
+        .defineFunction(const [], const [w.RefType.any(nullable: true)]));
     constants.instantiateConstant(getMain, getMain.body,
         StaticTearOffConstant(mainFunction), getMain.type.outputs.single);
     getMain.body.end();
@@ -451,9 +464,9 @@ class Translator with KernelNodes {
   /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single
   /// exception tag is used to throw and catch all Dart exceptions.
   w.Tag createExceptionTag() {
-    w.FunctionType tagType = m.addFunctionType(
+    w.FunctionType tagType = m.types.defineFunction(
         [topInfo.nonNullableType, stackTraceInfo.nonNullableType], const []);
-    w.Tag tag = m.addTag(tagType);
+    w.Tag tag = m.tags.define(tagType);
     return tag;
   }
 
@@ -516,7 +529,7 @@ class Translator with KernelNodes {
         List<w.ValueType> outputs = [
           if (!voidReturn) translateType(functionType.returnType)
         ];
-        w.FunctionType wasmType = m.addFunctionType(inputs, outputs);
+        w.FunctionType wasmType = m.types.defineFunction(inputs, outputs);
         return w.RefType.def(wasmType, nullable: nullable);
       }
 
@@ -572,8 +585,8 @@ class Translator with KernelNodes {
               : classInfo[typeClass]!.struct,
           nullable: nullable);
     }
-    if (type is InlineType) {
-      return translateStorageType(type.instantiatedRepresentationType);
+    if (type is ExtensionType) {
+      return translateStorageType(type.typeErasure);
     }
     if (type is RecordType) {
       return getRecordClassInfo(type).typeWithNullability(nullable);
@@ -593,7 +606,7 @@ class Translator with KernelNodes {
       {bool mutable = true}) {
     return arrayTypeCache.putIfAbsent(
         type,
-        () => m.addArrayType("Array<$name>",
+        () => m.types.defineArray("Array<$name>",
             elementType: w.FieldType(type, mutable: mutable)));
   }
 
@@ -628,9 +641,9 @@ class Translator with KernelNodes {
     return w.RefType.any(nullable: true);
   }
 
-  w.DefinedGlobal makeFunctionRef(w.BaseFunction f) {
+  w.Global makeFunctionRef(w.BaseFunction f) {
     return functionRefCache.putIfAbsent(f, () {
-      w.DefinedGlobal global = m.addGlobal(
+      final global = m.globals.define(
           w.GlobalType(w.RefType.def(f.type, nullable: false), mutable: false));
       global.initializer.ref_func(f);
       global.initializer.end();
@@ -677,7 +690,7 @@ class Translator with KernelNodes {
             (1 + positionalCount) +
             representation.nameCombinations.length);
 
-    List<w.DefinedFunction> functions = [];
+    List<w.BaseFunction> functions = [];
 
     bool canBeCalledWith(int posArgCount, List<String> argNames) {
       if (posArgCount < functionNode.requiredParameterCount) {
@@ -723,9 +736,9 @@ class Translator with KernelNodes {
       return true;
     }
 
-    w.DefinedFunction makeTrampoline(
+    w.BaseFunction makeTrampoline(
         w.FunctionType signature, int posArgCount, List<String> argNames) {
-      w.DefinedFunction trampoline = m.addFunction(signature, name);
+      final trampoline = m.functions.define(signature, "$name trampoline");
 
       // Defer generation of the trampoline body to avoid cyclic dependency
       // when a tear-off constant is used as default value in the torn-off
@@ -736,9 +749,9 @@ class Translator with KernelNodes {
       return trampoline;
     }
 
-    w.DefinedFunction makeDynamicCallEntry() {
-      final w.DefinedFunction function = m.addFunction(
-          dynamicCallVtableEntryFunctionType, "dynamic call entry");
+    w.BaseFunction makeDynamicCallEntry() {
+      final function = m.functions.define(
+          dynamicCallVtableEntryFunctionType, "$name dynamic call entry");
 
       // Defer generation of the trampoline body to avoid cyclic dependency
       // when a tear-off constant is used as default value in the torn-off
@@ -750,22 +763,22 @@ class Translator with KernelNodes {
     }
 
     void fillVtableEntry(
-        w.Instructions ib, int posArgCount, List<String> argNames) {
+        w.InstructionsBuilder ib, int posArgCount, List<String> argNames) {
       int fieldIndex = representation.vtableBaseIndex + functions.length;
       assert(fieldIndex ==
           representation.fieldIndexForSignature(posArgCount, argNames));
       w.FunctionType signature = representation.getVtableFieldType(fieldIndex);
-      w.DefinedFunction function = canBeCalledWith(posArgCount, argNames)
+      w.BaseFunction function = canBeCalledWith(posArgCount, argNames)
           ? makeTrampoline(signature, posArgCount, argNames)
           : globals.getDummyFunction(signature);
       functions.add(function);
       ib.ref_func(function);
     }
 
-    w.DefinedGlobal vtable = m.addGlobal(w.GlobalType(
+    final vtable = m.globals.define(w.GlobalType(
         w.RefType.def(representation.vtableStruct, nullable: false),
         mutable: false));
-    w.Instructions ib = vtable.initializer;
+    final ib = vtable.initializer;
     final dynamicCallEntry = makeDynamicCallEntry();
     ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
@@ -794,8 +807,8 @@ class Translator with KernelNodes {
   }
 
   void convertType(
-      w.DefinedFunction function, w.ValueType from, w.ValueType to) {
-    w.Instructions b = function.body;
+      w.FunctionBuilder function, w.ValueType from, w.ValueType to) {
+    final b = function.body;
     if (from == voidMarker || to == voidMarker) {
       if (from != voidMarker) {
         b.drop();
@@ -848,7 +861,7 @@ class Translator with KernelNodes {
     if (member.isInstanceMember) {
       return dispatchTable.selectorForTarget(target).signature;
     } else {
-      return functions.getFunction(target).type;
+      return functions.getFunctionType(target);
     }
   }
 
@@ -868,8 +881,8 @@ class Translator with KernelNodes {
   /// This function participates in tree shaking in the sense that if it's
   /// never called for a particular table declaration, that table is not added
   /// to the output module.
-  w.DefinedTable? getTable(Field field) {
-    w.DefinedTable? table = declaredTables[field];
+  w.Table? getTable(Field field) {
+    w.Table? table = declaredTables[field];
     if (table != null) return table;
     DartType fieldType = field.type;
     if (fieldType is InterfaceType && fieldType.classNode == wasmTableClass) {
@@ -885,7 +898,7 @@ class Translator with KernelNodes {
       int size = sizeExp is ConstantExpression
           ? (sizeExp.constant as IntConstant).value
           : (sizeExp as IntLiteral).value;
-      return declaredTables[field] = m.addTable(elementType, size);
+      return declaredTables[field] = m.tables.define(elementType, size);
     }
     return null;
   }
@@ -900,17 +913,18 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
-    if (member.function?.asyncMarker == AsyncMarker.SyncStar) return false;
     if (membersContainingInnerFunctions.contains(member)) return false;
     if (membersBeingGenerated.contains(member)) return false;
+    if (target.isInitializerReference) return true;
     if (member is Field) return true;
+    if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     if (getPragma<Constant>(member, "wasm:prefer-inline") != null) return true;
     Statement? body = member.function!.body;
     return body != null &&
         NodeCounter().countNodes(body) <= options.inliningLimit;
   }
 
-  T? getPragma<T>(Annotatable node, String name, [T? defaultvalue]) {
+  T? getPragma<T>(Annotatable node, String name, [T? defaultValue]) {
     for (Expression annotation in node.annotations) {
       if (annotation is ConstantExpression) {
         Constant constant = annotation.constant;
@@ -924,7 +938,10 @@ class Translator with KernelNodes {
               if (value is PrimitiveConstant<T>) {
                 return value.value;
               }
-              return value as T? ?? defaultvalue;
+              if (value is NullConstant) {
+                return defaultValue;
+              }
+              return value as T? ?? defaultValue;
             }
           }
         }
@@ -934,12 +951,12 @@ class Translator with KernelNodes {
   }
 
   w.ValueType makeList(
-      w.DefinedFunction function,
-      void generateType(w.Instructions b),
+      w.FunctionBuilder function,
+      void generateType(w.InstructionsBuilder b),
       int length,
       void Function(w.ValueType, int) generateItem,
       {bool isGrowable = false}) {
-    final w.Instructions b = function.body;
+    final b = function.body;
 
     final Class cls = isGrowable ? growableListClass : fixedLengthListClass;
     final ClassInfo info = classInfo[cls]!;
@@ -979,7 +996,8 @@ class Translator with KernelNodes {
   }
 
   /// Indexes a Dart `List` on the stack.
-  void indexList(w.Instructions b, void pushIndex(w.Instructions b)) {
+  void indexList(
+      w.InstructionsBuilder b, void pushIndex(w.InstructionsBuilder b)) {
     ClassInfo info = classInfo[listBaseClass]!;
     w.ArrayType arrayType =
         (info.struct.fields[FieldIndex.listArray].type as w.RefType).heapType
@@ -990,7 +1008,7 @@ class Translator with KernelNodes {
   }
 
   /// Pushes a Dart `List`'s length onto the stack as `i32`.
-  void getListLength(w.Instructions b) {
+  void getListLength(w.InstructionsBuilder b) {
     ClassInfo info = classInfo[listBaseClass]!;
     b.struct_get(info.struct, FieldIndex.listLength);
     b.i32_wrap_i64();
@@ -1005,7 +1023,7 @@ abstract class _FunctionGenerator {
 }
 
 class _ClosureTrampolineGenerator implements _FunctionGenerator {
-  final w.DefinedFunction trampoline;
+  final w.FunctionBuilder trampoline;
   final w.BaseFunction target;
   final int typeCount;
   final int posArgCount;
@@ -1023,7 +1041,7 @@ class _ClosureTrampolineGenerator implements _FunctionGenerator {
       this.takesContextOrReceiver);
 
   void generate(Translator translator) {
-    w.Instructions b = trampoline.body;
+    final b = trampoline.body;
     int targetIndex = 0;
     if (takesContextOrReceiver) {
       w.Local receiver = trampoline.locals[0];
@@ -1082,13 +1100,13 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
   final w.BaseFunction target;
   final ParameterInfo paramInfo;
   final String name;
-  final w.DefinedFunction function;
+  final w.FunctionBuilder function;
 
   _ClosureDynamicEntryGenerator(
       this.functionNode, this.target, this.paramInfo, this.name, this.function);
 
   void generate(Translator translator) {
-    final w.Instructions b = function.body;
+    final b = function.body;
 
     final bool takesContextOrReceiver =
         paramInfo.member == null || paramInfo.member!.isInstanceMember;
@@ -1248,7 +1266,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
   }
 }
 
-class NodeCounter extends Visitor<void> with VisitorVoidMixin {
+class NodeCounter extends VisitorDefault<void> with VisitorVoidMixin {
   int count = 0;
 
   int countNodes(Node node) {

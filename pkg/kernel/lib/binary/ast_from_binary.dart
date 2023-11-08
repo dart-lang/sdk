@@ -131,7 +131,8 @@ class BinaryBuilder {
   int labelStackBase = 0;
   int switchCaseStackBase = 0;
   final List<SwitchCase> switchCaseStack = <SwitchCase>[];
-  final List<TypeParameter> typeParameterStack = <TypeParameter>[];
+  final List< /* TypeParameter | StructuralParameter */ Object>
+      typeParameterStack = <Object>[];
   final String? filename;
   final List<int> _bytes;
   int _byteOffset = 0;
@@ -1098,10 +1099,11 @@ class BinaryBuilder {
     return name.reference;
   }
 
-  Reference readNonNullInlineClassReference() {
+  Reference readNonNullExtensionTypeDeclarationReference() {
     CanonicalName? name = readNullableCanonicalNameReference();
     if (name == null) {
-      throw 'Expected an inline class reference to be valid but was `null`.';
+      throw 'Expected an extension type declaration reference to be valid but '
+          'was `null`.';
     }
     return name.reference;
   }
@@ -1266,7 +1268,7 @@ class BinaryBuilder {
     _readTypedefList(library);
     _readClassList(library, classOffsets);
     _readExtensionList(library);
-    _readInlineClassList(library);
+    _readExtensionTypeDeclarationList(library);
     library.fieldsInternal = _readFieldList(library);
     library.proceduresInternal = _readProcedureList(library, procedureOffsets);
 
@@ -1316,16 +1318,18 @@ class BinaryBuilder {
     }
   }
 
-  void _readInlineClassList(Library library) {
+  void _readExtensionTypeDeclarationList(Library library) {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
-      library.inlineClassesInternal = emptyListOfInlineClass;
+      library.extensionTypeDeclarationsInternal =
+          emptyListOfExtensionTypeDeclaration;
     } else {
-      library.inlineClassesInternal = new List<InlineClass>.generate(
-          length, (int index) => readInlineClass()..parent = library,
-          growable: useGrowableLists);
+      library.extensionTypeDeclarationsInternal =
+          new List<ExtensionTypeDeclaration>.generate(length,
+              (int index) => readExtensionTypeDeclaration()..parent = library,
+              growable: useGrowableLists);
     }
   }
 
@@ -1561,21 +1565,6 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType onType = readDartType();
 
-    if (readAndCheckOptionTag()) {
-      ExtensionTypeShowHideClause showHideClause =
-          node.showHideClause = new ExtensionTypeShowHideClause();
-      readSupertypeList(showHideClause.shownSupertypes);
-      readNonNullReferenceList(showHideClause.shownMethods);
-      readNonNullReferenceList(showHideClause.shownGetters);
-      readNonNullReferenceList(showHideClause.shownSetters);
-      readNonNullReferenceList(showHideClause.shownOperators);
-      readSupertypeList(showHideClause.hiddenSupertypes);
-      readNonNullReferenceList(showHideClause.hiddenMethods);
-      readNonNullReferenceList(showHideClause.hiddenGetters);
-      readNonNullReferenceList(showHideClause.hiddenSetters);
-      readNonNullReferenceList(showHideClause.hiddenOperators);
-    }
-
     typeParameterStack.length = 0;
 
     node.name = name;
@@ -1603,21 +1592,24 @@ class BinaryBuilder {
     Name name = readName();
     int kind = readByte();
     int flags = readByte();
-    CanonicalName canonicalName = readNonNullCanonicalNameReference();
+    CanonicalName memberName = readNonNullCanonicalNameReference();
+    CanonicalName? tearOffName = readNullableCanonicalNameReference();
     return new ExtensionMemberDescriptor(
         name: name,
         kind: ExtensionMemberKind.values[kind],
-        member: canonicalName.reference)
+        member: memberName.reference,
+        tearOff: tearOffName?.reference)
       ..flags = flags;
   }
 
-  InlineClass readInlineClass() {
+  ExtensionTypeDeclaration readExtensionTypeDeclaration() {
     int tag = readByte();
-    assert(tag == Tag.InlineClass);
+    assert(tag == Tag.ExtensionTypeDeclaration);
 
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
-    InlineClass? node = reference.node as InlineClass?;
+    ExtensionTypeDeclaration? node =
+        reference.node as ExtensionTypeDeclaration?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1633,8 +1625,8 @@ class BinaryBuilder {
     Uri fileUri = readUriReference();
 
     if (node == null) {
-      node =
-          new InlineClass(name: name, reference: reference, fileUri: fileUri);
+      node = new ExtensionTypeDeclaration(
+          name: name, reference: reference, fileUri: fileUri);
     }
     node.annotations = annotations;
     setParents(annotations, node);
@@ -1646,7 +1638,7 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType representationType = readDartType();
     String representationName = readStringReference();
-    List<InlineType> implements = _readInlineClassImplementsList();
+    List<DartType> implements = _readExtensionTypeDeclarationImplementsList();
     typeParameterStack.length = 0;
 
     node.name = name;
@@ -1655,44 +1647,45 @@ class BinaryBuilder {
     node.representationName = representationName;
 
     node.implements = implements;
-    node.members = _readInlineClassMemberDescriptorList();
+    node.members = _readExtensionTypeMemberDescriptorList();
 
     return node;
   }
 
-  List<InlineType> _readInlineClassImplementsList() {
+  List<DartType> _readExtensionTypeDeclarationImplementsList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
-      return emptyListOfInlineType;
+      return emptyListOfExtensionType;
     }
-    return new List<InlineType>.generate(
-        length, (_) => readDartType() as InlineType,
+    return new List<DartType>.generate(length, (_) => readDartType(),
         growable: useGrowableLists);
   }
 
-  List<InlineClassMemberDescriptor> _readInlineClassMemberDescriptorList() {
+  List<ExtensionTypeMemberDescriptor> _readExtensionTypeMemberDescriptorList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
-      return emptyListOfInlineClassMemberDescriptor;
+      return emptyListOfExtensionTypeMemberDescriptor;
     }
-    return new List<InlineClassMemberDescriptor>.generate(
-        length, (_) => _readInlineClassMemberDescriptor(),
+    return new List<ExtensionTypeMemberDescriptor>.generate(
+        length, (_) => _readExtensionTypeMemberDescriptor(),
         growable: useGrowableLists);
   }
 
-  InlineClassMemberDescriptor _readInlineClassMemberDescriptor() {
+  ExtensionTypeMemberDescriptor _readExtensionTypeMemberDescriptor() {
     Name name = readName();
     int kind = readByte();
     int flags = readByte();
-    CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    return new InlineClassMemberDescriptor(
+    CanonicalName memberName = readNonNullCanonicalNameReference();
+    CanonicalName? tearOffName = readNullableCanonicalNameReference();
+    return new ExtensionTypeMemberDescriptor(
         name: name,
-        kind: InlineClassMemberKind.values[kind],
-        member: canonicalName.reference)
+        kind: ExtensionTypeMemberKind.values[kind],
+        member: memberName.reference,
+        tearOff: tearOffName?.reference)
       ..flags = flags;
   }
 
@@ -1952,10 +1945,12 @@ class BinaryBuilder {
   }
 
   Initializer _readFieldInitializer(bool isSynthetic) {
+    int offset = readOffset();
     Reference reference = readNonNullMemberReference();
     Expression value = readExpression();
     return new FieldInitializer.byReference(reference, value)
-      ..isSynthetic = isSynthetic;
+      ..isSynthetic = isSynthetic
+      ..fileOffset = offset;
   }
 
   Initializer _readSuperInitializer(bool isSynthetic) {
@@ -2063,7 +2058,8 @@ class BinaryBuilder {
       int oldSwitchCaseStackBase, int variableStackHeight) {
     final int savedByteOffset = _byteOffset;
     final int componentStartOffset = _componentStartOffset;
-    final List<TypeParameter> typeParameters = typeParameterStack.toList();
+    final List<TypeParameter> typeParameters =
+        typeParameterStack.cast<TypeParameter>().toList();
     final List<VariableDeclaration> variables = variableStack.toList();
     final Library currentLibrary = _currentLibrary!;
     result.lazyBuilder = () {
@@ -2331,11 +2327,15 @@ class BinaryBuilder {
   }
 
   Expression _readLoadLibrary() {
-    return new LoadLibrary(readLibraryDependencyReference());
+    int offset = readOffset();
+    return new LoadLibrary(readLibraryDependencyReference())
+      ..fileOffset = offset;
   }
 
   Expression _readCheckLibraryIsLoaded() {
-    return new CheckLibraryIsLoaded(readLibraryDependencyReference());
+    int offset = readOffset();
+    return new CheckLibraryIsLoaded(readLibraryDependencyReference())
+      ..fileOffset = offset;
   }
 
   Expression _readInvalidExpression() {
@@ -2736,52 +2736,65 @@ class BinaryBuilder {
   }
 
   Expression _readStringLiteral() {
-    return new StringLiteral(readStringReference());
+    int offset = readOffset();
+    return new StringLiteral(readStringReference())..fileOffset = offset;
   }
 
   Expression _readSpecializedIntLiteral(int tagByte) {
     int biasedValue = tagByte & Tag.SpecializedPayloadMask;
-    return new IntLiteral(biasedValue - Tag.SpecializedIntLiteralBias);
+    return new IntLiteral(biasedValue - Tag.SpecializedIntLiteralBias)
+      ..fileOffset = readOffset();
   }
 
   Expression _readPositiveIntLiteral() {
-    return new IntLiteral(readUInt30());
+    int offset = readOffset();
+    int value = readUInt30();
+    return new IntLiteral(value)..fileOffset = offset;
   }
 
   Expression _readNegativeIntLiteral() {
-    return new IntLiteral(-readUInt30());
+    int offset = readOffset();
+    int value = -readUInt30();
+    return new IntLiteral(value)..fileOffset = offset;
   }
 
   Expression _readBigIntLiteral() {
-    return new IntLiteral(int.parse(readStringReference()));
+    int offset = readOffset();
+    int value = int.parse(readStringReference());
+    return new IntLiteral(value)..fileOffset = offset;
   }
 
   Expression _readDoubleLiteral() {
-    return new DoubleLiteral(readDouble());
+    int offset = readOffset();
+    double value = readDouble();
+    return new DoubleLiteral(value)..fileOffset = offset;
   }
 
   Expression _readTrueLiteral() {
-    return new BoolLiteral(true);
+    return new BoolLiteral(true)..fileOffset = readOffset();
   }
 
   Expression _readFalseLiteral() {
-    return new BoolLiteral(false);
+    return new BoolLiteral(false)..fileOffset = readOffset();
   }
 
   Expression _readNullLiteral() {
-    return new NullLiteral();
+    return new NullLiteral()..fileOffset = readOffset();
   }
 
   Expression _readSymbolLiteral() {
-    return new SymbolLiteral(readStringReference());
+    int offset = readOffset();
+    String value = readStringReference();
+    return new SymbolLiteral(value)..fileOffset = offset;
   }
 
   Expression _readTypeLiteral() {
-    return new TypeLiteral(readDartType());
+    int offset = readOffset();
+    return new TypeLiteral(readDartType())..fileOffset = offset;
   }
 
   Expression _readThisLiteral() {
-    return new ThisExpression();
+    return new ThisExpression()..fileOffset = readOffset();
   }
 
   Expression _readRethrow() {
@@ -3512,6 +3525,8 @@ class BinaryBuilder {
   Statement _readLabeledStatement() {
     LabeledStatement label = new LabeledStatement(null);
     labelStack.add(label);
+    int offset = readOffset();
+    label.fileOffset = offset;
     label.body = readStatement()..parent = label;
     labelStack.removeLast();
     return label;
@@ -3612,13 +3627,17 @@ class BinaryBuilder {
   }
 
   Statement _readTryCatch() {
+    int offset = readOffset();
     Statement body = readStatement();
     int flags = readByte();
-    return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2);
+    return new TryCatch(body, readCatchList(), isSynthetic: flags & 2 == 2)
+      ..fileOffset = offset;
   }
 
   Statement _readTryFinally() {
-    return new TryFinally(readStatement(), readStatement());
+    int offset = readOffset();
+    return new TryFinally(readStatement(), readStatement())
+      ..fileOffset = offset;
   }
 
   Statement _readYieldStatement() {
@@ -3644,6 +3663,8 @@ class BinaryBuilder {
   }
 
   void _readSwitchCaseInto(SwitchCase caseNode) {
+    int offset = readOffset();
+    caseNode.fileOffset = offset;
     int length = readUInt30();
     for (int i = 0; i < length; ++i) {
       caseNode.expressionOffsets.add(readOffset());
@@ -3796,8 +3817,8 @@ class BinaryBuilder {
         return _readNeverType();
       case Tag.NullType:
         return _readNullType();
-      case Tag.InlineType:
-        return _readInlineType();
+      case Tag.ExtensionType:
+        return _readExtensionType();
       case Tag.FunctionType:
         return _readFunctionType();
       case Tag.IntersectionType:
@@ -3878,22 +3899,20 @@ class BinaryBuilder {
     return new FutureOrType(typeArgument, Nullability.values[nullabilityIndex]);
   }
 
-  DartType _readInlineType() {
+  DartType _readExtensionType() {
     int nullabilityIndex = readByte();
-    Reference reference = readNonNullInlineClassReference();
+    Reference reference = readNonNullExtensionTypeDeclarationReference();
     List<DartType> typeArguments = readDartTypeList();
-    DartType representationType = readDartType();
-    return new InlineType.byReference(
-        reference,
-        Nullability.values[nullabilityIndex],
-        typeArguments,
-        representationType);
+    readDartType(); // Read type erasure.
+    return new ExtensionType.byReference(
+        reference, Nullability.values[nullabilityIndex], typeArguments);
   }
 
   DartType _readFunctionType() {
     int typeParameterStackHeight = typeParameterStack.length;
     int nullabilityIndex = readByte();
-    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    List<StructuralParameter> typeParameters =
+        readAndPushStructuralParameterList();
     int requiredParameterCount = readUInt30();
     int totalParameterCount = readUInt30();
     List<DartType> positional = readDartTypeList();
@@ -3932,8 +3951,15 @@ class BinaryBuilder {
   DartType _readTypeParameterType() {
     int declaredNullabilityIndex = readByte();
     int index = readUInt30();
-    return new TypeParameterType(typeParameterStack[index],
-        Nullability.values[declaredNullabilityIndex]);
+    Object typeParameter = typeParameterStack[index];
+    if (typeParameter is TypeParameter) {
+      return new TypeParameterType(
+          typeParameter, Nullability.values[declaredNullabilityIndex]);
+    } else {
+      typeParameter as StructuralParameter;
+      return new StructuralParameterType(
+          typeParameter, Nullability.values[declaredNullabilityIndex]);
+    }
   }
 
   DartType _readIntersectionType() {
@@ -3951,7 +3977,7 @@ class BinaryBuilder {
   }
 
   List<TypeParameter> readAndPushTypeParameterList(
-      [List<TypeParameter>? list, TreeNode? parent]) {
+      [List<TypeParameter>? list, GenericDeclaration? declaration]) {
     int length = readUInt30();
     if (length == 0) {
       if (list != null) return list;
@@ -3962,12 +3988,12 @@ class BinaryBuilder {
       }
     }
     if (list == null) {
-      list = new List<TypeParameter>.generate(
-          length, (_) => new TypeParameter(null, null)..parent = parent,
+      list = new List<TypeParameter>.generate(length,
+          (_) => new TypeParameter(null, null)..declaration = declaration,
           growable: useGrowableLists);
     } else if (list.length != length) {
       for (int i = 0; i < length; ++i) {
-        list.add(new TypeParameter(null, null)..parent = parent);
+        list.add(new TypeParameter(null, null)..declaration = declaration);
       }
     }
     typeParameterStack.addAll(list);
@@ -3977,9 +4003,55 @@ class BinaryBuilder {
     return list;
   }
 
+  List<StructuralParameter> readAndPushStructuralParameterList(
+      [List<StructuralParameter>? list]) {
+    int length = readUInt30();
+    if (length == 0) {
+      if (list != null) return list;
+      if (useGrowableLists) {
+        return <StructuralParameter>[];
+      } else {
+        return emptyListOfStructuralParameter;
+      }
+    }
+    if (list == null) {
+      list = new List<StructuralParameter>.generate(
+          length, (_) => new StructuralParameter(null, null),
+          growable: useGrowableLists);
+    } else if (list.length != length) {
+      for (int i = 0; i < length; ++i) {
+        list.add(new StructuralParameter(null, null));
+      }
+    }
+    typeParameterStack.addAll(list);
+    for (int i = 0; i < list.length; ++i) {
+      readStructuralParameter(list[i]);
+    }
+    return list;
+  }
+
   void readTypeParameter(TypeParameter node) {
     node.flags = readByte();
     node.annotations = readAnnotationList(node);
+    int variance = readByte();
+    if (variance == TypeParameter.legacyCovariantSerializationMarker) {
+      node.variance = null;
+    } else {
+      node.variance = variance;
+    }
+    node.name = readStringOrNullIfEmpty();
+    node.bound = readDartType();
+    node.defaultType = readDartType();
+  }
+
+  void readStructuralParameter(StructuralParameter node) {
+    node.flags = readByte();
+    // For now, [StructuralParameter] objects are encoded as
+    // [TypeParameter] objects, to preserve compatibility with the binary format
+    // consumers.
+    // TODO(cstefantsova): Eventually remove the annotations from the binary
+    // encoding of [StructuralParameter] objects.
+    readAnnotationList();
     int variance = readByte();
     if (variance == TypeParameter.legacyCovariantSerializationMarker) {
       node.variance = null;
@@ -4205,9 +4277,10 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  InlineClass readInlineClass() {
+  ExtensionTypeDeclaration readExtensionTypeDeclaration() {
     final int nodeOffset = _byteOffset;
-    final InlineClass result = super.readInlineClass();
+    final ExtensionTypeDeclaration result =
+        super.readExtensionTypeDeclaration();
     return _associateMetadata(result, nodeOffset);
   }
 

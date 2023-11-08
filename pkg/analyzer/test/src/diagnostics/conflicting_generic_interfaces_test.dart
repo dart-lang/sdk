@@ -47,6 +47,17 @@ class C extends A implements B {}
     ]);
   }
 
+  test_class_extends_implements_object_objectQuestion() async {
+    await assertErrorsInCode('''
+class A<T> {}
+class B implements A<Object> {}
+class C implements A<Object?> {}
+class D extends B implements C {}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 85, 1),
+    ]);
+  }
+
   test_class_extends_implements_optOut() async {
     noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
@@ -203,6 +214,28 @@ enum E with M1, M2 {
 ''', [
       error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 82, 1),
     ]);
+  }
+
+  test_extensionType() async {
+    await assertErrorsInCode('''
+class I<T> {}
+class A implements I<int> {}
+class B implements I<num> {}
+extension type C(Never it) implements A, B {}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_GENERIC_INTERFACES, 87, 1),
+    ]);
+  }
+
+  test_extensionType_objectNone_objectQuestion() async {
+    await assertNoErrorsInCode('''
+extension type A(int? it) {}
+extension type B(int it) implements A, num {}
+''');
+    assertElementTypes(
+      findElement.extensionType('B').allSupertypes,
+      ['A', 'Object', 'num', 'Comparable<num>'],
+    );
   }
 
   test_mixin_on_implements() async {

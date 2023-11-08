@@ -14,9 +14,13 @@ import 'dart:io';
 final repoRoot = dirname(dirname(fromUri(Platform.script)));
 
 void main(List<String> args) {
+  final fluteExists =
+      Directory(join(repoRoot, platform('third_party/flute'))).existsSync();
+
   var packageDirs = [
     ...listSubdirectories(platform('pkg')),
     ...listSubdirectories(platform('third_party/pkg')),
+    if (fluteExists) ...listSubdirectories(platform('third_party/flute')),
     platform('pkg/vm_service/test/test_package'),
     platform(
         'runtime/observatory_2/tests/service_2/observatory_test_package_2'),
@@ -46,6 +50,10 @@ void main(List<String> args) {
     platform('pkg/_fe_analyzer_shared/test/inheritance'),
   ];
 
+  var frontendServerPackageDirs = [
+    platform('pkg/frontend_server/test/fixtures'),
+  ];
+
   var pkgVmPackageDirs = [
     platform('pkg/vm/testcases'),
   ];
@@ -72,6 +80,7 @@ void main(List<String> args) {
     ...makePackageConfigs(packageDirs),
     ...makeCfePackageConfigs(cfePackageDirs),
     ...makeFeAnalyzerSharedPackageConfigs(feAnalyzerSharedPackageDirs),
+    ...makeFrontendServerPackageConfigs(frontendServerPackageDirs),
     ...makePkgVmPackageConfigs(pkgVmPackageDirs),
   ];
   packages.sort((a, b) => a.name.compareTo(b.name));
@@ -82,7 +91,10 @@ void main(List<String> args) {
   var hasDuplicatePackages = false;
 
   for (var name in uniqueNames) {
-    var matches = packages.where((p) => p.name == name).toList();
+    var matches = [
+      for (final p in packages)
+        if (p.name == name) p
+    ];
     if (matches.length > 1) {
       print('Duplicates found for package:$name');
       for (var package in matches) {
@@ -128,12 +140,19 @@ void writeIfDifferent(File file, String contents) {
 /// Generates package configurations for each package in [packageDirs].
 Iterable<Package> makePackageConfigs(List<String> packageDirs) sync* {
   for (var packageDir in packageDirs) {
+    var name = pubspecName(packageDir);
+    // TODO(https://github.com/dart-lang/webdev/issues/2201): Wait for webdev
+    // to roll in the fix for the pubspec and then remove this workaround.
+    if (posix(packageDir) ==
+        'third_party/pkg/webdev/fixtures/_webdevSoundSmoke') {
+      name = '_webdev_sound_smoke';
+    }
     var version = pubspecLanguageVersion(packageDir);
     var hasLibDirectory =
         Directory(join(repoRoot, packageDir, 'lib')).existsSync();
 
     yield Package(
-      name: basename(packageDir),
+      name: name,
       rootUri: packageDir,
       packageUri: hasLibDirectory ? 'lib/' : null,
       languageVersion: version,
@@ -166,6 +185,11 @@ Iterable<Package> makeFeAnalyzerSharedPackageConfigs(
     makeSpecialPackageConfigs('_fe_analyzer_shared', packageDirs);
 
 /// Generates package configurations for the special pseudo-packages used by the
+/// frontend_server tests.
+Iterable<Package> makeFrontendServerPackageConfigs(List<String> packageDirs) =>
+    makeSpecialPackageConfigs('frontend_server', packageDirs);
+
+/// Generates package configurations for the special pseudo-packages used by the
 /// pkg/vm unit tests (`pkg/vm/test`).
 Iterable<Package> makePkgVmPackageConfigs(List<String> packageDirs) =>
     makeSpecialPackageConfigs('pkg_vm', packageDirs);
@@ -192,11 +216,30 @@ Iterable<String> listSubdirectories(String parentPath) sync* {
 
 final versionRE = RegExp(r"(?:\^|>=)(\d+\.\d+)");
 
+/// Parses the package name in the pubspec for [packageDir]
+String pubspecName(String packageDir) {
+  var pubspecFile = File(join(repoRoot, packageDir, 'pubspec.yaml'));
+
+  if (!pubspecFile.existsSync()) {
+    print("Error: Missing pubspec for $packageDir.");
+    exit(1);
+  }
+
+  var contents = pubspecFile.readAsLinesSync();
+  if (!contents.any((line) => line.contains('name: '))) {
+    print("Error: Pubspec for $packageDir has no name.");
+    exit(1);
+  }
+
+  var name = contents.firstWhere((line) => line.contains('name: '));
+  return name.trim().substring('name:'.length).trim();
+}
+
 /// Infers the language version from the SDK constraint in the pubspec for
 /// [packageDir].
 ///
 /// The version is returned in the form `major.minor`.
-String? pubspecLanguageVersion(String packageDir) {
+String pubspecLanguageVersion(String packageDir) {
   var pubspecFile = File(join(repoRoot, packageDir, 'pubspec.yaml'));
 
   if (!pubspecFile.existsSync()) {

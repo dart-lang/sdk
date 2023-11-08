@@ -641,9 +641,6 @@ int? y = 0;
       projectContents['example/$filePath'] = subProject[filePath];
     }
     projectContents['example/analysis_options.yaml'] = '''
-analyzer:
-  strong-mode:
-    implicit-casts: false
 linter:
   rules:
     - empty_constructor_bodies

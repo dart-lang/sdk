@@ -14,7 +14,7 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
 }
 static method doSomething() → asy::Future<core::int> async /* futureValueType= core::int */ 
   return 3;
-static method useFinalizableAsync([@vm.inferred-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → asy::Future<core::int> async /* futureValueType= core::int */ {
+static method useFinalizableAsync([@vm.inferred-arg-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → asy::Future<core::int> async /* futureValueType= core::int */ {
   await block {
     final synthesized asy::Future<core::int> :expressionValueWrappedFinalizable = asy::Future::sync<core::int>(() → core::int => 6);
     _in::reachabilityFence(finalizable);

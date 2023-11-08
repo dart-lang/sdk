@@ -5,21 +5,22 @@
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:test/test.dart';
 
+import '../shared_test_options.dart';
 import 'expression_compiler_worker_shared.dart';
 
-void main() async {
+void main(List<String> args) async {
   // Set to true to enable debug output
   var debug = false;
 
   group('ddc module format -', () {
     for (var soundNullSafety in [true, false]) {
       group('${soundNullSafety ? "sound" : "unsound"} null safety -', () {
-        runTests(
+        var setup = SetupCompilerOptions(
           moduleFormat: ModuleFormat.ddc,
           soundNullSafety: soundNullSafety,
-          canaryFeatures: false,
-          verbose: debug,
+          args: args,
         );
+        runTests(setup, verbose: debug);
       });
     }
   });

@@ -55,7 +55,7 @@ class Message {
           MessageFinalizableData* finalizable_data,
           Priority priority);
 
-  // Message objects can also carry RawObject pointers for Smis and objects in
+  // Message objects can also carry raw ObjectPtr for Smis and objects in
   // the VM heap. This is indicated by setting the len_ field to 0.
   Message(Dart_Port dest_port, ObjectPtr raw_obj, Priority priority);
 

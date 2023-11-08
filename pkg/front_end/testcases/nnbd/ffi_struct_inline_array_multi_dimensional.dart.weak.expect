@@ -1,6 +1,7 @@
 library;
 import self as self;
 import "dart:ffi" as ffi;
+import "package:ffi/src/allocation.dart" as all;
 
 import "dart:ffi";
 import "package:ffi/ffi.dart";
@@ -20,14 +21,14 @@ static method main() → dynamic {
   final ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> array = struct.{self::StructInlineArrayMultiDimensional::a0}{ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>};
   final ffi::Array<ffi::Array<ffi::Uint8>> subArray = ffi::ArrayArray|[]<ffi::Array<ffi::Uint8>>(array, 0);
   ffi::ArrayArray|[]=<ffi::Array<ffi::Uint8>>(array, 1, subArray);
-  #C4.{ffi::Allocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
+  #C4.{all::CallocAllocator::free}(pointer){(ffi::Pointer<ffi::NativeType>) → void};
 }
 
 constants  {
   #C1 = 2
   #C2 = null
   #C3 = ffi::_ArraySize<ffi::NativeType*> {dimension1:#C1, dimension2:#C1, dimension3:#C1, dimension4:#C2, dimension5:#C2, dimensions:#C2}
-  #C4 = all::_CallocAllocator {}
+  #C4 = all::CallocAllocator {}
 }
 
 

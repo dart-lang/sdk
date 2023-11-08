@@ -184,6 +184,12 @@ class TypeHierarchyComputerHelper {
   }
 
   ExecutableElement? findMemberElement(InterfaceElement clazz) {
+    // Members of extension types don't override anything.
+    // They redeclare, and resolved statically.
+    if (pivotClass is ExtensionTypeElement || clazz is ExtensionTypeElement) {
+      return null;
+    }
+
     var pivotName = this.pivotName;
     if (pivotName == null) {
       return null;

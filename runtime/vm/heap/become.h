@@ -54,7 +54,7 @@ class ForwardingCorpse {
   };
 
  private:
-  // This layout mirrors the layout of RawObject.
+  // This layout mirrors the layout of UntaggedObject.
   RelaxedAtomic<uword> tags_;
   RelaxedAtomic<ObjectPtr> target_;
 

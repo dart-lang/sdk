@@ -4,9 +4,11 @@
 
 library dump_info;
 
-import 'dart:convert' show JsonEncoder, StringConversionSink;
+import 'dart:convert' show JsonDecoder, JsonEncoder, StringConversionSink;
 
 import 'package:compiler/src/js_model/elements.dart';
+import 'package:compiler/src/serialization/serialization.dart';
+import 'package:compiler/src/universe/use.dart';
 import 'package:dart2js_info/info.dart';
 import 'package:dart2js_info/json_info_codec.dart';
 import 'package:dart2js_info/binary_serialization.dart' as dump_info;
@@ -17,10 +19,10 @@ import '../compiler_api.dart' as api;
 import 'common.dart';
 import 'common/elements.dart' show JElementEnvironment;
 import 'common/names.dart';
-import 'common/tasks.dart' show CompilerTask;
+import 'common/tasks.dart' show CompilerTask, Measurer;
 import 'common/ram_usage.dart';
-import 'compiler.dart' show Compiler;
-import 'constants/values.dart' show ConstantValue;
+import 'constants/values.dart'
+    show ConstantValue, ConstantValueKind, DeferredGlobalConstantValue;
 import 'deferred_load/output_unit.dart' show OutputUnit, deferredPartFileName;
 import 'elements/entities.dart';
 import 'elements/entity_utils.dart' as entity_utils;
@@ -32,11 +34,303 @@ import 'js/js.dart' as jsAst;
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart' show JClosedWorld;
 import 'js_backend/field_analysis.dart';
-import 'universe/world_impact.dart' show WorldImpact;
+import 'options.dart';
+import 'universe/world_impact.dart' show WorldImpact, WorldImpactBuilderImpl;
 import 'util/sink_adapter.dart';
 
+/// Collects data used for the dump info task.
+///
+/// This registry collects data while JS is being emitted and stores it to be
+/// processed by and used in the dump info stage. Since it holds references to
+/// AST nodes it should be cleared with [DumpInfoJsAstRegistry.clear] as soon
+/// as the necessary data for it is extracted.
+///
+/// See [DumpInfoProgramData.fromEmitterResults] for how this data is processed.
+class DumpInfoJsAstRegistry {
+  final bool _disabled;
+  final CompilerOptions options;
+
+  final Map<ConstantValue, jsAst.Node> _constantRegistry = {};
+  final Map<Entity, List<jsAst.Node>> _entityRegistry = {};
+  final Map<jsAst.Node, CodeSpan> _codeRegistry = {};
+  final Map<MemberEntity, WorldImpact> _impactRegistry = {};
+  // TODO(sigmund): delete the stack once we stop emitting the source text.
+  final List<_CodeData> _stack = [];
+
+  DumpInfoJsAstRegistry(this.options)
+      : _disabled = !options.dumpInfo && options.dumpInfoWriteUri == null;
+
+  bool get useBinaryFormat => options.useDumpInfoBinaryFormat;
+
+  void registerEntityAst(Entity? entity, jsAst.Node code) {
+    if (_disabled) return;
+    if (entity != null) {
+      _entityRegistry.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
+    }
+    _codeRegistry[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
+  }
+
+  void registerConstantAst(ConstantValue constant, jsAst.Node code) {
+    if (_disabled) return;
+    assert(_constantRegistry[constant] == null ||
+        _constantRegistry[constant] == code);
+    _constantRegistry[constant] = code;
+    _codeRegistry[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
+  }
+
+  void registerImpact(MemberEntity member, WorldImpact impact) {
+    if (_disabled) return;
+    _impactRegistry[member] = impact;
+  }
+
+  bool get shouldEmitText => !useBinaryFormat;
+
+  void enterNode(jsAst.Node node, int start) {
+    var data = _codeRegistry[node];
+    data?.start = start;
+
+    if (shouldEmitText && data != null) {
+      _stack.add(data as _CodeData);
+    }
+  }
+
+  void emit(String string) {
+    if (shouldEmitText) {
+      // Note: historically we emitted the full body of classes and methods, so
+      // instance methods ended up emitted twice.  Once we use a different
+      // encoding of dump info, we also plan to remove this duplication.
+      _stack.forEach((f) => f._text.write(string));
+    }
+  }
+
+  void exitNode(jsAst.Node node, int start, int end, int? closing) {
+    var data = _codeRegistry[node];
+    data?.end = end;
+    if (shouldEmitText && data != null) {
+      var last = _stack.removeLast();
+      assert(data == last);
+      assert(data.start == start);
+    }
+  }
+
+  void clear() {
+    _constantRegistry.clear();
+    _entityRegistry.clear();
+    _codeRegistry.clear();
+    _impactRegistry.clear();
+  }
+}
+
+/// Only includes entity types stored in [DumpInfoProgramData.entityCode].
+enum _EntityType { library, cls, member }
+
+class DumpInfoProgramData {
+  final int programSize;
+  final Map<OutputUnit, int> outputUnitSizes;
+  /* Map<String, Map<String, String?|List<String>>> */
+  final Map<String, Map<String, dynamic>> fragmentDeferredMap;
+  final Iterable<ClassEntity> neededClasses;
+  final Iterable<ClassEntity> neededClassTypes;
+  final Map<Entity, List<CodeSpan>> entityCode;
+  final Map<Entity, int> entityCodeSize;
+  final Map<ConstantValue, CodeSpan> constantCode;
+  final Map<MemberEntity, WorldImpact> impacts;
+
+  DumpInfoProgramData._(
+      this.programSize,
+      this.outputUnitSizes,
+      this.fragmentDeferredMap,
+      this.entityCode,
+      this.entityCodeSize,
+      this.constantCode,
+      this.impacts,
+      {required this.neededClasses,
+      required this.neededClassTypes});
+
+  factory DumpInfoProgramData.fromEmitterResults(
+      JsBackendStrategy backendStrategy,
+      DumpInfoJsAstRegistry dumpInfoRegistry,
+      int programSize) {
+    final emitterTask = backendStrategy.emitterTask;
+    final outputUnitSizes = emitterTask.emitter.generatedSizes;
+
+    var fragmentsToLoad = emitterTask.emitter.finalizedFragmentsToLoad;
+    var fragmentMerger = emitterTask.emitter.fragmentMerger;
+    final fragmentDeferredMap =
+        fragmentMerger.computeDeferredMap(fragmentsToLoad);
+    final neededClasses = emitterTask.neededClasses;
+    final neededClassTypes = emitterTask.neededClassTypes;
+    final entityCode = <Entity, List<CodeSpan>>{};
+    final entityCodeSize = <Entity, int>{};
+    dumpInfoRegistry._entityRegistry.forEach((entity, nodes) {
+      final codeSpans = <CodeSpan>[];
+      int size = 0;
+      for (final node in nodes) {
+        final span = dumpInfoRegistry._codeRegistry[node]!;
+        codeSpans.add(span);
+        size += span.end! - span.start!;
+      }
+      entityCode[entity] = codeSpans;
+      entityCodeSize[entity] = size;
+    });
+    final constantCode = <ConstantValue, CodeSpan>{};
+    dumpInfoRegistry._constantRegistry.forEach((constant, node) {
+      final span = dumpInfoRegistry._codeRegistry[node]!;
+      constantCode[constant] = span;
+    });
+    return DumpInfoProgramData._(
+        programSize,
+        outputUnitSizes,
+        fragmentDeferredMap,
+        entityCode,
+        entityCodeSize,
+        constantCode,
+        Map.from(dumpInfoRegistry._impactRegistry),
+        neededClasses: neededClasses,
+        neededClassTypes: neededClassTypes);
+  }
+
+  static Entity _readEntity(DataSourceReader source) {
+    final entityType = source.readEnum(_EntityType.values);
+    switch (entityType) {
+      case _EntityType.library:
+        return source.readLibrary();
+      case _EntityType.cls:
+        return source.readClass();
+      case _EntityType.member:
+        return source.readMember();
+    }
+  }
+
+  static void _writeEntity(DataSinkWriter sink, Entity entity) {
+    if (entity is LibraryEntity) {
+      sink.writeEnum(_EntityType.library);
+      sink.writeLibrary(entity);
+    } else if (entity is ClassEntity) {
+      sink.writeEnum(_EntityType.cls);
+      sink.writeClass(entity);
+    } else if (entity is MemberEntity) {
+      sink.writeEnum(_EntityType.member);
+      sink.writeMember(entity);
+    } else {
+      throw UnsupportedError('Unsupported dump info entity: $entity');
+    }
+  }
+
+  static CodeSpan _readCodeSpan(DataSourceReader source, bool includeText) {
+    final start = source.readInt();
+    final end = source.readInt();
+    final savedText = source.readStringOrNull();
+    final text = includeText ? savedText : null;
+    return CodeSpan(start: start, end: end, text: text);
+  }
+
+  static void _writeCodeSpan(DataSinkWriter sink, CodeSpan codeSpan) {
+    sink.writeInt(codeSpan.start!);
+    sink.writeInt(codeSpan.end!);
+    sink.writeStringOrNull(codeSpan.text);
+  }
+
+  factory DumpInfoProgramData.readFromDataSource(
+      DataSourceReader source, JClosedWorld closedWorld,
+      {required bool includeCodeText}) {
+    final programSize = source.readInt();
+    final outputUnitSizesLength = source.readInt();
+    final outputUnitSizes = <OutputUnit, int>{};
+    for (int i = 0; i < outputUnitSizesLength; i++) {
+      final outputUnit = source.readOutputUnitReference();
+      final size = source.readInt();
+      outputUnitSizes[outputUnit] = size;
+    }
+    final fragmentDeferredMap = source.readStringMap(() =>
+        source.readStringMap(() => JsonDecoder().convert(source.readString())));
+    final neededClasses = source.readList(source.readClass);
+    final neededClassTypes = source.readList(source.readClass);
+    final entityCodeLength = source.readInt();
+    final entityCode = <Entity, List<CodeSpan>>{};
+    final entityCodeSize = <Entity, int>{};
+    for (int i = 0; i < entityCodeLength; i++) {
+      final entity = _readEntity(source);
+      final size = source.readInt();
+      final codeSpans =
+          source.readList(() => _readCodeSpan(source, includeCodeText));
+      entityCode[entity] = codeSpans;
+      entityCodeSize[entity] = size;
+    }
+    final constantCode = <ConstantValue, CodeSpan>{};
+    final costantCodeLength = source.readInt();
+    for (int i = 0; i < costantCodeLength; i++) {
+      final constant = source.readConstant();
+      final codeSpan = _readCodeSpan(source, includeCodeText);
+      constantCode[constant] = codeSpan;
+    }
+    final impacts = source.readMemberMap((_) {
+      final impactBuilder = WorldImpactBuilderImpl();
+      source
+          .readList(() => StaticUse.readFromDataSource(source))
+          .forEach(impactBuilder.registerStaticUse);
+      source
+          .readList(() => DynamicUse.readFromDataSource(source))
+          .forEach(impactBuilder.registerDynamicUse);
+      source
+          .readList(() => ConstantUse.readFromDataSource(source))
+          .forEach((use) {
+        assert(use.value.kind == ConstantValueKind.DEFERRED_GLOBAL);
+        closedWorld.outputUnitData.registerConstantDeferredUse(
+            use.value as DeferredGlobalConstantValue);
+      });
+      return impactBuilder;
+    });
+    return DumpInfoProgramData._(programSize, outputUnitSizes,
+        fragmentDeferredMap, entityCode, entityCodeSize, constantCode, impacts,
+        neededClasses: neededClasses, neededClassTypes: neededClassTypes);
+  }
+
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeInt(programSize);
+    sink.writeInt(outputUnitSizes.length);
+    outputUnitSizes.forEach((outputUnit, size) {
+      sink.writeOutputUnitReference(outputUnit);
+      sink.writeInt(size);
+    });
+    sink.writeStringMap(fragmentDeferredMap, (Map<String, dynamic> innerMap) {
+      sink.writeStringMap(
+          innerMap, (value) => sink.writeString(JsonEncoder().convert(value)));
+    });
+    sink.writeList(neededClasses, sink.writeClass);
+    sink.writeList(neededClassTypes, sink.writeClass);
+    assert(entityCode.length == entityCodeSize.length);
+    sink.writeInt(entityCode.length);
+    entityCode.forEach((entity, codeSpans) {
+      final size = entityCodeSize[entity]!;
+      _writeEntity(sink, entity);
+      sink.writeInt(size);
+      sink.writeList(
+          codeSpans, (CodeSpan codeSpan) => _writeCodeSpan(sink, codeSpan));
+    });
+    sink.writeInt(constantCode.length);
+    constantCode.forEach((constant, codeSpan) {
+      sink.writeConstant(constant);
+      _writeCodeSpan(sink, codeSpan);
+    });
+    sink.writeMemberMap(impacts, (_, WorldImpact impact) {
+      // Only store relevant uses from the impact. Static and dynamic uses are
+      // queried explicitly and DEFERRED_GLOBAL constants must be registered
+      // into the closed world.
+      sink.writeList(
+          impact.staticUses, (StaticUse use) => use.writeToDataSink(sink));
+      sink.writeList(
+          impact.dynamicUses, (DynamicUse use) => use.writeToDataSink(sink));
+      sink.writeList(
+          impact.constantUses.where(
+              (use) => use.value.kind == ConstantValueKind.DEFERRED_GLOBAL),
+          (ConstantUse use) => use.writeToDataSink(sink));
+    });
+  }
+}
+
 class ElementInfoCollector {
-  final Compiler compiler;
+  final CompilerOptions options;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -45,13 +339,12 @@ class ElementInfoCollector {
 
   final state = DumpInfoStateData();
 
-  ElementInfoCollector(this.compiler, this.dumpInfoTask, this.closedWorld,
+  ElementInfoCollector(this.options, this.dumpInfoTask, this.closedWorld,
       this._globalInferenceResults);
 
   void run() {
-    dumpInfoTask._constantToNode.forEach((constant, node) {
+    dumpInfoTask._dumpInfoData.constantCode.forEach((constant, span) {
       // TODO(sigmund): add dependencies on other constants
-      var span = dumpInfoTask._nodeData[node]!;
       var info = ConstantInfo(
           size: span.end! - span.start!,
           code: [span],
@@ -68,7 +361,7 @@ class ElementInfoCollector {
   /// output size. Either because it is a function being emitted or inlined,
   /// or because it is an entity that holds dependencies to other entities.
   bool shouldKeep(Entity entity) {
-    return dumpInfoTask.impacts.containsKey(entity) ||
+    return dumpInfoTask._dumpInfoData.impacts.containsKey(entity) ||
         dumpInfoTask.inlineCount.containsKey(entity);
   }
 
@@ -151,7 +444,7 @@ class ElementInfoCollector {
           state.constantToInfo[fieldData.initialValue] as ConstantInfo?;
     }
 
-    if (compiler.options.experimentCallInstrumentation) {
+    if (options.experimentCallInstrumentation) {
       // We use field.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${field.hashCode}';
@@ -172,8 +465,7 @@ class ElementInfoCollector {
     // TODO(joshualitt): Get accurate size information for class types.
     classTypeInfo.size = 0;
 
-    bool isNeeded =
-        compiler.backendStrategy.emitterTask.neededClassTypes.contains(clazz);
+    bool isNeeded = dumpInfoTask._dumpInfoData.neededClassTypes.contains(clazz);
     if (!isNeeded) {
       return null;
     }
@@ -199,7 +491,7 @@ class ElementInfoCollector {
   ClassInfo? visitClass(ClassEntity clazz) {
     // True if [info] can be safely removed from the output.
     bool filterClassInfo(ClassInfo info) =>
-        !compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
+        !dumpInfoTask._dumpInfoData.neededClasses.contains(clazz) &&
         info.fields.isEmpty &&
         info.functions.isEmpty;
 
@@ -359,7 +651,7 @@ class ElementInfoCollector {
     int closureSize = _addClosureInfo(info, function);
     size += closureSize;
 
-    if (compiler.options.experimentCallInstrumentation) {
+    if (options.experimentCallInstrumentation) {
       // We use function.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${function.hashCode}';
@@ -396,12 +688,11 @@ class ElementInfoCollector {
     return state.outputToInfo.putIfAbsent(outputUnit, () {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
-      JsBackendStrategy backendStrategy = compiler.backendStrategy;
       final filename = outputUnit.isMainOutput
-          ? (compiler.options.outputUri?.pathSegments.last ?? 'out')
-          : deferredPartFileName(compiler.options, outputUnit.name);
+          ? (options.outputUri?.pathSegments.last ?? 'out')
+          : deferredPartFileName(options, outputUnit.name);
       OutputUnitInfo info = OutputUnitInfo(filename, outputUnit.name,
-          backendStrategy.emitterTask.emitter.generatedSize(outputUnit));
+          dumpInfoTask._dumpInfoData.outputUnitSizes[outputUnit]!);
       info.imports
           .addAll(closedWorld.outputUnitData.getImportNames(outputUnit));
       state.info.outputUnits.add(info);
@@ -433,7 +724,7 @@ class ElementInfoCollector {
 
 class KernelInfoCollector {
   final ir.Component component;
-  final Compiler compiler;
+  final CompilerOptions options;
   final JClosedWorld closedWorld;
   final DumpInfoTask dumpInfoTask;
   final state = DumpInfoStateData();
@@ -442,7 +733,7 @@ class KernelInfoCollector {
   JElementEnvironment get environment => closedWorld.elementEnvironment;
 
   KernelInfoCollector(
-      this.component, this.compiler, this.dumpInfoTask, this.closedWorld)
+      this.component, this.options, this.dumpInfoTask, this.closedWorld)
       : this.coreTypes = ir.CoreTypes(component);
 
   void run() {
@@ -510,7 +801,7 @@ class KernelInfoCollector {
       isConst: field.isConst,
     );
 
-    if (compiler.options.experimentCallInstrumentation) {
+    if (options.experimentCallInstrumentation) {
       // We use field.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${field.hashCode}';
@@ -664,7 +955,7 @@ class KernelInfoCollector {
       info.closures = [];
     }
 
-    if (compiler.options.experimentCallInstrumentation) {
+    if (options.experimentCallInstrumentation) {
       // We use function.hashCode because it is globally unique and it is
       // available while we are doing codegen.
       info.coverageId = '${function.hashCode}';
@@ -742,7 +1033,7 @@ class EntityDisambiguator {
 /// analysis.
 class DumpInfoAnnotator {
   final KernelInfoCollector kernelInfo;
-  final Compiler compiler;
+  final CompilerOptions options;
   final JClosedWorld closedWorld;
   final GlobalTypeInferenceResults _globalInferenceResults;
   final DumpInfoTask dumpInfoTask;
@@ -750,13 +1041,12 @@ class DumpInfoAnnotator {
 
   JElementEnvironment get environment => closedWorld.elementEnvironment;
 
-  DumpInfoAnnotator(this.kernelInfo, this.compiler, this.dumpInfoTask,
+  DumpInfoAnnotator(this.kernelInfo, this.options, this.dumpInfoTask,
       this.closedWorld, this._globalInferenceResults);
 
   void run() {
-    dumpInfoTask._constantToNode.forEach((constant, node) {
+    dumpInfoTask._dumpInfoData.constantCode.forEach((constant, span) {
       // TODO(sigmund): add dependencies on other constants
-      var span = dumpInfoTask._nodeData[node]!;
       var info = ConstantInfo(
           size: span.end! - span.start!,
           code: [span],
@@ -774,7 +1064,7 @@ class DumpInfoAnnotator {
   /// output size. Either because it is a function being emitted or inlined,
   /// or because it is an entity that holds dependencies to other entities.
   bool shouldKeep(Entity entity) {
-    return dumpInfoTask.impacts.containsKey(entity) ||
+    return dumpInfoTask._dumpInfoData.impacts.containsKey(entity) ||
         dumpInfoTask.inlineCount.containsKey(entity);
   }
 
@@ -888,8 +1178,7 @@ class DumpInfoAnnotator {
     kClassTypeInfo.size = 0;
 
     // Omit class type if it is not needed.
-    bool isNeeded =
-        compiler.backendStrategy.emitterTask.neededClassTypes.contains(clazz);
+    bool isNeeded = dumpInfoTask._dumpInfoData.neededClassTypes.contains(clazz);
     if (!isNeeded) return null;
 
     assert(kClassTypeInfo.name == clazz.name);
@@ -962,7 +1251,7 @@ class DumpInfoAnnotator {
 
     bool hasLiveFields = [...kClassInfo.fields, ...kClassInfo.functions]
         .any((i) => i.treeShakenStatus == TreeShakenStatus.Live);
-    if (!compiler.backendStrategy.emitterTask.neededClasses.contains(clazz) &&
+    if (!dumpInfoTask._dumpInfoData.neededClasses.contains(clazz) &&
         !hasLiveFields) {
       return null;
     }
@@ -1086,12 +1375,11 @@ class DumpInfoAnnotator {
     return kernelInfo.state.outputToInfo.putIfAbsent(outputUnit, () {
       // Dump-info currently only works with the full emitter. If another
       // emitter is used it will fail here.
-      JsBackendStrategy backendStrategy = compiler.backendStrategy;
       final filename = outputUnit.isMainOutput
-          ? (compiler.options.outputUri?.pathSegments.last ?? 'out')
-          : deferredPartFileName(compiler.options, outputUnit.name);
+          ? (options.outputUri?.pathSegments.last ?? 'out')
+          : deferredPartFileName(options, outputUnit.name);
       OutputUnitInfo info = OutputUnitInfo(filename, outputUnit.name,
-          backendStrategy.emitterTask.emitter.generatedSize(outputUnit));
+          dumpInfoTask._dumpInfoData.outputUnitSizes[outputUnit]!);
       info.treeShakenStatus = TreeShakenStatus.Live;
       info.imports
           .addAll(closedWorld.outputUnitData.getImportNames(outputUnit));
@@ -1139,29 +1427,21 @@ abstract class InfoReporter {
 }
 
 class DumpInfoTask extends CompilerTask implements InfoReporter {
-  final Compiler compiler;
+  final CompilerOptions options;
+  final api.CompilerOutput outputProvider;
+  final DiagnosticReporter reporter;
+  final Measurer measurer;
   final bool useBinaryFormat;
 
-  DumpInfoTask(this.compiler)
-      : useBinaryFormat = compiler.options.useDumpInfoBinaryFormat,
-        super(compiler.measurer);
+  DumpInfoTask(this.options, this.measurer, this.outputProvider, this.reporter)
+      : useBinaryFormat = options.useDumpInfoBinaryFormat,
+        super(measurer);
 
   @override
   String get name => "Dump Info";
 
   /// The size of the generated output.
-  late int _programSize;
-
-  /// Data associated with javascript AST nodes. The map only contains keys for
-  /// nodes that we care about.  Keys are automatically added when
-  /// [registerEntityAst] is called.
-  final Map<jsAst.Node, CodeSpan> _nodeData = <jsAst.Node, CodeSpan>{};
-
-  // A mapping from Dart Entities to JavaScript AST Nodes.
-  final Map<Entity, List<jsAst.Node>> _entityToNodes =
-      <Entity, List<jsAst.Node>>{};
-  final Map<ConstantValue, jsAst.Node> _constantToNode =
-      <ConstantValue, jsAst.Node>{};
+  late DumpInfoProgramData _dumpInfoData;
 
   final Map<Entity, int> inlineCount = <Entity, int>{};
 
@@ -1169,11 +1449,9 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // inlined inside of it.
   final Map<Entity, List<Entity>> inlineMap = <Entity, List<Entity>>{};
 
-  final Map<MemberEntity, WorldImpact> impacts = <MemberEntity, WorldImpact>{};
-
   /// Register the size of the generated output.
-  void reportSize(int programSize) {
-    _programSize = programSize;
+  void registerDumpInfoProgramData(DumpInfoProgramData dumpInfoData) {
+    _dumpInfoData = dumpInfoData;
   }
 
   @override
@@ -1183,21 +1461,15 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     inlineMap[inlinedFrom]!.add(element);
   }
 
-  void registerImpact(MemberEntity member, WorldImpact impact) {
-    if (compiler.options.dumpInfo) {
-      impacts[member] = impact;
-    }
-  }
-
   void unregisterImpact(var impactSource) {
-    impacts.remove(impactSource);
+    _dumpInfoData.impacts.remove(impactSource);
   }
 
   /// Returns an iterable of [Selection]s that are used by [entity]. Each
   /// [Selection] contains an entity that is used and the selector that
   /// selected the entity.
   Iterable<Selection> getRetaining(Entity entity, JClosedWorld closedWorld) {
-    final impact = impacts[entity];
+    final impact = _dumpInfoData.impacts[entity];
     if (impact == null) return const <Selection>[];
 
     var selections = <Selection>[];
@@ -1216,77 +1488,14 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     return selections;
   }
 
-  /// Registers that a javascript AST node [code] was produced by the dart
-  /// Entity [entity].
-  void registerEntityAst(Entity? entity, jsAst.Node code) {
-    if (compiler.options.dumpInfo) {
-      if (entity != null) {
-        _entityToNodes.putIfAbsent(entity, () => <jsAst.Node>[]).add(code);
-      }
-      _nodeData[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
-    }
-  }
-
-  void registerConstantAst(ConstantValue constant, jsAst.Node code) {
-    if (compiler.options.dumpInfo) {
-      assert(_constantToNode[constant] == null ||
-          _constantToNode[constant] == code);
-      _constantToNode[constant] = code;
-      _nodeData[code] ??= useBinaryFormat ? CodeSpan() : _CodeData();
-    }
-  }
-
-  bool get shouldEmitText => !useBinaryFormat;
-  // TODO(sigmund): delete the stack once we stop emitting the source text.
-  final List<_CodeData> _stack = [];
-  void enterNode(jsAst.Node node, int start) {
-    var data = _nodeData[node];
-    data?.start = start;
-
-    if (shouldEmitText && data != null) {
-      _stack.add(data as _CodeData);
-    }
-  }
-
-  void emit(String string) {
-    if (shouldEmitText) {
-      // Note: historically we emitted the full body of classes and methods, so
-      // instance methods ended up emitted twice.  Once we use a different
-      // encoding of dump info, we also plan to remove this duplication.
-      _stack.forEach((f) => f._text.write(string));
-    }
-  }
-
-  void exitNode(jsAst.Node node, int start, int end, int? closing) {
-    var data = _nodeData[node];
-    data?.end = end;
-    if (shouldEmitText && data != null) {
-      var last = _stack.removeLast();
-      assert(data == last);
-      assert(data.start == start);
-    }
-  }
-
   /// Returns the size of the source code that was generated for an entity.
   /// If no source code was produced, return 0.
   int sizeOf(Entity entity) {
-    if (_entityToNodes.containsKey(entity)) {
-      return _entityToNodes[entity]!.map(sizeOfNode).fold(0, (a, b) => a + b);
-    } else {
-      return 0;
-    }
-  }
-
-  int sizeOfNode(jsAst.Node node) {
-    final span = _nodeData[node];
-    if (span == null) return 0;
-    return span.end! - span.start!;
+    return _dumpInfoData.entityCodeSize[entity] ?? 0;
   }
 
   List<CodeSpan> codeOf(MemberEntity entity) {
-    final code = _entityToNodes[entity];
-    if (code == null) return const [];
-    return code.map((ast) => _nodeData[ast]!).toList();
+    return _dumpInfoData.entityCode[entity] ?? const [];
   }
 
   Future<DumpInfoStateData> dumpInfo(JClosedWorld closedWorld,
@@ -1294,7 +1503,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     late DumpInfoStateData dumpInfoState;
     await measure(() async {
       ElementInfoCollector elementInfoCollector = ElementInfoCollector(
-          compiler, this, closedWorld, globalInferenceResults)
+          options, this, closedWorld, globalInferenceResults)
         ..run();
 
       dumpInfoState =
@@ -1316,9 +1525,9 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     late DumpInfoStateData dumpInfoState;
     await measure(() async {
       KernelInfoCollector kernelInfoCollector =
-          KernelInfoCollector(component, compiler, this, closedWorld)..run();
+          KernelInfoCollector(component, options, this, closedWorld)..run();
 
-      DumpInfoAnnotator(kernelInfoCollector, compiler, this, closedWorld,
+      DumpInfoAnnotator(kernelInfoCollector, options, this, closedWorld,
           globalInferenceResults)
         ..run();
 
@@ -1341,26 +1550,22 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     final sink = encoder.startChunkedConversion(
         StringConversionSink.fromStringSink(jsonBuffer));
     sink.add(AllInfoJsonCodec(isBackwardCompatible: true).encode(data));
-    final name = (compiler.options.outputUri?.pathSegments.last ?? 'out');
-    compiler.outputProvider
-        .createOutputSink(name, 'info.json', api.OutputType.dumpInfo)
+    final name = (options.outputUri?.pathSegments.last ?? 'out');
+    outputProvider.createOutputSink(name, 'info.json', api.OutputType.dumpInfo)
       ..add(jsonBuffer.toString())
       ..close();
-    compiler.reporter
-        .reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    reporter.reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "View the dumped .info.json file at "
           "https://dart-lang.github.io/dump-info-visualizer"
     });
   }
 
   void dumpInfoBinary(AllInfo data) {
-    final name =
-        (compiler.options.outputUri?.pathSegments.last ?? 'out') + ".info.data";
-    Sink<List<int>> sink = BinaryOutputSinkAdapter(compiler.outputProvider
-        .createBinarySink(compiler.options.outputUri!.resolve(name)));
+    final name = (options.outputUri?.pathSegments.last ?? 'out') + ".info.data";
+    Sink<List<int>> sink = BinaryOutputSinkAdapter(
+        outputProvider.createBinarySink(options.outputUri!.resolve(name)));
     dump_info.encode(data, sink);
-    compiler.reporter
-        .reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+    reporter.reportInfoMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
       'text': "Use `package:dart2js_info` to parse and process the dumped "
           ".info.data file."
     });
@@ -1417,32 +1622,25 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       }
     }
 
-    var fragmentsToLoad =
-        compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
-    var fragmentMerger =
-        compiler.backendStrategy.emitterTask.emitter.fragmentMerger;
-    result.info.deferredFiles =
-        fragmentMerger.computeDeferredMap(fragmentsToLoad);
+    result.info.deferredFiles = _dumpInfoData.fragmentDeferredMap;
     stopwatch.stop();
 
     result.info.program = ProgramInfo(
         entrypoint: infoCollector
                 .state.entityToInfo[closedWorld.elementEnvironment.mainFunction]
             as FunctionInfo,
-        size: _programSize,
+        size: _dumpInfoData.programSize,
         ramUsage: await currentHeapCapacityInMb(),
-        dart2jsVersion:
-            compiler.options.hasBuildId ? compiler.options.buildId : null,
+        dart2jsVersion: options.hasBuildId ? options.buildId : null,
         compilationMoment: DateTime.now(),
-        compilationDuration: compiler.measurer.elapsedWallClock,
+        compilationDuration: measurer.elapsedWallClock,
         toJsonDuration: Duration(milliseconds: stopwatch.elapsedMilliseconds),
         dumpInfoDuration: Duration(milliseconds: this.timing),
         noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
         isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
         isIsolateInUse: false,
         isFunctionApplyUsed: closedWorld.backendUsage.isFunctionApplyUsed,
-        isMirrorsUsed: closedWorld.backendUsage.isMirrorsUsed,
-        minified: compiler.options.enableMinification);
+        minified: options.enableMinification);
 
     return result;
   }
@@ -1501,32 +1699,25 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
       }
     }
 
-    var fragmentsToLoad =
-        compiler.backendStrategy.emitterTask.emitter.finalizedFragmentsToLoad;
-    var fragmentMerger =
-        compiler.backendStrategy.emitterTask.emitter.fragmentMerger;
-    result.info.deferredFiles =
-        fragmentMerger.computeDeferredMap(fragmentsToLoad);
+    result.info.deferredFiles = _dumpInfoData.fragmentDeferredMap;
     stopwatch.stop();
 
     result.info.program = ProgramInfo(
         entrypoint: infoCollector
                 .state.entityToInfo[closedWorld.elementEnvironment.mainFunction]
             as FunctionInfo,
-        size: _programSize,
+        size: _dumpInfoData.programSize,
         ramUsage: await currentHeapCapacityInMb(),
-        dart2jsVersion:
-            compiler.options.hasBuildId ? compiler.options.buildId : null,
+        dart2jsVersion: options.hasBuildId ? options.buildId : null,
         compilationMoment: DateTime.now(),
-        compilationDuration: compiler.measurer.elapsedWallClock,
+        compilationDuration: measurer.elapsedWallClock,
         toJsonDuration: Duration(milliseconds: stopwatch.elapsedMilliseconds),
         dumpInfoDuration: Duration(milliseconds: this.timing),
         noSuchMethodEnabled: closedWorld.backendUsage.isNoSuchMethodUsed,
         isRuntimeTypeUsed: closedWorld.backendUsage.isRuntimeTypeUsed,
         isIsolateInUse: false,
         isFunctionApplyUsed: closedWorld.backendUsage.isFunctionApplyUsed,
-        isMirrorsUsed: closedWorld.backendUsage.isMirrorsUsed,
-        minified: compiler.options.enableMinification);
+        minified: options.enableMinification);
 
     return result;
   }

@@ -1,0 +1,144 @@
+// @dart = 2.9
+AbstractClassWithConstructor abstractClassWithConstructor = const AbstractClassWithConstructor();
+ClassWithNonEmptyConstConstructor classWithNonEmptyConstConstructor = const ClassWithNonEmptyConstConstructor();
+ConstClassWithFailingAssertWithEmptyMessage failedAssertEmptyMessage = const ConstClassWithFailingAssertWithEmptyMessage();
+ConstClassWithFinalFields2 constClassWithFinalFields = const ConstClassWithFinalFields2();
+T id1<T>(T t) => t;
+T id2<T>(T t) => t;
+abstract class AbstractClass {}
+abstract class AbstractClassWithConstructor {
+  const AbstractClassWithConstructor();
+  int foo();
+}
+class ClassWithNonEmptyConstConstructor {
+  const ClassWithNonEmptyConstConstructor() {}
+}
+class ClassWithTypeArguments<E, F, G> {
+  const ClassWithTypeArguments(E e, F f, G g);
+}
+class ConstClassWithFailingAssertWithEmptyMessage {
+  const ConstClassWithFailingAssertWithEmptyMessage() : assert(false, "");
+}
+class ConstClassWithFinalFields1 {
+  const ConstClassWithFinalFields1();
+  final x = 1;
+}
+class ConstClassWithFinalFields2 {
+  const ConstClassWithFinalFields2();
+  final y = 1;
+  final z1 = y;
+  final z2 = x;
+}
+class ExtendsFoo1 extends Foo {}
+class ExtendsFoo2 extends Foo {
+  const ExtendsFoo2();
+}
+class Foo {
+  const Foo(int x) : this.x = x, this.y = "hello".length;
+  final int x;
+  final int y;
+}
+class NotAbstractClass {
+  @AbstractClassWithConstructor()
+  Object bar;
+  @AbstractClass()
+  Object foo;
+}
+const ClassWithTypeArguments classWithTypeArguments1 = const ClassWithTypeArguments<int, int, int>(42, 42, 42);
+const ClassWithTypeArguments classWithTypeArguments2 = const ClassWithTypeArguments(42, 42, 42);
+const ExtendsFoo1 extendsFoo1 = const ExtendsFoo1();
+const ExtendsFoo2 extendsFoo2 = const ExtendsFoo2();
+const Foo foo1 = const Foo(42);
+const Foo foo2 = const Foo(42);
+const String barFromEnvOrActualString = const String.fromEnvironment("bar", defaultValue: "hello");
+const String barFromEnvOrNullString = const String.fromEnvironment("bar", defaultValue: null);
+const String barFromEnvString = const String.fromEnvironment("bar");
+const String bazFromEnvAsString = const String.fromEnvironment("baz");
+const String nullFromEnvString = const String.fromEnvironment(barFromEnvOrNullString);
+const Symbol barFoo = const Symbol("Foo");
+const Symbol barFooEqual = const Symbol("Foo=");
+const Symbol symbolWithDots = const Symbol("I.Have.Dots");
+const Symbol tripleShiftSymbol = const Symbol(">>>");
+const binaryOnDouble = willBeDouble << 2;
+const binaryOnIntWithDoubleBad = willBeInt << willBeDouble;
+const binaryOnIntWithDoubleOK = willBeInt + willBeDouble;
+const binaryOnIntWithString = willBeInt << "hello";
+const binaryOnStringWithInt = willBeString + willBeInt;
+const binaryOnStringWithStringBad = willBeString - " world";
+const binaryOnStringWithStringOK = willBeString + " world";
+const bool andOnFalse = nullAwareOnNullFalse && nullAwareOnNullTrue;
+const bool andOnFalse2 = nullAwareOnNullTrue && nullAwareOnNullFalse;
+const bool andOnNull = barFromEnvOrNull && true;
+const bool andOnNull2 = true && barFromEnvOrNull;
+const bool barFromEnv = const bool.fromEnvironment("bar");
+const bool barFromEnvBool = const bool.fromEnvironment("bar");
+const bool barFromEnvOrActualBool = const bool.fromEnvironment("bar", defaultValue: true);
+const bool barFromEnvOrNull = const bool.fromEnvironment("bar", defaultValue: null);
+const bool barFromEnvOrNullBool = const bool.fromEnvironment("bar", defaultValue: null);
+const bool bazFalseFromEnv = const bool.fromEnvironment("bazFalse");
+const bool bazFromEnv = const bool.fromEnvironment("baz");
+const bool bazTrueFromEnv = const bool.fromEnvironment("bazTrue");
+const bool binaryOnBoolAmpersand = trueBool & falseBool;
+const bool binaryOnBoolBar = trueBool | falseBool;
+const bool binaryOnBoolBar2 = falseBool | trueBool;
+const bool binaryOnBoolCaret = trueBool ^ falseBool;
+const bool classWithTypeArgumentsIdentical = identical(classWithTypeArguments1, classWithTypeArguments2);
+const bool conditionalOnNull = barFromEnvOrNull ? true : false;
+const bool falseBool = false;
+const bool foosEqual = foo1 == foo2;
+const bool foosIdentical = identical(foo1, foo2);
+const bool hasBarEnv = const bool.hasEnvironment("bar");
+const bool hasBazEnv = const bool.hasEnvironment("baz");
+const bool isItInt = maybeInt is int ? true : false;
+const bool isItInt2 = maybeInt2 is int ? true : false;
+const bool isItInt3 = maybeInt3 is int ? true : false;
+const bool notBarFromEnvOrNull = !barFromEnvOrNull;
+const bool nullAwareOnNullFalse = barFromEnvOrNull ?? false;
+const bool nullAwareOnNullTrue = barFromEnvOrNull ?? true;
+const bool nullFromEnvBool = const bool.fromEnvironment(barFromEnvOrNullString);
+const bool orOnNull = barFromEnvOrNull || true;
+const bool orOnNull2 = barFromEnvOrNull || false;
+const bool orOnNull3 = true || barFromEnvOrNull;
+const bool orOnNull4 = false || barFromEnvOrNull;
+const bool trueBool = true;
+const bool yBool = true;
+const bool zBool = !yBool;
+const dynamic willBeDouble = const bool.fromEnvironment("foo") ? 42 : 42.42;
+const dynamic willBeInt = const bool.fromEnvironment("foo") ? 42.42 : 42;
+const dynamic willBeString = const bool.fromEnvironment("foo") ? 42.42 : "hello";
+const dynamic willBecomeNull = const bool.fromEnvironment("foo") ? id1 : null;
+const function_const = () {};
+const int Function(int) partialInstantiation = const bool.fromEnvironment("foo") ? willBecomeNull : id1;
+const int Function(int) willBecomeNullToo = const bool.fromEnvironment("foo") ? id1 : willBecomeNull;
+const int barFromEnvInt = const int.fromEnvironment("bar");
+const int barFromEnvOrActualInt = const int.fromEnvironment("bar", defaultValue: 42);
+const int barFromEnvOrNullInt = const int.fromEnvironment("bar", defaultValue: null);
+const int bazFromEnvAsInt = const int.fromEnvironment("baz");
+const int circularity1 = circularity2;
+const int circularity2 = circularity3;
+const int circularity3 = circularity4;
+const int circularity4 = circularity1;
+const int nullFromEnvInt = const int.fromEnvironment(barFromEnvOrNullString);
+const maybeInt = bool.fromEnvironment("foo") ? 42 : true;
+const maybeInt2 = zBool ? 42 : true;
+const maybeInt3 = zBool ? 42 : null;
+const nanEqual = 0 / 0 == 0 / 0;
+const nanIdentical = identical(0 / 0, 0 / 0);
+const x1 = --x;
+const x2 = ++x;
+const x3 = x--;
+const x4 = x++;
+const y = 1;
+const y1 = --y;
+const y2 = ++y;
+const y3 = y--;
+const y4 = y++;
+const zeroEqualToZeroPointZero = 0 == 0.0;
+const zeroIdenticalToZeroPointZero = identical(0, 0.0);
+const zeroPointZeroEqual = 0.0 == 0.0;
+const zeroPointZeroEqualToZero = 0.0 == 0;
+const zeroPointZeroIdentical = identical(0.0, 0.0);
+const zeroPointZeroIdenticalToZero = identical(0.0, 0);
+main() {}
+var function_var = () {};
+var x = 1;

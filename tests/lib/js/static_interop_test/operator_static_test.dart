@@ -16,60 +16,60 @@ class StaticInterop {}
 extension _ on StaticInterop {
   // https://dart.dev/guides/language/language-tour#_operators for the list of
   // operators allowed by the language.
-  external void operator <(_);
+  external void operator <(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator >(_);
+  external void operator >(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator <=(_);
+  external void operator <=(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator >=(_);
+  external void operator >=(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator -(_);
+  external void operator -(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator +(_);
+  external void operator +(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator /(_);
+  external void operator /(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator ~/(_);
+  external void operator ~/(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator *(_);
+  external void operator *(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator %(_);
+  external void operator %(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator |(_);
+  external void operator |(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator ^(_);
+  external void operator ^(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator &(_);
+  external void operator &(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator <<(_);
+  external void operator <<(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator >>(_);
+  external void operator >>(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator >>>(_);
+  external void operator >>>(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
   @JS('rename')
-  external void operator [](_);
+  external void operator [](JSAny _);
   //                     ^
   // [web] JS interop operator methods cannot be renamed using the '@JS' annotation.
   @JS('rename')
-  external void operator []=(_, __);
+  external void operator []=(JSAny _, JSAny __);
   //                     ^
   // [web] JS interop operator methods cannot be renamed using the '@JS' annotation.
   external void operator ~();
@@ -80,64 +80,61 @@ extension _ on StaticInterop {
 }
 
 @JS()
-inline class Inline {
-  final JSObject obj;
-  external Inline();
-
-  external void operator <(_);
+extension type ExtensionType(JSObject _) {
+  external void operator <(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator >(_);
+  external void operator >(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator <=(_);
+  external void operator <=(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator >=(_);
+  external void operator >=(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator -(_);
+  external void operator -(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator +(_);
+  external void operator +(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator /(_);
+  external void operator /(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator ~/(_);
+  external void operator ~/(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator *(_);
+  external void operator *(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator %(_);
+  external void operator %(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator |(_);
+  external void operator |(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator ^(_);
+  external void operator ^(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator &(_);
+  external void operator &(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator <<(_);
+  external void operator <<(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator >>(_);
+  external void operator >>(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
-  external void operator >>>(_);
+  external void operator >>>(JSAny _);
   //                     ^
   // [web] JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.
   @JS('rename')
-  external void operator [](_);
+  external void operator [](JSAny _);
   //                     ^
   // [web] JS interop operator methods cannot be renamed using the '@JS' annotation.
   @JS('rename')
-  external void operator []=(_, __);
+  external void operator []=(JSAny _, JSAny __);
   //                     ^
   // [web] JS interop operator methods cannot be renamed using the '@JS' annotation.
   external void operator ~();

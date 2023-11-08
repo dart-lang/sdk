@@ -20,29 +20,17 @@ class Isolate;
 class Message;
 class MessageHandler;
 class Mutex;
-class PortMapTestPeer;
 
 class PortMap : public AllStatic {
  public:
-  enum PortState {
-    kNewPort = 0,      // a newly allocated port
-    kLivePort = 1,     // a regular port (has a ReceivePort)
-    kControlPort = 2,  // a special control port (has a ReceivePort)
-    kInactivePort =
-        3,  // an inactive port (has a ReceivePort) not considered live.
-  };
-
   // Allocate a port for the provided handler and return its VM-global id.
   static Dart_Port CreatePort(MessageHandler* handler);
-
-  // Indicates that a port has had a ReceivePort created for it at the
-  // dart language level.  The port remains live until it is closed.
-  static void SetPortState(Dart_Port id, PortState kind);
 
   // Close the port with id. All pending messages will be dropped.
   //
   // Returns true if the port is successfully closed.
-  static bool ClosePort(Dart_Port id);
+  static bool ClosePort(Dart_Port id,
+                        MessageHandler** message_handler = nullptr);
 
   // Close all the ports for the provided handler.
   static void ClosePorts(MessageHandler* handler);
@@ -54,17 +42,17 @@ class PortMap : public AllStatic {
   static bool PostMessage(std::unique_ptr<Message> message,
                           bool before_events = false);
 
-  // Returns whether a port is local to the current isolate.
-  static bool IsLocalPort(Dart_Port id);
-
-  // Returns whether a port is live (e.g., is not new or inactive).
-  static bool IsLivePort(Dart_Port id);
 
   // Returns the owning Isolate for port 'id'.
   static Isolate* GetIsolate(Dart_Port id);
 
   // Returns the origin id for port 'id'.
   static Dart_Port GetOriginId(Dart_Port id);
+
+#if defined(TESTING)
+  static bool PortExists(Dart_Port id);
+  static bool HasPorts(MessageHandler* handler);
+#endif
 
   // Whether the destination port's isolate is a member of [isolate_group].
   static bool IsReceiverInThisIsolateGroupOrClosed(Dart_Port receiver,
@@ -79,16 +67,11 @@ class PortMap : public AllStatic {
   static void DebugDumpForMessageHandler(MessageHandler* handler);
 
  private:
-  friend class dart::PortMapTestPeer;
-
   struct Entry : public PortSet<Entry>::Entry {
-    Entry() : handler(nullptr), state(kNewPort) {}
+    Entry() : handler(nullptr) {}
 
     MessageHandler* handler;
-    PortState state;
   };
-
-  static const char* PortStateString(PortState state);
 
   // Allocate a new unique port.
   static Dart_Port AllocatePort();
@@ -97,7 +80,6 @@ class PortMap : public AllStatic {
   static Mutex* mutex_;
 
   static PortSet<Entry>* ports_;
-  static MessageHandler* deleted_entry_;
 
   static Random* prng_;
 };

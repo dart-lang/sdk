@@ -47,6 +47,9 @@ bool hasJSExportAnnotation(Annotatable a) =>
 bool hasNativeAnnotation(Annotatable a) =>
     a.annotations.any(_isNativeAnnotation);
 
+/// Returns true iff the node has an `@patch` annotation from `dart:_internal`.
+bool hasPatchAnnotation(Annotatable a) => a.annotations.any(_isPatchAnnotation);
+
 /// If [a] has a `@JS('...')` annotation, returns the value inside the
 /// parentheses.
 ///
@@ -105,6 +108,7 @@ String getJSExportName(Annotatable a) {
 }
 
 final _packageJs = Uri.parse('package:js/js.dart');
+final _internal = Uri.parse('dart:_internal');
 final _jsAnnotations = Uri.parse('dart:_js_annotations');
 final _jsHelper = Uri.parse('dart:_js_helper');
 final _jsInterop = Uri.parse('dart:js_interop');
@@ -151,6 +155,14 @@ bool _isNativeAnnotation(Expression value) {
   return c != null &&
       c.name == 'Native' &&
       c.enclosingLibrary.importUri == _jsHelper;
+}
+
+/// Returns true if [value] is the `patch` annotation from `dart:_internal`.
+bool _isPatchAnnotation(Expression value) {
+  var c = annotationClass(value);
+  return c != null &&
+      c.name == '_Patch' &&
+      c.enclosingLibrary.importUri == _internal;
 }
 
 /// Returns the class of the instance referred to by metadata annotation [node].

@@ -63,9 +63,9 @@ class D extends self::_D&C&M {
 extension Ext on self::C {
   static method estat = self::Ext|estat;
   method einst = self::Ext|einst;
-  tearoff einst = self::Ext|get#einst;
+  method tearoff einst = self::Ext|get#einst;
   method emethod = self::Ext|emethod;
-  tearoff emethod = self::Ext|get#emethod;
+  method tearoff emethod = self::Ext|get#emethod;
 }
 static method top<T extends core::Object? = dynamic>(self::top::T% value) → self::top::T%
   return value;

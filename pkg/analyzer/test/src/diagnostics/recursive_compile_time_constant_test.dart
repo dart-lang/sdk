@@ -61,17 +61,6 @@ enum E {
     ]);
   }
 
-  test_field() async {
-    await assertErrorsInCode(r'''
-class A {
-  const A();
-  final m = const A();
-}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 31, 1),
-    ]);
-  }
-
   test_fromMapLiteral() async {
     newFile(
       '$testPackageLibPath/constants.dart',
@@ -85,18 +74,6 @@ const int y = x;
 import 'constants.dart';
 final z = {x: 0, y: 1};
 ''');
-  }
-
-  test_initializer_after_toplevel_var() async {
-    await assertErrorsInCode('''
-const y = const C();
-class C {
-  const C() : x = y;
-  final x;
-}
-''', [
-      error(CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT, 6, 1),
-    ]);
   }
 
   test_singleVariable() async {

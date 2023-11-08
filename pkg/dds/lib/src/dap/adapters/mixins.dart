@@ -61,7 +61,12 @@ mixin TestAdapter {
   final Map<int, String> _testNames = {};
 
   void sendEvent(EventBody body, {String? eventType});
-  void sendOutput(String category, String message, {int? variablesReference});
+  void sendOutput(
+    String category,
+    String message, {
+    int? variablesReference,
+    bool? parseStackFrames,
+  });
 
   void sendTestEvents(Object testNotification) {
     // Send the JSON package as a raw notification so the client can interpret
@@ -227,5 +232,13 @@ mixin FileUtils {
       return filePath;
     }
     return filePath.substring(0, 1).toUpperCase() + filePath.substring(1);
+  }
+
+  /// Normalizes a file [Uri] via [normalizePath].
+  Uri normalizeUri(Uri fileUri) {
+    if (!fileUri.isScheme('file')) {
+      return fileUri;
+    }
+    return Uri.file(normalizePath(fileUri.toFilePath()));
   }
 }

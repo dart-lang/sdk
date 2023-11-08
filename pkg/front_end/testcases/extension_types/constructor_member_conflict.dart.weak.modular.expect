@@ -1,0 +1,131 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/constructor_member_conflict.dart:6:3: Error: Final field 'it' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   ExtensionType.constructorAndMethod();
+//   ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extension_types/constructor_member_conflict.dart:5:34: Context: 'it' is defined here.
+// extension type ExtensionType(int it) {
+//                                  ^^
+//
+// pkg/front_end/testcases/extension_types/constructor_member_conflict.dart:17:3: Error: Final field 'it' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   ExtensionType.constructorAndGetter();
+//   ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extension_types/constructor_member_conflict.dart:5:34: Context: 'it' is defined here.
+// extension type ExtensionType(int it) {
+//                                  ^^
+//
+// pkg/front_end/testcases/extension_types/constructor_member_conflict.dart:28:3: Error: Final field 'it' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   ExtensionType.constructorAndSetter();
+//   ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/extension_types/constructor_member_conflict.dart:5:34: Context: 'it' is defined here.
+// extension type ExtensionType(int it) {
+//                                  ^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type ExtensionType(core::int it) {
+  method constructorAndMethod = self::ExtensionType|constructorAndMethod;
+  method tearoff constructorAndMethod = self::ExtensionType|get#constructorAndMethod;
+  method factoryAndMethod = self::ExtensionType|factoryAndMethod;
+  method tearoff factoryAndMethod = self::ExtensionType|get#factoryAndMethod;
+  method redirectingFactoryAndMethod = self::ExtensionType|redirectingFactoryAndMethod;
+  method tearoff redirectingFactoryAndMethod = self::ExtensionType|get#redirectingFactoryAndMethod;
+  get constructorAndGetter = self::ExtensionType|get#constructorAndGetter;
+  get factoryAndGetter = self::ExtensionType|get#factoryAndGetter;
+  get redirectingFactoryAndGetter = self::ExtensionType|get#redirectingFactoryAndGetter;
+  set constructorAndSetter = self::ExtensionType|set#constructorAndSetter;
+  set factoryAndSetter = self::ExtensionType|set#factoryAndSetter;
+  set redirectingFactoryAndSetter = self::ExtensionType|set#redirectingFactoryAndSetter;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+  constructor constructorAndMethod = self::ExtensionType|constructor#constructorAndMethod;
+  constructor tearoff constructorAndMethod = self::ExtensionType|constructor#_#constructorAndMethod#tearOff;
+  static factory factoryAndMethod = self::ExtensionType|constructor#factoryAndMethod;
+  static factory tearoff factoryAndMethod = self::ExtensionType|constructor#_#factoryAndMethod#tearOff;
+  static redirecting-factory redirectingFactoryAndMethod = self::ExtensionType|constructor#redirectingFactoryAndMethod;
+  static redirecting-factory tearoff redirectingFactoryAndMethod = self::ExtensionType|constructor#_#redirectingFactoryAndMethod#tearOff;
+  constructor constructorAndGetter = self::ExtensionType|constructor#constructorAndGetter;
+  constructor tearoff constructorAndGetter = self::ExtensionType|constructor#_#constructorAndGetter#tearOff;
+  static factory factoryAndGetter = self::ExtensionType|constructor#factoryAndGetter;
+  static factory tearoff factoryAndGetter = self::ExtensionType|constructor#_#factoryAndGetter#tearOff;
+  static redirecting-factory redirectingFactoryAndGetter = self::ExtensionType|constructor#redirectingFactoryAndGetter;
+  static redirecting-factory tearoff redirectingFactoryAndGetter = self::ExtensionType|constructor#_#redirectingFactoryAndGetter#tearOff;
+  constructor constructorAndSetter = self::ExtensionType|constructor#constructorAndSetter;
+  constructor tearoff constructorAndSetter = self::ExtensionType|constructor#_#constructorAndSetter#tearOff;
+  static factory factoryAndSetter = self::ExtensionType|constructor#factoryAndSetter;
+  static factory tearoff factoryAndSetter = self::ExtensionType|constructor#_#factoryAndSetter#tearOff;
+  static redirecting-factory redirectingFactoryAndSetter = self::ExtensionType|constructor#redirectingFactoryAndSetter;
+  static redirecting-factory tearoff redirectingFactoryAndSetter = self::ExtensionType|constructor#_#redirectingFactoryAndSetter#tearOff;
+}
+static inline-class-member method ExtensionType|constructor#(core::int it) → self::ExtensionType /* = core::int */ {
+  lowered final self::ExtensionType /* = core::int */ #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType|constructor#_#new#tearOff(core::int it) → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#(it);
+static inline-class-member method ExtensionType|constructor#constructorAndMethod() → self::ExtensionType /* = core::int */ {
+  lowered final self::ExtensionType /* = core::int */ #this;
+  return #this;
+}
+static inline-class-member method ExtensionType|constructor#_#constructorAndMethod#tearOff() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#constructorAndMethod();
+static inline-class-member method ExtensionType|constructorAndMethod(lowered final self::ExtensionType /* = core::int */ #this) → void {}
+static inline-class-member method ExtensionType|get#constructorAndMethod(lowered final self::ExtensionType /* = core::int */ #this) → () → void
+  return () → void => self::ExtensionType|constructorAndMethod(#this);
+static inline-class-member method ExtensionType|constructor#factoryAndMethod() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#constructorAndMethod();
+static inline-class-member method ExtensionType|constructor#_#factoryAndMethod#tearOff() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#factoryAndMethod();
+static inline-class-member method ExtensionType|factoryAndMethod(lowered final self::ExtensionType /* = core::int */ #this) → void {}
+static inline-class-member method ExtensionType|get#factoryAndMethod(lowered final self::ExtensionType /* = core::int */ #this) → () → void
+  return () → void => self::ExtensionType|factoryAndMethod(#this);
+static inline-class-member method ExtensionType|constructor#redirectingFactoryAndMethod() → self::ExtensionType /* = core::int */ /* redirection-target: self::ExtensionType|constructor#constructorAndMethod */
+  return self::ExtensionType|constructor#constructorAndMethod();
+static inline-class-member method ExtensionType|constructor#_#redirectingFactoryAndMethod#tearOff() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#constructorAndMethod();
+static inline-class-member method ExtensionType|redirectingFactoryAndMethod(lowered final self::ExtensionType /* = core::int */ #this) → void {}
+static inline-class-member method ExtensionType|get#redirectingFactoryAndMethod(lowered final self::ExtensionType /* = core::int */ #this) → () → void
+  return () → void => self::ExtensionType|redirectingFactoryAndMethod(#this);
+static inline-class-member method ExtensionType|constructor#constructorAndGetter() → self::ExtensionType /* = core::int */ {
+  lowered final self::ExtensionType /* = core::int */ #this;
+  return #this;
+}
+static inline-class-member method ExtensionType|constructor#_#constructorAndGetter#tearOff() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#constructorAndGetter();
+static inline-class-member method ExtensionType|get#constructorAndGetter(lowered final self::ExtensionType /* = core::int */ #this) → dynamic
+  return null;
+static inline-class-member method ExtensionType|constructor#factoryAndGetter() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#constructorAndGetter();
+static inline-class-member method ExtensionType|constructor#_#factoryAndGetter#tearOff() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#factoryAndGetter();
+static inline-class-member method ExtensionType|get#factoryAndGetter(lowered final self::ExtensionType /* = core::int */ #this) → dynamic
+  return null;
+static inline-class-member method ExtensionType|constructor#redirectingFactoryAndGetter() → self::ExtensionType /* = core::int */ /* redirection-target: self::ExtensionType|constructor#constructorAndGetter */
+  return self::ExtensionType|constructor#constructorAndGetter();
+static inline-class-member method ExtensionType|constructor#_#redirectingFactoryAndGetter#tearOff() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#constructorAndGetter();
+static inline-class-member method ExtensionType|get#redirectingFactoryAndGetter(lowered final self::ExtensionType /* = core::int */ #this) → dynamic
+  return null;
+static inline-class-member method ExtensionType|constructor#constructorAndSetter() → self::ExtensionType /* = core::int */ {
+  lowered final self::ExtensionType /* = core::int */ #this;
+  return #this;
+}
+static inline-class-member method ExtensionType|constructor#_#constructorAndSetter#tearOff() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#constructorAndSetter();
+static inline-class-member method ExtensionType|set#constructorAndSetter(lowered final self::ExtensionType /* = core::int */ #this, dynamic value) → void {}
+static inline-class-member method ExtensionType|constructor#factoryAndSetter() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#constructorAndSetter();
+static inline-class-member method ExtensionType|constructor#_#factoryAndSetter#tearOff() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#factoryAndSetter();
+static inline-class-member method ExtensionType|set#factoryAndSetter(lowered final self::ExtensionType /* = core::int */ #this, dynamic value) → void {}
+static inline-class-member method ExtensionType|constructor#redirectingFactoryAndSetter() → self::ExtensionType /* = core::int */ /* redirection-target: self::ExtensionType|constructor#constructorAndSetter */
+  return self::ExtensionType|constructor#constructorAndSetter();
+static inline-class-member method ExtensionType|constructor#_#redirectingFactoryAndSetter#tearOff() → self::ExtensionType /* = core::int */
+  return self::ExtensionType|constructor#constructorAndSetter();
+static inline-class-member method ExtensionType|set#redirectingFactoryAndSetter(lowered final self::ExtensionType /* = core::int */ #this, dynamic value) → void {}

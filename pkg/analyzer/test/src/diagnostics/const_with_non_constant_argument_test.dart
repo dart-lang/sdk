@@ -79,4 +79,19 @@ f(p) { return const A(p); }
       error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 48, 1),
     ]);
   }
+
+  test_issue47603() async {
+    await assertErrorsInCode(r'''
+class C {
+  final void Function() c;
+  const C(this.c);
+}
+
+void main() {
+  const C(() {});
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5),
+    ]);
+  }
 }

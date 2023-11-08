@@ -13,19 +13,28 @@ void main(List<String> args) async {
   // No --source option, `dart run` from source does not output target program
   // stdout.
 
-  test('dart run ', timeout: longTimeout, () async {
-    await nativeAssetsTest('dart_app', (dartAppUri) async {
-      final result = await runDart(
-        arguments: [
-          '--enable-experiment=native-assets',
-          'run',
-        ],
-        workingDirectory: dartAppUri,
-        logger: logger,
-      );
-      expectDartAppStdout(result.stdout);
+  for (final verbose in [true, false]) {
+    final testModifier = ['', if (verbose) 'verbose'].join(' ');
+    test('dart run$testModifier', timeout: longTimeout, () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            'run',
+            if (verbose) '-v',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        expectDartAppStdout(result.stdout);
+        if (verbose) {
+          expect(result.stdout, contains('build.dart'));
+        } else {
+          expect(result.stdout, isNot(contains('build.dart')));
+        }
+      });
     });
-  });
+  }
 
   test('dart run test/xxx_test.dart', timeout: longTimeout, () async {
     await nativeAssetsTest('native_add', (packageUri) async {
@@ -47,6 +56,22 @@ void main(List<String> args) async {
           ],
         ),
       );
+    });
+  });
+
+  test('dart build native assets disabled', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          'run',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(result.exitCode, isNot(0));
+      expect(result.stderr, contains('Enable native assets'));
+      expect(result.stderr, contains('native_add'));
     });
   });
 }

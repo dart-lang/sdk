@@ -251,8 +251,8 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
       }
     }
     // Verify that all required named parameters are provided an argument.
-    if (requiredCount > 0) {
-      Iterable requiredNames = getOwnPropertyNames(requiredNamed);
+    Iterable requiredNames = getOwnPropertyNames(requiredNamed);
+    if (JS<int>('!', '#.length', requiredNames) > 0) {
       var missingRequired = namedActuals == null
           ? requiredNames
           : requiredNames.where((name) =>
@@ -661,6 +661,56 @@ dindex(obj, index) => callMethod(obj, '_get', null, [index], null, '[]');
 dsetindex(obj, index, value) =>
     callMethod(obj, '_set', null, [index, value], null, '[]=');
 
+// TODO(nshahan): Cleanup the following `is`, `as`, and isSubtype
+// implementations.
+//
+// The logic is currently too convoluted but is temporary while the
+// implementation gets added directly to the dart:rti library and moved out of
+// the DDC only runtime library.
+//
+// These methods are dead code when running with sound null safety.
+//
+// Ideally each runtime should be able to set the compile time flag
+// `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')` and these helpers will no longer be
+// needed. The dart:rti library will know how to perform the checks and call a
+// method for the backend specific warning/error/logging.
+//
+// As currently written flow goes as follows:
+//   1) A type check (`is`, `as`, or isSubtype) is dispatched to the
+//      corresponding helper.
+//   2) The legacy stars are stripped out of the test type. This is expected to
+//      prove less impactful over time. Once all code has been migrated to ^2.12
+//      getting a legacy type on the RHS of a type test is much harder. Possibly
+//      only achievable through type checks involving type variables
+//      instantiated in constants.
+//   3) Flags are set manually to tell the dart:rti library how to perform the
+//      upcoming type check:
+//      - `extraNullSafetyChecks`: This is currently used to signal that if the type
+//        check reaches the full `isSubtype()` implementation, the legacy stars
+//        should be erased from the rti that is extracted from the value being
+//        tested.
+//      - `legacyTypeChecks`: This is currently used to signal that the test
+//        should be performed with sound semantics.
+//   4) Perform the sound type check using the legacy erased test type. This may
+//      fall into a fast path optimization for simple checks like
+//      `val is String?`. If the test involves a more complicated check it might
+//      trigger the extraction of the rti from the value being tested and passed
+//      to the full `isSubtype()` implementation. This uncertainty requires the
+//      two flags described above.
+//      - Note: `isSubtype()` uses two caches (sound and unsound) to speedup
+//        repeated checks if the results have already been determined. This
+//        could be reduced to a single cache when a reporting method is called
+//        from the dart:rti library directly. The single cache could store one
+//        of three values: "pass", "fail", and "disagree" (passes when unsound
+//        but would fail if sound).
+//   5) Reset the flags back to the default state.
+//   6) If the check passes then it will also pass in weak mode so simply return
+//      the result.
+//   7) Otherwise, perform the same type check in weak mode without erasing
+//      any legacy types.
+//   8) If the result disagrees with the sound mode check issue a warning.
+//   9) Return the result.
+
 /// General implementation of the Dart `is` operator.
 ///
 /// Some basic cases are handled directly by the `.is` methods that are attached
@@ -670,22 +720,33 @@ dsetindex(obj, index, value) =>
 @JSExportName('is')
 bool instanceOf(obj, type) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    var testRti = JS<rti.Rti>('!', '#', type);
     // When running without sound null safety is type tests are dispatched here
     // to issue optional warnings/errors when the result is true but would be
     // false with sound null safety.
-    var legacyErasedRecipe =
-        rti.Rti.getLegacyErasedRecipe(JS<rti.Rti>('!', '#', testRti));
-    var legacyErasedType = rti.findType(legacyErasedRecipe);
+    var testRti = JS<rti.Rti>('!', '#', type);
+    // TODO(nshahan): Move to isSubtype in dart:rti once all fast path checks
+    // have been updated to be aware of
+    // `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')`.
+    rti.Rti legacyErasedType;
+    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
+      // When preserving the legacy stars in the runtime type, avoid caching
+      // the version with erased types on the Rti.
+      var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(testRti);
+      legacyErasedType = rti.findType(legacyErasedRecipe);
+    } else {
+      legacyErasedType = rti.getLegacyErasedRti(testRti);
+    }
+    extraNullSafetyChecks = true;
     legacyTypeChecks = false;
     var result = JS<bool>('bool', '#.#(#)', legacyErasedType,
         JS_GET_NAME(JsGetName.RTI_FIELD_IS), obj);
+    extraNullSafetyChecks = false;
     legacyTypeChecks = true;
     if (result) return true;
     result =
         JS('bool', '#.#(#)', testRti, JS_GET_NAME(JsGetName.RTI_FIELD_IS), obj);
     if (result) {
-      // Type test passes put would fail with sound null safety.
+      // Type test returned true but would be false with sound null safety.
       var t1 = runtimeType(obj);
       var t2 = rti.createRuntimeType(testRti);
       _nullWarn('$t1 is not a subtype of $t2.');
@@ -713,18 +774,33 @@ cast(obj, type) {
     // optional warnings/errors when casts pass but would fail with sound null
     // safety.
     var testRti = JS<rti.Rti>('!', '#', type);
-    var objRti = JS<rti.Rti>('!', '#', getReifiedType(obj));
-    var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(testRti);
-    var legacyErasedType = rti.findType(legacyErasedRecipe);
+    if (obj == null && !rti.isNullable(testRti)) {
+      // Allow cast to pass but warn that it would fail in sound null safety.
+      _nullWarnOnType(type);
+      return obj;
+    }
+    // TODO(nshahan): Move to isSubtype in dart:rti once all fast path checks
+    // have been updated to be aware of
+    // `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')`.
+    rti.Rti legacyErasedType;
+    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
+      // When preserving the legacy stars in the runtime type, avoid caching
+      // the version with erased types on the Rti.
+      var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(testRti);
+      legacyErasedType = rti.findType(legacyErasedRecipe);
+    } else {
+      legacyErasedType = rti.getLegacyErasedRti(testRti);
+    }
+    extraNullSafetyChecks = true;
     legacyTypeChecks = false;
-    // Call `isSubtype()` to avoid throwing an error if it fails.
-    var result = rti.isSubtype(
-        JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), objRti, legacyErasedType);
+    var result = JS<bool>('!', '#.#(#)', legacyErasedType,
+        JS_GET_NAME(JsGetName.RTI_FIELD_IS), obj);
+    extraNullSafetyChecks = false;
     legacyTypeChecks = true;
     if (result) return obj;
     // Perform the actual cast and allow the error to be thrown if it fails.
     JS('', '#.#(#)', testRti, JS_GET_NAME(JsGetName.RTI_FIELD_AS), obj);
-    // Subtype check passes put would fail with sound null safety.
+    // Cast succeeds but would fail with sound null safety.
     var t1 = runtimeType(obj);
     var t2 = rti.createRuntimeType(testRti);
     _nullWarn('$t1 is not a subtype of $t2.');
@@ -756,17 +832,29 @@ bool _isSubtypeWithWarning(@notNull t1, @notNull t2) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     var t1Rti = JS<rti.Rti>('!', '#', t1);
     var t2Rti = JS<rti.Rti>('!', '#', t2);
-    var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(t2Rti);
-    var legacyErasedType = rti.findType(legacyErasedRecipe);
+    // TODO(nshahan): Move to isSubtype in dart:rti once all fast path checks
+    // have been updated to be aware of
+    // `JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')`.
+    rti.Rti legacyErasedType;
+    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
+      // When preserving the legacy stars in the runtime type, avoid caching
+      // the version with erased types on the Rti.
+      var legacyErasedRecipe = rti.Rti.getLegacyErasedRecipe(t2Rti);
+      legacyErasedType = rti.findType(legacyErasedRecipe);
+    } else {
+      legacyErasedType = rti.getLegacyErasedRti(t2Rti);
+    }
+    extraNullSafetyChecks = true;
     legacyTypeChecks = false;
     var validSubtype = rti.isSubtype(
         JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), t1Rti, legacyErasedType);
+    extraNullSafetyChecks = false;
     legacyTypeChecks = true;
     if (validSubtype) return true;
     validSubtype =
         rti.isSubtype(JS_EMBEDDED_GLOBAL('', RTI_UNIVERSE), t1Rti, t2Rti);
     if (validSubtype) {
-      // Subtype check passes put would fail with sound null safety.
+      // Subtype check passes but would fail with sound null safety.
       _nullWarn('${rti.createRuntimeType(t1Rti)} '
           'is not a subtype of '
           '${rti.createRuntimeType(t2Rti)}.');
@@ -1014,61 +1102,170 @@ constFn(x) => JS('', '() => x');
 /// This is inlined by the compiler when used with a literal string.
 extensionSymbol(String name) => JS('', 'dartx[#]', name);
 
-// The following are helpers for Object methods when the receiver
-// may be null. These should only be generated by the compiler.
+/// Helper method for `operator ==` used when the receiver isn't statically
+/// known to have one attached to its prototype (null or a JavaScript interop
+/// value).
+@notNull
 bool equals(x, y) {
   // We handle `y == null` inside our generated operator methods, to keep this
   // function minimal.
   // This pattern resulted from performance testing; it found that dispatching
   // was the fastest solution, even for primitive types.
-  return JS('!', '# == null ? # == null : #[#](#)', x, y, x,
-      extensionSymbol('_equals'), y);
+  if (JS<bool>('!', '# == null', x)) return JS<bool>('!', '# == null', y);
+  var probe = JS('', '#[#]', x, extensionSymbol('_equals'));
+  if (JS<bool>('!', '# !== void 0', probe)) {
+    return JS('!', '#.call(#, #)', probe, x, y);
+  }
+  return JS<bool>('!', '# === #', x, y);
 }
 
+/// Helper method for `.hashCode` used when the receiver isn't statically known
+/// to have one attached to its prototype (null or a JavaScript interop value).
+@notNull
 int hashCode(obj) {
-  return obj == null ? 0 : JS('!', '#[#]', obj, extensionSymbol('hashCode'));
+  if (obj == null) return 0;
+  var probe = JS('', '#[#]', obj, extensionSymbol('hashCode'));
+  if (JS<bool>('!', '# !== void 0', probe)) return JS<int>('!', '#', probe);
+  return identityHashCode(obj);
 }
 
+/// Helper method for `.toString` used when the receiver isn't statically known
+/// to have one attached to its prototype (null or a JavaScript interop value).
 @JSExportName('toString')
+@notNull
 String _toString(obj) {
-  if (obj == null) return "null";
   if (obj is String) return obj;
-  return JS('!', '#[#]()', obj, extensionSymbol('toString'));
+  if (obj == null) return 'null';
+  // If this object has a Dart toString method, call it.
+  var probe = JS('', '#[#]', obj, extensionSymbol('toString'));
+  if (JS<bool>('!', '# !== void 0', probe)) {
+    return JS('', '#.call(#)', probe, obj);
+  }
+  // Otherwise call the native JavaScript toString method.
+  // This differs from dart2js to provide a more useful toString at development
+  // time if one is available.
+  // If obj does not have a native toString method this will throw but that
+  // matches the behavior of dart2js and it would be misleading to make this
+  // work at development time but allow it to fail in production.
+  return JS('', '#.toString()', obj);
+}
+
+/// Helper method to provide a `.toString` tearoff used when the receiver isn't
+/// statically known to have one attached to its prototype (null or a JavaScript
+/// interop value).
+@notNull
+String Function() toStringTearoff(obj) {
+  if (obj == null ||
+      JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('toString'))) {
+    // The bind helper can handle finding the toString method for null or Dart
+    // Objects.
+    return bind(obj, extensionSymbol('toString'), null);
+  }
+  // Otherwise bind the native JavaScript toString method.
+  // This differs from dart2js to provide a more useful toString at development
+  // time if one is available.
+  // If obj does not have a native toString method this will throw but that
+  // matches the behavior of dart2js and it would be misleading to make this
+  // work at development time but allow it to fail in production.
+  return bind(obj, 'toString', null);
 }
 
 /// Converts to a non-null [String], equivalent to
 /// `dart.notNull(dart.toString(obj))`.
 ///
-/// This is commonly used in string interpolation.
+/// Only called from generated code for string interpolation.
 @notNull
 String str(obj) {
-  if (obj == null) return "null";
   if (obj is String) return obj;
-  final result = JS('', '#[#]()', obj, extensionSymbol('toString'));
+  if (obj == null) return "null";
+  var probe = JS('', '#[#]', obj, extensionSymbol('toString'));
   // TODO(40614): Declare `result` as String once non-nullability is sound.
+  final result = JS<bool>('!', '# !== void 0', probe)
+      // If this object has a Dart toString method, call it.
+      ? JS('', '#.call(#)', probe, obj)
+      // Otherwise call the native JavaScript toString method.
+      // This differs from dart2js to provide a more useful toString at
+      // development time if one is available.
+      // If obj does not have a native toString method this will throw but that
+      // matches the behavior of dart2js and it would be misleading to make this
+      // work at development time but allow it to fail in production.
+      : JS('', '#.toString()', obj);
   if (result is String) return result;
   // Since Dart 2.0, `null` is the only other option.
   throw ArgumentError.value(obj, 'object', "toString method returned 'null'");
 }
 
+/// An version of [str] that is optimized for values that we know have the Dart
+/// Core Object members on their prototype chain somewhere so it is safe to
+/// immediately call `.toString()` directly.
+///
+/// Converts to a non-null [String], equivalent to
+/// `dart.notNull(dart.toString(obj))`.
+///
+/// Only called from generated code for string interpolation.
+@notNull
+String strSafe(obj) {
+  // TODO(40614): Declare `result` as String once non-nullability is sound.
+  final result = JS('', '#[#]()', obj, extensionSymbol('toString'));
+  if (result is String) return result;
+  // Since Dart 2.0, `null` is the only other option.
+  throw ArgumentError.value(obj, 'object', "toString method returned 'null'");
+}
+
+/// Helper method for `.noSuchMethod` used when the receiver isn't statically
+/// known to have one attached to its prototype (null or a JavaScript interop
+/// value).
 // TODO(jmesserly): is the argument type verified statically?
+@notNull
 noSuchMethod(obj, Invocation invocation) {
-  if (obj == null) defaultNoSuchMethod(obj, invocation);
+  if (obj == null ||
+      JS<bool>('!', '#[#] == null', obj, extensionSymbol('noSuchMethod'))) {
+    defaultNoSuchMethod(obj, invocation);
+  }
   return JS('', '#[#](#)', obj, extensionSymbol('noSuchMethod'), invocation);
 }
 
+/// Helper method to provide a `.noSuchMethod` tearoff used when the receiver
+/// isn't statically known to have one attached to its prototype (null or a
+/// JavaScript interop value).
+@notNull
+dynamic Function(Invocation) noSuchMethodTearoff(obj) {
+  if (obj == null ||
+      JS<bool>('!', '#[#] !== void 0', obj, extensionSymbol('noSuchMethod'))) {
+    // The bind helper can handle finding the toString method for null or Dart
+    // Objects.
+    return bind(obj, extensionSymbol('noSuchMethod'), null);
+  }
+  // Otherwise, manually pass the Dart Core Object noSuchMethod to the bind
+  // helper.
+  return bind(
+      obj,
+      extensionSymbol('noSuchMethod'),
+      JS('!', '#.prototype[#]', JS_CLASS_REF(Object),
+          extensionSymbol('noSuchMethod')));
+}
+
 /// The default implementation of `noSuchMethod` to match `Object.noSuchMethod`.
-defaultNoSuchMethod(obj, Invocation i) {
+Never defaultNoSuchMethod(obj, Invocation i) {
   throw NoSuchMethodError.withInvocation(obj, i);
 }
 
+/// Helper method to provide a `.toString` tearoff used when the receiver isn't
+/// statically known to have one attached to its prototype (null or a JavaScript
+/// interop value).
 // TODO(nshahan) Replace with rti.getRuntimeType() when classes representing
 // native types don't have to "pretend" to be Dart classes. Ex:
 // JSNumber -> int or double
 // JSArray<E> -> List<E>
 // NativeFloat32List -> Float32List
-runtimeType(obj) {
-  return obj == null ? Null : JS('', '#[dartx.runtimeType]', obj);
+@notNull
+Type runtimeType(obj) {
+  if (obj == null) return Null;
+  var probe = JS<Type?>('', '#[#]', obj, extensionSymbol('runtimeType'));
+  if (JS<bool>('!', '# !== void 0', probe)) return JS<Type>('!', '#', probe);
+  return JS_GET_FLAG('NEW_RUNTIME_TYPES')
+      ? rti.createRuntimeType(JS<rti.Rti>('!', '#', getReifiedType(obj)))
+      : wrapType(getReifiedType(obj));
 }
 
 final identityHashCode_ = JS<Object>('!', 'Symbol("_identityHashCode")');
@@ -1116,6 +1313,19 @@ void ddcDeferredLoading(bool enable) {
   _ddcDeferredLoading = enable;
 }
 
+@notNull
+bool _ddcNewLoadLibraryTiming = false;
+
+/// Makes DDC return non-sync Futures from `loadLibrary` calls.
+///
+/// This makes DDC's `loadLibrary` semantics consistent with Dart2JS's.
+/// Remove this when we switch to the new semantics by default.
+///
+/// /// This is only supported in the DDC module system.
+void ddcNewLoadLibraryTiming(bool enable) {
+  _ddcNewLoadLibraryTiming = enable;
+}
+
 /// A map from libraries to a set of import prefixes that have been loaded.
 ///
 /// Used to validate deferred library conventions.
@@ -1130,18 +1340,18 @@ Future<void> loadLibrary(@notNull String libraryUri,
     @notNull String importPrefix, @notNull String targetModule) {
   if (!_ddcDeferredLoading) {
     var result = JS('', '#.get(#)', deferredImports, libraryUri);
-    if (JS<bool>('', '# === void 0', result)) {
+    if (JS<bool>('!', '# === void 0', result)) {
       JS('', '#.set(#, # = new Set())', deferredImports, libraryUri, result);
     }
     JS('', '#.add(#)', result, importPrefix);
-    return Future.value();
+    return _ddcNewLoadLibraryTiming ? Future(() {}) : Future.value();
   } else {
     int currentHotRestartIteration = hotRestartIteration;
     var loadId = '$libraryUri::$importPrefix';
     if (targetModule.isEmpty) {
       throw ArgumentError('Empty module passed for deferred load: $loadId.');
     }
-    if (JS('', r'#.deferred_loader.isLoaded(#)', global_, loadId)) {
+    if (JS<bool>('!', r'#.deferred_loader.isLoaded(#)', global_, loadId)) {
       return Future.value();
     }
     var completer = Completer();
@@ -1171,14 +1381,14 @@ void checkDeferredIsLoaded(
     @notNull String libraryUri, @notNull String importPrefix) {
   if (!_ddcDeferredLoading) {
     var loaded = JS('', '#.get(#)', deferredImports, libraryUri);
-    if (JS<bool>('', '# === void 0', loaded) ||
-        JS<bool>('', '!#.has(#)', loaded, importPrefix)) {
+    if (JS<bool>('!', '# === void 0', loaded) ||
+        JS<bool>('!', '!#.has(#)', loaded, importPrefix)) {
       throwDeferredIsLoadedError(libraryUri, importPrefix);
     }
   } else {
     var loadId = '$libraryUri::$importPrefix';
     var loaded =
-        JS<bool>('', r'#.deferred_loader.loadIds.has(#)', global_, loadId);
+        JS<bool>('!', r'#.deferred_loader.loadIds.has(#)', global_, loadId);
     if (!loaded) throwDeferredIsLoadedError(libraryUri, importPrefix);
   }
 }

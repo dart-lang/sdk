@@ -7,11 +7,13 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
+typedef StaticOptions = Either2<TextDocumentSyncKind, TextDocumentSyncOptions>;
+
 class TextDocumentChangeHandler
-    extends MessageHandler<DidChangeTextDocumentParams, void> {
+    extends LspMessageHandler<DidChangeTextDocumentParams, void> {
   TextDocumentChangeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_didChange;
@@ -54,7 +56,7 @@ class TextDocumentChangeHandler
 }
 
 class TextDocumentCloseHandler
-    extends MessageHandler<DidCloseTextDocumentParams, void> {
+    extends LspMessageHandler<DidCloseTextDocumentParams, void> {
   TextDocumentCloseHandler(super.server);
 
   @override
@@ -79,7 +81,7 @@ class TextDocumentCloseHandler
 }
 
 class TextDocumentOpenHandler
-    extends MessageHandler<DidOpenTextDocumentParams, void> {
+    extends LspMessageHandler<DidOpenTextDocumentParams, void> {
   TextDocumentOpenHandler(super.server);
 
   @override
@@ -107,5 +109,51 @@ class TextDocumentOpenHandler
 
       return success(null);
     });
+  }
+}
+
+class TextDocumentRegistrations extends FeatureRegistration
+    with StaticRegistration<StaticOptions> {
+  TextDocumentRegistrations(super.info);
+
+  @override
+  List<LspDynamicRegistration> get dynamicRegistrations {
+    return [
+      (
+        Method.textDocument_didOpen,
+        TextDocumentRegistrationOptions(documentSelector: synchronisedTypes),
+      ),
+      (
+        Method.textDocument_didClose,
+        TextDocumentRegistrationOptions(documentSelector: synchronisedTypes),
+      ),
+      (
+        Method.textDocument_didChange,
+        TextDocumentChangeRegistrationOptions(
+            syncKind: TextDocumentSyncKind.Incremental,
+            documentSelector: synchronisedTypes),
+      )
+    ];
+  }
+
+  @override
+  StaticOptions get staticOptions => Either2.t2(TextDocumentSyncOptions(
+        openClose: true,
+        change: TextDocumentSyncKind.Incremental,
+        willSave: false,
+        willSaveWaitUntil: false,
+        save: null,
+      ));
+
+  @override
+  bool get supportsDynamic => clientDynamic.textSync;
+
+  List<TextDocumentFilterWithScheme> get synchronisedTypes {
+    return {
+      ...fullySupportedTypes,
+      pubspecFile,
+      analysisOptionsFile,
+      fixDataFile,
+    }.toList();
   }
 }

@@ -10,9 +10,9 @@ class C<T extends core::Object? = dynamic> extends core::Object /*hasConstConstr
 static method main() → void {
   hoisted has-declared-initializer core::int a1;
   {
-    final synthesized dynamic #0#0 = <self::C<core::String>, core::int>{#C1: 1};
-    late final synthesized core::int? #0#3 = (#0#0 as{Unchecked} core::Map<self::C<core::String>, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
-    if(!((!(#0#3 == null) || null is core::int && #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t1 = a1 = #0#3{core::int} in true)))
+    final synthesized core::Map<self::C<core::String>, core::int> #0#0 = <self::C<core::String>, core::int>{#C1: 1};
+    late final synthesized core::int? #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    if(!((!(#0#3 == null) || null is core::int && #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t1 = a1 = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }

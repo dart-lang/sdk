@@ -19,6 +19,8 @@ import 'package:path/path.dart' as path;
 /// still in development and users are not encouraged to try (but may be useful
 /// for Dart developers to enable for development/testing).
 class LspClientConfiguration {
+  final path.Context pathContext;
+
   /// Global settings for the workspace.
   ///
   /// Used as a fallback for resource settings if no specific config is found
@@ -35,6 +37,8 @@ class LspClientConfiguration {
   /// Pattern for stripping trailing slashes that may be been provided by the
   /// client (in WorkspaceFolder URIs) for consistent comparisons.
   final _trailingSlashPattern = RegExp(r'[\/]+$');
+
+  LspClientConfiguration(this.pathContext);
 
   /// Returns the global configuration for the whole workspace.
   LspGlobalClientConfiguration get global => _globalSettings;
@@ -100,15 +104,15 @@ class LspClientConfiguration {
     final candidates = _resourceSettings.keys
         .where((wfPath) =>
             wfPath == _normaliseFolderPath(resourcePath) ||
-            path.isWithin(wfPath, resourcePath))
+            pathContext.isWithin(wfPath, resourcePath))
         .toList();
     candidates.sort((a, b) => -a.length.compareTo(b.length));
     return candidates.firstOrNull;
   }
 
   /// Normalises a folder path to never have a trailing path separator.
-  String _normaliseFolderPath(String path) =>
-      path.replaceAll(_trailingSlashPattern, '');
+  String _normaliseFolderPath(String filePath) =>
+      filePath.replaceAll(_trailingSlashPattern, '');
 }
 
 /// Wraps the client (editor) configuration to provide stronger typing and

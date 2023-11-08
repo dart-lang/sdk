@@ -12,6 +12,8 @@ import 'package:dev_compiler/src/kernel/target.dart' show DevCompilerTarget;
 
 import 'package:dart2wasm/target.dart' show WasmTarget;
 
+import 'package:dart2wasm/target.dart' as wasm show Mode;
+
 import 'package:vm/target/install.dart' as vm_target_install
     show installAdditionalTargets;
 
@@ -25,6 +27,8 @@ void installAdditionalTargets() {
   targets["dartdevc"] = (TargetFlags flags) => new DevCompilerTarget(flags);
   targets["dart2wasm"] = (TargetFlags flags) => new WasmTarget();
   targets["dart2wasm_stringref"] =
-      (TargetFlags flags) => new WasmTarget(useStringref: true);
+      (TargetFlags flags) => new WasmTarget(mode: wasm.Mode.stringref);
+  targets["dart2wasm_js_compatibility"] =
+      (TargetFlags flags) => new WasmTarget(mode: wasm.Mode.jsCompatibility);
   vm_target_install.installAdditionalTargets();
 }

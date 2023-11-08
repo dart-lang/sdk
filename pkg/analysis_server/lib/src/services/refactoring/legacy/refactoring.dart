@@ -493,6 +493,10 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node.name;
     } else if (node is NamedType) {
       nameNode = node.name2;
+    } else if (node is RepresentationConstructorName) {
+      nameNode = node.name;
+    } else if (node is RepresentationDeclaration) {
+      nameNode = node.fieldName;
     } else if (node is SimpleFormalParameter) {
       nameNode = node.name;
     } else if (node is SimpleIdentifier) {

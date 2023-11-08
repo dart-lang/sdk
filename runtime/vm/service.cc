@@ -2895,7 +2895,8 @@ static const MethodParameter* const build_expression_evaluation_scope_params[] =
         nullptr,
 };
 
-static void CollectStringifiedType(Zone* zone,
+static void CollectStringifiedType(Thread* thread,
+                                   Zone* zone,
                                    const AbstractType& type,
                                    const GrowableObjectArray& output) {
   Instance& instance = Instance::Handle(zone);
@@ -2938,13 +2939,25 @@ static void CollectStringifiedType(Zone* zone,
   instance ^= Smi::New((intptr_t)type.nullability());
   output.Add(instance);
 
-  const TypeArguments& srcArguments =
+  const TypeArguments& type_arguments =
       TypeArguments::Handle(Type::Cast(type).arguments());
-  instance ^= Smi::New(srcArguments.Length());
-  output.Add(instance);
-  for (int i = 0; i < srcArguments.Length(); i++) {
-    const AbstractType& src_type = AbstractType::Handle(srcArguments.TypeAt(i));
-    CollectStringifiedType(zone, src_type, output);
+  if (!type_arguments.IsNull()) {
+    instance ^= Smi::New(type_arguments.Length());
+    output.Add(instance);
+    AbstractType& src_type = AbstractType::Handle();
+    for (intptr_t i = 0; i < type_arguments.Length(); i++) {
+      src_type = type_arguments.TypeAt(i);
+      CollectStringifiedType(thread, zone, src_type, output);
+    }
+  } else {
+    const intptr_t num_type_parameters = cls.NumTypeParameters(thread);
+    instance ^= Smi::New(num_type_parameters);
+    output.Add(instance);
+    const AbstractType& dynamic_type =
+        AbstractType::Handle(Type::DynamicType());
+    for (intptr_t i = 0; i < num_type_parameters; i++) {
+      CollectStringifiedType(thread, zone, dynamic_type, output);
+    }
   }
 }
 
@@ -3003,7 +3016,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       method_name = frame->function().UserVisibleName();
       isStatic = true;
     } else {
-      Class& method_cls = Class::Handle(zone, frame->function().origin());
+      Class& method_cls = Class::Handle(zone, frame->function().Owner());
       method_cls = method_cls.Mixin();
       library_uri = Library::Handle(zone, method_cls.library()).url();
       klass_name = method_cls.UserVisibleName();
@@ -3088,7 +3101,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       } else if (obj.IsInstance()) {
         instance ^= param_values.At(i);
         type = instance.GetType(Heap::kNew);
-        CollectStringifiedType(zone, type, param_types);
+        CollectStringifiedType(thread, zone, type, param_types);
       }
     }
     for (intptr_t i = 0; i < param_types.Length(); i++) {
@@ -3112,7 +3125,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     AbstractType& type = AbstractType::Handle();
     for (intptr_t i = 0; i < type_params_bounds.Length(); i++) {
       type ^= type_params_bounds.At(i);
-      CollectStringifiedType(zone, type, type_params_bounds_strings);
+      CollectStringifiedType(thread, zone, type, type_params_bounds_strings);
     }
     Instance& instance = Instance::Handle();
     for (intptr_t i = 0; i < type_params_bounds_strings.Length(); i++) {
@@ -3127,7 +3140,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
     AbstractType& type = AbstractType::Handle();
     for (intptr_t i = 0; i < type_params_defaults.Length(); i++) {
       type ^= type_params_defaults.At(i);
-      CollectStringifiedType(zone, type, type_params_defaults_strings);
+      CollectStringifiedType(thread, zone, type, type_params_defaults_strings);
     }
     Instance& instance = Instance::Handle();
     for (intptr_t i = 0; i < type_params_defaults_strings.Length(); i++) {
@@ -3370,43 +3383,38 @@ static void EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       }
       return;
     }
+    const auto& type_params_names_fixed =
+        Array::Handle(zone, Array::MakeFixedLength(type_params_names));
+    const auto& param_values_fixed =
+        Array::Handle(zone, Array::MakeFixedLength(param_values));
+
     TypeArguments& type_arguments = TypeArguments::Handle(zone);
     if (obj.IsLibrary()) {
-      const Library& lib = Library::Cast(obj);
-      const Object& result = Object::Handle(
+      const auto& lib = Library::Cast(obj);
+      const auto& result = Object::Handle(
           zone,
-          lib.EvaluateCompiledExpression(
-              kernel_data,
-              Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-              Array::Handle(zone, Array::MakeFixedLength(param_values)),
-              type_arguments));
+          lib.EvaluateCompiledExpression(kernel_data, type_params_names_fixed,
+                                         param_values_fixed, type_arguments));
       result.PrintJSON(js, true);
       return;
     }
     if (obj.IsClass()) {
-      const Class& cls = Class::Cast(obj);
-      const Object& result = Object::Handle(
+      const auto& cls = Class::Cast(obj);
+      const auto& result = Object::Handle(
           zone,
-          cls.EvaluateCompiledExpression(
-              kernel_data,
-              Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-              Array::Handle(zone, Array::MakeFixedLength(param_values)),
-              type_arguments));
+          cls.EvaluateCompiledExpression(kernel_data, type_params_names_fixed,
+                                         param_values_fixed, type_arguments));
       result.PrintJSON(js, true);
       return;
     }
     if ((obj.IsInstance() || obj.IsNull()) && !ContainsNonInstance(obj)) {
-      // We don't use Instance::Cast here because it doesn't allow null.
-      Instance& instance = Instance::Handle(zone);
-      instance ^= obj.ptr();
-      const Class& receiver_cls = Class::Handle(zone, instance.clazz());
-      const Object& result = Object::Handle(
-          zone,
-          instance.EvaluateCompiledExpression(
-              receiver_cls, kernel_data,
-              Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-              Array::Handle(zone, Array::MakeFixedLength(param_values)),
-              type_arguments));
+      const auto& instance =
+          Instance::Handle(zone, Instance::RawCast(obj.ptr()));
+      const auto& receiver_cls = Class::Handle(zone, instance.clazz());
+      const auto& result = Object::Handle(
+          zone, instance.EvaluateCompiledExpression(
+                    receiver_cls, kernel_data, type_params_names_fixed,
+                    param_values_fixed, type_arguments));
       result.PrintJSON(js, true);
       return;
     }
@@ -3612,12 +3620,12 @@ static void GetInstancesAsList(Thread* thread, JSONStream* js) {
   instances.PrintJSON(js, /*ref=*/true);
 }
 
-static intptr_t ParseJSONArray(Thread* thread,
-                               const char* str,
-                               const GrowableObjectArray& elements) {
+template <typename Adder>
+static intptr_t ParseJSONCollection(Thread* thread,
+                                    const char* str,
+                                    const Adder& add) {
   ASSERT(str != nullptr);
   ASSERT(thread != nullptr);
-  Zone* zone = thread->zone();
   intptr_t n = strlen(str);
   if (n < 2) {
     return -1;
@@ -3632,14 +3640,36 @@ static intptr_t ParseJSONArray(Thread* thread,
       // Empty element
       break;
     }
-    String& element = String::Handle(
-        zone, String::FromUTF8(reinterpret_cast<const uint8_t*>(&str[start]),
-                               end - start + 1));
-    elements.Add(element);
+    add(&str[start], end - start + 1);
     start = end + 3;
   }
   return 0;
 }
+
+static intptr_t ParseJSONArray(Thread* thread,
+                               const char* str,
+                               const GrowableObjectArray& elements) {
+  Zone* zone = thread->zone();
+  return ParseJSONCollection(
+      thread, str, [zone, &elements](const char* start, intptr_t length) {
+        String& element = String::Handle(
+            zone,
+            String::FromUTF8(reinterpret_cast<const uint8_t*>(start), length));
+        elements.Add(element);
+      });
+}
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static intptr_t ParseJSONSet(Thread* thread,
+                             const char* str,
+                             ZoneCStringSet* elements) {
+  Zone* zone = thread->zone();
+  return ParseJSONCollection(
+      thread, str, [zone, elements](const char* start, intptr_t length) {
+        elements->Insert(zone->MakeCopyOfStringN(start, length));
+      });
+}
+#endif
 
 static const MethodParameter* const get_ports_params[] = {
     RUNNABLE_ISOLATE_PARAMETER,
@@ -3658,8 +3688,8 @@ static void GetPorts(Thread* thread, JSONStream* js) {
     JSONArray arr(&jsobj, "ports");
     for (int i = 0; i < ports.Length(); ++i) {
       port ^= ports.At(i);
-      // Don't report inactive ports.
-      if (PortMap::IsLivePort(port.Id())) {
+      ASSERT(port.is_open());
+      if (port.keep_isolate_alive()) {
         arr.AddValue(port);
       }
     }
@@ -3770,7 +3800,22 @@ static void GetSourceReport(Thread* thread, JSONStream* js) {
     }
   }
 
-  SourceReport report(report_set, library_filters, compile_mode, report_lines);
+  const char* libraries_already_compiled_param =
+      js->LookupParam("librariesAlreadyCompiled");
+  Zone* zone = thread->zone();
+  ZoneCStringSet* libraries_already_compiled = nullptr;
+  if (libraries_already_compiled_param != nullptr) {
+    libraries_already_compiled = new (zone) ZoneCStringSet(zone);
+    intptr_t libraries_already_compiled_length = ParseJSONSet(
+        thread, libraries_already_compiled_param, libraries_already_compiled);
+    if (libraries_already_compiled_length < 0) {
+      PrintInvalidParamError(js, "libraries_already_compiled");
+      return;
+    }
+  }
+
+  SourceReport report(report_set, library_filters, libraries_already_compiled,
+                      compile_mode, report_lines);
   report.PrintJSON(js, script, TokenPosition::Deserialize(start_pos),
                    TokenPosition::Deserialize(end_pos));
 #endif  // !DART_PRECOMPILED_RUNTIME
@@ -4567,14 +4612,44 @@ static void AddVMMappings(JSONArray* rss_children) {
   }
 
   MallocGrowableArray<VMMapping> mappings(10);
-  char line[256];
+  char* line = nullptr;
+  size_t line_buffer_size = 0;
   char path[256];
   char property[32];
   size_t start, end, size;
-  while (fgets(line, sizeof(line), fp) != nullptr) {
+  while (getline(&line, &line_buffer_size, fp) > 0) {
     if (sscanf(line, "%zx-%zx", &start, &end) == 2) {
-      // Mapping line.
-      strncpy(path, strrchr(line, ' ') + 1, sizeof(path) - 1);
+      // Each line has the following format:
+      //
+      //   start-end flags offset dev inode path
+      //
+      // We want to skip 4 fields and get to the last one (path).
+      // Note that we can't scan backwards because path might contain white
+      // space.
+      const intptr_t kPathFieldIndex = 5;
+
+      char* path_start = line;
+      intptr_t current_field = 0;
+      while (*path_start != '\0') {
+        // Field separator.
+        if (*path_start == ' ') {
+          // Skip to the first non-space.
+          while (*path_start == ' ') {
+            path_start++;
+          }
+          current_field++;
+          if (current_field == kPathFieldIndex) {
+            break;
+          }
+          continue;
+        }
+        path_start++;
+      }
+      if (current_field != kPathFieldIndex) {
+        continue;  // Malformed input.
+      }
+
+      strncpy(path, path_start, sizeof(path) - 1);
       int len = strlen(path);
       if ((len > 0) && path[len - 1] == '\n') {
         path[len - 1] = 0;
@@ -4611,6 +4686,7 @@ static void AddVMMappings(JSONArray* rss_children) {
     }
   }
   fclose(fp);
+  free(line);  // Free buffer allocated by getline.
 
   for (intptr_t i = 0; i < mappings.length(); i++) {
     JSONObject mapping(rss_children);
@@ -4684,13 +4760,20 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
 
       IsolateGroup::ForEach([&vm_children,
                              &vm_size](IsolateGroup* isolate_group) {
-        // Note: new_space()->CapacityInWords() includes memory that hasn't been
-        // allocated from the OS yet.
         int64_t capacity =
-            (isolate_group->heap()->new_space()->UsedInWords() +
+            (isolate_group->heap()->new_space()->CapacityInWords() +
              isolate_group->heap()->old_space()->CapacityInWords()) *
             kWordSize;
-        int64_t used = isolate_group->heap()->TotalUsedInWords() * kWordSize;
+        // The more precise UsedInWords for new-space iterates pages and
+        // potentially accesses Thread::top_/end_, which is not thread-safe
+        // here. CapacityInWords is similar enough for purposes of service stats
+        // for new-space, differing only up to the as-yet-unused portion of
+        // active TLABs, unlike old-space where it can differ greatly in a
+        // highly fragmented heap.
+        int64_t used = (isolate_group->heap()->new_space()->CapacityInWords() +
+                        isolate_group->heap()->old_space()->UsedInWords()) *
+                       kWordSize;
+
         int64_t free = capacity - used;
 
         JSONObject group(&vm_children);
@@ -4934,7 +5017,6 @@ static bool GetHeapObjectCommon(Thread* thread,
     // load the source before sending the response.
     if (obj->IsScript()) {
       const Script& script = Script::Cast(*obj);
-      script.LookupSourceAndLineStarts(thread->zone());
       if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
           Service::HasDartLibraryKernelForSources()) {
         const uint8_t* kernel_buffer = Service::dart_library_kernel();

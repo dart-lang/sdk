@@ -32,6 +32,8 @@ class SearchGetElementDeclarationsHandler extends LegacyHandler {
         search.DeclarationKind.ENUM_CONSTANT =>
           protocol.ElementKind.ENUM_CONSTANT,
         search.DeclarationKind.EXTENSION => protocol.ElementKind.EXTENSION,
+        search.DeclarationKind.EXTENSION_TYPE =>
+          protocol.ElementKind.EXTENSION_TYPE,
         search.DeclarationKind.FIELD => protocol.ElementKind.FIELD,
         search.DeclarationKind.FUNCTION => protocol.ElementKind.FUNCTION,
         search.DeclarationKind.FUNCTION_TYPE_ALIAS =>

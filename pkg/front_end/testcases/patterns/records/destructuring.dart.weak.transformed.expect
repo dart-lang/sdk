@@ -14,9 +14,9 @@ static method main(core::List<core::String> arguments) → void {
   final hoisted has-declared-initializer core::double lat;
   final hoisted has-declared-initializer core::double long;
   {
-    final synthesized dynamic #0#0 = self::getLocation("Aarhus");
-    if(!((let final core::double #t1 = lat = #0#0{(core::double, core::double)}.$1{core::double} in true) && (let final core::double #t2 = long = #0#0{(core::double, core::double)}.$2{core::double} in true)))
-      throw new core::StateError::•("Pattern matching error");
+    final synthesized(core::double, core::double) #0#0 = self::getLocation("Aarhus");
+    lat = #0#0.$1{core::double};
+    long = #0#0.$2{core::double};
   }
   core::print("Current location: ${lat}, ${long}");
   self::expect(56.1629, lat);
@@ -31,4 +31,4 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///destructuring.dart:7:12 -> RecordConstant(const (56.1629, 10.2039))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///destructuring.dart:9:12 -> RecordConstant(const (0.0, 0.0))
-Extra constant evaluation: evaluated: 33, effectively constant: 2
+Extra constant evaluation: evaluated: 27, effectively constant: 2

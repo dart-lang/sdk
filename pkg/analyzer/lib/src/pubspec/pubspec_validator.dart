@@ -10,40 +10,54 @@ import 'package:analyzer/src/pubspec/validators/dependency_validator.dart';
 import 'package:analyzer/src/pubspec/validators/field_validator.dart';
 import 'package:analyzer/src/pubspec/validators/flutter_validator.dart';
 import 'package:analyzer/src/pubspec/validators/name_validator.dart';
+import 'package:analyzer/src/pubspec/validators/platforms_validator.dart';
 import 'package:analyzer/src/pubspec/validators/screenshot_validator.dart';
-import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
-class BasePubspecValidator {
-  /// The resource provider used to access the file system.
-  final ResourceProvider provider;
+/// List of [PubspecValidator] implementations.
+const _pubspecValidators = <PubspecValidator>[
+  dependencyValidator,
+  fieldValidator,
+  flutterValidator,
+  nameValidator,
+  screenshotsValidator,
+  platformsValidator,
+];
 
-  /// The source representing the file being validated.
-  final Source source;
+/// Validate pubspec with given [contents].
+///
+/// The [source] argument must be the source of the file being validated.
+/// The [provider] argument must provide access to the file-system.
+List<AnalysisError> validatePubspec({
+  // TODO(brianwilkerson) This method needs to take a `YamlDocument` rather
+  //  than the contents of the document so that it can validate an empty file.
+  required Map<dynamic, YamlNode> contents,
+  required Source source,
+  required ResourceProvider provider,
+}) {
+  final recorder = RecordingErrorListener();
+  final ctx = PubspecValidationContext._(
+    contents: contents,
+    source: source,
+    reporter: ErrorReporter(
+      recorder,
+      source,
+      isNonNullableByDefault: false,
+    ),
+    provider: provider,
+  );
 
-  BasePubspecValidator(this.provider, this.source);
-
-  String? asString(dynamic node) {
-    if (node is String) {
-      return node;
-    }
-    if (node is YamlScalar && node.value is String) {
-      return node.value as String;
-    }
-    return null;
+  for (final validator in _pubspecValidators) {
+    validator(ctx);
   }
 
-  /// Report an error for the given node.
-  void reportErrorForNode(
-      ErrorReporter reporter, YamlNode node, ErrorCode errorCode,
-      [List<Object>? arguments]) {
-    SourceSpan span = node.span;
-    reporter.reportErrorForOffset(
-        errorCode, span.start.offset, span.length, arguments);
-  }
+  return recorder.errors;
 }
 
-class PubspecField {
+/// A function that can validate a `pubspec.yaml`.
+typedef PubspecValidator = void Function(PubspecValidationContext ctx);
+
+final class PubspecField {
   /// The name of the sub-field (under `flutter`) whose value is a list of
   /// assets available to Flutter apps at runtime.
   static const String ASSETS_FIELD = 'assets';
@@ -73,49 +87,56 @@ class PubspecField {
   /// The name of the field whose value is a list of screenshots to publish.
   static const String SCREENSHOTS_FIELD = 'screenshots';
 
+  /// The name of the field that declares platforms.
+  static const String PLATFORMS_FIELD = 'platforms';
+
   /// The name of the field whose value is the version of the package.
   static const String VERSION_FIELD = 'version';
 }
 
-class PubspecValidator {
-  /// The resource provider used to access the file system.
-  final ResourceProvider provider;
+/// Context given to function that implement [PubspecValidator].
+final class PubspecValidationContext {
+  /// Yaml document being validated
+  final Map<dynamic, YamlNode> contents;
 
   /// The source representing the file being validated.
   final Source source;
 
-  final DependencyValidator _dependencyValidator;
-  final FieldValidator _fieldValidator;
-  final FlutterValidator _flutterValidator;
-  final NameValidator _nameValidator;
-  final ScreenshotsValidator _screenshotsValidator;
+  /// The reporter to which errors should be reported.
+  final ErrorReporter reporter;
 
-  /// Initialize a newly create validator to validate the content of the given
-  /// [source].
-  PubspecValidator(this.provider, this.source)
-      : _dependencyValidator = DependencyValidator(provider, source),
-        _fieldValidator = FieldValidator(provider, source),
-        _flutterValidator = FlutterValidator(provider, source),
-        _nameValidator = NameValidator(provider, source),
-        _screenshotsValidator = ScreenshotsValidator(provider, source);
+  /// The resource provider used to access the file system.
+  final ResourceProvider provider;
 
-  /// Validate the given [contents].
-  List<AnalysisError> validate(Map<dynamic, YamlNode> contents) {
-    // TODO(brianwilkerson) This method needs to take a `YamlDocument` rather
-    //  than the contents of the document so that it can validate an empty file.
-    RecordingErrorListener recorder = RecordingErrorListener();
-    ErrorReporter reporter = ErrorReporter(
-      recorder,
-      source,
-      isNonNullableByDefault: false,
+  PubspecValidationContext._({
+    required this.contents,
+    required this.source,
+    required this.reporter,
+    required this.provider,
+  });
+
+  String? asString(dynamic node) {
+    if (node is String) {
+      return node;
+    }
+    if (node is YamlScalar && node.value is String) {
+      return node.value as String;
+    }
+    return null;
+  }
+
+  /// Report an error for the given node.
+  void reportErrorForNode(
+    YamlNode node,
+    ErrorCode errorCode, [
+    List<Object>? arguments,
+  ]) {
+    final span = node.span;
+    reporter.reportErrorForOffset(
+      errorCode,
+      span.start.offset,
+      span.length,
+      arguments,
     );
-
-    _dependencyValidator.validate(reporter, contents);
-    _fieldValidator.validate(reporter, contents);
-    _flutterValidator.validate(reporter, contents);
-    _nameValidator.validate(reporter, contents);
-    _screenshotsValidator.validate(reporter, contents);
-
-    return recorder.errors;
   }
 }

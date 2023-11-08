@@ -9,13 +9,13 @@ class Class extends core::Object {
 }
 extension Extension on self::Class {
   method method0 = self::Extension|method0;
-  tearoff method0 = self::Extension|get#method0;
+  method tearoff method0 = self::Extension|get#method0;
   method method1 = self::Extension|method1;
-  tearoff method1 = self::Extension|get#method1;
+  method tearoff method1 = self::Extension|get#method1;
   method method2 = self::Extension|method2;
-  tearoff method2 = self::Extension|get#method2;
+  method tearoff method2 = self::Extension|get#method2;
   method method3 = self::Extension|method3;
-  tearoff method3 = self::Extension|get#method3;
+  method tearoff method3 = self::Extension|get#method3;
   static method staticMethod = self::Extension|staticMethod;
 }
 static extension-member method Extension|method0(lowered final self::Class #this, [dynamic a = #C1]) → dynamic

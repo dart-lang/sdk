@@ -69,4 +69,4 @@ uword Simulator::FunctionForRedirect(uword redirect) {
 
 #endif  // !defined(USING_SIMULATOR)
 
-#endif  // defined TARGET_ARCH_RISCV
+#endif  // defined TARGET_ARCH_X64

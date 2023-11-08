@@ -279,9 +279,11 @@ class Driver implements CommandLineStarter {
             var content = file.readAsStringSync();
             var node = loadYamlNode(content);
             if (node is YamlMap) {
-              var validator =
-                  PubspecValidator(resourceProvider, file.createSource());
-              errors.addAll(validator.validate(node.nodes));
+              errors.addAll(validatePubspec(
+                contents: node.nodes,
+                source: file.createSource(),
+                provider: resourceProvider,
+              ));
             }
 
             if (analysisDriver.analysisOptions.lint) {

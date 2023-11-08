@@ -35,9 +35,8 @@ class CodegenCommonVisitor extends CodegenProtocolVisitor {
   /// the given [packageName] corresponding to the types in the given [api] that
   /// are common to multiple protocols.
   CodegenCommonVisitor(
-      String packageName, bool responseRequiresRequestTime, Api api,
-      {this.forClient = false})
-      : super(packageName, responseRequiresRequestTime, api);
+      super.packageName, super.responseRequiresRequestTime, super.api,
+      {this.forClient = false});
 
   @override
   void emitImports() {

@@ -6,7 +6,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server_client/listener/server_listener.dart';
 import 'package:analysis_server_client/protocol.dart';
 import 'package:analysis_server_client/src/server_base.dart';
 import 'package:path/path.dart';
@@ -31,12 +30,8 @@ class Server extends ServerBase {
   /// [listenToOutput] has not been called or [stop] has been called.
   StreamSubscription<String>? _stdoutSubscription;
 
-  Server(
-      {ServerListener? listener,
-      Process? process,
-      bool stdioPassthrough = false})
-      : _process = process,
-        super(listener: listener, stdioPassthrough: stdioPassthrough);
+  Server({super.listener, Process? process, super.stdioPassthrough})
+      : _process = process;
 
   /// Force kill the server. Returns exit code future.
   @override

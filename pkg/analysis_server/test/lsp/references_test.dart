@@ -168,6 +168,42 @@ class A {
     expect(res, isEmpty);
   }
 
+  Future<void> test_pattern_object_withDeclaration() async {
+    final content = '''
+class A {
+  int get i => 0;
+}
+
+int f(Object o) {
+  switch (o) {
+    case A(:var /*[0*/^i/*0]*/):
+      return /*[1*/i/*1]*/;
+  }
+  return 0;
+}
+''';
+
+    await _checkRanges(content, includeDeclarations: true);
+  }
+
+  Future<void> test_pattern_object_withoutDeclaration() async {
+    final content = '''
+class A {
+  int get i => 0;
+}
+
+int f(Object o) {
+  switch (o) {
+    case A(:var ^i):
+      return [!i!];
+  }
+  return 0;
+}
+''';
+
+    await _checkRanges(content, includeDeclarations: false);
+  }
+
   Future<void> test_singleFile_withoutDeclaration() async {
     final content = '''
 f^oo() {
@@ -176,6 +212,26 @@ f^oo() {
 ''';
 
     await _checkRanges(content, includeDeclarations: false);
+  }
+
+  Future<void> test_type() async {
+    final content = '''
+class A^aa<T> {}
+
+[!Aaa!]<String>? a;
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_type_generic_end() async {
+    final content = '''
+class Aaa^<T> {}
+
+[!Aaa!]<String>? a;
+''';
+
+    await _checkRanges(content);
   }
 
   Future<void> test_unopenFile() async {
@@ -205,7 +261,7 @@ f^oo() {
     final mainCode = TestCode.parse(mainContent);
     final otherCode =
         otherContent != null ? TestCode.parse(otherContent) : null;
-    final otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    final otherFileUri = toUri(join(projectFolderPath, 'lib', 'other.dart'));
 
     await initialize();
     await openFile(mainFileUri, mainCode.code);

@@ -22,7 +22,7 @@ external int get getter;
 //               ^
 // [web] Only JS interop members may be 'external'.
 
-external set setter(_);
+external set setter(int _);
 //           ^
 // [web] Only JS interop members may be 'external'.
 
@@ -40,7 +40,7 @@ external int annotatedFinalField;
 external int get annotatedGetter;
 
 @JS()
-external set annotatedSetter(_);
+external set annotatedSetter(int _);
 
 @JS()
 external int annotatedMethod();

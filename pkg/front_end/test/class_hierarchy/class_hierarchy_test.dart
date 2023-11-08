@@ -6,6 +6,7 @@ import 'dart:io' show Directory, Platform;
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:front_end/src/fasta/kernel/hierarchy/class_member.dart';
@@ -23,8 +24,12 @@ Future<void> main(List<String> args) async {
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(
-          const ClassHierarchyDataComputer(), [cfeNonNullableConfig]));
+      runTest: runTestFor(const ClassHierarchyDataComputer(), [
+        const TestConfig(cfeWithNnbdMarker, 'cfe',
+            explicitExperimentalFlags: const {
+              ExperimentalFlag.inlineClass: true
+            })
+      ]));
 }
 
 class ClassHierarchyDataComputer extends DataComputer<Features> {
@@ -47,6 +52,16 @@ class ClassHierarchyDataComputer extends DataComputer<Features> {
       {bool? verbose}) {
     new InheritanceDataExtractor(testResultData.compilerResult, actualMap)
         .computeForClass(cls);
+  }
+
+  @override
+  void computeExtensionTypeDeclarationData(
+      TestResultData testResultData,
+      ExtensionTypeDeclaration extensionTypeDeclaration,
+      Map<Id, ActualData<Features>> actualMap,
+      {bool? verbose}) {
+    new InheritanceDataExtractor(testResultData.compilerResult, actualMap)
+        .computeForExtensionTypeDeclaration(extensionTypeDeclaration);
   }
 
   @override
@@ -85,6 +100,7 @@ class Tag {
   static const String stubTarget = 'stubTarget';
   static const String type = 'type';
   static const String covariance = 'covariance';
+  static const String superExtensionTypes = 'superExtensionTypes';
 }
 
 class InheritanceDataExtractor extends CfeDataExtractor<Features> {
@@ -260,6 +276,26 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
     if (classMembersNode.userNoSuchMethodMember != null) {
       features.add(Tag.hasNoSuchMethod);
     }
+    return features;
+  }
+
+  @override
+  Features computeExtensionTypeDeclarationValue(
+      Id id, ExtensionTypeDeclaration node) {
+    Features features = new Features();
+    ExtensionTypeHierarchyNode extensionTypeDeclarationHierarchyNode =
+        _classHierarchyBuilder.getNodeFromExtensionType(node);
+    extensionTypeDeclarationHierarchyNode.superclasses
+        .forEach((Supertype supertype) {
+      features.addElement(Tag.superExtensionTypes, supertypeToText(supertype));
+    });
+    extensionTypeDeclarationHierarchyNode.superExtensionTypes
+        .forEach((ExtensionType superExtensionType) {
+      features.addElement(
+          Tag.superExtensionTypes,
+          typeToText(superExtensionType,
+              TypeRepresentation.analyzerNonNullableByDefault));
+    });
     return features;
   }
 }

@@ -51,7 +51,7 @@ class ScopeBuilder {
   void VisitRecordType();
   void VisitTypeParameterType();
   void VisitIntersectionType();
-  void VisitInlineType();
+  void VisitExtensionType();
   void VisitFutureOrType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 
@@ -105,7 +105,9 @@ class ScopeBuilder {
       const String& name,
       const AbstractType& type,
       intptr_t kernel_offset = LocalVariable::kNoKernelOffset,
-      const InferredTypeMetadata* param_type_md = nullptr);
+      bool is_late = false,
+      const InferredTypeMetadata* inferred_type_md = nullptr,
+      const InferredTypeMetadata* inferred_arg_type_md = nullptr);
 
   void AddExceptionVariable(GrowableArray<LocalVariable*>* variables,
                             const char* prefix,
@@ -119,7 +121,6 @@ class ScopeBuilder {
   void AddTryVariables();
   void AddCatchVariables();
   void FinalizeCatchVariables();
-  void AddIteratorVariable();
   void AddSwitchVariable();
 
   // Record an assignment or reference to a variable.  If the occurrence is
@@ -137,21 +138,17 @@ class ScopeBuilder {
                          const String& symbol,
                          intptr_t kernel_offset);
 
+  ScriptPtr Script() { return active_class_.ActiveScript(); }
+
   struct DepthState {
     explicit DepthState(intptr_t function)
-        : loop_(0),
-          function_(function),
-          try_(0),
-          catch_(0),
-          finally_(0),
-          for_in_(0) {}
+        : loop_(0), function_(function), try_(0), catch_(0), finally_(0) {}
 
     intptr_t loop_;
     intptr_t function_;
     intptr_t try_;
     intptr_t catch_;
     intptr_t finally_;
-    intptr_t for_in_;
   };
 
   ScopeBuildingResult* result_;
@@ -174,6 +171,7 @@ class ScopeBuilder {
   KernelReaderHelper helper_;
   ConstantReader constant_reader_;
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
+  InferredTypeMetadataHelper inferred_arg_type_metadata_helper_;
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper_;
   TypeTranslator type_translator_;
 
@@ -192,8 +190,6 @@ class ScopeBuildingResult : public ZoneAllocated {
         switch_variable(nullptr),
         finally_return_variable(nullptr),
         setter_value(nullptr),
-        yield_jump_variable(nullptr),
-        yield_context_variable(nullptr),
         raw_variable_counter_(0) {}
 
   bool IsClosureWithEmptyContext(intptr_t function_node_offset) {
@@ -221,16 +217,6 @@ class ScopeBuildingResult : public ZoneAllocated {
   // Non-nullptr when the function is a setter.
   LocalVariable* setter_value;
 
-  // Non-nullptr if the function contains yield statement.
-  // TODO(27590) actual variable is called :await_jump_var, we should rename
-  // it to reflect the fact that it is used for both await and yield.
-  LocalVariable* yield_jump_variable;
-
-  // Non-nullptr if the function contains yield statement.
-  // TODO(27590) actual variable is called :await_ctx_var, we should rename
-  // it to reflect the fact that it is used for both await and yield.
-  LocalVariable* yield_context_variable;
-
   // Variables used in exception handlers, one per exception handler nesting
   // level.
   GrowableArray<LocalVariable*> exception_variables;
@@ -242,9 +228,6 @@ class ScopeBuildingResult : public ZoneAllocated {
   GrowableArray<LocalVariable*> raw_exception_variables;
   GrowableArray<LocalVariable*> raw_stack_trace_variables;
   intptr_t raw_variable_counter_;
-
-  // For-in iterators, one per for-in nesting level.
-  GrowableArray<LocalVariable*> iterator_variables;
 
   // Remembers closure function kernel offsets that do not capture any
   // variables.

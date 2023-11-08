@@ -2157,6 +2157,131 @@ extension E<NewName> on int {
 ''');
   }
 
+  Future<void> test_extensionType_field_representation() {
+    addTestFile('''
+extension type E(int test) {}
+
+void f(E e) {
+  e.test;
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test) {}', 'newName');
+    }, '''
+extension type E(int newName) {}
+
+void f(E e) {
+  e.newName;
+}
+''');
+  }
+
+  Future<void> test_extensionType_method() {
+    addTestFile('''
+extension type E(int it) {
+  void test() {}
+}
+
+void f(E e) {
+  e.test();
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test() {}', 'newName');
+    }, '''
+extension type E(int it) {
+  void newName() {}
+}
+
+void f(E e) {
+  e.newName();
+}
+''');
+  }
+
+  Future<void> test_extensionType_name_end() {
+    addTestFile('''
+extension type Test(int it) {}
+
+void f(Test x) {}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('(int', 'NewName');
+    }, '''
+extension type NewName(int it) {}
+
+void f(NewName x) {}
+''');
+  }
+
+  Future<void> test_extensionType_name_inside() {
+    addTestFile('''
+extension type Test(int it) {}
+
+void f(Test x) {}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('est(int', 'NewName');
+    }, '''
+extension type NewName(int it) {}
+
+void f(NewName x) {}
+''');
+  }
+
+  Future<void> test_extensionType_name_start() {
+    addTestFile('''
+extension type Test(int it) {}
+
+void f(Test x) {}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('Test(int', 'NewName');
+    }, '''
+extension type NewName(int it) {}
+
+void f(NewName x) {}
+''');
+  }
+
+  Future<void> test_extensionType_primaryConstructor_atDeclaration() {
+    addTestFile('''
+extension type E.test(int it) {}
+
+void f() {
+  E.test(0);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test(int', 'newName');
+    }, '''
+extension type E.newName(int it) {}
+
+void f() {
+  E.newName(0);
+}
+''');
+  }
+
+  Future<void> test_extensionType_primaryConstructor_atInvocation() {
+    addTestFile('''
+extension type E.test(int it) {}
+
+void f() {
+  E.test(0);
+}
+''');
+    return assertSuccessfulRefactoring(() {
+      return sendRenameRequest('test(0', 'newName');
+    }, '''
+extension type E.newName(int it) {}
+
+void f() {
+  E.newName(0);
+}
+''');
+  }
+
   Future<void> test_feedback() {
     addTestFile('''
 class Test {}

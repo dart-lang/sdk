@@ -38,16 +38,15 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> assertDynamicRegistration(
       String name, Set<Method> expectedResult) async {
+    setTextDocumentDynamicRegistration(name);
+    setWorkspaceDynamicRegistration(name);
+
     // Check that when the server calls client/registerCapability it only includes
     // the items we advertised dynamic registration support for.
     final registrations = <Registration>[];
     await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-          textDocumentCapabilities: withGivenTextDocumentDynamicRegistrations(
-              emptyTextDocumentClientCapabilities, name),
-          workspaceCapabilities: withGivenWorkspaceDynamicRegistrations(
-              emptyWorkspaceClientCapabilities, name)),
+      initialize,
     );
 
     final registeredMethods =
@@ -87,23 +86,20 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(allowEmptyRootUri: true);
 
     // Expect that context manager includes a whole package.
-    await openFile(Uri.file(file1), '');
+    await openFile(pathContext.toUri(file1), '');
     expect(server.contextManager.includedPaths,
         equals([convertPath(packagePath)]));
   }
 
   Future<void> test_completionRegistrations_triggerCharacters() async {
+    // Support dynamic registration for everything we support.
+    setAllSupportedTextDocumentDynamicRegistrations();
+    setAllSupportedWorkspaceDynamicRegistrations();
+
     final registrations = <Registration>[];
     final initResponse = await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-        // Support dynamic registration for everything we support.
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
-            emptyWorkspaceClientCapabilities),
-      ),
+      () => initialize(),
     );
 
     final initResult =
@@ -134,6 +130,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_completionRegistrations_withDartPlugin() async {
     if (!AnalysisServer.supportsPlugins) return;
+
     // This tests for a bug that occurred with an analysis server plugin
     // that works on Dart files. When computing completion registrations we
     // usually have separate registrations for Dart + non-Dart to account for
@@ -144,18 +141,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // requests for Dart completions, which resulted in duplicate items
     // appearing in the editor.
 
+    setAllSupportedTextDocumentDynamicRegistrations();
+
     // Track all current registrations.
     final registrations = <Registration>[];
 
     // Perform normal registration (without plugins) to get the initial set.
-    await monitorDynamicRegistrations(
-      registrations,
-      () => initialize(
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-      ),
-    );
+    await monitorDynamicRegistrations(registrations, initialize);
 
     // Expect only a single registration that includes Dart files.
     expect(
@@ -180,6 +172,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_dynamicRegistration_areNotInterleaved() async {
     if (!AnalysisServer.supportsPlugins) return;
+
     // Some of the issues in https://github.com/dart-lang/sdk/issues/47851
     // (duplicate hovers/code actions/etc.) were caused by duplicate
     // registrations. This happened when we tried to rebuild registrations
@@ -201,14 +194,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // that is, no unregistration ever contains the ID of something that is not
     // currently registered.
 
+    setAllSupportedTextDocumentDynamicRegistrations();
+
     final registrations = <Registration>[];
-    await monitorDynamicRegistrations(
-      registrations,
-      () => initialize(
-          textDocumentCapabilities:
-              withAllSupportedTextDocumentDynamicRegistrations(
-                  emptyTextDocumentClientCapabilities)),
-    );
+    await monitorDynamicRegistrations(registrations, initialize);
 
     final knownRegistrationsIds =
         registrations.map((registration) => registration.id).toSet();
@@ -359,20 +348,19 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
           'typeHierarchy', {Method.textDocument_prepareTypeHierarchy});
 
   Future<void> test_dynamicRegistration_containsAppropriateSettings() async {
+    // Support file operations.
+    setFileOperationDynamicRegistration();
+    // Support dynamic registration for both text sync + hovers.
+    setTextSyncDynamicRegistration();
+    setHoverDynamicRegistration();
+
     // Basic check that the server responds with the capabilities we'd expect,
     // for ex including analysis_options.yaml in text synchronization but not
     // for hovers.
     final registrations = <Registration>[];
     final initResponse = await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-        // Support dynamic registration for both text sync + hovers.
-        textDocumentCapabilities: withTextSyncDynamicRegistration(
-            withHoverDynamicRegistration(emptyTextDocumentClientCapabilities)),
-        // And also file operations.
-        workspaceCapabilities: withFileOperationDynamicRegistration(
-            emptyWorkspaceClientCapabilities),
-      ),
+      initialize,
     );
 
     // Because we support dynamic registration for synchronization, we won't send
@@ -416,8 +404,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
             .any((ds) => ds.pattern == '**/analysis_options.yaml'),
         isTrue);
 
-    expect(rename,
-        equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
+    expect(rename, equals(fileOperationRegistrationOptions));
   }
 
   Future<void> test_dynamicRegistration_notSupportedByClient() async {
@@ -463,7 +450,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(initResult.capabilities.renameProvider, isNotNull);
     expect(initResult.capabilities.foldingRangeProvider, isNotNull);
     expect(initResult.capabilities.workspace!.fileOperations!.willRename,
-        equals(ServerCapabilitiesComputer.fileOperationRegistrationOptions));
+        equals(fileOperationRegistrationOptions));
     expect(initResult.capabilities.selectionRangeProvider, isNotNull);
     expect(initResult.capabilities.semanticTokensProvider, isNotNull);
 
@@ -471,19 +458,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_dynamicRegistration_suppressesStaticRegistration() async {
+    // Support dynamic registration for everything we support.
+    setAllSupportedTextDocumentDynamicRegistrations();
+    setAllSupportedWorkspaceDynamicRegistrations();
+
     // If the client sends dynamicRegistration settings then there
     // should not be static registrations for the same capabilities.
     final registrations = <Registration>[];
     final initResponse = await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-        // Support dynamic registration for everything we support.
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
-        workspaceCapabilities: withAllSupportedWorkspaceDynamicRegistrations(
-            emptyWorkspaceClientCapabilities),
-      ),
+      initialize,
     );
 
     final initResult =
@@ -534,14 +518,14 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_dynamicRegistration_unregistersOutdatedAfterChange() async {
     if (!AnalysisServer.supportsPlugins) return;
+
     // Initialize by supporting dynamic registrations everywhere
+    setAllSupportedTextDocumentDynamicRegistrations();
+
     final registrations = <Registration>[];
     await monitorDynamicRegistrations(
       registrations,
-      () => initialize(
-          textDocumentCapabilities:
-              withAllSupportedTextDocumentDynamicRegistrations(
-                  emptyTextDocumentClientCapabilities)),
+      initialize,
     );
 
     final unregisterRequest =
@@ -570,12 +554,8 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_dynamicRegistration_updatesWithPlugins() async {
     if (!AnalysisServer.supportsPlugins) return;
-    await initialize(
-      textDocumentCapabilities:
-          extendTextDocumentCapabilities(emptyTextDocumentClientCapabilities, {
-        'foldingRange': {'dynamicRegistration': true},
-      }),
-    );
+    setTextDocumentDynamicRegistration('foldingRange');
+    await initialize();
 
     // The server will send an unregister request followed by another register
     // request to change document filter on folding. We need to respond to the
@@ -628,7 +608,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       test_emptyAnalysisRoots_handlesFileRequestsImmediately_resolved() async {
     const content = 'void f() {}';
     final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = Uri.file(file1);
+    final file1Uri = pathContext.toUri(file1);
     newFile(file1, content);
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -654,7 +634,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       test_emptyAnalysisRoots_handlesFileRequestsImmediately_unresolved() async {
     const content = 'void f() {}';
     final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = Uri.file(file1);
+    final file1Uri = pathContext.toUri(file1);
     newFile(file1, content);
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -667,10 +647,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_emptyAnalysisRoots_multipleOpenFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = Uri.file(file1);
+    final file1Uri = pathContext.toUri(file1);
     newFile(file1, '');
     final file2 = join(projectFolderPath, 'file2.dart');
-    final file2Uri = Uri.file(file2);
+    final file2Uri = pathContext.toUri(file2);
     newFile(file2, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -704,7 +684,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     projectFolderPath = convertPath('/home/empty');
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
@@ -719,7 +699,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_emptyAnalysisRoots_projectWithPubspec() async {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -749,9 +729,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final excludedFolderPath = join(projectFolderPath, 'excluded');
 
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       // Exclude the folder with a relative path.
       {
         'analysisExcludedFolders': [excludedFolderPath]
@@ -765,9 +743,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final excludedFolderPath = join(projectFolderPath, 'excluded');
 
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       // Include a single string instead of an array since it's an easy mistake
       // to make without editor validation of settings.
       {'analysisExcludedFolders': 'excluded'},
@@ -780,9 +756,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     final excludedFolderPath = join(projectFolderPath, 'excluded');
 
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities:
-              withConfigurationSupport(emptyWorkspaceClientCapabilities)),
+      initialize,
       // Exclude the folder with a relative path.
       {
         'analysisExcludedFolders': ['excluded']
@@ -855,6 +829,11 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
+  Future<void> test_initialize_rootUri_encodedDriveLetterColon() async {
+    await initialize(rootUri: withEncodedDriveLetterColon(projectFolderUri));
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
   Future<void> test_initialize_rootUri_trailingSlash() async {
     await initialize(rootUri: withTrailingSlashUri(projectFolderUri));
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
@@ -862,6 +841,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_initialize_workspaceFolders() async {
     await initialize(workspaceFolders: [projectFolderUri]);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  Future<void>
+      test_initialize_workspaceFolders_encodedDriveLetterColon() async {
+    await initialize(
+        workspaceFolders: [withEncodedDriveLetterColon(projectFolderUri)]);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
@@ -896,7 +882,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(
       workspaceFolders: [
         rootUri,
-        Uri.file(projectFolderPath),
+        pathContext.toUri(projectFolderPath),
       ],
       // We expect an error notification about the invalid file we try to open.
       failTestOnAnyErrorNotification: false,
@@ -915,7 +901,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(allowEmptyRootUri: true);
 
     // Because the file is not in a project, it should be added itself.
-    await openFile(Uri.file(file1), '');
+    await openFile(pathContext.toUri(file1), '');
     expect(server.contextManager.includedPaths, equals([file1]));
   }
 
@@ -929,11 +915,15 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     await initialize(allowEmptyRootUri: true);
 
     // Because the file is not in a project, it should be added itself.
-    await openFile(Uri.file(file1), '');
+    await openFile(pathContext.toUri(file1), '');
     expect(server.contextManager.includedPaths, equals([file1]));
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_fullyInitializes() async {
+    // Enable some dynamic registrations, else registerCapability will not
+    // be called.
+    setAllSupportedTextDocumentDynamicRegistrations();
+
     // Ensure when we use onlyAnalyzeProjectsWithOpenFiles that we still
     // fully initialize (eg. capabilities are registered).
     projectFolderPath = convertPath('/home/empty');
@@ -943,21 +933,16 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
       () => initialize(
         rootUri: projectFolderUri,
         initializationOptions: {'onlyAnalyzeProjectsWithOpenFiles': true},
-        // Enable some dynamic registrations, else registerCapability will not
-        // be called.
-        textDocumentCapabilities:
-            withAllSupportedTextDocumentDynamicRegistrations(
-                emptyTextDocumentClientCapabilities),
       ),
     );
   }
 
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_multipleFiles() async {
     final file1 = join(projectFolderPath, 'file1.dart');
-    final file1Uri = Uri.file(file1);
+    final file1Uri = pathContext.toUri(file1);
     newFile(file1, '');
     final file2 = join(projectFolderPath, 'file2.dart');
-    final file2Uri = Uri.file(file2);
+    final file2Uri = pathContext.toUri(file2);
     newFile(file2, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -995,7 +980,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     projectFolderPath = convertPath('/home/empty');
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     // The project folder shouldn't be added to start with.
@@ -1013,7 +998,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   Future<void> test_onlyAnalyzeProjectsWithOpenFiles_withPubpsec() async {
     final nestedFilePath = join(
         projectFolderPath, 'nested', 'deeply', 'in', 'folders', 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
     newPubspecYamlFile(projectFolderPath, '');
 
@@ -1041,6 +1026,18 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // Closing the file should remove it.
     await closeFile(nestedFileUri);
     expect(server.contextManager.includedPaths, equals([]));
+  }
+
+  Future<void> test_survey_enabledByPreviewFlag() async {
+    await initialize(
+      initializationOptions: {'previewSurveys': true},
+    );
+    expect(server.surveyManager, isNotNull);
+  }
+
+  Future<void> test_survey_notEnabledByPreviewFlag() async {
+    await initialize();
+    expect(server.surveyManager, isNull);
   }
 
   Future<void> test_uninitialized_dropsNotifications() async {

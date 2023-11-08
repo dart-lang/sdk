@@ -114,7 +114,8 @@ namespace dart {
   V(void, MsanUnpoisonParam, size_t)                                           \
   V(void, TsanLoadAcquire, void*)                                              \
   V(void, TsanStoreRelease, void*)                                             \
-  V(bool, TryDoubleAsInteger, Thread*)
+  V(bool, TryDoubleAsInteger, Thread*)                                         \
+  V(void*, MemoryMove, void*, const void*, size_t)
 
 }  // namespace dart
 

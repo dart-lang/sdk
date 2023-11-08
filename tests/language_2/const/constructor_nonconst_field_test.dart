@@ -8,7 +8,8 @@ import "package:expect/expect.dart";
 
 class A {
   final int i = f();
-  //            ^
+  //            ^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   // [cfe] Method invocation is not a constant expression.
   final int j = 1;
   const A();

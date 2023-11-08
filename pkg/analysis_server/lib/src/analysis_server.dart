@@ -13,12 +13,14 @@ import 'package:analysis_server/src/collections.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/completion/available_suggestions.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/client_configuration.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/plugin/plugin_watcher.dart';
-import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/protocol_server.dart' as legacy
     show MessageType;
+import 'package:analysis_server/src/protocol_server.dart' as server;
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/performance.dart';
@@ -31,6 +33,7 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
 import 'package:analysis_server/src/utilities/file_string_sink.dart';
 import 'package:analysis_server/src/utilities/null_string_sink.dart';
@@ -52,6 +55,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_byte_store.dart'
     show EvictingFileByteStore;
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
@@ -71,7 +75,11 @@ import 'package:meta/meta.dart';
 import 'package:watcher/watcher.dart';
 
 /// The function for sending `openUri` request to the client.
-typedef OpenUriNotificationSender = FutureOr<void> Function(Uri uri);
+typedef OpenUriNotificationSender = Future<void> Function(Uri uri);
+
+/// The function for sending prompts to the user and collecting button presses.
+typedef UserPromptSender = Future<String?> Function(
+    MessageType type, String message, List<String> actionLabels);
 
 /// Implementations of [AnalysisServer] implement a server that listens
 /// on a [CommunicationChannel] for analysis messages and process them.
@@ -84,6 +92,13 @@ abstract class AnalysisServer {
 
   /// The object through which analytics are to be sent.
   final AnalyticsManager analyticsManager;
+
+  /// The object for managing showing surveys to users and recording their
+  /// responses.
+  ///
+  /// `null` if surveys are not enabled.
+  @visibleForTesting
+  SurveyManager? surveyManager;
 
   /// The builder for attachments that should be included into crash reports.
   final CrashReportingAttachmentsBuilder crashReportingAttachmentsBuilder;
@@ -111,6 +126,8 @@ abstract class AnalysisServer {
   late FileContentCache fileContentCache;
 
   final UnlinkedUnitStore unlinkedUnitStore = UnlinkedUnitStoreImpl();
+
+  final InfoDeclarationStore infoDeclarationStore = InfoDeclarationStoreImpl();
 
   late analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
@@ -180,6 +197,11 @@ abstract class AnalysisServer {
   /// "pub get"/"pub upgrades").
   bool isFirstAnalysisSinceContextsBuilt = true;
 
+  /// A completer that tracks in-progress analysis context rebuilds.
+  ///
+  /// Starts completed and will be replaced each time a context rebuild starts.
+  Completer<void> analysisContextRebuildCompleter = Completer()..complete();
+
   AnalysisServer(
     this.options,
     this.sdkManager,
@@ -207,7 +229,8 @@ abstract class AnalysisServer {
     final pubCommand = processRunner != null &&
             Platform.environment[PubCommand.disablePubCommandEnvironmentKey] ==
                 null
-        ? PubCommand(instrumentationService, processRunner)
+        ? PubCommand(
+            instrumentationService, resourceProvider.pathContext, processRunner)
         : null;
 
     pubPackageService = PubPackageService(
@@ -265,6 +288,7 @@ abstract class AnalysisServer {
       byteStore,
       fileContentCache,
       unlinkedUnitStore,
+      infoDeclarationStore,
       analysisPerformanceLogger,
       analysisDriverScheduler,
       instrumentationService,
@@ -281,6 +305,14 @@ abstract class AnalysisServer {
     }
   }
 
+  /// A [Future] that completes when any in-progress analysis context rebuild
+  /// completes.
+  ///
+  /// If no context rebuild is in progress, will return an already complete
+  /// [Future].
+  Future<void> get analysisContextsRebuilt =>
+      analysisContextRebuildCompleter.future;
+
   /// The list of current analysis sessions in all contexts.
   Future<List<AnalysisSession>> get currentSessions async {
     var sessions = <AnalysisSession>[];
@@ -295,6 +327,18 @@ abstract class AnalysisServer {
   Map<Folder, analysis.AnalysisDriver> get driverMap =>
       contextManager.driverMap;
 
+  /// The capabilities of the LSP client.
+  ///
+  /// For the legacy server, this set may be a fixed set that is not configured
+  /// by the client.
+  LspClientCapabilities? get lspClientCapabilities;
+
+  /// The configuration (user/workspace settings) from the LSP client.
+  ///
+  /// For the legacy server, this set may be a fixed set that is not controlled
+  /// by the client.
+  LspClientConfiguration get lspClientConfiguration;
+
   /// Returns the function that can send `openUri` request to the client.
   /// Returns `null` is the client does not support it.
   OpenUriNotificationSender? get openUriNotificationSender;
@@ -304,6 +348,9 @@ abstract class AnalysisServer {
 
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.
+  ///
+  /// Callers should use [userPromptSender] instead of checking this directly.
+  @protected
   bool get supportsShowMessageRequest;
 
   /// Return the total time the server's been alive.
@@ -312,6 +359,13 @@ abstract class AnalysisServer {
         DateTime.fromMillisecondsSinceEpoch(performanceDuringStartup.startTime);
     return DateTime.now().difference(start);
   }
+
+  /// Returns the function for sending prompts to the user and collecting button
+  /// presses.
+  ///
+  /// Returns `null` is the client does not support it.
+  UserPromptSender? get userPromptSender =>
+      supportsShowMessageRequest ? showUserPrompt : null;
 
   void addContextsToDeclarationsTracker() {
     declarationsTracker?.discardContexts();
@@ -365,6 +419,14 @@ abstract class AnalysisServer {
     }
 
     return MemoryCachingByteStore(NullByteStore(), memoryCacheSize);
+  }
+
+  void enableSurveys() {
+    // TODO(dantup): This is currently gated on an LSP flag and should just
+    //  be inlined into the constructor once we're happy for it to show up
+    //  without a flag and for both protocols.
+    surveyManager =
+        SurveyManager(this, instrumentationService, analyticsManager.analytics);
   }
 
   /// Return an analysis driver to which the file with the given [path] is
@@ -702,6 +764,13 @@ abstract class AnalysisServer {
     bool fatal = false,
   });
 
+  /// Shows the user a prompt with some actions to select from using
+  /// 'window/showMessageRequest'.
+  ///
+  /// Callers should use [userPromptSender] instead of calling this method
+  /// directly because it returns null if the client does not support user
+  /// prompts.
+  @visibleForOverriding
   Future<String?> showUserPrompt(
     MessageType type,
     String message,
@@ -721,6 +790,7 @@ abstract class AnalysisServer {
     analyticsManager.createdAnalysisContexts(contextManager.analysisContexts);
 
     pubPackageService.shutdown();
+    surveyManager?.shutdown();
     await analyticsManager.shutdown();
   }
 
@@ -775,7 +845,9 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void applyFileRemoved(String file) {
-    if (filesToFlush.remove(file)) {
+    // If the removed file doesn't have an overlay, we need to flush any
+    // previous diagnostics.
+    if (!resourceProvider.hasOverlay(file) && filesToFlush.remove(file)) {
       flushResults([file]);
     }
   }

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -14,7 +15,6 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -198,30 +198,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   List<String>? _excludePatterns;
 
   @override
-  bool hint = true;
+  bool lint = false;
 
   @override
-  bool lint = false;
+  bool warning = true;
 
   /// The lint rules that are to be run in an analysis context if [lint] returns
   /// `true`.
   List<Linter>? _lintRules;
-
-  /// A flag indicating whether implicit casts are allowed in [strongMode]
-  /// (they are always allowed in Dart 1.0 mode).
-  ///
-  /// This option is experimental and subject to change.
-  bool implicitCasts = true;
-
-  /// A flag indicating whether implicit dynamic type is allowed, on by default.
-  ///
-  /// This flag can be used without necessarily enabling [strongMode], but it is
-  /// designed with strong mode's type inference in mind. Without type inference,
-  /// it will raise many errors. Also it does not provide type safety without
-  /// strong mode.
-  ///
-  /// This option is experimental and subject to change.
-  bool implicitDynamic = true;
 
   /// Indicates whether linter exceptions should be propagated to the caller (by
   /// re-throwing them)
@@ -266,13 +250,11 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enabledPluginNames = options.enabledPluginNames;
     errorProcessors = options.errorProcessors;
     excludePatterns = options.excludePatterns;
-    hint = options.hint;
     lint = options.lint;
+    warning = options.warning;
     lintRules = options.lintRules;
     if (options is AnalysisOptionsImpl) {
       enableTiming = options.enableTiming;
-      implicitCasts = options.implicitCasts;
-      implicitDynamic = options.implicitDynamic;
       propagateLinterExceptions = options.propagateLinterExceptions;
       strictInference = options.strictInference;
       strictRawTypes = options.strictRawTypes;
@@ -311,6 +293,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   ExperimentStatus get experimentStatus => _contextFeatures;
 
   @override
+  bool get hint => warning;
+
+  /// The implementation-specific setter for [hint].
+  @Deprecated("Use 'warning=' instead")
+  set hint(bool value) => warning = value;
+
+  @override
   List<Linter> get lintRules => _lintRules ??= const <Linter>[];
 
   /// Set the lint rules that are to be run in an analysis context if [lint]
@@ -329,8 +318,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Append boolean flags.
-      buffer.addBool(implicitCasts);
-      buffer.addBool(implicitDynamic);
       buffer.addBool(propagateLinterExceptions);
       buffer.addBool(strictCasts);
       buffer.addBool(strictInference);

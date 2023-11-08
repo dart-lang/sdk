@@ -1,0 +1,84 @@
+library /*isLegacy*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/unsound_promotion.dart:23:16: Error: Inferred type argument 'S' doesn't conform to the bound 'A' of the type variable 'T' on 'g'.
+//  - 'A' is from 'pkg/front_end/testcases/general/unsound_promotion.dart'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//     var list = g(s);
+//                ^
+// pkg/front_end/testcases/general/unsound_promotion.dart:15:11: Context: This is the type variable whose bound isn't conformed to.
+// List<T> g<T extends A>(T t) {
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A*
+    : super core::Object::•()
+    ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class B extends core::Object {
+  synthetic constructor •() → self::B*
+    : super core::Object::•()
+    ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
+  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
+  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
+  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
+  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
+  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
+  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
+  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
+  abstract member-signature method toString() → core::String*; -> core::Object::toString
+  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
+}
+class C extends self::B implements self::A {
+  synthetic constructor •() → self::C*
+    : super self::B::•()
+    ;
+}
+static field core::List<self::A*>* list;
+static method g<T extends self::A*>(self::g::T* t) → core::List<self::g::T*>* {
+  self::list = core::_GrowableList::•<self::g::T*>(0);
+  core::print(self::list.{core::Object::runtimeType}{core::Type*});
+  return self::list as{TypeError,ForLegacy} core::List<self::g::T*>*;
+}
+static method f<S extends core::Object* = dynamic>(self::f::S* s) → core::List<self::f::S*>* {
+  if(s is{ForLegacy} self::A*) {
+    core::List<self::f::S*>* list = self::g<self::f::S*>(s{self::f::S* & self::A* /* '*' & '*' = '*' */});
+    return list;
+  }
+  return null;
+}
+static method main() → dynamic {
+  self::f<self::B*>(new self::C::•());
+  core::print(self::list.{core::Object::runtimeType}{core::Type*});
+  core::List<self::A*>* aList;
+  aList = self::list;
+  core::Object* o = aList;
+  self::expectThrows(() → core::Object* => aList = o as{TypeError,ForLegacy} core::List<self::A*>*);
+}
+static method expectThrows(() →* dynamic f) → dynamic {
+  core::bool* hasThrown = true;
+  try {
+    f(){() →* dynamic};
+    hasThrown = false;
+  }
+  on dynamic catch(final dynamic e) {
+  }
+  if(!hasThrown) {
+    throw "Expected the function to throw";
+  }
+}

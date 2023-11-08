@@ -235,7 +235,8 @@ base class _ProcessImpl extends _ProcessImplNativeWrapper implements _Process {
     }
     ArgumentError.checkNotNull(_mode, "mode");
 
-    if (!connectedResourceHandler) {
+    if (!const bool.fromEnvironment("dart.vm.product") &&
+        !connectedResourceHandler) {
       registerExtension('ext.dart.io.getSpawnedProcesses',
           _SpawnedProcessResourceInfo.getStartedProcesses);
       registerExtension('ext.dart.io.getSpawnedProcessById',

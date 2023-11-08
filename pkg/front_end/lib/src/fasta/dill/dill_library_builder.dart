@@ -9,16 +9,13 @@ import 'dart:convert' show jsonDecode;
 import 'package:kernel/ast.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
-import '../builder/extension_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../fasta_codes.dart'
     show Message, noLength, templateDuplicatedDeclaration, templateUnspecified;
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -27,6 +24,7 @@ import '../problems.dart' show internalProblem, unhandled, unimplemented;
 import '../scope.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_extension_builder.dart';
+import 'dill_extension_type_declaration_builder.dart';
 import 'dill_loader.dart' show DillLoader;
 import 'dill_member_builder.dart';
 import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
@@ -94,6 +92,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isBuilt = true;
     library.classes.forEach(_addClass);
     library.extensions.forEach(_addExtension);
+    library.extensionTypeDeclarations.forEach(_addExtensionTypeDeclaration);
 
     Map<String, Map<Name, Procedure>> tearOffs = {};
     List<Procedure> nonTearOffs = [];
@@ -194,8 +193,15 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     _addBuilder(extension.name, extensionBuilder);
   }
 
+  void _addExtensionTypeDeclaration(
+      ExtensionTypeDeclaration extensionTypeDeclaration) {
+    DillExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+        new DillExtensionTypeDeclarationBuilder(extensionTypeDeclaration, this);
+    _addBuilder(extensionTypeDeclaration.name, extensionTypeDeclarationBuilder);
+  }
+
   void _addMember(Member member) {
-    if (member.isExtensionMember) {
+    if (member.isExtensionMember || member.isExtensionTypeMember) {
       return null;
     }
     String name = member.name.text;
@@ -369,6 +375,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
         } else if (node is Extension) {
           libraryUri = node.enclosingLibrary.importUri;
           name = node.name;
+        } else if (node is ExtensionTypeDeclaration) {
+          libraryUri = node.enclosingLibrary.importUri;
+          name = node.name;
         } else {
           unhandled("${node.runtimeType}", "finalizeExports", -1, fileUri);
         }
@@ -398,7 +407,9 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
                   node == declaration.typedef) ||
               (declaration is MemberBuilder && node == declaration.member) ||
               (declaration is ExtensionBuilder &&
-                  node == declaration.extension),
+                  node == declaration.extension) ||
+              (declaration is ExtensionTypeDeclarationBuilder &&
+                  node == declaration.extensionTypeDeclaration),
           "Unexpected declaration ${declaration} (${declaration.runtimeType}) "
           "for node ${node} (${node.runtimeType}).");
     }

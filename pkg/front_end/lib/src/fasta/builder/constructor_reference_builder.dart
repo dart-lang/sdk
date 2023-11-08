@@ -6,16 +6,14 @@ library fasta.constructor_reference_builder;
 
 import '../messages.dart' show noLength, templateConstructorNotFound;
 
-import '../identifiers.dart' show QualifiedName, flattenName;
+import '../identifiers.dart' show Identifier, QualifiedName, flattenName;
 
 import '../scope.dart';
 
 import 'builder.dart';
-import 'class_builder.dart';
-import 'inline_class_builder.dart';
+import 'declaration_builders.dart';
 import 'library_builder.dart';
 import 'prefix_builder.dart';
-import 'type_alias_builder.dart';
 import 'type_builder.dart';
 
 class ConstructorReferenceBuilder {
@@ -45,7 +43,7 @@ class ConstructorReferenceBuilder {
     final Object name = this.name;
     Builder? declaration;
     if (name is QualifiedName) {
-      String prefix = name.qualifier as String;
+      String prefix = (name.qualifier as Identifier).name;
       String middle = name.name;
       declaration = scope.lookup(prefix, charOffset, fileUri);
       if (declaration is TypeAliasBuilder) {
@@ -55,13 +53,19 @@ class ConstructorReferenceBuilder {
       if (declaration is PrefixBuilder) {
         PrefixBuilder prefix = declaration;
         declaration = prefix.lookup(middle, name.charOffset, fileUri);
-      } else if (declaration is ClassBuilder) {
+      } else if (declaration is DeclarationBuilder) {
         declaration = declaration.findConstructorOrFactory(
             middle, name.charOffset, fileUri, accessingLibrary);
         if (suffix == null) {
           target = declaration;
           return;
         }
+      }
+    } else if (name is Identifier) {
+      declaration = scope.lookup(name.name, charOffset, fileUri);
+      if (declaration is TypeAliasBuilder) {
+        TypeAliasBuilder aliasBuilder = declaration;
+        declaration = aliasBuilder.unaliasDeclaration(typeArguments);
       }
     } else {
       declaration = scope.lookup(name as String, charOffset, fileUri);
@@ -70,10 +74,7 @@ class ConstructorReferenceBuilder {
         declaration = aliasBuilder.unaliasDeclaration(typeArguments);
       }
     }
-    if (declaration is ClassBuilder) {
-      target = declaration.findConstructorOrFactory(
-          suffix ?? "", charOffset, fileUri, accessingLibrary);
-    } else if (declaration is InlineClassBuilder) {
+    if (declaration is DeclarationBuilder) {
       target = declaration.findConstructorOrFactory(
           suffix ?? "", charOffset, fileUri, accessingLibrary);
     }

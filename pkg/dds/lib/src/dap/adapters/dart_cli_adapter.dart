@@ -11,8 +11,6 @@ import 'package:dap/dap.dart';
 import 'package:path/path.dart' as path;
 import 'package:vm_service/vm_service.dart' as vm;
 
-import '../logging.dart';
-import '../protocol_stream.dart';
 import 'dart.dart';
 import 'mixins.dart';
 
@@ -29,20 +27,13 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   final parseAttachArgs = DartAttachRequestArguments.fromJson;
 
   DartCliDebugAdapter(
-    ByteStreamServerChannel channel, {
-    bool ipv6 = false,
-    bool enableDds = true,
-    bool enableAuthCodes = true,
-    Logger? logger,
-    Function? onError,
-  }) : super(
-          channel,
-          ipv6: ipv6,
-          enableDds: enableDds,
-          enableAuthCodes: enableAuthCodes,
-          logger: logger,
-          onError: onError,
-        );
+    super.channel, {
+    super.ipv6,
+    super.enableDds,
+    super.enableAuthCodes,
+    super.logger,
+    super.onError,
+  });
 
   /// Whether the VM Service closing should be used as a signal to terminate the
   /// debug session.

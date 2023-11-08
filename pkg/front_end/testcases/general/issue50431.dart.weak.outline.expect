@@ -1,0 +1,6 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method test<T extends core::Object? = dynamic>(self::test::T? t) → dynamic
+  ;

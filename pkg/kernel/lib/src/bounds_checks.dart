@@ -2,17 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/src/replacement_visitor.dart';
-
 import '../ast.dart';
-
-import '../type_algebra.dart' show Substitution, substitute;
-
+import '../type_algebra.dart';
 import '../type_environment.dart' show SubtypeCheckMode, TypeEnvironment;
-
 import '../util/graph.dart' show Graph, computeStrongComponents;
-
 import 'legacy_erasure.dart';
+import 'replacement_visitor.dart';
 
 class TypeVariableGraph extends Graph<int> {
   @override
@@ -87,13 +82,6 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void visitInlineType(InlineType node) {
-    for (DartType argument in node.typeArguments) {
-      argument.accept(this);
-    }
-  }
-
-  @override
   void visitFutureOrType(FutureOrType node) {
     node.typeArgument.accept(this);
   }
@@ -136,7 +124,7 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
 
   @override
   void visitFunctionType(FunctionType node) {
-    for (TypeParameter typeParameter in node.typeParameters) {
+    for (StructuralParameter typeParameter in node.typeParameters) {
       typeParameter.bound.accept(this);
       typeParameter.defaultType.accept(this);
     }
@@ -157,7 +145,16 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void defaultDartType(DartType node) {}
+  void visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    // TODO(cstefantsova): Should we have an occurrence visitor for
+    // [StructuralParameter] objects.
+  }
 }
 
 DartType instantiateToBounds(DartType type, Class objectClass,
@@ -349,6 +346,11 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
   } else if (type is TypedefType) {
     variables = type.typedefNode.typeParameters;
     arguments = type.typeArguments;
+  } else if (type is ExtensionType) {
+    variables = type.extensionTypeDeclaration.typeParameters;
+    arguments = type.typeArguments;
+    // Extension types are never allowed to be super-bounded.
+    allowSuperBounded = false;
   } else if (type is FunctionType) {
     List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
 
@@ -379,6 +381,12 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     variables = typeEnvironment.coreTypes.futureClass.typeParameters;
     arguments = <DartType>[type.typeArgument];
   } else {
+    assert(type is DynamicType ||
+        type is VoidType ||
+        type is IntersectionType ||
+        type is TypeParameterType ||
+        type is NeverType ||
+        type is NullType);
     return const <TypeArgumentIssue>[];
   }
 
@@ -391,8 +399,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
   List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
   List<TypeArgumentIssue> argumentsResult = <TypeArgumentIssue>[];
 
-  Map<TypeParameter, DartType> substitutionMap =
-      new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
+  Substitution substitution = Substitution.fromPairs(variables, arguments);
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
     if (!areGenericArgumentsAllowed && isGenericFunctionTypeOrAlias(argument)) {
@@ -400,7 +407,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
       result.add(new TypeArgumentIssue(i, argument, variables[i], type,
           isGenericTypeAsArgumentIssue: true));
     } else if (variables[i].bound is! InvalidType) {
-      DartType bound = substitute(variables[i].bound, substitutionMap);
+      DartType bound = substitution.substituteType(variables[i].bound);
       if (!isNonNullableByDefault) {
         bound = legacyErasure(bound);
       }
@@ -440,8 +447,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     variables = typeEnvironment.coreTypes.futureClass.typeParameters;
     arguments = <DartType>[invertedType.typeArgument];
   }
-  substitutionMap =
-      new Map<TypeParameter, DartType>.fromIterables(variables, arguments);
+  substitution = Substitution.fromPairs(variables, arguments);
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
     // TODO(johnniwinther): Should we check this even when generic functions
@@ -450,7 +456,7 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
       // Generic function types aren't allowed as type arguments either.
       isCorrectSuperBounded = false;
     } else if (!typeEnvironment.isSubtypeOf(argument,
-        substitute(variables[i].bound, substitutionMap), subtypeCheckMode)) {
+        substitution.substituteType(variables[i].bound), subtypeCheckMode)) {
       isCorrectSuperBounded = false;
     }
   }
@@ -494,10 +500,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
   assert(bottomType == const NeverType.nonNullable() || bottomType is NullType);
 
   List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
-  Map<TypeParameter, DartType> substitutionMap = <TypeParameter, DartType>{};
-  for (int i = 0; i < arguments.length; ++i) {
-    substitutionMap[parameters[i]] = arguments[i];
-  }
+  Substitution substitution = Substitution.fromPairs(parameters, arguments);
   for (int i = 0; i < arguments.length; ++i) {
     DartType argument = arguments[i];
     if (argument is IntersectionType) {
@@ -510,7 +513,7 @@ List<TypeArgumentIssue> findTypeArgumentIssuesForInvocation(
       result.add(new TypeArgumentIssue(i, argument, parameters[i], null,
           isGenericTypeAsArgumentIssue: true));
     } else if (parameters[i].bound is! InvalidType) {
-      DartType bound = substitute(parameters[i].bound, substitutionMap);
+      DartType bound = substitution.substituteType(parameters[i].bound);
       if (!isNonNullableByDefault) {
         bound = legacyErasure(bound);
       }
@@ -743,8 +746,8 @@ class VarianceCalculator
   VarianceCalculator(this.typeParameter);
 
   @override
-  int defaultDartType(
-      DartType node, Map<TypeParameter, Map<DartType, int>> computedVariances) {
+  int visitAuxiliaryType(AuxiliaryType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
     throw new StateError("Unhandled ${node.runtimeType} "
         "when computing variance of a type parameter.");
   }
@@ -753,6 +756,13 @@ class VarianceCalculator
   int visitTypeParameterType(TypeParameterType node,
       Map<TypeParameter, Map<DartType, int>> computedVariances) {
     if (node.parameter == typeParameter) return Variance.covariant;
+    return Variance.unrelated;
+  }
+
+  @override
+  int visitStructuralParameterType(StructuralParameterType node,
+      Map<TypeParameter, Map<DartType, int>> computedVariances) {
+    // TODO(cstefantsova): Implement this method.
     return Variance.unrelated;
   }
 
@@ -786,22 +796,7 @@ class VarianceCalculator
       result = Variance.meet(
           result,
           Variance.combine(
-              node.extension.typeParameters[i].variance,
-              computeVariance(typeParameter, node.typeArguments[i],
-                  computedVariances: computedVariances)));
-    }
-    return result;
-  }
-
-  @override
-  int visitInlineType(InlineType node,
-      Map<TypeParameter, Map<DartType, int>> computedVariances) {
-    int result = Variance.unrelated;
-    for (int i = 0; i < node.typeArguments.length; ++i) {
-      result = Variance.meet(
-          result,
-          Variance.combine(
-              node.inlineClass.typeParameters[i].variance,
+              node.extensionTypeDeclaration.typeParameters[i].variance,
               computeVariance(typeParameter, node.typeArguments[i],
                   computedVariances: computedVariances)));
     }
@@ -848,7 +843,7 @@ class VarianceCalculator
         result,
         computeVariance(typeParameter, node.returnType,
             computedVariances: computedVariances));
-    for (TypeParameter functionTypeParameter in node.typeParameters) {
+    for (StructuralParameter functionTypeParameter in node.typeParameters) {
       // If [typeParameter] is referenced in the bound at all, it makes the
       // variance of [typeParameter] in the entire type invariant.  The
       // invocation of the visitor below is made to simply figure out if
@@ -943,21 +938,27 @@ class _HasGenericFunctionTypeAsTypeArgumentVisitor
   const _HasGenericFunctionTypeAsTypeArgumentVisitor();
 
   @override
-  bool defaultDartType(DartType node, bool isTypeArgument) => false;
+  bool visitAuxiliaryType(AuxiliaryType node, bool isTypeArgument) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+  }
 
   @override
   bool visitFunctionType(FunctionType node, bool isTypeArgument) {
     if (isTypeArgument && node.typeParameters.isNotEmpty) {
       return true;
     }
-    // TODO(johnniwinther): Should deeply nested generic function types be
-    //  disallowed?
     if (node.returnType.accept1(this, false)) return true;
     for (DartType parameterType in node.positionalParameters) {
       if (parameterType.accept1(this, false)) return true;
     }
     for (NamedType namedParameterType in node.namedParameters) {
       if (namedParameterType.type.accept1(this, false)) return true;
+    }
+    for (StructuralParameter typeParameter in node.typeParameters) {
+      if (typeParameter.bound.accept1(this, false)) {
+        return true;
+      }
     }
     return false;
   }
@@ -977,4 +978,59 @@ class _HasGenericFunctionTypeAsTypeArgumentVisitor
     }
     return false;
   }
+
+  @override
+  bool visitExtensionType(ExtensionType node, bool isTypeArgument) {
+    for (DartType typeArgument in node.typeArguments) {
+      if (typeArgument.accept1(this, true)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitDynamicType(DynamicType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitFutureOrType(FutureOrType node, bool isTypeArgument) {
+    return node.typeArgument.accept1(this, false);
+  }
+
+  @override
+  bool visitIntersectionType(IntersectionType node, bool isTypeArgument) {
+    return node.left.accept1(this, false) || node.right.accept1(this, false);
+  }
+
+  @override
+  bool visitInvalidType(InvalidType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitNeverType(NeverType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitNullType(NullType node, bool isTypeArgument) => false;
+
+  @override
+  bool visitRecordType(RecordType node, bool isTypeArgument) {
+    for (DartType parameterType in node.positional) {
+      if (parameterType.accept1(this, false)) return true;
+    }
+    for (NamedType namedParameterType in node.named) {
+      if (namedParameterType.type.accept1(this, false)) return true;
+    }
+    return false;
+  }
+
+  @override
+  bool visitTypeParameterType(TypeParameterType node, bool isTypeArgument) {
+    return false;
+  }
+
+  @override
+  bool visitStructuralParameterType(
+      StructuralParameterType node, bool isTypeArgument) {
+    return false;
+  }
+
+  @override
+  bool visitVoidType(VoidType node, bool isTypeArgument) => false;
 }

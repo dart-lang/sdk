@@ -92,7 +92,8 @@ abstract class NativeEnqueuer {
             type == _commonElements.stringType ||
             type == _commonElements.nullType ||
             type == _commonElements.boolType ||
-            type == _commonElements.jsJavaScriptFunctionType ||
+            type.element == _commonElements.jsJavaScriptBigIntClass ||
+            type.element == _commonElements.jsJavaScriptSymbolClass ||
             type == _commonElements.jsJavaScriptObjectType ||
             _dartTypes.isSubtype(type,
                 _elementEnvironment.getRawType(_commonElements.jsArrayClass))) {

@@ -64,12 +64,12 @@ class Covariance {
   Covariance.internal(
       this._positionalParameters, this._namedParameters, this._typeParameters) {
     assert(_positionalParameters == null ||
-        _positionalParameters!.any((element) => element != 0));
+        _positionalParameters.any((element) => element != 0));
     assert(_namedParameters == null ||
-        _namedParameters!.values.isNotEmpty &&
-            _namedParameters!.values.every((element) => element != 0));
+        _namedParameters.values.isNotEmpty &&
+            _namedParameters.values.every((element) => element != 0));
     assert(
-        _typeParameters == null || _typeParameters!.any((element) => element));
+        _typeParameters == null || _typeParameters.any((element) => element));
   }
 
   /// The empty covariance.
@@ -214,8 +214,7 @@ class Covariance {
       positionalParameters = _positionalParameters;
     } else {
       positionalParameters = new List<int>.filled(
-          max(_positionalParameters!.length,
-              other._positionalParameters!.length),
+          max(_positionalParameters.length, other._positionalParameters.length),
           0);
       for (int index = 0; index < positionalParameters.length; index++) {
         positionalParameters[index] =
@@ -230,8 +229,8 @@ class Covariance {
     } else {
       namedParameters = {};
       Set<String> names = {
-        ..._namedParameters!.keys,
-        ...other._namedParameters!.keys
+        ..._namedParameters.keys,
+        ...other._namedParameters.keys
       };
       for (String name in names) {
         namedParameters[name] =
@@ -245,7 +244,7 @@ class Covariance {
       typeParameters = _typeParameters;
     } else {
       typeParameters = new List<bool>.filled(
-          max(_typeParameters!.length, other._typeParameters!.length), false);
+          max(_typeParameters.length, other._typeParameters.length), false);
       for (int index = 0; index < typeParameters.length; index++) {
         typeParameters[index] = isTypeParameterGenericCovariantImpl(index) ||
             other.isTypeParameterGenericCovariantImpl(index);
@@ -338,7 +337,7 @@ class Covariance {
           return false;
         }
         int positionalParameterCount = max(
-            _positionalParameters!.length, other._positionalParameters!.length);
+            _positionalParameters.length, other._positionalParameters.length);
         for (int i = 0; i < positionalParameterCount; i++) {
           if (getPositionalVariance(i) != other.getPositionalVariance(i)) {
             return false;
@@ -350,8 +349,8 @@ class Covariance {
           return false;
         }
         Set<String> names = {
-          ..._namedParameters!.keys,
-          ...other._namedParameters!.keys
+          ..._namedParameters.keys,
+          ...other._namedParameters.keys
         };
         for (String name in names) {
           if (getNamedVariance(name) != other.getNamedVariance(name)) {
@@ -364,7 +363,7 @@ class Covariance {
           return false;
         }
         int typeParameterCount =
-            max(_typeParameters!.length, other._typeParameters!.length);
+            max(_typeParameters.length, other._typeParameters.length);
         for (int i = 0; i < typeParameterCount; i++) {
           if (isTypeParameterGenericCovariantImpl(i) !=
               other.isTypeParameterGenericCovariantImpl(i)) {

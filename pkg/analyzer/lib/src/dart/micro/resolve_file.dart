@@ -11,6 +11,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
+import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/cache.dart';
@@ -19,6 +20,7 @@ import 'package:analyzer/src/dart/analysis/driver.dart' show ErrorEncoding;
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/analysis/library_analyzer.dart';
 import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -33,7 +35,6 @@ import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
@@ -591,6 +592,7 @@ class FileResolver {
           elementFactory.libraryOfUri2(libraryKind.file.uri),
           analysisSession.inheritanceManager,
           libraryKind,
+          resourceProvider.pathContext,
         );
 
         final analysisResult = performance!.run('analyze', (performance) {
@@ -656,6 +658,7 @@ class FileResolver {
           libraryContext!.elementFactory.libraryOfUri2(libraryKind.file.uri),
           libraryContext!.elementFactory.analysisSession.inheritanceManager,
           libraryKind,
+          resourceProvider.pathContext,
         );
 
         results = performance!.run('analyze', (performance) {
@@ -712,7 +715,6 @@ class FileResolver {
     }
 
     var analysisOptions = AnalysisOptionsImpl()
-      ..implicitCasts = fileAnalysisOptions.implicitCasts
       ..strictInference = fileAnalysisOptions.strictInference;
 
     if (fsState == null) {
@@ -764,6 +766,7 @@ class FileResolver {
       libraryContext = LibraryContext(
         declaredVariables: contextObjects!.declaredVariables,
         byteStore: byteStore,
+        infoDeclarationStore: const NoOpInfoDeclarationStore(),
         analysisOptions: contextObjects!.analysisOptions,
         analysisSession: contextObjects!.analysisSession,
         logger: logger,
@@ -844,12 +847,12 @@ class FileResolver {
 
     if (optionMap != null) {
       performance.run('applyToAnalysisOptions', (_) {
-        applyToAnalysisOptions(options, optionMap!);
+        options.applyOptions(optionMap!);
       });
     }
 
     if (isThirdParty) {
-      options.hint = false;
+      options.warning = false;
     }
 
     return options;

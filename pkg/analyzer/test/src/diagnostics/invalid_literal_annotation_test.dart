@@ -31,6 +31,26 @@ class A {
 ''');
   }
 
+  test_extensionType_constConstructor() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+extension type const E(int i) {
+  @literal
+  const E.zero(): this(0);
+}
+''');
+  }
+
+  test_extensionType_declaration() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+@literal
+extension type const E(int i) { }
+''', [
+      error(WarningCode.INVALID_LITERAL_ANNOTATION, 33, 8),
+    ]);
+  }
+
   test_nonConstConstructor() async {
     await assertErrorsInCode(r'''
 import 'package:meta/meta.dart';

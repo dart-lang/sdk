@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer_plugin/plugin/assist_mixin.dart';
 import 'package:analyzer_plugin/plugin/plugin.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -66,8 +65,7 @@ class _TestAssistContributor implements AssistContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
-  _TestServerPlugin(ResourceProvider resourceProvider)
-      : super(resourceProvider);
+  _TestServerPlugin(super.resourceProvider);
 
   PrioritizedSourceChange createChange() {
     return PrioritizedSourceChange(0, SourceChange(''));

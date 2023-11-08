@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
@@ -28,6 +30,8 @@ export 'package:analyzer/src/dart/error/syntactic_errors.dart';
 /// have any context, so it always resolves such conflicts by scanning the
 /// longest possible token.
 class Scanner {
+  static final Uint8List _lineStartsZero = Uint8List(0);
+
   final Source source;
 
   /// The text to be scanned.
@@ -47,22 +51,8 @@ class Scanner {
 
   /// The flag specifying whether documentation comments should be parsed.
   bool _preserveComments = true;
-
-  final List<int> lineStarts = <int>[];
-
+  List<int>? _lineStarts;
   late final Token firstToken;
-
-  /// A flag indicating whether the scanner should recognize the `>>>` operator
-  /// and the `>>>=` operator.
-  ///
-  /// Use [configureFeatures] rather than this field.
-  bool enableGtGtGt = false;
-
-  /// A flag indicating whether the scanner should recognize the `late` and
-  /// `required` keywords.
-  ///
-  /// Use [configureFeatures] rather than this field.
-  bool enableNonNullable = false;
 
   Version? _overrideVersion;
 
@@ -84,9 +74,7 @@ class Scanner {
   }
 
   Scanner._(
-      this.source, this._contents, this._readerOffset, this._errorListener) {
-    lineStarts.add(0);
-  }
+      this.source, this._contents, this._readerOffset, this._errorListener);
 
   /// The features associated with this scanner.
   ///
@@ -98,6 +86,8 @@ class Scanner {
   /// Use [configureFeatures] to set the features.
   FeatureSet get featureSet => _featureSet;
 
+  List<int> get lineStarts => _lineStarts ?? _lineStartsZero;
+
   /// The language version override specified for this compilation unit using a
   /// token like '// @dart = 2.7', or `null` if no override is specified.
   Version? get overrideVersion => _overrideVersion;
@@ -107,18 +97,12 @@ class Scanner {
   }
 
   /// Configures the scanner appropriately for the given [featureSet].
-  ///
-  /// TODO(paulberry): stop exposing `enableGtGtGt` and `enableNonNullable` so
-  /// that callers are forced to use this API.  Note that this would be a
-  /// breaking change.
   void configureFeatures({
     required FeatureSet featureSetForOverriding,
     required FeatureSet featureSet,
   }) {
     _featureSetForOverriding = featureSetForOverriding;
     _featureSet = featureSet;
-    enableGtGtGt = featureSet.isEnabled(Feature.triple_shift);
-    enableNonNullable = featureSet.isEnabled(Feature.non_nullable);
   }
 
   void reportError(
@@ -134,18 +118,6 @@ class Scanner {
     );
   }
 
-  void setSourceStart(int line, int column) {
-    int offset = _readerOffset;
-    if (line < 1 || column < 1 || offset < 0 || (line + column - 2) >= offset) {
-      return;
-    }
-    lineStarts.removeAt(0);
-    for (int i = 2; i < line; i++) {
-      lineStarts.add(1);
-    }
-    lineStarts.add(offset - column + 1);
-  }
-
   /// The fasta parser handles error tokens produced by the scanner
   /// but the old parser used by angular does not
   /// and expects that scanner errors to be reported by this method.
@@ -156,13 +128,15 @@ class Scanner {
         includeComments: _preserveComments,
         languageVersionChanged: _languageVersionChanged);
 
-    // fasta pretends there is an additional line at EOF
-    result.lineStarts.removeLast();
+    // fasta pretends there is an additional line at EOF so we skip the last one.
+    if (result.lineStarts.last > 65535) {
+      Uint32List list = _lineStarts = Uint32List(result.lineStarts.length - 1);
+      list.setRange(0, result.lineStarts.length - 1, result.lineStarts);
+    } else {
+      Uint16List list = _lineStarts = Uint16List(result.lineStarts.length - 1);
+      list.setRange(0, result.lineStarts.length - 1, result.lineStarts);
+    }
 
-    // for compatibility, there is already a first entry in lineStarts
-    result.lineStarts.removeAt(0);
-
-    lineStarts.addAll(result.lineStarts);
     fasta.Token token = result.tokens;
 
     // The fasta parser handles error tokens produced by the scanner

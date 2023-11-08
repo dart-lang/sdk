@@ -4,9 +4,11 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 import 'element_text.dart';
 
 /// A base for testing building elements.
@@ -23,12 +25,7 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
     newFile(path, contents);
   }
 
-  Future<LibraryElementImpl> buildLibrary(
-    String text, {
-    bool allowErrors = false,
-    bool dumpSummaries = false,
-    List<Set<String>>? preBuildSequence,
-  }) async {
+  Future<LibraryElementImpl> buildLibrary(String text) async {
     final file = newFile(testFile.path, text);
     final analysisContext = contextFor(file);
     final analysisSession = analysisContext.currentSession;
@@ -51,10 +48,15 @@ abstract class ElementsBaseTest extends PubPackageResolutionTest {
   }
 
   void checkElementText(LibraryElementImpl library, String expected) {
-    checkElementTextWithConfiguration(
-      library,
-      expected,
+    final actual = getLibraryText(
+      library: library,
       configuration: configuration,
     );
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
   }
 }

@@ -1,0 +1,10 @@
+import augment 'augment_concrete_lib1.dart';
+import augment 'augment_concrete_lib2.dart';
+class Class {
+  external void externalInstanceMethod();
+  static void staticMethod() {}
+  void instanceMethod() {}
+}
+external void externalTopLevelMethod();
+main() {}
+void topLevelMethod() {}

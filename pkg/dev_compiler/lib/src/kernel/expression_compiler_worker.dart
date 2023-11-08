@@ -84,6 +84,7 @@ class ExpressionCompilerWorker {
   final CompilerOptions _compilerOptions;
   final ModuleFormat _moduleFormat;
   final bool _canaryFeatures;
+  final bool _enableAsserts;
   final Component _sdkComponent;
 
   void Function()? onDone;
@@ -93,16 +94,12 @@ class ExpressionCompilerWorker {
     this._compilerOptions,
     this._moduleFormat,
     this._canaryFeatures,
+    this._enableAsserts,
     this._sdkComponent,
     this.requestStream,
     this.sendResponse,
     this.onDone,
   );
-
-  // Disable asserts due to failures to load source and locations on kernel
-  // loaded from dill files in DDC.
-  // https://github.com/dart-lang/sdk/issues/43986
-  static const bool _enableAsserts = false;
 
   /// Create expression compiler worker from [args] and start it.
   ///
@@ -197,6 +194,7 @@ class ExpressionCompilerWorker {
       soundNullSafety: parsedArgs['sound-null-safety'] as bool,
       moduleFormat: moduleFormat,
       canaryFeatures: parsedArgs['canary'] as bool,
+      enableAsserts: parsedArgs['enable-asserts'] as bool,
       verbose: parsedArgs['verbose'] as bool,
       requestStream: requestStream,
       sendResponse: sendResponse,
@@ -223,6 +221,7 @@ class ExpressionCompilerWorker {
     bool soundNullSafety = false,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     bool canaryFeatures = false,
+    bool enableAsserts = true,
     bool verbose = false,
     Stream<Map<String, dynamic>>? requestStream, // Defaults to read from stdin
     void Function(Map<String, dynamic>)?
@@ -242,7 +241,7 @@ class ExpressionCompilerWorker {
       ..omitPlatform = true
       ..environmentDefines = addGeneratedVariables({
         if (environmentDefines != null) ...environmentDefines,
-      }, enableAsserts: _enableAsserts)
+      }, enableAsserts: enableAsserts)
       ..explicitExperimentalFlags = explicitExperimentalFlags
       ..onDiagnostic = _onDiagnosticHandler(errors, warnings, infos)
       ..nnbdMode = soundNullSafety ? NnbdMode.Strong : NnbdMode.Weak
@@ -267,6 +266,7 @@ class ExpressionCompilerWorker {
         compilerOptions,
         moduleFormat,
         canaryFeatures,
+        enableAsserts,
         sdkComponent,
         requestStream,
         sendResponse,
@@ -451,8 +451,8 @@ class ExpressionCompilerWorker {
         summarizeApi: false,
         moduleName: moduleName,
         soundNullSafety: _compilerOptions.nnbdMode == NnbdMode.Strong,
-        enableAsserts: _enableAsserts,
         canaryFeatures: _canaryFeatures,
+        enableAsserts: _enableAsserts,
       ),
       _moduleCache.componentForLibrary,
       _moduleCache.moduleNameForComponent,
@@ -790,6 +790,13 @@ final argParser = ArgParser()
   ..addFlag('track-widget-creation', defaultsTo: false)
   ..addFlag('sound-null-safety', negatable: true, defaultsTo: true)
   ..addFlag('canary', negatable: true, defaultsTo: false)
+  // Disable asserts in compiled code by default, which is different
+  // from the default value of the setting in DDC.
+  //
+  // TODO(annagrin) Change the default to `true` after the user code
+  // is tested with enabled asserts.
+  // Issue: https://github.com/dart-lang/sdk/issues/43986
+  ..addFlag('enable-asserts', negatable: true, defaultsTo: false)
   ..addFlag('verbose', defaultsTo: false);
 
 Uri? _argToUri(String? uriArg) =>

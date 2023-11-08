@@ -49,7 +49,6 @@ html/js_interop_constructor_name/*: SkipByDesign # Issue 42085.
 isolate/deferred_in_isolate2_test: Skip # Issue 16898. Deferred loading does not work from an isolate in CSP-mode
 js/extends_test/extends_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/extends_test/extends_with_es6_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
-js/external_extension_members_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/instanceof_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/is_check_and_as_cast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/async_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
@@ -63,10 +62,12 @@ js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows inj
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
+js/static_interop_test/external_extension_members_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/trust_types_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/type_parameter_lowering_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 
 [ $simulator ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
@@ -93,7 +94,6 @@ isolate/int32_length_overflow_test: SkipSlow
 [ $compiler != dartk || $runtime != vm ]
 isolate/package_config_test: SkipByDesign # Uses Isolate.packageConfig
 isolate/package_resolve_test: SkipByDesign # Uses Isolate.resolvePackageUri
-isolate/package_root_test: SkipByDesign # Uses Isolate.packageRoot
 isolate/scenarios/*: SkipByDesign # Use automatic package resolution, spawnFunction and .dart URIs.
 isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
 

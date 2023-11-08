@@ -6,6 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart'
     hide TypeHierarchyItem, Element;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,8 +14,11 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
 
+typedef StaticOptions
+    = Either3<bool, ImplementationOptions, ImplementationRegistrationOptions>;
+
 class ImplementationHandler
-    extends MessageHandler<TextDocumentPositionParams, List<Location>> {
+    extends SharedMessageHandler<TextDocumentPositionParams, List<Location>> {
   ImplementationHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_implementation;
@@ -33,12 +37,12 @@ class ImplementationHandler
     final pos = params.position;
     final path = pathOfDoc(params.textDocument);
     final unit = await performance.runAsync(
-      "requireResolvedUnit",
+      'requireResolvedUnit',
       (_) async => path.mapResult(requireResolvedUnit),
     );
     final offset = await unit.mapResult((unit) => toOffset(unit.lineInfo, pos));
     return await performance.runAsync(
-        "_getImplementations",
+        '_getImplementations',
         (performance) async => offset.mapResult((offset) =>
             _getImplementations(unit.result, offset, token, performance)));
   }
@@ -63,12 +67,12 @@ class ImplementationHandler
 
     var allSubtypes = <InterfaceElement>{};
     await performance.runAsync(
-        "appendAllSubtypes",
+        'appendAllSubtypes',
         (performance) => server.searchEngine
             .appendAllSubtypes(interfaceElement, allSubtypes, performance));
 
     final locations = performance.run(
-        "filter and get location",
+        'filter and get location',
         (_) => allSubtypes
             .map((element) {
               return needsMember
@@ -87,7 +91,7 @@ class ImplementationHandler
                 return null;
               }
               return Location(
-                uri: Uri.file(unitElement.source.fullName),
+                uri: pathContext.toUri(unitElement.source.fullName),
                 range: toRange(
                   unitElement.lineInfo,
                   element.nameOffset,
@@ -100,4 +104,22 @@ class ImplementationHandler
 
     return success(locations);
   }
+}
+
+class ImplementationRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  ImplementationRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes);
+
+  @override
+  Method get registrationMethod => Method.textDocument_implementation;
+
+  @override
+  StaticOptions get staticOptions => Either3.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.implementation;
 }

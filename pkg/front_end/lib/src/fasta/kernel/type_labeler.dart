@@ -100,9 +100,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
-  void defaultDartType(DartType type) {}
-
-  @override
   void visitTypedefType(TypedefType node) {
     Typedef typedefNode = node.typedefNode;
     result.add(nameForEntity(
@@ -169,6 +166,12 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
+  void visitStructuralParameterType(StructuralParameterType node) {
+    result.add(node.parameter.name ?? "T#${identityHashCode(node.parameter)}");
+    addNullability(node.declaredNullability);
+  }
+
+  @override
   void visitIntersectionType(IntersectionType node) {
     return node.left.accept(this);
   }
@@ -180,7 +183,7 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     if (node.typeParameters.isNotEmpty) {
       result.add("<");
       bool first = true;
-      for (TypeParameter param in node.typeParameters) {
+      for (StructuralParameter param in node.typeParameters) {
         if (!first) result.add(", ");
         result.add(param.name ?? '');
         if (isObject(param.bound) && param.defaultType is DynamicType) {
@@ -265,33 +268,11 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   void visitExtensionType(ExtensionType node) {
     // TODO(johnniwinther): Ensure enclosing libraries on extensions earlier
     // in the compiler to ensure types in error messages have context.
-    Library? enclosingLibrary = node.extension.parent as Library?;
+    Library? enclosingLibrary =
+        node.extensionTypeDeclaration.parent as Library?;
     result.add(nameForEntity(
-        node.extension,
-        node.extension.name,
-        enclosingLibrary?.importUri ?? unknownUri,
-        enclosingLibrary?.fileUri ?? unknownUri));
-    if (node.typeArguments.isNotEmpty) {
-      result.add("<");
-      bool first = true;
-      for (DartType typeArg in node.typeArguments) {
-        if (!first) result.add(", ");
-        typeArg.accept(this);
-        first = false;
-      }
-      result.add(">");
-    }
-    addNullability(node.declaredNullability);
-  }
-
-  @override
-  void visitInlineType(InlineType node) {
-    // TODO(johnniwinther): Ensure enclosing libraries on extensions earlier
-    // in the compiler to ensure types in error messages have context.
-    Library? enclosingLibrary = node.inlineClass.parent as Library?;
-    result.add(nameForEntity(
-        node.inlineClass,
-        node.inlineClass.name,
+        node.extensionTypeDeclaration,
+        node.extensionTypeDeclaration.name,
         enclosingLibrary?.importUri ?? unknownUri,
         enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {
@@ -331,9 +312,6 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
     result.add(")");
     addNullability(node.nullability);
   }
-
-  @override
-  void defaultConstant(Constant node) {}
 
   @override
   void visitNullConstant(NullConstant node) {
@@ -550,6 +528,18 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   @override
   void visitUnevaluatedConstant(UnevaluatedConstant node) {
     unsupported('printing unevaluated constants', -1, null);
+  }
+
+  @override
+  void visitAuxiliaryConstant(AuxiliaryConstant node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary constant ${node} (${node.runtimeType}).");
+  }
+
+  @override
+  void visitAuxiliaryType(AuxiliaryType node) {
+    throw new UnsupportedError(
+        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
   }
 }
 

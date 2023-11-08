@@ -147,14 +147,6 @@ class ElementResolver {
     }
   }
 
-  void visitConstructorFieldInitializer(
-      covariant ConstructorFieldInitializerImpl node) {
-    var fieldName = node.fieldName;
-    final enclosingClass = _resolver.enclosingClass!;
-    var fieldElement = enclosingClass.getField(fieldName.name);
-    fieldName.staticElement = fieldElement;
-  }
-
   void visitConstructorName(covariant ConstructorNameImpl node) {
     var type = node.type.type;
     if (type == null) {
@@ -202,6 +194,10 @@ class ElementResolver {
   }
 
   void visitExtensionDeclaration(ExtensionDeclaration node) {
+    _resolveAnnotations(node.metadata);
+  }
+
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
 
@@ -338,6 +334,10 @@ class ElementResolver {
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
+  }
+
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    _resolveAnnotations(node.fieldMetadata);
   }
 
   void visitSimpleFormalParameter(SimpleFormalParameter node) {

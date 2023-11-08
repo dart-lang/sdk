@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/element.dart' as analyzer;
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -17,7 +19,10 @@ import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 
-class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
+typedef StaticOptions
+    = Either3<bool, TypeDefinitionOptions, TypeDefinitionRegistrationOptions>;
+
+class TypeDefinitionHandler extends SharedMessageHandler<TypeDefinitionParams,
     TextDocumentTypeDefinitionResult> with LspPluginRequestHandlerMixin {
   static const _emptyResult = TextDocumentTypeDefinitionResult.t2([]);
 
@@ -41,7 +46,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
       return success(_emptyResult);
     }
 
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -128,7 +133,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
   /// Creates an LSP [Location] for the server [location].
   Location _toLocation(plugin.Location location, LineInfo lineInfo) {
     return Location(
-      uri: Uri.file(location.file),
+      uri: pathContext.toUri(location.file),
       range: toRange(lineInfo, location.offset, location.length),
     );
   }
@@ -156,7 +161,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
     return LocationLink(
       originSelectionRange:
           toRange(originLineInfo, originEntity.offset, originEntity.length),
-      targetUri: Uri.file(targetLocation.file),
+      targetUri: pathContext.toUri(targetLocation.file),
       targetRange: codeRange,
       targetSelectionRange: nameRange,
     );
@@ -187,4 +192,23 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
 
     return node.staticType;
   }
+}
+
+class TypeDefinitionRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  TypeDefinitionRegistrations(super.info);
+
+  @override
+  ToJsonable? get options => TextDocumentRegistrationOptions(
+        documentSelector: [dartFiles], // This is currently Dart-specific
+      );
+
+  @override
+  Method get registrationMethod => Method.textDocument_typeDefinition;
+
+  @override
+  StaticOptions get staticOptions => Either3.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.typeDefinition;
 }

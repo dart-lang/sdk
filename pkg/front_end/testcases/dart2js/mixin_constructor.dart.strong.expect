@@ -1,0 +1,45 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dart2js/mixin_constructor.dart:8:3: Error: Mixins can't declare constructors.
+//   M.baz();
+//   ^
+//
+// pkg/front_end/testcases/dart2js/mixin_constructor.dart:11:7: Error: Can't use 'M' as a mixin because it has constructors.
+// class MA extends A with M {}
+//       ^
+// pkg/front_end/testcases/dart2js/mixin_constructor.dart:8:3: Context: This constructor prevents using 'M' as a mixin.
+//   M.baz();
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  static method _#new#tearOff() → self::A
+    return new self::A::•();
+}
+abstract class M extends self::A /*isMixinDeclaration*/  {
+  constructor baz() → self::M
+    : super self::A::•()
+    ;
+}
+abstract class _MA&A&M = self::A with self::M /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_MA&A&M
+    : super self::A::•()
+    ;
+}
+class MA extends self::_MA&A&M {
+  synthetic constructor •() → self::MA
+    : super self::_MA&A&M::•()
+    ;
+  static method _#new#tearOff() → self::MA
+    return new self::MA::•();
+}
+static method test() → dynamic {
+  new self::MA::•();
+}

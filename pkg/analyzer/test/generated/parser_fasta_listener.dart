@@ -90,7 +90,6 @@ class ForwardingTestListener extends ForwardingListener {
       Token beginToken,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -102,7 +101,6 @@ class ForwardingTestListener extends ForwardingListener {
         beginToken,
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -401,9 +399,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? baseToken, Token mixinKeyword, Token name) {
-    super.beginMixinDeclaration(augmentToken, baseToken, mixinKeyword, name);
+  void beginMixinDeclaration(Token beginToken, Token? augmentToken,
+      Token? baseToken, Token mixinKeyword, Token name) {
+    super.beginMixinDeclaration(
+        beginToken, augmentToken, baseToken, mixinKeyword, name);
     begin('MixinDeclaration');
   }
 
@@ -418,7 +417,6 @@ class ForwardingTestListener extends ForwardingListener {
       Token beginToken,
       Token? abstractToken,
       Token? macroToken,
-      Token? inlineToken,
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
@@ -430,7 +428,6 @@ class ForwardingTestListener extends ForwardingListener {
         beginToken,
         abstractToken,
         macroToken,
-        inlineToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -779,9 +776,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     end('Enum');
-    super.endEnum(enumKeyword, leftBrace, memberCount);
+    super.endEnum(beginToken, enumKeyword, leftBrace, memberCount, endToken);
   }
 
   @override
@@ -848,10 +846,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token token) {
-    super.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
-        showKeyword, hideKeyword, token);
+  void endExtensionDeclaration(
+      Token beginToken, Token extensionKeyword, Token onKeyword, Token token) {
+    super.endExtensionDeclaration(
+        beginToken, extensionKeyword, onKeyword, token);
     end('ExtensionDeclaration');
   }
 
@@ -1111,10 +1109,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endMixinDeclaration(Token mixinKeyword, Token endToken) {
+  void endMixinDeclaration(Token beginToken, Token endToken) {
     end('MixinDeclaration');
     end('ClassOrNamedMixinApplication');
-    super.endMixinDeclaration(mixinKeyword, endToken);
+    super.endMixinDeclaration(beginToken, endToken);
   }
 
   @override
@@ -1483,9 +1481,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     expectIn('ClassDeclaration');
-    listener?.handleRecoverClassHeader();
+    listener?.handleRecoverDeclarationHeader(kind);
   }
 
   @override

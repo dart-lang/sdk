@@ -121,54 +121,6 @@ static bool IsControlFlow(Instruction* instruction) {
          instruction->IsTailCall();
 }
 
-// Asserts that arguments appear in environment at the right place.
-static void AssertArgumentsInEnv(FlowGraph* flow_graph, Definition* call) {
-  Environment* env = call->env();
-  if (env == nullptr) {
-    // Environments can be removed by EliminateEnvironments pass and
-    // are not present before SSA.
-  } else if (flow_graph->function().IsIrregexpFunction()) {
-    // TODO(dartbug.com/38577): cleanup regexp pipeline too....
-  } else {
-    // Otherwise, the trailing environment entries must
-    // correspond directly with the arguments.
-    const intptr_t env_count = env->Length();
-    const intptr_t arg_count = call->ArgumentCount();
-    // Some calls (e.g. closure calls) have more inputs than actual arguments.
-    // Those extra inputs will be consumed from the stack before the call.
-    const intptr_t after_args_input_count = call->env()->LazyDeoptPruneCount();
-    ASSERT1((arg_count + after_args_input_count) <= env_count, call);
-    const intptr_t env_base = env_count - arg_count - after_args_input_count;
-    for (intptr_t i = 0; i < arg_count; i++) {
-      if (call->HasMoveArguments()) {
-        ASSERT1(call->ArgumentAt(i) == env->ValueAt(env_base + i)
-                                           ->definition()
-                                           ->AsMoveArgument()
-                                           ->value()
-                                           ->definition(),
-                call);
-      } else {
-        // Redefinition instructions and boxing/unboxing are inserted
-        // without updating environment uses (FlowGraph::RenameDominatedUses,
-        // FlowGraph::InsertConversionsFor).
-        // Also, constants may belong to different blocks (e.g. function entry
-        // and graph entry).
-        Definition* arg_def =
-            call->ArgumentAt(i)->OriginalDefinitionIgnoreBoxingAndConstraints();
-        Definition* env_def =
-            env->ValueAt(env_base + i)
-                ->definition()
-                ->OriginalDefinitionIgnoreBoxingAndConstraints();
-        ASSERT2((arg_def == env_def) ||
-                    (arg_def->IsConstant() && env_def->IsConstant() &&
-                     arg_def->AsConstant()->value().ptr() ==
-                         env_def->AsConstant()->value().ptr()),
-                arg_def, env_def);
-      }
-    }
-  }
-}
-
 void FlowGraphChecker::VisitBlocks() {
   const GrowableArray<BlockEntryInstr*>& preorder = flow_graph_->preorder();
   const GrowableArray<BlockEntryInstr*>& postorder = flow_graph_->postorder();
@@ -295,6 +247,14 @@ void FlowGraphChecker::VisitInstruction(Instruction* instruction) {
   ASSERT1(!instruction->MayThrow() || instruction->IsTailCall() ||
               instruction->deopt_id() != DeoptId::kNone,
           instruction);
+
+  // Any instruction that can eagerly deopt cannot come from a force-optimized
+  // function.
+  if (instruction->ComputeCanDeoptimize()) {
+    ASSERT2(!flow_graph_->function().ForceOptimize(), instruction,
+            &flow_graph_->function());
+  }
+
 #endif  // !defined(DART_PRECOMPILER)
 
   // If checking token positions and the flow graph has an inlining ID,
@@ -524,16 +484,79 @@ void FlowGraphChecker::VisitRedefinition(RedefinitionInstr* def) {
   ASSERT1(def->value()->definition() != def, def);
 }
 
+// Asserts that arguments appear in environment at the right place.
+void FlowGraphChecker::AssertArgumentsInEnv(Definition* call) {
+  const auto& function = flow_graph_->function();
+  Environment* env = call->env();
+  if (env == nullptr) {
+    // Environments can be removed by EliminateEnvironments pass and
+    // are not present before SSA.
+  } else if (function.IsIrregexpFunction()) {
+    // TODO(dartbug.com/38577): cleanup regexp pipeline too....
+  } else {
+    // Otherwise, the trailing environment entries must
+    // correspond directly with the arguments.
+    const intptr_t env_count = env->Length();
+    const intptr_t arg_count = call->ArgumentCount();
+    // Some calls (e.g. closure calls) have more inputs than actual arguments.
+    // Those extra inputs will be consumed from the stack before the call.
+    const intptr_t after_args_input_count = call->env()->LazyDeoptPruneCount();
+    ASSERT1((arg_count + after_args_input_count) <= env_count, call);
+    const intptr_t env_base = env_count - arg_count - after_args_input_count;
+    for (intptr_t i = 0; i < arg_count; i++) {
+      if (call->HasMoveArguments()) {
+        ASSERT1(call->ArgumentAt(i) == env->ValueAt(env_base + i)
+                                           ->definition()
+                                           ->AsMoveArgument()
+                                           ->value()
+                                           ->definition(),
+                call);
+      } else {
+        if (env->LazyDeoptToBeforeDeoptId()) {
+          // The deoptimization environment attached to this [call] instruction may
+          // no longer target the same call in unoptimized code. It may target anything.
+          //
+          // As a result, we cannot assume the arguments we pass to the call will also be
+          // in the deopt environment.
+          //
+          // This currently can happen in inlined force-optimized instructions.
+          ASSERT(call->inlining_id() > 0);
+          const auto& function = *inline_id_to_function_[call->inlining_id()];
+          ASSERT(function.ForceOptimize());
+          return;
+        }
+
+        // Redefinition instructions and boxing/unboxing are inserted
+        // without updating environment uses (FlowGraph::RenameDominatedUses,
+        // FlowGraph::InsertConversionsFor).
+        // Also, constants may belong to different blocks (e.g. function entry
+        // and graph entry).
+        Definition* arg_def =
+            call->ArgumentAt(i)->OriginalDefinitionIgnoreBoxingAndConstraints();
+        Definition* env_def =
+            env->ValueAt(env_base + i)
+                ->definition()
+                ->OriginalDefinitionIgnoreBoxingAndConstraints();
+        ASSERT2((arg_def == env_def) ||
+                    (arg_def->IsConstant() && env_def->IsConstant() &&
+                     arg_def->AsConstant()->value().ptr() ==
+                         env_def->AsConstant()->value().ptr()),
+                arg_def, env_def);
+      }
+    }
+  }
+}
+
 void FlowGraphChecker::VisitClosureCall(ClosureCallInstr* call) {
-  AssertArgumentsInEnv(flow_graph_, call);
+  AssertArgumentsInEnv(call);
 }
 
 void FlowGraphChecker::VisitStaticCall(StaticCallInstr* call) {
-  AssertArgumentsInEnv(flow_graph_, call);
+  AssertArgumentsInEnv(call);
 }
 
 void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* call) {
-  AssertArgumentsInEnv(flow_graph_, call);
+  AssertArgumentsInEnv(call);
   // Force-optimized functions may not have instance calls inside them because
   // we do not reset ICData for these.
   ASSERT(!flow_graph_->function().ForceOptimize());
@@ -541,7 +564,7 @@ void FlowGraphChecker::VisitInstanceCall(InstanceCallInstr* call) {
 
 void FlowGraphChecker::VisitPolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
-  AssertArgumentsInEnv(flow_graph_, call);
+  AssertArgumentsInEnv(call);
   // Force-optimized functions may not have instance calls inside them because
   // we do not reset ICData for these.
   ASSERT(!flow_graph_->function().ForceOptimize());

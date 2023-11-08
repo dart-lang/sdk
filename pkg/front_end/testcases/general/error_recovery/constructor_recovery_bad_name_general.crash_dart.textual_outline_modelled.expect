@@ -1,0 +1,21 @@
+class Foo {
+  external Foo() : bla = null;
+  external Foo.X() : bla = null {}
+  foo() : initializer = true {}
+  foo.x() : initializer = true {}
+  foo.x() {}
+  get Foo (): bla = null => 0;
+  get Foo.X (): bla = null {}
+  get Foo.X ()=> 0;
+  get Foo.X (){}
+  get Foo => 0;
+  get Foo {}
+  int A, Foo, B;
+  int Foo;
+  set Foo (): bla = null => 0;
+  set Foo ()=> 0;
+  set Foo (){}
+  set Foo.X (): bla = null {}
+  set Foo.X ()=> 0;
+  set Foo.X (){}
+}

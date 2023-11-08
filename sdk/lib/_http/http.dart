@@ -11,6 +11,7 @@ import 'dart:_internal'
         valueOfNonNullableParamWithDefault,
         HttpStatus;
 import 'dart:async';
+import 'dart:async' as dart_async show runZoned;
 import 'dart:collection'
     show
         HashMap,
@@ -388,6 +389,7 @@ abstract interface class HttpHeaders {
   static const viaHeader = "via";
   static const warningHeader = "warning";
   static const wwwAuthenticateHeader = "www-authenticate";
+  static const contentDisposition = "content-disposition";
 
   // Cookie headers from RFC 6265.
   static const cookieHeader = "cookie";
@@ -428,7 +430,8 @@ abstract interface class HttpHeaders {
     retryAfterHeader,
     serverHeader,
     varyHeader,
-    wwwAuthenticateHeader
+    wwwAuthenticateHeader,
+    contentDisposition
   ];
 
   static const requestHeaders = [

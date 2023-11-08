@@ -1,0 +1,36 @@
+library;
+import self as self;
+import "main_lib1.dart" as mai;
+additionalExports = (mai::main)
+
+export "org-dartlang-testcase:///main_lib1.dart";
+
+
+library;
+import self as mai;
+import "main_lib2.dart" as mai2;
+
+import "org-dartlang-testcase:///main_lib2.dart";
+
+static method main() → dynamic {
+  new mai2::_Class::•();
+  #C1(){() → mai2::Class};
+}
+
+library;
+import self as mai2;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static factory •() → mai2::Class /* redirection-target: mai2::_Class::• */
+    return new mai2::_Class::•();
+}
+class _Class extends core::Object implements mai2::Class {
+  synthetic constructor •() → mai2::_Class
+    : super core::Object::•()
+    ;
+}
+
+constants  {
+  #C1 = redirecting-factory-tearoff mai2::Class::•
+}

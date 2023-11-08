@@ -17,16 +17,18 @@ class ConstructorInitializerResolver {
 
   void resolve() {
     for (var unitElement in _libraryElement.units) {
-      var interfaceElements = [
+      var interfaceElements = <InterfaceElementImpl>[
         ...unitElement.classes,
         ...unitElement.enums,
+        ...unitElement.extensionTypes,
         ...unitElement.mixins,
       ];
       for (var interfaceElement in interfaceElements) {
         for (var constructorElement in interfaceElement.constructors) {
           _constructor(
             unitElement,
-            interfaceElement,
+            // TODO(scheglov) Avoid cast.
+            interfaceElement.augmented!.declaration as InterfaceElementImpl,
             constructorElement,
           );
         }
@@ -36,12 +38,13 @@ class ConstructorInitializerResolver {
 
   void _constructor(
     CompilationUnitElementImpl unitElement,
-    AbstractClassElementImpl classElement,
+    InterfaceElementImpl classElement,
     ConstructorElementImpl element,
   ) {
     if (element.isSynthetic) return;
 
-    var node = _linker.getLinkingNode(element) as ConstructorDeclarationImpl;
+    var node = _linker.getLinkingNode(element);
+    if (node is! ConstructorDeclarationImpl) return;
 
     var functionScope = LinkingNodeContext.get(node).scope;
     var initializerScope = ConstructorInitializerScope(

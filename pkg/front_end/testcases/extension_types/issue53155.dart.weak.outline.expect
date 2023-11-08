@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Foo<unrelated T extends self::V<core::num, core::Object> /* = core::num */> = (self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */;
+typedef IntNumV = self::V<core::int, core::num> /* = core::int */;
+class C<T extends self::V<core::num, core::Object> /* = core::num */> extends core::Object {
+  field (self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */ f;
+  synthetic constructor •() → self::C<self::C::T>
+    ;
+}
+extension type V<X1 extends core::num, X2 extends core::Object>(X1 id) {
+  constructor • = self::V|constructor#;
+  constructor tearoff • = self::V|constructor#_#new#tearOff;
+}
+static inline-class-member method V|constructor#<X1 extends core::num, X2 extends core::Object>(self::V|constructor#::X1 id) → self::V<self::V|constructor#::X1, self::V|constructor#::X2> /* = self::V|constructor#::X1 */
+  ;
+static inline-class-member method V|constructor#_#new#tearOff<X1 extends core::num, X2 extends core::Object>(self::V|constructor#_#new#tearOff::X1 id) → self::V<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2> /* = self::V|constructor#_#new#tearOff::X1 */
+  return self::V|constructor#<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2>(id);
+static method foo<T extends self::V<core::num, core::Object> /* = core::num */>(self::foo::T t) → self::V<core::int, core::int> /* = core::int */
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

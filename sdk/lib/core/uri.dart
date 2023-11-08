@@ -567,8 +567,8 @@ abstract interface class Uri {
   /// Example:
   /// ```dart import:convert
   /// final uri =
-  ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
-  /// print(jsonEncode(uri.queryParameters)); // {"limit":"10,20,30","max":"100"}
+  ///     Uri.parse('https://example.com/api/fetch?limit=10&limit=20&limit=30&max=100');
+  /// print(jsonEncode(uri.queryParametersAll)); // {"limit":["10","20","30"],"max":["100"]}
   /// ```
   ///
   /// The map and the lists it contains are unmodifiable.
@@ -1196,10 +1196,6 @@ abstract interface class Uri {
 
   /**
    * Encodes the string [component] according to the HTML 4.01 rules
-   * for encoding the posting of a HTML form as a query string
-   * component.
-   *
-   * Encode the string [component] according to the HTML 4.01 rules
    * for encoding the posting of a HTML form as a query string
    * component.
 

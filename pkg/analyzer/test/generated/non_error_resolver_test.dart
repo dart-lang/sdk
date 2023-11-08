@@ -2830,8 +2830,8 @@ class B {
   const B.named7({this.bounded: bounded3}) : unbounded = null;
   const B.named8({this.bounded: bounded4}) : unbounded = null;
 
-  final Unbounded unbounded;
-  final Bounded bounded;
+  final Unbounded? unbounded;
+  final Bounded? bounded;
 }
 ''');
     await assertNoErrorsInCode(r'''

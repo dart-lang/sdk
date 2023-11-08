@@ -13,7 +13,7 @@ import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-import 'package:front_end/src/fasta/builder/class_builder.dart';
+import 'package:front_end/src/fasta/builder/declaration_builders.dart';
 import 'package:front_end/src/fasta/builder/library_builder.dart';
 import 'package:front_end/src/fasta/builder/member_builder.dart';
 import 'package:front_end/src/fasta/kernel/macro/macro.dart';
@@ -302,29 +302,22 @@ class TestMacroExecutor extends MultiMacroExecutor {
   @override
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
-      Declaration declaration,
-      IdentifierResolver identifierResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver,
-      TypeIntrospector typeIntrospector) async {
+      MacroTarget target,
+      DeclarationPhaseIntrospector introspector) async {
     return new _MacroExecutionResult();
   }
 
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
       MacroInstanceIdentifier macro,
-      Declaration declaration,
-      IdentifierResolver identifierResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver,
-      TypeIntrospector typeIntrospector,
-      TypeInferrer typeInferrer) async {
+      MacroTarget target,
+      DefinitionPhaseIntrospector introspector) async {
     return new _MacroExecutionResult();
   }
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-      Declaration declaration, IdentifierResolver identifierResolver) async {
+      MacroTarget target, TypePhaseIntrospector introspector) async {
     return new _MacroExecutionResult();
   }
 
@@ -362,7 +355,17 @@ class _MacroInstanceIdentifier implements MacroInstanceIdentifier {
 
 class _MacroExecutionResult implements MacroExecutionResult {
   @override
+  List<Diagnostic> diagnostics = [];
+
+  @override
   Map<Identifier, Iterable<DeclarationCode>> enumValueAugmentations = const {};
+
+  @override
+  Map<Identifier, Iterable<TypeAnnotationCode>> interfaceAugmentations =
+      const {};
+
+  @override
+  Map<Identifier, Iterable<TypeAnnotationCode>> mixinAugmentations = const {};
 
   @override
   Map<Identifier, Iterable<DeclarationCode>> typeAugmentations = const {};

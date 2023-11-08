@@ -51,7 +51,9 @@ class MoveTopLevelToFile extends RefactoringProducer {
           parameterTitle: 'Select a file to move to',
           actionLabel: 'Move',
           // defaultValue is a String URI.
-          defaultValue: Uri.file(defaultFilePath).toString(),
+          defaultValue: refactoringContext.server.pathContext
+              .toUri(defaultFilePath)
+              .toString(),
           filters: {
             'Dart': ['dart']
           },
@@ -66,11 +68,12 @@ class MoveTopLevelToFile extends RefactoringProducer {
       return;
     }
     _initializeFromMembers(members);
+    var pathContext = refactoringContext.server.resourceProvider.pathContext;
     var sourcePath = members.containingFile;
     // TODO(dantup): Add refactor-specific validation for incoming arguments.
     // Argument is a String URI.
     var destinationUri = Uri.parse(commandArguments[0] as String);
-    var destinationFilePath = destinationUri.toFilePath();
+    var destinationFilePath = pathContext.fromUri(destinationUri);
 
     var destinationImportUri =
         unitResult.session.uriConverter.pathToUri(destinationFilePath);

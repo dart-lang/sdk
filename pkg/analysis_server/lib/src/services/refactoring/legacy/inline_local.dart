@@ -221,13 +221,20 @@ class InlineLocalRefactoringImpl extends RefactoringImpl
   }
 
   static bool _shouldUseParenthesis(Expression init, AstNode node) {
+    var parent = node.parent;
+
+    // If we're the entire expression for a switch statement, we never need
+    // additional parenthesis.
+    if (parent is SwitchExpression && parent.expression == node) {
+      return false;
+    }
+
     // check precedence
     var initPrecedence = getExpressionPrecedence(init);
     if (initPrecedence < getExpressionParentPrecedence(node)) {
       return true;
     }
     // special case for '-'
-    var parent = node.parent;
     if (init is PrefixExpression && parent is PrefixExpression) {
       if (parent.operator.type == TokenType.MINUS) {
         var initializerOperator = init.operator.type;

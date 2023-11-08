@@ -278,8 +278,8 @@ class _WidgetDescriptionComputer {
     constructorElement ??= classDescription?.constructor;
     if (constructorElement == null) return;
 
-    var classElement = constructorElement.enclosingElement;
-    if (!elementsBeingProcessed.add(classElement)) return;
+    var enclosingElement = constructorElement.enclosingElement;
+    if (!elementsBeingProcessed.add(enclosingElement)) return;
 
     var existingNamed = <String>{};
     if (instanceCreation != null) {
@@ -320,7 +320,7 @@ class _WidgetDescriptionComputer {
       );
     }
 
-    elementsBeingProcessed.remove(classElement);
+    elementsBeingProcessed.remove(enclosingElement);
   }
 
   void _addProperty({

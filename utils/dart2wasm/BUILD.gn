@@ -77,6 +77,24 @@ compile_platform("compile_dart2wasm_stringref_platform") {
   ]
 }
 
+compile_platform("compile_dart2wasm_js_compatibility_platform") {
+  single_root_scheme = "org-dartlang-sdk"
+  single_root_base = rebase_path("$sdk_root/")
+  libraries_specification_uri = "org-dartlang-sdk:///lib/libraries.json"
+
+  outputs = [
+    "$root_out_dir/dart2wasm_js_compatibility_platform.dill",
+    "$root_out_dir/dart2wasm_js_compatibility_outline.dill",
+  ]
+
+  args = [
+    "--target=dart2wasm_js_compatibility",
+    "--no-defines",
+    "dart:core",
+    "--nnbd-strong",
+  ]
+}
+
 wasm_module("ffi_native_test_wasm_module") {
   module_name = "ffi_native_test_module"
 }

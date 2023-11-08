@@ -15,7 +15,7 @@ import '../js_ast/js_ast.dart' show js;
 ///
 /// This class should only implement functionality that depends purely on JS
 /// classes, rather than on Analyzer/Kernel types.
-abstract class SharedCompiler<Library extends Object, Class extends Object,
+mixin SharedCompiler<Library extends Object, Class extends Object,
     InterfaceType extends Object, FunctionNode extends Object> {
   /// When inside a `[]=` operator, this will be a non-null value that should be
   /// returned by any `return;` statement.

@@ -19,8 +19,8 @@ namespace dart {
   V(_List, []=, ObjectArraySetIndexed, 0x3a3252da)                             \
   V(_GrowableList, ._withData, GrowableArrayAllocateWithData, 0x19394cc1)      \
   V(_GrowableList, []=, GrowableArraySetIndexed, 0x3a3252da)                   \
-  V(_Record, get:_fieldNames, Record_fieldNames, 0x68d6b9bd)                   \
-  V(_Record, get:_numFields, Record_numFields, 0x7bb37bb2)                     \
+  V(_Record, get:_fieldNames, Record_fieldNames, 0x68d6bd7e)                   \
+  V(_Record, get:_numFields, Record_numFields, 0x7bb37f73)                     \
   V(_Record, get:_shape, Record_shape, 0x70d29513)                             \
   V(_Record, _fieldAt, Record_fieldAt, 0xb48e2c93)                             \
   V(_TypedList, _getInt8, ByteArrayBaseGetInt8, 0x16155054)                    \
@@ -54,52 +54,52 @@ namespace dart {
   V(_ByteDataView, get:_typedData, ByteDataViewTypedData, 0xb9c2d41a)          \
   V(_TypedListView, get:offsetInBytes, TypedDataViewOffsetInBytes, 0x60c0664c) \
   V(_TypedListView, get:_typedData, TypedDataViewTypedData, 0xb9c2d41a)        \
-  V(_ByteDataView, ._, TypedData_ByteDataView_factory, 0x3178879c)             \
-  V(_Int8ArrayView, ._, TypedData_Int8ArrayView_factory, 0x444785ea)           \
-  V(_Uint8ArrayView, ._, TypedData_Uint8ArrayView_factory, 0x95f1fcb5)         \
+  V(_ByteDataView, ._, TypedData_ByteDataView_factory, 0x31788b5d)             \
+  V(_Int8ArrayView, ._, TypedData_Int8ArrayView_factory, 0x444789ab)           \
+  V(_Uint8ArrayView, ._, TypedData_Uint8ArrayView_factory, 0x95f20076)         \
   V(_Uint8ClampedArrayView, ._, TypedData_Uint8ClampedArrayView_factory,       \
-    0x052aec89)                                                                \
-  V(_Int16ArrayView, ._, TypedData_Int16ArrayView_factory, 0x48ff87fb)         \
-  V(_Uint16ArrayView, ._, TypedData_Uint16ArrayView_factory, 0x9fea3a52)       \
-  V(_Int32ArrayView, ._, TypedData_Int32ArrayView_factory, 0xe2db1e99)         \
-  V(_Uint32ArrayView, ._, TypedData_Uint32ArrayView_factory, 0x86742ec1)       \
-  V(_Int64ArrayView, ._, TypedData_Int64ArrayView_factory, 0x12b8c2cf)         \
-  V(_Uint64ArrayView, ._, TypedData_Uint64ArrayView_factory, 0x25b7e31d)       \
-  V(_Float32ArrayView, ._, TypedData_Float32ArrayView_factory, 0xdc880064)     \
-  V(_Float64ArrayView, ._, TypedData_Float64ArrayView_factory, 0xcb67c937)     \
-  V(_Float32x4ArrayView, ._, TypedData_Float32x4ArrayView_factory, 0x665022e0) \
-  V(_Int32x4ArrayView, ._, TypedData_Int32x4ArrayView_factory, 0x04a1d125)     \
-  V(_Float64x2ArrayView, ._, TypedData_Float64x2ArrayView_factory, 0x42d3cfc4) \
+    0x052af04a)                                                                \
+  V(_Int16ArrayView, ._, TypedData_Int16ArrayView_factory, 0x48ff8bbc)         \
+  V(_Uint16ArrayView, ._, TypedData_Uint16ArrayView_factory, 0x9fea3e13)       \
+  V(_Int32ArrayView, ._, TypedData_Int32ArrayView_factory, 0xe2db225a)         \
+  V(_Uint32ArrayView, ._, TypedData_Uint32ArrayView_factory, 0x86743282)       \
+  V(_Int64ArrayView, ._, TypedData_Int64ArrayView_factory, 0x12b8c690)         \
+  V(_Uint64ArrayView, ._, TypedData_Uint64ArrayView_factory, 0x25b7e6de)       \
+  V(_Float32ArrayView, ._, TypedData_Float32ArrayView_factory, 0xdc880425)     \
+  V(_Float64ArrayView, ._, TypedData_Float64ArrayView_factory, 0xcb67ccf8)     \
+  V(_Float32x4ArrayView, ._, TypedData_Float32x4ArrayView_factory, 0x665026a1) \
+  V(_Int32x4ArrayView, ._, TypedData_Int32x4ArrayView_factory, 0x04a1d4e6)     \
+  V(_Float64x2ArrayView, ._, TypedData_Float64x2ArrayView_factory, 0x42d3d385) \
   V(_UnmodifiableByteDataView, ._,                                             \
-    TypedData_UnmodifiableByteDataView_factory, 0x9aef8c2b)                    \
+    TypedData_UnmodifiableByteDataView_factory, 0x9aef8fec)                    \
   V(_UnmodifiableInt8ArrayView, ._,                                            \
-    TypedData_UnmodifiableInt8ArrayView_factory, 0x4f1cb9aa)                   \
+    TypedData_UnmodifiableInt8ArrayView_factory, 0x4f1cbd6b)                   \
   V(_UnmodifiableUint8ArrayView, ._,                                           \
-    TypedData_UnmodifiableUint8ArrayView_factory, 0x443a0469)                  \
+    TypedData_UnmodifiableUint8ArrayView_factory, 0x443a082a)                  \
   V(_UnmodifiableUint8ClampedArrayView, ._,                                    \
-    TypedData_UnmodifiableUint8ClampedArrayView_factory, 0x6a4a652d)           \
+    TypedData_UnmodifiableUint8ClampedArrayView_factory, 0x6a4a68ee)           \
   V(_UnmodifiableInt16ArrayView, ._,                                           \
-    TypedData_UnmodifiableInt16ArrayView_factory, 0xb6d9a15a)                  \
+    TypedData_UnmodifiableInt16ArrayView_factory, 0xb6d9a51b)                  \
   V(_UnmodifiableUint16ArrayView, ._,                                          \
-    TypedData_UnmodifiableUint16ArrayView_factory, 0xa6cd2bf6)                 \
+    TypedData_UnmodifiableUint16ArrayView_factory, 0xa6cd2fb7)                 \
   V(_UnmodifiableInt32ArrayView, ._,                                           \
-     TypedData_UnmodifiableInt32ArrayView_factory, 0x48eeef04)                 \
+     TypedData_UnmodifiableInt32ArrayView_factory, 0x48eef2c5)                 \
   V(_UnmodifiableUint32ArrayView, ._,                                          \
-    TypedData_UnmodifiableUint32ArrayView_factory, 0x95172a94)                 \
+    TypedData_UnmodifiableUint32ArrayView_factory, 0x95172e55)                 \
   V(_UnmodifiableInt64ArrayView, ._,                                           \
-    TypedData_UnmodifiableInt64ArrayView_factory, 0x76444964)                  \
+    TypedData_UnmodifiableInt64ArrayView_factory, 0x76444d25)                  \
   V(_UnmodifiableUint64ArrayView, ._,                                          \
-    TypedData_UnmodifiableUint64ArrayView_factory, 0x400d41a2)                 \
+    TypedData_UnmodifiableUint64ArrayView_factory, 0x400d4563)                 \
   V(_UnmodifiableFloat32ArrayView, ._,                                         \
-    TypedData_UnmodifiableFloat32ArrayView_factory, 0x541577a9)                \
+    TypedData_UnmodifiableFloat32ArrayView_factory, 0x54157b6a)                \
   V(_UnmodifiableFloat64ArrayView, ._,                                         \
-    TypedData_UnmodifiableFloat64ArrayView_factory, 0xbf7b608b)                \
+    TypedData_UnmodifiableFloat64ArrayView_factory, 0xbf7b644c)                \
   V(_UnmodifiableFloat32x4ArrayView, ._,                                       \
-    TypedData_UnmodifiableFloat32x4ArrayView_factory, 0x5f175eba)              \
+    TypedData_UnmodifiableFloat32x4ArrayView_factory, 0x5f17627b)              \
   V(_UnmodifiableInt32x4ArrayView, ._,                                         \
-    TypedData_UnmodifiableInt32x4ArrayView_factory, 0xf66c65d2)                \
+    TypedData_UnmodifiableInt32x4ArrayView_factory, 0xf66c6993)                \
   V(_UnmodifiableFloat64x2ArrayView, ._,                                       \
-    TypedData_UnmodifiableFloat64x2ArrayView_factory, 0x6d9ae23a)              \
+    TypedData_UnmodifiableFloat64x2ArrayView_factory, 0x6d9ae5fb)              \
   V(Int8List, ., TypedData_Int8Array_factory, 0x65ff4ca8)                      \
   V(Uint8List, ., TypedData_Uint8Array_factory, 0xedd56a6f)                    \
   V(Uint8ClampedList, ., TypedData_Uint8ClampedArray_factory, 0x27f7ab75)      \
@@ -114,6 +114,11 @@ namespace dart {
   V(Float32x4List, ., TypedData_Float32x4Array_factory, 0x0a6eefa8)            \
   V(Int32x4List, ., TypedData_Int32x4Array_factory, 0x5a09288e)                \
   V(Float64x2List, ., TypedData_Float64x2Array_factory, 0xecbc738a)            \
+  V(_TypedListBase, _memMove1, TypedData_memMove1, 0xd2767fb0)                 \
+  V(_TypedListBase, _memMove2, TypedData_memMove2, 0xed382bb6)                 \
+  V(_TypedListBase, _memMove4, TypedData_memMove4, 0xcfe37726)                 \
+  V(_TypedListBase, _memMove8, TypedData_memMove8, 0xd1d8e325)                 \
+  V(_TypedListBase, _memMove16, TypedData_memMove16, 0x07861cd5)               \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0xd0e522d0)                 \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0xcc42cce1)                         \
@@ -131,10 +136,6 @@ namespace dart {
   V(_SuspendState, set:_errorCallback, SuspendState_setErrorCallback,          \
     0xc3fa77cc)                                                                \
   V(_SuspendState, _clone, SuspendState_clone, 0xae0bb4c0)                     \
-  V(_SuspendState, _createAsyncCallbacks, SuspendState_createAsyncCallbacks,   \
-    0x8625a677)                                                                \
-  V(_SuspendState, _createAsyncStarCallback,                                   \
-    SuspendState_createAsyncStarCallback, 0x98ecfd9c)                          \
   V(_SuspendState, _resume, SuspendState_resume, 0x5d6bf8a9)                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x9763ff66)             \
   V(_Double, _add, DoubleAdd, 0xea57d747)                                      \
@@ -169,11 +170,11 @@ namespace dart {
   V(FinalizerBase, set:_detachments, FinalizerBase_setDetachments, 0x78809213) \
   V(FinalizerBase, _exchangeEntriesCollectedWithNull,                          \
     FinalizerBase_exchangeEntriesCollectedWithNull, 0x6c82991b)                \
-  V(FinalizerBase, _setIsolate, FinalizerBase_setIsolate, 0xbce94fb1)          \
+  V(FinalizerBase, _setIsolate, FinalizerBase_setIsolate, 0xbce95372)          \
   V(FinalizerBase, get:_isolateFinalizers, FinalizerBase_getIsolateFinalizers, \
-    0x70e6af4b)                                                                \
+    0x70e6b30c)                                                                \
   V(FinalizerBase, set:_isolateFinalizers, FinalizerBase_setIsolateFinalizers, \
-    0xb3d7dd48)                                                                \
+    0xb3d7e109)                                                                \
   V(_FinalizerImpl, get:_callback, Finalizer_getCallback, 0x18503118)          \
   V(_FinalizerImpl, set:_callback, Finalizer_setCallback, 0xacfcd255)          \
   V(_NativeFinalizer, get:_callback, NativeFinalizer_getCallback, 0x5ca4e915)  \
@@ -185,7 +186,7 @@ namespace dart {
   V(FinalizerEntry, set:token, FinalizerEntry_setToken, 0x63bae10f)            \
   V(FinalizerEntry, get:next, FinalizerEntry_getNext, 0x70f44bc4)              \
   V(FinalizerEntry, get:externalSize, FinalizerEntry_getExternalSize,          \
-    0x47d0c142)                                                                \
+    0x47d0c503)                                                                \
   V(Float32x4, _Float32x4FromDoubles, Float32x4FromDoubles, 0x1836ed4b)        \
   V(Float32x4, Float32x4.zero, Float32x4Zero, 0xd3a7b422)                      \
   V(Float32x4, _Float32x4Splat, Float32x4Splat, 0x1396c6e3)                    \
@@ -269,67 +270,65 @@ namespace dart {
   V(_WeakProperty, set:value, WeakProperty_setValue, 0x8b1d23cb)               \
   V(_WeakReference, get:target, WeakReference_getTarget, 0xc98185aa)           \
   V(_WeakReference, set:_target, WeakReference_setTarget, 0xc71add9a)          \
-  V(::, _classRangeCheck, ClassRangeCheck, 0xef2bb89a)                         \
-  V(::, _abi, FfiAbi, 0x7c3c27d4)                                              \
+  V(::, _abi, FfiAbi, 0x7c3c2b95)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x630c8491)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3fe722bc)        \
   V(::, _nativeAsyncCallbackFunction, FfiNativeAsyncCallbackFunction,          \
-    0x2057e24d)                                                                \
+    0xbec4b7b9)                                                                \
+  V(::, _nativeIsolateLocalCallbackFunction,                                   \
+    FfiNativeIsolateLocalCallbackFunction, 0x03e1a51f)                         \
   V(::, _nativeEffect, NativeEffect, 0x536f42b1)                               \
-  V(::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x77f95c92)                \
-  V(::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex, 0x6a963ed4)  \
-  V(::, _loadInt8, FfiLoadInt8, 0x0ef653f6)                                    \
-  V(::, _loadInt16, FfiLoadInt16, 0xec35a54d)                                  \
-  V(::, _loadInt32, FfiLoadInt32, 0xee13b3e3)                                  \
-  V(::, _loadInt64, FfiLoadInt64, 0xdee133c3)                                  \
-  V(::, _loadUint8, FfiLoadUint8, 0xe13f90f1)                                  \
-  V(::, _loadUint16, FfiLoadUint16, 0x0cc7d10a)                                \
-  V(::, _loadUint32, FfiLoadUint32, 0xf6600475)                                \
-  V(::, _loadUint64, FfiLoadUint64, 0x04f771ec)                                \
-  V(::, _loadFloat, FfiLoadFloat, 0xf8caf4bc)                                  \
-  V(::, _loadFloatUnaligned, FfiLoadFloatUnaligned, 0xc8ba505e)                \
-  V(::, _loadDouble, FfiLoadDouble, 0xf6fe3678)                                \
-  V(::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xc9902d98)              \
-  V(::, _loadPointer, FfiLoadPointer, 0x99f98123)                              \
-  V(::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0xc6fac8e0)              \
-  V(::, _storeAbiSpecificIntAtIndex, FfiStoreAbiSpecificIntAtIndex, 0xc640726b)\
-  V(::, _storeInt8, FfiStoreInt8, 0xdf42232c)                                  \
-  V(::, _storeInt16, FfiStoreInt16, 0xd83f6752)                                \
-  V(::, _storeInt32, FfiStoreInt32, 0xfbd7a07d)                                \
-  V(::, _storeInt64, FfiStoreInt64, 0xf1c5819a)                                \
-  V(::, _storeUint8, FfiStoreUint8, 0x055f4716)                                \
-  V(::, _storeUint16, FfiStoreUint16, 0xe2ef1efe)                              \
-  V(::, _storeUint32, FfiStoreUint32, 0xe5c95ce5)                              \
-  V(::, _storeUint64, FfiStoreUint64, 0xe2caa659)                              \
-  V(::, _storeFloat, FfiStoreFloat, 0x647660dd)                                \
-  V(::, _storeFloatUnaligned, FfiStoreFloatUnaligned, 0x5ffc0262)              \
-  V(::, _storeDouble, FfiStoreDouble, 0x428afcc3)                              \
-  V(::, _storeDoubleUnaligned, FfiStoreDoubleUnaligned, 0x3dc047ba)            \
-  V(::, _storePointer, FfiStorePointer, 0x8b5a5578)                            \
-  V(::, _fromAddress, FfiFromAddress, 0x810f927f)                              \
-  V(Pointer, get:address, FfiGetAddress, 0x7ccff81d)                           \
-  V(::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8, 0x767b76f7)      \
-  V(::, _asExternalTypedDataInt16, FfiAsExternalTypedDataInt16, 0xd08e6a25)    \
-  V(::, _asExternalTypedDataInt32, FfiAsExternalTypedDataInt32, 0x3815f9a5)    \
-  V(::, _asExternalTypedDataInt64, FfiAsExternalTypedDataInt64, 0xaf9bb85a)    \
-  V(::, _asExternalTypedDataUint8, FfiAsExternalTypedDataUint8, 0x3513f893)    \
-  V(::, _asExternalTypedDataUint16, FfiAsExternalTypedDataUint16, 0x89968e99)  \
-  V(::, _asExternalTypedDataUint32, FfiAsExternalTypedDataUint32, 0xd2644ca0)  \
-  V(::, _asExternalTypedDataUint64, FfiAsExternalTypedDataUint64, 0x06afe224)  \
-  V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f37ce6b)    \
-  V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40bf4a40)  \
-  V(::, _getNativeField, GetNativeField, 0xa0050fa5)                           \
+  V(::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x77f96053)                \
+  V(::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex, 0x6a964295)  \
+  V(::, _loadInt8, FfiLoadInt8, 0x0ef657b7)                                    \
+  V(::, _loadInt16, FfiLoadInt16, 0xec35a90e)                                  \
+  V(::, _loadInt32, FfiLoadInt32, 0xee13b7a4)                                  \
+  V(::, _loadInt64, FfiLoadInt64, 0xdee13784)                                  \
+  V(::, _loadUint8, FfiLoadUint8, 0xe13f94b2)                                  \
+  V(::, _loadUint16, FfiLoadUint16, 0x0cc7d4cb)                                \
+  V(::, _loadUint32, FfiLoadUint32, 0xf6600836)                                \
+  V(::, _loadUint64, FfiLoadUint64, 0x04f775ad)                                \
+  V(::, _loadFloat, FfiLoadFloat, 0xf8caf87d)                                  \
+  V(::, _loadFloatUnaligned, FfiLoadFloatUnaligned, 0xc8ba541f)                \
+  V(::, _loadDouble, FfiLoadDouble, 0xf6fe3a39)                                \
+  V(::, _loadDoubleUnaligned, FfiLoadDoubleUnaligned, 0xc9903159)              \
+  V(::, _loadPointer, FfiLoadPointer, 0x99f984e4)                              \
+  V(::, _storeAbiSpecificInt, FfiStoreAbiSpecificInt, 0xc6facca1)              \
+  V(::, _storeAbiSpecificIntAtIndex, FfiStoreAbiSpecificIntAtIndex, 0xc640762c)\
+  V(::, _storeInt8, FfiStoreInt8, 0xdf4226ed)                                  \
+  V(::, _storeInt16, FfiStoreInt16, 0xd83f6b13)                                \
+  V(::, _storeInt32, FfiStoreInt32, 0xfbd7a43e)                                \
+  V(::, _storeInt64, FfiStoreInt64, 0xf1c5855b)                                \
+  V(::, _storeUint8, FfiStoreUint8, 0x055f4ad7)                                \
+  V(::, _storeUint16, FfiStoreUint16, 0xe2ef22bf)                              \
+  V(::, _storeUint32, FfiStoreUint32, 0xe5c960a6)                              \
+  V(::, _storeUint64, FfiStoreUint64, 0xe2caaa1a)                              \
+  V(::, _storeFloat, FfiStoreFloat, 0x6476649e)                                \
+  V(::, _storeFloatUnaligned, FfiStoreFloatUnaligned, 0x5ffc0623)              \
+  V(::, _storeDouble, FfiStoreDouble, 0x428b0084)                              \
+  V(::, _storeDoubleUnaligned, FfiStoreDoubleUnaligned, 0x3dc04b7b)            \
+  V(::, _storePointer, FfiStorePointer, 0x8b5a5939)                            \
+  V(::, _fromAddress, FfiFromAddress, 0x810f9a01)                              \
+  V(Pointer, get:address, FfiGetAddress, 0x7ccffbde)                           \
+  V(::, _asExternalTypedDataInt8, FfiAsExternalTypedDataInt8, 0x767b7e79)      \
+  V(::, _asExternalTypedDataInt16, FfiAsExternalTypedDataInt16, 0xd08e71a7)    \
+  V(::, _asExternalTypedDataInt32, FfiAsExternalTypedDataInt32, 0x38160127)    \
+  V(::, _asExternalTypedDataInt64, FfiAsExternalTypedDataInt64, 0xaf9bbfdc)    \
+  V(::, _asExternalTypedDataUint8, FfiAsExternalTypedDataUint8, 0x35140015)    \
+  V(::, _asExternalTypedDataUint16, FfiAsExternalTypedDataUint16, 0x8996961b)  \
+  V(::, _asExternalTypedDataUint32, FfiAsExternalTypedDataUint32, 0xd2645422)  \
+  V(::, _asExternalTypedDataUint64, FfiAsExternalTypedDataUint64, 0x06afe9a6)  \
+  V(::, _asExternalTypedDataFloat, FfiAsExternalTypedDataFloat, 0x6f37d5ed)    \
+  V(::, _asExternalTypedDataDouble, FfiAsExternalTypedDataDouble, 0x40bf51c2)  \
+  V(::, _getNativeField, GetNativeField, 0xa0051366)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x73009f9f)                      \
-  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb98ea301)                          \
-  V(_Future, timeout, FutureTimeout, 0xa0e8b7f4)                               \
-  V(Future, wait, FutureWait, 0x29515d77)                                      \
-  V(_RootZone, runUnary, RootZoneRunUnary, 0x642af2eb)                         \
+  V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb98ea6c2)                          \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0xec1745d2)       \
-  V(::, has63BitSmis, Has63BitSmis, 0xf60ccb11)                                \
-  V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfaa5d763)\
+  V(::, get:has63BitSmis, Has63BitSmis, 0xf60ccb11)                            \
+  V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfaa5db24)\
   V(_Smi, get:hashCode, Smi_hashCode, 0x75d240f2)                              \
   V(_Mint, get:hashCode, Mint_hashCode, 0x75d240f2)                            \
-  V(_Double, get:hashCode, Double_hashCode, 0x75d240f2)                        \
+  V(_Double, get:hashCode, Double_hashCode, 0x75d244b3)                        \
   V(::, _memCopy, MemCopy, 0x2740bc36)                                         \
   V(::, debugger, Debugger, 0xf0b98af4)                                        \
 

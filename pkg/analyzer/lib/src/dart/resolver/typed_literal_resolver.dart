@@ -205,7 +205,7 @@ class TypedLiteralResolver {
       }
 
       var elseType = _computeElementType(elseElement);
-      return _typeSystem.getLeastUpperBound(thenType, elseType);
+      return _typeSystem.leastUpperBound(thenType, elseType);
     } else if (element is MapLiteralEntry) {
       // This error will be reported elsewhere.
       return _typeProvider.dynamicType;
@@ -847,7 +847,7 @@ class _InferredCollectionElementTypeInformation {
     } else if (second == null) {
       return first;
     } else {
-      return typeSystem.getLeastUpperBound(first, second);
+      return typeSystem.leastUpperBound(first, second);
     }
   }
 }

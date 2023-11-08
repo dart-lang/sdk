@@ -12,34 +12,21 @@ import 'package:native_assets_cli/native_assets_cli.dart';
 
 import 'core.dart';
 
-final logger = Logger('')
-  ..onRecord.listen((LogRecord record) {
-    final levelValue = record.level.value;
-    if (levelValue >= Level.SEVERE.value) {
-      log.stderr(record.message);
-    } else if (levelValue >= Level.INFO.value) {
-      log.stdout(record.message);
-    } else {
-      log.trace(record.message);
-    }
-  });
-
 /// Compiles all native assets for host OS in JIT mode.
-///
-/// Returns `null` on missing package_config.json, failing gracefully.
-Future<List<Asset>?> compileNativeAssetsJit() async {
+Future<(bool success, List<Asset> assets)> compileNativeAssetsJit(
+    {required bool verbose}) async {
   final workingDirectory = Directory.current.uri;
   // TODO(https://github.com/dart-lang/package_config/issues/126): Use
   // package config resolution from package:package_config.
   if (!await File.fromUri(
           workingDirectory.resolve('.dart_tool/package_config.json'))
       .exists()) {
-    return null;
+    return (true, <Asset>[]);
   }
-  final assets = await NativeAssetsBuildRunner(
+  final buildResult = await NativeAssetsBuildRunner(
     // This always runs in JIT mode.
     dartExecutable: Uri.file(sdk.dart),
-    logger: logger,
+    logger: logger(verbose),
   ).build(
     workingDirectory: workingDirectory,
     // When running in JIT mode, only the host OS needs to be build.
@@ -50,18 +37,19 @@ Future<List<Asset>?> compileNativeAssetsJit() async {
     buildMode: BuildMode.release,
     includeParentEnvironment: true,
   );
-  return assets;
+  return (buildResult.success, buildResult.assets);
 }
 
 /// Compiles all native assets for host OS in JIT mode, and creates the
 /// native assets yaml file.
 ///
 /// Used in `dart run` and `dart test`.
-///
-/// Returns `null` on missing package_config.json, failing gracefully.
-Future<Uri?> compileNativeAssetsJitYamlFile() async {
-  final assets = await compileNativeAssetsJit();
-  if (assets == null) return null;
+Future<(bool success, Uri? nativeAssetsYaml)> compileNativeAssetsJitYamlFile(
+    {required bool verbose}) async {
+  final (success, assets) = await compileNativeAssetsJit(verbose: verbose);
+  if (!success) {
+    return (false, null);
+  }
 
   final workingDirectory = Directory.current.uri;
   final assetsUri = workingDirectory.resolve('.dart_tool/native_assets.yaml');
@@ -70,5 +58,41 @@ Future<Uri?> compileNativeAssetsJitYamlFile() async {
 ${assets.toNativeAssetsFile()}''';
   final assetFile = File(assetsUri.toFilePath());
   await assetFile.writeAsString(nativeAssetsYaml);
-  return assetsUri;
+  return (true, assetsUri);
 }
+
+Future<bool> warnOnNativeAssets() async {
+  final workingDirectory = Directory.current.uri;
+  if (!await File.fromUri(
+          workingDirectory.resolve('.dart_tool/package_config.json'))
+      .exists()) {
+    // If `pub get` hasn't run, we can't know, so don't error.
+    return false;
+  }
+  final packageLayout =
+      await PackageLayout.fromRootPackageRoot(workingDirectory);
+  final packagesWithNativeAssets = await packageLayout.packagesWithNativeAssets;
+  if (packagesWithNativeAssets.isEmpty) {
+    return false;
+  }
+  final packageNames = packagesWithNativeAssets.map((p) => p.name).join(' ');
+  log.stderr(
+    'Package(s) $packageNames require the native assets feature to be enabled. '
+    'Enable native assets with `--enable-experiment=native-assets`.',
+  );
+  return true;
+}
+
+Logger logger(bool verbose) => Logger('')
+  ..onRecord.listen((LogRecord record) {
+    final levelValue = record.level.value;
+    if (levelValue >= Level.SEVERE.value) {
+      log.stderr(record.message);
+    } else if (levelValue >= Level.WARNING.value ||
+        verbose && levelValue >= Level.INFO.value) {
+      log.stdout(record.message);
+    } else {
+      // Note, this is ignored by default.
+      log.trace(record.message);
+    }
+  });

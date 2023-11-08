@@ -30,7 +30,7 @@ static method testDouble() → void {
   core::print(#C4);
   core::print([@vm.inferred-type.metadata=dart.core::_Double (value: 100.0)] self::getD);
 }
-static method testStrings([@vm.inferred-type.metadata=#lib::A] self::A a0) → void {
+static method testStrings([@vm.inferred-arg-type.metadata=#lib::A] self::A a0) → void {
   core::print([@vm.direct-call.metadata=#lib::A.foo] [@vm.inferred-type.metadata=dart.core::_OneByteString (value: "foo")] a0.{self::A::foo}{core::String});
   core::print([@vm.direct-call.metadata=#lib::A.getBar] [@vm.inferred-type.metadata=dart.core::_OneByteString (skip check) (value: "bar")] a0.{self::A::getBar}(){() → core::String});
   core::print(#C5);

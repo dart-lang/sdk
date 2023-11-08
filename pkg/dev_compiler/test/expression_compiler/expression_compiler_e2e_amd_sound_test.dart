@@ -6,13 +6,14 @@ import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat;
 import 'package:test/test.dart';
 
+import '../shared_test_options.dart';
 import 'expression_compiler_e2e_shared.dart';
 import 'expression_compiler_e2e_suite.dart';
 
-void main() async {
+void main(List<String> args) async {
   // Set to `true` for debug output.
   final debug = false;
-  var driver = await TestDriver.init();
+  var driver = await ExpressionEvaluationTestDriver.init();
 
   group('(Sound null safety)', () {
     tearDownAll(() async {
@@ -21,9 +22,11 @@ void main() async {
 
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
-          soundNullSafety: true,
-          legacyCode: false,
-          moduleFormat: ModuleFormat.amd);
+        soundNullSafety: true,
+        legacyCode: false,
+        moduleFormat: ModuleFormat.amd,
+        args: args,
+      );
       setup.options.verbose = debug;
       runNullSafeSharedTests(setup, driver);
     });

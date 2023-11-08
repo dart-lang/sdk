@@ -4,7 +4,7 @@
 
 // SharedOptions=--enable-experiment=inline-class
 
-// Test that interop inline classes can only work on interop types.
+// Test that interop extension types can only work on interop types.
 
 import 'dart:html';
 import 'dart:js_interop';
@@ -13,45 +13,32 @@ import 'package:js/js.dart' as pkgJs;
 // General non-interop types.
 
 @JS()
-inline class IObject {
-//           ^
-// [web] Inline class 'IObject' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'InterfaceType(Object)'.
-  final Object obj;
-  external IObject();
-  //       ^
-  // [web] Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type.
-}
+extension type EObject(Object _) {}
+//             ^
+// [web] Extension type 'EObject' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'Object'.
 
-inline class IList {
-  final List<JSAny?> obj;
-  external IList();
+extension type EList._(List<JSAny?> _) {
+  external EList();
   //       ^
-  // [web] Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type.
+  // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.
 }
 
 // dart:js_interop types.
 
-inline class IJSObject {
-  final JSObject obj;
-  external IJSObject();
-}
+extension type EJSObject(JSObject _) {}
 
 @JS()
-inline class IJSString {
-  final JSString obj;
-  external IJSString();
-}
+extension type EJSString(JSString _) {}
 
 // package:js types.
 
 @pkgJs.JS()
 class PkgJs {}
 
-inline class IPkgJs {
-  final PkgJs obj;
+extension type EPkgJs._(PkgJs _) {
   external IPkgJs();
   //       ^
-  // [web] Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type.
+  // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.
 }
 
 @pkgJs.JS()
@@ -59,65 +46,44 @@ inline class IPkgJs {
 class Anonymous {}
 
 @JS()
-inline class IAnonymous {
-//           ^
-// [web] Inline class 'IAnonymous' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'InterfaceType(Anonymous)'.
-  final Anonymous obj;
-  external IAnonymous();
+extension type EAnonymous._(Anonymous _) {
+//             ^
+// [web] Extension type 'EAnonymous' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'Anonymous'.
+  external EAnonymous();
   //       ^
-  // [web] Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type.
+  // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.
 }
 
 @pkgJs.JS()
 @staticInterop
 class PkgJsStaticInterop {}
 
-inline class IPkgJsStaticInterop {
-  final PkgJsStaticInterop obj;
-  external IPkgJsStaticInterop();
-}
+extension type EPkgJsStaticInterop(PkgJsStaticInterop _) {}
 
 @JS()
 @staticInterop
 class StaticInterop {}
 
-inline class IStaticInterop {
-  final StaticInterop obj;
-  external IStaticInterop();
-}
+extension type EStaticInterop(StaticInterop _) {}
 
 // @Native types.
 
-inline class IWindow {
-  final Window obj;
-  external IWindow();
-}
+extension type EWindow(Window _) {}
 
 @JS()
-inline class IDocument {
-  final Document obj;
-  external IDocument();
-}
+extension type EDocument(Document _) {}
 
-// Inline types.
+// Extension types.
 
-inline class IInlineInterop {
-  final IJSObject obj;
-  external IInlineInterop();
-}
+extension type EExtensionType(EJSObject _) {}
 
 @JS()
-inline class IInlineInterop2 {
-  final IInlineInterop obj;
-  external IInlineInterop2();
-}
-
+extension type EExtensionType2(EExtensionType _) {}
 @JS()
-inline class IInlineNonInterop {
-//           ^
-// [web] Inline class 'IInlineNonInterop' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'InlineType(IObject)'.
-  final IObject obj;
-  external IInlineNonInterop();
+extension type ENonInterop._(EObject _) {
+//             ^
+// [web] Extension type 'ENonInterop' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'EObject'.
+  external ENonInterop();
   //       ^
-  // [web] Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type.
+  // [web] Extension type member is marked 'external', but the representation type of its extension type is not a valid JS interop type.
 }

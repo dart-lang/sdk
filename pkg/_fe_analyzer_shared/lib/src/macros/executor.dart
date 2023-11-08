@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization_extensions.dart';
-import 'package:dart_internal/extract_type_arguments.dart';
 import 'package:meta/meta.dart';
 
 import 'api.dart';
 // ignore: unused_import
 import 'bootstrap.dart'; // For doc comments only.
+import 'executor/cast.dart';
 import 'executor/introspection_impls.dart';
 import 'executor/serialization.dart';
 
@@ -32,34 +32,37 @@ abstract class MacroExecutor {
   Future<MacroInstanceIdentifier> instantiateMacro(
       Uri library, String name, String constructor, Arguments arguments);
 
+  /// Disposes a macro [instance] by its identifier.
+  ///
+  /// All macros should be disposed once expanded to prevent memory leaks in the
+  /// client macro executor.
+  ///
+  /// This is a fire and forget API, it does not happen synchronously but there
+  /// is no reason to wait for it to complete, and the client does not send a
+  /// response.
+  void disposeMacro(MacroInstanceIdentifier instance);
+
   /// Runs the type phase for [macro] on a given [declaration].
   ///
   /// Throws an exception if there is an error executing the macro.
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-      covariant Declaration declaration, IdentifierResolver identifierResolver);
+      MacroTarget target, TypePhaseIntrospector introspector);
 
   /// Runs the declarations phase for [macro] on a given [declaration].
   ///
   /// Throws an exception if there is an error executing the macro.
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
-      covariant Declaration declaration,
-      IdentifierResolver identifierResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver,
-      TypeIntrospector typeIntrospector);
+      MacroTarget target,
+      DeclarationPhaseIntrospector introspector);
 
   /// Runs the definitions phase for [macro] on a given [declaration].
   ///
   /// Throws an exception if there is an error executing the macro.
   Future<MacroExecutionResult> executeDefinitionsPhase(
       MacroInstanceIdentifier macro,
-      covariant Declaration declaration,
-      IdentifierResolver identifierResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver,
-      TypeIntrospector typeIntrospector,
-      TypeInferrer typeInferrer);
+      MacroTarget target,
+      DefinitionPhaseIntrospector introspector);
 
   /// Combines multiple [MacroExecutionResult]s into a single library
   /// augmentation file, and returns a [String] representing that file.
@@ -152,13 +155,24 @@ abstract class MacroInstanceIdentifier implements Serializable {
 /// All modifications are expressed in terms of library augmentation
 /// declarations.
 abstract class MacroExecutionResult implements Serializable {
+  /// All [Diagnostic]s reported as a result of executing a macro.
+  List<Diagnostic> get diagnostics;
+
   /// Any augmentations to enum values that should be applied to an enum as a
   /// result of executing a macro, indexed by the identifier of the enum.
   Map<Identifier, Iterable<DeclarationCode>> get enumValueAugmentations;
 
+  /// Any interfaces that should be added to types as a result of executing a
+  /// macro, indexed by the identifier of the augmented type declaration.
+  Map<Identifier, Iterable<TypeAnnotationCode>> get interfaceAugmentations;
+
   /// Any augmentations that should be applied to the library as a result of
   /// executing a macro.
   Iterable<DeclarationCode> get libraryAugmentations;
+
+  /// Any mixins that should be added to types as a result of executing a macro,
+  /// indexed by the identifier of the augmented type declaration.
+  Map<Identifier, Iterable<TypeAnnotationCode>> get mixinAugmentations;
 
   /// The names of any new types declared in [augmentations].
   Iterable<String> get newTypeNames;
@@ -174,8 +188,10 @@ enum DeclarationKind {
   constructor,
   enumType,
   enumValue,
+  extension,
   field,
   function,
+  library,
   method,
   mixinType,
   variable,

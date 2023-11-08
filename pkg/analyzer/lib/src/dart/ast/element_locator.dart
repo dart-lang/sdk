@@ -109,6 +109,11 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    return node.declaredElement;
+  }
+
+  @override
   Element? visitFormalParameter(FormalParameter node) {
     return node.declaredElement;
   }
@@ -239,6 +244,18 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitPrefixExpression(PrefixExpression node) {
     return node.staticElement;
+  }
+
+  @override
+  Element? visitRepresentationConstructorName(
+      RepresentationConstructorName node) {
+    final representation = node.parent as RepresentationDeclaration;
+    return representation.constructorElement;
+  }
+
+  @override
+  Element? visitRepresentationDeclaration(RepresentationDeclaration node) {
+    return node.fieldElement;
   }
 
   @override

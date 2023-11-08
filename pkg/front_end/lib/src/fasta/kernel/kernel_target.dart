@@ -12,7 +12,6 @@ import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
-import 'package:kernel/transformations/value_class.dart' as valueClass;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show VerificationStage;
@@ -24,22 +23,15 @@ import '../../api_prototype/file_system.dart' show FileSystem;
 import '../../base/nnbd_mode.dart';
 import '../../base/processed_options.dart' show ProcessedOptions;
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
-import '../builder/dynamic_type_declaration_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/field_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
-import '../builder/never_type_declaration_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
-import '../builder/void_type_declaration_builder.dart';
 import '../compiler_context.dart' show CompilerContext;
 import '../crash.dart' show withCrashReporting;
 import '../dill/dill_target.dart' show DillTarget;
@@ -66,10 +58,11 @@ import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
 import '../source/class_declaration.dart';
 import '../source/constructor_declaration.dart';
+import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
+import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
-import '../source/source_inline_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
@@ -106,31 +99,31 @@ class KernelTarget extends TargetImplementation {
 
   // 'dynamic' is always nullable.
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final NamedTypeBuilder dynamicType = new NamedTypeBuilder(
+  final NamedTypeBuilder dynamicType = new NamedTypeBuilderImpl(
       "dynamic", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final NamedTypeBuilder objectType = new NamedTypeBuilder(
+  final NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
       "Object", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // Null is always nullable.
   // TODO(johnniwinther): This could (maybe) use a FixedTypeBuilder when we
   //  have NullType?
-  final NamedTypeBuilder nullType = new NamedTypeBuilder(
+  final NamedTypeBuilder nullType = new NamedTypeBuilderImpl(
       "Null", const NullabilityBuilder.inherent(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
   // TODO(johnniwinther): Why isn't this using a FixedTypeBuilder?
-  final NamedTypeBuilder bottomType = new NamedTypeBuilder(
+  final NamedTypeBuilder bottomType = new NamedTypeBuilderImpl(
       "Never", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final NamedTypeBuilder enumType = new NamedTypeBuilder(
+  final NamedTypeBuilder enumType = new NamedTypeBuilderImpl(
       "Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
-  final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilder(
+  final NamedTypeBuilder underscoreEnumType = new NamedTypeBuilderImpl(
       "_Enum", const NullabilityBuilder.omitted(),
       instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
 
@@ -324,21 +317,6 @@ class KernelTarget extends TargetImplementation {
     return entryPoint;
   }
 
-  /// The class [cls] is involved in a cyclic definition. This method should
-  /// ensure that the cycle is broken, for example, by removing superclass and
-  /// implemented interfaces.
-  void breakCycle(ClassBuilder builder) {
-    Class cls = builder.cls;
-    cls.implementedTypes.clear();
-    cls.supertype = null;
-    cls.mixedInType = null;
-    builder.supertypeBuilder = new NamedTypeBuilder.fromTypeDeclarationBuilder(
-        objectClassBuilder, const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    builder.interfaceBuilders = null;
-    builder.mixedInTypeBuilder = null;
-  }
-
   bool _hasComputedNeededPrecompilations = false;
 
   Future<NeededPrecompilations?> computeNeededPrecompilations() async {
@@ -447,7 +425,10 @@ class KernelTarget extends TargetImplementation {
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
-      List<SourceClassBuilder>? sortedSourceClassBuilders =
+      List<SourceClassBuilder>? sortedSourceClassBuilders;
+      List<SourceExtensionTypeDeclarationBuilder>?
+          sortedSourceExtensionTypeBuilders;
+      (sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders) =
           loader.checkClassCycles(objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);
@@ -472,10 +453,15 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildClassHierarchy);
-      loader.buildClassHierarchy(sortedSourceClassBuilders, objectClassBuilder);
+      loader.buildClassHierarchy(sortedSourceClassBuilders,
+          sortedSourceExtensionTypeBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
-      loader.checkSupertypes(sortedSourceClassBuilders, objectClass, enumClass,
+      loader.checkSupertypes(
+          sortedSourceClassBuilders,
+          sortedSourceExtensionTypeBuilders,
+          objectClass,
+          enumClass,
           underscoreEnumClass);
 
       if (macroApplications != null) {
@@ -515,6 +501,10 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
       loader.installTypedefTearOffs();
 
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
+      loader.computeFieldPromotability();
+
       benchmarker?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
       loader.performTopLevelInference(sortedSourceClassBuilders);
 
@@ -523,10 +513,6 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkAbstractMembers);
       loader.checkAbstractMembers(sortedSourceClassBuilders);
-
-      benchmarker
-          ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
-      loader.computeFieldPromotability(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
       loader.checkMixins(sortedSourceClassBuilders);
@@ -621,8 +607,9 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.body_collectSourceClasses);
       List<SourceClassBuilder>? sourceClasses = [];
-      List<SourceInlineClassBuilder>? inlineClasses = [];
-      loader.collectSourceClasses(sourceClasses, inlineClasses);
+      List<SourceExtensionTypeDeclarationBuilder>? extensionTypeDeclarations =
+          [];
+      loader.collectSourceClasses(sourceClasses, extensionTypeDeclarations);
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
       loader.finishNativeMethods();
@@ -631,7 +618,7 @@ class KernelTarget extends TargetImplementation {
       loader.buildBodyNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
-      finishAllConstructors(sourceClasses, inlineClasses);
+      finishAllConstructors(sourceClasses, extensionTypeDeclarations);
 
       benchmarker?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
@@ -657,7 +644,7 @@ class KernelTarget extends TargetImplementation {
       // (for whatever amount of time) even though we convert them to dill
       // library builders. To avoid it we null it out here.
       sourceClasses = null;
-      inlineClasses = null;
+      extensionTypeDeclarations = null;
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
@@ -929,67 +916,70 @@ class KernelTarget extends TargetImplementation {
           new Name(constructorTearOffName(""), indexedClass.library));
     }
 
-    if (supertype is ClassBuilder) {
-      ClassBuilder superclassBuilder = supertype;
-      bool isConstructorAdded = false;
-      Map<TypeParameter, DartType>? substitutionMap;
+    switch (supertype) {
+      case ClassBuilder():
+        ClassBuilder superclassBuilder = supertype;
+        bool isConstructorAdded = false;
+        Map<TypeParameter, DartType>? substitutionMap;
 
-      NameIterator<MemberBuilder> iterator =
-          superclassBuilder.fullConstructorNameIterator();
-      while (iterator.moveNext()) {
-        String name = iterator.name;
-        MemberBuilder memberBuilder = iterator.current;
-        if (memberBuilder.member is Constructor) {
-          substitutionMap ??= builder.getSubstitutionMap(superclassBuilder.cls);
-          Reference? constructorReference;
-          Reference? tearOffReference;
-          if (indexedClass != null) {
-            constructorReference = indexedClass
-                // We use the name of the member builder here since it refers to
-                // the library of the original declaration when private. For
-                // instance:
-                //
-                //     // lib1:
-                //     class Super { Super._() }
-                //     class Subclass extends Class {
-                //       Subclass() : super._();
-                //     }
-                //     // lib2:
-                //     class Mixin {}
-                //     class Class = Super with Mixin;
-                //
-                // Here `super._()` in `Subclass` targets the forwarding stub
-                // added to `Class` whose name is `_` private to `lib1`.
-                .lookupConstructorReference(memberBuilder.member.name);
-            tearOffReference = indexedClass.lookupGetterReference(
-                new Name(constructorTearOffName(name), indexedClass.library));
+        NameIterator<MemberBuilder> iterator =
+            superclassBuilder.fullConstructorNameIterator();
+        while (iterator.moveNext()) {
+          String name = iterator.name;
+          MemberBuilder memberBuilder = iterator.current;
+          if (memberBuilder.member is Constructor) {
+            substitutionMap ??=
+                builder.getSubstitutionMap(superclassBuilder.cls);
+            Reference? constructorReference;
+            Reference? tearOffReference;
+            if (indexedClass != null) {
+              constructorReference = indexedClass
+                  // We use the name of the member builder here since it refers
+                  // to the library of the original declaration when private.
+                  // For instance:
+                  //
+                  //     // lib1:
+                  //     class Super { Super._() }
+                  //     class Subclass extends Class {
+                  //       Subclass() : super._();
+                  //     }
+                  //     // lib2:
+                  //     class Mixin {}
+                  //     class Class = Super with Mixin;
+                  //
+                  // Here `super._()` in `Subclass` targets the forwarding stub
+                  // added to `Class` whose name is `_` private to `lib1`.
+                  .lookupConstructorReference(memberBuilder.member.name);
+              tearOffReference = indexedClass.lookupGetterReference(
+                  new Name(constructorTearOffName(name), indexedClass.library));
+            }
+            builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
+                builder,
+                builder.cls.mixin,
+                memberBuilder as MemberBuilderImpl,
+                substitutionMap,
+                constructorReference,
+                tearOffReference));
+            isConstructorAdded = true;
           }
-          builder.addSyntheticConstructor(_makeMixinApplicationConstructor(
-              builder,
-              builder.cls.mixin,
-              memberBuilder as MemberBuilderImpl,
-              substitutionMap,
-              constructorReference,
-              tearOffReference));
-          isConstructorAdded = true;
         }
-      }
 
-      if (!isConstructorAdded) {
+        if (!isConstructorAdded) {
+          builder.addSyntheticConstructor(_makeDefaultConstructor(
+              builder, constructorReference, tearOffReference));
+        }
+      case TypeAliasBuilder():
+      case TypeVariableBuilder():
+      case StructuralVariableBuilder():
+      case ExtensionBuilder():
+      case ExtensionTypeDeclarationBuilder():
+      case InvalidTypeDeclarationBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      // TODO(johnniwinther): How should we handle this case?
+      case OmittedTypeDeclarationBuilder():
+      case null:
         builder.addSyntheticConstructor(_makeDefaultConstructor(
             builder, constructorReference, tearOffReference));
-      }
-    } else if (supertype is InvalidTypeDeclarationBuilder ||
-        supertype is TypeVariableBuilder ||
-        supertype is DynamicTypeDeclarationBuilder ||
-        supertype is VoidTypeDeclarationBuilder ||
-        supertype is NeverTypeDeclarationBuilder ||
-        supertype is TypeAliasBuilder) {
-      builder.addSyntheticConstructor(_makeDefaultConstructor(
-          builder, constructorReference, tearOffReference));
-    } else {
-      unhandled("${supertype.runtimeType}", "installForwardingConstructors",
-          builder.charOffset, builder.fileUri);
     }
   }
 
@@ -1007,6 +997,7 @@ class KernelTarget extends TargetImplementation {
       VariableDeclaration copy = new VariableDeclaration(formal.name,
           isFinal: formal.isFinal,
           isConst: formal.isConst,
+          isRequired: formal.isRequired,
           hasDeclaredInitializer: formal.hasDeclaredInitializer,
           type: const UnknownType());
       if (!hasTypeDependency && formal.type is! UnknownType) {
@@ -1017,6 +1008,7 @@ class KernelTarget extends TargetImplementation {
       return copy;
     }
 
+    SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class cls = classBuilder.cls;
     Constructor superConstructor =
         superConstructorBuilder.member as Constructor;
@@ -1069,7 +1061,7 @@ class KernelTarget extends TargetImplementation {
     DelayedDefaultValueCloner delayedDefaultValueCloner =
         new DelayedDefaultValueCloner(
             superConstructor, constructor, substitutionMap,
-            libraryBuilder: classBuilder.libraryBuilder);
+            libraryBuilder: libraryBuilder);
 
     TypeDependency? typeDependency;
     if (hasTypeDependency) {
@@ -1079,12 +1071,13 @@ class KernelTarget extends TargetImplementation {
     }
 
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        superConstructor.name.text,
-        classBuilder.libraryBuilder,
+        new MemberName(libraryBuilder.libraryName,
+            constructorTearOffName(superConstructor.name.text)),
+        libraryBuilder,
         cls.fileUri,
         cls.fileOffset,
         tearOffReference,
-        forAbstractClassOrEnum: classBuilder.isAbstract);
+        forAbstractClassOrEnumOrMixin: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(
@@ -1092,7 +1085,7 @@ class KernelTarget extends TargetImplementation {
           declarationConstructor: constructor,
           implementationConstructor: constructor,
           enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
-          libraryBuilder: classBuilder.libraryBuilder);
+          libraryBuilder: libraryBuilder);
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
         new SyntheticSourceConstructorBuilder(
@@ -1143,6 +1136,7 @@ class KernelTarget extends TargetImplementation {
       SourceClassBuilder classBuilder,
       Reference? constructorReference,
       Reference? tearOffReference) {
+    SourceLibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
     Class enclosingClass = classBuilder.cls;
     Constructor constructor = new Constructor(
         new FunctionNode(new EmptyStatement(),
@@ -1155,15 +1149,14 @@ class KernelTarget extends TargetImplementation {
       // TODO(johnniwinther): Should we add file end offsets to synthesized
       //  constructors?
       //..fileEndOffset = enclosingClass.fileOffset
-      ..isNonNullableByDefault =
-          enclosingClass.enclosingLibrary.isNonNullableByDefault;
+      ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
     Procedure? constructorTearOff = createConstructorTearOffProcedure(
-        '',
-        classBuilder.libraryBuilder,
+        new MemberName(libraryBuilder.libraryName, constructorTearOffName('')),
+        libraryBuilder,
         enclosingClass.fileUri,
         enclosingClass.fileOffset,
         tearOffReference,
-        forAbstractClassOrEnum:
+        forAbstractClassOrEnumOrMixin:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(
@@ -1171,7 +1164,7 @@ class KernelTarget extends TargetImplementation {
           declarationConstructor: constructor,
           implementationConstructor: constructor,
           enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
-          libraryBuilder: classBuilder.libraryBuilder);
+          libraryBuilder: libraryBuilder);
     }
     return new SyntheticSourceConstructorBuilder(
         classBuilder, constructor, constructorTearOff);
@@ -1252,8 +1245,10 @@ class KernelTarget extends TargetImplementation {
     loader.computeCoreTypes(platformLibraries);
   }
 
-  void finishAllConstructors(List<SourceClassBuilder> sourceClassBuilders,
-      List<SourceInlineClassBuilder> inlineClassBuilders) {
+  void finishAllConstructors(
+      List<SourceClassBuilder> sourceClassBuilders,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sourceExtensionTypeDeclarationBuilders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in sourceClassBuilders) {
       Class cls = builder.cls;
@@ -1261,8 +1256,9 @@ class KernelTarget extends TargetImplementation {
         finishConstructors(builder);
       }
     }
-    for (SourceInlineClassBuilder builder in inlineClassBuilders) {
-      finishInlineConstructors(builder);
+    for (SourceExtensionTypeDeclarationBuilder builder
+        in sourceExtensionTypeDeclarationBuilders) {
+      finishExtensionTypeConstructors(builder);
     }
 
     ticker.logMs("Finished constructors");
@@ -1331,8 +1327,9 @@ class KernelTarget extends TargetImplementation {
     _finishConstructors(classBuilder);
   }
 
-  void finishInlineConstructors(SourceInlineClassBuilder inlineClass) {
-    _finishConstructors(inlineClass);
+  void finishExtensionTypeConstructors(
+      SourceExtensionTypeDeclarationBuilder extensionTypeDeclaration) {
+    _finishConstructors(extensionTypeDeclaration);
   }
 
   void _finishConstructors(ClassDeclaration classDeclaration) {
@@ -1561,12 +1558,6 @@ class KernelTarget extends TargetImplementation {
       }
     });
     ticker.logMs("Added constant coverage");
-
-    if (loader.target.context.options.globalFeatures.valueClass.isEnabled) {
-      valueClass.transformComponent(component!, loader.coreTypes,
-          loader.hierarchy, loader.referenceFromIndex, environment);
-      ticker.logMs("Lowered value classes");
-    }
 
     backendTarget.performModularTransformationsOnLibraries(
         component!,

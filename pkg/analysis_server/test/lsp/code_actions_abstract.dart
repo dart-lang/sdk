@@ -3,98 +3,48 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
+import '../utils/test_code_extensions.dart';
+import 'change_verifier.dart';
 import 'server_abstract.dart';
 
 abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
-  Future<void> checkCodeActionAvailable(
-    Uri uri,
-    String command,
-    String title, {
-    Range? range,
-    Position? position,
-    bool asCodeActionLiteral = false,
-    bool asCommand = false,
+  /// Initializes the server with some basic configuration and expects to find
+  /// a [CodeAction] with [kind]/[command]/[title].
+  Future<CodeAction> expectAction(
+    String content, {
+    CodeActionKind? kind,
+    String? command,
+    String? title,
+    CodeActionTriggerKind? triggerKind,
+    String? filePath,
+    bool openTargetFile = false,
+    bool failTestOnAnyErrorNotification = true,
   }) async {
-    final codeActions =
-        await getCodeActions(uri, range: range, position: position);
-    final codeAction = findCommand(codeActions, command)!;
+    filePath ??= mainFilePath;
+    final fileUri = pathContext.toUri(filePath);
+    final code = TestCode.parse(content);
+    newFile(filePath, code.code);
 
-    codeAction.map(
-      (command) {
-        if (!asCommand) {
-          throw 'Got Command but expected CodeAction literal';
-        }
-        expect(command.title, equals(title));
-        expect(
-          command.arguments,
-          equals([
-            {'path': uri.toFilePath()}
-          ]),
-        );
-      },
-      (codeAction) {
-        if (!asCodeActionLiteral) {
-          throw 'Got CodeAction literal but expected Command';
-        }
-        expect(codeAction.title, equals(title));
-        expect(codeAction.command!.title, equals(title));
-        expect(
-          codeAction.command!.arguments,
-          equals([
-            {'path': uri.toFilePath()}
-          ]),
-        );
-      },
+    await initialize(
+      failTestOnAnyErrorNotification: failTestOnAnyErrorNotification,
     );
-  }
 
-  /// Executes [command] which is expected to call back to the client to apply
-  /// a [WorkspaceEdit].
-  ///
-  /// Changes are applied to [contents] to be verified by the caller.
-  Future<void> executeCommandForEdits(
-    Command command,
-    // TODO(dantup): Change this map to use Uris for files.
-    Map<String, String> contents, {
-    bool expectDocumentChanges = false,
-    ProgressToken? workDoneToken,
-  }) async {
-    ApplyWorkspaceEditParams? editParams;
-
-    final commandResponse = await handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
-      Method.workspace_applyEdit,
-      ApplyWorkspaceEditParams.fromJson,
-      () => executeCommand(command, workDoneToken: workDoneToken),
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified by the caller).
-        editParams = edit;
-        return ApplyWorkspaceEditResult(applied: true);
-      },
-    );
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-
-    // Ensure the edit came back, and using the expected change type.
-    expect(editParams, isNotNull);
-    final edit = editParams!.edit;
-    if (expectDocumentChanges) {
-      expect(edit.changes, isNull);
-      expect(edit.documentChanges, isNotNull);
-    } else {
-      expect(edit.changes, isNotNull);
-      expect(edit.documentChanges, isNull);
+    if (openTargetFile) {
+      await openFile(fileUri, code.code);
     }
 
-    if (expectDocumentChanges) {
-      applyDocumentChanges(contents, edit.documentChanges!);
-    } else {
-      applyChanges(contents, edit.changes!);
-    }
+    final codeActions = await getCodeActions(
+      fileUri,
+      position: code.positions.isNotEmpty ? code.position.position : null,
+      range: code.ranges.isNotEmpty ? code.range.range : null,
+      triggerKind: triggerKind,
+    );
+
+    return findAction(codeActions, kind: kind, command: command, title: title)!;
   }
 
   /// Expects that command [commandName] was logged to the analytics manager.
@@ -108,14 +58,80 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     );
   }
 
+  /// Initializes the server with some basic configuration and expects not to
+  /// find a [CodeAction] with [kind]/[command]/[title].
+  Future<void> expectNoAction(
+    String content, {
+    String? filePath,
+    CodeActionKind? kind,
+    String? command,
+    String? title,
+    ProgressToken? workDoneToken,
+  }) async {
+    filePath ??= mainFilePath;
+    final code = TestCode.parse(content);
+    newFile(filePath, code.code);
+
+    if (workDoneToken != null) {
+      setWorkDoneProgressSupport();
+    }
+    await initialize();
+
+    final codeActions = await getCodeActions(
+      pathContext.toUri(filePath),
+      position: code.positions.isNotEmpty ? code.position.position : null,
+      range: code.ranges.isNotEmpty ? code.range.range : null,
+      workDoneToken: workDoneToken,
+    );
+
+    expect(
+      findAction(codeActions, kind: kind, command: command, title: title),
+      isNull,
+    );
+  }
+
+  /// Finds the single action matching [title], [kind] and [command].
+  ///
+  /// Throws if zero or more than one actions match.
+  CodeAction? findAction(List<Either2<Command, CodeAction>> actions,
+      {String? title, CodeActionKind? kind, String? command}) {
+    return findActions(actions, title: title, kind: kind, command: command)
+        .singleOrNull;
+  }
+
+  List<CodeAction> findActions(List<Either2<Command, CodeAction>> actions,
+      {String? title, CodeActionKind? kind, String? command}) {
+    return actions
+        .map((action) => action.map((cmd) => null, (action) => action))
+        .where((action) => title == null || action?.title == title)
+        .where((action) => kind == null || action?.kind == kind)
+        .where(
+            (action) => command == null || action?.command?.command == command)
+        .map((action) {
+          // Always expect a command (either to execute, or for logging)
+          assert(action!.command != null);
+          // Expect an edit if we weren't looking for a command-action.
+          if (command == null) {
+            assert(action!.edit != null);
+          }
+          return action;
+        })
+        .whereNotNull()
+        .toList();
+  }
+
   Either2<Command, CodeAction>? findCommand(
       List<Either2<Command, CodeAction>> actions, String commandID,
       [String? wantedTitle]) {
     for (var codeAction in actions) {
       final id = codeAction.map(
-          (cmd) => cmd.command, (action) => action.command?.command);
-      final title =
-          codeAction.map((cmd) => cmd.title, (action) => action.title);
+        (cmd) => cmd.command,
+        (action) => action.command?.command,
+      );
+      final title = codeAction.map(
+        (cmd) => cmd.title,
+        (action) => action.title,
+      );
       if (id == commandID && (wantedTitle == null || wantedTitle == title)) {
         return codeAction;
       }
@@ -123,64 +139,57 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     return null;
   }
 
-  CodeAction? findEditAction(List<Either2<Command, CodeAction>> actions,
-      CodeActionKind actionKind, String title) {
-    return findEditActions(actions, actionKind, title).firstOrNull;
+  @override
+  void setUp() {
+    super.setUp();
+
+    // Some defaults that most tests use. Tests can opt-out by overwriting these
+    // before initializing.
+    setApplyEditSupport();
+    setDocumentChangesSupport();
   }
 
-  List<CodeAction> findEditActions(List<Either2<Command, CodeAction>> actions,
-      CodeActionKind actionKind, String title) {
-    return actions
-        .map((action) => action.map((cmd) => null, (action) => action))
-        .where((action) => action?.kind == actionKind && action?.title == title)
-        .map((action) {
-          // Expect matching actions to contain an edit (and a log command).
-          assert(action!.command != null);
-          assert(action!.edit != null);
-          return action;
-        })
-        .whereNotNull()
-        .toList();
-  }
-
-  /// Verifies that executing the given code actions command on the server
-  /// results in an edit being sent to the client that updates the file to match
-  /// the expected content.
-  Future<void> verifyCodeActionEdits(Either2<Command, CodeAction> codeAction,
-      String content, String expectedContent,
-      {bool expectDocumentChanges = false,
-      ProgressToken? workDoneToken}) async {
-    final command = codeAction.map(
-      (command) => command,
-      (codeAction) => codeAction.command!,
-    );
-
-    await verifyCommandEdits(command, content, expectedContent,
-        expectDocumentChanges: expectDocumentChanges,
-        workDoneToken: workDoneToken);
-  }
-
-  /// Verifies that executing the given command on the server results in an edit
-  /// being sent in the client that updates the main file to match the expected
-  /// content.
-  Future<void> verifyCommandEdits(
-    Command command,
+  /// Initializes the server with some basic configuration and expects to find
+  /// a [CodeAction] with [kind]/[title] that applies edits resulting in
+  /// [expected].
+  Future<LspChangeVerifier> verifyActionEdits(
     String content,
-    String expectedContent, {
-    bool expectDocumentChanges = false,
-    ProgressToken? workDoneToken,
+    String expected, {
+    String? filePath,
+    CodeActionKind? kind,
+    String? command,
+    String? title,
+    ProgressToken? commandWorkDoneToken,
   }) async {
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
+    filePath ??= mainFilePath;
 
-    await executeCommandForEdits(
-      command,
-      contents,
-      expectDocumentChanges: expectDocumentChanges,
-      workDoneToken: workDoneToken,
+    // For convenience, if a test doesn't provide an full set of edits
+    // we assume only a single edit of the file that was being modified.
+    if (!expected.startsWith(LspChangeVerifier.editMarkerStart)) {
+      expected = '''
+${LspChangeVerifier.editMarkerStart} ${relativePath(filePath)}
+$expected''';
+    }
+
+    final action = await expectAction(
+      filePath: filePath,
+      content,
+      kind: kind,
+      command: command,
+      title: title,
     );
 
-    expect(contents[mainFilePath], equals(expectedContent));
+    // Verify the edits either by executing the command we expected, or
+    // the edits attached directly to the code action.
+    if (command != null) {
+      return await verifyCommandEdits(
+        action.command!,
+        expected,
+        workDoneToken: commandWorkDoneToken,
+      );
+    } else {
+      final edit = action.edit!;
+      return verifyEdit(edit, expected);
+    }
   }
 }

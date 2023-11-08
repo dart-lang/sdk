@@ -4,6 +4,16 @@
 
 part of '../api.dart';
 
+/// The interface for classes that can be targeted by macros.
+///
+/// Could be a [Declaration] or [Library].
+abstract interface class MacroTarget {}
+
+/// The interface for things that can be annotated with [MetadataAnnotation]s.
+abstract interface class Annotatable {
+  Iterable<MetadataAnnotation> get metadata;
+}
+
 /// A concrete reference to a named declaration, which may or may not yet be
 /// resolved.
 ///
@@ -95,7 +105,7 @@ abstract interface class StaticType {
 abstract interface class NamedStaticType implements StaticType {}
 
 /// The interface for all declarations.
-abstract interface class Declaration {
+abstract interface class Declaration implements Annotatable, MacroTarget {
   /// The library in which this declaration is defined.
   Library get library;
 
@@ -204,6 +214,21 @@ abstract interface class EnumValueDeclaration implements Declaration {
 abstract interface class IntrospectableEnumDeclaration
     implements EnumDeclaration, IntrospectableEnum {}
 
+/// The class for introspecting on an extension.
+///
+/// Note that extensions do not actually introduce a new type, but we model them
+/// as [ParameterizedTypeDeclaration]s anyways, because they generally look
+/// exactly like other type declarations, and are treated the same.
+abstract interface class ExtensionDeclaration
+    implements ParameterizedTypeDeclaration, Declaration {
+  /// The type that appears on the `on` clause of this extension.
+  TypeAnnotation get onType;
+}
+
+/// An introspectable extension declaration.
+abstract interface class IntrospectableExtensionDeclaration
+    implements ExtensionDeclaration, IntrospectableType {}
+
 /// Mixin introspection information.
 ///
 /// Information about fields and methods must be retrieved from the `builder`
@@ -234,10 +259,19 @@ abstract interface class TypeAliasDeclaration
 /// Function introspection information.
 abstract interface class FunctionDeclaration implements Declaration {
   /// Whether this function has an `abstract` modifier.
-  bool get isAbstract;
+  bool get hasAbstract;
+
+  /// Whether or not this function has a body.
+  ///
+  /// This is useful when augmenting a function, so you know whether an
+  /// `augment super` call would be valid or not.
+  ///
+  /// Note that for external functions, this may return `false` even though
+  /// there is actually a body that is filled in later by another tool.
+  bool get hasBody;
 
   /// Whether this function has an `external` modifier.
-  bool get isExternal;
+  bool get hasExternal;
 
   /// Whether this function is an operator.
   bool get isOperator;
@@ -274,13 +308,13 @@ abstract interface class ConstructorDeclaration implements MethodDeclaration {
 /// Variable introspection information.
 abstract interface class VariableDeclaration implements Declaration {
   /// Whether this field has an `external` modifier.
-  bool get isExternal;
+  bool get hasExternal;
 
   /// Whether this field has a `final` modifier.
-  bool get isFinal;
+  bool get hasFinal;
 
   /// Whether this field has a `late` modifier.
-  bool get isLate;
+  bool get hasLate;
 
   /// The type of this field.
   TypeAnnotation get type;
@@ -292,7 +326,7 @@ abstract interface class FieldDeclaration
 
 /// General parameter introspection information, see the subtypes
 /// [FunctionTypeParameter] and [ParameterDeclaration].
-abstract interface class Parameter {
+abstract interface class Parameter implements Annotatable {
   /// The type of this parameter.
   TypeAnnotation get type;
 
@@ -351,7 +385,7 @@ abstract interface class RecordFieldDeclaration implements Declaration {
 }
 
 /// Introspection information for a Library.
-abstract interface class Library {
+abstract interface class Library implements Annotatable, MacroTarget {
   /// The language version of this library.
   LanguageVersion get languageVersion;
 
@@ -365,4 +399,27 @@ abstract interface class LanguageVersion {
   int get major;
 
   int get minor;
+}
+
+/// A metadata annotation on a declaration or library directive.
+abstract interface class MetadataAnnotation {}
+
+/// A [MetadataAnnotation] which is a reference to a const value.
+abstract interface class IdentifierMetadataAnnotation
+    implements MetadataAnnotation {
+  /// The [Identifier] for the const reference.
+  Identifier get identifier;
+}
+
+/// A [Metadata] annotation which is a constructor call.
+abstract interface class ConstructorMetadataAnnotation
+    implements MetadataAnnotation {
+  /// And [Identifier] referring to the type that is being constructed.
+  Identifier get type;
+
+  /// An [Identifier] referring to the specific constructor being called.
+  ///
+  /// For unnamed constructors, the name of this identifier will be the empty
+  /// String.
+  Identifier get constructor;
 }

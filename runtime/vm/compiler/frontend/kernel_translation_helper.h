@@ -15,6 +15,7 @@
 #include "vm/object.h"
 
 namespace dart {
+
 namespace kernel {
 
 class ConstantReader;
@@ -31,8 +32,6 @@ class TranslationHelper {
 
   void Reset();
 
-  void InitFromScript(const Script& script);
-
   void InitFromKernelProgramInfo(const KernelProgramInfo& info);
 
   Thread* thread() { return thread_; }
@@ -47,31 +46,25 @@ class TranslationHelper {
   const TypedData& string_offsets() const { return string_offsets_; }
   void SetStringOffsets(const TypedData& string_offsets);
 
-  const ExternalTypedData& string_data() const { return string_data_; }
-  void SetStringData(const ExternalTypedData& string_data);
+  const TypedDataView& string_data() const { return string_data_; }
+  void SetStringData(const TypedDataView& string_data);
 
   const TypedData& canonical_names() const { return canonical_names_; }
   void SetCanonicalNames(const TypedData& canonical_names);
 
-  const ExternalTypedData& metadata_payloads() const {
-    return metadata_payloads_;
-  }
-  void SetMetadataPayloads(const ExternalTypedData& metadata_payloads);
+  const TypedDataView& metadata_payloads() const { return metadata_payloads_; }
+  void SetMetadataPayloads(const TypedDataView& metadata_payloads);
 
-  const ExternalTypedData& metadata_mappings() const {
-    return metadata_mappings_;
-  }
-  void SetMetadataMappings(const ExternalTypedData& metadata_mappings);
+  const TypedDataView& metadata_mappings() const { return metadata_mappings_; }
+  void SetMetadataMappings(const TypedDataView& metadata_mappings);
 
   // Access to previously evaluated constants from the constants table.
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
 
   // Access to the raw bytes of the constants table.
-  const ExternalTypedData& constants_table() const { return constants_table_; }
-  void SetConstantsTable(const ExternalTypedData& constants_table);
-
-  KernelProgramInfo& info() { return info_; }
+  const TypedDataView& constants_table() const { return constants_table_; }
+  void SetConstantsTable(const TypedDataView& constants_table);
 
   void SetKernelProgramInfo(const KernelProgramInfo& info);
   const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
@@ -254,12 +247,12 @@ class TranslationHelper {
   Heap::Space allocation_space_;
 
   TypedData& string_offsets_;
-  ExternalTypedData& string_data_;
+  TypedDataView& string_data_;
   TypedData& canonical_names_;
-  ExternalTypedData& metadata_payloads_;
-  ExternalTypedData& metadata_mappings_;
+  TypedDataView& metadata_payloads_;
+  TypedDataView& metadata_mappings_;
   Array& constants_;
-  ExternalTypedData& constants_table_;
+  TypedDataView& constants_table_;
   KernelProgramInfo& info_;
   Smi& name_index_handle_;
   GrowableObjectArray* potential_extension_libraries_ = nullptr;
@@ -501,7 +494,7 @@ class FieldHelper {
     kNonNullableByDefault = 1 << 7,
     kInternalImplementation = 1 << 8,
     kEnumElement = 1 << 9,
-    kInlineClassMember = 1 << 10,
+    kExtensionTypeMember = 1 << 10,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -527,8 +520,8 @@ class FieldHelper {
   }
   bool IsLate() const { return (flags_ & kIsLate) != 0; }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
-  bool IsInlineClassMember() const {
-    return (flags_ & kInlineClassMember) != 0;
+  bool IsExtensionTypeMember() const {
+    return (flags_ & kExtensionTypeMember) != 0;
   }
 
   NameIndex canonical_name_field_;
@@ -602,8 +595,9 @@ class ProcedureHelper {
     kSyntheticProcedure = 1 << 6,
     kInternalImplementation = 1 << 7,
     kIsAbstractFieldAccessor = 1 << 8,
-    kInlineClassMember = 1 << 9,
+    kExtensionTypeMember = 1 << 9,
     kHasWeakTearoffReferencePragma = 1 << 10,
+    kIsLoweredLateField = 1 << 11,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -634,8 +628,8 @@ class ProcedureHelper {
     return stub_kind_ == kNoSuchMethodForwarderStubKind;
   }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
-  bool IsInlineClassMember() const {
-    return (flags_ & kInlineClassMember) != 0;
+  bool IsExtensionTypeMember() const {
+    return (flags_ & kExtensionTypeMember) != 0;
   }
   bool IsMemberSignature() const {
     return stub_kind_ == kMemberSignatureStubKind;
@@ -842,7 +836,7 @@ class LibraryHelper {
     // * kTypedefs
     // * kClasses
     // * kExtensions
-    // * kInlineClasses
+    // * kExtensionTypeDeclarations
     // * kToplevelField
     // * kToplevelProcedures
     // * kSourceReferences
@@ -948,8 +942,7 @@ class MetadataHelper {
                  bool precompiler_only);
 
 #if defined(DEBUG)
-  static void VerifyMetadataMappings(
-      const ExternalTypedData& metadata_mappings);
+  static void VerifyMetadataMappings(const TypedDataView& metadata_mappings);
 #endif
 
  protected:
@@ -1020,6 +1013,9 @@ struct InferredTypeMetadata {
     kFlagReceiverNotInt = 1 << 4,
   };
 
+  // Mask of flags which participate in CompileType computation.
+  static constexpr intptr_t kCompileTypeFlagsMask = kFlagNullable | kFlagInt;
+
   InferredTypeMetadata(intptr_t cid_,
                        uint8_t flags_,
                        const Object& constant_value_ = Object::null_object())
@@ -1030,7 +1026,8 @@ struct InferredTypeMetadata {
   const Object& constant_value;
 
   bool IsTrivial() const {
-    return (cid == kDynamicCid) && (flags == kFlagNullable);
+    return (cid == kDynamicCid) &&
+           ((flags & kCompileTypeFlagsMask) == kFlagNullable);
   }
   bool IsNullable() const { return (flags & kFlagNullable) != 0; }
   bool IsInt() const {
@@ -1040,15 +1037,18 @@ struct InferredTypeMetadata {
   bool IsConstant() const { return (flags & kFlagConstant) != 0; }
   bool ReceiverNotInt() const { return (flags & kFlagReceiverNotInt) != 0; }
 
-  CompileType ToCompileType(Zone* zone) const {
+  // Note: when updating this function to use some previously unused flags
+  // make sure to update |kCompileTypeFlagsMask| above.
+  CompileType ToCompileType(Zone* zone,
+                            const AbstractType* static_type = nullptr,
+                            bool can_be_sentinel = false) const {
     if (IsInt() && cid == kDynamicCid) {
       return CompileType::FromAbstractType(
           Type::ZoneHandle(
               zone, (IsNullable() ? Type::NullableIntType() : Type::IntType())),
-          IsNullable(), CompileType::kCannotBeSentinel);
+          IsNullable(), can_be_sentinel);
     } else {
-      return CompileType(IsNullable(), CompileType::kCannotBeSentinel, cid,
-                         nullptr);
+      return CompileType(IsNullable(), can_be_sentinel, cid, static_type);
     }
   }
 };
@@ -1056,10 +1056,25 @@ struct InferredTypeMetadata {
 // Helper class which provides access to inferred type metadata.
 class InferredTypeMetadataHelper : public MetadataHelper {
  public:
-  static const char* tag() { return "vm.inferred-type.metadata"; }
+  enum class Kind {
+    Type,     // Inferred type of a call, field or variable.
+    ArgType,  // Inferred incoming argument type.
+  };
+
+  static const char* tag(Kind kind) {
+    switch (kind) {
+      case Kind::Type:
+        return "vm.inferred-type.metadata";
+      case Kind::ArgType:
+        return "vm.inferred-arg-type.metadata";
+    }
+    UNREACHABLE();
+    return nullptr;
+  }
 
   explicit InferredTypeMetadataHelper(KernelReaderHelper* helper,
-                                      ConstantReader* constant_reader);
+                                      ConstantReader* constant_reader,
+                                      Kind kind = Kind::Type);
 
   InferredTypeMetadata GetInferredType(intptr_t node_offset,
                                        bool read_constant = true);
@@ -1238,23 +1253,11 @@ class KernelReaderHelper {
  public:
   KernelReaderHelper(Zone* zone,
                      TranslationHelper* translation_helper,
-                     const Script& script,
-                     const ExternalTypedData& data,
+                     const TypedDataBase& data,
                      intptr_t data_program_offset)
       : zone_(zone),
         translation_helper_(*translation_helper),
         reader_(data),
-        script_(script),
-        data_program_offset_(data_program_offset) {}
-
-  KernelReaderHelper(Zone* zone,
-                     TranslationHelper* translation_helper,
-                     const ProgramBinary& binary,
-                     intptr_t data_program_offset)
-      : zone_(zone),
-        translation_helper_(*translation_helper),
-        reader_(binary),
-        script_(Script::Handle(zone_)),
         data_program_offset_(data_program_offset) {}
 
   virtual ~KernelReaderHelper() = default;
@@ -1262,6 +1265,8 @@ class KernelReaderHelper {
   void SetOffset(intptr_t offset);
 
   intptr_t ReadListLength();
+  NameIndex ReadCanonicalNameReference();
+
   virtual void ReportUnexpectedTag(const char* variant, Tag tag);
 
   void ReadUntilFunctionNode();
@@ -1269,8 +1274,6 @@ class KernelReaderHelper {
   Tag PeekTag(uint8_t* payload = nullptr);
 
  protected:
-  const Script& script() const { return script_; }
-
   virtual void set_current_script_id(intptr_t id) {
     // Do nothing by default.
     // This is overridden in KernelTokenPositionCollector.
@@ -1294,7 +1297,6 @@ class KernelReaderHelper {
   double ReadDouble();
   uint32_t PeekListLength();
   StringIndex ReadStringReference();
-  NameIndex ReadCanonicalNameReference();
   NameIndex ReadInterfaceMemberNameReference();
   StringIndex ReadNameAsStringIndex();
   const String& ReadNameAsMethodName();
@@ -1339,12 +1341,11 @@ class KernelReaderHelper {
   const String& GetSourceFor(intptr_t index);
   TypedDataPtr GetLineStartsFor(intptr_t index);
   String& SourceTableImportUriFor(intptr_t index);
-  ExternalTypedDataPtr GetConstantCoverageFor(intptr_t index);
+  TypedDataViewPtr GetConstantCoverageFor(intptr_t index);
 
   Zone* zone_;
   TranslationHelper& translation_helper_;
   Reader reader_;
-  const Script& script_;
   // Some items like variables are specified in the kernel binary as
   // absolute offsets (as in, offsets within the whole kernel program)
   // of their declaration nodes. Hence, to cache and/or access them
@@ -1426,6 +1427,16 @@ class ActiveClass {
 
   const char* ToCString() {
     return member != nullptr ? member->ToCString() : klass->ToCString();
+  }
+
+  ScriptPtr ActiveScript() {
+    if (member != nullptr && !member->IsNull()) {
+      return member->script();
+    }
+    if (klass != nullptr && !klass->IsNull()) {
+      return klass->script();
+    }
+    return Script::null();
   }
 
   // The current enclosing class (or the library top-level class).
@@ -1570,8 +1581,15 @@ class TypeTranslator {
   void BuildRecordType();
   void BuildTypeParameterType();
   void BuildIntersectionType();
-  void BuildInlineType();
+  void BuildExtensionType();
   void BuildFutureOrType();
+
+  ScriptPtr Script() {
+    if (active_class_ != nullptr) {
+      return active_class_->ActiveScript();
+    }
+    return Script::null();
+  }
 
   class TypeParameterScope {
    public:

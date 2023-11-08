@@ -59,7 +59,8 @@ class AddConst extends ResolvedCorrectionProducer {
     }
     if (targetNode is ConstantPattern) {
       var expression = targetNode.expression;
-      var canBeConst = getLinterContext().canBeConst(expression);
+      var canBeConst =
+          getLinterContext(resourceProvider.pathContext).canBeConst(expression);
       if (canBeConst) {
         await builder.addDartFileEdit(file, (builder) {
           final offset = expression.offset;

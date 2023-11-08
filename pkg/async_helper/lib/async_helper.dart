@@ -4,8 +4,8 @@
 
 /// This library is used for testing asynchronous tests.
 /// If a test is asynchronous, it needs to notify the testing driver
-/// about this (otherwise tests may get reported as passing [after main()
-/// finished] even if the asynchronous operations fail).
+/// about this (otherwise tests may get reported as passing after main()
+/// finished even if the asynchronous operations fail).
 ///
 /// This library provides four methods
 ///  - asyncStart(): Needs to be called before an asynchronous operation is
@@ -16,10 +16,9 @@
 ///  - asyncTest(f()): Helper method that wraps a computation that returns a
 ///                    Future with matching calls to asyncStart() and
 ///                    asyncSuccess(_).
-/// After the last asyncStart() called was matched with a corresponding
+/// After every asyncStart() called is matched with a corresponding
 /// asyncEnd() or asyncSuccess(_) call, the testing driver will be notified that
 /// the tests is done.
-
 library async_helper;
 
 import 'dart:async';
@@ -68,21 +67,25 @@ void asyncEnd() {
 /// Call this after an asynchronous test has ended successfully. This is a helper
 /// for calling [asyncEnd].
 ///
-/// This method intentionally has a signature that matches [:Future.then:] as a
-/// convenience for calling [asyncEnd] when a [:Future:] completes without error,
+/// This method intentionally has a signature that matches `Future.then` as a
+/// convenience for calling [asyncEnd] when a `Future` completes without error,
 /// like this:
-///
-///     asyncStart();
-///     Future result = test();
-///     result.then(asyncSuccess);
-void asyncSuccess(_) => asyncEnd();
+/// ```dart
+/// asyncStart();
+/// Future result = test();
+/// result.then(asyncSuccess);
+/// ```
+void asyncSuccess(void _) {
+  asyncEnd();
+}
 
-/// Helper method for performing asynchronous tests involving [:Future:].
+/// Helper method for performing asynchronous tests involving `Future`.
 ///
-/// [f] must return a [:Future:] for the test computation.
-Future<void> asyncTest(Function() f) {
+/// The function [test] must return a `Future` which completes without error
+/// when the test is successful.
+Future<void> asyncTest(Function() test) {
   asyncStart();
-  return f().then(asyncSuccess);
+  return test().then(asyncSuccess);
 }
 
 /// Verifies that the asynchronous [result] throws a [T].
@@ -109,7 +112,7 @@ Future<T> asyncExpectThrows<T extends Object>(Future<void> result,
     // Handle null being passed in from legacy code
     // while also avoiding producing an unnecessary null check warning here.
     if ((reason as dynamic) == null) reason = "";
-    // Only include the type in he message if it's not a top-type.
+    // Only include the type in the message if it's not `Object`.
     var type = Object() is! T ? "<$T>" : "";
     return "asyncExpectThrows$type($reason):";
   }

@@ -361,6 +361,25 @@ final a = new Text(/*[0*/
     });
   }
 
+  Future<void> test_extensionType() async {
+    var content = '''
+// Content before
+
+extension type E(int it) {/*[0*/
+  void m/*[1*/() {
+  }/*1]*/
+/*0]*/}
+
+// Content after
+''';
+
+    await _computeRegions(content);
+    expectRegions({
+      0: FoldingKind.CLASS_BODY,
+      1: FoldingKind.FUNCTION_BODY,
+    });
+  }
+
   Future<void> test_file_header() async {
     var content = """
 // Copyright some year by some people/*[0*/

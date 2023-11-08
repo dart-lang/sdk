@@ -5,7 +5,7 @@
 library fasta.source_loader;
 
 import 'dart:collection' show Queue;
-import 'dart:convert' show Utf8Encoder;
+import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
@@ -28,8 +28,7 @@ import 'package:front_end/src/fasta/kernel/benchmarker.dart'
 import 'package:front_end/src/fasta/kernel/exhaustiveness.dart';
 import 'package:front_end/src/fasta/source/source_type_alias_builder.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchy, HandleAmbiguousSupertypes;
+import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/target/targets.dart';
@@ -43,18 +42,16 @@ import '../../base/common.dart';
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../../base/nnbd_mode.dart';
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
-import '../builder/extension_builder.dart';
-import '../builder/invalid_type_declaration_builder.dart';
+import '../builder/declaration_builders.dart';
+import '../builder/inferable_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
-import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
 import '../builder_graph.dart';
 import '../denylisted_classes.dart'
     show denylistedCoreClasses, denylistedTypedDataClasses;
@@ -92,9 +89,9 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
-import 'source_inline_class_builder.dart';
 import 'source_library_builder.dart'
     show
         ImplicitLanguageVersion,
@@ -959,7 +956,7 @@ severity: $severity
   }
 
   Uint8List synthesizeSourceForMissingFile(Uri uri, Message? message) {
-    return const Utf8Encoder().convert(switch ("$uri") {
+    return utf8.encode(switch ("$uri") {
       "dart:core" => defaultDartCoreSource,
       "dart:async" => defaultDartAsyncSource,
       "dart:collection" => defaultDartCollectionSource,
@@ -1268,21 +1265,35 @@ severity: $severity
 
     Builder parent = libraryBuilder;
     if (enclosingClassOrExtension != null) {
-      Builder? cls = dietListener.memberScope
+      Builder? builder = dietListener.memberScope
           .lookup(enclosingClassOrExtension, -1, libraryBuilder.fileUri);
-      if (cls is ClassBuilder) {
-        parent = cls;
-        dietListener
-          ..currentDeclaration = cls
-          ..memberScope = cls.scope.copyWithParent(
-              dietListener.memberScope.withTypeVariables(cls.typeVariables),
-              "debugExpression in class $enclosingClassOrExtension");
-      } else if (cls is ExtensionBuilder) {
-        parent = cls;
-        dietListener
-          ..currentDeclaration = cls
-          ..memberScope = cls.scope.copyWithParent(dietListener.memberScope,
-              "debugExpression in extension $enclosingClassOrExtension");
+      if (builder is TypeDeclarationBuilder) {
+        switch (builder) {
+          case ClassBuilder():
+            parent = builder;
+            dietListener
+              ..currentDeclaration = builder
+              ..memberScope = builder.scope.copyWithParent(
+                  dietListener.memberScope
+                      .withTypeVariables(builder.typeVariables),
+                  "debugExpression in class $enclosingClassOrExtension");
+          case ExtensionBuilder():
+            parent = builder;
+            dietListener
+              ..currentDeclaration = builder
+              ..memberScope = builder.scope.copyWithParent(
+                  dietListener.memberScope,
+                  "debugExpression in extension $enclosingClassOrExtension");
+          case ExtensionTypeDeclarationBuilder():
+          // TODO(johnniwinther): Handle this case.
+          case TypeAliasBuilder():
+          case TypeVariableBuilder():
+          case StructuralVariableBuilder():
+          case InvalidTypeDeclarationBuilder():
+          case BuiltinTypeDeclarationBuilder():
+          // TODO(johnniwinther): How should we handle this case?
+          case OmittedTypeDeclarationBuilder():
+        }
       }
     }
     SourceProcedureBuilder builder = new SourceProcedureBuilder(
@@ -1313,6 +1324,7 @@ severity: $severity
         builder,
         dietListener.memberScope,
         thisVariable: extensionThis);
+    builder.procedure.function = parameters..parent = builder.procedure;
     for (VariableDeclaration variable in parameters.positionalParameters) {
       listener.typeInferrer.assignedVariables.declare(variable);
     }
@@ -1841,11 +1853,38 @@ severity: $severity
 
   void finishTypeVariables(Iterable<SourceLibraryBuilder> libraryBuilders,
       ClassBuilder object, TypeBuilder dynamicType) {
-    int count = 0;
+    Map<TypeVariableBuilder, SourceLibraryBuilder> unboundTypeVariableBuilders =
+        {};
+    Map<StructuralVariableBuilder, SourceLibraryBuilder>
+        unboundFunctionTypeTypeVariableBuilders = {};
     for (SourceLibraryBuilder library in libraryBuilders) {
-      count += library.finishTypeVariables(object, dynamicType);
+      library.collectUnboundTypeVariables(
+          unboundTypeVariableBuilders, unboundFunctionTypeTypeVariableBuilders);
     }
-    ticker.logMs("Resolved $count type-variable bounds");
+
+    // Ensure that type parameters are built after their dependencies by sorting
+    // them topologically using references in bounds.
+    List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
+        sortedTypeVariables = sortAllTypeVariablesTopologically([
+      ...unboundFunctionTypeTypeVariableBuilders.keys,
+      ...unboundTypeVariableBuilders.keys
+    ]);
+    for (Object builder in sortedTypeVariables) {
+      if (builder is TypeVariableBuilder) {
+        builder.finish(
+            unboundTypeVariableBuilders[builder]!, object, dynamicType);
+      } else {
+        builder as StructuralVariableBuilder;
+        builder.finish(unboundFunctionTypeTypeVariableBuilders[builder]!,
+            object, dynamicType);
+      }
+    }
+
+    for (SourceLibraryBuilder library in libraryBuilders) {
+      library.processPendingNullabilities();
+    }
+
+    ticker.logMs("Resolved ${sortedTypeVariables.length} type-variable bounds");
   }
 
   /// Computes variances of type parameters on typedefs in [libraryBuilders].
@@ -1906,21 +1945,23 @@ severity: $severity
     }
   }
 
-  /// Add classes (and inline classes) defined in libraries in this
-  /// [SourceLoader] to [sourceClasses], and [inlineClasses], if provided.
+  /// Add classes and extension types defined in libraries in this
+  /// [SourceLoader] to [sourceClasses] and [sourceExtensionTypes].
   void collectSourceClasses(List<SourceClassBuilder> sourceClasses,
-      [List<SourceInlineClassBuilder>? inlineClasses]) {
+      List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes) {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      library.collectSourceClasses(sourceClasses, inlineClasses);
+      library.collectSourceClassesAndExtensionTypes(
+          sourceClasses, sourceExtensionTypes);
     }
   }
 
-  /// Returns a list of all class builders declared in this loader.  As the
-  /// classes are sorted, any cycles in the hierarchy are reported as
-  /// errors. Recover by breaking the cycles. This means that the rest of the
-  /// pipeline (including backends) can assume that there are no hierarchy
-  /// cycles.
-  List<SourceClassBuilder> handleHierarchyCycles(ClassBuilder objectClass) {
+  /// Returns lists of all class builders and of all extension type builders
+  /// declared in this loader. The classes and extension type are sorted
+  /// topologically, any cycles in the hierarchy are reported as errors, cycles
+  /// are broken. This means that the rest of the pipeline (including backends)
+  /// can assume that there are no hierarchy cycles.
+  (List<SourceClassBuilder>, List<SourceExtensionTypeDeclarationBuilder>)
+      handleHierarchyCycles(ClassBuilder objectClass) {
     Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
       denyListedClasses.add(coreLibrary.lookupLocalMember(
@@ -1940,12 +1981,15 @@ severity: $severity
 
     // Sort the classes topologically.
     List<SourceClassBuilder> sourceClasses = [];
-    collectSourceClasses(sourceClasses);
+    List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes = [];
+    collectSourceClasses(sourceClasses, sourceExtensionTypes);
+
     _SourceClassGraph classGraph =
         new _SourceClassGraph(sourceClasses, objectClass);
-    TopologicalSortResult<SourceClassBuilder> result =
+    TopologicalSortResult<SourceClassBuilder> classResult =
         topologicalSort(classGraph);
-    List<SourceClassBuilder> classes = result.sortedVertices;
+    List<SourceClassBuilder> classes = classResult.sortedVertices;
+
     Map<ClassBuilder, ClassBuilder> classToBaseOrFinalSuperClass = {};
     for (SourceClassBuilder cls in classes) {
       checkClassSupertypes(cls, classGraph.directSupertypeMap[cls]!,
@@ -1953,25 +1997,72 @@ severity: $severity
       checkSupertypeClassModifiers(cls, classToBaseOrFinalSuperClass);
     }
 
-    List<SourceClassBuilder> classesWithCycles = result.cyclicVertices;
+    List<SourceClassBuilder> classesWithCycles = classResult.cyclicVertices;
+    if (classesWithCycles.isNotEmpty) {
+      // Sort the classes to ensure consistent output.
+      classesWithCycles.sort();
+      for (int i = 0; i < classesWithCycles.length; i++) {
+        SourceClassBuilder classBuilder = classesWithCycles[i];
 
-    // Once the work list doesn't change in size, it's either empty, or
-    // contains all classes with cycles.
+        // Ensure that the cycle is broken by removing superclass and
+        // implemented interfaces.
+        Class cls = classBuilder.cls;
+        cls.implementedTypes.clear();
+        cls.supertype = null;
+        cls.mixedInType = null;
+        classBuilder.supertypeBuilder =
+            new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
+                objectClass, const NullabilityBuilder.omitted(),
+                instanceTypeVariableAccess:
+                    InstanceTypeVariableAccessState.Unexpected);
+        classBuilder.interfaceBuilders = null;
+        classBuilder.mixedInTypeBuilder = null;
 
-    // Sort the classes to ensure consistent output.
-    classesWithCycles.sort();
-    for (int i = 0; i < classesWithCycles.length; i++) {
-      SourceClassBuilder cls = classesWithCycles[i];
-      target.breakCycle(cls);
-      classes.add(cls);
-      cls.addProblem(
-          templateCyclicClassHierarchy.withArguments(cls.fullNameForErrors),
-          cls.charOffset,
-          noLength);
+        classes.add(classBuilder);
+        // TODO(johnniwinther): Update the message for when a class depends on
+        // a cycle but does not depend on itself.
+        classBuilder.addProblem(
+            templateCyclicClassHierarchy
+                .withArguments(classBuilder.fullNameForErrors),
+            classBuilder.charOffset,
+            noLength);
+      }
+    }
+
+    _SourceExtensionTypeGraph extensionTypeGraph =
+        new _SourceExtensionTypeGraph(sourceExtensionTypes);
+    TopologicalSortResult<SourceExtensionTypeDeclarationBuilder>
+        extensionTypeResult = topologicalSort(extensionTypeGraph);
+    List<SourceExtensionTypeDeclarationBuilder> extensionsTypes =
+        extensionTypeResult.sortedVertices;
+
+    List<SourceExtensionTypeDeclarationBuilder> extensionTypesWithCycles =
+        extensionTypeResult.cyclicVertices;
+    if (extensionTypesWithCycles.isNotEmpty) {
+      // Sort the classes to ensure consistent output.
+      extensionTypesWithCycles.sort();
+      for (int i = 0; i < extensionTypesWithCycles.length; i++) {
+        SourceExtensionTypeDeclarationBuilder extensionTypeBuilder =
+            extensionTypesWithCycles[i];
+
+        /// Ensure that the cycle is broken by removing implemented interfaces.
+        ExtensionTypeDeclaration extensionType =
+            extensionTypeBuilder.extensionTypeDeclaration;
+        extensionType.implements.clear();
+        extensionTypeBuilder.interfaceBuilders = null;
+        extensionsTypes.add(extensionTypeBuilder);
+        // TODO(johnniwinther): Update the message for when an extension type
+        //  depends on a cycle but does not depend on itself.
+        extensionTypeBuilder.addProblem(
+            templateCyclicClassHierarchy
+                .withArguments(extensionTypeBuilder.fullNameForErrors),
+            extensionTypeBuilder.charOffset,
+            noLength);
+      }
     }
 
     ticker.logMs("Checked class hierarchy");
-    return classes;
+    return (classes, extensionsTypes);
   }
 
   void _checkConstructorsForMixin(
@@ -2106,8 +2197,10 @@ severity: $severity
   /// Checks that there are no cycles in the class hierarchy, and if so break
   /// these cycles by removing supertypes.
   ///
-  /// Returns a list of all source classes in topological order.
-  List<SourceClassBuilder> checkClassCycles(ClassBuilder objectClass) {
+  /// Returns list of all source classes and extension types in topological
+  /// order.
+  (List<SourceClassBuilder>, List<SourceExtensionTypeDeclarationBuilder>)
+      checkClassCycles(ClassBuilder objectClass) {
     checkObjectClassHierarchy(objectClass);
     return handleHierarchyCycles(objectClass);
   }
@@ -2520,27 +2613,18 @@ severity: $severity
   }
 
   void computeHierarchy() {
-    List<AmbiguousTypesRecord>? ambiguousTypesRecords = [];
-    HandleAmbiguousSupertypes onAmbiguousSupertypes =
-        (Class cls, Supertype a, Supertype b) {
-      if (ambiguousTypesRecords != null) {
-        ambiguousTypesRecords.add(new AmbiguousTypesRecord(cls, a, b));
-      }
-    };
     if (_hierarchy == null) {
       hierarchy = new ClassHierarchy(computeFullComponent(), coreTypes,
-          onAmbiguousSupertypes: onAmbiguousSupertypes);
+          onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {
+        // Ignore errors. These have already been reported by the class
+        // hierarchy builder.
+      });
     } else {
-      hierarchy.onAmbiguousSupertypes = onAmbiguousSupertypes;
       Component component = computeFullComponent();
       hierarchy.coreTypes = coreTypes;
       hierarchy.applyTreeChanges(const [], component.libraries, const [],
           reissueAmbiguousSupertypesFor: component);
     }
-    for (AmbiguousTypesRecord record in ambiguousTypesRecords) {
-      handleAmbiguousSupertypes(record.cls, record.a, record.b);
-    }
-    ambiguousTypesRecords = null;
     ticker.logMs("Computed class hierarchy");
   }
 
@@ -2550,17 +2634,6 @@ severity: $severity
     }
     ticker.logMs("Computed show and hide elements");
   }
-
-  void handleAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {
-    addProblem(
-        templateAmbiguousSupertypes.withArguments(cls.name, a.asInterfaceType,
-            b.asInterfaceType, cls.enclosingLibrary.isNonNullableByDefault),
-        cls.fileOffset,
-        noLength,
-        cls.fileUri);
-  }
-
-  void ignoreAmbiguousSupertypes(Class cls, Supertype a, Supertype b) {}
 
   /// Creates an [InterfaceType] for the `dart:core` type by the given [name].
   ///
@@ -2592,13 +2665,22 @@ severity: $severity
     ticker.logMs("Computed core types");
   }
 
-  void checkSupertypes(List<SourceClassBuilder> sourceClasses,
-      Class objectClass, Class enumClass, Class underscoreEnumClass) {
+  void checkSupertypes(
+      List<SourceClassBuilder> sourceClasses,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sourceExtensionTypeDeclarations,
+      Class objectClass,
+      Class enumClass,
+      Class underscoreEnumClass) {
     for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
-        builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
-            enumClass, underscoreEnumClass, _macroClassBuilder?.cls);
-      }
+      assert(builder.libraryBuilder.loader == this && !builder.isPatch);
+      builder.checkSupertypes(coreTypes, hierarchyBuilder, objectClass,
+          enumClass, underscoreEnumClass, _macroClassBuilder?.cls);
+    }
+    for (SourceExtensionTypeDeclarationBuilder builder
+        in sourceExtensionTypeDeclarations) {
+      assert(builder.libraryBuilder.loader == this && !builder.isPatch);
+      builder.checkSupertypes(coreTypes, hierarchyBuilder);
     }
     ticker.logMs("Checked supertypes");
   }
@@ -2691,16 +2773,14 @@ severity: $severity
     ticker.logMs("Checked redirecting factories");
   }
 
-  /// Sets [SourceLibraryBuilder.unpromotablePrivateFieldNames] based on all the
-  /// classes in [sourceClasses].
-  void computeFieldPromotability(List<SourceClassBuilder> sourceClasses) {
-    for (SourceClassBuilder builder in sourceClasses) {
-      SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
-      if (!libraryBuilder.isInferenceUpdate2Enabled) continue;
-      Set<String> unpromotablePrivateFieldNames =
-          libraryBuilder.unpromotablePrivateFieldNames ??= {};
-      if (libraryBuilder.loader == this && !builder.isPatch) {
-        builder.addUnpromotablePrivateFieldNames(unpromotablePrivateFieldNames);
+  /// Sets [SourceLibraryBuilder.unpromotablePrivateFieldNames] for any
+  /// libraries in which field promotion is enabled.
+  void computeFieldPromotability() {
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      if (!library.isInferenceUpdate2Enabled) continue;
+      // TODO(paulberry): what should we do for augmentation libraries?
+      if (library.loader == this && !library.isPatch) {
+        library.computeFieldPromotability();
       }
     }
     ticker.logMs("Computed unpromotable private field names");
@@ -2786,10 +2866,12 @@ severity: $severity
   }
 
   void buildClassHierarchy(
-      List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
+      List<SourceClassBuilder> sourceClasses,
+      List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes,
+      ClassBuilder objectClass) {
     ClassHierarchyBuilder hierarchyBuilder = _hierarchyBuilder =
         ClassHierarchyBuilder.build(
-            objectClass, sourceClasses, this, coreTypes);
+            objectClass, sourceClasses, sourceExtensionTypes, this, coreTypes);
     typeInferenceEngine.hierarchyBuilder = hierarchyBuilder;
     ticker.logMs("Built class hierarchy");
   }
@@ -2825,10 +2907,6 @@ severity: $severity
 
     typeInferenceEngine.isTypeInferencePrepared = true;
 
-    // Since finalization of covariance may have added forwarding stubs, we need
-    // to recompute the class hierarchy so that method compilation will properly
-    // target those forwarding stubs.
-    hierarchy.onAmbiguousSupertypes = ignoreAmbiguousSupertypes;
     ticker.logMs("Performed top level inference");
   }
 
@@ -3011,6 +3089,20 @@ severity: $severity
     return library.lookupLocalMember(cls.name, required: true) as ClassBuilder;
   }
 
+  @override
+  ExtensionTypeDeclarationBuilder
+      computeExtensionTypeBuilderFromTargetExtensionType(
+          ExtensionTypeDeclaration extensionType) {
+    Library kernelLibrary = extensionType.enclosingLibrary;
+    LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
+    if (library == null) {
+      return target.dillTarget.loader
+          .computeExtensionTypeBuilderFromTargetExtensionType(extensionType);
+    }
+    return library.lookupLocalMember(extensionType.name, required: true)
+        as ExtensionTypeDeclarationBuilder;
+  }
+
   late TypeBuilderComputer _typeBuilderComputer = new TypeBuilderComputer(this);
 
   @override
@@ -3062,7 +3154,7 @@ class List<E> extends Iterable<E> {
   E operator [](int index) => null;
 }
 
-class _GrowableList<E> {
+class _GrowableList<E> implements List<E> {
   factory _GrowableList(int length) => null;
   factory _GrowableList.empty() => null;
   factory _GrowableList.filled() => null;
@@ -3075,6 +3167,10 @@ class _GrowableList<E> {
   factory _GrowableList._literal6(E e0, E e1, E e2, E e3, E e4, E e5) => null;
   factory _GrowableList._literal7(E e0, E e1, E e2, E e3, E e4, E e5, E e6) => null;
   factory _GrowableList._literal8(E e0, E e1, E e2, E e3, E e4, E e5, E e6, E e7) => null;
+  void add(E element) {}
+  void addAll(Iterable<E> iterable) {}
+  Iterator<E> get iterator => null;
+  E operator [](int index) => null;
 }
 
 class _List<E> {
@@ -3163,6 +3259,10 @@ class num {
 class Function {}
 
 class Record {}
+
+class StateError {
+  StateError(String message);
+}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an
@@ -3258,14 +3358,6 @@ class Endian {
 }
 """;
 
-class AmbiguousTypesRecord {
-  final Class cls;
-  final Supertype a;
-  final Supertype b;
-
-  const AmbiguousTypesRecord(this.cls, this.a, this.b);
-}
-
 class SourceLoaderDataForTesting {
   final Map<TreeNode, TreeNode> _aliasMap = {};
 
@@ -3314,6 +3406,38 @@ class _SourceClassGraph implements Graph<SourceClassBuilder> {
 
   @override
   Iterable<SourceClassBuilder> neighborsOf(SourceClassBuilder vertex) {
+    return _supertypeMap[vertex] ??= computeSuperClasses(vertex);
+  }
+}
+
+class _SourceExtensionTypeGraph
+    implements Graph<SourceExtensionTypeDeclarationBuilder> {
+  @override
+  final List<SourceExtensionTypeDeclarationBuilder> vertices;
+  final Map<SourceExtensionTypeDeclarationBuilder,
+      Map<TypeDeclarationBuilder?, TypeAliasBuilder?>> directSupertypeMap = {};
+  final Map<SourceExtensionTypeDeclarationBuilder,
+      List<SourceExtensionTypeDeclarationBuilder>> _supertypeMap = {};
+
+  _SourceExtensionTypeGraph(this.vertices);
+
+  List<SourceExtensionTypeDeclarationBuilder> computeSuperClasses(
+      SourceExtensionTypeDeclarationBuilder extensionTypeBuilder) {
+    Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypes =
+        directSupertypeMap[extensionTypeBuilder] =
+            extensionTypeBuilder.computeDirectSupertypes();
+    List<SourceExtensionTypeDeclarationBuilder> superClasses = [];
+    for (TypeDeclarationBuilder? directSupertype in directSupertypes.keys) {
+      if (directSupertype is SourceExtensionTypeDeclarationBuilder) {
+        superClasses.add(directSupertype);
+      }
+    }
+    return superClasses;
+  }
+
+  @override
+  Iterable<SourceExtensionTypeDeclarationBuilder> neighborsOf(
+      SourceExtensionTypeDeclarationBuilder vertex) {
     return _supertypeMap[vertex] ??= computeSuperClasses(vertex);
   }
 }

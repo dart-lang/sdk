@@ -1,0 +1,92 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:6:3: Error: 'ET1' is already declared in this scope.
+//   ET1.new(this.id);
+//   ^^^
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:5:19: Context: Previous declaration of 'ET1'.
+// extension type ET1(int id) {
+//                   ^^^
+//
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:10:3: Error: 'ET2' is already declared in this scope.
+//   ET2(this.id);
+//   ^^^
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:9:22: Context: Previous declaration of 'ET2'.
+// extension type ET2<T>(T id) {
+//                      ^^^
+//
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:14:3: Error: 'ET3' is already declared in this scope.
+//   ET3(this.id);
+//   ^^^
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:13:20: Context: Previous declaration of 'ET3'.
+// extension type ET3.new(int id) {
+//                    ^^^
+//
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:18:3: Error: 'ET4' is already declared in this scope.
+//   ET4.new(this.id);
+//   ^^^
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:17:23: Context: Previous declaration of 'ET4'.
+// extension type ET4<T>.new(T id) {
+//                       ^^^
+//
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:22:3: Error: 'ET5.n' is already declared in this scope.
+//   ET5.n(this.id);
+//   ^^^^^
+// pkg/front_end/testcases/extension_types/duplicate_constructors.dart:21:20: Context: Previous declaration of 'ET5.n'.
+// extension type ET5.n(int id) {
+//                    ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type ET1(core::int id) {
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2<T extends core::Object? = dynamic>(T% id) {
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type ET3(core::int id) {
+  constructor • = self::ET3|constructor#;
+  constructor tearoff • = self::ET3|constructor#_#new#tearOff;
+}
+extension type ET4<T extends core::Object? = dynamic>(T% id) {
+  constructor • = self::ET4|constructor#;
+  constructor tearoff • = self::ET4|constructor#_#new#tearOff;
+}
+extension type ET5(core::int id) {
+  constructor n = self::ET5|constructor#n;
+  constructor tearoff n = self::ET5|constructor#_#n#tearOff;
+}
+static inline-class-member method ET1|constructor#(core::int id) → self::ET1 /* = core::int */ {
+  lowered final self::ET1 /* = core::int */ #this = id;
+  return #this;
+}
+static inline-class-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1 /* = core::int */
+  return self::ET1|constructor#(id);
+static inline-class-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% id) → self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */ {
+  lowered final self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */ #this = id;
+  return #this;
+}
+static inline-class-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%> /* = self::ET2|constructor#_#new#tearOff::T% */
+  return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(id);
+static inline-class-member method ET3|constructor#(core::int id) → self::ET3 /* = core::int */ {
+  lowered final self::ET3 /* = core::int */ #this = id;
+  return #this;
+}
+static inline-class-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3 /* = core::int */
+  return self::ET3|constructor#(id);
+static inline-class-member method ET4|constructor#<T extends core::Object? = dynamic>(self::ET4|constructor#::T% id) → self::ET4<self::ET4|constructor#::T%> /* = self::ET4|constructor#::T% */ {
+  lowered final self::ET4<self::ET4|constructor#::T%> /* = self::ET4|constructor#::T% */ #this = id;
+  return #this;
+}
+static inline-class-member method ET4|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET4|constructor#_#new#tearOff::T% id) → self::ET4<self::ET4|constructor#_#new#tearOff::T%> /* = self::ET4|constructor#_#new#tearOff::T% */
+  return self::ET4|constructor#<self::ET4|constructor#_#new#tearOff::T%>(id);
+static inline-class-member method ET5|constructor#n(core::int id) → self::ET5 /* = core::int */ {
+  lowered final self::ET5 /* = core::int */ #this = id;
+  return #this;
+}
+static inline-class-member method ET5|constructor#_#n#tearOff(core::int id) → self::ET5 /* = core::int */
+  return self::ET5|constructor#n(id);

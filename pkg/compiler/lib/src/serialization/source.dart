@@ -57,7 +57,6 @@ class DataSourceReader {
   static final List<ir.DartType> emptyListOfDartTypes =
       List<ir.DartType>.empty();
 
-  final bool enableDeferredStrategy;
   final bool useDeferredStrategy;
   final bool useDataKinds;
   final ValueInterner? interner;
@@ -100,17 +99,6 @@ class DataSourceReader {
   /// See [UnorderedIndexedSource] for more info.
   final int endOffset;
 
-  IndexedSource<T> _createSource<T>() {
-    final indices = importedIndices;
-    if (indices == null || !indices.caches.containsKey(T)) {
-      return OrderedIndexedSource<T>(this._sourceReader);
-    } else {
-      final source = indices.caches[T]!.source as OrderedIndexedSource<T>;
-      List<T?> cacheCopy = source.cache.toList();
-      return OrderedIndexedSource<T>(this._sourceReader, cache: cacheCopy);
-    }
-  }
-
   UnorderedIndexedSource<T>? _getPreviousUncreatedSource<T>() {
     final previousSourceReader = importedIndices?.previousSourceReader;
     if (previousSourceReader == null) return null;
@@ -118,7 +106,7 @@ class DataSourceReader {
         previousSource: previousSourceReader._getPreviousUncreatedSource<T>());
   }
 
-  IndexedSource<T> _createUnorderedSource<T>() {
+  IndexedSource<T> _createSource<T>() {
     final indices = importedIndices;
     if (indices != null) {
       if (indices.caches.containsKey(T)) {
@@ -140,27 +128,17 @@ class DataSourceReader {
       DataSourceIndices? importedIndices,
       this.interner,
       this.useDeferredStrategy = false})
-      : enableDeferredStrategy =
-            (options.features.deferredSerialization.isEnabled),
-        this.importedIndices = importedIndices == null
+      : this.importedIndices = importedIndices == null
             ? null
             : (DataSourceIndices(importedIndices.previousSourceReader)
               ..caches.addAll(importedIndices.caches)),
         endOffset = (importedIndices?.previousSourceReader?.endOffset ?? 0) +
             _sourceReader.length {
-    if (!enableDeferredStrategy) {
-      _stringIndex = _createSource<String>();
-      _uriIndex = _createSource<Uri>();
-      _importIndex = _createSource<ImportEntity>();
-      _memberNodeIndex = _createSource<MemberData>();
-      _constantIndex = _createSource<ConstantValue>();
-      return;
-    }
-    _stringIndex = _createUnorderedSource<String>();
-    _uriIndex = _createUnorderedSource<Uri>();
-    _importIndex = _createUnorderedSource<ImportEntity>();
-    _memberNodeIndex = _createUnorderedSource<MemberData>();
-    _constantIndex = _createUnorderedSource<ConstantValue>();
+    _stringIndex = _createSource<String>();
+    _uriIndex = _createSource<Uri>();
+    _importIndex = _createSource<ImportEntity>();
+    _memberNodeIndex = _createSource<MemberData>();
+    _constantIndex = _createSource<ConstantValue>();
   }
 
   /// Exports [DataSourceIndices] for use in other [DataSourceReader]s and
@@ -246,15 +224,7 @@ class DataSourceReader {
   /// Registers a [CodegenReader] with this data source to support
   /// deserialization of codegen only data.
   void registerCodegenReader(CodegenReader reader) {
-    assert(_codegenReader == null);
     _codegenReader = reader;
-  }
-
-  /// Unregisters the [CodegenReader] from this data source to remove support
-  /// for deserialization of codegen only data.
-  void deregisterCodegenReader(CodegenReader reader) {
-    assert(_codegenReader == reader);
-    _codegenReader = null;
   }
 
   /// Evaluates [f] with [DataSource] for the provided [source] as the
@@ -287,13 +257,22 @@ class DataSourceReader {
     return _sourceReader.readAtOffset(offset, f);
   }
 
-  Deferrable<E> readDeferrable<E>(E f(), {bool cacheData = true}) {
-    return enableDeferredStrategy
-        ? (useDeferredStrategy
-            ? Deferrable<E>.deferred(this, f, _sourceReader.readDeferred(),
-                cacheData: cacheData)
-            : Deferrable<E>.eager(_sourceReader.readDeferredAsEager(f)))
-        : Deferrable<E>.eager(f());
+  Deferrable<E> readDeferrable<E>(E f(DataSourceReader source),
+      {bool cacheData = true}) {
+    return useDeferredStrategy
+        ? Deferrable<E>.deferred(this, f, _sourceReader.readDeferred(),
+            cacheData: cacheData)
+        : Deferrable<E>.eager(_sourceReader.readDeferredAsEager(() => f(this)));
+  }
+
+  Deferrable<E> readDeferrableWithArg<E, A>(
+      E f(DataSourceReader source, A arg), A arg,
+      {bool cacheData = true}) {
+    return useDeferredStrategy
+        ? Deferrable.deferredWithArg<E, A>(
+            this, f, arg, _sourceReader.readDeferred(), cacheData: cacheData)
+        : Deferrable<E>.eager(
+            _sourceReader.readDeferredAsEager(() => f(this, arg)));
   }
 
   /// Invoke [f] in the context of [member]. This sets up support for
@@ -327,9 +306,8 @@ class DataSourceReader {
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
   E? readCachedOrNull<E>(E f()) {
-    IndexedSource<E> source = (_generalCaches[E] ??= (enableDeferredStrategy
-        ? _createUnorderedSource<E>()
-        : _createSource<E>())) as IndexedSource<E>;
+    IndexedSource<E> source =
+        (_generalCaches[E] ??= _createSource<E>()) as IndexedSource<E>;
     return source.read(f);
   }
 
@@ -462,9 +440,9 @@ class DataSourceReader {
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStringMap].
-  Map<String, V>? readStringMap<V>(V f(), {bool emptyAsNull = false}) {
+  Map<String, V> readStringMap<V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
+    if (count == 0) return {};
     Map<String, V> map = {};
     for (int i = 0; i < count; i++) {
       String key = readString();
@@ -525,16 +503,17 @@ class DataSourceReader {
     return library.lookupClassByName(name)!;
   }
 
-  /// Reads a reference to a kernel inline class node from this data source.
-  ir.InlineClass readInlineClassNode() {
-    _checkDataKind(DataKind.inlineClassNode);
-    return _readInlineClassNode();
+  /// Reads a reference to a kernel extension type declaration node from this
+  /// data source.
+  ir.ExtensionTypeDeclaration readExtensionTypeDeclarationNode() {
+    _checkDataKind(DataKind.extensionTypeDeclarationNode);
+    return _readExtensionTypeDeclarationNode();
   }
 
-  ir.InlineClass _readInlineClassNode() {
+  ir.ExtensionTypeDeclaration _readExtensionTypeDeclarationNode() {
     LibraryData library = _readLibraryData();
     String name = _readString();
-    return library.lookupInlineClass(name)!;
+    return library.lookupExtensionTypeDeclaration(name)!;
   }
 
   /// Reads a reference to a kernel typedef node from this data source.
@@ -883,7 +862,8 @@ class DataSourceReader {
     return interner?.internDartTypeNode(type) ?? type;
   }
 
-  ir.DartType? _readDartTypeNode(List<ir.TypeParameter> functionTypeVariables) {
+  ir.DartType? _readDartTypeNode(
+      List<ir.StructuralParameter> functionTypeVariables) {
     DartTypeNodeKind kind = readEnum(DartTypeNodeKind.values);
     switch (kind) {
       case DartTypeNodeKind.none:
@@ -912,22 +892,19 @@ class DataSourceReader {
         assert(0 <= index && index < functionTypeVariables.length);
         ir.Nullability typeParameterTypeNullability =
             readEnum(ir.Nullability.values);
-        ir.DartType? promotedBound = _readDartTypeNode(functionTypeVariables);
-        ir.TypeParameterType typeParameterType = ir.TypeParameterType(
-            functionTypeVariables[index], typeParameterTypeNullability);
-        if (promotedBound == null) {
-          return typeParameterType;
-        } else {
-          return ir.IntersectionType(typeParameterType, promotedBound);
-        }
+        ir.StructuralParameterType typeParameterType =
+            ir.StructuralParameterType(
+                functionTypeVariables[index], typeParameterTypeNullability);
+        return typeParameterType;
       case DartTypeNodeKind.functionType:
         begin(functionTypeNodeTag);
         int typeParameterCount = readInt();
-        List<ir.TypeParameter> typeParameters = List<ir.TypeParameter>.generate(
-            typeParameterCount, (int index) => ir.TypeParameter(),
-            growable: false);
+        List<ir.StructuralParameter> typeParameters =
+            List<ir.StructuralParameter>.generate(
+                typeParameterCount, (int index) => ir.StructuralParameter(),
+                growable: false);
         functionTypeVariables =
-            List<ir.TypeParameter>.from(functionTypeVariables)
+            List<ir.StructuralParameter>.from(functionTypeVariables)
               ..addAll(typeParameters);
         for (int index = 0; index < typeParameterCount; index++) {
           typeParameters[index].name = readString();
@@ -972,12 +949,14 @@ class DataSourceReader {
             _readDartTypeNodes(functionTypeVariables);
         List<ir.NamedType> named = _readNamedTypeNodes(functionTypeVariables);
         return ir.RecordType(positional, named, nullability);
-      case DartTypeNodeKind.inlineType:
-        ir.InlineClass inlineClass = readInlineClassNode();
+      case DartTypeNodeKind.extensionType:
+        ir.ExtensionTypeDeclaration extensionTypeDeclaration =
+            readExtensionTypeDeclarationNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
         List<ir.DartType> typeArguments =
             _readDartTypeNodes(functionTypeVariables);
-        return ir.InlineType(inlineClass, nullability, typeArguments);
+        return ir.ExtensionType(
+            extensionTypeDeclaration, nullability, typeArguments);
       case DartTypeNodeKind.typedef:
         ir.Typedef typedef = readTypedefNode();
         ir.Nullability nullability = readEnum(ir.Nullability.values);
@@ -996,7 +975,7 @@ class DataSourceReader {
   }
 
   List<ir.NamedType> _readNamedTypeNodes(
-      List<ir.TypeParameter> functionTypeVariables) {
+      List<ir.StructuralParameter> functionTypeVariables) {
     int count = readInt();
     if (count == 0) return const [];
     return List<ir.NamedType>.generate(count, (index) {
@@ -1028,7 +1007,7 @@ class DataSourceReader {
   }
 
   List<ir.DartType> _readDartTypeNodes(
-      List<ir.TypeParameter> functionTypeVariables) {
+      List<ir.StructuralParameter> functionTypeVariables) {
     int count = readInt();
     if (count == 0) return emptyListOfDartTypes;
     return List<ir.DartType>.generate(

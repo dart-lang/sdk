@@ -663,17 +663,19 @@ class PropertyElementResolver with ScopeHelpers {
       typeReference = _resolver.typeProvider.typeType.element;
     }
 
+    final augmented = typeReference.augmentedOfDeclaration;
+
     ExecutableElement? readElement;
     ExecutableElement? readElementRecovery;
     DartType? getType;
     if (hasRead) {
-      readElement = typeReference.getGetter(propertyName.name);
+      readElement = augmented.getGetter(propertyName.name);
       if (readElement != null && !_isAccessible(readElement)) {
         readElement = null;
       }
 
       if (readElement == null) {
-        readElement = typeReference.getMethod(propertyName.name);
+        readElement = augmented.getMethod(propertyName.name);
         if (readElement != null && !_isAccessible(readElement)) {
           readElement = null;
         }
@@ -701,7 +703,7 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? writeElement;
     ExecutableElement? writeElementRecovery;
     if (hasWrite) {
-      writeElement = typeReference.getSetter(propertyName.name);
+      writeElement = augmented.getSetter(propertyName.name);
       if (writeElement != null) {
         writeElement = _resolver.toLegacyElement(writeElement);
         if (!_isAccessible(writeElement)) {
@@ -717,7 +719,7 @@ class PropertyElementResolver with ScopeHelpers {
         }
       } else {
         // Recovery, try to use getter.
-        writeElementRecovery = typeReference.getGetter(propertyName.name);
+        writeElementRecovery = augmented.getGetter(propertyName.name);
         AssignmentVerifier(_definingLibrary, errorReporter).verify(
           node: propertyName,
           requested: null,

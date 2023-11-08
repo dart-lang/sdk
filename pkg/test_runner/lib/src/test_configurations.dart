@@ -51,9 +51,9 @@ final testSuiteDirectories = [
   Path('tests/web_2'),
   Path('third_party/pkg/dart_style'),
   Path('third_party/pkg/dartdoc'),
-  Path('third_party/pkg/native/pkgs/c_compiler'),
   Path('third_party/pkg/native/pkgs/native_assets_builder'),
   Path('third_party/pkg/native/pkgs/native_assets_cli'),
+  Path('third_party/pkg/native/pkgs/native_toolchain_c'),
   Path('third_party/pkg/package_config'),
   Path('utils/tests/peg'),
 ];
@@ -176,8 +176,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
 
     if (configuration.system == System.fuchsia) {
-      await FuchsiaEmulator.publishPackage(configuration.buildDirectory,
-          configuration.mode.name, configuration.architecture.name);
+      await FuchsiaEmulator.instance().publishPackage(
+          configuration.buildDirectory,
+          configuration.mode.name,
+          configuration.architecture.name);
     }
   }
 
@@ -202,7 +204,11 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     for (var configuration in configurations) {
       configuration.stopServers();
     }
-    FuchsiaEmulator.stop();
+    if (configurations.any((configuration) {
+      return configuration.system == System.fuchsia;
+    })) {
+      FuchsiaEmulator.instance().stop();
+    }
 
     DebugLogger.close();
     if (!firstConf.keepGeneratedFiles) {

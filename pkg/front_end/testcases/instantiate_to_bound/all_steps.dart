@@ -15,6 +15,10 @@ class C<X, Y> {}
 class D<X extends B<X, Y>, Y extends C<X, Y>, Z extends X Function(Y),
     W extends num> {}
 
+class E<X extends (B<X, Y>, int), Y extends ({C<X, Y> c, int d}),
+    Z extends (int, X Function(Y)), W extends ({num a})> {}
+
 main() {
   D d;
+  E e;
 }

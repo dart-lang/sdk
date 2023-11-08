@@ -32,7 +32,8 @@ abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
   /// The result of the last prepareTypeHierarchy call.
   TypeHierarchyItem? prepareResult;
 
-  late final dartCodeUri = Uri.file(convertPath('/sdk/lib/core/core.dart'));
+  late final dartCodeUri =
+      pathContext.toUri(convertPath('/sdk/lib/core/core.dart'));
 
   /// Matches a [TypeHierarchyItem] for [Object].
   Matcher get _isObject => TypeMatcher<TypeHierarchyItem>()
@@ -56,7 +57,7 @@ abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
   void setUp() {
     super.setUp();
     otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
-    otherFileUri = Uri.file(otherFilePath);
+    otherFileUri = pathContext.toUri(otherFilePath);
   }
 
   /// Matches a [TypeHierarchyItem] with the given values.
@@ -107,6 +108,22 @@ class PrepareTypeHierarchyTest extends AbstractTypeHierarchyTest {
       prepareResult,
       _isItem(
         'MyClass1',
+        mainFileUri,
+        range: code.ranges[0].range,
+        selectionRange: code.ranges[1].range,
+      ),
+    );
+  }
+
+  Future<void> test_extensionType() async {
+    final content = '''
+/*[0*/extension type /*[1*/Int^Ext/*1]*/(int a) {}/*0]*/
+''';
+    await _prepareTypeHierarchy(content);
+    expect(
+      prepareResult,
+      _isItem(
+        'IntExt',
         mainFileUri,
         range: code.ranges[0].range,
         selectionRange: code.ranges[1].range,
@@ -181,6 +198,8 @@ class MyCla^ss1 {}
     final content = '''
 class MyCla^ss1 {}
 /*[0*/class /*[1*/MyClass2/*1]*/ implements MyClass1 {}/*0]*/
+/*[2*/extension type /*[3*/E1/*3]*/(MyClass1 a) implements MyClass1 {}/*2]*/
+
 ''';
     await _fetchSubtypes(content);
     expect(
@@ -188,6 +207,31 @@ class MyCla^ss1 {}
         equals([
           _isItem(
             'MyClass2',
+            mainFileUri,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
+          ),
+          _isItem(
+            'E1',
+            mainFileUri,
+            range: code.ranges[2].range,
+            selectionRange: code.ranges[3].range,
+          ),
+        ]));
+  }
+
+  Future<void> test_implements_extensionType() async {
+    final content = '''
+class A {}
+extension type E^1(A a) {}
+/*[0*/extension type /*[1*/E2/*1]*/(A a) implements E1 {}/*0]*/
+''';
+    await _fetchSubtypes(content);
+    expect(
+        subtypes,
+        equals([
+          _isItem(
+            'E2',
             mainFileUri,
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
@@ -279,6 +323,32 @@ class MyCla^ss2 extends MyClass1 {}
             mainFileUri,
             range: code.ranges[0].range,
             selectionRange: code.ranges[1].range,
+          ),
+        ]));
+  }
+
+  Future<void> test_extensionType() async {
+    final content = '''
+class A extends B {}
+/*[0*/class /*[1*/B/*1]*/ {}/*0]*/
+/*[2*/extension type /*[3*/E1/*3]*/(A a) {}/*2]*/
+extension type E^2(A a) implements B, E1 {}
+''';
+    await _fetchSupertypes(content);
+    expect(
+        supertypes,
+        equals([
+          _isItem(
+            'B',
+            mainFileUri,
+            range: code.ranges[0].range,
+            selectionRange: code.ranges[1].range,
+          ),
+          _isItem(
+            'E1',
+            mainFileUri,
+            range: code.ranges[2].range,
+            selectionRange: code.ranges[3].range,
           ),
         ]));
   }

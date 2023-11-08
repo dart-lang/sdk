@@ -1,7 +1,11 @@
-## 6.1.0-dev
-* Added `NamedInstanceElement`, a super-interface for `InterfaceElement`.
-* Added `InstanceElement`, a super-interface for `NamedInstanceElement`
+## 6.2.0
+* Improvements for extension types.
+* Heap usage improvements.
+
+## 6.1.0
+* Added `InstanceElement`, a super-interface for `InterfaceElement`
   and `ExtensionElement`.
+* Added `TypeSystem.greatestLowerBound`.
 
 ## 6.0.0
 * Remove deprecated `declaredElement2` from AST.

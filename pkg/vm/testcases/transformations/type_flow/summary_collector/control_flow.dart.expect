@@ -283,19 +283,23 @@ t8 = _Call direct [#lib::baz] (x_0)
 RESULT: x_0
 ------------ closure1 ------------
 t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
-t1* = _Call direct [#lib::C2.] (_T (#lib::C2))
-x_0 = _Join [dynamic] (t0, t1)
-t3 = _Call direct [#lib::foo] (x_0)
-t4 = _Call direct [#lib::bar] (x_0)
+write x = t0
+t2 = read x
+t3 = _Call direct [#lib::foo] (t2)
+t4 = _Call direct [#lib::bar] (t2)
 t5 = _Call direct [#lib::foo] (_T (dart.core::Function)+?)
+t6* = _Call direct [#lib::C2.] (_T (#lib::C2))
+write x = t6
 RESULT: _T {}?
 ------------ closure2 ------------
 t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
-t1* = _Call direct [#lib::C2.] (_T (#lib::C2))
-x_0 = _Join [dynamic] (t0, t1)
-t3 = _Call direct [#lib::foo] (x_0)
-t4 = _Call direct [#lib::foo] (_T (dart.core::Function)+?)
-RESULT: x_0
+write x = t0
+t2 = read x
+t3 = _Call direct [#lib::foo] (t2)
+t4* = _Call direct [#lib::C2.] (_T (#lib::C2))
+write x = t4
+t6 = _Call direct [#lib::foo] (_T (dart.core::Function)+?)
+RESULT: t2
 ------------ switch1 ------------
 %selector = _Parameter #0 [_T (dart.core::int)+?]
 t1* = _Call direct [#lib::C1.] (_T (#lib::C1))

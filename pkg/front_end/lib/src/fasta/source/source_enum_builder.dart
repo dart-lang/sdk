@@ -15,8 +15,8 @@ import 'package:kernel/src/bounds_checks.dart';
 import 'package:kernel/transformations/flags.dart';
 
 import '../builder/builder.dart';
-import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -25,8 +25,6 @@ import '../builder/named_type_builder.dart';
 import '../builder/nullability_builder.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
-import '../builder/type_declaration_builder.dart';
-import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show
         LocatedMessage,
@@ -151,7 +149,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     // TODO(ahe): These types shouldn't be looked up in scope, they come
     // directly from dart:core.
-    NamedTypeBuilder intType = new NamedTypeBuilder(
+    NamedTypeBuilder intType = new NamedTypeBuilderImpl(
         "int", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess:
             // If "int" resolves to an instance type variable then that we would
@@ -164,13 +162,13 @@ class SourceEnumBuilder extends SourceClassBuilder {
             // enhanced enums feature where enums can actually declare type
             // variables.
             InstanceTypeVariableAccessState.Unexpected);
-    NamedTypeBuilder stringType = new NamedTypeBuilder(
+    NamedTypeBuilder stringType = new NamedTypeBuilderImpl(
         "String", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    NamedTypeBuilder objectType = new NamedTypeBuilder(
+    NamedTypeBuilder objectType = new NamedTypeBuilderImpl(
         "Object", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    supertypeBuilder ??= new NamedTypeBuilder(
+    supertypeBuilder ??= new NamedTypeBuilderImpl(
         "_Enum", const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
     Class cls = new Class(
@@ -183,12 +181,12 @@ class SourceEnumBuilder extends SourceClassBuilder {
     Map<String, MemberBuilder> setters = <String, MemberBuilder>{};
     Map<String, MemberBuilder> constructors = <String, MemberBuilder>{};
     List<SourceFieldBuilder> elementBuilders = <SourceFieldBuilder>[];
-    NamedTypeBuilder selfType = new NamedTypeBuilder(
+    NamedTypeBuilder selfType = new NamedTypeBuilderImpl(
         name, const NullabilityBuilder.omitted(),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected,
         fileUri: fileUri,
         charOffset: charOffset);
-    NamedTypeBuilder listType = new NamedTypeBuilder(
+    NamedTypeBuilder listType = new NamedTypeBuilderImpl(
         "List", const NullabilityBuilder.omitted(),
         arguments: <TypeBuilder>[selfType],
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
@@ -286,7 +284,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
         fieldGetterReference: valuesGetterReference,
         fieldSetterReference: valuesSetterReference,
         isSynthesized: true);
-    members["values"] = valuesBuilder;
+    if (customValuesDeclaration != null) {
+      customValuesDeclaration.next = valuesBuilder;
+    } else {
+      members["values"] = valuesBuilder;
+    }
 
     DeclaredSourceConstructorBuilder? synthesizedDefaultConstructorBuilder;
 
@@ -319,7 +321,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
                     intType,
                     "#index",
                     libraryBuilder,
-                    charOffset),
+                    charOffset,
+                    hasImmediatelyDeclaredInitializer: false),
                 new FormalParameterBuilder(
                     null,
                     FormalParameterKind.requiredPositional,
@@ -327,7 +330,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
                     stringType,
                     "#name",
                     libraryBuilder,
-                    charOffset)
+                    charOffset,
+                    hasImmediatelyDeclaredInitializer: false)
               ],
               libraryBuilder,
               charOffset,
@@ -341,7 +345,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   containerName: new ClassName(name),
                   containerType: ContainerType.Class,
                   libraryName: libraryName),
-              forAbstractClassOrEnum: true);
+              forAbstractClassOrEnumOrMixin: true);
       synthesizedDefaultConstructorBuilder
           .registerInitializedField(valuesBuilder);
       constructors[""] = synthesizedDefaultConstructorBuilder;
@@ -361,7 +365,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   stringType,
                   "#name",
                   libraryBuilder,
-                  charOffset));
+                  charOffset,
+                  hasImmediatelyDeclaredInitializer: false));
           member.formals!.insert(
               0,
               new FormalParameterBuilder(
@@ -371,7 +376,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
                   intType,
                   "#index",
                   libraryBuilder,
-                  charOffset));
+                  charOffset,
+                  hasImmediatelyDeclaredInitializer: false));
         }
       }
     }
@@ -403,9 +409,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
     scope.forEachLocalMember((name, member) {
-      if (name != "values") {
-        members[name] = member as MemberBuilder;
-      }
+      members[name] = member as MemberBuilder;
     });
     scope.forEachLocalSetter((name, member) {
       setters[name] = member;
@@ -662,9 +666,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
   DartType buildElement(SourceFieldBuilder fieldBuilder, CoreTypes coreTypes) {
     DartType selfType =
         this.selfType.build(libraryBuilder, TypeUse.enumSelfType);
-    Builder? builder = firstMemberNamed(fieldBuilder.name);
-    if (builder == null || !builder.isField) return selfType;
-    fieldBuilder = builder as SourceFieldBuilder;
     if (!_builtElements.add(fieldBuilder)) return fieldBuilder.fieldType;
 
     if (enumConstantInfos == null) return selfType;

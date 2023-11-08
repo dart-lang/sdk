@@ -1,8 +1,0 @@
-extension E1 on int show num {}
-extension E2 on int {}
-extension E3 on int show {}
-extension E4 on int show num, Comparable {}
-extension E5 on int show num, {}
-extension E6 on int show , {}
-num (){}
-main() {}

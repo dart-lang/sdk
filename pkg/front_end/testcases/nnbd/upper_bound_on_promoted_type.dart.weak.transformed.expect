@@ -11,7 +11,7 @@ class Foo<T extends core::Object? = dynamic> extends core::Object {
   method qux() → dynamic {
     final self::Foo::T? v = this.{self::Foo::bar}{dynamic} as{TypeError,ForDynamic} self::Foo::T?;
     if(v is core::num) {
-      this.{self::Foo::baz}{dynamic}{dynamic}.[]=("value", v{self::Foo::T? & core::num /* '?' & '!' = '!' */}.{core::num::isFinite}{core::bool} ?{core::Object} v{self::Foo::T? & core::num /* '?' & '!' = '!' */} : v{self::Foo::T? & core::num /* '?' & '!' = '!' */}.{core::num::toString}(){() → core::String});
+      this.{self::Foo::baz}{dynamic}{dynamic}.[]=("value", v{self::Foo::T% & core::num /* '%' & '!' = '!' */}.{core::num::isFinite}{core::bool} ?{core::Object} v{self::Foo::T% & core::num /* '%' & '!' = '!' */} : v{self::Foo::T% & core::num /* '%' & '!' = '!' */}.{core::num::toString}(){() → core::String});
     }
   }
 }

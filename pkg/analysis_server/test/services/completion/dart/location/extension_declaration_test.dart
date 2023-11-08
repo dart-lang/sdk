@@ -36,6 +36,8 @@ extension ^
 suggestions
   on
     kind: keyword
+  type
+    kind: keyword
 ''');
   }
 
@@ -48,5 +50,30 @@ suggestions
   on
     kind: keyword
 ''');
+  }
+
+  Future<void> test_afterName_beforeEof_partial() async {
+    await computeSuggestions('''
+extension o^
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  on
+    kind: keyword
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  on
+    kind: keyword
+  type
+    kind: keyword
+''');
+    }
   }
 }

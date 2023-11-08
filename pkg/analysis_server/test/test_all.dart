@@ -18,6 +18,7 @@ import 'domain_execution_test.dart' as domain_execution;
 import 'domain_server_test.dart' as domain_server;
 import 'edit/test_all.dart' as edit;
 import 'lsp/test_all.dart' as lsp;
+import 'lsp_over_legacy/test_all.dart' as lsp_over_legacy;
 import 'plugin/test_all.dart' as plugin;
 import 'protocol_server_test.dart' as protocol_server;
 import 'protocol_test.dart' as protocol;
@@ -29,6 +30,7 @@ import 'tool/test_all.dart' as tool;
 import 'utilities/test_all.dart' as utilities;
 import 'verify_error_fix_status_test.dart' as verify_error_fix_status;
 import 'verify_no_solo_test.dart' as verify_no_solo;
+import 'verify_no_utf8_encode_test.dart' as verify_no_utf8_encode;
 import 'verify_sorted_test.dart' as verify_sorted;
 import 'verify_tests_test.dart' as verify_tests;
 
@@ -47,6 +49,7 @@ void main() {
     domain_server.main();
     edit.main();
     lsp.main();
+    lsp_over_legacy.main();
     plugin.main();
     protocol_server.main();
     protocol.main();
@@ -58,6 +61,7 @@ void main() {
     utilities.main();
     verify_error_fix_status.main();
     verify_no_solo.main();
+    verify_no_utf8_encode.main();
     verify_sorted.main();
     verify_tests.main();
     defineReflectiveSuite(() {

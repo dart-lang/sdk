@@ -5,31 +5,29 @@
 import 'dart:_foreign_helper' as foreign_helper;
 import 'dart:_interceptors' show JavaScriptObject;
 import 'dart:_internal' show patch;
+import 'dart:_js_helper' show staticInteropGlobalContext;
 import 'dart:_js_types';
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
 
 @patch
 @pragma('dart2js:prefer-inline')
-JSObject get globalJSObject => js_util.globalThis as JSObject;
+JSObject get globalContext => staticInteropGlobalContext as JSObject;
 
 /// Helper for working with the [JSAny?] top type in a backend agnostic way.
-/// TODO(joshualitt): Remove conflation of null and undefined after migration.
 @patch
 extension NullableUndefineableJSAnyExtension on JSAny? {
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get isUndefined =>
-      this == null || js_util.typeofEquals(this, 'undefined');
+  bool get isUndefined => typeofEquals('undefined');
 
   @patch
   @pragma('dart2js:prefer-inline')
-  bool get isNull =>
-      this == null || foreign_helper.JS('bool', '# === null', this);
+  bool get isNull => foreign_helper.JS('bool', '# === null', this);
 
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean typeofEquals(JSString typeString) =>
+  bool typeofEquals(String typeString) =>
       foreign_helper.JS('bool', 'typeof # === #', this, typeString);
 
   @patch
@@ -50,7 +48,7 @@ extension NullableObjectUtilExtension on Object? {
 extension JSObjectUtilExtension on JSObject {
   @patch
   @pragma('dart2js:prefer-inline')
-  JSBoolean instanceof(JSFunction constructor) =>
+  bool instanceof(JSFunction constructor) =>
       foreign_helper.JS('bool', '# instanceof #', this, constructor);
 }
 
@@ -72,7 +70,13 @@ extension FunctionToJSExportedDartFunction on Function {
       js_util.allowInterop(this) as JSExportedDartFunction;
 }
 
-const _jsBoxedDartObjectProperty = "'_\$jsBoxedDartObject'";
+/// Embedded global property for wrapped Dart objects passed via JS interop.
+///
+/// This is a Symbol so that different Dart applications don't share Dart
+/// objects from different Dart runtimes. We expect all [JSBoxedDartObject]s to
+/// have this Symbol.
+final Object _jsBoxedDartObjectProperty =
+    foreign_helper.JS('', 'Symbol("jsBoxedDartObjectProperty")');
 
 /// [JSBoxedDartObject] <-> [Object]
 @patch
@@ -80,37 +84,27 @@ extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
   @pragma('dart2js:prefer-inline')
   Object get toDart {
-    if (this is JavaScriptObject) {
-      final val = foreign_helper.JS(
-          'Object|Null', '#[$_jsBoxedDartObjectProperty]', this);
-      if (val == null) {
-        throw 'Expected a wrapped Dart object, but got a JS object instead.';
-      }
-      return val as Object;
+    final val = js_util.getProperty(this, _jsBoxedDartObjectProperty);
+    if (val == null) {
+      throw 'Expected a wrapped Dart object, but got a JS object or a wrapped '
+          'Dart object from a separate runtime instead.';
     }
-    // TODO(srujzs): Currently we have to still support Dart objects being
-    // returned from JS until `Object.toJS` is removed. Once that is removed,
-    // and the runtime type of this type is changed, we can get rid of this and
-    // the type check above.
-    return this;
+    return val as Object;
   }
 }
 
 @patch
 extension ObjectToJSBoxedDartObject on Object {
-  // TODO(srujzs): Remove.
-  @patch
-  @pragma('dart2js:prefer-inline')
-  JSBoxedDartObject get toJS => this as JSBoxedDartObject;
-
   @patch
   @pragma('dart2js:prefer-inline')
   JSBoxedDartObject get toJSBox {
     if (this is JavaScriptObject) {
       throw 'Attempting to box non-Dart object.';
     }
-    final box =
-        foreign_helper.JS('=Object', '{$_jsBoxedDartObjectProperty: #}', this);
+    final box = js_util.newObject();
+    // Use JS foreign function to avoid assertInterop check when `this` is a
+    // `Function` for `setProperty`.
+    foreign_helper.JS('', '#[#]=#', box, _jsBoxedDartObjectProperty, this);
     return box as JSBoxedDartObject;
   }
 }
@@ -301,16 +295,23 @@ extension ListToJSArray on List<JSAny?> {
   @patch
   @pragma('dart2js:prefer-inline')
   JSArray get toJS => this as JSArray;
+
+  // TODO(srujzs): Should we do a check to make sure this List is a JSArray
+  // under the hood and then potentially proxy? This applies for user lists. For
+  // now, don't do the check to avoid the cost of the check in the general case,
+  // and user lists will likely crash. Note that on dart2js, we do an
+  // `Array.isArray` check instead of `instanceof Array` when we cast to a
+  // `List`, which is what `JSArray` is. This won't work for proxy objects as
+  // they're not actually Arrays, so the cast will fail unless we change that
+  // check.
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSArray get toJSProxyOrRef => this as JSArray;
 }
 
 /// [JSNumber] -> [double] or [int].
 @patch
 extension JSNumberToNumber on JSNumber {
-  // TODO(srujzs): Remove.
-  @patch
-  @pragma('dart2js:prefer-inline')
-  double get toDart => this as double;
-
   @patch
   @pragma('dart2js:prefer-inline')
   double get toDartDouble => this as double;

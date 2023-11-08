@@ -30,6 +30,7 @@ class FreeListElement {
 
   intptr_t HeapSize() { return HeapSize(tags_); }
   intptr_t HeapSize(uword tags) {
+    ASSERT(UntaggedObject::ClassIdTag::decode(tags) == kFreeListElement);
     intptr_t size = UntaggedObject::SizeTag::decode(tags);
     if (size != 0) return size;
     return *SizeAddress();
@@ -58,7 +59,7 @@ class FreeListElement {
   };
 
  private:
-  // This layout mirrors the layout of RawObject.
+  // This layout mirrors the layout of UntaggedObject.
   RelaxedAtomic<uword> tags_;
   RelaxedAtomic<FreeListElement*> next_;
 

@@ -137,36 +137,36 @@ static method warning(core::String s, core::List<core::String> l, core::Map<core
   } =>#t3;
   let final core::String #t4 = s in #t4 == null ?{core::String} "foo" : #t4;
   s == null ?{core::String} s = "foo" : null;
-  block {
+  {
     final core::List<core::String> #t5 = core::_GrowableList::•<core::String>(0);
     final core::Iterable<core::String>? #t6 = l;
     if(!(#t6 == null))
       #t5.{core::List::addAll}{Invariant}(#t6{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
-  } =>#t5;
+  }
   core::Set<core::String> a = block {
     final core::Set<core::String> #t7 = new col::_Set::•<core::String>();
     final core::Iterable<core::String>? #t8 = l;
     if(!(#t8 == null))
       #t7.{core::Set::addAll}{Invariant}(#t8{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
   } =>#t7;
-  block {
+  {
     final core::Set<core::String> #t9 = new col::_Set::•<core::String>();
     final core::Iterable<core::String>? #t10 = l;
     if(!(#t10 == null))
       #t9.{core::Set::addAll}{Invariant}(#t10{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
-  } =>#t9;
+  }
   core::Map<core::String, core::int> b = block {
     final core::Map<core::String, core::int> #t11 = <core::String, core::int>{};
     final core::Map<core::String, core::int>? #t12 = m;
     if(!(#t12 == null))
       #t11.{core::Map::addAll}{Invariant}(#t12{core::Map<core::String, core::int>}){(core::Map<core::String, core::int>) → void};
   } =>#t11;
-  block {
+  {
     final core::Map<core::String, core::int> #t13 = <core::String, core::int>{};
     final core::Map<core::String, core::int>? #t14 = m;
     if(!(#t14 == null))
       #t13.{core::Map::addAll}{Invariant}(#t14{core::Map<core::String, core::int>}){(core::Map<core::String, core::int>) → void};
-  } =>#t13;
+  }
   s!;
   let final core::String #t15 = s in #t15 == null ?{core::String?} null : #t15.{core::String::substring}(0, 0){(core::int, [core::int?]) → core::String};
   let final core::List<core::String> #t16 = l in #t16 == null ?{core::int?} null : #t16.{core::List::length} = 42;
@@ -193,4 +193,4 @@ Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings
 Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:42:8 -> IntConstant(42)
 Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:43:5 -> IntConstant(42)
 Evaluated: VariableGet @ org-dartlang-testcase:///strictly_non_nullable_warnings.dart:43:5 -> IntConstant(42)
-Extra constant evaluation: evaluated: 181, effectively constant: 6
+Extra constant evaluation: evaluated: 175, effectively constant: 6

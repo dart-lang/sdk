@@ -14,7 +14,7 @@ class InheritedElement extends self::Element {
   synthetic constructor •() → self::InheritedElement
     : self::InheritedElement::_dependents = <self::Element, core::Object?>{}, super self::Element::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method setDependencies([@vm.inferred-type.metadata=!] self::Element dependent, [@vm.inferred-type.metadata=dart.core::_Smi?] core::Object? value) → void {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method setDependencies([@vm.inferred-arg-type.metadata=!] self::Element dependent, [@vm.inferred-arg-type.metadata=dart.core::_Smi?] core::Object? value) → void {
     [@vm.call-site-attributes.metadata=receiverType:dart.core::Map<#lib::Element, dart.core::Object?>] [@vm.direct-call.metadata=dart.collection::__Map&_HashVMBase&MapMixin&_HashBase&_OperatorEqualsAndHashCode&_LinkedHashMapMixin.[]=] [@vm.inferred-type.metadata=!? (skip check)] [@vm.direct-call.metadata=#lib::InheritedElement._dependents] [@vm.inferred-type.metadata=dart.collection::_Map<#lib::Element, dart.core::Object?>] this.{self::InheritedElement::_dependents}{core::Map<self::Element, core::Object?>}.{core::Map::[]=}(dependent, value){(self::Element, core::Object?) → void};
   }
 }

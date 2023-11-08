@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -21,6 +23,7 @@ class ClassHierarchy {
   }
 
   void remove(InterfaceElement element) {
+    assert(!element.isAugmentation);
     _map.remove(element);
   }
 
@@ -32,8 +35,9 @@ class ClassHierarchy {
   }
 
   _Hierarchy _getHierarchy(InterfaceElement element) {
-    var hierarchy = _map[element];
+    final augmented = element.augmentedOfDeclaration;
 
+    var hierarchy = _map[element];
     if (hierarchy != null) {
       return hierarchy;
     }
@@ -67,15 +71,15 @@ class ClassHierarchy {
     }
 
     append(element.supertype);
-    if (element is MixinElement) {
-      for (var type in element.superclassConstraints) {
+    if (augmented is AugmentedMixinElement) {
+      for (var type in augmented.superclassConstraints) {
         append(type);
       }
     }
-    for (var type in element.interfaces) {
+    for (var type in augmented.interfaces) {
       append(type);
     }
-    for (var type in element.mixins) {
+    for (var type in augmented.mixins) {
       append(type);
     }
 
@@ -129,7 +133,10 @@ class InterfacesMerger {
     var element = type.element;
     var classResult = _map[element];
     if (classResult == null) {
-      classResult = _ClassInterfaceType(_typeSystem);
+      classResult = _ClassInterfaceType(
+        _typeSystem,
+        element is ClassElement && element.isDartCoreObject,
+      );
       _map[element] = classResult;
     }
     classResult.update(type);
@@ -147,13 +154,14 @@ class InterfacesMerger {
 
 class _ClassInterfaceType {
   final TypeSystemImpl _typeSystem;
+  final bool _isDartCoreObject;
 
   ClassHierarchyError? _error;
 
   InterfaceType? _singleType;
   InterfaceType? _currentResult;
 
-  _ClassInterfaceType(this._typeSystem);
+  _ClassInterfaceType(this._typeSystem, this._isDartCoreObject);
 
   InterfaceType get type => (_currentResult ?? _singleType)!;
 
@@ -174,10 +182,9 @@ class _ClassInterfaceType {
         }
       }
 
-      var normType = _typeSystem.normalize(type);
+      var normType = _typeSystem.normalize(type) as InterfaceType;
       try {
-        _currentResult =
-            _typeSystem.topMerge(_currentResult!, normType) as InterfaceType;
+        _currentResult = _merge(_currentResult!, normType);
       } catch (e) {
         _error = IncompatibleInterfacesClassHierarchyError(
           _currentResult!,
@@ -197,6 +204,23 @@ class _ClassInterfaceType {
         }
       }
     }
+  }
+
+  InterfaceType _merge(InterfaceType T1, InterfaceType T2) {
+    // Normally `Object?` cannot be a superinterface.
+    // However, it can happen for extension types.
+    if (_isDartCoreObject) {
+      if (T1.nullabilitySuffix == NullabilitySuffix.question &&
+          T2.nullabilitySuffix == NullabilitySuffix.none) {
+        return T2;
+      }
+      if (T1.nullabilitySuffix == NullabilitySuffix.none &&
+          T2.nullabilitySuffix == NullabilitySuffix.question) {
+        return T1;
+      }
+    }
+
+    return _typeSystem.topMerge(T1, T2) as InterfaceType;
   }
 }
 

@@ -150,8 +150,26 @@ class Rti {
     return future;
   }
 
-  Object? _precomputed2;
-  Object? _precomputed3;
+  // TODO(fishythefish): Replace with a single cache that stores one of three
+  // possible values.
+  Object? _isSubtypeCache;
+  Object? _unsoundIsSubtypeCache;
+
+  static Object _getIsSubtypeCache(Rti rti) {
+    if (JS_GET_FLAG('LEGACY')) {
+      // Read/write unsound cache field.
+      var probe = rti._unsoundIsSubtypeCache;
+      if (probe != null) return probe;
+      Object cache = JS('', 'new Map()');
+      rti._unsoundIsSubtypeCache = cache;
+      return cache;
+    }
+    var probe = rti._isSubtypeCache;
+    if (probe != null) return probe;
+    Object cache = JS('', 'new Map()');
+    rti._isSubtypeCache = cache;
+    return cache;
+  }
 
   /// If kind == kindFunction, stores an object used for checking function
   /// parameters in dynamic calls after the first use.
@@ -390,6 +408,17 @@ class Rti {
   }
 }
 
+// TODO(nshahan): Make private and change the argument type to rti once this
+// method is no longer called from outside the library.
+Rti getLegacyErasedRti(Object? rti) {
+  // When preserving the legacy stars in the runtime type no legacy erasure
+  // happens so the cached version cannot be used.
+  assert(!JS_GET_FLAG('PRINT_LEGACY_STARS'));
+  var originalType = _Utils.asRti(rti);
+  return Rti._getCachedRuntimeType(originalType)?._rti ??
+      _createAndCacheRuntimeType(originalType)._rti;
+}
+
 @pragma('dart2js:types:trust')
 @pragma('dart2js:index-bounds:trust')
 bool pairwiseIsTest(JSArray fieldRtis, JSArray values) {
@@ -556,12 +585,14 @@ Rti substitute(Object? rti, Object? typeArguments) =>
 /// Returns a single binding [Rti] in the order of the provided [rtis].
 Rti bindingRtiFromList(JSArray rtis) {
   Rti binding = _rtiEval(
-      rtis[0],
+      _Utils.asRti(rtis[0]),
       '@'
       '${Recipe.startTypeArgumentsString}'
       '0'
       '${Recipe.endTypeArgumentsString}');
-  for (int i = 1; i < rtis.length; i++) binding = _rtiBind(binding, rtis[i]);
+  for (int i = 1; i < rtis.length; i++) {
+    binding = _rtiBind(binding, _Utils.asRti(rtis[i]));
+  }
   return binding;
 }
 
@@ -1051,6 +1082,34 @@ class _Type implements Type {
   String toString() => _rtiToString(_rti, null);
 }
 
+Rti _getTypeRti(Type type) => _Utils.as_Type(type)._rti;
+
+bool isRecordType(Type type) =>
+    Rti._getKind(_getTypeRti(type)) == Rti.kindRecord;
+
+List<Type> getRecordTypeElementTypes(Type type) {
+  final typeRti = _getTypeRti(type);
+  assert(Rti._getKind(typeRti) == Rti.kindRecord);
+
+  final fieldRtis = Rti._getRecordFields(typeRti);
+  final fieldTypes = <Type>[];
+  for (var fieldRti in fieldRtis) {
+    fieldTypes.add(createRuntimeType(_Utils.asRti(fieldRti)));
+  }
+  return fieldTypes;
+}
+
+String getRecordTypeShapeKey(Type type) {
+  final typeRti = _getTypeRti(type);
+  assert(Rti._getKind(typeRti) == Rti.kindRecord);
+
+  final partialShapeTag = Rti._getRecordPartialShapeTag(typeRti);
+  final fieldRtis = Rti._getRecordFields(typeRti);
+  final length = fieldRtis.length;
+
+  return '$length;$partialShapeTag';
+}
+
 /// Called from generated code.
 ///
 /// The first time the default `_is` method is called, it replaces itself with a
@@ -1090,8 +1149,9 @@ bool _installSpecializedIsTest(Object? object) {
   }
 
   Rti unstarred = Rti._unstar(testRti);
+  int unstarredKind = Rti._getKind(unstarred);
 
-  if (Rti._getKind(unstarred) == Rti.kindFutureOr) {
+  if (unstarredKind == Rti.kindFutureOr) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
   }
 
@@ -1100,7 +1160,7 @@ bool _installSpecializedIsTest(Object? object) {
     return _finishIsFn(testRti, object, isFn);
   }
 
-  if (Rti._getKind(unstarred) == Rti.kindInterface) {
+  if (unstarredKind == Rti.kindInterface) {
     String name = Rti._getInterfaceName(unstarred);
     var arguments = Rti._getInterfaceTypeArguments(unstarred);
     // This recognizes interface types instantiated with Top, which includes the
@@ -1122,7 +1182,7 @@ bool _installSpecializedIsTest(Object? object) {
           testRti, object, RAW_DART_FUNCTION_REF(_isTestViaProperty));
     }
     // fall through to general implementation.
-  } else if (Rti._getKind(unstarred) == Rti.kindRecord) {
+  } else if (unstarredKind == Rti.kindRecord) {
     isFn = _recordSpecializedIsTest(unstarred);
     return _finishIsFn(testRti, object, isFn);
   }
@@ -3117,7 +3177,23 @@ class Variance {
 
 // Future entry point from compiled code.
 bool isSubtype(Object? universe, Rti s, Rti t) {
-  return _isSubtype(universe, s, null, t, null);
+  var sType = s;
+  // Erase any legacy types that may appear in the Object rti since those mask
+  // potential sound mode errors.
+  if (JS_GET_FLAG('EXTRA_NULL_SAFETY_CHECKS')) {
+    if (JS_GET_FLAG('PRINT_LEGACY_STARS')) {
+      var sLegacyErasedRecipe = Rti.getLegacyErasedRecipe(s);
+      sType = findType(sLegacyErasedRecipe);
+    } else {
+      sType = getLegacyErasedRti(s);
+    }
+  }
+  var sCache = Rti._getIsSubtypeCache(sType);
+  var probe = _Utils.mapGet(sCache, t);
+  if (probe != null) return _Utils.asBool(probe);
+  var result = _isSubtype(universe, sType, null, t, null);
+  _Utils.mapSet(sCache, t, result);
+  return result;
 }
 
 /// Based on

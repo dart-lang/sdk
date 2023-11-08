@@ -9,9 +9,9 @@ fa7 float
 a0 int32[float]
 a1 int32[float]
 a2 int32[float]
-a3 int32[float]
-a4 int32[float]
-a5 int32[float]
+t3 int32[float]
+t4 int32[float]
+t5 int32[float]
 a6 int32[float]
 a7 int32[float]
 S+0 float

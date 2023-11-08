@@ -10,8 +10,8 @@
 class C1 {
   List<int>? bad;
   //         ^^^
-  // [context 1] 'bad' refers to a property so it couldn't be promoted.  See http://dart.dev/go/non-promo-property
-  // [context 2] 'bad' refers to a property so it couldn't be promoted.
+  // [context 1] 'bad' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 2] 'bad' refers to a public field so it couldn't be promoted.
 }
 
 test(C1 c) sync* {

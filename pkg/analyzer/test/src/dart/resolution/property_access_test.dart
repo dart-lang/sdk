@@ -39,6 +39,111 @@ int Function() foo() {
     assertType(identifier, 'A?');
   }
 
+  test_inClass_explicitThis_inDeclaration_augmentationAugments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  augment int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {
+  int get foo => 0;
+
+  void f() {
+    this.foo;
+  }
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_inClass_explicitThis_inDeclaration_augmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+int get foo => 0;
+
+class A {
+  void f() {
+    this.foo;
+  }
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_inClass_explicitThis_inDeclaration_augmentationDeclares_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  void foo() {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+int get foo => 0;
+
+class A {
+  void f() {
+    this.foo;
+  }
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+    staticType: void Function()
+  staticType: void Function()
+''');
+  }
+
   test_inClass_superQualifier_identifier_getter() async {
     await assertNoErrorsInCode('''
 class A {
@@ -208,6 +313,62 @@ PropertyAccess
     staticElement: <null>
     staticType: InvalidType
   staticType: InvalidType
+''');
+  }
+
+  test_inExtensionType_explicitThis_declared() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+
+  void f() {
+    this.foo;
+  }
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_inExtensionType_explicitThis_exposed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {}
+
+extension type X(B it) implements A {
+  void f() {
+    this.foo;
+  }
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ThisExpression
+    thisKeyword: this
+    staticType: X
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@getter::foo
+    staticType: int
+  staticType: int
 ''');
   }
 
@@ -396,6 +557,84 @@ CascadeExpression
 ''');
   }
 
+  test_ofClass_augmentationAugments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  augment int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  (a).foo;
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getterAugmentation::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofClass_augmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {}
+
+void f(A a) {
+  (a).foo;
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@classAugmentation::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
   test_ofEnum_read() async {
     await assertNoErrorsInCode('''
 enum E {
@@ -560,6 +799,247 @@ PropertyAccess
       substitution: {T: int, U: String}
     staticType: Map<int, String>
   staticType: Map<int, String>
+''');
+  }
+
+  test_ofExtensionType_read() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+void f(A a) {
+  (a).foo;
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@getter::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofExtensionType_read_ofObject() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {}
+
+void f(A a) {
+  (a).hashCode;
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofExtensionType_read_ofObjectQuestion() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int? it) {}
+
+void f(A a) {
+  (a).hashCode;
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: hashCode
+    staticElement: dart:core::@class::Object::@getter::hashCode
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofExtensionType_read_unresolved() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+
+void f(A a) {
+  (a).foo;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 49, 3),
+    ]);
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_ofExtensionType_write() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  (a).foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        staticElement: self::@function::f::@parameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@extensionType::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extensionType::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_ofMixin_augmentationAugments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment mixin A {
+  augment int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+mixin A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  (a).foo;
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getterAugmentation::foo
+    staticType: int
+  staticType: int
+''');
+  }
+
+  test_ofMixin_augmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment mixin A {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+mixin A {}
+
+void f(A a) {
+  (a).foo;
+}
+''');
+
+    final node = findNode.singlePropertyAccess;
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    rightParenthesis: )
+    staticType: A
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@getter::foo
+    staticType: int
+  staticType: int
 ''');
   }
 

@@ -19,7 +19,7 @@ import '../scanner/scanner.dart' show Token;
 
 import '../util/stack_checker.dart';
 import '../util/value_kind.dart';
-import 'identifier_context.dart' show IdentifierContext;
+import 'declaration_kind.dart';
 
 import 'parser.dart' show Listener, MemberKind, lengthOfSpan;
 
@@ -188,27 +188,14 @@ abstract class StackListener extends Listener with StackChecker {
   }
 
   @override
-  void handleIdentifier(Token token, IdentifierContext context) {
-    debugEvent("handleIdentifier");
-    if (!token.isSynthetic) {
-      push(token.lexeme);
-    } else {
-      // This comes from a synthetic token which is inserted by the parser in
-      // an attempt to recover.  This almost always means that the parser has
-      // gotten very confused and we need to ignore the results.
-      push(new ParserRecovery(token.charOffset));
-    }
-  }
-
-  @override
   void handleNoName(Token token) {
-    debugEvent("NoName");
+    debugEvent("handleNoName");
     push(NullValues.Identifier);
   }
 
   @override
   void endInitializer(Token token) {
-    debugEvent("Initializer");
+    debugEvent("endInitializer");
   }
 
   void checkEmpty(int charOffset) {
@@ -254,7 +241,7 @@ abstract class StackListener extends Listener with StackChecker {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     debugEvent("RecoverClassHeader");
   }
 
@@ -266,12 +253,6 @@ abstract class StackListener extends Listener with StackChecker {
   @override
   void handleImplements(Token? implementsKeyword, int interfacesCount) {
     debugEvent("Implements");
-  }
-
-  @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    debugEvent("ExtensionShow");
   }
 
   @override

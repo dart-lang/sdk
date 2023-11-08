@@ -8,13 +8,16 @@ analyzer:
 
 linter:
   rules:
+    - avoid_dynamic_calls
+    - avoid_unused_constructor_parameters
     - collection_methods_unrelated_type
-    # Enable when we require Dart 2.19.0.
-    #- dangling_library_doc_comments
+    - dangling_library_doc_comments
     - depend_on_referenced_packages
     - implicit_call_tearoffs
     - library_annotations
+    - prefer_single_quotes
     - unawaited_futures
+    - unnecessary_breaks
     - unnecessary_library_directive
     - unnecessary_parenthesis
     - unreachable_from_main

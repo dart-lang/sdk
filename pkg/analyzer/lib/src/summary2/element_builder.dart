@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -50,6 +51,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _unitElement.classes = _enclosingContext.classes;
     _unitElement.enums = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
+    _unitElement.extensionTypes = _enclosingContext.extensionTypes;
     _unitElement.functions = _enclosingContext.functions;
     _unitElement.mixins = _enclosingContext.mixins;
     _unitElement.topLevelVariables = _enclosingContext.topLevelVariables;
@@ -89,16 +91,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var element = ClassElementImpl(name, nameToken.offset);
     element.isAbstract = node.abstractKeyword != null;
-    element.isMacro = node.macroKeyword != null;
-    if (node.sealedKeyword != null) {
-      element.isSealed = true;
-      element.isAbstract = true;
-    }
+    element.isAugmentation = node.augmentKeyword != null;
     element.isBase = node.baseKeyword != null;
-    element.isInterface = node.interfaceKeyword != null;
     element.isFinal = node.finalKeyword != null;
-    element.isInline = node.inlineKeyword != null;
+    element.isInterface = node.interfaceKeyword != null;
+    element.isMacro = node.macroKeyword != null;
     element.isMixinClass = node.mixinKeyword != null;
+    if (node.sealedKeyword != null) {
+      element.isAbstract = true;
+      element.isSealed = true;
+    }
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -107,7 +109,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
-    _libraryBuilder.declare(name, reference);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -122,6 +126,27 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
     _buildClass(node);
+
+    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+      if (element.isAugmentation) {
+        target.augmentation = element;
+        element.augmentationTarget = target;
+      }
+    });
+
+    if (element.isAugmentation) {
+      switch (_libraryBuilder.getAugmentedBuilder(name)) {
+        case AugmentedClassDeclarationBuilder builder:
+          builder.augment(element);
+      }
+    } else {
+      _libraryBuilder.putAugmentedBuilder(
+        name,
+        AugmentedClassDeclarationBuilder(
+          declaration: element,
+        ),
+      );
+    }
   }
 
   @override
@@ -131,16 +156,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var element = ClassElementImpl(name, nameToken.offset);
     element.isAbstract = node.abstractKeyword != null;
-    element.isMacro = node.macroKeyword != null;
-    if (node.sealedKeyword != null) {
-      element.isSealed = true;
-      element.isAbstract = true;
-    }
     element.isBase = node.baseKeyword != null;
-    element.isInterface = node.interfaceKeyword != null;
     element.isFinal = node.finalKeyword != null;
+    element.isInterface = node.interfaceKeyword != null;
+    element.isMacro = node.macroKeyword != null;
     element.isMixinApplication = true;
     element.isMixinClass = node.mixinKeyword != null;
+    if (node.sealedKeyword != null) {
+      element.isAbstract = true;
+      element.isSealed = true;
+    }
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -178,6 +203,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var nameOffset = nameNode.offset;
 
     var element = ConstructorElementImpl(name, nameOffset);
+    element.isAugmentation = node.augmentKeyword != null;
     element.isConst = node.constKeyword != null;
     element.isExternal = node.externalKeyword != null;
     element.isFactory = node.factoryKeyword != null;
@@ -388,6 +414,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.methods = holder.methods;
     element.typeParameters = holder.typeParameters;
 
+    // TODO(scheglov) We cannot do this anymore.
+    // Not for class augmentations, not for classes.
     _resolveConstructorFieldFormals(element);
   }
 
@@ -449,6 +477,49 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
+    final nameToken = node.name;
+    final name = nameToken.lexeme;
+
+    final element = ExtensionTypeElementImpl(name, nameToken.offset);
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+    _setDocumentation(element, node);
+
+    node.declaredElement = element;
+    _linker.elementNodes[element] = node;
+
+    final reference = _enclosingContext.addExtensionType(name, element);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
+
+    final holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      node.typeParameters?.accept(this);
+      _builtRepresentationDeclaration(
+        extensionNode: node,
+        representation: node.representation,
+      );
+      _visitPropertyFirst<FieldDeclaration>(node.members);
+    });
+
+    element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
+    element.fields = holder.fields;
+    element.methods = holder.methods;
+    element.typeParameters = holder.typeParameters;
+
+    node.implementsClause?.accept(this);
+
+    // TODO(scheglov) We cannot do this anymore.
+    // Not for class augmentations, not for classes.
+    _resolveConstructorFieldFormals(element);
+  }
+
+  @override
   void visitFieldDeclaration(
     covariant FieldDeclarationImpl node,
   ) {
@@ -468,6 +539,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       element.hasInitializer = variable.initializer != null;
       element.isAbstract = node.abstractKeyword != null;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isConst = node.fields.isConst;
       element.isCovariant = node.covariantKeyword != null;
       element.isExternal = node.externalKeyword != null;
@@ -579,9 +651,17 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _buildSyntheticVariable(name: name, accessorElement: element);
     } else {
       var element = FunctionElementImpl(name, nameOffset);
+      element.isAugmentation = node.augmentKeyword != null;
       element.isStatic = true;
       reference = _enclosingContext.addFunction(name, element);
       executableElement = element;
+
+      _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+        if (element.isAugmentation) {
+          target.augmentation = element;
+          element.augmentationTarget = target;
+        }
+      });
     }
 
     executableElement.hasImplicitReturnType = node.returnType == null;
@@ -792,6 +872,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (node.isGetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
       element.isAbstract = node.isAbstract;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isGetter = true;
       element.isStatic = node.isStatic;
 
@@ -810,6 +891,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     } else if (node.isSetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
       element.isAbstract = node.isAbstract;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isSetter = true;
       element.isStatic = node.isStatic;
 
@@ -827,6 +909,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       var element = MethodElementImpl(name, nameOffset);
       element.isAbstract = node.isAbstract;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isStatic = node.isStatic;
 
       reference = _enclosingContext.addMethod(name, element);
@@ -861,6 +944,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var name = nameToken.lexeme;
 
     var element = MixinElementImpl(name, nameToken.offset);
+    element.isAugmentation = node.augmentKeyword != null;
     element.isBase = node.baseKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -870,7 +954,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addMixin(name, element);
-    _libraryBuilder.declare(name, reference);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -884,6 +970,27 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
     _buildMixin(node);
+
+    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+      if (element.isAugmentation) {
+        target.augmentation = element;
+        element.augmentationTarget = target;
+      }
+    });
+
+    if (element.isAugmentation) {
+      switch (_libraryBuilder.getAugmentedBuilder(name)) {
+        case AugmentedMixinDeclarationBuilder builder:
+          builder.augment(element);
+      }
+    } else {
+      _libraryBuilder.putAugmentedBuilder(
+        name,
+        AugmentedMixinDeclarationBuilder(
+          declaration: element,
+        ),
+      );
+    }
   }
 
   @override
@@ -1135,18 +1242,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    if (!holder.hasConstructors) {
-      holder.addConstructor(
-        ConstructorElementImpl('', -1)..isSynthetic = true,
-      );
-    }
-
     element.accessors = holder.propertyAccessors;
     element.constructors = holder.constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-
-    _resolveConstructorFieldFormals(element);
   }
 
   void _buildExecutableElementChildren({
@@ -1185,17 +1284,18 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     });
 
     element.accessors = holder.propertyAccessors;
-    element.constructors = holder.constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
-
-    _resolveConstructorFieldFormals(element);
   }
 
   void _buildSyntheticVariable({
     required String name,
     required PropertyAccessorElementImpl accessorElement,
   }) {
+    if (accessorElement.isAugmentation) {
+      return;
+    }
+
     var enclosingRef = _enclosingContext.reference;
     var enclosingElement = _enclosingContext.element;
 
@@ -1241,7 +1341,78 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node?.accept(this);
   }
 
-  void _resolveConstructorFieldFormals(AbstractClassElementImpl element) {
+  void _builtRepresentationDeclaration({
+    required ExtensionTypeDeclarationImpl extensionNode,
+    required RepresentationDeclarationImpl representation,
+  }) {
+    final fieldNameToken = representation.fieldName;
+    final fieldName = fieldNameToken.lexeme.ifNotEmptyOrElse('<empty>');
+    final fieldElement = FieldElementImpl(
+      fieldName,
+      fieldNameToken.offset,
+    );
+    fieldElement.isFinal = true;
+    fieldElement.metadata = _buildAnnotations(representation.fieldMetadata);
+
+    final fieldBeginToken =
+        representation.fieldMetadata.beginToken ?? representation.fieldType;
+    final fieldCodeRangeOffset = fieldBeginToken.offset;
+    final fieldCodeRangeLength = fieldNameToken.end - fieldCodeRangeOffset;
+    fieldElement.setCodeRange(fieldCodeRangeOffset, fieldCodeRangeLength);
+
+    representation.fieldElement = fieldElement;
+    _linker.elementNodes[fieldElement] = representation;
+    _enclosingContext.addNonSyntheticField(fieldElement);
+
+    final fieldFormalParameterElement = FieldFormalParameterElementImpl(
+      name: fieldName,
+      nameOffset: fieldNameToken.offset,
+      parameterKind: ParameterKind.REQUIRED,
+    );
+    fieldFormalParameterElement
+      ..field = fieldElement
+      ..hasImplicitType = true;
+    fieldFormalParameterElement.setCodeRange(
+      fieldCodeRangeOffset,
+      fieldCodeRangeLength,
+    );
+
+    final ConstructorElementImpl constructorElement;
+    {
+      final String name;
+      int? periodOffset;
+      int nameOffset;
+      int? nameEnd;
+      final constructorNameNode = representation.constructorName;
+      if (constructorNameNode != null) {
+        final nameToken = constructorNameNode.name;
+        name = nameToken.lexeme.ifEqualThen('new', '');
+        periodOffset = constructorNameNode.period.offset;
+        nameOffset = nameToken.offset;
+        nameEnd = nameToken.end;
+      } else {
+        name = '';
+        nameOffset = extensionNode.name.offset;
+        nameEnd = extensionNode.name.end;
+      }
+
+      constructorElement = ConstructorElementImpl(name, nameOffset);
+      constructorElement
+        ..isConst = extensionNode.constKeyword != null
+        ..nameEnd = nameEnd
+        ..parameters = [fieldFormalParameterElement]
+        ..periodOffset = periodOffset;
+      _setCodeRange(constructorElement, representation);
+
+      representation.constructorElement = constructorElement;
+      _linker.elementNodes[constructorElement] = representation;
+      _enclosingContext.addConstructor(constructorElement);
+    }
+
+    representation.fieldType.accept(this);
+  }
+
+  void _resolveConstructorFieldFormals(InterfaceElementImpl element) {
     for (var constructor in element.constructors) {
       for (var parameter in constructor.parameters) {
         if (parameter is FieldFormalParameterElementImpl) {
@@ -1338,6 +1509,7 @@ class _EnclosingContext {
   final List<ConstructorElementImpl> _constructors = [];
   final List<EnumElementImpl> _enums = [];
   final List<ExtensionElementImpl> _extensions = [];
+  final List<ExtensionTypeElementImpl> _extensionTypes = [];
   final List<FieldElementImpl> _fields = [];
   final List<FunctionElementImpl> _functions = [];
   final List<MethodElementImpl> _methods = [];
@@ -1376,6 +1548,10 @@ class _EnclosingContext {
 
   List<ExtensionElementImpl> get extensions {
     return _extensions.toFixedList();
+  }
+
+  List<ExtensionTypeElementImpl> get extensionTypes {
+    return _extensionTypes.toFixedList();
   }
 
   List<FieldElementImpl> get fields {
@@ -1423,56 +1599,88 @@ class _EnclosingContext {
 
   Reference addClass(String name, ClassElementImpl element) {
     _classes.add(element);
-    return _bindReference('@class', name, element);
+    final containerName =
+        element.isAugmentation ? '@classAugmentation' : '@class';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addConstructor(ConstructorElementImpl element) {
     _constructors.add(element);
 
+    final containerName =
+        element.isAugmentation ? '@constructorAugmentation' : '@constructor';
     final referenceName = element.name.ifNotEmptyOrElse('new');
-    return _bindReference('@constructor', referenceName, element);
+    return _bindReference(containerName, referenceName, element);
   }
 
   Reference addEnum(String name, EnumElementImpl element) {
     _enums.add(element);
-    return _bindReference('@enum', name, element);
+    final containerName =
+        element.isAugmentation ? '@enumAugmentation' : '@enum';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addExtension(String name, ExtensionElementImpl element) {
     _extensions.add(element);
-    return _bindReference('@extension', name, element);
+    final containerName =
+        element.isAugmentation ? '@extensionAugmentation' : '@extension';
+    return _bindReference(containerName, name, element);
+  }
+
+  Reference addExtensionType(String name, ExtensionTypeElementImpl element) {
+    _extensionTypes.add(element);
+    final containerName = element.isAugmentation
+        ? '@extensionTypeAugmentation'
+        : '@extensionType';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addField(String name, FieldElementImpl element) {
     _fields.add(element);
-    return _bindReference('@field', name, element);
+    final containerName =
+        element.isAugmentation ? '@fieldAugmentation' : '@field';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addFunction(String name, FunctionElementImpl element) {
     _functions.add(element);
-    return _bindReference('@function', name, element);
+    final containerName =
+        element.isAugmentation ? '@functionAugmentation' : '@function';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addGetter(String name, PropertyAccessorElementImpl element) {
     _propertyAccessors.add(element);
-    return _bindReference('@getter', name, element);
+    final containerName =
+        element.isAugmentation ? '@getterAugmentation' : '@getter';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addMethod(String name, MethodElementImpl element) {
     _methods.add(element);
-    return _bindReference('@method', name, element);
+    final containerName =
+        element.isAugmentation ? '@methodAugmentation' : '@method';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addMixin(String name, MixinElementImpl element) {
     _mixins.add(element);
-    return _bindReference('@mixin', name, element);
+    final containerName =
+        element.isAugmentation ? '@mixinAugmentation' : '@mixin';
+    return _bindReference(containerName, name, element);
   }
 
   void addNonSyntheticField(FieldElementImpl element) {
     var name = element.name;
-    element.createImplicitAccessors(reference, name);
-
     addField(name, element);
+
+    // Augmenting a variable with a variable only alters its initializer.
+    // So, don't create getter and setter.
+    if (element.isAugmentation) {
+      return;
+    }
+
+    element.createImplicitAccessors(reference, name);
 
     var getter = element.getter;
     if (getter is PropertyAccessorElementImpl) {
@@ -1496,13 +1704,17 @@ class _EnclosingContext {
 
   Reference addSetter(String name, PropertyAccessorElementImpl element) {
     _propertyAccessors.add(element);
-    return _bindReference('@setter', name, element);
+    final containerName =
+        element.isAugmentation ? '@setterAugmentation' : '@setter';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addTopLevelVariable(
       String name, TopLevelVariableElementImpl element) {
     _topLevelVariables.add(element);
-    return _bindReference('@variable', name, element);
+    final containerName =
+        element.isAugmentation ? '@variableAugmentation' : '@variable';
+    return _bindReference(containerName, name, element);
   }
 
   Reference addTypeAlias(String name, TypeAliasElementImpl element) {
@@ -1513,10 +1725,6 @@ class _EnclosingContext {
   void addTypeParameter(String name, TypeParameterElementImpl element) {
     _typeParameters.add(element);
     this.element.encloseElement(element);
-  }
-
-  Reference getMethod(String name) {
-    return reference.getChild('@method').getChild(name);
   }
 
   Reference _bindReference(

@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -41,13 +41,11 @@ class AnalysisContextImpl implements AnalysisContext {
 
     // TODO() remove this method as well
     _typeSystemLegacy?.updateOptions(
-      implicitCasts: analysisOptions.implicitCasts,
       strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,
     );
 
     _typeSystemNonNullableByDefault?.updateOptions(
-      implicitCasts: analysisOptions.implicitCasts,
       strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,
     );
@@ -91,7 +89,6 @@ class AnalysisContextImpl implements AnalysisContext {
     }
 
     _typeSystemLegacy = TypeSystemImpl(
-      implicitCasts: analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
       strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,
@@ -99,7 +96,6 @@ class AnalysisContextImpl implements AnalysisContext {
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
-      implicitCasts: analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
       strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,

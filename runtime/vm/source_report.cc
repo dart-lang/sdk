@@ -30,6 +30,7 @@ SourceReport::SourceReport(intptr_t report_set,
       compile_mode_(compile_mode),
       report_lines_(report_lines),
       library_filters_(GrowableObjectArray::Handle()),
+      libraries_already_compiled_(nullptr),
       thread_(nullptr),
       script_(nullptr),
       start_pos_(TokenPosition::kMinSource),
@@ -38,12 +39,14 @@ SourceReport::SourceReport(intptr_t report_set,
 
 SourceReport::SourceReport(intptr_t report_set,
                            const GrowableObjectArray& library_filters,
+                           ZoneCStringSet* libraries_already_compiled,
                            CompileMode compile_mode,
                            bool report_lines)
     : report_set_(report_set),
       compile_mode_(compile_mode),
       report_lines_(report_lines),
       library_filters_(library_filters),
+      libraries_already_compiled_(libraries_already_compiled),
       thread_(nullptr),
       script_(nullptr),
       start_pos_(TokenPosition::kMinSource),
@@ -85,7 +88,8 @@ void SourceReport::Init(Thread* thread,
     // Build the profile.
     SampleFilter samplesForIsolate(thread_->isolate()->main_port(),
                                    Thread::kMutatorTask, -1, -1);
-    profile_.Build(thread, &samplesForIsolate, Profiler::sample_block_buffer());
+    profile_.Build(thread, thread->isolate(), &samplesForIsolate,
+                   Profiler::sample_block_buffer());
   }
 }
 
@@ -198,6 +202,13 @@ bool SourceReport::ShouldSkipField(const Field& field) {
     }
   }
   return false;
+}
+
+bool SourceReport::IsLibraryAlreadyCompiled(const Library& lib) {
+  if (libraries_already_compiled_ == nullptr) return false;
+  const char* url = String::ToCString(thread(), lib.url());
+  if (url == nullptr) return false;
+  return libraries_already_compiled_->Lookup(url) != nullptr;
 }
 
 bool SourceReport::ShouldFiltersIncludeUrl(const String& url) {
@@ -329,9 +340,11 @@ bool SourceReport::ShouldCoverageSkipCallSite(const ICData* ic_data) {
   // shouldn't count against the coverage total.
   // See https://github.com/dart-lang/coverage/issues/341
   if (late_error_class_id_ == ClassId::kIllegalCid) {
-    const Class& lateErrorClass =
-        Class::Handle(Library::LookupCoreClass(Symbols::LateError()));
-    late_error_class_id_ = lateErrorClass.id();
+    const auto& dart_internal = Library::Handle(Library::InternalLibrary());
+    const auto& late_error_class =
+        Class::Handle(dart_internal.LookupClass(Symbols::LateError()));
+    ASSERT(!late_error_class.IsNull());
+    late_error_class_id_ = late_error_class.id();
   }
   Class& cls = Class::Handle(func.Owner());
   if (late_error_class_id_ == cls.id()) {
@@ -540,7 +553,9 @@ void SourceReport::PrintScriptTable(JSONArray* scripts) {
   }
 }
 
-void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
+void SourceReport::VisitFunction(JSONArray* jsarr,
+                                 const Function& func,
+                                 CompileMode compile_mode) {
   if (ShouldSkipFunction(func)) {
     return;
   }
@@ -556,7 +571,7 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
 
   Code& code = Code::Handle(zone(), func.unoptimized_code());
   if (code.IsNull()) {
-    if (func.HasCode() || (compile_mode_ == kForceCompile)) {
+    if (func.HasCode() || (compile_mode == kForceCompile)) {
       const Error& err =
           Error::Handle(Compiler::EnsureUnoptimizedCode(thread(), func));
       if (!err.IsNull()) {
@@ -609,10 +624,12 @@ void SourceReport::VisitFunction(JSONArray* jsarr, const Function& func) {
   }
 }
 
-void SourceReport::VisitField(JSONArray* jsarr, const Field& field) {
+void SourceReport::VisitField(JSONArray* jsarr,
+                              const Field& field,
+                              CompileMode compile_mode) {
   if (ShouldSkipField(field) || !field.HasInitializerFunction()) return;
   const Function& func = Function::Handle(field.InitializerFunction());
-  VisitFunction(jsarr, func);
+  VisitFunction(jsarr, func, compile_mode);
 }
 
 void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
@@ -623,10 +640,14 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
   Field& field = Field::Handle(zone());
   Script& script = Script::Handle(zone());
   ClassDictionaryIterator it(lib, ClassDictionaryIterator::kIteratePrivate);
+  CompileMode compile_mode = compile_mode_;
+  if (compile_mode == kForceCompile && IsLibraryAlreadyCompiled(lib)) {
+    compile_mode = kNoCompile;
+  }
   while (it.HasNext()) {
     cls = it.GetNextClass();
     if (!cls.is_finalized()) {
-      if (compile_mode_ == kForceCompile) {
+      if (compile_mode == kForceCompile) {
         Error& err = Error::Handle(cls.EnsureIsFinalized(thread()));
         if (!err.IsNull()) {
           // Emit an uncompiled range for this class with error information.
@@ -671,20 +692,20 @@ void SourceReport::VisitLibrary(JSONArray* jsarr, const Library& lib) {
           continue;
         }
       }
-      VisitFunction(jsarr, func);
+      VisitFunction(jsarr, func, compile_mode);
     }
 
     fields = cls.fields();
     for (intptr_t i = 0; i < fields.Length(); i++) {
       field ^= fields.At(i);
-      VisitField(jsarr, field);
+      VisitField(jsarr, field, compile_mode);
     }
   }
 }
 
 void SourceReport::VisitClosures(JSONArray* jsarr) {
   ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& func) {
-    VisitFunction(jsarr, func);
+    VisitFunction(jsarr, func, compile_mode_);
     return true;  // Continue iteration.
   });
 }
@@ -789,7 +810,7 @@ void SourceReport::CollectConstConstructorCoverageFromScripts(
     {
       Script& scriptRef = Script::Handle(zone());
       const Array& constructors =
-          Array::Handle(kernel::CollectConstConstructorCoverageFrom(*script));
+          Array::Handle(script->CollectConstConstructorCoverageFrom());
       intptr_t constructors_count = constructors.Length();
       Function& constructor = Function::Handle(zone());
       Code& code = Code::Handle(zone());

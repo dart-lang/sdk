@@ -5,12 +5,12 @@
 part of dart._runtime;
 
 /// Describes the shape of a record value.
-class Shape {
+final class Shape {
   /// The number of positional elements in the record.
-  int positionals;
+  final int positionals;
 
   /// The names of the named elements in the record in alphabetical order.
-  List<String>? named;
+  final List<String>? named;
 
   Shape(this.positionals, this.named);
 
@@ -22,13 +22,13 @@ class Shape {
 
 /// Internal base class for all concrete records.
 final class RecordImpl implements Record {
-  Shape shape;
+  final Shape shape;
 
   /// Stores the elements of this record.
   ///
   /// Contains all positional elements followed by all named elements in the
   /// order corresponding to names as they appear in [shape].
-  List values;
+  final List values;
 
   /// Cache for faster access after the first call of [hashCode].
   int? _hashCode;
@@ -53,10 +53,12 @@ final class RecordImpl implements Record {
   @override
   bool operator ==(Object? other) {
     if (!(other is RecordImpl)) return false;
-    if (shape != other.shape) return false;
-    if (values.length != other.values.length) {
-      return false;
-    }
+    // Shapes are canonicalized and stored in a map so there will only ever be
+    // one instance of the same shape.
+    if (JS<bool>('!', '# !== #', shape, other.shape)) return false;
+    // If the shapes are identical then the two records have the same number of
+    // positional elements and the same named elements.
+    // This implies: `values.length == other.values.length`.
     for (var i = 0; i < values.length; i++) {
       if (values[i] != other.values[i]) {
         return false;
@@ -67,10 +69,9 @@ final class RecordImpl implements Record {
 
   @override
   int get hashCode {
-    if (_hashCode == null) {
-      _hashCode = Object.hashAll([shape, ...values]);
-    }
-    return _hashCode!;
+    final cachedValue = _hashCode;
+    if (cachedValue != null) return cachedValue;
+    return _hashCode = Object.hashAll([shape, ...values]);
   }
 
   @override
@@ -81,7 +82,8 @@ final class RecordImpl implements Record {
   /// Will recursively call [toString] on the elements when [safe] is `false`
   /// or [Primitives.safeToString] when [safe] is `true`.
   String _toString(bool safe) {
-    if (!safe && _printed != null) return _printed!;
+    final cachedValue = _printed;
+    if (!safe && cachedValue != null) return cachedValue;
     var buffer = StringBuffer();
     var posCount = shape.positionals;
     var count = values.length;

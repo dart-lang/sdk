@@ -13,41 +13,38 @@ library;
 // class A<TypeY extends lib.A> {}
 //         ^^^^^
 //
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle.dart:13:9: Error: The typedef 'C' has a reference to itself.
+// typedef C<TypeX extends lib.C> = int;
+//         ^
+//
 import self as self;
 import "dart:core" as core;
 
 import "org-dartlang-testcase:///non_simple_many_libs_same_name_cycle_lib.dart" as lib;
 
-typedef C<unrelated TypeX extends invalid-type> = core::int;
+typedef C<unrelated TypeX extends core::int> = invalid-type;
 class A<TypeX extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::TypeX%>
     : super core::Object::•()
     ;
 }
 static method main() → dynamic {}
-static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated TypeX extends invalid-type>(core::String name, {core::int defaultValue = #C1}) → core::int
-  return core::int::fromEnvironment(name, defaultValue: defaultValue);
 
 library non_simple_many_libs_same_name_cycle_lib;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle_lib.dart:18:9: Error: The typedef 'C' has a reference to itself.
-// typedef C<TypeY extends lib.C> = int;
-//         ^
-//
 import self as self2;
 import "dart:core" as core;
 import "non_simple_many_libs_same_name_cycle.dart" as self;
 
 import "org-dartlang-testcase:///non_simple_many_libs_same_name_cycle.dart" as lib;
 
-typedef C<unrelated TypeY extends core::int> = invalid-type;
+typedef C<unrelated TypeY extends invalid-type> = core::int;
 class A<TypeY extends self::A<dynamic>> extends core::Object {
   synthetic constructor •() → self2::A<self2::A::TypeY>
     : super core::Object::•()
     ;
 }
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#C#fromEnvironment#tearOff<unrelated TypeY extends invalid-type>(core::String name, {core::int defaultValue = #C1}) → core::int
+  return core::int::fromEnvironment(name, defaultValue: defaultValue);
 
 constants  {
   #C1 = 0

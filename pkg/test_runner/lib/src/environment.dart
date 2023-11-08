@@ -33,6 +33,7 @@ final _variables = {
   "nnbd": _Variable((TestConfiguration c) => c.nnbdMode.name, NnbdMode.names),
   "qemu": _Variable.bool((c) => c.useQemu),
   "runtime": _Variable(_runtimeName, _runtimeNames),
+  "sanitizer": _Variable((c) => c.sanitizer.name, Sanitizer.names),
   "simulator": _Variable.bool((c) => c.isSimulator),
   "spec_parser": _Variable.bool((c) => c.compiler == Compiler.specParser),
   "system": _Variable(_systemName, _systemNames),

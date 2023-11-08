@@ -7,7 +7,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class InitializedMessageHandler
-    extends MessageHandler<InitializedParams, void> {
+    extends LspMessageHandler<InitializedParams, void> {
   final List<String> openWorkspacePaths;
   InitializedMessageHandler(
     super.server,
@@ -23,13 +23,13 @@ class InitializedMessageHandler
   @override
   Future<ErrorOr<void>> handle(InitializedParams params, MessageInfo message,
       CancellationToken token) async {
-    server.messageHandler = InitializedStateMessageHandler(
+    server.messageHandler = InitializedLspStateMessageHandler(
       server,
     );
 
     server.analyticsManager.initialized(openWorkspacePaths: openWorkspacePaths);
 
-    if (server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles) {
+    if (server.onlyAnalyzeProjectsWithOpenFiles) {
       await server.fetchClientConfigurationAndPerformDynamicRegistration();
     } else {
       // This method internally calls

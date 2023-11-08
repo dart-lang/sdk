@@ -45,10 +45,7 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
-      () => initialize(
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
+      initialize,
       {
         if (preference != null) 'documentation': preference,
       },
@@ -72,12 +69,12 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> assertMarkdownContents(String content, Matcher matcher) async {
+    setHoverContentFormat([MarkupKind.Markdown]);
+
     final code = TestCode.parse(content);
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.Markdown]));
+    await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
     final hover = await getHover(mainFileUri, code.position.position);
@@ -90,12 +87,11 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> assertPlainTextContents(String content, Matcher matcher) async {
+    setHoverContentFormat([MarkupKind.PlainText]);
     final code = TestCode.parse(content);
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        textDocumentCapabilities: withHoverContentFormat(
-            emptyTextDocumentClientCapabilities, [MarkupKind.PlainText]));
+    await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
     final hover = await getHover(mainFileUri, code.position.position);
@@ -158,6 +154,36 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   /// No preference should result in full docs.
   Future<void> test_dartDocPreference_unset() =>
       assertDocumentation(null, includesSummary: true, includesFull: true);
+
+  Future<void> test_forLoop_declaredVariable() async {
+    final content = '''
+void f() {
+  for (var [!ii^i!] in <String>[]) {}
+}
+''';
+    final expected = '''
+```dart
+String iii
+```
+Type: `String`''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_forLoop_variableReference() async {
+    final content = '''
+void f() {
+  for (var iii in <String>[]) {
+    print([!ii^i!]);
+  }
+}
+''';
+    final expected = '''
+```dart
+String iii
+```
+Type: `String`''';
+    await assertStringContents(content, equals(expected));
+  }
 
   Future<void> test_function_startOfParameterList() => assertStringContents(
         '''
@@ -444,6 +470,27 @@ String f(int char) {
         contains('Type: `int`'),
       );
 
+  Future<void> test_pattern_variable_wildcard() => assertStringContents(
+        '''
+void f() {
+  var a = (1, 2);
+  var ([!^_!], _) = a;
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_pattern_variable_wildcard_annotated() =>
+      assertStringContents(
+        '''
+void f() {
+  var a = (1, 2);
+  var (int [!^_!], _) = a;
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
   Future<void> test_plainText_simple() => assertPlainTextContents(
         '''
     /// This is a string.
@@ -596,22 +643,41 @@ Type: `String`
     expect(contents, contains('Updated'));
   }
 
-  Future<void> test_string_simple() => assertStringContents(
-        '''
-    /// This is a string.
-    String [!a^bc!];
-    ''',
-        contains('This is a string.'),
-      );
+  Future<void> test_string_simple() async {
+    final content = '''
+/// This is a string.
+String [!a^bc!];
+''';
+    final expected = '''
+```dart
+String abc
+```
+Type: `String`
 
-  Future<void> test_unopenFile() => assertStringContents(
-        withOpenFile: false,
-        '''
-    /// This is a string.
-    String [!a^bc!];
-    ''',
-        contains('This is a string.'),
-      );
+*package:test/main.dart*
+
+---
+This is a string.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_unopenFile() async {
+    final content = '''
+/// This is a string.
+String [!a^bc!];
+''';
+    final expected = '''
+```dart
+String abc
+```
+Type: `String`
+
+*package:test/main.dart*
+
+---
+This is a string.''';
+    await assertStringContents(withOpenFile: false, content, equals(expected));
+  }
 
   MarkupContent _getMarkupContents(Hover hover) {
     return hover.contents.map(

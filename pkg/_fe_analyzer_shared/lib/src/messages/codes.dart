@@ -97,16 +97,21 @@ class MessageCode extends Code<Null> implements Message {
 }
 
 class Template<T> {
+  final String messageCode;
+
   final String problemMessageTemplate;
 
   final String? correctionMessageTemplate;
 
   final T withArguments;
 
-  const Template(
+  const Template(this.messageCode,
       {this.correctionMessageTemplate,
       required this.problemMessageTemplate,
       required this.withArguments});
+
+  @override
+  String toString() => 'Template($messageCode)';
 }
 
 class LocatedMessage implements Comparable<LocatedMessage> {

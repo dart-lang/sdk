@@ -79,4 +79,43 @@ main([args, port]) async {
     };
     return completer.future;
   });
+
+  // keepIsolateAlive = false
+  asyncTest(() async {
+    final parentPort = ReceivePort();
+    final onExit = ReceivePort();
+
+    final parentSendPort = parentPort.sendPort;
+    await Isolate.spawn((_) async {
+      final weakPort = RawReceivePort();
+      parentSendPort.send(weakPort.sendPort);
+      weakPort.handler = (message) {
+        weakPort.keepIsolateAlive = false;
+        parentSendPort.send(1000 + message);
+      };
+    }, null, onExit: onExit.sendPort);
+
+    final si = StreamIterator(parentPort);
+
+    Expect.isTrue(await si.moveNext());
+    final childPort = si.current as SendPort;
+    childPort.send(234);
+
+    Expect.isTrue(await si.moveNext());
+    Expect.equals(si.current, 1234);
+
+    await si.cancel();
+    await onExit.first;
+  });
+
+  // keepIsolateAlive getter
+  asyncTest(() async {
+    final port = RawReceivePort();
+    Expect.isTrue(port.keepIsolateAlive);
+    port.keepIsolateAlive = false;
+    Expect.isFalse(port.keepIsolateAlive);
+    port.keepIsolateAlive = true;
+    Expect.isTrue(port.keepIsolateAlive);
+    port.close();
+  });
 }

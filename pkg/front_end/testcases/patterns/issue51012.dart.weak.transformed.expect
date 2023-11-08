@@ -15,8 +15,8 @@ class A extends core::Object {
 static field core::int count = 0;
 static method main() → dynamic {
   {
-    final synthesized dynamic #0#0 = new self::A::•();
-    if(!(let final core::int #t1 = #0#0{self::A}.{self::A::bar}{core::int} in true))
+    final synthesized self::A #0#0 = new self::A::•();
+    if(!(let final core::int #t1 = #0#0.{self::A::bar}{core::int} in true))
       throw new core::StateError::•("Pattern matching error");
   }
   self::expect(1, self::count);

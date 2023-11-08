@@ -29,12 +29,12 @@ TranslationHelper::TranslationHelper(Thread* thread)
       isolate_group_(thread->isolate_group()),
       allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
-      string_data_(ExternalTypedData::Handle(Z)),
+      string_data_(TypedDataView::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)),
-      metadata_payloads_(ExternalTypedData::Handle(Z)),
-      metadata_mappings_(ExternalTypedData::Handle(Z)),
+      metadata_payloads_(TypedDataView::Handle(Z)),
+      metadata_mappings_(TypedDataView::Handle(Z)),
       constants_(Array::Handle(Z)),
-      constants_table_(ExternalTypedData::Handle(Z)),
+      constants_table_(TypedDataView::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
@@ -44,46 +44,39 @@ TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
       isolate_group_(thread->isolate_group()),
       allocation_space_(space),
       string_offsets_(TypedData::Handle(Z)),
-      string_data_(ExternalTypedData::Handle(Z)),
+      string_data_(TypedDataView::Handle(Z)),
       canonical_names_(TypedData::Handle(Z)),
-      metadata_payloads_(ExternalTypedData::Handle(Z)),
-      metadata_mappings_(ExternalTypedData::Handle(Z)),
+      metadata_payloads_(TypedDataView::Handle(Z)),
+      metadata_mappings_(TypedDataView::Handle(Z)),
       constants_(Array::Handle(Z)),
-      constants_table_(ExternalTypedData::Handle(Z)),
+      constants_table_(TypedDataView::Handle(Z)),
       info_(KernelProgramInfo::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)) {}
 
 void TranslationHelper::Reset() {
   string_offsets_ = TypedData::null();
-  string_data_ = ExternalTypedData::null();
+  string_data_ = TypedDataView::null();
   canonical_names_ = TypedData::null();
-  metadata_payloads_ = ExternalTypedData::null();
-  metadata_mappings_ = ExternalTypedData::null();
+  metadata_payloads_ = TypedDataView::null();
+  metadata_mappings_ = TypedDataView::null();
   constants_ = Array::null();
-}
-
-void TranslationHelper::InitFromScript(const Script& script) {
-  const KernelProgramInfo& info =
-      KernelProgramInfo::Handle(Z, script.kernel_program_info());
-  if (info.IsNull()) {
-    // If there is no kernel data associated with the script, then
-    // do not bother initializing!.
-    // This can happen with few special functions like
-    // NoSuchMethodDispatcher and InvokeFieldDispatcher.
-    return;
-  }
-  InitFromKernelProgramInfo(info);
 }
 
 void TranslationHelper::InitFromKernelProgramInfo(
     const KernelProgramInfo& info) {
+  if (info.IsNull()) {
+    // If there is no kernel data available then do not bother initializing!
+    // This can happen with few special functions like
+    // NoSuchMethodDispatcher and InvokeFieldDispatcher.
+    return;
+  }
   SetStringOffsets(TypedData::Handle(Z, info.string_offsets()));
-  SetStringData(ExternalTypedData::Handle(Z, info.string_data()));
+  SetStringData(TypedDataView::Handle(Z, info.string_data()));
   SetCanonicalNames(TypedData::Handle(Z, info.canonical_names()));
-  SetMetadataPayloads(ExternalTypedData::Handle(Z, info.metadata_payloads()));
-  SetMetadataMappings(ExternalTypedData::Handle(Z, info.metadata_mappings()));
+  SetMetadataPayloads(TypedDataView::Handle(Z, info.metadata_payloads()));
+  SetMetadataMappings(TypedDataView::Handle(Z, info.metadata_mappings()));
   SetConstants(Array::Handle(Z, info.constants()));
-  SetConstantsTable(ExternalTypedData::Handle(Z, info.constants_table()));
+  SetConstantsTable(TypedDataView::Handle(Z, info.constants_table()));
   SetKernelProgramInfo(info);
 }
 
@@ -92,7 +85,7 @@ void TranslationHelper::SetStringOffsets(const TypedData& string_offsets) {
   string_offsets_ = string_offsets.ptr();
 }
 
-void TranslationHelper::SetStringData(const ExternalTypedData& string_data) {
+void TranslationHelper::SetStringData(const TypedDataView& string_data) {
   ASSERT(string_data_.IsNull());
   string_data_ = string_data.ptr();
 }
@@ -103,14 +96,14 @@ void TranslationHelper::SetCanonicalNames(const TypedData& canonical_names) {
 }
 
 void TranslationHelper::SetMetadataPayloads(
-    const ExternalTypedData& metadata_payloads) {
+    const TypedDataView& metadata_payloads) {
   ASSERT(metadata_payloads_.IsNull());
   ASSERT(Utils::IsAligned(metadata_payloads.DataAddr(0), kWordSize));
   metadata_payloads_ = metadata_payloads.ptr();
 }
 
 void TranslationHelper::SetMetadataMappings(
-    const ExternalTypedData& metadata_mappings) {
+    const TypedDataView& metadata_mappings) {
   ASSERT(metadata_mappings_.IsNull());
   metadata_mappings_ = metadata_mappings.ptr();
 }
@@ -122,7 +115,7 @@ void TranslationHelper::SetConstants(const Array& constants) {
 }
 
 void TranslationHelper::SetConstantsTable(
-    const ExternalTypedData& constants_table) {
+    const TypedDataView& constants_table) {
   ASSERT(constants_table_.IsNull());
   constants_table_ = constants_table.ptr();
 }
@@ -1536,7 +1529,7 @@ void LibraryDependencyHelper::ReadUntilExcluding(Field field) {
 #if defined(DEBUG)
 
 void MetadataHelper::VerifyMetadataMappings(
-    const ExternalTypedData& metadata_mappings) {
+    const TypedDataView& metadata_mappings) {
   const intptr_t kUInt32Size = 4;
   Reader reader(metadata_mappings);
   if (reader.size() == 0) {
@@ -1818,8 +1811,9 @@ DirectCallMetadata DirectCallMetadataHelper::GetDirectTargetForMethodInvocation(
 
 InferredTypeMetadataHelper::InferredTypeMetadataHelper(
     KernelReaderHelper* helper,
-    ConstantReader* constant_reader)
-    : MetadataHelper(helper, tag(), /* precompiler_only = */ true),
+    ConstantReader* constant_reader,
+    InferredTypeMetadataHelper::Kind kind)
+    : MetadataHelper(helper, tag(kind), /* precompiler_only = */ true),
       constant_reader_(constant_reader) {}
 
 InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
@@ -2304,11 +2298,11 @@ void KernelReaderHelper::SkipDartType() {
       }
       return;
     }
-    case kInlineType: {
+    case kExtensionType: {
       ReadNullability();
       SkipCanonicalNameReference();  // read index for canonical name.
       SkipListOfDartTypes();         // read type arguments
-      SkipDartType();                // read instantiated representation type.
+      SkipDartType();                // read type erasure.
       break;
     }
     case kTypedefType:
@@ -2317,8 +2311,8 @@ void KernelReaderHelper::SkipDartType() {
       SkipListOfDartTypes();  // read list of types.
       return;
     case kTypeParameterType:
-      ReadNullability();       // read nullability.
-      ReadUInt();              // read index for parameter.
+      ReadNullability();  // read nullability.
+      ReadUInt();         // read index for parameter.
       return;
     case kIntersectionType:
       SkipDartType();  // read left.
@@ -2442,6 +2436,7 @@ void KernelReaderHelper::SkipInitializer() {
     case kInvalidInitializer:
       return;
     case kFieldInitializer:
+      ReadPosition();                // read position.
       SkipCanonicalNameReference();  // read field_reference.
       SkipExpression();              // read value.
       return;
@@ -2522,9 +2517,9 @@ void KernelReaderHelper::SkipExpression() {
       SkipInterfaceMemberNameReference();  // read interface_target_reference.
       return;
     case kFunctionTearOff:
-      ReadPosition();    // read position.
-      SkipExpression();  // read receiver.
-      return;
+      // Removed by lowering kernel transformation.
+      UNREACHABLE();
+      break;
     case kInstanceSet:
       ReadByte();                          // read kind.
       ReadPosition();                      // read position.
@@ -2668,9 +2663,11 @@ void KernelReaderHelper::SkipExpression() {
       SkipDartType();    // read type.
       return;
     case kTypeLiteral:
+      ReadPosition();  // read position.
       SkipDartType();  // read type.
       return;
     case kThisExpression:
+      ReadPosition();  // read position.
       return;
     case kRethrow:
       ReadPosition();  // read position.
@@ -2736,27 +2733,36 @@ void KernelReaderHelper::SkipExpression() {
       SkipListOfDartTypes();  // read type arguments.
       return;
     case kBigIntLiteral:
+      ReadPosition();         // read position.
       SkipStringReference();  // read string reference.
       return;
     case kStringLiteral:
+      ReadPosition();         // read position.
       SkipStringReference();  // read string reference.
       return;
     case kSpecializedIntLiteral:
+      ReadPosition();  // read position.
       return;
     case kNegativeIntLiteral:
-      ReadUInt();  // read value.
+      ReadPosition();  // read position.
+      ReadUInt();      // read value.
       return;
     case kPositiveIntLiteral:
-      ReadUInt();  // read value.
+      ReadPosition();  // read position.
+      ReadUInt();      // read value.
       return;
     case kDoubleLiteral:
-      ReadDouble();  // read value.
+      ReadPosition();  // read position.
+      ReadDouble();    // read value.
       return;
     case kTrueLiteral:
+      ReadPosition();  // read position.
       return;
     case kFalseLiteral:
+      ReadPosition();  // read position.
       return;
     case kNullLiteral:
+      ReadPosition();  // read position.
       return;
     case kConstantExpression:
       ReadPosition();  // read position.
@@ -2771,7 +2777,8 @@ void KernelReaderHelper::SkipExpression() {
       return;
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
-      ReadUInt();  // skip library index
+      ReadPosition();  // read file offset.
+      ReadUInt();      // skip library index
       return;
     case kAwaitExpression:
       ReadPosition();    // read position.
@@ -2831,6 +2838,7 @@ void KernelReaderHelper::SkipStatement() {
       }
       return;
     case kLabeledStatement:
+      ReadPosition();   // read position.
       SkipStatement();  // read body.
       return;
     case kBreakStatement:
@@ -2858,14 +2866,6 @@ void KernelReaderHelper::SkipStatement() {
       SkipStatement();          // read body.
       return;
     }
-    case kForInStatement:
-    case kAsyncForInStatement:
-      ReadPosition();             // read position.
-      ReadPosition();             // read body position.
-      SkipVariableDeclaration();  // read variable.
-      SkipExpression();           // read iterable.
-      SkipStatement();            // read body.
-      return;
     case kSwitchStatement: {
       ReadPosition();                     // read position.
       ReadBool();                         // read exhaustive flag.
@@ -2873,6 +2873,7 @@ void KernelReaderHelper::SkipStatement() {
       SkipOptionalDartType();             // read expression type
       int case_count = ReadListLength();  // read number of cases.
       for (intptr_t i = 0; i < case_count; ++i) {
+        ReadPosition();                           // read file offset.
         int expression_count = ReadListLength();  // read number of expressions.
         for (intptr_t j = 0; j < expression_count; ++j) {
           ReadPosition();    // read jth position.
@@ -2902,6 +2903,7 @@ void KernelReaderHelper::SkipStatement() {
       return;
     }
     case kTryCatch: {
+      ReadPosition();                           // read position
       SkipStatement();                          // read body.
       ReadByte();                               // read flags
       intptr_t catch_count = ReadListLength();  // read number of catches.
@@ -2921,6 +2923,7 @@ void KernelReaderHelper::SkipStatement() {
       return;
     }
     case kTryFinally:
+      ReadPosition();   // read position
       SkipStatement();  // read body.
       SkipStatement();  // read finalizer.
       return;
@@ -2938,6 +2941,8 @@ void KernelReaderHelper::SkipStatement() {
       SkipVariableDeclaration();  // read variable.
       SkipFunctionNode();         // read function node.
       return;
+    case kForInStatement:
+    case kAsyncForInStatement:
     case kIfCaseStatement:
     case kPatternSwitchStatement:
     case kPatternVariableDeclaration:
@@ -2964,8 +2969,8 @@ void KernelReaderHelper::SkipName() {
 void KernelReaderHelper::SkipArguments() {
   ReadUInt();  // read argument count.
 
-  SkipListOfDartTypes();    // read list of types.
-  SkipListOfExpressions();  // read positional.
+  SkipListOfDartTypes();         // read list of types.
+  SkipListOfExpressions();       // read positional.
   SkipListOfNamedExpressions();  // read named.
 }
 
@@ -3083,8 +3088,7 @@ String& KernelReaderHelper::SourceTableImportUriFor(intptr_t index) {
   return H.DartString(reader_.BufferAt(ReaderOffset()), size, Heap::kOld);
 }
 
-ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
-    intptr_t index) {
+TypedDataViewPtr KernelReaderHelper::GetConstantCoverageFor(intptr_t index) {
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());                         // skip uri.
@@ -3107,7 +3111,7 @@ ExternalTypedDataPtr KernelReaderHelper::GetConstantCoverageFor(
 
   intptr_t end_offset = ReaderOffset();
 
-  return reader_.ExternalDataFromTo(start_offset, end_offset);
+  return reader_.ViewFromTo(start_offset, end_offset);
 }
 
 intptr_t ActiveClass::MemberTypeParameterCount(Zone* zone) {
@@ -3275,8 +3279,8 @@ void TypeTranslator::BuildTypeInternal() {
     case kIntersectionType:
       BuildIntersectionType();
       break;
-    case kInlineType:
-      BuildInlineType();
+    case kExtensionType:
+      BuildExtensionType();
       break;
     case kFutureOrType:
       BuildFutureOrType();
@@ -3589,8 +3593,9 @@ void TypeTranslator::BuildTypeParameterType() {
     return;
   }
 
+  const auto& script = Script::Handle(Z, Script());
   H.ReportError(
-      helper_->script(), TokenPosition::kNoSource,
+      script, TokenPosition::kNoSource,
       "Unbound type parameter found in %s.  Please report this at dartbug.com.",
       active_class_->ToCString());
 }
@@ -3600,12 +3605,12 @@ void TypeTranslator::BuildIntersectionType() {
   helper_->SkipDartType();  // read right.
 }
 
-void TypeTranslator::BuildInlineType() {
-  // We skip the inline type and only use the representation type.
+void TypeTranslator::BuildExtensionType() {
+  // We skip the extension type and only use the type erasure.
   helper_->ReadNullability();
   helper_->SkipCanonicalNameReference();  // read index for canonical name.
   helper_->SkipListOfDartTypes();         // read type arguments
-  BuildTypeInternal();  // read instantiated representation type.
+  BuildTypeInternal();                    // read type erasure.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {

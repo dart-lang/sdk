@@ -64,15 +64,6 @@ String generateFeAnalyzerSharedFile(Uri repoDir) {
   Map<dynamic, dynamic> yaml =
       loadYaml(new File.fromUri(yamlFile).readAsStringSync());
 
-  int currentVersionMajor;
-  int currentVersionMinor;
-  {
-    String currentVersion = getAsVersionNumberString(yaml['current-version'])!;
-    List<String> split = currentVersion.split(".");
-    currentVersionMajor = int.parse(split[0]);
-    currentVersionMinor = int.parse(split[1]);
-  }
-
   StringBuffer sb = new StringBuffer();
 
   sb.write('''
@@ -84,6 +75,18 @@ String generateFeAnalyzerSharedFile(Uri repoDir) {
 //
 // Instead modify 'tools/experimental_features.yaml' and run
 // 'dart pkg/front_end/tool/fasta.dart generate-experimental-flags' to update.
+''');
+
+  int currentVersionMajor;
+  int currentVersionMinor;
+  {
+    String currentVersion = getAsVersionNumberString(yaml['current-version'])!;
+    List<String> split = currentVersion.split(".");
+    currentVersionMajor = int.parse(split[0]);
+    currentVersionMinor = int.parse(split[1]);
+  }
+  sb.write('''
+const Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVersionMinor);
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
@@ -105,17 +108,16 @@ enum ExperimentalFlag {
   List<String> keys = features.keys.toList()..sort();
   for (String key in keys) {
     String identifier = keyToIdentifier(key);
-    int enabledInMajor;
-    int enabledInMinor;
+    String enabledInVersion;
     String? enabledIn =
         getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
     if (enabledIn == null) {
-      enabledInMajor = currentVersionMajor;
-      enabledInMinor = currentVersionMinor;
+      enabledInVersion = 'defaultLanguageVersion';
     } else {
       List<String> split = enabledIn.split(".");
-      enabledInMajor = int.parse(split[0]);
-      enabledInMinor = int.parse(split[1]);
+      int enabledInMajor = int.parse(split[0]);
+      int enabledInMinor = int.parse(split[1]);
+      enabledInVersion = 'const Version($enabledInMajor, $enabledInMinor)';
     }
     bool? expired = (features[key] as YamlMap)['expired'];
     bool shipped = (features[key] as YamlMap)['enabledIn'] != null;
@@ -124,21 +126,21 @@ enum ExperimentalFlag {
         throw 'Cannot mark shipped feature "$key" as "expired: false"';
       }
     }
-    int releaseMajor;
-    int releaseMinor;
+    String releasedInVersion;
     String? experimentalReleaseVersion = getAsVersionNumberString(
         (features[key] as YamlMap)['experimentalReleaseVersion']);
     if (experimentalReleaseVersion != null) {
       List<String> split = experimentalReleaseVersion.split(".");
-      releaseMajor = int.parse(split[0]);
-      releaseMinor = int.parse(split[1]);
+      int releaseMajor = int.parse(split[0]);
+      int releaseMinor = int.parse(split[1]);
+      releasedInVersion = 'const Version($releaseMajor, $releaseMinor)';
     } else if (enabledIn != null) {
       List<String> split = enabledIn.split(".");
-      releaseMajor = int.parse(split[0]);
-      releaseMinor = int.parse(split[1]);
+      int releaseMajor = int.parse(split[0]);
+      int releaseMinor = int.parse(split[1]);
+      releasedInVersion = 'const Version($releaseMajor, $releaseMinor)';
     } else {
-      releaseMajor = currentVersionMajor;
-      releaseMinor = currentVersionMinor;
+      releasedInVersion = 'defaultLanguageVersion';
     }
 
     sb.writeln('''
@@ -146,8 +148,8 @@ enum ExperimentalFlag {
       name: '$key',
       isEnabledByDefault: $shipped,
       isExpired: ${expired == true},
-      experimentEnabledVersion: const Version($enabledInMajor, $enabledInMinor),
-      experimentReleasedVersion: const Version($releaseMajor, $releaseMinor)),
+      experimentEnabledVersion: $enabledInVersion,
+      experimentReleasedVersion: $releasedInVersion),
 ''');
   }
   sb.write('''
@@ -211,7 +213,7 @@ String generateKernelFile(Uri repoDir) {
 
 import "ast.dart";
 
-Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVersionMinor);
+const Version defaultLanguageVersion = const Version($currentVersionMajor, $currentVersionMinor);
 ''');
 
   return new DartFormatter().format("$sb");
@@ -221,15 +223,6 @@ String generateCfeFile(Uri repoDir) {
   Uri yamlFile = computeYamlFile(repoDir);
   Map<dynamic, dynamic> yaml =
       loadYaml(new File.fromUri(yamlFile).readAsStringSync());
-
-  int currentVersionMajor;
-  int currentVersionMinor;
-  {
-    String currentVersion = getAsVersionNumberString(yaml['current-version'])!;
-    List<String> split = currentVersion.split(".");
-    currentVersionMajor = int.parse(split[0]);
-    currentVersionMinor = int.parse(split[1]);
-  }
 
   StringBuffer sb = new StringBuffer();
 
@@ -307,17 +300,16 @@ class ExperimentalFlag {
 ''');
   for (String key in keys) {
     String identifier = keyToIdentifier(key);
-    int enabledInMajor;
-    int enabledInMinor;
+    String enabledInVersion;
     String? enabledIn =
         getAsVersionNumberString((features[key] as YamlMap)['enabledIn']);
     if (enabledIn == null) {
-      enabledInMajor = currentVersionMajor;
-      enabledInMinor = currentVersionMinor;
+      enabledInVersion = 'defaultLanguageVersion';
     } else {
       List<String> split = enabledIn.split(".");
-      enabledInMajor = int.parse(split[0]);
-      enabledInMinor = int.parse(split[1]);
+      int enabledInMajor = int.parse(split[0]);
+      int enabledInMinor = int.parse(split[1]);
+      enabledInVersion = 'const Version($enabledInMajor, $enabledInMinor)';
     }
     bool? expired = (features[key] as YamlMap)['expired'];
     bool shipped = (features[key] as YamlMap)['enabledIn'] != null;
@@ -326,21 +318,21 @@ class ExperimentalFlag {
         throw 'Cannot mark shipped feature "$key" as "expired: false"';
       }
     }
-    int releaseMajor;
-    int releaseMinor;
+    String releasedInVersion;
     String? experimentalReleaseVersion = getAsVersionNumberString(
         (features[key] as YamlMap)['experimentalReleaseVersion']);
     if (experimentalReleaseVersion != null) {
       List<String> split = experimentalReleaseVersion.split(".");
-      releaseMajor = int.parse(split[0]);
-      releaseMinor = int.parse(split[1]);
+      int releaseMajor = int.parse(split[0]);
+      int releaseMinor = int.parse(split[1]);
+      releasedInVersion = 'const Version($releaseMajor, $releaseMinor)';
     } else if (enabledIn != null) {
       List<String> split = enabledIn.split(".");
-      releaseMajor = int.parse(split[0]);
-      releaseMinor = int.parse(split[1]);
+      int releaseMajor = int.parse(split[0]);
+      int releaseMinor = int.parse(split[1]);
+      releasedInVersion = 'const Version($releaseMajor, $releaseMinor)';
     } else {
-      releaseMajor = currentVersionMajor;
-      releaseMinor = currentVersionMinor;
+      releasedInVersion = 'defaultLanguageVersion';
     }
 
     sb.writeln('''
@@ -349,9 +341,9 @@ class ExperimentalFlag {
       name: '$key',
       isEnabledByDefault: $shipped,
       isExpired: ${expired == true},
-      enabledVersion: const Version($enabledInMajor, $enabledInMinor),
-      experimentEnabledVersion: const Version($enabledInMajor, $enabledInMinor),
-      experimentReleasedVersion: const Version($releaseMajor, $releaseMinor));
+      enabledVersion: $enabledInVersion,
+      experimentEnabledVersion: $enabledInVersion,
+      experimentReleasedVersion: $releasedInVersion);
 ''');
   }
   sb.write('''

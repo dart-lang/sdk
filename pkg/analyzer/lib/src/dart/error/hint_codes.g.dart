@@ -39,18 +39,9 @@ class HintCode extends AnalyzerErrorCode {
   ///  plan to go through the exercise of converting it to a Warning.
   static const HintCode DEPRECATED_COLON_FOR_DEFAULT_VALUE = HintCode(
     'DEPRECATED_COLON_FOR_DEFAULT_VALUE',
-    "Using a colon as a separator before a default value is deprecated and "
+    "Using a colon as the separator before a default value is deprecated and "
         "will not be supported in language version 3.0 and later.",
     correctionMessage: "Try replacing the colon with an equal sign.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the element
-  static const HintCode DEPRECATED_EXPORT_USE = HintCode(
-    'DEPRECATED_EXPORT_USE',
-    "The ability to import '{0}' indirectly is deprecated.",
-    correctionMessage: "Try importing '{0}' directly.",
     hasPublishedDocs: true,
   );
 
@@ -135,16 +126,6 @@ class HintCode extends AnalyzerErrorCode {
         "library.",
     correctionMessage: "Try migrating the imported library.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the non-diagnostic being ignored
-  static const HintCode UNIGNORABLE_IGNORE = HintCode(
-    'UNIGNORABLE_IGNORE',
-    "The diagnostic '{0}' can't be ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
   );
 
   ///  No parameters.

@@ -814,6 +814,7 @@ class Assembler : public AssemblerBase {
   void LoadImmediate(Register reg, int64_t immediate) {
     LoadImmediate(reg, Immediate(immediate));
   }
+  void LoadSImmediate(FpuRegister dst, float immediate);
   void LoadDImmediate(FpuRegister dst, double immediate);
   void LoadQImmediate(FpuRegister dst, simd128_value_t immediate);
 
@@ -1024,6 +1025,14 @@ class Assembler : public AssemblerBase {
                                Register scratch,
                                bool can_be_null = false) override;
 
+#if defined(DART_COMPRESSED_POINTERS)
+  void ExtendNonNegativeSmi(Register dst) override {
+    // Zero-extends and is a smaller instruction to output than sign
+    // extension (movsxd).
+    orl(dst, dst);
+  }
+#endif
+
   // CheckClassIs fused with optimistic SmiUntag.
   // Value in the register object is untagged optimistically.
   void SmiUntagOrCheckClass(Register object, intptr_t class_id, Label* smi);
@@ -1062,6 +1071,12 @@ class Assembler : public AssemblerBase {
     sarq(dst, Immediate(kSmiTagSize));
 #endif
   }
+
+  void LoadWordFromBoxOrSmi(Register result, Register value) {
+    LoadInt64FromBoxOrSmi(result, value);
+  }
+
+  void LoadInt64FromBoxOrSmi(Register result, Register value);
 
   void BranchIfNotSmi(Register reg,
                       Label* label,
@@ -1186,6 +1201,9 @@ class Assembler : public AssemblerBase {
     }
   }
 
+  void LoadUnboxedSingle(FpuRegister dst, Register base, int32_t offset) {
+    movss(dst, Address(base, offset));
+  }
   void LoadUnboxedDouble(FpuRegister dst, Register base, int32_t offset) {
     movsd(dst, Address(base, offset));
   }
@@ -1198,7 +1216,10 @@ class Assembler : public AssemblerBase {
     }
   }
 
-#if defined(USING_THREAD_SANITIZER)
+  void MsanUnpoison(Register base, intptr_t length_in_bytes);
+  void MsanUnpoison(Register base, Register length_in_bytes);
+
+#if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Address addr);
   void TsanStoreRelease(Address addr);
 #endif
@@ -1210,7 +1231,7 @@ class Assembler : public AssemblerBase {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     LoadFromOffset(dst, Address(address, offset), size);
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanLoadAcquire(Address(address, offset));
 #endif
   }
@@ -1220,7 +1241,7 @@ class Assembler : public AssemblerBase {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     LoadCompressed(dst, Address(address, offset));
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanLoadAcquire(Address(address, offset));
 #endif
   }
@@ -1230,7 +1251,7 @@ class Assembler : public AssemblerBase {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     movq(Address(address, offset), src);
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanStoreRelease(Address(address, offset));
 #endif
   }
@@ -1240,7 +1261,7 @@ class Assembler : public AssemblerBase {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     OBJ(mov)(Address(address, offset), src);
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanStoreRelease(Address(address, offset));
 #endif
   }
@@ -1344,6 +1365,21 @@ class Assembler : public AssemblerBase {
                         Register instance,
                         Register end_address,
                         Register temp);
+
+  void CheckAllocationCanary(Register top) {
+#if defined(DEBUG)
+    Label okay;
+    cmpl(Address(top, 0), Immediate(kAllocationCanary));
+    j(EQUAL, &okay, Assembler::kNearJump);
+    Stop("Allocation canary");
+    Bind(&okay);
+#endif
+  }
+  void WriteAllocationCanary(Register top) {
+#if defined(DEBUG)
+    movl(Address(top, 0), Immediate(kAllocationCanary));
+#endif
+  }
 
   // Copy [size] bytes from [src] address to [dst] address.
   // [size] should be a multiple of word size.

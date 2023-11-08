@@ -8,12 +8,6 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 import 'introspect_shared.dart';
 
-const introspectMacro = IntrospectDeclarationsPhaseMacro();
-
-const introspectMacroX = IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-);
-
 /*macro*/ class IntrospectDeclarationsPhaseMacro
     implements ClassDeclarationsMacro {
   final Set<Object?> withDetailsFor;
@@ -29,10 +23,7 @@ const introspectMacroX = IntrospectDeclarationsPhaseMacro(
   ) async {
     final printer = _DeclarationPrinter(
       withDetailsFor: withDetailsFor.cast(),
-      typeIntrospector: builder,
-      identifierResolver: builder,
-      typeDeclarationResolver: builder,
-      typeResolver: builder,
+      declarationPhaseIntrospector: builder,
     );
     await printer.writeClassDeclaration(declaration);
     final text = printer._sink.toString();
@@ -48,10 +39,7 @@ const introspectMacroX = IntrospectDeclarationsPhaseMacro(
 
 class _DeclarationPrinter {
   final Set<String> withDetailsFor;
-  final TypeIntrospector typeIntrospector;
-  final IdentifierResolver identifierResolver;
-  final TypeDeclarationResolver typeDeclarationResolver;
-  final TypeResolver typeResolver;
+  final DeclarationPhaseIntrospector declarationPhaseIntrospector;
 
   final StringBuffer _sink = StringBuffer();
   String _indent = '';
@@ -60,10 +48,7 @@ class _DeclarationPrinter {
 
   _DeclarationPrinter({
     required this.withDetailsFor,
-    required this.typeIntrospector,
-    required this.identifierResolver,
-    required this.typeDeclarationResolver,
-    required this.typeResolver,
+    required this.declarationPhaseIntrospector,
   });
 
   Future<void> writeClassDeclaration(IntrospectableClassDeclaration e) async {
@@ -83,8 +68,9 @@ class _DeclarationPrinter {
         final superIdentifier = superAnnotation.identifier;
         _writelnWithIndent('superclass');
         try {
-          final superDeclaration = await typeDeclarationResolver
-              .declarationOf(superIdentifier) as IntrospectableClassDeclaration;
+          final superDeclaration = await declarationPhaseIntrospector
+                  .typeDeclarationOf(superIdentifier)
+              as IntrospectableClassDeclaration;
           await _withIndent(() => writeClassDeclaration(superDeclaration));
         } on ArgumentError {
           await _withIndent(() async {
@@ -100,7 +86,7 @@ class _DeclarationPrinter {
       _enclosingDeclarationIdentifier = e.identifier;
       await _writeElements<FieldDeclaration>(
         'fields',
-        await typeIntrospector.fieldsOf(e),
+        await declarationPhaseIntrospector.fieldsOf(e),
         _writeField,
       );
     });
@@ -144,9 +130,9 @@ class _DeclarationPrinter {
 
     _writeIndentedLine(() {
       _writeIf(e.isStatic, 'static ');
-      _writeIf(e.isExternal, 'external ');
-      _writeIf(e.isLate, 'late ');
-      _writeIf(e.isFinal, 'final ');
+      _writeIf(e.hasExternal, 'external ');
+      _writeIf(e.hasLate, 'late ');
+      _writeIf(e.hasFinal, 'final ');
       _writeName(e);
     });
 

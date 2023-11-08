@@ -233,8 +233,12 @@ void main(List<String> args) async {
   var requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
   var sdkOutlineDill = p.join(buildDir,
       soundNullSafety ? 'ddc_outline.dill' : 'ddc_outline_unsound.dill');
-  var suffix = soundNullSafety ? p.join('sound', mod) : p.join('kernel', mod);
-  var sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
+  var compileModeDir = [
+    canaryFeatures ? 'canary' : 'stable',
+    soundNullSafety ? '' : '_unsound',
+  ].join();
+  var sdkJsPath =
+      p.join(buildDir, 'gen', 'utils', 'ddc', compileModeDir, 'sdk', mod);
 
   // Print an initial empty line to separate the invocation from the output.
   if (verbose) {
@@ -275,7 +279,13 @@ void main(List<String> args) async {
         chromeBinary = 'google-chrome';
       }
 
+      // Seal the native JavaScript Object prototype to avoid pollution before
+      // loading the Dart SDK module.
       var html = '''
+<script>
+delete Object.prototype.__proto__;
+Object.seal(Object.prototype);
+</script>
 <script src='$requirePath/require.js'></script>
 <script>
   require.config({
@@ -313,6 +323,11 @@ void main(List<String> args) async {
     } else if (node) {
       var nodePath = '$sdkJsPath:$libRoot';
       var runjs = '''
+// Seal the native JavaScript Object prototype to avoid pollution before
+// loading the Dart SDK module.
+delete Object.prototype.__proto__;
+Object.seal(Object.prototype);
+
 let source_maps;
 try {
   source_maps = require('source-map-support');
@@ -346,6 +361,11 @@ try {
       if (await process.exitCode != 0) exit(await process.exitCode);
     } else if (d8) {
       var runjs = '''
+// Seal the native JavaScript Object prototype to avoid pollution before
+// loading the Dart SDK module.
+delete Object.prototype.__proto__;
+Object.seal(Object.prototype);
+
 load("$ddcPath/lib/js/legacy/dart_library.js");
 load("$sdkJsPath/dart_sdk.js");
 load("$out");

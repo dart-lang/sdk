@@ -37,7 +37,7 @@ void AssemblerBase::LoadFromSlot(Register dst,
     return LoadFromOffset(dst, address, sz);
   }
   if (slot.is_compressed()) {
-    if (slot.ComputeCompileType().ToCid() == kSmiCid) {
+    if (slot.type().ToCid() == kSmiCid) {
       return LoadCompressedSmi(dst, address);
     } else {
       return LoadCompressedField(dst, address);
@@ -56,11 +56,11 @@ void AssemblerBase::StoreToSlot(Register src, Register base, const Slot& slot) {
   if (slot.is_compressed()) {
     return StoreCompressedIntoObject(
         base, address, src,
-        slot.ComputeCompileType().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
+        slot.type().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
   }
   return StoreIntoObject(
       base, address, src,
-      slot.ComputeCompileType().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
+      slot.type().CanBeSmi() ? kValueCanBeSmi : kValueIsNotSmi);
 }
 
 void AssemblerBase::StoreToSlotNoBarrier(Register src,

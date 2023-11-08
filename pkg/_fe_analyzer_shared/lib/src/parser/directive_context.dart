@@ -95,6 +95,9 @@ class DirectiveContext {
       parser.reportRecoverableError(token, messageNonPartOfDirectiveInPart);
     }
   }
+
+  @override
+  String toString() => 'DirectiveContext(${state})';
 }
 
 enum DirectiveState {

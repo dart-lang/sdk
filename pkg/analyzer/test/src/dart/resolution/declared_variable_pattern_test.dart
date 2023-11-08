@@ -211,7 +211,7 @@ RecordPattern
         matchedValueType: int
       element: <null>
   rightParenthesis: )
-  matchedValueType: (int)
+  matchedValueType: (int,)
 ''');
   }
 

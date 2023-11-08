@@ -1918,20 +1918,41 @@ class Simd128MessageDeserializationCluster
     : public MessageDeserializationCluster {
  public:
   explicit Simd128MessageDeserializationCluster(intptr_t cid)
-      : MessageDeserializationCluster("Simd128"), cid_(cid) {}
+      : MessageDeserializationCluster("Simd128"), cid_(cid) {
+    ASSERT(cid_ == kInt32x4Cid || cid_ == kFloat32x4Cid ||
+           cid_ == kFloat64x2Cid);
+#if defined(DEBUG)
+    // If not for Int32x4, check that all the Int32x4-specific arguments used in
+    // ReadNodes match those for the actual class.
+    if (cid_ == kFloat32x4Cid) {
+      AssertSameStructure<Int32x4, Float32x4>();
+    } else if (cid_ == kFloat64x2Cid) {
+      AssertSameStructure<Int32x4, Float64x2>();
+    }
+#endif
+  }
   ~Simd128MessageDeserializationCluster() {}
+
+#if defined(DEBUG)
+  template <typename Expected, typename Got>
+  static void AssertSameStructure() {
+    ASSERT_EQUAL(Got::InstanceSize(), Expected::InstanceSize());
+    ASSERT_EQUAL(Got::ContainsCompressedPointers(),
+                 Expected::ContainsCompressedPointers());
+    ASSERT_EQUAL(Object::from_offset<Got>(), Object::from_offset<Expected>());
+    ASSERT_EQUAL(Object::to_offset<Got>(), Object::to_offset<Expected>());
+    ASSERT_EQUAL(Got::value_offset(), Expected::value_offset());
+  }
+#endif
 
   void ReadNodes(MessageDeserializer* d) {
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
-      ASSERT_EQUAL(Int32x4::InstanceSize(), Float32x4::InstanceSize());
-      ASSERT_EQUAL(Int32x4::InstanceSize(), Float64x2::InstanceSize());
-      ObjectPtr vector =
-          Object::Allocate(cid_, Int32x4::InstanceSize(), Heap::kNew,
-                           Int32x4::ContainsCompressedPointers());
+      ObjectPtr vector = Object::Allocate(
+          cid_, Int32x4::InstanceSize(), Heap::kNew,
+          Int32x4::ContainsCompressedPointers(), Object::from_offset<Int32x4>(),
+          Object::to_offset<Int32x4>());
       d->AssignRef(vector);
-      ASSERT_EQUAL(Int32x4::value_offset(), Float32x4::value_offset());
-      ASSERT_EQUAL(Int32x4::value_offset(), Float64x2::value_offset());
       d->ReadBytes(&(static_cast<Int32x4Ptr>(vector)->untag()->value_),
                    sizeof(simd128_value_t));
     }

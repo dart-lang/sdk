@@ -848,9 +848,9 @@ class PowersetDomain with AbstractValueDomain {
           receiver.abstractValue, selector, memberHierarchyBuilder);
 
   @override
-  bool isValidRefinement(
+  bool isInvalidRefinement(
       covariant PowersetValue before, covariant PowersetValue after) {
-    return _abstractValueDomain.isValidRefinement(
+    return _abstractValueDomain.isInvalidRefinement(
         before._abstractValue, after._abstractValue);
   }
 }

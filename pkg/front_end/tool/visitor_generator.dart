@@ -20,14 +20,12 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy,
     switch (astClass.kind) {
       case AstClassKind.root:
       case AstClassKind.inner:
-        if (astClass.hasVisitMethod) {
-          strategy.generateDefaultVisit(astModel, astClass, sb);
-        }
         for (AstClass subclass in astClass.subclasses) {
           addVisitNode(subclass);
         }
         break;
       case AstClassKind.public:
+      case AstClassKind.auxiliary:
       case AstClassKind.named:
       case AstClassKind.declarative:
         if (astClass.hasVisitMethod) {
@@ -46,14 +44,12 @@ String generateVisitor(AstModel astModel, VisitorStrategy strategy,
     switch (astClass.kind) {
       case AstClassKind.root:
       case AstClassKind.inner:
-        if (astClass.hasVisitReferenceMethod) {
-          strategy.generateDefaultVisitReference(astModel, astClass, sb);
-        }
         for (AstClass subclass in astClass.subclasses) {
           addVisitReference(subclass);
         }
         break;
       case AstClassKind.public:
+      case AstClassKind.auxiliary:
       case AstClassKind.named:
       case AstClassKind.declarative:
         if (astClass.hasVisitReferenceMethod) {
@@ -108,16 +104,8 @@ abstract class VisitorStrategy {
   /// and visitor class declaration start.
   void generateHeader(AstModel astModel, StringBuffer sb);
 
-  /// Generates a `defaultX` visitor method for [astClass].
-  void generateDefaultVisit(
-      AstModel astModel, AstClass astClass, StringBuffer sb);
-
   /// Generates a `visitX` visitor method for [astClass].
   void generateVisit(AstModel astModel, AstClass astClass, StringBuffer sb);
-
-  /// Generates a `defaultXReference` visitor method for [astClass].
-  void generateDefaultVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb);
 
   /// Generates a `visitXReference` visitor method for [astClass].
   void generateVisitReference(
@@ -161,21 +149,6 @@ class $visitorName$visitorTypeParameters implements Visitor<$returnType> {''');
   }
 
   @override
-  void generateDefaultVisit(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
-    sb.writeln('''
-  @override
-  ${returnType} default${astClass.name}(
-      ${astClass.name} node) {''');
-    handleDefaultVisit(astModel, astClass, sb);
-    sb.writeln('}');
-  }
-
-  /// Generates the body of a `defaultX` visitor method of [astClass].
-  void handleDefaultVisit(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {}
-
-  @override
   void generateVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
   @override
@@ -187,21 +160,6 @@ class $visitorName$visitorTypeParameters implements Visitor<$returnType> {''');
 
   /// Generates the body of a `visitX` visitor method of [astClass].
   void handleVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {}
-
-  @override
-  void generateDefaultVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
-    sb.writeln('''
-  @override
-  ${returnType} default${astClass.name}Reference(
-      ${astClass.name} node) {''');
-    handleDefaultVisitReference(astModel, astClass, sb);
-    sb.writeln('}');
-  }
-
-  /// Generates the body of a `defaultXReference` visitor method of [astClass].
-  void handleDefaultVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {}
 
   @override
   void generateVisitReference(
@@ -272,22 +230,6 @@ class $visitorName$visitorTypeParameters
   }
 
   @override
-  void generateDefaultVisit(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
-    sb.writeln('''
-  @override
-  ${returnType} default${astClass.name}(
-      ${astClass.name} node, $argumentType $argumentName) {''');
-    handleDefaultVisit(astModel, astClass, sb);
-    sb.writeln('''
-  }''');
-  }
-
-  /// Generates the body of a `defaultX` visitor method of [astClass].
-  void handleDefaultVisit(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {}
-
-  @override
   void generateVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {
     sb.writeln('''
   @override
@@ -300,22 +242,6 @@ class $visitorName$visitorTypeParameters
 
   /// Generates the body of a `visitX` visitor method of [astClass].
   void handleVisit(AstModel astModel, AstClass astClass, StringBuffer sb) {}
-
-  @override
-  void generateDefaultVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {
-    sb.writeln('''
-  @override
-  ${returnType} default${astClass.name}Reference(
-      ${astClass.name} node, $argumentType $argumentName) {''');
-    handleDefaultVisitReference(astModel, astClass, sb);
-    sb.writeln('''
-  }''');
-  }
-
-  /// Generates the body of a `defaultXReference` visitor method of [astClass].
-  void handleDefaultVisitReference(
-      AstModel astModel, AstClass astClass, StringBuffer sb) {}
 
   @override
   void generateVisitReference(

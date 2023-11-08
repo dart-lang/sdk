@@ -9,7 +9,7 @@
 import 'dart:isolate';
 import 'package:expect/expect.dart';
 
-import "splay_test.dart" deferred as splay;
+import "gc/splay_test.dart" deferred as splay;
 
 worker(SendPort sendPort) {
   Expect.throws(() => splay.main(),

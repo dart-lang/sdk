@@ -36,11 +36,10 @@ abstract class _HashAbstractBase {
 }
 
 abstract class _HashAbstractImmutableBase extends _HashAbstractBase {
-  @pragma("wasm:entry-point")
   Uint32List? get _indexNullable;
 }
 
-abstract class _HashFieldBase implements _HashAbstractBase {
+abstract class _HashFieldBase implements _HashAbstractImmutableBase {
   // Each occupied entry in _index is a fixed-size integer that encodes a pair:
   //   [ hash pattern for key | index of entry in _data ]
   // The hash pattern is based on hashCode, but is guaranteed to be non-zero.
@@ -48,7 +47,16 @@ abstract class _HashFieldBase implements _HashAbstractBase {
   // least one unoccupied entry.
   // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
   // eagerly by _regenerateIndex.
-  Uint32List _index = _uninitializedIndex;
+  Uint32List? _indexNullable = _uninitializedIndex;
+
+  @pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
+  @pragma("vm:prefer-inline")
+  @pragma("wasm:prefer-inline")
+  Uint32List get _index => _indexNullable!;
+
+  @pragma("vm:prefer-inline")
+  @pragma("wasm:prefer-inline")
+  void set _index(Uint32List value) => _indexNullable = value;
 
   // Cached in-place mask for the hash pattern component.
   int _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
@@ -629,8 +637,8 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
-  Iterable<K> get keys => _CompactIterable<K>(this, _data, _usedData, -2, 2);
-  Iterable<V> get values => _CompactIterable<V>(this, _data, _usedData, -1, 2);
+  Iterable<K> get keys => _CompactIterable<K>(this, -2, 2);
+  Iterable<V> get values => _CompactIterable<V>(this, -1, 2);
 }
 
 base class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
@@ -675,17 +683,13 @@ base class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
 // and checks for concurrent modification.
 class _CompactIterable<E> extends Iterable<E> {
   final _HashBase _table;
-  // dart:core#_List (sdk/lib/_internal/vm/lib/array.dart).
-  final List _data;
-  final int _len;
   final int _offset;
   final int _step;
 
-  _CompactIterable(
-      this._table, this._data, this._len, this._offset, this._step);
+  _CompactIterable(this._table, this._offset, this._step);
 
-  Iterator<E> get iterator =>
-      _CompactIterator<E>(_table, _data, _len, _offset, _step);
+  Iterator<E> get iterator => _CompactIterator<E>(
+      _table, _table._data, _table._usedData, _offset, _step);
 
   int get length => _table.length;
   bool get isEmpty => length == 0;
@@ -928,6 +932,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
       i = _HashBase._nextProbe(i, sizeMask);
       pair = _index[i];
     }
+
     return false;
   }
 

@@ -26,3 +26,13 @@ body:
     attributes:
       label: Mitigation
       description: How can we mitigate the impact?
+  - type: textarea
+    id: change_timeline
+    attributes:
+      label: Change Timeline
+      description: What is the expected timeline for deprecation / removal?
+  - type: textarea
+    id: associated_cls
+    attributes:
+      label: Associated CLs
+      description: Which CLs are in progress or have already landed to accomplish this change?

@@ -1,0 +1,2 @@
+/// Class b.
+class b {}

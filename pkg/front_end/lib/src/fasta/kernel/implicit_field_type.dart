@@ -11,7 +11,7 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/assumptions.dart';
 import 'package:kernel/src/printer.dart';
 
-import '../builder/type_builder.dart';
+import '../builder/inferable_type_builder.dart';
 import '../constant_context.dart';
 import '../fasta_codes.dart';
 import '../problems.dart' show unsupported;
@@ -21,7 +21,7 @@ import '../type_inference/type_inferrer.dart';
 import 'body_builder.dart';
 import 'body_builder_context.dart';
 
-abstract class InferredType extends DartType {
+abstract class InferredType extends AuxiliaryType {
   Uri? get fileUri;
   int? get charOffset;
 
@@ -162,9 +162,6 @@ class _ImplicitFieldTypeRoot extends InferredType {
   }
 
   @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) return true;
     return other is _ImplicitFieldTypeRoot &&
@@ -203,9 +200,6 @@ class _InferredTypeUse extends InferredType {
   void toTextInternal(AstPrinter printer) {
     printer.write('<inferred-type:${inferableTypeUse.typeBuilder}>');
   }
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) {

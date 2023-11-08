@@ -5,8 +5,8 @@ library from "package:example/a.dart" as a {
   static method a() → dynamic {}
 }
 library from "package:foo/foo.dart" as foo {
-additionalExports = (a::example,
-  a::a,
+additionalExports = (a::a,
+  a::example,
   a::example)
 
   export "package:example/a.dart";

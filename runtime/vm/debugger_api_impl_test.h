@@ -8,6 +8,8 @@
 #include "include/dart_api.h"
 #include "vm/debugger.h"
 
+namespace dart {
+
 typedef struct _Dart_Breakpoint* Dart_Breakpoint;
 
 typedef struct _Dart_StackTrace* Dart_StackTrace;
@@ -69,8 +71,7 @@ typedef void Dart_BreakpointResolvedHandler(Dart_IsolateId isolate_id,
  *
  * \return A handle to the True object if no error occurs.
  */
-DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
-                                                  bool* is_debuggable);
+Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id, bool* is_debuggable);
 
 /**
  * Requests that debugging be enabled for the given library.
@@ -79,8 +80,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
  *
  * \return A handle to the True object if no error occurs.
  */
-DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
-                                                  bool is_debuggable);
+Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id, bool is_debuggable);
 
 /**
  * Sets a breakpoint at line \line_number in \script_url, or the closest
@@ -91,8 +91,7 @@ DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
  * \return A handle containing the breakpoint id, which is an integer
  * value, or an error object if a breakpoint could not be set.
  */
-DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url,
-                                           intptr_t line_number);
+Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url, intptr_t line_number);
 
 /**
  * Returns in \trace the current stack trace, or nullptr if the
@@ -102,7 +101,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(Dart_Handle script_url,
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace);
+Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace);
 
 /**
  * Returns in \trace the stack trace associated with the error given in \handle.
@@ -111,8 +110,8 @@ DART_EXPORT Dart_Handle Dart_GetStackTrace(Dart_StackTrace* trace);
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle error,
-                                                    Dart_StackTrace* trace);
+Dart_Handle Dart_GetStackTraceFromError(Dart_Handle error,
+                                        Dart_StackTrace* trace);
 
 /**
  * Returns in \length the number of activation frames in the given
@@ -122,8 +121,7 @@ DART_EXPORT Dart_Handle Dart_GetStackTraceFromError(Dart_Handle error,
  *
  * \return A handle to the True object if no error occurs.
  */
-DART_EXPORT Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace,
-                                              intptr_t* length);
+Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace, intptr_t* length);
 
 /**
  * Returns in \frame the activation frame with index \frame_index.
@@ -133,9 +131,9 @@ DART_EXPORT Dart_Handle Dart_StackTraceLength(Dart_StackTrace trace,
  *
  * \return A handle to the True object if no error occurs.
  */
-DART_EXPORT Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
-                                                int frame_index,
-                                                Dart_ActivationFrame* frame);
+Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
+                                    int frame_index,
+                                    Dart_ActivationFrame* frame);
 
 /**
  * Returns information about the given activation frame.
@@ -153,12 +151,11 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(Dart_StackTrace trace,
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle
-Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
-                         Dart_Handle* function_name,
-                         Dart_Handle* script_url,
-                         intptr_t* line_number,
-                         intptr_t* column_number);
+Dart_Handle Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
+                                     Dart_Handle* function_name,
+                                     Dart_Handle* script_url,
+                                     intptr_t* line_number,
+                                     intptr_t* column_number);
 
 /**
  * Execute the expression given in string \expr in the context
@@ -170,15 +167,15 @@ Dart_ActivationFrameInfo(Dart_ActivationFrame activation_frame,
  * the compilation of the expression fails, or if the evaluation throws
  * an error.
  */
-DART_EXPORT Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle,
-                                                Dart_Handle expr);
+Dart_Handle Dart_EvaluateStaticExpr(Dart_Handle lib_handle, Dart_Handle expr);
 
 /**
  * Returns in \library_id the library id of the given \library.
  *
  * \return A valid handle if no error occurs during the operation.
  */
-DART_EXPORT Dart_Handle Dart_LibraryId(Dart_Handle library,
-                                       intptr_t* library_id);
+Dart_Handle Dart_LibraryId(Dart_Handle library, intptr_t* library_id);
+
+}  // namespace dart
 
 #endif  // RUNTIME_VM_DEBUGGER_API_IMPL_TEST_H_

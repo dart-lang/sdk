@@ -41,27 +41,6 @@ ClassDeclaration
 ''');
   }
 
-  void test_class_augment() {
-    var parseResult = parseStringWithErrors(r'''
-/// text
-augment class A {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.classDeclaration('class A {}');
-    assertParsedNodeText(node, r'''
-ClassDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  augmentKeyword: augment
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
   void test_class_base() {
     var parseResult = parseStringWithErrors(r'''
 /// text
@@ -202,6 +181,19 @@ ClassDeclaration
         offset: 223
       /// and [Object].
         offset: 231
+    codeBlocks
+      MdCodeBlock
+        infoString: <empty>
+        lines
+          MdCodeBlockLine
+            offset: 178
+            length: 4
+          MdCodeBlockLine
+            offset: 186
+            length: 36
+          MdCodeBlockLine
+            offset: 226
+            length: 4
   metadata
     Annotation
       atSign: @ @45
@@ -350,27 +342,6 @@ ClassDeclaration
         withOffsets: true);
   }
 
-  void test_class_inline() {
-    var parseResult = parseStringWithErrors(r'''
-/// text
-inline class A {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.classDeclaration('class A {}');
-    assertParsedNodeText(node, r'''
-ClassDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  inlineKeyword: inline
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
   void test_class_interface() {
     var parseResult = parseStringWithErrors(r'''
 /// text
@@ -487,6 +458,9 @@ sealed abstract class A {}
     var node = parseResult.findNode.classDeclaration('class A {}');
     assertParsedNodeText(node, r'''
 ClassDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
   abstractKeyword: abstract
   sealedKeyword: sealed
   classKeyword: class
@@ -825,6 +799,31 @@ ConstructorDeclaration
     functionDefinition: =>
     expression: NullLiteral
       literal: null
+    semicolon: ;
+''');
+  }
+
+  void test_constructor_initilizer_assignmentWithSuperCallAsTarget() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A() : super() = 0;
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 18, 7),
+      error(ParserErrorCode.INVALID_INITIALIZER, 18, 11),
+    ]);
+
+    var node = parseResult.findNode.constructor('A()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  body: EmptyFunctionBody
     semicolon: ;
 ''');
   }

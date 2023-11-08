@@ -389,6 +389,9 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
     case kUnboxedUint32:
       src_kind = CatchEntryMove::SourceKind::kUint32Slot;
       break;
+    case kUnboxedFloat:
+      src_kind = CatchEntryMove::SourceKind::kFloatSlot;
+      break;
     case kUnboxedDouble:
       src_kind = CatchEntryMove::SourceKind::kDoubleSlot;
       break;
@@ -1469,7 +1472,6 @@ void FlowGraphCompiler::GenerateNonLazyDeoptableStubCall(
 static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
   switch (ic_data.NumArgsTested()) {
     case 1:
-#if defined(TARGET_ARCH_X64)
       if (ic_data.is_tracking_exactness()) {
         if (optimized) {
           return StubCode::OneArgOptimizedCheckInlineCacheWithExactnessCheck();
@@ -1477,10 +1479,6 @@ static const Code& StubEntryFor(const ICData& ic_data, bool optimized) {
           return StubCode::OneArgCheckInlineCacheWithExactnessCheck();
         }
       }
-#else
-      // TODO(dartbug.com/34170) Port exactness tracking to other platforms.
-      ASSERT(!ic_data.is_tracking_exactness());
-#endif
       return optimized ? StubCode::OneArgOptimizedCheckInlineCache()
                        : StubCode::OneArgCheckInlineCache();
     case 2:
@@ -2669,10 +2667,13 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     if (!type.IsFutureOrType()) {
       __ BranchIfSmi(TypeTestABI::kInstanceReg, is_not_instance_lbl);
     }
+    const TypeTestStubKind test_kind =
+        type.IsInstantiated(kFunctions) ? TypeTestStubKind::kTestTypeThreeArgs
+                                        : TypeTestStubKind::kTestTypeFourArgs;
     // Uninstantiated type class is known at compile time, but the type
     // arguments are determined at runtime by the instantiator(s).
-    return GenerateCallSubtypeTestStub(TypeTestStubKind::kTestTypeFourArgs,
-                                       is_instance_lbl, is_not_instance_lbl);
+    return GenerateCallSubtypeTestStub(test_kind, is_instance_lbl,
+                                       is_not_instance_lbl);
   }
   return SubtypeTestCache::null();
 }
@@ -2744,9 +2745,9 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
 // Expected inputs (from TypeTestABI):
 // - kInstanceReg: instance (preserved).
 // - kInstantiatorTypeArgumentsReg: instantiator type arguments
-//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
+//   (for test_kind >= kTestTypeThreeArg).
 // - kFunctionTypeArgumentsReg: function type arguments
-//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
+//   (for test_kind >= kTestTypeFourArg).
 //
 // See the arch-specific GenerateSubtypeNTestCacheStub method to see which
 // registers may need saving across this call.
@@ -3182,8 +3183,8 @@ void NullErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,
 void RangeErrorSlowPath::PushArgumentsForRuntimeCall(
     FlowGraphCompiler* compiler) {
   LocationSummary* locs = instruction()->locs();
-  __ PushRegisterPair(locs->in(CheckBoundBase::kIndexPos).reg(),
-                      locs->in(CheckBoundBase::kLengthPos).reg());
+  __ PushRegisterPair(locs->in(CheckBoundBaseInstr::kIndexPos).reg(),
+                      locs->in(CheckBoundBaseInstr::kLengthPos).reg());
 }
 
 void RangeErrorSlowPath::EmitSharedStubCall(FlowGraphCompiler* compiler,

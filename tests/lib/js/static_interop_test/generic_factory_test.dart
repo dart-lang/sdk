@@ -26,9 +26,9 @@ class Anonymous<T, U extends String> {
   factory Anonymous.nonExternal({T? t, U? u}) => Anonymous(t: t, u: u);
 }
 
-extension AnonymousExtension on Anonymous {
-  external Object? get t;
-  external Object? get u;
+extension AnonymousExtension<T, U extends String> on Anonymous<T, U> {
+  external T get t;
+  external U get u;
 }
 
 void main() {

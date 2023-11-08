@@ -285,7 +285,8 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void endEnum(Token enumKeyword, Token leftBrace, int memberCount) {
+  void endEnum(Token beginToken, Token enumKeyword, Token leftBrace,
+      int memberCount, Token endToken) {
     debugEvent("Enum");
   }
 
@@ -581,7 +582,7 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleRecoverClassHeader() {
+  void handleRecoverDeclarationHeader(DeclarationHeaderKind kind) {
     pop(); // superclass
   }
 

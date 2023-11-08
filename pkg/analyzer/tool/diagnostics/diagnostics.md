@@ -12,271 +12,15 @@ Update instructions: https://github.com/dart-lang/site-www/issues/1949
 This page lists diagnostic messages produced by the Dart analyzer,
 with details about what those messages mean and how you can fix your code.
 For more information about the analyzer, see
-[Customizing static analysis](/guides/language/analysis-options).
+[Customizing static analysis](/tools/analysis).
 
-## Glossary
-
-This page uses the following terms:
-
-* [constant context][]
-* [definite assignment][]
-* [mixin application][]
-* [override inference][]
-* [part file][]
-* [potentially non-nullable][]
-* [public library][]
-
-[constant context]: #constant-context
-[definite assignment]: #definite-assignment
-[mixin application]: #mixin-application
-[override inference]: #override-inference
-[part file]: #part-file
-[potentially non-nullable]: #potentially-non-nullable
-[public library]: #public-library
-
-### Constant context
-
-A _constant context_ is a region of code in which it isn't necessary to include
-the `const` keyword because it's implied by the fact that everything in that
-region is required to be a constant. The following locations are constant
-contexts:
-
-* Everything inside a list, map or set literal that's prefixed by the
-  `const` keyword. Example:
-
-  ```dart
-  var l = const [/*constant context*/];
-  ```
-
-* The arguments inside an invocation of a constant constructor. Example:
-
-  ```dart
-  var p = const Point(/*constant context*/);
-  ```
-
-* The initializer for a variable that's prefixed by the `const` keyword.
-  Example:
-
-  ```dart
-  const v = /*constant context*/;
-  ```
-
-* Annotations
-
-* The expression in a `case` clause. Example:
-
-  ```dart
-  void f(int e) {
-    switch (e) {
-      case /*constant context*/:
-        break;
-    }
-  }
-  ```
-
-### Definite assignment
-
-Definite assignment analysis is the process of determining, for each local
-variable at each point in the code, which of the following is true:
-- The variable has definitely been assigned a value (_definitely assigned_).
-- The variable has definitely not been assigned a value (_definitely
-  unassigned_).
-- The variable might or might not have been assigned a value, depending on the
-  execution path taken to arrive at that point.
-
-Definite assignment analysis helps find problems in code, such as places where a
-variable that might not have been assigned a value is being referenced, or
-places where a variable that can only be assigned a value one time is being
-assigned after it might already have been assigned a value.
-
-For example, in the following code the variable `s` is definitely unassigned
-when it’s passed as an argument to `print`:
-
-```dart
-void f() {
-  String s;
-  print(s);
-}
-```
-
-But in the following code, the variable `s` is definitely assigned:
-
-```dart
-void f(String name) {
-  String s = 'Hello $name!';
-  print(s);
-}
-```
-
-Definite assignment analysis can even tell whether a variable is definitely
-assigned (or unassigned) when there are multiple possible execution paths. In
-the following code the `print` function is called if execution goes through
-either the true or the false branch of the `if` statement, but because `s` is
-assigned no matter which branch is taken, it’s definitely assigned before it’s
-passed to `print`:
-
-```dart
-void f(String name, bool casual) {
-  String s;
-  if (casual) {
-    s = 'Hi $name!';
-  } else {
-    s = 'Hello $name!';
-  }
-  print(s);
-}
-```
-
-In flow analysis, the end of the `if` statement is referred to as a _join_—a
-place where two or more execution paths merge back together. Where there's a
-join, the analysis says that a variable is definitely assigned if it’s
-definitely assigned along all of the paths that are merging, and definitely
-unassigned if it’s definitely unassigned along all of the paths.
-
-Sometimes a variable is assigned a value on one path but not on another, in
-which case the variable might or might not have been assigned a value. In the
-following example, the true branch of the `if` statement might or might not be
-executed, so the variable might or might be assigned a value:
-
-```dart
-void f(String name, bool casual) {
-  String s;
-  if (casual) {
-    s = 'Hi $name!';
-  }
-  print(s);
-}
-```
-
-The same is true if there is a false branch that doesn’t assign a value to `s`.
-
-The analysis of loops is a little more complicated, but it follows the same
-basic reasoning. For example, the condition in a `while` loop is always
-executed, but the body might or might not be. So just like an `if` statement,
-there's a join at the end of the `while` statement between the path in which the
-condition is `true` and the path in which the condition is `false`.
-
-For additional details, see the
-[specification of definite assignment][definiteAssignmentSpec].
-
-[definiteAssignmentSpec]: https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md
-
-### Mixin application
-
-A _mixin application_ is the class created when a mixin is applied to a class.
-For example, consider the following declarations:
-
-```dart
-class A {}
-
-mixin M {}
-
-class B extends A with M {}
-```
-
-The class `B` is a subclass of the mixin application of `M` to `A`, sometimes
-nomenclated as `A+M`. The class `A+M` is a subclass of `A` and has members that
-are copied from `M`.
-
-You can give an actual name to a mixin application by defining it as:
-
-```dart
-class A {}
-
-mixin M {}
-
-class A_M = A with M;
-```
-
-Given this declaration of `A_M`, the following declaration of `B` is equivalent
-to the declaration of `B` in the original example:
-
-```dart
-class B extends A_M {}
-```
-
-### Override inference
-
-Override inference is the process by which any missing types in a method
-declaration are inferred based on the corresponding types from the method or
-methods that it overrides.
-
-If a candidate method (the method that's missing type information) overrides a
-single inherited method, then the corresponding types from the overridden method
-are inferred. For example, consider the following code:
-
-```dart
-class A {
-  int m(String s) => 0;
-}
-
-class B extends A {
-  @override
-  m(s) => 1;
-}
-```
-
-The declaration of `m` in `B` is a candidate because it's missing both the
-return type and the parameter type. Because it overrides a single method (the
-method `m` in `A`), the types from the overridden method will be used to infer
-the missing types and it will be as if the method in `B` had been declared as
-`int m(String s) => 1;`.
-
-If a candidate method overrides multiple methods, and the function type one of
-those overridden methods, M<sub>s</sub>, is a supertype of the function types of
-all of the other overridden methods, then M<sub>s</sub> is used to infer the
-missing types. For example, consider the following code:
-
-```dart
-class A {
-  int m(num n) => 0;
-}
-
-class B {
-  num m(int i) => 0;
-}
-
-class C implements A, B {
-  @override
-  m(n) => 1;
-}
-```
-
-The declaration of `m` in `C` is a candidate for override inference because it's
-missing both the return type and the parameter type. It overrides both `m` in
-`A` and `m` in `B`, so we need to choose one of them from which the missing
-types can be inferred. But because the function type of `m` in `A`
-(`int Function(num)`) is a supertype of the function type of `m` in `B`
-(`num Function(int)`), the function in `A` is used to infer the missing types.
-The result is the same as declaring the method in `C` as `int m(num n) => 1;`.
-
-It is an error if none of the overridden methods has a function type that is a
-supertype of all the other overridden methods.
-
-### Part file
-
-A part file is a Dart source file that contains a `part of` directive.
-
-### Potentially non-nullable
-
-A type is _potentially non-nullable_ if it's either explicitly non-nullable or
-if it's a type parameter.
-
-A type is explicitly non-nullable if it is a type name that isn't followed by a
-question mark. Note that there are a few types that are always nullable, such as
-`Null` and `dynamic`, and that `FutureOr` is only non-nullable if it isn't
-followed by a question mark _and_ the type argument is non-nullable (such as
-`FutureOr<String>`).
-
-Type parameters are potentially non-nullable because the actual runtime type
-(the type specified as a type argument) might be non-nullable. For example,
-given a declaration of `class C<T> {}`, the type `C` could be used with a
-non-nullable type argument as in `C<int>`.
-
-### Public library
-
-A public library is a library that is located inside the package's `lib`
-directory but not inside the `lib/src` directory.
+[constant context]: /resources/glossary#constant-context
+[definite assignment]: /resources/glossary#definite-assignment
+[mixin application]: /resources/glossary#mixin-application
+[override inference]: /resources/glossary#override-inference
+[part file]: /resources/glossary#part-file
+[potentially non-nullable]: /resources/glossary#potentially-non-nullable
+[public library]: /resources/glossary#public-library
 
 ## Diagnostics
 
@@ -982,7 +726,8 @@ The analyzer produces this diagnostic when an invocation of either
 argument whose value isn't a constant expression.
 
 The analyzer also produces this diagnostic when the value of the
-`exceptionalReturn` argument of `Pointer.fromFunction`.
+`exceptionalReturn` argument of `Pointer.fromFunction` or
+`NativeCallable.isolateLocal`.
 
 For more information about FFI, see [C interop using dart:ffi][ffi].
 
@@ -1200,12 +945,12 @@ Assuming that the directory `assets` doesn't exist, the following code
 produces this diagnostic because it's listed as a directory containing
 assets:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
-    - assets/
-```
+    - [!assets/!]
+{% endprettify %}
 
 #### Common fixes
 
@@ -1228,12 +973,12 @@ referencing a file that doesn't exist.
 Assuming that the file `doesNotExist.gif` doesn't exist, the following code
 produces this diagnostic because it's listed as an asset:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
-    - doesNotExist.gif
-```
+    - [!doesNotExist.gif!]
+{% endprettify %}
 
 #### Common fixes
 
@@ -1257,22 +1002,22 @@ isn't a list.
 The following code produces this diagnostic because the value of the assets
 key is a string when a list is expected:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
-  assets: assets/
-```
+  assets: [!assets/!]
+{% endprettify %}
 
 #### Common fixes
 
 Change the value of the asset list so that it's a list:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
     - assets/
-```
+{% endprettify %}
 
 ### asset_not_string
 
@@ -1288,24 +1033,24 @@ that isn't a string.
 The following code produces this diagnostic because the asset list contains
 a map:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
-    - image.gif: true
-```
+    - [!image.gif: true!]
+{% endprettify %}
 
 #### Common fixes
 
 Change the asset list so that it only contains valid POSIX-style file
 paths:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
     - image.gif
-```
+{% endprettify %}
 
 ### assignment_of_do_not_store
 
@@ -2345,6 +2090,9 @@ _Constant values from a deferred library can't be used as keys in a 'const' map
 literal._
 
 _Constant values from a deferred library can't be used as values in a 'const'
+constructor._
+
+_Constant values from a deferred library can't be used as values in a 'const'
 list literal._
 
 _Constant values from a deferred library can't be used as values in a 'const'
@@ -2586,7 +2334,7 @@ Rename either the member or the constructor.
 
 ### conflicting_generic_interfaces
 
-_The class '{0}' can't implement both '{1}' and '{2}' because the type arguments
+_The {0} '{1}' can't implement both '{2}' and '{3}' because the type arguments
 are different._
 
 #### Description
@@ -2849,8 +2597,9 @@ The following code produces this diagnostic because the field `s` is
 initialized to a non-constant value:
 
 {% prettify dart tag=pre+code %}
+String x = '3';
 class C {
-  final String s = 3.toString();
+  final String s = x;
   [!const!] C();
 }
 {% endprettify %}
@@ -2871,8 +2620,9 @@ If the field can't be initialized to a constant value, then remove the
 keyword `const` from the constructor:
 
 {% prettify dart tag=pre+code %}
+String x = '3';
 class C {
-  final String s = 3.toString();
+  final String s = x;
   C();
 }
 {% endprettify %}
@@ -4163,32 +3913,33 @@ The analyzer produces this diagnostic when the value of either the
 The following code produces this diagnostic because the value of the
 top-level `dependencies` key is a list:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
-  - meta
-```
+  [!- meta!]
+{% endprettify %}
 
 #### Common fixes
 
 Use a map as the value of the `dependencies` key:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   meta: ^1.0.2
-```
+{% endprettify %}
 
 ### deprecated_colon_for_default_value
 
-_Using a colon as a separator before a default value is deprecated and will not
-be supported in language version 3.0 and later._
+_Using a colon as the separator before a default value is deprecated and will
+not be supported in language version 3.0 and later._
 
 #### Description
 
-The analyzer produces this diagnostic when a colon is used as the
-separator before the default value of an optional parameter. While this
-syntax is allowed, it's being deprecated in favor of using an equal sign.
+The analyzer produces this diagnostic when a colon (`:`) is used as the
+separator before the default value of an optional named parameter.
+While this syntax is allowed, it is deprecated in favor of
+using an equal sign (`=`).
 
 #### Example
 
@@ -7309,28 +7060,28 @@ isn't a map.
 The following code produces this diagnostic because the value of the
 top-level `flutter` key is a string:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
-flutter: true
-```
+flutter: [!true!]
+{% endprettify %}
 
 #### Common fixes
 
 If you need to specify Flutter-specific options, then change the value to
 be a map:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 flutter:
   uses-material-design: true
-```
+{% endprettify %}
 
 If you don't need to specify Flutter-specific options, then remove the
 `flutter` key:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
-```
+{% endprettify %}
 
 ### for_in_of_invalid_element_type
 
@@ -9125,7 +8876,7 @@ more information about the kind of dependencies that are supported.
 The following code produces this diagnostic because the dependency on the
 package `transmogrify` isn't a pub, `git`, or `path` based dependency:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   transmogrify:
@@ -9133,7 +8884,7 @@ dependencies:
       name: transmogrify
       url: http://your-package-server.com
     version: ^1.4.0
-```
+{% endprettify %}
 
 #### Common fixes
 
@@ -9144,7 +8895,7 @@ If you don't want to publish your package to `pub.dev`, then add a
 `publish_to: none` entry to mark the package as one that isn't intended to
 be published:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 publish_to: none
 dependencies:
@@ -9153,17 +8904,18 @@ dependencies:
       name: transmogrify
       url: http://your-package-server.com
     version: ^1.4.0
-```
+{% endprettify %}
 
 ### invalid_exception_value
 
-_The method 'Pointer.fromFunction' can't have an exceptional return value (the
-second argument) when the return type of the function is either 'void', 'Handle' or 'Pointer'._
+_The method {0} can't have an exceptional return value (the second argument)
+when the return type of the function is either 'void', 'Handle' or 'Pointer'._
 
 #### Description
 
 The analyzer produces this diagnostic when an invocation of the method
-`Pointer.fromFunction` has a second argument (the exceptional return
+`Pointer.fromFunction` or `NativeCallable.isolateLocal`
+has a second argument (the exceptional return
 value) and the type to be returned from the invocation is either `void`,
 `Handle` or `Pointer`.
 
@@ -10411,6 +10163,50 @@ void f(Object? x) {
 }
 {% endprettify %}
 
+### invalid_platforms_field
+
+_The 'platforms' field must be a map with platforms as keys._
+
+#### Description
+
+The analyzer produces this diagnostic when a top-level `platforms`
+field is specified, but its value is not a map with keys.
+To learn more about specifying your package's supported platforms,
+check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
+
+#### Example
+
+The following `pubspec.yaml` produces this diagnostic because `platforms`
+should be a map.
+
+{% prettify yaml tag=pre+code %}
+name: example
+platforms:
+  [!- android
+  - web
+  - ios!]
+{% endprettify %}
+
+#### Common fixes
+
+If you can rely on automatic platform detection, then omit the
+top-level `platforms` field. 
+
+{% prettify yaml tag=pre+code %}
+name: example
+{% endprettify %}
+
+If you need to manually specify the list of supported platforms, then
+write the `platforms` field as a map with platform names as keys.
+
+{% prettify yaml tag=pre+code %}
+name: example
+platforms:
+  android:
+  web:
+  ios:
+{% endprettify %}
+
 ### invalid_reference_to_generative_enum_constructor
 
 _Generative enum constructors can only be used as targets of redirection._
@@ -10475,8 +10271,8 @@ _Invalid reference to 'this' expression._
 
 The analyzer produces this diagnostic when `this` is used outside of an
 instance method or a generative constructor. The reserved word `this` is
-only defined in the context of an instance method or a generative
-constructor.
+only defined in the context of an instance method, a generative
+constructor, or the initializer of a late instance field declaration.
 
 #### Example
 
@@ -10837,7 +10633,7 @@ The following code produces this diagnostic because `x` will always be
 
 {% prettify dart tag=pre+code %}
 int f(Null x) {
-  return [!x!].length;
+  return x.[!length!];
 }
 {% endprettify %}
 
@@ -11790,7 +11586,7 @@ The following code produces this diagnostic because the literal has a map
 entry even though it's a set literal:
 
 {% prettify dart tag=pre+code %}
-const collection = <String>{[!'a' : 'b'!]};
+var collection = <String>{[!'a' : 'b'!]};
 {% endprettify %}
 
 #### Common fixes
@@ -11800,7 +11596,7 @@ that it is a map. In the previous example, you could do this by adding
 another type argument:
 
 {% prettify dart tag=pre+code %}
-const collection = <String, String>{'a' : 'b'};
+var collection = <String, String>{'a' : 'b'};
 {% endprettify %}
 
 In other cases, you might need to change the explicit type from `Set` to
@@ -11811,7 +11607,7 @@ possibly by replacing the colon with a comma if both values should be
 included in the set:
 
 {% prettify dart tag=pre+code %}
-const collection = <String>{'a', 'b'};
+var collection = <String>{'a', 'b'};
 {% endprettify %}
 
 ### map_key_type_not_assignable
@@ -12104,13 +11900,14 @@ void f(E e) {
 
 ### missing_exception_value
 
-_The method 'Pointer.fromFunction' must have an exceptional return value (the
-second argument) when the return type of the function is neither 'void', 'Handle', nor 'Pointer'._
+_The method {0} must have an exceptional return value (the second argument) when
+the return type of the function is neither 'void', 'Handle', nor 'Pointer'._
 
 #### Description
 
 The analyzer produces this diagnostic when an invocation of the method
-`Pointer.fromFunction` doesn't have a second argument (the exceptional
+`Pointer.fromFunction` or `NativeCallable.isolateLocal`
+doesn't have a second argument (the exceptional
 return value) when the type to be returned from the invocation is neither
 `void`, `Handle`, nor `Pointer`.
 
@@ -12206,20 +12003,20 @@ The `name` key provides the name of the package, which is required.
 The following code produces this diagnostic because the package doesn't
 have a name:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 dependencies:
   meta: ^1.0.2
-```
+{% endprettify %}
 
 #### Common fixes
 
 Add the top-level key `name` with a value that's the name of the package:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   meta: ^1.0.2
-```
+{% endprettify %}
 
 ### missing_named_pattern_field_name
 
@@ -12231,6 +12028,7 @@ variable._
 The analyzer produces this diagnostic when, within an object pattern, the
 specification of a property and the pattern used to match the property's
 value doesn't have either:
+
 - a getter name before the colon
 - a variable pattern from which the getter name can be inferred
 
@@ -13227,7 +13025,8 @@ _The type '{0}' given to '{1}' must be a valid 'dart:ffi' native function type._
 #### Description
 
 The analyzer produces this diagnostic when an invocation of either
-`Pointer.fromFunction` or `DynamicLibrary.lookupFunction` has a type
+`Pointer.fromFunction`, `DynamicLibrary.lookupFunction`,
+or a `NativeCallable` constructor, has a type
 argument(whether explicit or inferred) that isn't a native function type.
 
 For more information about FFI, see [C interop using dart:ffi][ffi].
@@ -13273,7 +13072,8 @@ _The type '{0}' must be a subtype of '{1}' for '{2}'._
 #### Description
 
 The analyzer produces this diagnostic in two cases:
-- In an invocation of `Pointer.fromFunction` where the type argument
+- In an invocation of `Pointer.fromFunction`, or a
+  `NativeCallable` constructor where the type argument
   (whether explicit or inferred) isn't a supertype of the type of the
   function passed as the first argument to the method.
 - In an invocation of `DynamicLibrary.lookupFunction` where the first type
@@ -13495,18 +13295,18 @@ value that isn't a string.
 The following code produces this diagnostic because the value following the
 `name` key is a list:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name:
-  - example
-```
+  [!- example!]
+{% endprettify %}
 
 #### Common fixes
 
 Replace the value with a string:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
-```
+{% endprettify %}
 
 ### new_with_undefined_constructor_default
 
@@ -14417,7 +14217,8 @@ String f(E e) => [!switch!] (e) {
 
 #### Common fixes
 
-Add a case for each of the constants that aren't currently being matched:
+If the missing values are distinctly meaningful to the switch expression,
+then add a case for each of the values missing a match:
 
 {% prettify dart tag=pre+code %}
 enum E { one, two, three }
@@ -14429,8 +14230,8 @@ String f(E e) => switch (e) {
   };
 {% endprettify %}
 
-If the missing values don't need to be matched, then add  a wildcard
-pattern:
+If the missing values don't need to be matched, then add a wildcard
+pattern that returns a simple default:
 
 {% prettify dart tag=pre+code %}
 enum E { one, two, three }
@@ -14442,9 +14243,9 @@ String f(E e) => switch (e) {
   };
 {% endprettify %}
 
-But be aware that adding a wildcard pattern will cause any future values
-of the type to also be handled, so you will have lost the ability for the
-compiler to warn you if the `switch` needs to be updated.
+Be aware that a wildcard pattern will handle any values added to the type
+in the future. You will lose the ability to have the compiler warn you if
+the `switch` needs to be updated to account for newly added types.
 
 ### non_exhaustive_switch_statement
 
@@ -15783,14 +15584,14 @@ Null g() => null;
 
 ### obsolete_colon_for_default_value
 
-_Using a colon as a separator before a default value is no longer supported._
+_Using a colon as the separator before a default value is no longer supported._
 
 #### Description
 
-The analyzer produces this diagnostic when a colon is used as the
-separator before the default value of an optional parameter. While this
-syntax used to be allowed, it's deprecated in favor of using an equal
-sign.
+The analyzer produces this diagnostic when a colon (`:`) is used as the
+separator before the default value of an optional named parameter.
+While this syntax used to be allowed, it was removed in favor of
+using an equal sign (`=`).
 
 #### Example
 
@@ -16135,12 +15936,12 @@ referencing a directory that doesn't exist.
 Assuming that the directory `doesNotExist` doesn't exist, the following
 code produces this diagnostic because it's listed as the path of a package:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   local_package:
-    path: doesNotExist
-```
+    path: [!doesNotExist!]
+{% endprettify %}
 
 #### Common fixes
 
@@ -16163,12 +15964,12 @@ whose value is a string, but isn't a POSIX-style path.
 The following code produces this diagnostic because the path following the
 `path` key is a Windows path:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   local_package:
-    path: E:\local_package
-```
+    path: [!E:\local_package!]
+{% endprettify %}
 
 #### Common fixes
 
@@ -16189,21 +15990,21 @@ Assuming that the directory `local_package` doesn't contain a file
 `pubspec.yaml`, the following code produces this diagnostic because it's
 listed as the path of a package:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   local_package:
-    path: local_package
-```
+    path: [!local_package!]
+{% endprettify %}
 
 #### Common fixes
 
 If the path is intended to be the root of a package, then add a
 `pubspec.yaml` file in the directory:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: local_package
-```
+{% endprettify %}
 
 If the path is wrong, then replace it with the correct path.
 
@@ -16425,6 +16226,41 @@ void f(int x) {
 }
 {% endprettify %}
 
+### platform_value_disallowed
+
+_Keys in the `platforms` field can't have values._
+
+#### Description
+
+The analyzer produces this diagnostic when a key in the `platforms` map
+has a value.
+To learn more about specifying your package's supported platforms,
+check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
+
+#### Example
+
+The following `pubspec.yaml` produces this diagnostic because the key
+`web` has a value.
+
+{% prettify yaml tag=pre+code %}
+name: example
+platforms:
+  web: [!"chrome"!]
+{% endprettify %}
+
+#### Common fixes
+
+Omit the value and leave the key without a value:
+
+{% prettify yaml tag=pre+code %}
+name: example
+platforms:
+  web:
+{% endprettify %}
+
+Values for keys in the `platforms` field are currently reserved for
+potential future behavior.
+
 ### positional_field_in_object_pattern
 
 _Object patterns can only use named fields._
@@ -16432,15 +16268,15 @@ _Object patterns can only use named fields._
 #### Description
 
 The analyzer produces this diagnostic when an object pattern contains a
-field that doesn't have a getter name. The fields provide a pattern to
-match against the value returned by a getter, and not specifying the name
-of the getter means that there's no way to access the value that the
-pattern is intended to match against.
+field without specifying the getter name. Object pattern fields match
+against values that the object's getters return. Without a getter name
+specified, the pattern field can't access a value to attempt to match against.
 
 #### Example
 
 The following code produces this diagnostic because the object pattern
-`String(1)` doesn't say which value to compare with `1`:
+`String(1)` doesn't specify which getter of `String` to access and compare
+with the value `1`:
 
 {% prettify dart tag=pre+code %}
 void f(Object o) {
@@ -16450,8 +16286,8 @@ void f(Object o) {
 
 #### Common fixes
 
-Add both the name of the getter to use to access the value and a colon
-before the value:
+Add the getter name to access the value, followed
+by a colon before the pattern to match against:
 
 {% prettify dart tag=pre+code %}
 void f(Object o) {
@@ -17691,14 +17527,14 @@ _A map pattern can't contain a rest pattern._
 #### Description
 
 The analyzer produces this diagnostic when a map pattern contains a rest
-pattern. The matching for map patterns already allows the map to have
-more keys than those explicitly given in the pattern, so a rest pattern
-wouldn't add anything.
+pattern. Map patterns match a map with more keys
+than those explicitly given in the pattern (as long as the given keys match),
+so a rest pattern is unnecessary.
 
 #### Example
 
-The following code produces this diagnostic because there's a rest
-pattern in a map pattern:
+The following code produces this diagnostic because the map pattern contains
+a rest pattern:
 
 {% prettify dart tag=pre+code %}
 void f(Map<int, String> x) {
@@ -17831,7 +17667,7 @@ generator and is using `return` to return a value:
 
 {% prettify dart tag=pre+code %}
 Iterable<int> f() sync* {
-  [!return 3!];
+  [!return!] 3;
 }
 {% endprettify %}
 
@@ -18040,10 +17876,10 @@ import was necessary.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.1.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.0.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18057,10 +17893,10 @@ void f([!Future!] f) {}
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the classes to be referenced:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then import the
 `dart:async` library.
@@ -18089,10 +17925,10 @@ won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -18107,10 +17943,10 @@ const int i = [!n as int!];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the expression to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.3.2 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use an `as` expression, or change the code so that the `as`
@@ -18140,10 +17976,10 @@ SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18159,10 +17995,10 @@ const bool c = a [!&!] b;
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the operators to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
  sdk: '>=2.3.2 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use these operators, or change the code so that the expression
@@ -18191,10 +18027,10 @@ won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.15:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.9.0 <2.15.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18208,10 +18044,10 @@ var setConstructor = [!Set.identity!];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the operator to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.15.0 <2.16.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not use constructor tear-offs:
@@ -18238,10 +18074,10 @@ code won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18258,10 +18094,10 @@ const bool same = a [!==!] b;
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the operator to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.3.2 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use the `==` operator, or change the code so that the
@@ -18292,10 +18128,10 @@ SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.6.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
  sdk: '>=2.4.0 <2.7.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -18313,10 +18149,10 @@ this diagnostic:
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the syntax to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.6.0 <2.7.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not make use of extensions. The most common way to do this is to rewrite
@@ -18346,10 +18182,10 @@ to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.14.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
  sdk: '>=2.0.0 <2.15.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18363,10 +18199,10 @@ int x = 3 [!>>>!] 4;
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the operator to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.14.0 <2.15.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not use the `>>>` operator:
@@ -18401,10 +18237,10 @@ won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.2:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -18419,10 +18255,10 @@ const y = [!x is int!] ? 0 : 1;
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the expression to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.3.2 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then either rewrite the
 code to not use the `is` operator, or, if that isn't possible, change the
@@ -18451,10 +18287,10 @@ be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.12.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.5.0 <2.6.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18468,10 +18304,10 @@ diagnostic:
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the type to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.12.0 <2.13.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not reference this class:
@@ -18497,10 +18333,10 @@ to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.2.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.1.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces this
 diagnostic:
@@ -18514,10 +18350,10 @@ var s = [!<int>{}!];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the syntax to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.2.0 <2.4.0'
-```
+{% endprettify %}
 
 If you do need to support older versions of the SDK, then replace the set
 literal with code that creates the set without the use of a literal:
@@ -18544,10 +18380,10 @@ SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.3.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.2.0 <2.4.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -18561,10 +18397,10 @@ var digits = [[!for (int i = 0; i < 10; i++) i!]];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the syntax to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.3.0 <2.4.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not make use of those elements:
@@ -18599,10 +18435,10 @@ won't be able to run against earlier versions of the SDK.
 Here's an example of a pubspec that defines an SDK constraint with a lower
 bound of less than 2.5.0:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.4.0 <2.6.0'
-```
+{% endprettify %}
 
 In the package that has that pubspec, code like the following produces
 this diagnostic:
@@ -18617,10 +18453,10 @@ const b = [[!...a!]];
 If you don't need to support older versions of the SDK, then you can
 increase the SDK constraint to allow the syntax to be used:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 environment:
   sdk: '>=2.5.0 <2.6.0'
-```
+{% endprettify %}
 
 If you need to support older versions of the SDK, then rewrite the code to
 not make use of those elements:
@@ -21295,6 +21131,52 @@ remove the `super.`.
 If the member isn't defined, then either add the member to one of the
 superclasses or remove the invocation.
 
+### unknown_platform
+
+_The platform '{0}' is not a recognized platform._
+
+#### Description
+
+The analyzer produces this diagnostic when an unknown platform name is
+used as a key in the `platforms` map.
+To learn more about specifying your package's supported platforms,
+check out the [documentation on platform declarations](https://dart.dev/tools/pub/pubspec#platforms).
+
+#### Example
+
+The following `pubspec.yaml` produces this diagnostic because the platform
+`browser` is unknown.
+
+{% prettify yaml tag=pre+code %}
+name: example
+platforms:
+  [!browser:!]
+{% endprettify %}
+
+#### Common fixes
+
+If you can rely on automatic platform detection, then omit the
+top-level `platforms` key.
+
+{% prettify yaml tag=pre+code %}
+name: example
+{% endprettify %}
+
+If you need to manually specify the list of supported platforms, then
+write the `platforms` field as a map with known platform names as keys.
+
+{% prettify yaml tag=pre+code %}
+name: example
+platforms:
+  # These are the known platforms
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+{% endprettify %}
+
 ### unnecessary_cast
 
 _Unnecessary cast._
@@ -21346,24 +21228,24 @@ package, so there's no need to also list them under `dev_dependencies`.
 The following code produces this diagnostic because the package `meta` is
 listed under both `dependencies` and `dev_dependencies`:
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   meta: ^1.0.2
 dev_dependencies:
-  meta: ^1.0.2
-```
+  [!meta!]: ^1.0.2
+{% endprettify %}
 
 #### Common fixes
 
 Remove the entry under `dev_dependencies` (and the `dev_dependencies` key
 if that's the only package listed there):
 
-```yaml
+{% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   meta: ^1.0.2
-```
+{% endprettify %}
 
 ### unnecessary_final
 
@@ -21918,7 +21800,7 @@ matched by an earlier `case` clause.
 #### Example
 
 The following code produces this diagnostic because the value `1` was
-matched in the preceeding case:
+matched in the preceding case:
 
 {% prettify dart tag=pre+code %}
 void f(int x) {

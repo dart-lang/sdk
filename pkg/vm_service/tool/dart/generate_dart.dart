@@ -934,6 +934,9 @@ class _OutstandingRequest<T> {
     gen.writeStatement('late final Log _log;');
     gen.write('''
 
+  /// The web socket URI pointing to the target VM service instance.
+  final String? wsUri;
+
   final StreamController<String> _onSend = StreamController.broadcast(sync: true);
   final StreamController<String> _onReceive = StreamController.broadcast(sync: true);
 
@@ -958,6 +961,7 @@ class _OutstandingRequest<T> {
     Log? log,
     DisposeHandler? disposeHandler,
     Future? streamClosed,
+    this.wsUri,
   }) {
     _streamSub = inStream.listen(_processMessage,
         onDone: () => _onDoneCompleter.complete());
@@ -1037,8 +1041,7 @@ class _OutstandingRequest<T> {
   void _generateEventStream(DartGenerator gen) {
     gen.writeln();
     gen.writeDocs('An enum of available event streams.');
-    gen.writeln('class EventStreams {');
-    gen.writeln('EventStreams._();');
+    gen.writeln('abstract class EventStreams {');
     gen.writeln();
 
     for (var c in streamCategories) {
@@ -1456,7 +1459,7 @@ class Type extends Member {
         (superType.name == 'ObjRef' || superType.name == 'Obj');
     // Default
     gen.write('$name(');
-    if (fields.isNotEmpty) {
+    if (fields.isNotEmpty || hasRequiredParentFields) {
       gen.write('{');
       fields.where((field) => !field.optional).forEach((field) {
         final fromParent = (name == 'Instance' && field.name == 'classRef');
@@ -2026,8 +2029,7 @@ class Enum extends Member {
   void generate(DartGenerator gen) {
     gen.writeln();
     if (docs != null) gen.writeDocs(docs!);
-    gen.writeStatement('class $name {');
-    gen.writeStatement('$name._();');
+    gen.writeStatement('abstract class $name {');
     gen.writeln();
     for (var e in enums) {
       e.generate(gen);
@@ -2154,7 +2156,7 @@ class TextOutputVisitor implements NodeVisitor {
 //     string targetId [optional],
 //     string expression)
 class MethodParser extends Parser {
-  MethodParser(Token? startToken) : super(startToken);
+  MethodParser(super.startToken);
 
   void parseInto(Method method) {
     // method is return type, name, (, args )
@@ -2215,7 +2217,7 @@ class MethodParser extends Parser {
 }
 
 class TypeParser extends Parser {
-  TypeParser(Token? startToken) : super(startToken);
+  TypeParser(super.startToken);
 
   void parseInto(Type type) {
     // class ClassList extends Response {
@@ -2266,7 +2268,7 @@ class TypeParser extends Parser {
 }
 
 class EnumParser extends Parser {
-  EnumParser(Token? startToken) : super(startToken);
+  EnumParser(super.startToken);
 
   void parseInto(Enum e) {
     // enum ErrorKind { UnhandledException, Foo, Bar }

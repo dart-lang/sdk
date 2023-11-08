@@ -70,7 +70,7 @@ class C extends core::Object {
 }
 extension ext on iss::C {
   method _bar = iss::ext|_bar;
-  tearoff _bar = iss::ext|get#_bar;
+  method tearoff _bar = iss::ext|get#_bar;
 }
 static extension-member method ext|_bar(lowered final iss::C #this) → dynamic {
   try {

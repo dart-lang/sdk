@@ -1,0 +1,21 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/extension_modifiers.dart:5:1: Error: Can't have modifier 'abstract' here.
+// Try removing 'abstract'.
+// abstract extension E1 on int {}
+// ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/extension_modifiers.dart:6:1: Error: Can't have modifier 'static' here.
+// Try removing 'static'.
+// static extension E2 on int {}
+// ^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension E1 on core::int {
+}
+extension E2 on core::int {
+}

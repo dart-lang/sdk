@@ -6,11 +6,15 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
+import 'package:analysis_server/src/lsp/registration/feature_registration.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/source/line_info.dart';
 
+typedef StaticOptions
+    = Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>;
+
 class FoldingHandler
-    extends MessageHandler<FoldingRangeParams, List<FoldingRange>> {
+    extends LspMessageHandler<FoldingRangeParams, List<FoldingRange>> {
   FoldingHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_foldingRange;
@@ -22,7 +26,7 @@ class FoldingHandler
   @override
   Future<ErrorOr<List<FoldingRange>>> handle(FoldingRangeParams params,
       MessageInfo message, CancellationToken token) async {
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -127,4 +131,22 @@ class FoldingHandler
       kind: toFoldingRangeKind(region.kind),
     );
   }
+}
+
+class FoldingRegistrations extends FeatureRegistration
+    with SingleDynamicRegistration, StaticRegistration<StaticOptions> {
+  FoldingRegistrations(super.info);
+
+  @override
+  ToJsonable? get options =>
+      TextDocumentRegistrationOptions(documentSelector: fullySupportedTypes);
+
+  @override
+  Method get registrationMethod => Method.textDocument_foldingRange;
+
+  @override
+  StaticOptions get staticOptions => Either3.t1(true);
+
+  @override
+  bool get supportsDynamic => clientDynamic.folding;
 }

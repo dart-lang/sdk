@@ -1,9 +1,9 @@
 main = main::main;
 library from "org-dartlang-test:///lib1.dart" as lib1 {
-additionalExports = (lib2::getter,
+additionalExports = (lib2::Bar,
+  lib2::getter,
   lib2::method,
-  lib2::setter,
-  lib2::Bar)
+  lib2::setter)
 
   export "org-dartlang-test:///lib2.dart";
 

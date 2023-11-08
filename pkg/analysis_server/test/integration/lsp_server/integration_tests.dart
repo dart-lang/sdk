@@ -9,24 +9,42 @@ import 'dart:io';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
+import '../../lsp/request_helpers_mixin.dart';
 import '../../lsp/server_abstract.dart';
 
 abstract class AbstractLspAnalysisServerIntegrationTest
-    with ClientCapabilitiesHelperMixin, LspAnalysisServerTestMixin {
+    with
+        ClientCapabilitiesHelperMixin,
+        LspRequestHelpersMixin,
+        LspAnalysisServerTestMixin {
   final List<String> vmArgs = [];
   LspServerClient? client;
   InstrumentationService? instrumentationService;
   final Map<num, Completer<ResponseMessage>> _completers = {};
   String dartSdkPath = dirname(dirname(Platform.resolvedExecutable));
 
+  /// Tracks the current overlay content so that when we apply edits they can
+  /// be applied in the same way a real client would apply them.
+  final _overlayContent = <Uri, String>{};
+
   LspByteStreamServerChannel get channel => client!.channel!;
 
   @override
+  Context get pathContext => PhysicalResourceProvider.INSTANCE.pathContext;
+
+  @override
   Stream<Message> get serverToClient => client!.serverToClient;
+
+  @override
+  Future<void> closeFile(Uri uri) {
+    _overlayContent.remove(uri);
+    return super.closeFile(uri);
+  }
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
@@ -46,10 +64,37 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     }
   }
 
+  @override
+  String? getCurrentFileContent(Uri uri) {
+    // First try and overlay the test has set.
+    if (_overlayContent.containsKey(uri)) {
+      return _overlayContent[uri];
+    }
+
+    // Otherwise fall back to the disk.
+    try {
+      return File(uri.toFilePath()).readAsStringSync();
+    } catch (_) {
+      return null;
+    }
+  }
+
   void newFile(String path, String content) =>
       File(path).writeAsStringSync(content);
 
   void newFolder(String path) => Directory(path).createSync(recursive: true);
+
+  @override
+  Future<void> openFile(Uri uri, String content, {int version = 1}) {
+    _overlayContent[uri] = content;
+    return super.openFile(uri, content, version: version);
+  }
+
+  @override
+  Future<void> replaceFile(int newVersion, Uri uri, String content) {
+    _overlayContent[uri] = content;
+    return super.replaceFile(newVersion, uri, content);
+  }
 
   @override
   void sendNotificationToServer(NotificationMessage notification) =>
@@ -130,6 +175,8 @@ class LspServerClient {
   Future<String> get devToolsLine => _devToolsLineCompleter.future;
 
   Future<int> get exitCode => _process!.exitCode;
+
+  Context get pathContext => PhysicalResourceProvider.INSTANCE.pathContext;
 
   Stream<Message> get serverToClient => _serverToClient.stream;
 

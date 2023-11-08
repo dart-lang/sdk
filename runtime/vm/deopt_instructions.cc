@@ -232,6 +232,7 @@ static bool IsObjectInstruction(DeoptInstr::Kind kind) {
     case DeoptInstr::kInt32x4:
     case DeoptInstr::kFloat64x2:
     case DeoptInstr::kWord:
+    case DeoptInstr::kFloat:
     case DeoptInstr::kDouble:
     case DeoptInstr::kMint:
     case DeoptInstr::kMintPair:
@@ -637,7 +638,7 @@ typedef DeoptIntInstr<DeoptInstr::kMint,
 template <DeoptInstr::Kind K,
           CatchEntryMove::SourceKind slot_kind,
           typename Type,
-          typename RawObjectType>
+          typename PtrType>
 class DeoptFpuInstr : public DeoptInstr {
  public:
   explicit DeoptFpuInstr(intptr_t source_index) : source_(source_index) {}
@@ -651,9 +652,8 @@ class DeoptFpuInstr : public DeoptInstr {
 
   void Execute(DeoptContext* deopt_context, intptr_t* dest_addr) {
     *dest_addr = Smi::RawValue(0);
-    deopt_context->DeferMaterialization(
-        source_.Value<Type>(deopt_context),
-        reinterpret_cast<RawObjectType*>(dest_addr));
+    deopt_context->DeferMaterialization(source_.Value<Type>(deopt_context),
+                                        reinterpret_cast<PtrType*>(dest_addr));
   }
 
   CatchEntryMove ToCatchEntryMove(DeoptContext* deopt_context,
@@ -667,6 +667,12 @@ class DeoptFpuInstr : public DeoptInstr {
 
   DISALLOW_COPY_AND_ASSIGN(DeoptFpuInstr);
 };
+
+typedef DeoptFpuInstr<DeoptInstr::kFloat,
+                      CatchEntryMove::SourceKind::kFloatSlot,
+                      float,
+                      DoublePtr>
+    DeoptFloatInstr;
 
 typedef DeoptFpuInstr<DeoptInstr::kDouble,
                       CatchEntryMove::SourceKind::kDoubleSlot,
@@ -875,9 +881,6 @@ uword DeoptInstr::GetRetAddress(DeoptInstr* instr,
   ASSERT(instr->kind() == kRetAddress);
   DeoptRetAddressInstr* ret_address_instr =
       static_cast<DeoptRetAddressInstr*>(instr);
-  // The following assert may trigger when displaying a backtrace
-  // from the simulator.
-  ASSERT(DeoptId::IsDeoptAfter(ret_address_instr->deopt_id()));
   ASSERT(!object_table.IsNull());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -902,6 +905,8 @@ DeoptInstr* DeoptInstr::Create(intptr_t kind_as_int, intptr_t source_index) {
   switch (kind) {
     case kWord:
       return new DeoptWordInstr(source_index);
+    case kFloat:
+      return new DeoptFloatInstr(source_index);
     case kDouble:
       return new DeoptDoubleInstr(source_index);
     case kMint:
@@ -945,6 +950,8 @@ const char* DeoptInstr::KindToCString(Kind kind) {
   switch (kind) {
     case kWord:
       return "word";
+    case kFloat:
+      return "float";
     case kDouble:
       return "double";
     case kMint:
@@ -1127,6 +1134,9 @@ void DeoptInfoBuilder::AddCopy(Value* value,
             new (zone()) DeoptUint32Instr(ToCpuRegisterSource(source_loc));
         break;
       case kUnboxedFloat:
+        deopt_instr = new (zone()) DeoptFloatInstr(
+            ToFpuRegisterSource(source_loc, Location::kDoubleStackSlot));
+        break;
       case kUnboxedDouble:
         deopt_instr = new (zone()) DeoptDoubleInstr(
             ToFpuRegisterSource(source_loc, Location::kDoubleStackSlot));

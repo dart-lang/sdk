@@ -143,7 +143,7 @@ import "dart:core" as core;
 extension Extension<T extends core::Object? = dynamic> on core::int {
   get duplicateInstanceGetter = self::Extension|get#duplicateInstanceGetter;
   method duplicateInstanceMethod = self::Extension|duplicateInstanceMethod;
-  tearoff duplicateInstanceMethod = self::Extension|get#duplicateInstanceMethod;
+  method tearoff duplicateInstanceMethod = self::Extension|get#duplicateInstanceMethod;
   static field duplicateStaticField = self::Extension|duplicateStaticField;
   static get duplicateStaticGetter = get self::Extension|duplicateStaticGetter;
   static method duplicateStaticMethod = self::Extension|duplicateStaticMethod;

@@ -9,7 +9,6 @@ library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
-import "dart:_internal" as _in;
 
 static method useAddAll() → void {
   dynamic dynamicSet1 = block {
@@ -481,8 +480,8 @@ static method main() → dynamic {
   self::useAddAll();
 }
 static method expect(core::Set<dynamic>* set1, core::Set<dynamic>* set2) → void {
-  if(!(set1.{_in::EfficientLengthIterable::length}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} set2.{_in::EfficientLengthIterable::length}{core::int*})) {
-    throw "Unexpected length. Expected ${set1.{_in::EfficientLengthIterable::length}{core::int*}}, actual ${set2.{_in::EfficientLengthIterable::length}{core::int*}}.";
+  if(!(set1.{core::Iterable::length}{core::int*} =={core::num::==}{(core::Object*) →* core::bool*} set2.{core::Iterable::length}{core::int*})) {
+    throw "Unexpected length. Expected ${set1.{core::Iterable::length}{core::int*}}, actual ${set2.{core::Iterable::length}{core::int*}}.";
   }
   {
     synthesized core::Iterator<dynamic>* :sync-for-iterator = set1.{core::Iterable::iterator}{core::Iterator<dynamic>*};

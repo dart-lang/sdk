@@ -1,5 +1,5 @@
 name: dart_internal
-version: 0.2.8
+version: 0.2.9
 description: >-
   This package is not intended for wide use. It provides a temporary API to
   solve the problem: "Given an object some generic type A, how do I construct an
@@ -9,7 +9,7 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/dart_internal
 environment:
   # Restrict the upper bound so that we can remove support for this in a later
   # version of the SDK without it being a breaking change.
-  sdk: ">=2.12.0 <3.2.0"
+  sdk: ">=2.12.0 <3.3.0"
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:

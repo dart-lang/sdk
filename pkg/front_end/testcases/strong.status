@@ -1,10 +1,96 @@
 # Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
 # for details. All rights reserved. Use of this source code is governed by a
-# BSD-style license that can be found in the LICENSE.md file.
+# BSD-style license that can be found in the LICENSE file.
 
 # Status file for the strong_suite.dart test suite. This is testing generating
 # Kernel ASTs directly, that is, code in pkg/fasta/lib/src/kernel/ with
 # strong-mode enabled.
+
+# BAD ONES:
+class_modifiers/issue52115/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
+class_modifiers/issue52316/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
+const_functions/const_functions_switch_statements: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53111
+extension_types/representation_type: SemiFuzzCrash # https://github.com/dart-lang/sdk/issues/53270
+
+# POSSIBLY BAD ONES
+dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
+macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
+
+# INCREMENTAL COMPILATION ERRORS
+dart2js/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+dartdevc/inline_class/external: SemiFuzzFailure # @methods::B| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
+
+# EXPECTED FAILURES DUE TO PRIVACY ETC:
+dart2js/native_legacy: semiFuzzFailureOnForceRebuildBodies # errors in the input means it can't force split.
+dart2js/sealed_class: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+dartdevc/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
+dartdevc/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
+dartdevc/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
+extensions/internal_resolution: semiFuzzFailureOnForceRebuildBodies # unnamed extensions
+extensions/issue40816: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+extensions/nullable_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
+extensions/on_function_type: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+extensions/unnamed_extensions: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+general/bug33099: semiFuzzFailureOnForceRebuildBodies # private class
+general/closure: semiFuzzFailureOnForceRebuildBodies # private field
+general/constants/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
+general/constants/with_unevaluated_agnostic/rudimentary_test_01: semiFuzzFailureOnForceRebuildBodies # private method
+general/constructor_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
+general/issue47036: semiFuzzFailureOnForceRebuildBodies # private class
+general/issue48548: semiFuzzFailureOnForceRebuildBodies # private field
+general/issue48765: semiFuzzFailureOnForceRebuildBodies # private class
+general/private_members: semiFuzzFailureOnForceRebuildBodies # private class (etc).
+general/private_method_tearoff: semiFuzzFailureOnForceRebuildBodies # private method in class
+general/redirecting_factory_const_inference: semiFuzzFailureOnForceRebuildBodies # private class
+general/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
+general/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
+general/redirection/main: semiFuzzFailureOnForceRebuildBodies # privacy.
+general/store_load: semiFuzzFailureOnForceRebuildBodies # private field in class
+general/typedef: semiFuzzFailureOnForceRebuildBodies # private typedef
+inference_update_2/abstract_field: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_2/basic_field_promotion: semiFuzzFailureOnForceRebuildBodies # Private fields.
+inference_update_2/call_invocation_with_hoisting: semiFuzzFailureOnForceRebuildBodies # privacy
+inference_update_2/cascaded_field_promotion: semiFuzzFailureOnForceRebuildBodies # privacy
+inference_update_2/disabled: semiFuzzFailureOnForceRebuildBodies # Private fields.
+inference_update_2/external_field: semiFuzzFailureOnForceRebuildBodies # privacy.
+inference_update_2/field_promotion_and_no_such_method: semiFuzzFailureOnForceRebuildBodies # Private fields.
+inference_update_2/field_promotion_name_conflicts: semiFuzzFailureOnForceRebuildBodies # Private fields.
+inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
+patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+patterns/exhaustiveness/issue52041: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
+patterns/exhaustiveness/issue52048: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+patterns/extension_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
+patterns/extension_tear_off: semiFuzzFailureOnForceRebuildBodies # private extension method.
+patterns/issue51009: semiFuzzFailureOnForceRebuildBodies # private extension method.
+patterns/pattern_matching: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+patterns/private_names_in_object_patterns: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
+records/issue51940: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
+regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
+dart2wasm/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # private fields in class.
+
+# FUZZ FRAMEWORK FAILURES
+class_modifiers/invalid_enum_modifiers: SemiFuzzFailure # the invalid modifiers disappear
+general/issue45101/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/mixin_from_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/multiple_class_patches/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/nested_lib_spec/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+general/patch_annotations/main: semiFuzzFailureOnForceRebuildBodies # 'dart:test' stuff.
+general/script_tag_in_part_file: SemiFuzzFailure # `#!/usr/bin/env dart` goes away
+general/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
+inference/downwards_inference_on_list_literals_infer_if_value_types_match_context: semiFuzzFailureOnForceRebuildBodies # private field
+inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
+
+# UNSORTED ONES:
+constructor_tearoffs/explicit_instantiation: SemiFuzzFailure
+general/bad_import: SemiFuzzCrash # missing end token on import
+general/constants/with_unevaluated_agnostic/various_2: SemiFuzzFailure # Looks similar to https://dart-review.googlesource.com/c/sdk/+/242441
+general/error_recovery/issue_39058.crash: SemiFuzzFailure
+general/error_recovery/issue_39058_prime.crash: SemiFuzzFailure
+general/error_recovery/issue_39202.crash: SemiFuzzCrash
+general/platform_invalid_uris/main: SemiFuzzFailure
+general/supported_libraries/main: SemiFuzzFailure
+general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/242543
+regress/utf_16_le_content.crash: SemiFuzzCrash
 
 macros/scope_access: SemiFuzzCrash
 
@@ -21,7 +107,6 @@ macros/augment_concrete: SemiFuzzFailure # https://github.com/dart-lang/sdk/issu
 macros/extend_augmented: SemiFuzzFailure # Similar to https://github.com/dart-lang/sdk/issues/49414
 
 const_functions/const_functions_list: SemiFuzzCrash
-generic_metadata/typedef_generic_types_in_arguments_and_bounds: SemiFuzzCrash
 
 dart2js/mixin_from_opt_in/main: SemiFuzzFailure # seems like the difference between normal and no-link version: it goes from InstanceInvocation to InvalidExpression
 dart2js/mixin_from_opt_in/main.no_link: SemiFuzzFailure # seems like the difference between normal and no-link version: it goes from InstanceInvocation to InvalidExpression
@@ -49,7 +134,6 @@ none/mixin_super: semiFuzzFailureOnForceRebuildBodies # has private name mixin
 dart2js/tear_off_patch/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 
 constructor_tearoffs/call_instantiation: TypeCheckError
-constructor_tearoffs/lowering/invalid_redirect: VerificationError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 enhanced_enums/simple_mixins: RuntimeError
@@ -74,7 +158,6 @@ general/abstract_members: TypeCheckError
 general/accessors: RuntimeError
 general/await_in_non_async: RuntimeError
 general/bounded_implicit_instantiation: TypeCheckError
-general/bounds_instances: TypeCheckError
 general/bug30695: TypeCheckError
 general/call: RuntimeError
 general/cascade: RuntimeError
@@ -119,15 +202,14 @@ general/override_check_with_covariant_modifier: TypeCheckError
 general/override_setter_with_field: TypeCheckError
 general/redirecting_factory: RuntimeError
 general/spread_collection: RuntimeError
+general/supertype_conflict: TypeCheckError
 general/type_variable_as_super: RuntimeError
-general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
 general/with_dependencies/issue_43084/issue_43084: RuntimeError
-inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
+generic_metadata/from_dill/main: Crash
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError
 inference/downwards_inference_async_await: RuntimeError
 inference/downwards_inference_for_each: RuntimeError
-inference/generic_methods_correctly_recognize_generic_upper_bound: TypeCheckError
 inference/generic_methods_do_not_infer_invalid_override_of_generic_method: TypeCheckError
 inference/generic_methods_handle_override_of_non_generic_with_generic: TypeCheckError
 inference/infer_method_missing_params: TypeCheckError
@@ -142,8 +224,6 @@ inference/mixin_inference_unification_2: TypeCheckError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
-inference_update_2/call_invocation_with_hoisting: TypeCheckError
-inference_update_2/cascaded_field_promotion: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError

@@ -12,7 +12,7 @@ extension Extension on self::Class {
   static get property = get self::Extension|property;
   static field field = self::Extension|field;
   method instanceMethod = self::Extension|instanceMethod;
-  tearoff instanceMethod = self::Extension|get#instanceMethod;
+  method tearoff instanceMethod = self::Extension|get#instanceMethod;
   get instanceProperty = self::Extension|get#instanceProperty;
   static set property = set self::Extension|property;
   set instanceProperty = self::Extension|set#instanceProperty;

@@ -1,0 +1,11 @@
+extension E<U> on String {
+  List<U>? field3 = null;
+  List<U> Function(List<U>)? field5 = null;
+  Type field8 = U;
+  U Function(U)? field4 = null;
+  U field1 = null;
+  int? field2 = () { U x = null; return null; }();
+  int? field6 = <E>() { E? x = null; return null; }<String>();
+  int? field7 = <E>() { E? x = null; return null; }<U>();
+}
+main() {}

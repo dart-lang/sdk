@@ -266,6 +266,24 @@ abstract class ServiceObject implements M.ObjectRef {
           case 'UnlinkedCall':
             obj = new UnlinkedCall._empty(owner);
             break;
+          case 'ClosureData':
+          case 'CodeSourceMap':
+          case 'ContextScope':
+          case 'ExceptionHandlers':
+          case 'FfiTrampolineData':
+          case 'Instructions':
+          case 'InstructionsSection':
+          case 'KernelProgramInfo':
+          case 'LibraryPrefix':
+          case 'Namespace':
+          case 'PatchClass':
+          case 'WeakArray':
+            obj = new GenericHeapObject._empty(owner);
+            break;
+          default:
+            print('Unknown vmType: $vmType');
+            obj = new GenericHeapObject._empty(owner);
+            break;
         }
         break;
       case 'Event':
@@ -285,6 +303,9 @@ abstract class ServiceObject implements M.ObjectRef {
         break;
       case 'TypeArguments':
         obj = new TypeArguments._empty(owner);
+        break;
+      case 'TypeParameters':
+        obj = new GenericHeapObject._empty(owner);
         break;
       case 'Instance':
         obj = new Instance._empty(owner);
@@ -424,6 +445,15 @@ abstract class HeapObject extends ServiceObject implements M.Object {
       return;
     }
     size = map['size'];
+  }
+}
+
+class GenericHeapObject extends HeapObject {
+  GenericHeapObject._empty(ServiceObjectOwner? owner) : super._empty(owner);
+
+  void _update(Map map, bool mapIsRef) {
+    _upgradeCollection(map, isolate);
+    super._update(map, mapIsRef);
   }
 }
 
@@ -2788,6 +2818,8 @@ M.InstanceKind stringToInstanceKind(String s) {
       return M.InstanceKind.finalizer;
     case 'WeakReference':
       return M.InstanceKind.weakReference;
+    case 'UserTag':
+      return M.InstanceKind.userTag;
   }
   var message = 'Unrecognized instance kind: $s';
   Logger.root.severe(message);
@@ -2885,6 +2917,7 @@ class Instance extends HeapObject implements M.Instance {
   bool get isRegExp => kind == M.InstanceKind.regExp;
   bool get isMirrorReference => kind == M.InstanceKind.mirrorReference;
   bool get isWeakProperty => kind == M.InstanceKind.weakProperty;
+  bool get isUserTag => kind == M.InstanceKind.userTag;
   bool get isClosure => kind == M.InstanceKind.closure;
   bool get isStackTrace => kind == M.InstanceKind.stackTrace;
   bool get isStackOverflowError {
@@ -2926,6 +2959,9 @@ class Instance extends HeapObject implements M.Instance {
     valueAsStringIsTruncated = map['valueAsStringIsTruncated'] == true;
     closureFunction = map['closureFunction'];
     name = map['name']?.toString();
+    if (map['label'] != null) {
+      name = map['label'];
+    }
     length = map['length'];
     pattern = map['pattern'];
     typeClass = map['typeClass'];
@@ -3040,7 +3076,9 @@ class Instance extends HeapObject implements M.Instance {
     } else {
       typedElements = null;
     }
-    parameterizedClass = map['parameterizedClass'];
+    if (map['parameterizedClass'] is Class) {
+      parameterizedClass = map['parameterizedClass'];
+    }
     typeArguments = map['typeArguments'];
     parameterIndex = map['parameterIndex'];
     bound = map['bound'];
@@ -3623,7 +3661,9 @@ class Script extends HeapObject implements M.Script {
     loadTime = new DateTime.fromMillisecondsSinceEpoch(loadTimeMillis);
     lineOffset = map['lineOffset'];
     columnOffset = map['columnOffset'];
-    _parseTokenPosTable(map['tokenPosTable']);
+    if (map['tokenPosTable'] != null) {
+      _parseTokenPosTable(map['tokenPosTable']);
+    }
     source = map['source'];
     _processSource(map['source']);
     library = map['library'];
@@ -3875,21 +3915,18 @@ class PcDescriptor {
   }
 }
 
-class PcDescriptors extends ServiceObject implements M.PcDescriptorsRef {
-  Class? clazz;
-  int? size;
+class PcDescriptors extends HeapObject implements M.PcDescriptorsRef {
   bool get immutable => true;
   final List<PcDescriptor> descriptors = <PcDescriptor>[];
 
   PcDescriptors._empty(ServiceObjectOwner? owner) : super._empty(owner) {}
 
   void _update(Map m, bool mapIsRef) {
+    _upgradeCollection(m, isolate);
+    super._update(m, mapIsRef);
     if (mapIsRef) {
       return;
     }
-    _upgradeCollection(m, isolate);
-    clazz = m['class'];
-    size = m['size'];
     descriptors.clear();
     for (var descriptor in m['members']) {
       var pcOffset = int.parse(descriptor['pcOffset'], radix: 16);
@@ -3973,7 +4010,7 @@ class ObjectPoolEntry implements M.ObjectPoolEntry {
   final int offset;
   final M.ObjectPoolEntryKind kind;
   final M.ObjectRef? asObject;
-  final int? asInteger;
+  final String? asImmediate;
 
   factory ObjectPoolEntry(map) {
     M.ObjectPoolEntryKind kind = stringToObjectPoolEntryKind(map['kind']);
@@ -3983,15 +4020,15 @@ class ObjectPoolEntry implements M.ObjectPoolEntry {
       case M.ObjectPoolEntryKind.object:
         return new ObjectPoolEntry._fromObject(map['value'], offset);
       default:
-        return new ObjectPoolEntry._fromInteger(kind, map['value'], offset);
+        return new ObjectPoolEntry._fromImmediate(kind, map['value'], offset);
     }
   }
 
   ObjectPoolEntry._fromObject(this.asObject, this.offset)
       : kind = M.ObjectPoolEntryKind.object,
-        asInteger = null;
+        asImmediate = null;
 
-  ObjectPoolEntry._fromInteger(this.kind, this.asInteger, this.offset)
+  ObjectPoolEntry._fromImmediate(this.kind, this.asImmediate, this.offset)
       : asObject = null;
 }
 
@@ -4435,7 +4472,12 @@ class Code extends HeapObject implements M.Code {
       var tryIndex = descriptor['tryIndex'];
       var kind = descriptor['kind'].trim();
 
-      var instruction = instructionsByAddressOffset![address - startAddress];
+      CodeInstruction? instruction = null;
+      int addressOffset = address - startAddress;
+      if ((addressOffset >= 0) &&
+          (addressOffset < instructionsByAddressOffset!.length)) {
+        instruction = instructionsByAddressOffset![addressOffset];
+      }
       if (instruction != null) {
         instruction.descriptors
             .add(new PcDescriptor(pcOffset, deoptId, tokenPos, tryIndex, kind));

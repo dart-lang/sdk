@@ -17,7 +17,7 @@ abstract class _SplayTree<Node extends self::_SplayTreeNode<self::_SplayTree::No
   synthetic constructor •() → self::_SplayTree<self::_SplayTree::Node>
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method add([@vm.inferred-type.metadata=#lib::_SplayTreeMapNode<dynamic>] covariant-by-class self::_SplayTree::Node n) → dynamic {
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method add([@vm.inferred-arg-type.metadata=#lib::_SplayTreeMapNode<dynamic>] covariant-by-class self::_SplayTree::Node n) → dynamic {
     self::_SplayTree::Node? root = [@vm.direct-call.metadata=#lib::SplayTreeMap._root] [@vm.inferred-type.metadata=#lib::_SplayTreeMapNode<dynamic>] this.{self::_SplayTree::_root}{self::_SplayTree::Node?};
     ;
     core::print([@vm.direct-call.metadata=#lib::_SplayTreeNode.left] [@vm.inferred-type.metadata=dart.core::Null? (value: null)] root{self::_SplayTree::Node}.{self::_SplayTreeNode::left}{self::_SplayTree::Node?});

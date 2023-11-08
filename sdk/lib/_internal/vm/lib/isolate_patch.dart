@@ -2,11 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Note: the VM concatenates all patch files into a single patch file. This
-/// file is the first patch in "dart:isolate" which contains all the imports
-/// used by patches of that library. We plan to change this when we have a
-/// shared front end and simply use parts.
-
 import "dart:_internal" show ClassID, VMLibraryHooks, patch;
 
 import "dart:async"
@@ -197,10 +192,10 @@ final class _RawReceivePort implements RawReceivePort {
 
   // Set this port as active or inactive in the VM. If inactive, this port
   // will not be considered live even if it hasn't been explicitly closed.
-  // TODO(bkonyi): determine if we want to expose this as an option through
-  // RawReceivePort.
   @pragma("vm:external-name", "RawReceivePort_setActive")
-  external _setActive(bool active);
+  external void _setActive(bool active);
+  @pragma("vm:external-name", "RawReceivePort_getActive")
+  external bool _getActive();
 
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
@@ -214,6 +209,12 @@ final class _RawReceivePort implements RawReceivePort {
   void set handler(Function? value) {
     _handler = value;
   }
+
+  void set keepIsolateAlive(bool value) {
+    _setActive(value);
+  }
+
+  bool get keepIsolateAlive => _getActive();
 
   static final _portMap = <int, _RawReceivePort>{};
 }
@@ -315,7 +316,12 @@ final class Isolate {
 
   @patch
   static Future<Uri?> get packageConfig {
-    var hook = VMLibraryHooks.packageConfigUriFuture;
+    return Future.value(packageConfigSync);
+  }
+
+  @patch
+  static Uri? get packageConfigSync {
+    var hook = VMLibraryHooks.packageConfigUriSync;
     if (hook == null) {
       throw new UnsupportedError("Isolate.packageConfig");
     }
@@ -324,16 +330,21 @@ final class Isolate {
 
   @patch
   static Future<Uri?> resolvePackageUri(Uri packageUri) {
-    var hook = VMLibraryHooks.resolvePackageUriFuture;
+    return Future.value(resolvePackageUriSync(packageUri));
+  }
+
+  @patch
+  static Uri? resolvePackageUriSync(Uri packageUri) {
+    var hook = VMLibraryHooks.resolvePackageUriSync;
     if (hook == null) {
-      throw new UnsupportedError("Isolate.resolvePackageUri");
+      throw new UnsupportedError("Isolate.resolvePackageUriSync");
     }
     return hook(packageUri);
   }
 
   static bool _packageSupported() =>
-      (VMLibraryHooks.packageConfigUriFuture != null) &&
-      (VMLibraryHooks.resolvePackageUriFuture != null);
+      (VMLibraryHooks.packageConfigUriSync != null) &&
+      (VMLibraryHooks.resolvePackageUriSync != null);
 
   @patch
   static Future<Isolate> spawn<T>(void entryPoint(T message), T message,
@@ -357,7 +368,7 @@ final class Isolate {
       if (Isolate._packageSupported()) {
         // resolving script uri is not really necessary, but can be useful
         // for better failed-to-lookup-function-in-a-script spawn errors.
-        script = await Isolate.resolvePackageUri(script);
+        script = Isolate.resolvePackageUriSync(script);
       }
     }
 
@@ -406,12 +417,12 @@ final class Isolate {
     if (automaticPackageResolution) {
       if (packageRoot != null) {
         throw new ArgumentError("Cannot simultaneously request "
-            "automaticPackageResolution and specify a"
+            "automaticPackageResolution and specify a "
             "packageRoot.");
       }
       if (packageConfig != null) {
         throw new ArgumentError("Cannot simultaneously request "
-            "automaticPackageResolution and specify a"
+            "automaticPackageResolution and specify a "
             "packageConfig.");
       }
     } else {
@@ -426,7 +437,7 @@ final class Isolate {
     // Inherit this isolate's package resolution setup if not overridden.
     if (!automaticPackageResolution && packageConfig == null) {
       if (Isolate._packageSupported()) {
-        packageConfig = await Isolate.packageConfig;
+        packageConfig = Isolate.packageConfigSync;
       }
     }
 
@@ -435,7 +446,7 @@ final class Isolate {
       // Avoid calling resolvePackageUri if not strictly necessary in case
       // the API is not supported.
       if (packageConfig.isScheme("package")) {
-        packageConfig = await Isolate.resolvePackageUri(packageConfig);
+        packageConfig = Isolate.resolvePackageUriSync(packageConfig);
       }
     }
 

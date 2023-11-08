@@ -9,6 +9,8 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/type_algebra.dart';
 
+import 'package:dart2wasm/list_factory_specializer.dart';
+
 void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
     ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter) {
   final transformer =
@@ -31,6 +33,7 @@ class _WasmTransformer extends Transformer {
   final Library _coreLibrary;
   final InterfaceType _nonNullableTypeType;
   final Class _wasmBaseClass;
+  final Class _wasmObjectArrayClass;
   final List<_AsyncStarFrame> _asyncStarFrames = [];
   bool _enclosingIsAsyncStar = false;
   late final controllerNullableObjectType = InterfaceType(
@@ -41,6 +44,8 @@ class _WasmTransformer extends Transformer {
       coreTypes.index.getClass('dart:async', 'Completer'),
       Nullability.nonNullable,
       [coreTypes.boolNonNullableRawType]);
+
+  final ListFactorySpecializer _listFactorySpecializer;
 
   StaticTypeContext get typeContext =>
       _cachedTypeContext ??= StaticTypeContext(_currentMember!, env);
@@ -54,7 +59,10 @@ class _WasmTransformer extends Transformer {
             .getClass('dart:core', '_Type')
             .getThisType(coreTypes, Nullability.nonNullable),
         _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
-        _coreLibrary = coreTypes.index.getLibrary('dart:core');
+        _wasmObjectArrayClass =
+            coreTypes.index.getClass('dart:_wasm', 'WasmObjectArray'),
+        _coreLibrary = coreTypes.index.getLibrary('dart:core'),
+        _listFactorySpecializer = ListFactorySpecializer(coreTypes);
 
   @override
   defaultMember(Member node) {
@@ -117,10 +125,11 @@ class _WasmTransformer extends Transformer {
           ProcedureKind.Getter,
           FunctionNode(
             null,
-            returnType: InterfaceType(coreTypes.listClass,
+            returnType: InterfaceType(_wasmObjectArrayClass,
                 Nullability.nonNullable, [_nonNullableTypeType]),
           ),
           isExternal: true,
+          isSynthetic: true,
           fileUri: cls.fileUri)
         ..isNonNullableByDefault = true;
       cls.addProcedure(getTypeArguments);
@@ -694,6 +703,18 @@ class _WasmTransformer extends Transformer {
       _enclosingIsAsyncStar = previousEnclosing;
       return result;
     }
+  }
+
+  @override
+  TreeNode visitStaticInvocation(StaticInvocation node) {
+    node.transformChildren(this);
+    return _listFactorySpecializer.transformStaticInvocation(node);
+  }
+
+  @override
+  visitFunctionTearOff(FunctionTearOff node) {
+    node.transformChildren(this);
+    return node.receiver;
   }
 }
 

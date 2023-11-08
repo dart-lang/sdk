@@ -58,7 +58,7 @@ static extension-member method _extension#0|get#_f10(lowered final core::String 
 static method acceptsInt(core::int x) → void {}
 static method testFinalField(self::C c) → void {
   if(!(c.{self::C::_f1}{core::int?} == null)) {
-    core::int x = c.{self::C::_f1}{core::int};
+    core::int x = let core::int? #t1 = c.{self::C::_f1}{core::int?} in #t1 == null ?{core::int} #t1 as{Unchecked} core::int : #t1{core::int};
     self::acceptsInt(x);
   }
 }
@@ -70,7 +70,7 @@ static method testNonFinalField(self::C c) → void {
 }
 static method testAbstractGetter(self::C c) → void {
   if(!(c.{self::C::_f3}{core::int?} == null)) {
-    core::int x = c.{self::C::_f3}{core::int};
+    core::int x = let core::int? #t2 = c.{self::C::_f3}{core::int?} in #t2 == null ?{core::int} #t2 as{Unchecked} core::int : #t2{core::int};
     self::acceptsInt(x);
   }
 }
@@ -82,37 +82,37 @@ static method testConcreteGetter(self::C c) → void {
 }
 static method testSetter(self::C c) → void {
   if(!(c.{self::C::_f5}{core::int?} == null)) {
-    core::int x = c.{self::C::_f5}{core::int};
+    core::int x = let core::int? #t3 = c.{self::C::_f5}{core::int?} in #t3 == null ?{core::int} #t3 as{Unchecked} core::int : #t3{core::int};
     self::acceptsInt(x);
   }
 }
 static method testStaticField(self::C c) → void {
   if(!(c.{self::C::_f6}{core::int?} == null)) {
-    core::int x = c.{self::C::_f6}{core::int};
+    core::int x = let core::int? #t4 = c.{self::C::_f6}{core::int?} in #t4 == null ?{core::int} #t4 as{Unchecked} core::int : #t4{core::int};
     self::acceptsInt(x);
   }
 }
 static method testStaticGetter(self::C c) → void {
   if(!(c.{self::C::_f7}{core::int?} == null)) {
-    core::int x = c.{self::C::_f7}{core::int};
+    core::int x = let core::int? #t5 = c.{self::C::_f7}{core::int?} in #t5 == null ?{core::int} #t5 as{Unchecked} core::int : #t5{core::int};
     self::acceptsInt(x);
   }
 }
 static method testTopLevelField(self::C c) → void {
   if(!(c.{self::C::_f8}{core::int?} == null)) {
-    core::int x = c.{self::C::_f8}{core::int};
+    core::int x = let core::int? #t6 = c.{self::C::_f8}{core::int?} in #t6 == null ?{core::int} #t6 as{Unchecked} core::int : #t6{core::int};
     self::acceptsInt(x);
   }
 }
 static method testTopLevelGetter(self::C c) → void {
   if(!(c.{self::C::_f9}{core::int?} == null)) {
-    core::int x = c.{self::C::_f9}{core::int};
+    core::int x = let core::int? #t7 = c.{self::C::_f9}{core::int?} in #t7 == null ?{core::int} #t7 as{Unchecked} core::int : #t7{core::int};
     self::acceptsInt(x);
   }
 }
 static method testExtensionGetter(self::C c) → void {
   if(!(c.{self::C::_f10}{core::int?} == null)) {
-    core::int x = c.{self::C::_f10}{core::int};
+    core::int x = let core::int? #t8 = c.{self::C::_f10}{core::int?} in #t8 == null ?{core::int} #t8 as{Unchecked} core::int : #t8{core::int};
     self::acceptsInt(x);
   }
 }

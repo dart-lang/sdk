@@ -9,11 +9,12 @@ abstract final class HttpProfiler {
 
   static final Map<String, _HttpProfileData> _profile = {};
 
-  static _HttpProfileData startRequest(
+  static _HttpProfileData? startRequest(
     String method,
     Uri uri, {
     _HttpProfileData? parentRequest,
   }) {
+    if (const bool.fromEnvironment("dart.vm.product")) return null;
     final data = _HttpProfileData(method, uri, parentRequest?._timeline);
     _profile[data.id] = data;
     return data;
@@ -706,7 +707,7 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
     if (_profileData != null) {
       // If _timeline is not set up, don't add unnecessary map() to the stream.
       stream = stream.map((data) {
-        _profileData?.appendResponseData(data);
+        _profileData.appendResponseData(data);
         return data;
       });
     }
@@ -1154,7 +1155,7 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
       return super.addStream(s);
     }
     return super.addStream(s.map((data) {
-      _profileData?.appendRequestData(Uint8List.fromList(data));
+      _profileData.appendRequestData(Uint8List.fromList(data));
       return data;
     }));
   }
@@ -2778,7 +2779,8 @@ class _HttpClient implements HttpClient {
       }
     }
     _HttpProfileData? profileData;
-    if (HttpClient.enableTimelineLogging) {
+    if (HttpClient.enableTimelineLogging &&
+        !const bool.fromEnvironment("dart.vm.product")) {
       profileData = HttpProfiler.startRequest(method, uri);
     }
     return _getConnection(uri, uri.host, port, proxyConf, isSecure, profileData)

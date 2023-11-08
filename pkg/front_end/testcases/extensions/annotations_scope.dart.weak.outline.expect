@@ -8,7 +8,7 @@ extension E on core::int {
   static field constField2 = self::E|constField2;
   static method staticMethod = self::E|staticMethod;
   method instanceMethod = self::E|instanceMethod;
-  tearoff instanceMethod = self::E|get#instanceMethod;
+  method tearoff instanceMethod = self::E|get#instanceMethod;
 }
 @self::E|constField
 static const field core::int E|constField = 1;

@@ -16,9 +16,7 @@ const m2 = const {
 const m3 = const {
   "foo".codeUnitAt(0): 42
 //^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
-//^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_MAP_KEY
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 //      ^
 // [cfe] Method invocation is not a constant expression.
 };

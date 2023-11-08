@@ -27,8 +27,6 @@ replacement
 suggestions
   const
     kind: keyword
-  covariant
-    kind: keyword
 ''');
     } else {
       assertResponse(r'''
@@ -66,11 +64,7 @@ suggestions
   }
     kind: override
     selection: 90 38
-  abstract
-    kind: keyword
   const
-    kind: keyword
-  covariant
     kind: keyword
   dynamic
     kind: keyword
@@ -78,7 +72,9 @@ suggestions
     kind: keyword
   final
     kind: keyword
-  late
+  var
+    kind: keyword
+  void
     kind: keyword
 ''');
     }
@@ -134,11 +130,7 @@ suggestions
   }
     kind: override
     selection: 90 38
-  abstract
-    kind: keyword
   const
-    kind: keyword
-  covariant
     kind: keyword
   dynamic
     kind: keyword
@@ -146,7 +138,9 @@ suggestions
     kind: keyword
   final
     kind: keyword
-  late
+  var
+    kind: keyword
+  void
     kind: keyword
 ''');
     }
@@ -217,19 +211,13 @@ replacement
 suggestions
   const
     kind: keyword
-  covariant
-    kind: keyword
 ''');
     } else {
       assertResponse(r'''
 replacement
   left: 1
 suggestions
-  abstract
-    kind: keyword
   const
-    kind: keyword
-  covariant
     kind: keyword
   dynamic
     kind: keyword
@@ -237,7 +225,9 @@ suggestions
     kind: keyword
   final
     kind: keyword
-  late
+  var
+    kind: keyword
+  void
     kind: keyword
 ''');
     }
@@ -262,11 +252,7 @@ suggestions
 replacement
   left: 1
 suggestions
-  abstract
-    kind: keyword
   const
-    kind: keyword
-  covariant
     kind: keyword
   dynamic
     kind: keyword
@@ -274,7 +260,9 @@ suggestions
     kind: keyword
   final
     kind: keyword
-  late
+  var
+    kind: keyword
+  void
     kind: keyword
 ''');
     }
