@@ -104,7 +104,10 @@ class DartdevRunner extends CommandRunner<int> {
     if (nativeAssetsExperimentEnabled) {
       addCommand(BuildCommand(verbose: verbose));
     }
-    addCommand(CompileCommand(verbose: verbose));
+    addCommand(CompileCommand(
+      verbose: verbose,
+      nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
+    ));
     addCommand(CreateCommand(verbose: verbose));
     addCommand(DebugAdapterCommand(verbose: verbose));
     addCommand(DevToolsCommand(verbose: verbose));
