@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_internal' show patch, unsafeCast;
+import 'dart:_simd';
 import 'dart:_typed_data';
 import 'dart:_wasm';
 
@@ -272,4 +273,55 @@ class UnmodifiableByteDataView implements ByteData {
       // `JSDataViewImpl`. Add an interface for `ByteData` that can be made
       // immutable, implement it in all `ByteData` subtypes.
       unsafeCast<ByteDataBase>(data).immutable();
+}
+
+@patch
+class Int32x4List {
+  @patch
+  factory Int32x4List(int length) = NaiveInt32x4List;
+
+  @patch
+  factory Int32x4List.fromList(List<Int32x4> elements) =
+      NaiveInt32x4List.fromList;
+}
+
+@patch
+class Float32x4List {
+  @patch
+  factory Float32x4List(int length) = NaiveFloat32x4List;
+
+  @patch
+  factory Float32x4List.fromList(List<Float32x4> elements) =
+      NaiveFloat32x4List.fromList;
+}
+
+@patch
+class Float64x2List {
+  @patch
+  factory Float64x2List(int length) = NaiveFloat64x2List;
+
+  @patch
+  factory Float64x2List.fromList(List<Float64x2> elements) =
+      NaiveFloat64x2List.fromList;
+}
+
+@patch
+abstract class UnmodifiableInt32x4ListView implements Int32x4List {
+  @patch
+  factory UnmodifiableInt32x4ListView(Int32x4List list) =>
+      NaiveUnmodifiableInt32x4List(list);
+}
+
+@patch
+abstract class UnmodifiableFloat32x4ListView implements Float32x4List {
+  @patch
+  factory UnmodifiableFloat32x4ListView(Float32x4List list) =>
+      NaiveUnmodifiableFloat32x4List(list);
+}
+
+@patch
+abstract class UnmodifiableFloat64x2ListView implements Float64x2List {
+  @patch
+  factory UnmodifiableFloat64x2ListView(Float64x2List list) =>
+      NaiveUnmodifiableFloat64x2List(list);
 }
