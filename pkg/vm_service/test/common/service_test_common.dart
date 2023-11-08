@@ -60,6 +60,10 @@ Future<void> syncNext(VmService service, IsolateRef isolateRef) async {
   }
 }
 
+// WARNING: interleaving calls based on hasPausedFor using Future.wait() may
+// cause the debug stream to be cancelled after one of the checks completes.
+// If another check is waiting on an event, it will no longer be notified of
+// the event, causing the test to hang.
 Future<void> hasPausedFor(
     VmService service, IsolateRef isolateRef, String kind) async {
   Completer<dynamic>? completer = Completer();
@@ -97,23 +101,43 @@ Future<void> hasPausedFor(
   return completer?.future; // Will complete when breakpoint hit.
 }
 
+// WARNING: interleaving calls based on hasPausedFor using Future.wait() may
+// cause the debug stream to be cancelled after one of the checks completes.
+// If another check is waiting on an event, it will no longer be notified of
+// the event, causing the test to hang.
 Future<void> hasStoppedAtBreakpoint(VmService service, IsolateRef isolate) {
   return hasPausedFor(service, isolate, EventKind.kPauseBreakpoint);
 }
 
+// WARNING: interleaving calls based on hasPausedFor using Future.wait() may
+// cause the debug stream to be cancelled after one of the checks completes.
+// If another check is waiting on an event, it will no longer be notified of
+// the event, causing the test to hang.
 Future<void> hasStoppedPostRequest(VmService service, IsolateRef isolate) {
   return hasPausedFor(service, isolate, EventKind.kPausePostRequest);
 }
 
+// WARNING: interleaving calls based on hasPausedFor using Future.wait() may
+// cause the debug stream to be cancelled after one of the checks completes.
+// If another check is waiting on an event, it will no longer be notified of
+// the event, causing the test to hang.
 Future<void> hasStoppedWithUnhandledException(
     VmService service, IsolateRef isolate) {
   return hasPausedFor(service, isolate, EventKind.kPauseException);
 }
 
+// WARNING: interleaving calls based on hasPausedFor using Future.wait() may
+// cause the debug stream to be cancelled after one of the checks completes.
+// If another check is waiting on an event, it will no longer be notified of
+// the event, causing the test to hang.
 Future<void> hasStoppedAtExit(VmService service, IsolateRef isolate) {
   return hasPausedFor(service, isolate, EventKind.kPauseExit);
 }
 
+// WARNING: interleaving calls based on hasPausedFor using Future.wait() may
+// cause the debug stream to be cancelled after one of the checks completes.
+// If another check is waiting on an event, it will no longer be notified of
+// the event, causing the test to hang.
 Future<void> hasPausedAtStart(VmService service, IsolateRef isolate) {
   return hasPausedFor(service, isolate, EventKind.kPauseStart);
 }
