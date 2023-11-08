@@ -315,6 +315,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final UnboxingInfoMetadataRepository _unboxingInfoMetadata;
   final UnboxingInfoManager _unboxingInfo;
   final Class _intClass;
+  final TFClass _intTFClass;
   late final Constant _nullConstant = NullConstant();
 
   AnnotateKernel(Component component, this._typeFlowAnalysis, this.hierarchy,
@@ -329,7 +330,9 @@ class AnnotateKernel extends RecursiveVisitor {
         _tableSelectorMetadata = TableSelectorMetadataRepository(),
         _closureIdMetadata = ClosureIdMetadataRepository(),
         _unboxingInfoMetadata = UnboxingInfoMetadataRepository(),
-        _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
+        _intClass = _typeFlowAnalysis.environment.coreTypes.intClass,
+        _intTFClass = _typeFlowAnalysis.hierarchyCache
+            .getTFClass(_typeFlowAnalysis.environment.coreTypes.intClass) {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_inferredArgTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
@@ -365,7 +368,7 @@ class AnnotateKernel extends RecursiveVisitor {
       concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
 
       if (concreteClass == null) {
-        isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intClass);
+        isInt = type.isSubtypeOf(_intTFClass);
       }
 
       if (type is ConcreteType && !nullable) {
