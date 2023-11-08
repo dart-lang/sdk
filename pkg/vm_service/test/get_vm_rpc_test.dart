@@ -10,10 +10,17 @@ import 'package:test/test.dart';
 
 import 'common/test_helper.dart';
 
+extension on VM {
+  String get embedder => json!['_embedder'];
+  int get currentMemory => json!['_currentMemory'];
+  int get currentRSS => json!['_currentRSS'];
+  int get maxRSS => json!['_maxRSS'];
+}
+
 final tests = <VMTest>[
   (VmService service) async {
     final vm = await service.getVM();
-    expect(vm.name, equals('Walter'));
+    expect(vm.name, 'Walter');
     expect(vm.architectureBits, isPositive);
     expect(vm.targetCPU, isA<String>());
     expect(vm.hostCPU, isA<String>());
@@ -28,6 +35,13 @@ final tests = <VMTest>[
     final isolateGroups = vm.isolateGroups!;
     expect(isolateGroups.length, isPositive);
     expect(isolateGroups[0].id, startsWith('isolateGroups/'));
+
+    // Private properties.
+    expect(vm.embedder, 'Dart VM');
+    expect(vm.currentMemory, greaterThan(0));
+    expect(vm.currentRSS, greaterThan(0));
+    expect(vm.maxRSS, greaterThan(0));
+    expect(vm.maxRSS, greaterThanOrEqualTo(vm.currentRSS));
   },
 ];
 
