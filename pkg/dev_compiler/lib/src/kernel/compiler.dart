@@ -379,7 +379,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _assertInteropMethod = sdk.getTopLevelMember(
             'dart:_runtime', 'assertInterop') as Procedure,
         _futureOrNormalizer = FutureOrNormalizer(_coreTypes),
-        _extensionTypeEraser = ExtensionTypeEraser(),
         _typeRecipeGenerator = TypeRecipeGenerator(_coreTypes, _hierarchy),
         _extensionIndex =
             ExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment),
@@ -403,8 +402,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _coreTypes.legacyRawType(_coreTypes.internalSymbolClass);
 
   final FutureOrNormalizer _futureOrNormalizer;
-
-  final ExtensionTypeEraser _extensionTypeEraser;
 
   /// Module can be emitted only once, and the compiler can be reused after
   /// only in incremental mode, for expression compilation only.
@@ -1229,7 +1226,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             }
             return _emitInterfaceType(t, emitNullability: emitNullability);
           case FutureOrType():
-            var normalizedType = _futureOrNormalizer.normalize(t);
+            var normalizedType =
+                _futureOrNormalizer.normalize(t.extensionTypeErasure);
             if (normalizedType is FutureOrType) {
               _declareBeforeUse(_coreTypes.deprecatedFutureOrClass);
               var typeRep = _emitFutureOrTypeWithArgument(
@@ -3426,7 +3424,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     }
 
     var normalizedType =
-        _futureOrNormalizer.normalize(_extensionTypeEraser.erase(type));
+        _futureOrNormalizer.normalize(type.extensionTypeErasure);
     try {
       var result = _typeRecipeGenerator.recipeInEnvironment(
           normalizedType, _currentTypeEnvironment);
@@ -3489,7 +3487,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitFutureOrType(FutureOrType type) {
-    var normalizedType = _futureOrNormalizer.normalize(type);
+    var normalizedType =
+        _futureOrNormalizer.normalize(type.extensionTypeErasure);
     return normalizedType is FutureOrType
         ? _emitFutureOrType(normalizedType)
         : normalizedType.accept(this);

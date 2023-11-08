@@ -129,7 +129,7 @@ class TypeRecipeGenerator {
       for (var i = 0; i < cls.typeParameters.length; i++) {
         var paramRecipe = '${cls.name}.${cls.typeParameters[i].name!}';
         var argumentRecipe = _futureOrNormalizer
-            .normalize(type.typeArguments[i])
+            .normalize(type.typeArguments[i].extensionTypeErasure)
             .accept(_recipeVisitor);
         supertypeEntries[paramRecipe] = argumentRecipe;
       }
@@ -150,14 +150,16 @@ class TypeRecipeGenerator {
         var recipe = interfaceTypeRecipe(currentClass);
         var typeArgumentRecipes = [
           for (var typeArgument in currentType.typeArguments)
-            _futureOrNormalizer.normalize(typeArgument).accept(_recipeVisitor)
+            _futureOrNormalizer
+                .normalize(typeArgument.extensionTypeErasure)
+                .accept(_recipeVisitor)
         ];
         // Encode the type argument mapping portion of this type rule.
         for (var i = 0; i < currentClass.typeParameters.length; i++) {
           var paramRecipe =
               '${currentClass.name}.${currentClass.typeParameters[i].name!}';
           var argumentRecipe = _futureOrNormalizer
-              .normalize(currentType.typeArguments[i])
+              .normalize(currentType.typeArguments[i].extensionTypeErasure)
               .accept(_recipeVisitor);
           supertypeEntries[paramRecipe] = argumentRecipe;
         }
