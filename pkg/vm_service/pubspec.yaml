@@ -21,6 +21,7 @@ dev_dependencies:
   markdown: any
   path: any
   pub_semver: any
+  stack_trace: any
   test_package: any
   test: any
   vm_service_protos: any

@@ -1,64 +1,65 @@
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
-import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+import 'package:test/test.dart';
 
+import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
+@pragma('vm:entry-point') // Prevent obfuscation
 class Foo {}
 
+@pragma('vm:entry-point') // Prevent obfuscation
 class Bar {}
 
 class Container1 {
-  @pragma("vm:entry-point")
-  Foo foo = Foo();
-  @pragma("vm:entry-point")
-  Bar bar = Bar();
+  @pragma('vm:entry-point') // Prevent obfuscation
+  final foo = Foo();
+  @pragma('vm:entry-point') // Prevent obfuscation
+  final bar = Bar();
 }
 
 class Container2 {
   Container2(this.foo);
 
-  @pragma("vm:entry-point")
-  Foo foo;
-  @pragma("vm:entry-point")
-  Bar bar = Bar();
+  @pragma('vm:entry-point') // Prevent obfuscation
+  final Foo foo;
+  @pragma('vm:entry-point') // Prevent obfuscation
+  final bar = Bar();
 }
 
 class Container3 {
-  @pragma("vm:entry-point")
-  int number = 42;
-  @pragma("vm:entry-point")
-  double doub = 3.14;
-  @pragma("vm:entry-point")
-  String foo = 'foobar';
-  @pragma("vm:entry-point")
-  bool bar = false;
-  @pragma("vm:entry-point")
-  late Map baz;
-  @pragma("vm:entry-point")
-  late LinkedHashMap linkedBaz;
-  @pragma("vm:entry-point")
-  late List list;
-  @pragma("vm:entry-point")
-  late List unmodifiableList;
+  @pragma('vm:entry-point') // Prevent obfuscation
+  final number = 42;
+  @pragma('vm:entry-point') // Prevent obfuscation
+  final doub = 3.14;
+  @pragma('vm:entry-point') // Prevent obfuscation
+  final foo = 'foobar';
+  @pragma('vm:entry-point') // Prevent obfuscation
+  final bar = false;
+  @pragma('vm:entry-point') // Prevent obfuscation
+  late final Map<String, String> baz;
+  @pragma('vm:entry-point') // Prevent obfuscation
+  late final List<int> list;
+  @pragma('vm:entry-point') // Prevent obfuscation
+  late final List<void> unmodifiableList;
 
   Container3() {
     baz = {
       'a': 'b',
     };
-    linkedBaz = LinkedHashMap.from(baz);
     list = [1, 2, 3];
-    unmodifiableList = List.empty();
+    unmodifiableList = List<void>.empty();
   }
 }
 
+@pragma('vm:entry-point') // Prevent obfuscation
 late Container1 c1;
+@pragma('vm:entry-point') // Prevent obfuscation
 late Container2 c2;
+@pragma('vm:entry-point') // Prevent obfuscation
 late Container3 c3;
 
 void script() {
@@ -78,16 +79,19 @@ late HeapSnapshotObject snapshot2Bar;
 late HeapSnapshotGraph snapshot3;
 
 final tests = <IsolateTest>[
-  (VmService service, IsolateRef isolate) async {
-    snapshot1 = await HeapSnapshotGraph.getSnapshot(service, isolate);
+  (VmService service, IsolateRef isolateRef) async {
+    snapshot1 = await fetchHeapSnapshot(service, isolateRef);
 
-    Iterable<HeapSnapshotObject> container1s = snapshot1.objects.where(
-      (HeapSnapshotObject obj) => obj.klass.name == 'Container1',
+    final container1s = snapshot1.objects.where(
+      (obj) => obj.klass.name == 'Container1',
     );
     expect(container1s.length, 1);
 
     final c1Obj = container1s.first;
 
+    c1Obj.successors.forEach((element) {
+      print(element.klass.name);
+    });
     snapshot1Foo = c1Obj.successors.firstWhere(
       (element) => element.klass.name == 'Foo',
     );
@@ -104,11 +108,10 @@ final tests = <IsolateTest>[
       true,
     );
   },
-  (VmService service, IsolateRef isolate) async {
-    snapshot2 = await HeapSnapshotGraph.getSnapshot(service, isolate);
-    ;
-    Iterable<HeapSnapshotObject> container2s = snapshot2.objects.where(
-      (HeapSnapshotObject obj) => obj.klass.name == 'Container2',
+  (VmService service, IsolateRef isolateRef) async {
+    snapshot2 = await fetchHeapSnapshot(service, isolateRef);
+    final container2s = snapshot2.objects.where(
+      (obj) => obj.klass.name == 'Container2',
     );
     expect(container2s.length, 1);
 
@@ -138,10 +141,10 @@ final tests = <IsolateTest>[
       true,
     );
   },
-  (VmService service, IsolateRef isolate) async {
-    snapshot3 = await HeapSnapshotGraph.getSnapshot(service, isolate);
-    Iterable<HeapSnapshotObject> container3s = snapshot3.objects.where(
-      (HeapSnapshotObject obj) => obj.klass.name == 'Container3',
+  (VmService service, IsolateRef isolateRef) async {
+    snapshot3 = await fetchHeapSnapshot(service, isolateRef);
+    final container3s = snapshot3.objects.where(
+      (obj) => obj.klass.name == 'Container3',
     );
     expect(container3s.length, 1);
     final c3Obj = container3s.first;
@@ -151,7 +154,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'object_graph_identity_hash_test.dart',

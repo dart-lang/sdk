@@ -5,6 +5,7 @@
 library service_test_common;
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:path/path.dart';
 import 'package:test/test.dart';
@@ -526,6 +527,34 @@ Future<void> evaluateAndExpect(
   if (kind != null) {
     expect(result.kind!, kind);
   }
+}
+
+Future<HeapSnapshotGraph> fetchHeapSnapshot(
+  VmService service,
+  IsolateRef isolateRef,
+) async {
+  final isolateId = isolateRef.id!;
+  final completer = Completer<void>();
+  late final StreamSubscription sub;
+  final data = <ByteData>[];
+  sub = service.onHeapSnapshotEvent.listen((event) async {
+    data.add(event.data!);
+    if (event.last == true) {
+      sub.cancel();
+      await service.streamCancel(EventStreams.kHeapSnapshot);
+      completer.complete();
+    }
+  });
+  await service.streamListen(EventStreams.kHeapSnapshot);
+  await service.requestHeapSnapshot(isolateId);
+  await completer.future;
+  return HeapSnapshotGraph.fromChunks(data);
+}
+
+IsolateTest reloadSources({bool pause = false}) {
+  return (VmService service, IsolateRef isolateRef) async {
+    await service.reloadSources(isolateRef.id!, pause: pause);
+  };
 }
 
 IsolateTest hasLocalVarInTopStackFrame(String varName) {

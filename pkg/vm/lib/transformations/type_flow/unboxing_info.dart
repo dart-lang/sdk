@@ -23,14 +23,18 @@ class UnboxingInfoManager {
 
   final Map<Member, UnboxingInfoMetadata> _memberInfo = {};
 
-  final TypeHierarchy _typeHierarchy;
   final CoreTypes _coreTypes;
   final NativeCodeOracle _nativeCodeOracle;
+  final TFClass _intTFClass;
+  final TFClass _doubleTFClass;
 
   UnboxingInfoManager(TypeFlowAnalysis typeFlowAnalysis)
-      : _typeHierarchy = typeFlowAnalysis.hierarchyCache,
-        _coreTypes = typeFlowAnalysis.environment.coreTypes,
-        _nativeCodeOracle = typeFlowAnalysis.nativeCodeOracle;
+      : _coreTypes = typeFlowAnalysis.environment.coreTypes,
+        _nativeCodeOracle = typeFlowAnalysis.nativeCodeOracle,
+        _intTFClass = typeFlowAnalysis.hierarchyCache
+            .getTFClass(typeFlowAnalysis.environment.coreTypes.intClass),
+        _doubleTFClass = typeFlowAnalysis.hierarchyCache
+            .getTFClass(typeFlowAnalysis.environment.coreTypes.doubleClass);
 
   UnboxingInfoMetadata? getUnboxingInfoOfMember(Member member) {
     final UnboxingInfoMetadata? info = _memberInfo[member];
@@ -175,10 +179,10 @@ class UnboxingInfoManager {
 
   UnboxingType _getUnboxingType(Member member, Type type, bool isReturn) {
     if (type is! NullableType) {
-      if (type.isSubtypeOf(_typeHierarchy, _coreTypes.intClass)) {
+      if (type.isSubtypeOf(_intTFClass)) {
         return UnboxingType.kInt;
       }
-      if (type.isSubtypeOf(_typeHierarchy, _coreTypes.doubleClass)) {
+      if (type.isSubtypeOf(_doubleTFClass)) {
         return UnboxingType.kDouble;
       }
       if (isReturn) {

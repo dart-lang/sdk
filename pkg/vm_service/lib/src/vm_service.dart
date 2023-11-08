@@ -1934,14 +1934,39 @@ enum RPCErrorKind {
   /// The requested feature is disabled.
   kFeatureDisabled(code: 100, message: 'Feature is disabled'),
 
+  /// The VM must be paused when performing this operation.
+  kVmMustBePaused(code: 101, message: 'The VM must be paused'),
+
+  /// Unable to add a breakpoint at the specified line or function.
+  kCannotAddBreakpoint(
+      code: 102,
+      message: 'Unable to add breakpoint at specified line or function'),
+
   /// The stream has already been subscribed to.
   kStreamAlreadySubscribed(code: 103, message: 'Stream already subscribed'),
 
   /// The stream has not been subscribed to.
   kStreamNotSubscribed(code: 104, message: 'Stream not subscribed'),
 
+  /// Isolate must first be runnable.
+  kIsolateMustBeRunnable(code: 105, message: 'Isolate must be runnable'),
+
   /// Isolate must first be paused.
   kIsolateMustBePaused(code: 106, message: 'Isolate must be paused'),
+
+  /// The isolate could not be resumed.
+  kIsolateCannotBeResumed(
+      code: 107, message: 'The isolate could not be resumed'),
+
+  /// The isolate is currently reloading.
+  kIsolateIsReloading(code: 108, message: 'The isolate is currently reloading'),
+
+  /// The isolate could not be reloaded due to an unhandled exception.
+  kIsolateCannotReload(code: 109, message: 'The isolate could not be reloaded'),
+
+  /// The isolate reload resulted in no changes being applied.
+  kIsolateNoReloadChangesApplied(
+      code: 110, message: 'No reload changes applied'),
 
   /// The service has already been registered.
   kServiceAlreadyRegistered(code: 111, message: 'Service already registered'),
@@ -1952,6 +1977,12 @@ enum RPCErrorKind {
   /// There was an error in the expression compiler.
   kExpressionCompilationError(
       code: 113, message: 'Expression compilation error'),
+
+  /// The timeline related request could not be completed due to the current configuration.
+  kInvalidTimelineRequest(
+      code: 114,
+      message:
+          'Invalid timeline request for the current timeline configuration'),
 
   /// The custom stream does not exist.
   kCustomStreamDoesNotExist(code: 130, message: 'Custom stream does not exist'),

@@ -1,3 +1,14 @@
+## 13.1.0-dev
+- Add the following error codes to `RPCErrorKind`:
+  - `kVmMustBePaused`
+  - `kCannotAddBreakpoint`
+  - `kIsolateMustBeRunnable`
+  - `kIsolateCannotBeResumed`
+  - `kIsolateIsReloading`
+  - `kIsolateCannotReload`
+  - `kIsolateNoReloadChangesApplied`
+  - `kInvalidTimelineRequest`
+
 ## 13.0.0
 - Add Dart IO extension methods:
   - `isSocketProfilingAvailable`

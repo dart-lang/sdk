@@ -11,18 +11,12 @@ import 'package:test/test.dart';
 import 'package:vm/transformations/type_flow/types.dart';
 
 class TestTypeHierarchy extends TypeHierarchy {
-  final Map<Class, TFClass> classes = <Class, TFClass>{};
-  final Map<Class, List<Class>> subtypes;
+  final Map<Class, TFClass> classes;
   final Map<Class, Type> specializations;
   int classIdCounter = 0;
 
-  TestTypeHierarchy(CoreTypes coreTypes, this.subtypes, this.specializations)
+  TestTypeHierarchy(CoreTypes coreTypes, this.classes, this.specializations)
       : super(coreTypes, /*soundNullSafety=*/ true);
-
-  @override
-  bool isSubtype(Class sub, Class sup) {
-    return subtypes[sup]!.contains(sub);
-  }
 
   @override
   Type specializeTypeCone(TFClass base, {bool allowWideCone = false}) {
@@ -31,7 +25,7 @@ class TestTypeHierarchy extends TypeHierarchy {
 
   @override
   TFClass getTFClass(Class c) =>
-      classes[c] ??= new TFClass(++classIdCounter, c, null);
+      classes[c] ??= TFClass(++classIdCounter, c, {}, null);
 
   @override
   List<DartType> flattenedTypeArgumentsFor(Class klass) =>
@@ -95,15 +89,15 @@ main() {
   test('union-intersection', () {
     // T1 <: T3, T2 <: T3
 
-    final c1 = new Class(name: 'T1', fileUri: dummyUri)..parent = dummyLibrary;
-    final c2 = new Class(name: 'T2', fileUri: dummyUri)..parent = dummyLibrary;
-    final c3 = new Class(name: 'T3', fileUri: dummyUri)..parent = dummyLibrary;
-    final c4 = new Class(name: 'T4', fileUri: dummyUri)..parent = dummyLibrary;
+    final c1 = Class(name: 'T1', fileUri: dummyUri)..parent = dummyLibrary;
+    final c2 = Class(name: 'T2', fileUri: dummyUri)..parent = dummyLibrary;
+    final c3 = Class(name: 'T3', fileUri: dummyUri)..parent = dummyLibrary;
+    final c4 = Class(name: 'T4', fileUri: dummyUri)..parent = dummyLibrary;
 
-    final tfc1 = new TFClass(1, c1, null);
-    final tfc2 = new TFClass(2, c2, null);
-    final tfc3 = new TFClass(3, c3, null);
-    final tfc4 = new TFClass(4, c4, null);
+    final tfc3 = TFClass(3, c3, {}, null);
+    final tfc1 = TFClass(1, c1, {tfc3}, null);
+    final tfc2 = TFClass(2, c2, {tfc3}, null);
+    final tfc4 = TFClass(4, c4, {}, null);
 
     final empty = emptyType;
     final any = anyInstanceType;
@@ -253,12 +247,12 @@ main() {
 
     final hierarchy = new TestTypeHierarchy(
         coreTypes,
-        // subtypes
+        // classes
         {
-          c1: [c1],
-          c2: [c2],
-          c3: [c1, c2, c3],
-          c4: [c4],
+          c1: tfc1,
+          c2: tfc2,
+          c3: tfc3,
+          c4: tfc4,
         },
         // specializations
         {
@@ -286,17 +280,17 @@ main() {
   });
 
   test('hashcode-equals', () {
-    final c1 = new Class(name: 'C1', fileUri: dummyUri)..parent = dummyLibrary;
-    final c2 = new Class(name: 'C2', fileUri: dummyUri)..parent = dummyLibrary;
-    final c3 = new Class(name: 'C3', fileUri: dummyUri)..parent = dummyLibrary;
+    final c1 = Class(name: 'C1', fileUri: dummyUri)..parent = dummyLibrary;
+    final c2 = Class(name: 'C2', fileUri: dummyUri)..parent = dummyLibrary;
+    final c3 = Class(name: 'C3', fileUri: dummyUri)..parent = dummyLibrary;
 
-    final tfc1 = new TFClass(1, c1, null);
-    final tfc2 = new TFClass(2, c2, null);
-    final tfc3 = new TFClass(3, c3, null);
+    final tfc1 = TFClass(1, c1, {}, null);
+    final tfc2 = TFClass(2, c2, {}, null);
+    final tfc3 = TFClass(3, c3, {}, null);
 
-    final t1a = new InterfaceType(c1, Nullability.legacy);
-    final t1b = new InterfaceType(c1, Nullability.legacy);
-    final t2 = new InterfaceType(c2, Nullability.legacy);
+    final t1a = InterfaceType(c1, Nullability.legacy);
+    final t1b = InterfaceType(c1, Nullability.legacy);
+    final t2 = InterfaceType(c2, Nullability.legacy);
 
     void eq(dynamic a, dynamic b) {
       expect(a == b, isTrue, reason: "Test case: $a == $b");

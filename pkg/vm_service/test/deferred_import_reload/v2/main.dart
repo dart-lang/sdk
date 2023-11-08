@@ -5,29 +5,29 @@
 import 'deferred.dart' deferred as prefix1;
 import 'deferred.dart' deferred as prefix2;
 
-main() {
-  throw "Not executed";
+void main() {
+  throw 'Not executed';
 }
 
-test() {
-  var x = "";
+String test() {
+  String x = '';
 
   try {
     x += prefix1.foo(); // Should retain loaded=true state across reload.
   } catch (e, st) {
     print(e);
     print(st);
-    x += "error";
+    x += 'error';
   }
 
-  x += ",";
+  x += ',';
 
   try {
     x += prefix2.foo(); // Should retain loaded=false state across reload.
   } catch (e, st) {
     print(e);
     print(st);
-    x += "error";
+    x += 'error';
   }
 
   return x;

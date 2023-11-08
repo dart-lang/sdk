@@ -262,6 +262,7 @@ class _ServiceTesterRunner {
     bool pause_on_unhandled_exceptions = false,
     bool testeeControlsServer = false,
     bool useAuthToken = false,
+    bool allowForNonZeroExitCode = false,
     VmServiceFactory serviceFactory = VmService.defaultFactory,
   }) async {
     var process = _ServiceTesteeLauncher(scriptName);
@@ -326,7 +327,7 @@ class _ServiceTesterRunner {
 
     final exitCode = await process.exitCode;
     if (exitCode != 0) {
-      if (!process.killedByTester) {
+      if (!(process.killedByTester || allowForNonZeroExitCode)) {
         throw "Testee exited with unexpected exitCode: $exitCode";
       }
     }
@@ -383,29 +384,33 @@ Future<void> runIsolateTests(
   bool pause_on_unhandled_exceptions = false,
   bool testeeControlsServer = false,
   bool useAuthToken = false,
+  bool allowForNonZeroExitCode = false,
   List<String>? experiments,
   List<String>? extraArgs,
 }) async {
   assert(!pause_on_start || testeeBefore == null);
   if (_isTestee()) {
     await _ServiceTesteeRunner().run(
-        testeeBefore: testeeBefore,
-        testeeConcurrent: testeeConcurrent,
-        pause_on_start: pause_on_start,
-        pause_on_exit: pause_on_exit);
+      testeeBefore: testeeBefore,
+      testeeConcurrent: testeeConcurrent,
+      pause_on_start: pause_on_start,
+      pause_on_exit: pause_on_exit,
+    );
   } else {
     await _ServiceTesterRunner().run(
-        mainArgs: mainArgs,
-        scriptName: scriptName,
-        extraArgs: extraArgs,
-        isolateTests: tests,
-        pause_on_start: pause_on_start,
-        pause_on_exit: pause_on_exit,
-        verbose_vm: verbose_vm,
-        experiments: experiments,
-        pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
-        testeeControlsServer: testeeControlsServer,
-        useAuthToken: useAuthToken);
+      mainArgs: mainArgs,
+      scriptName: scriptName,
+      extraArgs: extraArgs,
+      isolateTests: tests,
+      pause_on_start: pause_on_start,
+      pause_on_exit: pause_on_exit,
+      verbose_vm: verbose_vm,
+      experiments: experiments,
+      pause_on_unhandled_exceptions: pause_on_unhandled_exceptions,
+      testeeControlsServer: testeeControlsServer,
+      useAuthToken: useAuthToken,
+      allowForNonZeroExitCode: allowForNonZeroExitCode,
+    );
   }
 }
 
