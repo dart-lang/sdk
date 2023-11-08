@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -78,6 +79,9 @@ class AnalysisContextImpl implements AnalysisContext {
     _typeSystemLegacy = null;
     _typeSystemNonNullableByDefault = null;
   }
+
+  @override
+  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) => _analysisOptions;
 
   void setTypeProviders({
     required TypeProviderImpl legacy,

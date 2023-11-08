@@ -50,7 +50,6 @@ import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:meta/meta.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
 ///
@@ -269,6 +268,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
   /// A map that associates files to corresponding analysis options.
   /// todo(pq): his will replace the single [_analysisOptions] instance.
+  // ignore: unused_field
   final AnalysisOptionsMap? _analysisOptionsMap;
 
   /// Create a new instance of [AnalysisDriver].
@@ -327,7 +327,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Set<String> get addedFiles => _fileTracker.addedFiles;
 
   /// Return the analysis options used to control analysis.
-  //todo(pq): @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
+  // TODO(pq) @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions => _analysisOptions;
 
   /// Return the current analysis session.
@@ -668,9 +668,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
-  @experimental
   AnalysisOptions getAnalysisOptionsForFile(File file) =>
-      _analysisOptionsMap?.getOptions(file) ?? AnalysisOptionsImpl();
+      // TODO(pq) replace w/ _analysisOptionsMap?.getOptions(file)
+      _analysisOptions;
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
   /// [path]. If there is no cached result, return `null`. Usually only results
@@ -1359,11 +1359,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           performance: OperationPerformanceImpl('<root>'),
         );
 
-        // todo(pq): pass this into the library analyzer.
-        //var options = libraryContext.analysisContext.getAnalysisOptionsForFile(file.resource);
+        var options = libraryContext.analysisContext
+            .getAnalysisOptionsForFile(file.resource);
 
         var results = LibraryAnalyzer(
-          analysisOptions as AnalysisOptionsImpl,
+          options,
           declaredVariables,
           libraryContext.elementFactory.libraryOfUri2(library.file.uri),
           libraryContext.elementFactory.analysisSession.inheritanceManager,
@@ -1472,11 +1472,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         performance: OperationPerformanceImpl('<root>'),
       );
 
-      // todo(pq): pass this into the library analyzer.
-      //var options = libraryContext.analysisContext.getAnalysisOptionsForFile(library.file.resource);
+      var analysisOptions = libraryContext.analysisContext
+          .getAnalysisOptionsForFile(library.file.resource);
 
       var unitResults = LibraryAnalyzer(
-              analysisOptions as AnalysisOptionsImpl,
+              analysisOptions,
               declaredVariables,
               libraryContext.elementFactory.libraryOfUri2(library.file.uri),
               libraryContext.elementFactory.analysisSession.inheritanceManager,
@@ -1917,12 +1917,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         },
       );
       var unitElement = libraryContext.computeUnitElement(library, file);
-
-      // todo(pq): pass this into the library analyzer.
-      //var options = libraryContext.analysisContext.getAnalysisOptionsForFile(file.resource);
+      var analysisOptions = libraryContext.analysisContext
+          .getAnalysisOptionsForFile(file.resource);
 
       var analysisResult = LibraryAnalyzer(
-        analysisOptions as AnalysisOptionsImpl,
+        analysisOptions,
         declaredVariables,
         libraryContext.elementFactory.libraryOfUri2(library.file.uri),
         libraryContext.elementFactory.analysisSession.inheritanceManager,

@@ -316,7 +316,9 @@ class CheckNameResponse {
     if (node is ClassDeclaration) {
       var utils = CorrectionUtils(resolvedUnit);
       var location = utils.prepareNewConstructorLocation(
-          fileResolver.contextObjects!.analysisSession, node);
+          fileResolver.contextObjects!.analysisSession,
+          node,
+          resolvedUnit.file);
       if (location == null) {
         return null;
       }

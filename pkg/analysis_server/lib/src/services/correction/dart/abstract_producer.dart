@@ -351,6 +351,8 @@ abstract class ResolvedCorrectionProducer
   }
 
   LinterContext getLinterContext(path.Context pathContext) {
+    var analysisOptions = sessionHelper.session.analysisContext
+        .getAnalysisOptionsForFile(unitResult.file);
     return LinterContextImpl(
       [], // unused
       LinterContextUnit(unitResult.content, unitResult.unit),
@@ -358,7 +360,7 @@ abstract class ResolvedCorrectionProducer
       typeProvider,
       typeSystem as TypeSystemImpl,
       InheritanceManager3(), // unused
-      sessionHelper.session.analysisContext.analysisOptions,
+      analysisOptions,
       null,
       pathContext,
     );
@@ -527,9 +529,6 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// Return `true` if the fixes are being built for the bulk-fix request.
   bool get applyingBulkFixes => _context.applyingBulkFixes;
 
-  CodeStyleOptions get codeStyleOptions =>
-      sessionHelper.session.analysisContext.analysisOptions.codeStyleOptions;
-
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
   /// not exist.
@@ -599,6 +598,11 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// given [type].
   String displayStringForType(DartType type) =>
       type.getDisplayString(withNullability: _context.isNonNullableByDefault);
+
+  CodeStyleOptions getCodeStyleOptions(File file) =>
+      sessionHelper.session.analysisContext
+          .getAnalysisOptionsForFile(file)
+          .codeStyleOptions;
 
   /// Return the function body of the most deeply nested method or function that
   /// encloses the [node], or `null` if the node is not in a method or function.

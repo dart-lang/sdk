@@ -240,15 +240,15 @@ class DeclarationsContext {
   /// this context.
   DartdocDirectiveInfo get dartdocDirectiveInfo => _dartdocDirectiveInfo;
 
-  /// The set of features that are globally enabled for this context.
-  FeatureSet get featureSet {
-    return _analysisContext.analysisOptions.contextFeatures;
-  }
-
   AnalysisDriver get _analysisDriver {
     var session = _analysisContext.currentSession as AnalysisSessionImpl;
     // ignore: deprecated_member_use_from_same_package
     return session.getDriver();
+  }
+
+  /// The set of features that are enabled for this file.
+  FeatureSet getFeatureSet(File file) {
+    return _analysisContext.getAnalysisOptionsForFile(file).contextFeatures;
   }
 
   /// Return libraries that are available to the file with the given [path].
@@ -1332,7 +1332,7 @@ class _File {
     if (bytes == null) {
       content ??= _readContent(resource);
 
-      CompilationUnit unit = _parse(context.featureSet, content);
+      CompilationUnit unit = _parse(context.getFeatureSet(resource), content);
       _buildFileDeclarations(unit);
       _extractDartdocInfoFromUnit(unit);
       _putFileDeclarationsToByteStore(contentKey);

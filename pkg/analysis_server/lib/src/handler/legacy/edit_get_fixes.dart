@@ -103,12 +103,15 @@ class EditGetFixesHandler extends LegacyHandler
     await driver.applyPendingFileChanges();
     var session = driver.currentSession;
     var sourceFactory = driver.sourceFactory;
+    var analysisContext = session.analysisContext;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsForFile(optionsFile);
     var errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
       sourceFactory,
-      session.analysisContext.contextRoot.root.path,
-      session.analysisContext.analysisOptions.sdkVersionConstraint,
+      analysisContext.contextRoot.root.path,
+      analysisOptions.sdkVersionConstraint,
     );
     var options = _getOptions(sourceFactory, content);
     if (options == null) {
@@ -219,11 +222,13 @@ error.errorCode: ${error.errorCode}
     if (node is! YamlMap) {
       return errorFixesList;
     }
+    final analysisOptions =
+        session.analysisContext.getAnalysisOptionsForFile(pubspecFile);
     final errors = validatePubspec(
       contents: node,
       source: pubspecFile.createSource(),
       provider: resourceProvider,
-      analysisOptions: session.analysisContext.analysisOptions,
+      analysisOptions: analysisOptions,
     );
     for (var error in errors) {
       var generator =

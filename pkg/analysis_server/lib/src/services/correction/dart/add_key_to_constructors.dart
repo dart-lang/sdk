@@ -71,8 +71,8 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
   /// The lint is on the name of the class when there are no constructors.
   Future<void> _computeClassDeclaration(
       ChangeBuilder builder, ClassDeclaration node) async {
-    var targetLocation =
-        utils.prepareNewConstructorLocation(unitResult.session, node);
+    var targetLocation = utils.prepareNewConstructorLocation(
+        unitResult.session, node, unitResult.file);
     if (targetLocation == null) {
       return;
     }

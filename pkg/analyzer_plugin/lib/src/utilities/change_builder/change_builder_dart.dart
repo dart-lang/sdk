@@ -1423,8 +1423,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       {this.createEditsForImports = true})
       : super(changeBuilder, resolvedUnit.path, timeStamp);
 
-  CodeStyleOptions get codeStyleOptions =>
-      resolvedUnit.session.analysisContext.analysisOptions.codeStyleOptions;
+  CodeStyleOptions get codeStyleOptions => resolvedUnit.session.analysisContext
+      .getAnalysisOptionsForFile(resolvedUnit.file)
+      .codeStyleOptions;
 
   @override
   bool get hasEdits =>

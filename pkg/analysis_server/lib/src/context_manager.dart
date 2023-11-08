@@ -356,6 +356,7 @@ class ContextManagerImpl implements ContextManager {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
+      var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var content = file.readAsStringSync();
       var lineInfo = LineInfo.fromContent(content);
       var errors = analyzeAnalysisOptions(
@@ -363,11 +364,11 @@ class ContextManagerImpl implements ContextManager {
         content,
         driver.sourceFactory,
         driver.currentSession.analysisContext.contextRoot.root.path,
-        driver.analysisOptions.sdkVersionConstraint,
+        analysisOptions.sdkVersionConstraint,
       );
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
-          lineInfo: lineInfo, options: driver.analysisOptions);
+          lineInfo: lineInfo, options: analysisOptions);
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -384,11 +385,12 @@ class ContextManagerImpl implements ContextManager {
       var content = file.readAsStringSync();
       var validator = ManifestValidator(file.createSource());
       var lineInfo = LineInfo.fromContent(content);
-      var errors = validator.validate(
-          content, driver.analysisOptions.chromeOsManifestChecks);
+      var analysisOptions = driver.getAnalysisOptionsForFile(file);
+      var errors =
+          validator.validate(content, analysisOptions.chromeOsManifestChecks);
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
-          lineInfo: lineInfo, options: driver.analysisOptions);
+          lineInfo: lineInfo, options: analysisOptions);
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -427,9 +429,9 @@ class ContextManagerImpl implements ContextManager {
       var parser = TransformSetParser(errorReporter, packageName);
       parser.parse(content);
       var converter = AnalyzerConverter();
+      var analysisOptions = driver.getAnalysisOptionsForFile(file);
       convertedErrors = converter.convertAnalysisErrors(errorListener.errors,
-          lineInfo: LineInfo.fromContent(content),
-          options: driver.analysisOptions);
+          lineInfo: LineInfo.fromContent(content), options: analysisOptions);
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.
@@ -448,16 +450,17 @@ class ContextManagerImpl implements ContextManager {
       if (node is! YamlMap) {
         node = YamlMap();
       }
+      var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var errors = validatePubspec(
         contents: node,
         source: resourceProvider.getFile(path).createSource(),
         provider: resourceProvider,
-        analysisOptions: driver.analysisOptions,
+        analysisOptions: analysisOptions,
       );
       var converter = AnalyzerConverter();
       var lineInfo = LineInfo.fromContent(content);
       convertedErrors = converter.convertAnalysisErrors(errors,
-          lineInfo: lineInfo, options: driver.analysisOptions);
+          lineInfo: lineInfo, options: analysisOptions);
     } catch (exception) {
       // If the file cannot be analyzed, fall through to clear any previous
       // errors.

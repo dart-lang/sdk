@@ -85,7 +85,8 @@ List<T> mapEngineErrors<T>(
             engine.AnalysisResultWithErrors result, engine.AnalysisError error,
             [engine.ErrorSeverity errorSeverity])
         constructor) {
-  var analysisOptions = result.session.analysisContext.analysisOptions;
+  var analysisOptions =
+      result.session.analysisContext.getAnalysisOptionsForFile(result.file);
   var serverErrors = <T>[];
   for (var error in errors) {
     var processor = ErrorProcessor.getProcessor(analysisOptions, error);

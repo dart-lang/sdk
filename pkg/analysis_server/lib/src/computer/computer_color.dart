@@ -31,7 +31,8 @@ class ColorComputer {
           resolvedUnit.typeProvider,
           resolvedUnit.typeSystem as TypeSystemImpl,
           InheritanceManager3(), // unused
-          resolvedUnit.session.analysisContext.analysisOptions,
+          resolvedUnit.session.analysisContext
+              .getAnalysisOptionsForFile(resolvedUnit.file),
           null,
           pathContext,
         );

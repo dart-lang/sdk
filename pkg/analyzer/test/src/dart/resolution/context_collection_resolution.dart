@@ -317,7 +317,8 @@ abstract class ContextResolutionTest
 
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
-    return contextFor(testFile).analysisOptions as AnalysisOptionsImpl;
+    return contextFor(testFile).getAnalysisOptionsForFile(testFile)
+        as AnalysisOptionsImpl;
   }
 
   @override

@@ -827,8 +827,10 @@ class SuggestionBuilder {
     if (element is ConstructorElement && appendColon) {
       if (Flutter.instance
           .isWidget(element.enclosingElement.augmented?.declaration)) {
-        var codeStyleOptions = request
-            .analysisSession.analysisContext.analysisOptions.codeStyleOptions;
+        var analysisOptions = request.analysisSession.analysisContext
+            .getAnalysisOptionsForFile(
+                request.resourceProvider.getFile(request.path));
+        var codeStyleOptions = analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.
         var defaultValue = getDefaultStringParameterValue(
             parameter, codeStyleOptions,

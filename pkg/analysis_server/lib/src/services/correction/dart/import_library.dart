@@ -230,7 +230,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   }) {
     if (!includeRelativeFix) {
       producers.add(_ImportAbsoluteLibrary(fixKind, library));
-    } else if (codeStyleOptions.useRelativeUris) {
+    } else if (getCodeStyleOptions(unitResult.file).useRelativeUris) {
       producers.add(_ImportRelativeLibrary(fixKind, library));
       producers.add(_ImportAbsoluteLibrary(fixKind, library));
     } else {

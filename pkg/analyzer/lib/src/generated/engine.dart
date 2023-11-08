@@ -10,6 +10,7 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
@@ -78,6 +79,9 @@ abstract class AnalysisContext {
   /// Return the source factory used to create the sources that can be analyzed
   /// in this context.
   SourceFactory get sourceFactory;
+
+  /// Get the [AnalysisOptions] instance for the given [file].
+  AnalysisOptions getAnalysisOptionsForFile(File file);
 }
 
 /// The entry point for the functionality provided by the analysis engine. There

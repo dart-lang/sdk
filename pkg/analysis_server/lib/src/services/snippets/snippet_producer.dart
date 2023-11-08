@@ -45,8 +45,9 @@ abstract class DartSnippetProducer extends SnippetProducer {
             .isEnabled(Feature.super_parameters),
         _elementImportCache = elementImportCache;
 
-  CodeStyleOptions get codeStyleOptions =>
-      sessionHelper.session.analysisContext.analysisOptions.codeStyleOptions;
+  CodeStyleOptions get codeStyleOptions => sessionHelper.session.analysisContext
+      .getAnalysisOptionsForFile(request.unit.file)
+      .codeStyleOptions;
 
   bool get isInTestDirectory {
     final path = request.unit.path;

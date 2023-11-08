@@ -45,8 +45,9 @@ class ImportElementsComputer {
 
     var builder = ChangeBuilder(session: libraryResult.session);
     await builder.addDartFileEdit(libraryResult.path, (builder) {
-      final quote = libraryResult
-          .session.analysisContext.analysisOptions.codeStyleOptions
+      final analysisOptions = libraryResult.session.analysisContext
+          .getAnalysisOptionsForFile(libraryResult.file);
+      final quote = analysisOptions.codeStyleOptions
           .preferredQuoteForUris(existingImports);
       for (var importedElements in filteredImportedElements) {
         var matchingImports =

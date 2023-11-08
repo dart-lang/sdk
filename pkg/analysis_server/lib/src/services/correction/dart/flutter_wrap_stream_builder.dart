@@ -60,7 +60,9 @@ class FlutterWrapStreamBuilder extends ResolvedCorrectionProducer {
         builder.writeln(';');
 
         builder.write(indentNew1);
-        builder.writeln('}${codeStyleOptions.addTrailingCommas ? "," : ""}');
+        var addTrailingCommas =
+            getCodeStyleOptions(unitResult.file).addTrailingCommas;
+        builder.writeln('}${addTrailingCommas ? "," : ""}');
 
         builder.write(indentOld);
         builder.write(')');
