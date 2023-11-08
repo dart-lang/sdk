@@ -4,12 +4,18 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
-mixin SharedPrinter {
+abstract class SharedPrinter {
+  final TreeStringSink sink;
+  final bool withMetadata;
+
   Identifier? _enclosingDeclarationIdentifier;
 
-  TypePhaseIntrospector get introspector;
+  SharedPrinter({
+    required this.sink,
+    required this.withMetadata,
+  });
 
-  TreeStringSink get sink;
+  TypePhaseIntrospector get introspector;
 
   bool shouldWriteDetailsFor(Declaration declaration) {
     return true;
@@ -125,11 +131,13 @@ mixin SharedPrinter {
   }
 
   Future<void> _writeMetadata(Annotatable e) async {
-    await sink.writeElements(
-      'metadata',
-      e.metadata,
-      _writeMetadataAnnotation,
-    );
+    if (withMetadata) {
+      await sink.writeElements(
+        'metadata',
+        e.metadata,
+        _writeMetadataAnnotation,
+      );
+    }
   }
 
   Future<void> _writeMetadataAnnotation(MetadataAnnotation e) async {

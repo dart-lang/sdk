@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 class NodeTextExpectationsCollector {
-  static const updatingIsEnabled = false;
+  static const updatingIsEnabled = true;
 
   static const assertMethods = [
     _AssertMethod(
@@ -40,6 +40,11 @@ class NodeTextExpectationsCollector {
     _AssertMethod(
       className: 'InheritanceManager3Test_ExtensionType',
       methodName: 'assertInterfaceText',
+      argumentIndex: 1,
+    ),
+    _AssertMethod(
+      className: 'MacroDeclarationsIntrospectTest',
+      methodName: '_assertIntrospectText',
       argumentIndex: 1,
     ),
     _AssertMethod(

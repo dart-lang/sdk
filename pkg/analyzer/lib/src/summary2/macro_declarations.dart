@@ -50,9 +50,6 @@ class DeclarationBuilder {
   late final DeclarationBuilderFromElement fromElement =
       DeclarationBuilderFromElement(this);
 
-  /// The annotations that were recognized as macro applications.
-  final Set<ElementAnnotation> macroAnnotations = {};
-
   DeclarationBuilder({
     required this.nodeOfElement,
   });
@@ -68,10 +65,6 @@ class DeclarationBuilder {
   macro.MetadataAnnotationImpl? _buildMetadataElement(
     ElementAnnotation annotation,
   ) {
-    if (macroAnnotations.contains(annotation)) {
-      return null;
-    }
-
     annotation as ElementAnnotationImpl;
     final node = annotation.annotationAst;
 
