@@ -136,7 +136,7 @@ extension JSPromiseToFuture on JSPromise {
 @patch
 extension JSArrayBufferToByteBuffer on JSArrayBuffer {
   @patch
-  ByteBuffer get toDart => js_types.JSArrayBufferImpl(toExternRef);
+  ByteBuffer get toDart => js_types.JSArrayBufferImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -156,7 +156,7 @@ extension ByteBufferToJSArrayBuffer on ByteBuffer {
 @patch
 extension JSDataViewToByteData on JSDataView {
   @patch
-  ByteData get toDart => js_types.JSDataViewImpl(toExternRef);
+  ByteData get toDart => js_types.JSDataViewImpl.fromRef(toExternRef);
 }
 
 @patch
@@ -174,7 +174,7 @@ extension ByteDataToJSDataView on ByteData {
 @patch
 extension JSInt8ArrayToInt8List on JSInt8Array {
   @patch
-  Int8List get toDart => js_types.JSInt8ArrayImpl(toExternRef);
+  Int8List get toDart => js_types.JSInt8ArrayImpl.fromJSArray(toExternRef);
 }
 
 @patch
@@ -192,7 +192,7 @@ extension Int8ListToJSInt8Array on Int8List {
 @patch
 extension JSUint8ArrayToUint8List on JSUint8Array {
   @patch
-  Uint8List get toDart => js_types.JSUint8ArrayImpl(toExternRef);
+  Uint8List get toDart => js_types.JSUint8ArrayImpl.fromJSArray(toExternRef);
 }
 
 @patch
@@ -210,7 +210,8 @@ extension Uint8ListToJSUint8Array on Uint8List {
 @patch
 extension JSUint8ClampedArrayToUint8ClampedList on JSUint8ClampedArray {
   @patch
-  Uint8ClampedList get toDart => js_types.JSUint8ClampedArrayImpl(toExternRef);
+  Uint8ClampedList get toDart =>
+      js_types.JSUint8ClampedArrayImpl.fromJSArray(toExternRef);
 }
 
 @patch
@@ -228,7 +229,7 @@ extension Uint8ClampedListToJSUint8ClampedArray on Uint8ClampedList {
 @patch
 extension JSInt16ArrayToInt16List on JSInt16Array {
   @patch
-  Int16List get toDart => js_types.JSInt16ArrayImpl(toExternRef);
+  Int16List get toDart => js_types.JSInt16ArrayImpl.fromJSArray(toExternRef);
 }
 
 @patch
@@ -246,7 +247,7 @@ extension Int16ListToJSInt16Array on Int16List {
 @patch
 extension JSUint16ArrayToInt16List on JSUint16Array {
   @patch
-  Uint16List get toDart => js_types.JSUint16ArrayImpl(toExternRef);
+  Uint16List get toDart => js_types.JSUint16ArrayImpl.fromJSArray(toExternRef);
 }
 
 @patch
@@ -264,7 +265,7 @@ extension Uint16ListToJSInt16Array on Uint16List {
 @patch
 extension JSInt32ArrayToInt32List on JSInt32Array {
   @patch
-  Int32List get toDart => js_types.JSInt32ArrayImpl(toExternRef);
+  Int32List get toDart => js_types.JSInt32ArrayImpl.fromJSArray(toExternRef);
 }
 
 @patch
@@ -282,7 +283,7 @@ extension Int32ListToJSInt32Array on Int32List {
 @patch
 extension JSUint32ArrayToUint32List on JSUint32Array {
   @patch
-  Uint32List get toDart => js_types.JSUint32ArrayImpl(toExternRef);
+  Uint32List get toDart => js_types.JSUint32ArrayImpl.fromJSArray(toExternRef);
 }
 
 @patch
@@ -300,7 +301,8 @@ extension Uint32ListToJSUint32Array on Uint32List {
 @patch
 extension JSFloat32ArrayToFloat32List on JSFloat32Array {
   @patch
-  Float32List get toDart => js_types.JSFloat32ArrayImpl(toExternRef);
+  Float32List get toDart =>
+      js_types.JSFloat32ArrayImpl.fromJSArray(toExternRef);
 }
 
 @patch
@@ -318,7 +320,8 @@ extension Float32ListToJSFloat32Array on Float32List {
 @patch
 extension JSFloat64ArrayToFloat64List on JSFloat64Array {
   @patch
-  Float64List get toDart => js_types.JSFloat64ArrayImpl(toExternRef);
+  Float64List get toDart =>
+      js_types.JSFloat64ArrayImpl.fromJSArray(toExternRef);
 }
 
 @patch

@@ -24,6 +24,7 @@ import 'dart:_internal'
         Sort,
         SubListIterable,
         TakeWhileIterable,
+        unsafeCast,
         WhereIterable,
         WhereTypeIterable;
 import 'dart:_js_helper' as js;
