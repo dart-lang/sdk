@@ -60,6 +60,7 @@ final tests = <IsolateTest>[
   setBreakpointAtLine(LINE_C),
   stepOut,
   resumeIsolate,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
 ];
 
