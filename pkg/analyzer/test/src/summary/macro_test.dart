@@ -3955,6 +3955,7 @@ class A
   ) async {
     var actual = await _getIntrospectText(code);
     if (actual != expected) {
+      NodeTextExpectationsCollector.add(actual);
       print(actual);
     }
     expect(actual, expected);
