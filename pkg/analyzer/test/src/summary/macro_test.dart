@@ -2418,7 +2418,6 @@ class X extends A {}
 class X
   superclass: A
     class A
-      superclass: Object
 ''');
   }
 
