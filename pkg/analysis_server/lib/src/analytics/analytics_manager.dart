@@ -20,7 +20,7 @@ import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:collection/collection.dart';
-import 'package:leak_tracker/src/usage_tracking/model.dart';
+import 'package:memory_usage/memory_usage.dart';
 import 'package:meta/meta.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 

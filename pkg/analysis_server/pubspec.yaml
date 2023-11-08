@@ -17,8 +17,8 @@ dependencies:
   dart_style: any
   http: any
   language_server_protocol: any
-  leak_tracker: any
   linter: any
+  memory_usage: any
   meta: any
   path: any
   stream_channel: any
