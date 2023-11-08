@@ -181,6 +181,9 @@ class BulkFixProcessor {
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
       DataDriven.new,
     ],
+    WarningCode.DEPRECATED_EXPORT_USE: [
+      DataDriven.new,
+    ],
     WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
     ],
