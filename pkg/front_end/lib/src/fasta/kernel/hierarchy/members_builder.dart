@@ -22,7 +22,7 @@ import 'members_node.dart';
 class ClassMembersBuilder implements ClassHierarchyMembers {
   final ClassHierarchyBuilder hierarchyBuilder;
 
-  final Map<Class, ClassMembersNode> classNodes = {};
+  final Map<Class, ClassMembersNode> classNodes = new Map.identity();
 
   final Map<ExtensionTypeDeclaration, ExtensionTypeMembersNode>
       extensionTypeDeclarationNodes = {};

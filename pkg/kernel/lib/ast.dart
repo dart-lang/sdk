@@ -3827,17 +3827,18 @@ class FunctionNode extends TreeNode {
     if (typeParametersToCopy.isEmpty || reuseTypeParameters) {
       structuralParameters = const <StructuralParameter>[];
       returnType = this.returnType;
-      positionalParameters = this
-          .positionalParameters
-          .map(_getTypeOfVariable)
-          .toList(growable: false);
-      if (this.namedParameters.isEmpty) {
+      List<VariableDeclaration> thisPositionals = this.positionalParameters;
+      positionalParameters = List.generate(thisPositionals.length,
+          (index) => _getTypeOfVariable(thisPositionals[index]),
+          growable: false);
+
+      List<VariableDeclaration> thisNamed = this.namedParameters;
+      if (thisNamed.isEmpty) {
         namedParameters = const <NamedType>[];
       } else {
-        namedParameters = this
-            .namedParameters
-            .map(_getNamedTypeOfVariable)
-            .toList(growable: false);
+        namedParameters = List.generate(thisNamed.length,
+            (index) => _getNamedTypeOfVariable(thisNamed[index]),
+            growable: false);
         namedParameters.sort();
       }
     } else {
@@ -3848,19 +3849,20 @@ class FunctionNode extends TreeNode {
       structuralParameters = freshStructuralParameters.freshTypeParameters;
       Substitution substitution = freshStructuralParameters.substitution;
       returnType = substitution.substituteType(this.returnType);
-      positionalParameters = this
-          .positionalParameters
-          .map((VariableDeclaration parameter) =>
-              substitution.substituteType(_getTypeOfVariable(parameter)))
-          .toList(growable: false);
-      if (this.namedParameters.isEmpty) {
+
+      List<VariableDeclaration> thisPositionals = this.positionalParameters;
+      positionalParameters = List.generate(
+          thisPositionals.length,
+          (index) => substitution
+              .substituteType(_getTypeOfVariable(thisPositionals[index])),
+          growable: false);
+      List<VariableDeclaration> thisNamed = this.namedParameters;
+      if (thisNamed.isEmpty) {
         namedParameters = const <NamedType>[];
       } else {
-        namedParameters = this
-            .namedParameters
-            .map((VariableDeclaration parameter) =>
-                _getNamedTypeOfVariable(parameter, substitution))
-            .toList(growable: false);
+        namedParameters = List.generate(thisNamed.length,
+            (index) => _getNamedTypeOfVariable(thisNamed[index], substitution),
+            growable: false);
         namedParameters.sort();
       }
     }
