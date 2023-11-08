@@ -15,6 +15,7 @@ import 'package:language_server_protocol/json_parsing.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'change_workspace_folders_test.dart';
 import 'server_abstract.dart';
 
 void main() {
@@ -877,6 +878,10 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([]));
   }
 
+  /// Verifies a workspace that contains non-file workspace folders is handled.
+  ///
+  /// Related tests for didChangeWorkspcaeFolders are in
+  /// [ChangeWorkspaceFoldersTest].
   Future<void> test_nonFileScheme_workspaceFolders() async {
     newPubspecYamlFile(projectFolderPath, '');
 
