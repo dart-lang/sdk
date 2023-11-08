@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:io';
 import 'dart:isolate';
 import 'dart:math';
@@ -756,7 +758,7 @@ void main(List<String> arguments) {
         help: 'path to output (ignored)', defaultsTo: null);
 
   // Starts fuzz testing session.
-  var results;
+  ArgResults results;
   try {
     results = parser.parse(arguments);
   } catch (e) {

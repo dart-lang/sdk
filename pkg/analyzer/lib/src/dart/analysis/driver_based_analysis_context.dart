@@ -32,6 +32,9 @@ class DriverBasedAnalysisContext implements AnalysisContext {
     AnalysisDriver? analysisDriver,
   ]);
 
+  /// Get all the analysis options objects associated with this context.
+  List<AnalysisOptions> get allAnalysisOptions => [analysisOptions];
+
   @override
   AnalysisOptions get analysisOptions => driver.analysisOptions;
 

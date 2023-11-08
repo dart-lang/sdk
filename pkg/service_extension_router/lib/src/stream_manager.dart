@@ -2,13 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:meta/meta.dart';
+
 import 'client.dart';
 
 // TODO(danchevalier): Add documentation before major release
-class StreamManager {
-  StreamManager({this.onStreamCancel});
-  Future<void> Function(Client client, String stream)? onStreamCancel;
-
+abstract class StreamManager {
   final _streamListeners =
       <String, List<Client>>{}; // TODO should this be set of StreamClient?
   List<Client>? getListenersFor({required String stream}) =>
@@ -26,6 +25,7 @@ class StreamManager {
 
   /// Triggers [Client.streamNotify] for all clients subscribed
   /// to [stream].
+  @mustCallSuper
   void postEvent(
     String stream,
     Map<String, Object?> data, {
@@ -42,6 +42,7 @@ class StreamManager {
   ///
   /// If `client` is the first client to listen to `stream`, DDS will send a
   /// `streamListen` request for `stream` to the VM service.
+  @mustCallSuper
   void streamListen(
     Client client,
     String stream,
@@ -54,23 +55,29 @@ class StreamManager {
   }
 
   /// Unsubscribes [client] from [stream].
+  @mustCallSuper
   Future<void> streamCancel(
     Client client,
     String stream,
   ) async {
     if (!_streamListeners.containsKey(stream)) return;
-
     _streamListeners[stream]!.remove(client);
-    if (onStreamCancel != null) {
-      await onStreamCancel!(client, stream);
-    }
   }
 
-  Future<void> onClientDisconnect(Client client) async {
+  /// Cancels [client] from all streams.
+  ///
+  /// If an error is thrown while cancelling it will be passed to
+  /// [onCatchErrorTest], if `true` is returned then the error will be ignored
+  /// otherwise the error is thrown.
+  @mustCallSuper
+  Future<void> onClientDisconnect(Client client,
+      {bool Function(Object)? onCatchErrorTest}) async {
     await Future.wait([
       for (final stream in _streamListeners.keys)
-        if (_streamListeners[stream]!.contains(client))
-          streamCancel(client, stream),
+        streamCancel(client, stream).catchError(
+          (_) => null,
+          test: (e) => onCatchErrorTest == null ? false : onCatchErrorTest(e),
+        ),
     ]);
   }
 }

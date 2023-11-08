@@ -2009,30 +2009,54 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (MethodElement method in enclosingClass.methods) {
       String name = method.name;
 
-      // find inherited property accessor
-      var inherited = _inheritanceManager.getInherited2(
+      // find inherited property accessors
+      final getter = _inheritanceManager.getInherited2(
           enclosingClass, Name(libraryUri, name));
-      inherited ??= _inheritanceManager.getInherited2(
+      final setter = _inheritanceManager.getInherited2(
           enclosingClass, Name(libraryUri, '$name='));
 
-      if (method.isStatic && inherited != null) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, method, [
-          enclosingClass.displayName,
-          name,
-          inherited.enclosingElement.displayName,
-        ]);
-      } else if (inherited is PropertyAccessorElement) {
-        // Extension type methods redeclare getters with the same name.
-        if (enclosingClass is ExtensionTypeElement && inherited.isGetter) {
+      if (method.isStatic) {
+        void reportStaticConflict(ExecutableElement inherited) {
+          errorReporter.reportErrorForElement(
+              CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, method, [
+            enclosingClass.displayName,
+            name,
+            inherited.enclosingElement.displayName,
+          ]);
+        }
+
+        if (getter != null) {
+          reportStaticConflict(getter);
           continue;
         }
+
+        if (setter != null) {
+          reportStaticConflict(setter);
+          continue;
+        }
+      }
+
+      void reportFieldConflict(PropertyAccessorElement inherited) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
           enclosingClass.displayName,
           name,
           inherited.enclosingElement.displayName
         ]);
+      }
+
+      if (getter is PropertyAccessorElement) {
+        if (enclosingClass is ExtensionTypeElement) {
+          // Extension type methods redeclare getters with the same name.
+        } else {
+          reportFieldConflict(getter);
+          continue;
+        }
+      }
+
+      if (setter is PropertyAccessorElement) {
+        reportFieldConflict(setter);
+        continue;
       }
     }
 

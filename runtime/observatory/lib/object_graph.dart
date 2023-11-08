@@ -930,17 +930,21 @@ class _SnapshotGraph implements SnapshotGraph {
     classes[0] = _SnapshotClass._new(this, 0, "Root", "", "");
 
     for (var cid = 1; cid <= K; cid++) {
+      // ignore: unused_local_variable
       int flags = stream.readUnsigned();
       String name = stream.readUtf8();
       String libName = stream.readUtf8();
       String libUri = stream.readUtf8();
+      // ignore: unused_local_variable
       String reserved = stream.readUtf8();
       final cls = _SnapshotClass._new(this, cid, name, libName, libUri);
       int edgeCount = stream.readUnsigned();
       for (int i = 0; i < edgeCount; i++) {
+        // ignore: unused_local_variable
         int flags = stream.readUnsigned();
         int index = stream.readUnsigned();
         String fieldName = stream.readUtf8();
+        // ignore: unused_local_variable
         String reserved = stream.readUtf8();
         cls.fields[index] = fieldName;
       }
@@ -1051,6 +1055,7 @@ class _SnapshotGraph implements SnapshotGraph {
     for (var i = 0; i < externalPropertyCount; i++) {
       final oid = stream.readUnsigned();
       final externalSize = stream.readUnsigned();
+      // ignore: unused_local_variable
       final name = stream.readUtf8();
       externalSizes[oid] += externalSize;
     }

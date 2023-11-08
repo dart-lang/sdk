@@ -39,10 +39,9 @@ linter:
     - hash_and_equals
     - implementation_imports
     #- invariant_booleans
-    - iterable_contains_unrelated_type
+    - collection_methods_unrelated_type
     - library_names
     - library_prefixes
-    - list_remove_unrelated_type
     #- literal_only_boolean_expressions
     - no_adjacent_strings_in_list
     - no_duplicate_case_values

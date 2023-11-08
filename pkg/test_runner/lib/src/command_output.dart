@@ -108,12 +108,12 @@ class CommandOutput {
   bool _didFail(TestCase testCase) => exitCode != 0 && !hasCrashed;
 
   bool get canRunDependentCommands {
-    // FIXME(kustermann): We may need to change this
+    // TODO(kustermann): We may need to change this
     return !hasTimedOut && exitCode == 0;
   }
 
   bool get successful {
-    // FIXME(kustermann): We may need to change this
+    // TODO(kustermann): We may need to change this
     return !hasTimedOut && exitCode == 0;
   }
 
@@ -230,7 +230,7 @@ class BrowserTestJsonResult {
       return types.any((type) => messagesByType[type]!.contains(message));
     }
 
-    // FIXME(kustermann,ricow): I think this functionality doesn't work in
+    // TODO(kustermann,ricow): I think this functionality doesn't work in
     // test_controller.js: So far I haven't seen anything being reported on
     // "window.compilationerror"
     if (occurred('window_compilationerror')) {

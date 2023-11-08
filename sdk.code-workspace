@@ -60,6 +60,10 @@
       "third_party",
       "runtime/third_party",
 
+      // This package depends on a package that will not be brought in as a
+      // dart-sdk dep. https://github.com/dart-lang/sdk/issues/50061
+      "runtime/tools/heapsnapshot",
+
       // We probably can include 'lib', but it currently shows too many errors.
       // We would need to ignore import_internal_library, and other warnings
       // on a per-file basis, since the analyzer is designed to work with

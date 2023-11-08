@@ -293,13 +293,6 @@ bool LoadedElf::Load() {
 }
 
 LoadedElf::~LoadedElf() {
-  // Unmap the image.
-  base_.reset();
-
-  // Explicitly destroy all the mappings before closing the file.
-  program_table_mapping_.reset();
-  section_table_mapping_.reset();
-  section_string_table_mapping_.reset();
 #if defined(DART_HOST_OS_WINDOWS) && defined(HOST_ARCH_X64)
   for (intptr_t i = 0; i < dynamic_runtime_function_tables_.length(); i++) {
     UnwindingRecordsPlatform::UnregisterDynamicTable(
@@ -307,6 +300,14 @@ LoadedElf::~LoadedElf() {
   }
   UnwindingRecordsPlatform::Cleanup();
 #endif
+
+  // Unmap the image.
+  base_.reset();
+
+  // Explicitly destroy all the mappings before closing the file.
+  program_table_mapping_.reset();
+  section_table_mapping_.reset();
+  section_string_table_mapping_.reset();
 }
 
 bool LoadedElf::ReadHeader() {

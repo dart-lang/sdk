@@ -1464,6 +1464,110 @@ class MacroDeclarationsIntrospectTest extends MacroElementsBaseTest {
     return code.replaceAll('/*macro*/', 'macro');
   }
 
+  test_element_class_field_flag_hasExternal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  external int foo;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          flags: hasExternal
+          type: int
+''');
+  }
+
+  test_element_class_field_flag_hasFinal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  final int foo = 0;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          flags: hasFinal
+          type: int
+''');
+  }
+
+  test_element_class_field_flag_hasLate() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  late int foo;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          flags: hasLate
+          type: int
+''');
+  }
+
+  test_element_class_field_flag_isStatic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int foo = 0;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          flags: isStatic
+          type: int
+''');
+  }
+
   test_element_class_field_metadata_identifier() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const a = 0;
@@ -1530,7 +1634,7 @@ class X
 ''');
   }
 
-  test_element_class_flags_isAbstract() async {
+  test_element_class_flags_hasAbstract() async {
     newFile('$testPackageLibPath/a.dart', r'''
 abstract class A {}
 ''');
@@ -2138,7 +2242,7 @@ class X
 ''');
   }
 
-  test_node_class_field_flags_isExternal() async {
+  test_node_class_field_flags_hasExternal() async {
     await _assertIntrospectText(r'''
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'X'},
@@ -2158,7 +2262,7 @@ class X
 ''');
   }
 
-  test_node_class_field_flags_isFinal() async {
+  test_node_class_field_flags_hasFinal() async {
     await _assertIntrospectText(r'''
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'X'},
@@ -2178,7 +2282,7 @@ class X
 ''');
   }
 
-  test_node_class_field_flags_isLate() async {
+  test_node_class_field_flags_hasLate() async {
     await _assertIntrospectText(r'''
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'X'},
@@ -2290,7 +2394,7 @@ mixin X
 ''');
   }
 
-  test_node_mixin_field_flags_isFinal() async {
+  test_node_mixin_field_flags_hasFinal() async {
     await _assertIntrospectText(r'''
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'X'},
@@ -3151,7 +3255,7 @@ class MacroTypesIntrospectTest extends MacroElementsBaseTest {
     return code.replaceAll('/*macro*/', 'macro');
   }
 
-  test_class_flags_isAbstract() async {
+  test_class_flags_hasAbstract() async {
     await _assertIntrospectText(r'''
 @IntrospectTypesPhaseMacro()
 abstract class A {}

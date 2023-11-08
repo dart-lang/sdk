@@ -433,7 +433,7 @@ class DartApi {
     }
   }
 
-  final typeToLibraryMethods;
+  final Map<DartType, List<DartLib>> typeToLibraryMethods;
 }
 
 /// Class that generates a random, but runnable Dart program for fuzz testing.
@@ -912,7 +912,7 @@ class DartFuzz {
         emitMethods(classMethods[currentClassIndex!]);
         emitFunctionDefinition('run', () {
           if (i > 0) {
-            // FIXME(bkonyi): fix potential issue where we try to apply a class
+            // TODO(bkonyi): fix potential issue where we try to apply a class
             // as a mixin when it calls super.
             emitLn('super.run();');
           }
@@ -1160,7 +1160,7 @@ class DartFuzz {
 
   // Emit a throw statement.
   bool emitThrow() {
-    var tp;
+    DartType tp;
     do {
       tp = oneOfSet(dartType.allTypes).toNonNullable();
     } while (tp == DartType.NULL);
@@ -1680,7 +1680,7 @@ class DartFuzz {
   }
 
   void emitCollection(int depth, DartType tp, {RhsFilter? rhsFilter}) {
-    var l, r;
+    String l, r;
     if (DartType.isListType(tp)) {
       var elementType = dartType.elementType(tp);
       l = '<${elementType.dartName}>[';
@@ -1708,7 +1708,8 @@ class DartFuzz {
   }
 
   void emitConstCollection(int depth, DartType tp, {RhsFilter? rhsFilter}) {
-    var l, r, canHaveElements;
+    String l, r;
+    bool canHaveElements;
     if (DartType.isListType(tp)) {
       var elementType = dartType.elementType(tp);
       l = 'const <${elementType.dartName}>[';
@@ -2504,12 +2505,13 @@ void main(List<String> arguments) {
         help: 'Bitmask indicating which expressions to omit'
             '(Bit=1 omits)',
         defaultsTo: '0');
-  var results;
+  final ArgResults results;
   try {
     results = parser.parse(arguments);
   } catch (e) {
     print('Usage: dart dartfuzz.dart [OPTIONS] FILENAME\n${parser.usage}\n$e');
     exitCode = 255;
+    return;
   }
   final seed = getSeed(results[kSeed]);
   final fp = results[kFp];

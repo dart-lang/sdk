@@ -32,13 +32,25 @@ class TestStreamClient extends Client {
   }
 }
 
+class StreamManagerWithFailingStreamCancel extends StreamManager {
+  final testException = FormatException('This is a test exception');
+  @override
+  // ignore: must_call_super
+  Future<void> streamCancel(Client client, String stream) {
+    return Future.error(testException);
+  }
+}
+
+class TestStreamManager extends StreamManager {}
+
 void main() {
   late TestStreamClient client;
   late StreamManager manager;
+
   group('Stream Manager', () {
     setUp(() {
       client = TestStreamClient();
-      manager = StreamManager();
+      manager = TestStreamManager();
     });
 
     test('streamListen lets a client recieve messages for post', () {
@@ -46,12 +58,12 @@ void main() {
       manager.streamListen(client, 'A');
 
       manager.postEvent('B', {'message': 'B message'});
-      expect(client.streamNotifyCount, equals(0));
+      expect(client.streamNotifyCount, 0);
       expect(client.notification, isNull);
 
       manager.postEvent('A', message);
-      expect(client.streamNotifyCount, equals(1));
-      expect(client.notification, equals(message));
+      expect(client.streamNotifyCount, 1);
+      expect(client.notification, message);
     });
 
     test('streamCancel removes the client from the stream', () {
@@ -64,19 +76,21 @@ void main() {
 
       manager.postEvent('A', messageA);
 
-      expect(client.notification, equals(messageA));
-      expect(client.streamNotifyCount, equals(1));
-      expect(clientA2.notification, equals(messageA));
-      expect(clientA2.streamNotifyCount, equals(1));
+      expect(client.notification, messageA);
+      expect(client.streamNotifyCount, 1);
+      expect(clientA2.notification, messageA);
+      expect(clientA2.streamNotifyCount, 1);
+      expect(manager.isSubscribed(client, 'A'), isTrue);
 
       manager.streamCancel(client, 'A');
 
       manager.postEvent('A', messageA2);
 
-      expect(client.notification, equals(messageA));
-      expect(client.streamNotifyCount, equals(1));
-      expect(clientA2.notification, equals(messageA2));
-      expect(clientA2.streamNotifyCount, equals(2));
+      expect(client.notification, messageA);
+      expect(client.streamNotifyCount, 1);
+      expect(clientA2.notification, messageA2);
+      expect(clientA2.streamNotifyCount, 2);
+      expect(manager.isSubscribed(client, 'A'), isFalse);
     });
 
     test('postEvent notifies clients', () {
@@ -93,23 +107,75 @@ void main() {
         messageA,
       );
 
-      expect(client.streamNotifyCount, equals(1));
-      expect(client.notification, equals(messageA));
-      expect(clientA2.streamNotifyCount, equals(1));
-      expect(clientA2.notification, equals(messageA));
-      expect(clientB.streamNotifyCount, equals(0));
+      expect(client.streamNotifyCount, 1);
+      expect(client.notification, messageA);
+      expect(clientA2.streamNotifyCount, 1);
+      expect(clientA2.notification, messageA);
+      expect(clientB.streamNotifyCount, 0);
       expect(clientB.notification, isNull);
 
       manager.postEvent(
         'B',
         messageB,
       );
-      expect(client.streamNotifyCount, equals(1));
-      expect(client.notification, equals(messageA));
-      expect(clientA2.streamNotifyCount, equals(1));
-      expect(clientA2.notification, equals(messageA));
-      expect(clientB.streamNotifyCount, equals(1));
+      expect(client.streamNotifyCount, 1);
+      expect(client.notification, messageA);
+      expect(clientA2.streamNotifyCount, 1);
+      expect(clientA2.notification, messageA);
+      expect(clientB.streamNotifyCount, 1);
       expect(clientB.notification, messageB);
+    });
+
+    test('onClientDisconnect cancels a client from all streams', () async {
+      final testClient = TestStreamClient();
+      final aClients = [
+        TestStreamClient(),
+        TestStreamClient(),
+        TestStreamClient()
+      ];
+      final bClients = [
+        TestStreamClient(),
+        TestStreamClient(),
+      ];
+
+      for (final client in aClients) {
+        manager.streamListen(client, 'A');
+      }
+      for (final client in bClients) {
+        manager.streamListen(client, 'B');
+      }
+      manager.streamListen(testClient, 'A');
+      manager.streamListen(testClient, 'B');
+      manager.streamListen(testClient, 'C');
+
+      expect(manager.getListenersFor(stream: 'A'), [...aClients, testClient]);
+      expect(manager.getListenersFor(stream: 'B'), [...bClients, testClient]);
+      expect(manager.getListenersFor(stream: 'C'), [testClient]);
+
+      await manager.onClientDisconnect(testClient);
+
+      expect(manager.getListenersFor(stream: 'A'), aClients);
+      expect(manager.getListenersFor(stream: 'B'), bClients);
+      expect(manager.getListenersFor(stream: 'C'), []);
+    });
+
+    test('onClientDisconnect can ignore certain errors.', () async {
+      manager = StreamManagerWithFailingStreamCancel();
+      manager.streamListen(client, 'A');
+      int caughtCount = 0;
+      try {
+        await manager.onClientDisconnect(client);
+      } catch (e) {
+        caughtCount++;
+        expect(
+            e, (manager as StreamManagerWithFailingStreamCancel).testException);
+      }
+
+      expect(caughtCount, 1);
+
+      // We can ignore certain types of exceptions with onCatchErrorTest
+      await manager.onClientDisconnect(client,
+          onCatchErrorTest: (e) => e is FormatException);
     });
   });
 }

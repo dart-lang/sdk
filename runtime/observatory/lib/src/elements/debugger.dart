@@ -2942,6 +2942,7 @@ class DebuggerConsoleElement extends CustomElement implements Renderable {
   DebuggerConsoleElement.created() : super.created('debugger-console');
 
   /// Is [container] scrolled to the within [threshold] pixels of the bottom?
+  // ignore: unused_element
   static bool _isScrolledToBottom(DivElement? container, [int threshold = 2]) {
     if (container == null) {
       return false;

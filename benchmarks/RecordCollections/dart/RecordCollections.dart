@@ -18,7 +18,9 @@ class Pair {
   final int v0;
   final int v1;
   const Pair(this.v0, this.v1);
+  @override
   bool operator ==(other) => other is Pair && v0 == other.v0 && v1 == other.v1;
+  @override
   int get hashCode => Object.hash(v0, v1);
 }
 
@@ -30,7 +32,7 @@ List<Object> getPolymorphicListOfClass(
     if (withValues) {
       return List<Pair>.generate(length, (i) => Pair(i, i), growable: growable);
     } else {
-      return List<Pair>.filled(length, Pair(-1, -1), growable: growable);
+      return List<Pair>.filled(length, const Pair(-1, -1), growable: growable);
     }
   } else {
     return List<String>.filled(0, '', growable: growable);
@@ -89,7 +91,7 @@ class BenchListAddPolyClass extends BenchmarkBase {
       list.add(Pair(i, i));
     }
     final int mid = (list[N ~/ 2] as Pair).v0;
-    if (mid != N ~/ 2) throw 'Bad result: ${mid}';
+    if (mid != N ~/ 2) throw 'Bad result: $mid';
   }
 }
 
@@ -104,7 +106,7 @@ class BenchListAddPolyRecord extends BenchmarkBase {
       list.add((i, i));
     }
     final int mid = (list[N ~/ 2] as (int, int)).$1;
-    if (mid != N ~/ 2) throw 'Bad result: ${mid}';
+    if (mid != N ~/ 2) throw 'Bad result: $mid';
   }
 }
 
@@ -113,7 +115,7 @@ class BenchListSetIndexedClass extends BenchmarkBase {
 
   @override
   void run() {
-    final list = List<Pair>.filled(N, Pair(-1, -1), growable: false);
+    final list = List<Pair>.filled(N, const Pair(-1, -1), growable: false);
     for (int i = 0; i < N; ++i) {
       list[i] = Pair(i, i);
     }
@@ -146,7 +148,7 @@ class BenchListSetIndexedPolyClass extends BenchmarkBase {
       list[i] = Pair(i, i);
     }
     final int mid = (list[N ~/ 2] as Pair).v0;
-    if (mid != N ~/ 2) throw 'Bad result: ${mid}';
+    if (mid != N ~/ 2) throw 'Bad result: $mid';
   }
 }
 
@@ -162,7 +164,7 @@ class BenchListSetIndexedPolyRecord extends BenchmarkBase {
       list[i] = (i, i);
     }
     final int mid = (list[N ~/ 2] as (int, int)).$1;
-    if (mid != N ~/ 2) throw 'Bad result: ${mid}';
+    if (mid != N ~/ 2) throw 'Bad result: $mid';
   }
 }
 
@@ -366,7 +368,7 @@ class BenchMapLookupClass extends BenchmarkBase {
     for (int i = 0; i < N; ++i) {
       sum += map[Pair(i, i)]!;
     }
-    if (sum != SUM) throw 'Bad result: ${sum}';
+    if (sum != SUM) throw 'Bad result: $sum';
   }
 }
 
@@ -383,7 +385,7 @@ class BenchMapLookupRecord extends BenchmarkBase {
     for (int i = 0; i < N; ++i) {
       sum += map[(i, i)]!;
     }
-    if (sum != SUM) throw 'Bad result: ${sum}';
+    if (sum != SUM) throw 'Bad result: $sum';
   }
 }
 
@@ -426,7 +428,7 @@ class BenchSetLookupClass extends BenchmarkBase {
     for (int i = 0; i < N; ++i) {
       sum += set.contains(Pair(i, i)) ? 1 : 0;
     }
-    if (sum != N ~/ 2) throw 'Bad result: ${sum}';
+    if (sum != N ~/ 2) throw 'Bad result: $sum';
   }
 }
 
@@ -443,7 +445,7 @@ class BenchSetLookupRecord extends BenchmarkBase {
     for (int i = 0; i < N; ++i) {
       sum += set.contains((i, i)) ? 1 : 0;
     }
-    if (sum != N ~/ 2) throw 'Bad result: ${sum}';
+    if (sum != N ~/ 2) throw 'Bad result: $sum';
   }
 }
 

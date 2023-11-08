@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// NOTE: this code has been generated automatically.
+// NOTE: this code has been generated automatically.
 
 import 'dartfuzz_type_table.dart';
 
