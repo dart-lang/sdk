@@ -77,6 +77,7 @@ class LintNames {
   static const String empty_statements = 'empty_statements';
   static const String eol_at_end_of_file = 'eol_at_end_of_file';
   static const String exhaustive_cases = 'exhaustive_cases';
+  static const String flutter_style_todos = 'flutter_style_todos';
   static const String hash_and_equals = 'hash_and_equals';
   static const String implicit_call_tearoffs = 'implicit_call_tearoffs';
   static const String implicit_reopen = 'implicit_reopen';

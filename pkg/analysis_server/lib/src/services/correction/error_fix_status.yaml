@@ -2083,10 +2083,7 @@ LintCode.file_names:
   notes: |-
     The fix is to rename the file, but that's a refactoring.
 LintCode.flutter_style_todos:
-  status: noFix
-  notes: |-
-    The fix would be to convert the existing TODO to the appropriate style, but
-    that can't reliably be done.
+  status: hasFix
 LintCode.hash_and_equals:
   status: hasFix
 LintCode.implementation_imports:
@@ -2107,6 +2104,8 @@ LintCode.invariant_booleans:
     Removed.
 LintCode.iterable_contains_unrelated_type:
   status: noFix
+  notes: |-
+    Removed.
 LintCode.join_return_with_assignment:
   status: needsFix
 LintCode.leading_newlines_in_multiline_strings:
@@ -2131,6 +2130,8 @@ LintCode.lines_longer_than_80_chars:
   status: noFix
 LintCode.list_remove_unrelated_type:
   status: noFix
+  notes: |-
+    Removed.
 LintCode.literal_only_boolean_expressions:
   status: noFix
 LintCode.matching_super_parameters:

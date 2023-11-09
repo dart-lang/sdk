@@ -27,6 +27,10 @@ extension type B._(A a) {
 
   external void set setter(B b);
 
+  external B get property;
+
+  external void set property(B b);
+
   external static A staticField;
 
   external static A staticMethod();
@@ -36,6 +40,10 @@ extension type B._(A a) {
   external static B get staticGetter;
 
   external static void set staticSetter(B b);
+
+  external static B get staticProperty;
+
+  external static void set staticProperty(B b);
 }
 
 void method(A a) {
@@ -47,10 +55,12 @@ void method(A a) {
   b2 = b2.genericMethod(b2);
   b1 = b2.getter;
   b1.setter = b2;
+  b1.property = b2.property;
   a = B.staticField;
   B.staticField = a;
   a = B.staticMethod();
   b2 = B.staticGenericMethod(b2);
   b1 = B.staticGetter;
   B.staticSetter = b2;
+  B.staticProperty = B.staticProperty;
 }

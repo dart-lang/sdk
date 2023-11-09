@@ -9,6 +9,7 @@ import '../../builder/declaration_builders.dart';
 import '../../builder/member_builder.dart';
 import '../../messages.dart';
 import 'class_member.dart';
+import 'delayed.dart';
 import 'hierarchy_node.dart';
 import 'members_builder.dart';
 import 'members_node.dart';
@@ -215,10 +216,13 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
           /// `ET1.property2` is _not_ a subtype of the setter
           /// `ET2.property1`.
           ///
-          /*_membersBuilder.registerGetterSetterCheck(
-              extensionTypeDeclarationBuilder,
-              getableMember,
-              setableMember);*/
+          _membersBuilder.registerGetterSetterCheck(
+              new DelayedExtensionTypeGetterSetterCheck(
+                  extensionTypeDeclarationBuilder
+                      as SourceExtensionTypeDeclarationBuilder,
+                  name,
+                  getableMember,
+                  setableMember));
         }
       }
     }

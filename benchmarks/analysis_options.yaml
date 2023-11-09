@@ -28,6 +28,7 @@ linter:
     - camel_case_extensions
     - camel_case_types
     - cancel_subscriptions
+    - collection_methods_unrelated_type
     - comment_references
     #- constant_identifier_names
     - control_flow_in_finally
@@ -38,8 +39,6 @@ linter:
     - empty_statements
     - hash_and_equals
     - implementation_imports
-    #- invariant_booleans
-    - collection_methods_unrelated_type
     - library_names
     - library_prefixes
     #- literal_only_boolean_expressions

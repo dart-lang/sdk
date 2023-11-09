@@ -30,39 +30,52 @@ extension type ExtensionType9(int i) {
   void method4() {}
   void set method4(int value) {}
 }
-extension type ExtensionType9a(Never n) implements ClassJ, ClassK {}
-extension type ExtensionType9b(Never n) implements ClassJ, ClassK {
+extension type ExtensionType9a(ClassJK n) implements ClassJ, ClassK {}
+extension type ExtensionType9b(ClassJK n) implements ClassJ, ClassK {
   int get method4 => 42;
   void set method4(int value) {}
 }
-extension type ExtensionType10a(int i) implements ExtensionTypeJ, ExtensionTypeK {}
-extension type ExtensionType10b(int i) implements ExtensionTypeJ, ExtensionTypeK {
+extension type ExtensionType10a(ClassJK i) implements ExtensionTypeJ, ExtensionTypeK {}
+extension type ExtensionType10b(ClassJK i) implements ExtensionTypeJ, ExtensionTypeK {
   int get method4 => 42;
   void set method4(int value) {}
 }
-extension type ExtensionType11(Null n) {
+extension type ExtensionType11(int n) {
   int get property => 42;
   void set property(String value) {}
 }
-extension type ExtensionType12a(Never n) implements ClassL, ClassM {}
+extension type ExtensionType12a(ClassLM n) implements ClassL, ClassM {}
 extension type ExtensionType12b(ClassL n) implements ClassL {
   void set property(bool value) {}
 }
 extension type ExtensionType12c(ClassM n) implements ClassM {
   bool get property => true;
 }
-extension type ExtensionType12d(Never n) implements ClassL, ClassM {
+extension type ExtensionType12d(ClassLM n) implements ClassL, ClassM {
   bool get property => true;
   void set property(bool value) {}
 }
-extension type ExtensionType13a(int i) implements ExtensionTypeL, ExtensionTypeM {}
-extension type ExtensionType13b(int i) implements ExtensionTypeL {
+extension type ExtensionType13a(ClassLM i) implements ExtensionTypeL, ExtensionTypeM {}
+extension type ExtensionType13b(ClassL i) implements ExtensionTypeL {
   void set property(bool value) {}
 }
-extension type ExtensionType13c(int i) implements ExtensionTypeM {
+extension type ExtensionType13c(ClassM i) implements ExtensionTypeM {
   bool get property => true;
 }
-extension type ExtensionType13d(int i) implements ExtensionTypeL, ExtensionTypeM {
+extension type ExtensionType13d(ClassLM i) implements ExtensionTypeL, ExtensionTypeM {
   bool get property => true;
   void set property(bool value) {}
+}
+extension type ExtensionType14a(ExtensionTypeLN n) implements ClassL, ExtensionTypeN {}
+extension type ExtensionType14b(ExtensionTypeLN n) implements ExtensionTypeL, ClassN {}
+extension type ExtensionType14c(ClassL n) implements ClassL {
+  void set property(int value) {}
+}
+extension type ExtensionType14d(ExtensionTypeLN n) implements ExtensionTypeL, ClassN {
+  int get property => 42;
+  void set property(int value) {}
+}
+extension type ExtensionType14e(ExtensionTypeLN n) implements ClassL, ExtensionTypeN {
+  int get property => 42;
+  void set property(int value) {}
 }

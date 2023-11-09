@@ -483,6 +483,16 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Convert to double quoted strings everywhere in file',
   );
+  static const CONVERT_TO_FLUTTER_STYLE_TODO = FixKind(
+    'dart.fix.convert.toFlutterStyleTodo',
+    DartFixKindPriority.DEFAULT,
+    'Convert to flutter style todo',
+  );
+  static const CONVERT_TO_FLUTTER_STYLE_TODO_MULTI = FixKind(
+    'dart.fix.convert.toFlutterStyleTodo.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert to flutter style todos everywhere in file',
+  );
   static const CONVERT_TO_FOR_ELEMENT = FixKind(
     'dart.fix.convert.toForElement',
     DartFixKindPriority.DEFAULT,

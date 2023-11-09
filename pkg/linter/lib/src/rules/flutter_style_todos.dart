@@ -31,6 +31,10 @@ class FlutterStyleTodos extends LintRule {
       'flutter_style_todos', "To-do comment doesn't follow the Flutter style.",
       correctionMessage: 'Try following the Flutter style for to-do comments.');
 
+  /// A regular expression that matches a correctly formatted TODO.
+  static final RegExp todoExpectedRegExp =
+      RegExp(r'// TODO\([a-zA-Z0-9][-a-zA-Z0-9]*\): ');
+
   FlutterStyleTodos()
       : super(
             name: 'flutter_style_todos',
@@ -51,9 +55,6 @@ class FlutterStyleTodos extends LintRule {
 
 class _Visitor extends SimpleAstVisitor<void> {
   static final _todoRegExp = RegExp(r'//+(.* )?TODO\b', caseSensitive: false);
-
-  static final _todoExpectedRegExp =
-      RegExp(r'// TODO\([a-zA-Z0-9][-a-zA-Z0-9]*\): ');
 
   final LintRule rule;
 
@@ -80,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkComment(Token node) {
     var content = node.lexeme;
     if (content.startsWith(_todoRegExp) &&
-        !content.startsWith(_todoExpectedRegExp)) {
+        !content.startsWith(FlutterStyleTodos.todoExpectedRegExp)) {
       rule.reportLintForToken(node);
     }
   }

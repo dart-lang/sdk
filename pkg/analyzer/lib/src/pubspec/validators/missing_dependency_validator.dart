@@ -101,7 +101,7 @@ class MissingDependencyValidator {
       }
     }
     for (var name in usedDevDeps) {
-      if (!availableDevDeps.contains(name)) {
+      if (!availableDevDeps.contains(name) && !availableDeps.contains(name)) {
         addDevDeps.add(name);
       }
     }

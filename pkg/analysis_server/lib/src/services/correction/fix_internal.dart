@@ -63,6 +63,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.
 import 'package:analysis_server/src/services/correction/dart/convert_to_constant_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_flutter_style_todo.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_function_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
@@ -565,6 +566,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.exhaustive_cases: [
       AddMissingEnumLikeCaseClauses.new,
+    ],
+    LintNames.flutter_style_todos: [
+      ConvertToFlutterStyleTodo.new,
     ],
     LintNames.hash_and_equals: [
       CreateMethod.equalsOrHashCode,

@@ -5,8 +5,8 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
@@ -179,20 +179,20 @@ final tests = <IsolateTest>[
       }
     }
 
-    expectTypedData('int8List', int8List);
-    expectTypedData('int16List', int16List);
-    expectTypedData('int32List', int32List);
-    expectTypedData('int64List', int64List);
-    expectTypedData('uint8List', uint8List);
-    expectTypedData('uint16List', uint16List);
-    expectTypedData('uint32List', uint32List);
-    expectTypedData('uint64List', uint64List);
-    expectTypedData('uint8ClampedList', uint8ClampedList);
-    expectTypedData('float32List', float32List);
-    expectTypedData('float64List', float64List);
-    expectTypedData('int32x4List', int32x4List);
-    expectTypedData('float32x4List', float32x4List);
-    expectTypedData('float64x2List', float64x2List);
+    await expectTypedData('int8List', int8List);
+    await expectTypedData('int16List', int16List);
+    await expectTypedData('int32List', int32List);
+    await expectTypedData('int64List', int64List);
+    await expectTypedData('uint8List', uint8List);
+    await expectTypedData('uint16List', uint16List);
+    await expectTypedData('uint32List', uint32List);
+    await expectTypedData('uint64List', uint64List);
+    await expectTypedData('uint8ClampedList', uint8ClampedList);
+    await expectTypedData('float32List', float32List);
+    await expectTypedData('float64List', float64List);
+    await expectTypedData('int32x4List', int32x4List);
+    await expectTypedData('float32x4List', float32x4List);
+    await expectTypedData('float64x2List', float64x2List);
   },
 ];
 
