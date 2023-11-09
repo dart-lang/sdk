@@ -13,10 +13,27 @@ external void eval(String code);
 
 void createObjectTest() {
   JSObject o = JSObject();
-  Expect.isFalse(o.hasProperty('foo'.toJS).toDart);
-  o['foo'] = 'bar'.toJS;
-  Expect.isTrue(o.hasProperty('foo'.toJS).toDart);
-  Expect.equals('bar', (o['foo'] as JSString).toDart);
+  void testHasGetSet(String property, String? value) {
+    // []/[]=
+    Expect.isFalse(o.hasProperty(property.toJS).toDart);
+    o[property] = value?.toJS;
+    Expect.isTrue(o.hasProperty(property.toJS).toDart);
+    Expect.equals(value, (o[property] as JSString?)?.toDart);
+    Expect.isTrue(o.delete(property.toJS).toDart);
+
+    // Weirdly enough, delete almost always returns true.
+    Expect.isTrue(o.delete(property.toJS).toDart);
+
+    // getProperty/setProperty
+    Expect.isFalse(o.hasProperty(property.toJS).toDart);
+    o.setProperty(property.toJS, value?.toJS);
+    Expect.isTrue(o.hasProperty(property.toJS).toDart);
+    Expect.equals(value, (o.getProperty(property.toJS) as JSString?)?.toDart);
+    Expect.isTrue(o.delete(property.toJS).toDart);
+  }
+
+  testHasGetSet('foo', 'bar');
+  testHasGetSet('baz', null);
 }
 
 void equalTest() {
@@ -58,6 +75,8 @@ void equalTest() {
   }
 }
 
+// TODO(srujzs): This helper is no longer in dart:js_interop_unsafe. Move this
+// test.
 void typeofTest() {
   eval(r'''
     globalThis.b = true;
@@ -65,7 +84,8 @@ void typeofTest() {
     globalThis.str = 'foo';
     globalThis.f = function foo() {}
     globalThis.o = {};
-    globalThis.u = undefined
+    globalThis.nil = null;
+    globalThis.u = undefined;
     globalThis.sym = Symbol('sym');
   ''');
 
@@ -79,10 +99,10 @@ void typeofTest() {
     'symbol'
   };
   void test(String property, String expectedType) {
-    Expect.isTrue(globalContext[property]?.typeofEquals(expectedType));
+    Expect.isTrue(globalContext[property].typeofEquals(expectedType));
     for (final type in types) {
       if (type != expectedType) {
-        Expect.isFalse(globalContext[property]?.typeofEquals(type));
+        Expect.isFalse(globalContext[property].typeofEquals(type));
       }
     }
   }
@@ -92,11 +112,14 @@ void typeofTest() {
   test('str', 'string');
   test('f', 'function');
   test('o', 'object');
+  test('nil', 'object');
   // TODO(joshualitt): Test for `undefined` when we it can flow into `JSAny?`.
   // test('u', 'undefined');
   test('sym', 'symbol');
 }
 
+// TODO(srujzs): This helper is no longer in dart:js_interop_unsafe. Move this
+// test.
 void instanceOfTest() {
   eval(r'''
       globalThis.JSClass1 = function() {}
@@ -137,13 +160,13 @@ void _expectRecEquals(Object? l, Object? r) {
   }
 }
 
-void evalAndConstructTest() {
+void methodsAndConstructorsTest() {
   eval(r'''
     function JSClass(c) {
       this.c = c;
       this.sum = (a, b) => {
         console.log(a + ' ' + b);
-        return a + b + this.c;
+        return `${a}${b}${this.c}`;
       }
     }
     globalThis.JSClass = JSClass;
@@ -151,18 +174,42 @@ void evalAndConstructTest() {
   JSObject gc = globalContext;
   JSFunction constructor = gc['JSClass'] as JSFunction;
 
-  // Var args
+  // Var args one arg
   JSObject jsObj1 =
       constructor.callAsConstructorVarArgs<JSObject>(<JSAny?>['world!'.toJS]);
   Expect.equals(
       'hello world!',
       jsObj1.callMethodVarArgs<JSString>(
           'sum'.toJS, <JSAny?>['hello'.toJS, ' '.toJS]).toDart);
+  Expect.equals(
+      'helloundefinedworld!',
+      jsObj1.callMethodVarArgs<JSString>(
+          'sum'.toJS, <JSAny?>['hello'.toJS]).toDart);
+  Expect.equals('undefinedundefinedworld!',
+      jsObj1.callMethodVarArgs<JSString>('sum'.toJS, <JSAny?>[]).toDart);
+  Expect.equals('undefinedundefinedworld!',
+      jsObj1.callMethodVarArgs<JSString>('sum'.toJS).toDart);
+  Expect.equals(
+      'nullnullworld!',
+      jsObj1.callMethodVarArgs<JSString>(
+          'sum'.toJS, <JSAny?>[null, null]).toDart);
+  // Var args no args
+  jsObj1 = constructor.callAsConstructorVarArgs<JSObject>();
+  Expect.equals(jsObj1['c'], null);
 
-  // Fixed args
-  JSObject jsObj2 = constructor.callAsConstructor<JSObject>('world!'.toJS);
+  // Fixed args one arg
+  jsObj1 = constructor.callAsConstructor<JSObject>('world!'.toJS);
   Expect.equals('hello world!',
-      jsObj2.callMethod<JSString>('sum'.toJS, 'hello'.toJS, ' '.toJS).toDart);
+      jsObj1.callMethod<JSString>('sum'.toJS, 'hello'.toJS, ' '.toJS).toDart);
+  Expect.equals('helloundefinedworld!',
+      jsObj1.callMethod<JSString>('sum'.toJS, 'hello'.toJS).toDart);
+  Expect.equals('undefinedundefinedworld!',
+      jsObj1.callMethod<JSString>('sum'.toJS, null).toDart);
+  Expect.equals('undefinedundefinedworld!',
+      jsObj1.callMethod<JSString>('sum'.toJS).toDart);
+  // Fixed args no args
+  jsObj1 = constructor.callAsConstructor<JSObject>();
+  Expect.equals(jsObj1['c'], null);
 }
 
 void deepConversionsTest() {
@@ -399,7 +446,7 @@ void main() {
   equalTest();
   typeofTest();
   instanceOfTest();
-  evalAndConstructTest();
+  methodsAndConstructorsTest();
   deepConversionsTest();
   symbolTest();
 }

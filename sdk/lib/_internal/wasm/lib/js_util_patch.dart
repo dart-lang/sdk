@@ -44,8 +44,8 @@ dynamic jsify(Object? object) {
       convertedObjects[o] = convertedMap;
       for (final key in o.keys) {
         final convertedKey = convert(key) as JSValue?;
-        setPropertyRaw(convertedMap.toExternRef, convertedKey?.toExternRef,
-            (convert(o[key]) as JSValue?)?.toExternRef);
+        setPropertyRaw(convertedMap.toExternRef, convertedKey.toExternRef,
+            (convert(o[key]) as JSValue?).toExternRef);
       }
       return convertedMap;
     } else if (o is Iterable<Object?>) {

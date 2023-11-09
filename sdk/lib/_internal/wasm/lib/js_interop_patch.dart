@@ -43,7 +43,7 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   @patch
   bool typeofEquals(String type) =>
       _box<JSBoolean>(js_helper.JS<WasmExternRef?>('(o, t) => typeof o === t',
-              this?.toExternRef, type.toJS.toExternRef))
+              this.toExternRef, type.toJS.toExternRef))
           .toDart;
 
   @patch
