@@ -29,12 +29,13 @@ class ConvertToFlutterStyleTodo extends ResolvedCorrectionProducer {
     if (diagnosticOffset == null) return;
 
     // Find the token that follows the reported diagnostic.
-    var token = node.beginToken;
-    do {
+    Token? token = node.beginToken;
+    while (token != null && token != node.endToken) {
       if (token.offset > diagnosticOffset) break;
 
-      token = token.next!;
-    } while (token != node.endToken);
+      token = token.next;
+    }
+    if (token == null) return;
 
     // Identify the right comment.
     Token? comment = token.precedingComments;
@@ -45,6 +46,17 @@ class ConvertToFlutterStyleTodo extends ResolvedCorrectionProducer {
     if (comment == null) return;
 
     var content = comment.lexeme;
+
+    // Fix leading spaces.
+    var todoIndex = content.indexOf('TODO');
+    if (todoIndex == -1) {
+      todoIndex = content.indexOf('todo');
+    }
+    if (todoIndex == -1) return;
+
+    if (todoIndex != 3) {
+      content = content.replaceRange(2, todoIndex, ' ');
+    }
 
     // Try adding a missing leading space before `TODO`.
     if (!content.startsWith('// ')) {
@@ -62,7 +74,7 @@ class ConvertToFlutterStyleTodo extends ResolvedCorrectionProducer {
       content = content.replaceFirst(')', '):');
     }
 
-    // Try fixing the TODO case.
+    // Try fixing lower case.
     if (content.startsWith('// todo')) {
       content = content.replaceRange(3, 7, 'TODO');
     }
