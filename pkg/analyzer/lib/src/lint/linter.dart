@@ -232,10 +232,16 @@ class LinterConstantEvaluationResult {
 abstract class LinterContext {
   List<LinterContextUnit> get allUnits;
 
+  @Deprecated('This field is being removed; for access to the analysis options '
+      'that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
   AnalysisOptions get analysisOptions;
 
   LinterContextUnit get currentUnit;
 
+  @Deprecated('This field is being removed; for access to the '
+      'DeclaredVariables that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
   DeclaredVariables get declaredVariables;
 
   InheritanceManager3 get inheritanceManager;
@@ -246,7 +252,7 @@ abstract class LinterContext {
 
   TypeSystem get typeSystem;
 
-  /// Return `true` if it would be valid for the given [expression] to have
+  /// Returns `true` if it would be valid for the given [expression] to have
   /// a keyword of `const`.
   ///
   /// The [expression] is expected to be a node within one of the compilation
@@ -256,49 +262,56 @@ abstract class LinterContext {
   /// computationally expensive.
   bool canBeConst(Expression expression);
 
-  /// Return `true` if it would be valid for the given constructor declaration
+  /// Returns `true` if it would be valid for the given constructor declaration
   /// [node] to have a keyword of `const`.
   ///
-  /// The [node] is expected to be a node within one of the compilation
-  /// units in [allUnits].
+  /// The [node] is expected to be a node within one of the compilation units in
+  /// [allUnits].
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
   bool canBeConstConstructor(ConstructorDeclaration node);
 
-  /// Return the result of evaluating the given expression.
+  /// Returns the result of evaluating the given expression.
   LinterConstantEvaluationResult evaluateConstant(Expression node);
 
-  /// Return `true` if the given [unit] is in a test directory.
+  /// Returns `true` if the given [unit] is in a test directory.
   bool inTestDir(CompilationUnit unit);
 
-  /// Return `true` if the [feature] is enabled in the library being linted.
+  /// Returns `true` if the [feature] is enabled in the library being linted.
   bool isEnabled(Feature feature);
 
-  /// Resolve the name `id` or `id=` (if [setter] is `true`) an the location
+  /// Resolves the name `id` or `id=` (if [setter] is `true`) at the location
   /// of the [node], according to the "16.35 Lexical Lookup" of the language
   /// specification.
+  @Deprecated('Use resolveNameInScope2')
   LinterNameInScopeResolutionResult resolveNameInScope(
       String id, bool setter, AstNode node);
+
+  /// Resolves the name `id` or `id=` (if [setter] is `true`) at the location
+  /// of the [node], according to the "16.35 Lexical Lookup" of the language
+  /// specification.
+  LinterNameInScopeResolutionResult resolveNameInScope2(
+    String id,
+    AstNode node, {
+    required bool setter,
+  });
 }
 
-/// Implementation of [LinterContext]
 class LinterContextImpl implements LinterContext {
   @override
   final List<LinterContextUnit> allUnits;
 
-  @override
-  final AnalysisOptions analysisOptions;
-
+  // TODO(srawlins): Remove when the public accessor, `analysisOption`, is
+  // removed.
+  final AnalysisOptions _analysisOptions;
   @override
   final LinterContextUnit currentUnit;
 
-  @override
-  final DeclaredVariables declaredVariables;
+  final DeclaredVariables _declaredVariables;
 
   @override
   final WorkspacePackage? package;
-
   @override
   final TypeProvider typeProvider;
 
@@ -308,19 +321,33 @@ class LinterContextImpl implements LinterContext {
   @override
   final InheritanceManager3 inheritanceManager;
 
-  final List<String> testDirectories;
+  final List<String> _testDirectories;
 
   LinterContextImpl(
     this.allUnits,
     this.currentUnit,
-    this.declaredVariables,
+    DeclaredVariables declaredVariables,
     this.typeProvider,
     this.typeSystem,
     this.inheritanceManager,
-    this.analysisOptions,
+    AnalysisOptions analysisOptions,
     this.package,
     p.Context pathContext,
-  ) : testDirectories = LinterContextImpl.getTestDirectories(pathContext);
+  )   : _declaredVariables = declaredVariables,
+        _analysisOptions = analysisOptions,
+        _testDirectories = getTestDirectories(pathContext);
+
+  @override
+  @Deprecated('This field is being removed; for access to the analysis options '
+      'that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
+  AnalysisOptions get analysisOptions => _analysisOptions;
+
+  @override
+  @Deprecated('This field is being removed; for access to the '
+      'DeclaredVariables that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
+  DeclaredVariables get declaredVariables => _declaredVariables;
 
   @override
   bool canBeConst(Expression expression) {
@@ -367,7 +394,7 @@ class LinterContextImpl implements LinterContext {
     );
 
     var evaluationEngine = ConstantEvaluationEngine(
-      declaredVariables: declaredVariables,
+      declaredVariables: _declaredVariables,
       isNonNullableByDefault: isEnabled(Feature.non_nullable),
       configuration: ConstantEvaluationConfiguration(),
     );
@@ -378,7 +405,7 @@ class LinterContextImpl implements LinterContext {
     );
 
     computeConstants(
-      declaredVariables: declaredVariables,
+      declaredVariables: _declaredVariables,
       constants: dependencies,
       featureSet: libraryElement.featureSet,
       configuration: ConstantEvaluationConfiguration(),
@@ -398,7 +425,7 @@ class LinterContextImpl implements LinterContext {
   @override
   bool inTestDir(CompilationUnit unit) {
     var path = unit.declaredElement?.source.fullName;
-    return path != null && testDirectories.any(path.contains);
+    return path != null && _testDirectories.any(path.contains);
   }
 
   @override
@@ -409,7 +436,15 @@ class LinterContextImpl implements LinterContext {
 
   @override
   LinterNameInScopeResolutionResult resolveNameInScope(
-      String id, bool setter, AstNode node) {
+          String id, bool setter, AstNode node) =>
+      resolveNameInScope2(id, node, setter: setter);
+
+  @override
+  LinterNameInScopeResolutionResult resolveNameInScope2(
+    String id,
+    AstNode node, {
+    required bool setter,
+  }) {
     Scope? scope;
     for (AstNode? context = node; context != null; context = context.parent) {
       scope = ScopeResolverVisitor.getNodeNameScope(context);
@@ -486,7 +521,7 @@ class LinterContextImpl implements LinterContext {
     var dependenciesFinder = ConstantExpressionsDependenciesFinder();
     node.accept(dependenciesFinder);
     computeConstants(
-      declaredVariables: declaredVariables,
+      declaredVariables: _declaredVariables,
       constants: dependenciesFinder.dependencies.toList(),
       featureSet: libraryElement.featureSet,
       configuration: ConstantEvaluationConfiguration(),
@@ -503,7 +538,7 @@ class LinterContextImpl implements LinterContext {
       ConstantVerifier(
         errorReporter,
         libraryElement,
-        declaredVariables,
+        _declaredVariables,
       ),
     );
     return listener.hasConstError;
@@ -536,13 +571,18 @@ class LinterContextParsedImpl implements LinterContext {
   LinterContextParsedImpl(
     this.allUnits,
     this.currentUnit,
-    //  this.package,
   );
 
   @override
+  @Deprecated('This field is being removed; for access to the analysis options '
+      'that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
   AnalysisOptions get analysisOptions => throw UnimplementedError();
 
   @override
+  @Deprecated('This field is being removed; for access to the '
+      'DeclaredVariables that apply to `allUnits`, use '
+      '`currentUnit.unit.declaredElement?.session`.')
   DeclaredVariables get declaredVariables =>
       throw UnsupportedError('LinterContext with parsed results');
 
@@ -577,6 +617,14 @@ class LinterContextParsedImpl implements LinterContext {
   @override
   LinterNameInScopeResolutionResult resolveNameInScope(
           String id, bool setter, AstNode node) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  LinterNameInScopeResolutionResult resolveNameInScope2(
+    String id,
+    AstNode node, {
+    required bool setter,
+  }) =>
       throw UnsupportedError('LinterContext with parsed results');
 }
 
