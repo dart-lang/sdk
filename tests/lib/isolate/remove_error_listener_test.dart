@@ -16,8 +16,8 @@ void main(List<String> args) {
       Platform.script.toFilePath(),
       'child'
     ]);
-    Expect.isTrue(
-        result.stderr.contains("Unhandled exception:\nException: Oops!"));
+    Expect.isTrue(result.stderr.contains(
+        "Unhandled exception:${Platform.lineTerminator}Exception: Oops!"));
     return;
   }
   {
