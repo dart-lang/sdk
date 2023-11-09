@@ -55,13 +55,14 @@ class String {
     // Create JS string from `list`.
     const kMaxApply = 500;
     if (index <= kMaxApply) {
-      return _fromCharCodeApplySubarray(list, 0, index);
+      return _fromCharCodeApplySubarray(list.toExternRef, 0, index.toDouble());
     }
 
     String result = '';
     for (int i = 0; i < index; i += kMaxApply) {
       final chunkEnd = (i + kMaxApply < index) ? i + kMaxApply : index;
-      result += _fromCharCodeApplySubarray(list, i, chunkEnd);
+      result += _fromCharCodeApplySubarray(
+          list.toExternRef, i.toDouble(), chunkEnd.toDouble());
     }
     return result;
   }
@@ -92,11 +93,10 @@ class String {
   }
 
   static String _fromCharCodeApplySubarray(
-      JSUint32ArrayImpl charCodes, int index, int end) {
-    return JSStringImpl(js.JS<WasmExternRef?>(
-        '(c, i, e) => String.fromCharCode.apply(null, new Uint32Array(c.buffer, c.byteOffset + i, e))',
-        charCodes.toExternRef,
-        WasmI32.fromInt(index * 4),
-        WasmI32.fromInt(end - index)));
-  }
+          WasmExternRef? charCodes, double index, double end) =>
+      JSStringImpl(js.JS<WasmExternRef?>(
+          '(c, i, e) => String.fromCharCode.apply(null, c.subarray(i, e))',
+          charCodes,
+          index,
+          end));
 }

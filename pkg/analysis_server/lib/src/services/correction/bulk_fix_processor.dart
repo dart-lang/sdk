@@ -577,7 +577,8 @@ class BulkFixProcessor {
   Future<void> _fixErrorsInLibraryUnit(
       ResolvedUnitResult unit, ResolvedLibraryResult library,
       {bool stopAfterFirst = false, bool autoTriggered = false}) async {
-    var analysisOptions = unit.session.analysisContext.analysisOptions;
+    var analysisOptions =
+        unit.session.analysisContext.getAnalysisOptionsForFile(unit.file);
 
     DartFixContextImpl fixContext(
       AnalysisError diagnostic, {
@@ -672,9 +673,9 @@ class BulkFixProcessor {
   Future<void> _fixErrorsInParsedLibrary(
       ParsedLibraryResult result, List<AnalysisError> errors,
       {required bool stopAfterFirst}) async {
-    var analysisOptions = result.session.analysisContext.analysisOptions;
-
     for (var unitResult in result.units) {
+      var analysisOptions = result.session.analysisContext
+          .getAnalysisOptionsForFile(unitResult.file);
       var overrideSet = _readOverrideSet(unitResult);
       for (var error in _filterErrors(analysisOptions, errors)) {
         await _fixSingleParseError(unitResult, error, overrideSet);
@@ -842,8 +843,9 @@ class BulkFixProcessor {
       return false;
     }
 
-    final filteredErrors =
-        _filterErrors(context.analysisOptions, errorsResult.errors);
+    final analysisOptions = errorsResult.session.analysisContext
+        .getAnalysisOptionsForFile(errorsResult.file);
+    final filteredErrors = _filterErrors(analysisOptions, errorsResult.errors);
     return filteredErrors.any(_isFixableError);
   }
 

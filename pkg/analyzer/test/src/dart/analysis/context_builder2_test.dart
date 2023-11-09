@@ -119,7 +119,6 @@ environment:
       declaredVariables: declaredVariables,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
   }

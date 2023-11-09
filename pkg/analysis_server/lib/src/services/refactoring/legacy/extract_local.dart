@@ -63,8 +63,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     utils = CorrectionUtils(resolveResult);
   }
 
-  CodeStyleOptions get codeStyleOptions =>
-      resolveResult.session.analysisContext.analysisOptions.codeStyleOptions;
+  CodeStyleOptions get codeStyleOptions => resolveResult.session.analysisContext
+      .getAnalysisOptionsForFile(resolveResult.file)
+      .codeStyleOptions;
 
   String get file => resolveResult.path;
 

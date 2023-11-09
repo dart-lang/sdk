@@ -8,8 +8,10 @@
 import 'dart:async';
 import 'dart:isolate' as iso;
 
+import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
+import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 Future<void> _compute() async {
@@ -23,41 +25,49 @@ void testMain() async {
 }
 
 final tests = <IsolateTest>[
+  hasPausedAtStart,
   (VmService service, IsolateRef isolateRef) async {
-    // await service.setIsolatePauseMode(isolateRef.id!, shouldPauseOnExit: true);
-    // expect(await shouldPauseOnExit(service, isolateRef), true);
     final computeCompleter = Completer<void>();
     final mainCompleter = Completer<void>();
 
-    final mainIsolate = Completer<String>();
     final computeIsolate = Completer<String>();
 
+    final mainIsolateId = isolateRef.id!;
+    print('Main Isolate ID: $mainIsolateId');
+
     final stream = service.onDebugEvent;
-    final subscription = stream.listen((Event event) {
-      print('debug stream event: $event');
+    final subscription = stream.listen((Event event) async {
+      final isolateId = event.isolate!.id!;
+      print('debug stream event: $event ($isolateId)');
       switch (event.kind) {
         case EventKind.kPauseExit:
-          if (!computeCompleter.isCompleted) {
+          if (isolateId != mainIsolateId) {
+            expect(computeCompleter.isCompleted, false);
             computeCompleter.complete();
           } else {
+            expect(mainCompleter.isCompleted, false);
             mainCompleter.complete();
           }
           break;
         case EventKind.kPauseStart:
-          if (!mainIsolate.isCompleted) {
-            mainIsolate.complete(event.isolate!.id!);
-          } else {
-            computeIsolate.complete(event.isolate!.id!);
-          }
-          service.resume(event.isolate!.id!);
+          computeIsolate.complete(isolateId);
       }
     });
     await service.streamListen(EventStreams.kDebug);
 
+    // Resume the main isolate, causing the compute isolate to start.
+    await service.resume(mainIsolateId);
+
+    // Wait for the compute isolate to pause on start.
+    final computeIsolateId = await computeIsolate.future;
+    await service.resume(computeIsolateId);
+
     // Wait for pause on exit for compute isolate
     await computeCompleter.future;
+
     // Resume compute isolate paused on exit
-    await service.resume(await computeIsolate.future);
+    await service.resume(computeIsolateId);
+
     // Ensure that main exits as well.
     await mainCompleter.future;
     await subscription.cancel();

@@ -119,6 +119,9 @@ class _MicroAnalysisContextImpl implements AnalysisContext {
   Folder? get sdkRoot => null;
 
   @override
+  AnalysisOptionsImpl getAnalysisOptionsForFile(File file) => analysisOptions;
+
+  @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

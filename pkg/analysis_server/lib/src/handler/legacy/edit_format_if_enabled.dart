@@ -55,6 +55,7 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
     );
     var sourceFileEdits = <SourceFileEdit>[];
     for (var context in collection.contexts) {
+      // TODO(pq) maybe experimental and could be unused (or maybe used by dart fix)
       if (context.analysisOptions.codeStyleOptions.useFormatter) {
         _formatInContext(context, sourceFileEdits);
       }

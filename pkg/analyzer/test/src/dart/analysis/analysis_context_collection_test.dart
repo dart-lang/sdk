@@ -70,7 +70,7 @@ linter:
       packageConfigFileBuilder.toContent(toUriStr: toUriStr),
     );
 
-    newAnalysisOptionsYamlFile(rootFolder.path, r'''
+    var optionsFile = newAnalysisOptionsYamlFile(rootFolder.path, r'''
 include: package:foo/included.yaml
 
 linter:
@@ -80,7 +80,8 @@ linter:
 
     var collection = _newCollection(includedPaths: [rootFolder.path]);
     var analysisContext = collection.contextFor(rootFolder.path);
-    var analysisOptions = analysisContext.analysisOptions;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsForFile(optionsFile);
 
     expect(
       analysisOptions.lintRules.map((e) => e.name),
@@ -90,7 +91,7 @@ linter:
 
   test_new_analysisOptions_lintRules() {
     var rootFolder = newFolder('/home/test');
-    newAnalysisOptionsYamlFile(rootFolder.path, r'''
+    var optionsFile = newAnalysisOptionsYamlFile(rootFolder.path, r'''
 linter:
   rules:
     - non_existent_lint_rule
@@ -99,7 +100,8 @@ linter:
 
     var collection = _newCollection(includedPaths: [rootFolder.path]);
     var analysisContext = collection.contextFor(rootFolder.path);
-    var analysisOptions = analysisContext.analysisOptions;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsForFile(optionsFile);
 
     expect(
       analysisOptions.lintRules.map((e) => e.name),

@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/engine.dart';
 /// Clients may not extend, implement or mix-in this class.
 abstract class AnalysisContext {
   /// The analysis options used to control the way the code is analyzed.
+  // TODO(pq) @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions;
 
   /// Return the context root from which this context was created.
@@ -58,4 +59,7 @@ abstract class AnalysisContext {
   /// var resolvedUnit = analysisSession.getResolvedUnit(...);
   /// ```
   void changeFile(String path);
+
+  /// Get the [AnalysisOptions] instance for the given [file].
+  AnalysisOptions getAnalysisOptionsForFile(File file);
 }

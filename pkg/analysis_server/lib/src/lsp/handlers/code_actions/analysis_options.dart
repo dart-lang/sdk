@@ -56,12 +56,15 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       return [];
     }
 
+    final analysisContext = session.analysisContext;
+    final analysisOptions =
+        analysisContext.getAnalysisOptionsForFile(optionsFile);
     final errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
       sourceFactory,
-      session.analysisContext.contextRoot.root.path,
-      session.analysisContext.analysisOptions.sdkVersionConstraint,
+      analysisContext.contextRoot.root.path,
+      analysisOptions.sdkVersionConstraint,
     );
 
     final codeActions = <CodeActionWithPriority>[];

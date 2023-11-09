@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
@@ -53,6 +54,23 @@ class DeclarationBuilder {
   DeclarationBuilder({
     required this.nodeOfElement,
   });
+
+  /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
+  macro.TypeDeclarationImpl typeDeclarationOf(macro.Identifier identifier) {
+    identifier as IdentifierImpl;
+
+    final element = identifier.element;
+    if (element == null) {
+      throw ArgumentError('identifier: $identifier');
+    }
+
+    final node = nodeOfElement(element);
+    if (node != null) {
+      return fromNode.typeDeclarationOf(node);
+    } else {
+      return fromElement.typeDeclarationOf(element);
+    }
+  }
 
   List<macro.MetadataAnnotationImpl> _buildMetadata(Element element) {
     return element.withAugmentations
@@ -181,6 +199,17 @@ class DeclarationBuilderFromElement {
 
   macro.IntrospectableMixinDeclarationImpl mixinElement(MixinElement element) {
     return _mixinMap[element] ??= _introspectableMixinElement(element);
+  }
+
+  /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
+  macro.TypeDeclarationImpl typeDeclarationOf(Element element) {
+    if (element is ClassElementImpl) {
+      return classElement(element);
+    } else if (element is MixinElementImpl) {
+      return mixinElement(element);
+    } else {
+      throw ArgumentError('element: $element');
+    }
   }
 
   macro.TypeParameterDeclarationImpl typeParameter(
@@ -371,6 +400,17 @@ class DeclarationBuilderFromNode {
     ast.MixinDeclaration node,
   ) {
     return _introspectableMixinDeclaration(node);
+  }
+
+  /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
+  macro.TypeDeclarationImpl typeDeclarationOf(ast.AstNode node) {
+    if (node is ast.ClassDeclaration) {
+      return classDeclaration(node);
+    } else if (node is ast.MixinDeclaration) {
+      return mixinDeclaration(node);
+    } else {
+      throw ArgumentError('node: $node');
+    }
   }
 
   List<macro.MetadataAnnotationImpl> _buildMetadata(Element element) {

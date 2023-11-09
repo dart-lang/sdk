@@ -95,8 +95,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
         }
       }
 
-      var codeStyleOptions = sessionHelper
-          .session.analysisContext.analysisOptions.codeStyleOptions;
+      var codeStyleOptions = getCodeStyleOptions(unitResult.file);
       var defaultValue = getDefaultStringParameterValue(
           missingParameter, codeStyleOptions,
           withNullability: libraryElement.isNonNullableByDefault &&

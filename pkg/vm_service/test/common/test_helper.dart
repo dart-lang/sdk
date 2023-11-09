@@ -132,9 +132,7 @@ class _ServiceTesteeLauncher {
       List<String>? extraArgs) {
     String dartExecutable = io.Platform.executable;
 
-    var fullArgs = <String>[
-      '--disable-dart-dev',
-    ];
+    final fullArgs = <String>[];
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
     }
@@ -167,7 +165,7 @@ class _ServiceTesteeLauncher {
       List<String> /*!*/ arguments, Map<String, String> dartEnvironment) {
     var environment = _TESTEE_SPAWN_ENV;
     var bashEnvironment = StringBuffer();
-    environment.forEach((k, v) => bashEnvironment.write("$k=$v "));
+    environment.forEach((k, v) => bashEnvironment.write('$k=$v '));
     dartEnvironment.forEach((k, v) {
       arguments.insert(0, '-D$k=$v');
     });
@@ -273,10 +271,10 @@ class _ServiceTesterRunner {
           .launch(pause_on_start, pause_on_exit, pause_on_unhandled_exceptions,
               testeeControlsServer, useAuthToken, experiments, extraArgs)
           .then((Uri serverAddress) async {
-        if (mainArgs!.contains("--gdb")) {
+        if (mainArgs!.contains('--gdb')) {
           var pid = process.process!.pid;
           var wait = Duration(seconds: 10);
-          print("Testee has pid $pid, waiting $wait before continuing");
+          print('Testee has pid $pid, waiting $wait before continuing');
           io.sleep(wait);
         }
         setupAddresses(serverAddress);
@@ -328,10 +326,10 @@ class _ServiceTesterRunner {
     final exitCode = await process.exitCode;
     if (exitCode != 0) {
       if (!(process.killedByTester || allowForNonZeroExitCode)) {
-        throw "Testee exited with unexpected exitCode: $exitCode";
+        throw 'Testee exited with unexpected exitCode: $exitCode';
       }
     }
-    print("** Process exited: $exitCode");
+    print('** Process exited: $exitCode');
   }
 
   Future<IsolateRef> getFirstIsolate(VmService service) async {

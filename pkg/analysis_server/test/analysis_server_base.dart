@@ -220,7 +220,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
 
   analysis.AnalysisOptions get testFileAnalysisOptions {
     var analysisDriver = server.getAnalysisDriver(testFile.path)!;
-    return analysisDriver.analysisOptions;
+    return analysisDriver.getAnalysisOptionsForFile(testFile);
   }
 
   String get testFileContent => testFile.readAsStringSync();

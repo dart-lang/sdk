@@ -14,6 +14,7 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 void test() {
+  print('start');
   debugger();
   print('stdout');
 
@@ -29,9 +30,18 @@ var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final completer = Completer<void>();
     late StreamSubscription stdoutSub;
+    bool started = false;
     stdoutSub = service.onStdoutEvent.listen((event) async {
+      final output = utf8.decode(base64Decode(event.bytes!));
+      // DDS buffers log history and sends each entry as an event upon the
+      // initial stream subscription. Wait for the initial sentinel before
+      // executing test logic.
+      if (!started) {
+        started = output == 'start';
+        return;
+      }
       expect(event.kind, EventKind.kWriteEvent);
-      expect(utf8.decode(base64Decode(event.bytes!)), 'stdout');
+      expect(output, 'stdout');
       await stdoutSub.cancel();
       await service.streamCancel(EventStreams.kStdout);
       completer.complete();
@@ -61,6 +71,13 @@ var tests = <IsolateTest>[
     final completer = Completer<void>();
     late StreamSubscription stderrSub;
     stderrSub = service.onStderrEvent.listen((event) async {
+      // DDS buffers log history and sends each entry as an event upon the
+      // initial stream subscription. We don't need to wait for a sentinel here
+      // before executing the test logic since nothing is written to stderr
+      // outside this test.
+      //
+      // If this test starts failing, the VM service or dartdev has started
+      // writing to stderr and this test should be updated.
       expect(event.kind, EventKind.kWriteEvent);
       expect(utf8.decode(base64Decode(event.bytes!)), 'stderr');
       await service.streamCancel(EventStreams.kStderr);

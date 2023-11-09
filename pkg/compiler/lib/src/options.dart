@@ -1140,6 +1140,9 @@ class CompilerOptions implements DiagnosticOptions {
     if (benchmarkingProduction) {
       trustPrimitives = true;
       omitImplicitChecks = true;
+      // TODO(53993):
+      //   laxRuntimeTypeToString = true;
+      //   omitLateNames = true;
     }
 
     if (benchmarkingExperiment) {

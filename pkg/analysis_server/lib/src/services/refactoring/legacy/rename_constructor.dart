@@ -194,8 +194,8 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
     var node = result.node;
     if (node is ClassDeclaration) {
       var utils = CorrectionUtils(resolvedUnit);
-      var location =
-          utils.prepareNewConstructorLocation(sessionHelper.session, node);
+      var location = utils.prepareNewConstructorLocation(
+          sessionHelper.session, node, resolvedUnit.file);
       if (location == null) {
         return;
       }

@@ -7,8 +7,10 @@ import 'dart:isolate';
 import 'deferred.dart' deferred as prefix1;
 import 'deferred.dart' deferred as prefix2;
 
-void main() {
-  prefix1.loadLibrary();
+Future<void> main(List<String> args, SendPort port) async {
+  await prefix1.loadLibrary();
+  // Notify the spawner that we've finished loading the library.
+  port.send(null);
   RawReceivePort _ = RawReceivePort();
   print('spawned isolate running');
 }

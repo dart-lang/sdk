@@ -154,7 +154,7 @@ class LibraryMacroApplier {
     return macroExecutor
         .buildAugmentationLibrary(
           results,
-          _resolveDeclaration,
+          declarationBuilder.typeDeclarationOf,
           _resolveIdentifier,
           _inferOmittedType,
         )
@@ -518,17 +518,6 @@ class LibraryMacroApplier {
     return null;
   }
 
-  macro.TypeDeclaration _resolveDeclaration(macro.Identifier identifier) {
-    final element = (identifier as IdentifierImpl).element;
-    if (element is ClassElementImpl) {
-      return declarationBuilder.fromElement.classElement(element);
-    } else if (element is MixinElementImpl) {
-      return declarationBuilder.fromElement.mixinElement(element);
-    } else {
-      throw ArgumentError('element: $element');
-    }
-  }
-
   macro.ResolvedIdentifier _resolveIdentifier(macro.Identifier identifier) {
     if (identifier is IdentifierImplFromElement) {
       // TODO(scheglov) other elements
@@ -699,7 +688,10 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   final TypeSystemImpl typeSystem;
 
   _DeclarationPhaseIntrospector(
-      super.elementFactory, super.declarationBuilder, this.typeSystem);
+    super.elementFactory,
+    super.declarationBuilder,
+    this.typeSystem,
+  );
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
@@ -750,16 +742,9 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<macro.TypeDeclaration> typeDeclarationOf(
-    covariant IdentifierImpl identifier,
+    macro.Identifier identifier,
   ) async {
-    final element = identifier.element;
-    if (element is ClassElementImpl) {
-      return declarationBuilder.fromElement.classElement(element);
-    } else if (element is MixinElementImpl) {
-      return declarationBuilder.fromElement.mixinElement(element);
-    } else {
-      throw ArgumentError('element: $element');
-    }
+    return declarationBuilder.typeDeclarationOf(identifier);
   }
 
   @override

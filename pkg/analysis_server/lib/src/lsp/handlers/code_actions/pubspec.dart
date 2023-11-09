@@ -54,8 +54,9 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
       contents: node,
       source: pubspecFile.createSource(),
       provider: resourceProvider,
-      analysisOptions:
-          server.contextManager.getContextFor(path)?.analysisOptions,
+      analysisOptions: server.contextManager
+          .getContextFor(path)
+          ?.getAnalysisOptionsForFile(pubspecFile),
     );
 
     final codeActions = <CodeActionWithPriority>[];
