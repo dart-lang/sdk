@@ -19,7 +19,6 @@ import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
-import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
@@ -407,8 +406,6 @@ class ContextLocatorImpl implements ContextLocator {
     Workspace? workspace;
     workspace = BlazeWorkspace.find(resourceProvider, rootPath,
         lookForBuildFileSubstitutes: false);
-    workspace = _mostSpecificWorkspace(workspace,
-        PackageBuildWorkspace.find(resourceProvider, packages, rootPath));
     workspace = _mostSpecificWorkspace(
         workspace, PubWorkspace.find(resourceProvider, packages, rootPath));
     workspace ??= BasicWorkspace.find(resourceProvider, packages, rootPath);
