@@ -46,7 +46,8 @@ import 'package:glob/glob.dart';
 import 'package:path/path.dart' as p;
 
 export 'package:analyzer/src/lint/linter_visitor.dart' show NodeLintRegistry;
-export 'package:analyzer/src/lint/state.dart' show dart2_12, dart3, State;
+export 'package:analyzer/src/lint/state.dart'
+    show dart2_12, dart3, dart3_3, State;
 
 typedef Printer = void Function(String msg);
 
