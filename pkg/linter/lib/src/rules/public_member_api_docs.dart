@@ -239,7 +239,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    // todo(pq): update this to be called from the parent (like with visitMembers)
+    // TODO(pq): update this to be called from the parent (like with visitMembers)
     if (node.isInternal) return;
 
     if (!inPrivateMember(node) && !isPrivate(node.name)) {
@@ -274,7 +274,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    // todo(pq): update this to be called from the parent (like with visitMembers)
+    // TODO(pq): update this to be called from the parent (like with visitMembers)
     if (node.isInternal) return;
     if (inPrivateMember(node)) return;
     if (node.isInvalidExtensionTypeField) return;

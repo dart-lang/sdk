@@ -32,6 +32,7 @@ linter:
     - dangling_library_doc_comments
     - directives_ordering
     - discarded_futures
+    - flutter_style_todos
     - implicit_call_tearoffs
     - join_return_with_assignment
     - library_annotations

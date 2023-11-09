@@ -33,7 +33,7 @@ if (!lunchBox.contains('sandwich')) return 'so hungry...';
 ''';
 
 class PreferContains extends LintRule {
-  // TODO(brianwilkerson) Both `alwaysFalse` and `alwaysTrue` should be warnings
+  // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings
   //  rather than lints because they represent a bug rather than a style
   //  preference.
   static const LintCode alwaysFalse = LintCode('prefer_contains',

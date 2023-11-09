@@ -279,7 +279,7 @@ void _validateExpectedLints(File file, Iterable<AnalysisErrorInfo> errorInfos,
   actual.sort();
   try {
     expect(actual, unorderedMatches(expected));
-    // TODO (asashour): to be removed after fixing
+    // TODO(asashour): to be removed after fixing
     // https://github.com/dart-lang/linter/issues/909
     // ignore: avoid_catches_without_on_clauses
   } catch (_) {

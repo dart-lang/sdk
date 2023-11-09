@@ -142,7 +142,7 @@ class _CascadableExpression {
   /// [AssignmentExpression] in which the left side is not a [SimpleIdentifier],
   /// it cannot join. See bugs https://github.com/dart-lang/linter/issues/1323
   /// and https://github.com/dart-lang/linter/issues/3240.
-  // TODO(https://github.com/dart-lang/linter/issues/3240): Refactor this lint
+  // TODO(srawlins): Refactor this lint, (https://github.com/dart-lang/linter/issues/3240)
   // rule to use
   // DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(), which
   // should remove this need for checking for a simple target.
@@ -159,7 +159,7 @@ class _CascadableExpression {
   /// it cannot receive. See bugs
   /// https://github.com/dart-lang/linter/issues/1323 and
   /// https://github.com/dart-lang/linter/issues/3240.
-  // TODO(https://github.com/dart-lang/linter/issues/3240): Refactor this lint
+  // TODO(srawlins): Refactor this lint, (https://github.com/dart-lang/linter/issues/3240)
   // rule to use
   // DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(), which
   // should remove this need for checking for a simple target.

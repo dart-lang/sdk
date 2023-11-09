@@ -43,7 +43,7 @@ Future<LintConfig?> _fetchConfig(Uri url) async {
   return processAnalysisOptionsFile(req.body);
 }
 
-/// todo(pq): update `scorecard.dart` to reuse these fetch functions.
+// TODO(pq): update `scorecard.dart` to reuse these fetch functions.
 Future<List<String>> _fetchLints(String url) async {
   var req = await http.get(Uri.parse(url));
   return _readLints(req.body);
@@ -52,7 +52,7 @@ Future<List<String>> _fetchLints(String url) async {
 Future<List<String>> _readCoreLints() async => _fetchLints(
     'https://raw.githubusercontent.com/dart-lang/lints/main/lib/core.yaml');
 
-/// todo(pq): de-duplicate these fetches / URIs
+// TODO(pq): de-duplicate these fetches / URIs
 Future<List<String>> _readFlutterLints() async => _fetchLints(
     'https://raw.githubusercontent.com/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');
 

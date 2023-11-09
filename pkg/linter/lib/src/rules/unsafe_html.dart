@@ -34,7 +34,7 @@ var script = ScriptElement()..src = 'foo.js';
 ''';
 
 class UnsafeHtml extends LintRule {
-  // TODO(brianwilkerson) These lint codes aren't being used by the lint, but
+  // TODO(brianwilkerson): These lint codes aren't being used by the lint, but
   //  are being used to pass the test that ensures that all lint rules define
   //  their own codes. We would like to use the codes in the future, but doing
   //  so requires coordination with other tool teams.
