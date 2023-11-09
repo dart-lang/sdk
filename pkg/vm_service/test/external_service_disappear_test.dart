@@ -51,7 +51,11 @@ final tests = <IsolateTest>[
             args: {
               paramKey + i.toString(): paramValue + i.toString(),
             },
-          ),
+          )
+            // We ignore these futures so that when they complete with an error
+            // without being awaited or do not have an error handler registered
+            // they won't cause an unhandled exception.
+            ..ignore(),
       ];
 
       // Wait for all of the requests to be received before processing.
