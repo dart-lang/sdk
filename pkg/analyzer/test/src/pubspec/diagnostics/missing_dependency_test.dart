@@ -101,6 +101,17 @@ dev_dependencies:
 ''', usedDeps: {'path'}, usedDevDeps: {'lints', 'test'}, addDevDeps: ['test']);
   }
 
+  test_missingDevDependency_inDeps_noError() {
+    assertNoErrors('''
+name: sample
+dependencies:
+  test: any
+  path: any
+dev_dependencies:
+  lints: any
+''', usedDeps: {'test', 'path'}, usedDevDeps: {'lints', 'path'});
+  }
+
   test_missingDevDependency_noError() {
     assertNoErrors('''
 name: sample
