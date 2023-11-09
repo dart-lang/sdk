@@ -73,7 +73,7 @@ vars = {
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:11.9.95",
+  "d8_tag": "version:12.1.97",
   "jsshell_tag": "version:95.0",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
