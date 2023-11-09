@@ -6,12 +6,27 @@ class TestAssertInitializer extends core::Object {
   constructor •() → self::TestAssertInitializer
     : super core::Object::•() {}
 }
-static const field core::bool constTrue = #C1;
-static const field core::bool constFalse = #C2;
-static const field core::bool constTrue2 = #C1;
-static const field core::bool constFalse2 = #C2;
+class TestPlatform extends core::_Enum /*isEnum*/  {
+  static const field core::List<self::TestPlatform> values = #C10;
+  enum-element static const field self::TestPlatform linux = #C3;
+  enum-element static const field self::TestPlatform macos = #C6;
+  enum-element static const field self::TestPlatform windows = #C9;
+  const synthetic constructor •(core::int #index, core::String #name) → self::TestPlatform
+    : super core::_Enum::•(#index, #name)
+    ;
+  method _enumToString() → core::String
+    return "TestPlatform.${this.{core::_Enum::_name}{core::String}}";
+}
+static const field core::bool constTrue = #C11;
+static const field core::bool constFalse = #C12;
+static const field core::bool constTrue2 = #C11;
+static const field core::bool constFalse2 = #C12;
+static const field core::String switchTestString = #C13;
+static const field core::int switchTestInt = #C14;
 static method foo() → core::bool?
   return null;
+static method throws() → Never
+  return throw "oops";
 static method testSimpleConditions() → void {
   {
     core::print("1_yes");
@@ -21,19 +36,31 @@ static method testSimpleConditions() → void {
   }
 }
 static method testAndConditions() → void {
-  if(#C1 && self::foo()!) {
+  if(self::foo()!) {
     core::print("1_yes");
+  }
+  if(self::throws() && #C11) {
+    core::print("5_calls_throw");
+  }
+  if(self::throws() && #C12) {
+    core::print("6_calls_throw");
   }
 }
 static method testOrConditions() → void {
   {
     core::print("1_yes");
   }
-  if(#C2 || self::foo()!) {
+  if(self::foo()!) {
     core::print("2_yes");
   }
   {
     core::print("4_yes");
+  }
+  if(self::throws() || #C11) {
+    core::print("5_calls_throw");
+  }
+  if(self::throws() || #C12) {
+    core::print("6_calls_throw");
   }
 }
 static method testNotConditions() → void {
@@ -71,7 +98,7 @@ static method testRemovalOfStatementBodies() → dynamic {
   #L1:
   switch(42) /* core::int */ {
     #L2:
-    case #C3:
+    case #C15:
       {}
   }
   #L3:
@@ -79,6 +106,198 @@ static method testRemovalOfStatementBodies() → dynamic {
     #L4:
     default:
       {}
+  }
+}
+static method testConstantSwitches() → dynamic {
+  #L5:
+  {
+    core::print("1_yes");
+    break #L5;
+  }
+  #L6:
+  {
+    core::print("4_not_yes");
+  }
+  #L7:
+  {
+    core::print("7_windows");
+    break #L7;
+  }
+  #L8:
+  {
+    core::print("8_not_windows");
+    break #L8;
+  }
+  #L9:
+  switch(#C3) /* isExplicitlyExhaustive, self::TestPlatform */ {
+    #L10:
+    case #C3:
+      {
+        continue #L11;
+      }
+    #L11:
+      {
+        core::print("10_not_windows");
+        break #L9;
+      }
+  }
+  #L12:
+  {
+    core::print("14_default");
+  }
+  #L13:
+  switch(#C9) /* self::TestPlatform */ {
+    #L14:
+    case #C9:
+      {
+        continue #L15;
+      }
+    #L15:
+    default:
+      {
+        core::print("17_default");
+      }
+  }
+  #L16:
+  switch(#C6) /* isExplicitlyExhaustive, self::TestPlatform */ {
+    #L17:
+      {
+        core::print("18_notwindows");
+        break #L16;
+      }
+    #L18:
+    case #C6:
+      {
+        continue #L17;
+      }
+  }
+  #L19:
+  switch(#C6) /* isExplicitlyExhaustive, self::TestPlatform */ {
+    #L20:
+      {
+        core::print("21_notwindows");
+        break #L19;
+      }
+    #L21:
+    case #C6:
+      {
+        if(self::foo()!) {
+          continue #L20;
+        }
+        break #L19;
+      }
+  }
+  #L22:
+  {
+    core::print("26_default");
+  }
+  #L23:
+  switch(#C13) /* core::String */ {
+    #L24:
+      {
+        core::print("28_isNotMatch");
+        break #L23;
+      }
+    #L25:
+    default:
+      {
+        continue #L24;
+      }
+  }
+  #L26:
+  {
+    core::print("31_default");
+  }
+  #L27:
+  {
+    core::print("33_twentythree");
+    break #L27;
+  }
+  #L28:
+  {
+    #L29:
+    {
+      core::print("38_default_default");
+    }
+  }
+  #L30:
+  switch(#C13) /* core::String */ {
+    #L31:
+      {
+        #L32:
+        {
+          core::print("40_foo_nonzero");
+        }
+        break #L30;
+      }
+    #L33:
+    default:
+      {
+        #L34:
+        {
+          continue #L31;
+        }
+      }
+  }
+  #L35:
+  {
+    #L36:
+    {
+      core::print("43_default_twentythree");
+      break #L36;
+    }
+  }
+  #L37:
+  {
+    #L38:
+    {
+      core::print("46_default_twentythree");
+      break #L38;
+    }
+  }
+  #L39:
+  switch(#C13) /* core::String */ {
+    #L40:
+      {
+        #L41:
+        {
+          continue #L42;
+        }
+        break #L39;
+      }
+    #L42:
+    default:
+      {
+        #L43:
+        {
+          continue #L40;
+        }
+      }
+  }
+  #L44:
+  {
+    core::print("49_twentythree");
+  }
+  #L45:
+  ;
+  #L46:
+  {
+    core::print("52_23_and_default");
+  }
+  #L47:
+  switch(#C14) /* core::int */ {
+    #L48:
+      {
+        core::print("51_zero");
+        break #L47;
+      }
+    #L49:
+    case #C14:
+    default:
+      {
+        core::print("52_23_and_default");
+        continue #L48;
+      }
   }
 }
 static method main(core::List<core::String> args) → dynamic {
@@ -92,7 +311,19 @@ static method main(core::List<core::String> args) → dynamic {
   self::testRemovalOfStatementBodies();
 }
 constants  {
-  #C1 = true
-  #C2 = false
-  #C3 = 10
+  #C1 = 0
+  #C2 = "linux"
+  #C3 = self::TestPlatform {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "macos"
+  #C6 = self::TestPlatform {index:#C4, _name:#C5}
+  #C7 = 2
+  #C8 = "windows"
+  #C9 = self::TestPlatform {index:#C7, _name:#C8}
+  #C10 = <self::TestPlatform>[#C3, #C6, #C9]
+  #C11 = true
+  #C12 = false
+  #C13 = "noMatch"
+  #C14 = 23
+  #C15 = 10
 }
