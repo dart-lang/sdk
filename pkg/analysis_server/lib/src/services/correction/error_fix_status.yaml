@@ -2083,10 +2083,7 @@ LintCode.file_names:
   notes: |-
     The fix is to rename the file, but that's a refactoring.
 LintCode.flutter_style_todos:
-  status: noFix
-  notes: |-
-    The fix would be to convert the existing TODO to the appropriate style, but
-    that can't reliably be done.
+  status: hasFix
 LintCode.hash_and_equals:
   status: hasFix
 LintCode.implementation_imports:
