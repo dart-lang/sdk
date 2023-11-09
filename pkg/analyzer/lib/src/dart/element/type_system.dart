@@ -35,6 +35,22 @@ import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
+class ExtensionTypeErasure extends ReplacementVisitor {
+  DartType perform(DartType type) {
+    return type.accept(this) ?? type;
+  }
+
+  @override
+  DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
+    final typeErasure = type.representationTypeErasure;
+    if (typeErasure != null) {
+      return typeErasure;
+    }
+
+    return super.visitInterfaceType(type);
+  }
+}
+
 /// Fresh type parameters created to unify two lists of type parameters.
 class RelatedTypeParameters {
   static final _empty = RelatedTypeParameters._(const [], const []);

@@ -181,7 +181,20 @@ class DartObjectImpl implements DartObject, Constant {
   final VariableElementImpl? variable;
 
   /// Initialize a newly created object to have the given [type] and [state].
-  DartObjectImpl(this._typeSystem, this.type, this.state, {this.variable});
+  factory DartObjectImpl(
+    TypeSystemImpl typeSystem,
+    DartType type,
+    InstanceState state, {
+    VariableElementImpl? variable,
+  }) {
+    type = ExtensionTypeErasure().perform(type);
+    return DartObjectImpl._(
+      typeSystem,
+      type,
+      state,
+      variable: variable,
+    );
+  }
 
   /// Creates a duplicate instance of [other], tied to [variable].
   factory DartObjectImpl.forVariable(
@@ -216,8 +229,15 @@ class DartObjectImpl implements DartObject, Constant {
     return DartObjectImpl(
       typeSystem,
       type,
-      GenericState(type, {}, isUnknown: true),
+      GenericState({}, isUnknown: true),
     );
+  }
+
+  /// Initialize a newly created object to have the given [type] and [state].
+  DartObjectImpl._(this._typeSystem, this.type, this.state, {this.variable}) {
+    if (state case final GenericState state) {
+      state._object = this;
+    }
   }
 
   Map<String, DartObjectImpl>? get fields => state.fields;
@@ -1419,8 +1439,8 @@ class GenericState extends InstanceState {
   /// Pseudo-field that we use to represent fields in the superclass.
   static String SUPERCLASS_FIELD = "(super)";
 
-  /// The type of the object being represented.
-  final DartType _type;
+  /// The enclosing [DartObjectImpl].
+  late DartObjectImpl _object;
 
   /// The values of the fields of this instance.
   final Map<String, DartObjectImpl> _fieldMap;
@@ -1431,10 +1451,7 @@ class GenericState extends InstanceState {
   @override
   final bool isUnknown;
 
-  /// Initialize a newly created state to represent a newly created object. The
-  /// [fieldMap] contains the values of the fields of the instance.
   GenericState(
-    this._type,
     this._fieldMap, {
     this.invocation,
     this.isUnknown = false,
@@ -1486,7 +1503,7 @@ class GenericState extends InstanceState {
 
   @override
   bool hasPrimitiveEquality(FeatureSet featureSet) {
-    final type = _type;
+    final type = _object.type;
     if (type is InterfaceType) {
       bool isFromDartCoreObject(ExecutableElement? element) {
         final enclosing = element?.enclosingElement;
@@ -2481,18 +2498,31 @@ class ListState extends InstanceState {
   final DartType elementType;
   final List<DartObjectImpl> elements;
 
-  /// Whether the list contains an element that has an unknown value.
-  final bool _isUnknown;
+  @override
+  final bool isUnknown;
 
-  ListState({
-    required this.elementType,
-    required this.elements,
+  factory ListState({
+    required DartType elementType,
+    required List<DartObjectImpl> elements,
     bool isUnknown = false,
-  }) : _isUnknown = isUnknown;
+  }) {
+    elementType = ExtensionTypeErasure().perform(elementType);
+    return ListState._(
+      elementType: elementType,
+      elements: elements,
+      isUnknown: isUnknown,
+    );
+  }
 
   /// Creates a state that represents a list whose value is not known.
   factory ListState.unknown(DartType elementType) =>
       ListState(elementType: elementType, elements: [], isUnknown: true);
+
+  ListState._({
+    required this.elementType,
+    required this.elements,
+    required this.isUnknown,
+  });
 
   @override
   int get hashCode {
@@ -2503,9 +2533,6 @@ class ListState extends InstanceState {
     }
     return value;
   }
-
-  @override
-  bool get isUnknown => _isUnknown;
 
   @override
   String get typeName => "List";
@@ -3077,8 +3104,14 @@ class TypeState extends InstanceState {
   /// The element representing the type being modeled.
   final DartType? _type;
 
-  /// Initialize a newly created state to represent the given [value].
-  TypeState(this._type);
+  factory TypeState(DartType? type) {
+    if (type != null) {
+      type = ExtensionTypeErasure().perform(type);
+    }
+    return TypeState._(type);
+  }
+
+  TypeState._(this._type);
 
   @override
   int get hashCode => _type?.hashCode ?? 0;
