@@ -2631,6 +2631,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   /// Execute a function body using the [StatementConstantEvaluator].
   Constant executeBody(Statement statement) {
+    if (!enableConstFunctions && !inExtensionTypeConstConstructor) {
+      throw new UnsupportedError("Statement evaluation is only supported when "
+          "in extension type const constructors or when the const functions "
+          "feature is enabled.");
+    }
     StatementConstantEvaluator statementEvaluator =
         new StatementConstantEvaluator(this);
     ExecutionStatus status = statement.accept(statementEvaluator);
@@ -2657,6 +2662,11 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
   AbortConstant? executeConstructorBody(Constructor constructor) {
+    if (!enableConstFunctions && !inExtensionTypeConstConstructor) {
+      throw new UnsupportedError("Statement evaluation is only supported when "
+          "in extension type const constructors or when the const functions "
+          "feature is enabled.");
+    }
     final Statement body = constructor.function.body!;
     StatementConstantEvaluator statementEvaluator =
         new StatementConstantEvaluator(this);
@@ -5477,14 +5487,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
-  StatementConstantEvaluator(this.exprEvaluator) {
-    if (!exprEvaluator.enableConstFunctions &&
-        !exprEvaluator.inExtensionTypeConstConstructor) {
-      throw new UnsupportedError("Statement evaluation is only supported when "
-          "in inline class const constructors or when the const functions "
-          "feature is enabled.");
-    }
-  }
+  StatementConstantEvaluator(this.exprEvaluator);
 
   /// Evaluate the expression using the [ConstantEvaluator].
   Constant evaluate(Expression expr) => expr.accept(exprEvaluator);
