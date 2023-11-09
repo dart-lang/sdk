@@ -960,15 +960,10 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
         ASSERT(dst_size == 4);
         __ mov(dst_reg, compiler::Operand(src_reg));
       } else {
-        ASSERT(sign_or_zero_extend);
-        // Arm has no sign- or zero-extension instructions, so use shifts.
-        const intptr_t shift_length =
-            (compiler::target::kWordSize - src_size) * kBitsPerByte;
-        __ Lsl(dst_reg, src_reg, compiler::Operand(shift_length));
         if (src_payload_type.IsSigned()) {
-          __ Asr(dst_reg, dst_reg, compiler::Operand(shift_length));
+          __ sbfx(dst_reg, src_reg, 0, src_size * kBitsPerByte);
         } else {
-          __ Lsr(dst_reg, dst_reg, compiler::Operand(shift_length));
+          __ ubfx(dst_reg, src_reg, 0, src_size * kBitsPerByte);
         }
       }
 
