@@ -264,7 +264,6 @@ class ClassInfoCollector {
   final Set<String> jsCompatibilityTypes = {
     "JSStringImpl",
     "JSArrayBufferImpl",
-    "JSArrayBufferViewImpl",
     "JSDataViewImpl",
     "JSInt8ArrayImpl",
     "JSUint8ArrayImpl",

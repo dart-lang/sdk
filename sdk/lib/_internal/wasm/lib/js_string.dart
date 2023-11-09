@@ -314,7 +314,7 @@ final class JSStringImpl implements String {
   String substring(int start, [int? end]) {
     end = RangeError.checkValidRange(start, end, this.length);
     return JSStringImpl(js.JS<WasmExternRef?>('(o, s, i) => o.substring(s, i)',
-        toExternRef, start.toDouble().toExternRef, end.toDouble().toExternRef));
+        toExternRef, start.toDouble(), end.toDouble()));
   }
 
   @override
