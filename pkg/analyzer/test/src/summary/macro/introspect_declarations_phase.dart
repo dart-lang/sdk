@@ -11,9 +11,11 @@ import 'introspect_shared.dart';
 /*macro*/ class IntrospectDeclarationsPhaseMacro
     implements ClassDeclarationsMacro, MixinDeclarationsMacro {
   final Set<Object?> withDetailsFor;
+  final bool withMetadata;
 
   const IntrospectDeclarationsPhaseMacro({
     this.withDetailsFor = const {},
+    this.withMetadata = false,
   });
 
   @override
@@ -51,6 +53,7 @@ import 'introspect_shared.dart';
 
     final printer = _Printer(
       sink: sink,
+      withMetadata: withMetadata,
       introspector: builder,
       withDetailsFor: {
         declarationName,
@@ -69,17 +72,15 @@ import 'introspect_shared.dart';
   }
 }
 
-class _Printer with SharedPrinter {
-  @override
-  final TreeStringSink sink;
-
+class _Printer extends SharedPrinter {
   @override
   final DeclarationPhaseIntrospector introspector;
 
   final Set<String> withDetailsFor;
 
   _Printer({
-    required this.sink,
+    required super.sink,
+    required super.withMetadata,
     required this.introspector,
     required this.withDetailsFor,
   });

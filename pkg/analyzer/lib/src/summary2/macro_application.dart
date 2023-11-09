@@ -256,9 +256,6 @@ class LibraryMacroApplier {
         continue;
       }
 
-      // We don't want to include it into metadata.
-      declarationBuilder.macroAnnotations.add(annotation.elementAnnotation!);
-
       final arguments = await _runWithCatchingExceptions(
         () async {
           return _buildArguments(

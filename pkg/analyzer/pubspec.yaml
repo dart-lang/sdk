@@ -29,6 +29,7 @@ dev_dependencies:
   analyzer_utilities: any
   args: any
   async: any
+  checks: any
   heap_snapshot: any
   linter: any
   lints: any

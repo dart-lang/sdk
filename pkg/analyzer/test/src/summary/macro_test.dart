@@ -1583,10 +1583,14 @@ import 'a.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X extends A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: A
     class A
       superclass: Object
@@ -1618,10 +1622,14 @@ import 'b.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X extends A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: A
     class A
       superclass: Object
@@ -1703,10 +1711,14 @@ import 'a.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X extends A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: A
     class A
       metadata
@@ -1734,10 +1746,14 @@ import 'a.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'B'},
+  withMetadata: true,
 )
 class X extends B {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: B
     class B
       metadata
@@ -1768,10 +1784,14 @@ import 'b.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'B'},
+  withMetadata: true,
 )
 class X extends B {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: B
     class B
       metadata
@@ -1802,10 +1822,14 @@ import 'b.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'B'},
+  withMetadata: true,
 )
 class X extends B {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: B
     class B
       metadata
@@ -1832,10 +1856,14 @@ import 'a.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'B'},
+  withMetadata: true,
 )
 class X extends B {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: B
     class B
       metadata
@@ -1865,10 +1893,14 @@ import 'b.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'B'},
+  withMetadata: true,
 )
 class X extends B {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: B
     class B
       metadata
@@ -1898,10 +1930,14 @@ import 'b.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'B'},
+  withMetadata: true,
 )
 class X extends B {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: B
     class B
       metadata
@@ -1924,10 +1960,14 @@ import 'a.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X extends A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: A
     class A
       metadata
@@ -1954,10 +1994,14 @@ import 'b.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X extends A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: A
     class A
       metadata
@@ -1984,10 +2028,14 @@ import 'b.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X extends A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: A
     class A
       metadata
@@ -2088,10 +2136,14 @@ import 'a.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X with A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   mixins
     A
       mixin A
@@ -2125,10 +2177,14 @@ import 'b.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X with A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   mixins
     A
       mixin A
@@ -2166,10 +2222,14 @@ import 'a.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X extends A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   superclass: A
     mixin A
       metadata
@@ -2195,10 +2255,14 @@ import 'a.dart';
 
 @IntrospectDeclarationsPhaseMacro(
   withDetailsFor: {'A'},
+  withMetadata: true,
 )
 class X with A {}
 ''', r'''
 class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
   mixins
     A
       mixin A
@@ -3292,7 +3356,7 @@ class A
 
   test_class_metadata_constructor_named() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @A.named(42)
 class X {}
 
@@ -3303,6 +3367,8 @@ class A {
 ''', r'''
 class X
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     ConstructorMetadataAnnotation
       type: A
       constructorName: named
@@ -3320,13 +3386,15 @@ class A {
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @A.named(42)
 class X {}
 
 ''', r'''
 class X
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     ConstructorMetadataAnnotation
       type: A
       constructorName: named
@@ -3344,13 +3412,15 @@ class A {
     await _assertIntrospectText(r'''
 import 'a.dart' as prefix;
 
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @prefix.A.named(42)
 class X {}
 
 ''', r'''
 class X
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     ConstructorMetadataAnnotation
       type: A
       constructorName: named
@@ -3359,7 +3429,7 @@ class X
 
   test_class_metadata_constructor_unnamed() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @A(42)
 class X {}
 
@@ -3370,6 +3440,8 @@ class A {
 ''', r'''
 class X
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     ConstructorMetadataAnnotation
       type: A
 ''');
@@ -3386,13 +3458,15 @@ class A {
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @A(42)
 class X {}
 
 ''', r'''
 class X
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     ConstructorMetadataAnnotation
       type: A
 ''');
@@ -3409,7 +3483,7 @@ class A {
     await _assertIntrospectText(r'''
 import 'a.dart' as prefix;
 
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @prefix.A(42)
 class X {}
 
@@ -3417,13 +3491,15 @@ class X {}
 class X
   metadata
     ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
+    ConstructorMetadataAnnotation
       type: A
 ''');
   }
 
   test_class_metadata_identifier() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @a1
 @a2
 class X {}
@@ -3433,6 +3509,8 @@ const a2 = 0;
 ''', r'''
 class X
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a1
     IdentifierMetadataAnnotation
@@ -3449,7 +3527,7 @@ const a2 = 0;
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @a1
 @a2
 class X {}
@@ -3457,6 +3535,8 @@ class X {}
 ''', r'''
 class X
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a1
     IdentifierMetadataAnnotation
@@ -3473,7 +3553,7 @@ const a2 = 0;
     await _assertIntrospectText(r'''
 import 'a.dart' as prefix;
 
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @prefix.a1
 @prefix.a2
 class X {}
@@ -3481,6 +3561,8 @@ class X {}
 ''', r'''
 class X
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a1
     IdentifierMetadataAnnotation
@@ -3535,7 +3617,7 @@ const a = 0;
 import 'a.dart';
 
 class X {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectTypesPhaseMacro(withMetadata: true)
   @a
   void foo() {}
 }
@@ -3544,6 +3626,8 @@ class X {
 foo
   flags: hasBody
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a
   returnType: void
@@ -3579,12 +3663,15 @@ const a = 0;
 import 'a.dart';
 
 abstract class A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectTypesPhaseMacro(withMetadata: true)
   void foo({@a required int x}) {}
 }
 ''', r'''
 foo
   flags: hasBody
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
   namedParameters
     x
       flags: isNamed isRequired
@@ -3624,12 +3711,15 @@ const a = 0;
 import 'a.dart';
 
 abstract class A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectTypesPhaseMacro(withMetadata: true)
   void foo(@a int x) {}
 }
 ''', r'''
 foo
   flags: hasBody
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
   positionalParameters
     x
       flags: isRequired
@@ -3721,10 +3811,13 @@ const a = 0;
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 class A<@a T> {}
 ''', r'''
 class A
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
   typeParameters
     T
       metadata
@@ -3870,13 +3963,15 @@ const a = 0;
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro()
+@IntrospectTypesPhaseMacro(withMetadata: true)
 @a
 mixin X {}
 
 ''', r'''
 mixin X
   metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a
 ''');
@@ -3955,6 +4050,7 @@ class A
   ) async {
     var actual = await _getIntrospectText(code);
     if (actual != expected) {
+      NodeTextExpectationsCollector.add(actual);
       print(actual);
     }
     expect(actual, expected);

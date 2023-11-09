@@ -70,14 +70,18 @@ final tests = <IsolateTest>[
 
     // First isolate should pause at LINE_C and second isolate should pause at
     // LINE_A.
-    await Future.wait([
-      hasStoppedAtBreakpoint(service, firstIsolate).then(
-        (_) => stoppedAtLine(LINE_C)(service, firstIsolate),
-      ),
-      hasStoppedAtBreakpoint(service, secondIsolate).then(
-        (_) => stoppedAtLine(LINE_A)(service, secondIsolate),
-      ),
-    ]);
+    //
+    // Note: the ordering of the following four checks doesn't matter as
+    // `hasStoppedAtBreakpoint` and `stoppedAtLine` both handle breakpoint
+    // events received on the debug stream while also checking whether an
+    // isolate already hit the breakpoint. However, interleaving these using
+    // Future.wait() may cause the debug stream to be cancelled after one of
+    // the checks completes and the other check is waiting on an event, causing
+    // the test to hang.
+    await hasStoppedAtBreakpoint(service, firstIsolate);
+    await stoppedAtLine(LINE_C)(service, firstIsolate);
+    await hasStoppedAtBreakpoint(service, secondIsolate);
+    await stoppedAtLine(LINE_A)(service, secondIsolate);
 
     // Resume the second isolate.
     await resumeIsolate(service, secondIsolate);

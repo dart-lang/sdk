@@ -10,7 +10,11 @@ import 'introspect_shared.dart';
 
 /*macro*/ class IntrospectTypesPhaseMacro
     implements ClassTypesMacro, MethodTypesMacro, MixinTypesMacro {
-  const IntrospectTypesPhaseMacro();
+  final bool withMetadata;
+
+  const IntrospectTypesPhaseMacro({
+    this.withMetadata = false,
+  });
 
   @override
   Future<void> buildTypesForClass(declaration, builder) async {
@@ -45,6 +49,7 @@ import 'introspect_shared.dart';
 
     final printer = _Printer(
       sink: sink,
+      withMetadata: withMetadata,
       introspector: builder,
     );
     await f(printer);
@@ -59,15 +64,13 @@ import 'introspect_shared.dart';
   }
 }
 
-class _Printer with SharedPrinter {
-  @override
-  final TreeStringSink sink;
-
+class _Printer extends SharedPrinter {
   @override
   final TypePhaseIntrospector introspector;
 
   _Printer({
-    required this.sink,
+    required super.sink,
+    required super.withMetadata,
     required this.introspector,
   });
 }

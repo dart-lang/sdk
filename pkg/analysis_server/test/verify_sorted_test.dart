@@ -87,6 +87,7 @@ void buildTestsForAnalyzer() {
     excludedPaths: [
       'lib/src/context/packages.dart',
       'lib/src/summary/format.dart',
+      'lib/src/wolf/ir/ir.g.dart',
       'test/generated/test_all.dart',
     ],
   );

@@ -7,7 +7,6 @@ import 'dart:collection';
 import 'package:collection/collection.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
-import 'package:kernel/src/replacement_visitor.dart';
 
 import 'constants.dart';
 
@@ -377,19 +376,6 @@ class InterfaceTypeExtractor extends RecursiveVisitor<DartType> {
     type.accept(this);
     return _found;
   }
-}
-
-class ExtensionTypeEraser extends ReplacementVisitor {
-  const ExtensionTypeEraser();
-
-  /// Erases all `ExtensionType` nodes found in [type].
-  DartType erase(DartType type) =>
-      type.accept1(this, Variance.unrelated) ?? type;
-
-  @override
-  DartType? visitExtensionType(ExtensionType node, int variance) =>
-      node.extensionTypeErasure.accept1(this, Variance.unrelated) ??
-      node.extensionTypeErasure;
 }
 
 /// Replaces [VariableGet] nodes with a different expression defined by a

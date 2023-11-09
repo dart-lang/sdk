@@ -64,50 +64,61 @@ void main() {
       process.kill();
     });
 
-    test('evaluate invokes client provided compileExpression RPC', () async {
-      final service = await vmServiceConnectUri(remoteVmServiceUri.toString());
-      await service.registerService(
-        'compileExpression',
-        'Custom Expression Compilation',
-      );
-      bool invokedCompileExpression = false;
-      service.registerServiceCallback('compileExpression', (params) async {
-        invokedCompileExpression = true;
-        throw 'error';
-      });
-      final vm = await service.getVM();
-      final isolate = await service.getIsolate(vm.isolates!.first.id!);
-      await waitForRunnableIsolate(service, isolate);
-      try {
-        await service.evaluate(
-            isolate.id!, isolate.libraries!.first.id!, '1 + 1');
-      } catch (_) {
-        // ignore error
-      }
-      expect(invokedCompileExpression, true);
-    });
+    test(
+      'evaluate invokes client provided compileExpression RPC',
+      () async {
+        final service =
+            await vmServiceConnectUri(remoteVmServiceUri.toString());
+        await service.registerService(
+          'compileExpression',
+          'Custom Expression Compilation',
+        );
+        bool invokedCompileExpression = false;
+        service.registerServiceCallback('compileExpression', (params) async {
+          invokedCompileExpression = true;
+          throw 'error';
+        });
+        final vm = await service.getVM();
+        final isolate = await service.getIsolate(vm.isolates!.first.id!);
+        await waitForRunnableIsolate(service, isolate);
+        try {
+          await service.evaluate(
+              isolate.id!, isolate.libraries!.first.id!, '1 + 1');
+        } catch (_) {
+          // ignore error
+        }
+        expect(invokedCompileExpression, true);
+      },
+      // Let test.py handle triggering the timeout.
+      timeout: Timeout.none,
+    );
 
-    test('evaluateInFrame invokes client provided compileExpression RPC',
-        () async {
-      final service = await vmServiceConnectUri(remoteVmServiceUri.toString());
-      await service.registerService(
-        'compileExpression',
-        'Custom Expression Compilation',
-      );
-      bool invokedCompileExpression = false;
-      service.registerServiceCallback('compileExpression', (params) async {
-        invokedCompileExpression = true;
-        throw 'error';
-      });
-      final vm = await service.getVM();
-      final isolate = await service.getIsolate(vm.isolates!.first.id!);
-      await waitForRunnableIsolate(service, isolate);
-      try {
-        await service.evaluateInFrame(isolate.id!, 0, '1 + 1');
-      } catch (e) {
-        // ignore error
-      }
-      expect(invokedCompileExpression, true);
-    });
+    test(
+      'evaluateInFrame invokes client provided compileExpression RPC',
+      () async {
+        final service =
+            await vmServiceConnectUri(remoteVmServiceUri.toString());
+        await service.registerService(
+          'compileExpression',
+          'Custom Expression Compilation',
+        );
+        bool invokedCompileExpression = false;
+        service.registerServiceCallback('compileExpression', (params) async {
+          invokedCompileExpression = true;
+          throw 'error';
+        });
+        final vm = await service.getVM();
+        final isolate = await service.getIsolate(vm.isolates!.first.id!);
+        await waitForRunnableIsolate(service, isolate);
+        try {
+          await service.evaluateInFrame(isolate.id!, 0, '1 + 1');
+        } catch (e) {
+          // ignore error
+        }
+        expect(invokedCompileExpression, true);
+      },
+      // Let test.py handle triggering the timeout.
+      timeout: Timeout.none,
+    );
   });
 }

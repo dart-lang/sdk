@@ -183,7 +183,7 @@ vars = {
   "sync_http_rev": "d8e9f3de7be658b1c00d5b65aecba8640fc4ce46",
   "tar_rev": "3383397b082c084c327587a293591fac74bc8af3",
   "term_glyph_rev": "7c1eb9d799a3cbbc554c3a283af4d6cee9043297",
-  "test_rev": "4341470a2b844cd9a6692647639d652f617dd302", # https://github.com/dart-lang/test/issues/2126
+  "test_rev": "075faffb08873fbc6d105f08408c426b6ab54b09", # https://github.com/dart-lang/test/issues/2126
   "test_descriptor_rev": "c417cbb6498ba6d3ac6f7b14fdc43aefc212ab2e",
   "test_process_rev": "c21e40d7c06c862d14b1f53651ae0bd3cf81ca44",
   "test_reflective_loader_rev": "17d40bb06f55f727a79c0f0016d7510294f5db03",
@@ -193,7 +193,7 @@ vars = {
   "vector_math_rev": "294896dedc6da2a736f47c3c6a19643df934641c",
   "watcher_rev": "b2b278ae4198b4c431a145ddcfdab1460d5f9ec5",
   "web_socket_channel_rev": "82ac73fef05c474095c740a9525b4cfb61611c3d",
-  "webdev_rev": "5ad79c240b000a50057612d6af4573f6e649f65c", # https://github.com/dart-lang/webdev/issues/2276
+  "webdev_rev": "5ad79c240b000a50057612d6af4573f6e649f65c",
   "webdriver_rev": "43ed1dbefc39866ebccc31d3704a0e71400ef4a2",
   "webkit_inspection_protocol_rev": "667c55e6f65638592768e0325b75420e39b01d2e",
   "yaml_rev": "98a3aab54b09d355e094fdb4e5abd9083a2876b8",
