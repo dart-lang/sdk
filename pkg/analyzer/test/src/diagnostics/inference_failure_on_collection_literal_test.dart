@@ -20,6 +20,7 @@ class InferenceFailureOnCollectionLiteralTest extends PubPackageResolutionTest {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: experiments,
         strictInference: true,
       ),
     );

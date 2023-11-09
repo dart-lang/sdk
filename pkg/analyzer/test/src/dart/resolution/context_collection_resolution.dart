@@ -580,6 +580,7 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: experiments,
         strictCasts: true,
       ),
     );

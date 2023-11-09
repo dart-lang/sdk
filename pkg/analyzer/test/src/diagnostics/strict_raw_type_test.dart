@@ -90,23 +90,47 @@ void g(C a) {}
 extension type E<T>(int i) {}
 
 void f() {
-  var e = <List<E>>[];
+  <List<E>>[];
 }
 ''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
-      error(WarningCode.STRICT_RAW_TYPE, 58, 1),
+      error(WarningCode.STRICT_RAW_TYPE, 50, 1),
     ]);
   }
 
   test_genericTypeArgument_extensionType_withTypeArg() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 extension type E<T>(int i) {}
 
 void f() {
-  var e = <List<E<int>>>[];
+  <List<E<int>>>[];
 }
+''');
+  }
+
+  test_genericTypeArgument_extensionTypeImplements_missingTypeArg() async {
+    await assertErrorsInCode(r'''
+extension type E(List<int> i) implements Iterable {}
 ''', [
-      error(WarningCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+      error(WarningCode.STRICT_RAW_TYPE, 41, 8),
+    ]);
+  }
+
+  test_genericTypeArgument_extensionTypeImplementsExtensionType_missingTypeArg() async {
+    await assertErrorsInCode(r'''
+
+extension type E<T>(Iterable<T> i) {}
+
+extension type F(List<int> j) implements E {}
+''', [
+      error(WarningCode.STRICT_RAW_TYPE, 81, 1),
+    ]);
+  }
+
+  test_genericTypeArgument_extensionTypeRepresentationType_missingTypeArg() async {
+    await assertErrorsInCode(r'''
+extension type E(List i) {}
+''', [
+      error(WarningCode.STRICT_RAW_TYPE, 17, 4),
     ]);
   }
 
