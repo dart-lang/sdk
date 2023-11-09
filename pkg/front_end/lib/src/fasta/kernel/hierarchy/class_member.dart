@@ -6,6 +6,7 @@ library fasta.class_hierarchy_builder;
 
 import 'package:front_end/src/fasta/source/source_extension_type_declaration_builder.dart';
 import 'package:kernel/ast.dart';
+import 'package:kernel/type_algebra.dart';
 
 import '../../builder/declaration_builders.dart';
 import '../../messages.dart'
@@ -21,6 +22,173 @@ import '../combined_member_signature.dart';
 import '../forwarding_node.dart' show ForwardingNode;
 import '../member_covariance.dart';
 import 'members_builder.dart';
+
+/// The result of a member computation through [ClassMember].
+sealed class MemberResult {
+  /// Returns `true` if the member was declared as a field.
+  ///
+  /// This is used for messaging in error reporting.
+  bool get isDeclaredAsField;
+
+  /// Returns the full name of this member, i.e. the member name prefixed by
+  /// the name of its enclosing declaration.
+  String get fullName;
+
+  /// Returns the file offset for the declaration of this member.
+  ///
+  /// This is used for error reporting.
+  int get fileOffset;
+
+  /// Returns the file uri for the declaration of this member.
+  ///
+  /// This is used for error reporting.
+  Uri get fileUri;
+
+  /// Returns the type of this member as found through a receiver of static
+  /// type [thisType].
+  ///
+  /// The type depends of the kind of member: The type of a field is the field
+  /// type, the type of a getter is the return type, the type of a setter is
+  /// the parameter type and the type of a method is the tear-off type.
+  DartType getMemberType(
+      ClassMembersBuilder membersBuilder, TypeDeclarationType thisType);
+}
+
+class TypeDeclarationInstanceMemberResult implements MemberResult {
+  final Member member;
+  final ClassMemberKind kind;
+  @override
+  final bool isDeclaredAsField;
+
+  TypeDeclarationInstanceMemberResult(this.member, this.kind,
+      {required this.isDeclaredAsField})
+      : assert(
+            member.enclosingTypeDeclaration != null,
+            "Type declaration member without enclosing type "
+            "declaration $member.");
+
+  @override
+  String get fullName {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return '${origin.enclosingTypeDeclaration!.name}.${origin.name.text}';
+  }
+
+  @override
+  int get fileOffset {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return origin.fileOffset;
+  }
+
+  @override
+  Uri get fileUri {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return origin.fileUri;
+  }
+
+  @override
+  DartType getMemberType(
+      ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
+    DartType type = switch (kind) {
+      ClassMemberKind.Method => member.getterType,
+      ClassMemberKind.Getter => member.getterType,
+      ClassMemberKind.Setter => member.setterType,
+    };
+    TypeDeclaration typeDeclaration = member.enclosingTypeDeclaration!;
+    if (typeDeclaration.typeParameters.isNotEmpty) {
+      type = Substitution.fromPairs(
+              typeDeclaration.typeParameters,
+              membersBuilder.hierarchyBuilder.types
+                  .getTypeArgumentsAsInstanceOf(thisType, typeDeclaration)!)
+          .substituteType(type);
+    }
+    return type;
+  }
+}
+
+class StaticMemberResult implements MemberResult {
+  final Member member;
+  final ClassMemberKind kind;
+  @override
+  final bool isDeclaredAsField;
+  @override
+  final String fullName;
+
+  StaticMemberResult(this.member, this.kind,
+      {required this.isDeclaredAsField, required this.fullName});
+
+  @override
+  int get fileOffset {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return origin.fileOffset;
+  }
+
+  @override
+  Uri get fileUri {
+    Member origin = member.memberSignatureOrigin ?? member;
+    return origin.fileUri;
+  }
+
+  @override
+  DartType getMemberType(
+      ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
+    return switch (kind) {
+      ClassMemberKind.Method => member.getterType,
+      ClassMemberKind.Getter => member.getterType,
+      ClassMemberKind.Setter => member.setterType,
+    };
+  }
+}
+
+class ExtensionTypeMemberResult implements MemberResult {
+  final ExtensionTypeDeclaration extensionTypeDeclaration;
+  final Member member;
+  final ClassMemberKind kind;
+  final Name name;
+  @override
+  final bool isDeclaredAsField;
+
+  ExtensionTypeMemberResult(
+      this.extensionTypeDeclaration, this.member, this.kind, this.name,
+      {required this.isDeclaredAsField})
+      : assert(member.isExtensionTypeMember);
+
+  @override
+  String get fullName {
+    return '${extensionTypeDeclaration.name}.${name.text}';
+  }
+
+  @override
+  int get fileOffset {
+    return member.fileOffset;
+  }
+
+  @override
+  Uri get fileUri {
+    return member.fileUri;
+  }
+
+  @override
+  DartType getMemberType(
+      ClassMembersBuilder membersBuilder, TypeDeclarationType thisType) {
+    FunctionType type = member.getterType as FunctionType;
+    if (type.typeParameters.isNotEmpty) {
+      type = FunctionTypeInstantiator.instantiate(
+          type,
+          membersBuilder.hierarchyBuilder.types.getTypeArgumentsAsInstanceOf(
+              thisType, extensionTypeDeclaration)!);
+    }
+    switch (kind) {
+      case ClassMemberKind.Method:
+        // For methods [member] is the tear-off so the member type is the return
+        // type.
+        return type.returnType;
+      case ClassMemberKind.Getter:
+        return type.returnType;
+      case ClassMemberKind.Setter:
+        return type.positionalParameters[1];
+    }
+  }
+}
 
 enum ClassMemberKind {
   Method,
@@ -59,6 +227,11 @@ abstract class ClassMember {
 
   /// Returns the member [Covariance] for this class member.
   Covariance getCovariance(ClassMembersBuilder membersBuilder);
+
+  // TODO(johnniwinther): Combine [getMemberResult] with [getMember],
+  // [getTearOff], and [getCovariance] and use for member type computation.
+  /// Computes the [MemberResult] node resulting from this class member.
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder);
 
   bool get isDuplicate;
   String get fullName;
@@ -219,6 +392,13 @@ abstract class SynthesizedMember extends ClassMember {
 
   @override
   void registerOverrideDependency(Set<ClassMember> overriddenMembers) {}
+
+  @override
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
+    return new TypeDeclarationInstanceMemberResult(
+        getMember(membersBuilder), memberKind,
+        isDeclaredAsField: false);
+  }
 
   @override
   bool get isExtensionTypeMember => false;

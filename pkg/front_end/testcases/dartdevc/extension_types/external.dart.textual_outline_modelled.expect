@@ -11,12 +11,16 @@ extension type B._(A a) {
   external B(A a);
   external B.named(int i);
   external B get getter;
+  external B get property;
   external T genericMethod<T extends B>(T t);
   external static A staticField;
   external static A staticMethod();
   external static B get staticGetter;
+  external static B get staticProperty;
   external static T staticGenericMethod<T extends B>(T t);
+  external static void set staticProperty(B b);
   external static void set staticSetter(B b);
+  external void set property(B b);
   external void set setter(B b);
 }
 void method(A a) {}

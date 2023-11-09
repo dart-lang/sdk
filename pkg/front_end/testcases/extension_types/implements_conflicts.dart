@@ -67,31 +67,30 @@ extension type ExtensionType9(int i) {
   void set method4(int value) {} /* Error */
 }
 
-extension type ExtensionType9a(Never n) /* Error */
+extension type ExtensionType9a(ClassJK n) /* Error */
   implements ClassJ, ClassK {}
 
-extension type ExtensionType9b(Never n) /* Error */
+extension type ExtensionType9b(ClassJK n) /* Error */
     implements ClassJ, ClassK {
   int get method4 => 42; /* Ok */
   void set method4(int value) {} /* Ok */
 }
 
-extension type ExtensionType10a(int i) /* Error */
+extension type ExtensionType10a(ClassJK i) /* Error */
     implements ExtensionTypeJ, ExtensionTypeK {}
 
-extension type ExtensionType10b(int i) /* Ok */
+extension type ExtensionType10b(ClassJK i) /* Ok */
    implements ExtensionTypeJ, ExtensionTypeK {
   int get method4 => 42; /* Ok */
   void set method4(int value) {} /* Ok */
 }
 
-extension type ExtensionType11(Null n) {
+extension type ExtensionType11(int n) {
   int get property => 42; /* Error */
   void set property(String value) {} /* Error */
 }
 
-// TODO(johnniwinther): Remove the following errors.
-extension type ExtensionType12a(Never n) /* Error */
+extension type ExtensionType12a(ClassLM n) /* Error */
     implements ClassL, ClassM {}
 
 extension type ExtensionType12b(ClassL n) /* Error */
@@ -104,27 +103,50 @@ extension type ExtensionType12c(ClassM n) /* Error */
   bool get property => true; /* Error */
 }
 
-extension type ExtensionType12d(Never n) /* Error */
+extension type ExtensionType12d(ClassLM n) /* Error */
     implements ClassL, ClassM {
   bool get property => true; /* Ok */
   void set property(bool value) {} /* Ok */
 }
 
-extension type ExtensionType13a(int i) /* Error */
+extension type ExtensionType13a(ClassLM i) /* Error */
     implements ExtensionTypeL, ExtensionTypeM {}
 
-extension type ExtensionType13b(int i) /* Error */
+extension type ExtensionType13b(ClassL i) /* Error */
     implements ExtensionTypeL {
   void set property(bool value) {} /* Error */
 }
 
-extension type ExtensionType13c(int i) /* Error */
+extension type ExtensionType13c(ClassM i) /* Error */
     implements ExtensionTypeM {
   bool get property => true; /* Error */
 }
 
-extension type ExtensionType13d(int i) /* Ok */
+extension type ExtensionType13d(ClassLM i) /* Ok */
     implements ExtensionTypeL, ExtensionTypeM {
   bool get property => true; /* Ok */
   void set property(bool value) {} /* Ok */
+}
+
+extension type ExtensionType14a(ExtensionTypeLN n) /* Ok */
+    implements ClassL, ExtensionTypeN {}
+
+extension type ExtensionType14b(ExtensionTypeLN n) /* Ok */
+    implements ExtensionTypeL, ClassN {}
+
+extension type ExtensionType14c(ClassL n) /* Ok */
+    implements ClassL {
+  void set property(int value) {} /* Ok */
+}
+
+extension type ExtensionType14d(ExtensionTypeLN n) /* Ok */
+    implements ExtensionTypeL, ClassN {
+  int get property => 42; /* Ok */
+  void set property(int value) {} /* Ok */
+}
+
+extension type ExtensionType14e(ExtensionTypeLN n) /* Ok */
+    implements ClassL, ExtensionTypeN {
+  int get property => 42; /* Ok */
+  void set property(int value) {} /* Ok */
 }

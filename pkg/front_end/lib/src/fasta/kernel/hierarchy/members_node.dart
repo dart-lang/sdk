@@ -1001,9 +1001,11 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           /// `Super.property2` is _not_ a subtype of the setter
           /// `Mixin.property1`.
           _membersBuilder.registerGetterSetterCheck(
-              classBuilder as SourceClassBuilder,
-              interfaceGetable,
-              interfaceSetable);
+              new DelayedClassGetterSetterCheck(
+                  classBuilder as SourceClassBuilder,
+                  name,
+                  interfaceGetable,
+                  interfaceSetable));
         }
       }
       overrides.collectOverrides(

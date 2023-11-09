@@ -28,13 +28,17 @@ extension type B(self::A a) {
   method genericMethod = self::B|genericMethod;
   method tearoff genericMethod = self::B|get#genericMethod;
   get getter = self::B|get#getter;
+  get property = self::B|get#property;
   static get staticField = get self::B|staticField;
   static set staticField = set self::B|staticField;
   static method staticMethod = self::B|staticMethod;
   static method staticGenericMethod = self::B|staticGenericMethod;
   static get staticGetter = get self::B|staticGetter;
+  static get staticProperty = get self::B|staticProperty;
   set setter = self::B|set#setter;
+  set property = self::B|set#property;
   static set staticSetter = set self::B|staticSetter;
+  static set staticProperty = set self::B|staticProperty;
   constructor _ = self::B|constructor#_;
   constructor tearoff _ = self::B|constructor#_#_#tearOff;
   constructor • = self::B|constructor#;
@@ -64,12 +68,16 @@ static extension-type-member method B|get#genericMethod(lowered final self::B /*
   return <T extends self::B /* = self::A */>(T t) → T => js_2::callMethod<T>(#this, "genericMethod", <dynamic>[t]);
 external static extension-type-member method B|get#getter(lowered final self::B /* = self::A */ #this) → self::B /* = self::A */;
 external static extension-type-member method B|set#setter(lowered final self::B /* = self::A */ #this, self::B /* = self::A */ b) → void;
+external static extension-type-member method B|get#property(lowered final self::B /* = self::A */ #this) → self::B /* = self::A */;
+external static extension-type-member method B|set#property(lowered final self::B /* = self::A */ #this, self::B /* = self::A */ b) → void;
 external static extension-type-member get B|staticField() → self::A;
 external static extension-type-member set B|staticField(self::A #externalFieldValue) → void;
 external static extension-type-member method B|staticMethod() → self::A;
 external static extension-type-member method B|staticGenericMethod<T extends self::B /* = self::A */>(self::B|staticGenericMethod::T t) → self::B|staticGenericMethod::T;
 external static extension-type-member get B|staticGetter() → self::B /* = self::A */;
 external static extension-type-member set B|staticSetter(self::B /* = self::A */ b) → void;
+external static extension-type-member get B|staticProperty() → self::B /* = self::A */;
+external static extension-type-member set B|staticProperty(self::B /* = self::A */ b) → void;
 static method method(self::A a) → void {
   self::B /* = self::A */ b1 = js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), a);
   self::B /* = self::A */ b2 = js_2::_callConstructorUnchecked1<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), 0);
@@ -79,12 +87,14 @@ static method method(self::A a) → void {
   b2 = js_2::callMethod<self::B /* = self::A */>(b2, "genericMethod", <dynamic>[b2]);
   b1 = js_2::getProperty<self::B /* = self::A */>(b2, "getter");
   js_2::setProperty<self::B /* = self::A */>(b1, "setter", b2);
+  js_2::setProperty<self::B /* = self::A */>(b1, "property", js_2::getProperty<self::B /* = self::A */>(b2, "property"));
   a = js_2::getProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticField");
   js_2::setProperty<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticField", a);
   a = js_2::_callMethodUnchecked0<self::A>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticMethod");
   b2 = js_2::callMethod<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGenericMethod", <dynamic>[b2]);
   b1 = js_2::getProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticGetter");
   js_2::setProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticSetter", b2);
+  js_2::setProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticProperty", js_2::getProperty<self::B /* = self::A */>(js_2::_getPropertyTrustType<core::Object>(_js2::staticInteropGlobalContext, "B"), "staticProperty"));
 }
 
 constants  {

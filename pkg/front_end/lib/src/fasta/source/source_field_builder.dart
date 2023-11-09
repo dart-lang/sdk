@@ -116,7 +116,6 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
     // non-nullable fields since they can be assigned from legacy code.
     late_lowering.IsSetStrategy isSetStrategy =
         late_lowering.computeIsSetStrategy(libraryBuilder);
-
     if (isAbstract || isExternal) {
       assert(fieldReference == null);
       assert(lateIsSetFieldReference == null);
@@ -1589,6 +1588,13 @@ class _SynthesizedFieldClassMember implements ClassMember {
   Covariance getCovariance(ClassMembersBuilder membersBuilder) {
     return _covariance ??= new Covariance.fromMember(getMember(membersBuilder),
         forSetter: forSetter);
+  }
+
+  @override
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
+    return new TypeDeclarationInstanceMemberResult(
+        getMember(membersBuilder), memberKind,
+        isDeclaredAsField: true);
   }
 
   @override

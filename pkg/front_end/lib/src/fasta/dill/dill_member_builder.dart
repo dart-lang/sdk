@@ -22,8 +22,7 @@ import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
 
 import '../builder/procedure_builder.dart';
-import '../kernel/hierarchy/class_member.dart'
-    show ClassMember, ClassMemberKind;
+import '../kernel/hierarchy/class_member.dart';
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/member_covariance.dart';
 
@@ -335,6 +334,18 @@ class DillClassMember extends BuilderClassMember {
   @override
   bool isSameDeclaration(ClassMember other) {
     return other is DillClassMember && memberBuilder == other.memberBuilder;
+  }
+
+  @override
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
+    Member member = getMember(membersBuilder);
+    if (member is Procedure &&
+        member.stubKind == ProcedureStubKind.RepresentationField) {
+      return new TypeDeclarationInstanceMemberResult(
+          getMember(membersBuilder), memberKind,
+          isDeclaredAsField: true);
+    }
+    return super.getMemberResult(membersBuilder);
   }
 
   @override
