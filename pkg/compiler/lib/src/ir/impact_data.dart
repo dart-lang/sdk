@@ -581,7 +581,9 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     if (_options.omitImplicitChecks) {
       switch (kind) {
         case RuntimeTypeUseKind.string:
-          if (!_options.laxRuntimeTypeToString) {
+          if (!_options.laxRuntimeTypeToString &&
+              // Silent on Golem to avoid excessive compiler diagnostics.
+              !_options.benchmarkingProduction) {
             _reporter.reportHintMessage(computeSourceSpanFromTreeNode(node),
                 MessageKind.RUNTIME_TYPE_TO_STRING);
           }
