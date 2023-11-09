@@ -48,6 +48,7 @@ dart.ci_sandbox_builder(
     priority = priority.normal,
     properties = {
         "$flutter/goma": {"server": "goma.chromium.org"},
+        "clobber": False,
         "config_name": "host_linux",
         "environment": "unused",
         "goma_jobs": "200",
@@ -74,6 +75,7 @@ dart.try_builder(
     properties = {
         "$flutter/goma": {"server": "goma.chromium.org"},
         "builder_name_suffix": "-try",
+        "clobber": False,
         "config_name": "host_linux",
         "environment": "unused",
         "goma_jobs": "200",
@@ -91,6 +93,7 @@ dart.ci_sandbox_builder(
     priority = priority.normal,
     properties = {
         "$flutter/goma": {"server": "goma.chromium.org"},
+        "clobber": False,
         "config_name": "web_linux",
         "environment": "unused",
         "goma_jobs": "200",
@@ -117,6 +120,7 @@ dart.try_builder(
     properties = {
         "$flutter/goma": {"server": "goma.chromium.org"},
         "builder_name_suffix": "-try",
+        "clobber": False,
         "config_name": "web_linux",
         "environment": "unused",
         "goma_jobs": "200",
