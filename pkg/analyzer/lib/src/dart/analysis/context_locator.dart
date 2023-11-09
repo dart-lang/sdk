@@ -426,16 +426,13 @@ class ContextLocatorImpl implements ContextLocator {
   }
 
   File? _findDefaultOptionsFile(Workspace workspace) {
-    // TODO(scheglov) Create SourceFactory once.
-    var sourceFactory = workspace.createSourceFactory(null, null);
-
-    String? uriStr;
-    if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-      uriStr = WorkspaceWithDefaultAnalysisOptions.uri;
-    } else {
-      uriStr = 'package:flutter/analysis_options_user.yaml';
+    if (workspace is! WorkspaceWithDefaultAnalysisOptions) {
+      return null;
     }
 
+    // TODO(scheglov) Create SourceFactory once.
+    var sourceFactory = workspace.createSourceFactory(null, null);
+    var uriStr = WorkspaceWithDefaultAnalysisOptions.uri;
     var path = sourceFactory.forUri(uriStr)?.fullName;
     if (path != null) {
       var file = resourceProvider.getFile(path);

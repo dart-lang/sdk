@@ -1191,10 +1191,6 @@ ${getFolder(outPath).path}
     var rootFolder = newFolder('/home/test');
 
     var flutterPath = '/home/packages/flutter';
-    var flutterAnalysisOptionsFile = newFile(
-      '$flutterPath/lib/analysis_options_user.yaml',
-      '',
-    );
 
     var packageConfigFileBuilder = PackageConfigFileBuilder()
       ..add(name: 'flutter', rootPath: flutterPath);
@@ -1211,7 +1207,6 @@ ${getFolder(outPath).path}
     var root = findRoot(roots, rootFolder);
     expect(root.includedPaths, unorderedEquals([rootFolder.path]));
     expect(root.excludedPaths, isEmpty);
-    expect(root.optionsFile, flutterAnalysisOptionsFile);
     expect(root.packagesFile, packagesFile);
   }
 
