@@ -82,49 +82,49 @@ class A extends core::Object {
     ;
 }
 extension type E1<T extends core::Object? = dynamic>(T% foo) {
-  abstract inline-class-member representation-field get foo() → T%;
+  abstract extension-type-member representation-field get foo() → T%;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
 }
 extension type E2(core::Object? foo) {
-  abstract inline-class-member representation-field get foo() → core::Object?;
+  abstract extension-type-member representation-field get foo() → core::Object?;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
 extension type E3(self::E1<core::String?> /* = core::String? */ foo) {
-  abstract inline-class-member representation-field get foo() → self::E1<core::String?> /* = core::String? */;
+  abstract extension-type-member representation-field get foo() → self::E1<core::String?> /* = core::String? */;
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
 extension type E4(self::E1<core::int> /* = core::int */ foo) {
-  abstract inline-class-member representation-field get foo() → self::E1<core::int> /* = core::int */;
+  abstract extension-type-member representation-field get foo() → self::E1<core::int> /* = core::int */;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
 extension type E5(self::E2 /* = core::Object? */ foo) {
-  abstract inline-class-member representation-field get foo() → self::E2 /* = core::Object? */;
+  abstract extension-type-member representation-field get foo() → self::E2 /* = core::Object? */;
   constructor • = self::E5|constructor#;
   constructor tearoff • = self::E5|constructor#_#new#tearOff;
 }
-static inline-class-member method E1|constructor#<T extends core::Object? = dynamic>(self::E1|constructor#::T% foo) → self::E1<self::E1|constructor#::T%> /* = self::E1|constructor#::T% */
+static extension-type-member method E1|constructor#<T extends core::Object? = dynamic>(self::E1|constructor#::T% foo) → self::E1<self::E1|constructor#::T%> /* = self::E1|constructor#::T% */
   ;
-static inline-class-member method E1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::T% foo) → self::E1<self::E1|constructor#_#new#tearOff::T%>% /* = self::E1|constructor#_#new#tearOff::T% */
+static extension-type-member method E1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E1|constructor#_#new#tearOff::T% foo) → self::E1<self::E1|constructor#_#new#tearOff::T%>% /* = self::E1|constructor#_#new#tearOff::T% */
   return self::E1|constructor#<self::E1|constructor#_#new#tearOff::T%>(foo);
-static inline-class-member method E2|constructor#(core::Object? foo) → self::E2 /* = core::Object? */
+static extension-type-member method E2|constructor#(core::Object? foo) → self::E2 /* = core::Object? */
   ;
-static inline-class-member method E2|constructor#_#new#tearOff(core::Object? foo) → self::E2 /* = core::Object? */
+static extension-type-member method E2|constructor#_#new#tearOff(core::Object? foo) → self::E2 /* = core::Object? */
   return self::E2|constructor#(foo);
-static inline-class-member method E3|constructor#(self::E1<core::String?> /* = core::String? */ foo) → self::E3 /* = core::String? */
+static extension-type-member method E3|constructor#(self::E1<core::String?> /* = core::String? */ foo) → self::E3 /* = core::String? */
   ;
-static inline-class-member method E3|constructor#_#new#tearOff(self::E1<core::String?> /* = core::String? */ foo) → self::E3 /* = core::String? */
+static extension-type-member method E3|constructor#_#new#tearOff(self::E1<core::String?> /* = core::String? */ foo) → self::E3 /* = core::String? */
   return self::E3|constructor#(foo);
-static inline-class-member method E4|constructor#(self::E1<core::int> /* = core::int */ foo) → self::E4 /* = core::int */
+static extension-type-member method E4|constructor#(self::E1<core::int> /* = core::int */ foo) → self::E4 /* = core::int */
   ;
-static inline-class-member method E4|constructor#_#new#tearOff(self::E1<core::int> /* = core::int */ foo) → self::E4 /* = core::int */
+static extension-type-member method E4|constructor#_#new#tearOff(self::E1<core::int> /* = core::int */ foo) → self::E4 /* = core::int */
   return self::E4|constructor#(foo);
-static inline-class-member method E5|constructor#(self::E2 /* = core::Object? */ foo) → self::E5 /* = core::Object? */
+static extension-type-member method E5|constructor#(self::E2 /* = core::Object? */ foo) → self::E5 /* = core::Object? */
   ;
-static inline-class-member method E5|constructor#_#new#tearOff(self::E2 /* = core::Object? */ foo) → self::E5 /* = core::Object? */
+static extension-type-member method E5|constructor#_#new#tearOff(self::E2 /* = core::Object? */ foo) → self::E5 /* = core::Object? */
   return self::E5|constructor#(foo);
 static method testNotNonNullable(self::E1<core::num?> /* = core::num? */ e1numNullableNNN, self::E1<core::double> /* = core::double */ e1doubleNNN, self::E2 /* = core::Object? */ e2NNN, self::E3 /* = core::String? */ e3NNN, self::E4 /* = core::int */ e4NNN, self::E5 /* = core::Object? */ e5NNN) → dynamic
   ;

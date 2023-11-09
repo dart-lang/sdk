@@ -16,5 +16,5 @@ static extension-member method Extension|method<T extends core::Object? = dynami
 static extension-member method Extension|get#method<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#method::T%> #this) → <R extends core::Object? = dynamic>(self::Extension|get#method::T%) → R?
   return <R extends core::Object? = dynamic>(self::Extension|get#method::T% t) → R? => self::Extension|method<self::Extension|get#method::T%, R%>(#this, t);
 static method main() → dynamic {
-  let final dynamic #t1 = self::Extension|method<core::int, dynamic>(new self::Class::•<core::int>(), 0) in #t1 == null ?{core::String?} null : #t1.{core::Object::toString}(){() → core::String};
+  let final dynamic #t1 = self::Extension|method<core::int, dynamic>(new self::Class::•<core::int>(), 0) in #t1 == null ?{core::String?} null : #t1.{core::Object::toString}{<object>}.(){() → core::String};
 }

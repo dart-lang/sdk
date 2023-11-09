@@ -103,12 +103,12 @@ static method baz(self::E<core::Object> ei, self::E<core::Object> es) → dynami
 static method boz(self::E<Never> ei, self::E<Never> es) → dynamic {}
 static method checkIsType<T extends core::Object? = dynamic>(dynamic x) → dynamic {
   if(!(x is self::checkIsType::T%)) {
-    throw "Expected value of type ${x.{core::Object::runtimeType}{core::Type}} to also be of type ${self::checkIsType::T%}.";
+    throw "Expected value of type ${x.{core::Object::runtimeType}{<object>}.{core::Type}} to also be of type ${self::checkIsType::T%}.";
   }
 }
 static method checkIsNotType<T extends core::Object? = dynamic>(dynamic x) → dynamic {
   if(x is self::checkIsNotType::T%) {
-    throw "Expected value of type ${x{self::checkIsNotType::T%}.{core::Object::runtimeType}{core::Type}} to not be of type ${self::checkIsNotType::T%}.";
+    throw "Expected value of type ${x{self::checkIsNotType::T%}.{core::Object::runtimeType}{<object>}.{core::Type}} to not be of type ${self::checkIsNotType::T%}.";
   }
 }
 static method main() → dynamic {

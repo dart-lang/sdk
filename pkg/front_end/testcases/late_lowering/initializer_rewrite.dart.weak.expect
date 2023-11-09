@@ -31,7 +31,7 @@ class Class extends core::Object {
   }
   static get nullableStaticField() → core::int? {
     if(!self::Class::_#nullableStaticField#isSet) {
-      final core::int? #t5 = (let final core::int #t6 = self::Class::nullableStaticFieldReads in let final core::int #t7 = self::Class::nullableStaticFieldReads = #t6.{core::num::+}(1){(core::num) → core::int} in #t6) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::Class::nullableStaticField.{core::Object::hashCode}{core::int} : 0;
+      final core::int? #t5 = (let final core::int #t6 = self::Class::nullableStaticFieldReads in let final core::int #t7 = self::Class::nullableStaticFieldReads = #t6.{core::num::+}(1){(core::num) → core::int} in #t6) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::Class::nullableStaticField.{core::Object::hashCode}{<object>}.{core::int} : 0;
       if(self::Class::_#nullableStaticField#isSet)
         throw new _in::LateError::fieldADI("nullableStaticField");
       self::Class::_#nullableStaticField = #t5;
@@ -51,7 +51,7 @@ class Class extends core::Object {
   }
   get nullableInstanceField() → core::int? {
     if(!this.{self::Class::_#Class#nullableInstanceField#isSet}{core::bool}) {
-      final core::int? #t12 = (let final core::int #t13 = this.{self::Class::nullableInstanceFieldReads}{core::int} in let final core::int #t14 = this.{self::Class::nullableInstanceFieldReads} = #t13.{core::num::+}(1){(core::num) → core::int} in #t13) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} this.{self::Class::nullableInstanceField}{core::int?}.{core::Object::hashCode}{core::int} : 0;
+      final core::int? #t12 = (let final core::int #t13 = this.{self::Class::nullableInstanceFieldReads}{core::int} in let final core::int #t14 = this.{self::Class::nullableInstanceFieldReads} = #t13.{core::num::+}(1){(core::num) → core::int} in #t13) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} this.{self::Class::nullableInstanceField}{core::int?}.{core::Object::hashCode}{<object>}.{core::int} : 0;
       if(this.{self::Class::_#Class#nullableInstanceField#isSet}{core::bool})
         throw new _in::LateError::fieldADI("nullableInstanceField");
       this.{self::Class::_#Class#nullableInstanceField} = #t12;
@@ -78,7 +78,7 @@ static get nonNullableTopLevelField() → core::int {
 }
 static get nullableTopLevelField() → core::int? {
   if(!self::_#nullableTopLevelField#isSet) {
-    final core::int? #t19 = (let final core::int #t20 = self::nullableTopLevelFieldReads in let final core::int #t21 = self::nullableTopLevelFieldReads = #t20.{core::num::+}(1){(core::num) → core::int} in #t20) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::nullableTopLevelField.{core::Object::hashCode}{core::int} : 0;
+    final core::int? #t19 = (let final core::int #t20 = self::nullableTopLevelFieldReads in let final core::int #t21 = self::nullableTopLevelFieldReads = #t20.{core::num::+}(1){(core::num) → core::int} in #t20) =={core::num::==}{(core::Object) → core::bool} 0 ?{core::int} self::nullableTopLevelField.{core::Object::hashCode}{<object>}.{core::int} : 0;
     if(self::_#nullableTopLevelField#isSet)
       throw new _in::LateError::fieldADI("nullableTopLevelField");
     self::_#nullableTopLevelField = #t19;

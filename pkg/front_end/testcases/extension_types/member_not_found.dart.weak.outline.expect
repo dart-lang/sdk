@@ -3,19 +3,19 @@ import self as self;
 import "dart:core" as core;
 
 extension type A(core::int value) {
-  abstract inline-class-member representation-field get value() → core::int;
+  abstract extension-type-member representation-field get value() → core::int;
   constructor _ = self::A|constructor#_;
   constructor tearoff _ = self::A|constructor#_#_#tearOff;
   constructor name1 = self::A|constructor#name1;
   constructor tearoff name1 = self::A|constructor#_#name1#tearOff;
 }
-static inline-class-member method A|constructor#_(core::int value) → self::A /* = core::int */
+static extension-type-member method A|constructor#_(core::int value) → self::A /* = core::int */
   ;
-static inline-class-member method A|constructor#_#_#tearOff(core::int value) → self::A /* = core::int */
+static extension-type-member method A|constructor#_#_#tearOff(core::int value) → self::A /* = core::int */
   return self::A|constructor#_(value);
-static inline-class-member method A|constructor#name1(core::int value) → self::A /* = core::int */
+static extension-type-member method A|constructor#name1(core::int value) → self::A /* = core::int */
   ;
-static inline-class-member method A|constructor#_#name1#tearOff(core::int value) → self::A /* = core::int */
+static extension-type-member method A|constructor#_#name1#tearOff(core::int value) → self::A /* = core::int */
   return self::A|constructor#name1(value);
 static method method() → void
   ;

@@ -192,13 +192,13 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     ;
 }
 extension type ExtensionType<T extends core::Object? = dynamic>(core::List<T%> it) {
-  abstract inline-class-member representation-field get it() → core::List<T%>;
+  abstract extension-type-member representation-field get it() → core::List<T%>;
   constructor • = ali::ExtensionType|constructor#;
   constructor tearoff • = ali::ExtensionType|constructor#_#new#tearOff;
 }
-static inline-class-member method ExtensionType|constructor#<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|constructor#::T%> it) → ali::ExtensionType<ali::ExtensionType|constructor#::T%> /* = core::List<ali::ExtensionType|constructor#::T%> */
+static extension-type-member method ExtensionType|constructor#<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|constructor#::T%> it) → ali::ExtensionType<ali::ExtensionType|constructor#::T%> /* = core::List<ali::ExtensionType|constructor#::T%> */
   ;
-static inline-class-member method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|constructor#_#new#tearOff::T%> it) → ali::ExtensionType<ali::ExtensionType|constructor#_#new#tearOff::T%> /* = core::List<ali::ExtensionType|constructor#_#new#tearOff::T%> */
+static extension-type-member method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|constructor#_#new#tearOff::T%> it) → ali::ExtensionType<ali::ExtensionType|constructor#_#new#tearOff::T%> /* = core::List<ali::ExtensionType|constructor#_#new#tearOff::T%> */
   return ali::ExtensionType|constructor#<ali::ExtensionType|constructor#_#new#tearOff::T%>(it);
 static method test(<T extends core::Object? = dynamic>(T%) → void t1, <T extends core::Object? = dynamic>(T%) → void t2, core::List<<T extends core::Object? = dynamic>(T%) → void> t3, (<T extends core::Object? = dynamic>(T%) → void, core::int) t5, ({required a: <T extends core::Object? = dynamic>(T%) → void, required b: core::int}) t6, <S extends <T extends core::Object? = dynamic>(T%) → void = dynamic>(S) → void t8, (core::List<<T extends core::Object? = dynamic>(T%) → void>, core::int) t9, ({required a: core::List<<T extends core::Object? = dynamic>(T%) → void>, required b: core::int}) t10, FutureOr<<T extends core::Object? = dynamic>(T%) → void>t11, FutureOr<core::List<<T extends core::Object? = dynamic>(T%) → void>>t12) → dynamic
   ;

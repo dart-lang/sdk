@@ -295,59 +295,59 @@ class B extends self::A {
     ;
 }
 extension type C(core::Object? o) {
-  abstract inline-class-member representation-field get o() → core::Object?;
+  abstract extension-type-member representation-field get o() → core::Object?;
   constructor • = self::C|constructor#;
   constructor tearoff • = self::C|constructor#_#new#tearOff;
 }
 extension type D(core::Object o) {
-  abstract inline-class-member representation-field get o() → core::Object;
+  abstract extension-type-member representation-field get o() → core::Object;
   constructor • = self::D|constructor#;
   constructor tearoff • = self::D|constructor#_#new#tearOff;
 }
 extension type E(self::B it) implements self::A {
-  abstract inline-class-member representation-field get it() → self::B;
+  abstract extension-type-member representation-field get it() → self::B;
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type F(self::B it) implements self::E /* = self::B */, self::B {
-  abstract inline-class-member representation-field get it() → self::B;
+  abstract extension-type-member representation-field get it() → self::B;
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
 extension type G<T extends core::Object? = dynamic>(T% o) {
-  abstract inline-class-member representation-field get o() → T%;
+  abstract extension-type-member representation-field get o() → T%;
   constructor • = self::G|constructor#;
   constructor tearoff • = self::G|constructor#_#new#tearOff;
 }
-static inline-class-member method C|constructor#(core::Object? o) → self::C /* = core::Object? */ {
+static extension-type-member method C|constructor#(core::Object? o) → self::C /* = core::Object? */ {
   lowered final self::C /* = core::Object? */ #this = o;
   return #this;
 }
-static inline-class-member method C|constructor#_#new#tearOff(core::Object? o) → self::C /* = core::Object? */
+static extension-type-member method C|constructor#_#new#tearOff(core::Object? o) → self::C /* = core::Object? */
   return self::C|constructor#(o);
-static inline-class-member method D|constructor#(core::Object o) → self::D /* = core::Object */ {
+static extension-type-member method D|constructor#(core::Object o) → self::D /* = core::Object */ {
   lowered final self::D /* = core::Object */ #this = o;
   return #this;
 }
-static inline-class-member method D|constructor#_#new#tearOff(core::Object o) → self::D /* = core::Object */
+static extension-type-member method D|constructor#_#new#tearOff(core::Object o) → self::D /* = core::Object */
   return self::D|constructor#(o);
-static inline-class-member method E|constructor#(self::B it) → self::E /* = self::B */ {
+static extension-type-member method E|constructor#(self::B it) → self::E /* = self::B */ {
   lowered final self::E /* = self::B */ #this = it;
   return #this;
 }
-static inline-class-member method E|constructor#_#new#tearOff(self::B it) → self::E /* = self::B */
+static extension-type-member method E|constructor#_#new#tearOff(self::B it) → self::E /* = self::B */
   return self::E|constructor#(it);
-static inline-class-member method F|constructor#(self::B it) → self::F /* = self::B */ {
+static extension-type-member method F|constructor#(self::B it) → self::F /* = self::B */ {
   lowered final self::F /* = self::B */ #this = it;
   return #this;
 }
-static inline-class-member method F|constructor#_#new#tearOff(self::B it) → self::F /* = self::B */
+static extension-type-member method F|constructor#_#new#tearOff(self::B it) → self::F /* = self::B */
   return self::F|constructor#(it);
-static inline-class-member method G|constructor#<T extends core::Object? = dynamic>(self::G|constructor#::T% o) → self::G<self::G|constructor#::T%> /* = self::G|constructor#::T% */ {
+static extension-type-member method G|constructor#<T extends core::Object? = dynamic>(self::G|constructor#::T% o) → self::G<self::G|constructor#::T%> /* = self::G|constructor#::T% */ {
   lowered final self::G<self::G|constructor#::T%> /* = self::G|constructor#::T% */ #this = o;
   return #this;
 }
-static inline-class-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%>% /* = self::G|constructor#_#new#tearOff::T% */
+static extension-type-member method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::G|constructor#_#new#tearOff::T% o) → self::G<self::G|constructor#_#new#tearOff::T%>% /* = self::G|constructor#_#new#tearOff::T% */
   return self::G|constructor#<self::G|constructor#_#new#tearOff::T%>(o);
 static method test<T1 extends core::Object? = dynamic, T2 extends self::A>(core::Object o, self::A a, self::B b, self::C /* = core::Object? */ c, self::D /* = core::Object */ d, self::E /* = self::B */ e, self::F /* = self::B */ f, self::G<self::test::T1%> /* = self::test::T1% */ g1, self::G<self::test::T2> /* = self::test::T2 */ g2) → dynamic {
   o = o;

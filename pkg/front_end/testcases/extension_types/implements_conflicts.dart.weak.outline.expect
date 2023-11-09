@@ -139,96 +139,96 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///implements_conflicts_lib.dart";
 
 extension type ExtensionType1a(imp::ClassA c) implements imp::ClassA, imp::ExtensionTypeA /* = imp::ClassA */ {
-  abstract inline-class-member representation-field get c() → imp::ClassA;
+  abstract extension-type-member representation-field get c() → imp::ClassA;
   constructor • = self::ExtensionType1a|constructor#;
   constructor tearoff • = self::ExtensionType1a|constructor#_#new#tearOff;
 }
 extension type ExtensionType1b(imp::ClassA c) implements imp::ClassA, imp::ExtensionTypeA /* = imp::ClassA */ {
-  abstract inline-class-member representation-field get c() → imp::ClassA;
+  abstract extension-type-member representation-field get c() → imp::ClassA;
   method method1 = self::ExtensionType1b|method1;
   method tearoff method1 = self::ExtensionType1b|get#method1;
   constructor • = self::ExtensionType1b|constructor#;
   constructor tearoff • = self::ExtensionType1b|constructor#_#new#tearOff;
 }
 extension type ExtensionType2a(imp::ClassC c) implements imp::ClassC, imp::ExtensionTypeA /* = imp::ClassA */, imp::ExtensionTypeB /* = imp::ClassB */ {
-  abstract inline-class-member representation-field get c() → imp::ClassC;
+  abstract extension-type-member representation-field get c() → imp::ClassC;
   constructor • = self::ExtensionType2a|constructor#;
   constructor tearoff • = self::ExtensionType2a|constructor#_#new#tearOff;
 }
 extension type ExtensionType2b(imp::ClassC c) implements imp::ClassC, imp::ExtensionTypeA /* = imp::ClassA */, imp::ExtensionTypeB /* = imp::ClassB */ {
-  abstract inline-class-member representation-field get c() → imp::ClassC;
+  abstract extension-type-member representation-field get c() → imp::ClassC;
   method method1 = self::ExtensionType2b|method1;
   method tearoff method1 = self::ExtensionType2b|get#method1;
   constructor • = self::ExtensionType2b|constructor#;
   constructor tearoff • = self::ExtensionType2b|constructor#_#new#tearOff;
 }
 extension type ExtensionType3a(imp::ClassC c) implements imp::ClassA, imp::ClassB, imp::ExtensionTypeA /* = imp::ClassA */ {
-  abstract inline-class-member representation-field get c() → imp::ClassC;
+  abstract extension-type-member representation-field get c() → imp::ClassC;
   constructor • = self::ExtensionType3a|constructor#;
   constructor tearoff • = self::ExtensionType3a|constructor#_#new#tearOff;
 }
 extension type ExtensionType3b(imp::ClassC c) implements imp::ClassA, imp::ClassB, imp::ExtensionTypeA /* = imp::ClassA */ {
-  abstract inline-class-member representation-field get c() → imp::ClassC;
+  abstract extension-type-member representation-field get c() → imp::ClassC;
   method method1 = self::ExtensionType3b|method1;
   method tearoff method1 = self::ExtensionType3b|get#method1;
   constructor • = self::ExtensionType3b|constructor#;
   constructor tearoff • = self::ExtensionType3b|constructor#_#new#tearOff;
 }
 extension type ExtensionType4a(imp::ClassC c) implements imp::ExtensionTypeA /* = imp::ClassA */, imp::ExtensionTypeB /* = imp::ClassB */ {
-  abstract inline-class-member representation-field get c() → imp::ClassC;
+  abstract extension-type-member representation-field get c() → imp::ClassC;
   constructor • = self::ExtensionType4a|constructor#;
   constructor tearoff • = self::ExtensionType4a|constructor#_#new#tearOff;
 }
 extension type ExtensionType4b(imp::ClassC c) implements imp::ExtensionTypeA /* = imp::ClassA */, imp::ExtensionTypeB /* = imp::ClassB */ {
-  abstract inline-class-member representation-field get c() → imp::ClassC;
+  abstract extension-type-member representation-field get c() → imp::ClassC;
   method method1 = self::ExtensionType4b|method1;
   method tearoff method1 = self::ExtensionType4b|get#method1;
   constructor • = self::ExtensionType4b|constructor#;
   constructor tearoff • = self::ExtensionType4b|constructor#_#new#tearOff;
 }
 extension type ExtensionType5(imp::ClassC c) implements imp::ExtensionTypeA1 /* = imp::ClassA */, imp::ExtensionTypeA2 /* = imp::ClassA */ {
-  abstract inline-class-member representation-field get c() → imp::ClassC;
+  abstract extension-type-member representation-field get c() → imp::ClassC;
   constructor • = self::ExtensionType5|constructor#;
   constructor tearoff • = self::ExtensionType5|constructor#_#new#tearOff;
 }
 extension type ExtensionType6a(imp::ClassF c) implements imp::ClassD, imp::ClassE {
-  abstract inline-class-member representation-field get c() → imp::ClassF;
+  abstract extension-type-member representation-field get c() → imp::ClassF;
   constructor • = self::ExtensionType6a|constructor#;
   constructor tearoff • = self::ExtensionType6a|constructor#_#new#tearOff;
 }
 extension type ExtensionType6b(imp::ClassF c) implements imp::ClassD, imp::ClassE {
-  abstract inline-class-member representation-field get c() → imp::ClassF;
+  abstract extension-type-member representation-field get c() → imp::ClassF;
   method method2 = self::ExtensionType6b|method2;
   method tearoff method2 = self::ExtensionType6b|get#method2;
   constructor • = self::ExtensionType6b|constructor#;
   constructor tearoff • = self::ExtensionType6b|constructor#_#new#tearOff;
 }
 extension type ExtensionType7a(imp::ClassF c) implements imp::ExtensionTypeD /* = imp::ClassD */, imp::ExtensionTypeE /* = imp::ClassE */ {
-  abstract inline-class-member representation-field get c() → imp::ClassF;
+  abstract extension-type-member representation-field get c() → imp::ClassF;
   constructor • = self::ExtensionType7a|constructor#;
   constructor tearoff • = self::ExtensionType7a|constructor#_#new#tearOff;
 }
 extension type ExtensionType7b(imp::ClassF c) implements imp::ExtensionTypeD /* = imp::ClassD */, imp::ExtensionTypeE /* = imp::ClassE */ {
-  abstract inline-class-member representation-field get c() → imp::ClassF;
+  abstract extension-type-member representation-field get c() → imp::ClassF;
   method method2 = self::ExtensionType7b|method2;
   method tearoff method2 = self::ExtensionType7b|get#method2;
   constructor • = self::ExtensionType7b|constructor#;
   constructor tearoff • = self::ExtensionType7b|constructor#_#new#tearOff;
 }
 extension type ExtensionType8a(imp::ClassI c) implements imp::ClassG, imp::ClassH {
-  abstract inline-class-member representation-field get c() → imp::ClassI;
+  abstract extension-type-member representation-field get c() → imp::ClassI;
   abstract member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
   constructor • = self::ExtensionType8a|constructor#;
   constructor tearoff • = self::ExtensionType8a|constructor#_#new#tearOff;
 }
 extension type ExtensionType8b(imp::ClassI c) implements imp::ExtensionTypeG /* = imp::ClassG */, imp::ExtensionTypeH /* = imp::ClassH */ {
-  abstract inline-class-member representation-field get c() → imp::ClassI;
+  abstract extension-type-member representation-field get c() → imp::ClassI;
   abstract member-signature method method3() → (core::Object?, core::Object?); -> imp::ClassG::method3
   constructor • = self::ExtensionType8b|constructor#;
   constructor tearoff • = self::ExtensionType8b|constructor#_#new#tearOff;
 }
 extension type ExtensionType9(core::int i) {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   method method4 = self::ExtensionType9|method4;
   method tearoff method4 = self::ExtensionType9|get#method4;
   set method4 = self::ExtensionType9|set#method4;
@@ -236,257 +236,257 @@ extension type ExtensionType9(core::int i) {
   constructor tearoff • = self::ExtensionType9|constructor#_#new#tearOff;
 }
 extension type ExtensionType9a(invalid-type n) implements imp::ClassJ, imp::ClassK {
-  abstract inline-class-member representation-field get n() → Never;
+  abstract extension-type-member representation-field get n() → Never;
   constructor • = self::ExtensionType9a|constructor#;
   constructor tearoff • = self::ExtensionType9a|constructor#_#new#tearOff;
 }
 extension type ExtensionType9b(invalid-type n) implements imp::ClassJ, imp::ClassK {
-  abstract inline-class-member representation-field get n() → Never;
+  abstract extension-type-member representation-field get n() → Never;
   get method4 = self::ExtensionType9b|get#method4;
   set method4 = self::ExtensionType9b|set#method4;
   constructor • = self::ExtensionType9b|constructor#;
   constructor tearoff • = self::ExtensionType9b|constructor#_#new#tearOff;
 }
 extension type ExtensionType10a(core::int i) implements imp::ExtensionTypeJ /* = core::int */, imp::ExtensionTypeK /* = core::int */ {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   constructor • = self::ExtensionType10a|constructor#;
   constructor tearoff • = self::ExtensionType10a|constructor#_#new#tearOff;
 }
 extension type ExtensionType10b(core::int i) implements imp::ExtensionTypeJ /* = core::int */, imp::ExtensionTypeK /* = core::int */ {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   get method4 = self::ExtensionType10b|get#method4;
   set method4 = self::ExtensionType10b|set#method4;
   constructor • = self::ExtensionType10b|constructor#;
   constructor tearoff • = self::ExtensionType10b|constructor#_#new#tearOff;
 }
 extension type ExtensionType11(Null n) {
-  abstract inline-class-member representation-field get n() → Null;
+  abstract extension-type-member representation-field get n() → Null;
   get property = self::ExtensionType11|get#property;
   set property = self::ExtensionType11|set#property;
   constructor • = self::ExtensionType11|constructor#;
   constructor tearoff • = self::ExtensionType11|constructor#_#new#tearOff;
 }
 extension type ExtensionType12a(invalid-type n) implements imp::ClassL, imp::ClassM {
-  abstract inline-class-member representation-field get n() → Never;
+  abstract extension-type-member representation-field get n() → Never;
   constructor • = self::ExtensionType12a|constructor#;
   constructor tearoff • = self::ExtensionType12a|constructor#_#new#tearOff;
 }
 extension type ExtensionType12b(imp::ClassL n) implements imp::ClassL {
-  abstract inline-class-member representation-field get n() → imp::ClassL;
+  abstract extension-type-member representation-field get n() → imp::ClassL;
   set property = self::ExtensionType12b|set#property;
   constructor • = self::ExtensionType12b|constructor#;
   constructor tearoff • = self::ExtensionType12b|constructor#_#new#tearOff;
 }
 extension type ExtensionType12c(imp::ClassM n) implements imp::ClassM {
-  abstract inline-class-member representation-field get n() → imp::ClassM;
+  abstract extension-type-member representation-field get n() → imp::ClassM;
   get property = self::ExtensionType12c|get#property;
   constructor • = self::ExtensionType12c|constructor#;
   constructor tearoff • = self::ExtensionType12c|constructor#_#new#tearOff;
 }
 extension type ExtensionType12d(invalid-type n) implements imp::ClassL, imp::ClassM {
-  abstract inline-class-member representation-field get n() → Never;
+  abstract extension-type-member representation-field get n() → Never;
   get property = self::ExtensionType12d|get#property;
   set property = self::ExtensionType12d|set#property;
   constructor • = self::ExtensionType12d|constructor#;
   constructor tearoff • = self::ExtensionType12d|constructor#_#new#tearOff;
 }
 extension type ExtensionType13a(core::int i) implements imp::ExtensionTypeL /* = core::int */, imp::ExtensionTypeM /* = core::int */ {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   constructor • = self::ExtensionType13a|constructor#;
   constructor tearoff • = self::ExtensionType13a|constructor#_#new#tearOff;
 }
 extension type ExtensionType13b(core::int i) implements imp::ExtensionTypeL /* = core::int */ {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   set property = self::ExtensionType13b|set#property;
   constructor • = self::ExtensionType13b|constructor#;
   constructor tearoff • = self::ExtensionType13b|constructor#_#new#tearOff;
 }
 extension type ExtensionType13c(core::int i) implements imp::ExtensionTypeM /* = core::int */ {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   get property = self::ExtensionType13c|get#property;
   constructor • = self::ExtensionType13c|constructor#;
   constructor tearoff • = self::ExtensionType13c|constructor#_#new#tearOff;
 }
 extension type ExtensionType13d(core::int i) implements imp::ExtensionTypeL /* = core::int */, imp::ExtensionTypeM /* = core::int */ {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   get property = self::ExtensionType13d|get#property;
   set property = self::ExtensionType13d|set#property;
   constructor • = self::ExtensionType13d|constructor#;
   constructor tearoff • = self::ExtensionType13d|constructor#_#new#tearOff;
 }
-static inline-class-member method ExtensionType1a|constructor#_#new#tearOff(imp::ClassA c) → self::ExtensionType1a /* = imp::ClassA */
+static extension-type-member method ExtensionType1a|constructor#_#new#tearOff(imp::ClassA c) → self::ExtensionType1a /* = imp::ClassA */
   return self::ExtensionType1a|constructor#(c);
-static inline-class-member method ExtensionType1a|constructor#(imp::ClassA c) → self::ExtensionType1a /* = imp::ClassA */
+static extension-type-member method ExtensionType1a|constructor#(imp::ClassA c) → self::ExtensionType1a /* = imp::ClassA */
   ;
-static inline-class-member method ExtensionType1b|constructor#(imp::ClassA c) → self::ExtensionType1b /* = imp::ClassA */
+static extension-type-member method ExtensionType1b|constructor#(imp::ClassA c) → self::ExtensionType1b /* = imp::ClassA */
   ;
-static inline-class-member method ExtensionType1b|constructor#_#new#tearOff(imp::ClassA c) → self::ExtensionType1b /* = imp::ClassA */
+static extension-type-member method ExtensionType1b|constructor#_#new#tearOff(imp::ClassA c) → self::ExtensionType1b /* = imp::ClassA */
   return self::ExtensionType1b|constructor#(c);
-static inline-class-member method ExtensionType1b|method1(lowered final self::ExtensionType1b /* = imp::ClassA */ #this) → void
+static extension-type-member method ExtensionType1b|method1(lowered final self::ExtensionType1b /* = imp::ClassA */ #this) → void
   ;
-static inline-class-member method ExtensionType1b|get#method1(lowered final self::ExtensionType1b /* = imp::ClassA */ #this) → () → void
+static extension-type-member method ExtensionType1b|get#method1(lowered final self::ExtensionType1b /* = imp::ClassA */ #this) → () → void
   return () → void => self::ExtensionType1b|method1(#this);
-static inline-class-member method ExtensionType2a|constructor#(imp::ClassC c) → self::ExtensionType2a /* = imp::ClassC */
+static extension-type-member method ExtensionType2a|constructor#(imp::ClassC c) → self::ExtensionType2a /* = imp::ClassC */
   ;
-static inline-class-member method ExtensionType2a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2a /* = imp::ClassC */
+static extension-type-member method ExtensionType2a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2a /* = imp::ClassC */
   return self::ExtensionType2a|constructor#(c);
-static inline-class-member method ExtensionType2b|constructor#(imp::ClassC c) → self::ExtensionType2b /* = imp::ClassC */
+static extension-type-member method ExtensionType2b|constructor#(imp::ClassC c) → self::ExtensionType2b /* = imp::ClassC */
   ;
-static inline-class-member method ExtensionType2b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2b /* = imp::ClassC */
+static extension-type-member method ExtensionType2b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType2b /* = imp::ClassC */
   return self::ExtensionType2b|constructor#(c);
-static inline-class-member method ExtensionType2b|method1(lowered final self::ExtensionType2b /* = imp::ClassC */ #this) → void
+static extension-type-member method ExtensionType2b|method1(lowered final self::ExtensionType2b /* = imp::ClassC */ #this) → void
   ;
-static inline-class-member method ExtensionType2b|get#method1(lowered final self::ExtensionType2b /* = imp::ClassC */ #this) → () → void
+static extension-type-member method ExtensionType2b|get#method1(lowered final self::ExtensionType2b /* = imp::ClassC */ #this) → () → void
   return () → void => self::ExtensionType2b|method1(#this);
-static inline-class-member method ExtensionType3a|constructor#(imp::ClassC c) → self::ExtensionType3a /* = imp::ClassC */
+static extension-type-member method ExtensionType3a|constructor#(imp::ClassC c) → self::ExtensionType3a /* = imp::ClassC */
   ;
-static inline-class-member method ExtensionType3a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType3a /* = imp::ClassC */
+static extension-type-member method ExtensionType3a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType3a /* = imp::ClassC */
   return self::ExtensionType3a|constructor#(c);
-static inline-class-member method ExtensionType3b|constructor#(imp::ClassC c) → self::ExtensionType3b /* = imp::ClassC */
+static extension-type-member method ExtensionType3b|constructor#(imp::ClassC c) → self::ExtensionType3b /* = imp::ClassC */
   ;
-static inline-class-member method ExtensionType3b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType3b /* = imp::ClassC */
+static extension-type-member method ExtensionType3b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType3b /* = imp::ClassC */
   return self::ExtensionType3b|constructor#(c);
-static inline-class-member method ExtensionType3b|method1(lowered final self::ExtensionType3b /* = imp::ClassC */ #this) → void
+static extension-type-member method ExtensionType3b|method1(lowered final self::ExtensionType3b /* = imp::ClassC */ #this) → void
   ;
-static inline-class-member method ExtensionType3b|get#method1(lowered final self::ExtensionType3b /* = imp::ClassC */ #this) → () → void
+static extension-type-member method ExtensionType3b|get#method1(lowered final self::ExtensionType3b /* = imp::ClassC */ #this) → () → void
   return () → void => self::ExtensionType3b|method1(#this);
-static inline-class-member method ExtensionType4a|constructor#(imp::ClassC c) → self::ExtensionType4a /* = imp::ClassC */
+static extension-type-member method ExtensionType4a|constructor#(imp::ClassC c) → self::ExtensionType4a /* = imp::ClassC */
   ;
-static inline-class-member method ExtensionType4a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType4a /* = imp::ClassC */
+static extension-type-member method ExtensionType4a|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType4a /* = imp::ClassC */
   return self::ExtensionType4a|constructor#(c);
-static inline-class-member method ExtensionType4b|constructor#(imp::ClassC c) → self::ExtensionType4b /* = imp::ClassC */
+static extension-type-member method ExtensionType4b|constructor#(imp::ClassC c) → self::ExtensionType4b /* = imp::ClassC */
   ;
-static inline-class-member method ExtensionType4b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType4b /* = imp::ClassC */
+static extension-type-member method ExtensionType4b|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType4b /* = imp::ClassC */
   return self::ExtensionType4b|constructor#(c);
-static inline-class-member method ExtensionType4b|method1(lowered final self::ExtensionType4b /* = imp::ClassC */ #this) → void
+static extension-type-member method ExtensionType4b|method1(lowered final self::ExtensionType4b /* = imp::ClassC */ #this) → void
   ;
-static inline-class-member method ExtensionType4b|get#method1(lowered final self::ExtensionType4b /* = imp::ClassC */ #this) → () → void
+static extension-type-member method ExtensionType4b|get#method1(lowered final self::ExtensionType4b /* = imp::ClassC */ #this) → () → void
   return () → void => self::ExtensionType4b|method1(#this);
-static inline-class-member method ExtensionType5|constructor#(imp::ClassC c) → self::ExtensionType5 /* = imp::ClassC */
+static extension-type-member method ExtensionType5|constructor#(imp::ClassC c) → self::ExtensionType5 /* = imp::ClassC */
   ;
-static inline-class-member method ExtensionType5|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType5 /* = imp::ClassC */
+static extension-type-member method ExtensionType5|constructor#_#new#tearOff(imp::ClassC c) → self::ExtensionType5 /* = imp::ClassC */
   return self::ExtensionType5|constructor#(c);
-static inline-class-member method ExtensionType6a|constructor#(imp::ClassF c) → self::ExtensionType6a /* = imp::ClassF */
+static extension-type-member method ExtensionType6a|constructor#(imp::ClassF c) → self::ExtensionType6a /* = imp::ClassF */
   ;
-static inline-class-member method ExtensionType6a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType6a /* = imp::ClassF */
+static extension-type-member method ExtensionType6a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType6a /* = imp::ClassF */
   return self::ExtensionType6a|constructor#(c);
-static inline-class-member method ExtensionType6b|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType6b /* = imp::ClassF */
+static extension-type-member method ExtensionType6b|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType6b /* = imp::ClassF */
   return self::ExtensionType6b|constructor#(c);
-static inline-class-member method ExtensionType6b|constructor#(imp::ClassF c) → self::ExtensionType6b /* = imp::ClassF */
+static extension-type-member method ExtensionType6b|constructor#(imp::ClassF c) → self::ExtensionType6b /* = imp::ClassF */
   ;
-static inline-class-member method ExtensionType6b|get#method2(lowered final self::ExtensionType6b /* = imp::ClassF */ #this) → () → void
+static extension-type-member method ExtensionType6b|get#method2(lowered final self::ExtensionType6b /* = imp::ClassF */ #this) → () → void
   return () → void => self::ExtensionType6b|method2(#this);
-static inline-class-member method ExtensionType6b|method2(lowered final self::ExtensionType6b /* = imp::ClassF */ #this) → void
+static extension-type-member method ExtensionType6b|method2(lowered final self::ExtensionType6b /* = imp::ClassF */ #this) → void
   ;
-static inline-class-member method ExtensionType7a|constructor#(imp::ClassF c) → self::ExtensionType7a /* = imp::ClassF */
+static extension-type-member method ExtensionType7a|constructor#(imp::ClassF c) → self::ExtensionType7a /* = imp::ClassF */
   ;
-static inline-class-member method ExtensionType7a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7a /* = imp::ClassF */
+static extension-type-member method ExtensionType7a|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7a /* = imp::ClassF */
   return self::ExtensionType7a|constructor#(c);
-static inline-class-member method ExtensionType7b|constructor#(imp::ClassF c) → self::ExtensionType7b /* = imp::ClassF */
+static extension-type-member method ExtensionType7b|constructor#(imp::ClassF c) → self::ExtensionType7b /* = imp::ClassF */
   ;
-static inline-class-member method ExtensionType7b|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7b /* = imp::ClassF */
+static extension-type-member method ExtensionType7b|constructor#_#new#tearOff(imp::ClassF c) → self::ExtensionType7b /* = imp::ClassF */
   return self::ExtensionType7b|constructor#(c);
-static inline-class-member method ExtensionType7b|method2(lowered final self::ExtensionType7b /* = imp::ClassF */ #this) → void
+static extension-type-member method ExtensionType7b|method2(lowered final self::ExtensionType7b /* = imp::ClassF */ #this) → void
   ;
-static inline-class-member method ExtensionType7b|get#method2(lowered final self::ExtensionType7b /* = imp::ClassF */ #this) → () → void
+static extension-type-member method ExtensionType7b|get#method2(lowered final self::ExtensionType7b /* = imp::ClassF */ #this) → () → void
   return () → void => self::ExtensionType7b|method2(#this);
-static inline-class-member method ExtensionType8a|constructor#(imp::ClassI c) → self::ExtensionType8a /* = imp::ClassI */
+static extension-type-member method ExtensionType8a|constructor#(imp::ClassI c) → self::ExtensionType8a /* = imp::ClassI */
   ;
-static inline-class-member method ExtensionType8a|constructor#_#new#tearOff(imp::ClassI c) → self::ExtensionType8a /* = imp::ClassI */
+static extension-type-member method ExtensionType8a|constructor#_#new#tearOff(imp::ClassI c) → self::ExtensionType8a /* = imp::ClassI */
   return self::ExtensionType8a|constructor#(c);
-static inline-class-member method ExtensionType8b|constructor#(imp::ClassI c) → self::ExtensionType8b /* = imp::ClassI */
+static extension-type-member method ExtensionType8b|constructor#(imp::ClassI c) → self::ExtensionType8b /* = imp::ClassI */
   ;
-static inline-class-member method ExtensionType8b|constructor#_#new#tearOff(imp::ClassI c) → self::ExtensionType8b /* = imp::ClassI */
+static extension-type-member method ExtensionType8b|constructor#_#new#tearOff(imp::ClassI c) → self::ExtensionType8b /* = imp::ClassI */
   return self::ExtensionType8b|constructor#(c);
-static inline-class-member method ExtensionType9|constructor#(core::int i) → self::ExtensionType9 /* = core::int */
+static extension-type-member method ExtensionType9|constructor#(core::int i) → self::ExtensionType9 /* = core::int */
   ;
-static inline-class-member method ExtensionType9|constructor#_#new#tearOff(core::int i) → self::ExtensionType9 /* = core::int */
+static extension-type-member method ExtensionType9|constructor#_#new#tearOff(core::int i) → self::ExtensionType9 /* = core::int */
   return self::ExtensionType9|constructor#(i);
-static inline-class-member method ExtensionType9|method4(lowered final self::ExtensionType9 /* = core::int */ #this) → void
+static extension-type-member method ExtensionType9|method4(lowered final self::ExtensionType9 /* = core::int */ #this) → void
   ;
-static inline-class-member method ExtensionType9|get#method4(lowered final self::ExtensionType9 /* = core::int */ #this) → () → void
+static extension-type-member method ExtensionType9|get#method4(lowered final self::ExtensionType9 /* = core::int */ #this) → () → void
   return () → void => self::ExtensionType9|method4(#this);
-static inline-class-member method ExtensionType9|set#method4(lowered final self::ExtensionType9 /* = core::int */ #this, core::int value) → void
+static extension-type-member method ExtensionType9|set#method4(lowered final self::ExtensionType9 /* = core::int */ #this, core::int value) → void
   ;
-static inline-class-member method ExtensionType9a|constructor#(Never n) → self::ExtensionType9a /* = invalid-type */
+static extension-type-member method ExtensionType9a|constructor#(Never n) → self::ExtensionType9a /* = invalid-type */
   ;
-static inline-class-member method ExtensionType9a|constructor#_#new#tearOff(Never n) → self::ExtensionType9a /* = invalid-type */
+static extension-type-member method ExtensionType9a|constructor#_#new#tearOff(Never n) → self::ExtensionType9a /* = invalid-type */
   return self::ExtensionType9a|constructor#(n);
-static inline-class-member method ExtensionType9b|constructor#(Never n) → self::ExtensionType9b /* = invalid-type */
+static extension-type-member method ExtensionType9b|constructor#(Never n) → self::ExtensionType9b /* = invalid-type */
   ;
-static inline-class-member method ExtensionType9b|constructor#_#new#tearOff(Never n) → self::ExtensionType9b /* = invalid-type */
+static extension-type-member method ExtensionType9b|constructor#_#new#tearOff(Never n) → self::ExtensionType9b /* = invalid-type */
   return self::ExtensionType9b|constructor#(n);
-static inline-class-member method ExtensionType9b|get#method4(lowered final self::ExtensionType9b /* = invalid-type */ #this) → core::int
+static extension-type-member method ExtensionType9b|get#method4(lowered final self::ExtensionType9b /* = invalid-type */ #this) → core::int
   ;
-static inline-class-member method ExtensionType9b|set#method4(lowered final self::ExtensionType9b /* = invalid-type */ #this, core::int value) → void
+static extension-type-member method ExtensionType9b|set#method4(lowered final self::ExtensionType9b /* = invalid-type */ #this, core::int value) → void
   ;
-static inline-class-member method ExtensionType10a|constructor#(core::int i) → self::ExtensionType10a /* = core::int */
+static extension-type-member method ExtensionType10a|constructor#(core::int i) → self::ExtensionType10a /* = core::int */
   ;
-static inline-class-member method ExtensionType10a|constructor#_#new#tearOff(core::int i) → self::ExtensionType10a /* = core::int */
+static extension-type-member method ExtensionType10a|constructor#_#new#tearOff(core::int i) → self::ExtensionType10a /* = core::int */
   return self::ExtensionType10a|constructor#(i);
-static inline-class-member method ExtensionType10b|constructor#_#new#tearOff(core::int i) → self::ExtensionType10b /* = core::int */
+static extension-type-member method ExtensionType10b|constructor#_#new#tearOff(core::int i) → self::ExtensionType10b /* = core::int */
   return self::ExtensionType10b|constructor#(i);
-static inline-class-member method ExtensionType10b|constructor#(core::int i) → self::ExtensionType10b /* = core::int */
+static extension-type-member method ExtensionType10b|constructor#(core::int i) → self::ExtensionType10b /* = core::int */
   ;
-static inline-class-member method ExtensionType10b|get#method4(lowered final self::ExtensionType10b /* = core::int */ #this) → core::int
+static extension-type-member method ExtensionType10b|get#method4(lowered final self::ExtensionType10b /* = core::int */ #this) → core::int
   ;
-static inline-class-member method ExtensionType10b|set#method4(lowered final self::ExtensionType10b /* = core::int */ #this, core::int value) → void
+static extension-type-member method ExtensionType10b|set#method4(lowered final self::ExtensionType10b /* = core::int */ #this, core::int value) → void
   ;
-static inline-class-member method ExtensionType11|constructor#(Null n) → self::ExtensionType11 /* = Null */
+static extension-type-member method ExtensionType11|constructor#(Null n) → self::ExtensionType11 /* = Null */
   ;
-static inline-class-member method ExtensionType11|constructor#_#new#tearOff(Null n) → self::ExtensionType11 /* = Null */
+static extension-type-member method ExtensionType11|constructor#_#new#tearOff(Null n) → self::ExtensionType11 /* = Null */
   return self::ExtensionType11|constructor#(n);
-static inline-class-member method ExtensionType11|get#property(lowered final self::ExtensionType11 /* = Null */ #this) → core::int
+static extension-type-member method ExtensionType11|get#property(lowered final self::ExtensionType11 /* = Null */ #this) → core::int
   ;
-static inline-class-member method ExtensionType11|set#property(lowered final self::ExtensionType11 /* = Null */ #this, core::String value) → void
+static extension-type-member method ExtensionType11|set#property(lowered final self::ExtensionType11 /* = Null */ #this, core::String value) → void
   ;
-static inline-class-member method ExtensionType12a|constructor#(Never n) → self::ExtensionType12a /* = invalid-type */
+static extension-type-member method ExtensionType12a|constructor#(Never n) → self::ExtensionType12a /* = invalid-type */
   ;
-static inline-class-member method ExtensionType12a|constructor#_#new#tearOff(Never n) → self::ExtensionType12a /* = invalid-type */
+static extension-type-member method ExtensionType12a|constructor#_#new#tearOff(Never n) → self::ExtensionType12a /* = invalid-type */
   return self::ExtensionType12a|constructor#(n);
-static inline-class-member method ExtensionType12b|constructor#(imp::ClassL n) → self::ExtensionType12b /* = imp::ClassL */
+static extension-type-member method ExtensionType12b|constructor#(imp::ClassL n) → self::ExtensionType12b /* = imp::ClassL */
   ;
-static inline-class-member method ExtensionType12b|constructor#_#new#tearOff(imp::ClassL n) → self::ExtensionType12b /* = imp::ClassL */
+static extension-type-member method ExtensionType12b|constructor#_#new#tearOff(imp::ClassL n) → self::ExtensionType12b /* = imp::ClassL */
   return self::ExtensionType12b|constructor#(n);
-static inline-class-member method ExtensionType12b|set#property(lowered final self::ExtensionType12b /* = imp::ClassL */ #this, core::bool value) → void
+static extension-type-member method ExtensionType12b|set#property(lowered final self::ExtensionType12b /* = imp::ClassL */ #this, core::bool value) → void
   ;
-static inline-class-member method ExtensionType12c|constructor#(imp::ClassM n) → self::ExtensionType12c /* = imp::ClassM */
+static extension-type-member method ExtensionType12c|constructor#(imp::ClassM n) → self::ExtensionType12c /* = imp::ClassM */
   ;
-static inline-class-member method ExtensionType12c|constructor#_#new#tearOff(imp::ClassM n) → self::ExtensionType12c /* = imp::ClassM */
+static extension-type-member method ExtensionType12c|constructor#_#new#tearOff(imp::ClassM n) → self::ExtensionType12c /* = imp::ClassM */
   return self::ExtensionType12c|constructor#(n);
-static inline-class-member method ExtensionType12c|get#property(lowered final self::ExtensionType12c /* = imp::ClassM */ #this) → core::bool
+static extension-type-member method ExtensionType12c|get#property(lowered final self::ExtensionType12c /* = imp::ClassM */ #this) → core::bool
   ;
-static inline-class-member method ExtensionType12d|constructor#(Never n) → self::ExtensionType12d /* = invalid-type */
+static extension-type-member method ExtensionType12d|constructor#(Never n) → self::ExtensionType12d /* = invalid-type */
   ;
-static inline-class-member method ExtensionType12d|constructor#_#new#tearOff(Never n) → self::ExtensionType12d /* = invalid-type */
+static extension-type-member method ExtensionType12d|constructor#_#new#tearOff(Never n) → self::ExtensionType12d /* = invalid-type */
   return self::ExtensionType12d|constructor#(n);
-static inline-class-member method ExtensionType12d|get#property(lowered final self::ExtensionType12d /* = invalid-type */ #this) → core::bool
+static extension-type-member method ExtensionType12d|get#property(lowered final self::ExtensionType12d /* = invalid-type */ #this) → core::bool
   ;
-static inline-class-member method ExtensionType12d|set#property(lowered final self::ExtensionType12d /* = invalid-type */ #this, core::bool value) → void
+static extension-type-member method ExtensionType12d|set#property(lowered final self::ExtensionType12d /* = invalid-type */ #this, core::bool value) → void
   ;
-static inline-class-member method ExtensionType13a|constructor#(core::int i) → self::ExtensionType13a /* = core::int */
+static extension-type-member method ExtensionType13a|constructor#(core::int i) → self::ExtensionType13a /* = core::int */
   ;
-static inline-class-member method ExtensionType13a|constructor#_#new#tearOff(core::int i) → self::ExtensionType13a /* = core::int */
+static extension-type-member method ExtensionType13a|constructor#_#new#tearOff(core::int i) → self::ExtensionType13a /* = core::int */
   return self::ExtensionType13a|constructor#(i);
-static inline-class-member method ExtensionType13b|constructor#(core::int i) → self::ExtensionType13b /* = core::int */
+static extension-type-member method ExtensionType13b|constructor#(core::int i) → self::ExtensionType13b /* = core::int */
   ;
-static inline-class-member method ExtensionType13b|constructor#_#new#tearOff(core::int i) → self::ExtensionType13b /* = core::int */
+static extension-type-member method ExtensionType13b|constructor#_#new#tearOff(core::int i) → self::ExtensionType13b /* = core::int */
   return self::ExtensionType13b|constructor#(i);
-static inline-class-member method ExtensionType13b|set#property(lowered final self::ExtensionType13b /* = core::int */ #this, core::bool value) → void
+static extension-type-member method ExtensionType13b|set#property(lowered final self::ExtensionType13b /* = core::int */ #this, core::bool value) → void
   ;
-static inline-class-member method ExtensionType13c|constructor#(core::int i) → self::ExtensionType13c /* = core::int */
+static extension-type-member method ExtensionType13c|constructor#(core::int i) → self::ExtensionType13c /* = core::int */
   ;
-static inline-class-member method ExtensionType13c|constructor#_#new#tearOff(core::int i) → self::ExtensionType13c /* = core::int */
+static extension-type-member method ExtensionType13c|constructor#_#new#tearOff(core::int i) → self::ExtensionType13c /* = core::int */
   return self::ExtensionType13c|constructor#(i);
-static inline-class-member method ExtensionType13c|get#property(lowered final self::ExtensionType13c /* = core::int */ #this) → core::bool
+static extension-type-member method ExtensionType13c|get#property(lowered final self::ExtensionType13c /* = core::int */ #this) → core::bool
   ;
-static inline-class-member method ExtensionType13d|constructor#_#new#tearOff(core::int i) → self::ExtensionType13d /* = core::int */
+static extension-type-member method ExtensionType13d|constructor#_#new#tearOff(core::int i) → self::ExtensionType13d /* = core::int */
   return self::ExtensionType13d|constructor#(i);
-static inline-class-member method ExtensionType13d|constructor#(core::int i) → self::ExtensionType13d /* = core::int */
+static extension-type-member method ExtensionType13d|constructor#(core::int i) → self::ExtensionType13d /* = core::int */
   ;
-static inline-class-member method ExtensionType13d|get#property(lowered final self::ExtensionType13d /* = core::int */ #this) → core::bool
+static extension-type-member method ExtensionType13d|get#property(lowered final self::ExtensionType13d /* = core::int */ #this) → core::bool
   ;
-static inline-class-member method ExtensionType13d|set#property(lowered final self::ExtensionType13d /* = core::int */ #this, core::bool value) → void
+static extension-type-member method ExtensionType13d|set#property(lowered final self::ExtensionType13d /* = core::int */ #this, core::bool value) → void
   ;
 
 library;
@@ -583,152 +583,152 @@ class ClassM extends core::Object {
     ;
 }
 extension type ExtensionTypeA(imp::ClassA c) {
-  abstract inline-class-member representation-field get c() → imp::ClassA;
+  abstract extension-type-member representation-field get c() → imp::ClassA;
   method method1 = imp::ExtensionTypeA|method1;
   method tearoff method1 = imp::ExtensionTypeA|get#method1;
   constructor • = imp::ExtensionTypeA|constructor#;
   constructor tearoff • = imp::ExtensionTypeA|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeA1(imp::ClassA c) implements imp::ExtensionTypeA /* = imp::ClassA */ {
-  abstract inline-class-member representation-field get c() → imp::ClassA;
+  abstract extension-type-member representation-field get c() → imp::ClassA;
   constructor • = imp::ExtensionTypeA1|constructor#;
   constructor tearoff • = imp::ExtensionTypeA1|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeA2(imp::ClassA c) implements imp::ExtensionTypeA /* = imp::ClassA */ {
-  abstract inline-class-member representation-field get c() → imp::ClassA;
+  abstract extension-type-member representation-field get c() → imp::ClassA;
   constructor • = imp::ExtensionTypeA2|constructor#;
   constructor tearoff • = imp::ExtensionTypeA2|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeB(imp::ClassB c) {
-  abstract inline-class-member representation-field get c() → imp::ClassB;
+  abstract extension-type-member representation-field get c() → imp::ClassB;
   method method1 = imp::ExtensionTypeB|method1;
   method tearoff method1 = imp::ExtensionTypeB|get#method1;
   constructor • = imp::ExtensionTypeB|constructor#;
   constructor tearoff • = imp::ExtensionTypeB|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeC(imp::ClassC c) {
-  abstract inline-class-member representation-field get c() → imp::ClassC;
+  abstract extension-type-member representation-field get c() → imp::ClassC;
   method method1 = imp::ExtensionTypeC|method1;
   method tearoff method1 = imp::ExtensionTypeC|get#method1;
   constructor • = imp::ExtensionTypeC|constructor#;
   constructor tearoff • = imp::ExtensionTypeC|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeD(imp::ClassD c) implements imp::ClassD {
-  abstract inline-class-member representation-field get c() → imp::ClassD;
+  abstract extension-type-member representation-field get c() → imp::ClassD;
   constructor • = imp::ExtensionTypeD|constructor#;
   constructor tearoff • = imp::ExtensionTypeD|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeE(imp::ClassE c) implements imp::ClassE {
-  abstract inline-class-member representation-field get c() → imp::ClassE;
+  abstract extension-type-member representation-field get c() → imp::ClassE;
   constructor • = imp::ExtensionTypeE|constructor#;
   constructor tearoff • = imp::ExtensionTypeE|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeG(imp::ClassG c) implements imp::ClassG {
-  abstract inline-class-member representation-field get c() → imp::ClassG;
+  abstract extension-type-member representation-field get c() → imp::ClassG;
   constructor • = imp::ExtensionTypeG|constructor#;
   constructor tearoff • = imp::ExtensionTypeG|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeH(imp::ClassH c) implements imp::ClassH {
-  abstract inline-class-member representation-field get c() → imp::ClassH;
+  abstract extension-type-member representation-field get c() → imp::ClassH;
   constructor • = imp::ExtensionTypeH|constructor#;
   constructor tearoff • = imp::ExtensionTypeH|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeJ(core::int i) {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   method method4 = imp::ExtensionTypeJ|method4;
   method tearoff method4 = imp::ExtensionTypeJ|get#method4;
   constructor • = imp::ExtensionTypeJ|constructor#;
   constructor tearoff • = imp::ExtensionTypeJ|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeK(core::int i) {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   set method4 = imp::ExtensionTypeK|set#method4;
   constructor • = imp::ExtensionTypeK|constructor#;
   constructor tearoff • = imp::ExtensionTypeK|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeL(core::int i) {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   get property = imp::ExtensionTypeL|get#property;
   constructor • = imp::ExtensionTypeL|constructor#;
   constructor tearoff • = imp::ExtensionTypeL|constructor#_#new#tearOff;
 }
 extension type ExtensionTypeM(core::int i) {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   set property = imp::ExtensionTypeM|set#property;
   constructor • = imp::ExtensionTypeM|constructor#;
   constructor tearoff • = imp::ExtensionTypeM|constructor#_#new#tearOff;
 }
-static inline-class-member method ExtensionTypeA|constructor#(imp::ClassA c) → imp::ExtensionTypeA /* = imp::ClassA */
+static extension-type-member method ExtensionTypeA|constructor#(imp::ClassA c) → imp::ExtensionTypeA /* = imp::ClassA */
   ;
-static inline-class-member method ExtensionTypeA|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA /* = imp::ClassA */
+static extension-type-member method ExtensionTypeA|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA /* = imp::ClassA */
   return imp::ExtensionTypeA|constructor#(c);
-static inline-class-member method ExtensionTypeA|get#method1(lowered final imp::ExtensionTypeA /* = imp::ClassA */ #this) → () → void
+static extension-type-member method ExtensionTypeA|get#method1(lowered final imp::ExtensionTypeA /* = imp::ClassA */ #this) → () → void
   return () → void => imp::ExtensionTypeA|method1(#this);
-static inline-class-member method ExtensionTypeA|method1(lowered final imp::ExtensionTypeA /* = imp::ClassA */ #this) → void
+static extension-type-member method ExtensionTypeA|method1(lowered final imp::ExtensionTypeA /* = imp::ClassA */ #this) → void
   ;
-static inline-class-member method ExtensionTypeA1|constructor#(imp::ClassA c) → imp::ExtensionTypeA1 /* = imp::ClassA */
+static extension-type-member method ExtensionTypeA1|constructor#(imp::ClassA c) → imp::ExtensionTypeA1 /* = imp::ClassA */
   ;
-static inline-class-member method ExtensionTypeA1|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA1 /* = imp::ClassA */
+static extension-type-member method ExtensionTypeA1|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA1 /* = imp::ClassA */
   return imp::ExtensionTypeA1|constructor#(c);
-static inline-class-member method ExtensionTypeA2|constructor#(imp::ClassA c) → imp::ExtensionTypeA2 /* = imp::ClassA */
+static extension-type-member method ExtensionTypeA2|constructor#(imp::ClassA c) → imp::ExtensionTypeA2 /* = imp::ClassA */
   ;
-static inline-class-member method ExtensionTypeA2|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA2 /* = imp::ClassA */
+static extension-type-member method ExtensionTypeA2|constructor#_#new#tearOff(imp::ClassA c) → imp::ExtensionTypeA2 /* = imp::ClassA */
   return imp::ExtensionTypeA2|constructor#(c);
-static inline-class-member method ExtensionTypeB|constructor#(imp::ClassB c) → imp::ExtensionTypeB /* = imp::ClassB */
+static extension-type-member method ExtensionTypeB|constructor#(imp::ClassB c) → imp::ExtensionTypeB /* = imp::ClassB */
   ;
-static inline-class-member method ExtensionTypeB|constructor#_#new#tearOff(imp::ClassB c) → imp::ExtensionTypeB /* = imp::ClassB */
+static extension-type-member method ExtensionTypeB|constructor#_#new#tearOff(imp::ClassB c) → imp::ExtensionTypeB /* = imp::ClassB */
   return imp::ExtensionTypeB|constructor#(c);
-static inline-class-member method ExtensionTypeB|method1(lowered final imp::ExtensionTypeB /* = imp::ClassB */ #this) → void
+static extension-type-member method ExtensionTypeB|method1(lowered final imp::ExtensionTypeB /* = imp::ClassB */ #this) → void
   ;
-static inline-class-member method ExtensionTypeB|get#method1(lowered final imp::ExtensionTypeB /* = imp::ClassB */ #this) → () → void
+static extension-type-member method ExtensionTypeB|get#method1(lowered final imp::ExtensionTypeB /* = imp::ClassB */ #this) → () → void
   return () → void => imp::ExtensionTypeB|method1(#this);
-static inline-class-member method ExtensionTypeC|constructor#_#new#tearOff(imp::ClassC c) → imp::ExtensionTypeC /* = imp::ClassC */
+static extension-type-member method ExtensionTypeC|constructor#_#new#tearOff(imp::ClassC c) → imp::ExtensionTypeC /* = imp::ClassC */
   return imp::ExtensionTypeC|constructor#(c);
-static inline-class-member method ExtensionTypeC|constructor#(imp::ClassC c) → imp::ExtensionTypeC /* = imp::ClassC */
+static extension-type-member method ExtensionTypeC|constructor#(imp::ClassC c) → imp::ExtensionTypeC /* = imp::ClassC */
   ;
-static inline-class-member method ExtensionTypeC|method1(lowered final imp::ExtensionTypeC /* = imp::ClassC */ #this) → void
+static extension-type-member method ExtensionTypeC|method1(lowered final imp::ExtensionTypeC /* = imp::ClassC */ #this) → void
   ;
-static inline-class-member method ExtensionTypeC|get#method1(lowered final imp::ExtensionTypeC /* = imp::ClassC */ #this) → () → void
+static extension-type-member method ExtensionTypeC|get#method1(lowered final imp::ExtensionTypeC /* = imp::ClassC */ #this) → () → void
   return () → void => imp::ExtensionTypeC|method1(#this);
-static inline-class-member method ExtensionTypeD|constructor#(imp::ClassD c) → imp::ExtensionTypeD /* = imp::ClassD */
+static extension-type-member method ExtensionTypeD|constructor#(imp::ClassD c) → imp::ExtensionTypeD /* = imp::ClassD */
   ;
-static inline-class-member method ExtensionTypeD|constructor#_#new#tearOff(imp::ClassD c) → imp::ExtensionTypeD /* = imp::ClassD */
+static extension-type-member method ExtensionTypeD|constructor#_#new#tearOff(imp::ClassD c) → imp::ExtensionTypeD /* = imp::ClassD */
   return imp::ExtensionTypeD|constructor#(c);
-static inline-class-member method ExtensionTypeE|constructor#(imp::ClassE c) → imp::ExtensionTypeE /* = imp::ClassE */
+static extension-type-member method ExtensionTypeE|constructor#(imp::ClassE c) → imp::ExtensionTypeE /* = imp::ClassE */
   ;
-static inline-class-member method ExtensionTypeE|constructor#_#new#tearOff(imp::ClassE c) → imp::ExtensionTypeE /* = imp::ClassE */
+static extension-type-member method ExtensionTypeE|constructor#_#new#tearOff(imp::ClassE c) → imp::ExtensionTypeE /* = imp::ClassE */
   return imp::ExtensionTypeE|constructor#(c);
-static inline-class-member method ExtensionTypeG|constructor#(imp::ClassG c) → imp::ExtensionTypeG /* = imp::ClassG */
+static extension-type-member method ExtensionTypeG|constructor#(imp::ClassG c) → imp::ExtensionTypeG /* = imp::ClassG */
   ;
-static inline-class-member method ExtensionTypeG|constructor#_#new#tearOff(imp::ClassG c) → imp::ExtensionTypeG /* = imp::ClassG */
+static extension-type-member method ExtensionTypeG|constructor#_#new#tearOff(imp::ClassG c) → imp::ExtensionTypeG /* = imp::ClassG */
   return imp::ExtensionTypeG|constructor#(c);
-static inline-class-member method ExtensionTypeH|constructor#(imp::ClassH c) → imp::ExtensionTypeH /* = imp::ClassH */
+static extension-type-member method ExtensionTypeH|constructor#(imp::ClassH c) → imp::ExtensionTypeH /* = imp::ClassH */
   ;
-static inline-class-member method ExtensionTypeH|constructor#_#new#tearOff(imp::ClassH c) → imp::ExtensionTypeH /* = imp::ClassH */
+static extension-type-member method ExtensionTypeH|constructor#_#new#tearOff(imp::ClassH c) → imp::ExtensionTypeH /* = imp::ClassH */
   return imp::ExtensionTypeH|constructor#(c);
-static inline-class-member method ExtensionTypeJ|constructor#_#new#tearOff(core::int i) → imp::ExtensionTypeJ /* = core::int */
+static extension-type-member method ExtensionTypeJ|constructor#_#new#tearOff(core::int i) → imp::ExtensionTypeJ /* = core::int */
   return imp::ExtensionTypeJ|constructor#(i);
-static inline-class-member method ExtensionTypeJ|constructor#(core::int i) → imp::ExtensionTypeJ /* = core::int */
+static extension-type-member method ExtensionTypeJ|constructor#(core::int i) → imp::ExtensionTypeJ /* = core::int */
   ;
-static inline-class-member method ExtensionTypeJ|get#method4(lowered final imp::ExtensionTypeJ /* = core::int */ #this) → () → void
+static extension-type-member method ExtensionTypeJ|get#method4(lowered final imp::ExtensionTypeJ /* = core::int */ #this) → () → void
   return () → void => imp::ExtensionTypeJ|method4(#this);
-static inline-class-member method ExtensionTypeJ|method4(lowered final imp::ExtensionTypeJ /* = core::int */ #this) → void
+static extension-type-member method ExtensionTypeJ|method4(lowered final imp::ExtensionTypeJ /* = core::int */ #this) → void
   ;
-static inline-class-member method ExtensionTypeK|constructor#(core::int i) → imp::ExtensionTypeK /* = core::int */
+static extension-type-member method ExtensionTypeK|constructor#(core::int i) → imp::ExtensionTypeK /* = core::int */
   ;
-static inline-class-member method ExtensionTypeK|constructor#_#new#tearOff(core::int i) → imp::ExtensionTypeK /* = core::int */
+static extension-type-member method ExtensionTypeK|constructor#_#new#tearOff(core::int i) → imp::ExtensionTypeK /* = core::int */
   return imp::ExtensionTypeK|constructor#(i);
-static inline-class-member method ExtensionTypeK|set#method4(lowered final imp::ExtensionTypeK /* = core::int */ #this, core::int value) → void
+static extension-type-member method ExtensionTypeK|set#method4(lowered final imp::ExtensionTypeK /* = core::int */ #this, core::int value) → void
   ;
-static inline-class-member method ExtensionTypeL|constructor#(core::int i) → imp::ExtensionTypeL /* = core::int */
+static extension-type-member method ExtensionTypeL|constructor#(core::int i) → imp::ExtensionTypeL /* = core::int */
   ;
-static inline-class-member method ExtensionTypeL|constructor#_#new#tearOff(core::int i) → imp::ExtensionTypeL /* = core::int */
+static extension-type-member method ExtensionTypeL|constructor#_#new#tearOff(core::int i) → imp::ExtensionTypeL /* = core::int */
   return imp::ExtensionTypeL|constructor#(i);
-static inline-class-member method ExtensionTypeL|get#property(lowered final imp::ExtensionTypeL /* = core::int */ #this) → core::int
+static extension-type-member method ExtensionTypeL|get#property(lowered final imp::ExtensionTypeL /* = core::int */ #this) → core::int
   ;
-static inline-class-member method ExtensionTypeM|constructor#(core::int i) → imp::ExtensionTypeM /* = core::int */
+static extension-type-member method ExtensionTypeM|constructor#(core::int i) → imp::ExtensionTypeM /* = core::int */
   ;
-static inline-class-member method ExtensionTypeM|constructor#_#new#tearOff(core::int i) → imp::ExtensionTypeM /* = core::int */
+static extension-type-member method ExtensionTypeM|constructor#_#new#tearOff(core::int i) → imp::ExtensionTypeM /* = core::int */
   return imp::ExtensionTypeM|constructor#(i);
-static inline-class-member method ExtensionTypeM|set#property(lowered final imp::ExtensionTypeM /* = core::int */ #this, core::String value) → void
+static extension-type-member method ExtensionTypeM|set#property(lowered final imp::ExtensionTypeM /* = core::int */ #this, core::String value) → void
   ;

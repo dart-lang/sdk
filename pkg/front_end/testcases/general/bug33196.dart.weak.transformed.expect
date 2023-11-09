@@ -6,7 +6,7 @@ import "dart:async";
 
 static method main() → dynamic {
   FutureOr<core::String>result = self::returnsString();
-  core::print(result.{core::Object::runtimeType}{core::Type});
+  core::print(result.{core::Object::runtimeType}{<object>}.{core::Type});
 }
 static method returnsString() → FutureOr<core::String> async /* futureValueType= core::String */ {
   return "oh no";
