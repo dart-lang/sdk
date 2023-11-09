@@ -11,18 +11,21 @@ import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 
+/// A class that builds a "display string" for [Element]s and [DartType]s.
 class ElementDisplayStringBuilder {
   final StringBuffer _buffer = StringBuffer();
 
-  final bool skipAllDynamicArguments;
-  final bool withNullability;
-  final bool multiline;
+  /// Whether to include the nullability ('?' characters) in a display string.
+  final bool _withNullability;
+
+  /// Whether to allow a display string to be written in multiple lines.
+  final bool _multiline;
 
   ElementDisplayStringBuilder({
-    required this.skipAllDynamicArguments,
-    required this.withNullability,
-    this.multiline = false,
-  });
+    required bool withNullability,
+    bool multiline = false,
+  })  : _withNullability = withNullability,
+        _multiline = multiline;
 
   @override
   String toString() {
@@ -336,7 +339,7 @@ class ElementDisplayStringBuilder {
     // Assume the display string looks better wrapped when there are at least
     // three parameters. This avoids having to pre-compute the single-line
     // version and know the length of the function name/return type.
-    var multiline = allowMultiline && this.multiline && parameters.length >= 3;
+    var multiline = allowMultiline && _multiline && parameters.length >= 3;
 
     // The prefix for open groups is included in separator for single-line but
     // not for multline so must be added explicitly.
@@ -388,16 +391,13 @@ class ElementDisplayStringBuilder {
   }
 
   void _writeNullability(NullabilitySuffix nullabilitySuffix) {
-    if (withNullability) {
+    if (_withNullability) {
       switch (nullabilitySuffix) {
         case NullabilitySuffix.question:
           _write('?');
-          break;
         case NullabilitySuffix.star:
           _write('*');
-          break;
         case NullabilitySuffix.none:
-          break;
       }
     }
   }
@@ -409,12 +409,6 @@ class ElementDisplayStringBuilder {
   void _writeTypeArguments(List<DartType> typeArguments) {
     if (typeArguments.isEmpty) {
       return;
-    }
-
-    if (skipAllDynamicArguments) {
-      if (typeArguments.every((t) => t is DynamicType)) {
-        return;
-      }
     }
 
     _write('<');

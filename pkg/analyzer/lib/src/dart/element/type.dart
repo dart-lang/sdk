@@ -1347,11 +1347,9 @@ abstract class TypeImpl implements DartType {
 
   @override
   String getDisplayString({
-    bool skipAllDynamicArguments = false,
     required bool withNullability,
   }) {
     var builder = ElementDisplayStringBuilder(
-      skipAllDynamicArguments: skipAllDynamicArguments,
       withNullability: withNullability,
     );
     appendTo(builder);
