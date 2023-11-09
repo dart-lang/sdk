@@ -26,72 +26,72 @@ import self as self;
 import "dart:core" as core;
 
 extension type E1(core::int foo) {
-  abstract inline-class-member representation-field get foo() → core::int;
+  abstract extension-type-member representation-field get foo() → core::int;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
   constructor named = self::E1|constructor#named;
   constructor tearoff named = self::E1|constructor#_#named#tearOff;
 }
 extension type E2(core::int foo) {
-  abstract inline-class-member representation-field get foo() → core::int;
+  abstract extension-type-member representation-field get foo() → core::int;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
   constructor named = self::E2|constructor#named;
   constructor tearoff named = self::E2|constructor#_#named#tearOff;
 }
 extension type E3(core::int foo) {
-  abstract inline-class-member representation-field get foo() → core::int;
+  abstract extension-type-member representation-field get foo() → core::int;
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
   constructor named = self::E3|constructor#named;
   constructor tearoff named = self::E3|constructor#_#named#tearOff;
 }
 extension type E4(dynamic foo) {
-  abstract inline-class-member representation-field get foo() → dynamic;
+  abstract extension-type-member representation-field get foo() → dynamic;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
-static inline-class-member method E1|constructor#(core::int foo) → self::E1 /* = core::int */ {
+static extension-type-member method E1|constructor#(core::int foo) → self::E1 /* = core::int */ {
   lowered final self::E1 /* = core::int */ #this = foo;
   return #this;
 }
-static inline-class-member method E1|constructor#_#new#tearOff(core::int foo) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#_#new#tearOff(core::int foo) → self::E1 /* = core::int */
   return self::E1|constructor#(foo);
-static inline-class-member method E1|constructor#named(core::int foo, invalid-type bar) → self::E1 /* = core::int */ {
+static extension-type-member method E1|constructor#named(core::int foo, invalid-type bar) → self::E1 /* = core::int */ {
   lowered final self::E1 /* = core::int */ #this = foo;
   return #this;
 }
-static inline-class-member method E1|constructor#_#named#tearOff(core::int foo, invalid-type bar) → self::E1 /* = core::int */
+static extension-type-member method E1|constructor#_#named#tearOff(core::int foo, invalid-type bar) → self::E1 /* = core::int */
   return self::E1|constructor#named(foo, bar);
-static inline-class-member method E2|constructor#(core::int foo) → self::E2 /* = core::int */ {
+static extension-type-member method E2|constructor#(core::int foo) → self::E2 /* = core::int */ {
   lowered final self::E2 /* = core::int */ #this = foo;
   return #this;
 }
-static inline-class-member method E2|constructor#_#new#tearOff(core::int foo) → self::E2 /* = core::int */
+static extension-type-member method E2|constructor#_#new#tearOff(core::int foo) → self::E2 /* = core::int */
   return self::E2|constructor#(foo);
-static inline-class-member method E2|constructor#named(core::int foo, {required invalid-type bar = #C1}) → self::E2 /* = core::int */ {
+static extension-type-member method E2|constructor#named(core::int foo, {required invalid-type bar = #C1}) → self::E2 /* = core::int */ {
   lowered final self::E2 /* = core::int */ #this = foo;
   return #this;
 }
-static inline-class-member method E2|constructor#_#named#tearOff(core::int foo, {required invalid-type bar}) → self::E2 /* = core::int */
+static extension-type-member method E2|constructor#_#named#tearOff(core::int foo, {required invalid-type bar}) → self::E2 /* = core::int */
   return self::E2|constructor#named(foo, bar: bar);
-static inline-class-member method E3|constructor#(core::int foo) → self::E3 /* = core::int */ {
+static extension-type-member method E3|constructor#(core::int foo) → self::E3 /* = core::int */ {
   lowered final self::E3 /* = core::int */ #this = foo;
   return #this;
 }
-static inline-class-member method E3|constructor#_#new#tearOff(core::int foo) → self::E3 /* = core::int */
+static extension-type-member method E3|constructor#_#new#tearOff(core::int foo) → self::E3 /* = core::int */
   return self::E3|constructor#(foo);
-static inline-class-member method E3|constructor#named(core::int foo, [has-declared-initializer invalid-type bar = #C1]) → self::E3 /* = core::int */ {
+static extension-type-member method E3|constructor#named(core::int foo, [has-declared-initializer invalid-type bar = #C1]) → self::E3 /* = core::int */ {
   lowered final self::E3 /* = core::int */ #this = foo;
   return #this;
 }
-static inline-class-member method E3|constructor#_#named#tearOff(core::int foo, [has-declared-initializer invalid-type bar]) → self::E3 /* = core::int */
+static extension-type-member method E3|constructor#_#named#tearOff(core::int foo, [has-declared-initializer invalid-type bar]) → self::E3 /* = core::int */
   return self::E3|constructor#named(foo, bar);
-static inline-class-member method E4|constructor#(dynamic foo) → self::E4 /* = dynamic */ {
+static extension-type-member method E4|constructor#(dynamic foo) → self::E4 /* = dynamic */ {
   lowered final self::E4 /* = dynamic */ #this = foo;
   return #this;
 }
-static inline-class-member method E4|constructor#_#new#tearOff(dynamic foo) → self::E4 /* = dynamic */
+static extension-type-member method E4|constructor#_#new#tearOff(dynamic foo) → self::E4 /* = dynamic */
   return self::E4|constructor#(foo);
 
 constants  {

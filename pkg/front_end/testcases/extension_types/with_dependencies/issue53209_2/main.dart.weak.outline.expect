@@ -58,21 +58,21 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///main.dart";
 
 extension type E(core::String foo) implements #lib1::A {
-  abstract inline-class-member representation-field get foo() → core::String;
+  abstract extension-type-member representation-field get foo() → core::String;
   constructor • = self2::E|constructor#;
   constructor tearoff • = self2::E|constructor#_#new#tearOff;
   static redirecting-factory redirectingFactoryWithMismatchingParameters = self2::E|constructor#redirectingFactoryWithMismatchingParameters;
   static redirecting-factory tearoff redirectingFactoryWithMismatchingParameters = self2::E|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff;
 }
-static inline-class-member method E|constructor#(core::String foo) → self2::E /* = core::String */
+static extension-type-member method E|constructor#(core::String foo) → self2::E /* = core::String */
   ;
-static inline-class-member method E|constructor#_#new#tearOff(core::String foo) → self2::E /* = core::String */
+static extension-type-member method E|constructor#_#new#tearOff(core::String foo) → self2::E /* = core::String */
   return self2::E|constructor#(foo);
-static inline-class-member method E|constructor#redirectingFactoryWithMismatchingParameters() → self2::E /* = core::String */
+static extension-type-member method E|constructor#redirectingFactoryWithMismatchingParameters() → self2::E /* = core::String */
   return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main_lib.dart:8:61: Error: The constructor function type 'E Function(String)' isn't a subtype of 'E Function()'.
   factory E.redirectingFactoryWithMismatchingParameters() = E;
                                                             ^";
-static inline-class-member method E|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff() → self2::E /* = core::String */
+static extension-type-member method E|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff() → self2::E /* = core::String */
   return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_2/main_lib.dart:8:61: Error: The constructor function type 'E Function(String)' isn't a subtype of 'E Function()'.
   factory E.redirectingFactoryWithMismatchingParameters() = E;
                                                             ^";

@@ -90,13 +90,13 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
     core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
       return "";
-    core::String first = iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String};
+    core::String first = iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String};
     if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
       return first;
     core::StringBuffer buffer = new core::StringBuffer::•(first);
     if(separator == null || separator.{core::String::isEmpty}{core::bool}) {
       do {
-        buffer.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String}){(core::Object?) → void};
+        buffer.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String}){(core::Object?) → void};
       }
       while (iterator.{core::Iterator::moveNext}(){() → core::bool})
     }
@@ -104,7 +104,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
       do {
         let final core::StringBuffer #t1 = buffer in block {
           #t1.{core::StringBuffer::write}(separator){(core::Object?) → void};
-          #t1.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String}){(core::Object?) → void};
+          #t1.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String}){(core::Object?) → void};
         } =>#t1;
       }
       while (iterator.{core::Iterator::moveNext}(){() → core::bool})
@@ -378,13 +378,13 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
     core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
       return "";
-    core::String first = iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String};
+    core::String first = iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String};
     if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
       return first;
     core::StringBuffer buffer = new core::StringBuffer::•(first);
     if(separator == null || separator.{core::String::isEmpty}{core::bool}) {
       do {
-        buffer.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String}){(core::Object?) → void};
+        buffer.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String}){(core::Object?) → void};
       }
       while (iterator.{core::Iterator::moveNext}(){() → core::bool})
     }
@@ -392,7 +392,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
       do {
         let final core::StringBuffer #t3 = buffer in block {
           #t3.{core::StringBuffer::write}(separator){(core::Object?) → void};
-          #t3.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}(){() → core::String}){(core::Object?) → void};
+          #t3.{core::StringBuffer::write}(iterator.{core::Iterator::current}{core::int}.{core::Object::toString}{<object>}.(){() → core::String}){(core::Object?) → void};
         } =>#t3;
       }
       while (iterator.{core::Iterator::moveNext}(){() → core::bool})

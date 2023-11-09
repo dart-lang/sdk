@@ -88,177 +88,177 @@ class C2 extends core::Object implements self::C1 {
     ;
 }
 extension type I1(core::int id) {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   method x = self::I1|x;
   method tearoff x = self::I1|get#x;
   constructor • = self::I1|constructor#;
   constructor tearoff • = self::I1|constructor#_#new#tearOff;
 }
 extension type I2(core::int id1) {
-  abstract inline-class-member representation-field get id1() → core::int;
+  abstract extension-type-member representation-field get id1() → core::int;
   constructor • = self::I2|constructor#;
   constructor tearoff • = self::I2|constructor#_#new#tearOff;
 }
 extension type I3(core::int id) {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   get property = self::I3|get#property;
   constructor • = self::I3|constructor#;
   constructor tearoff • = self::I3|constructor#_#new#tearOff;
 }
 extension type I4(core::int id) {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static set property = set self::I4|property;
   constructor • = self::I4|constructor#;
   constructor tearoff • = self::I4|constructor#_#new#tearOff;
 }
 extension type ET1(core::int id) implements self::I1 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static get x = get self::ET1|x;
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2(core::int id) implements self::I1 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static method x = self::ET2|x;
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
 extension type ET3(core::int id) implements self::I1 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static set x = set self::ET3|x;
   constructor • = self::ET3|constructor#;
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
 extension type ET4(core::int id) implements self::I1 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static field x = self::ET4|x;
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
 extension type ET5(core::int id) implements self::I2 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static method id1 = self::ET5|id1;
   constructor • = self::ET5|constructor#;
   constructor tearoff • = self::ET5|constructor#_#new#tearOff;
 }
 extension type ET6(core::int id) implements self::I2 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static get id1 = get self::ET6|id1;
   constructor • = self::ET6|constructor#;
   constructor tearoff • = self::ET6|constructor#_#new#tearOff;
 }
 extension type ET7(core::int id) implements self::I2 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static field id1 = self::ET7|id1;
   constructor • = self::ET7|constructor#;
   constructor tearoff • = self::ET7|constructor#_#new#tearOff;
 }
 extension type ET8(core::int id) implements self::I2 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static set id1 = set self::ET8|id1;
   constructor • = self::ET8|constructor#;
   constructor tearoff • = self::ET8|constructor#_#new#tearOff;
 }
 extension type ET9(core::int id) implements self::I3 /* = core::int */, self::I4 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   constructor • = self::ET9|constructor#;
   constructor tearoff • = self::ET9|constructor#_#new#tearOff;
 }
 extension type ET10(core::int id) implements self::I3 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   static set property = set self::ET10|property;
   constructor • = self::ET10|constructor#;
   constructor tearoff • = self::ET10|constructor#_#new#tearOff;
 }
 extension type ET11(core::int id) implements self::I4 /* = core::int */ {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   get property = self::ET11|get#property;
   constructor • = self::ET11|constructor#;
   constructor tearoff • = self::ET11|constructor#_#new#tearOff;
 }
 static field core::int ET4|x;
 static field core::int ET7|id1;
-static inline-class-member method I1|constructor#(core::int id) → self::I1 /* = core::int */
+static extension-type-member method I1|constructor#(core::int id) → self::I1 /* = core::int */
   ;
-static inline-class-member method I1|constructor#_#new#tearOff(core::int id) → self::I1 /* = core::int */
+static extension-type-member method I1|constructor#_#new#tearOff(core::int id) → self::I1 /* = core::int */
   return self::I1|constructor#(id);
-static inline-class-member method I1|x(lowered final self::I1 /* = core::int */ #this) → void
+static extension-type-member method I1|x(lowered final self::I1 /* = core::int */ #this) → void
   ;
-static inline-class-member method I1|get#x(lowered final self::I1 /* = core::int */ #this) → () → void
+static extension-type-member method I1|get#x(lowered final self::I1 /* = core::int */ #this) → () → void
   return () → void => self::I1|x(#this);
-static inline-class-member method I2|constructor#(core::int id1) → self::I2 /* = core::int */
+static extension-type-member method I2|constructor#(core::int id1) → self::I2 /* = core::int */
   ;
-static inline-class-member method I2|constructor#_#new#tearOff(core::int id1) → self::I2 /* = core::int */
+static extension-type-member method I2|constructor#_#new#tearOff(core::int id1) → self::I2 /* = core::int */
   return self::I2|constructor#(id1);
-static inline-class-member method I3|constructor#(core::int id) → self::I3 /* = core::int */
+static extension-type-member method I3|constructor#(core::int id) → self::I3 /* = core::int */
   ;
-static inline-class-member method I3|constructor#_#new#tearOff(core::int id) → self::I3 /* = core::int */
+static extension-type-member method I3|constructor#_#new#tearOff(core::int id) → self::I3 /* = core::int */
   return self::I3|constructor#(id);
-static inline-class-member method I3|get#property(lowered final self::I3 /* = core::int */ #this) → core::int
+static extension-type-member method I3|get#property(lowered final self::I3 /* = core::int */ #this) → core::int
   ;
-static inline-class-member method I4|constructor#(core::int id) → self::I4 /* = core::int */
+static extension-type-member method I4|constructor#(core::int id) → self::I4 /* = core::int */
   ;
-static inline-class-member method I4|constructor#_#new#tearOff(core::int id) → self::I4 /* = core::int */
+static extension-type-member method I4|constructor#_#new#tearOff(core::int id) → self::I4 /* = core::int */
   return self::I4|constructor#(id);
-static inline-class-member set I4|property(core::int value) → void
+static extension-type-member set I4|property(core::int value) → void
   ;
-static inline-class-member method ET1|constructor#(core::int id) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#(core::int id) → self::ET1 /* = core::int */
   ;
-static inline-class-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1 /* = core::int */
   return self::ET1|constructor#(id);
-static inline-class-member get ET1|x() → core::int
+static extension-type-member get ET1|x() → core::int
   ;
-static inline-class-member method ET2|constructor#(core::int id) → self::ET2 /* = core::int */
+static extension-type-member method ET2|constructor#(core::int id) → self::ET2 /* = core::int */
   ;
-static inline-class-member method ET2|constructor#_#new#tearOff(core::int id) → self::ET2 /* = core::int */
+static extension-type-member method ET2|constructor#_#new#tearOff(core::int id) → self::ET2 /* = core::int */
   return self::ET2|constructor#(id);
-static inline-class-member method ET2|x() → core::int
+static extension-type-member method ET2|x() → core::int
   ;
-static inline-class-member method ET3|constructor#(core::int id) → self::ET3 /* = core::int */
+static extension-type-member method ET3|constructor#(core::int id) → self::ET3 /* = core::int */
   ;
-static inline-class-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3 /* = core::int */
+static extension-type-member method ET3|constructor#_#new#tearOff(core::int id) → self::ET3 /* = core::int */
   return self::ET3|constructor#(id);
-static inline-class-member set ET3|x(core::int i) → void
+static extension-type-member set ET3|x(core::int i) → void
   ;
-static inline-class-member method ET4|constructor#(core::int id) → self::ET4 /* = core::int */
+static extension-type-member method ET4|constructor#(core::int id) → self::ET4 /* = core::int */
   ;
-static inline-class-member method ET4|constructor#_#new#tearOff(core::int id) → self::ET4 /* = core::int */
+static extension-type-member method ET4|constructor#_#new#tearOff(core::int id) → self::ET4 /* = core::int */
   return self::ET4|constructor#(id);
-static inline-class-member method ET5|constructor#(core::int id) → self::ET5 /* = core::int */
+static extension-type-member method ET5|constructor#(core::int id) → self::ET5 /* = core::int */
   ;
-static inline-class-member method ET5|constructor#_#new#tearOff(core::int id) → self::ET5 /* = core::int */
+static extension-type-member method ET5|constructor#_#new#tearOff(core::int id) → self::ET5 /* = core::int */
   return self::ET5|constructor#(id);
-static inline-class-member method ET5|id1() → core::int
+static extension-type-member method ET5|id1() → core::int
   ;
-static inline-class-member method ET6|constructor#_#new#tearOff(core::int id) → self::ET6 /* = core::int */
+static extension-type-member method ET6|constructor#_#new#tearOff(core::int id) → self::ET6 /* = core::int */
   return self::ET6|constructor#(id);
-static inline-class-member method ET6|constructor#(core::int id) → self::ET6 /* = core::int */
+static extension-type-member method ET6|constructor#(core::int id) → self::ET6 /* = core::int */
   ;
-static inline-class-member get ET6|id1() → core::int
+static extension-type-member get ET6|id1() → core::int
   ;
-static inline-class-member method ET7|constructor#(core::int id) → self::ET7 /* = core::int */
+static extension-type-member method ET7|constructor#(core::int id) → self::ET7 /* = core::int */
   ;
-static inline-class-member method ET7|constructor#_#new#tearOff(core::int id) → self::ET7 /* = core::int */
+static extension-type-member method ET7|constructor#_#new#tearOff(core::int id) → self::ET7 /* = core::int */
   return self::ET7|constructor#(id);
-static inline-class-member method ET8|constructor#(core::int id) → self::ET8 /* = core::int */
+static extension-type-member method ET8|constructor#(core::int id) → self::ET8 /* = core::int */
   ;
-static inline-class-member method ET8|constructor#_#new#tearOff(core::int id) → self::ET8 /* = core::int */
+static extension-type-member method ET8|constructor#_#new#tearOff(core::int id) → self::ET8 /* = core::int */
   return self::ET8|constructor#(id);
-static inline-class-member set ET8|id1(core::int id) → void
+static extension-type-member set ET8|id1(core::int id) → void
   ;
-static inline-class-member method ET9|constructor#(core::int id) → self::ET9 /* = core::int */
+static extension-type-member method ET9|constructor#(core::int id) → self::ET9 /* = core::int */
   ;
-static inline-class-member method ET9|constructor#_#new#tearOff(core::int id) → self::ET9 /* = core::int */
+static extension-type-member method ET9|constructor#_#new#tearOff(core::int id) → self::ET9 /* = core::int */
   return self::ET9|constructor#(id);
-static inline-class-member method ET10|constructor#(core::int id) → self::ET10 /* = core::int */
+static extension-type-member method ET10|constructor#(core::int id) → self::ET10 /* = core::int */
   ;
-static inline-class-member method ET10|constructor#_#new#tearOff(core::int id) → self::ET10 /* = core::int */
+static extension-type-member method ET10|constructor#_#new#tearOff(core::int id) → self::ET10 /* = core::int */
   return self::ET10|constructor#(id);
-static inline-class-member set ET10|property(core::int value) → void
+static extension-type-member set ET10|property(core::int value) → void
   ;
-static inline-class-member method ET11|constructor#(core::int id) → self::ET11 /* = core::int */
+static extension-type-member method ET11|constructor#(core::int id) → self::ET11 /* = core::int */
   ;
-static inline-class-member method ET11|constructor#_#new#tearOff(core::int id) → self::ET11 /* = core::int */
+static extension-type-member method ET11|constructor#_#new#tearOff(core::int id) → self::ET11 /* = core::int */
   return self::ET11|constructor#(id);
-static inline-class-member method ET11|get#property(lowered final self::ET11 /* = core::int */ #this) → core::int
+static extension-type-member method ET11|get#property(lowered final self::ET11 /* = core::int */ #this) → core::int
   ;

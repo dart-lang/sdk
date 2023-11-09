@@ -12,23 +12,23 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///main_lib.dart";
 
 extension type E1(core::String foo) {
-  abstract inline-class-member representation-field get foo() → core::String;
+  abstract extension-type-member representation-field get foo() → core::String;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
   static redirecting-factory redirectingFactoryToSubtype = self::E1|constructor#redirectingFactoryToSubtype;
   static redirecting-factory tearoff redirectingFactoryToSubtype = self::E1|constructor#_#redirectingFactoryToSubtype#tearOff;
 }
-static inline-class-member method E1|constructor#(core::String foo) → self::E1 /* = core::String */ {
+static extension-type-member method E1|constructor#(core::String foo) → self::E1 /* = core::String */ {
   lowered final self::E1 /* = core::String */ #this = foo;
   return #this;
 }
-static inline-class-member method E1|constructor#_#new#tearOff(core::String foo) → self::E1 /* = core::String */
+static extension-type-member method E1|constructor#_#new#tearOff(core::String foo) → self::E1 /* = core::String */
   return self::E1|constructor#(foo);
-static inline-class-member method E1|constructor#redirectingFactoryToSubtype() → self::E1 /* = core::String */
+static extension-type-member method E1|constructor#redirectingFactoryToSubtype() → self::E1 /* = core::String */
   return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_1/main.dart:8:46: Error: The constructor function type 'E2 Function()' isn't a subtype of 'E1 Function()'.
   factory E1.redirectingFactoryToSubtype() = E2.redirectingFactoryWithMismatchingParameters;
                                              ^";
-static inline-class-member method E1|constructor#_#redirectingFactoryToSubtype#tearOff() → self::E1 /* = core::String */
+static extension-type-member method E1|constructor#_#redirectingFactoryToSubtype#tearOff() → self::E1 /* = core::String */
   return invalid-expression "pkg/front_end/testcases/extension_types/with_dependencies/issue53209_1/main.dart:8:46: Error: The constructor function type 'E2 Function()' isn't a subtype of 'E1 Function()'.
   factory E1.redirectingFactoryToSubtype() = E2.redirectingFactoryWithMismatchingParameters;
                                              ^";

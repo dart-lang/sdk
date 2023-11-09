@@ -40,7 +40,7 @@ extension /* unnamed */ _extension#0 on core::Object {
   set getter = self::_extension#0|set#getter;
 }
 extension type InlineClass(core::int it) {
-  abstract inline-class-member representation-field get it() → core::int;
+  abstract extension-type-member representation-field get it() → core::int;
   method test = self::InlineClass|test;
   method tearoff test = self::InlineClass|get#test;
   operator + = self::InlineClass|+;
@@ -61,13 +61,13 @@ extension type InlineClass(core::int it) {
 static extension-member method _extension#0|get#setter(lowered final core::Object #this) → core::int
   return 42;
 static extension-member method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void {}
-static inline-class-member method InlineClass|constructor#(core::int it) → self::InlineClass /* = core::int */ {
+static extension-type-member method InlineClass|constructor#(core::int it) → self::InlineClass /* = core::int */ {
   lowered final self::InlineClass /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass /* = core::int */
+static extension-type-member method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass /* = core::int */
   return self::InlineClass|constructor#(it);
-static inline-class-member method InlineClass|test(lowered final self::InlineClass /* = core::int */ #this) → dynamic {
+static extension-type-member method InlineClass|test(lowered final self::InlineClass /* = core::int */ #this) → dynamic {
   core::int a = self::InlineClass|+(#this, 2);
   core::int b = self::InlineClass|unary-(#this);
   core::int c = self::InlineClass|[](#this, 2);
@@ -110,29 +110,29 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   core::int n1 = self::InlineClass|call(#this);
   core::int n2 = self::InlineClass|call(#this);
 }
-static inline-class-member method InlineClass|get#test(lowered final self::InlineClass /* = core::int */ #this) → () → dynamic
+static extension-type-member method InlineClass|get#test(lowered final self::InlineClass /* = core::int */ #this) → () → dynamic
   return () → dynamic => self::InlineClass|test(#this);
-static inline-class-member method InlineClass|+(lowered final self::InlineClass /* = core::int */ #this, core::int other) → core::int
+static extension-type-member method InlineClass|+(lowered final self::InlineClass /* = core::int */ #this, core::int other) → core::int
   return 42;
-static inline-class-member method InlineClass|unary-(lowered final self::InlineClass /* = core::int */ #this) → core::int
+static extension-type-member method InlineClass|unary-(lowered final self::InlineClass /* = core::int */ #this) → core::int
   return 87;
-static inline-class-member method InlineClass|[](lowered final self::InlineClass /* = core::int */ #this, core::int index) → core::int
+static extension-type-member method InlineClass|[](lowered final self::InlineClass /* = core::int */ #this, core::int index) → core::int
   return 123;
-static inline-class-member method InlineClass|[]=(lowered final self::InlineClass /* = core::int */ #this, core::int index, core::int value) → void {}
-static inline-class-member method InlineClass|get#getter(lowered final self::InlineClass /* = core::int */ #this) → core::int
+static extension-type-member method InlineClass|[]=(lowered final self::InlineClass /* = core::int */ #this, core::int index, core::int value) → void {}
+static extension-type-member method InlineClass|get#getter(lowered final self::InlineClass /* = core::int */ #this) → core::int
   return 42;
-static inline-class-member method InlineClass|method(lowered final self::InlineClass /* = core::int */ #this) → core::int
+static extension-type-member method InlineClass|method(lowered final self::InlineClass /* = core::int */ #this) → core::int
   return 42;
-static inline-class-member method InlineClass|get#method(lowered final self::InlineClass /* = core::int */ #this) → () → core::int
+static extension-type-member method InlineClass|get#method(lowered final self::InlineClass /* = core::int */ #this) → () → core::int
   return () → core::int => self::InlineClass|method(#this);
-static inline-class-member method InlineClass|set#setter(lowered final self::InlineClass /* = core::int */ #this, core::int value) → void {}
-static inline-class-member method InlineClass|genericMethod<T extends core::Object? = dynamic>(lowered final self::InlineClass /* = core::int */ #this, self::InlineClass|genericMethod::T% t) → self::InlineClass|genericMethod::T%
+static extension-type-member method InlineClass|set#setter(lowered final self::InlineClass /* = core::int */ #this, core::int value) → void {}
+static extension-type-member method InlineClass|genericMethod<T extends core::Object? = dynamic>(lowered final self::InlineClass /* = core::int */ #this, self::InlineClass|genericMethod::T% t) → self::InlineClass|genericMethod::T%
   return t;
-static inline-class-member method InlineClass|get#genericMethod(lowered final self::InlineClass /* = core::int */ #this) → <T extends core::Object? = dynamic>(T%) → T%
+static extension-type-member method InlineClass|get#genericMethod(lowered final self::InlineClass /* = core::int */ #this) → <T extends core::Object? = dynamic>(T%) → T%
   return <T extends core::Object? = dynamic>(T% t) → T% => self::InlineClass|genericMethod<T%>(#this, t);
-static inline-class-member method InlineClass|call(lowered final self::InlineClass /* = core::int */ #this) → core::int
+static extension-type-member method InlineClass|call(lowered final self::InlineClass /* = core::int */ #this) → core::int
   return 321;
-static inline-class-member method InlineClass|get#call(lowered final self::InlineClass /* = core::int */ #this) → () → core::int
+static extension-type-member method InlineClass|get#call(lowered final self::InlineClass /* = core::int */ #this) → () → core::int
   return () → core::int => self::InlineClass|call(#this);
 static method test(self::InlineClass /* = core::int */ ic) → dynamic {
   core::int a = self::InlineClass|+(ic, 2);

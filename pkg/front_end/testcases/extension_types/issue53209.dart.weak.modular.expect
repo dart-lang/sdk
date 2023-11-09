@@ -43,7 +43,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type E(core::int foo) {
-  abstract inline-class-member representation-field get foo() → core::int;
+  abstract extension-type-member representation-field get foo() → core::int;
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
   static redirecting-factory redirNotEnough = self::E|constructor#redirNotEnough;
@@ -64,7 +64,7 @@ extension type E(core::int foo) {
   static redirecting-factory tearoff redirCyclicSelf = self::E|constructor#_#redirCyclicSelf#tearOff;
 }
 extension type GE<X extends core::Object? = dynamic>(X% foo) {
-  abstract inline-class-member representation-field get foo() → X%;
+  abstract extension-type-member representation-field get foo() → X%;
   constructor • = self::GE|constructor#;
   constructor tearoff • = self::GE|constructor#_#new#tearOff;
   static redirecting-factory redirNotEnough1 = self::GE|constructor#redirNotEnough1;
@@ -72,97 +72,97 @@ extension type GE<X extends core::Object? = dynamic>(X% foo) {
   static redirecting-factory redirNotEnough2 = self::GE|constructor#redirNotEnough2;
   static redirecting-factory tearoff redirNotEnough2 = self::GE|constructor#_#redirNotEnough2#tearOff;
 }
-static inline-class-member method E|constructor#(core::int foo) → self::E /* = core::int */ {
+static extension-type-member method E|constructor#(core::int foo) → self::E /* = core::int */ {
   lowered final self::E /* = core::int */ #this = foo;
   return #this;
 }
-static inline-class-member method E|constructor#_#new#tearOff(core::int foo) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#new#tearOff(core::int foo) → self::E /* = core::int */
   return self::E|constructor#(foo);
-static inline-class-member method E|constructor#redirNotEnough() → self::E /* = core::int */
+static extension-type-member method E|constructor#redirNotEnough() → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:6:32: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function()'.
   factory E.redirNotEnough() = E; // Error.
                                ^";
-static inline-class-member method E|constructor#_#redirNotEnough#tearOff() → self::E /* = core::int */
+static extension-type-member method E|constructor#_#redirNotEnough#tearOff() → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:6:32: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function()'.
   factory E.redirNotEnough() = E; // Error.
                                ^";
-static inline-class-member method E|constructor#redirTooMany1(core::int foo, core::String bar = #C1) → self::E /* = core::int */
+static extension-type-member method E|constructor#redirTooMany1(core::int foo, core::String bar = #C1) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:8:50: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, String)'.
   factory E.redirTooMany1(int foo, String bar) = E; // Error.
                                                  ^";
-static inline-class-member method E|constructor#_#redirTooMany1#tearOff(core::int foo, core::String bar = #C1) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#redirTooMany1#tearOff(core::int foo, core::String bar = #C1) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:8:50: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, String)'.
   factory E.redirTooMany1(int foo, String bar) = E; // Error.
                                                  ^";
-static inline-class-member method E|constructor#redirTooMany2(core::int foo, core::String bar = #C1, core::num baz = #C1) → self::E /* = core::int */
+static extension-type-member method E|constructor#redirTooMany2(core::int foo, core::String bar = #C1, core::num baz = #C1) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:9:59: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, String, num)'.
   factory E.redirTooMany2(int foo, String bar, num baz) = E; // Error.
                                                           ^";
-static inline-class-member method E|constructor#_#redirTooMany2#tearOff(core::int foo, core::String bar = #C1, core::num baz = #C1) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#redirTooMany2#tearOff(core::int foo, core::String bar = #C1, core::num baz = #C1) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:9:59: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, String, num)'.
   factory E.redirTooMany2(int foo, String bar, num baz) = E; // Error.
                                                           ^";
-static inline-class-member method E|constructor#redirTooMany3(core::int foo, [dynamic bar = #C1]) → self::E /* = core::int */
+static extension-type-member method E|constructor#redirTooMany3(core::int foo, [dynamic bar = #C1]) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:10:53: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, [dynamic])'.
   factory E.redirTooMany3(int foo, [dynamic bar]) = E; // Error.
                                                     ^";
-static inline-class-member method E|constructor#_#redirTooMany3#tearOff(core::int foo, [dynamic bar = #C1]) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#redirTooMany3#tearOff(core::int foo, [dynamic bar = #C1]) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:10:53: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, [dynamic])'.
   factory E.redirTooMany3(int foo, [dynamic bar]) = E; // Error.
                                                     ^";
-static inline-class-member method E|constructor#redirTooMany4(core::int foo, {required core::Object bar = #C1}) → self::E /* = core::int */
+static extension-type-member method E|constructor#redirTooMany4(core::int foo, {required core::Object bar = #C1}) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {Object bar})'.
  - 'Object' is from 'dart:core'.
   factory E.redirTooMany4(int foo, {required Object bar}) = E; // Error.
                                                             ^";
-static inline-class-member method E|constructor#_#redirTooMany4#tearOff(core::int foo, {required core::Object bar = #C1}) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#redirTooMany4#tearOff(core::int foo, {required core::Object bar = #C1}) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:11:61: Error: The constructor function type 'E Function(int)' isn't a subtype of 'E Function(int, {Object bar})'.
  - 'Object' is from 'dart:core'.
   factory E.redirTooMany4(int foo, {required Object bar}) = E; // Error.
                                                             ^";
-static inline-class-member method E|constructor#redirCyclic1(core::int foo) → self::E /* = core::int */
+static extension-type-member method E|constructor#redirCyclic1(core::int foo) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:13:11: Error: Cyclic definition of factory 'E.redirCyclic1'.
   factory E.redirCyclic1(int foo) = E.redirCyclic2; // Error.
           ^";
-static inline-class-member method E|constructor#_#redirCyclic1#tearOff(core::int foo) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#redirCyclic1#tearOff(core::int foo) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:13:11: Error: Cyclic definition of factory 'E.redirCyclic1'.
   factory E.redirCyclic1(int foo) = E.redirCyclic2; // Error.
           ^";
-static inline-class-member method E|constructor#redirCyclic2(core::int foo) → self::E /* = core::int */
+static extension-type-member method E|constructor#redirCyclic2(core::int foo) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:14:11: Error: Cyclic definition of factory 'E.redirCyclic2'.
   factory E.redirCyclic2(int foo) = E.redirCyclic1; // Error.
           ^";
-static inline-class-member method E|constructor#_#redirCyclic2#tearOff(core::int foo) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#redirCyclic2#tearOff(core::int foo) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:14:11: Error: Cyclic definition of factory 'E.redirCyclic2'.
   factory E.redirCyclic2(int foo) = E.redirCyclic1; // Error.
           ^";
-static inline-class-member method E|constructor#redirCyclicSelf(core::int foo) → self::E /* = core::int */
+static extension-type-member method E|constructor#redirCyclicSelf(core::int foo) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:16:11: Error: Cyclic definition of factory 'E.redirCyclicSelf'.
   factory E.redirCyclicSelf(int foo) = E.redirCyclicSelf; // Error.
           ^";
-static inline-class-member method E|constructor#_#redirCyclicSelf#tearOff(core::int foo) → self::E /* = core::int */
+static extension-type-member method E|constructor#_#redirCyclicSelf#tearOff(core::int foo) → self::E /* = core::int */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:16:11: Error: Cyclic definition of factory 'E.redirCyclicSelf'.
   factory E.redirCyclicSelf(int foo) = E.redirCyclicSelf; // Error.
           ^";
-static inline-class-member method GE|constructor#<X extends core::Object? = dynamic>(self::GE|constructor#::X% foo) → self::GE<self::GE|constructor#::X%> /* = self::GE|constructor#::X% */ {
+static extension-type-member method GE|constructor#<X extends core::Object? = dynamic>(self::GE|constructor#::X% foo) → self::GE<self::GE|constructor#::X%> /* = self::GE|constructor#::X% */ {
   lowered final self::GE<self::GE|constructor#::X%> /* = self::GE|constructor#::X% */ #this = foo;
   return #this;
 }
-static inline-class-member method GE|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::GE|constructor#_#new#tearOff::X% foo) → self::GE<self::GE|constructor#_#new#tearOff::X%>% /* = self::GE|constructor#_#new#tearOff::X% */
+static extension-type-member method GE|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::GE|constructor#_#new#tearOff::X% foo) → self::GE<self::GE|constructor#_#new#tearOff::X%>% /* = self::GE|constructor#_#new#tearOff::X% */
   return self::GE|constructor#<self::GE|constructor#_#new#tearOff::X%>(foo);
-static inline-class-member method GE|constructor#redirNotEnough1<X extends core::Object? = dynamic>() → self::GE<self::GE|constructor#redirNotEnough1::X%> /* = self::GE|constructor#redirNotEnough1::X% */
+static extension-type-member method GE|constructor#redirNotEnough1<X extends core::Object? = dynamic>() → self::GE<self::GE|constructor#redirNotEnough1::X%> /* = self::GE|constructor#redirNotEnough1::X% */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:20:34: Error: The constructor function type 'GE<dynamic> Function(dynamic)' isn't a subtype of 'GE<X> Function()'.
   factory GE.redirNotEnough1() = GE; // Error.
                                  ^";
-static inline-class-member method GE|constructor#_#redirNotEnough1#tearOff<X extends core::Object? = dynamic>() → self::GE<self::GE|constructor#_#redirNotEnough1#tearOff::X%>% /* = self::GE|constructor#_#redirNotEnough1#tearOff::X% */
+static extension-type-member method GE|constructor#_#redirNotEnough1#tearOff<X extends core::Object? = dynamic>() → self::GE<self::GE|constructor#_#redirNotEnough1#tearOff::X%>% /* = self::GE|constructor#_#redirNotEnough1#tearOff::X% */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:20:34: Error: The constructor function type 'GE<dynamic> Function(dynamic)' isn't a subtype of 'GE<X> Function()'.
   factory GE.redirNotEnough1() = GE; // Error.
                                  ^";
-static inline-class-member method GE|constructor#redirNotEnough2<X extends core::Object? = dynamic>() → self::GE<self::GE|constructor#redirNotEnough2::X%> /* = self::GE|constructor#redirNotEnough2::X% */
+static extension-type-member method GE|constructor#redirNotEnough2<X extends core::Object? = dynamic>() → self::GE<self::GE|constructor#redirNotEnough2::X%> /* = self::GE|constructor#redirNotEnough2::X% */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:20:34: Error: The constructor function type 'GE<dynamic> Function(dynamic)' isn't a subtype of 'GE<X> Function()'.
   factory GE.redirNotEnough1() = GE; // Error.
                                  ^";
-static inline-class-member method GE|constructor#_#redirNotEnough2#tearOff<X extends core::Object? = dynamic>() → self::GE<self::GE|constructor#_#redirNotEnough2#tearOff::X%>% /* = self::GE|constructor#_#redirNotEnough2#tearOff::X% */
+static extension-type-member method GE|constructor#_#redirNotEnough2#tearOff<X extends core::Object? = dynamic>() → self::GE<self::GE|constructor#_#redirNotEnough2#tearOff::X%>% /* = self::GE|constructor#_#redirNotEnough2#tearOff::X% */
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:20:34: Error: The constructor function type 'GE<dynamic> Function(dynamic)' isn't a subtype of 'GE<X> Function()'.
   factory GE.redirNotEnough1() = GE; // Error.
                                  ^";

@@ -15,43 +15,43 @@ extension /* unnamed */ _extension#0 on dynamic {
   set it = self::_extension#0|set#it;
 }
 extension type InlineClass(core::int it) {
-  abstract inline-class-member representation-field get it() → core::int;
+  abstract extension-type-member representation-field get it() → core::int;
   method test = self::InlineClass|test;
   method tearoff test = self::InlineClass|get#test;
   constructor • = self::InlineClass|constructor#;
   constructor tearoff • = self::InlineClass|constructor#_#new#tearOff;
 }
 extension type GenericInlineClass<T extends core::Object? = dynamic>(T% it) {
-  abstract inline-class-member representation-field get it() → T%;
+  abstract extension-type-member representation-field get it() → T%;
   method test = self::GenericInlineClass|test;
   method tearoff test = self::GenericInlineClass|get#test;
   constructor • = self::GenericInlineClass|constructor#;
   constructor tearoff • = self::GenericInlineClass|constructor#_#new#tearOff;
 }
 extension type FunctionInlineClass<T extends core::Object? = dynamic>(() → T% it) {
-  abstract inline-class-member representation-field get it() → () → T%;
+  abstract extension-type-member representation-field get it() → () → T%;
   method test = self::FunctionInlineClass|test;
   method tearoff test = self::FunctionInlineClass|get#test;
   constructor • = self::FunctionInlineClass|constructor#;
   constructor tearoff • = self::FunctionInlineClass|constructor#_#new#tearOff;
 }
 extension type GenericFunctionInlineClass(<T extends core::Object? = dynamic>() → T% it) {
-  abstract inline-class-member representation-field get it() → <T extends core::Object? = dynamic>() → T%;
+  abstract extension-type-member representation-field get it() → <T extends core::Object? = dynamic>() → T%;
   method test = self::GenericFunctionInlineClass|test;
   method tearoff test = self::GenericFunctionInlineClass|get#test;
   constructor • = self::GenericFunctionInlineClass|constructor#;
   constructor tearoff • = self::GenericFunctionInlineClass|constructor#_#new#tearOff;
 }
 extension type DynamicInlineClass(dynamic it) {
-  abstract inline-class-member representation-field get it() → dynamic;
+  abstract extension-type-member representation-field get it() → dynamic;
   method test = self::DynamicInlineClass|test;
   method tearoff test = self::DynamicInlineClass|get#test;
   constructor • = self::DynamicInlineClass|constructor#;
   constructor tearoff • = self::DynamicInlineClass|constructor#_#new#tearOff;
 }
 extension type ErroneousInlineClass(core::int a) {
-  abstract inline-class-member representation-field get a() → core::int;
-  abstract inline-class-member representation-field get b() → core::String;
+  abstract extension-type-member representation-field get a() → core::int;
+  abstract extension-type-member representation-field get b() → core::String;
   method test = self::ErroneousInlineClass|test;
   method tearoff test = self::ErroneousInlineClass|get#test;
   constructor • = self::ErroneousInlineClass|constructor#;
@@ -59,53 +59,53 @@ extension type ErroneousInlineClass(core::int a) {
 }
 static extension-member method _extension#0|set#it(lowered final dynamic #this, dynamic value) → void
   ;
-static inline-class-member method InlineClass|constructor#(core::int it) → self::InlineClass /* = core::int */
+static extension-type-member method InlineClass|constructor#(core::int it) → self::InlineClass /* = core::int */
   ;
-static inline-class-member method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass /* = core::int */
+static extension-type-member method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass /* = core::int */
   return self::InlineClass|constructor#(it);
-static inline-class-member method InlineClass|test(lowered final self::InlineClass /* = core::int */ #this) → void
+static extension-type-member method InlineClass|test(lowered final self::InlineClass /* = core::int */ #this) → void
   ;
-static inline-class-member method InlineClass|get#test(lowered final self::InlineClass /* = core::int */ #this) → () → void
+static extension-type-member method InlineClass|get#test(lowered final self::InlineClass /* = core::int */ #this) → () → void
   return () → void => self::InlineClass|test(#this);
-static inline-class-member method GenericInlineClass|constructor#<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#::T%> /* = self::GenericInlineClass|constructor#::T% */
+static extension-type-member method GenericInlineClass|constructor#<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#::T%> /* = self::GenericInlineClass|constructor#::T% */
   ;
-static inline-class-member method GenericInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#_#new#tearOff::T%>% /* = self::GenericInlineClass|constructor#_#new#tearOff::T% */
+static extension-type-member method GenericInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::GenericInlineClass|constructor#_#new#tearOff::T% it) → self::GenericInlineClass<self::GenericInlineClass|constructor#_#new#tearOff::T%>% /* = self::GenericInlineClass|constructor#_#new#tearOff::T% */
   return self::GenericInlineClass|constructor#<self::GenericInlineClass|constructor#_#new#tearOff::T%>(it);
-static inline-class-member method GenericInlineClass|test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|test::T%> /* = self::GenericInlineClass|test::T% */ #this, self::GenericInlineClass|test::T% t) → void
+static extension-type-member method GenericInlineClass|test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|test::T%> /* = self::GenericInlineClass|test::T% */ #this, self::GenericInlineClass|test::T% t) → void
   ;
-static inline-class-member method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%>% /* = self::GenericInlineClass|get#test::T% */ #this) → (self::GenericInlineClass|get#test::T%) → void
+static extension-type-member method GenericInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::GenericInlineClass<self::GenericInlineClass|get#test::T%>% /* = self::GenericInlineClass|get#test::T% */ #this) → (self::GenericInlineClass|get#test::T%) → void
   return (self::GenericInlineClass|get#test::T% t) → void => self::GenericInlineClass|test<self::GenericInlineClass|get#test::T%>(#this, t);
-static inline-class-member method FunctionInlineClass|constructor#<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#::T%> /* = () → self::FunctionInlineClass|constructor#::T% */
+static extension-type-member method FunctionInlineClass|constructor#<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#::T%> /* = () → self::FunctionInlineClass|constructor#::T% */
   ;
-static inline-class-member method FunctionInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#_#new#tearOff::T%> /* = () → self::FunctionInlineClass|constructor#_#new#tearOff::T% */
+static extension-type-member method FunctionInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#_#new#tearOff::T%> /* = () → self::FunctionInlineClass|constructor#_#new#tearOff::T% */
   return self::FunctionInlineClass|constructor#<self::FunctionInlineClass|constructor#_#new#tearOff::T%>(it);
-static inline-class-member method FunctionInlineClass|test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|test::T%> /* = () → self::FunctionInlineClass|test::T% */ #this, () → self::FunctionInlineClass|test::T% t) → void
+static extension-type-member method FunctionInlineClass|test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|test::T%> /* = () → self::FunctionInlineClass|test::T% */ #this, () → self::FunctionInlineClass|test::T% t) → void
   ;
-static inline-class-member method FunctionInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|get#test::T%> /* = () → self::FunctionInlineClass|get#test::T% */ #this) → (() → self::FunctionInlineClass|get#test::T%) → void
+static extension-type-member method FunctionInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|get#test::T%> /* = () → self::FunctionInlineClass|get#test::T% */ #this) → (() → self::FunctionInlineClass|get#test::T%) → void
   return (() → self::FunctionInlineClass|get#test::T% t) → void => self::FunctionInlineClass|test<self::FunctionInlineClass|get#test::T%>(#this, t);
-static inline-class-member method GenericFunctionInlineClass|constructor#(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */
+static extension-type-member method GenericFunctionInlineClass|constructor#(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */
   ;
-static inline-class-member method GenericFunctionInlineClass|constructor#_#new#tearOff(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */
+static extension-type-member method GenericFunctionInlineClass|constructor#_#new#tearOff(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */
   return self::GenericFunctionInlineClass|constructor#(it);
-static inline-class-member method GenericFunctionInlineClass|test(lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this) → void
+static extension-type-member method GenericFunctionInlineClass|test(lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this) → void
   ;
-static inline-class-member method GenericFunctionInlineClass|get#test(lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this) → () → void
+static extension-type-member method GenericFunctionInlineClass|get#test(lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this) → () → void
   return () → void => self::GenericFunctionInlineClass|test(#this);
-static inline-class-member method DynamicInlineClass|constructor#(dynamic it) → self::DynamicInlineClass /* = dynamic */
+static extension-type-member method DynamicInlineClass|constructor#(dynamic it) → self::DynamicInlineClass /* = dynamic */
   ;
-static inline-class-member method DynamicInlineClass|constructor#_#new#tearOff(dynamic it) → self::DynamicInlineClass /* = dynamic */
+static extension-type-member method DynamicInlineClass|constructor#_#new#tearOff(dynamic it) → self::DynamicInlineClass /* = dynamic */
   return self::DynamicInlineClass|constructor#(it);
-static inline-class-member method DynamicInlineClass|test(lowered final self::DynamicInlineClass /* = dynamic */ #this) → void
+static extension-type-member method DynamicInlineClass|test(lowered final self::DynamicInlineClass /* = dynamic */ #this) → void
   ;
-static inline-class-member method DynamicInlineClass|get#test(lowered final self::DynamicInlineClass /* = dynamic */ #this) → () → void
+static extension-type-member method DynamicInlineClass|get#test(lowered final self::DynamicInlineClass /* = dynamic */ #this) → () → void
   return () → void => self::DynamicInlineClass|test(#this);
-static inline-class-member method ErroneousInlineClass|constructor#(core::int a, core::String b) → self::ErroneousInlineClass /* = core::int */
+static extension-type-member method ErroneousInlineClass|constructor#(core::int a, core::String b) → self::ErroneousInlineClass /* = core::int */
   ;
-static inline-class-member method ErroneousInlineClass|constructor#_#new#tearOff(core::int a, core::String b) → self::ErroneousInlineClass /* = core::int */
+static extension-type-member method ErroneousInlineClass|constructor#_#new#tearOff(core::int a, core::String b) → self::ErroneousInlineClass /* = core::int */
   return self::ErroneousInlineClass|constructor#(a, b);
-static inline-class-member method ErroneousInlineClass|test(lowered final self::ErroneousInlineClass /* = core::int */ #this) → void
+static extension-type-member method ErroneousInlineClass|test(lowered final self::ErroneousInlineClass /* = core::int */ #this) → void
   ;
-static inline-class-member method ErroneousInlineClass|get#test(lowered final self::ErroneousInlineClass /* = core::int */ #this) → () → void
+static extension-type-member method ErroneousInlineClass|get#test(lowered final self::ErroneousInlineClass /* = core::int */ #this) → () → void
   return () → void => self::ErroneousInlineClass|test(#this);
 static method test(self::InlineClass /* = core::int */ inlineClass, self::GenericInlineClass<core::String> /* = core::String */ genericInlineClass, self::FunctionInlineClass<core::String> /* = () → core::String */ functionInlineClass, self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ genericFunctionInlineClass, self::DynamicInlineClass /* = dynamic */ dynamicInlineClass, self::ErroneousInlineClass /* = core::int */ erroneousInlineClass, #lib1::PrivateInlineClass /* = core::int */ privateInlineClass) → void
   ;
@@ -115,17 +115,17 @@ import self as self2;
 import "dart:core" as core;
 
 extension type PrivateInlineClass(core::int _it) {
-  abstract inline-class-member representation-field get _it() → core::int;
+  abstract extension-type-member representation-field get _it() → core::int;
   method test = self2::PrivateInlineClass|test;
   method tearoff test = self2::PrivateInlineClass|get#test;
   constructor • = self2::PrivateInlineClass|constructor#;
   constructor tearoff • = self2::PrivateInlineClass|constructor#_#new#tearOff;
 }
-static inline-class-member method PrivateInlineClass|constructor#(core::int _it) → self2::PrivateInlineClass /* = core::int */
+static extension-type-member method PrivateInlineClass|constructor#(core::int _it) → self2::PrivateInlineClass /* = core::int */
   ;
-static inline-class-member method PrivateInlineClass|constructor#_#new#tearOff(core::int _it) → self2::PrivateInlineClass /* = core::int */
+static extension-type-member method PrivateInlineClass|constructor#_#new#tearOff(core::int _it) → self2::PrivateInlineClass /* = core::int */
   return self2::PrivateInlineClass|constructor#(_it);
-static inline-class-member method PrivateInlineClass|test(lowered final self2::PrivateInlineClass /* = core::int */ #this) → void
+static extension-type-member method PrivateInlineClass|test(lowered final self2::PrivateInlineClass /* = core::int */ #this) → void
   ;
-static inline-class-member method PrivateInlineClass|get#test(lowered final self2::PrivateInlineClass /* = core::int */ #this) → () → void
+static extension-type-member method PrivateInlineClass|get#test(lowered final self2::PrivateInlineClass /* = core::int */ #this) → () → void
   return () → void => self2::PrivateInlineClass|test(#this);

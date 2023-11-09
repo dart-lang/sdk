@@ -27,7 +27,7 @@ class C extends core::Object implements self::A, self::B {
     ;
 }
 extension type E(self::C c) implements self::A, self::B {
-  abstract inline-class-member representation-field get c() → self::C;
+  abstract extension-type-member representation-field get c() → self::C;
   abstract member-signature method method() → (core::Object?, core::Object?); -> self::A::method
   abstract member-signature get getter() → (core::Object?, core::Object?); -> self::A::getter
   abstract member-signature set setter((core::Object?, core::Object?) → (core::int, core::int) f) → void; -> self::A::setter
@@ -43,9 +43,9 @@ static field (core::Object?, core::Object?) g;
 static field (core::Object?, core::Object?) g1;
 static field (core::Object?, core::int) g2;
 static field (core::int, core::Object?) g3;
-static inline-class-member method E|constructor#(self::C c) → self::E /* = self::C */
+static extension-type-member method E|constructor#(self::C c) → self::E /* = self::C */
   ;
-static inline-class-member method E|constructor#_#new#tearOff(self::C c) → self::E /* = self::C */
+static extension-type-member method E|constructor#_#new#tearOff(self::C c) → self::E /* = self::C */
   return self::E|constructor#(c);
 static method testMethod0(self::E /* = self::C */ e) → (core::Object?, core::Object?)
   ;

@@ -32,15 +32,15 @@ extension type SomeExtensionType(core::int foo) {
 }
 extension type C5Ext(self::C5<self::C6> rep) {
 }
-[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|constructor#([@vm.inferred-arg-type.metadata=int] core::int id) → self::IC2 /* = core::int */ {
+[@vm.unboxing-info.metadata=(i)->i]static extension-type-member method IC2|constructor#([@vm.inferred-arg-type.metadata=int] core::int id) → self::IC2 /* = core::int */ {
   lowered final self::IC2 /* = core::int */ #this = id;
   return #this;
 }
-[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method IC2|foo1([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::IC2 /* = core::int */ #this) → core::int
+[@vm.unboxing-info.metadata=(i)->i]static extension-type-member method IC2|foo1([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::IC2 /* = core::int */ #this) → core::int
   return [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#this).{core::num::+}(1){(core::num) → core::int};
-[@vm.unboxing-info.metadata=()->i]static inline-class-member method IC2|bar1() → self::IC2 /* = core::int */
+[@vm.unboxing-info.metadata=()->i]static extension-type-member method IC2|bar1() → self::IC2 /* = core::int */
   return [@vm.inferred-type.metadata=int] self::IC2|constructor#([@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] _in::unsafeCast<core::int>(#C1).{core::num::+}(1){(core::num) → core::int});
-[@vm.unboxing-info.metadata=(i)->i]static inline-class-member method SomeExtensionType|constructor#([@vm.inferred-arg-type.metadata=int] core::int foo) → self::SomeExtensionType /* = core::int */ {
+[@vm.unboxing-info.metadata=(i)->i]static extension-type-member method SomeExtensionType|constructor#([@vm.inferred-arg-type.metadata=int] core::int foo) → self::SomeExtensionType /* = core::int */ {
   lowered final self::SomeExtensionType /* = core::int */ #this = foo;
   return #this;
 }

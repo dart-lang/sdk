@@ -33,103 +33,103 @@ import "dart:core" as core;
 import "dart:async";
 
 extension type E1(asy::Future<core::int> foo) {
-  abstract inline-class-member representation-field get foo() → asy::Future<core::int>;
+  abstract extension-type-member representation-field get foo() → asy::Future<core::int>;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
 }
 extension type E2<X extends asy::Future<core::String>>(X foo) {
-  abstract inline-class-member representation-field get foo() → X;
+  abstract extension-type-member representation-field get foo() → X;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
 extension type E3(FutureOr<core::bool>foo) {
-  abstract inline-class-member representation-field get foo() → FutureOr<core::bool>;
+  abstract extension-type-member representation-field get foo() → FutureOr<core::bool>;
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
 extension type E4<X extends FutureOr<core::double>>(X foo) {
-  abstract inline-class-member representation-field get foo() → X;
+  abstract extension-type-member representation-field get foo() → X;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
 extension type E5<X extends core::Object? = dynamic>(X% foo) {
-  abstract inline-class-member representation-field get foo() → X%;
+  abstract extension-type-member representation-field get foo() → X%;
   constructor • = self::E5|constructor#;
   constructor tearoff • = self::E5|constructor#_#new#tearOff;
 }
 extension type F1(asy::Future<core::int> foo) implements asy::Future<core::int> {
-  abstract inline-class-member representation-field get foo() → asy::Future<core::int>;
+  abstract extension-type-member representation-field get foo() → asy::Future<core::int>;
   constructor • = self::F1|constructor#;
   constructor tearoff • = self::F1|constructor#_#new#tearOff;
 }
 extension type F2<X extends asy::Future<core::num>>(X foo) implements asy::Future<core::num> {
-  abstract inline-class-member representation-field get foo() → X;
+  abstract extension-type-member representation-field get foo() → X;
   constructor • = self::F2|constructor#;
   constructor tearoff • = self::F2|constructor#_#new#tearOff;
 }
 extension type F3<X extends asy::Future<core::Object>>(X foo) implements asy::Future<core::Object> {
-  abstract inline-class-member representation-field get foo() → X;
+  abstract extension-type-member representation-field get foo() → X;
   constructor • = self::F3|constructor#;
   constructor tearoff • = self::F3|constructor#_#new#tearOff;
 }
 extension type F4<X extends asy::Future<core::num>>(X foo) implements self::F3<X> /* = X */ {
-  abstract inline-class-member representation-field get foo() → X;
+  abstract extension-type-member representation-field get foo() → X;
   constructor • = self::F4|constructor#;
   constructor tearoff • = self::F4|constructor#_#new#tearOff;
 }
-static inline-class-member method E1|constructor#(asy::Future<core::int> foo) → self::E1 /* = asy::Future<core::int> */ {
+static extension-type-member method E1|constructor#(asy::Future<core::int> foo) → self::E1 /* = asy::Future<core::int> */ {
   lowered final self::E1 /* = asy::Future<core::int> */ #this = foo;
   return #this;
 }
-static inline-class-member method E1|constructor#_#new#tearOff(asy::Future<core::int> foo) → self::E1 /* = asy::Future<core::int> */
+static extension-type-member method E1|constructor#_#new#tearOff(asy::Future<core::int> foo) → self::E1 /* = asy::Future<core::int> */
   return self::E1|constructor#(foo);
-static inline-class-member method E2|constructor#<X extends asy::Future<core::String>>(self::E2|constructor#::X foo) → self::E2<self::E2|constructor#::X> /* = self::E2|constructor#::X */ {
+static extension-type-member method E2|constructor#<X extends asy::Future<core::String>>(self::E2|constructor#::X foo) → self::E2<self::E2|constructor#::X> /* = self::E2|constructor#::X */ {
   lowered final self::E2<self::E2|constructor#::X> /* = self::E2|constructor#::X */ #this = foo;
   return #this;
 }
-static inline-class-member method E2|constructor#_#new#tearOff<X extends asy::Future<core::String>>(self::E2|constructor#_#new#tearOff::X foo) → self::E2<self::E2|constructor#_#new#tearOff::X> /* = self::E2|constructor#_#new#tearOff::X */
+static extension-type-member method E2|constructor#_#new#tearOff<X extends asy::Future<core::String>>(self::E2|constructor#_#new#tearOff::X foo) → self::E2<self::E2|constructor#_#new#tearOff::X> /* = self::E2|constructor#_#new#tearOff::X */
   return self::E2|constructor#<self::E2|constructor#_#new#tearOff::X>(foo);
-static inline-class-member method E3|constructor#(FutureOr<core::bool>foo) → self::E3 /* = FutureOr<core::bool>*/ {
+static extension-type-member method E3|constructor#(FutureOr<core::bool>foo) → self::E3 /* = FutureOr<core::bool>*/ {
   lowered final self::E3 /* = FutureOr<core::bool>*/ #this = foo;
   return #this;
 }
-static inline-class-member method E3|constructor#_#new#tearOff(FutureOr<core::bool>foo) → self::E3 /* = FutureOr<core::bool>*/
+static extension-type-member method E3|constructor#_#new#tearOff(FutureOr<core::bool>foo) → self::E3 /* = FutureOr<core::bool>*/
   return self::E3|constructor#(foo);
-static inline-class-member method E4|constructor#<X extends FutureOr<core::double>>(self::E4|constructor#::X foo) → self::E4<self::E4|constructor#::X> /* = self::E4|constructor#::X */ {
+static extension-type-member method E4|constructor#<X extends FutureOr<core::double>>(self::E4|constructor#::X foo) → self::E4<self::E4|constructor#::X> /* = self::E4|constructor#::X */ {
   lowered final self::E4<self::E4|constructor#::X> /* = self::E4|constructor#::X */ #this = foo;
   return #this;
 }
-static inline-class-member method E4|constructor#_#new#tearOff<X extends FutureOr<core::double>>(self::E4|constructor#_#new#tearOff::X foo) → self::E4<self::E4|constructor#_#new#tearOff::X> /* = self::E4|constructor#_#new#tearOff::X */
+static extension-type-member method E4|constructor#_#new#tearOff<X extends FutureOr<core::double>>(self::E4|constructor#_#new#tearOff::X foo) → self::E4<self::E4|constructor#_#new#tearOff::X> /* = self::E4|constructor#_#new#tearOff::X */
   return self::E4|constructor#<self::E4|constructor#_#new#tearOff::X>(foo);
-static inline-class-member method E5|constructor#<X extends core::Object? = dynamic>(self::E5|constructor#::X% foo) → self::E5<self::E5|constructor#::X%> /* = self::E5|constructor#::X% */ {
+static extension-type-member method E5|constructor#<X extends core::Object? = dynamic>(self::E5|constructor#::X% foo) → self::E5<self::E5|constructor#::X%> /* = self::E5|constructor#::X% */ {
   lowered final self::E5<self::E5|constructor#::X%> /* = self::E5|constructor#::X% */ #this = foo;
   return #this;
 }
-static inline-class-member method E5|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E5|constructor#_#new#tearOff::X% foo) → self::E5<self::E5|constructor#_#new#tearOff::X%>% /* = self::E5|constructor#_#new#tearOff::X% */
+static extension-type-member method E5|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E5|constructor#_#new#tearOff::X% foo) → self::E5<self::E5|constructor#_#new#tearOff::X%>% /* = self::E5|constructor#_#new#tearOff::X% */
   return self::E5|constructor#<self::E5|constructor#_#new#tearOff::X%>(foo);
-static inline-class-member method F1|constructor#(asy::Future<core::int> foo) → self::F1 /* = asy::Future<core::int> */ {
+static extension-type-member method F1|constructor#(asy::Future<core::int> foo) → self::F1 /* = asy::Future<core::int> */ {
   lowered final self::F1 /* = asy::Future<core::int> */ #this = foo;
   return #this;
 }
-static inline-class-member method F1|constructor#_#new#tearOff(asy::Future<core::int> foo) → self::F1 /* = asy::Future<core::int> */
+static extension-type-member method F1|constructor#_#new#tearOff(asy::Future<core::int> foo) → self::F1 /* = asy::Future<core::int> */
   return self::F1|constructor#(foo);
-static inline-class-member method F2|constructor#<X extends asy::Future<core::num>>(self::F2|constructor#::X foo) → self::F2<self::F2|constructor#::X> /* = self::F2|constructor#::X */ {
+static extension-type-member method F2|constructor#<X extends asy::Future<core::num>>(self::F2|constructor#::X foo) → self::F2<self::F2|constructor#::X> /* = self::F2|constructor#::X */ {
   lowered final self::F2<self::F2|constructor#::X> /* = self::F2|constructor#::X */ #this = foo;
   return #this;
 }
-static inline-class-member method F2|constructor#_#new#tearOff<X extends asy::Future<core::num>>(self::F2|constructor#_#new#tearOff::X foo) → self::F2<self::F2|constructor#_#new#tearOff::X> /* = self::F2|constructor#_#new#tearOff::X */
+static extension-type-member method F2|constructor#_#new#tearOff<X extends asy::Future<core::num>>(self::F2|constructor#_#new#tearOff::X foo) → self::F2<self::F2|constructor#_#new#tearOff::X> /* = self::F2|constructor#_#new#tearOff::X */
   return self::F2|constructor#<self::F2|constructor#_#new#tearOff::X>(foo);
-static inline-class-member method F3|constructor#<X extends asy::Future<core::Object>>(self::F3|constructor#::X foo) → self::F3<self::F3|constructor#::X> /* = self::F3|constructor#::X */ {
+static extension-type-member method F3|constructor#<X extends asy::Future<core::Object>>(self::F3|constructor#::X foo) → self::F3<self::F3|constructor#::X> /* = self::F3|constructor#::X */ {
   lowered final self::F3<self::F3|constructor#::X> /* = self::F3|constructor#::X */ #this = foo;
   return #this;
 }
-static inline-class-member method F3|constructor#_#new#tearOff<X extends asy::Future<core::Object>>(self::F3|constructor#_#new#tearOff::X foo) → self::F3<self::F3|constructor#_#new#tearOff::X> /* = self::F3|constructor#_#new#tearOff::X */
+static extension-type-member method F3|constructor#_#new#tearOff<X extends asy::Future<core::Object>>(self::F3|constructor#_#new#tearOff::X foo) → self::F3<self::F3|constructor#_#new#tearOff::X> /* = self::F3|constructor#_#new#tearOff::X */
   return self::F3|constructor#<self::F3|constructor#_#new#tearOff::X>(foo);
-static inline-class-member method F4|constructor#<X extends asy::Future<core::num>>(self::F4|constructor#::X foo) → self::F4<self::F4|constructor#::X> /* = self::F4|constructor#::X */ {
+static extension-type-member method F4|constructor#<X extends asy::Future<core::num>>(self::F4|constructor#::X foo) → self::F4<self::F4|constructor#::X> /* = self::F4|constructor#::X */ {
   lowered final self::F4<self::F4|constructor#::X> /* = self::F4|constructor#::X */ #this = foo;
   return #this;
 }
-static inline-class-member method F4|constructor#_#new#tearOff<X extends asy::Future<core::num>>(self::F4|constructor#_#new#tearOff::X foo) → self::F4<self::F4|constructor#_#new#tearOff::X> /* = self::F4|constructor#_#new#tearOff::X */
+static extension-type-member method F4|constructor#_#new#tearOff<X extends asy::Future<core::num>>(self::F4|constructor#_#new#tearOff::X foo) → self::F4<self::F4|constructor#_#new#tearOff::X> /* = self::F4|constructor#_#new#tearOff::X */
   return self::F4|constructor#<self::F4|constructor#_#new#tearOff::X>(foo);
 static method test(self::E1 /* = asy::Future<core::int> */ e1, self::E2<asy::Future<core::String>> /* = asy::Future<core::String> */ e2, self::E3 /* = FutureOr<core::bool>*/ e3, self::E4<asy::Future<core::double>> /* = asy::Future<core::double> */ e4, self::E5<core::Object> /* = core::Object */ e5object, self::E5<asy::Future<core::num>> /* = asy::Future<core::num> */ e5future, self::F1 /* = asy::Future<core::int> */ f1, self::F2<asy::Future<core::num>> /* = asy::Future<core::num> */ f2, self::F3<asy::Future<core::String>> /* = asy::Future<core::String> */ f3, self::F4<asy::Future<core::int>> /* = asy::Future<core::int> */ f4) → dynamic async /* futureValueType= dynamic */ {
   await invalid-expression "pkg/front_end/testcases/extension_types/issue53207.dart:21:9: Error: The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'.

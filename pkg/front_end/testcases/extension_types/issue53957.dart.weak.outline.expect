@@ -3,16 +3,16 @@ import self as self;
 import "dart:core" as core;
 
 extension type Ext(core::Object? _) {
-  abstract inline-class-member representation-field get _() → core::Object?;
+  abstract extension-type-member representation-field get _() → core::Object?;
   get value = self::Ext|get#value;
   constructor • = self::Ext|constructor#;
   constructor tearoff • = self::Ext|constructor#_#new#tearOff;
 }
-static inline-class-member method Ext|constructor#(core::Object? _) → self::Ext /* = core::Object? */
+static extension-type-member method Ext|constructor#(core::Object? _) → self::Ext /* = core::Object? */
   ;
-static inline-class-member method Ext|constructor#_#new#tearOff(core::Object? _) → self::Ext /* = core::Object? */
+static extension-type-member method Ext|constructor#_#new#tearOff(core::Object? _) → self::Ext /* = core::Object? */
   return self::Ext|constructor#(_);
-static inline-class-member method Ext|get#value(lowered final self::Ext /* = core::Object? */ #this) → core::int
+static extension-type-member method Ext|get#value(lowered final self::Ext /* = core::Object? */ #this) → core::int
   ;
 static method main() → void
   ;

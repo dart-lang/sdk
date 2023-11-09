@@ -7,7 +7,7 @@ extension E on self::ET? /* = core::int? */ {
   method tearoff foo = self::E|get#foo;
 }
 extension type ET(core::int? i) {
-  abstract inline-class-member representation-field get i() → core::int?;
+  abstract extension-type-member representation-field get i() → core::int?;
   method foo = self::ET|foo;
   method tearoff foo = self::ET|get#foo;
   constructor • = self::ET|constructor#;
@@ -16,14 +16,14 @@ extension type ET(core::int? i) {
 static extension-member method E|foo(lowered final self::ET? /* = core::int? */ #this, core::int i) → void {}
 static extension-member method E|get#foo(lowered final self::ET? /* = core::int? */ #this) → (core::int) → void
   return (core::int i) → void => self::E|foo(#this, i);
-static inline-class-member method ET|constructor#(core::int? i) → self::ET /* = core::int? */ {
+static extension-type-member method ET|constructor#(core::int? i) → self::ET /* = core::int? */ {
   lowered final self::ET /* = core::int? */ #this = i;
   return #this;
 }
-static inline-class-member method ET|constructor#_#new#tearOff(core::int? i) → self::ET /* = core::int? */
+static extension-type-member method ET|constructor#_#new#tearOff(core::int? i) → self::ET /* = core::int? */
   return self::ET|constructor#(i);
-static inline-class-member method ET|foo(lowered final self::ET /* = core::int? */ #this) → void {}
-static inline-class-member method ET|get#foo(lowered final self::ET /* = core::int? */ #this) → () → void
+static extension-type-member method ET|foo(lowered final self::ET /* = core::int? */ #this) → void {}
+static extension-type-member method ET|get#foo(lowered final self::ET /* = core::int? */ #this) → () → void
   return () → void => self::ET|foo(#this);
 static method method<X extends self::ET /* = core::int? */, Y extends self::ET? /* = core::int? */>(self::ET /* = core::int? */ et1, self::ET? /* = core::int? */ et2, self::method::X% x1, self::method::X? x2, self::method::Y% y1, self::method::Y? y2) → dynamic {
   self::ET|foo(et1);

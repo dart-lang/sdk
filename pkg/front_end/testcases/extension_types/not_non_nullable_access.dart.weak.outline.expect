@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type ET1(core::int i) {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   operator + = self::ET1|+;
   operator unary- = self::ET1|unary-;
   operator [] = self::ET1|[];
@@ -16,7 +16,7 @@ extension type ET1(core::int i) {
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2<T extends core::Object? = dynamic>(T% t) {
-  abstract inline-class-member representation-field get t() → T%;
+  abstract extension-type-member representation-field get t() → T%;
   operator + = self::ET2|+;
   operator unary- = self::ET2|unary-;
   operator [] = self::ET2|[];
@@ -28,45 +28,45 @@ extension type ET2<T extends core::Object? = dynamic>(T% t) {
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
-static inline-class-member method ET1|constructor#(core::int i) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#(core::int i) → self::ET1 /* = core::int */
   ;
-static inline-class-member method ET1|constructor#_#new#tearOff(core::int i) → self::ET1 /* = core::int */
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int i) → self::ET1 /* = core::int */
   return self::ET1|constructor#(i);
-static inline-class-member method ET1|+(lowered final self::ET1 /* = core::int */ #this, self::ET1? /* = core::int? */ i) → self::ET1? /* = core::int? */
+static extension-type-member method ET1|+(lowered final self::ET1 /* = core::int */ #this, self::ET1? /* = core::int? */ i) → self::ET1? /* = core::int? */
   ;
-static inline-class-member method ET1|unary-(lowered final self::ET1 /* = core::int */ #this) → core::int
+static extension-type-member method ET1|unary-(lowered final self::ET1 /* = core::int */ #this) → core::int
   ;
-static inline-class-member method ET1|[](lowered final self::ET1 /* = core::int */ #this, core::int index) → core::int
+static extension-type-member method ET1|[](lowered final self::ET1 /* = core::int */ #this, core::int index) → core::int
   ;
-static inline-class-member method ET1|[]=(lowered final self::ET1 /* = core::int */ #this, core::int index, core::int value) → void
+static extension-type-member method ET1|[]=(lowered final self::ET1 /* = core::int */ #this, core::int index, core::int value) → void
   ;
-static inline-class-member method ET1|foo(lowered final self::ET1 /* = core::int */ #this, core::int i) → void
+static extension-type-member method ET1|foo(lowered final self::ET1 /* = core::int */ #this, core::int i) → void
   ;
-static inline-class-member method ET1|get#foo(lowered final self::ET1 /* = core::int */ #this) → (core::int) → void
+static extension-type-member method ET1|get#foo(lowered final self::ET1 /* = core::int */ #this) → (core::int) → void
   return (core::int i) → void => self::ET1|foo(#this, i);
-static inline-class-member method ET1|get#getter(lowered final self::ET1 /* = core::int */ #this) → core::int
+static extension-type-member method ET1|get#getter(lowered final self::ET1 /* = core::int */ #this) → core::int
   ;
-static inline-class-member method ET1|set#setter(lowered final self::ET1 /* = core::int */ #this, core::int value) → void
+static extension-type-member method ET1|set#setter(lowered final self::ET1 /* = core::int */ #this, core::int value) → void
   ;
-static inline-class-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% t) → self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */
+static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% t) → self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */
   ;
-static inline-class-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% t) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* = self::ET2|constructor#_#new#tearOff::T% */
+static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% t) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* = self::ET2|constructor#_#new#tearOff::T% */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(t);
-static inline-class-member method ET2|+<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|+::T%> /* = self::ET2|+::T% */ #this, self::ET2<self::ET2|+::T%>? /* = self::ET2|+::T? */ t) → self::ET2<self::ET2|+::T%>? /* = self::ET2|+::T? */
+static extension-type-member method ET2|+<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|+::T%> /* = self::ET2|+::T% */ #this, self::ET2<self::ET2|+::T%>? /* = self::ET2|+::T? */ t) → self::ET2<self::ET2|+::T%>? /* = self::ET2|+::T? */
   ;
-static inline-class-member method ET2|unary-<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|unary-::T%> /* = self::ET2|unary-::T% */ #this) → self::ET2|unary-::T%
+static extension-type-member method ET2|unary-<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|unary-::T%> /* = self::ET2|unary-::T% */ #this) → self::ET2|unary-::T%
   ;
-static inline-class-member method ET2|[]<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|[]::T%> /* = self::ET2|[]::T% */ #this, core::int index) → self::ET2|[]::T%
+static extension-type-member method ET2|[]<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|[]::T%> /* = self::ET2|[]::T% */ #this, core::int index) → self::ET2|[]::T%
   ;
-static inline-class-member method ET2|[]=<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|[]=::T%> /* = self::ET2|[]=::T% */ #this, core::int index, self::ET2|[]=::T% value) → void
+static extension-type-member method ET2|[]=<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|[]=::T%> /* = self::ET2|[]=::T% */ #this, core::int index, self::ET2|[]=::T% value) → void
   ;
-static inline-class-member method ET2|foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|foo::T%> /* = self::ET2|foo::T% */ #this, self::ET2|foo::T% t) → void
+static extension-type-member method ET2|foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|foo::T%> /* = self::ET2|foo::T% */ #this, self::ET2|foo::T% t) → void
   ;
-static inline-class-member method ET2|get#foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#foo::T%>% /* = self::ET2|get#foo::T% */ #this) → (self::ET2|get#foo::T%) → void
+static extension-type-member method ET2|get#foo<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#foo::T%>% /* = self::ET2|get#foo::T% */ #this) → (self::ET2|get#foo::T%) → void
   return (self::ET2|get#foo::T% t) → void => self::ET2|foo<self::ET2|get#foo::T%>(#this, t);
-static inline-class-member method ET2|get#getter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#getter::T%> /* = self::ET2|get#getter::T% */ #this) → self::ET2|get#getter::T%
+static extension-type-member method ET2|get#getter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|get#getter::T%> /* = self::ET2|get#getter::T% */ #this) → self::ET2|get#getter::T%
   ;
-static inline-class-member method ET2|set#setter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|set#setter::T%> /* = self::ET2|set#setter::T% */ #this, self::ET2|set#setter::T% value) → void
+static extension-type-member method ET2|set#setter<T extends core::Object? = dynamic>(lowered final self::ET2<self::ET2|set#setter::T%> /* = self::ET2|set#setter::T% */ #this, self::ET2|set#setter::T% value) → void
   ;
 static method method1(self::ET1 /* = core::int */ et) → dynamic
   ;

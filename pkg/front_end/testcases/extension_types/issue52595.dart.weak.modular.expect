@@ -3,16 +3,16 @@ import self as self;
 import "dart:core" as core;
 
 extension type V<T extends core::Object? = dynamic>(core::int id) {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   constructor • = self::V|constructor#;
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }
 static const field self::V<core::int> /* = core::int */ c = #C1;
-static inline-class-member method V|constructor#<T extends core::Object? = dynamic>(core::int id) → self::V<self::V|constructor#::T%> /* = core::int */ {
+static extension-type-member method V|constructor#<T extends core::Object? = dynamic>(core::int id) → self::V<self::V|constructor#::T%> /* = core::int */ {
   lowered final self::V<self::V|constructor#::T%> /* = core::int */ #this = id;
   return #this;
 }
-static inline-class-member method V|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int id) → self::V<self::V|constructor#_#new#tearOff::T%> /* = core::int */
+static extension-type-member method V|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int id) → self::V<self::V|constructor#_#new#tearOff::T%> /* = core::int */
   return self::V|constructor#<self::V|constructor#_#new#tearOff::T%>(id);
 
 constants  {

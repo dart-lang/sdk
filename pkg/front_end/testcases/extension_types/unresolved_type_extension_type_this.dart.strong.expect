@@ -13,13 +13,13 @@ library;
 import self as self;
 
 extension type Extension(invalid-type it) {
-  abstract inline-class-member representation-field get it() → invalid-type;
+  abstract extension-type-member representation-field get it() → invalid-type;
   constructor • = self::Extension|constructor#;
   constructor tearoff • = self::Extension|constructor#_#new#tearOff;
 }
-static inline-class-member method Extension|constructor#(invalid-type it) → self::Extension /* = invalid-type */ {
+static extension-type-member method Extension|constructor#(invalid-type it) → self::Extension /* = invalid-type */ {
   lowered final self::Extension /* = invalid-type */ #this = it;
   return #this;
 }
-static inline-class-member method Extension|constructor#_#new#tearOff(invalid-type it) → self::Extension /* = invalid-type */
+static extension-type-member method Extension|constructor#_#new#tearOff(invalid-type it) → self::Extension /* = invalid-type */
   return self::Extension|constructor#(it);

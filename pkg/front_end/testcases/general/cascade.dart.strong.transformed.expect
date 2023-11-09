@@ -51,15 +51,15 @@ static method main() → dynamic {
     invalid-expression "pkg/front_end/testcases/general/cascade.dart:28:13: Error: The getter 'last' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
     ..first.last.toString()
-            ^^^^" in #t4.{core::Iterable::first}{core::int}{<unresolved>}.last.{core::Object::toString}(){() → core::String};
+            ^^^^" in #t4.{core::Iterable::first}{core::int}{<unresolved>}.last.{core::Object::toString}{<object>}.(){() → core::String};
     invalid-expression "pkg/front_end/testcases/general/cascade.dart:29:12: Error: The operator '[]' isn't defined for the class 'int'.
 Try correcting the operator to an existing operator, or defining a '[]' operator.
     ..first[0].toString()
-           ^" in #t4.{core::Iterable::first}{core::int}{<unresolved>}.[](0).{core::Object::toString}(){() → core::String};
+           ^" in #t4.{core::Iterable::first}{core::int}{<unresolved>}.[](0).{core::Object::toString}{<object>}.(){() → core::String};
     invalid-expression "pkg/front_end/testcases/general/cascade.dart:30:11: Error: The getter 'last' isn't defined for the class 'int'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'last'.
     ..[0].last.toString();
-          ^^^^" in #t4.{core::List::[]}(0){(core::int) → core::int}{<unresolved>}.last.{core::Object::toString}(){() → core::String};
+          ^^^^" in #t4.{core::List::[]}(0){(core::int) → core::int}{<unresolved>}.last.{core::Object::toString}{<object>}.(){() → core::String};
   } =>#t4;
   core::print(list);
 }

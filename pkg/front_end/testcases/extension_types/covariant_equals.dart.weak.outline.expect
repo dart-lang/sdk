@@ -18,23 +18,23 @@ class C extends core::Object {
     ;
 }
 extension type ET1(self::B b) implements self::A {
-  abstract inline-class-member representation-field get b() → self::B;
+  abstract extension-type-member representation-field get b() → self::B;
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
 extension type ET2(self::B b) implements self::ET1 /* = self::B */, self::B {
-  abstract inline-class-member representation-field get b() → self::B;
+  abstract extension-type-member representation-field get b() → self::B;
   abstract forwarding-stub operator ==(covariant-by-declaration core::Object other) → core::bool;
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
-static inline-class-member method ET1|constructor#(self::B b) → self::ET1 /* = self::B */
+static extension-type-member method ET1|constructor#(self::B b) → self::ET1 /* = self::B */
   ;
-static inline-class-member method ET1|constructor#_#new#tearOff(self::B b) → self::ET1 /* = self::B */
+static extension-type-member method ET1|constructor#_#new#tearOff(self::B b) → self::ET1 /* = self::B */
   return self::ET1|constructor#(b);
-static inline-class-member method ET2|constructor#(self::B b) → self::ET2 /* = self::B */
+static extension-type-member method ET2|constructor#(self::B b) → self::ET2 /* = self::B */
   ;
-static inline-class-member method ET2|constructor#_#new#tearOff(self::B b) → self::ET2 /* = self::B */
+static extension-type-member method ET2|constructor#_#new#tearOff(self::B b) → self::ET2 /* = self::B */
   return self::ET2|constructor#(b);
 static method test() → void
   ;

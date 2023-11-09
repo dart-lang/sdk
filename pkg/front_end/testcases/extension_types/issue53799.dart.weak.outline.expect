@@ -67,110 +67,110 @@ class C extends self::A<core::String> {
     ;
 }
 extension type E<X extends core::Object? = dynamic>(X% it) {
-  abstract inline-class-member representation-field get it() → X%;
+  abstract extension-type-member representation-field get it() → X%;
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
 extension type E1(self::A<Never> it) implements self::A<core::String>, self::A<core::int> {
-  abstract inline-class-member representation-field get it() → self::A<Never>;
+  abstract extension-type-member representation-field get it() → self::A<Never>;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
 }
 extension type E2(self::B<Never> it) implements self::B<core::String>, self::A<core::double> {
-  abstract inline-class-member representation-field get it() → self::B<Never>;
+  abstract extension-type-member representation-field get it() → self::B<Never>;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
 extension type E3(self::C it) implements self::C, self::A<core::num> {
-  abstract inline-class-member representation-field get it() → self::C;
+  abstract extension-type-member representation-field get it() → self::C;
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
 extension type E41(self::A<Never> it) implements self::A<core::String> {
-  abstract inline-class-member representation-field get it() → self::A<Never>;
+  abstract extension-type-member representation-field get it() → self::A<Never>;
   constructor • = self::E41|constructor#;
   constructor tearoff • = self::E41|constructor#_#new#tearOff;
 }
 extension type E42(self::A<Never> it) implements self::E41 /* = self::A<Never> */, self::A<core::int> {
-  abstract inline-class-member representation-field get it() → self::A<Never>;
+  abstract extension-type-member representation-field get it() → self::A<Never>;
   constructor • = self::E42|constructor#;
   constructor tearoff • = self::E42|constructor#_#new#tearOff;
 }
 extension type E5(self::E<Never> /* = Never */ it) implements self::E<core::String> /* = core::String */, self::E<core::bool> /* = core::bool */ {
-  abstract inline-class-member representation-field get it() → self::E<Never> /* = Never */;
+  abstract extension-type-member representation-field get it() → self::E<Never> /* = Never */;
   constructor • = self::E5|constructor#;
   constructor tearoff • = self::E5|constructor#_#new#tearOff;
 }
 extension type E61(self::E<Never> /* = Never */ it) implements self::E<core::num> /* = core::num */ {
-  abstract inline-class-member representation-field get it() → self::E<Never> /* = Never */;
+  abstract extension-type-member representation-field get it() → self::E<Never> /* = Never */;
   constructor • = self::E61|constructor#;
   constructor tearoff • = self::E61|constructor#_#new#tearOff;
 }
 extension type E62(self::E<Never> /* = Never */ it) implements self::E61 /* = Never */, self::E<core::String> /* = core::String */ {
-  abstract inline-class-member representation-field get it() → self::E<Never> /* = Never */;
+  abstract extension-type-member representation-field get it() → self::E<Never> /* = Never */;
   constructor • = self::E62|constructor#;
   constructor tearoff • = self::E62|constructor#_#new#tearOff;
 }
 extension type E71(self::E<Never> /* = Never */ it) implements self::E<core::double> /* = core::double */ {
-  abstract inline-class-member representation-field get it() → self::E<Never> /* = Never */;
+  abstract extension-type-member representation-field get it() → self::E<Never> /* = Never */;
   constructor • = self::E71|constructor#;
   constructor tearoff • = self::E71|constructor#_#new#tearOff;
 }
 extension type E72(self::E<Never> /* = Never */ it) implements self::E<core::bool> /* = core::bool */ {
-  abstract inline-class-member representation-field get it() → self::E<Never> /* = Never */;
+  abstract extension-type-member representation-field get it() → self::E<Never> /* = Never */;
   constructor • = self::E72|constructor#;
   constructor tearoff • = self::E72|constructor#_#new#tearOff;
 }
 extension type E73(self::E<Never> /* = Never */ it) implements self::E71 /* = Never */, self::E72 /* = Never */ {
-  abstract inline-class-member representation-field get it() → self::E<Never> /* = Never */;
+  abstract extension-type-member representation-field get it() → self::E<Never> /* = Never */;
   constructor • = self::E73|constructor#;
   constructor tearoff • = self::E73|constructor#_#new#tearOff;
 }
-static inline-class-member method E|constructor#<X extends core::Object? = dynamic>(self::E|constructor#::X% it) → self::E<self::E|constructor#::X%> /* = self::E|constructor#::X% */
+static extension-type-member method E|constructor#<X extends core::Object? = dynamic>(self::E|constructor#::X% it) → self::E<self::E|constructor#::X%> /* = self::E|constructor#::X% */
   ;
-static inline-class-member method E|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::X% it) → self::E<self::E|constructor#_#new#tearOff::X%>% /* = self::E|constructor#_#new#tearOff::X% */
+static extension-type-member method E|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::X% it) → self::E<self::E|constructor#_#new#tearOff::X%>% /* = self::E|constructor#_#new#tearOff::X% */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::X%>(it);
-static inline-class-member method E1|constructor#(self::A<Never> it) → self::E1 /* = self::A<Never> */
+static extension-type-member method E1|constructor#(self::A<Never> it) → self::E1 /* = self::A<Never> */
   ;
-static inline-class-member method E1|constructor#_#new#tearOff(self::A<Never> it) → self::E1 /* = self::A<Never> */
+static extension-type-member method E1|constructor#_#new#tearOff(self::A<Never> it) → self::E1 /* = self::A<Never> */
   return self::E1|constructor#(it);
-static inline-class-member method E2|constructor#(self::B<Never> it) → self::E2 /* = self::B<Never> */
+static extension-type-member method E2|constructor#(self::B<Never> it) → self::E2 /* = self::B<Never> */
   ;
-static inline-class-member method E2|constructor#_#new#tearOff(self::B<Never> it) → self::E2 /* = self::B<Never> */
+static extension-type-member method E2|constructor#_#new#tearOff(self::B<Never> it) → self::E2 /* = self::B<Never> */
   return self::E2|constructor#(it);
-static inline-class-member method E3|constructor#(self::C it) → self::E3 /* = self::C */
+static extension-type-member method E3|constructor#(self::C it) → self::E3 /* = self::C */
   ;
-static inline-class-member method E3|constructor#_#new#tearOff(self::C it) → self::E3 /* = self::C */
+static extension-type-member method E3|constructor#_#new#tearOff(self::C it) → self::E3 /* = self::C */
   return self::E3|constructor#(it);
-static inline-class-member method E41|constructor#(self::A<Never> it) → self::E41 /* = self::A<Never> */
+static extension-type-member method E41|constructor#(self::A<Never> it) → self::E41 /* = self::A<Never> */
   ;
-static inline-class-member method E41|constructor#_#new#tearOff(self::A<Never> it) → self::E41 /* = self::A<Never> */
+static extension-type-member method E41|constructor#_#new#tearOff(self::A<Never> it) → self::E41 /* = self::A<Never> */
   return self::E41|constructor#(it);
-static inline-class-member method E42|constructor#(self::A<Never> it) → self::E42 /* = self::A<Never> */
+static extension-type-member method E42|constructor#(self::A<Never> it) → self::E42 /* = self::A<Never> */
   ;
-static inline-class-member method E42|constructor#_#new#tearOff(self::A<Never> it) → self::E42 /* = self::A<Never> */
+static extension-type-member method E42|constructor#_#new#tearOff(self::A<Never> it) → self::E42 /* = self::A<Never> */
   return self::E42|constructor#(it);
-static inline-class-member method E5|constructor#(self::E<Never> /* = Never */ it) → self::E5 /* = Never */
+static extension-type-member method E5|constructor#(self::E<Never> /* = Never */ it) → self::E5 /* = Never */
   ;
-static inline-class-member method E5|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E5 /* = Never */
+static extension-type-member method E5|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E5 /* = Never */
   return self::E5|constructor#(it);
-static inline-class-member method E61|constructor#(self::E<Never> /* = Never */ it) → self::E61 /* = Never */
+static extension-type-member method E61|constructor#(self::E<Never> /* = Never */ it) → self::E61 /* = Never */
   ;
-static inline-class-member method E61|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E61 /* = Never */
+static extension-type-member method E61|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E61 /* = Never */
   return self::E61|constructor#(it);
-static inline-class-member method E62|constructor#(self::E<Never> /* = Never */ it) → self::E62 /* = Never */
+static extension-type-member method E62|constructor#(self::E<Never> /* = Never */ it) → self::E62 /* = Never */
   ;
-static inline-class-member method E62|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E62 /* = Never */
+static extension-type-member method E62|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E62 /* = Never */
   return self::E62|constructor#(it);
-static inline-class-member method E71|constructor#(self::E<Never> /* = Never */ it) → self::E71 /* = Never */
+static extension-type-member method E71|constructor#(self::E<Never> /* = Never */ it) → self::E71 /* = Never */
   ;
-static inline-class-member method E71|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E71 /* = Never */
+static extension-type-member method E71|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E71 /* = Never */
   return self::E71|constructor#(it);
-static inline-class-member method E72|constructor#(self::E<Never> /* = Never */ it) → self::E72 /* = Never */
+static extension-type-member method E72|constructor#(self::E<Never> /* = Never */ it) → self::E72 /* = Never */
   ;
-static inline-class-member method E72|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E72 /* = Never */
+static extension-type-member method E72|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E72 /* = Never */
   return self::E72|constructor#(it);
-static inline-class-member method E73|constructor#(self::E<Never> /* = Never */ it) → self::E73 /* = Never */
+static extension-type-member method E73|constructor#(self::E<Never> /* = Never */ it) → self::E73 /* = Never */
   ;
-static inline-class-member method E73|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E73 /* = Never */
+static extension-type-member method E73|constructor#_#new#tearOff(self::E<Never> /* = Never */ it) → self::E73 /* = Never */
   return self::E73|constructor#(it);

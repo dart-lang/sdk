@@ -31,36 +31,36 @@ class C2 extends self::A2 /*hasConstConstructor*/  {
     ;
 }
 extension type E1(self::A1 it) implements self::A1 {
-  abstract inline-class-member representation-field get it() → self::A1;
+  abstract extension-type-member representation-field get it() → self::A1;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
   static redirecting-factory redir = self::E1|constructor#redir;
   static redirecting-factory tearoff redir = self::E1|constructor#_#redir#tearOff;
 }
 extension type E2(self::A2 it) implements self::A2 {
-  abstract inline-class-member representation-field get it() → self::A2;
+  abstract extension-type-member representation-field get it() → self::A2;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
   constructor pick = self::E2|constructor#pick;
   constructor tearoff pick = self::E2|constructor#_#pick#tearOff;
 }
-static inline-class-member method E1|constructor#(self::A1 it) → self::E1 /* = self::A1 */
+static extension-type-member method E1|constructor#(self::A1 it) → self::E1 /* = self::A1 */
   ;
-static inline-class-member method E1|constructor#_#new#tearOff(self::A1 it) → self::E1 /* = self::A1 */
+static extension-type-member method E1|constructor#_#new#tearOff(self::A1 it) → self::E1 /* = self::A1 */
   return self::E1|constructor#(it);
-static inline-class-member method E1|constructor#redir(self::A1 it) → self::E1 /* = self::A1 */ /* redirection-target: self::E1|constructor# */
+static extension-type-member method E1|constructor#redir(self::A1 it) → self::E1 /* = self::A1 */ /* redirection-target: self::E1|constructor# */
   return self::E1|constructor#(it);
-static inline-class-member method E1|constructor#_#redir#tearOff(self::A1 it) → self::E1 /* = self::A1 */
+static extension-type-member method E1|constructor#_#redir#tearOff(self::A1 it) → self::E1 /* = self::A1 */
   return self::E1|constructor#(it);
 static method test1() → dynamic
   ;
-static inline-class-member method E2|constructor#(self::A2 it) → self::E2 /* = self::A2 */
+static extension-type-member method E2|constructor#(self::A2 it) → self::E2 /* = self::A2 */
   ;
-static inline-class-member method E2|constructor#_#new#tearOff(self::A2 it) → self::E2 /* = self::A2 */
+static extension-type-member method E2|constructor#_#new#tearOff(self::A2 it) → self::E2 /* = self::A2 */
   return self::E2|constructor#(it);
-static inline-class-member method E2|constructor#pick(core::bool b) → self::E2 /* = self::A2 */
+static extension-type-member method E2|constructor#pick(core::bool b) → self::E2 /* = self::A2 */
   ;
-static inline-class-member method E2|constructor#_#pick#tearOff(core::bool b) → self::E2 /* = self::A2 */
+static extension-type-member method E2|constructor#_#pick#tearOff(core::bool b) → self::E2 /* = self::A2 */
   return self::E2|constructor#pick(b);
 static method test2() → dynamic
   ;

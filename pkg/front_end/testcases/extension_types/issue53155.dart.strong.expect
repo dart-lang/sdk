@@ -11,15 +11,15 @@ class C<T extends self::V<core::num, core::Object> /* = core::num */> extends co
     ;
 }
 extension type V<X1 extends core::num, X2 extends core::Object>(X1 id) {
-  abstract inline-class-member representation-field get id() → X1;
+  abstract extension-type-member representation-field get id() → X1;
   constructor • = self::V|constructor#;
   constructor tearoff • = self::V|constructor#_#new#tearOff;
 }
-static inline-class-member method V|constructor#<X1 extends core::num, X2 extends core::Object>(self::V|constructor#::X1 id) → self::V<self::V|constructor#::X1, self::V|constructor#::X2> /* = self::V|constructor#::X1 */ {
+static extension-type-member method V|constructor#<X1 extends core::num, X2 extends core::Object>(self::V|constructor#::X1 id) → self::V<self::V|constructor#::X1, self::V|constructor#::X2> /* = self::V|constructor#::X1 */ {
   lowered final self::V<self::V|constructor#::X1, self::V|constructor#::X2> /* = self::V|constructor#::X1 */ #this = id;
   return #this;
 }
-static inline-class-member method V|constructor#_#new#tearOff<X1 extends core::num, X2 extends core::Object>(self::V|constructor#_#new#tearOff::X1 id) → self::V<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2> /* = self::V|constructor#_#new#tearOff::X1 */
+static extension-type-member method V|constructor#_#new#tearOff<X1 extends core::num, X2 extends core::Object>(self::V|constructor#_#new#tearOff::X1 id) → self::V<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2> /* = self::V|constructor#_#new#tearOff::X1 */
   return self::V|constructor#<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2>(id);
 static method foo<T extends self::V<core::num, core::Object> /* = core::num */>(self::foo::T t) → self::V<core::int, core::int> /* = core::int */
   return t as self::V<core::int, core::int> /* = core::int */;
