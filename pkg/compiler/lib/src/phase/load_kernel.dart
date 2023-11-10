@@ -23,7 +23,7 @@ import '../common.dart';
 import '../kernel/front_end_adapter.dart';
 import '../kernel/dart2js_target.dart'
     show Dart2jsTarget, implicitlyUsedLibraries;
-import '../kernel/transformations/global/lowering.dart' as globalTransforms;
+import '../kernel/transformations/global/transform.dart' as globalTransforms;
 import '../options.dart';
 
 class Input {

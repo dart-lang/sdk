@@ -11,14 +11,14 @@ import 'js_get_flag_lowering.dart';
 
 void transformLibraries(
     List<Library> libraries, CoreTypes coreTypes, CompilerOptions options) {
-  final transformer = _Lowering(coreTypes, options);
+  final transformer = _GlobalTransformer(coreTypes, options);
   libraries.forEach(transformer.visitLibrary);
 }
 
-class _Lowering extends Transformer {
+class _GlobalTransformer extends Transformer {
   final JsGetFlagLowering _jsGetFlagLowering;
 
-  _Lowering(CoreTypes coreTypes, CompilerOptions options)
+  _GlobalTransformer(CoreTypes coreTypes, CompilerOptions options)
       : _jsGetFlagLowering = JsGetFlagLowering(coreTypes, options);
 
   @override

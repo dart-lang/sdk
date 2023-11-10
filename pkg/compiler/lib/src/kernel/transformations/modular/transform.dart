@@ -19,11 +19,11 @@ import 'late_lowering.dart';
 /// transforming children nodes.
 void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
     ClassHierarchy hierarchy, CompilerOptions? options) {
-  final transformer = _Lowering(coreTypes, hierarchy, options);
+  final transformer = _ModularTransformer(coreTypes, hierarchy, options);
   libraries.forEach(transformer.visitLibrary);
 }
 
-class _Lowering extends Transformer {
+class _ModularTransformer extends Transformer {
   final FactorySpecializer factorySpecializer;
   final LateLowering _lateLowering;
   final AwaitLowering _awaitLowering;
@@ -31,7 +31,7 @@ class _Lowering extends Transformer {
 
   Member? _currentMember;
 
-  _Lowering(
+  _ModularTransformer(
       CoreTypes coreTypes, ClassHierarchy hierarchy, CompilerOptions? _options)
       : factorySpecializer = FactorySpecializer(coreTypes, hierarchy),
         _lateLowering = LateLowering(coreTypes, _options),
