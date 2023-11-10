@@ -17,5 +17,5 @@ static method test() → dynamic {
 }
 
 constants  {
-  #C1 = TypeLiteralConstant(self::ET /* = invalid-type */)
+  #C1 = TypeLiteralConstant(invalid-type)
 }

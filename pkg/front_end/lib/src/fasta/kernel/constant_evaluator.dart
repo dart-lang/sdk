@@ -5133,7 +5133,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       value ? trueConstant : falseConstant;
 
   bool isSubtype(Constant constant, DartType type, SubtypeCheckMode mode) {
-    DartType constantType = constant.getType(staticTypeContext);
+    DartType constantType =
+        constant.getType(staticTypeContext).extensionTypeErasure;
     if (mode == SubtypeCheckMode.ignoringNullabilities) {
       constantType = rawLegacyErasure(constantType) ?? constantType;
     }
@@ -5250,10 +5251,10 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     return result;
   }
 
-  /// Returns the type on success and null on failure.
+  /// Returns the reified type on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
   DartType? _evaluateDartType(TreeNode node, DartType type) {
-    final DartType result = env.substituteType(type);
+    final DartType result = env.substituteType(type.extensionTypeErasure);
 
     if (!isInstantiated(result)) {
       // TODO(johnniwinther): Maybe we should always report this in the body

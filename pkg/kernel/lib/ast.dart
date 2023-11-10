@@ -13160,6 +13160,7 @@ class TypeParameter extends TreeNode implements Annotatable {
   @override
   void set parent(TreeNode? value);
 
+  // TODO(johnniwinther): Make this non-nullable.
   GenericDeclaration? get declaration {
     // TODO(johnniwinther): Store the declaration directly when [parent] is
     // removed.
@@ -14354,6 +14355,7 @@ class RedirectingFactoryTearOffConstant extends Constant
 }
 
 class TypedefTearOffConstant extends Constant {
+  // TODO(johnniwinther): Change this to use [StructuralParameter].
   final List<TypeParameter> parameters;
   final TearOffConstant tearOffConstant;
   final List<DartType> types;

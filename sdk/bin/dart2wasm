@@ -95,9 +95,6 @@ fi
 # Not the prettiest way to check for a target, and it doesn't support changing
 # the default, but it will do for experiments.
 for arg in "${ARGS[@]}"; do
-  if [[ "$arg" == "--stringref" ]]; then
-    PLATFORM="$BIN_DIR/dart2wasm_stringref_platform.dill"
-  fi
   if [[ "$arg" == "--js-compatibility" ]]; then
     PLATFORM="$BIN_DIR/dart2wasm_js_compatibility_platform.dill"
   fi

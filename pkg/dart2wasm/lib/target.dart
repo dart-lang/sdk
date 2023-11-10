@@ -36,7 +36,6 @@ import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 enum Mode {
   regular,
-  stringref,
   jsCompatibility,
 }
 
@@ -122,8 +121,6 @@ class WasmTarget extends Target {
     switch (mode) {
       case Mode.regular:
         return 'wasm';
-      case Mode.stringref:
-        return 'wasm_stringref';
       case Mode.jsCompatibility:
         return 'wasm_js_compatibility';
     }
@@ -133,8 +130,6 @@ class WasmTarget extends Target {
     switch (mode) {
       case Mode.regular:
         return 'dart2wasm_platform.dill';
-      case Mode.stringref:
-        return 'dart2wasm_stringref_platform.dill';
       case Mode.jsCompatibility:
         return 'dart2wasm_js_compatibility_platform.dill';
     }

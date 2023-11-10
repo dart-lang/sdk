@@ -1,0 +1,39 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/const_collection.dart:15:31: Error: A value of type 'ET Function(int)' can't be assigned to a variable of type 'int Function(int)'.
+// const f = <int Function(int)>[ET.new]; // Error
+//                               ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type ET(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static const field dynamic tearOff = self::ET|constructor#_#new#tearOff;
+static const field core::List<dynamic> a = const <dynamic>[self::tearOff];
+static const field core::List<(core::int) → self::ET /* = core::int */> b = const <(core::int) → self::ET /* = core::int */>[self::tearOff as{TypeError,ForDynamic} (core::int) → self::ET /* = core::int */];
+static const field core::List<(core::int) → core::int> c = const <(core::int) → core::int>[self::tearOff as{TypeError,ForDynamic} (core::int) → core::int];
+static const field core::List<(core::int) → self::ET /* = core::int */> d = const <(core::int) → self::ET /* = core::int */>[self::ET|constructor#_#new#tearOff];
+static const field core::List<(core::int) → self::ET /* = core::int */> e = const <(core::int) → self::ET /* = core::int */>[self::ET|constructor#_#new#tearOff];
+static const field core::List<(core::int) → core::int> f = const <(core::int) → core::int>[invalid-expression "pkg/front_end/testcases/extension_types/const_collection.dart:15:31: Error: A value of type 'ET Function(int)' can't be assigned to a variable of type 'int Function(int)'.
+const f = <int Function(int)>[ET.new]; // Error
+                              ^" in self::ET|constructor#_#new#tearOff as{TypeError} (core::int) → core::int];
+static extension-type-member method ET|constructor#(core::int i) → self::ET /* = core::int */
+  ;
+static extension-type-member method ET|constructor#_#new#tearOff(core::int i) → self::ET /* = core::int */
+  return self::ET|constructor#(i);
+
+
+Extra constant evaluation status:
+Evaluated: StaticTearOff @ org-dartlang-testcase:///const_collection.dart:7:25 -> StaticTearOffConstant(ET|constructor#_#new#tearOff)
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collection.dart:9:11 -> ListConstant(const <dynamic>[ET|constructor#_#new#tearOff])
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collection.dart:10:29 -> ListConstant(const <int* Function(int*)*>[ET|constructor#_#new#tearOff])
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collection.dart:11:30 -> ListConstant(const <int* Function(int*)*>[ET|constructor#_#new#tearOff])
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collection.dart:13:11 -> ListConstant(const <int* Function(int*)*>[ET|constructor#_#new#tearOff])
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_collection.dart:14:29 -> ListConstant(const <int* Function(int*)*>[ET|constructor#_#new#tearOff])
+Extra constant evaluation: evaluated: 9, effectively constant: 6

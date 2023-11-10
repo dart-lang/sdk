@@ -1,0 +1,42 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+}
+extension type ExtensionType<T extends core::Object? = dynamic>(T% id) {
+  abstract extension-type-member representation-field get id() → T%;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static const field core::Type a1 = self::Class<core::int>;
+static const field core::Type a2 = self::ExtensionType<self::Class<core::int>> /* = self::Class<core::int> */;
+static const field core::Type a3 = self::Class<core::bool>;
+static const field core::Type a4 = self::ExtensionType<self::Class<core::bool>> /* = self::Class<core::bool> */;
+static const field self::Class<core::int> b1 = const self::Class::•<core::int>();
+static const field self::ExtensionType<self::Class<core::int>>% /* = self::Class<core::int> */ b2 = const self::ExtensionType|constructor#<self::Class<core::int>>(const self::Class::•<core::int>());
+static const field self::Class<core::bool> b3 = const self::Class::•<core::bool>();
+static const field self::ExtensionType<self::Class<core::bool>>% /* = self::Class<core::bool> */ b4 = const self::ExtensionType|constructor#<self::Class<core::bool>>(const self::Class::•<core::bool>());
+static extension-type-member method ExtensionType|constructor#<T extends core::Object? = dynamic>(self::ExtensionType|constructor#::T% id) → self::ExtensionType<self::ExtensionType|constructor#::T%> /* = self::ExtensionType|constructor#::T% */
+  ;
+static extension-type-member method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ExtensionType|constructor#_#new#tearOff::T% id) → self::ExtensionType<self::ExtensionType|constructor#_#new#tearOff::T%>% /* = self::ExtensionType|constructor#_#new#tearOff::T% */
+  return self::ExtensionType|constructor#<self::ExtensionType|constructor#_#new#tearOff::T%>(id);
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: TypeLiteral @ org-dartlang-testcase:///const_extension_type.dart:11:12 -> TypeLiteralConstant(Class<int*>*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///const_extension_type.dart:12:12 -> TypeLiteralConstant(Class<int*>*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///const_extension_type.dart:13:12 -> TypeLiteralConstant(Class<bool*>*)
+Evaluated: TypeLiteral @ org-dartlang-testcase:///const_extension_type.dart:14:12 -> TypeLiteralConstant(Class<bool*>*)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_extension_type.dart:16:18 -> InstanceConstant(const Class<int*>{})
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_extension_type.dart:17:18 -> NullConstant(null)
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_extension_type.dart:18:18 -> InstanceConstant(const Class<bool*>{})
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///const_extension_type.dart:19:18 -> NullConstant(null)
+Extra constant evaluation: evaluated: 10, effectively constant: 8

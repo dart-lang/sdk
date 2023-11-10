@@ -122,8 +122,6 @@
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
       "out/ReleaseX64/dart2wasm_outline.dill",
       "out/ReleaseX64/dart2wasm_platform.dill",
-      "out/ReleaseX64/dart2wasm_stringref_outline.dill",
-      "out/ReleaseX64/dart2wasm_stringref_platform.dill",
       "out/ReleaseX64/dart2wasm_js_compatibility_outline.dill",
       "out/ReleaseX64/dart2wasm_js_compatibility_platform.dill",
       "out/ReleaseX64/wasm/",

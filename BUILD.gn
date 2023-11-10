@@ -108,7 +108,6 @@ group("dart2wasm_platform") {
     ":runtime_precompiled",
     "utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
     "utils/dart2wasm:compile_dart2wasm_platform",
-    "utils/dart2wasm:compile_dart2wasm_stringref_platform",
     "utils/dart2wasm:dart2wasm_snapshot",
   ]
   if (defined(is_product)) {

@@ -1,0 +1,37 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/const_collection.dart:15:31: Error: A value of type 'ET Function(int)' can't be assigned to a variable of type 'int Function(int)'.
+// const f = <int Function(int)>[ET.new]; // Error
+//                               ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type ET(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static const field dynamic tearOff = #C1;
+static const field core::List<dynamic> a = #C2;
+static const field core::List<(core::int) → self::ET /* = core::int */> b = #C3;
+static const field core::List<(core::int) → core::int> c = #C3;
+static const field core::List<(core::int) → self::ET /* = core::int */> d = #C3;
+static const field core::List<(core::int) → self::ET /* = core::int */> e = #C3;
+static const field core::List<(core::int) → core::int> f = invalid-expression "pkg/front_end/testcases/extension_types/const_collection.dart:15:31: Error: A value of type 'ET Function(int)' can't be assigned to a variable of type 'int Function(int)'.
+const f = <int Function(int)>[ET.new]; // Error
+                              ^";
+static extension-type-member method ET|constructor#(core::int i) → self::ET /* = core::int */ {
+  lowered final self::ET /* = core::int */ #this = i;
+  return #this;
+}
+static extension-type-member method ET|constructor#_#new#tearOff(core::int i) → self::ET /* = core::int */
+  return self::ET|constructor#(i);
+
+constants  {
+  #C1 = static-tearoff self::ET|constructor#_#new#tearOff
+  #C2 = <dynamic>[#C1]
+  #C3 = <(core::int) → core::int>[#C1]
+}
