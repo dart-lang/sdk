@@ -26,8 +26,6 @@ void installAdditionalTargets() {
       (TargetFlags flags) => new Dart2jsTarget("dart2js_server", flags);
   targets["dartdevc"] = (TargetFlags flags) => new DevCompilerTarget(flags);
   targets["dart2wasm"] = (TargetFlags flags) => new WasmTarget();
-  targets["dart2wasm_stringref"] =
-      (TargetFlags flags) => new WasmTarget(mode: wasm.Mode.stringref);
   targets["dart2wasm_js_compatibility"] =
       (TargetFlags flags) => new WasmTarget(mode: wasm.Mode.jsCompatibility);
   vm_target_install.installAdditionalTargets();

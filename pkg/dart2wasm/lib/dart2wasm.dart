@@ -34,8 +34,6 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printKernel),
   Flag("print-wasm", (o, value) => o.translatorOptions.printWasm = value,
       defaultsTo: _d.translatorOptions.printWasm),
-  Flag("stringref", (o, value) => o.translatorOptions.useStringref = value,
-      defaultsTo: _d.translatorOptions.useStringref),
   Flag("js-compatibility",
       (o, value) => o.translatorOptions.jsCompatibility = value,
       defaultsTo: _d.translatorOptions.jsCompatibility),
