@@ -7,8 +7,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -52,22 +52,6 @@ class _DependenciesCollector extends RecursiveTypeVisitor {
     final element = type.element;
     if (element is ExtensionTypeElementImpl) {
       dependencies.add(element);
-    }
-
-    return super.visitInterfaceType(type);
-  }
-}
-
-class _ExtensionTypeErasure extends ReplacementVisitor {
-  DartType perform(DartType type) {
-    return type.accept(this) ?? type;
-  }
-
-  @override
-  DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
-    final typeErasure = type.representationTypeErasure;
-    if (typeErasure != null) {
-      return typeErasure;
     }
 
     return super.visitInterfaceType(type);
@@ -167,7 +151,7 @@ class _Node extends graph.Node<_Node> {
     final typeSystem = element.library.typeSystem;
 
     element.representation.type = type;
-    element.typeErasure = _ExtensionTypeErasure().perform(type);
+    element.typeErasure = ExtensionTypeErasure().perform(type);
 
     var interfaces = node.implementsClause?.interfaces
         .map((e) => e.type)

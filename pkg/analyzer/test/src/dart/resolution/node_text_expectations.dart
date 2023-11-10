@@ -14,6 +14,10 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 class NodeTextExpectationsCollector {
+  /// If this flag is `true`, we accumulate updates to expectations.
+  /// This should only happen locally, to update tests or implementation.
+  ///
+  /// This flag should be `false` during code review.
   static const updatingIsEnabled = false;
 
   static const assertMethods = [
@@ -53,6 +57,11 @@ class NodeTextExpectationsCollector {
       argumentIndex: 1,
     ),
     _AssertMethod(
+      className: 'MetadataResolutionTest',
+      methodName: '_assertAnnotationValueText',
+      argumentIndex: 1,
+    ),
+    _AssertMethod(
       className: 'ParserDiagnosticsTest',
       methodName: 'assertParsedNodeText',
       argumentIndex: 1,
@@ -60,6 +69,11 @@ class NodeTextExpectationsCollector {
     _AssertMethod(
       className: 'ResolutionTest',
       methodName: 'assertParsedNodeText',
+      argumentIndex: 1,
+    ),
+    _AssertMethod(
+      className: 'ResolutionTest',
+      methodName: 'assertDartObjectText',
       argumentIndex: 1,
     ),
     _AssertMethod(
@@ -92,9 +106,9 @@ class NodeTextExpectationsCollector {
     }
 
     final traceLines = '${StackTrace.current}'.split('\n');
-    for (var traceIndex = 0; traceIndex < traceLines.length; traceIndex++) {
-      final traceLine = traceLines[traceIndex];
-      for (final assertMethod in assertMethods) {
+    for (final assertMethod in assertMethods) {
+      for (var traceIndex = 0; traceIndex < traceLines.length; traceIndex++) {
+        final traceLine = traceLines[traceIndex];
         if (!traceLine.contains(' ${assertMethod.stackTracePattern} ')) {
           continue;
         }
@@ -145,6 +159,9 @@ class NodeTextExpectationsCollector {
             actual,
           ),
         );
+
+        // Stop after the first (most specific) assert method.
+        return;
       }
     }
   }

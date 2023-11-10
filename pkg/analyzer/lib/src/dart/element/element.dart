@@ -2469,7 +2469,6 @@ abstract class ElementImpl implements Element {
     bool multiline = false,
   }) {
     var builder = ElementDisplayStringBuilder(
-      skipAllDynamicArguments: false,
       withNullability: withNullability,
       multiline: multiline,
     );

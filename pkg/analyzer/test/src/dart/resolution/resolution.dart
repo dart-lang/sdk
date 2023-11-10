@@ -119,7 +119,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ).write(object as DartObjectImpl?);
     var actual = buffer.toString();
     if (actual != expected) {
-      print(buffer);
+      NodeTextExpectationsCollector.add(actual);
+      print(actual);
     }
     expect(actual, expected);
   }
