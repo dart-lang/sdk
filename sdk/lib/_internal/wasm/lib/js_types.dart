@@ -8,32 +8,14 @@
 /// library.
 library dart._js_types;
 
-import 'dart:_internal'
-    show
-        CodeUnits,
-        EfficientLengthIterable,
-        ExpandIterable,
-        FixedLengthListMixin,
-        FollowedByIterable,
-        IterableElementError,
-        ListMapView,
-        Lists,
-        MappedListIterable,
-        ReversedListIterable,
-        SkipWhileIterable,
-        Sort,
-        SubListIterable,
-        TakeWhileIterable,
-        unsafeCast,
-        WhereIterable,
-        WhereTypeIterable;
+import 'dart:_internal';
 import 'dart:_js_helper' as js;
 import 'dart:_string_helper';
 import 'dart:_wasm';
 import 'dart:collection';
-import 'dart:typed_data';
 import 'dart:js_interop';
 import 'dart:math';
+import 'dart:typed_data';
 
 part 'js_array.dart';
 part 'js_string.dart';
