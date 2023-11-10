@@ -1,0 +1,58 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+}
+extension type ExtensionType<T extends core::Object? = dynamic>(T% id) {
+  abstract extension-type-member representation-field get id() → T%;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+}
+static const field core::Type a1 = #C1;
+static const field core::Type a2 = #C1;
+static const field core::Type a3 = #C2;
+static const field core::Type a4 = #C2;
+static const field self::Class<core::int> b1 = #C3;
+static const field self::ExtensionType<self::Class<core::int>>% /* = self::Class<core::int> */ b2 = #C3;
+static const field self::Class<core::bool> b3 = #C4;
+static const field self::ExtensionType<self::Class<core::bool>>% /* = self::Class<core::bool> */ b4 = #C4;
+static extension-type-member method ExtensionType|constructor#<T extends core::Object? = dynamic>(self::ExtensionType|constructor#::T% id) → self::ExtensionType<self::ExtensionType|constructor#::T%> /* = self::ExtensionType|constructor#::T% */ {
+  lowered final self::ExtensionType<self::ExtensionType|constructor#::T%> /* = self::ExtensionType|constructor#::T% */ #this = id;
+  return #this;
+}
+static extension-type-member method ExtensionType|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ExtensionType|constructor#_#new#tearOff::T% id) → self::ExtensionType<self::ExtensionType|constructor#_#new#tearOff::T%>% /* = self::ExtensionType|constructor#_#new#tearOff::T% */
+  return self::ExtensionType|constructor#<self::ExtensionType|constructor#_#new#tearOff::T%>(id);
+static method main() → dynamic {
+  self::expect(true, core::identical(#C1, #C1));
+  self::expect(true, core::identical(#C2, #C2));
+  self::expect(false, core::identical(#C1, #C2));
+  self::expect(false, core::identical(#C1, #C2));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = TypeLiteralConstant(self::Class<core::int>)
+  #C2 = TypeLiteralConstant(self::Class<core::bool>)
+  #C3 = self::Class<core::int> {}
+  #C4 = self::Class<core::bool> {}
+}
+
+Extra constant evaluation status:
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_extension_type.dart:22:16 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_extension_type.dart:23:16 -> BoolConstant(true)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_extension_type.dart:24:17 -> BoolConstant(false)
+Evaluated: StaticInvocation @ org-dartlang-testcase:///const_extension_type.dart:25:17 -> BoolConstant(false)
+Extra constant evaluation: evaluated: 20, effectively constant: 4
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_extension_type.dart:
+- Class. (from org-dartlang-testcase:///const_extension_type.dart:6:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

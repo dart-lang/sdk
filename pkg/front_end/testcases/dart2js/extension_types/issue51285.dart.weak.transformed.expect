@@ -75,3 +75,7 @@ constants  {
   #C3 = static-tearoff self::K|constructor#_#new#tearOff
   #C4 = instantiation #C3 <core::String*>
 }
+
+Extra constant evaluation status:
+Evaluated: AsExpression @ org-dartlang-testcase:///issue51285.dart:6:20 -> DoubleConstant(0.0)
+Extra constant evaluation: evaluated: 48, effectively constant: 1

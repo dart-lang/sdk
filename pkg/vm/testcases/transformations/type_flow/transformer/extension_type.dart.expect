@@ -30,8 +30,6 @@ extension type IC2(core::int id) {
 extension type SomeExtensionType(core::int foo) {
   constructor • = self::SomeExtensionType|constructor#;
 }
-extension type C5Ext(self::C5<self::C6> rep) {
-}
 [@vm.unboxing-info.metadata=(i)->i]static extension-type-member method IC2|constructor#([@vm.inferred-arg-type.metadata=int] core::int id) → self::IC2 /* = core::int */ {
   lowered final self::IC2 /* = core::int */ #this = id;
   return #this;
@@ -56,5 +54,5 @@ static method main() → dynamic {
 }
 constants  {
   #C1 = 42
-  #C2 = TypeLiteralConstant(self::C5Ext /* = self::C5<self::C6> */)
+  #C2 = TypeLiteralConstant(self::C5<self::C6>)
 }

@@ -1,0 +1,6 @@
+extension type const E<T>(Object? o) {
+  const E.cast(Object? v) : this(v as T);
+}
+extension type const TypeOf<T>(T _) {}
+typedef TypeAlias<T> = T;
+void main() {}

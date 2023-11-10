@@ -37,5 +37,5 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 
 constants  {
   #C1 = static-tearoff self::foo
-  #C2 = instantiation #C1 <self::V<core::int, core::int> /* = core::int */>
+  #C2 = instantiation #C1 <core::int>
 }

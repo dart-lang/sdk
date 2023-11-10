@@ -330,9 +330,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Ensures that the type of [member] has been computed.
   void ensureMemberType(Member member) {
-    if (member is Constructor) {
-      _inferConstructorParameterTypes(member);
-    }
+    _inferConstructorParameterTypes(member);
     TypeDependency? typeDependency = engine.typeDependencies.remove(member);
     if (typeDependency != null) {
       ensureMemberType(typeDependency.original);

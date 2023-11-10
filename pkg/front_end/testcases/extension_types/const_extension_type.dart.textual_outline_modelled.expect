@@ -1,0 +1,14 @@
+class Class<T> {
+  const Class();
+}
+const a1 = Class<int>;
+const a2 = ExtensionType<Class<int>>;
+const a3 = Class<bool>;
+const a4 = ExtensionType<Class<bool>>;
+const b1 = const Class<int>();
+const b2 = const ExtensionType<Class<int>>(Class<int>());
+const b3 = const Class<bool>();
+const b4 = const ExtensionType<Class<bool>>(Class<bool>());
+expect(expected, actual) {}
+extension type const ExtensionType<T>(T id) {}
+main() {}

@@ -1,0 +1,8 @@
+extension type ET(int i) {}
+const dynamic tearOff = ET.new;
+const a = [tearOff];
+const b = <ET Function(int)>[tearOff];
+const c = <int Function(int)>[tearOff];
+const d = [ET.new];
+const e = <ET Function(int)>[ET.new];
+const f = <int Function(int)>[ET.new];
