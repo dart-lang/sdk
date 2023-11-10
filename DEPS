@@ -193,7 +193,7 @@ vars = {
   "vector_math_rev": "294896dedc6da2a736f47c3c6a19643df934641c",
   "watcher_rev": "b2b278ae4198b4c431a145ddcfdab1460d5f9ec5",
   "web_socket_channel_rev": "82ac73fef05c474095c740a9525b4cfb61611c3d",
-  "webdev_rev": "5ad79c240b000a50057612d6af4573f6e649f65c",
+  "webdev_rev": "6961b202c343e12893e6c664ef70336b7c3845c3",
   "webdriver_rev": "43ed1dbefc39866ebccc31d3704a0e71400ef4a2",
   "webkit_inspection_protocol_rev": "667c55e6f65638592768e0325b75420e39b01d2e",
   "yaml_rev": "98a3aab54b09d355e094fdb4e5abd9083a2876b8",
