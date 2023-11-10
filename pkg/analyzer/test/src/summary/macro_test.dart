@@ -47,6 +47,8 @@ main() {
     defineReflectiveTests(MacroElementsTest_keepLinking);
     defineReflectiveTests(MacroElementsTest_fromBytes);
     defineReflectiveTests(MacroApplicationOrderTest);
+    defineReflectiveTests(MacroCodeGenerationTest);
+    defineReflectiveTests(MacroExampleTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -1440,6 +1442,93 @@ class A {}
     } else {
       fail("Either 'expected' or 'expectedErrors' must be provided.");
     }
+  }
+}
+
+@reflectiveTest
+class MacroCodeGenerationTest extends MacroElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  test_resolveIdentifier_class_field_instance() async {
+    _addCodeGenerationMacros();
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @ReferenceField()
+  int foo = 0;
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/test.dart' as prefix0;
+
+augment class A {
+  void foo() {
+    this.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_field_static() async {
+    _addCodeGenerationMacros();
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @ReferenceField()
+  static int foo = 0;
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/test.dart' as prefix0;
+
+augment class A {
+  void foo() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_function_dartCorePrint() async {
+    _addCodeGenerationMacros();
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@ReferenceDartCorePrint()
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  void foo() {
+    prefix0.print();
+  }
+}
+''');
+  }
+
+  void _addCodeGenerationMacros() {
+    var code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile('test/src/summary/macro/code_generation.dart')
+        .readAsStringSync();
+    code = code.replaceAll('/*macro*/', 'macro');
+    newFile('$testPackageLibPath/code_generation.dart', code);
   }
 }
 
@@ -2841,101 +2930,108 @@ class X
 
   test_node_class_field_flags_hasExternal() async {
     await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
 class X {
-  external int a;
-  int b = 0;
+  @IntrospectDeclarationsPhaseMacro()
+  external int foo;
 }
 ''', r'''
-class X
-  fields
-    a
-      flags: hasExternal
-      type: int
-    b
-      type: int
+foo
+  flags: hasExternal
+  type: int
 ''');
   }
 
-  test_node_class_field_flags_hasFinal() async {
+  test_node_class_field_flags_hasFinal_false() async {
     await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
 class X {
-  final int a = 0;
-  int b = 0;
+  @IntrospectDeclarationsPhaseMacro()
+  int foo = 0;
 }
 ''', r'''
-class X
-  fields
-    a
-      flags: hasFinal
-      type: int
-    b
-      type: int
+foo
+  type: int
+''');
+  }
+
+  test_node_class_field_flags_hasFinal_true() async {
+    await _assertIntrospectText(r'''
+class X {
+  @IntrospectDeclarationsPhaseMacro()
+  final int foo = 0;
+}
+''', r'''
+foo
+  flags: hasFinal
+  type: int
 ''');
   }
 
   test_node_class_field_flags_hasLate() async {
     await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
 class X {
-  late final int a;
-  final int b = 0;
+  @IntrospectDeclarationsPhaseMacro()
+  late int foo;
 }
 ''', r'''
-class X
-  fields
-    a
-      flags: hasFinal hasLate
-      type: int
-    b
-      flags: hasFinal
-      type: int
+foo
+  flags: hasLate
+  type: int
 ''');
   }
 
   test_node_class_field_flags_isStatic() async {
     await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
 class X {
-  static int a = 0;
-  int b = 0;
+  @IntrospectDeclarationsPhaseMacro()
+  static int foo = 0;
 }
 ''', r'''
-class X
-  fields
-    a
-      flags: isStatic
-      type: int
-    b
-      type: int
+foo
+  flags: isStatic
+  type: int
 ''');
   }
 
   test_node_class_field_type_explicit() async {
     await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
 class X {
-  int a = 0;
-  List<String> b = [];
+  @IntrospectDeclarationsPhaseMacro()
+  int foo = 0;
+}
+''', r'''
+foo
+  type: int
+''');
+  }
+
+  test_node_class_field_type_implicit() async {
+    await _assertIntrospectText(r'''
+class X {
+  @IntrospectDeclarationsPhaseMacro()
+  final foo = 0;
+}
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
+''');
+  }
+
+  test_node_class_fields() async {
+    await _assertIntrospectText(r'''
+@IntrospectDeclarationsPhaseMacro()
+class X {
+  final int foo = 0;
+  String bar = '';
 }
 ''', r'''
 class X
   fields
-    a
+    foo
+      flags: hasFinal
       type: int
-    b
-      type: List<String>
+    bar
+      type: String
 ''');
   }
 
@@ -2990,23 +3086,21 @@ mixin X
 ''');
   }
 
-  test_node_mixin_field_flags_hasFinal() async {
+  test_node_mixin_fields() async {
     await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'X'},
-)
+@IntrospectDeclarationsPhaseMacro()
 mixin X {
-  final int a = 0;
-  int b = 0;
+  final int foo = 0;
+  String bar = '';
 }
 ''', r'''
 mixin X
   fields
-    a
+    foo
       flags: hasFinal
       type: int
-    b
-      type: int
+    bar
+      type: String
 ''');
   }
 
@@ -3688,6 +3782,16 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
       macrosEnvironment: MacrosEnvironment.instance,
     );
   }
+
+  void _assertMacroCode(LibraryElementImpl library, String expected) {
+    final actual = library.augmentations.single.macroGenerated!.code;
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
 }
 
 abstract class MacroElementsTest extends MacroElementsBaseTest {
@@ -3835,6 +3939,52 @@ class MacroElementsTest_fromBytes extends MacroElementsTest {
 class MacroElementsTest_keepLinking extends MacroElementsTest {
   @override
   bool get keepLinkingLibraries => true;
+}
+
+@reflectiveTest
+class MacroExampleTest extends MacroElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  test_observable() async {
+    _addExampleMacro('observable.dart');
+
+    final library = await buildLibrary(r'''
+import 'observable.dart';
+
+class A {
+  @Observable()
+  int _foo = 0;
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+import 'package:test/test.dart' as prefix1;
+
+augment class A {
+  prefix0.int get foo => this._foo;
+  set foo(prefix0.int val) {
+    prefix0.print('Setting foo to ${val}');
+    this._foo = val;
+  }
+}
+''');
+  }
+
+  void _addExampleMacro(String fileName) {
+    final code = _getExampleCode(fileName);
+    newFile('$testPackageLibPath/observable.dart', code);
+  }
+
+  String _getExampleCode(String fileName) {
+    var code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile('test/src/summary/macro/example/$fileName')
+        .readAsStringSync();
+    return code.replaceAll('/*macro*/', 'macro');
+  }
 }
 
 @reflectiveTest

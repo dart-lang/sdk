@@ -223,6 +223,9 @@ abstract class SharedPrinter {
             default:
               throw UnimplementedError('${declaration.runtimeType}');
           }
+        case OmittedTypeAnnotation():
+          // No declaration, yet.
+          break;
         default:
           throw UnimplementedError('(${type.runtimeType}) $type');
       }
