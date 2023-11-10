@@ -29,7 +29,6 @@ const dillSummaryId = DataId("summary.dill");
 const dillId = DataId("full.dill");
 const fullDillId = DataId("concatenate.dill");
 const closedWorldId = DataId("world");
-const globalUpdatedDillId = DataId("global.dill");
 const globalDataId = DataId("global.data");
 const codeId = ShardsDataId("code", 2);
 const codeId0 = ShardDataId(codeId, 0);
@@ -266,7 +265,7 @@ class ComputeClosedWorldStep extends IOModularStep {
   List<DataId> get dependencies => [fullDillId];
 
   @override
-  List<DataId> get resultData => const [closedWorldId, globalUpdatedDillId];
+  List<DataId> get resultData => const [closedWorldId];
 
   @override
   bool get needsSources => false;
@@ -297,7 +296,6 @@ class ComputeClosedWorldStep extends IOModularStep {
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.writeClosedWorld}=${toUri(module, closedWorldId)}',
       Flags.noClosedWorldInData,
-      '--out=${toUri(module, globalUpdatedDillId)}',
     ];
     var result =
         await _runProcess(Platform.resolvedExecutable, args, root.toFilePath());
@@ -321,11 +319,10 @@ class GlobalAnalysisStep extends IOModularStep {
   bool get needsSources => false;
 
   @override
-  List<DataId> get dependencyDataNeeded => const [globalUpdatedDillId];
+  List<DataId> get dependencyDataNeeded => const [fullDillId];
 
   @override
-  List<DataId> get moduleDataNeeded =>
-      const [closedWorldId, globalUpdatedDillId];
+  List<DataId> get moduleDataNeeded => const [closedWorldId, fullDillId];
 
   @override
   bool get onlyOnMain => true;
@@ -342,7 +339,7 @@ class GlobalAnalysisStep extends IOModularStep {
       if (_options.useSdk) '--invoker=modular_test',
       Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
-      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
+      '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.writeData}=${toUri(module, globalDataId)}',
@@ -381,7 +378,7 @@ class Dart2jsCodegenStep extends IOModularStep {
 
   @override
   List<DataId> get moduleDataNeeded =>
-      const [globalUpdatedDillId, closedWorldId, globalDataId];
+      const [fullDillId, closedWorldId, globalDataId];
 
   @override
   bool get onlyOnMain => true;
@@ -397,7 +394,7 @@ class Dart2jsCodegenStep extends IOModularStep {
       if (_options.useSdk) '--invoker=modular_test',
       Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
-      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
+      '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.readData}=${toUri(module, globalDataId)}',
@@ -430,13 +427,8 @@ class Dart2jsEmissionStep extends IOModularStep {
   List<DataId> get dependencyDataNeeded => const [];
 
   @override
-  List<DataId> get moduleDataNeeded => const [
-        globalUpdatedDillId,
-        closedWorldId,
-        globalDataId,
-        codeId0,
-        codeId1
-      ];
+  List<DataId> get moduleDataNeeded =>
+      const [fullDillId, closedWorldId, globalDataId, codeId0, codeId1];
 
   @override
   bool get onlyOnMain => true;
@@ -452,7 +444,7 @@ class Dart2jsEmissionStep extends IOModularStep {
       if (_options.useSdk) '--invoker=modular_test',
       Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
-      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
+      '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.readData}=${toUri(module, globalDataId)}',
@@ -487,7 +479,7 @@ class Dart2jsDumpInfoStep extends IOModularStep {
 
   @override
   List<DataId> get moduleDataNeeded => const [
-        globalUpdatedDillId,
+        fullDillId,
         closedWorldId,
         globalDataId,
         codeId0,
@@ -509,7 +501,7 @@ class Dart2jsDumpInfoStep extends IOModularStep {
       if (_options.useSdk) '--invoker=modular_test',
       Flags.soundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
-      '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
+      '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
       '${Flags.readClosedWorld}=${toUri(module, closedWorldId)}',
       '${Flags.readData}=${toUri(module, globalDataId)}',
