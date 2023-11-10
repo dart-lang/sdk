@@ -1,0 +1,28 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class None extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::None
+    : super core::Object::•()
+    ;
+}
+extension type Option<V extends core::Object? = dynamic>(core::Object? _value) {
+  abstract extension-type-member representation-field get _value() → core::Object?;
+  static field none = self::Option|none;
+  get value = self::Option|get#value;
+  constructor • = self::Option|constructor#;
+  constructor tearoff • = self::Option|constructor#_#new#tearOff;
+}
+static const field self::Option<Never> /* = core::Object? */ Option|none = const self::None::•() as self::Option<Never> /* = core::Object? */;
+static extension-type-member method Option|constructor#<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#::V%> /* = core::Object? */
+  ;
+static extension-type-member method Option|constructor#_#new#tearOff<V extends core::Object? = dynamic>(core::Object? _value) → self::Option<self::Option|constructor#_#new#tearOff::V%>% /* = core::Object? */
+  return self::Option|constructor#<self::Option|constructor#_#new#tearOff::V%>(_value);
+static extension-type-member method Option|get#value<V extends core::Object? = dynamic>(lowered final self::Option<self::Option|get#value::V%> /* = core::Object? */ #this) → self::Option|get#value::V%
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: AsExpression @ org-dartlang-testcase:///issue52542.dart:6:50 -> InstanceConstant(const None{})
+Extra constant evaluation: evaluated: 3, effectively constant: 1

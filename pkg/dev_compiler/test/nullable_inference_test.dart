@@ -713,6 +713,6 @@ const nullCheck = const _NullCheck();
       await (fe.compile(_compilerState!, [mainUri], diagnosticMessageHandler));
   expect(succeeded, true);
 
-  var librariesFromDill = result!.computeLibrariesFromDill();
+  var librariesFromDill = result!.librariesFromDill;
   return CompileResult(result.component, librariesFromDill);
 }
