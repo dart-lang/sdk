@@ -1,0 +1,24 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type ET<T extends core::Object? = dynamic>(T% _) {
+  abstract inline-class-member representation-field get _() → T%;
+  method test = self::ET|test;
+  method tearoff test = self::ET|get#test;
+  constructor • = self::ET|constructor#;
+  constructor tearoff • = self::ET|constructor#_#new#tearOff;
+}
+static inline-class-member method ET|constructor#<T extends core::Object? = dynamic>(self::ET|constructor#::T% _) → self::ET<self::ET|constructor#::T%> /* = self::ET|constructor#::T% */ {
+  lowered final self::ET<self::ET|constructor#::T%> /* = self::ET|constructor#::T% */ #this = _;
+  return #this;
+}
+static inline-class-member method ET|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET|constructor#_#new#tearOff::T% _) → self::ET<self::ET|constructor#_#new#tearOff::T%>% /* = self::ET|constructor#_#new#tearOff::T% */
+  return self::ET|constructor#<self::ET|constructor#_#new#tearOff::T%>(_);
+static inline-class-member method ET|test<T extends core::Object? = dynamic>(lowered final self::ET<self::ET|test::T%> /* = self::ET|test::T% */ #this) → void {}
+static inline-class-member method ET|get#test<T extends core::Object? = dynamic>(lowered final self::ET<self::ET|get#test::T%>% /* = self::ET|get#test::T% */ #this) → () → void
+  return () → void => self::ET|test<self::ET|get#test::T%>(#this);
+static method main() → dynamic {
+  self::ET|test<Null>(self::ET|constructor#<Null>(null));
+  self::ET|test<core::int?>(self::ET|constructor#<core::int?>(42));
+}
