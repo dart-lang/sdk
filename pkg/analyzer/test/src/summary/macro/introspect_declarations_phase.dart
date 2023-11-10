@@ -9,7 +9,10 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'introspect_shared.dart';
 
 /*macro*/ class IntrospectDeclarationsPhaseMacro
-    implements ClassDeclarationsMacro, MixinDeclarationsMacro {
+    implements
+        ClassDeclarationsMacro,
+        FieldDeclarationsMacro,
+        MixinDeclarationsMacro {
   final Set<Object?> withDetailsFor;
   final bool withMetadata;
 
@@ -25,6 +28,16 @@ import 'introspect_shared.dart';
   ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeClassDeclaration(declaration);
+    });
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForField(
+    FieldDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeField(declaration);
     });
   }
 

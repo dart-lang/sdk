@@ -11,8 +11,10 @@ import '../builder/type_builder.dart';
 import '../scope.dart';
 import 'dill_class_builder.dart';
 import 'dill_extension_member_builder.dart';
+import 'dill_builder_mixins.dart';
 
-class DillExtensionBuilder extends ExtensionBuilderImpl {
+class DillExtensionBuilder extends ExtensionBuilderImpl
+    with DillDeclarationBuilderMixin {
   @override
   final Extension extension;
   List<NominalVariableBuilder>? _typeParameters;
@@ -95,4 +97,7 @@ class DillExtensionBuilder extends ExtensionBuilderImpl {
     return _onType ??=
         libraryBuilder.loader.computeTypeBuilder(extension.onType);
   }
+
+  @override
+  List<TypeParameter> get typeParameterNodes => extension.typeParameters;
 }

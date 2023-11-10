@@ -2,12 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart';
+
 import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../builder/type_builder.dart';
-import 'package:kernel/ast.dart';
-
 import '../scope.dart';
+import 'dill_builder_mixins.dart';
 import 'dill_class_builder.dart';
 import 'dill_extension_type_member_builder.dart';
 import 'dill_library_builder.dart';
@@ -15,7 +16,7 @@ import 'dill_member_builder.dart';
 
 class DillExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
-    with DillClassMemberAccessMixin {
+    with DillClassMemberAccessMixin, DillDeclarationBuilderMixin {
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
   List<NominalVariableBuilder>? _typeParameters;
@@ -176,4 +177,8 @@ class DillExtensionTypeDeclarationBuilder
     }
     return interfaceBuilders;
   }
+
+  @override
+  List<TypeParameter> get typeParameterNodes =>
+      _extensionTypeDeclaration.typeParameters;
 }

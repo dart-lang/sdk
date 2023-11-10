@@ -12,10 +12,10 @@ import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/procedure_builder.dart';
-import '../fasta_codes.dart'
-    show templateExtensionMemberConflictsWithObjectMember;
+import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/kernel_helper.dart';
+import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
 import '../util/helpers.dart';
@@ -212,4 +212,51 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
       BuiltMemberKind memberKind,
       Reference memberReference,
       Reference? tearOffReference);
+
+  /// Type parameters declared.
+  ///
+  /// This is `null` if the declaration is not generic.
+  List<NominalVariableBuilder>? get typeParameters;
+
+  @override
+  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
+      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
+    if (arguments == null && typeParameters == null) {
+      return <DartType>[];
+    }
+
+    if (arguments == null && typeParameters != null) {
+      List<DartType> result =
+          new List<DartType>.generate(typeParameters!.length, (int i) {
+        if (typeParameters![i].defaultType == null) {
+          throw 'here';
+        }
+        return typeParameters![i].defaultType!.buildAliased(
+            library, TypeUse.defaultTypeAsTypeArgument, hierarchy);
+      }, growable: true);
+      return result;
+    }
+
+    if (arguments != null && arguments.length != typeVariablesCount) {
+      // That should be caught and reported as a compile-time error earlier.
+      return unhandled(
+          templateTypeArgumentMismatch
+              .withArguments(typeVariablesCount)
+              .problemMessage,
+          "buildTypeArguments",
+          -1,
+          null);
+    }
+
+    assert(arguments!.length == typeVariablesCount);
+    List<DartType> result =
+        new List<DartType>.generate(arguments!.length, (int i) {
+      return arguments[i]
+          .buildAliased(library, TypeUse.typeArgument, hierarchy);
+    }, growable: true);
+    return result;
+  }
+
+  @override
+  int get typeVariablesCount => typeParameters?.length ?? 0;
 }

@@ -106,6 +106,12 @@ class Linker {
     _writeLibraries();
   }
 
+  void _buildClassSyntheticConstructors() {
+    for (final library in builders.values) {
+      library.buildClassSyntheticConstructors();
+    }
+  }
+
   void _buildElementNameUnions() {
     for (final builder in builders.values) {
       final element = builder.element;
@@ -155,9 +161,6 @@ class Linker {
 
     _createTypeSystem();
     _resolveTypes();
-    _resolveConstructorFieldFormals();
-    _buildEnumChildren();
-    _computeFieldPromotability();
 
     await performance.runAsync(
       'executeMacroDeclarationsPhase',
@@ -168,6 +171,10 @@ class Linker {
       },
     );
 
+    _buildClassSyntheticConstructors();
+    _resolveConstructorFieldFormals();
+    _buildEnumChildren();
+    _computeFieldPromotability();
     SuperConstructorResolver(this).perform();
     _performTopLevelInference();
     _resolveConstructors();
@@ -224,10 +231,6 @@ class Linker {
         }
       },
     );
-
-    for (final library in builders.values) {
-      library.buildClassSyntheticConstructors();
-    }
 
     for (var library in builders.values) {
       library.buildInitialExportScope();

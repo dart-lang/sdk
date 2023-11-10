@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
@@ -54,6 +55,61 @@ class DeclarationBuilder {
   DeclarationBuilder({
     required this.nodeOfElement,
   });
+
+  macro.Declaration buildDeclaration(ast.AstNode node) {
+    switch (node) {
+      case ast.ClassDeclaration():
+        return fromNode.classDeclaration(node);
+      case ast.MethodDeclaration():
+        return fromNode.methodDeclaration(node);
+      case ast.MixinDeclaration():
+        return fromNode.mixinDeclaration(node);
+      case ast.VariableDeclaration():
+        return fromNode.variableDeclaration(node);
+    }
+    // TODO(scheglov) incomplete
+    throw UnimplementedError('${node.runtimeType}');
+  }
+
+  macro.ResolvedIdentifier resolveIdentifier(macro.Identifier identifier) {
+    identifier as IdentifierImpl;
+    final element = identifier.element;
+    switch (element) {
+      case FieldElement():
+        if (element.isStatic) {
+          return macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.staticInstanceMember,
+            name: element.name,
+            uri: element.source!.uri,
+            staticScope: element.enclosingElement.name,
+          );
+        } else {
+          return macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.instanceMember,
+            name: element.name,
+            uri: element.source!.uri,
+            staticScope: null,
+          );
+        }
+      case FunctionElement():
+        return macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.topLevelMember,
+          name: element.name,
+          uri: element.source.uri,
+          staticScope: null,
+        );
+      case InterfaceElement():
+        return macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.topLevelMember,
+          name: element.name,
+          uri: element.source.uri,
+          staticScope: null,
+        );
+      default:
+        // TODO(scheglov) other elements
+        throw UnimplementedError('${element.runtimeType}');
+    }
+  }
 
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(macro.Identifier identifier) {
@@ -436,6 +492,32 @@ class DeclarationBuilderFromNode {
       return mixinDeclaration(node);
     } else {
       throw ArgumentError('node: $node');
+    }
+  }
+
+  macro.VariableDeclarationImpl variableDeclaration(
+    ast.VariableDeclaration node,
+  ) {
+    final variableList = node.parent as ast.VariableDeclarationList;
+    final variablesDeclaration = variableList.parent;
+    switch (variablesDeclaration) {
+      case ast.FieldDeclaration():
+        final element = node.declaredElement!;
+        return FieldDeclarationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          identifier: _declaredIdentifier(node.name, element),
+          library: library(element),
+          metadata: _buildMetadata(element),
+          hasExternal: variablesDeclaration.externalKeyword != null,
+          hasFinal: element.isFinal,
+          hasLate: element.isLate,
+          type: _typeAnnotation(variableList.type),
+          definingType: _definingType(variablesDeclaration),
+          isStatic: element.isStatic,
+        );
+      default:
+        // TODO(scheglov): top-level variables
+        throw UnimplementedError();
     }
   }
 

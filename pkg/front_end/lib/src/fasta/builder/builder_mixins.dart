@@ -19,11 +19,6 @@ import 'type_builder.dart';
 /// Shared implementation between extension and extension type declaration
 /// builders.
 mixin DeclarationBuilderMixin implements IDeclarationBuilder {
-  /// Type parameters declared.
-  ///
-  /// This is `null` if the declaration is not generic.
-  List<NominalVariableBuilder>? get typeParameters;
-
   /// Lookup a static member of this declaration.
   @override
   Builder? findStaticBuilder(
@@ -60,45 +55,6 @@ mixin DeclarationBuilderMixin implements IDeclarationBuilder {
         fileUri,
         charOffset,
         hasExplicitTypeArguments: hasExplicitTypeArguments);
-  }
-
-  @override
-  int get typeVariablesCount => typeParameters?.length ?? 0;
-
-  @override
-  List<DartType> buildAliasedTypeArguments(LibraryBuilder library,
-      List<TypeBuilder>? arguments, ClassHierarchyBase? hierarchy) {
-    if (arguments == null && typeParameters == null) {
-      return <DartType>[];
-    }
-
-    if (arguments == null && typeParameters != null) {
-      List<DartType> result =
-          new List<DartType>.generate(typeParameters!.length, (int i) {
-        return typeParameters![i].defaultType!.buildAliased(
-            library, TypeUse.defaultTypeAsTypeArgument, hierarchy);
-      }, growable: true);
-      return result;
-    }
-
-    if (arguments != null && arguments.length != typeVariablesCount) {
-      // That should be caught and reported as a compile-time error earlier.
-      return unhandled(
-          templateTypeArgumentMismatch
-              .withArguments(typeVariablesCount)
-              .problemMessage,
-          "buildTypeArguments",
-          -1,
-          null);
-    }
-
-    assert(arguments!.length == typeVariablesCount);
-    List<DartType> result =
-        new List<DartType>.generate(arguments!.length, (int i) {
-      return arguments[i]
-          .buildAliased(library, TypeUse.typeArgument, hierarchy);
-    }, growable: true);
-    return result;
   }
 
   void forEach(void f(String name, Builder builder)) {
