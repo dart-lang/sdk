@@ -84,7 +84,7 @@ vars = {
 
   "reclient_version": "git_revision:81e819b39d4743462857cc55430d898b9fcca1af",
 
-  # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
+  # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/core
   "fuchsia_sdk_version": "version:16.20231105.3.1",
   "download_fuchsia_deps": False,
 
@@ -649,41 +649,36 @@ Var("dart_root") + "/third_party/pkg/tar":
       "dep_type": "cipd",
   },
 
-  # TODO(38752): Confirm if mac sdk is necessary in dart.
-  Var("dart_root") + "/third_party/fuchsia/sdk/mac": {
-    "packages": [
-      {
-      "package": "fuchsia/sdk/gn/mac-amd64",
-      "version": Var("fuchsia_sdk_version"),
-      }
-    ],
-    "condition":
-        'download_fuchsia_deps and host_os == "mac" and host_cpu == "x64"',
-    "dep_type": "cipd",
-  },
-
-  # TODO(38752): Migrate to core sdk, gn sdk is deprecating.
   Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
     "packages": [
       {
-      "package": "fuchsia/sdk/gn/linux-amd64",
+      "package": "fuchsia/sdk/core/${{platform}}",
       "version": Var("fuchsia_sdk_version"),
       }
     ],
-    "condition":
-        'download_fuchsia_deps and host_os == "linux" and host_cpu == "x64"',
+    "condition": 'download_fuchsia_deps and host_os == "linux"',
     "dep_type": "cipd",
   },
 
   Var("dart_root") + "/third_party/fuchsia/test_scripts": {
     "packages": [
       {
-      "package": "chromium/fuchsia/test-scripts/fuchsia",
-      "version": "version:2@56179f1724e9bf82ce7abf5577884e5d217b52e9",
+      "package": "chromium/fuchsia/test-scripts",
+      "version": "version:2@542d79b983ec1cdf95d9cb3aea0ea528a4b3569d",
       }
     ],
-    "condition":
-        'download_fuchsia_deps and host_os == "linux" and host_cpu == "x64"',
+    "condition": 'download_fuchsia_deps',
+    "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/fuchsia-gn-sdk": {
+    "packages": [
+      {
+      "package": "chromium/fuchsia/gn-sdk",
+      "version": "version:2@691dde4a86f8f32790942eb025c3e9fe74102811",
+      }
+    ],
+    "condition": 'download_fuchsia_deps',
     "dep_type": "cipd",
   },
 

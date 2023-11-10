@@ -15,7 +15,3 @@ secondary_source = "//build/secondary/"
 
 # Override the default script executable to always be python3.
 script_executable = "python3"
-
-default_args = {
-  fuchsia_target_api_level = 15
-}
