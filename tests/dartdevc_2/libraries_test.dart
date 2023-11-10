@@ -29,6 +29,9 @@ void main() {
 
   // Test getLibrary(...)
   var core = dart.getLibrary('dart:core');
-  var stackTraceType = dart.wrapType(JS('', '#.StackTrace', core));
-  Expect.equals(StackTrace, stackTraceType);
+  // Using the print method to verify we get the same library object.
+  // The print method is only used here because we know it is a member of the
+  // dart:core library.
+  var printMethod = JS('', '#.print', core);
+  Expect.equals(print, printMethod);
 }
