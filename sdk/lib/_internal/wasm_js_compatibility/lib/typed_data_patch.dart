@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' show patch;
+import 'dart:_internal' show patch, unsafeCast;
 import 'dart:_js_types';
 import 'dart:typed_data';
 
@@ -179,64 +179,64 @@ abstract class UnmodifiableByteDataView implements Uint8List {
 @patch
 abstract class UnmodifiableUint8ListView implements Uint8List {
   @patch
-  factory UnmodifiableUint8ListView(Uint8List list) =
-      _UnmodifiableUint8ListViewImpl;
+  factory UnmodifiableUint8ListView(Uint8List list) =>
+      unsafeCast<JSUint8ArrayImpl>(list).asUnmodifiableView();
 }
 
 @patch
 abstract class UnmodifiableInt8ListView implements Int8List {
   @patch
-  factory UnmodifiableInt8ListView(Int8List list) =
-      _UnmodifiableInt8ListViewImpl;
+  factory UnmodifiableInt8ListView(Int8List list) =>
+      unsafeCast<JSInt8ArrayImpl>(list).asUnmodifiableView();
 }
 
 @patch
 abstract class UnmodifiableUint8ClampedListView implements Uint8ClampedList {
   @patch
-  factory UnmodifiableUint8ClampedListView(Uint8ClampedList list) =
-      _UnmodifiableUint8ClampedListViewImpl;
+  factory UnmodifiableUint8ClampedListView(Uint8ClampedList list) =>
+      unsafeCast<JSUint8ClampedArrayImpl>(list).asUnmodifiableView();
 }
 
 @patch
 abstract class UnmodifiableUint16ListView implements Uint16List {
   @patch
-  factory UnmodifiableUint16ListView(Uint16List list) =
-      _UnmodifiableUint16ListViewImpl;
+  factory UnmodifiableUint16ListView(Uint16List list) =>
+      unsafeCast<JSUint16ArrayImpl>(list).asUnmodifiableView();
 }
 
 @patch
 abstract class UnmodifiableInt16ListView implements Int16List {
   @patch
-  factory UnmodifiableInt16ListView(Int16List list) =
-      _UnmodifiableInt16ListViewImpl;
+  factory UnmodifiableInt16ListView(Int16List list) =>
+      unsafeCast<JSInt16ArrayImpl>(list).asUnmodifiableView();
 }
 
 @patch
 abstract class UnmodifiableUint32ListView implements Uint32List {
   @patch
-  factory UnmodifiableUint32ListView(Uint32List list) =
-      _UnmodifiableUint32ListViewImpl;
+  factory UnmodifiableUint32ListView(Uint32List list) =>
+      unsafeCast<JSUint32ArrayImpl>(list).asUnmodifiableView();
 }
 
 @patch
 abstract class UnmodifiableInt32ListView implements Int32List {
   @patch
-  factory UnmodifiableInt32ListView(Int32List list) =
-      _UnmodifiableInt32ListViewImpl;
+  factory UnmodifiableInt32ListView(Int32List list) =>
+      unsafeCast<JSInt32ArrayImpl>(list).asUnmodifiableView();
 }
 
 @patch
 abstract class UnmodifiableUint64ListView implements Uint64List {
   @patch
-  factory UnmodifiableUint64ListView(Uint64List list) =
-      _UnmodifiableUint64ListViewImpl;
+  factory UnmodifiableUint64ListView(Uint64List list) =>
+      unsafeCast<JSBigUint64ArrayImpl>(list).asUnmodifiableView();
 }
 
 @patch
 abstract class UnmodifiableInt64ListView implements Int64List {
   @patch
-  factory UnmodifiableInt64ListView(Int64List list) =
-      _UnmodifiableInt64ListViewImpl;
+  factory UnmodifiableInt64ListView(Int64List list) =>
+      unsafeCast<JSBigInt64ArrayImpl>(list).asUnmodifiableView();
 }
 
 @patch

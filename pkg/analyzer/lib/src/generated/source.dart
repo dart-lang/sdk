@@ -135,10 +135,6 @@ class NonExistingSource extends Source {
 abstract class Source {
   /// Get the contents and timestamp of this source.
   ///
-  /// Clients should consider using the method [AnalysisContext.getContents]
-  /// because contexts can have local overrides of the content of a source that
-  /// the source is not aware of.
-  ///
   /// @return the contents and timestamp of the source
   /// @throws Exception if the contents of this source could not be accessed
   TimestampedData<String> get contents;
