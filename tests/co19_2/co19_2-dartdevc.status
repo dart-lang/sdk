@@ -124,3 +124,6 @@ LibTest/typed_data/ByteData/setUint64_A02_t01: SkipByDesign # 64-bit int not sup
 LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # 64-bit int not supported on the web
 LibTest/typed_data/Int64List/*: SkipByDesign # Int64List not supported on the web
 LibTest/typed_data/Uint64List/*: SkipByDesign # Uint64List not supported on the web
+
+[ $compiler == ddc && $runtime == chrome ]
+LibTest/html/Window/animationFrame_A01_t01: SkipByDesign # Issue #53985: requestAnimationFrame is not executed on Chrome inactive tabs

@@ -92,6 +92,9 @@ LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # 64-bit int not sup
 LibTest/typed_data/Int64List/*: SkipByDesign # Int64List not supported on the web
 LibTest/typed_data/Uint64List/*: SkipByDesign # Uint64List not supported on the web
 
+[ $compiler == dart2js && $runtime == chrome ]
+LibTest/html/Window/animationFrame_A01_t01: SkipByDesign # Issue #53985: requestAnimationFrame is not executed on Chrome inactive tabs
+
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/html/*: SkipByDesign # d8 is not a browser
 
@@ -117,5 +120,6 @@ LibTest/core/List/List_class_A01_t05: SkipSlow # slow babeljs transformation
 LibTest/core/List/List_class_A01_t06: SkipSlow # slow babeljs transformation
 
 [ $compiler == dart2js && $runtime == safari ]
+LibTest/html/Element/isContentEditable_A01_t01: Skip # 98% fails in Safari, evades flake detection https://github.com/dart-lang/sdk/issues/50718
 LibTest/html/Element/isContentEditable_A02_t01: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
 LibTest/html/IFrameElement/isContentEditable_A01_t01: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718

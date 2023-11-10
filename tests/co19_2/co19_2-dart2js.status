@@ -56,6 +56,11 @@ LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # 64-bit int not sup
 LibTest/typed_data/Int64List/*: SkipByDesign # Int64List not supported on the web
 LibTest/typed_data/Uint64List/*: SkipByDesign # Uint64List not supported on the web
 
+[ $compiler == dart2js && $runtime == chrome ]
+LibTest/html/Window/animationFrame_A01_t01: SkipByDesign # Issue #53985: requestAnimationFrame is not executed on Chrome inactive tabs
+co19_2/LibTest/html/IFrameElement/blur_A01_t01: SkipByDesign # 62% flaky, unexplained, passes consistently in co19 suite (just flakes in co19_2)
+co19_2/LibTest/html/IFrameElement/focus_A01_t01: SkipByDesign # 80% flaky, unexplained, passes consistently in co19 suite (just flakes in co19_2)
+
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/html/*: SkipByDesign # d8 is not a browser
 

@@ -29,7 +29,10 @@ typed_data/int64_list_load_store_test: SkipByDesign # ddc does not support Int64
 typed_data/typed_data_hierarchy_int64_test: SkipByDesign # ddc does not support Int64List
 
 [ $compiler == ddc && $runtime == chrome ]
+html/canvasrendering/draw_image_video_element_test: SkipByDesign # Issue #53985: video is not played on Chrome inactive tabs
 html/js_dispatch_property_test: Skip # Timeout Issue 31030
+html/request_animation_frame_test: SkipByDesign # Issue #53985: requestAnimationFrame is not executed on Chrome inactive tabs
+html/transition_event_test: SkipByDesign # Issue #53985: css transitions are not executed on Chrome inactive tabs
 
 [ $compiler == ddc && $runtime == ff ]
 html/mediadevices_test: SkipByDesign # Not supported on FF, likely requires user-interaction that causes timeout
