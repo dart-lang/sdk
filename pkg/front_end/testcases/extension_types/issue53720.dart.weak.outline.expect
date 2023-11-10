@@ -1,0 +1,43 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/issue53720.dart:10:8: Error: Can't declare a member that conflicts with an inherited one.
+//   void m() {}
+//        ^
+// pkg/front_end/testcases/extension_types/issue53720.dart:6:7: Context: This is the inherited member.
+//   set m(_) {}
+//       ^
+//
+import self as self;
+import "dart:core" as core;
+
+extension type E1(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  set m = self::E1|set#m;
+  constructor • = self::E1|constructor#;
+  constructor tearoff • = self::E1|constructor#_#new#tearOff;
+}
+extension type E2(core::int i) implements self::E1 /* = core::int */ {
+  abstract extension-type-member representation-field get i() → core::int;
+  method m = self::E2|m;
+  method tearoff m = self::E2|get#m;
+  constructor • = self::E2|constructor#;
+  constructor tearoff • = self::E2|constructor#_#new#tearOff;
+}
+static extension-type-member method E1|constructor#(core::int i) → self::E1 /* = core::int */
+  ;
+static extension-type-member method E1|constructor#_#new#tearOff(core::int i) → self::E1 /* = core::int */
+  return self::E1|constructor#(i);
+static extension-type-member method E1|set#m(lowered final self::E1 /* = core::int */ #this, dynamic _) → void
+  ;
+static extension-type-member method E2|constructor#(core::int i) → self::E2 /* = core::int */
+  ;
+static extension-type-member method E2|constructor#_#new#tearOff(core::int i) → self::E2 /* = core::int */
+  return self::E2|constructor#(i);
+static extension-type-member method E2|m(lowered final self::E2 /* = core::int */ #this) → void
+  ;
+static extension-type-member method E2|get#m(lowered final self::E2 /* = core::int */ #this) → () → void
+  return () → void => self::E2|m(#this);
+static method main() → void
+  ;
