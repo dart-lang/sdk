@@ -429,7 +429,31 @@ void sublistTest() {
   listIntTest(Uint8List(16).toJS.toDart.buffer.asInt64List());
 }
 
+@JS()
+external JSNumber elementSizeInBytes(JSAny a);
+
+@JS()
+external void eval(String code);
+
+void elementSizeTest() {
+  Expect.equals(elementSizeInBytes(Uint8List(4).toJS).toDartInt, 1);
+  Expect.equals(elementSizeInBytes(Uint8ClampedList(4).toJS).toDartInt, 1);
+  Expect.equals(elementSizeInBytes(Int8List(4).toJS).toDartInt, 1);
+  Expect.equals(elementSizeInBytes(Uint16List(4).toJS).toDartInt, 2);
+  Expect.equals(elementSizeInBytes(Int16List(4).toJS).toDartInt, 2);
+  Expect.equals(elementSizeInBytes(Uint32List(4).toJS).toDartInt, 4);
+  Expect.equals(elementSizeInBytes(Int32List(4).toJS).toDartInt, 4);
+  Expect.equals(elementSizeInBytes(Float32List(4).toJS).toDartInt, 4);
+  Expect.equals(elementSizeInBytes(Float64List(4).toJS).toDartInt, 8);
+}
+
 void main() {
+  eval('''
+    globalThis.elementSizeInBytes = function(array) {
+      return array.BYTES_PER_ELEMENT;
+    }
+  ''');
+
   for (final mode in [
     TestMode.jsReceiver,
     TestMode.jsArgument,
@@ -445,4 +469,5 @@ void main() {
   testSimd();
   bigTest();
   sublistTest();
+  elementSizeTest();
 }
