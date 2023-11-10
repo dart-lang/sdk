@@ -520,6 +520,11 @@ abstract interface class File implements FileSystemEntity {
   /// file if it already exists. In order to append the bytes to an existing
   /// file, pass [FileMode.append] as the optional mode parameter.
   ///
+  /// The elements of [bytes] should be integers in the range 0 to 255.
+  /// Any integer, which is not in that range, is converted to a byte before
+  /// being written. The conversion is equivalent to doing
+  /// `value.toUnsigned(8)`.
+  ///
   /// If the argument [flush] is set to `true`, the data written will be
   /// flushed to the file system before the returned future completes.
   Future<File> writeAsBytes(List<int> bytes,
@@ -532,6 +537,11 @@ abstract interface class File implements FileSystemEntity {
   /// By default [writeAsBytesSync] creates the file for writing and truncates
   /// the file if it already exists. In order to append the bytes to an existing
   /// file, pass [FileMode.append] as the optional mode parameter.
+  ///
+  /// The elements of [bytes] should be integers in the range 0 to 255.
+  /// Any integer, which is not in that range, is converted to a byte before
+  /// being written. The conversion is equivalent to doing
+  /// `value.toUnsigned(8)`.
   ///
   /// If the [flush] argument is set to `true` data written will be
   /// flushed to the file system before returning.
