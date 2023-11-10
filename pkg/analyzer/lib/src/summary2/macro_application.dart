@@ -702,36 +702,30 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.FieldDeclaration>> fieldsOf(
-    covariant macro.IntrospectableType type,
+    macro.IntrospectableType type,
   ) async {
-    switch (type) {
-      case IntrospectableClassDeclarationImpl():
-        return type.element.fields
-            .where((e) => !e.isSynthetic)
-            .map(declarationBuilder.fromElement.fieldElement)
-            .toList();
-      case IntrospectableMixinDeclarationImpl():
-        return type.element.fields
-            .where((e) => !e.isSynthetic)
-            .map(declarationBuilder.fromElement.fieldElement)
-            .toList();
+    final element = (type as HasElement).element;
+    if (element case InstanceElement(:final augmented?)) {
+      return augmented.fields
+          .where((e) => !e.isSynthetic)
+          .map(declarationBuilder.fromElement.fieldElement)
+          .toList();
     }
-    // TODO(scheglov) implement
-    throw UnsupportedError('Only introspection on classes is supported');
+    throw StateError('Unexpected: ${type.runtimeType}');
   }
 
   @override
   Future<List<macro.MethodDeclaration>> methodsOf(
-      covariant macro.IntrospectableType type) async {
-    switch (type) {
-      case IntrospectableClassDeclarationImpl():
-        return type.element.augmented!.methods
-            .where((e) => !e.isSynthetic)
-            .map(declarationBuilder.fromElement.methodElement)
-            .toList();
+    macro.IntrospectableType type,
+  ) async {
+    final element = (type as HasElement).element;
+    if (element case InstanceElement(:final augmented?)) {
+      return [
+        ...augmented.accessors.whereNot((e) => e.isSynthetic),
+        ...augmented.methods,
+      ].map(declarationBuilder.fromElement.methodElement).toList();
     }
-    // TODO(scheglov) implement
-    throw UnsupportedError('Only introspection on classes is supported');
+    throw StateError('Unexpected: ${type.runtimeType}');
   }
 
   @override

@@ -27,7 +27,6 @@ import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
-import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
@@ -234,7 +233,10 @@ abstract class ContextResolutionTest
 
   void assertPackageBuildWorkspaceFor(File file) {
     var workspace = contextFor(file).contextRoot.workspace;
-    expect(workspace, TypeMatcher<PackageBuildWorkspace>());
+    expect(
+        workspace,
+        isA<PubWorkspace>()
+            .having((e) => e.usesPackageBuild, 'usesPackageBuild', true));
   }
 
   void assertPubWorkspaceFor(File file) {
@@ -580,6 +582,7 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: experiments,
         strictCasts: true,
       ),
     );

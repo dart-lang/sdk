@@ -244,7 +244,65 @@ abstract class TypeConstraintGatherer {
     return true;
   }
 
-  bool _isInterfaceSubtypeMatch(
+  bool _isNull(DartType type) {
+    // TODO(paulberry): would it be better to call this "_isBottom", and to have
+    // it return `true` for both Null and bottom types?  Revisit this once
+    // enough functionality is implemented that we can compare the behavior with
+    // the old analyzer-based implementation.
+    return type is NullType;
+  }
+
+  /// Whether the [subtype] interface is a subtype of the [supertype] interface
+  /// with respect to variance.
+  ///
+  /// [constrainSupertype] is used in [_isNullabilityAwareSubtypeMatch] to
+  /// check if the type parameters to constrain occur in the [supertype];
+  /// otherwise they occur in the [subtype].
+  bool _isNullabilityAwareInterfaceSubtypeMatch(
+      InterfaceType subtype, InterfaceType supertype,
+      {required bool constrainSupertype}) {
+    List<DartType>? matchingSupertypeOfSubtypeArguments =
+        getTypeArgumentsAsInstanceOf(subtype, supertype.classNode);
+    if (matchingSupertypeOfSubtypeArguments == null) return false;
+    for (int i = 0; i < supertype.classNode.typeParameters.length; i++) {
+      int parameterVariance = supertype.classNode.typeParameters[i].variance;
+      if (parameterVariance == Variance.contravariant) {
+        if (!_isNullabilityAwareSubtypeMatch(
+          supertype.typeArguments[i],
+          matchingSupertypeOfSubtypeArguments[i],
+          constrainSupertype: !constrainSupertype,
+        )) {
+          return false;
+        }
+      } else if (parameterVariance == Variance.invariant) {
+        if (!_isNullabilityAwareSubtypeMatch(
+              supertype.typeArguments[i],
+              matchingSupertypeOfSubtypeArguments[i],
+              constrainSupertype: !constrainSupertype,
+            ) ||
+            !_isNullabilityAwareSubtypeMatch(
+              matchingSupertypeOfSubtypeArguments[i],
+              supertype.typeArguments[i],
+              constrainSupertype: constrainSupertype,
+            )) {
+          return false;
+        }
+      } else {
+        if (!_isNullabilityAwareSubtypeMatch(
+          matchingSupertypeOfSubtypeArguments[i],
+          supertype.typeArguments[i],
+          constrainSupertype: constrainSupertype,
+        )) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /// Whether the [subtype] interface is a subtype of the [supertype] interface
+  /// with respect to variance.
+  bool _isNullabilityObliviousInterfaceSubtypeMatch(
       InterfaceType subtype, InterfaceType supertype) {
     // A type `P<M0, ..., Mk>` is a subtype match for `P<N0, ..., Nk>` with
     // respect to `L` under constraints `C0 + ... + Ck`:
@@ -294,14 +352,6 @@ abstract class TypeConstraintGatherer {
       }
     }
     return true;
-  }
-
-  bool _isNull(DartType type) {
-    // TODO(paulberry): would it be better to call this "_isBottom", and to have
-    // it return `true` for both Null and bottom types?  Revisit this once
-    // enough functionality is implemented that we can compare the behavior with
-    // the old analyzer-based implementation.
-    return type is NullType;
   }
 
   /// Matches [p] against [q] as a subtype against supertype.
@@ -638,10 +688,8 @@ abstract class TypeConstraintGatherer {
       final int baseConstraintCount = _protoConstraints.length;
       bool isMatch = true;
       for (int i = 0; isMatch && i < p.typeArguments.length; ++i) {
-        isMatch = isMatch &&
-            _isNullabilityAwareSubtypeMatch(
-                p.typeArguments[i], q.typeArguments[i],
-                constrainSupertype: constrainSupertype);
+        isMatch = _isNullabilityAwareInterfaceSubtypeMatch(p, q,
+            constrainSupertype: constrainSupertype);
       }
       if (isMatch) return true;
       _protoConstraints.length = baseConstraintCount;
@@ -1050,7 +1098,7 @@ abstract class TypeConstraintGatherer {
           subtype.parameter.bound, supertype);
     }
     if (subtype is InterfaceType && supertype is InterfaceType) {
-      return _isInterfaceSubtypeMatch(subtype, supertype);
+      return _isNullabilityObliviousInterfaceSubtypeMatch(subtype, supertype);
     }
     if (subtype is FunctionType) {
       if (supertype is InterfaceType) {

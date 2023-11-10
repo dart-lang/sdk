@@ -100,7 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  // todo(pq): consider making this a utility and sharing w/ `avoid_equals_and_hash_code_on_mutable_classes`
+  // TODO(pq): consider making this a utility and sharing w/ `avoid_equals_and_hash_code_on_mutable_classes`
   static bool _hasImmutableAnnotation(DartType? type) {
     if (type is! InterfaceType) {
       // This happens when we find an instance creation expression for a class

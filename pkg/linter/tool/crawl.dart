@@ -9,7 +9,7 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/util/score_utils.dart' as score_utils;
 
-/// todo (pq): reign in the nullable types
+// TODO(pq): reign in the nullable types
 
 final _flutterOptionsUrl = Uri.https('raw.githubusercontent.com',
     '/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');

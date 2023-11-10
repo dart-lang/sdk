@@ -392,7 +392,29 @@ IsolateTest runStepThroughProgramRecordingStops(List<String> recordStops) {
         completer.complete();
       }
     });
+    await service.streamListen(EventStreams.kDebug);
+    await service.resume(isolateRef.id!);
+    return completer.future;
+  };
+}
 
+IsolateTest runStepIntoThroughProgramRecordingStops(List<String> recordStops) {
+  return (VmService service, IsolateRef isolateRef) async {
+    final completer = Completer<void>();
+
+    late StreamSubscription subscription;
+    subscription = service.onDebugEvent.listen((event) async {
+      if (event.kind == EventKind.kPauseBreakpoint) {
+        final isolate = await service.getIsolate(isolateRef.id!);
+        final frame = isolate.pauseEvent!.topFrame!;
+        recordStops.add(await _locationToString(service, isolateRef, frame));
+        await service.resume(isolateRef.id!, step: StepOption.kInto);
+      } else if (event.kind == EventKind.kPauseExit) {
+        await subscription.cancel();
+        await service.streamCancel(EventStreams.kDebug);
+        completer.complete();
+      }
+    });
     await service.streamListen(EventStreams.kDebug);
     await service.resume(isolateRef.id!);
     return completer.future;
@@ -613,5 +635,43 @@ IsolateTest hasLocalVarInTopStackFrame(String varName) {
       }
     }
     throw sb.toString();
+  };
+}
+
+IsolateTest stoppedInFunction(String functionName) {
+  return (VmService service, IsolateRef isolateRef) async {
+    print('Checking we are in function: $functionName');
+
+    final isolateId = isolateRef.id!;
+    final stack = await service.getStack(isolateId);
+
+    final frames = stack.frames!;
+    expect(frames, isNotEmpty);
+
+    final topFrame = frames[0];
+    final function = await service.getObject(
+      isolateId,
+      topFrame.function!.id!,
+    ) as Func;
+    final name = function.name!;
+    if (name != functionName) {
+      final sb = StringBuffer();
+      sb.writeln(
+        'Expected to be in function $functionName but '
+        'actually in function $name',
+      );
+      sb.writeln('Full stack trace:');
+      for (final frame in frames) {
+        final func = await service.getObject(
+          isolateId,
+          frame.function!.id!,
+        ) as Func;
+        final ownerName = func.owner.name!;
+        sb.write(' $frame [${func.name}] [$ownerName]\n');
+      }
+      throw sb.toString();
+    } else {
+      print('Program is stopped in function: $functionName');
+    }
   };
 }

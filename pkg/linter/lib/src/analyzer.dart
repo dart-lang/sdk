@@ -88,7 +88,7 @@ class Analyzer {
 
   /// Cache linter version; used in summary signatures.
   void cacheLinterVersion() {
-    // todo(pq): remove (https://github.com/dart-lang/linter/issues/4418)
+    // TODO(pq): remove (https://github.com/dart-lang/linter/issues/4418)
     lint_service.linterVersion = '1.35.0';
   }
 

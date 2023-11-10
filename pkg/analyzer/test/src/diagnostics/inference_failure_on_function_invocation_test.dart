@@ -23,6 +23,7 @@ class InferenceFailureOnFunctionInvocationTest
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: experiments,
         strictInference: true,
       ),
     );

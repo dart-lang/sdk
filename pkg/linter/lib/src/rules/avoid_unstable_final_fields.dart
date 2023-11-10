@@ -495,7 +495,7 @@ abstract class _AbstractVisitor extends UnifyingAstVisitor<void> {
         isStable = false;
       }
     } else {
-      // TODO: Could probably support more unary operators.
+      // TODO(eernst): Could probably support more unary operators.
       isStable = false;
     }
   }
@@ -574,7 +574,7 @@ abstract class _AbstractVisitor extends UnifyingAstVisitor<void> {
 
   @override
   void visitSwitchExpression(SwitchExpression node) {
-    // TODO: We could include this, if the scrutinee and every branch is stable
+    // TODO(eernst): We could include this, if the scrutinee and every branch is stable
     isStable = false;
   }
 

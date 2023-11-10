@@ -65,24 +65,27 @@ class JSValue {
   WasmExternRef? get toExternRef => _ref;
 }
 
-extension DoubleToJS on double {
-  WasmExternRef get toExternRef => toJSNumber(this)!;
+extension DoubleToExternRef on double? {
+  WasmExternRef? get toExternRef =>
+      this == null ? WasmExternRef.nullRef : toJSNumber(this!);
 }
 
-extension StringToJS on String {
-  WasmExternRef get toExternRef => jsStringFromDartString(this)!;
+extension StringToExternRef on String? {
+  WasmExternRef? get toExternRef =>
+      this == null ? WasmExternRef.nullRef : jsStringFromDartString(this!);
 }
 
-extension ListOfObjectToJS on List<Object?> {
-  WasmExternRef get toExternRef => jsArrayFromDartList(this)!;
+extension ListOfObjectToExternRef on List<Object?>? {
+  WasmExternRef? get toExternRef =>
+      this == null ? WasmExternRef.nullRef : jsArrayFromDartList(this!);
 }
 
-extension ObjectToJS on Object {
-  WasmExternRef get toExternRef => jsObjectFromDartObject(this);
+extension JSValueToExternRef on JSValue? {
+  WasmExternRef? get toExternRef => JSValue.unbox(this);
 }
 
-extension JSAnyToExtern on JSAny {
-  WasmExternRef? get toExternRef => (this as JSValue).toExternRef;
+extension JSAnyToExternRef on JSAny? {
+  WasmExternRef? get toExternRef => JSValue.unbox(this as JSValue?);
 }
 
 // For `dartify` and `jsify`, we match the conflation of `JSUndefined`, `JSNull`
@@ -116,7 +119,7 @@ class JSArrayIteratorAdapter<T> implements Iterator<T> {
   }
 
   @override
-  T get current => dartifyRaw(array[index.toJS]?.toExternRef) as T;
+  T get current => dartifyRaw(array[index.toJS].toExternRef) as T;
 }
 
 /// [JSArrayIterableAdapter] lazily adapts a [JSArray] to Dart's [Iterable]

@@ -1912,7 +1912,7 @@ Future<bool> c() async => true;
 
   test_awaitBeforeReferenceToContext_inClosure() async {
     // Await, then use of BuildContext in a closure, is REPORTED.
-    // todo (pq): what about closures?
+    // TODO(pq): what about closures?
     await assertNoDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 

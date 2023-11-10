@@ -51,7 +51,6 @@ abstract class SharedPrinter {
 
   Future<void> writeField(FieldDeclaration e) async {
     _assertEnclosingClass(e);
-
     sink.writelnWithIndent(e.identifier.name);
 
     await sink.withIndent(() async {
@@ -67,6 +66,7 @@ abstract class SharedPrinter {
   }
 
   Future<void> writeMethodDeclaration(MethodDeclaration e) async {
+    _assertEnclosingClass(e);
     sink.writelnWithIndent(e.identifier.name);
 
     await sink.withIndent(() async {
@@ -79,7 +79,6 @@ abstract class SharedPrinter {
         'isSetter': e.isSetter,
         'isStatic': e.isStatic,
       });
-
       await _writeMetadata(e);
       await _writeNamedFormalParameters(e.namedParameters);
       await _writePositionalFormalParameters(e.positionalParameters);
@@ -113,7 +112,8 @@ abstract class SharedPrinter {
   }
 
   void _assertEnclosingClass(MemberDeclaration e) {
-    if (e.definingType != _enclosingDeclarationIdentifier) {
+    final enclosing = _enclosingDeclarationIdentifier;
+    if (enclosing != null && e.definingType != enclosing) {
       throw StateError('Mismatch: definingClass');
     }
   }
@@ -249,6 +249,11 @@ abstract class SharedPrinter {
           'fields',
           await introspector.fieldsOf(e),
           writeField,
+        );
+        await sink.writeElements(
+          'methods',
+          await introspector.methodsOf(e),
+          writeMethodDeclaration,
         );
       }
     }

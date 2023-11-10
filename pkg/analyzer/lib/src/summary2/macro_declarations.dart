@@ -57,11 +57,13 @@ class DeclarationBuilder {
 
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(macro.Identifier identifier) {
-    identifier as IdentifierImpl;
+    if (identifier is! IdentifierImpl) {
+      throw ArgumentError('Not analyzer identifier.');
+    }
 
     final element = identifier.element;
     if (element == null) {
-      throw ArgumentError('identifier: $identifier');
+      throw ArgumentError('Identifier without element.');
     }
 
     final node = nodeOfElement(element);
@@ -172,7 +174,7 @@ class DeclarationBuilderFromElement {
     final map = declarationBuilder._identifierMap;
     return map[element] ??= IdentifierImplFromElement(
       id: macro.RemoteInstance.uniqueId,
-      name: element.name!,
+      name: element.displayName,
       element: element,
     );
   }
@@ -193,7 +195,7 @@ class DeclarationBuilderFromElement {
     return library;
   }
 
-  macro.MethodDeclarationImpl methodElement(MethodElement element) {
+  MethodDeclarationImpl methodElement(ExecutableElement element) {
     return _methodMap[element] ??= _methodElement(element);
   }
 
@@ -249,7 +251,7 @@ class DeclarationBuilderFromElement {
   }
 
   FieldDeclarationImpl _fieldElement(FieldElement element) {
-    final enclosingElement = element.enclosingElement;
+    final enclosing = element.enclosingInstanceElement;
     return FieldDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
@@ -259,8 +261,20 @@ class DeclarationBuilderFromElement {
       hasFinal: element.isFinal,
       hasLate: element.isLate,
       type: _dartType(element.type),
-      definingType: identifier(enclosingElement),
+      definingType: identifier(enclosing),
       isStatic: element.isStatic,
+    );
+  }
+
+  macro.ParameterDeclarationImpl _formalParameter(ParameterElement element) {
+    return macro.ParameterDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      isNamed: element.isNamed,
+      isRequired: element.isRequired,
+      library: library(element),
+      metadata: _buildMetadata(element),
+      type: _dartType(element.type),
     );
   }
 
@@ -311,33 +325,45 @@ class DeclarationBuilderFromElement {
     );
   }
 
-  MethodDeclarationImpl _methodElement(MethodElement element) {
-    final enclosingClass = element.enclosingElement as ClassElement;
+  MethodDeclarationImpl _methodElement(ExecutableElement element) {
+    final enclosing = element.enclosingInstanceElement;
     return MethodDeclarationImpl._(
       element: element,
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
       library: library(element),
       metadata: _buildMetadata(element),
-      hasAbstract: false,
-      // hasBody: node.body is! ast.EmptyFunctionBody,
-      hasBody: true,
-      // hasExternal: node.externalKeyword != null,
-      hasExternal: false,
-      // isGetter: node.isGetter,
-      isGetter: false,
-      // isOperator: node.isOperator,
-      isOperator: false,
-      // isSetter: node.isSetter,
-      isSetter: false,
-      // isStatic: node.isStatic,
+      hasAbstract: element.isAbstract,
+      hasBody: !element.isAbstract,
+      hasExternal: element.isExternal,
+      isGetter: element is PropertyAccessorElement && element.isGetter,
+      isOperator: element.isOperator,
+      isSetter: element is PropertyAccessorElement && element.isSetter,
       isStatic: element.isStatic,
-      namedParameters: [], // TODO(scheglov) implement
-      positionalParameters: [], // TODO(scheglov) implement
+      namedParameters: _namedFormalParameters(element.parameters),
+      positionalParameters: _positionalFormalParameters(element.parameters),
       returnType: _dartType(element.returnType),
       typeParameters: element.typeParameters.map(_typeParameter).toList(),
-      definingType: identifier(enclosingClass),
+      definingType: identifier(enclosing),
     );
+  }
+
+  List<macro.ParameterDeclarationImpl> _namedFormalParameters(
+    List<ParameterElement> elements,
+  ) {
+    return elements
+        .where((element) => element.isNamed)
+        .map(_formalParameter)
+        .toList();
+  }
+
+  List<macro.ParameterDeclarationImpl> _positionalFormalParameters(
+    List<ParameterElement> elements,
+  ) {
+    return elements
+        .where((element) => element.isPositional)
+        .map(_formalParameter)
+        .toList();
   }
 
   macro.TypeParameterDeclarationImpl _typeParameter(
@@ -729,6 +755,11 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
   });
 }
 
+/// A macro declaration that has an [Element].
+abstract interface class HasElement {
+  Element get element;
+}
+
 abstract class IdentifierImpl extends macro.IdentifierImpl {
   IdentifierImpl({
     required super.id,
@@ -763,7 +794,8 @@ class IdentifierImplFromNode extends IdentifierImpl {
 }
 
 class IntrospectableClassDeclarationImpl
-    extends macro.IntrospectableClassDeclarationImpl {
+    extends macro.IntrospectableClassDeclarationImpl implements HasElement {
+  @override
   final ClassElement element;
 
   IntrospectableClassDeclarationImpl._({
@@ -787,7 +819,8 @@ class IntrospectableClassDeclarationImpl
 }
 
 class IntrospectableMixinDeclarationImpl
-    extends macro.IntrospectableMixinDeclarationImpl {
+    extends macro.IntrospectableMixinDeclarationImpl implements HasElement {
+  @override
   final MixinElement element;
 
   IntrospectableMixinDeclarationImpl._({
@@ -879,5 +912,15 @@ extension<T> on T? {
   R? mapOrNull<R>(R Function(T) mapper) {
     final self = this;
     return self != null ? mapper(self) : null;
+  }
+}
+
+extension on Element {
+  /// With the assumption that enclosing element is an [InstanceElement], and
+  /// is not an invalid augmentation, return the declaration - the start of
+  /// the augmentation chain.
+  InstanceElement get enclosingInstanceElement {
+    final enclosing = enclosingElement as InstanceElement;
+    return enclosing.augmented!.declaration;
   }
 }

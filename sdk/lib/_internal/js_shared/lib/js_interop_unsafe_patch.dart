@@ -24,7 +24,6 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   void setProperty(JSAny property, JSAny? value) =>
       JS<void>('', '#[#] = #', this, property, value);
 
-  // TODO(joshualitt): Specialize at callsites.
   @patch
   @pragma('dart2js:prefer-inline')
   JSAny? _callMethod(JSAny method,

@@ -73,7 +73,7 @@ class _Visitor extends SimpleAstVisitor {
     var target = cascade?.target;
     if (target is! ListLiteral ||
         (sections != null && sections.first != invocation)) {
-      // todo (pq): consider extending to handle set literals.
+      // TODO(pq): consider extending to handle set literals.
       return;
     }
 

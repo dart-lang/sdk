@@ -220,7 +220,7 @@ class DartTypeUtilities {
           DartType? type, String interface, String library) =>
       type.implementsInterface(interface, library);
 
-  // todo(pq): remove and replace w/ an extension (pending internal migration)
+  // TODO(pq): remove and replace w/ an extension (pending internal migration)
   @Deprecated('Slated for removal')
   static bool isClass(DartType? type, String? className, String? library) =>
       type is InterfaceType &&

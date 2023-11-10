@@ -42,17 +42,22 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   /// Sets a given [property] with [value] on this [JSObject].
   external void setProperty(JSAny property, JSAny? value);
 
-  /// Calls a method on this [JSObject] with up to four arguments and returns
-  /// the result.
   external JSAny? _callMethod(JSAny method,
       [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]);
+
+  /// Calls a method on this [JSObject] with up to four arguments and returns
+  /// the result.
+  ///
+  /// TODO(srujzs): This helper doesn't allow passing nulls, as we use null as
+  /// our sentinel to determine if an argument is passed.
   T callMethod<T extends JSAny?>(JSAny method,
           [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) =>
       _callMethod(method, arg1, arg2, arg3, arg4) as T;
 
+  external JSAny? _callMethodVarArgs(JSAny method, [List<JSAny?>? arguments]);
+
   /// Calls a method on this [JSObject] with a variable number of arguments and
   /// returns the result.
-  external JSAny? _callMethodVarArgs(JSAny method, [List<JSAny?>? arguments]);
   T callMethodVarArgs<T extends JSAny?>(JSAny method,
           [List<JSAny?>? arguments]) =>
       _callMethodVarArgs(method, arguments) as T;
@@ -62,17 +67,22 @@ extension JSObjectUnsafeUtilExtension on JSObject {
 }
 
 extension JSFunctionUnsafeUtilExtension on JSFunction {
-  /// Calls this [JSFunction] as a constructor with up to four arguments and
-  /// returns the constructed [JSObject].
   external JSObject _callAsConstructor(
       [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]);
+
+  /// Calls this [JSFunction] as a constructor with up to four arguments and
+  /// returns the constructed [JSObject].
+  ///
+  /// TODO(srujzs): This helper doesn't allow passing nulls, as we use null as
+  /// our sentinel to determine if an argument is passed.
   T callAsConstructor<T>(
           [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) =>
       _callAsConstructor(arg1, arg2, arg3, arg4) as T;
 
+  external JSObject _callAsConstructorVarArgs([List<JSAny?>? arguments]);
+
   /// Calls this [JSFunction] as a constructor with a variable number of
   /// arguments and returns the constructed [JSObject].
-  external JSObject _callAsConstructorVarArgs([List<JSAny?>? arguments]);
   T callAsConstructorVarArgs<T extends JSObject>([List<JSAny?>? arguments]) =>
       _callAsConstructorVarArgs(arguments) as T;
 }

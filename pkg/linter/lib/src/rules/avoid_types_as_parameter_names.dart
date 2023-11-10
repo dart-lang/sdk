@@ -82,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isTypeName(AstNode scope, Token name) {
-    var result = context.resolveNameInScope(name.lexeme, false, scope);
+    var result = context.resolveNameInScope2(name.lexeme, scope, setter: false);
     if (result.isRequestedName) {
       var element = result.element;
       return element is ClassElement ||

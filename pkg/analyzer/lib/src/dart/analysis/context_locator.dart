@@ -19,7 +19,6 @@ import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
-import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:glob/glob.dart';
@@ -407,8 +406,6 @@ class ContextLocatorImpl implements ContextLocator {
     Workspace? workspace;
     workspace = BlazeWorkspace.find(resourceProvider, rootPath,
         lookForBuildFileSubstitutes: false);
-    workspace = _mostSpecificWorkspace(workspace,
-        PackageBuildWorkspace.find(resourceProvider, packages, rootPath));
     workspace = _mostSpecificWorkspace(
         workspace, PubWorkspace.find(resourceProvider, packages, rootPath));
     workspace ??= BasicWorkspace.find(resourceProvider, packages, rootPath);
@@ -426,16 +423,13 @@ class ContextLocatorImpl implements ContextLocator {
   }
 
   File? _findDefaultOptionsFile(Workspace workspace) {
-    // TODO(scheglov) Create SourceFactory once.
-    var sourceFactory = workspace.createSourceFactory(null, null);
-
-    String? uriStr;
-    if (workspace is WorkspaceWithDefaultAnalysisOptions) {
-      uriStr = WorkspaceWithDefaultAnalysisOptions.uri;
-    } else {
-      uriStr = 'package:flutter/analysis_options_user.yaml';
+    if (workspace is! WorkspaceWithDefaultAnalysisOptions) {
+      return null;
     }
 
+    // TODO(scheglov) Create SourceFactory once.
+    var sourceFactory = workspace.createSourceFactory(null, null);
+    var uriStr = WorkspaceWithDefaultAnalysisOptions.uri;
     var path = sourceFactory.forUri(uriStr)?.fullName;
     if (path != null) {
       var file = resourceProvider.getFile(path);

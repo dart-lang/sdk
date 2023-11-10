@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import '../analyzer.dart';
 import '../extensions.dart';
 
-// todo(nshahan): update description as scope increases.
+// TODO(nshahan): update description as scope increases.
 const _desc = r"Don't do 'is' checks on DartTypes.";
 
 const _details = r'''
@@ -18,7 +18,7 @@ Experimental WIP lint to help ensure `DartType` accesses are safe in the dev_com
 ''';
 
 class EraseDartTypeExtensionTypes extends LintRule {
-  // todo(nshahan): update
+  // TODO(nshahan): update
   static const LintCode code = LintCode('erase_dart_type_extension_types',
       "Unsafe use of 'DartType' in an 'is' check.",
       correctionMessage:

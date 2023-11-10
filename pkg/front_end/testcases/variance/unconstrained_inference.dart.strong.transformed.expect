@@ -24,7 +24,7 @@ static method main() → dynamic {
   self::Covariant<dynamic> cov = new self::Covariant::•<dynamic>();
   self::covariantListInfer<core::Object?>(new self::Covariant::•<core::List<core::Object?>>());
   self::Contravariant<Never> contra = new self::Contravariant::•<Never>();
-  self::contravariantListInfer<core::Object?>(new self::Contravariant::•<core::List<core::Object?>>());
+  self::contravariantListInfer<Never>(new self::Contravariant::•<core::List<Never>>());
   self::Invariant<dynamic> inv = new self::Invariant::•<dynamic>();
-  self::invariantListInfer<core::Object?>(new self::Invariant::•<core::List<core::Object?>>());
+  self::invariantListInfer<Never>(new self::Invariant::•<core::List<Never>>());
 }

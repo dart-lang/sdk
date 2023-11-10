@@ -2305,14 +2305,16 @@ bool Isolate::NotifyErrorListeners(const char* message,
   arr_values[1] = &stack;
 
   SendPort& listener = SendPort::Handle(current_zone());
+  bool was_somebody_notified = false;
   for (intptr_t i = 0; i < listeners.Length(); i++) {
     listener ^= listeners.At(i);
     if (!listener.IsNull()) {
       Dart_Port port_id = listener.Id();
       PortMap::PostMessage(SerializeMessage(current_zone(), port_id, &arr));
+      was_somebody_notified = true;
     }
   }
-  return listeners.Length() > 0;
+  return was_somebody_notified;
 }
 
 static void ShutdownIsolate(uword parameter) {
