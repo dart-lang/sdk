@@ -14,6 +14,10 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 class NodeTextExpectationsCollector {
+  /// If this flag is `true`, we accumulate updates to expectations.
+  /// This should only happen locally, to update tests or implementation.
+  ///
+  /// This flag should be `false` during code review.
   static const updatingIsEnabled = false;
 
   static const assertMethods = [
