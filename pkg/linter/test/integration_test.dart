@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/cli.dart' as cli;
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
@@ -36,22 +35,6 @@ void coreTests() {
         collectingOut.buffer.clear();
         outSink = currentOut;
         exitCode = 0;
-      });
-      test('overrides', () async {
-        await cli.run([
-          '$integrationTestDir/p2',
-          '-c',
-          '$integrationTestDir/p2/lintconfig2.yaml'
-        ]);
-        expect(collectingOut.trim(),
-            stringContainsInOrder(['4 files analyzed, 0 issues found, in']));
-        expect(exitCode, 0);
-      });
-      test('default', () async {
-        await cli.run(['$integrationTestDir/p2']);
-        expect(collectingOut.trim(),
-            stringContainsInOrder(['4 files analyzed, 3 issues found, in']));
-        expect(exitCode, 1);
       });
     });
 

@@ -2,10 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/lint/config.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/config.dart';
 import 'package:http/http.dart' as http;
-
-import '../utils.dart';
+import 'package:linter/src/utils.dart';
 
 List<String>? _coreRules;
 
@@ -21,6 +20,7 @@ Future<List<String>> get flutterRules async =>
 
 Future<List<String>> get recommendedRules async =>
     _recommendedRules ??= await _readRecommendedLints();
+
 Future<List<String>> fetchRules(Uri optionsUrl) async {
   var config = await _fetchConfig(optionsUrl);
   if (config == null) {
