@@ -13,6 +13,7 @@ const String cfeMarker = 'cfe';
 const String cfeWithNnbdMarker = '$cfeMarker:nnbd';
 const String dart2jsMarker = 'dart2js';
 const String analyzerMarker = 'analyzer';
+const String ddcMarker = 'ddc';
 
 /// Markers used in annotated tests shared by CFE, analyzer and dart2js.
 const List<String> sharedMarkers = [

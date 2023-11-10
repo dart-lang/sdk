@@ -354,13 +354,7 @@ Future<CompilerResult> _compile(List<String> args,
   }
 
   var component = result.component;
-  var librariesFromDill = result.computeLibrariesFromDill();
-  var compiledLibraries =
-      Component(nameRoot: component.root, uriToSource: component.uriToSource)
-        ..setMainMethodAndMode(null, false, component.mode);
-  for (var lib in component.libraries) {
-    if (!librariesFromDill.contains(lib)) compiledLibraries.libraries.add(lib);
-  }
+  var compiledLibraries = result.compiledLibraries;
 
   // Output files can be written in parallel, so collect the futures.
   var outFiles = <Future>[];
@@ -872,7 +866,12 @@ final defaultSdkSummaryPath =
 final defaultLibrarySpecPath = p.join(getSdkPath(), 'lib', 'libraries.json');
 
 /// Return the path to the runtime Dart SDK.
-String getSdkPath() => p.dirname(p.dirname(Platform.resolvedExecutable));
+String getSdkPath() {
+  // Support explicit sdk location through an environment variable.
+  var resolvedExecutable = Platform.environment['resolvedExecutable'];
+  return p
+      .dirname(p.dirname(resolvedExecutable ?? Platform.resolvedExecutable));
+}
 
 /// Returns the absolute path to the default `package_config.json` file, or
 /// `null` if one could not be found.
