@@ -271,6 +271,10 @@ class LibraryBuilder {
       constructor.reference = reference;
 
       classElement.constructors = [constructor].toFixedList();
+
+      if (classElement.augmented case AugmentedClassElementImpl augmented) {
+        augmented.constructors = classElement.constructors;
+      }
     }
   }
 

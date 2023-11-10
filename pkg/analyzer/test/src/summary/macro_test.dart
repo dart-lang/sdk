@@ -3321,8 +3321,89 @@ augment class B {
 ''');
   }
 
-  /// TODO(scheglov) Not quite correct - we should not add a synthetic one.
-  test_class_constructor_add() async {
+  test_class_constructor_add_fieldFormalParameter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDeclarationsMacro {
+  const MyMacro();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInType(
+      DeclarationCode.fromString('  A.named(this.f);'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {
+  final int f;
+}
+''');
+
+    configuration
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @35
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        fields
+          final f @51
+            reference: self::@class::A::@field::f
+            type: int
+        accessors
+          synthetic get f @-1
+            reference: self::@class::A::@getter::f
+            returnType: int
+        augmented
+          fields
+            self::@class::A::@field::f
+          constructors
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+          accessors
+            self::@class::A::@getter::f
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+augment class A {
+  A.named(this.f);
+}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @44
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            constructors
+              named @52
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                periodOffset: 51
+                nameEnd: 57
+                parameters
+                  requiredPositional final this.f @63
+                    type: int
+                    field: self::@class::A::@field::f
+''');
+  }
+
+  test_class_constructor_add_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
@@ -3358,12 +3439,8 @@ library
       class A @35
         reference: self::@class::A
         augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
-        constructors
-          synthetic @-1
-            reference: self::@class::A::@constructor::new
         augmented
           constructors
-            self::@class::A::@constructor::new
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
   augmentationImports
     package:test/test.macro.dart
@@ -3389,6 +3466,71 @@ augment class A {
                 nameEnd: 57
                 parameters
                   requiredPositional a @62
+                    type: int
+''');
+  }
+
+  test_class_constructor_add_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassDeclarationsMacro {
+  const MyMacro();
+
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInType(
+      DeclarationCode.fromString('  A(int a);'),
+    );
+  }
+}
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''');
+
+    configuration
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @35
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmented
+          constructors
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+augment class A {
+  A(int a);
+}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @44
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            constructors
+              @50
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::new
+                parameters
+                  requiredPositional a @56
                     type: int
 ''');
   }
