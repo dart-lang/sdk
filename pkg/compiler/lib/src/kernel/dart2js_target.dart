@@ -21,7 +21,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../options.dart';
 import 'invocation_mirror_constants.dart';
-import 'transformations/modular/lowering.dart' as modularTransforms;
+import 'transformations/modular/transform.dart' as modularTransforms;
 
 const Iterable<String> _allowedDartSchemePaths = [
   'async',

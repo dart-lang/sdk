@@ -57,6 +57,15 @@
   Dart classes. This information provides little value and keeping it imposes an
   unnecessary maintenance cost.
 
+#### Linter
+
+- Removed the `iterable_contains_unrelated_type` and
+  `list_remove_unrelated_type` lints.
+  Consider migrating to the expanded
+  [`collection_methods_unrelated_type`][] lint.
+
+[`collection_methods_unrelated_type`]: https://dart.dev/lints/collection_methods_unrelated_type
+
 ## 3.2.0
 
 ### Language

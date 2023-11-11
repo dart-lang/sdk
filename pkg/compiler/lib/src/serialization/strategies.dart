@@ -60,7 +60,6 @@ abstract class SerializationStrategy<T> {
   JClosedWorld deserializeClosedWorld(
       CompilerOptions options,
       DiagnosticReporter reporter,
-      Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       List<T> data,
@@ -124,7 +123,6 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
   JClosedWorld deserializeClosedWorld(
       CompilerOptions options,
       DiagnosticReporter reporter,
-      Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       List<int> data,
@@ -132,8 +130,8 @@ class BytesInMemorySerializationStrategy extends SerializationStrategy<int> {
     DataSourceReader source = DataSourceReader(
         BinaryDataSource(data), options, indices,
         useDataKinds: useDataKinds);
-    var closedWorld = deserializeClosedWorldFromSource(options, reporter,
-        environment, abstractValueStrategy, component, source);
+    var closedWorld = deserializeClosedWorldFromSource(
+        options, reporter, abstractValueStrategy, component, source);
     return closedWorld;
   }
 }
@@ -197,7 +195,6 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
   JClosedWorld deserializeClosedWorld(
       CompilerOptions options,
       DiagnosticReporter reporter,
-      Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       List<int> data,
@@ -205,8 +202,8 @@ class BytesOnDiskSerializationStrategy extends SerializationStrategy<int> {
     DataSourceReader source = DataSourceReader(
         BinaryDataSource(data), options, indices,
         useDataKinds: useDataKinds);
-    var closedWorld = deserializeClosedWorldFromSource(options, reporter,
-        environment, abstractValueStrategy, component, source);
+    var closedWorld = deserializeClosedWorldFromSource(
+        options, reporter, abstractValueStrategy, component, source);
     return closedWorld;
   }
 }
@@ -266,7 +263,6 @@ class ObjectsInMemorySerializationStrategy
   JClosedWorld deserializeClosedWorld(
       CompilerOptions options,
       DiagnosticReporter reporter,
-      Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       List<Object> data,
@@ -274,8 +270,8 @@ class ObjectsInMemorySerializationStrategy
     DataSourceReader source = DataSourceReader(
         ObjectDataSource(data), options, indices,
         useDataKinds: useDataKinds);
-    var closedWorld = deserializeClosedWorldFromSource(options, reporter,
-        environment, abstractValueStrategy, component, source);
+    var closedWorld = deserializeClosedWorldFromSource(
+        options, reporter, abstractValueStrategy, component, source);
     return closedWorld;
   }
 }

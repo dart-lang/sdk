@@ -37,7 +37,7 @@ enum Dart2JSStage {
       emitsKernel: false,
       emitsJs: false),
   closedWorld('closed-world',
-      dataOutputName: 'world.data', emitsKernel: true, emitsJs: false),
+      dataOutputName: 'world.data', emitsKernel: false, emitsJs: false),
   globalInference('global-inference',
       dataOutputName: 'global.data', emitsKernel: false, emitsJs: false),
   codegenAndJsEmitter('codegen-emit-js', emitsKernel: false, emitsJs: true),

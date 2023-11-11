@@ -5,6 +5,7 @@
 import 'dart:io' as io;
 
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
@@ -42,7 +43,7 @@ void _updateAnalyzerOptions(
   analysisOptions.lint = options.enableLints;
   analysisOptions.warning = false;
   analysisOptions.enableTiming = options.enableTiming;
-  analysisOptions.lintRules = options.enabledLints.toList(growable: false);
+  analysisOptions.lintRules = options.enabledRules.toList(growable: false);
 }
 
 class DriverOptions {
@@ -82,6 +83,8 @@ class DriverOptions {
   }
 }
 
+/// A driver _only used_ by [DartLinter], which is only used by package:linter
+/// tests and tools.
 class LintDriver {
   /// The files which have been analyzed so far.  This is used to compute the
   /// total number of files analyzed for statistics.
@@ -89,7 +92,9 @@ class LintDriver {
 
   final LinterOptions options;
 
-  LintDriver(this.options);
+  final ResourceProvider _resourceProvider;
+
+  LintDriver(this.options, this._resourceProvider);
 
   /// Return the number of sources that have been analyzed so far.
   int get numSourcesAnalyzed => _filesAnalyzed.length;
@@ -102,7 +107,7 @@ class LintDriver {
     packageConfigPath = _absoluteNormalizedPath.ifNotNull(packageConfigPath);
 
     var contextCollection = AnalysisContextCollectionImpl(
-      resourceProvider: options.resourceProvider,
+      resourceProvider: _resourceProvider,
       packagesFile: packageConfigPath,
       sdkPath: options.dartSdkPath,
       includedPaths:
@@ -139,7 +144,7 @@ class LintDriver {
   }
 
   String _absoluteNormalizedPath(String path) {
-    var pathContext = options.resourceProvider.pathContext;
+    var pathContext = _resourceProvider.pathContext;
     path = pathContext.absolute(path);
     path = pathContext.normalize(path);
     return path;

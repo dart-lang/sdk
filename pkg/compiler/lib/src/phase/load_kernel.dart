@@ -4,26 +4,34 @@
 
 import 'dart:async';
 
+import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:collection/collection.dart';
+import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import 'package:front_end/src/fasta/kernel/utils.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
-import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
+import 'package:kernel/class_hierarchy.dart' as ir;
+import 'package:kernel/core_types.dart' as ir;
 import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
-
-import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
+import 'package:kernel/type_environment.dart' as ir;
 import 'package:kernel/verifier.dart';
 
 import '../../compiler_api.dart' as api;
 import '../commandline_options.dart';
 import '../common.dart';
-import '../kernel/front_end_adapter.dart';
+import '../diagnostics/diagnostic_listener.dart';
+import '../environment.dart';
+import '../ir/annotations.dart';
+import '../ir/constants.dart';
 import '../kernel/dart2js_target.dart'
-    show Dart2jsTarget, implicitlyUsedLibraries;
-import '../kernel/transformations/global/lowering.dart' as globalTransforms;
+    show
+        Dart2jsConstantsBackend,
+        Dart2jsDartLibrarySupport,
+        Dart2jsTarget,
+        implicitlyUsedLibraries;
+import '../kernel/front_end_adapter.dart';
+import '../kernel/transformations/global/transform.dart' as globalTransforms;
 import '../options.dart';
 
 class Input {
@@ -110,13 +118,56 @@ class _LoadFromKernelResult {
   _LoadFromKernelResult(this.component, this.entryLibrary);
 }
 
+void _simplifyConstConditionals(ir.Component component, CompilerOptions options,
+    ir.ClassHierarchy classHierarchy, DiagnosticReporter reporter) {
+  void reportMessage(
+      fe.LocatedMessage message, List<fe.LocatedMessage>? context) {
+    reportLocatedMessage(reporter, message, context);
+  }
+
+  bool shouldNotInline(ir.TreeNode node) {
+    if (node is! ir.Annotatable) {
+      return false;
+    }
+    return computePragmaAnnotationDataFromIr(node).any((pragma) =>
+        pragma == const PragmaAnnotationData('noInline') ||
+        pragma == const PragmaAnnotationData('never-inline'));
+  }
+
+  fe.ConstConditionalSimplifier(
+          const Dart2jsDartLibrarySupport(),
+          const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
+          component,
+          reportMessage,
+          environmentDefines: options.environment,
+          classHierarchy: classHierarchy,
+          evaluationMode: options.useLegacySubtyping
+              ? fe.EvaluationMode.weak
+              : fe.EvaluationMode.strong,
+          shouldNotInline: shouldNotInline)
+      .run();
+}
+
 // Perform any backend-specific transforms here that can be done on both
 // serialized components and components from source.
-void _doTransformsOnKernelLoad(Component component, CompilerOptions options) {
+void _doTransformsOnKernelLoad(
+    Component component, CompilerOptions options, DiagnosticReporter reporter) {
   if (options.stage.shouldRunGlobalTransforms) {
     ir.CoreTypes coreTypes = ir.CoreTypes(component);
-    globalTransforms.transformLibraries(
-        component.libraries, coreTypes, options);
+    // Ignore ambiguous supertypes.
+    final classHierarchy = ir.ClassHierarchy(component, coreTypes,
+        onAmbiguousSupertypes: (_, __, ___) {});
+    ir.TypeEnvironment typeEnvironment =
+        ir.TypeEnvironment(coreTypes, classHierarchy);
+    final constantsEvaluator = Dart2jsConstantEvaluator(
+        component,
+        typeEnvironment,
+        (fe.LocatedMessage message, List<fe.LocatedMessage>? context) =>
+            reportLocatedMessage(reporter, message, context),
+        environment: Environment(options.environment),
+        evaluationMode: options.useLegacySubtyping
+            ? fe.EvaluationMode.weak
+            : fe.EvaluationMode.strong);
     // referenceFromIndex is only necessary in the case where a module
     // containing a stub definition is invalidated, and then reloaded, because
     // we need to keep existing references to that stub valid. Here, we have the
@@ -124,11 +175,17 @@ void _doTransformsOnKernelLoad(Component component, CompilerOptions options) {
     StaticInteropClassEraser(coreTypes, null,
             additionalCoreLibraries: {'_js_types', 'js_interop'})
         .visitComponent(component);
+    globalTransforms.transformLibraries(
+        component.libraries, constantsEvaluator, coreTypes, options);
+    _simplifyConstConditionals(component, options, classHierarchy, reporter);
   }
 }
 
-Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
-    api.CompilerInput compilerInput, String targetName) async {
+Future<_LoadFromKernelResult> _loadFromKernel(
+    CompilerOptions options,
+    api.CompilerInput compilerInput,
+    String targetName,
+    DiagnosticReporter reporter) async {
   Library? entryLibrary;
   var resolvedUri = options.compilationTarget;
   ir.Component component = ir.Component();
@@ -174,7 +231,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
     component.setMainMethodAndMode(mainMethod, true, component.mode);
   }
 
-  _doTransformsOnKernelLoad(component, options);
+  _doTransformsOnKernelLoad(component, options, reporter);
   registerSources(component, compilerInput);
   return _LoadFromKernelResult(component, entryLibrary);
 }
@@ -273,7 +330,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
       return true;
     }());
 
-    _doTransformsOnKernelLoad(component, options);
+    _doTransformsOnKernelLoad(component, options, reporter);
 
     registerSources(component, compilerInput);
   }
@@ -353,7 +410,7 @@ Future<Output?> run(Input input) async {
       input.initializedCompilerState;
   if (options.stage.shouldLoadFromDill) {
     _LoadFromKernelResult result =
-        await _loadFromKernel(options, compilerInput, targetName);
+        await _loadFromKernel(options, compilerInput, targetName, reporter);
     component = result.component;
     entryLibrary = result.entryLibrary;
   } else {

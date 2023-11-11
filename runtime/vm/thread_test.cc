@@ -1064,25 +1064,32 @@ struct ReaderThreadState {
   ThreadJoinId reader_id = OSThread::kInvalidThreadJoinId;
   SafepointRwLock* rw_lock = nullptr;
   IsolateGroup* isolate_group = nullptr;
-  intptr_t elapsed_us = 0;
+  Monitor* monitor = nullptr;
+  bool child_started = false;
+  intptr_t value = -1;
+  intptr_t observed_value = -1;
 };
 
 void Helper(uword arg) {
   auto state = reinterpret_cast<ReaderThreadState*>(arg);
   state->reader_id = OSThread::GetCurrentThreadJoinId(OSThread::Current());
-
+  // Notify other thread.
+  {
+    MonitorLocker ml(state->monitor);
+    state->child_started = true;
+    ml.Notify();
+  }
   const bool kBypassSafepoint = false;
   Thread::EnterIsolateGroupAsHelper(state->isolate_group, Thread::kUnknownTask,
                                     kBypassSafepoint);
   {
     auto thread = Thread::Current();
-    const auto before_us = OS::GetCurrentMonotonicMicros();
-    intptr_t after_us = before_us;
+    intptr_t observed_value = -1;
     {
       SafepointReadRwLocker reader(thread, state->rw_lock);
-      after_us = OS::GetCurrentMonotonicMicros();
+      observed_value = state->value;
     }
-    state->elapsed_us = (after_us - before_us);
+    state->observed_value = observed_value;
   }
   Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
 }
@@ -1094,6 +1101,9 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockExclusiveNestedWriter_Regress44000) {
   ReaderThreadState state;
   state.rw_lock = &lock;
   state.isolate_group = isolate_group;
+  state.value = 0;
+  state.child_started = false;
+  state.monitor = new Monitor();
   {
     // Hold one writer lock.
     SafepointWriteRwLocker locker(Thread::Current(), &lock);
@@ -1107,18 +1117,23 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockExclusiveNestedWriter_Regress44000) {
                           reinterpret_cast<uword>(&state)) != 0) {
         FATAL("Could not start worker thread");
       }
-      // Give thread a little time to actually start running.
-      OS::Sleep(20);
-
-      OS::Sleep(500);
+      // Wait for the thread to start.
+      {
+        MonitorLocker ml(state.monitor);
+        while (!state.child_started) {
+          ml.Wait();
+        }
+      }
+      state.value = 1;
     }
-    OS::Sleep(500);
+    state.value = 2;
   }
   // Join the other thread.
   OSThread::Join(state.reader_id);
 
-  // Ensure the reader thread had to wait for around 1 second.
-  EXPECT(state.elapsed_us > 2 * 500 * 1000);
+  // Ensure the reader thread had to wait before it entered the
+  // SafepointWriteRwLocker scope.
+  EXPECT(state.observed_value == 2);
 }
 
 ISOLATE_UNIT_TEST_CASE(SafepointMonitorUnlockScope) {

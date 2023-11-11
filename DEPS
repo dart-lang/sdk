@@ -84,7 +84,7 @@ vars = {
 
   "reclient_version": "git_revision:81e819b39d4743462857cc55430d898b9fcca1af",
 
-  # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/gn
+  # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/core
   "fuchsia_sdk_version": "version:16.20231105.3.1",
   "download_fuchsia_deps": False,
 
@@ -101,7 +101,7 @@ vars = {
   "boringssl_gen_rev": "a468ba9fec3f59edf46a7db98caaca893e1e4d96",
   "boringssl_rev": "74646566e93de7551bfdfc5f49de7462f13d1d05",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "devtools_rev": "28a3978da5f230d4311fd2a4e2effaf0ef620de7",
+  "devtools_rev": "fec80c6e29b627aa17e8b15f72cb4013a28d14ec",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -193,7 +193,7 @@ vars = {
   "vector_math_rev": "294896dedc6da2a736f47c3c6a19643df934641c",
   "watcher_rev": "b2b278ae4198b4c431a145ddcfdab1460d5f9ec5",
   "web_socket_channel_rev": "82ac73fef05c474095c740a9525b4cfb61611c3d",
-  "webdev_rev": "5ad79c240b000a50057612d6af4573f6e649f65c",
+  "webdev_rev": "6961b202c343e12893e6c664ef70336b7c3845c3",
   "webdriver_rev": "43ed1dbefc39866ebccc31d3704a0e71400ef4a2",
   "webkit_inspection_protocol_rev": "667c55e6f65638592768e0325b75420e39b01d2e",
   "yaml_rev": "98a3aab54b09d355e094fdb4e5abd9083a2876b8",
@@ -649,41 +649,36 @@ Var("dart_root") + "/third_party/pkg/tar":
       "dep_type": "cipd",
   },
 
-  # TODO(38752): Confirm if mac sdk is necessary in dart.
-  Var("dart_root") + "/third_party/fuchsia/sdk/mac": {
-    "packages": [
-      {
-      "package": "fuchsia/sdk/gn/mac-amd64",
-      "version": Var("fuchsia_sdk_version"),
-      }
-    ],
-    "condition":
-        'download_fuchsia_deps and host_os == "mac" and host_cpu == "x64"',
-    "dep_type": "cipd",
-  },
-
-  # TODO(38752): Migrate to core sdk, gn sdk is deprecating.
   Var("dart_root") + "/third_party/fuchsia/sdk/linux": {
     "packages": [
       {
-      "package": "fuchsia/sdk/gn/linux-amd64",
+      "package": "fuchsia/sdk/core/${{platform}}",
       "version": Var("fuchsia_sdk_version"),
       }
     ],
-    "condition":
-        'download_fuchsia_deps and host_os == "linux" and host_cpu == "x64"',
+    "condition": 'download_fuchsia_deps and host_os == "linux"',
     "dep_type": "cipd",
   },
 
   Var("dart_root") + "/third_party/fuchsia/test_scripts": {
     "packages": [
       {
-      "package": "chromium/fuchsia/test-scripts/fuchsia",
-      "version": "version:2@56179f1724e9bf82ce7abf5577884e5d217b52e9",
+      "package": "chromium/fuchsia/test-scripts",
+      "version": "version:2@542d79b983ec1cdf95d9cb3aea0ea528a4b3569d",
       }
     ],
-    "condition":
-        'download_fuchsia_deps and host_os == "linux" and host_cpu == "x64"',
+    "condition": 'download_fuchsia_deps',
+    "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/fuchsia-gn-sdk": {
+    "packages": [
+      {
+      "package": "chromium/fuchsia/gn-sdk",
+      "version": "version:2@691dde4a86f8f32790942eb025c3e9fe74102811",
+      }
+    ],
+    "condition": 'download_fuchsia_deps',
     "dep_type": "cipd",
   },
 

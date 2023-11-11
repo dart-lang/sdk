@@ -1,5 +1,8 @@
 # 3.3.0-wip
 
+- removed lint: `iterable_contains_unrelated_type`
+- removed lint: `list_remove_unrelated_type`
+
 # 3.2.0
 
 - new lint: `annotate_redeclares` (experimental)

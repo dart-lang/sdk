@@ -10,7 +10,6 @@ import 'package:args/args.dart';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/common.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/ir/constants.dart';
 import 'package:compiler/src/ir/scope.dart';
 import 'package:compiler/src/ir/static_type.dart';
 import 'package:compiler/src/ir/util.dart';
@@ -78,8 +77,6 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
   VariableScopeModel get variableScopeModel => _variableScopeModel!;
   VariableScopeModel? _variableScopeModel;
 
-  late final Dart2jsConstantEvaluator _constantEvaluator;
-
   @override
   ir.StaticTypeContext get staticTypeContext => _staticTypeContext!;
   set staticTypeContext(ir.StaticTypeContext context) {
@@ -92,11 +89,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
       ir.Component component, ir.ClassHierarchy classHierarchy,
       {required ir.EvaluationMode evaluationMode})
       : super(ir.TypeEnvironment(new ir.CoreTypes(component), classHierarchy),
-            classHierarchy, StaticTypeCacheImpl()) {
-    _constantEvaluator = Dart2jsConstantEvaluator(
-        component, typeEnvironment, const ir.SimpleErrorReporter().report,
-        evaluationMode: evaluationMode);
-  }
+            classHierarchy, StaticTypeCacheImpl());
 
   @override
   bool get useAsserts => false;
@@ -112,7 +105,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
     }
     _staticTypeContext = ir.StaticTypeContext(node, typeEnvironment);
     _variableScopeModel =
-        ScopeModel.from(node, _constantEvaluator).variableScopeModel;
+        ScopeModel.from(node, typeEnvironment).variableScopeModel;
     final result = super.visitProcedure(node);
     _variableScopeModel = null;
     _staticTypeContext = null;
@@ -123,7 +116,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
   ir.DartType visitField(ir.Field node) {
     _staticTypeContext = ir.StaticTypeContext(node, typeEnvironment);
     _variableScopeModel =
-        ScopeModel.from(node, _constantEvaluator).variableScopeModel;
+        ScopeModel.from(node, typeEnvironment).variableScopeModel;
     final result = super.visitField(node);
     _variableScopeModel = null;
     _staticTypeContext = null;
@@ -134,7 +127,7 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
   ir.DartType visitConstructor(ir.Constructor node) {
     _staticTypeContext = ir.StaticTypeContext(node, typeEnvironment);
     _variableScopeModel =
-        ScopeModel.from(node, _constantEvaluator).variableScopeModel;
+        ScopeModel.from(node, typeEnvironment).variableScopeModel;
     final result = super.visitConstructor(node);
     _variableScopeModel = null;
     _staticTypeContext = null;

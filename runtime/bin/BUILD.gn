@@ -992,11 +992,11 @@ executable("run_vm_tests") {
 
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
-      include_dirs += [ "$fuchsia_sdk_path/pkg/trace-engine/include" ]
-      libs = [ "zircon" ]
-    }
-    if (!using_fuchsia_gn_sdk && !using_fuchsia_sdk) {
-      deps += [ "//zircon/system/ulib/trace" ]
+      deps += [ "$fuchsia_sdk_root/pkg/trace-engine" ]
+    } else if (using_fuchsia_sdk) {
+      deps += [ "$fuchsia_sdk_root/pkg:trace-engine" ]
+    } else {
+      deps += [ "//zircon/system/ulib/trace-engine" ]
     }
   }
 

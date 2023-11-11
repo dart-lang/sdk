@@ -15,7 +15,6 @@ import '../compiler.dart';
 import '../deferred_load/deferred_load.dart' show DeferredLoadTask;
 import '../elements/entities.dart';
 import '../enqueue.dart';
-import '../environment.dart' as env;
 import '../ir/annotations.dart';
 import '../ir/closure.dart' show ClosureScopeModel;
 import '../ir/impact.dart';
@@ -85,9 +84,9 @@ class KernelFrontendStrategy {
   /// Support for classifying `noSuchMethod` implementations.
   late NoSuchMethodRegistry noSuchMethodRegistry;
 
-  KernelFrontendStrategy(this._compilerTask, this._options,
-      DiagnosticReporter reporter, env.Environment environment)
-      : _elementMap = KernelToElementMap(reporter, environment, _options) {
+  KernelFrontendStrategy(
+      this._compilerTask, this._options, DiagnosticReporter reporter)
+      : _elementMap = KernelToElementMap(reporter, _options) {
     _modularStrategy = KernelModularStrategy(_compilerTask, _elementMap);
     noSuchMethodRegistry =
         NoSuchMethodRegistry(commonElements, NoSuchMethodResolver(_elementMap));
@@ -213,11 +212,16 @@ class KernelFrontendStrategy {
         annotationsData);
   }
 
+  /// Registers a component with this strategy.
+  void registerComponent(ir.Component component) {
+    _elementMap.addComponent(component);
+  }
+
   /// Registers a set of loaded libraries with this strategy.
   void registerLoadedLibraries(ir.Component component, List<Uri> libraries) {
-    _elementMap.addComponent(component);
-    _irAnnotationData = processAnnotations(
-        ModularCore(component, _elementMap.constantEvaluator));
+    registerComponent(component);
+    _irAnnotationData =
+        processAnnotations(ModularCore(component, _elementMap.typeEnvironment));
     _annotationProcessor = KernelAnnotationProcessor(
         elementMap, elementMap.nativeBasicDataBuilder, _irAnnotationData);
     for (Uri uri in libraries) {
@@ -433,7 +437,7 @@ class KernelModularStrategy extends ModularStrategy {
   ModularMemberData getModularMemberData(
       ir.Member node, EnumSet<PragmaAnnotation> annotations) {
     ScopeModel scopeModel = _compilerTask.measureSubtask(
-        'closures', () => ScopeModel.from(node, _elementMap.constantEvaluator));
+        'closures', () => ScopeModel.from(node, _elementMap.typeEnvironment));
     return _compilerTask.measureSubtask('worldImpact', () {
       return computeModularMemberData(
           _elementMap, node, scopeModel, annotations);
@@ -464,7 +468,7 @@ class DeserializedModularStrategy extends ModularStrategy {
       ir.Member node, EnumSet<PragmaAnnotation> annotations) {
     // TODO(joshualitt): serialize scope model too.
     var scopeModel = _compilerTask.measureSubtask(
-        'closures', () => ScopeModel.from(node, _elementMap.constantEvaluator));
+        'closures', () => ScopeModel.from(node, _elementMap.typeEnvironment));
     var impactBuilderData = _cache[node];
     if (impactBuilderData == null) {
       throw 'missing modular analysis data for $node';

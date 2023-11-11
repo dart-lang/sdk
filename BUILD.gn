@@ -165,8 +165,8 @@ group("compressed_observatory_archive") {
 }
 
 if (is_fuchsia) {
-  import("third_party/fuchsia/sdk/${host_os}/build/component.gni")
-  import("third_party/fuchsia/sdk/${host_os}/build/package.gni")
+  import("third_party/fuchsia-gn-sdk/src/component.gni")
+  import("third_party/fuchsia-gn-sdk/src/package.gni")
 
   test_binaries = [
     "dart",

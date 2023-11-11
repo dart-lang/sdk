@@ -271,8 +271,8 @@ if (is_posix) {
 }
 if (is_fuchsia) {
   _native_compiler_configs += [
-    "//third_party/fuchsia/sdk/${host_os}/build/config:compiler",
-    "//third_party/fuchsia/sdk/${host_os}/build/config:runtime_library",
+    "//build/config/fuchsia:compiler",
+    "//build/config/fuchsia:runtime_library",
   ]
 }
 
@@ -433,21 +433,27 @@ if (is_win) {
 #
 # Variables
 #   no_default_deps: If true, no standard dependencies will be added.
-if (use_flutter_cxx) {
-  foreach(_target_type,
-          [
-            "executable",
-            "loadable_module",
-            "shared_library",
-          ]) {
-    template(_target_type) {
-      target(_target_type, target_name) {
-        forward_variables_from(invoker, "*", [ "no_default_deps" ])
-        if (!defined(deps)) {
-          deps = []
-        }
-        if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
+foreach(_target_type,
+        [
+          "executable",
+          "loadable_module",
+          "shared_library",
+        ]) {
+  template(_target_type) {
+    target(_target_type, target_name) {
+      forward_variables_from(invoker, "*", [ "no_default_deps" ])
+      if (!defined(deps)) {
+        deps = []
+      }
+      if (!defined(invoker.no_default_deps) || !invoker.no_default_deps) {
+        if (use_flutter_cxx) {
           deps += [ "//third_party/libcxx" ]
+        }
+        if (is_fuchsia) {
+          deps += [
+            "//build/config/fuchsia:runtime_library_group",
+            "//build/fuchsia/config/clang:c++-runtime-deps",
+          ]
         }
       }
     }

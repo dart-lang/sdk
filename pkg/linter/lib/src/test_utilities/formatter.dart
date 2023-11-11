@@ -7,9 +7,8 @@ import 'dart:math';
 
 import 'package:analyzer/error/error.dart';
 
-import 'analyzer.dart';
-import 'util/charcodes.dart' show $backslash, $pipe;
-import 'util/score_utils.dart';
+import '../analyzer.dart';
+import '../util/charcodes.dart' show $backslash, $pipe;
 
 // Number of times to perform linting to get stable benchmarks.
 const benchmarkRuns = 10;
@@ -41,44 +40,6 @@ String shorten(String? fileRoot, String fullName) {
   return fullName.substring(fileRoot.length);
 }
 
-Future writeBenchmarks(
-    IOSink out, List<File> filesToLint, LinterOptions lintOptions) async {
-  var timings = <String, int>{};
-  for (var i = 0; i < benchmarkRuns; ++i) {
-    await lintFiles(DartLinter(lintOptions), filesToLint);
-    lintRegistry.timers.forEach((n, t) {
-      var timing = t.elapsedMilliseconds;
-      var previous = timings[n];
-      if (previous == null) {
-        timings[n] = timing;
-      } else {
-        timings[n] = min(previous, timing);
-      }
-    });
-  }
-
-  var coreRuleset = await coreRules;
-  var recommendedRuleset = await recommendedRules;
-  var flutterRuleset = await flutterRules;
-
-  var stats = timings.keys.map((t) {
-    var sets = <String>[];
-    if (coreRuleset.contains(t)) {
-      sets.add('core');
-    }
-    if (recommendedRuleset.contains(t)) {
-      sets.add('recommended');
-    }
-    if (flutterRuleset.contains(t)) {
-      sets.add('flutter');
-    }
-
-    var details = sets.isEmpty ? '' : " [${sets.join(', ')}]";
-    return _Stat('$t$details', timings[t] ?? 0);
-  }).toList();
-  _writeTimings(out, stats, 0);
-}
-
 String _escapePipe(String input) {
   var result = StringBuffer();
   for (var c in input.codeUnits) {
@@ -88,36 +49,6 @@ String _escapePipe(String input) {
     result.writeCharCode(c);
   }
   return result.toString();
-}
-
-void _writeTimings(IOSink out, List<_Stat> timings, int summaryLength) {
-  var names = timings.map((s) => s.name).toList();
-
-  var longestName =
-      names.fold<int>(0, (prev, element) => max(prev, element.length));
-  var longestTime = 8;
-  var tableWidth = max(summaryLength, longestName + longestTime);
-  var pad = tableWidth - longestName;
-  var line = ''.padLeft(tableWidth, '-');
-
-  out
-    ..writeln()
-    ..writeln(line)
-    ..writeln('${'Timings'.padRight(longestName)}${'ms'.padLeft(pad)}')
-    ..writeln(line);
-  var totalTime = 0;
-
-  timings.sort();
-  for (var stat in timings) {
-    totalTime += stat.elapsed;
-    out.writeln(
-        '${stat.name.padRight(longestName)}${stat.elapsed.toString().padLeft(pad)}');
-  }
-  out
-    ..writeln(line)
-    ..writeln(
-        '${'Total'.padRight(longestName)}${totalTime.toString().padLeft(pad)}')
-    ..writeln(line);
 }
 
 class DetailedReporter extends SimpleFormatter {
@@ -309,9 +240,9 @@ class SimpleFormatter implements ReportFormatter {
   void writeTimings() {
     var timers = lintRegistry.timers;
     var timings = timers.keys
-        .map((t) => _Stat(t, timers[t]?.elapsedMilliseconds ?? 0))
+        .map((t) => Stat(t, timers[t]?.elapsedMilliseconds ?? 0))
         .toList();
-    _writeTimings(out, timings, _summaryLength);
+    out.writeTimings(timings, _summaryLength);
   }
 
   void _recordStats(AnalysisError error) {
@@ -330,12 +261,43 @@ class SimpleFormatter implements ReportFormatter {
   }
 }
 
-class _Stat implements Comparable<_Stat> {
+class Stat implements Comparable<Stat> {
   final String name;
   final int elapsed;
 
-  _Stat(this.name, this.elapsed);
+  Stat(this.name, this.elapsed);
 
   @override
-  int compareTo(_Stat other) => other.elapsed - elapsed;
+  int compareTo(Stat other) => other.elapsed - elapsed;
+}
+
+extension IOSinkExtension on IOSink {
+  void writeTimings(List<Stat> timings, int summaryLength) {
+    var names = timings.map((s) => s.name).toList();
+
+    var longestName =
+        names.fold<int>(0, (prev, element) => max(prev, element.length));
+    var longestTime = 8;
+    var tableWidth = max(summaryLength, longestName + longestTime);
+    var pad = tableWidth - longestName;
+    var line = ''.padLeft(tableWidth, '-');
+
+    writeln();
+    writeln(line);
+    writeln('${'Timings'.padRight(longestName)}${'ms'.padLeft(pad)}');
+    writeln(line);
+    var totalTime = 0;
+
+    timings.sort();
+    for (var stat in timings) {
+      totalTime += stat.elapsed;
+      writeln(
+          '${stat.name.padRight(longestName)}${stat.elapsed.toString().padLeft(pad)}');
+    }
+
+    writeln(line);
+    writeln(
+        '${'Total'.padRight(longestName)}${totalTime.toString().padLeft(pad)}');
+    writeln(line);
+  }
 }
