@@ -143,7 +143,7 @@ final finalizerAddress = () {
   return finalizerStub.cast<Void>();
 }();
 
-class PeerData extends Struct {
+base class PeerData extends Struct {
   external Pointer<Void> close;
   external Pointer<Void> munmap;
   external Pointer<Void> free;

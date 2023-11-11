@@ -23,18 +23,20 @@ void main(List<String> args) {
     var options = File('${dir.path}/analysis_options.yaml');
     var name = dir.path.split('/').last;
 
+    var type = 'default';
     if (options.existsSync()) {
-      var type = '** custom **';
+      type = '** custom **';
       var optionsContent = options.readAsStringSync();
       if (optionsContent.contains('package:lints/core.yaml')) {
         type = 'core';
       } else if (optionsContent.contains('package:lints/recommended.yaml')) {
         type = 'recommended';
+      } else if (optionsContent
+          .contains('package:dart_flutter_team_lints/analysis_options.yaml')) {
+        type = 'dart_flutter_team_lints';
       }
-      print('${name.padRight(indent)}: ${type.padRight(12)} $slocDesc');
-    } else {
-      print('${name.padRight(indent)}: default      $slocDesc');
     }
+    print('${name.padRight(indent)}: ${type.padRight(23)} $slocDesc');
   }
 }
 

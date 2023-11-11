@@ -18,7 +18,7 @@ final sizesToTest = [
   2 * kPageSize
 ];
 
-main() {
+void main() {
   final tempDir = Directory.systemTemp.createTempSync('mmap_test');
   try {
     testMmapOrReadFile(tempDir);
