@@ -50,6 +50,41 @@ class ConvertToFlutterStyleTodoTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.flutter_style_todos;
 
+  Future<void> test_commentContent() async {
+    await resolveTestCode('''
+// Here's a TODO and a todo and a   TODO.
+void f() { }
+''');
+    await assertHasFix('''
+// Here's a `TODO` and a `todo` and a   `TODO`.
+void f() { }
+''', errorFilter: (e) => e.errorCode != TodoCode.TODO);
+  }
+
+  Future<void> test_docComment() async {
+    await resolveTestCode('''
+/// Docs.
+/// TODO(user) msg.
+void f() { }
+''');
+    await assertHasFix('''
+/// Docs.
+// TODO(user): msg.
+void f() { }
+''', errorFilter: (e) => e.errorCode != TodoCode.TODO);
+  }
+
+  Future<void> test_docCommentSolo() async {
+    await resolveTestCode('''
+/// TODO(user) msg.
+void f() { }
+''');
+    await assertHasFix('''
+// TODO(user): msg.
+void f() { }
+''', errorFilter: (e) => e.errorCode != TodoCode.TODO);
+  }
+
   Future<void> test_extraLeadingSpace() async {
     await resolveTestCode('''
 //   TODO(user) msg.
@@ -70,6 +105,14 @@ void f() { }
 // TODO(user): msg.
 void f() { }
 ''');
+  }
+
+  Future<void> test_missingClosingParen() async {
+    await resolveTestCode('''
+// TODO(user msg.
+void f() { }
+''');
+    await assertNoFix(errorFilter: (e) => e.errorCode != TodoCode.TODO);
   }
 
   Future<void> test_missingColon() async {
@@ -115,15 +158,6 @@ void f() {}
 // TODO(user): msg.
 void f() {}
 ''', errorFilter: (e) => e.errorCode != TodoCode.TODO);
-  }
-
-  Future<void> test_todoInContent() async {
-    await resolveTestCode('''
-// Here's a TODO
-void f() { }
-''');
-
-    await assertNoFix(errorFilter: (e) => e.errorCode != TodoCode.TODO);
   }
 
   Future<void> test_unwantedSpaceBeforeUser() async {
