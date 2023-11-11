@@ -1,11 +1,1 @@
-include: package:lints/recommended.yaml
-
-# analyzer:
-#   language:
-#     strict-casts: true
-
-linter:
-  rules:
-    depend_on_referenced_packages: true
-    directives_ordering: true
-    sort_pub_dependencies: true
+include: package:dart_flutter_team_lints/analysis_options.yaml

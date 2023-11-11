@@ -193,7 +193,7 @@ var require = {
     "dart_sdk": "$ddcGenDir/sdk/amd/dart_sdk",
 $packagePaths
   },
-  waitSeconds: 30,
+  waitSeconds: 45,
 };
 
 </script>
