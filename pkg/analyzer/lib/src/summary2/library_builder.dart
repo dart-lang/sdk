@@ -642,6 +642,35 @@ class LibraryBuilder {
     }
   }
 
+  void setDefaultSupertypes() {
+    var shouldResetClassHierarchies = false;
+    final objectType = element.typeProvider.objectType;
+    for (final interface in element.topLevelElements) {
+      switch (interface) {
+        case ClassElementImpl():
+          if (interface.isAugmentation) continue;
+          if (interface.isDartCoreObject) continue;
+          if (interface.supertype == null) {
+            shouldResetClassHierarchies = true;
+            interface.supertype = objectType;
+          }
+        case MixinElementImpl():
+          if (interface.isAugmentation) continue;
+          final augmented = interface.augmented!;
+          if (augmented.superclassConstraints.isEmpty) {
+            shouldResetClassHierarchies = true;
+            interface.superclassConstraints = [objectType];
+            if (augmented is AugmentedMixinElementImpl) {
+              augmented.superclassConstraints = [objectType];
+            }
+          }
+      }
+    }
+    if (shouldResetClassHierarchies) {
+      element.session.classHierarchy.removeOfLibraries({uri});
+    }
+  }
+
   void storeExportScope() {
     element.exportedReferences = exportScope.toReferences();
 

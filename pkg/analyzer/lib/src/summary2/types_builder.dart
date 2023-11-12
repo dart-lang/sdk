@@ -132,13 +132,9 @@ class TypesBuilder {
       var type = extendsClause.superclass.type;
       if (type is InterfaceType && _isInterfaceTypeClass(type)) {
         element.supertype = type;
-      } else {
-        element.supertype = _objectType(element);
       }
-    } else if (element.library.isDartCore && element.name == 'Object') {
+    } else if (element.isDartCoreObject) {
       element.setModifier(Modifier.DART_CORE_OBJECT, true);
-    } else {
-      element.supertype = _objectType(element);
     }
 
     element.interfaces = _toInterfaceTypeList(
@@ -158,8 +154,6 @@ class TypesBuilder {
     var superType = node.superclass.type;
     if (superType is InterfaceType && _isInterfaceTypeClass(superType)) {
       element.supertype = superType;
-    } else {
-      element.supertype = _objectType(element);
     }
 
     element.mixins = _toInterfaceTypeList(
@@ -346,9 +340,6 @@ class TypesBuilder {
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
     );
-    if (!element.isAugmentation && constraints.isEmpty) {
-      constraints = [_objectType(element)];
-    }
     element.superclassConstraints = constraints;
 
     element.interfaces = _toInterfaceTypeList(
@@ -449,7 +440,16 @@ class TypesBuilder {
     final typeProvider = element.library.typeProvider;
 
     if (element is InterfaceElementImpl &&
-        augmented is AugmentedInterfaceElementImpl) {
+        augmented is AugmentedInterfaceElementImpl &&
+        declaration is InterfaceElementImpl) {
+      if (declaration.supertype == null) {
+        final elementSuperType = element.supertype;
+        if (elementSuperType != null) {
+          final superType = toDeclaration.mapInterfaceType(elementSuperType);
+          declaration.supertype = superType;
+        }
+      }
+
       augmented.interfaces.addAll(
         toDeclaration.mapInterfaceTypes(element.interfaces),
       );
@@ -508,10 +508,6 @@ class TypesBuilder {
       returnType: DynamicTypeImpl.instance,
       nullabilitySuffix: NullabilitySuffix.none,
     );
-  }
-
-  static InterfaceType _objectType(InterfaceElementImpl element) {
-    return element.library.typeProvider.objectType;
   }
 }
 

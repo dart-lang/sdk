@@ -161,6 +161,7 @@ class Linker {
 
     _createTypeSystem();
     _resolveTypes();
+    _setDefaultSupertypes();
 
     await performance.runAsync(
       'executeMacroDeclarationsPhase',
@@ -372,6 +373,12 @@ class Linker {
     computeSimplyBounded(this);
     TypeAliasSelfReferenceFinder().perform(this);
     TypesBuilder(this).build(nodesToBuildType);
+  }
+
+  void _setDefaultSupertypes() {
+    for (final library in builders.values) {
+      library.setDefaultSupertypes();
+    }
   }
 
   void _writeLibraries() {

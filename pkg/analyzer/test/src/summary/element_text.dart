@@ -41,6 +41,7 @@ String getLibraryText({
 
 class ElementTextConfiguration {
   bool Function(Object) filter;
+  bool withAllSupertypes = false;
   bool withAugmentedWithoutAugmentation = false;
   bool withCodeRanges = false;
   bool withConstantInitializers = true;
@@ -637,20 +638,19 @@ class _ElementWriter {
       }
 
       if (e is MixinElementImpl) {
-        final superclassConstraints = e.superclassConstraints;
-        if (!e.isAugmentation) {
-          if (superclassConstraints.isEmpty) {
-            throw StateError('At least Object is expected.');
-          }
-        }
         _elementPrinter.writeTypeList(
           'superclassConstraints',
-          superclassConstraints,
+          e.superclassConstraints,
         );
       }
 
       _elementPrinter.writeTypeList('mixins', e.mixins);
       _elementPrinter.writeTypeList('interfaces', e.interfaces);
+
+      if (configuration.withAllSupertypes) {
+        final sorted = e.allSupertypes.sortedBy((t) => t.element.name);
+        _elementPrinter.writeTypeList('allSupertypes', sorted);
+      }
 
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 

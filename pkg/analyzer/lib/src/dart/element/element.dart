@@ -232,7 +232,7 @@ abstract class AugmentedInterfaceElementImpl
 
   @override
   // TODO: implement declaration
-  InterfaceElement get declaration => throw UnimplementedError();
+  InterfaceElementImpl get declaration => throw UnimplementedError();
 
   @override
   // TODO: implement unnamedConstructor
