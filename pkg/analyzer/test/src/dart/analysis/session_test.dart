@@ -961,8 +961,7 @@ unitElementResult
       expect(result.session, contextFor(testFile).currentSession);
 
       final file = result.file;
-      final posixPath = resourceProvider.posixPath(file);
-      sink.writelnWithIndent('path: $posixPath');
+      sink.writelnWithIndent('path: ${file.posixPath}');
 
       sink.writelnWithIndent('uri: ${result.uri}');
 

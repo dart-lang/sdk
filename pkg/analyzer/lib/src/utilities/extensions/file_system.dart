@@ -31,16 +31,16 @@ extension FolderExtension on Folder {
   }
 }
 
-extension ResourceProviderExtension on ResourceProvider {
+extension ResourceExtension on Resource {
   /// If the path style is `Windows`, returns the corresponding Posix path.
   /// Otherwise the path is already a Posix path, and it is returned as is.
-  /// TODO(scheglov) This is duplicate.
-  String posixPath(File file) {
+  String get posixPath {
+    final pathContext = provider.pathContext;
     if (pathContext.style == Style.windows) {
-      final components = pathContext.split(file.path);
+      final components = pathContext.split(path);
       return '/${components.skip(1).join('/')}';
     } else {
-      return file.path;
+      return path;
     }
   }
 }

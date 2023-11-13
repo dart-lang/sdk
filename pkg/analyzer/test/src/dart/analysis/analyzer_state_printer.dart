@@ -10,8 +10,8 @@ import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/resolve_file.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:collection/collection.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 class AnalyzerStatePrinter {
@@ -57,18 +57,6 @@ class AnalyzerStatePrinter {
     _writeElementFactory();
     _writeUnlinkedUnitStore();
     _writeByteStore();
-  }
-
-  /// If the path style is `Windows`, returns the corresponding Posix path.
-  /// Otherwise the path is already a Posix path, and it is returned as is.
-  String _posixPath(File file) {
-    final pathContext = resourceProvider.pathContext;
-    if (pathContext.style == Style.windows) {
-      final components = pathContext.split(file.path);
-      return '/${components.skip(1).join('/')}';
-    } else {
-      return file.path;
-    }
   }
 
   String _stringOfLibraryCycle(LibraryCycle cycle) {
@@ -390,7 +378,7 @@ class AnalyzerStatePrinter {
           continue;
         }
         final file = fileData.file;
-        _writelnWithIndent(_posixPath(file));
+        _writelnWithIndent(file.posixPath);
         _withIndent(() {
           _writelnWithIndent('uri: ${fileData.uri}');
 
@@ -430,7 +418,7 @@ class AnalyzerStatePrinter {
         }
         cyclesToPrint.add(
           _LibraryCycleToPrint(
-            entry.key.map((e) => _posixPath(e.file)).join(' '),
+            entry.key.map((e) => e.file.posixPath).join(' '),
             entry.value,
           ),
         );
@@ -440,7 +428,7 @@ class AnalyzerStatePrinter {
       final loadedBundlesMap = Map.fromEntries(
         libraryContext.loadedBundles.map((cycle) {
           final pathListStr = cycle.libraries
-              .map((library) => _posixPath(library.file.resource))
+              .map((library) => library.file.resource.posixPath)
               .sorted()
               .join(' ');
           return MapEntry(pathListStr, cycle);
