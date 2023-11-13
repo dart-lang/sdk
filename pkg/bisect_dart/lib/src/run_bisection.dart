@@ -39,25 +39,31 @@ Future<void> runBisection(BisectionConfig config) async {
   logger.info('Writing detailed log to ${logFileUri.toFilePath()}.');
   logger.config('Bisection configuration: $config.');
 
+  final ancestorHash =
+      await _ascestorCommitHash(startHash, endHash, sdkCheckout, logger);
+  final descendantHash = ancestorHash == startHash ? endHash : startHash;
+  final hashBeforeRange =
+      await _parentCommitHash(ancestorHash, sdkCheckout, logger);
+  logger.info('Commit range $hashBeforeRange...$descendantHash.');
+
   await _ensureSdkRepo(sdkCheckout, logger);
 
-  logger.info('Ensuring failure reproduces on $startHash.');
+  logger.info('Ensuring failure reproduces on $descendantHash.');
   final shouldFail = await _checkCommit(
-      startHash, testCommands, failurePattern, sdkCheckout, logger);
+      descendantHash, testCommands, failurePattern, sdkCheckout, logger);
   if (!shouldFail) {
-    throw Exception('$startHash failed to reproduce the error.');
+    throw Exception('$descendantHash failed to reproduce the error.');
   }
 
-  final hashBeforeRange = await _commitHashBefore(endHash, sdkCheckout, logger);
   logger.info('Ensuring failure does not reproduce on $hashBeforeRange.');
   final shouldSucceed = await _checkCommit(
       hashBeforeRange, testCommands, failurePattern, sdkCheckout, logger);
   if (shouldSucceed) {
-    throw Exception('$startHash failed to reproduced the error.');
+    throw Exception('$ancestorHash failed to reproduced the error.');
   }
 
-  final commitHashes =
-      await _commitHashesInRange(startHash, endHash, sdkCheckout, logger);
+  final commitHashes = await _commitHashesInRange(
+      ancestorHash, descendantHash, sdkCheckout, logger);
   final regressionCommit = await _bisect(
       commitHashes, testCommands, failurePattern, sdkCheckout, logger);
   logger.info('Bisected to $regressionCommit.');
@@ -76,8 +82,10 @@ Future<String> _bisect(
   final numCommits = commitHashes.length;
   final pivotIndex = numCommits ~/ 2;
   final pivot = commitHashes[pivotIndex];
+  final parentHashBeforeLast =
+      await _parentCommitHash(commitHashes.last, sdkCheckout, logger);
   logger.info(
-    'Bisecting ${commitHashes.first}...${commitHashes.last} '
+    'Bisecting $parentHashBeforeLast...${commitHashes.first} '
     '($numCommits commits). Trying $pivot.',
   );
   final commitResult = await _checkCommit(
@@ -179,14 +187,16 @@ Future<String> _runTest(
 }
 
 /// Ordered from now to old.
-Future<List<String>> _commitHashesInRange(String commitHashStart,
-    String commitHashEnd, Uri sdkCheckout, Logger logger) async {
+///
+/// Inclusive.
+Future<List<String>> _commitHashesInRange(String ancestorHash,
+    String descendantHash, Uri sdkCheckout, Logger logger) async {
   final result = await runProcess(
     executable: Uri.file('git'),
     arguments: [
       'log',
       '--pretty=format:"%h"',
-      '$commitHashEnd...$commitHashStart',
+      '$ancestorHash~...$descendantHash',
     ],
     captureOutput: true,
     logger: logger,
@@ -195,7 +205,36 @@ Future<List<String>> _commitHashesInRange(String commitHashStart,
   return result.stdout.trim().replaceAll('"', '').split('\n');
 }
 
-Future<String> _commitHashBefore(
+Future<bool> _isAncestorOf(String commitAncestor, String commitDescendant,
+    Uri sdkCheckout, Logger logger) async {
+  final result = await runProcess(
+    executable: Uri.file('git'),
+    arguments: [
+      'merge-base',
+      commitAncestor,
+      '--is-ancestor',
+      commitDescendant,
+    ],
+    captureOutput: true,
+    logger: logger,
+    workingDirectory: sdkCheckout,
+  );
+  return result.exitCode == 0;
+}
+
+Future<String> _ascestorCommitHash(
+    String commit1, String commit2, Uri sdkCheckout, Logger logger) async {
+  if (await _isAncestorOf(commit1, commit2, sdkCheckout, logger)) {
+    return commit1;
+  }
+  if (await _isAncestorOf(commit2, commit1, sdkCheckout, logger)) {
+    return commit2;
+  }
+  throw Exception(
+      'Commits $commit1 and $commit2 are not ancestors of each other.');
+}
+
+Future<String> _parentCommitHash(
     String commitHash, Uri sdkCheckout, Logger logger) async {
   final result = await runProcess(
     executable: Uri.file('git'),

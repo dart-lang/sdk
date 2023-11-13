@@ -424,4 +424,10 @@ abstract interface class ConstructorMetadataAnnotation
   /// For unnamed constructors, the name of this identifier will be the empty
   /// String.
   Identifier get constructor;
+
+  /// The positional arguments of this constructor call.
+  Iterable<ExpressionCode> get positionalArguments;
+
+  /// The named arguments of this constructor call.
+  Map<String, ExpressionCode> get namedArguments;
 }

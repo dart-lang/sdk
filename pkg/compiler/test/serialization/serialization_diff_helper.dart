@@ -23,6 +23,7 @@ Future<CompiledOutput> compileWithSerialization(
     required Map<String, dynamic> memorySourceFiles,
     required List<String> options}) async {
   final cfeDillUri = 'memory:cfe.dill';
+  final worldDillUri = 'memory:out.dill';
   final closedWorldUri = 'memory:world.data';
   final globalDataUri = 'memory:global.data';
   final codegenUri = 'memory:codegen';
@@ -45,18 +46,19 @@ Future<CompiledOutput> compileWithSerialization(
   await compile([...options, '--out=$cfeDillUri', Flags.cfeOnly]);
   await compile([
     ...options,
+    '--out=$worldDillUri',
     '${Flags.inputDill}=$cfeDillUri',
     '${Flags.writeClosedWorld}=$closedWorldUri'
   ]);
   await compile([
     ...options,
-    '${Flags.inputDill}=$cfeDillUri',
+    '${Flags.inputDill}=$worldDillUri',
     '${Flags.readClosedWorld}=$closedWorldUri',
     '${Flags.writeData}=$globalDataUri'
   ]);
   await compile([
     ...options,
-    '${Flags.inputDill}=$cfeDillUri',
+    '${Flags.inputDill}=$worldDillUri',
     '${Flags.readClosedWorld}=$closedWorldUri',
     '${Flags.readData}=$globalDataUri',
     '${Flags.writeCodegen}=$codegenUri',
@@ -65,7 +67,7 @@ Future<CompiledOutput> compileWithSerialization(
   ]);
   await compile([
     ...options,
-    '${Flags.inputDill}=$cfeDillUri',
+    '${Flags.inputDill}=$worldDillUri',
     '${Flags.readClosedWorld}=$closedWorldUri',
     '${Flags.readData}=$globalDataUri',
     '${Flags.writeCodegen}=$codegenUri',
@@ -74,7 +76,7 @@ Future<CompiledOutput> compileWithSerialization(
   ]);
   final output = await compile([
     ...options,
-    '${Flags.inputDill}=$cfeDillUri',
+    '${Flags.inputDill}=$worldDillUri',
     '${Flags.readClosedWorld}=$closedWorldUri',
     '${Flags.readData}=$globalDataUri',
     '${Flags.readCodegen}=$codegenUri',

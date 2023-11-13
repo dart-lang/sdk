@@ -187,6 +187,8 @@ class DeclarationBuilder {
           getElement: () => node.element,
         ),
         type: identifierMacro,
+        positionalArguments: [], // TODO(scheglov) implement
+        namedArguments: {}, // TODO(scheglov) implement
       );
     } else {
       return macro.IdentifierMetadataAnnotationImpl(

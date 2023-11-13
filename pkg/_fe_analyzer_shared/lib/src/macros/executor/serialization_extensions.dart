@@ -1,8 +1,8 @@
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 
+import '../api.dart';
 import 'remote_instance.dart';
 import 'serialization.dart';
-import '../api.dart';
 
 extension DeserializerExtensions on Deserializer {
   T expectRemoteInstance<T extends Object>() {
@@ -83,13 +83,31 @@ extension DeserializerExtensions on Deserializer {
 
   Uri expectUri() => Uri.parse(expectString());
 
-  /// Helper method to read a list of [RemoteInstance]s.
+  /// Reads a list of [RemoteInstance]s.
   List<T> _expectRemoteInstanceList<T extends RemoteInstance>() {
     expectList();
     return [
       for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
         expectRemoteInstance(),
     ];
+  }
+
+  /// Reads a list of [Code]s.
+  List<T> _expectCodeList<T extends Code>() {
+    expectList();
+    return [
+      for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
+        expectCode(),
+    ];
+  }
+
+  /// Reads a `Map<String, T extends Code>`.
+  Map<String, T> _expectStringCodeMap<T extends Code>() {
+    expectList();
+    return {
+      for (bool hasNext = moveNext(); hasNext; hasNext = moveNext())
+        expectString(): (this..moveNext()).expectCode(),
+    };
   }
 
   NamedTypeAnnotationImpl _expectNamedTypeAnnotation(int id) =>
@@ -284,7 +302,9 @@ extension DeserializerExtensions on Deserializer {
       new ConstructorMetadataAnnotationImpl(
           id: id,
           constructor: expectRemoteInstance(),
-          type: RemoteInstance.deserialize(this));
+          type: RemoteInstance.deserialize(this),
+          positionalArguments: (this..moveNext())._expectCodeList(),
+          namedArguments: (this..moveNext())._expectStringCodeMap());
 
   IdentifierMetadataAnnotationImpl _expectIdentifierMetadataAnnotation(
           int id) =>

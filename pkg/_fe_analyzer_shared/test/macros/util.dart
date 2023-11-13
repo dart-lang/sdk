@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
-
 import 'package:test/test.dart';
 
 class TestTypePhaseIntrospector implements TypePhaseIntrospector {
@@ -289,6 +288,23 @@ class _DeepEqualityMatcher extends Matcher {
       }
       for (var i = 0; i < instance.length; i++) {
         if (!_DeepEqualityMatcher(instance[i]).matches(item[i], matchState)) {
+          return false;
+        }
+      }
+    } else if (instance is Map) {
+      item as Map;
+      if (!equals(instance.length).matches(item.length, matchState)) {
+        return false;
+      }
+      for (var key in instance.keys) {
+        // Key sets are same size, so they are equal if every key in `instance`
+        // is also a key in `item`.
+        if (!contains(key).matches(item, matchState)) {
+          return false;
+        }
+        // Maps are equal if keys are equal and every value is equal.
+        if (!_DeepEqualityMatcher(instance[key])
+            .matches(item[key], matchState)) {
           return false;
         }
       }

@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../api.dart';
 import 'remote_instance.dart';
 import 'serialization.dart';
 import 'serialization_extensions.dart';
-import '../api.dart';
 
 class IdentifierImpl extends RemoteInstance implements Identifier {
   @override
@@ -288,11 +288,21 @@ class ConstructorMetadataAnnotationImpl extends MetadataAnnotationImpl
   final IdentifierImpl type;
 
   @override
+  final List<ExpressionCode> positionalArguments;
+
+  @override
+  final Map<String, ExpressionCode> namedArguments;
+
+  @override
   RemoteInstanceKind get kind =>
       RemoteInstanceKind.constructorMetadataAnnotation;
 
   ConstructorMetadataAnnotationImpl(
-      {required int id, required this.constructor, required this.type})
+      {required int id,
+      required this.constructor,
+      required this.type,
+      required this.positionalArguments,
+      required this.namedArguments})
       : super(id);
 
   @override
@@ -301,6 +311,17 @@ class ConstructorMetadataAnnotationImpl extends MetadataAnnotationImpl
 
     constructor.serialize(serializer);
     type.serialize(serializer);
+    serializer.startList();
+    for (ExpressionCode positionalArgument in positionalArguments) {
+      positionalArgument.serialize(serializer);
+    }
+    serializer.endList();
+    serializer.startList();
+    for (MapEntry<String, ExpressionCode> entry in namedArguments.entries) {
+      serializer.addString(entry.key);
+      entry.value.serialize(serializer);
+    }
+    serializer.endList();
   }
 }
 

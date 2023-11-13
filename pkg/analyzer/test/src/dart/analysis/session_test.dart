@@ -6,10 +6,15 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/tree_string_sink.dart';
 import '../resolution/context_collection_resolution.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -753,18 +758,44 @@ class B {}
     );
   }
 
-  test_getUnitElement() async {
-    var test = newFile(testFile.path, r'''
+  test_getUnitElement_augmentationKnown_inLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
 class A {}
 class B {}
 ''');
 
-    var session = contextFor(testFile).currentSession;
-    var unitResult = await session.getUnitElementValid(test.path);
-    expect(unitResult.session, session);
-    expect(unitResult.path, test.path);
-    expect(unitResult.uri, Uri.parse('package:test/test.dart'));
-    expect(unitResult.element.classes, hasLength(2));
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+''');
+
+    await _assertFileUnitElementResultText(a, r'''
+unitElementResult
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  element
+    reference: root::package:test/test.dart::@augmentation::package:test/a.dart
+    library: root::package:test/test.dart
+    classes: A, B
+''');
+  }
+
+  test_getUnitElement_augmentationKnown_notInLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+class A {}
+class B {}
+''');
+
+    await _assertFileUnitElementResultText(a, r'''
+unitElementResult
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  element
+    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    library: root::package:test/a.dart
+    classes: A, B
+''');
   }
 
   test_getUnitElement_inconsistent() async {
@@ -777,9 +808,178 @@ class B {}
     );
   }
 
+  test_getUnitElement_libraryUnit() async {
+    newFile(testFile.path, r'''
+class A {}
+class B {}
+''');
+
+    await _assertFileUnitElementResultText(testFile, r'''
+unitElementResult
+  path: /home/test/lib/test.dart
+  uri: package:test/test.dart
+  element
+    reference: root::package:test/test.dart::@unit::package:test/test.dart
+    library: root::package:test/test.dart
+    classes: A, B
+''');
+  }
+
+  test_getUnitElement_partOfUriKnown_inLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+class A {}
+class B {}
+''');
+
+    newFile(testFile.path, r'''
+part 'a.dart';
+''');
+
+    await _assertFileUnitElementResultText(a, r'''
+unitElementResult
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  element
+    reference: root::package:test/test.dart::@unit::package:test/a.dart
+    library: root::package:test/test.dart
+    classes: A, B
+''');
+  }
+
+  test_getUnitElement_partOfUriKnown_notInLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+class A {}
+class B {}
+''');
+
+    await _assertFileUnitElementResultText(a, r'''
+unitElementResult
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  element
+    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    library: root::package:test/a.dart
+    classes: A, B
+''');
+  }
+
+  test_getUnitElement_partOfUriName_inLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of my_lib;
+class A {}
+class B {}
+''');
+
+    newFile(testFile.path, r'''
+library my_lib;
+part 'a.dart';
+''');
+
+    await _assertFileUnitElementResultText(a, r'''
+unitElementResult
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  element
+    reference: root::package:test/test.dart::@unit::package:test/a.dart
+    library: root::package:test/test.dart
+    classes: A, B
+''');
+  }
+
+  test_getUnitElement_partOfUriName_notInLibrary() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of my_lib;
+class A {}
+class B {}
+''');
+
+    await _assertFileUnitElementResultText(a, r'''
+unitElementResult
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  element
+    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    library: root::package:test/a.dart
+    classes: A, B
+''');
+  }
+
+  test_getUnitElement_partOfUriUnknown() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'foo:bar';
+class A {}
+class B {}
+''');
+
+    await _assertFileUnitElementResultText(a, r'''
+unitElementResult
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  element
+    reference: root::package:test/a.dart::@unit::package:test/a.dart
+    library: root::package:test/a.dart
+    classes: A, B
+''');
+  }
+
   test_resourceProvider() async {
     var session = contextFor(testFile).currentSession;
     expect(session.resourceProvider, resourceProvider);
+  }
+
+  Future<void> _assertFileUnitElementResultText(
+    File file,
+    String expected,
+  ) async {
+    final session = contextFor(file).currentSession;
+    final unitResult = await session.getUnitElementValid(file.path);
+    _assertUnitElementResultText(unitResult, expected);
+  }
+
+  void _assertUnitElementResultText(
+    UnitElementResult result,
+    String expected,
+  ) {
+    var actual = _getElementUnitResultText(result);
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
+  String _getElementUnitResultText(UnitElementResult result) {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(sink: buffer, indent: '');
+
+    sink.writelnWithIndent('unitElementResult');
+    sink.withIndent(() {
+      // We could print it, but currently it is always the current.
+      expect(result.session, contextFor(testFile).currentSession);
+
+      final file = result.file;
+      final posixPath = resourceProvider.posixPath(file);
+      sink.writelnWithIndent('path: $posixPath');
+
+      sink.writelnWithIndent('uri: ${result.uri}');
+
+      sink.writelnWithIndent('element');
+      sink.withIndent(() {
+        final element = result.element as CompilationUnitElementImpl;
+        sink.writelnWithIndent('reference: ${element.reference}');
+
+        final library = element.library;
+        sink.writelnWithIndent('library: ${library.reference}');
+
+        final classListStr = element.classes.map((e) => e.name).join(', ');
+        sink.writelnWithIndent('classes: $classListStr');
+      });
+    });
+
+    return buffer.toString();
   }
 }
 
@@ -817,6 +1017,7 @@ extension on AnalysisSession {
     return await getResolvedLibrary(path) as ResolvedLibraryResult;
   }
 
+  /// TODO(scheglov): Accept [File] instead.
   Future<UnitElementResult> getUnitElementValid(String path) async {
     return await getUnitElement(path) as UnitElementResult;
   }
