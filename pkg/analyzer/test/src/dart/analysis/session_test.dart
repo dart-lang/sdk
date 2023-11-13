@@ -37,14 +37,14 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
   }
 
   void test_getErrors_valid() async {
-    var file = newFile(
+    var a = newFile(
       '$workspaceRootPath/dart/my/lib/a.dart',
       'var x = 0',
     );
 
-    var session = contextFor(file).currentSession;
-    var result = await session.getErrorsValid(file.path);
-    expect(result.path, file.path);
+    var session = contextFor(a).currentSession;
+    var result = await session.getErrorsValid(a);
+    expect(result.path, a.path);
     expect(result.errors, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');
   }
@@ -120,7 +120,7 @@ class AnalysisSessionImpl_BlazeWorkspaceTest
     );
 
     var session = contextFor(file).currentSession;
-    var result = await session.getUnitElementValid(file.path);
+    var result = await session.getUnitElementValid(file);
     expect(result.path, file.path);
     expect(result.element.classes, hasLength(1));
     expect(result.uri.toString(), 'package:dart.my/a.dart');
@@ -134,7 +134,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
     final analysisContext = contextFor(a);
 
     int lineCount_in_a() {
-      final result = analysisContext.currentSession.getFileValid(a.path);
+      final result = analysisContext.currentSession.getFileValid(a);
       return result.lineInfo.lineCount;
     }
 
@@ -154,7 +154,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
 
     int lineCount_in_a() {
       final analysisSession = analysisContext.currentSession;
-      final result = analysisSession.getParsedLibraryValid(a.path);
+      final result = analysisSession.getParsedLibraryValid(a);
       return result.units.first.lineInfo.lineCount;
     }
 
@@ -173,7 +173,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
     final analysisContext = contextFor(a);
 
     int lineCount_in_a() {
-      final result = analysisContext.currentSession.getParsedUnitValid(a.path);
+      final result = analysisContext.currentSession.getParsedUnitValid(a);
       return result.lineInfo.lineCount;
     }
 
@@ -188,12 +188,12 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
   }
 
   test_getErrors() async {
-    var test = newFile(testFile.path, 'class C {');
+    newFile(testFile.path, 'class C {');
 
     var session = contextFor(testFile).currentSession;
-    var errorsResult = await session.getErrorsValid(test.path);
+    var errorsResult = await session.getErrorsValid(testFile);
     expect(errorsResult.session, session);
-    expect(errorsResult.path, test.path);
+    expect(errorsResult.path, testFile.path);
     expect(errorsResult.errors, isNotEmpty);
   }
 
@@ -233,7 +233,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
     var a = newFile('$testPackageLibPath/a.dart', '');
 
     var session = contextFor(testFile).currentSession;
-    var file = session.getFileValid(a.path);
+    var file = session.getFileValid(a);
     expect(file.path, a.path);
     expect(file.uri.toString(), 'package:test/a.dart');
     expect(file.isPart, isFalse);
@@ -243,7 +243,7 @@ class AnalysisSessionImplTest extends PubPackageResolutionTest {
     var a = newFile('$testPackageLibPath/a.dart', 'part of lib;');
 
     var session = contextFor(testFile).currentSession;
-    var file = session.getFileValid(a.path);
+    var file = session.getFileValid(a);
     expect(file.path, a.path);
     expect(file.uri.toString(), 'package:test/a.dart');
     expect(file.isPart, isTrue);
@@ -300,13 +300,13 @@ part of 'a.dart';
   }
 
   test_getParsedLibrary() async {
-    var test = newFile('$testPackageLibPath/a.dart', r'''
+    final test = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 class B {}
 ''');
 
     var session = contextFor(testFile).currentSession;
-    var parsedLibrary = session.getParsedLibraryValid(test.path);
+    var parsedLibrary = session.getParsedLibraryValid(test);
     expect(parsedLibrary.session, session);
 
     expect(parsedLibrary.units, hasLength(1));
@@ -320,7 +320,7 @@ class B {}
   }
 
   test_getParsedLibrary_getElementDeclaration_class() async {
-    var test = newFile(testFile.path, r'''
+    newFile(testFile.path, r'''
 class A {}
 class B {}
 ''');
@@ -329,7 +329,7 @@ class B {}
     var libraryResult = await session.getLibraryByUriValid(
       'package:test/test.dart',
     );
-    var parsedLibrary = session.getParsedLibraryValid(test.path);
+    var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     var element = libraryResult.element.getClass('A')!;
     var declaration = parsedLibrary.getElementDeclaration(element)!;
@@ -340,15 +340,15 @@ class B {}
   }
 
   test_getParsedLibrary_getElementDeclaration_notThisLibrary() async {
-    var test = newFile(testFile.path, '');
+    newFile(testFile.path, '');
 
     var session = contextFor(testFile).currentSession;
     var resolvedUnit =
-        await session.getResolvedUnit(test.path) as ResolvedUnitResult;
+        await session.getResolvedUnit(testFile.path) as ResolvedUnitResult;
     var typeProvider = resolvedUnit.typeProvider;
     var intClass = typeProvider.intType.element;
 
-    var parsedLibrary = session.getParsedLibraryValid(test.path);
+    var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     expect(() {
       parsedLibrary.getElementDeclaration(intClass);
@@ -356,14 +356,14 @@ class B {}
   }
 
   test_getParsedLibrary_getElementDeclaration_synthetic() async {
-    var test = newFile(testFile.path, r'''
+    newFile(testFile.path, r'''
 int foo = 0;
 ''');
 
     var session = contextFor(testFile).currentSession;
-    var parsedLibrary = session.getParsedLibraryValid(test.path);
+    var parsedLibrary = session.getParsedLibraryValid(testFile);
 
-    var unitResult = await session.getUnitElementValid(test.path);
+    var unitResult = await session.getUnitElementValid(testFile);
     var fooElement = unitResult.element.topLevelVariables[0];
     expect(fooElement.name, 'foo');
 
@@ -390,14 +390,14 @@ int foo = 0;
   }
 
   test_getParsedLibrary_invalidPartUri() async {
-    var test = newFile(testFile.path, r'''
+    newFile(testFile.path, r'''
 part 'a.dart';
 part ':[invalid uri].dart';
 part 'c.dart';
 ''');
 
     var session = contextFor(testFile).currentSession;
-    var parsedLibrary = session.getParsedLibraryValid(test.path);
+    var parsedLibrary = session.getParsedLibraryValid(testFile);
 
     expect(parsedLibrary.units, hasLength(1));
     expect(
@@ -456,7 +456,7 @@ class C3 {}
     var c = newFile('$testPackageLibPath/c.dart', cContent);
 
     var session = contextFor(testFile).currentSession;
-    var parsedLibrary = session.getParsedLibraryValid(a.path);
+    var parsedLibrary = session.getParsedLibraryValid(a);
     expect(parsedLibrary.units, hasLength(3));
 
     {
@@ -519,15 +519,15 @@ class C3 {}
   }
 
   test_getParsedUnit() async {
-    var test = newFile(testFile.path, r'''
+    newFile(testFile.path, r'''
 class A {}
 class B {}
 ''');
 
     var session = contextFor(testFile).currentSession;
-    var unitResult = session.getParsedUnitValid(test.path);
+    var unitResult = session.getParsedUnitValid(testFile);
     expect(unitResult.session, session);
-    expect(unitResult.path, test.path);
+    expect(unitResult.path, testFile.path);
     expect(unitResult.uri, Uri.parse('package:test/test.dart'));
     expect(unitResult.unit.declarations, hasLength(2));
   }
@@ -565,7 +565,7 @@ class B2 extends X {}
     var b = newFile('$testPackageLibPath/b.dart', bContent);
 
     var session = contextFor(testFile).currentSession;
-    var resolvedLibrary = await session.getResolvedLibraryValid(a.path);
+    var resolvedLibrary = await session.getResolvedLibraryValid(a);
     expect(resolvedLibrary.session, session);
 
     var typeProvider = resolvedLibrary.typeProvider;
@@ -611,10 +611,10 @@ class B2 extends X {}
   }
 
   test_getResolvedLibrary_getElementDeclaration_notThisLibrary() async {
-    var test = newFile(testFile.path, '');
+    newFile(testFile.path, '');
 
     var session = contextFor(testFile).currentSession;
-    var resolvedLibrary = await session.getResolvedLibraryValid(test.path);
+    var resolvedLibrary = await session.getResolvedLibraryValid(testFile);
 
     expect(() {
       var intClass = resolvedLibrary.typeProvider.intType.element;
@@ -623,12 +623,12 @@ class B2 extends X {}
   }
 
   test_getResolvedLibrary_getElementDeclaration_synthetic() async {
-    var test = newFile(testFile.path, r'''
+    newFile(testFile.path, r'''
 int foo = 0;
 ''');
 
     var session = contextFor(testFile).currentSession;
-    var resolvedLibrary = await session.getResolvedLibraryValid(test.path);
+    var resolvedLibrary = await session.getResolvedLibraryValid(testFile);
     var unitElement = resolvedLibrary.element.definingCompilationUnit;
 
     var fooElement = unitElement.topLevelVariables[0];
@@ -658,14 +658,14 @@ int foo = 0;
   }
 
   test_getResolvedLibrary_invalidPartUri() async {
-    var test = newFile(testFile.path, r'''
+    newFile(testFile.path, r'''
 part 'a.dart';
 part ':[invalid uri].dart';
 part 'c.dart';
 ''');
 
     var session = contextFor(testFile).currentSession;
-    var resolvedLibrary = await session.getResolvedLibraryValid(test.path);
+    var resolvedLibrary = await session.getResolvedLibraryValid(testFile);
 
     expect(resolvedLibrary.units, hasLength(1));
     expect(
@@ -934,7 +934,7 @@ unitElementResult
     String expected,
   ) async {
     final session = contextFor(file).currentSession;
-    final unitResult = await session.getUnitElementValid(file.path);
+    final unitResult = await session.getUnitElementValid(file);
     _assertUnitElementResultText(unitResult, expected);
   }
 
@@ -984,28 +984,28 @@ unitElementResult
 }
 
 extension on AnalysisSession {
-  Future<ErrorsResult> getErrorsValid(String path) async {
-    return await getErrors(path) as ErrorsResult;
+  Future<ErrorsResult> getErrorsValid(File file) async {
+    return await getErrors(file.path) as ErrorsResult;
   }
 
-  FileResult getFileValid(String path) {
-    return getFile(path) as FileResult;
+  FileResult getFileValid(File file) {
+    return getFile(file.path) as FileResult;
   }
 
-  Future<LibraryElementResult> getLibraryByUriValid(String path) async {
-    return await getLibraryByUri(path) as LibraryElementResult;
+  Future<LibraryElementResult> getLibraryByUriValid(String uriStr) async {
+    return await getLibraryByUri(uriStr) as LibraryElementResult;
   }
 
   ParsedLibraryResult getParsedLibraryByElementValid(LibraryElement element) {
     return getParsedLibraryByElement(element) as ParsedLibraryResult;
   }
 
-  ParsedLibraryResult getParsedLibraryValid(String path) {
-    return getParsedLibrary(path) as ParsedLibraryResult;
+  ParsedLibraryResult getParsedLibraryValid(File file) {
+    return getParsedLibrary(file.path) as ParsedLibraryResult;
   }
 
-  ParsedUnitResult getParsedUnitValid(String path) {
-    return getParsedUnit(path) as ParsedUnitResult;
+  ParsedUnitResult getParsedUnitValid(File file) {
+    return getParsedUnit(file.path) as ParsedUnitResult;
   }
 
   Future<ResolvedLibraryResult> getResolvedLibraryByElementValid(
@@ -1013,12 +1013,11 @@ extension on AnalysisSession {
     return await getResolvedLibraryByElement(element) as ResolvedLibraryResult;
   }
 
-  Future<ResolvedLibraryResult> getResolvedLibraryValid(String path) async {
-    return await getResolvedLibrary(path) as ResolvedLibraryResult;
+  Future<ResolvedLibraryResult> getResolvedLibraryValid(File file) async {
+    return await getResolvedLibrary(file.path) as ResolvedLibraryResult;
   }
 
-  /// TODO(scheglov): Accept [File] instead.
-  Future<UnitElementResult> getUnitElementValid(String path) async {
-    return await getUnitElement(path) as UnitElementResult;
+  Future<UnitElementResult> getUnitElementValid(File file) async {
+    return await getUnitElement(file.path) as UnitElementResult;
   }
 }
