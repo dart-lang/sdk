@@ -1,0 +1,19 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type E(core::int? n) {
+  abstract extension-type-member representation-field get n() → core::int?;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static const field self::E /* = core::int? */ e = null as self::E /* = core::int? */;
+static extension-type-member method E|constructor#(core::int? n) → self::E /* = core::int? */
+  ;
+static extension-type-member method E|constructor#_#new#tearOff(core::int? n) → self::E /* = core::int? */
+  return self::E|constructor#(n);
+
+
+Extra constant evaluation status:
+Evaluated: AsExpression @ org-dartlang-testcase:///issue53751.dart:6:18 -> NullConstant(null)
+Extra constant evaluation: evaluated: 3, effectively constant: 1
