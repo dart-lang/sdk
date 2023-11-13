@@ -1,0 +1,31 @@
+class A {
+  A(this.field);
+  int field;
+}
+class B implements A {
+  set field ()= ;
+  ---- unknown chunk starts ----
+0;
+---- unknown chunk ends ----
+  get field => 0;
+}
+class C implements A {
+  get field() => 0;
+  set field() {}
+}
+class D implements A {
+  get field(a, b) => 0;
+  set field(a, b) {}
+}
+class E implements A {
+  get field([a]) => 0;
+  set field([a]) {}
+}
+class F implements A {
+  get field({a}) => 0;
+  set field({a}) {}
+}
+class G implements A {
+  get field(a) => 0;
+  set field (){}
+}
