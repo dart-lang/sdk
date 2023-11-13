@@ -67,5 +67,5 @@ void main(List<String> args) {
     ...suffix,
     '',
   ].join('\n'));
-  print('Updated ${inputFile}');
+  print('Updated $inputFile');
 }

@@ -9,7 +9,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-final abcString = "abc";
+final abcString = 'abc';
 
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
@@ -17,7 +17,7 @@ final tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     final evalResult = await service.evaluate(
         isolateId, isolate.rootLib!.id!, 'abcString') as InstanceRef;
-    final getObjectIdResult = await Service.getObjectId(abcString)!;
+    final getObjectIdResult = Service.getObjectId(abcString)!;
     final objectFromEval =
         await service.getObject(isolateId, evalResult.id!) as Instance;
     final objectFromGetObjectId =

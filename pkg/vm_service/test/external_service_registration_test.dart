@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
@@ -14,7 +14,7 @@ final tests = <IsolateTest>[
   (VmService primaryClient, IsolateRef isolateRef) async {
     // Register two unique services.
     await primaryClient.registerService(serviceName, serviceAlias);
-    await primaryClient.registerService(serviceName + '2', serviceAlias + '2');
+    await primaryClient.registerService('${serviceName}2', '${serviceAlias}2');
 
     try {
       // Try to register with an existing service name.

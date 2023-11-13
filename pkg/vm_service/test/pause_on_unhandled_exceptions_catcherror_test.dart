@@ -4,8 +4,8 @@
 
 // Regression: https://github.com/dart-lang/sdk/issues/37953
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 Future<void> throwAsync() async {
   await Future.delayed(const Duration(milliseconds: 10));
@@ -41,7 +41,7 @@ void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'pause_on_unhandled_exceptions_catcherror_test.dart',
-      pause_on_unhandled_exceptions: true,
-      pause_on_exit: true,
+      pauseOnUnhandledExceptions: true,
+      pauseOnExit: true,
       testeeConcurrent: testeeMain,
     );

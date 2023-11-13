@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -47,8 +47,8 @@ void main([args = const <String>[]]) => runIsolateTests(
       tests,
       'pause_on_start_and_exit_test.dart',
       testeeConcurrent: testMain,
-      pause_on_start: true,
-      pause_on_exit: true,
-      verbose_vm: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
+      verboseVm: true,
       extraArgs: ['--trace-service', '--trace-service-verbose'],
     );

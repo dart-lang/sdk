@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -69,7 +69,7 @@ void main(List<String> args) {
     tests,
     'break_on_default_constructor_test.dart',
     testeeConcurrent: code,
-    pause_on_start: true,
-    pause_on_exit: true,
+    pauseOnStart: true,
+    pauseOnExit: true,
   );
 }

@@ -8,7 +8,7 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 const int LINE = 14;
-const String file = "breakpoint_on_record_assignment_test.dart";
+const String file = 'breakpoint_on_record_assignment_test.dart';
 
 testMain() {
   (int, String name, bool) triple = (3, 'f', true);
@@ -43,7 +43,7 @@ main(args) {
     tests,
     'breakpoint_on_record_assignment_test.dart',
     testeeConcurrent: testMain,
-    pause_on_start: true,
-    pause_on_exit: true,
+    pauseOnStart: true,
+    pauseOnExit: true,
   );
 }

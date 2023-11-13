@@ -14,7 +14,7 @@ void testFunction() {
   // Use functions from various packages, so we can get coverage for them.
   print(Point(123, 456)); // dart:math
   print(anything); // package:test/test.dart
-  print(decodeBase64("SGkh")); // package:vm_service/vm_service.dart
+  print(decodeBase64('SGkh')); // package:vm_service/vm_service.dart
   print(removeAdjacentDuplicates([])); // common/service_test_common.dart
   foo(); // package:test_package/has_part.dart
 

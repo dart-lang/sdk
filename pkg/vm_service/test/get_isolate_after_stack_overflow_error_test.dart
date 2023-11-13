@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 // Non tailable recursive function that should trigger a Stack Overflow.
 num factorialGrowth([num n = 1]) {
@@ -30,6 +30,6 @@ void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'get_isolate_after_stack_overflow_error_test.dart',
-      pause_on_exit: true,
+      pauseOnExit: true,
       testeeConcurrent: nonTailableRecursion,
     );

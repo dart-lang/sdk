@@ -109,7 +109,7 @@ bool eventsContains(Iterable<TrackEvent> events, TrackEvent_Type type,
 int computeTimeOriginNanos(List<TracePacket> packets) {
   final packetsWithEvents =
       packets.where((packet) => packet.hasTrackEvent()).toList();
-  if (packetsWithEvents.length == 0) {
+  if (packetsWithEvents.isEmpty) {
     return 0;
   }
   int smallest = packetsWithEvents.first.timestamp.toInt();
@@ -124,7 +124,7 @@ int computeTimeOriginNanos(List<TracePacket> packets) {
 int computeTimeExtentNanos(List<TracePacket> packets, int timeOrigin) {
   final packetsWithEvents =
       packets.where((packet) => packet.hasTrackEvent()).toList();
-  if (packetsWithEvents.length == 0) {
+  if (packetsWithEvents.isEmpty) {
     return 0;
   }
   int largestExtent = packetsWithEvents[0].timestamp.toInt() - timeOrigin;

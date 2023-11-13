@@ -37,20 +37,20 @@ Future setupProcesses() async {
     dir.deleteSync(recursive: true);
   }
 
-  Future<ServiceExtensionResponse> cleanup(ignored_a, ignored_b) {
+  Future<ServiceExtensionResponse> cleanup(ignoredA, ignoredB) {
     closeDown();
     final result = jsonEncode({'type': 'foobar'});
     return Future.value(ServiceExtensionResponse.result(result));
   }
 
-  Future<ServiceExtensionResponse> setup(ignored_a, ignored_b) async {
+  Future<ServiceExtensionResponse> setup(ignoredA, ignoredB) async {
     try {
       process1 = await io.Process.start(io.Platform.resolvedExecutable, args);
       process2 = await io.Process.start(
         io.Platform.resolvedExecutable,
         args..add('foobar'),
       );
-      final codeFilePath = dir.path + io.Platform.pathSeparator + "other_file";
+      final codeFilePath = '${dir.path}${io.Platform.pathSeparator}other_file';
       final codeFile = io.File(codeFilePath);
       await codeFile.writeAsString('''
           import "dart:io";
@@ -78,7 +78,7 @@ Future setupProcesses() async {
     return Future.value(ServiceExtensionResponse.result(result));
   }
 
-  Future<ServiceExtensionResponse> closeStdin(ignored_a, ignored_b) {
+  Future<ServiceExtensionResponse> closeStdin(ignoredA, ignoredB) {
     process3!.stdin.close();
     return process3!.exitCode.then<ServiceExtensionResponse>((int exit) {
       final result = jsonEncode({'type': 'foobar'});

@@ -11,7 +11,7 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 String leafFunction() {
-  return "some constant";
+  return 'some constant';
 }
 
 void testFunction() {

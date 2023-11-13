@@ -4,8 +4,8 @@
 
 import 'dart:mirrors';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
@@ -13,10 +13,10 @@ class Foo {}
 
 class Bar {}
 
-var expando;
-var key;
-var value;
-var weak_property;
+late Expando expando;
+late final Foo key;
+late final Bar value;
+dynamic weakProperty;
 
 void script() {
   expando = Expando('some debug name');
@@ -30,8 +30,8 @@ void script() {
   final entries = expandoMirror
       .getField(MirrorSystem.getSymbol('_data', libcore))
       .reflectee;
-  weak_property = entries.singleWhere((e) => e != null);
-  print(weak_property);
+  weakProperty = entries.singleWhere((e) => e != null);
+  print(weakProperty);
 }
 
 Future<Instance> getFieldValue(VmService service, String isolateId,
@@ -73,7 +73,7 @@ final tests = <IsolateTest>[
       service,
       isolateId,
       variables,
-      'weak_property',
+      'weakProperty',
     );
 
     expect(key.kind, isNot(InstanceKind.kWeakProperty));

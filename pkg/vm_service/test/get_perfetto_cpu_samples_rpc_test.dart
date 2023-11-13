@@ -13,7 +13,7 @@ import 'common/test_helper.dart';
 int computeTimeOriginNanos(List<TracePacket> packets) {
   final packetsWithPerfSamples =
       packets.where((packet) => packet.hasPerfSample()).toList();
-  if (packetsWithPerfSamples.length == 0) {
+  if (packetsWithPerfSamples.isEmpty) {
     return 0;
   }
   int smallest = packetsWithPerfSamples.first.timestamp.toInt();
@@ -28,7 +28,7 @@ int computeTimeOriginNanos(List<TracePacket> packets) {
 int computeTimeExtentNanos(List<TracePacket> packets, int timeOrigin) {
   final packetsWithPerfSamples =
       packets.where((packet) => packet.hasPerfSample()).toList();
-  if (packetsWithPerfSamples.length == 0) {
+  if (packetsWithPerfSamples.isEmpty) {
     return 0;
   }
   int largestExtent = packetsWithPerfSamples[0].timestamp.toInt() - timeOrigin;

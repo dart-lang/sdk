@@ -6,8 +6,8 @@ import 'dart:developer';
 
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 const LINE_A = 15;
 

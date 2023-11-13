@@ -10,7 +10,7 @@ Uri buildRequestUri({
   required String method,
   Map<String, dynamic> params = const {},
 }) {
-  final pathSegments = <String>[]..addAll(serverUri.pathSegments);
+  final pathSegments = <String>[...serverUri.pathSegments];
   if (pathSegments.isNotEmpty) {
     pathSegments[pathSegments.length - 1] = method;
   } else {

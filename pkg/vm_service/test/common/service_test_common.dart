@@ -67,14 +67,14 @@ Future<void> syncNext(VmService service, IsolateRef isolateRef) async {
 Future<void> hasPausedFor(
     VmService service, IsolateRef isolateRef, String kind) async {
   Completer<dynamic>? completer = Completer();
-  late var subscription;
+  late StreamSubscription<Event> subscription;
   subscription = service.onDebugEvent.listen((event) async {
     if ((isolateRef.id == event.isolate!.id) && (event.kind == kind)) {
       if (completer != null) {
         try {
           await service.streamCancel(EventStreams.kDebug);
         } catch (_) {/* swallow exception */} finally {
-          subscription.cancel();
+          await subscription.cancel();
           completer?.complete();
           completer = null;
         }
@@ -93,7 +93,7 @@ Future<void> hasPausedFor(
       try {
         await service.streamCancel(EventStreams.kDebug);
       } catch (_) {/* swallow exception */} finally {
-        subscription.cancel();
+        await subscription.cancel();
         completer?.complete();
       }
     }
@@ -159,7 +159,7 @@ Future<void> markDartColonLibrariesDebuggable(
 // Currying is your friend.
 IsolateTest setBreakpointAtLine(int line) {
   return (VmService service, IsolateRef isolateRef) async {
-    print("Setting breakpoint for line $line");
+    print('Setting breakpoint for line $line');
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
     final Library lib =
@@ -167,23 +167,23 @@ IsolateTest setBreakpointAtLine(int line) {
     final script = lib.scripts!.first;
 
     Breakpoint bpt = await service.addBreakpoint(isolateId, script.id!, line);
-    print("Breakpoint is $bpt");
+    print('Breakpoint is $bpt');
   };
 }
 
 IsolateTest setBreakpointAtUriAndLine(String uri, int line) {
   return (VmService service, IsolateRef isolateRef) async {
-    print("Setting breakpoint for line $line in $uri");
+    print('Setting breakpoint for line $line in $uri');
     Breakpoint bpt =
         await service.addBreakpointWithScriptUri(isolateRef.id!, uri, line);
-    print("Breakpoint is $bpt");
+    print('Breakpoint is $bpt');
     expect(bpt, isNotNull);
   };
 }
 
 IsolateTest setBreakpointAtLineColumn(int line, int column) {
   return (VmService service, IsolateRef isolateRef) async {
-    print("Setting breakpoint for line $line column $column");
+    print('Setting breakpoint for line $line column $column');
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
     final lib =
@@ -195,14 +195,14 @@ IsolateTest setBreakpointAtLineColumn(int line, int column) {
       line,
       column: column,
     );
-    print("Breakpoint is $bpt");
+    print('Breakpoint is $bpt');
     expect(bpt, isNotNull);
   };
 }
 
 IsolateTest stoppedAtLine(int line) {
   return (VmService service, IsolateRef isolateRef) async {
-    print("Checking we are at line $line");
+    print('Checking we are at line $line');
 
     // Make sure that the isolate has stopped.
     final id = isolateRef.id!;
@@ -220,13 +220,13 @@ IsolateTest stoppedAtLine(int line) {
         (await service.getObject(id, top.location!.script!.id!)) as Script;
     int actualLine = script.getLineNumberFromTokenPos(top.location!.tokenPos!)!;
     if (actualLine != line) {
-      print("Actual: $actualLine Line: $line");
+      print('Actual: $actualLine Line: $line');
       final sb = StringBuffer();
-      sb.write("Expected to be at line $line but actually at line $actualLine");
-      sb.write("\nFull stack trace:\n");
+      sb.write('Expected to be at line $line but actually at line $actualLine');
+      sb.write('\nFull stack trace:\n');
       for (Frame f in frames) {
         sb.write(
-            " $f [${script.getLineNumberFromTokenPos(f.location!.tokenPos!)}]\n");
+            ' $f [${script.getLineNumberFromTokenPos(f.location!.tokenPos!)}]\n');
       }
       throw sb.toString();
     } else {
@@ -237,7 +237,7 @@ IsolateTest stoppedAtLine(int line) {
 
 Future<void> resumeIsolate(VmService service, IsolateRef isolate) async {
   Completer completer = Completer();
-  late var subscription;
+  late StreamSubscription<Event> subscription;
   bool cancelStreamAfterResume = false;
   subscription = service.onDebugEvent.listen((event) async {
     if (event.kind == EventKind.kResume) {
@@ -246,7 +246,7 @@ Future<void> resumeIsolate(VmService service, IsolateRef isolate) async {
           await service.streamCancel(EventStreams.kDebug);
         }
       } catch (_) {/* swallow exception */} finally {
-        subscription.cancel();
+        await subscription.cancel();
         completer.complete();
       }
     }
@@ -432,8 +432,8 @@ IsolateTest checkRecordedStops(
       for (int i = 0; i < recordStops.length; i++) {
         String line = recordStops[i];
         String output = line;
-        int firstColon = line.indexOf(":");
-        int lastColon = line.lastIndexOf(":");
+        int firstColon = line.indexOf(':');
+        int lastColon = line.lastIndexOf(':');
         if (debugPrintFile != null &&
             debugPrintLine != null &&
             firstColon > 0 &&
@@ -446,7 +446,7 @@ IsolateTest checkRecordedStops(
             output = '\$file:\${LINE+$relativeLineNumber}:$columnNumber';
           }
         }
-        String comma = i == recordStops.length - 1 ? "" : ",";
+        String comma = i == recordStops.length - 1 ? '' : ',';
         print("'$output'$comma");
       }
     }
@@ -479,8 +479,8 @@ IsolateTest checkRecordedStops(
     }
 
     expect(recordStops.length >= expectedStops.length, true,
-        reason: "Expects at least ${expectedStops.length} breaks, "
-            "got ${recordStops.length}.");
+        reason: 'Expects at least ${expectedStops.length} breaks, '
+            'got ${recordStops.length}.');
   };
 }
 
@@ -586,7 +586,7 @@ Future<HeapSnapshotGraph> fetchHeapSnapshot(
   sub = service.onHeapSnapshotEvent.listen((event) async {
     data.add(event.data!);
     if (event.last == true) {
-      sub.cancel();
+      await sub.cancel();
       await service.streamCancel(EventStreams.kHeapSnapshot);
       completer.complete();
     }

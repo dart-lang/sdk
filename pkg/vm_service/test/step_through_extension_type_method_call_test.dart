@@ -62,6 +62,6 @@ main(args) => runIsolateTestsSynchronous(
       fileName,
       testeeConcurrent: testMain,
       extraArgs: extraDebuggingArgs,
-      pause_on_start: true,
-      pause_on_exit: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
     );

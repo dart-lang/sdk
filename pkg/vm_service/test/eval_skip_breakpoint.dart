@@ -20,7 +20,7 @@ bar() {
 testMain() {
   debugger();
   bar();
-  print("Done");
+  print('Done');
 }
 
 var tests = <IsolateTest>[

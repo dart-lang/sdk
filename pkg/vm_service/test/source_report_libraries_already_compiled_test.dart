@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
 import 'dart:developer';
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
+
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
@@ -13,24 +15,24 @@ import 'common/test_helper.dart';
 
 class Class {
   void method() {
-    print("hit");
+    print('hit');
   }
 
   void missed() {
-    print("miss");
+    print('miss');
   }
 }
 
 void unusedFunction() {
-  print("miss");
+  print('miss');
 }
 
 void testFunction() {
   if (true) {
-    print("hit");
+    print('hit');
     Class().method();
   } else {
-    print("miss");
+    print('miss');
     unusedFunction();
   }
   debugger();
@@ -38,12 +40,12 @@ void testFunction() {
 
 const ignoreHitsBelowThisLine = 39;
 
-const allHits = [15, 16, 28, 30, 31, 36];
+const allHits = [17, 18, 30, 32, 33, 38];
 final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
-  librariesAlreadyCompiledTest(false, [], allHits, [33, 34]),
-  librariesAlreadyCompiledTest(true, [target], allHits, [33, 34]),
-  librariesAlreadyCompiledTest(true, [], allHits, [19, 20, 24, 25, 33, 34]),
+  librariesAlreadyCompiledTest(false, [], allHits, [35, 36]),
+  librariesAlreadyCompiledTest(true, [target], allHits, [35, 36]),
+  librariesAlreadyCompiledTest(true, [], allHits, [21, 22, 26, 27, 35, 36]),
   resumeIsolate,
 ];
 

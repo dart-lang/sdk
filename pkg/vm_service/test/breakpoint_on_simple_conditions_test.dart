@@ -4,8 +4,8 @@
 
 // ignore_for_file: dead_code
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 const int LINE_A = 17;
 const int LINE_B = 20;
@@ -50,5 +50,5 @@ void main(List<String> args) => runIsolateTests(
       tests,
       'breakpoint_on_simple_conditions_test.dart',
       testeeConcurrent: testMain,
-      pause_on_start: true,
+      pauseOnStart: true,
     );

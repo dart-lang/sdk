@@ -12,7 +12,7 @@ import 'common/test_helper.dart';
 
 export 'dart:io' show Socket hide SecureSocket;
 
-void testMain() => null;
+void testMain() {}
 
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {

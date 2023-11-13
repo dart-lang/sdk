@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
@@ -55,12 +55,16 @@ void script() {
 
   // A surrogate pair will cross the preferred truncation boundary.
   longStringEven = '..';
-  for (int i = 0; i < 512; i++) longStringEven += '𝄞';
+  for (int i = 0; i < 512; i++) {
+    longStringEven += '𝄞';
+  }
   longStringOdd = '.';
-  for (int i = 0; i < 512; i++) longStringOdd += '𝄞';
+  for (int i = 0; i < 512; i++) {
+    longStringOdd += '𝄞';
+  }
 
-  malformedWithLeadSurrogate = 'before' + '𝄞'[0] + 'after';
-  malformedWithTrailSurrogate = 'before' + '𝄞'[1] + 'after';
+  malformedWithLeadSurrogate = 'before${'𝄞'[0]}after';
+  malformedWithTrailSurrogate = 'before${'𝄞'[1]}after';
 }
 
 Future<void> testStrings(VmService service, IsolateRef isolateRef) async {

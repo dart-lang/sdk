@@ -66,6 +66,6 @@ main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'set_breakpoint_state_test.dart',
-      pause_on_start: true,
+      pauseOnStart: true,
       testeeConcurrent: testMain,
     );

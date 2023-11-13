@@ -5,8 +5,8 @@
 import 'dart:developer';
 import 'dart:isolate' show ReceivePort;
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -57,6 +57,6 @@ void main([args = const <String>[]]) => runIsolateTests(
       tests,
       'pause_idle_isolate_test.dart',
       testeeConcurrent: testMain,
-      verbose_vm: true,
+      verboseVm: true,
       extraArgs: ['--trace-service', '--trace-service-verbose'],
     );

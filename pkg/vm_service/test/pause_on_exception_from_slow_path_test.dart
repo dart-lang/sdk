@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--deterministic --optimization-counter-threshold=1000
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 class X {
   late String _y;
@@ -16,7 +16,9 @@ class X {
 void testeeMain() async {
   final x = X();
   x._y = '';
-  for (int i = 0; i < 2000; i++) x.y;
+  for (int i = 0; i < 2000; i++) {
+    x.y;
+  }
 
   X().y;
 }
@@ -29,7 +31,7 @@ void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'pause_on_exception_from_slow_path_test.dart',
-      pause_on_unhandled_exceptions: true,
+      pauseOnUnhandledExceptions: true,
       testeeConcurrent: testeeMain,
       extraArgs: extraDebuggingArgs,
     );

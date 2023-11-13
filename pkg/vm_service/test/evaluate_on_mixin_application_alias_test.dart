@@ -14,16 +14,16 @@ class S {}
 
 mixin class M {
   static String? foo;
-  bar() {
-    foo = "theExpectedValue";
+  void bar() {
+    foo = 'theExpectedValue';
   }
 }
 
 // MA=S&M -> S -> Object
 class MA = S with M;
 
-var global;
-testeeMain() {
+late final MA global;
+void testeeMain() {
   global = MA()..bar();
 }
 

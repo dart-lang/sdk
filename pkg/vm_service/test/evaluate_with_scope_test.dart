@@ -46,14 +46,14 @@ final tests = <IsolateTest>[
     } catch (e) {
       didThrow = true;
       expect(e.toString(),
-          contains("Cannot evaluate against a VM-internal object"));
+          contains('Cannot evaluate against a VM-internal object'));
     }
     expect(didThrow, isTrue);
 
     didThrow = false;
     try {
-      result = await service.evaluate(isolateId, lib.id!, "x + y",
-          scope: <String, String>{"not&an&id!entifier": thing1.id!});
+      result = await service.evaluate(isolateId, lib.id!, 'x + y',
+          scope: <String, String>{'not&an&id!entifier': thing1.id!});
       print(result);
     } catch (e) {
       didThrow = true;

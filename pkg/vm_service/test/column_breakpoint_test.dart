@@ -12,14 +12,14 @@ void testMain() {
 
 const int LINE = 9;
 const int COLUMN = 29;
-const String shortFile = "column_breakpoint_test.dart";
+const String shortFile = 'column_breakpoint_test.dart';
 
 List<String> stops = [];
 
 const List<String> expected = [
-  "$shortFile:${LINE + 0}:29", // on 'i == 0'
-  "$shortFile:${LINE + 0}:29", // iterate twice
-  "$shortFile:${LINE + 1}:11" //on 'b.length'
+  '$shortFile:${LINE + 0}:29', // on 'i == 0'
+  '$shortFile:${LINE + 0}:29', // iterate twice
+  '$shortFile:${LINE + 1}:11' //on 'b.length'
 ];
 
 final tests = <IsolateTest>[
@@ -36,7 +36,7 @@ main(args) {
     tests,
     'column_breakpoint_test.dart',
     testeeConcurrent: testMain,
-    pause_on_start: true,
-    pause_on_exit: true,
+    pauseOnStart: true,
+    pauseOnExit: true,
   );
 }

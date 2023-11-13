@@ -57,6 +57,6 @@ void main([args = const <String>[]]) => runIsolateTests(
       'mixin_break_test.dart',
       testeeBefore: code,
       testeeConcurrent: code,
-      pause_on_start: false,
-      pause_on_exit: true,
+      pauseOnStart: false,
+      pauseOnExit: true,
     );

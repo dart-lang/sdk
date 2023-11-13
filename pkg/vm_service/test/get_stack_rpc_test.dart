@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:isolate';
 import 'dart:developer';
+import 'dart:isolate';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -30,7 +30,7 @@ void periodicTask(_) {
 }
 
 void startTimer() {
-  new Timer.periodic(const Duration(milliseconds: 10), periodicTask);
+  Timer.periodic(const Duration(milliseconds: 10), periodicTask);
 }
 
 final tests = <IsolateTest>[
@@ -68,7 +68,7 @@ final tests = <IsolateTest>[
     // Iterate over messages.
     int messageDepth = 0;
     // objectId of message to be handled by msgHandler.
-    var msgHandlerObjectId;
+    String? msgHandlerObjectId;
     for (final message in messages) {
       print('checking message $messageDepth');
       expect(message.index, messageDepth++);
@@ -84,7 +84,7 @@ final tests = <IsolateTest>[
     // Get object.
     final object = await service.getObject(
       isolateId,
-      msgHandlerObjectId,
+      msgHandlerObjectId!,
     ) as Instance;
     expect(object.valueAsString, '34');
   }

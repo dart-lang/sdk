@@ -4,11 +4,11 @@
 
 import 'dart:developer';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 const LINE_A = 25;
 const LINE_B = 46;
@@ -41,7 +41,7 @@ void testFunction() {
 
 class MyConstClass {
   const MyConstClass();
-  static const MyConstClass instance = null ?? const MyConstClass();
+  static const MyConstClass instance = MyConstClass();
 
   void foo() {
     debugger(); // LINE_B
@@ -180,7 +180,7 @@ final tests = <IsolateTest>[
       expect(
           e.details,
           "getSourceReport: the 'tokenPos' parameter requires the "
-          "\'scriptId\' parameter");
+          "'scriptId' parameter");
     }
     expect(caughtException, true);
 
@@ -199,7 +199,7 @@ final tests = <IsolateTest>[
       expect(
           e.details,
           "getSourceReport: the 'endTokenPos' parameter requires the "
-          "\'scriptId\' parameter");
+          "'scriptId' parameter");
     }
     expect(caughtException, true);
   },

@@ -4,8 +4,8 @@
 
 import 'dart:developer';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -21,6 +21,7 @@ Future<void> bar(int depth) async {
 Future<void> foo(int depth) async {
   if (depth == 10) {
     // Yield once to force the rest to run async.
+    // ignore: await_only_futures
     await 0;
   }
   await bar(depth + 1);

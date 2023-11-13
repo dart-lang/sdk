@@ -14,9 +14,9 @@ fib(n) {
 }
 
 testeeDo() {
-  print("Testee doing something.");
+  print('Testee doing something.');
   fib(30);
-  print("Testee did something.");
+  print('Testee did something.');
 }
 
 Future checkSamples(VmService service, IsolateRef isolate) async {
@@ -28,10 +28,10 @@ Future checkSamples(VmService service, IsolateRef isolate) async {
   final isInt = TypeMatcher<int>();
   final isList = TypeMatcher<List>();
   expect(result.functions!.length, greaterThan(10),
-      reason: "Should have many functions!");
+      reason: 'Should have many functions!');
 
   final samples = result.samples!;
-  expect(samples.length, greaterThan(10), reason: "Should have many samples");
+  expect(samples.length, greaterThan(10), reason: 'Should have many samples');
   expect(samples.length, result.sampleCount);
 
   final sample = samples.first;

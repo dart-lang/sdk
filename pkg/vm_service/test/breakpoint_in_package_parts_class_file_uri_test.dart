@@ -11,38 +11,35 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 // Chop off the file name.
-String baseDirectory = path.dirname(Platform.script.path) + '/';
+String baseDirectory = '${path.dirname(Platform.script.path)}/';
 Uri baseUri = Platform.script.replace(path: baseDirectory);
 Uri breakpointFile = baseUri.resolve('test_package/lib/the_part.dart');
-const String shortFile = "the_part.dart";
+const String shortFile = 'the_part.dart';
 
-const int LINE = 87;
+const int LINE = 88;
 
-code() {
+void code() {
   has_part.main();
 }
 
-List<String> stops = [];
-
-List<String> expected = [
-  "$shortFile:${LINE + 0}:5", // on 'print'
-  "$shortFile:${LINE + 1}:3" // on class ending '}'
+final stops = <String>[];
+const expected = <String>[
+  '$shortFile:${LINE + 0}:5', // on 'print'
+  '$shortFile:${LINE + 1}:3' // on class ending '}'
 ];
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtUriAndLine(breakpointFile.toString(), LINE),
   runStepThroughProgramRecordingStops(stops),
   checkRecordedStops(stops, expected)
 ];
 
-main([args = const <String>[]]) {
-  runIsolateTestsSynchronous(
-    args,
-    tests,
-    'breakpoint_in_package_parts_class_file_uri_test.dart',
-    testeeConcurrent: code,
-    pause_on_start: true,
-    pause_on_exit: true,
-  );
-}
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'breakpoint_in_package_parts_class_file_uri_test.dart',
+      testeeConcurrent: code,
+      pauseOnStart: true,
+      pauseOnExit: true,
+    );

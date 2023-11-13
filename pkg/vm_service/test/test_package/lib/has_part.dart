@@ -7,16 +7,16 @@ library has_part;
 part 'the_part.dart';
 part 'the_part_2.dart';
 
-barz() {
+void barz() {
   print('in bar!');
 }
 
-fooz() {
+void fooz() {
   print('in foo!');
   bar();
 }
 
-main() {
-  Foo10 foo = Foo10("Foo!");
+void main() {
+  Foo10 foo = Foo10('Foo!');
   print(foo);
 }

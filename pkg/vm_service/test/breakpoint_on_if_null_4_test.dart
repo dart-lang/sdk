@@ -8,7 +8,7 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 const int LINE = 20;
-const String file = "breakpoint_on_if_null_4_test.dart";
+const String file = 'breakpoint_on_if_null_4_test.dart';
 
 dynamic compareWithMe = 43;
 
@@ -19,26 +19,26 @@ code() {
 
 foo(dynamic args) {
   if (args == compareWithMe) {
-    print("was null");
+    print('was null');
   }
   if (args != compareWithMe) {
-    print("was not null");
+    print('was not null');
   }
   if (args == 42) {
-    print("was 42!");
+    print('was 42!');
   }
 }
 
 List<String> stops = [];
 
 List<String> expected = [
-  "$file:${LINE + 0}:13", // on 'args'
-  "$file:${LINE + 1}:12", // on '=='
-  "$file:${LINE + 4}:12", // on '!='
-  "$file:${LINE + 5}:5", // on 'print'
-  "$file:${LINE + 7}:12", // on '=='
-  "$file:${LINE + 8}:5", // on 'print'
-  "$file:${LINE + 10}:1", // on ending '}'
+  '$file:${LINE + 0}:13', // on 'args'
+  '$file:${LINE + 1}:12', // on '=='
+  '$file:${LINE + 4}:12', // on '!='
+  '$file:${LINE + 5}:5', // on 'print'
+  '$file:${LINE + 7}:12', // on '=='
+  '$file:${LINE + 8}:5', // on 'print'
+  '$file:${LINE + 10}:1', // on ending '}'
 ];
 
 var tests = <IsolateTest>[
@@ -54,7 +54,7 @@ main(args) {
     tests,
     'breakpoint_on_if_null_4_test.dart',
     testeeConcurrent: code,
-    pause_on_start: true,
-    pause_on_exit: true,
+    pauseOnStart: true,
+    pauseOnExit: true,
   );
 }
