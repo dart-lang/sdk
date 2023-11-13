@@ -6,4 +6,3 @@ library;
 
 export 'src/stream_manager.dart';
 export 'src/client.dart';
-export 'src/client_manager.dart';
