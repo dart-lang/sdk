@@ -625,8 +625,16 @@ void main() {
               id: RemoteInstance.uniqueId,
               type: IdentifierImpl(
                   id: RemoteInstance.uniqueId, name: 'Singleton'),
-              constructor: IdentifierImpl(
-                  id: RemoteInstance.uniqueId, name: 'someName'));
+              constructor:
+                  IdentifierImpl(id: RemoteInstance.uniqueId, name: 'someName'),
+              positionalArguments: [
+                ExpressionCode.fromString("'foo'"),
+                ExpressionCode.fromString('12'),
+              ],
+              namedArguments: {
+                'bar': ExpressionCode.fromString("'bar'"),
+                'foobar': ExpressionCode.fromString('13'),
+              });
 
           expectSerializationEquality<ConstructorMetadataAnnotationImpl>(
               constructorMetadata, mode, RemoteInstance.deserialize);
