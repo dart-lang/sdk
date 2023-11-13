@@ -3300,6 +3300,108 @@ library
 ''');
   }
 
+  test_supertype_fromAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class B<T2> extends A<T2> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T> {}
+class B<T1> {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class B @45
+        typeParameters
+          covariant T1 @47
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::B
+        supertype: A<T1>
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::A::@constructor::new
+              substitution: {T: T1}
+        augmented
+          constructors
+            self::@class::B::@constructor::new
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class B @43
+            typeParameters
+              covariant T2 @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::B
+''');
+  }
+
+  test_supertype_fromAugmentation2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class C extends A {}
+''');
+
+    // `extends B` should be ignored, we already have `extends A`
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment class C extends B {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+class A {}
+class B {}
+class C {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @56
+        constructors
+          synthetic @-1
+      class B @67
+        constructors
+          synthetic @-1
+      class C @78
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::C
+        supertype: A
+        constructors
+          synthetic @-1
+            superConstructor: self::@class::A::@constructor::new
+        augmented
+          constructors
+            self::@class::C::@constructor::new
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class C @43
+            augmentationTarget: self::@class::C
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::C
+    package:test/b.dart
+      definingUnit
+        classes
+          augment class C @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::C
+''');
+  }
+
   test_typeParameters_defaultType() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -49957,6 +50059,70 @@ class MixinAugmentationKeepLinkingTest extends ElementsBaseTest
 }
 
 mixin MixinAugmentationMixin on ElementsBaseTest {
+  test_allSupertypes() async {
+    final library = await buildLibrary(r'''
+mixin M {}
+class A with M {}
+''');
+
+    configuration
+      ..withAllSupertypes = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @17
+        supertype: Object
+        mixins
+          M
+        allSupertypes
+          M
+          Object
+    mixins
+      mixin M @6
+        superclassConstraints
+          Object
+        allSupertypes
+          Object
+''');
+  }
+
+  test_allSupertypes_hasSuperclassConstraints() async {
+    final library = await buildLibrary(r'''
+class A {}
+mixin M on A {}
+class B with M {}
+''');
+
+    configuration
+      ..withAllSupertypes = true
+      ..withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        allSupertypes
+          Object
+      class B @33
+        supertype: Object
+        mixins
+          M
+        allSupertypes
+          A
+          M
+          Object
+    mixins
+      mixin M @17
+        superclassConstraints
+          A
+        allSupertypes
+          A
+          Object
+''');
+  }
+
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -51814,6 +51980,42 @@ library
 ''');
   }
 
+  test_augmented_superclassConstraints_fromAugmentation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A on B {}
+class B {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmented
+          superclassConstraints
+            B
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @59
+            constructors
+              synthetic @-1
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            superclassConstraints
+              B
+''');
+  }
+
   test_augmented_superclassConstraints_generic() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -52000,8 +52202,6 @@ library
     mixins
       mixin B @32
         augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::B
-        superclassConstraints
-          Object
         methods
           foo @38
             parameters
@@ -52010,7 +52210,6 @@ library
             returnType: int
         augmented
           superclassConstraints
-            Object
             A
           methods
             self::@mixin::B::@method::foo
