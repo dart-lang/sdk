@@ -9,6 +9,10 @@
 
 namespace dart {
 
+const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
+                                                  uint8_t* target_buffer) {
+  return nullptr;
+}
 void UnwindingRecords::RegisterExecutablePage(Page* page) {}
 void UnwindingRecords::UnregisterExecutablePage(Page* page) {}
 

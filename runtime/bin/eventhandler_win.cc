@@ -116,6 +116,7 @@ int OverlappedBuffer::GetRemainingLength() {
 Handle::Handle(intptr_t handle)
     : ReferenceCounted(),
       DescriptorInfoBase(handle),
+      monitor_(),
       handle_(reinterpret_cast<HANDLE>(handle)),
       completion_port_(INVALID_HANDLE_VALUE),
       event_handler_(nullptr),
@@ -123,12 +124,11 @@ Handle::Handle(intptr_t handle)
       pending_read_(nullptr),
       pending_write_(nullptr),
       last_error_(NOERROR),
-      flags_(0),
       read_thread_id_(Thread::kInvalidThreadId),
       read_thread_handle_(nullptr),
       read_thread_starting_(false),
       read_thread_finished_(false),
-      monitor_() {}
+      flags_(0) {}
 
 Handle::~Handle() {
 }
@@ -528,8 +528,7 @@ void ListenSocket::AcceptComplete(OverlappedBuffer* buffer,
 
       // Insert the accepted socket into the list.
       ClientSocket* client_socket = new ClientSocket(
-          buffer->client(),
-          std::move(std::unique_ptr<RawAddr>(raw_remote_addr)));
+          buffer->client(), std::unique_ptr<RawAddr>(raw_remote_addr));
       client_socket->mark_connected();
       client_socket->CreateCompletionPort(completion_port);
       if (accepted_head_ == nullptr) {
