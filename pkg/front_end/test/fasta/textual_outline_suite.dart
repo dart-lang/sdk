@@ -101,23 +101,26 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
 
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
+      TextualOutlineInfoForTesting info = new TextualOutlineInfoForTesting();
       String? result = textualOutline(
-          bytes,
-          new ScannerConfiguration(
-            enableExtensionMethods: isExperimentEnabled(
-                ExperimentalFlag.extensionMethods,
-                explicitExperimentalFlags: experimentalFlags),
-            enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
-                explicitExperimentalFlags: experimentalFlags),
-            enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
-                explicitExperimentalFlags: experimentalFlags),
-          ),
-          throwOnUnexpected: true,
-          performModelling: modelled,
-          addMarkerForUnknownForTest: modelled,
-          returnNullOnError: false,
-          enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
-              explicitExperimentalFlags: experimentalFlags));
+        bytes,
+        new ScannerConfiguration(
+          enableExtensionMethods: isExperimentEnabled(
+              ExperimentalFlag.extensionMethods,
+              explicitExperimentalFlags: experimentalFlags),
+          enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
+              explicitExperimentalFlags: experimentalFlags),
+          enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
+              explicitExperimentalFlags: experimentalFlags),
+        ),
+        throwOnUnexpected: true,
+        performModelling: modelled,
+        addMarkerForUnknownForTest: modelled,
+        returnNullOnError: false,
+        enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
+            explicitExperimentalFlags: experimentalFlags),
+        infoForTesting: info,
+      );
       if (result == null) {
         return new Result(
             null, context.expectationSet["EmptyOutput"], description.uri);
@@ -165,7 +168,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
             null, context.expectationSet["UnknownChunk"], description.uri);
       }
 
-      if (formatterException != null) {
+      if (formatterException != null && !info.hasParserErrors) {
         bool hasUnreleasedExperiment = false;
         for (MapEntry<ExperimentalFlag, bool> entry
             in experimentalFlags.entries) {
