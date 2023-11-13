@@ -12,22 +12,22 @@ Definitions:
 import 'dart:core' as prefix0;
 
 augment class A {
-augment prefix0.String getSuperClass() {
+  augment prefix0.String getSuperClass() {
     return "null";
   }
 }
 augment class B {
-augment prefix0.String getSuperClass() {
+  augment prefix0.String getSuperClass() {
     return "A";
   }
 }
 augment mixin M {
-augment prefix0.String getSuperClass() {
+  augment prefix0.String getSuperClass() {
     return "null";
   }
 }
 augment class C {
-augment prefix0.String getSuperClass() {
+  augment prefix0.String getSuperClass() {
     return "A";
   }
 }*/
@@ -37,7 +37,7 @@ import 'package:macro/macro.dart';
 /*class: A:
 definitions:
 augment class A {
-augment String getSuperClass() {
+  augment String getSuperClass() {
     return "null";
   }
 }*/
@@ -49,7 +49,7 @@ class A {
 /*class: B:
 definitions:
 augment class B {
-augment String getSuperClass() {
+  augment String getSuperClass() {
     return "A";
   }
 }*/
@@ -61,7 +61,7 @@ class B extends A {
 /*class: M:
 definitions:
 augment class M {
-augment String getSuperClass() {
+  augment String getSuperClass() {
     return "null";
   }
 }*/
@@ -73,7 +73,7 @@ mixin M {
 /*class: C:
 definitions:
 augment class C {
-augment String getSuperClass() {
+  augment String getSuperClass() {
     return "A";
   }
 }*/
