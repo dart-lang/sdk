@@ -159,6 +159,7 @@ runTest(
   File(cfeDillFileUri.path)
       .writeAsBytesSync(cfeDillCollector.binaryOutputMap[cfeDillFileUri]!.list);
 
+  var dillUri = dir.uri.resolve('out.dill');
   var closedWorldUri = Uri.parse('world.data');
   OutputCollector collector3a = OutputCollector();
   CompilationResult result3a = await runCompiler(
@@ -168,6 +169,7 @@ runTest(
       librariesSpecificationUri: librariesSpecificationUri,
       options: options +
           [
+            '--out=$dillUri',
             '${Flags.inputDill}=$cfeDillFileUri',
             '${Flags.writeClosedWorld}=$closedWorldUri'
           ],
@@ -176,11 +178,15 @@ runTest(
         compiler.forceSerializationForTesting = true;
       });
   Expect.isTrue(result3a.isSuccess);
+  Expect.isTrue(collector3a.binaryOutputMap.containsKey(dillUri));
   Expect.isTrue(collector3a.binaryOutputMap.containsKey(closedWorldUri));
 
+  final dillFileUri = dir.uri.resolve('out.dill');
   final closedWorldFileUri = dir.uri.resolve('world.data');
   final globalDataUri = Uri.parse('global.data');
+  final dillBytes = collector3a.binaryOutputMap[dillUri]!.list;
   final closedWorldBytes = collector3a.binaryOutputMap[closedWorldUri]!.list;
+  File(dillFileUri.path).writeAsBytesSync(dillBytes);
   File(closedWorldFileUri.path).writeAsBytesSync(closedWorldBytes);
   OutputCollector collector3b = OutputCollector();
   CompilationResult result3b = await runCompiler(
@@ -190,7 +196,7 @@ runTest(
       librariesSpecificationUri: librariesSpecificationUri,
       options: commonOptions +
           [
-            '${Flags.inputDill}=$cfeDillFileUri',
+            '${Flags.inputDill}=$dillFileUri',
             '${Flags.readClosedWorld}=$closedWorldFileUri',
             '${Flags.writeData}=$globalDataUri'
           ],
@@ -226,7 +232,7 @@ runTest(
       librariesSpecificationUri: librariesSpecificationUri,
       options: commonOptions +
           [
-            '${Flags.inputDill}=$cfeDillFileUri',
+            '${Flags.inputDill}=$dillFileUri',
             '${Flags.readClosedWorld}=$closedWorldFileUri',
             '${Flags.readData}=$globalDataFileUri',
             '--out=$jsOutUri'

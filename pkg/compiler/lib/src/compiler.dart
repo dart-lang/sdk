@@ -419,8 +419,7 @@ class Compiler {
             component = trimComponent(component, includedLibraries);
           }
         }
-        serializationTask.serializeComponent(component,
-            includeSourceBytes: false);
+        serializationTask.serializeComponent(component);
       }
       return output.withNewComponent(component);
     } else {
@@ -526,6 +525,9 @@ class Compiler {
       List<Uri> libraries = output.libraries!;
       closedWorld = computeClosedWorld(component, rootLibraryUri, libraries);
       if (stage == Dart2JSStage.closedWorld && closedWorld != null) {
+        serializationTask.serializeComponent(
+            closedWorld.elementMap.programEnv.mainComponent,
+            includeSourceBytes: false);
         serializationTask.serializeClosedWorld(closedWorld, indices);
       } else if (options.testMode && closedWorld != null) {
         closedWorld = closedWorldTestMode(closedWorld);
