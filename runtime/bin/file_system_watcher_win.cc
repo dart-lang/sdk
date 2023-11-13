@@ -7,7 +7,7 @@
 
 #include "bin/file_system_watcher.h"
 
-#include <WinIoCtl.h>  // NOLINT
+#include <winioctl.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/eventhandler.h"

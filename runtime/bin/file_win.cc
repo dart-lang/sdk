@@ -10,9 +10,9 @@
 #include <string>
 
 #include <Shlwapi.h>  // NOLINT
-#include <WinIoCtl.h>  // NOLINT
 #include <fcntl.h>     // NOLINT
 #include <io.h>        // NOLINT
+#include <winioctl.h>  // NOLINT
 #undef StrDup          // defined in Shlwapi.h as StrDupW
 #include <stdio.h>     // NOLINT
 #include <string.h>    // NOLINT
@@ -328,8 +328,8 @@ class StringRAII {
     s_ = origin.release();
   }
 
-  explicit StringRAII(const char* s) : s_(s), own_(false) {}
-  explicit StringRAII(char* s) : s_(s), own_(true) {}
+  explicit StringRAII(const char* s) : own_(false), s_(s) {}
+  explicit StringRAII(char* s) : own_(true), s_(s) {}
   ~StringRAII() {
     if (own_) {
       free(const_cast<char*>(s_));
