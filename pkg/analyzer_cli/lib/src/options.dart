@@ -142,14 +142,14 @@ class CommandLineOptions {
     for (var variable in variables) {
       var index = variable.indexOf('=');
       if (index < 0) {
-        // TODO (brianwilkerson) Decide the semantics we want in this case.
+        // TODO(brianwilkerson): Decide the semantics we want in this case.
         // The VM prints "No value given to -D option", then tries to load '-Dfoo'
         // as a file and dies. Unless there was nothing after the '-D', in which
         // case it prints the warning and ignores the option.
       } else {
         var name = variable.substring(0, index);
         if (name.isNotEmpty) {
-          // TODO (brianwilkerson) Decide the semantics we want in the case where
+          // TODO(brianwilkerson): Decide the semantics we want in the case where
           // there is no name. If there is no name, the VM tries to load a file
           // named '-D' and dies.
           declaredVariables[name] = variable.substring(index + 1);
@@ -299,8 +299,8 @@ class CommandLineOptions {
   /// are those that are typically used to control the way in which the code is
   /// analyzed.
   ///
-  /// TODO(danrubel) Update DDC to support all the options defined in this method
-  /// then remove the [ddc] named argument from this method.
+  // TODO(danrubel): Update DDC to support all the options defined in this method
+  // then remove the [ddc] named argument from this method.
   static void _defineAnalysisArguments(ArgParser parser,
       {bool hide = true, bool ddc = false}) {
     parser.addOption(_sdkPathOption,

@@ -340,7 +340,7 @@ void g() {}
 
   Future<void> test_assertInitializer_secondArgument() async {
     addTestSource('class C { C() : assert(true, ^); }');
-    // TODO(brianwilkerson) This should have a location of
+    // TODO(brianwilkerson): This should have a location of
     //  'AssertInitializer_message'
     await assertOpType();
   }
@@ -356,7 +356,7 @@ void g() {}
 
   Future<void> test_assertStatement_secondArgument() async {
     addTestSource('main() {assert(true, ^)}');
-    // TODO(brianwilkerson) This should have a location of
+    // TODO(brianwilkerson): This should have a location of
     //  'AssertStatement_message'
     await assertOpType();
   }
@@ -386,7 +386,7 @@ void g() {}
       main() {
         int a;
         ^ b = 1;}''');
-    // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
+    // TODO(danrubel): When entering 1st of 2 identifiers on assignment LHS
     // the user may be either (1) entering a type for the assignment
     // or (2) starting a new statement.
     // Consider suggesting only types
@@ -425,7 +425,7 @@ void g() {}
       main() {
         int a;
         int^ b = 1;}''');
-    // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
+    // TODO(danrubel): When entering 1st of 2 identifiers on assignment LHS
     // the user may be either (1) entering a type for the assignment
     // or (2) starting a new statement.
     // Consider suggesting only types
@@ -1366,7 +1366,7 @@ int x = E(^);
   Future<void> test_forStatement_updaters() async {
     // SimpleIdentifier  ForStatement
     addTestSource('main() {for (int index = 0; index < 10; i^)}');
-    // TODO (danrubel) might want to exclude methods/functions with void return
+    // TODO(danrubel): might want to exclude methods/functions with void return
     await assertOpType(
         completionLocation: 'ForParts_updater',
         constructors: true,
@@ -1514,7 +1514,7 @@ int x = E(^);
     addTestSource('''
 /// some dartdoc
 ^ zoo(z) { } String name;''');
-    // TODO(brianwilkerson) Perhaps this should have a location of
+    // TODO(brianwilkerson): Perhaps this should have a location of
     //  'CompilationUnit_declaration' (or 'CompilationUnit_directive')
     await assertOpType(
         completionLocation: 'FunctionDeclaration_returnType', typeNames: true);
@@ -1545,7 +1545,7 @@ int x = E(^);
       test_functionDeclaration_returnType_afterStarDocComment2() async {
     // FunctionDeclaration  CompilationUnit
     addTestSource('/** */^ zoo(z) { } String name;');
-    // TODO(brianwilkerson) Perhaps this should have a location of
+    // TODO(brianwilkerson): Perhaps this should have a location of
     //  'CompilationUnit_declaration' (or 'CompilationUnit_directive')
     await assertOpType(
         completionLocation: 'FunctionDeclaration_returnType', typeNames: true);
@@ -1810,7 +1810,7 @@ main() {
   Future<void> test_literal_list() async {
     // ']'  ListLiteral  ArgumentList  MethodInvocation
     addTestSource('main() {var Some; print([^]);}');
-    // TODO(brianwilkerson) This should have a location of
+    // TODO(brianwilkerson): This should have a location of
     //  'ListLiteral_element'
     await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
@@ -1834,7 +1834,7 @@ main() {
   Future<void> test_mapLiteralEntry_emptyKey() async {
     // MapLiteralEntry  MapLiteral  VariableDeclaration
     addTestSource('foo = {^');
-    // TODO(brianwilkerson) This should have a location of
+    // TODO(brianwilkerson): This should have a location of
     //  'SetOrMapLiteral_element'
     await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
@@ -1881,7 +1881,7 @@ class C2 {
   zoo(z) { } String name;
 }
 ''');
-    // TODO(brianwilkerson) This should have a location of
+    // TODO(brianwilkerson): This should have a location of
     //  'ClassDeclaration_member'
     await assertOpType();
   }
@@ -1989,7 +1989,7 @@ class C2 {
   ^ zoo(z) { } String name;
 }
 ''');
-    // TODO(brianwilkerson) Perhaps this should have a location of
+    // TODO(brianwilkerson): Perhaps this should have a location of
     //  'ClassDeclaration_member'.
     await assertOpType(
         completionLocation: 'MethodDeclaration_returnType', typeNames: true);
@@ -2004,7 +2004,7 @@ class C2 {
 ^ zoo(z) { } String name;
 
 ''');
-    // TODO(brianwilkerson) Perhaps this should have a location of
+    // TODO(brianwilkerson): Perhaps this should have a location of
     //  'ClassDeclaration_member'.
     await assertOpType(
         completionLocation: 'MethodDeclaration_returnType', typeNames: true);
@@ -2030,7 +2030,7 @@ class C2 {
       test_methodDeclaration_inClass_returnType_afterStarDocComment() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */ ^ zoo(z) { } String name; }');
-    // TODO(brianwilkerson) Perhaps this should have a location of
+    // TODO(brianwilkerson): Perhaps this should have a location of
     //  'ClassDeclaration_member'.
     await assertOpType(
         completionLocation: 'MethodDeclaration_returnType', typeNames: true);
@@ -2040,7 +2040,7 @@ class C2 {
       test_methodDeclaration_inClass_returnType_afterStarDocComment2() async {
     // MethodDeclaration  ClassDeclaration  CompilationUnit
     addTestSource('class C2 {/** */^ zoo(z) { } String name; }');
-    // TODO(brianwilkerson) Perhaps this should have a location of
+    // TODO(brianwilkerson): Perhaps this should have a location of
     //  'ClassDeclaration_member'.
     await assertOpType(
         completionLocation: 'MethodDeclaration_returnType', typeNames: true);
@@ -2135,7 +2135,7 @@ void f(int a, {int b}) {}
   Future<void> test_postfixExpression_inOperator() async {
     // SimpleIdentifier  PostfixExpression  ForStatement
     addTestSource('int x = 0; main() {ax+^+;}');
-    // TODO(brianwilkerson) This should probably have a location of
+    // TODO(brianwilkerson): This should probably have a location of
     //  'BinaryExpression_+_rightOperand'
     await assertOpType(constructors: true, returnValue: true, typeNames: true);
   }
@@ -2200,7 +2200,7 @@ void f(int a, {int b}) {}
   Future<void> test_propertyAccess_noTarget3() async {
     // SimpleIdentifier  PropertyAccess  CascadeExpressions
     addTestSource('main() {..^}');
-    // TODO(brianwilkerson) This should have a location of
+    // TODO(brianwilkerson): This should have a location of
     //  'PropertyAccess_propertyName' (as should several others before this).
     await assertOpType();
   }
@@ -2424,7 +2424,7 @@ void f() {
 
   Future<void> test_simpleFormalParameter_functionType_name() async {
     addTestSource('void Function(int ^) v;');
-    // TODO(brianwilkerson) This should not have a location.
+    // TODO(brianwilkerson): This should not have a location.
     await assertOpType(
         completionLocation: 'FormalParameterList_parameter', varNames: true);
   }
@@ -2436,7 +2436,7 @@ void f() {
 
   Future<void> test_simpleFormalParameter_functionType_name_optional() async {
     addTestSource('void Function([int ^]) v;');
-    // TODO(brianwilkerson) This should not have a location.
+    // TODO(brianwilkerson): This should not have a location.
     await assertOpType(
         completionLocation: 'FormalParameterList_parameter', varNames: true);
   }
@@ -2455,7 +2455,7 @@ void f() {
 
   Future<void> test_simpleFormalParameter_name_typed() async {
     addTestSource('f(String ^, int b) {}');
-    // TODO(brianwilkerson) This should not have a location.
+    // TODO(brianwilkerson): This should not have a location.
     await assertOpType(
         completionLocation: 'FormalParameterList_parameter', varNames: true);
   }
@@ -2467,7 +2467,7 @@ void f() {
 
   Future<void> test_simpleFormalParameter_name_typed_last() async {
     addTestSource('f(String ^) {}');
-    // TODO(brianwilkerson) This should not have a location.
+    // TODO(brianwilkerson): This should not have a location.
     await assertOpType(
         completionLocation: 'FormalParameterList_parameter', varNames: true);
   }
@@ -2527,7 +2527,7 @@ void f() {
 
   Future<void> test_simpleFormalParameter_untyped() async {
     addTestSource('main(final ^) {}');
-    // TODO(brianwilkerson) This should have a location of
+    // TODO(brianwilkerson): This should have a location of
     //  'FormalParameterList_parameter'
     await assertOpType(typeNames: true, varNames: false);
   }
@@ -2689,7 +2689,7 @@ m() {switch (x) {case ^}}
         // no semicolon between completion point and next statement
         set s1(I x) {} set _s2(I x) {this.^ m(null);}
       }''');
-    // TODO(brianwilkerson) We should not be adding constructors here.
+    // TODO(brianwilkerson): We should not be adding constructors here.
     await assertOpType(
         constructors: true,
         returnValue: true,
@@ -2922,7 +2922,7 @@ m() {switch (x) {case ^}}
 
   Future<void> test_tryStatement_catch_4a2() async {
     addTestSource('main() {try {} c^ on SomeException {}}');
-    // TODO(brianwilkerson) This should not have a location.
+    // TODO(brianwilkerson): This should not have a location.
     await assertOpType(completionLocation: 'Block_statement');
   }
 
@@ -2933,7 +2933,7 @@ m() {switch (x) {case ^}}
 
   Future<void> test_tryStatement_catch_4b2() async {
     addTestSource('main() {try {} c^ catch (e) {}}');
-    // TODO(brianwilkerson) This should not have a location.
+    // TODO(brianwilkerson): This should not have a location.
     await assertOpType(completionLocation: 'Block_statement');
   }
 
@@ -2944,7 +2944,7 @@ m() {switch (x) {case ^}}
 
   Future<void> test_tryStatement_catch_4c2() async {
     addTestSource('main() {try {} c^ finally {}}');
-    // TODO(brianwilkerson) This should not have a location.
+    // TODO(brianwilkerson): This should not have a location.
     await assertOpType(completionLocation: 'Block_statement');
   }
 

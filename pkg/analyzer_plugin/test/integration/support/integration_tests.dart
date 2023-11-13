@@ -141,7 +141,7 @@ abstract class AbstractAnalysisServerIntegrationTest
       currentAnalysisErrors[params.file] = params.errors;
     });
     var serverConnected = Completer();
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
 //    onServerConnected.listen((_) {
 //      outOfTestExpect(serverConnected.isCompleted, isFalse);
 //      serverConnected.complete();
@@ -185,7 +185,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// can be used.
   Future standardAnalysisSetup({bool subscribeStatus = true}) {
     var futures = <Future>[];
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
 //    if (subscribeStatus) {
 //      futures.add(sendServerSetSubscriptions([ServerService.STATUS]));
 //    }

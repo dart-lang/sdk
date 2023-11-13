@@ -231,13 +231,13 @@ abstract class ServerPlugin {
     for (var event in parameters.events) {
       switch (event.type) {
         case WatchEventType.ADD:
-          // TODO(brianwilkerson) Handle the event.
+          // TODO(brianwilkerson): Handle the event.
           break;
         case WatchEventType.MODIFY:
           await contentChanged([event.path]);
           break;
         case WatchEventType.REMOVE:
-          // TODO(brianwilkerson) Handle the event.
+          // TODO(brianwilkerson): Handle the event.
           break;
         default:
           // Ignore unhandled watch event types.

@@ -25,6 +25,7 @@ linter:
     directives_ordering: true
     empty_catches: true
     enable_null_safety: true
+    flutter_style_todos: true
 
     # We import heavily from package:analyzer/src.
     implementation_imports: false

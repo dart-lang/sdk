@@ -533,7 +533,7 @@ class _Protected {
 }
 
 @Target({
-  // todo(pq): restrict to instance members only
+  // TODO(pq): restrict to instance members only
   TargetKind.getter,
   TargetKind.setter,
   TargetKind.method,

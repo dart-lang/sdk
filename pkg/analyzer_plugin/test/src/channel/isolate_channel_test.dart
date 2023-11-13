@@ -42,7 +42,7 @@ class PluginIsolateChannelTest {
       done = true;
     });
     channel.close();
-    // TODO(brianwilkerson) Figure out how to wait until the handler has been
+    // TODO(brianwilkerson): Figure out how to wait until the handler has been
     // called.
     await _pumpEventQueue();
     expect(done, isTrue);

@@ -127,7 +127,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   /// Write an analysis options file based on the given arguments.
-  /// TODO(asashour) Use AnalysisOptionsFileConfig
+  // TODO(asashour): Use AnalysisOptionsFileConfig
   void writeTestPackageAnalysisOptionsFile({
     List<String>? lints,
   }) {
