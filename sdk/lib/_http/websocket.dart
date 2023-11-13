@@ -311,6 +311,9 @@ abstract class WebSocket
   ///
   /// If the `url` contains user information this will be passed as basic
   /// authentication when setting up the connection.
+  ///
+  /// If [customClient] is provided, then it will be used to make the
+  /// WebSocket connection and the [userAgent] field is ignored.
   static Future<WebSocket> connect(String url,
           {Iterable<String>? protocols,
           Map<String, dynamic>? headers,
@@ -396,10 +399,15 @@ abstract class WebSocket
   /// not, the receiving end will close the connection.
   void addUtf8Text(List<int> bytes);
 
-  /// Gets the user agent used for WebSocket connections.
+  /// The `User-Agent` header used for WebSocket connections.
+  ///
+  /// If the userAgent is set to `null`, no "User-Agent" header will be added
+  /// to requests.
+  ///
+  /// If [connect] is called with a `customClient`, then the WebSocket will
+  /// not use [userAgent].
   static String? get userAgent => _WebSocketImpl.userAgent;
 
-  /// Sets the user agent to use for WebSocket connections.
   static set userAgent(String? userAgent) {
     _WebSocketImpl.userAgent = userAgent;
   }
