@@ -13,6 +13,7 @@ linter:
     #dangling_library_doc_comments: true
     depend_on_referenced_packages: true
     enable_null_safety: true
+    flutter_style_todos: true
     implicit_call_tearoffs: true
     library_annotations: true
     omit_local_variable_types: true

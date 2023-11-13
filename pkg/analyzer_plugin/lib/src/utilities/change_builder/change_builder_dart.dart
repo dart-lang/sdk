@@ -95,7 +95,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       String? nameGroupName,
       DartType? superclass,
       String? superclassGroupName}) {
-    // TODO(brianwilkerson) Add support for type parameters, probably as a
+    // TODO(brianwilkerson): Add support for type parameters, probably as a
     // parameterWriter parameter.
     if (isAbstract) {
       write(Keyword.ABSTRACT.lexeme);
@@ -111,7 +111,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' extends ');
       writeType(superclass, groupName: superclassGroupName);
     } else if (mixins != null && mixins.isNotEmpty) {
-      // TODO(brianwilkerson) Remove this branch when 2.1 semantics are
+      // TODO(brianwilkerson): Remove this branch when 2.1 semantics are
       // supported everywhere.
       write(' extends Object ');
     }
@@ -361,7 +361,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       void Function()? membersWriter,
       String? nameGroupName,
       Iterable<DartType>? superclassConstraints}) {
-    // TODO(brianwilkerson) Add support for type parameters, probably as a
+    // TODO(brianwilkerson): Add support for type parameters, probably as a
     // parameterWriter parameter.
     write('mixin ');
     if (nameGroupName == null) {
@@ -681,7 +681,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParametersMatchingArguments(ArgumentList argumentList) {
-    // TODO(brianwilkerson) Handle the case when there are required parameters
+    // TODO(brianwilkerson): Handle the case when there are required parameters
     // after named parameters.
     var usedNames = <String>{};
     List<Expression> arguments = argumentList.arguments;
@@ -734,7 +734,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(' ');
       }
     }
-    // TODO(brianwilkerson) The name of the setter is unlikely to be a good name
+    // TODO(brianwilkerson): The name of the setter is unlikely to be a good name
     //  for the parameter. We need to find a better name to produce here.
     write(name);
     write(') ');
@@ -917,7 +917,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is RecordType) {
-      // TODO(brianwilkerson) This should return `false` if the `records`
+      // TODO(brianwilkerson): This should return `false` if the `records`
       //  feature is not enabled.
       return true;
     }
@@ -1069,7 +1069,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     if (suggestions.isNotEmpty) {
       return suggestions;
     }
-    // TODO(brianwilkerson) Verify that the name below is not in the set of used names.
+    // TODO(brianwilkerson): Verify that the name below is not in the set of used names.
     return <String>['param$index'];
   }
 
@@ -1163,7 +1163,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       return;
     }
 
-    // TODO(scheglov) We should use "methodBeingCopied" to verify that
+    // TODO(scheglov): We should use "methodBeingCopied" to verify that
     // we really are just copying this type parameter.
     if (element is TypeParameterElement) {
       return;
@@ -1295,7 +1295,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     if (type is RecordType) {
-      // TODO(brianwilkerson) This should return `false` if the `records`
+      // TODO(brianwilkerson): This should return `false` if the `records`
       //  feature is not enabled. More importantly, we can't currently return
       //  `false` if some portion of a type has already been written, so we
       //  need to figure out what to do when a record type is nested in another

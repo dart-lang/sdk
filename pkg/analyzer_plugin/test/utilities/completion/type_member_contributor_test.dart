@@ -389,7 +389,7 @@ void main() {new A().f^}''');
     expect(replacementLength, 0);
     assertNotSuggested('A');
     assertNotSuggested('int');
-    // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
+    // TODO(danrubel): When entering 1st of 2 identifiers on assignment LHS
     // the user may be either (1) entering a type for the assignment
     // or (2) starting a new statement.
     // Consider suggesting only types
@@ -432,7 +432,7 @@ void main() {new A().f^}''');
     expect(replacementLength, 3);
     assertNotSuggested('A');
     assertNotSuggested('int');
-    // TODO (danrubel) When entering 1st of 2 identifiers on assignment LHS
+    // TODO(danrubel): When entering 1st of 2 identifiers on assignment LHS
     // the user may be either (1) entering a type for the assignment
     // or (2) starting a new statement.
     // Consider suggesting only types
@@ -587,7 +587,7 @@ void main() {new A().f^}''');
     assertNotSuggested('T8');
     assertNotSuggested('clog');
     assertNotSuggested('blog');
-    // TODO (danrubel) suggest HtmlElement as low relevance
+    // TODO(danrubel): suggest HtmlElement as low relevance
     assertNotSuggested('HtmlElement');
     assertNotSuggested('Uri');
     assertNotSuggested('parseIPv6Address');
@@ -685,7 +685,7 @@ void main() {new A().f^}''');
     assertNotSuggested('T8');
     assertNotSuggested('clog');
     assertNotSuggested('blog');
-    // TODO (danrubel) suggest HtmlElement as low relevance
+    // TODO(danrubel): suggest HtmlElement as low relevance
     assertNotSuggested('HtmlElement');
     assertNotSuggested('Uri');
     assertNotSuggested('parseIPv6Address');
@@ -797,7 +797,7 @@ void main() {new A().f^}''');
     assertNotSuggested('T8');
     assertNotSuggested('clog');
     assertNotSuggested('blog');
-    // TODO (danrubel) suggest HtmlElement as low relevance
+    // TODO(danrubel): suggest HtmlElement as low relevance
     assertNotSuggested('HtmlElement');
     assertNotSuggested('Uri');
     assertNotSuggested('parseIPv6Address');
@@ -895,7 +895,7 @@ void main() {new A().f^}''');
     assertNotSuggested('T8');
     assertNotSuggested('clog');
     assertNotSuggested('blog');
-    // TODO (danrubel) suggest HtmlElement as low relevance
+    // TODO(danrubel): suggest HtmlElement as low relevance
     assertNotSuggested('HtmlElement');
     assertNotSuggested('Uri');
     assertNotSuggested('parseIPv6Address');
@@ -976,7 +976,7 @@ void main() {new A().f^}''');
     //assertNotSuggested('T5');
     //assertNotSuggested('_T6');
     assertNotSuggested('==');
-    // TODO (danrubel) suggest HtmlElement as low relevance
+    // TODO(danrubel): suggest HtmlElement as low relevance
     assertNotSuggested('HtmlElement');
   }
 
@@ -995,7 +995,7 @@ void main() {new A().f^}''');
 
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
-    // TODO (danrubel) prefer fields over getters
+    // TODO(danrubel): prefer fields over getters
     // If add `get e1;` to interface I
     // then suggestions include getter e1 rather than field e1
     assertNotSuggested('e1');
@@ -1092,7 +1092,7 @@ void main() {new A().f^}''');
     expect(replacementOffset, completionOffset! - 1);
     expect(replacementLength, 1);
     assertNotSuggested('Foo');
-    // TODO(danrubel) implement
+    // TODO(danrubel): implement
     assertNotSuggested('Foo2');
     assertNotSuggested('Future');
   }
@@ -1433,7 +1433,7 @@ void main() {new A().f^}''');
     await computeSuggestions();
     // top level results are partially filtered based on first char
     assertNotSuggested('T2');
-    // TODO (danrubel) getter is being suggested instead of top level var
+    // TODO(danrubel): getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
@@ -1458,7 +1458,7 @@ void main() {new A().f^}''');
     assertNotSuggested('T2');
     assertNotSuggested('A');
     assertNotSuggested('F1');
-    // TODO (danrubel) getter is being suggested instead of top level var
+    // TODO(danrubel): getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
@@ -1477,7 +1477,7 @@ void main() {new A().f^}''');
     await computeSuggestions();
     // top level results are partially filtered based on first char
     assertNotSuggested('T2');
-    // TODO (danrubel) getter is being suggested instead of top level var
+    // TODO(danrubel): getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
@@ -1502,7 +1502,7 @@ void main() {new A().f^}''');
     assertNotSuggested('T2');
     assertNotSuggested('A');
     assertNotSuggested('F1');
-    // TODO (danrubel) getter is being suggested instead of top level var
+    // TODO(danrubel): getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
@@ -1521,7 +1521,7 @@ void main() {new A().f^}''');
     await computeSuggestions();
     // top level results are partially filtered based on first char
     assertNotSuggested('T2');
-    // TODO (danrubel) getter is being suggested instead of top level var
+    // TODO(danrubel): getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
@@ -1680,7 +1680,7 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
-  /// TODO(scheglov) move this test into contributor independent suite
+  // TODO(scheglov): move this test into contributor independent suite
   @FailingTest(reason: 'No index, not local anymore')
   Future<void> test_enumConst_index() async {
     addTestSource('enum E { one, two } main() {E.one.^}');
@@ -1692,7 +1692,7 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
-  /// TODO(scheglov) move this test into contributor independent suite
+  // TODO(scheglov): move this test into contributor independent suite
   @FailingTest(reason: 'No index, not local anymore')
   Future<void> test_enumConst_index2() async {
     addTestSource('enum E { one, two } main() {E.one.i^}');
@@ -1704,7 +1704,7 @@ void main() {new A().f^}''');
     assertNotSuggested('values');
   }
 
-  /// TODO(scheglov) move this test into contributor independent suite
+  // TODO(scheglov): move this test into contributor independent suite
   @FailingTest(reason: 'No index, not local anymore')
   Future<void> test_enumConst_index3() async {
     addTestSource('enum E { one, two } main() {E.one.^ int g;}');
@@ -2174,7 +2174,7 @@ g(F.^
     assertNotSuggested('T2');
     assertNotSuggested('A');
     assertNotSuggested('F1');
-    // TODO (danrubel) getter is being suggested instead of top level var
+    // TODO(danrubel): getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
@@ -2193,7 +2193,7 @@ g(F.^
     await computeSuggestions();
     // top level results are partially filtered based on first char
     assertNotSuggested('T2');
-    // TODO (danrubel) getter is being suggested instead of top level var
+    // TODO(danrubel): getter is being suggested instead of top level var
     //assertSuggestImportedTopLevelVar('T1', 'int');
   }
 
@@ -2256,7 +2256,7 @@ g(F.^
     expect(replacementOffset, completionOffset);
     expect(replacementLength, 0);
     assertNotSuggested('Object');
-    // TODO(danrubel) should return top level var rather than getter
+    // TODO(danrubel): should return top level var rather than getter
     assertNotSuggested('F1');
     assertNotSuggested('D1');
     assertNotSuggested('C1');

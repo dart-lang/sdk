@@ -13,6 +13,7 @@ linter:
     - collection_methods_unrelated_type
     - dangling_library_doc_comments
     - depend_on_referenced_packages
+    - flutter_style_todos
     - implicit_call_tearoffs
     - library_annotations
     - prefer_single_quotes

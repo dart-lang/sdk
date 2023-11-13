@@ -1,0 +1,2 @@
+extension type const E(int? n) {}
+const E e = null as E;

@@ -173,7 +173,7 @@ class Driver implements CommandLineStarter {
     // time during the following analysis.
     SeverityProcessor defaultSeverityProcessor;
     defaultSeverityProcessor = (AnalysisError error) {
-      // TODO(pq) get file path from `error.source.fullName`
+      // TODO(pq): get file path from `error.source.fullName`
       return determineProcessedSeverity(
           error, options, analysisDriver!.analysisOptions);
     };
@@ -507,7 +507,7 @@ class _AnalysisContextProvider {
     return _analysisContext!.driver;
   }
 
-  /// TODO(scheglov) Use analyzedFiles()
+  // TODO(scheglov): Use analyzedFiles()
   PathFilter get pathFilter {
     var contextRoot = analysisContext!.contextRoot;
     var optionsFile = contextRoot.optionsFile;

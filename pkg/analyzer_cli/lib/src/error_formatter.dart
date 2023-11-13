@@ -306,7 +306,7 @@ class HumanErrorFormatter extends ErrorFormatter {
     }
     var contextMessages = <ContextMessage>[];
     for (var message in error.contextMessages) {
-      // TODO(scheglov) We should add `LineInfo` to `DiagnosticMessage`.
+      // TODO(scheglov): We should add `LineInfo` to `DiagnosticMessage`.
       var session = result.session.analysisContext;
       if (session is DriverBasedAnalysisContext) {
         var fileResult = session.driver.getFileSync(message.filePath);
