@@ -23,7 +23,7 @@
 #  * Making cherry-picks to stable channel
 #     - increase PATCH by 1
 #
-CHANNEL be
+CHANNEL main
 MAJOR 3
 MINOR 3
 PATCH 0
