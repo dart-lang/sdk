@@ -5,7 +5,7 @@
 import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 import 'package:nnbd_migration/src/edit_plan.dart';
 

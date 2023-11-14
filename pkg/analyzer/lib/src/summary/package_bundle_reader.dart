@@ -5,8 +5,10 @@
 import 'dart:io' as io;
 import 'dart:math' show min;
 
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart'
+    show BasicSource, UriResolver;
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 
 /// A [ConflictingSummaryException] indicates that two different summaries

@@ -12,10 +12,10 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart'
     show File, ResourceProvider;
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/sdk.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;

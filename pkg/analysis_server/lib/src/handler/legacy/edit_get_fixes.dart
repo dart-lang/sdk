@@ -17,10 +17,11 @@ import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generato
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/exception/exception.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;

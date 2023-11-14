@@ -4,9 +4,9 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:test/test.dart';
 

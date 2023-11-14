@@ -4,9 +4,9 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';

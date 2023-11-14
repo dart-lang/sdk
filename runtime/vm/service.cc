@@ -3643,26 +3643,32 @@ static intptr_t ParseJSONCollection(Thread* thread,
   intptr_t n = strlen(str);
   if (n < 2) {
     return -1;
+  } else if (n == 2) {
+    return 0;
   }
+  // The JSON string array looks like [abc, def]. There are no quotes around the
+  // strings, but there is a space after the comma. start points to the first
+  // character of the element. end points to the separator after the element
+  // (']' or ',').
   intptr_t start = 1;
   while (start < n) {
     intptr_t end = start;
-    while ((str[end + 1] != ',') && (str[end + 1] != ']')) {
-      end++;
+    while (end < n) {
+      const char c = str[end];
+      if (c == ',' || c == ']') {
+        break;
+      }
+      ++end;
     }
-    if (end == start) {
-      // Empty element
-      break;
-    }
-    add(&str[start], end - start + 1);
-    start = end + 3;
+    add(&str[start], end - start);
+    start = end + 2;
   }
   return 0;
 }
 
-static intptr_t ParseJSONArray(Thread* thread,
-                               const char* str,
-                               const GrowableObjectArray& elements) {
+intptr_t ParseJSONArray(Thread* thread,
+                        const char* str,
+                        const GrowableObjectArray& elements) {
   Zone* zone = thread->zone();
   return ParseJSONCollection(
       thread, str, [zone, &elements](const char* start, intptr_t length) {

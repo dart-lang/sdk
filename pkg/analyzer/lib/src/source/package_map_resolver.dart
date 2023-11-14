@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/generated/source.dart' show UriResolver;
 import 'package:analyzer/src/util/asserts.dart' as asserts;
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:path/path.dart' as pathos;

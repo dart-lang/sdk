@@ -16,7 +16,8 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/generated/source.dart' as engine;
+import 'package:analyzer/source/source.dart' as engine;
+import 'package:analyzer/source/source_range.dart' as engine;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 export 'package:analysis_server/plugin/protocol/protocol_dart.dart';
