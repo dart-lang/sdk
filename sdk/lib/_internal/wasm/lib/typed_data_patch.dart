@@ -272,7 +272,7 @@ class UnmodifiableByteDataView implements ByteData {
       // TODO(omersa): Same as above, this will break when `data` is
       // `JSDataViewImpl`. Add an interface for `ByteData` that can be made
       // immutable, implement it in all `ByteData` subtypes.
-      unsafeCast<ByteDataBase>(data).immutable();
+      unsafeCast<ByteDataBase>(data).asUnmodifiableView();
 }
 
 @patch
