@@ -23,19 +23,9 @@ analyzer:
 
 linter:
   rules:
-    - await_only_futures
-    - collection_methods_unrelated_type
-    - dangling_library_doc_comments
-    - depend_on_referenced_packages
-    - empty_constructor_bodies
-    - empty_statements
     - enable_null_safety
-    - implicit_call_tearoffs
     - library_annotations
     - unawaited_futures
-    - unnecessary_brace_in_string_interps
     - unnecessary_library_directive
     - unnecessary_parenthesis
     - unreachable_from_main
-    - use_super_parameters
-    - valid_regexps

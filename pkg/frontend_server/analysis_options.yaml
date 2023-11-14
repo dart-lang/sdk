@@ -1,12 +1,11 @@
 include: package:lints/recommended.yaml
 
-linter:
-  rules:
-    - depend_on_referenced_packages
-    - directives_ordering
-    - sort_pub_dependencies
-    - unawaited_futures
-
 analyzer:
   exclude:
     - test/fixtures/**
+
+linter:
+  rules:
+    - directives_ordering
+    - sort_pub_dependencies
+    - unawaited_futures

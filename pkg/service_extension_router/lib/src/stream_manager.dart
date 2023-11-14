@@ -6,7 +6,7 @@ import 'package:meta/meta.dart';
 
 import 'client.dart';
 
-// TODO(danchevalier): Add documentation before major release
+/// Facilitates Stream behaviour between [Client]s.
 abstract class StreamManager {
   final _streamListeners =
       <String, List<Client>>{}; // TODO should this be set of StreamClient?
@@ -38,12 +38,9 @@ abstract class StreamManager {
     }
   }
 
-  /// Subscribes `client` to a stream.
-  ///
-  /// If `client` is the first client to listen to `stream`, DDS will send a
-  /// `streamListen` request for `stream` to the VM service.
+  /// Called when a `client`  subscribes to a stream.
   @mustCallSuper
-  void streamListen(
+  Future<void> streamListen(
     Client client,
     String stream,
   ) async {

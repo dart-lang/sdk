@@ -53,9 +53,9 @@ void main() {
       manager = TestStreamManager();
     });
 
-    test('streamListen lets a client recieve messages for post', () {
+    test('streamListen lets a client recieve messages for post', () async {
       final message = {'message': 'A message'};
-      manager.streamListen(client, 'A');
+      await manager.streamListen(client, 'A');
 
       manager.postEvent('B', {'message': 'B message'});
       expect(client.streamNotifyCount, 0);
@@ -64,6 +64,19 @@ void main() {
       manager.postEvent('A', message);
       expect(client.streamNotifyCount, 1);
       expect(client.notification, message);
+    });
+
+    test('streamListen already listening exception', () async {
+      int catchCount = 0;
+      await manager.streamListen(client, 'A');
+      try {
+        await manager.streamListen(client, 'A');
+      } on StreamAlreadyListeningException catch (e) {
+        expect(e.client, client);
+        expect(e.stream, 'A');
+        catchCount++;
+      }
+      expect(catchCount, 1);
     });
 
     test('streamCancel removes the client from the stream', () {
@@ -139,14 +152,14 @@ void main() {
       ];
 
       for (final client in aClients) {
-        manager.streamListen(client, 'A');
+        await manager.streamListen(client, 'A');
       }
       for (final client in bClients) {
-        manager.streamListen(client, 'B');
+        await manager.streamListen(client, 'B');
       }
-      manager.streamListen(testClient, 'A');
-      manager.streamListen(testClient, 'B');
-      manager.streamListen(testClient, 'C');
+      await manager.streamListen(testClient, 'A');
+      await manager.streamListen(testClient, 'B');
+      await manager.streamListen(testClient, 'C');
 
       expect(manager.getListenersFor(stream: 'A'), [...aClients, testClient]);
       expect(manager.getListenersFor(stream: 'B'), [...bClients, testClient]);
@@ -161,7 +174,7 @@ void main() {
 
     test('onClientDisconnect can ignore certain errors.', () async {
       manager = StreamManagerWithFailingStreamCancel();
-      manager.streamListen(client, 'A');
+      await manager.streamListen(client, 'A');
       int caughtCount = 0;
       try {
         await manager.onClientDisconnect(client);
@@ -176,6 +189,26 @@ void main() {
       // We can ignore certain types of exceptions with onCatchErrorTest
       await manager.onClientDisconnect(client,
           onCatchErrorTest: (e) => e is FormatException);
+    });
+
+    test('hasSubscriptions', () async {
+      expect(manager.hasSubscriptions('A'), isFalse);
+
+      await manager.streamListen(client, 'B');
+
+      expect(manager.hasSubscriptions('A'), isFalse);
+
+      await manager.streamListen(client, 'A');
+
+      expect(manager.hasSubscriptions('A'), isTrue);
+
+      await manager.streamCancel(client, 'B');
+
+      expect(manager.hasSubscriptions('A'), isTrue);
+
+      await manager.streamCancel(client, 'A');
+
+      expect(manager.hasSubscriptions('A'), isFalse);
     });
   });
 }

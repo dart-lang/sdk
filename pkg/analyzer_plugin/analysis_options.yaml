@@ -3,30 +3,23 @@ include: package:lints/recommended.yaml
 analyzer:
   language:
     strict-casts: true
+  errors:
+    # Remove from lints/recommended:
+    constant_identifier_names: ignore
+    implementation_imports: ignore
+    non_constant_identifier_names: ignore
+    # Existing violations (3)
+    library_private_types_in_public_api: ignore
 
 linter:
   rules:
-    # In addition to lints/recommended:
-    always_declare_return_types: true
-    collection_methods_unrelated_type: true
-    # Enable when we require Dart 2.19.0.
-    #dangling_library_doc_comments: true
-    depend_on_referenced_packages: true
-    enable_null_safety: true
-    flutter_style_todos: true
-    implicit_call_tearoffs: true
-    library_annotations: true
-    omit_local_variable_types: true
-    prefer_single_quotes: true
-    unawaited_futures: true
-    unnecessary_library_directive: true
-    unnecessary_parenthesis: true
-    unreachable_from_main: true
-
-    # Remove from lints/recommended:
-    constant_identifier_names: false
-    implementation_imports: false
-    non_constant_identifier_names: false
-
-    # Existing violations (3)
-    library_private_types_in_public_api: false
+    - always_declare_return_types
+    - enable_null_safety
+    - flutter_style_todos
+    - library_annotations
+    - omit_local_variable_types
+    - prefer_single_quotes
+    - unawaited_futures
+    - unnecessary_library_directive
+    - unnecessary_parenthesis
+    - unreachable_from_main

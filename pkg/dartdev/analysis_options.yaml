@@ -1,12 +1,12 @@
 include: package:lints/recommended.yaml
 
+analyzer:
+  errors:
+    # Disable implementation_imports.
+    implementation_imports: ignore
+
 linter:
   rules:
-    # Disable implementation_imports.
-    implementation_imports: false
-
-    # Enable additional rules.
-    depend_on_referenced_packages: true
-    directives_ordering: true
-    prefer_single_quotes: true
-    sort_pub_dependencies: true
+    - directives_ordering
+    - prefer_single_quotes
+    - sort_pub_dependencies

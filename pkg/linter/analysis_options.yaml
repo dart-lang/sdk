@@ -9,6 +9,7 @@ analyzer:
     - test_data/**
   language:
     strict-casts: true
+
 linter:
   rules:
     - always_put_required_named_parameters_first
@@ -27,13 +28,10 @@ linter:
     - avoid_unused_constructor_parameters
     - cancel_subscriptions
     - cast_nullable_to_non_nullable
-    - collection_methods_unrelated_type
     - comment_references
-    - dangling_library_doc_comments
     - directives_ordering
     - discarded_futures
     - flutter_style_todos
-    - implicit_call_tearoffs
     - join_return_with_assignment
     - library_annotations
     - literal_only_boolean_expressions
@@ -66,5 +64,4 @@ linter:
     - use_late_for_private_fields_and_variables
     - use_setters_to_change_properties
     - use_string_buffers
-    - use_super_parameters
     - use_to_and_as_if_applicable
