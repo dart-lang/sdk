@@ -1,9 +1,11 @@
 class C1 {
   void x() {}
 }
+
 class C2 implements C1 {
   static int get x => 1;
 }
+
 extension type I1(int id) {
   void x() {}
 }

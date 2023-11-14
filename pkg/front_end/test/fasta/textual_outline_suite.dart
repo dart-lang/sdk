@@ -98,6 +98,8 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         context.suiteFolderOptions.computeFolderOptions(description);
     Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
         .computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
+    Map<ExperimentalFlag, bool> experimentalFlagsExplicit =
+        folderOptions.computeExplicitExperimentalFlags(const {});
 
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
@@ -146,7 +148,15 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       if (!containsUnknownChunk) {
         // Try to format only if it doesn't contain the unknown chunk marker.
         try {
-          result = new DartFormatter().format(result);
+          List<String> experimentFlags = [];
+          for (MapEntry<ExperimentalFlag, bool> entry
+              in experimentalFlags.entries) {
+            if (entry.value) {
+              experimentFlags.add(entry.key.name);
+            }
+          }
+          result = new DartFormatter(experimentFlags: experimentFlags)
+              .format(result);
         } catch (e, st) {
           formatterException = e;
           formatterExceptionSt = st;
@@ -171,7 +181,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       if (formatterException != null && !info.hasParserErrors) {
         bool hasUnreleasedExperiment = false;
         for (MapEntry<ExperimentalFlag, bool> entry
-            in experimentalFlags.entries) {
+            in experimentalFlagsExplicit.entries) {
           if (entry.value) {
             if (!entry.key.isEnabledByDefault) {
               hasUnreleasedExperiment = true;

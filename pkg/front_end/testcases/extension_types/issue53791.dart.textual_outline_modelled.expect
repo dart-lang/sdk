@@ -1,4 +1,5 @@
 class A {}
+
 extension type E(Object? it) {}
 extension type E1(A it) implements A, A {}
 extension type E2(E it) implements E, E {}

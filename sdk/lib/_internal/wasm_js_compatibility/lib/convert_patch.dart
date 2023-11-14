@@ -52,35 +52,19 @@ class Utf8Decoder {
 
   static String? _convertInterceptedUint8List(
       bool allowMalformed, JSUint8ArrayImpl codeUnits, int start, int end) {
-    // TODO(omersa): There's a bug somewhere when compiling lazy statics that
-    // return `WasmExternRef`?
-    // final WasmExternRef? decoder = allowMalformed ? _decoderNonfatal : _decoder;
-    // if (decoder == WasmExternRef.nullRef) {
-    //   return null;
-    // }
-    final WasmExternRef? decoder;
-    try {
-      decoder = allowMalformed
-          ? js.JS<WasmExternRef?>(
-              '() => new TextDecoder("utf-8", {fatal: false})')
-          : js.JS<WasmExternRef?>(
-              '() => new TextDecoder("utf-8", {fatal: true})');
-    } catch (e) {
+    final JSAny? decoder = allowMalformed ? _decoderNonFatal : _decoder;
+    if (decoder == null) {
       return null;
     }
 
     if (0 == start && end == codeUnits.length) {
-      return _useTextDecoder(decoder, codeUnits.toExternRef);
+      return _useTextDecoder(
+          externRefForJSAny(decoder), codeUnits.toJSArrayExternRef());
     }
-    final length = codeUnits.length;
-    end = RangeError.checkValidRange(start, end, length);
-    return _useTextDecoder(
-        decoder,
-        js.JS<WasmExternRef?>(
-            '(codeUnits, start, end) => codeUnits.subarray(start, end)',
-            codeUnits.toExternRef,
-            start.toDouble,
-            end.toDouble));
+    RangeError.checkValidRange(start, end, codeUnits.length);
+    final length = end - start;
+    return _useTextDecoder(externRefForJSAny(decoder),
+        codeUnits.toJSArrayExternRef(start, length));
   }
 
   static String? _useTextDecoder(
@@ -97,26 +81,28 @@ class Utf8Decoder {
     return null;
   }
 
-  // TODO(omersa): These values seem to be miscompiled at the use sites, see
-  // above.
+  // TextDecoder is not defined on some browsers and on the stand-alone d8 and
+  // jsshell engines. Use a lazy initializer to do feature detection once.
   //
-  // // TextDecoder is not defined on some browsers and on the stand-alone d8 and
-  // // jsshell engines. Use a lazy initializer to do feature detection once.
-  // static final WasmExternRef? _decoder = () {
-  //   try {
-  //     return js
-  //         .JS<WasmExternRef?>('() => new TextDecoder("utf-8", {fatal: true})');
-  //   } catch (e) {}
-  //   return null;
-  // }();
+  // Globls need to return boxed Dart values, so these return `JSAny?` instead
+  // of `WasmExternRef?`.
+  static final JSAny? _decoder = () {
+    try {
+      return js
+          .JS<WasmExternRef>('() => new TextDecoder("utf-8", {fatal: true})')
+          .toJS;
+    } catch (e) {}
+    return null;
+  }();
 
-  // static final WasmExternRef? _decoderNonfatal = () {
-  //   try {
-  //     return js
-  //         .JS<WasmExternRef?>('() => new TextDecoder("utf-8", {fatal: false})');
-  //   } catch (e) {}
-  //   return null;
-  // }();
+  static final JSAny? _decoderNonFatal = () {
+    try {
+      return js
+          .JS<WasmExternRef>('() => new TextDecoder("utf-8", {fatal: false})')
+          .toJS;
+    } catch (e) {}
+    return null;
+  }();
 }
 
 //// Implementation ///////////////////////////////////////////////////////////

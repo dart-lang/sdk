@@ -11,21 +11,25 @@
 (int, Object?) testGetter1(E e) => e.getter;
 (int, Object?) testMethod1(E e) => e.method();
 E e = E(C());
+
 abstract class A {
   (Object?, dynamic) get getter;
   (Object?, dynamic) method();
   void set setter((int, int) Function(Object?, dynamic) f);
 }
+
 abstract class B {
   (dynamic, Object?) get getter;
   (dynamic, Object?) method();
   void set setter((int, int) Function(dynamic, Object?) f);
 }
+
 class C implements A, B {
   (int, int) get getter => (42, 87);
   (int, int) method() => (42, 87);
   void set setter((int, int) Function(dynamic, dynamic) f) {}
 }
+
 expect(expected, actual) {}
 extension type E(C c) implements A, B {}
 main() {}

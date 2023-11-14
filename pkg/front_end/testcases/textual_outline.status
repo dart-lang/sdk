@@ -5,6 +5,51 @@
 # Status file for the textual_outline_suite.dart test suite. This is testing
 # the textual outline used for better incremental compilation.
 
+super_parameters/issue47741: FormatterCrash # https://github.com/dart-lang/dart_style/issues/1321
+
+# These tests have errors in them which isn't reported by the parser but the
+# formatter still sees as syntax errors and thus won't format.
+# Before the extension_types flag is flipped they are allowed to crash though,
+# so for now they're marked as both crashing and passing.
+extension_types/field_access: FormatterCrash, Pass
+extension_types/issue52119: FormatterCrash, Pass
+extension_types/issue53212: FormatterCrash, Pass
+extension_types/representation: FormatterCrash, Pass
+
+# These tests have errors in them which isn't reported by the parser but the
+# formatter still sees as syntax errors and thus won't format.
+general/base_class_declaration: FormatterCrash
+general/constants/non_const_constructor: FormatterCrash
+general/constants/various: FormatterCrash
+general/constants/various2: FormatterCrash
+general/enum_super_constructor: FormatterCrash
+general/extension_type_declaration_disabled: FormatterCrash
+general/final_class_declaration: FormatterCrash
+general/interface_class_declaration: FormatterCrash
+general/invalid_operator: FormatterCrash
+general/invalid_super_initializer: FormatterCrash
+general/issue_46886: FormatterCrash
+general/issue45700.crash: FormatterCrash
+general/issue48487: FormatterCrash
+general/issue48487b: FormatterCrash
+general/issue48919: FormatterCrash
+general/macro_class: FormatterCrash
+general/mixin_class_declaration: FormatterCrash
+general/null_safety_invalid_experiment_and_language_version: FormatterCrash
+general/null_safety_invalid_experiment: FormatterCrash
+general/records_opt_out: FormatterCrash
+general/sealed_class_declaration: FormatterCrash
+nnbd_mixed/inheritance_from_opt_in: FormatterCrash
+nnbd_mixed/issue41597: FormatterCrash
+nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
+nonfunction_type_aliases/old_version: FormatterCrash
+records/record_type_unsupported: FormatterCrash
+regress/issue_30994: FormatterCrash
+regress/issue_31198: FormatterCrash
+super_parameters/opt_out: FormatterCrash
+super_parameters/var_before_super: FormatterCrash
+triple_shift/invalid_operator: FormatterCrash
+
 general/error_recovery/issue_38415.crash: EmptyOutput
 general/error_recovery/issue_39024.crash: EmptyOutput
 general/error_recovery/issue_39058.crash: EmptyOutput

@@ -1,6 +1,7 @@
 class Class<T> {
   const Class();
 }
+
 const a1 = Class<int>;
 const a2 = ExtensionType<Class<int>>;
 const a3 = Class<bool>;

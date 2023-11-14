@@ -1,4 +1,5 @@
 import 'inherited_representation_field_lib.dart';
+
 expect(expected, actual) {}
 extension type A(int a) {}
 extension type B(int b) implements A {

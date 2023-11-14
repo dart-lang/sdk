@@ -1,4 +1,5 @@
 abstract class A {}
+
 extension type B._(A a) {
   external A field;
   external A method();
