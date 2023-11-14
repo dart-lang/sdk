@@ -725,9 +725,9 @@ The analyzer produces this diagnostic when an invocation of either
 `Pointer.asFunction` or `DynamicLibrary.lookupFunction` has an `isLeaf`
 argument whose value isn't a constant expression.
 
-The analyzer also produces this diagnostic when the value of the
-`exceptionalReturn` argument of `Pointer.fromFunction` or
-`NativeCallable.isolateLocal`.
+The analyzer also produces this diagnostic when an invocation of either
+`Pointer.fromFunction` or `NativeCallable.isolateLocal` has an
+`exceptionalReturn` argument whose value isn't a constant expression.
 
 For more information about FFI, see [C interop using dart:ffi][ffi].
 
