@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -131,7 +130,7 @@ environment:
       declaredVariables: declaredVariables,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
+    expect(context.allAnalysisOptions, hasLength(1));
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
     expect(
@@ -141,11 +140,11 @@ environment:
   }
 
   test_createContext_defaults() {
-    AnalysisContext context = contextBuilder.createContext(
+    var context = contextBuilder.createContext(
       contextRoot: contextRoot,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
+    expect(context.allAnalysisOptions, hasLength(1));
     expect(context.contextRoot, contextRoot);
   }
 
@@ -154,7 +153,7 @@ environment:
       contextRoot: contextRoot,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
+    expect(context.allAnalysisOptions, hasLength(1));
     expect(context.contextRoot, contextRoot);
     expect(
       context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core')!.fullName,
@@ -165,7 +164,7 @@ environment:
   test_createContext_sdkRoot() {
     var context = contextBuilder.createContext(
         contextRoot: contextRoot, sdkPath: sdkRoot.path);
-    expect(context.analysisOptions, isNotNull);
+    expect(context.allAnalysisOptions, hasLength(1));
     expect(context.contextRoot, contextRoot);
     expect(context.sdkRoot, sdkRoot);
   }

@@ -173,9 +173,10 @@ class Driver implements CommandLineStarter {
     // time during the following analysis.
     SeverityProcessor defaultSeverityProcessor;
     defaultSeverityProcessor = (AnalysisError error) {
-      // TODO(pq): get file path from `error.source.fullName`
+      var filePath = error.source.fullName;
+      var file = analysisDriver!.resourceProvider.getFile(filePath);
       return determineProcessedSeverity(
-          error, options, analysisDriver!.analysisOptions);
+          error, options, analysisDriver!.getAnalysisOptionsForFile(file));
     };
 
     // We currently print out to stderr to ensure that when in batch mode we
