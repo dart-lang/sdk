@@ -726,6 +726,72 @@ ISOLATE_UNIT_TEST_CASE(Service_Profile) {
 
 #endif  // !defined(TARGET_ARCH_ARM64)
 
+ISOLATE_UNIT_TEST_CASE(Service_ParseJSONArray) {
+  {
+    const auto& elements =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    EXPECT_EQ(-1, ParseJSONArray(thread, "", elements));
+    EXPECT_EQ(-1, ParseJSONArray(thread, "[", elements));
+  }
+
+  {
+    const auto& elements =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    EXPECT_EQ(0, ParseJSONArray(thread, "[]", elements));
+    EXPECT_EQ(0, elements.Length());
+  }
+
+  {
+    const auto& elements =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    EXPECT_EQ(0, ParseJSONArray(thread, "[a]", elements));
+    EXPECT_EQ(1, elements.Length());
+    auto& element = String::Handle();
+    element ^= elements.At(0);
+    EXPECT(element.Equals("a"));
+  }
+
+  {
+    const auto& elements =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    EXPECT_EQ(0, ParseJSONArray(thread, "[abc, def]", elements));
+    EXPECT_EQ(2, elements.Length());
+    auto& element = String::Handle();
+    element ^= elements.At(0);
+    EXPECT(element.Equals("abc"));
+    element ^= elements.At(1);
+    EXPECT(element.Equals("def"));
+  }
+
+  {
+    const auto& elements =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    EXPECT_EQ(0, ParseJSONArray(thread, "[abc, def, ghi]", elements));
+    EXPECT_EQ(3, elements.Length());
+    auto& element = String::Handle();
+    element ^= elements.At(0);
+    EXPECT(element.Equals("abc"));
+    element ^= elements.At(1);
+    EXPECT(element.Equals("def"));
+    element ^= elements.At(2);
+    EXPECT(element.Equals("ghi"));
+  }
+
+  {
+    const auto& elements =
+        GrowableObjectArray::Handle(GrowableObjectArray::New());
+    EXPECT_EQ(0, ParseJSONArray(thread, "[abc, , ghi]", elements));
+    EXPECT_EQ(3, elements.Length());
+    auto& element = String::Handle();
+    element ^= elements.At(0);
+    EXPECT(element.Equals("abc"));
+    element ^= elements.At(1);
+    EXPECT(element.Equals(""));
+    element ^= elements.At(2);
+    EXPECT(element.Equals("ghi"));
+  }
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart
