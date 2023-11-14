@@ -492,8 +492,14 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
+    var targetNode = node;
+
+    if (targetNode is Annotation) {
+      targetNode = targetNode.name;
+    }
+
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '$_prefixName.');
+      builder.addSimpleInsertion(targetNode.offset, '$_prefixName.');
     });
   }
 }
