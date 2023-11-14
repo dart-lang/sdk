@@ -38,18 +38,18 @@ testMain() {
 List<String> stops = [];
 
 List<String> expected = [
-  "$FILE:${LINE + 0}:28", // on 'shape' before 'switch'
-  "$FILE:${LINE + 1}:7", // on 'Square'
-  "$FILE:${LINE + 2}:7", // on 'Circle'
-  "$FILE:${LINE + 2}:26", // on 'r' right after 'var'
-  "$FILE:${LINE + 2}:36", // on '>='
-  "$FILE:${LINE + 3}:7", // on 'Square'
-  "$FILE:${LINE + 4}:7", // on 'Circle'
-  "$FILE:${LINE + 4}:26", // on 'r' right after 'var'
-  "$FILE:${LINE + 4}:36", // on '<'
-  "$FILE:${LINE + 4}:40", // on '=>'
-  "$FILE:${LINE + 0}:38", // on 'switch'
-  "$FILE:36:1", // on closing '}' of [testMain]
+  '$FILE:${LINE + 0}:28', // on 'shape' before 'switch'
+  '$FILE:${LINE + 1}:7', // on 'Square'
+  '$FILE:${LINE + 2}:7', // on 'Circle'
+  '$FILE:${LINE + 2}:26', // on 'r' right after 'var'
+  '$FILE:${LINE + 2}:36', // on '>='
+  '$FILE:${LINE + 3}:7', // on 'Square'
+  '$FILE:${LINE + 4}:7', // on 'Circle'
+  '$FILE:${LINE + 4}:26', // on 'r' right after 'var'
+  '$FILE:${LINE + 4}:36', // on '<'
+  '$FILE:${LINE + 4}:40', // on '=>'
+  '$FILE:${LINE + 0}:38', // on 'switch'
+  '$FILE:36:1', // on closing '}' of [testMain]
 ];
 
 var tests = <IsolateTest>[
@@ -65,6 +65,6 @@ main(args) => runIsolateTestsSynchronous(
       FILE,
       testeeConcurrent: testMain,
       extraArgs: extraDebuggingArgs,
-      pause_on_start: true,
-      pause_on_exit: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
     );

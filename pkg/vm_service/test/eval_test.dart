@@ -88,9 +88,9 @@ var tests = <IsolateTest>[
     final ClassRef cls = stack.frames![0].function!.owner;
 
     final InstanceRef result =
-        await service.evaluate(isolateId, cls.id!, "1+1") as InstanceRef;
+        await service.evaluate(isolateId, cls.id!, '1+1') as InstanceRef;
     print(result);
-    expect(result.valueAsString, "2");
+    expect(result.valueAsString, '2');
   }
 ];
 

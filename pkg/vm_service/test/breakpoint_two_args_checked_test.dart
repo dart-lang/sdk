@@ -25,7 +25,7 @@ testeeMain() {
   final x = List<dynamic>.filled(1, null);
   final y = 7;
   debugger();
-  print("Statement");
+  print('Statement');
   x[0] = 3; // Line A.
   x is NotGeneric; // Line B.
   y & 4; // Line C.

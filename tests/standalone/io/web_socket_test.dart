@@ -542,42 +542,78 @@ class SecurityConfiguration {
     });
   }
 
-  void testShouldSetUserAgent() {
+  Future<void> testUserAgentSetToString() async {
     asyncStart();
-    createServer().then((server) {
-      server.transform(new WebSocketTransformer()).listen((webSocket) {
-        Expect.equals('Custom User Agent', WebSocket.userAgent);
-        server.close();
-        webSocket.close();
-        asyncEnd();
-      });
 
-      WebSocket.userAgent = 'Custom User Agent';
-      createClient(server.port).then((webSocket) {
-        webSocket.close();
-      });
+    final server = await HttpServer.bind("localhost", 0);
+    String? recordedUserAgent;
+    server.forEach((request) {
+      recordedUserAgent = request.headers.value(HttpHeaders.userAgentHeader);
+      WebSocketTransformer.upgrade(request)
+          .then((webSocket) => webSocket.close());
     });
+
+    WebSocket.userAgent = "Agent Smith";
+    final webSocket = await WebSocket.connect("ws://localhost:${server.port}");
+
+    Expect.equals("Agent Smith", recordedUserAgent);
+
+    await webSocket.close();
+    await server.close();
+
+    asyncEnd();
   }
 
-  void testStaticClientUserAgentStaysTheSame() {
+  Future<void> testUserAgentSetToNull() async {
     asyncStart();
-    createServer().then((server) {
-      server.transform(new WebSocketTransformer()).listen((webSocket) {
-        Expect.equals('Custom User Agent', WebSocket.userAgent);
-        server.close();
-        webSocket.close();
-        asyncEnd();
-      });
-      // Next line should take no effect on custom user agent value provided
-      WebSocket.userAgent = 'Custom User Agent';
-      createClient(server.port, customUserAgent: 'New User Agent')
-          .then((webSocket) {
-        webSocket.close();
-      });
+
+    final server = await HttpServer.bind("localhost", 0);
+    String? recordedUserAgent;
+    server.forEach((request) {
+      recordedUserAgent = request.headers.value(HttpHeaders.userAgentHeader);
+      WebSocketTransformer.upgrade(request)
+          .then((webSocket) => webSocket.close());
     });
+
+    WebSocket.userAgent = null;
+    final webSocket = await WebSocket.connect("ws://localhost:${server.port}");
+
+    Expect.equals(null, recordedUserAgent);
+
+    await webSocket.close();
+    await server.close();
+
+    asyncEnd();
   }
 
-  void runTests() {
+  Future<void> testUserAgentSetToStringAndCustomClient() async {
+    asyncStart();
+
+    final server = await HttpServer.bind("localhost", 0);
+    String? recordedUserAgent;
+    server.forEach((request) {
+      recordedUserAgent = request.headers.value(HttpHeaders.userAgentHeader);
+      WebSocketTransformer.upgrade(request)
+          .then((webSocket) => webSocket.close());
+    });
+
+    final client = HttpClient();
+    client.userAgent = "Agent Jones";
+    WebSocket.userAgent = "Agent X";
+    final webSocket = await WebSocket.connect("ws://localhost:${server.port}",
+        customClient: client);
+
+    Expect.equals("Agent Jones", recordedUserAgent);
+    Expect.equals("Agent Jones", client.userAgent);
+    Expect.equals("Agent X", WebSocket.userAgent);
+
+    await webSocket.close();
+    await server.close();
+
+    asyncEnd();
+  }
+
+  Future<void> runTests() async {
     testRequestResponseClientCloses(2, null, null, 1);
     testRequestResponseClientCloses(2, 3001, null, 2);
     testRequestResponseClientCloses(2, 3002, "Got tired", 3);
@@ -604,12 +640,15 @@ class SecurityConfiguration {
     testFromUpgradedSocket();
     testAdditionalHeaders();
     testBasicAuthentication();
-    testShouldSetUserAgent();
-    testStaticClientUserAgentStaysTheSame();
+    await testUserAgentSetToString();
+    await testUserAgentSetToNull();
+    await testUserAgentSetToStringAndCustomClient();
   }
 }
 
-main() {
-  new SecurityConfiguration(secure: false).runTests();
-  new SecurityConfiguration(secure: true).runTests();
+main() async {
+  asyncStart();
+  await new SecurityConfiguration(secure: false).runTests();
+  await new SecurityConfiguration(secure: true).runTests();
+  asyncEnd();
 }

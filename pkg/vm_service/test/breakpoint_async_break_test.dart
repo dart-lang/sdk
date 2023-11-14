@@ -79,5 +79,5 @@ main(args) => runIsolateTests(
       tests,
       'breakpoint_async_break_test.dart',
       testeeConcurrent: testMain,
-      pause_on_start: true,
+      pauseOnStart: true,
     );

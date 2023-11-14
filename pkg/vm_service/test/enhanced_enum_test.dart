@@ -33,11 +33,17 @@ enum E with M implements I1, I2 {
   e2,
   e3;
 
+  @override
   int interfaceMethod1() => 42;
+  @override
   int get interfaceGetter1 => 42;
+  @override
   set interfaceSetter1(int value) {}
+  @override
   int interfaceMethod2() => 42;
+  @override
   int get interfaceGetter2 => 42;
+  @override
   set interfaceSetter2(int value) {}
 
   static int staticMethod() => 42;
@@ -59,6 +65,7 @@ enum F<T> {
 
   final T value;
 
+  @override
   String toString() => 'OVERRIDE ${value.toString()}';
 }
 

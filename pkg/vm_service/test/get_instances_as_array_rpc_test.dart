@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
@@ -17,11 +17,11 @@ class Subclass extends Class {}
 class Implementor implements Class {}
 
 @pragma('vm:entry-point')
-var aClass;
+late final Class aClass;
 @pragma('vm:entry-point')
-var aSubclass;
+late final Subclass aSubclass;
 @pragma('vm:entry-point')
-var anImplementor;
+late final Implementor anImplementor;
 
 @pragma('vm:entry-point')
 void allocate() {

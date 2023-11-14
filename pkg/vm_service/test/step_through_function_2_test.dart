@@ -96,6 +96,6 @@ void main([args = const <String>[]]) => runIsolateTests(
       tests,
       'step_through_function_2_test.dart',
       testeeConcurrent: code,
-      pause_on_start: true,
-      pause_on_exit: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
     );

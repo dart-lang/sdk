@@ -8,35 +8,32 @@ import 'package:test_package/has_part.dart' as has_part;
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const int LINE = 87;
-const String breakpointFile = "package:test_package/the_part.dart";
-const String shortFile = "the_part.dart";
+const int LINE = 88;
+const String breakpointFile = 'package:test_package/the_part.dart';
+const String shortFile = 'the_part.dart';
 
-code() {
+void code() {
   has_part.main();
 }
 
-List<String> stops = [];
-
-List<String> expected = [
-  "$shortFile:${LINE + 0}:5", // on 'print'
-  "$shortFile:${LINE + 1}:3" // on class ending '}'
+final stops = <String>[];
+const expected = <String>[
+  '$shortFile:${LINE + 0}:5', // on 'print'
+  '$shortFile:${LINE + 1}:3' // on class ending '}'
 ];
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtUriAndLine(breakpointFile, LINE),
   runStepThroughProgramRecordingStops(stops),
   checkRecordedStops(stops, expected)
 ];
 
-main(args) {
-  runIsolateTestsSynchronous(
-    args,
-    tests,
-    'breakpoint_in_package_parts_class_test.dart',
-    testeeConcurrent: code,
-    pause_on_start: true,
-    pause_on_exit: true,
-  );
-}
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'breakpoint_in_package_parts_class_test.dart',
+      testeeConcurrent: code,
+      pauseOnStart: true,
+      pauseOnExit: true,
+    );

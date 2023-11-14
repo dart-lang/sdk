@@ -3,18 +3,19 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:developer';
-import 'package:vm_service/vm_service.dart';
+
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 void testFunction() {
-  List<String> x = ["a", "b", "c"];
+  List<String> x = ['a', 'b', 'c'];
   int xCombinedLength = x.fold<int>(
       0, (previousValue, element) => previousValue + element.length);
   debugger();
-  print("xCombinedLength = $xCombinedLength");
+  print('xCombinedLength = $xCombinedLength');
 }
 
 final tests = <IsolateTest>[

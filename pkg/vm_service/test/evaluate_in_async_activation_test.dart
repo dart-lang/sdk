@@ -17,7 +17,7 @@ testFunction() async {
   var x = 3;
   var y = 4;
   debugger();
-  var z = await new Future(() => x + y);
+  var z = await Future(() => x + y);
   debugger();
   return z;
 }

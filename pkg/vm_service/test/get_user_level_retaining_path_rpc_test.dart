@@ -2,33 +2,35 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
+// ignore_for_file: library_private_types_in_public_api
+
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-@pragma("vm:entry-point") // Prevent obfuscation
+@pragma('vm:entry-point') // Prevent obfuscation
 class _TestConst {
   const _TestConst();
 }
 
-_TopLevelClosure() {}
+_topLevelClosure() {}
 
-@pragma("vm:entry-point") // Prevent obfuscation
-var x;
-@pragma("vm:entry-point") // Prevent obfuscation
-var fn;
+@pragma('vm:entry-point') // Prevent obfuscation
+late final _TestConst x;
+@pragma('vm:entry-point') // Prevent obfuscation
+late final Function fn;
 
 void warmup() {
   x = const _TestConst();
-  fn = _TopLevelClosure;
+  fn = _topLevelClosure;
 }
 
-@pragma("vm:entry-point") // Prevent obfuscation
-getX() => x;
+@pragma('vm:entry-point') // Prevent obfuscation
+_TestConst getX() => x;
 
-@pragma("vm:entry-point") // Prevent obfuscation
-getFn() => fn;
+@pragma('vm:entry-point') // Prevent obfuscation
+Function getFn() => fn;
 
 Future<InstanceRef> invoke(String selector) async {
   return await rootService.invoke(

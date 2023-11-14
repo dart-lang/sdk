@@ -4,8 +4,8 @@
 // VMOptions=
 // VMOptions=--interpret_irregexp
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/expect.dart';
 import 'common/test_helper.dart';

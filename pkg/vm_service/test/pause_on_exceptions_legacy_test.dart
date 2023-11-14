@@ -10,20 +10,20 @@ import 'package:vm_service/vm_service.dart';
 import 'common/test_helper.dart';
 
 doThrow() {
-  throw "TheException"; // Line 13.
+  throw 'TheException'; // Line 13.
 }
 
 doCaught() {
   try {
     doThrow();
   } catch (e) {
-    return "end of doCaught";
+    return 'end of doCaught';
   }
 }
 
 doUncaught() {
   doThrow();
-  return "end of doUncaught";
+  return 'end of doUncaught';
 }
 
 final tests = <IsolateTest>[
@@ -36,15 +36,15 @@ final tests = <IsolateTest>[
 
     final stream = service.onDebugEvent;
     final subscription = stream.listen((Event event) {
-      print("Event $event");
+      print('Event $event');
       if (event.kind == EventKind.kPauseException) {
-        if (onPaused == null) throw "Unexpected pause event $event";
+        if (onPaused == null) throw 'Unexpected pause event $event';
         final t = onPaused;
         onPaused = null;
         t!.complete(event);
       }
       if (event.kind == EventKind.kResume) {
-        if (onResume == null) throw "Unexpected resume event $event";
+        if (onResume == null) throw 'Unexpected resume event $event';
         final t = onResume;
         onResume = null;
         t!.complete(event);
@@ -54,7 +54,7 @@ final tests = <IsolateTest>[
 
     test(String pauseMode, String expression, bool shouldPause,
         bool shouldBeCaught) async {
-      print("Evaluating $expression with pause on $pauseMode exception");
+      print('Evaluating $expression with pause on $pauseMode exception');
 
       // ignore: deprecated_member_use_from_same_package
       await service.setExceptionPauseMode(isolate.id!, pauseMode);
@@ -81,25 +81,25 @@ final tests = <IsolateTest>[
       if (shouldBeCaught) {
         expect(res is InstanceRef, true);
         expect(res.kind, 'String');
-        expect(res.valueAsString, equals("end of doCaught"));
+        expect(res.valueAsString, equals('end of doCaught'));
       } else {
         print(res.json);
         expect(res is ErrorRef, true);
         res = await service.getObject(isolate.id!, res.id!);
         expect(res is Error, true);
         expect(res.exception.kind, 'String');
-        expect(res.exception.valueAsString, equals("TheException"));
+        expect(res.exception.valueAsString, equals('TheException'));
       }
     }
 
-    await test("All", "doCaught()", true, true);
-    await test("All", "doUncaught()", true, false);
+    await test('All', 'doCaught()', true, true);
+    await test('All', 'doUncaught()', true, false);
 
-    await test("Unhandled", "doCaught()", false, true);
-    await test("Unhandled", "doUncaught()", true, false);
+    await test('Unhandled', 'doCaught()', false, true);
+    await test('Unhandled', 'doUncaught()', true, false);
 
-    await test("None", "doCaught()", false, true);
-    await test("None", "doUncaught()", false, false);
+    await test('None', 'doCaught()', false, true);
+    await test('None', 'doUncaught()', false, false);
 
     await subscription.cancel();
   },

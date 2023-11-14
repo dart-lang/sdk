@@ -124,7 +124,11 @@ testGcd() {
   // Test that gcd of value and other (non-negative) throws.
   testThrows(value, other) {
     callCombos(value, other, (a, b) {
-      Expect.throws(() => a.gcd(b));
+      if (!dart2jsProductionMode || a is! int) {
+        Expect.throws(() => a.gcd(b));
+      } else {
+        a.gcd(b);
+      }
     });
   }
 

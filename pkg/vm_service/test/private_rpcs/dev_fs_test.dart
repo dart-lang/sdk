@@ -95,7 +95,7 @@ final tests = <VMTest>[
       fail('Unreachable');
     } on RPCError catch (e) {
       expect(e.code, PrivateRpcErrorCodes.kFileDoesNotExist.code);
-      expect(e.details, startsWith("_readDevFSFile: PathNotFoundException: "));
+      expect(e.details, startsWith('_readDevFSFile: PathNotFoundException: '));
     }
 
     // Write a file.

@@ -26,38 +26,38 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
 
-    LibraryRef has_part_ref = isolate.libraries!.firstWhere(
+    LibraryRef hasPartRef = isolate.libraries!.firstWhere(
       (LibraryRef library) => library.uri == file,
     );
 
-    Library has_part =
-        await service.getObject(isolateId, has_part_ref.id!) as Library;
-    expect(has_part.debuggable, true);
+    Library hasPart =
+        await service.getObject(isolateId, hasPartRef.id!) as Library;
+    expect(hasPart.debuggable, true);
     // SetBreakpoint before setting library to non-debuggable.
     // Breakpoints are allowed to be set (before marking library as
     // non-debuggable) but are not hit when running (after marking library
     // as non-debuggable).
-    ScriptRef script = has_part.scripts!.firstWhere(
+    ScriptRef script = hasPart.scripts!.firstWhere(
       (ScriptRef script) => script.uri == file,
     );
     Breakpoint bpt = await service.addBreakpoint(isolateId, script.id!, LINE_A);
-    print("Breakpoint is $bpt");
+    print('Breakpoint is $bpt');
     expect(bpt, isNotNull);
 
     // Set breakpoint and check later that this breakpoint won't be added if
     // the library is non-debuggable.
     bpt = await service.addBreakpoint(isolateId, script.id!, LINE_B);
-    print("Breakpoint is $bpt");
+    print('Breakpoint is $bpt');
     expect(bpt, isNotNull);
 
     // Remove breakpoint.
     final res = await service.removeBreakpoint(isolateId, bpt.id!);
     expect(res.type, 'Success');
 
-    await service.setLibraryDebuggable(isolateId, has_part.id!, false);
-    has_part = await service.getObject(isolateId, has_part.id!) as Library;
-    expect(has_part.debuggable, false);
-    print('$has_part is debuggable: ${has_part.debuggable}');
+    await service.setLibraryDebuggable(isolateId, hasPart.id!, false);
+    hasPart = await service.getObject(isolateId, hasPart.id!) as Library;
+    expect(hasPart.debuggable, false);
+    print('$hasPart is debuggable: ${hasPart.debuggable}');
 
     // Breakpoints are not allowed to set on non-debuggable libraries.
     try {
@@ -66,7 +66,7 @@ var tests = <IsolateTest>[
       // Cannot add breakpoint error code
       expect(e.code, 102);
       expect(e.details, contains("Cannot add breakpoint at line '11'"));
-      print("Set Breakpoint to non-debuggable library is not allowed");
+      print('Set Breakpoint to non-debuggable library is not allowed');
     }
   },
   resumeIsolate,
@@ -78,6 +78,6 @@ main(args) => runIsolateTests(
       tests,
       'breakpoint_non_debuggable_library_test.dart',
       testeeConcurrent: testMain,
-      pause_on_start: true,
-      pause_on_exit: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
     );

@@ -33,10 +33,10 @@ Future testeeMain() async {
   debugger();
 }
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getSelfId() => selfId;
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getChildId() => childId;
 
 // tester state:

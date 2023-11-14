@@ -388,37 +388,21 @@ abstract class FileSystemEntity {
 
   /// Deletes this [FileSystemEntity].
   ///
-  /// If the [FileSystemEntity] is a directory, and if [recursive] is `false`,
-  /// the directory must be empty. Otherwise, if [recursive] is true, the
-  /// directory and all sub-directories and files in the directories are
-  /// deleted. Links are not followed when deleting recursively. Only the link
-  /// is deleted, not its target.
+  /// The exact details vary according to the [FileSystemEntity]:
   ///
-  /// If [recursive] is true, the [FileSystemEntity] is deleted even if the type
-  /// of the [FileSystemEntity] doesn't match the content of the file system.
-  /// This behavior allows [delete] to be used to unconditionally delete any file
-  /// system object.
-  ///
-  /// Returns a `Future<FileSystemEntity>` that completes with this
-  /// [FileSystemEntity] when the deletion is done. If the [FileSystemEntity]
-  /// cannot be deleted, the future completes with an exception.
+  ///   * [Directory.delete]
+  ///   * [File.delete]
+  ///   * [Link.delete]
   Future<FileSystemEntity> delete({bool recursive = false}) =>
       _delete(recursive: recursive);
 
   /// Synchronously deletes this [FileSystemEntity].
   ///
-  /// If the [FileSystemEntity] is a directory, and if [recursive] is false,
-  /// the directory must be empty. Otherwise, if [recursive] is true, the
-  /// directory and all sub-directories and files in the directories are
-  /// deleted. Links are not followed when deleting recursively. Only the link
-  /// is deleted, not its target.
+  /// The exact details vary according to the [FileSystemEntity]:
   ///
-  /// If [recursive] is true, the [FileSystemEntity] is deleted even if the type
-  /// of the [FileSystemEntity] doesn't match the content of the file system.
-  /// This behavior allows [deleteSync] to be used to unconditionally delete any
-  /// file system object.
-  ///
-  /// Throws an exception if the [FileSystemEntity] cannot be deleted.
+  ///   * [Directory.deleteSync]
+  ///   * [File.deleteSync]
+  ///   * [Link.deleteSync]
   void deleteSync({bool recursive = false}) =>
       _deleteSync(recursive: recursive);
 

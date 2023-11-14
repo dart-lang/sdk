@@ -11,42 +11,42 @@ import 'package:vm_service/vm_service.dart';
 import 'common/test_helper.dart';
 
 @pragma('vm:entry-point') // Prevent obfuscation
-var int8List;
+late Int8List int8List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var int16List;
+late Int16List int16List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var int32List;
+late Int32List int32List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var int64List;
+late Int64List int64List;
 
 @pragma('vm:entry-point') // Prevent obfuscation
-var uint8List;
+late Uint8List uint8List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var uint16List;
+late Uint16List uint16List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var uint32List;
+late Uint32List uint32List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var uint64List;
+late Uint64List uint64List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var uint8ClampedList;
+late Uint8ClampedList uint8ClampedList;
 
 @pragma('vm:entry-point') // Prevent obfuscation
-var float32List;
+late Float32List float32List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var float64List;
+late Float64List float64List;
 
 @pragma('vm:entry-point') // Prevent obfuscation
-var int32x4;
+late Int32x4 int32x4;
 @pragma('vm:entry-point') // Prevent obfuscation
-var float32x4;
+late Float32x4 float32x4;
 @pragma('vm:entry-point') // Prevent obfuscation
-var float64x2;
+late Float64x2 float64x2;
 @pragma('vm:entry-point') // Prevent obfuscation
-var int32x4List;
+late Int32x4List int32x4List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var float32x4List;
+late Float32x4List float32x4List;
 @pragma('vm:entry-point') // Prevent obfuscation
-var float64x2List;
+late Float64x2List float64x2List;
 
 void script() {
   int8List = Int8List(2);

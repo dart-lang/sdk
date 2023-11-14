@@ -17,10 +17,10 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 
 import 'src/utilities/mock_packages.dart';
@@ -333,26 +333,13 @@ class AbstractContextTest with ResourceProviderMixin {
     verifyCreatedCollection();
   }
 
-  /// If the path style is `Windows`, returns the corresponding Posix path.
-  /// Otherwise the path is already a Posix path, and it is returned as is.
-  /// TODO(scheglov) This is duplicate.
-  String _posixPath(File file) {
-    final pathContext = resourceProvider.pathContext;
-    if (pathContext.style == Style.windows) {
-      final components = pathContext.split(file.path);
-      return '/${components.skip(1).join('/')}';
-    } else {
-      return file.path;
-    }
-  }
-
   void _writeSourceChangeToBuffer({
     required StringBuffer buffer,
     required SourceChange sourceChange,
   }) {
     for (final fileEdit in sourceChange.edits) {
       final file = getFile(fileEdit.file);
-      buffer.writeln('>>>>>>>>>> ${_posixPath(file)}');
+      buffer.writeln('>>>>>>>>>> ${file.posixPath}');
       final current = file.readAsStringSync();
       final updated = SourceEdit.applySequence(current, fileEdit.edits);
       buffer.write(updated);

@@ -25,14 +25,14 @@ testeeMain() {
 var tests = <IsolateTest>[
   hasStoppedWithUnhandledException,
   (VmService? service, IsolateRef? isolateRef) async {
-    print("We stopped!");
+    print('We stopped!');
     final isolateId = isolateRef!.id!;
     final stack = await service!.getStack(isolateId);
     final topFrame = stack.frames![0];
     expect(topFrame.function!.name, equals('foo='));
     final result = await service.evaluateInFrame(isolateId, 0, 'T');
     print(result);
-    expect((result as InstanceRef).name, equals("int"));
+    expect((result as InstanceRef).name, equals('int'));
   }
 ];
 
@@ -40,6 +40,6 @@ main(args) => runIsolateTests(
       args,
       tests,
       'regress_48279_test.dart',
-      pause_on_unhandled_exceptions: true,
+      pauseOnUnhandledExceptions: true,
       testeeConcurrent: testeeMain,
     );

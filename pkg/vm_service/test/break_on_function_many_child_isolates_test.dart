@@ -11,8 +11,8 @@ import 'dart:collection';
 import 'dart:developer';
 import 'dart:isolate' as dart_isolate;
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -36,7 +36,7 @@ Future<void> testMain() async {
   debugger(); // LINE_B
   for (int i = 0; i < nIsolates; i++) {
     await dart_isolate.Isolate.spawn(foo, [rps[i].sendPort, i],
-        debugName: "foo$i");
+        debugName: 'foo$i');
   }
   print(await Future.wait(rps.map((rp) => rp.first)));
   debugger(); // LINE_C
@@ -45,7 +45,7 @@ Future<void> testMain() async {
 int nIsolates = 0;
 final completerAtFoo = List<Completer>.generate(nIsolates, (_) => Completer());
 
-Isolate? activeIsolate = null;
+Isolate? activeIsolate;
 final pendingToResume = ListQueue<Isolate>();
 
 late final StreamSubscription<Event> debugStreamSubscription;
@@ -85,7 +85,7 @@ final tests = <IsolateTest>[
             // resumed isolate.
             if (activeIsolate == null) {
               activeIsolate = childIsolate;
-              service.resume(isolateId);
+              await service.resume(isolateId);
             } else {
               pendingToResume.addLast(childIsolate);
             }
@@ -153,7 +153,7 @@ Future runIsolateBreakpointPauseTest(
     tests,
     scriptName,
     testeeConcurrent: testMain,
-    pause_on_start: true,
+    pauseOnStart: true,
   );
 }
 

@@ -122,6 +122,6 @@ final tests = <IsolateTest>[
 main(args) async => runIsolateTests(
       args,
       tests,
-      "get_allocation_traces_test.dart",
+      'get_allocation_traces_test.dart',
       testeeConcurrent: test,
     );

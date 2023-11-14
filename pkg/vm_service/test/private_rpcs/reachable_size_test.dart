@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import '../common/test_helper.dart';
 
@@ -83,25 +83,25 @@ final tests = <IsolateTest>[
     // In general, shallow <= retained <= reachable. In this program,
     // 0 < shallow < retained < reachable.
 
-    final p1_shallow = p1.size!;
-    final p1_retained = await service.getRetainedSize(isolateId, p1.id!);
-    final p1_reachable = await service.getReachableSize(isolateId, p1.id!);
+    final p1Shallow = p1.size!;
+    final p1Retained = await service.getRetainedSize(isolateId, p1.id!);
+    final p1Reachable = await service.getReachableSize(isolateId, p1.id!);
 
-    expect(0, lessThan(p1_shallow));
-    expect(p1_shallow, lessThan(p1_retained));
-    expect(p1_retained, lessThan(p1_reachable));
+    expect(0, lessThan(p1Shallow));
+    expect(p1Shallow, lessThan(p1Retained));
+    expect(p1Retained, lessThan(p1Reachable));
 
-    final p2_shallow = p2.size!;
-    final p2_retained = await service.getRetainedSize(isolateId, p2.id!);
-    final p2_reachable = await service.getReachableSize(isolateId, p2.id!);
+    final p2Shallow = p2.size!;
+    final p2Retained = await service.getRetainedSize(isolateId, p2.id!);
+    final p2Reachable = await service.getReachableSize(isolateId, p2.id!);
 
-    expect(0, lessThan(p2_shallow));
-    expect(p2_shallow, lessThan(p2_retained));
-    expect(p2_retained, lessThan(p2_reachable));
+    expect(0, lessThan(p2Shallow));
+    expect(p2Shallow, lessThan(p2Retained));
+    expect(p2Retained, lessThan(p2Reachable));
 
-    expect(p1_shallow, p2_shallow);
-    expect(p1_retained, p2_retained);
-    expect(p1_reachable, p2_reachable);
+    expect(p1Shallow, p2Shallow);
+    expect(p1Retained, p2Retained);
+    expect(p1Reachable, p2Reachable);
   },
 ];
 

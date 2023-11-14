@@ -19,7 +19,7 @@ Future getFlagValue(VmService service, String flagName) async {
   }
 }
 
-var tests = <VMTest>[
+final tests = <VMTest>[
   // Modify a flag which does not exist.
   (VmService service) async {
     final Error result =
@@ -52,9 +52,8 @@ var tests = <VMTest>[
     final kValue = 100;
     expect(await getFlagValue(service, kProfilePeriod), '1000');
     final completer = Completer();
-    final stream = await service.onVMEvent;
-    late var subscription;
-    subscription = stream.listen((Event event) {
+    late StreamSubscription<Event> subscription;
+    subscription = service.onVMEvent.listen((Event event) {
       print(event);
       if (event.kind == EventKind.kVMFlagUpdate) {
         expect(event.flag, kProfilePeriod);
@@ -72,7 +71,7 @@ var tests = <VMTest>[
   }
 ];
 
-main([args = const <String>[]]) async => runVMTests(
+void main([args = const <String>[]]) => runVMTests(
       args,
       tests,
       'get_flag_list_rpc_test.dart',

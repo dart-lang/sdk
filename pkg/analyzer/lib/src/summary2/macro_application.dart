@@ -202,6 +202,43 @@ class LibraryMacroApplier {
     return results;
   }
 
+  Future<List<macro.MacroExecutionResult>?> executeDefinitionsPhase() async {
+    final application = _nextForDefinitionsPhase();
+    if (application == null) {
+      return null;
+    }
+
+    final results = <macro.MacroExecutionResult>[];
+
+    await _runWithCatchingExceptions(
+      () async {
+        final declaration = _buildDeclaration(application.targetNode);
+
+        final introspector = _DefinitionPhaseIntrospector(
+          elementFactory,
+          declarationBuilder,
+          application.libraryElement.typeSystem,
+        );
+
+        final result = await macroExecutor.executeDefinitionsPhase(
+          application.instance,
+          declaration,
+          introspector,
+        );
+
+        if (result.isNotEmpty) {
+          results.add(result);
+        }
+      },
+      annotationIndex: 0, // TODO(scheglov)
+      onError: (error) {
+        application.targetElement.addMacroApplicationError(error);
+      },
+    );
+
+    return results;
+  }
+
   Future<List<macro.MacroExecutionResult>?> executeTypesPhase() async {
     final application = _nextForTypesPhase();
     if (application == null) {
@@ -512,6 +549,15 @@ class LibraryMacroApplier {
     return null;
   }
 
+  _MacroApplication? _nextForDefinitionsPhase() {
+    for (final application in _applications.reversed) {
+      if (application.phasesToExecute.remove(macro.Phase.definitions)) {
+        return application;
+      }
+    }
+    return null;
+  }
+
   _MacroApplication? _nextForTypesPhase() {
     for (final application in _applications.reversed) {
       if (application.phasesToExecute.remove(macro.Phase.types)) {
@@ -762,6 +808,48 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
       // TODO(scheglov) Implement other types.
       throw UnimplementedError('(${type.runtimeType}) $type');
     }
+  }
+}
+
+class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
+    implements macro.DefinitionPhaseIntrospector {
+  _DefinitionPhaseIntrospector(
+    super.elementFactory,
+    super.declarationBuilder,
+    super.typeSystem,
+  );
+
+  @override
+  Future<macro.Declaration> declarationOf(
+    covariant macro.Identifier identifier,
+  ) {
+    // TODO(scheglov): implement declarationOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<macro.TypeAnnotation> inferType(
+    covariant macro.OmittedTypeAnnotation omittedType,
+  ) {
+    // TODO(scheglov): implement inferType
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<macro.Declaration>> topLevelDeclarationsOf(
+    covariant macro.Library library,
+  ) {
+    // TODO(scheglov): implement topLevelDeclarationsOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<macro.IntrospectableType> typeDeclarationOf(
+    macro.Identifier identifier,
+  ) async {
+    final result = await super.typeDeclarationOf(identifier);
+    result as macro.IntrospectableType;
+    return result;
   }
 }
 

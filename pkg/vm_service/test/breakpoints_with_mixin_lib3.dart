@@ -4,12 +4,12 @@
 
 mixin class Foo {
   foo() {
-    print("I should be breakable!");
+    print('I should be breakable!');
   }
 }
 
 class Bar {
   bar() {
-    print("I should be breakable too!");
+    print('I should be breakable too!');
   }
 }

@@ -9,7 +9,7 @@ import 'common/test_helper.dart';
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    late final gotError;
+    late final bool gotError;
 
     Future<void> getInstancesAndExecuteExpression(ClassHeapStats member) async {
       final result = await service.getInstancesAsList(
@@ -21,7 +21,7 @@ final tests = <IsolateTest>[
       // This has previously caused an exception like
       // 'ServerRpcException(evaluate: Unexpected exception: FormatException:
       // Unexpected character (at offset 329)'
-      service.evaluate(isolateId, result.id!, 'this').catchError((error) {
+      await service.evaluate(isolateId, result.id!, 'this').catchError((error) {
         if (error.code == 113 &&
             error.message == 'Expression compilation error' &&
             error.details.contains(

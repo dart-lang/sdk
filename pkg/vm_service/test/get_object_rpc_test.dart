@@ -59,43 +59,43 @@ void warmup() {
   _DummyClass().dummyGenericFunction<Object, dynamic>(0, param: 0);
 }
 
-@pragma("vm:entry-point")
-getChattanooga() => "Chattanooga";
+@pragma('vm:entry-point')
+getChattanooga() => 'Chattanooga';
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getList() => [3, 2, 1];
 
-@pragma("vm:entry-point")
-getMap() => {"x": 3, "y": 4, "z": 5};
+@pragma('vm:entry-point')
+getMap() => {'x': 3, 'y': 4, 'z': 5};
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getSet() => {6, 7, 8};
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getUint8List() => Uint8List.fromList([3, 2, 1]);
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getUint64List() => Uint64List.fromList([3, 2, 1]);
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getRecord() => (1, x: 2, 3.0, y: 4.0);
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getDummyClass() => _DummyClass();
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getDummyFinalClass() => _DummyFinalClass();
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getDummyGenericSubClass() => _DummyGenericSubClass<Object>();
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getDummyInterfaceClass() => _DummyInterfaceClass();
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getDummyClassWithMixins() => _DummyClassWithMixins();
 
-@pragma("vm:entry-point")
+@pragma('vm:entry-point')
 getUserTag() => UserTag('Test Tag');
 
 var tests = <IsolateTest>[
@@ -733,12 +733,12 @@ var tests = <IsolateTest>[
     expect(fieldsMap.containsKey(0), false);
     expect(fieldsMap.containsKey(1), true);
     expect(fieldsMap[1].valueAsString, '1');
-    expect(fieldsMap.containsKey("x"), true);
-    expect(fieldsMap["x"].valueAsString, '2');
+    expect(fieldsMap.containsKey('x'), true);
+    expect(fieldsMap['x'].valueAsString, '2');
     expect(fieldsMap.containsKey(2), true);
     expect(fieldsMap[2].valueAsString, '3.0');
-    expect(fieldsMap.containsKey("y"), true);
-    expect(fieldsMap["y"].valueAsString, '4.0');
+    expect(fieldsMap.containsKey('y'), true);
+    expect(fieldsMap['y'].valueAsString, '4.0');
   },
 
   // library.
@@ -769,7 +769,7 @@ var tests = <IsolateTest>[
       fail('successfully got library with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -805,7 +805,7 @@ var tests = <IsolateTest>[
       fail('successfully got script with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -1223,7 +1223,7 @@ var tests = <IsolateTest>[
       fail('successfully got class with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -1234,7 +1234,7 @@ var tests = <IsolateTest>[
     // Call eval to get a class id.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/types/0";
+    final objectId = '${evalResult.classRef!.id!}/types/0';
     final result = await service.getObject(isolateId, objectId) as Instance;
     expect(result.kind, InstanceKind.kType);
     expect(result.id, equals(objectId));
@@ -1250,13 +1250,13 @@ var tests = <IsolateTest>[
     final isolate = await service.getIsolate(isolateId);
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/types/9999999";
+    final objectId = '${evalResult.classRef!.id!}/types/9999999';
     try {
       await service.getObject(isolateId, objectId);
       fail('successfully got type with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -1268,7 +1268,7 @@ var tests = <IsolateTest>[
     // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/functions/dummyFunction";
+    final objectId = '${evalResult.classRef!.id!}/functions/dummyFunction';
     final result = await service.getObject(isolateId, objectId) as Func;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyFunction'));
@@ -1307,7 +1307,7 @@ var tests = <IsolateTest>[
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
     final objectId =
-        "${evalResult.classRef!.id!}/functions/dummyGenericFunction";
+        '${evalResult.classRef!.id!}/functions/dummyGenericFunction';
     final result = await service.getObject(isolateId, objectId) as Func;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyGenericFunction'));
@@ -1399,13 +1399,13 @@ var tests = <IsolateTest>[
     // Call eval to get a class id.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/functions/invalid";
+    final objectId = '${evalResult.classRef!.id!}/functions/invalid';
     try {
       await service.getObject(isolateId, objectId);
       fail('successfully got function with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 
@@ -1416,7 +1416,7 @@ var tests = <IsolateTest>[
     // Call eval to get a class id.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/fields/dummyVar";
+    final objectId = '${evalResult.classRef!.id!}/fields/dummyVar';
     final result = await service.getObject(isolateId, objectId) as Field;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyVar'));
@@ -1511,7 +1511,7 @@ var tests = <IsolateTest>[
     // [classRef] field to build a function ID.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/field_inits/dummyVarWithInit";
+    final objectId = '${evalResult.classRef!.id!}/field_inits/dummyVarWithInit';
     final result = await service.getObject(isolateId, objectId) as Func;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyVarWithInit'));
@@ -1545,7 +1545,7 @@ var tests = <IsolateTest>[
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
     final objectId =
-        "${evalResult.classRef!.id!}/field_inits/dummyLateVarWithInit";
+        '${evalResult.classRef!.id!}/field_inits/dummyLateVarWithInit';
     final result = await service.getObject(isolateId, objectId) as Func;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyLateVarWithInit'));
@@ -1577,7 +1577,7 @@ var tests = <IsolateTest>[
     // Call eval to get a class id.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/field_inits/dummyLateVar";
+    final objectId = '${evalResult.classRef!.id!}/field_inits/dummyLateVar';
     try {
       await service.getObject(isolateId, objectId);
       fail('successfully got field initializer with bad ID');
@@ -1600,7 +1600,7 @@ var tests = <IsolateTest>[
     // Call eval to get a class id.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/fields/dummyList";
+    final objectId = '${evalResult.classRef!.id!}/fields/dummyList';
     final result = await service.getObject(isolateId, objectId) as Field;
     expect(result.id, equals(objectId));
     expect(result.name, equals('dummyList'));
@@ -1621,7 +1621,7 @@ var tests = <IsolateTest>[
     // Call eval to get a class id.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/fields/mythicalField";
+    final objectId = '${evalResult.classRef!.id!}/fields/mythicalField';
     try {
       await service.getObject(isolateId, objectId);
       fail('successfully got field with bad ID');
@@ -1650,7 +1650,7 @@ var tests = <IsolateTest>[
     // Call eval to get a class id.
     final evalResult = await service.invoke(
         isolateId, isolate.rootLib!.id!, 'getDummyClass', []) as InstanceRef;
-    final objectId = "${evalResult.classRef!.id!}/functions/dummyFunction";
+    final objectId = '${evalResult.classRef!.id!}/functions/dummyFunction';
     final funcResult = await service.getObject(isolateId, objectId) as Func;
     final result =
         await service.getObject(isolateId, funcResult.code!.id!) as Code;
@@ -1678,7 +1678,7 @@ var tests = <IsolateTest>[
       fail('successfully got code with bad ID');
     } on RPCError catch (e) {
       expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
-      expect(e.message, "Invalid params");
+      expect(e.message, 'Invalid params');
     }
   },
 ];

@@ -37,7 +37,7 @@ var tests = <IsolateTest>[
     final dynamic result = await service.evaluateInFrame(
         isolateId, topFrame, 'a.runtimeType.toString()');
     print(result);
-    expect(result.valueAsString, equals("A<C>"));
+    expect(result.valueAsString, equals('A<C>'));
   },
 ];
 

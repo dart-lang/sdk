@@ -19,7 +19,7 @@ class S {}
 mixin class M {
   static String? foo;
   bar() {
-    foo = "theExpectedValue";
+    foo = 'theExpectedValue';
     debugger();
   }
 }

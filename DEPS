@@ -671,11 +671,11 @@ Var("dart_root") + "/third_party/pkg/tar":
     "dep_type": "cipd",
   },
 
-  Var("dart_root") + "/third_party/fuchsia-gn-sdk": {
+  Var("dart_root") + "/third_party/fuchsia/gn-sdk": {
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "version:2@691dde4a86f8f32790942eb025c3e9fe74102811",
+      "version": "version:2@7f1f23fce153ca079a77492d9d47d803d60b774e",
       }
     ],
     "condition": 'download_fuchsia_deps',

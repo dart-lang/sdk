@@ -7,36 +7,32 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io' as io;
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/expect.dart';
 import 'common/test_helper.dart';
 
 Future setupFiles() async {
   final dir = await io.Directory.systemTemp.createTemp('file_service');
-  var writingFile;
-  var readingFile;
+  late io.RandomAccessFile writingFile;
+  late io.RandomAccessFile readingFile;
 
   void closeDown() {
-    if (writingFile != null) {
-      writingFile.closeSync();
-    }
-    if (readingFile != null) {
-      readingFile.closeSync();
-    }
+    writingFile.closeSync();
+    readingFile.closeSync();
     dir.deleteSync(recursive: true);
   }
 
-  Future<ServiceExtensionResponse> cleanup(ignored_a, ignored_b) {
+  Future<ServiceExtensionResponse> cleanup(ignoredA, ignoredB) {
     closeDown();
     final result = jsonEncode({'type': 'foobar'});
     return Future.value(ServiceExtensionResponse.result(result));
   }
 
-  Future<ServiceExtensionResponse> setup(ignored_a, ignored_b) async {
+  Future<ServiceExtensionResponse> setup(ignoredA, ignoredB) async {
     try {
-      final filePath = dir.path + io.Platform.pathSeparator + "file";
+      final filePath = '${dir.path}${io.Platform.pathSeparator}file';
       final f = io.File(filePath);
       writingFile = await f.open(mode: io.FileMode.write);
       await writingFile.writeByte(42);
@@ -53,7 +49,7 @@ Future setupFiles() async {
 
       // The utility functions should close the files after them, so we
       // don't expect the calls below to result in open files.
-      final writeTemp = dir.path + io.Platform.pathSeparator + "other_file";
+      final writeTemp = '${dir.path}${io.Platform.pathSeparator}other_file';
       final utilFile = io.File(writeTemp);
       await utilFile.writeAsString('foobar');
       final readTemp = io.File(writeTemp);
@@ -61,7 +57,7 @@ Future setupFiles() async {
       Expect.equals(result, 'foobar');
     } catch (e) {
       closeDown();
-      throw e;
+      rethrow;
     }
     final result = jsonEncode({'type': 'foobar'});
     return Future.value(ServiceExtensionResponse.result(result));

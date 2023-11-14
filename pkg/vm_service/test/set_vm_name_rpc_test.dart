@@ -5,8 +5,8 @@
 
 import 'dart:async';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
@@ -20,7 +20,7 @@ final tests = <VMTest>[
     sub = service.onVMEvent.listen((event) async {
       if (event.kind == EventKind.kVMUpdate) {
         expect(event.vm!.name, 'Barbara');
-        sub.cancel();
+        await sub.cancel();
         await service.streamCancel(EventStreams.kVM);
         completer.complete();
       }

@@ -23,8 +23,8 @@ void main([args = const <String>[]]) /* LINE_A */ => runIsolateTests(
       tests,
       'pause_on_start_then_step_test.dart',
       testeeConcurrent: testMain,
-      pause_on_start: true,
-      pause_on_exit: true,
-      verbose_vm: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
+      verboseVm: true,
       extraArgs: ['--trace-service', '--trace-service-verbose'],
     );

@@ -6,6 +6,45 @@ import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/*macro*/ class DefineToStringAsTypeName
+    implements ClassDefinitionMacro, MethodDefinitionMacro {
+  const DefineToStringAsTypeName();
+
+  @override
+  FutureOr<void> buildDefinitionForClass(
+    IntrospectableClassDeclaration clazz,
+    TypeDefinitionBuilder builder,
+  ) async {
+    final methods = await builder.methodsOf(clazz);
+    final toString = methods.firstWhereOrNull(
+      (e) => e.identifier.name == 'toString',
+    );
+    if (toString == null) {
+      throw StateError('No toString() declaration');
+    }
+
+    final toStringBuilder = await builder.buildMethod(
+      toString.identifier,
+    );
+
+    toStringBuilder.augment(
+      FunctionBodyCode.fromParts([
+        '{\n    return \'${clazz.identifier.name}\';\n  }',
+      ]),
+    );
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForMethod(
+    MethodDeclaration method,
+    FunctionDefinitionBuilder builder,
+  ) async {
+    builder.augment(
+      FunctionBodyCode.fromString("=> '${method.definingType.name}';"),
+    );
+  }
+}
+
 /*macro*/ class ReferenceDartCorePrint implements ClassDeclarationsMacro {
   const ReferenceDartCorePrint();
 
@@ -43,5 +82,14 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
         ';\n  }',
       ]),
     );
+  }
+}
+
+extension<T> on Iterable<T> {
+  T? firstWhereOrNull(bool Function(T element) test) {
+    for (final element in this) {
+      if (test(element)) return element;
+    }
+    return null;
   }
 }

@@ -2,20 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
 // Make sure these variables are not removed by the tree shaker.
-@pragma("vm:entry-point")
-var cleanBlock;
-@pragma("vm:entry-point")
-var copyingBlock;
-@pragma("vm:entry-point")
-var fullBlock;
-@pragma("vm:entry-point")
-var fullBlockWithChain;
+@pragma('vm:entry-point')
+late final Function cleanBlock;
+@pragma('vm:entry-point')
+late final Function copyingBlock;
+@pragma('vm:entry-point')
+late final Function fullBlock;
+@pragma('vm:entry-point')
+late final Function fullBlockWithChain;
 
 Function genCleanBlock() {
   block(x) => x;

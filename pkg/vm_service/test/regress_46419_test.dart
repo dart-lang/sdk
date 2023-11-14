@@ -5,8 +5,8 @@
 
 import 'dart:async';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -78,7 +78,7 @@ final tests = <IsolateTest>[
         final bp = event.pauseBreakpoints!.first;
         print('Hit $bp');
         expect(bp, bp2);
-        sub.cancel();
+        await sub.cancel();
         await service.streamCancel(EventStreams.kDebug);
         await service.resume(isolateId);
         done.complete();
@@ -95,5 +95,5 @@ void main([args = const <String>[]]) => runIsolateTests(
       tests,
       'regress_46419_test.dart',
       testeeConcurrent: testeeDo,
-      pause_on_start: true,
+      pauseOnStart: true,
     );

@@ -9,8 +9,8 @@ import '../common/test_helper.dart';
 
 Future<Response> getImplementationFields(
     VmService service, String isolateId, String objectId) async {
-  return await service.callMethod("_getImplementationFields",
-      isolateId: isolateId, args: {"objectId": objectId});
+  return await service.callMethod('_getImplementationFields',
+      isolateId: isolateId, args: {'objectId': objectId});
 }
 
 var tests = <IsolateTest>[
@@ -19,8 +19,8 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final objectId = 'objects/null';
     final result = await getImplementationFields(service, isolateId, objectId);
-    expect(result.json!["type"]!, "ImplementationFields");
-    expect(result.json!["fields"]!, isEmpty);
+    expect(result.json!['type']!, 'ImplementationFields');
+    expect(result.json!['fields']!, isEmpty);
   },
 ];
 

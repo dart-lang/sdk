@@ -44,5 +44,5 @@ main([args = const <String>[]]) => runIsolateTests(
       tests,
       'regress_88104_test.dart',
       testeeConcurrent: testMain,
-      pause_on_exit: true,
+      pauseOnExit: true,
     );

@@ -76,6 +76,6 @@ void main([args = const <String>[]]) => runIsolateTestsSynchronous(
       tests,
       'step_through_setter_test.dart',
       testeeConcurrent: code,
-      pause_on_start: true,
-      pause_on_exit: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
     );

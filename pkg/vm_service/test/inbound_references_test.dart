@@ -2,22 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-@pragma("vm:entry-point") // Prevent obfuscation
+@pragma('vm:entry-point') // Prevent obfuscation
 class Node {
   // Make sure this field is not removed by the tree shaker.
-  @pragma("vm:entry-point") // Prevent obfuscation
-  var edge;
+  @pragma('vm:entry-point') // Prevent obfuscation
+  late Edge edge;
 }
 
 class Edge {}
 
-@pragma("vm:entry-point") // Prevent obfuscation
-var n, e, array;
+@pragma('vm:entry-point') // Prevent obfuscation
+late final Node n;
+late final Edge e;
+late final List<dynamic> array;
 
 void script() {
   n = Node();

@@ -16,8 +16,8 @@ class S<T> {
   num? n;
   T? t;
   String constrName;
-  S({this.n, this.t}) : constrName = "S";
-  S.named({this.t, this.n}) : constrName = "S.named";
+  S({this.n, this.t}) : constrName = 'S';
+  S.named({this.t, this.n}) : constrName = 'S.named';
 }
 
 class C<T> extends S<T> {
@@ -29,8 +29,8 @@ class C<T> extends S<T> {
 }
 
 class R<T> {
-  final f1;
-  var v1;
+  final dynamic f1;
+  dynamic v1;
   num i1;
   T t1;
   R(this.f1, this.v1, this.i1, this.t1);
@@ -51,7 +51,7 @@ void testMain() {
 late final String isolateId;
 late final String rootLibId;
 
-createInstance(VmService service, String expr) async {
+Future<Response> createInstance(VmService service, String expr) async {
   return await service.evaluate(
     isolateId,
     rootLibId,
@@ -60,7 +60,11 @@ createInstance(VmService service, String expr) async {
   );
 }
 
-evaluateGetter(VmService service, String instanceId, String getter) async {
+Future<Obj> evaluateGetter(
+  VmService service,
+  String instanceId,
+  String getter,
+) async {
   dynamic result = await service.evaluate(isolateId, instanceId, getter);
   return await service.getObject(isolateId, result.id);
 }

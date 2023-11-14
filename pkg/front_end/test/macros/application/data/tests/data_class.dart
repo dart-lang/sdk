@@ -11,14 +11,14 @@ Definitions:
 import 'dart:core' as prefix0;
 
 augment class Foo {
-augment prefix0.int get hashCode {
+  augment prefix0.int get hashCode {
     return this.bar.hashCode ^ this.baz.hashCode;
   }
-augment prefix0.bool operator ==(prefix0.Object other, ) {
+  augment prefix0.bool operator ==(prefix0.Object other, ) {
     if (prefix0.identical(this, other)) return true;
     return other is Foo && this.bar == other.bar && this.baz == other.baz;
   }
-augment prefix0.String toString() {
+  augment prefix0.String toString() {
     return "Foo(bar=${this.bar},baz=${this.baz})";
   }
 }*/
@@ -38,14 +38,14 @@ external prefix0.String toString();
 }
 definitions:
 augment class Foo {
-augment int get hashCode {
+  augment int get hashCode {
     return bar.hashCode ^ baz.hashCode;
   }
-augment bool operator ==(Object other, ) {
+  augment bool operator ==(Object other, ) {
     if (identical(this, other)) return true;
     return other is Foo && bar == other.bar && baz == other.baz;
   }
-augment String toString() {
+  augment String toString() {
     return "Foo(bar=${bar},baz=${baz})";
   }
 }*/

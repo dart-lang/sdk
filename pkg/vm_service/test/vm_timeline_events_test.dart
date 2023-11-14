@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
@@ -40,7 +40,7 @@ void onTimelineEvent(Event event) {
   eventCount++;
   expect(filterEvents(event.timelineEvents!, isDart).length, greaterThan(0));
   if (eventCount == 5) {
-    completer.complete(eventCount);
+    completer.complete();
   }
 }
 
@@ -52,7 +52,7 @@ final tests = <IsolateTest>[
   },
   (VmService service, IsolateRef isolateRef) async {
     // Ensure we don't get any events before enabling Dart.
-    await Future.delayed(new Duration(seconds: 2));
+    await Future.delayed(Duration(seconds: 2));
     expect(eventCount, 0);
   },
   (VmService service, IsolateRef isolateRef) async {

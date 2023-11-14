@@ -78,7 +78,7 @@ void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'isolate_exit_resume_test.dart',
-      pause_on_start: true,
-      pause_on_exit: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
       testeeConcurrent: testMain,
     );

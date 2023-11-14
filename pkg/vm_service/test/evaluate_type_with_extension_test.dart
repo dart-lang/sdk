@@ -18,10 +18,10 @@ extension on String {
 }
 
 void testFunction() {
-  String x = "hello";
+  String x = 'hello';
   String value = x.printAndReturnHello();
   debugger();
-  print("value = $value");
+  print('value = $value');
 }
 
 final tests = <IsolateTest>[

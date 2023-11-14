@@ -172,6 +172,15 @@ class Linker {
       },
     );
 
+    await performance.runAsync(
+      'executeMacroDefinitionsPhase',
+      (performance) async {
+        await _executeMacroDefinitionsPhase(
+          performance: performance,
+        );
+      },
+    );
+
     _buildClassSyntheticConstructors();
     _resolveConstructorFieldFormals();
     _buildEnumChildren();
@@ -319,6 +328,16 @@ class Linker {
       if (!hasProgress) {
         break;
       }
+    }
+  }
+
+  Future<void> _executeMacroDefinitionsPhase({
+    required OperationPerformanceImpl performance,
+  }) async {
+    for (final library in builders.values) {
+      await library.executeMacroDefinitionsPhase(
+        performance: performance,
+      );
     }
   }
 

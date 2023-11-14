@@ -7,8 +7,15 @@ import 'package:analyzer/src/wolf/ir/ir.dart';
 /// Checks that [ir] is well-formed.
 ///
 /// Throws [ValidationError] if it's not.
-void validate(BaseIRContainer ir) {
-  _Validator(ir).run();
+///
+/// During validation, progress information will be reported to [eventListener]
+/// (if provided).
+void validate(BaseIRContainer ir, {ValidationEventListener? eventListener}) {
+  eventListener ??= ValidationEventListener();
+  var validator = _Validator(ir, eventListener: eventListener);
+  eventListener._validator = validator;
+  validator.run();
+  eventListener._validator = null;
 }
 
 class ValidationError extends Error {
@@ -26,11 +33,28 @@ class ValidationError extends Error {
       'Validation error at $address ($instructionString): $message';
 }
 
+/// Event listener used by [validate] to report progress information.
+///
+/// By itself this class does nothing; the caller of [validate] should make a
+/// derived class that overrides one or more of the `on...` methods.
+base class ValidationEventListener {
+  late _Validator? _validator;
+
+  int get valueStackDepth => _validator!.valueStackDepth;
+
+  /// Called for every iteration in the validation loop, just before visiting an
+  /// instruction.
+  ///
+  /// Also called at the end of the validation loop (with [address] equal to the
+  /// instruction count).
+  void onAddress(int address) {}
+}
+
 /// Used by [_Validator] to track a control flow instruction (`block`, `loop`,
 /// `tryCatch`, `tryFinally`, or `function` instruction) whose `matching `end`
 /// instruction has not yet been encountered.
 class _ControlFlowElement {
-  /// The state of [_Validator._functionFlags] before the control flow
+  /// The state of [_Validator.functionFlags] before the control flow
   /// instruction was encountered.
   final FunctionFlags functionFlagsBefore;
 
@@ -54,81 +78,84 @@ class _ControlFlowElement {
 
 class _Validator {
   final BaseIRContainer ir;
-  final _controlFlowStack = <_ControlFlowElement>[];
-  var _address = 0;
+  final ValidationEventListener eventListener;
+  final controlFlowStack = <_ControlFlowElement>[];
+  var address = 0;
 
   /// Flags from the most recent `function` instruction whose corresponding
   /// `end` instruction has not yet been encountered.
-  var _functionFlags = FunctionFlags();
+  var functionFlags = FunctionFlags();
 
-  var _valueStackDepth = 0;
+  var valueStackDepth = 0;
 
-  _Validator(this.ir);
-
-  void run() {
-    _check(ir.endAddress > 0, 'No instructions');
-    for (_address = 0; _address < ir.endAddress; _address++) {
-      var opcode = ir.opcodeAt(_address);
-      _check(_address != 0 || opcode == Opcode.function,
-          'First instruction must be function');
-      switch (opcode) {
-        case Opcode.drop:
-          _popValues(1);
-        case Opcode.end:
-          _check(_controlFlowStack.isNotEmpty, 'unmatched end');
-          var controlFlowElement = _controlFlowStack.removeLast();
-          _popValues(controlFlowElement.branchValueCount);
-          _check(_valueStackDepth == 0,
-              '$_valueStackDepth superfluous value(s) remaining');
-          _pushValues(controlFlowElement.valueStackDepthAfter);
-          _functionFlags = controlFlowElement.functionFlagsBefore;
-        case Opcode.function:
-          var type = Opcode.function.decodeType(ir, _address);
-          var kind = Opcode.function.decodeFlags(ir, _address);
-          _check(!kind.isInstance || _address == 0,
-              'Instance function may only be used at instruction address 0');
-          _controlFlowStack.add(_ControlFlowElement(
-              functionFlagsBefore: _functionFlags,
-              valueStackDepthAfter: _valueStackDepth + 1,
-              branchValueCount: 1,
-              isFunction: true));
-          _functionFlags = kind;
-          _valueStackDepth = 0;
-          _pushValues(ir.countParameters(type) + (kind.isInstance ? 1 : 0));
-        case Opcode.literal:
-          _pushValues(1);
-        default:
-          _fail('Unexpected opcode $opcode');
-      }
-    }
-    _check(_controlFlowStack.isEmpty, 'Missing end');
-  }
+  _Validator(this.ir, {required this.eventListener});
 
   /// Reports a validation error if [condition] is `false`.
-  void _check(bool condition, String message) {
+  void check(bool condition, String message) {
     if (!condition) {
-      _fail(message);
+      fail(message);
     }
   }
 
   /// Unconditionally reports a validation error.
-  Never _fail(String message) {
+  Never fail(String message) {
     throw ValidationError(
-        address: _address,
-        instructionString: _address < ir.endAddress
-            ? ir.instructionToString(_address)
+        address: address,
+        instructionString: address < ir.endAddress
+            ? ir.instructionToString(address)
             : 'after last instruction',
         message: message);
   }
 
-  void _popValues(int count) {
+  void popValues(int count) {
     assert(count >= 0);
-    _check(_valueStackDepth >= count, 'Value stack underflow');
-    _valueStackDepth -= count;
+    check(valueStackDepth >= count, 'Value stack underflow');
+    valueStackDepth -= count;
   }
 
-  void _pushValues(int count) {
+  void pushValues(int count) {
     assert(count >= 0);
-    _valueStackDepth += count;
+    valueStackDepth += count;
+  }
+
+  void run() {
+    check(ir.endAddress > 0, 'No instructions');
+    for (address = 0; address < ir.endAddress; address++) {
+      eventListener.onAddress(address);
+      var opcode = ir.opcodeAt(address);
+      check(address != 0 || opcode == Opcode.function,
+          'First instruction must be function');
+      switch (opcode) {
+        case Opcode.drop:
+          popValues(1);
+        case Opcode.end:
+          check(controlFlowStack.isNotEmpty, 'Unmatched end');
+          var controlFlowElement = controlFlowStack.removeLast();
+          popValues(controlFlowElement.branchValueCount);
+          check(valueStackDepth == 0,
+              '$valueStackDepth superfluous value(s) remaining');
+          valueStackDepth = controlFlowElement.valueStackDepthAfter;
+          functionFlags = controlFlowElement.functionFlagsBefore;
+        case Opcode.function:
+          var type = Opcode.function.decodeType(ir, address);
+          var kind = Opcode.function.decodeFlags(ir, address);
+          check(!kind.isInstance || address == 0,
+              'Instance function may only be used at instruction address 0');
+          controlFlowStack.add(_ControlFlowElement(
+              functionFlagsBefore: functionFlags,
+              valueStackDepthAfter: valueStackDepth + 1,
+              branchValueCount: 1,
+              isFunction: true));
+          functionFlags = kind;
+          valueStackDepth =
+              ir.countParameters(type) + (kind.isInstance ? 1 : 0);
+        case Opcode.literal:
+          pushValues(1);
+        default:
+          fail('Unexpected opcode ${opcode.describe()}');
+      }
+    }
+    eventListener.onAddress(address);
+    check(controlFlowStack.isEmpty, 'Missing end');
   }
 }

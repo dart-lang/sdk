@@ -36,7 +36,7 @@ Future<void> testeeBefore() async {
     Expect.isTrue(result.id!.startsWith('isolateGroups/'));
     Expect.isNotNull(result.number);
     Expect.isFalse(result.isSystemIsolateGroup);
-    Expect.isTrue(result.isolates!.length > 0);
+    Expect.isTrue(result.isolates!.isNotEmpty);
   } catch (e) {
     fail('invalid request: $e');
   }

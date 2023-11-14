@@ -9,5 +9,6 @@ linter:
   rules:
     # still 5 errors in lib/src/vm_service.dart
     #- comment_references
-    - directives_ordering
-    - prefer_single_quotes
+    directives_ordering: true
+    prefer_single_quotes: true
+    unawaited_futures: true

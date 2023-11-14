@@ -5,8 +5,8 @@
 
 import 'dart:developer';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -51,13 +51,13 @@ final tests = <IsolateTest>[
     // See issue #27128.
     var frame = frames[0];
     expect(frame.function!.name, 'helper');
-    expect(await frame.location!.line, LINE_C + 1);
-    expect(await frame.location!.column, LINE_C_COL);
+    expect(frame.location!.line, LINE_C + 1);
+    expect(frame.location!.column, LINE_C_COL);
 
     frame = frames[1];
     expect(frame.function!.name, 'testMain');
-    expect(await frame.location!.line, LINE_B);
-    expect(await frame.location!.column, LINE_B_COL);
+    expect(frame.location!.line, LINE_B);
+    expect(frame.location!.column, LINE_B_COL);
   }
 ];
 

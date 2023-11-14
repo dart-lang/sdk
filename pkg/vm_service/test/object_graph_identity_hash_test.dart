@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -89,9 +89,9 @@ final tests = <IsolateTest>[
 
     final c1Obj = container1s.first;
 
-    c1Obj.successors.forEach((element) {
+    for (var element in c1Obj.successors) {
       print(element.klass.name);
-    });
+    }
     snapshot1Foo = c1Obj.successors.firstWhere(
       (element) => element.klass.name == 'Foo',
     );
@@ -159,5 +159,5 @@ void main([args = const <String>[]]) => runIsolateTests(
       tests,
       'object_graph_identity_hash_test.dart',
       testeeBefore: script,
-      pause_on_exit: true,
+      pauseOnExit: true,
     );

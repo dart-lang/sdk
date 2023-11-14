@@ -1450,9 +1450,13 @@ class MacroCodeGenerationTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
-  test_resolveIdentifier_class_field_instance() async {
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
     _addCodeGenerationMacros();
+  }
 
+  test_resolveIdentifier_class_field_instance() async {
     final library = await buildLibrary(r'''
 import 'code_generation.dart';
 
@@ -1476,8 +1480,6 @@ augment class A {
   }
 
   test_resolveIdentifier_class_field_static() async {
-    _addCodeGenerationMacros();
-
     final library = await buildLibrary(r'''
 import 'code_generation.dart';
 
@@ -1501,8 +1503,6 @@ augment class A {
   }
 
   test_resolveIdentifier_function_dartCorePrint() async {
-    _addCodeGenerationMacros();
-
     final library = await buildLibrary(r'''
 import 'code_generation.dart';
 
@@ -1519,6 +1519,50 @@ augment class A {
   void foo() {
     prefix0.print();
   }
+}
+''');
+  }
+
+  test_toStringAsTypeName_atClass() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@DefineToStringAsTypeName()
+class A {
+  String toString();
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment prefix0.String toString() {
+    return 'A';
+  }
+}
+''');
+  }
+
+  test_toStringAsTypeName_atMethod() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @DefineToStringAsTypeName()
+  String toString();
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment prefix0.String toString() => 'A';
 }
 ''');
   }

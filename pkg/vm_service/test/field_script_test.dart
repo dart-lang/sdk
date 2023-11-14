@@ -4,15 +4,15 @@
 
 library field_script_test;
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 part 'field_script_other.dart';
 
-code() {
+void code() {
   print(otherField);
 }
 
@@ -43,7 +43,7 @@ final tests = <IsolateTest>[
           location.script!.uri!.endsWith('field_script_other.dart'),
           true,
         );
-        expect(location.line, 7);
+        expect(location.line, 8);
         expect(location.column, 5);
       } else {
         fail('Unexpected field: ${field.name}');
@@ -57,6 +57,6 @@ void main([args = const <String>[]]) => runIsolateTestsSynchronous(
       tests,
       'field_script_test.dart',
       testeeConcurrent: code,
-      pause_on_start: true,
-      pause_on_exit: true,
+      pauseOnStart: true,
+      pauseOnExit: true,
     );

@@ -5,8 +5,8 @@
 import 'dart:async';
 import 'dart:developer' as dev;
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
@@ -69,7 +69,7 @@ final tests = <IsolateTest>[
       expect(event.updatedStreams!.length, 1);
       expect(event.updatedStreams!.first, 'Dart');
       await service.streamCancel(EventStreams.kTimeline);
-      sub.cancel();
+      await sub.cancel();
       completer.complete();
     });
     await service.streamListen(EventStreams.kTimeline);
@@ -109,7 +109,7 @@ final tests = <IsolateTest>[
       expect(event.kind, EventKind.kTimelineStreamSubscriptionsUpdate);
       expect(event.updatedStreams!.length, 0);
       await service.streamCancel(EventStreams.kTimeline);
-      sub.cancel();
+      await sub.cancel();
       completer.complete();
     });
     await service.streamListen(EventStreams.kTimeline);

@@ -60,7 +60,7 @@ var tests = <IsolateTest>[
       (await service.evaluate(
         isolateId,
         rootLib.id!,
-        "List<dynamic>.filled(2, null)",
+        'List<dynamic>.filled(2, null)',
       ) as InstanceRef)
           .classRef!
           .id!,

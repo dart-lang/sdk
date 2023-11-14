@@ -68,10 +68,10 @@ var tests = <IsolateTest>[
     List<Frame> asyncCausalFrames = stack.asyncCausalFrames!;
 
     expect(asyncCausalFrames.length, greaterThanOrEqualTo(4));
-    expect(await asyncCausalFrames[0].function!.name, 'foobar');
-    expect(await asyncCausalFrames[1].kind, FrameKind.kAsyncSuspensionMarker);
-    expect(await asyncCausalFrames[2].function!.name, 'helper');
-    expect(await asyncCausalFrames[3].kind, FrameKind.kAsyncSuspensionMarker);
+    expect(asyncCausalFrames[0].function!.name, 'foobar');
+    expect(asyncCausalFrames[1].kind, FrameKind.kAsyncSuspensionMarker);
+    expect(asyncCausalFrames[2].function!.name, 'helper');
+    expect(asyncCausalFrames[3].kind, FrameKind.kAsyncSuspensionMarker);
     // "helper" is not await'ed.
   },
 ];

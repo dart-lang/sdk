@@ -5,6 +5,8 @@
 // Tests that expressions evaluated in a frame see the same scope as the
 // frame's method.
 
+// ignore_for_file: overridden_fields
+
 import 'dart:async';
 
 import 'package:test/test.dart';
@@ -14,14 +16,17 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 import 'evaluate_activation_in_method_class_other.dart';
 
-var topLevel = "TestLibrary";
+var topLevel = 'TestLibrary';
 
 class Subclass extends Superclass1 {
-  var _instVar = 'Subclass';
+  final _instVar = 'Subclass';
+  @override
   var instVar = 'Subclass';
+  @override
   method() => 'Subclass';
   static staticMethod() => 'Subclass';
-  suppress_warning() => _instVar;
+  @override
+  suppressWarning() => _instVar;
 }
 
 testeeDo() {

@@ -18,9 +18,9 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:collection/collection.dart';
-import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -3285,19 +3285,6 @@ void f() {
     _assertTextExpectation(buffer.toString(), expected);
   }
 
-  /// If the path style is `Windows`, returns the corresponding Posix path.
-  /// Otherwise the path is already a Posix path, and it is returned as is.
-  /// TODO(scheglov) This is duplicate.
-  String _posixPath(File file) {
-    final pathContext = resourceProvider.pathContext;
-    if (pathContext.style == Style.windows) {
-      final components = pathContext.split(file.path);
-      return '/${components.skip(1).join('/')}';
-    } else {
-      return file.path;
-    }
-  }
-
   void _writeSourceChangeToBuffer({
     required StringBuffer buffer,
     required SourceChange sourceChange,
@@ -3305,7 +3292,7 @@ void f() {
     final fileEdits = sourceChange.edits.sortedBy((e) => e.file);
     for (final fileEdit in fileEdits) {
       final file = getFile(fileEdit.file);
-      buffer.writeln('>>>>>>> ${_posixPath(file)}');
+      buffer.writeln('>>>>>>> ${file.posixPath}');
       final current = file.readAsStringSync();
       final updated = SourceEdit.applySequence(current, fileEdit.edits);
       buffer.write(updated);

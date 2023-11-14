@@ -6,11 +6,11 @@
 // in async method which is not awaited.
 // Regression test for https://github.com/dart-lang/sdk/issues/51175.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 Future<Never> doThrow() async {
   await null; // force async gap
@@ -18,7 +18,7 @@ Future<Never> doThrow() async {
 }
 
 Future<void> testeeMain() async {
-  doThrow();
+  await doThrow();
 }
 
 final tests = <IsolateTest>[
@@ -38,7 +38,7 @@ void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'pause_on_unhandled_async_exceptions4_test.dart',
-      pause_on_unhandled_exceptions: true,
+      pauseOnUnhandledExceptions: true,
       testeeConcurrent: testeeMain,
       extraArgs: extraDebuggingArgs,
     );

@@ -8,8 +8,8 @@ import 'dart:developer';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 const LINE_A = 32;
 const LINE_B = LINE_A + 1;

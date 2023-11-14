@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
@@ -22,7 +22,7 @@ final tests = <IsolateTest>[
     sub = service.onIsolateEvent.listen((event) async {
       if (event.kind == EventKind.kIsolateUpdate) {
         expect(event.isolate!.name, 'Barbara');
-        sub.cancel();
+        await sub.cancel();
         await service.streamCancel(EventStreams.kIsolate);
         completer.complete();
       }
