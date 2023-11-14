@@ -95,7 +95,7 @@ modular_test/test/validate_suite_test: Slow, Pass
 native_assets_builder/test/*: SkipByDesign # Only meant to run on vm
 nnbd_migration/test/*: SkipByDesign # Uses mirrors
 nnbd_migration/tool/*: SkipByDesign # Only meant to run on vm
-service_extension_router/test/*: SkipByDesign # Only meant to run on vm
+dart_service_protocol_shared/test/*: SkipByDesign # Only meant to run on vm
 smith/test/*: SkipByDesign # Only meant to run on vm
 status_file/test/normalize_test: SkipByDesign # Uses dart:io
 status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io

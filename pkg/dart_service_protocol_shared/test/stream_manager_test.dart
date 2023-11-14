@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:service_extension_router/src/client.dart';
-import 'package:service_extension_router/src/stream_manager.dart';
+import 'package:dart_service_protocol_shared/src/client.dart';
+import 'package:dart_service_protocol_shared/src/stream_manager.dart';
 
 import 'package:test/test.dart';
 
