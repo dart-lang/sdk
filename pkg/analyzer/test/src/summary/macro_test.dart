@@ -1931,11 +1931,10 @@ class X
   test_element_class_metadata_constructor_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A.named(this.f)
+  const A.named()
 }
 
-@A.named(42)
+@A.named()
 class B {}
 ''');
 
@@ -1965,15 +1964,14 @@ class X
   test_element_class_metadata_constructor_named_imported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A.named(this.f)
+  const A.named()
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 
-@A.named(42)
+@A.named()
 class B {}
 ''');
 
@@ -2003,15 +2001,14 @@ class X
   test_element_class_metadata_constructor_named_imported_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A.named(this.f)
+  const A.named()
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart' as prefix;
 
-@prefix.A.named(42)
+@prefix.A.named()
 class B {}
 ''');
 
@@ -2041,11 +2038,10 @@ class X
   test_element_class_metadata_constructor_unnamed() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A(this.f)
+  const A()
 }
 
-@A(42)
+@A()
 class B {}
 ''');
 
@@ -2074,15 +2070,14 @@ class X
   test_element_class_metadata_constructor_unnamed_imported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A(this.f)
+  const A()
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 
-@A(42)
+@A()
 class B {}
 ''');
 
@@ -2111,15 +2106,14 @@ class X
   test_element_class_metadata_constructor_unnamed_imported_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A(this.f)
+  const A()
 }
 ''');
 
     newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart' as prefix;
 
-@prefix.A(42)
+@prefix.A()
 class B {}
 ''');
 
@@ -4225,12 +4219,11 @@ class A
   test_class_metadata_constructor_named() async {
     await _assertIntrospectText(r'''
 @IntrospectTypesPhaseMacro(withMetadata: true)
-@A.named(42)
+@A.named()
 class X {}
 
 class A {
-  final int f;
-  const A.named(this.f)
+  const A.named()
 }
 ''', r'''
 class X
@@ -4246,8 +4239,7 @@ class X
   test_class_metadata_constructor_named_imported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A.named(this.f)
+  const A.named()
 }
 ''');
 
@@ -4255,7 +4247,7 @@ class A {
 import 'a.dart';
 
 @IntrospectTypesPhaseMacro(withMetadata: true)
-@A.named(42)
+@A.named()
 class X {}
 
 ''', r'''
@@ -4272,8 +4264,7 @@ class X
   test_class_metadata_constructor_named_imported_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A.named(this.f)
+  const A.named()
 }
 ''');
 
@@ -4281,7 +4272,7 @@ class A {
 import 'a.dart' as prefix;
 
 @IntrospectTypesPhaseMacro(withMetadata: true)
-@prefix.A.named(42)
+@prefix.A.named()
 class X {}
 
 ''', r'''
@@ -4295,15 +4286,58 @@ class X
 ''');
   }
 
-  test_class_metadata_constructor_unnamed() async {
+  test_class_metadata_constructor_namedArguments() async {
     await _assertIntrospectText(r'''
 @IntrospectTypesPhaseMacro(withMetadata: true)
-@A(42)
+@A(a: 42, b: 'foo')
 class X {}
 
 class A {
-  final int f;
-  const A(this.f)
+  const A({int? a, String? b});
+}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
+    ConstructorMetadataAnnotation
+      type: A
+      namedArguments
+        a: [42]
+        b: ['foo']
+''');
+  }
+
+  test_class_metadata_constructor_positionalArguments() async {
+    await _assertIntrospectText(r'''
+@IntrospectTypesPhaseMacro(withMetadata: true)
+@A(42, 'foo')
+class X {}
+
+class A {
+  const A(int a, String b);
+}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectTypesPhaseMacro
+    ConstructorMetadataAnnotation
+      type: A
+      positionalArguments
+        [42]
+        ['foo']
+''');
+  }
+
+  test_class_metadata_constructor_unnamed() async {
+    await _assertIntrospectText(r'''
+@IntrospectTypesPhaseMacro(withMetadata: true)
+@A()
+class X {}
+
+class A {
+  const A()
 }
 ''', r'''
 class X
@@ -4318,8 +4352,7 @@ class X
   test_class_metadata_constructor_unnamed_imported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A(this.f)
+  const A()
 }
 ''');
 
@@ -4327,7 +4360,7 @@ class A {
 import 'a.dart';
 
 @IntrospectTypesPhaseMacro(withMetadata: true)
-@A(42)
+@A()
 class X {}
 
 ''', r'''
@@ -4343,8 +4376,7 @@ class X
   test_class_metadata_constructor_unnamed_imported_withPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  final int f;
-  const A(this.f)
+  const A()
 }
 ''');
 
@@ -4352,7 +4384,7 @@ class A {
 import 'a.dart' as prefix;
 
 @IntrospectTypesPhaseMacro(withMetadata: true)
-@prefix.A(42)
+@prefix.A()
 class X {}
 
 ''', r'''
