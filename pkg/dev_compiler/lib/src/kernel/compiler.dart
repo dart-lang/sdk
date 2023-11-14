@@ -6131,7 +6131,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Expression left, Member? target, Expression right,
       {bool negated = false}) {
     var targetClass = target?.enclosingClass;
-    var leftType = left.getStaticType(_staticTypeContext);
+    var leftType = left.getStaticType(_staticTypeContext).extensionTypeErasure;
 
     // Conceptually `x == y` in Dart is defined as:
     //
@@ -6923,7 +6923,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           importUri.path == 'html_common');
 
   bool _isNull(Expression expr) =>
-      expr is NullLiteral || expr.getStaticType(_staticTypeContext) is NullType;
+      expr is NullLiteral ||
+      expr.getStaticType(_staticTypeContext).extensionTypeErasure is NullType;
 
   bool _doubleEqIsIdentity(Expression left, Expression right) {
     // If we statically know LHS or RHS is null we can use ==.
