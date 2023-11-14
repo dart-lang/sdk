@@ -1,4 +1,5 @@
 class A {}
+
 extension type E(Object? it) {}
 typedef TA = A;
 typedef TE = E;

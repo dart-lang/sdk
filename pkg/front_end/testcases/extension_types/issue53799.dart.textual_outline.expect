@@ -1,6 +1,9 @@
 class A<X> {}
+
 class B<X> extends A<X> {}
+
 class C extends A<String> {}
+
 extension type E<X>(X it) {}
 extension type E1(A<Never> it) implements A<String>, A<int> {}
 extension type E2(B<Never> it) implements B<String>, A<double> {}

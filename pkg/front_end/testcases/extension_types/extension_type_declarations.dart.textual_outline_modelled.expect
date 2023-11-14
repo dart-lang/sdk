@@ -9,12 +9,12 @@ extension type ExtensionType4(int it) {
   final int field = 42;
   int get getter => it;
   int method() => it;
-  int operator[](int index) => it;
+  int operator [](int index) => it;
   static int get staticGetter => 42;
   static int staticField = 42;
   static int staticMethod() => 42;
   static void set staticSetter(int value) {}
-  void operator[]=(int index, int value) {}
+  void operator []=(int index, int value) {}
   void set setter(int value) {}
 }
 extension type ExtensionType5.new(int it) {}

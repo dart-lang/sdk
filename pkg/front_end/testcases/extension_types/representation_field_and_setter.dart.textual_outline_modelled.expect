@@ -1,6 +1,7 @@
 class D1 {
   void set property(D1 value) {}
 }
+
 extension type A(int property) {
   void set property(int value) {}
 }

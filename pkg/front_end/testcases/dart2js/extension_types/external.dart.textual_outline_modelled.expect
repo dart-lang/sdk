@@ -1,9 +1,12 @@
 @JS()
 library static_interop;
+
 import 'dart:js_interop';
+
 @JS()
 @staticInterop
 class A {}
+
 @JS()
 extension type B._(A a) {
   external A field;

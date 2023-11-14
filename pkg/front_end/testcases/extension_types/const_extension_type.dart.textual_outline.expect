@@ -1,6 +1,7 @@
 class Class<T> {
   const Class();
 }
+
 extension type const ExtensionType<T>(T id) {}
 const a1 = Class<int>;
 const a2 = ExtensionType<Class<int>>;
