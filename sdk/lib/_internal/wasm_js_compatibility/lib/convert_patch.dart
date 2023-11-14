@@ -70,17 +70,12 @@ class Utf8Decoder {
     }
 
     if (0 == start && end == codeUnits.length) {
-      return _useTextDecoder(decoder, codeUnits.toExternRef);
+      return _useTextDecoder(decoder, codeUnits.toJSArrayExternRef());
     }
-    final length = codeUnits.length;
-    end = RangeError.checkValidRange(start, end, length);
+    RangeError.checkValidRange(start, end, codeUnits.length);
+    final length = end - start;
     return _useTextDecoder(
-        decoder,
-        js.JS<WasmExternRef?>(
-            '(codeUnits, start, end) => codeUnits.subarray(start, end)',
-            codeUnits.toExternRef,
-            start.toDouble,
-            end.toDouble));
+        decoder, codeUnits.toJSArrayExternRef(start, length));
   }
 
   static String? _useTextDecoder(
