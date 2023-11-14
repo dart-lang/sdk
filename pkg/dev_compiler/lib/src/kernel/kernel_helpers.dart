@@ -17,14 +17,6 @@ Never throwUnsupportedAuxiliaryType(AuxiliaryType type) =>
     throw UnsupportedError(
         'Unsupported auxiliary type $type (${type.runtimeType}).');
 
-/// Returns [type] with the immediate type erasure applied.
-///
-/// When [type] is an [ExtensionType] this is equivalent to `type.typeErasure`.
-/// The immediately returned value will not be an [ExtensionType] but it could
-/// still contain other [ExtensionType]s embedded within.
-DartType shallowExtensionTypeErasure(DartType type) =>
-    type is ExtensionType ? type.extensionTypeErasure : type;
-
 Constructor? unnamedConstructor(Class c) =>
     c.constructors.firstWhereOrNull((c) => c.name.text == '');
 

@@ -7233,8 +7233,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitIsExpression(IsExpression node) {
-    return _emitIsExpression(
-        node.operand, shallowExtensionTypeErasure(node.type));
+    return _emitIsExpression(node.operand, node.type.extensionTypeErasure);
   }
 
   js_ast.Expression _emitIsExpression(Expression operand, DartType type) {
@@ -7271,7 +7270,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fromExpr = node.operand;
     var jsFrom = _visitExpression(fromExpr);
     if (node.isUnchecked) return jsFrom;
-    var to = shallowExtensionTypeErasure(node.type);
+    var to = node.type.extensionTypeErasure;
     var from = fromExpr.getStaticType(_staticTypeContext);
 
     // If the check was put here by static analysis to ensure soundness, we
