@@ -488,6 +488,9 @@ void LiveRange::Print() {
   THR_Print("  live range v%" Pd " [%" Pd ", %" Pd ") in ", vreg(), Start(),
             End());
   assigned_location().Print();
+  if (assigned_location().IsConstant()) {
+    THR_Print(" %s", assigned_location().constant().ToCString());
+  }
   if (!spill_slot_.IsInvalid() && !spill_slot_.IsConstant()) {
     THR_Print(" assigned spill slot: %s", spill_slot_.ToCString());
   }
@@ -2636,6 +2639,9 @@ void FlowGraphAllocator::ConvertUseTo(UsePosition* use, Location loc) {
   ASSERT(slot->IsUnallocated());
   TRACE_ALLOC(THR_Print("  use at %" Pd " converted to ", use->pos()));
   TRACE_ALLOC(loc.Print());
+  if (loc.IsConstant()) {
+    TRACE_ALLOC(THR_Print(" %s", loc.constant().ToCString()));
+  }
   TRACE_ALLOC(THR_Print("\n"));
   *slot = loc;
 }
@@ -2650,6 +2656,9 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
                         "for v%" Pd " has been allocated to ",
                         range->Start(), range->End(), range->vreg()));
   TRACE_ALLOC(loc.Print());
+  if (loc.IsConstant()) {
+    TRACE_ALLOC(THR_Print(" %s", loc.constant().ToCString()));
+  }
   TRACE_ALLOC(THR_Print(":\n"));
 
   for (UsePosition* use = range->first_use(); use != nullptr;
