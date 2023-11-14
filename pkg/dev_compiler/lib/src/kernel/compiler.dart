@@ -6393,15 +6393,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // don't preserve the original type argument names into the runtime.
         // Those names are needed in the evaluation string used to extract the
         // types from the provided instance.
+        // At this time the only two uses of this method are extracting from
+        // `Iterable` and `Map`. There are no extension type uses so no need for
+        // erasure here.
         var extractionType = node.arguments.types.single;
         if (extractionType is! InterfaceType) {
           throw UnsupportedError(
-              'Type arguments can only be extracted from interface types.');
+              'Type arguments can only be extracted from interface types: '
+              'found $extractionType (${extractionType.runtimeType}) at '
+              '${node.location}');
         }
         var extractionTypeParameters = extractionType.classNode.typeParameters;
         if (extractionTypeParameters.isEmpty) {
           throw UnsupportedError(
-              'The extraction type must have type arguments to be extracted.');
+              'The extraction type must have type arguments to be extracted: '
+              'found $extractionType (${extractionType.runtimeType}) at '
+              '${node.location}');
         }
         var extractionTypeParameterNames = extractionTypeParameters
             .map((p) => '${extractionType.classNode.name}.${p.name!}');
@@ -6454,7 +6461,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (type is! InterfaceType) {
             throw UnsupportedError(
                 'JS_CLASS_REF only supports interface types: found $type '
-                'at ${node.location}');
+                '(${type.runtimeType}) at ${node.location}');
           }
           if (type.typeArguments.isNotEmpty) {
             throw UnsupportedError(
@@ -6534,6 +6541,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
           if (type is FutureOrType) {
             return _emitFutureOrNameNoInterop(suffix: '\$');
+          } else {
+            throw UnsupportedError(
+                '`getGenericClassStatic` Unsupported type found: '
+                '$type (${type.runtimeType}) at ${node.location}');
           }
         }
       } else if (node.arguments.positional.length == 1) {
