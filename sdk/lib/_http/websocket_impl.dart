@@ -989,7 +989,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   Timer? _closeTimer;
   _WebSocketPerMessageDeflate? _deflate;
 
-  static String? _userAgent = _getHttpVersion();
+  static final HttpClient _httpClient = HttpClient();
 
   static Future<WebSocket> connect(
       String url, Iterable<String>? protocols, Map<String, dynamic>? headers,
@@ -1018,16 +1018,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         path: uri.path,
         query: uri.query,
         fragment: uri.fragment);
-
-    // The default userAgent is only overridden if no custom HttpClient is set.
-    late HttpClient client;
-    if (customClient != null) {
-      client = customClient;
-    } else {
-      client = HttpClient();
-      client.userAgent = _userAgent;
-    }
-    return client.openUrl("GET", uri).then((request) {
+    return (customClient ?? _httpClient).openUrl("GET", uri).then((request) {
       if (uri.userInfo != null && uri.userInfo.isNotEmpty) {
         // If the URL contains user information use that for basic
         // authorization.
@@ -1273,10 +1264,10 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     return _sink.close();
   }
 
-  static String? get userAgent => _userAgent;
+  static String? get userAgent => _httpClient.userAgent;
 
   static set userAgent(String? userAgent) {
-    _userAgent = userAgent;
+    _httpClient.userAgent = userAgent;
   }
 
   void _close([int? code, String? reason]) {
