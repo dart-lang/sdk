@@ -44,7 +44,7 @@ where *options* include:
 
 Dart2Wasm will output a `wasm` file, containing Dart compiled to Wasm, as well as an `mjs` file containing the runtime. The result can be run with:
 
-`d8 --experimental-wasm-gc --experimental-wasm-type-reflection pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm` /abs/path/to/`*outfile*`.mjs
+`d8 pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm` /abs/path/to/`*outfile*`.mjs
 
 Where `d8` is the [V8 developer shell](https://v8.dev/docs/d8).
 
