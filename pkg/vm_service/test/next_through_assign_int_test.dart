@@ -23,7 +23,7 @@ void code() {
   print(b);
   a = 42;
   print(a);
-  int? d = 42;
+  final int d = 42;
   print(d);
   int? e = 41, f, g = 42;
   print(e);
@@ -40,7 +40,7 @@ const expected = <String>[
   '$file:${LINE_A + 4}:3', // on call to 'print'
   '$file:${LINE_A + 5}:3', // on 'a'
   '$file:${LINE_A + 6}:3', // on call to 'print'
-  '$file:${LINE_A + 7}:10', // on '='
+  '$file:${LINE_A + 7}:15', // on '='
   '$file:${LINE_A + 8}:3', // on call to 'print'
   '$file:${LINE_A + 9}:10', // on first '='
   '$file:${LINE_A + 9}:16', // on 'f'
@@ -55,7 +55,7 @@ final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE_A),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

@@ -15,7 +15,7 @@ const int LINE_A = 15;
 // print() within barz()
 const int LINE_B = 11;
 
-testMain() {
+void testMain() {
   test_pkg.fooz();
 }
 
@@ -26,7 +26,7 @@ var tests = <IsolateTest>[
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
 
-    LibraryRef hasPartRef = isolate.libraries!.firstWhere(
+    final LibraryRef hasPartRef = isolate.libraries!.firstWhere(
       (LibraryRef library) => library.uri == file,
     );
 
@@ -37,7 +37,7 @@ var tests = <IsolateTest>[
     // Breakpoints are allowed to be set (before marking library as
     // non-debuggable) but are not hit when running (after marking library
     // as non-debuggable).
-    ScriptRef script = hasPart.scripts!.firstWhere(
+    final ScriptRef script = hasPart.scripts!.firstWhere(
       (ScriptRef script) => script.uri == file,
     );
     Breakpoint bpt = await service.addBreakpoint(isolateId, script.id!, LINE_A);
@@ -73,7 +73,7 @@ var tests = <IsolateTest>[
   hasStoppedAtExit,
 ];
 
-main(args) => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'breakpoint_non_debuggable_library_test.dart',

@@ -89,7 +89,7 @@ Future testAsync(VmService service, IsolateRef isolateRef) async {
   unawaited(
     service.evaluate(isolateId, lib.id!, 'testerReady = true').then(
       (Response result) async {
-        Obj res =
+        final Obj res =
             await service.getObject(isolateId, (result as InstanceRef).id!);
         print(res);
         expect((res as Instance).valueAsString, equals('true'));
@@ -114,7 +114,7 @@ Future testAsync(VmService service, IsolateRef isolateRef) async {
 
 final tests = <IsolateTest>[testAsync];
 
-main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'async_generator_breakpoint_test.dart',

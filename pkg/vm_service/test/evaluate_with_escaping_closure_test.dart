@@ -10,7 +10,7 @@ import 'common/test_helper.dart';
 
 dynamic escapedClosure;
 
-testeeMain() {}
+void testeeMain() {}
 
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {

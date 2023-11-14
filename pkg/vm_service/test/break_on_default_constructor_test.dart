@@ -10,7 +10,7 @@ import 'common/test_helper.dart';
 
 class Foo {}
 
-code() {
+void code() {
   Foo();
 }
 
@@ -53,8 +53,7 @@ final tests = <IsolateTest>[
       await service.addBreakpointAtEntry(isolateId, fooFunc.id!);
       fail('Successfully added breakpoint at an invalid location!');
     } on RPCError catch (e) {
-      // TODO(bkonyi): add this error code to package:vm_service
-      expect(e.code, 102);
+      expect(e.code, RPCErrorKind.kCannotAddBreakpoint.code);
       expect(e.message, 'Cannot add breakpoint');
       expect(e.details, contains('Cannot add breakpoint at function'));
     }
@@ -63,13 +62,11 @@ final tests = <IsolateTest>[
   },
 ];
 
-void main(List<String> args) {
-  runIsolateTestsSynchronous(
-    args,
-    tests,
-    'break_on_default_constructor_test.dart',
-    testeeConcurrent: code,
-    pauseOnStart: true,
-    pauseOnExit: true,
-  );
-}
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'break_on_default_constructor_test.dart',
+      testeeConcurrent: code,
+      pauseOnStart: true,
+      pauseOnExit: true,
+    );

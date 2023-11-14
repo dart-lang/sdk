@@ -12,12 +12,12 @@ const String file = 'breakpoint_on_if_null_4_test.dart';
 
 dynamic compareWithMe = 43;
 
-code() {
+void code() {
   compareWithMe = null;
   foo(42);
 }
 
-foo(dynamic args) {
+void foo(dynamic args) {
   if (args == compareWithMe) {
     print('was null');
   }
@@ -29,10 +29,10 @@ foo(dynamic args) {
   }
 }
 
-List<String> stops = [];
+final stops = <String>[];
 
-List<String> expected = [
-  '$file:${LINE + 0}:13', // on 'args'
+const expected = <String>[
+  '$file:${LINE + 0}:18', // on 'args'
   '$file:${LINE + 1}:12', // on '=='
   '$file:${LINE + 4}:12', // on '!='
   '$file:${LINE + 5}:5', // on 'print'
@@ -41,20 +41,18 @@ List<String> expected = [
   '$file:${LINE + 10}:1', // on ending '}'
 ];
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtUriAndLine(file, LINE),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
-main(args) {
-  runIsolateTestsSynchronous(
-    args,
-    tests,
-    'breakpoint_on_if_null_4_test.dart',
-    testeeConcurrent: code,
-    pauseOnStart: true,
-    pauseOnExit: true,
-  );
-}
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'breakpoint_on_if_null_4_test.dart',
+      testeeConcurrent: code,
+      pauseOnStart: true,
+      pauseOnExit: true,
+    );

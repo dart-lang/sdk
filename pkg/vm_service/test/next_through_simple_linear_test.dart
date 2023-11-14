@@ -27,7 +27,7 @@ const expected = <String>[
   '$file:${LINE_A + 0}:3', // on call to 'print'
   '$file:${LINE_A + 1}:3', // on call to 'print'
   '$file:${LINE_A + 2}:3', // on call to 'print'
-  '$file:${LINE_A + 3}:1' // on ending '}'
+  '$file:${LINE_A + 3}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[

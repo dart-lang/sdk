@@ -20,18 +20,18 @@ extension type IdNumber(int i) {
   operator <(IdNumber other) => i < other.i;
 }
 
-testMain() {
-  IdNumber id1 = IdNumber(123);
-  IdNumber id2 = IdNumber(999);
+void testMain() {
+  final IdNumber id1 = IdNumber(123);
+  final IdNumber id2 = IdNumber(999);
   id1 < id2;
 }
 
-List<String> stops = [];
+final stops = <String>[];
 
-List<String> expected = [
-  '$fileName:${testMainStartLine + 0}:9', // on '()'
-  '$fileName:${testMainStartLine + 1}:18', // on 'IdNumber'
-  '$fileName:${testMainStartLine + 2}:18', // on 'IdNumber'
+const expected = <String>[
+  '$fileName:${testMainStartLine + 0}:14', // on '()'
+  '$fileName:${testMainStartLine + 1}:24', // on 'IdNumber'
+  '$fileName:${testMainStartLine + 2}:24', // on 'IdNumber'
   '$fileName:${testMainStartLine + 3}:7', // on '<'
   '$fileName:${inlineClassDefinitionStartLine + 1}:23', // on 'other'
   '$fileName:${inlineClassDefinitionStartLine + 1}:35', // on '<'
@@ -56,7 +56,7 @@ final tests = <IsolateTest>[
   checkRecordedStops(stops, expected),
 ];
 
-main(args) => runIsolateTestsSynchronous(
+void main(args) => runIsolateTests(
       args,
       tests,
       fileName,

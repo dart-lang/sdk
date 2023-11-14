@@ -83,8 +83,8 @@ var tests = <IsolateTest>[
       'compiled': true,
       'branchCoverage': {
         'hits': [],
-        'misses': [397, 426, 444, 474, 507]
-      }
+        'misses': [397, 426, 444, 474, 507],
+      },
     },
     reportLines: false,
   ),
@@ -96,8 +96,8 @@ var tests = <IsolateTest>[
       'compiled': true,
       'branchCoverage': {
         'hits': [],
-        'misses': [11, 12, 13, 15, 18]
-      }
+        'misses': [11, 12, 13, 15, 18],
+      },
     },
     reportLines: true,
   ),
@@ -111,8 +111,8 @@ var tests = <IsolateTest>[
       'compiled': true,
       'branchCoverage': {
         'hits': [397, 426, 474],
-        'misses': [444, 507]
-      }
+        'misses': [444, 507],
+      },
     },
     reportLines: false,
   ),
@@ -124,14 +124,14 @@ var tests = <IsolateTest>[
       'compiled': true,
       'branchCoverage': {
         'hits': [11, 12, 15],
-        'misses': [13, 18]
-      }
+        'misses': [13, 18],
+      },
     },
     reportLines: true,
   ),
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'branch_coverage_test.dart',

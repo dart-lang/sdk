@@ -50,7 +50,7 @@ Iterable<int> throwFromSyncStar() sync* {
   yield 7;
 }
 
-void testMain() async {
+Future<void> testMain() async {
   await throwFromAsync();
   await for (var _ in throwFromAsyncStar()) {/*ignore*/}
   for (var _ in throwFromSyncStar()) {/*ignore*/}

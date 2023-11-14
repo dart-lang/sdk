@@ -29,10 +29,8 @@ Stream<int> generator() async* {
   yield z;
 }
 
-testFunction() async {
-  await for (var _ in generator()) {
-    {}
-  }
+Future<void> testFunction() async {
+  await for (var _ in generator()) {}
 }
 
 final tests = <IsolateTest>[

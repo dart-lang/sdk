@@ -51,45 +51,46 @@ final tests = <IsolateTest>[
 
 final target = Platform.script.toString();
 
-librariesAlreadyCompiledTest(
+Future<void> Function(VmService service, IsolateRef isolateRef)
+    librariesAlreadyCompiledTest(
   bool forceCompile,
   List<String> librariesAlreadyCompiled,
   List<int> expectedHits,
   List<int> expectedMisses,
 ) =>
-    (VmService service, IsolateRef isolateRef) async {
-      final isolateId = isolateRef.id!;
+        (VmService service, IsolateRef isolateRef) async {
+          final isolateId = isolateRef.id!;
 
-      final report = await service.getSourceReport(
-        isolateId,
-        [SourceReportKind.kCoverage],
-        forceCompile: forceCompile,
-        reportLines: true,
-        librariesAlreadyCompiled: librariesAlreadyCompiled,
-      );
+          final report = await service.getSourceReport(
+            isolateId,
+            [SourceReportKind.kCoverage],
+            forceCompile: forceCompile,
+            reportLines: true,
+            librariesAlreadyCompiled: librariesAlreadyCompiled,
+          );
 
-      addLines(List<int>? lines, Set<int> out) {
-        for (final line in lines ?? []) {
-          if (line < ignoreHitsBelowThisLine) {
-            out.add(line);
+          void addLines(List<int>? lines, Set<int> out) {
+            for (final line in lines ?? []) {
+              if (line < ignoreHitsBelowThisLine) {
+                out.add(line);
+              }
+            }
           }
-        }
-      }
 
-      final hits = <int>{};
-      final misses = <int>{};
-      for (final range in report.ranges!) {
-        if (report.scripts?[range.scriptIndex!].uri == target) {
-          addLines(range.coverage?.hits, hits);
-          addLines(range.coverage?.misses, misses);
-        }
-      }
+          final hits = <int>{};
+          final misses = <int>{};
+          for (final range in report.ranges!) {
+            if (report.scripts?[range.scriptIndex!].uri == target) {
+              addLines(range.coverage?.hits, hits);
+              addLines(range.coverage?.misses, misses);
+            }
+          }
 
-      expect(hits, unorderedEquals(expectedHits));
-      expect(misses, unorderedEquals(expectedMisses));
-    };
+          expect(hits, unorderedEquals(expectedHits));
+          expect(misses, unorderedEquals(expectedMisses));
+        };
 
-main([args = const <String>[]]) async => await runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       target,

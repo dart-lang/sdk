@@ -43,14 +43,15 @@ Uri _getTestUri(String script) {
 }
 
 class _ServiceTesteeRunner {
-  Future run(
-      {Function()? testeeBefore,
-      Function()? testeeConcurrent,
-      bool pauseOnStart = false,
-      bool pauseOnExit = false}) async {
+  Future<void> run({
+    Function()? testeeBefore,
+    Function()? testeeConcurrent,
+    bool pauseOnStart = false,
+    bool pauseOnExit = false,
+  }) async {
     if (!pauseOnStart) {
       if (testeeBefore != null) {
-        var result = testeeBefore();
+        final result = testeeBefore();
         if (result is Future) {
           await result;
         }
@@ -58,7 +59,7 @@ class _ServiceTesteeRunner {
       print(''); // Print blank line to signal that testeeBefore has run.
     }
     if (testeeConcurrent != null) {
-      var result = testeeConcurrent();
+      final result = testeeConcurrent();
       if (result is Future) {
         await result;
       }
@@ -69,11 +70,12 @@ class _ServiceTesteeRunner {
     }
   }
 
-  void runSync(
-      {void Function()? testeeBeforeSync,
-      void Function()? testeeConcurrentSync,
-      bool pauseOnStart = false,
-      bool pauseOnExit = false}) {
+  void runSync({
+    void Function()? testeeBeforeSync,
+    void Function()? testeeConcurrentSync,
+    bool pauseOnStart = false,
+    bool pauseOnExit = false,
+  }) {
     if (!pauseOnStart) {
       if (testeeBeforeSync != null) {
         testeeBeforeSync();
@@ -113,24 +115,26 @@ class _ServiceTesteeLauncher {
     List<String>? extraArgs,
   ) {
     return _spawnDartProcess(
-        pauseOnStart,
-        pauseOnExit,
-        pauseOnUnhandledExceptions,
-        testeeControlsServer,
-        useAuthToken,
-        experiments,
-        extraArgs);
+      pauseOnStart,
+      pauseOnExit,
+      pauseOnUnhandledExceptions,
+      testeeControlsServer,
+      useAuthToken,
+      experiments,
+      extraArgs,
+    );
   }
 
   Future<io.Process> _spawnDartProcess(
-      bool pauseOnStart,
-      bool pauseOnExit,
-      bool pauseOnUnhandledExceptions,
-      bool testeeControlsServer,
-      bool useAuthToken,
-      List<String>? experiments,
-      List<String>? extraArgs) {
-    String dartExecutable = io.Platform.executable;
+    bool pauseOnStart,
+    bool pauseOnExit,
+    bool pauseOnUnhandledExceptions,
+    bool testeeControlsServer,
+    bool useAuthToken,
+    List<String>? experiments,
+    List<String>? extraArgs,
+  ) {
+    final String dartExecutable = io.Platform.executable;
 
     final fullArgs = <String>[];
     if (pauseOnStart) {
@@ -161,10 +165,13 @@ class _ServiceTesteeLauncher {
     return _spawnCommon(dartExecutable, fullArgs, <String, String>{});
   }
 
-  Future<io.Process> _spawnCommon(String executable,
-      List<String> /*!*/ arguments, Map<String, String> dartEnvironment) {
-    var environment = _TESTEE_SPAWN_ENV;
-    var bashEnvironment = StringBuffer();
+  Future<io.Process> _spawnCommon(
+    String executable,
+    List<String> /*!*/ arguments,
+    Map<String, String> dartEnvironment,
+  ) {
+    final environment = _TESTEE_SPAWN_ENV;
+    final bashEnvironment = StringBuffer();
     environment.forEach((k, v) => bashEnvironment.write('$k=$v '));
     dartEnvironment.forEach((k, v) {
       arguments.insert(0, '-D$k=$v');
@@ -178,17 +185,24 @@ class _ServiceTesteeLauncher {
   }
 
   Future<Uri> launch(
-      bool pauseOnStart,
-      bool pauseOnExit,
-      bool pauseOnUnhandledExceptions,
-      bool testeeControlsServer,
-      bool useAuthToken,
-      List<String>? experiments,
-      List<String>? extraArgs) {
-    return _spawnProcess(pauseOnStart, pauseOnExit, pauseOnUnhandledExceptions,
-            testeeControlsServer, useAuthToken, experiments, extraArgs)
-        .then((p) {
-      Completer<Uri> completer = Completer<Uri>();
+    bool pauseOnStart,
+    bool pauseOnExit,
+    bool pauseOnUnhandledExceptions,
+    bool testeeControlsServer,
+    bool useAuthToken,
+    List<String>? experiments,
+    List<String>? extraArgs,
+  ) {
+    return _spawnProcess(
+      pauseOnStart,
+      pauseOnExit,
+      pauseOnUnhandledExceptions,
+      testeeControlsServer,
+      useAuthToken,
+      experiments,
+      extraArgs,
+    ).then((p) {
+      final Completer<Uri> completer = Completer<Uri>();
       process = p;
       Uri? uri;
       bool blank = false;
@@ -241,7 +255,7 @@ void setupAddresses(Uri /*!*/ serverAddress) {
 }
 
 class _ServiceTesterRunner {
-  Future run({
+  Future<void> run({
     List<String>? mainArgs,
     List<String>? extraArgs,
     List<String>? experiments,
@@ -257,17 +271,24 @@ class _ServiceTesterRunner {
     bool allowForNonZeroExitCode = false,
     VmServiceFactory serviceFactory = VmService.defaultFactory,
   }) async {
-    var process = _ServiceTesteeLauncher(scriptName);
+    final process = _ServiceTesteeLauncher(scriptName);
     late VmService vm;
     late IsolateRef isolate;
     setUp(() async {
       await process
-          .launch(pauseOnStart, pauseOnExit, pauseOnUnhandledExceptions,
-              testeeControlsServer, useAuthToken, experiments, extraArgs)
+          .launch(
+        pauseOnStart,
+        pauseOnExit,
+        pauseOnUnhandledExceptions,
+        testeeControlsServer,
+        useAuthToken,
+        experiments,
+        extraArgs,
+      )
           .then((Uri serverAddress) async {
         if (mainArgs!.contains('--gdb')) {
-          var pid = process.process!.pid;
-          var wait = Duration(seconds: 10);
+          final pid = process.process!.pid;
+          final wait = Duration(seconds: 10);
           print('Testee has pid $pid, waiting $wait before continuing');
           io.sleep(wait);
         }
@@ -289,7 +310,7 @@ class _ServiceTesterRunner {
         // Run vm tests.
         if (vmTests != null) {
           var testIndex = 1;
-          var totalTests = vmTests.length;
+          final totalTests = vmTests.length;
           for (var t in vmTests) {
             print('$name [$testIndex/$totalTests]');
             await t(vm);
@@ -300,7 +321,7 @@ class _ServiceTesterRunner {
         // Run isolate tests.
         if (isolateTests != null) {
           var testIndex = 1;
-          var totalTests = isolateTests.length;
+          final totalTests = isolateTests.length;
           for (var t in isolateTests) {
             print('$name [$testIndex/$totalTests]');
             await t(vm, isolate);
@@ -430,20 +451,22 @@ void runIsolateTestsSynchronous(
   assert(!pauseOnStart || testeeBefore == null);
   if (_isTestee()) {
     _ServiceTesteeRunner().runSync(
-        testeeBeforeSync: testeeBefore,
-        testeeConcurrentSync: testeeConcurrent,
-        pauseOnStart: pauseOnStart,
-        pauseOnExit: pauseOnExit);
+      testeeBeforeSync: testeeBefore,
+      testeeConcurrentSync: testeeConcurrent,
+      pauseOnStart: pauseOnStart,
+      pauseOnExit: pauseOnExit,
+    );
   } else {
     _ServiceTesterRunner().run(
-        mainArgs: mainArgs,
-        scriptName: scriptName,
-        extraArgs: extraArgs,
-        isolateTests: tests,
-        pauseOnStart: pauseOnStart,
-        pauseOnExit: pauseOnExit,
-        verboseVm: verboseVm,
-        pauseOnUnhandledExceptions: pauseOnUnhandledExceptions);
+      mainArgs: mainArgs,
+      scriptName: scriptName,
+      extraArgs: extraArgs,
+      isolateTests: tests,
+      pauseOnStart: pauseOnStart,
+      pauseOnExit: pauseOnExit,
+      verboseVm: verboseVm,
+      pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+    );
   }
 }
 
@@ -466,20 +489,22 @@ Future<void> runVMTests(
 }) async {
   if (_isTestee()) {
     await _ServiceTesteeRunner().run(
-        testeeBefore: testeeBefore,
-        testeeConcurrent: testeeConcurrent,
-        pauseOnStart: pauseOnStart,
-        pauseOnExit: pauseOnExit);
+      testeeBefore: testeeBefore,
+      testeeConcurrent: testeeConcurrent,
+      pauseOnStart: pauseOnStart,
+      pauseOnExit: pauseOnExit,
+    );
   } else {
     await _ServiceTesterRunner().run(
-        mainArgs: mainArgs,
-        scriptName: scriptName,
-        extraArgs: extraArgs,
-        vmTests: tests,
-        pauseOnStart: pauseOnStart,
-        pauseOnExit: pauseOnExit,
-        verboseVm: verboseVm,
-        pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
-        serviceFactory: serviceFactory);
+      mainArgs: mainArgs,
+      scriptName: scriptName,
+      extraArgs: extraArgs,
+      vmTests: tests,
+      pauseOnStart: pauseOnStart,
+      pauseOnExit: pauseOnExit,
+      verboseVm: verboseVm,
+      pauseOnUnhandledExceptions: pauseOnUnhandledExceptions,
+      serviceFactory: serviceFactory,
+    );
   }
 }

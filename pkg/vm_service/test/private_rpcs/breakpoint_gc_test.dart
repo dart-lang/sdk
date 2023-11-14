@@ -14,14 +14,14 @@ const String file = 'breakpoint_gc_test.dart';
 
 int foo() => 42;
 
-testeeMain() {
+dynamic testeeMain() {
   foo(); // static call
 
-  dynamic list = [1, 2, 3];
+  final dynamic list = [1, 2, 3];
   list.clear(); // instance call
   print(list);
 
-  dynamic local = list; // debug step check = runtime call
+  final dynamic local = list; // debug step check = runtime call
   return local;
 }
 

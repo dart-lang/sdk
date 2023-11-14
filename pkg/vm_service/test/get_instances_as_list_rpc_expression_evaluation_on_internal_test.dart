@@ -25,7 +25,8 @@ final tests = <IsolateTest>[
         if (error.code == 113 &&
             error.message == 'Expression compilation error' &&
             error.details.contains(
-                "invalid 'targetId' parameter: Cannot evaluate against a VM-internal object")) {
+              "invalid 'targetId' parameter: Cannot evaluate against a VM-internal object",
+            )) {
           gotError = true;
           return Response();
         } else {
@@ -47,5 +48,8 @@ final tests = <IsolateTest>[
   }
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(args, tests,
-    'get_instances_as_list_rpc_expression_evaluation_on_internal_test.dart');
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'get_instances_as_list_rpc_expression_evaluation_on_internal_test.dart',
+    );

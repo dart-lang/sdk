@@ -105,7 +105,7 @@ final tests = <IsolateTest>[
   checkRecordedStops(stops, expected),
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       fileName,

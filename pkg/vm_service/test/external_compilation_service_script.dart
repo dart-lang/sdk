@@ -4,6 +4,6 @@
 
 import 'dart:developer';
 
-main() {
+void main() {
   debugger();
 }

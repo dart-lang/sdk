@@ -45,15 +45,15 @@ Future<void> setup() async {}
 
 Future<void> socketTest() async {
   // Socket
-  var serverSocket = await io.ServerSocket.bind(localhost, 0);
-  var socket = await io.Socket.connect(localhost, serverSocket.port);
+  final serverSocket = await io.ServerSocket.bind(localhost, 0);
+  final socket = await io.Socket.connect(localhost, serverSocket.port);
   socket.write(content);
   await socket.flush();
   socket.destroy();
 
   // rawDatagram
   final doneCompleter = Completer<void>();
-  var server = await io.RawDatagramSocket.bind(localhost, 0);
+  final server = await io.RawDatagramSocket.bind(localhost, 0);
   server.listen((io.RawSocketEvent event) {
     if (event == io.RawSocketEvent.read) {
       server.receive();
@@ -62,9 +62,12 @@ Future<void> socketTest() async {
       }
     }
   });
-  var client = await io.RawDatagramSocket.bind(localhost, 0);
+  final client = await io.RawDatagramSocket.bind(localhost, 0);
   client.send(
-      utf8.encode(udpContent), io.InternetAddress(localhost), server.port);
+    utf8.encode(udpContent),
+    io.InternetAddress(localhost),
+    server.port,
+  );
   client.send([1, 2, 3], io.InternetAddress(localhost), server.port);
 
   // Wait for datagram to arrive.
@@ -108,7 +111,7 @@ var tests = <IsolateTest>[
   // TODO(bkonyi): fully port observatory test for socket profiling.
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'network_profiling_test.dart',

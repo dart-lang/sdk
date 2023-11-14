@@ -10,13 +10,13 @@ import 'common/test_helper.dart';
 
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
-    var profile = await service.getAllocationProfile(isolateRef.id!);
+    final profile = await service.getAllocationProfile(isolateRef.id!);
     for (var entry in profile.members!) {
       if (entry.instancesCurrent == 0) continue;
 
-      var classRef = entry.classRef!;
+      final classRef = entry.classRef!;
       print(classRef);
-      var instanceSet =
+      final instanceSet =
           await service.getInstances(isolateRef.id!, classRef.id!, 10);
       for (var instance in instanceSet.instances!) {
         await service.getObject(isolateRef.id!, instance.id!);
@@ -25,7 +25,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(
+Future<void> main(args) => runIsolateTests(
       args,
       tests,
       'fetch_all_types_test.dart',

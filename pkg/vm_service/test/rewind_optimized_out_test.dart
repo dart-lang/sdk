@@ -66,7 +66,10 @@ final tests = <IsolateTest>[
 
     // We are at our breakpoint with global=100.
     final result = await service.evaluate(
-        isolateId, isolate.rootLib!.id!, 'global') as InstanceRef;
+      isolateId,
+      isolate.rootLib!.id!,
+      'global',
+    ) as InstanceRef;
     expect(result.valueAsString, '100');
 
     // Rewind the top stack frame.
@@ -78,11 +81,12 @@ final tests = <IsolateTest>[
       caughtException = true;
       expect(e.code, RPCErrorKind.kIsolateCannotBeResumed.code);
       expect(
-          e.details,
-          startsWith('Cannot rewind to frame 1 due to conflicting compiler '
-              'optimizations. Run the vm with --no-prune-dead-locals '
-              'to disallow these optimizations. Next valid rewind '
-              'frame is '));
+        e.details,
+        startsWith('Cannot rewind to frame 1 due to conflicting compiler '
+            'optimizations. Run the vm with --no-prune-dead-locals '
+            'to disallow these optimizations. Next valid rewind '
+            'frame is '),
+      );
     }
     expect(caughtException, true);
   },

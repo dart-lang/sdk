@@ -14,7 +14,7 @@ class _TestConst {
   const _TestConst();
 }
 
-_topLevelClosure() {}
+void _topLevelClosure() {}
 
 @pragma('vm:entry-point') // Prevent obfuscation
 late final _TestConst x;

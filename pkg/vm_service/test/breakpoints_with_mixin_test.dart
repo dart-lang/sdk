@@ -15,13 +15,13 @@ const int lib3Bp1 = 7;
 const int lib3Bp2 = 13;
 
 void code() {
-  Test1 test1 = Test1();
+  final Test1 test1 = Test1();
   test1.foo();
-  Test2 test2 = Test2();
+  final Test2 test2 = Test2();
   test2.foo();
-  Foo foo = Foo();
+  final Foo foo = Foo();
   foo.foo();
-  Bar bar = Bar();
+  final Bar bar = Bar();
   bar.bar();
   test1.foo();
   test2.foo();
@@ -29,9 +29,9 @@ void code() {
   bar.bar();
 }
 
-List<String> stops = [];
+final stops = <String>[];
 
-List<String> expected = [
+const expected = <String>[
   '$lib3Filename:$lib3Bp1:5 ($testFilename:${testCodeLineStart + 2}:9)',
   '$lib3Filename:$lib3Bp1:5 ($testFilename:${testCodeLineStart + 4}:9)',
   '$lib3Filename:$lib3Bp1:5 ($testFilename:${testCodeLineStart + 6}:7)',
@@ -42,21 +42,19 @@ List<String> expected = [
   '$lib3Filename:$lib3Bp2:5 ($testFilename:${testCodeLineStart + 12}:7)',
 ];
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtUriAndLine(lib3Filename, lib3Bp1),
   setBreakpointAtUriAndLine(lib3Filename, lib3Bp2),
   resumeProgramRecordingStops(stops, true),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
-main(args) {
-  runIsolateTestsSynchronous(
-    args,
-    tests,
-    'breakpoints_with_mixin_test.dart',
-    testeeConcurrent: code,
-    pauseOnStart: true,
-    pauseOnExit: true,
-  );
-}
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'breakpoints_with_mixin_test.dart',
+      testeeConcurrent: code,
+      pauseOnStart: true,
+      pauseOnExit: true,
+    );

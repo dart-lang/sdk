@@ -39,9 +39,13 @@ extension on VmService {
     String isolateId,
     String targetId,
   ) async {
-    return await callMethod('_getRetainedSize', isolateId: isolateId, args: {
-      'targetId': targetId,
-    }) as InstanceRef;
+    return await callMethod(
+      '_getRetainedSize',
+      isolateId: isolateId,
+      args: {
+        'targetId': targetId,
+      },
+    ) as InstanceRef;
   }
 }
 

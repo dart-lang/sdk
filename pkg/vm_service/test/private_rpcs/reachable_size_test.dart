@@ -22,7 +22,7 @@ dynamic p1;
 @pragma('vm:entry-point') // Prevent obfuscation
 dynamic p2;
 
-buildGraph() {
+void buildGraph() {
   p1 = Pair();
   p2 = Pair();
 

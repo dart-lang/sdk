@@ -16,28 +16,38 @@ Future<ServiceExtensionResponse> handler(String method, Map parameters) {
   print('Invoked extension: $method');
   switch (method) {
     case 'ext..delay':
-      var c = Completer<ServiceExtensionResponse>();
+      final c = Completer<ServiceExtensionResponse>();
       Timer(Duration(seconds: 1), () {
-        c.complete(ServiceExtensionResponse.result(jsonEncode({
-          'type': '_delayedType',
-          'method': method,
-          'parameters': parameters,
-        })));
+        c.complete(
+          ServiceExtensionResponse.result(
+            jsonEncode({
+              'type': '_delayedType',
+              'method': method,
+              'parameters': parameters,
+            }),
+          ),
+        );
       });
       return c.future;
     case 'ext..error':
       return Future<ServiceExtensionResponse>.value(
-          ServiceExtensionResponse.error(
-              ServiceExtensionResponse.extensionErrorMin, 'My error detail.'));
+        ServiceExtensionResponse.error(
+          ServiceExtensionResponse.extensionErrorMin,
+          'My error detail.',
+        ),
+      );
     case 'ext..exception':
       throw 'I always throw!';
     case 'ext..success':
       return Future<ServiceExtensionResponse>.value(
-          ServiceExtensionResponse.result(jsonEncode({
-        'type': '_extensionType',
-        'method': method,
-        'parameters': parameters,
-      })));
+        ServiceExtensionResponse.result(
+          jsonEncode({
+            'type': '_extensionType',
+            'method': method,
+            'parameters': parameters,
+          }),
+        ),
+      );
   }
   throw 'Unknown extension: $method';
 }
@@ -128,7 +138,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'developer_extension_test.dart',

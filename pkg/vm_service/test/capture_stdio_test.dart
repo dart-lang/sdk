@@ -90,7 +90,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(
+Future<void> main(args) => runIsolateTests(
       args,
       tests,
       'capture_stdio_test.dart',

@@ -73,7 +73,7 @@ Future setupProcesses() async {
 
     final result = jsonEncode({
       'type': 'foobar',
-      'pids': [process1!.pid, process2!.pid, process3!.pid]
+      'pids': [process1!.pid, process2!.pid, process3!.pid],
     });
     return Future.value(ServiceExtensionResponse.result(result));
   }
@@ -151,7 +151,7 @@ final processTests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       processTests,
       'process_service_test.dart',

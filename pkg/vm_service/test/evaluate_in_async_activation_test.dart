@@ -13,11 +13,11 @@ import 'common/test_helper.dart';
 const LINE_A = 19;
 const LINE_B = LINE_A + 2;
 
-testFunction() async {
-  var x = 3;
-  var y = 4;
+Future<int> testFunction() async {
+  final x = 3;
+  final y = 4;
   debugger();
-  var z = await Future(() => x + y);
+  final z = await Future(() => x + y);
   debugger();
   return z;
 }

@@ -66,7 +66,7 @@ const expected = <String>[
 
   // End (on call to 'print' and on ending '}')
   '$file:${LINE_A + 10}:3',
-  '$file:${LINE_A + 11}:1'
+  '$file:${LINE_A + 11}:1',
 ];
 
 final tests = <IsolateTest>[

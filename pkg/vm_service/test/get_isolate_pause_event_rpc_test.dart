@@ -7,7 +7,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-var tests = <VMTest>[
+final tests = <VMTest>[
   (VmService service) async {
     final vm = await service.getVM();
     final result = await service.getIsolatePauseEvent(vm.isolates!.first.id!);
@@ -33,7 +33,7 @@ var tests = <VMTest>[
   },
 ];
 
-main(args) async => runVMTests(
+void main([args = const <String>[]]) => runVMTests(
       args,
       tests,
       'get_isolate_pause_event_rpc_test.dart',

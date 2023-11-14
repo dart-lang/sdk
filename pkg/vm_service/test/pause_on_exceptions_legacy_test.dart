@@ -9,11 +9,11 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-doThrow() {
+Never doThrow() {
   throw 'TheException'; // Line 13.
 }
 
-doCaught() {
+String? doCaught() {
   try {
     doThrow();
   } catch (e) {
@@ -21,8 +21,9 @@ doCaught() {
   }
 }
 
-doUncaught() {
+String doUncaught() {
   doThrow();
+  // ignore: dead_code
   return 'end of doUncaught';
 }
 
@@ -52,8 +53,12 @@ final tests = <IsolateTest>[
     });
     await service.streamListen(EventStreams.kDebug);
 
-    test(String pauseMode, String expression, bool shouldPause,
-        bool shouldBeCaught) async {
+    Future<void> test(
+      String pauseMode,
+      String expression,
+      bool shouldPause,
+      bool shouldBeCaught,
+    ) async {
       print('Evaluating $expression with pause on $pauseMode exception');
 
       // ignore: deprecated_member_use_from_same_package
@@ -105,7 +110,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'pause_on_exceptions_test.dart',

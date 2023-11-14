@@ -55,7 +55,7 @@ var tests = <IsolateTest>[
     final apple = await service.getObject(isolateId, field.staticValue!.id!);
     fieldRef = lib.variables!.singleWhere((field) => field.name == 'banana');
     field = await service.getObject(isolateId, fieldRef.id!) as Field;
-    Instance banana =
+    final Instance banana =
         await service.getObject(isolateId, field.staticValue!.id!) as Instance;
 
     dynamic result =
@@ -67,21 +67,29 @@ var tests = <IsolateTest>[
     expect(result.valueAsString, equals('foobar2apple'));
 
     result = await service.invoke(
-        isolateId, instance.id!, 'instanceFunction', [apple.id!, banana.id!]);
+      isolateId,
+      instance.id!,
+      'instanceFunction',
+      [apple.id!, banana.id!],
+    );
     expect(result.valueAsString, equals('foobar3applebanana'));
 
     // Wrong arity.
-    await expectError(() => service
-        .invoke(isolateId, instance.id!, 'instanceFunction', [apple.id!]));
+    await expectError(
+      () => service
+          .invoke(isolateId, instance.id!, 'instanceFunction', [apple.id!]),
+    );
     // No such target.
-    await expectError(() => service
-        .invoke(isolateId, instance.id!, 'functionDoesNotExist', [apple.id!]));
+    await expectError(
+      () => service
+          .invoke(isolateId, instance.id!, 'functionDoesNotExist', [apple.id!]),
+    );
   },
   resumeIsolate,
 ];
 
 Future<void> expectError(func) async {
-  dynamic result = await func();
+  final dynamic result = await func();
   expect(result.type == 'Error' || result.type == '@Error', isTrue);
 }
 

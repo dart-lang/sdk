@@ -54,11 +54,13 @@ final tests = <IsolateTest>[
 
     // Assert inst is referenced by at least n, array, and the top-level
     // field e.
-    hasReferenceSuchThat((r) =>
-        r.parentField != null &&
-        r.parentField!.name == 'edge' &&
-        r.source is InstanceRef &&
-        (r.source as InstanceRef).classRef!.name == 'Node');
+    hasReferenceSuchThat(
+      (r) =>
+          r.parentField != null &&
+          r.parentField!.name == 'edge' &&
+          r.source is InstanceRef &&
+          (r.source as InstanceRef).classRef!.name == 'Node',
+    );
     hasReferenceSuchThat(
       (r) =>
           r.parentListIndex == 1 &&

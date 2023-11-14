@@ -17,7 +17,7 @@ const LINE_A = 19;
 const file = 'step_through_function_2_test.dart';
 
 void code() /* LINE_A */ {
-  Bar bar = Bar();
+  final Bar bar = Bar();
   bar.barXYZ1(42);
   bar.barXYZ2(42);
   fooXYZ1(42);
@@ -52,7 +52,7 @@ class Bar {
 final stops = <String>[];
 const expected = <String>[
   '$file:${LINE_A + 0}:10', // after 'code'
-  '$file:${LINE_A + 1}:13', // on 'Bar'
+  '$file:${LINE_A + 1}:19', // on 'Bar'
 
   '$file:${LINE_A + 2}:7', // on 'barXYZ1'
   '$file:${LINE_A + 22}:20', // on 'i'
@@ -75,7 +75,7 @@ const expected = <String>[
   '$file:${LINE_A + 16}:3', // on '_xyz'
   '$file:${LINE_A + 17}:1', // on '}'
 
-  '$file:${LINE_A + 6}:1' // on ending '}'
+  '$file:${LINE_A + 6}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[

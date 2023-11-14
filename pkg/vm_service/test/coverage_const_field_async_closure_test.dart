@@ -52,7 +52,9 @@ var tests = <IsolateTest>[
     final rootLib =
         await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
     final script = await service.getObject(
-        isolateId, rootLib.scripts!.first.id!) as Script;
+      isolateId,
+      rootLib.scripts!.first.id!,
+    ) as Script;
 
     final report = await service.getSourceReport(
       isolateId,
@@ -63,7 +65,7 @@ var tests = <IsolateTest>[
     int match = 0;
     for (var range in report.ranges!) {
       for (int i in range.coverage!.hits!) {
-        int? line = script.getLineNumberFromTokenPos(i);
+        final int? line = script.getLineNumberFromTokenPos(i);
         if (line == null) {
           throw FormatException('token $i was missing source location');
         }
@@ -78,10 +80,10 @@ var tests = <IsolateTest>[
     // Neither LINE nor Bar.field should be added into coverage.
     expect(match, 0);
   },
-  resumeIsolate
+  resumeIsolate,
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'coverage_const_field_async_closure_test.dart',

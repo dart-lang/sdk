@@ -33,15 +33,18 @@ var tests = <IsolateTest>[
   // Evaluate against top frame.
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    var topFrame = 0;
+    final topFrame = 0;
     final dynamic result = await service.evaluateInFrame(
-        isolateId, topFrame, 'a.runtimeType.toString()');
+      isolateId,
+      topFrame,
+      'a.runtimeType.toString()',
+    );
     print(result);
     expect(result.valueAsString, equals('A<C>'));
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'eval_issue_49209_test.dart',

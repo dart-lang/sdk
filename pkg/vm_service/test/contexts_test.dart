@@ -18,28 +18,28 @@ late final Function fullBlock;
 late final Function fullBlockWithChain;
 
 Function genCleanBlock() {
-  block(x) => x;
+  dynamic block(x) => x;
   return block;
 }
 
 Function genCopyingBlock() {
   final x = 'I could be copied into the block';
-  block() => x;
+  String block() => x;
   return block;
 }
 
 Function genFullBlock() {
   var x = 42; // I must captured in a context.
-  block() => x;
+  int block() => x;
   x++;
   return block;
 }
 
 Function genFullBlockWithChain() {
   var x = 420; // I must captured in a context.
-  outerBlock() {
+  int Function() outerBlock() {
     var y = 4200;
-    innerBlock() => x + y;
+    int innerBlock() => x + y;
     y++;
     return innerBlock;
   }

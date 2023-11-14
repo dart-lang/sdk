@@ -19,14 +19,14 @@ void code() {
 final stops = <String>[];
 const expected = <String>[
   '$shortFile:${LINE + 0}:5', // on 'print'
-  '$shortFile:${LINE + 1}:3' // on class ending '}'
+  '$shortFile:${LINE + 1}:3', // on class ending '}'
 ];
 
 final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtUriAndLine(breakpointFile, LINE),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

@@ -39,7 +39,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'reload_sources_rpc_triggers_isolate_reload_event_test.dart',

@@ -20,8 +20,10 @@ void primeTimeline() {
   final parentTask = TimelineTask.withTaskId(42);
   final task = TimelineTask(parent: parentTask, filterKey: 'testFilter');
   task.start('TASK1', arguments: {'task1-start-key': 'task1-start-value'});
-  task.instant('ITASK',
-      arguments: {'task1-instant-key': 'task1-instant-value'});
+  task.instant(
+    'ITASK',
+    arguments: {'task1-instant-key': 'task1-instant-value'},
+  );
   task.finish(arguments: {'task1-finish-key': 'task1-finish-value'});
 
   final flow = Flow.begin(id: 123);
@@ -34,23 +36,27 @@ void primeTimeline() {
 }
 
 Iterable<TrackEvent> extractTrackEventsFromTracePackets(
-    List<TracePacket> packets) {
+  List<TracePacket> packets,
+) {
   return packets
       .where((packet) => packet.hasTrackEvent())
       .map((packet) => packet.trackEvent);
 }
 
 Map<String, String> mapFromListOfDebugAnnotations(
-    List<DebugAnnotation> debugAnnotations) {
-  return HashMap.fromEntries(debugAnnotations.map((a) {
-    if (a.hasStringValue()) {
-      return MapEntry(a.name, a.stringValue);
-    } else if (a.hasLegacyJsonValue()) {
-      return MapEntry(a.name, a.legacyJsonValue);
-    } else {
-      throw 'We should not be writing annotations without values';
-    }
-  }));
+  List<DebugAnnotation> debugAnnotations,
+) {
+  return HashMap.fromEntries(
+    debugAnnotations.map((a) {
+      if (a.hasStringValue()) {
+        return MapEntry(a.name, a.stringValue);
+      } else if (a.hasLegacyJsonValue()) {
+        return MapEntry(a.name, a.legacyJsonValue);
+      } else {
+        throw 'We should not be writing annotations without values';
+      }
+    }),
+  );
 }
 
 void checkThatAllEventsHaveIsolateNumbers(Iterable<TrackEvent> events) {
@@ -72,14 +78,21 @@ bool mapContains(Map<String, dynamic> map, Map<String, String> submap) {
 }
 
 int countNumberOfEventsOfType(
-    Iterable<TrackEvent> events, TrackEvent_Type type) {
+  Iterable<TrackEvent> events,
+  TrackEvent_Type type,
+) {
   return events.where((event) {
     return event.type == type;
   }).length;
 }
 
-bool eventsContains(Iterable<TrackEvent> events, TrackEvent_Type type,
-    {String? name, int? flowId, Map<String, String>? arguments}) {
+bool eventsContains(
+  Iterable<TrackEvent> events,
+  TrackEvent_Type type, {
+  String? name,
+  int? flowId,
+  Map<String, String>? arguments,
+}) {
   return events.any((event) {
     if (event.type != type) {
       return false;
@@ -95,8 +108,10 @@ bool eventsContains(Iterable<TrackEvent> events, TrackEvent_Type type,
       return arguments == null;
     } else {
       final Map<String, dynamic> dartArguments = jsonDecode(
-          mapFromListOfDebugAnnotations(
-              event.debugAnnotations)['Dart Arguments']!);
+        mapFromListOfDebugAnnotations(
+          event.debugAnnotations,
+        )['Dart Arguments']!,
+      );
       if (arguments == null) {
         return dartArguments.isEmpty;
       } else {
@@ -129,7 +144,7 @@ int computeTimeExtentNanos(List<TracePacket> packets, int timeOrigin) {
   }
   int largestExtent = packetsWithEvents[0].timestamp.toInt() - timeOrigin;
   for (var i = 0; i < packetsWithEvents.length; i++) {
-    int duration = packetsWithEvents[i].timestamp.toInt() - timeOrigin;
+    final int duration = packetsWithEvents[i].timestamp.toInt() - timeOrigin;
     if (duration > largestExtent) {
       largestExtent = duration;
     }
@@ -154,70 +169,105 @@ final tests = <VMTest>[
       countNumberOfEventsOfType(events, TrackEvent_Type.TYPE_SLICE_END),
     );
     expect(
-        eventsContains(events, TrackEvent_Type.TYPE_INSTANT,
-            name: 'ISYNC', arguments: {'fruit': 'banana'}),
-        true);
+      eventsContains(
+        events,
+        TrackEvent_Type.TYPE_INSTANT,
+        name: 'ISYNC',
+        arguments: {'fruit': 'banana'},
+      ),
+      true,
+    );
     expect(
-        eventsContains(events, TrackEvent_Type.TYPE_SLICE_BEGIN, name: 'apple'),
-        true);
+      eventsContains(events, TrackEvent_Type.TYPE_SLICE_BEGIN, name: 'apple'),
+      true,
+    );
     expect(
-        eventsContains(events, TrackEvent_Type.TYPE_SLICE_BEGIN,
-            name: 'TASK1',
-            arguments: {
-              'filterKey': 'testFilter',
-              'task1-start-key': 'task1-start-value',
-              'parentId': 42.toRadixString(16)
-            }),
-        true);
+      eventsContains(
+        events,
+        TrackEvent_Type.TYPE_SLICE_BEGIN,
+        name: 'TASK1',
+        arguments: {
+          'filterKey': 'testFilter',
+          'task1-start-key': 'task1-start-value',
+          'parentId': 42.toRadixString(16),
+        },
+      ),
+      true,
+    );
     expect(
-        eventsContains(events, TrackEvent_Type.TYPE_SLICE_END, arguments: {
+      eventsContains(
+        events,
+        TrackEvent_Type.TYPE_SLICE_END,
+        arguments: {
           'filterKey': 'testFilter',
           'task1-finish-key': 'task1-finish-value',
-        }),
-        true);
+        },
+      ),
+      true,
+    );
     expect(
-        eventsContains(events, TrackEvent_Type.TYPE_INSTANT,
-            name: 'ITASK',
-            arguments: {
-              'filterKey': 'testFilter',
-              'task1-instant-key': 'task1-instant-value',
-            }),
-        true);
+      eventsContains(
+        events,
+        TrackEvent_Type.TYPE_INSTANT,
+        name: 'ITASK',
+        arguments: {
+          'filterKey': 'testFilter',
+          'task1-instant-key': 'task1-instant-value',
+        },
+      ),
+      true,
+    );
     expect(
-        eventsContains(events, TrackEvent_Type.TYPE_SLICE_BEGIN,
-            name: 'peach', flowId: 123),
-        true);
+      eventsContains(
+        events,
+        TrackEvent_Type.TYPE_SLICE_BEGIN,
+        name: 'peach',
+        flowId: 123,
+      ),
+      true,
+    );
     expect(
-        eventsContains(events, TrackEvent_Type.TYPE_SLICE_BEGIN,
-            name: 'watermelon', flowId: 123),
-        true);
+      eventsContains(
+        events,
+        TrackEvent_Type.TYPE_SLICE_BEGIN,
+        name: 'watermelon',
+        flowId: 123,
+      ),
+      true,
+    );
     expect(
-        eventsContains(events, TrackEvent_Type.TYPE_SLICE_BEGIN,
-            name: 'pear', flowId: 123),
-        true);
+      eventsContains(
+        events,
+        TrackEvent_Type.TYPE_SLICE_BEGIN,
+        name: 'pear',
+        flowId: 123,
+      ),
+      true,
+    );
 
     // Calculate the time window of events.
     final timeOriginNanos = computeTimeOriginNanos(packets);
     final timeExtentNanos = computeTimeExtentNanos(packets, timeOriginNanos);
     // Query for the timeline with the time window.
     final filteredResult = await service.getPerfettoVMTimeline(
-        timeOriginMicros: timeOriginNanos ~/ 1000,
-        timeExtentMicros: timeExtentNanos ~/ 1000);
+      timeOriginMicros: timeOriginNanos ~/ 1000,
+      timeExtentMicros: timeExtentNanos ~/ 1000,
+    );
     // Verify that we have the same number of events.
     final filteredTrace = Trace.fromBuffer(base64Decode(filteredResult.trace!));
-    expect(extractTrackEventsFromTracePackets(filteredTrace.packet).length,
-        events.length);
+    expect(
+      extractTrackEventsFromTracePackets(filteredTrace.packet).length,
+      events.length,
+    );
   },
 ];
 
-main([args = const <String>[]]) async {
-  await runVMTests(
-    args, tests, 'get_perfetto_vm_timeline_rpc_test.dart',
-    testeeBefore: primeTimeline,
-    // TODO(derekx): runtime/observatory/tests/service/get_vm_timeline_rpc_test
-    // runs with --complete-timeline, but for performance reasons, we cannot do
-    // the same until this [runVMTests] method supports the [executableArgs] and
-    // [compileToKernelFirst] parameters.
-    extraArgs: ['--timeline-streams=Dart'],
-  );
-}
+void main([args = const <String>[]]) => runVMTests(
+      args, tests, 'get_perfetto_vm_timeline_rpc_test.dart',
+      testeeBefore: primeTimeline,
+      // TODO(derekx): runtime/observatory/tests/service/get_vm_timeline_rpc_test
+      // runs with --complete-timeline, but for performance reasons, we cannot do
+      // the same until this [runVMTests] method supports the [executableArgs] and
+      // [compileToKernelFirst] parameters.
+      extraArgs: ['--timeline-streams=Dart'],
+    );

@@ -32,12 +32,14 @@ extension on VmService {
     String isolateId,
     bool onlyWithInstantiations,
   ) async {
-    final response = await callMethod('_getTypeArgumentsList',
-        isolateId: isolateId,
-        // Only native metrics are supported.
-        args: {
-          'onlyWithInstantiations': onlyWithInstantiations,
-        });
+    final response = await callMethod(
+      '_getTypeArgumentsList',
+      isolateId: isolateId,
+      // Only native metrics are supported.
+      args: {
+        'onlyWithInstantiations': onlyWithInstantiations,
+      },
+    );
     return TypeArgumentsList.parse(response.json)!;
   }
 }

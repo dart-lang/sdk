@@ -24,7 +24,7 @@ var tests = <IsolateTest>[
   }
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'regress_44588_test.dart',

@@ -9,7 +9,7 @@ import 'package:vm_service/vm_service.dart';
 import 'common/test_helper.dart';
 
 void script() {
-  grow(int iterations, int size, Duration duration) {
+  void grow(int iterations, int size, Duration duration) {
     if (iterations <= 0) {
       return;
     }
@@ -22,7 +22,7 @@ void script() {
 
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
-    Completer completer = Completer();
+    final Completer completer = Completer();
     // Expect at least this many GC events.
     int gcCountdown = 3;
     late final StreamSubscription sub;

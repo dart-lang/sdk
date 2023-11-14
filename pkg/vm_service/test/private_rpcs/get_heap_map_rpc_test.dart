@@ -59,11 +59,17 @@ enum GCType {
 }
 
 extension on VmService {
-  Future<HeapMap> getHeapMap(String isolateId,
-          {GCType gc = GCType.none}) async =>
-      await callMethod('_getHeapMap', isolateId: isolateId, args: {
-        if (gc != GCType.none) 'gc': gc.toString(),
-      }) as HeapMap;
+  Future<HeapMap> getHeapMap(
+    String isolateId, {
+    GCType gc = GCType.none,
+  }) async =>
+      await callMethod(
+        '_getHeapMap',
+        isolateId: isolateId,
+        args: {
+          if (gc != GCType.none) 'gc': gc.toString(),
+        },
+      ) as HeapMap;
 }
 
 final tests = <IsolateTest>[

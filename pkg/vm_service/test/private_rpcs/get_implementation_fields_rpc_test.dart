@@ -8,12 +8,18 @@ import 'package:vm_service/vm_service.dart';
 import '../common/test_helper.dart';
 
 Future<Response> getImplementationFields(
-    VmService service, String isolateId, String objectId) async {
-  return await service.callMethod('_getImplementationFields',
-      isolateId: isolateId, args: {'objectId': objectId});
+  VmService service,
+  String isolateId,
+  String objectId,
+) async {
+  return await service.callMethod(
+    '_getImplementationFields',
+    isolateId: isolateId,
+    args: {'objectId': objectId},
+  );
 }
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   // A null object.
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
@@ -24,5 +30,8 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, 'get_implementation_fields_rpc_test.dart');
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'get_implementation_fields_rpc_test.dart',
+    );

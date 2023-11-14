@@ -28,9 +28,10 @@ Future<void> testeeBefore() async {
   try {
     final result = createServiceObject(
       await makeHttpServiceRequest(
-          serverUri: serverUri,
-          method: 'getIsolateGroup',
-          params: {'isolateGroupId': await getIsolateGroupId(serverUri)}),
+        serverUri: serverUri,
+        method: 'getIsolateGroup',
+        params: {'isolateGroupId': await getIsolateGroupId(serverUri)},
+      ),
       ['IsolateGroup'],
     )! as IsolateGroup;
     Expect.isTrue(result.id!.startsWith('isolateGroups/'));

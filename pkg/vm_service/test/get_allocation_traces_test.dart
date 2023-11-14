@@ -23,7 +23,7 @@ class Bar {
 }
 
 void test() {
-  List l = <Object>[];
+  final List l = <Object>[];
   debugger();
   // Toggled on for Foo.
   // Traced allocation.
@@ -43,7 +43,7 @@ Future<Class?> getClassFromRootLib(
   String className,
 ) async {
   final isolate = await service.getIsolate(isolateRef.id!);
-  Library rootLib =
+  final Library rootLib =
       (await service.getObject(isolate.id!, isolate.rootLib!.id!)) as Library;
   for (ClassRef cls in rootLib.classes!) {
     if (cls.name == className) {
@@ -92,8 +92,10 @@ final tests = <IsolateTest>[
     expect(instances.totalCount, 1);
     final instance = instances.instances!.first as InstanceRef;
     expect(instance.identityHashCode != 0, isTrue);
-    expect(instance.identityHashCode,
-        profileResponse.samples!.first.identityHashCode);
+    expect(
+      instance.identityHashCode,
+      profileResponse.samples!.first.identityHashCode,
+    );
 
     await service.setTraceClassAllocation(isolate.id!, fooClass.id!, false);
 
@@ -114,12 +116,12 @@ final tests = <IsolateTest>[
 
   (VmService service, IsolateRef isolate) async {
     // Ensure the allocation of `Bar()` was recorded.
-    final profileResponse = (await service.getAllocationTraces(isolate.id!));
+    final profileResponse = await service.getAllocationTraces(isolate.id!);
     expect(profileResponse.samples!.length, 2);
   },
 ];
 
-main(args) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'get_allocation_traces_test.dart',

@@ -32,8 +32,8 @@ class C {
 
 void use(_) {}
 
-testMain() {
-  C c = C();
+void testMain() {
+  final C c = C();
   C.staticMethod();
   c.instanceMethod();
 }
@@ -49,7 +49,10 @@ final tests = <IsolateTest>[
     expect(xRef.valueAsString, '56');
 
     InstanceRef staticFieldRef = await service.evaluateInFrame(
-        isolateId, 0, 'staticField += 1') as InstanceRef;
+      isolateId,
+      0,
+      'staticField += 1',
+    ) as InstanceRef;
     expect(staticFieldRef.valueAsString, '13');
     staticFieldRef = await service.evaluateInFrame(isolateId, 0, 'staticField')
         as InstanceRef;
@@ -75,21 +78,33 @@ final tests = <IsolateTest>[
     expect(yRef.valueAsString, '78');
 
     InstanceRef staticFieldRef = await service.evaluateInFrame(
-        isolateId, 0, 'staticField += 1') as InstanceRef;
+      isolateId,
+      0,
+      'staticField += 1',
+    ) as InstanceRef;
     expect(staticFieldRef.valueAsString, '14');
     staticFieldRef = await service.evaluateInFrame(isolateId, 0, 'staticField')
         as InstanceRef;
     expect(staticFieldRef.valueAsString, '14');
 
     InstanceRef instanceFieldRef = await service.evaluateInFrame(
-        isolateId, 0, 'instanceField += 1') as InstanceRef;
+      isolateId,
+      0,
+      'instanceField += 1',
+    ) as InstanceRef;
     expect(instanceFieldRef.valueAsString, '35');
     instanceFieldRef = await service.evaluateInFrame(
-        isolateId, 0, 'instanceField') as InstanceRef;
+      isolateId,
+      0,
+      'instanceField',
+    ) as InstanceRef;
     expect(instanceFieldRef.valueAsString, '35');
   }
 ];
 
-main([args = const <String>[]]) async =>
-    runIsolateTests(args, tests, 'evaluate_inside_closures_test.dart',
-        testeeConcurrent: testMain);
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'evaluate_inside_closures_test.dart',
+      testeeConcurrent: testMain,
+    );

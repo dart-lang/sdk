@@ -14,16 +14,16 @@ analyzer:
 
 linter:
   rules:
-    # always_declare_return_types: true
-    # avoid_escaping_inner_quotes: true
-    # avoid_void_async: true
-    # cancel_subscriptions: true
-    # close_sinks: true
+    always_declare_return_types: true
+    avoid_escaping_inner_quotes: true
+    avoid_void_async: true
+    cancel_subscriptions: true
+    close_sinks: true
     constant_identifier_names: false # Disabled for LINE_N style constants in tests
     directives_ordering: true
-    # no_adjacent_strings_in_list: true
-    # prefer_final_locals: true
-    # prefer_void_to_null: true
-    # require_trailing_commas: true
-    # unnecessary_parenthesis: true
-    # unnecessary_raw_strings: true
+    no_adjacent_strings_in_list: true
+    prefer_final_locals: true
+    prefer_void_to_null: true
+    require_trailing_commas: true
+    unnecessary_parenthesis: true
+    unnecessary_raw_strings: true

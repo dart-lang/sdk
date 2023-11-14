@@ -13,7 +13,7 @@ const int LINE_C = 22;
 const int LINE_D = 24;
 
 void testMain() {
-  bool foo = false;
+  final bool foo = false;
   if (foo) {} // LINE_A
 
   const bar = false;

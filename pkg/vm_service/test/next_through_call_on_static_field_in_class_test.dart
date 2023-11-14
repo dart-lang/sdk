@@ -36,14 +36,14 @@ const expected = <String>[
   '$file:${LINE_A + 1}:7', // on 'foo'
   '$file:${LINE_A + 2}:7', // on 'fooMethod'
   '$file:${LINE_A + 3}:10', // after 'foo' (on invisible '.call')
-  '$file:${LINE_A + 4}:1' // on ending '}'
+  '$file:${LINE_A + 4}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE_A),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

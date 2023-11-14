@@ -108,7 +108,7 @@ bool _isIdentifierChar(int c) {
 }
 
 int? guessTokenLength(Script script, int line, int column) {
-  String source = getLine(script, line)!;
+  final String source = getLine(script, line)!;
 
   int pos = column;
   if (pos >= source.length) {

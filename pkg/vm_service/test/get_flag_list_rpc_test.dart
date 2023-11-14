@@ -30,7 +30,9 @@ final tests = <VMTest>[
   // Modify a flag with the wrong value type.
   (VmService service) async {
     final Error result = (await service.setFlag(
-        'pause_isolates_on_start', 'not-boolean')) as Error;
+      'pause_isolates_on_start',
+      'not-boolean',
+    )) as Error;
     expect(result.message, equals('Cannot set flag: invalid value'));
   },
 

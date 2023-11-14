@@ -71,8 +71,8 @@ final tests = <IsolateTest>[
 
     // Make sure we can translate it all.
     for (int place in coveragePlaces) {
-      int? line = script.getLineNumberFromTokenPos(place);
-      int? column = script.getColumnNumberFromTokenPos(place);
+      final int? line = script.getLineNumberFromTokenPos(place);
+      final int? column = script.getColumnNumberFromTokenPos(place);
       if (line == null || column == null) {
         throw 'Token $place translated to $line:$column';
       }

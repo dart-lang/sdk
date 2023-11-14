@@ -58,10 +58,12 @@ Uri randomlyAddRequestParams(Uri uri) {
       possiblePathSegments.sublist(0, rng.nextInt(possiblePathSegments.length));
   uri = uri.replace(pathSegments: segmentSubset);
   if (rng.nextInt(3) == 0) {
-    uri = uri.replace(queryParameters: {
-      'foo': 'bar',
-      'year': '2019',
-    });
+    uri = uri.replace(
+      queryParameters: {
+        'foo': 'bar',
+        'year': '2019',
+      },
+    );
   }
   return uri;
 }
@@ -78,7 +80,8 @@ Future<HttpServer> startServer() async {
     }
     // Randomly delay response.
     await Future.delayed(
-        Duration(milliseconds: rng.nextInt(maxResponseDelayMs)));
+      Duration(milliseconds: rng.nextInt(maxResponseDelayMs)),
+    );
     await response.close();
   });
   return server;
@@ -305,7 +308,7 @@ void hasDefaultRequestHeaders(HttpProfile profile) {
 }
 
 void hasCustomRequestHeaders(HttpProfile profile) {
-  var requests = profile.requests.where((e) => e.method == 'GET').toList();
+  final requests = profile.requests.where((e) => e.method == 'GET').toList();
   for (final request in requests) {
     // Some requests are unable to complete due to the server closing after a
     // random delay. Don't try and inspect the request data from these

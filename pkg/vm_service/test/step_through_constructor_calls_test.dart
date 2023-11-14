@@ -17,15 +17,15 @@ const LINE_A = 20;
 const file = 'step_through_constructor_calls_test.dart';
 
 void code() {
-  Foo foo1 = Foo(); // LINE_A
+  final Foo foo1 = Foo(); // LINE_A
   print(foo1.x);
-  Foo foo2 = Foo.named();
+  final Foo foo2 = Foo.named();
   print(foo2.x);
-  Foo foo3 = const Foo();
+  final Foo foo3 = const Foo();
   print(foo3.x);
-  Foo foo4 = const Foo.named();
+  final Foo foo4 = const Foo.named();
   print(foo4.x);
-  Foo foo5 = Foo.named2(1, 2, 3);
+  final Foo foo5 = Foo.named2(1, 2, 3);
   print(foo5.x);
 }
 
@@ -42,23 +42,23 @@ class Foo {
 
 final stops = <String>[];
 const expected = <String>[
-  '$file:${LINE_A + 0}:14', // on 'Foo'
+  '$file:${LINE_A + 0}:20', // on 'Foo'
   '$file:${LINE_A + 15}:12', // on '(' in 'const Foo() : x = 1;'
   '$file:${LINE_A + 15}:22', // on ';' in same line
   '$file:${LINE_A + 1}:14', // on 'x'
   '$file:${LINE_A + 1}:3', // on print
-  '$file:${LINE_A + 2}:18', // on 'named'
+  '$file:${LINE_A + 2}:24', // on 'named'
   '$file:${LINE_A + 17}:18', // on '(' in 'const Foo.named() : x = 2;'
   '$file:${LINE_A + 17}:28', // on ';' in same line
   '$file:${LINE_A + 3}:14', // on 'x'
   '$file:${LINE_A + 3}:3', // on print
-  '$file:${LINE_A + 4}:12', // on '='
+  '$file:${LINE_A + 4}:18', // on '='
   '$file:${LINE_A + 5}:14', // on 'x'
   '$file:${LINE_A + 5}:3', // on print
-  '$file:${LINE_A + 6}:12', // on '='
+  '$file:${LINE_A + 6}:18', // on '='
   '$file:${LINE_A + 7}:14', // on 'x'
   '$file:${LINE_A + 7}:3', // on print
-  '$file:${LINE_A + 8}:18', // on 'named2'
+  '$file:${LINE_A + 8}:24', // on 'named2'
   '$file:${LINE_A + 19}:54', // on 'ccccccccccccc'
   '$file:${LINE_A + 20}:22', // on first '+'
   '$file:${LINE_A + 20}:35', // on second '+'

@@ -19,7 +19,7 @@ Future<void> _compute() async {
   print('compute is done');
 }
 
-void testMain() async {
+Future<void> testMain() async {
   await iso.Isolate.run(_compute);
   print('Done');
 }

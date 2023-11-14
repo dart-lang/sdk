@@ -24,15 +24,17 @@ var tests = <VMTest>[
     } on RPCError catch (e) {
       caughtException = true;
       expect(
-          e.details,
-          contains(
-              "getMemoryUsage: invalid 'isolateGroupId' parameter: badid"));
+        e.details,
+        contains(
+          "getMemoryUsage: invalid 'isolateGroupId' parameter: badid",
+        ),
+      );
     }
     expect(caughtException, isTrue);
   },
 ];
 
-main(args) async => runVMTests(
+void main([args = const <String>[]]) => runVMTests(
       args,
       tests,
       'get_isolate_group_memory_usage.dart',

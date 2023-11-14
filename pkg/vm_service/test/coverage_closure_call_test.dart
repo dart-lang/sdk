@@ -55,8 +55,8 @@ final tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [],
-        'misses': [399, 443]
-      }
+        'misses': [399, 443],
+      },
     };
 
     final location = func.location!;
@@ -101,8 +101,8 @@ final tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [399, 443],
-        'misses': []
-      }
+        'misses': [],
+      },
     };
 
     final location = func.location!;

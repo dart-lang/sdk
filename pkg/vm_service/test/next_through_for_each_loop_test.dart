@@ -51,7 +51,7 @@ const expected = <String>[
 
   // End: Apparently we go to data again, then on the final '}'
   '$file:${LINE_A + 1}:27',
-  '$file:${LINE_A + 4}:1'
+  '$file:${LINE_A + 4}:1',
 ];
 
 final tests = <IsolateTest>[

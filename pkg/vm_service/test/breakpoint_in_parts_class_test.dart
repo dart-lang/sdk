@@ -12,7 +12,7 @@ part 'breakpoint_in_parts_class_part.dart';
 const int LINE = 88;
 const String file = 'breakpoint_in_parts_class_part.dart';
 
-code() {
+void code() {
   final foo = Foo10('Foo!');
   print(foo);
 }
@@ -21,14 +21,14 @@ final stops = <String>[];
 
 const expected = <String>[
   '$file:${LINE + 0}:5', // on 'print'
-  '$file:${LINE + 1}:3' // on class ending '}'
+  '$file:${LINE + 1}:3', // on class ending '}'
 ];
 
 final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtUriAndLine(file, LINE),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

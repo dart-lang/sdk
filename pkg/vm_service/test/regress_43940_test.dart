@@ -9,9 +9,11 @@ import 'package:vm_service/vm_service.dart';
 
 void main() {
   test('Call dispose handler before onDone completion', () async {
-    final controller = StreamController<String>(onCancel: () async {
-      await Future.delayed(const Duration(seconds: 1));
-    });
+    final controller = StreamController<String>(
+      onCancel: () async {
+        await Future.delayed(const Duration(seconds: 1));
+      },
+    );
     bool completed = false;
     final fakeService = VmService(
       controller.stream,
@@ -24,5 +26,6 @@ void main() {
     unawaited(fakeService.dispose());
     await fakeService.onDone;
     expect(completed, true);
+    await controller.close();
   });
 }

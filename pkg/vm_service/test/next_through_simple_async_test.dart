@@ -18,7 +18,7 @@ const LINE_A = 21;
 
 const file = 'next_through_simple_async_test.dart';
 
-void code() /* LINE_A */ async {
+Future<void> code() /* LINE_A */ async {
   final f = File(Platform.script.toFilePath());
   final modified = await f.lastModified();
   final exists = await f.exists();
@@ -32,7 +32,7 @@ void foo() {
 
 final stops = <String>[];
 const expected = <String>[
-  '$file:${LINE_A + 0}:10', // on '(' in code()'
+  '$file:${LINE_A + 0}:18', // on '(' in code()'
   '$file:${LINE_A + 1}:27', // on 'script'
   '$file:${LINE_A + 1}:34', // on 'toFilePath'
   '$file:${LINE_A + 1}:13', // on File

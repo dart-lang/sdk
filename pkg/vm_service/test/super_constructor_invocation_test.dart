@@ -65,7 +65,7 @@ Future<Obj> evaluateGetter(
   String instanceId,
   String getter,
 ) async {
-  dynamic result = await service.evaluate(isolateId, instanceId, getter);
+  final dynamic result = await service.evaluate(isolateId, instanceId, getter);
   return await service.getObject(isolateId, result.id);
 }
 
@@ -143,7 +143,7 @@ final tests = <IsolateTest>[
     expect(result.json['name'], 'int');
   },
   (VmService service, _) async {
-    dynamic instance = await createInstance(service, 'B(1, 2, 3, 4)');
+    final dynamic instance = await createInstance(service, 'B(1, 2, 3, 4)');
     dynamic result = await evaluateGetter(service, instance.id, 'f1');
     expect(result.valueAsString, '1');
     result = await evaluateGetter(service, instance.id, 'v1');
@@ -177,7 +177,7 @@ final tests = <IsolateTest>[
   }
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'super_constructor_invocation_test.dart',
