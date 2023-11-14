@@ -3525,26 +3525,32 @@ void bar() {
 }
 ''');
 
-    assertResolvedNodeText(findNode.functionReference('foo<int>.call;'), r'''
-FunctionReference
-  function: SimpleIdentifier
-    token: foo
-    staticElement: self::@function::foo
-    staticType: void Function<T>(T)
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-    rightBracket: >
+    final node = findNode.propertyAccess('.call');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: FunctionReference
+    function: SimpleIdentifier
+      token: foo
+      staticElement: self::@function::foo
+      staticType: void Function<T>(T)
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    staticType: void Function(int)
+    typeArgumentTypes
+      int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: void Function(int)
   staticType: void Function(int)
-  typeArgumentTypes
-    int
 ''');
-    assertSimpleIdentifier(findNode.simple('call;'),
-        element: null, type: 'void Function(int)');
   }
 
   test_topLevelFunction_targetOfFunctionCall() async {
