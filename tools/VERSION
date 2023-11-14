@@ -30,4 +30,4 @@ PATCH 0
 PRERELEASE 0
 PRERELEASE_PATCH 0
 
-# Reauthored due to cherry-pick of fix prior to release.
+# Reauthored due to Dart FFI fix.
