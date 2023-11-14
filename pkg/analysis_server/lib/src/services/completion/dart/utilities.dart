@@ -30,7 +30,8 @@ Comparator<CompletionSuggestion> completionComparator = (a, b) {
   return b.relevance.compareTo(a.relevance);
 };
 
-String buildClosureParameters(FunctionType type) {
+String buildClosureParameters(FunctionType type,
+    {bool includeKeywords = true}) {
   var buffer = StringBuffer();
   buffer.write('(');
 
@@ -58,6 +59,10 @@ String buildClosureParameters(FunctionType type) {
         name = 'p${i}_$index';
         index++;
       }
+    }
+
+    if (includeKeywords && parameter.isRequiredNamed) {
+      buffer.write('required ');
     }
     buffer.write(name);
   }

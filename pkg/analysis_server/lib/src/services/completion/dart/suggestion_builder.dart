@@ -351,6 +351,11 @@ class SuggestionBuilder {
   void suggestClosure(FunctionType type, {bool includeTrailingComma = false}) {
     var indent = getRequestLineIndent(request);
     var parametersString = buildClosureParameters(type);
+    // Build a version of the parameter string without keywords for the
+    // completion label because `required` is less useful and may push the
+    // end of the completion (`=>` vs `() {}`) off the end.
+    var parametersDisplayString =
+        buildClosureParameters(type, includeKeywords: false);
 
     var blockBuffer = StringBuffer(parametersString);
     blockBuffer.writeln(' {');
@@ -389,14 +394,14 @@ class SuggestionBuilder {
     _addSuggestion(
       createSuggestion(
         completion: blockBuffer.toString(),
-        displayText: '$parametersString {}',
+        displayText: '$parametersDisplayString {}',
         selectionOffset: blockSelectionOffset,
       ),
     );
     _addSuggestion(
       createSuggestion(
         completion: expressionBuffer.toString(),
-        displayText: '$parametersString =>',
+        displayText: '$parametersDisplayString =>',
         selectionOffset: expressionSelectionOffset,
       ),
     );
