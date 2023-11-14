@@ -817,6 +817,32 @@ class B {
     expect(labels, contains('Deprecated(…)'));
   }
 
+  Future<void> test_closure() async {
+    final content = '''
+void f({void Function(int a, String b) closure}) {}
+
+void g() {
+  f(closure: ^);
+}
+''';
+
+    final expectedContent = '''
+void f({void Function(int a, String b) closure}) {}
+
+void g() {
+  f(closure: (a, b) => ^,);
+}
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectCompletions: ['(a, b) {}', '(a, b) =>'],
+      applyEditsFor: '(a, b) =>',
+      expectedContent: expectedContent,
+    );
+  }
+
   Future<void> test_comment() async {
     final content = '''
     // foo ^
