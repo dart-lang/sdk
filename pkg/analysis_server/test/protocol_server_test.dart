@@ -11,11 +11,12 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart' as engine;
+import 'package:analyzer/source/line_info.dart' as engine;
+import 'package:analyzer/source/source.dart' as engine;
 import 'package:analyzer/src/dart/analysis/results.dart' as engine;
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as engine;
 import 'package:analyzer/src/error/codes.dart' as engine;
-import 'package:analyzer/src/generated/source.dart' as engine;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

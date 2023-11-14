@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:nnbd_migration/nnbd_migration.dart';
 
 /// Mixin that catches exceptions when visiting an AST recursively, and reports

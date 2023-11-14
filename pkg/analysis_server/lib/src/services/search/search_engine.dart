@@ -3,10 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
 /// Instances of the enum [MatchKind] represent the kind of reference that was

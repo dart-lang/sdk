@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/line_info.dart';
 
 /// The result of performing some kind of analysis on a single file. Every
 /// result that implements this interface will also implement a sub-interface.

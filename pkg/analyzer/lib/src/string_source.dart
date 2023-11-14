@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart' as pkg_path;
 
 /// An implementation of [Source] that's based on an in-memory Dart string.

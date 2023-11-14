@@ -5,11 +5,12 @@
 import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/error/error.dart' as analyzer;
 import 'package:analyzer/source/error_processor.dart' as analyzer;
+import 'package:analyzer/source/line_info.dart' as analyzer;
+import 'package:analyzer/source/source.dart' as analyzer;
 import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as analyzer;
 import 'package:analyzer/src/error/codes.dart' as analyzer;
 import 'package:analyzer/src/generated/engine.dart' as analyzer;
-import 'package:analyzer/src/generated/source.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:test/test.dart';
