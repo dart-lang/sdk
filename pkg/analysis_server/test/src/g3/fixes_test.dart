@@ -188,7 +188,7 @@ class C {
   }
 
   /// Write an analysis options file based on the given arguments.
-  /// TODO(scheglov) Use AnalysisOptionsFileConfig
+  // TODO(scheglov): Use AnalysisOptionsFileConfig
   void _writeAnalysisOptionsFile({
     List<String>? lints,
   }) {

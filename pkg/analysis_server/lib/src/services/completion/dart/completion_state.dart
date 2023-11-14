@@ -70,7 +70,7 @@ class CompletionState {
   }
 }
 
-// TODO(brianwilkerson) Move to 'package:analysis_server/src/utilities/extensions/ast.dart'
+// TODO(brianwilkerson): Move to 'package:analysis_server/src/utilities/extensions/ast.dart'
 extension on ClassMember {
   /// Return `true` if this member is a static member.
   bool get isStatic {

@@ -1034,7 +1034,7 @@ mixin LspAnalysisServerTestMixin
       // an error it will still be handled as such when the future is later
       // awaited.
 
-      // TODO: Fix this static error.
+      // TODO(srawlins): Fix this static error.
       // ignore: body_might_complete_normally_catch_error
       outboundRequest.catchError((_) {});
     });

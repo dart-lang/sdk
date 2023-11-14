@@ -160,7 +160,7 @@ class CodeActionHandler
       if (isPubspec)
         PubspecCodeActionsProducer(
           server,
-          // TODO(pq) can we do better?
+          // TODO(pq): can we do better?
           server.resourceProvider.getFile(unitPath),
           lineInfo,
           offset: offset,
@@ -171,7 +171,7 @@ class CodeActionHandler
       if (isAnalysisOptions)
         AnalysisOptionsCodeActionsProducer(
           server,
-          // TODO(pq) can we do better?
+          // TODO(pq): can we do better?
           server.resourceProvider.getFile(unitPath),
           lineInfo,
           offset: offset,
@@ -181,7 +181,7 @@ class CodeActionHandler
         ),
       PluginCodeActionsProducer(
         server,
-        // TODO(pq) can we do better?
+        // TODO(pq): can we do better?
         server.resourceProvider.getFile(unitPath),
         lineInfo,
         offset: offset,

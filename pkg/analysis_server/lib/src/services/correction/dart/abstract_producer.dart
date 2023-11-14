@@ -136,7 +136,7 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
   final UnitResult unitResult;
   final ChangeWorkspace workspace;
 
-  /// TODO(migration) Make it non-nullable, specialize "fix" context?
+  // TODO(migration): Make it non-nullable, specialize "fix" context?
   final DartFixContext? dartFixContext;
 
   /// A flag indicating whether the correction producers will be run in the
@@ -257,7 +257,7 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
 
 abstract class CorrectionProducerWithDiagnostic
     extends ResolvedCorrectionProducer {
-  /// TODO(migration) Consider providing it via constructor.
+  // TODO(migration): Consider providing it via constructor.
   @override
   Diagnostic get diagnostic => super.diagnostic!;
 }
@@ -514,7 +514,7 @@ abstract class ResolvedCorrectionProducer
 /// The behavior shared by [ResolvedCorrectionProducer] and [MultiCorrectionProducer].
 abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// The context used to produce corrections.
-  /// TODO(migration) Make it not `late`, require in constructor.
+  // TODO(migration): Make it not `late`, require in constructor.
   late CorrectionProducerContext<T> _context;
 
   /// The most deeply nested node that completely covers the highlight region of
@@ -533,7 +533,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
   /// not exist.
   AstNode? get coveredNode {
-    // TODO(brianwilkerson) Consider renaming this to `coveringNode`.
+    // TODO(brianwilkerson): Consider renaming this to `coveringNode`.
     if (_coveredNode == null) {
       final diagnostic = this.diagnostic;
       if (diagnostic == null) {
@@ -719,7 +719,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 extension DartFileEditBuilderExtension on DartFileEditBuilder {
   /// Add edits to the [builder] to remove any parentheses enclosing the
   /// [expression].
-  // TODO(brianwilkerson) Consider moving this to DartFileEditBuilder.
+  // TODO(brianwilkerson): Consider moving this to DartFileEditBuilder.
   void removeEnclosingParentheses(Expression expression) {
     var precedence = getExpressionPrecedence(expression);
     while (expression.parent is ParenthesizedExpression) {

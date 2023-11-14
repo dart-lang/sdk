@@ -52,7 +52,7 @@ class TypeMemberContributor extends DartCompletionContributor {
         expression is ExtensionOverride) {
       var containingNode = request.target.containingNode;
       if (containingNode is ObjectPattern) {
-        // TODO(brianwilkerson) This is really only intended to be reached when
+        // TODO(brianwilkerson): This is really only intended to be reached when
         //  `expression` is `null`. It's not ideal that we're using this
         //  contributor this way, and we should look into better ways to
         //  structure the code.

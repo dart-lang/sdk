@@ -95,7 +95,7 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
       var rangeStart = offset;
       int rangeLength;
 
-      // todo (pq): consider adding ranges for params
+      // TODO(pq): consider adding ranges for params
       // pending: https://github.com/dart-lang/sdk/issues/40207
       // (types in closure param completions make this UX awkward)
       final parametersString = buildClosureParameters(parameterType);
@@ -103,7 +103,7 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
 
       blockBuffer.write(' ');
 
-      // todo (pq): consider refactoring to share common logic w/
+      // TODO(pq): consider refactoring to share common logic w/
       //  ArgListContributor.buildClosureSuggestions
       final returnType = parameterType.returnType;
       if (returnType is VoidType) {
@@ -156,7 +156,7 @@ protocol.Element createLocalElement(
     bool isAbstract = false,
     bool isDeprecated = false}) {
   var name = id.name;
-  // TODO(danrubel) use lineInfo to determine startLine and startColumn
+  // TODO(danrubel): use lineInfo to determine startLine and startColumn
   var location = Location(source.fullName, id.offset, id.length, 0, 0,
       endLine: 0, endColumn: 0);
   var flags = protocol.Element.makeFlags(

@@ -25,7 +25,7 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
   /// Throws a [FileSystemException] if the file doesn't exist or can't be read.
   /// Throws a [FormatterException] if the code could not be formatted.
   List<SourceEdit> formatFile(String filePath) {
-    // TODO(brianwilkerson) Move this to a superclass when `edit.format` is
+    // TODO(brianwilkerson): Move this to a superclass when `edit.format` is
     //  implemented by a handler class so the code can be shared.
     var resource = server.resourceProvider.getFile(filePath);
     var originalContent = resource.readAsStringSync();
@@ -37,7 +37,7 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
 
     var edits = <SourceEdit>[];
     if (formattedContent != originalContent) {
-      // TODO(brianwilkerson) Replace full replacements with smaller, more
+      // TODO(brianwilkerson): Replace full replacements with smaller, more
       //  targeted edits.
       var edit = SourceEdit(0, originalContent.length, formattedContent);
       edits.add(edit);
@@ -55,7 +55,7 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
     );
     var sourceFileEdits = <SourceFileEdit>[];
     for (var context in collection.contexts) {
-      // TODO(pq) maybe experimental and could be unused (or maybe used by dart fix)
+      // TODO(pq): maybe experimental and could be unused (or maybe used by dart fix)
       if (context.analysisOptions.codeStyleOptions.useFormatter) {
         _formatInContext(context, sourceFileEdits);
       }

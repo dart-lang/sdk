@@ -194,7 +194,7 @@ class ImportLibrary extends MultiCorrectionProducer {
         if (combinators.length == 1) {
           var combinator = combinators[0];
           if (combinator is HideElementCombinator) {
-            // TODO(brianwilkerson) Support removing the extension name from a
+            // TODO(brianwilkerson): Support removing the extension name from a
             //  hide combinator.
           } else if (combinator is ShowElementCombinator) {
             producers.add(_ImportLibraryShow(
@@ -278,7 +278,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       if (combinators.length == 1) {
         var combinator = combinators[0];
         if (combinator is HideElementCombinator) {
-          // TODO(brianwilkerson) Support removing the element name from a
+          // TODO(brianwilkerson): Support removing the element name from a
           //  hide combinator.
         } else if (combinator is ShowElementCombinator) {
           // prepare library name - unit name or 'dart:name' for SDK library

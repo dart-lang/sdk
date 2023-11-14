@@ -144,7 +144,7 @@ String getElementDisplayName(engine.Element element) {
 
 String? _getParametersString(engine.Element element,
     {required bool withNullability}) {
-  // TODO(scheglov) expose the corresponding feature from ExecutableElement
+  // TODO(scheglov): expose the corresponding feature from ExecutableElement
   List<engine.ParameterElement> parameters;
   if (element is engine.ExecutableElement) {
     // valid getters don't have parameters

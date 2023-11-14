@@ -57,7 +57,7 @@ class EditBulkFixes extends LegacyHandler {
         sendResult(EditBulkFixesResult('', result.edits, result.details));
       }
     } catch (exception, stackTrace) {
-      // TODO(brianwilkerson) Move exception handling outside [handle].
+      // TODO(brianwilkerson): Move exception handling outside [handle].
       server.sendServerErrorNotification('Exception while getting bulk fixes',
           CaughtException(exception, stackTrace), stackTrace);
     }

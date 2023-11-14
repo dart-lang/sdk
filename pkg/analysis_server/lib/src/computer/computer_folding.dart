@@ -374,7 +374,7 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _computer._addRegionForAnnotations(node.metadata);
-    // TODO(brianwilkerson) Define `FoldingKind.MIXIN_BODY`?
+    // TODO(brianwilkerson): Define `FoldingKind.MIXIN_BODY`?
     _computer._addRegion(node.name.end, node.end, FoldingKind.CLASS_BODY);
     super.visitMixinDeclaration(node);
   }

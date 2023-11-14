@@ -124,7 +124,7 @@ abstract class CommonInputConverter extends Converter<String, Operation?> {
     if (method == COMPLETION_REQUEST_GET_SUGGESTIONS) {
       return CompletionRequestOperation(this, json);
     }
-    // TODO(danrubel) replace this with code
+    // TODO(danrubel): replace this with code
     // that just forwards the translated request
     if (method == ANALYSIS_REQUEST_GET_HOVER ||
         method == ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS ||

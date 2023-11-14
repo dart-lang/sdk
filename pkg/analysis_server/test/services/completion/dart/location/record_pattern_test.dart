@@ -52,7 +52,7 @@ void f(({int f01, int f02, int g01}) x0) {
   (f01: ^) = x0;
 }
 ''');
-    // TODO(scheglov) This is wrong.
+    // TODO(scheglov): This is wrong.
     assertResponse(r'''
 suggestions
   const

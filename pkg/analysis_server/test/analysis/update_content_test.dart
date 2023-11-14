@@ -193,7 +193,7 @@ void g() {
     );
     await waitForTasksFinished();
     expect(filesErrors[a], isEmpty);
-    // TODO(scheglov) We should get "flush" notification.
+    // TODO(scheglov): We should get "flush" notification.
     // expect(filesErrors[b], isNull);
   }
 

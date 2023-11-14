@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../client/completion_driver_test.dart';
 
-// TODO(brianwilkerson) The contents of this file were generated from an older
+// TODO(brianwilkerson): The contents of this file were generated from an older
 //  style of tests. They need to be cleaned up (many contain test code that
 //  isn't used in the test), renamed, and moved into the appropriate 'location'
 //  or 'declaration' test class.
@@ -5018,7 +5018,7 @@ suggestions
     kind: class
 ''');
     } else {
-      // TODO(brianwilkerson) 'int' should not be suggested twice
+      // TODO(brianwilkerson): 'int' should not be suggested twice
       assertResponse(r'''
 replacement
   left: 2
@@ -7020,7 +7020,7 @@ suggestions
     kind: constructorInvocation
 ''');
     } else {
-      // TODO(brianwilkerson) We should not be suggesting 'JsonDecoder'.
+      // TODO(brianwilkerson): We should not be suggesting 'JsonDecoder'.
       assertResponse(r'''
 replacement
   right: 2
@@ -7088,7 +7088,7 @@ k() {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) We ought to be suggesting 'xdr.a' and 'xdr.b'.
+      // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
       assertResponse(r'''
 replacement
   left: 1
@@ -7133,7 +7133,7 @@ k() {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) We ought to be suggesting 'xdr.a' and 'xdr.b'.
+      // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
       assertResponse(r'''
 replacement
   left: 1
@@ -8897,7 +8897,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      // TODO(brianwilkerson) Don't suggest 'HashMap'.
+      // TODO(brianwilkerson): Don't suggest 'HashMap'.
       assertResponse(r'''
 replacement
   right: 3
@@ -9448,7 +9448,7 @@ void f() {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) We should be suggesting the named constructor here.
+      // TODO(brianwilkerson): We should be suggesting the named constructor here.
       assertResponse(r'''
 replacement
   left: 3
@@ -9864,7 +9864,7 @@ void f() {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) The suggestions here are correct, except for the
+      // TODO(brianwilkerson): The suggestions here are correct, except for the
       //  last line, which needs to be removed.
       assertResponse(r'''
 suggestions
@@ -12165,7 +12165,7 @@ suggestions
 
   Future<void> test_completion_libraryIdentifier_notEOF_1() async {
     allowedIdentifiers = {'parse', 'bool'};
-    // TODO(brianwilkerson) This is the same as
+    // TODO(brianwilkerson): This is the same as
     //  test_completion_libraryIdentifier_atEOF_1, probably this one needs
     //  something following the directive.
     await computeSuggestions('''

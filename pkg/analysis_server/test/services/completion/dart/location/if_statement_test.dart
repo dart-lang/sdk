@@ -44,7 +44,7 @@ final v01 = 0;
 
 int f01() => 0;
 ''');
-    // TODO(scheglov) This is wrong.
+    // TODO(scheglov): This is wrong.
     // We should not suggest `v01`.
     // We could suggest `f01`, but not as an invocation.
     // We suggest `A1`, but almost always we want `A1()`.
@@ -95,7 +95,7 @@ int B04() => 0;
 ''');
 
     if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
+      // TODO(scheglov): This is wrong.
       assertResponse(r'''
 replacement
   left: 1

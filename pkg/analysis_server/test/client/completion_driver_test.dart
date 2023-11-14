@@ -156,7 +156,7 @@ $actual
         isNotNull);
   }
 
-  /// TODO(scheglov) Use it everywhere instead of [addTestFile].
+  // TODO(scheglov): Use it everywhere instead of [addTestFile].
   // ignore:unreachable_from_main
   Future<void> computeSuggestions(
     String content,
@@ -170,7 +170,7 @@ $actual
       requestOffset: driver.completionOffset,
       replacementOffset: driver.replacementOffset,
       replacementLength: driver.replacementLength,
-      isIncomplete: false, // TODO(scheglov) not correct
+      isIncomplete: false, // TODO(scheglov): not correct
       suggestions: suggestions,
     );
   }
@@ -204,7 +204,7 @@ name: test
     );
     await driver.createProject();
 
-    // todo (pq): add logic (possibly to driver) that waits for SDK suggestions
+    // TODO(pq): add logic (possibly to driver) that waits for SDK suggestions
 
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {

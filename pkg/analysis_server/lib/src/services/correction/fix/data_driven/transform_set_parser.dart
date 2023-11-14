@@ -183,7 +183,7 @@ class TransformSetParser {
     var variableStart = template.indexOf(_openComponent);
     while (variableStart >= 0) {
       if (textStart < variableStart) {
-        // TODO(brianwilkerson) Check for an end brace without a start brace.
+        // TODO(brianwilkerson): Check for an end brace without a start brace.
         components
             .add(TemplateText(template.substring(textStart, variableStart)));
       }
@@ -214,10 +214,10 @@ class TransformSetParser {
       variableStart = template.indexOf(_openComponent, textStart);
     }
     if (textStart < template.length) {
-      // TODO(brianwilkerson) Check for an end brace without a start brace.
+      // TODO(brianwilkerson): Check for an end brace without a start brace.
       components.add(TemplateText(template.substring(textStart)));
     }
-    // TODO(brianwilkerson) If there are no other errors, then report
+    // TODO(brianwilkerson): If there are no other errors, then report
     //  unreferenced variables.
     return components;
   }
@@ -406,14 +406,14 @@ class TransformSetParser {
     var argumentValue = _translateCodeTemplate(argumentValueNode,
         ErrorContext(key: _argumentValueKey, parentNode: node),
         canBeConditionallyRequired: true);
-    // TODO(brianwilkerson) We really ought to require an argument value for
+    // TODO(brianwilkerson): We really ought to require an argument value for
     //  optional positional parameters too for the case where the added
     //  parameter is being added before the end of the list and call sites might
     //  already be providing a value for subsequent parameters. Unfortunately we
     //  can't know at this point whether there are subsequent parameters in
     //  order to require it only when it's potentially necessary.
     if (isRequired && argumentValue == null) {
-      // TODO(brianwilkerson) Report that required parameters must have an
+      // TODO(brianwilkerson): Report that required parameters must have an
       //  argument value.
       return;
     } else if (argumentValue != null &&
@@ -1183,7 +1183,7 @@ class TransformSetParser {
         _reportError(TransformSetErrorCode.unsupportedVersion, versionNode);
         return null;
       }
-      // TODO(brianwilkerson) Version information is currently being ignored,
+      // TODO(brianwilkerson): Version information is currently being ignored,
       //  but needs to be used to select a translator.
       var transforms = _translateList(
           node.valueAt(_transformsKey),
@@ -1204,7 +1204,7 @@ class TransformSetParser {
       // any diagnostics.
       return null;
     } else {
-      // TODO(brianwilkerson) Consider having a different error code for the
+      // TODO(brianwilkerson): Consider having a different error code for the
       //  top-level node (instead of using 'file' as the "key").
       _reportError(TransformSetErrorCode.invalidValue, node,
           ['file', 'Map', _nodeType(node)]);
@@ -1302,7 +1302,7 @@ class TransformSetParser {
       ElementKind.variableKind,
     });
     // Static setters and setter-inducing elements can replace each other.
-    // TODO(brianwilkerson) We can't currently distinguish between final and
+    // TODO(brianwilkerson): We can't currently distinguish between final and
     //  non-final elements, but we don't support replacing setters with final
     //  elements, nor vice versa. We need a way to distinguish these cases if we
     //  want to be able to report an error.

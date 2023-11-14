@@ -1577,7 +1577,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
         _recordDistance('member (extension)', 0);
         return;
       }
-      // TODO(brianwilkerson) It might be interesting to also know whether the
+      // TODO(brianwilkerson): It might be interesting to also know whether the
       //  [element] was found in a class, interface, or mixin.
       var memberClass = member.thisOrAncestorOfType<InterfaceElement>();
       if (memberClass != null) {
@@ -1693,7 +1693,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       var depth = _parameterReferenceDepth(node, definingElement);
       _recordDistance('function depth of referenced parameter', depth);
     } else if (element is LocalVariableElement) {
-      // TODO(brianwilkerson) This ignores the fact that nested functions can
+      // TODO(brianwilkerson): This ignores the fact that nested functions can
       //  reference variables declared in enclosing functions. Consider
       //  additionally measuring the number of function boundaries that are
       //  crossed and then reporting the distance with a label such as
@@ -1703,7 +1703,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
           : featureComputer.localVariableDistance(node, element);
       _recordDistance('distance to local variable', distance);
     } else if (element != null) {
-      // TODO(brianwilkerson) We might want to cross reference the depth of
+      // TODO(brianwilkerson): We might want to cross reference the depth of
       //  the declaration with the depth of the reference to see whether there
       //  is a pattern.
       _recordDistance(

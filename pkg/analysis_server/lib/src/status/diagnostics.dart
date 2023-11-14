@@ -1454,7 +1454,7 @@ class PluginsPage extends DiagnosticPageWithNav {
           for (var entry in entries) {
             var requestName = entry.key;
             var data = entry.value;
-            // TODO(brianwilkerson) Consider displaying these times as a graph,
+            // TODO(brianwilkerson): Consider displaying these times as a graph,
             //  similar to the one in CompletionPage.generateContent.
             var buffer = StringBuffer();
             buffer.write(requestName);

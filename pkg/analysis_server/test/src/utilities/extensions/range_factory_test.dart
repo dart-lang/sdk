@@ -98,7 +98,7 @@ abstract class BaseRangeFactoryTest extends AbstractSingleUnitTest {
 /// order to ensure backward compatibility.
 @reflectiveTest
 class RangeFactory_NodeInListTest extends BaseRangeFactoryTest {
-  // TODO(brianwilkerson) When the tested method becomes public API then these
+  // TODO(brianwilkerson): When the tested method becomes public API then these
   //  two classes should be merged.
   Future<void> test_argumentList_first_named() async {
     await resolveTestCode('''

@@ -209,8 +209,8 @@ suggestions
 imp
 import "package:foo/foo.dart";
 ''');
-    // TODO(danrubel) should not suggest declaration keywords
-    // TODO(brianwilkerson) Should not suggest export or part directives.
+    // TODO(danrubel): should not suggest declaration keywords
+    // TODO(brianwilkerson): Should not suggest export or part directives.
     assertResponse(r'''
 suggestions
   abstract
@@ -790,7 +790,7 @@ suggestions
 part of foo;
 ^
 ''');
-    // TODO(brianwilkerson) We should not be suggesting directives.
+    // TODO(brianwilkerson): We should not be suggesting directives.
     assertResponse(r'''
 suggestions
   abstract
@@ -1143,7 +1143,7 @@ library libA;
 imp^
 import "package:foo/foo.dart";
 ''');
-    // TODO(brianwilkerson) Should not suggest `export` or `part` directives.
+    // TODO(brianwilkerson): Should not suggest `export` or `part` directives.
     if (isProtocolVersion2) {
       assertResponse(r'''
 replacement

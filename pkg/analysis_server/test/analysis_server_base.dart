@@ -26,7 +26,7 @@ import 'package:unified_analytics/unified_analytics.dart';
 import 'mocks.dart';
 import 'src/utilities/mock_packages.dart';
 
-/// TODO(scheglov) this is duplicate
+// TODO(scheglov): this is duplicate
 class AnalysisOptionsFileConfig {
   final List<String> experiments;
   final List<String> lints;
@@ -251,7 +251,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
     );
   }
 
-  /// TODO(scheglov) rename
+  // TODO(scheglov): rename
   void addTestFile(String content) {
     newFile(testFilePath, content);
   }
@@ -277,7 +277,7 @@ class PubPackageAnalysisServerTest extends ContextResolutionTest {
 
   /// Returns the offset of [search] in [testFileContent].
   /// Fails if not found.
-  /// TODO(scheglov) Rename it.
+  // TODO(scheglov): Rename it.
   int findOffset(String search) {
     return offsetInFile(testFile, search);
   }

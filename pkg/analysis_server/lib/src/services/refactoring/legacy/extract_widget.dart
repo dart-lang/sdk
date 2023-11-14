@@ -654,7 +654,7 @@ class _ParametersCollector extends RecursiveAstVisitor<void> {
         }
       }
     }
-    // TODO(scheglov) support for ParameterElement
+    // TODO(scheglov): support for ParameterElement
 
     if (type != null && uniqueElements.add(element)) {
       parameters.add(_Parameter(elementName, type));

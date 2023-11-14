@@ -38,7 +38,7 @@ Future<WriteArgumentsStatus> writeArguments({
               continue;
             }
             if (update is FormalParameterUpdateExistingNamed) {
-              // TODO(scheglov) maybe support renames
+              // TODO(scheglov): maybe support renames
               newArguments.add(
                 _ArgumentAsIs(
                   argument: argument,

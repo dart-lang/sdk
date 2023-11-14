@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateConstructor extends ResolvedCorrectionProducer {
   /// The name of the constructor being created.
-  /// TODO(migration) We set this node when we have the change.
+  // TODO(migration): We set this node when we have the change.
   late String _constructorName;
 
   @override

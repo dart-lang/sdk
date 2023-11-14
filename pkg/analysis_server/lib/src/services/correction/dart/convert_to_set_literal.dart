@@ -83,7 +83,7 @@ class ConvertToSetLiteral extends ResolvedCorrectionProducer {
           elementsRange =
               range.endStart(elements.leftBracket, elements.rightBracket);
         } else {
-          // TODO(brianwilkerson) Consider handling other iterables. Literal
+          // TODO(brianwilkerson): Consider handling other iterables. Literal
           //  sets could be treated like lists, and arbitrary iterables by using
           //  a spread.
           return;
@@ -144,7 +144,7 @@ class ConvertToSetLiteral extends ResolvedCorrectionProducer {
       return null;
     }
 
-    // TODO(brianwilkerson) Consider also accepting uses of LinkedHashSet.
+    // TODO(brianwilkerson): Consider also accepting uses of LinkedHashSet.
     if (type.element != typeProvider.setElement) {
       return null;
     }

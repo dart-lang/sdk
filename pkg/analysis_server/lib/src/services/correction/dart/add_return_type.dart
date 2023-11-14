@@ -125,7 +125,7 @@ class AddReturnType extends ResolvedCorrectionProducer {
 
 /// Copied from lib/src/services/refactoring/extract_method.dart", but
 /// [hasReturn] was added.
-// TODO(brianwilkerson) Decide whether to unify the two classes.
+// TODO(brianwilkerson): Decide whether to unify the two classes.
 class _ReturnTypeComputer extends RecursiveAstVisitor<void> {
   final TypeSystem typeSystem;
 

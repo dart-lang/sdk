@@ -178,7 +178,7 @@ List<SimpleIdentifier> findPrefixElementReferences(
   return collector.references;
 }
 
-/// TODO(scheglov) replace with nodes once there will be
+// TODO(scheglov): replace with nodes once there will be
 /// [CompilationUnit.getComments].
 ///
 /// Returns [SourceRange]s of all comments in [unit].
@@ -1778,7 +1778,7 @@ class _InvertedCondition {
 
   static _InvertedCondition _binary2(
       _InvertedCondition left, String operation, _InvertedCondition right) {
-    // TODO(scheglov) consider merging with "_binary()" after testing
+    // TODO(scheglov): consider merging with "_binary()" after testing
     return _InvertedCondition(
         1 << 20, '${left._source}$operation${right._source}');
   }

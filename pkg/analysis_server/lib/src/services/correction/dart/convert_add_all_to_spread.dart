@@ -74,7 +74,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
     var sections = cascade.cascadeSections;
     var targetList = cascade.target;
     if (targetList is! ListLiteral || sections[0] != invocation) {
-      // TODO(brianwilkerson) Consider extending this to handle set literals.
+      // TODO(brianwilkerson): Consider extending this to handle set literals.
       return;
     }
 
@@ -104,7 +104,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
       // ..addAll([ ... ])
       var elements = argument.elements;
       if (elements.isEmpty) {
-        // TODO(brianwilkerson) Consider adding a cleanup for the empty list
+        // TODO(brianwilkerson): Consider adding a cleanup for the empty list
         //  case. We can essentially remove the whole invocation because it does
         //  nothing.
         return;

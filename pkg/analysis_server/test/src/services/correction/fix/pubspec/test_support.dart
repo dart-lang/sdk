@@ -51,7 +51,7 @@ abstract class PubspecFixTest with ResourceProviderMixin {
         source: pubspecFile.createSource(),
         contents: node,
         provider: resourceProvider,
-        // TODO: Can/should we pass analysis-options here?
+        // TODO(sigurdm): Can/should we pass analysis-options here?
         analysisOptions: null);
     expect(errors.length, 1);
     error = errors[0];

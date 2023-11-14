@@ -51,7 +51,7 @@ class RemoveUnusedElement extends _RemoveUnused {
           ? node.declaredElement!
           : (node as NamedCompilationUnitMember).declaredElement!;
       final references = _findAllReferences(unit, element);
-      // todo (pq): consider filtering for references that are limited to within the class.
+      // TODO(pq): consider filtering for references that are limited to within the class.
       if (references.isEmpty) {
         var parent = node.parent;
         var grandParent = parent?.parent;
@@ -130,7 +130,7 @@ class RemoveUnusedField extends _RemoveUnused {
       ..._findAllReferences(unit, element),
     ];
     for (var reference in references) {
-      // todo (pq): consider scoping this to parent or parent.parent.
+      // TODO(pq): consider scoping this to parent or parent.parent.
       final referenceNode = reference.thisOrAncestorMatching((node) =>
           node is VariableDeclaration ||
           node is ExpressionStatement ||

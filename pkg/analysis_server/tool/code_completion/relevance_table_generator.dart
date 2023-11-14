@@ -876,7 +876,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitInterpolationExpression(InterpolationExpression node) {
-    // TODO(brianwilkerson) Consider splitting this based on whether the
+    // TODO(brianwilkerson): Consider splitting this based on whether the
     //  expression is a simple identifier ('$') or a full expression ('${').
     _recordDataForNode('InterpolationExpression_expression', node.expression,
         allowedKeywords: expressionKeywords);
@@ -1533,7 +1533,7 @@ const defaultElementKindRelevance = {
       var counts = entry.value;
       if (_hasElementKind(counts)) {
         var totalCount = _totalCount(counts);
-        // TODO(brianwilkerson) If two element kinds have the same count they
+        // TODO(brianwilkerson): If two element kinds have the same count they
         //  ought to have the same probability. This doesn't correctly do that.
         var entries = counts.entries.toList()
           ..sort((first, second) => first.value.compareTo(second.value));
@@ -1609,7 +1609,7 @@ const defaultKeywordRelevance = {
       var counts = entry.value;
       if (_hasKeyword(counts)) {
         var totalCount = _totalCount(counts);
-        // TODO(brianwilkerson) If two keywords have the same count they ought to
+        // TODO(brianwilkerson): If two keywords have the same count they ought to
         //  have the same probability. This doesn't correctly do that.
         var entries = counts.entries.toList()
           ..sort((first, second) => first.value.compareTo(second.value));

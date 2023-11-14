@@ -139,7 +139,7 @@ suggestions
     await computeSuggestions('''
 void f() {switch(1) {^ default:}}
 ''');
-    // TODO(brianwilkerson) We shouldn't be suggesting `default` here.
+    // TODO(brianwilkerson): We shouldn't be suggesting `default` here.
     assertResponse(r'''
 suggestions
   case

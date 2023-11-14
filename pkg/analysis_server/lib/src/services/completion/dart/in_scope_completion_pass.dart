@@ -166,12 +166,12 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // parenthesized expression or a parameter list, the parser will recover
       // by parsing an `as` expression. This handles the case where the user is
       // actually trying to write a function expression.
-      // TODO(brianwilkerson) Decide whether we should do more to ensure that
+      // TODO(brianwilkerson): Decide whether we should do more to ensure that
       //  the expression could be a parameter list.
       keywordHelper.addFunctionBodyModifiers(null);
     } else if (node.type.coversOffset(offset)) {
       collector.completionLocation = 'AsExpression_type';
-      // TODO(brianwilkerson) Add a parameter to _forTypeAnnotation to prohibit
+      // TODO(brianwilkerson): Add a parameter to _forTypeAnnotation to prohibit
       //  producing `void`, then convert the call below.
       keywordHelper.addKeyword(Keyword.DYNAMIC);
     }
@@ -223,7 +223,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var previousStatement = node.statements.elementBefore(offset);
     if (previousStatement is TryStatement) {
       if (previousStatement.finallyBlock == null) {
-        // TODO(brianwilkerson) Consider adding `on ^ {}`, `catch (e) {^}`, and
+        // TODO(brianwilkerson): Consider adding `on ^ {}`, `catch (e) {^}`, and
         //  `finally {^}`.
         keywordHelper.addKeyword(Keyword.ON);
         keywordHelper.addKeyword(Keyword.CATCH);
@@ -300,7 +300,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     if (offset <= node.name.end) {
-      // TODO(brianwilkerson) Suggest a name for the class.
+      // TODO(brianwilkerson): Suggest a name for the class.
       return;
     }
     if (offset <= node.leftBracket.offset) {
@@ -340,7 +340,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitConditionalExpression(ConditionalExpression node) {
-    // TODO(brianwilkerson) Consider adding a location for the condition.
+    // TODO(brianwilkerson): Consider adding a location for the condition.
     if (offset >= node.question.end && offset <= node.colon.offset) {
       collector.completionLocation = 'ConditionalExpression_thenExpression';
     } else if (offset >= node.colon.end) {
@@ -483,7 +483,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     if (offset <= node.name.end) {
-      // TODO(brianwilkerson) Suggest a name for the mixin.
+      // TODO(brianwilkerson): Suggest a name for the mixin.
       return;
     }
     if (offset <= node.leftBracket.offset) {
@@ -540,7 +540,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       if (featureSet.isEnabled(Feature.inline_class)) {
         keywordHelper.addPseudoKeyword('type');
       }
-      // TODO(brianwilkerson) Suggest a name for the extension.
+      // TODO(brianwilkerson): Suggest a name for the extension.
       return;
     }
     if (offset <= node.leftBracket.offset) {
@@ -595,7 +595,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else {
       if (offset <= type.end) {
         keywordHelper.addFieldDeclarationKeywords(node);
-        // TODO(brianwilkerson) `var` should only be suggested if neither
+        // TODO(brianwilkerson): `var` should only be suggested if neither
         //  `static` nor `final` are present.
         keywordHelper.addKeyword(Keyword.VAR);
       }
@@ -784,7 +784,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         offset <= node.rightParenthesis.offset) {
       keywordHelper.addExpressionKeywords(node);
     } else if (offset >= node.rightParenthesis.end) {
-      // TODO(brianwilkerson) Ensure that we are suggesting `else` after the
+      // TODO(brianwilkerson): Ensure that we are suggesting `else` after the
       //  then expression.
       var literal = node.thisOrAncestorOfType<TypedLiteral>();
       if (literal is ListLiteral) {
@@ -839,7 +839,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     if (offset <= node.uri.offset) {
       return;
     } else if (offset <= node.uri.end) {
-      // TODO(brianwilkerson) Complete the URI.
+      // TODO(brianwilkerson): Complete the URI.
     } else {
       keywordHelper.addImportDirectiveKeywords(node);
     }
@@ -879,7 +879,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     } else if (offset < isOperator.offset) {
       _forExpression(node);
     } else if (offset > isOperator.end) {
-      // TODO(brianwilkerson) Suggest the types available in the current scope.
+      // TODO(brianwilkerson): Suggest the types available in the current scope.
       // declarationHelper.addTypes();
     }
   }
@@ -983,7 +983,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       return;
     }
     if (offset <= node.name.end) {
-      // TODO(brianwilkerson) Suggest a name for the mixin.
+      // TODO(brianwilkerson): Suggest a name for the mixin.
       return;
     }
     if (offset <= node.leftBracket.offset) {
@@ -1052,18 +1052,18 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void visitPatternField(PatternField node) {
     var name = node.name;
     if (name != null && offset <= name.colon.offset) {
-      // TODO(brianwilkerson) Suggest the properties of the object or fields of
+      // TODO(brianwilkerson): Suggest the properties of the object or fields of
       //  the record.
       return;
     }
     if (name == null) {
       var parent = node.parent;
       if (parent is ObjectPattern) {
-        // TODO(brianwilkerson) Suggest the properties of the object.
+        // TODO(brianwilkerson): Suggest the properties of the object.
         // _addPropertiesOfType(parent.type.type);
       } else if (parent is RecordPattern) {
         _forPattern(node);
-        // TODO(brianwilkerson) If we know the expected record type, add the
+        // TODO(brianwilkerson): If we know the expected record type, add the
         //  names of any named fields.
       }
     } else if (name.name == null) {
@@ -1114,7 +1114,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitRecordPattern(RecordPattern node) {
     _forExpression(node);
-    // TODO(brianwilkerson) Is there a reason we aren't suggesting 'void'?
+    // TODO(brianwilkerson): Is there a reason we aren't suggesting 'void'?
     keywordHelper.addKeyword(Keyword.DYNAMIC);
   }
 
@@ -1251,7 +1251,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     if (node.arrow.isSynthetic) {
-      // TODO(brianwilkerson) The user is completing the pattern.
+      // TODO(brianwilkerson): The user is completing the pattern.
       return;
     }
     var expression = node.expression;
@@ -1548,7 +1548,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of a class member.
   void _forClassMember() {
     keywordHelper.addClassMemberKeywords();
-    // TODO(brianwilkerson) Suggest type names.
+    // TODO(brianwilkerson): Suggest type names.
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
@@ -1654,7 +1654,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // code, but the offset will be past where the parser inserted sythetic
       // tokens, preventing that from working.
       switch (precedingMember) {
-        // TODO(brianwilkerson) Add support for other kinds of declarations.
+        // TODO(brianwilkerson): Add support for other kinds of declarations.
         case MethodDeclaration declaration:
           if (declaration.body.isFullySynthetic) {
             keywordHelper.addFunctionBodyModifiers(declaration.body);
@@ -1684,7 +1684,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       // duplicating code, but the offset will be past where the parser
       // inserted sythetic tokens, preventing that from working.
       switch (precedingStatement) {
-        // TODO(brianwilkerson) Add support for other kinds of declarations.
+        // TODO(brianwilkerson): Add support for other kinds of declarations.
         case IfStatement declaration:
           if (declaration.elseKeyword == null) {
             keywordHelper.addKeyword(Keyword.ELSE);
@@ -1729,7 +1729,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   void _forTypeAnnotation() {
     keywordHelper.addKeyword(Keyword.DYNAMIC);
     keywordHelper.addKeyword(Keyword.VOID);
-    // TODO(brianwilkerson) Suggest the types available in the current scope.
+    // TODO(brianwilkerson): Suggest the types available in the current scope.
     // _addTypesInScope();
   }
 
@@ -1737,7 +1737,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of a variable pattern.
   void _forVariablePattern() {
     keywordHelper.addVariablePatternKeywords();
-    // TODO(brianwilkerson) Suggest the types available in the current scope.
+    // TODO(brianwilkerson): Suggest the types available in the current scope.
     // _addTypesInScope();
   }
 
@@ -1751,7 +1751,7 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     // code, but in some cases the offset will be past where the parser inserted
     // sythetic tokens, preventing that from working.
     switch (precedingMember) {
-      // TODO(brianwilkerson) Add support for other kinds of declarations.
+      // TODO(brianwilkerson): Add support for other kinds of declarations.
       case ClassDeclaration declaration:
         if (declaration.hasNoBody) {
           keywordHelper.addClassDeclarationKeywords(declaration);

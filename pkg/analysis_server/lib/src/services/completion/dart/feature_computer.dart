@@ -698,7 +698,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       var parent = node.parent;
       if (parent is MethodDeclaration) {
         var bodyContext = BodyInferenceContext.of(parent.body);
-        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45429
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/45429
         if (bodyContext == null) {
           throw StateError('''
 Expected body context.
@@ -857,7 +857,7 @@ Class: ${parent.parent}
   DartType? visitListLiteral(ListLiteral node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
       final type = node.staticType;
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/48965
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/48965
       if (type == null) {
         throw '''
 No type.
@@ -1219,7 +1219,7 @@ parent3: ${node.parent?.parent?.parent}
   /// `PatternAssignment` or a `PatternVariableDeclaration`, return the context
   /// type for the right-hand side.
   DartType? _requiredTypeOfPattern(DartPattern pattern) {
-    // TODO(brianwilkerson) Replace with `patternTypeSchema` (on AST) where
+    // TODO(brianwilkerson): Replace with `patternTypeSchema` (on AST) where
     //  possible.
     pattern = pattern.unParenthesized;
     Element? element;

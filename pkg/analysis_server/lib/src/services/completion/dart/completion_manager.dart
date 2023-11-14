@@ -289,7 +289,7 @@ class DartCompletionManager {
           ),
         );
       } else {
-        // TODO(brianwilkerson) This was previously used to boost exact type
+        // TODO(brianwilkerson): This was previously used to boost exact type
         //  matches. For example, if the context type was `Foo`, then the class
         //  `Foo` and it's constructors would be given this boost. Now this
         //  boost will almost always be ignored because the element boost will
@@ -308,7 +308,7 @@ class DartCompletionManager {
   // Run the first pass of the code completion algorithm.
   VisibilityTracker? _runFirstPass(
       DartCompletionRequest request, SuggestionBuilder builder) {
-    // TODO(brianwilkerson) Stop returning the visibility tracker when the
+    // TODO(brianwilkerson): Stop returning the visibility tracker when the
     //  `LocalReferenceContributor` has been deleted.
     var collector = SuggestionCollector();
     var selection = request.unit.select(offset: request.offset, length: 0);
@@ -536,7 +536,7 @@ class DartCompletionRequest {
       }
     }
 
-    /// TODO(scheglov) Can we make it better?
+    // TODO(scheglov): Can we make it better?
     String fromToken(Token token) {
       final lexeme = token.lexeme;
       if (offset >= token.offset && offset < token.end) {

@@ -225,9 +225,9 @@ class Driver {
         featureSet: featureSet,
       );
     var token = scanner.tokenize();
-    // TODO(brianwilkerson) Randomize. Sometimes add zero (0) as a break point.
+    // TODO(brianwilkerson): Randomize. Sometimes add zero (0) as a break point.
     while (!token.isEof) {
-      // TODO(brianwilkerson) Break inside comments?
+      // TODO(brianwilkerson): Break inside comments?
 //      Token comment = token.precedingComments;
       var offset = token.offset;
       var length = token.length;
@@ -378,7 +378,7 @@ class Driver {
       editList.add(edit);
     }
     //
-    // TODO(brianwilkerson) Randomize.
+    // TODO(brianwilkerson): Randomize.
     // Randomly select operations from different files to simulate a user
     // editing multiple files simultaneously.
     //
@@ -420,7 +420,7 @@ class Driver {
     server.sendServerSetSubscriptions([ServerService.STATUS]);
     server.sendAnalysisSetGeneralSubscriptions(
         [GeneralAnalysisService.ANALYZED_FILES]);
-    // TODO(brianwilkerson) Get the list of glob patterns from the server after
+    // TODO(brianwilkerson): Get the list of glob patterns from the server after
     // an API for getting them has been implemented.
     fileGlobs = <Glob>[
       Glob(path.context.separator, '**.dart'),
@@ -431,7 +431,7 @@ class Driver {
     try {
       await _replayChanges();
     } finally {
-      // TODO(brianwilkerson) This needs to be moved into a Zone in order to
+      // TODO(brianwilkerson): This needs to be moved into a Zone in order to
       // ensure that it is always run.
       server.sendServerShutdown();
       repository.checkout('master');
@@ -515,7 +515,7 @@ class FileEdit {
       operations.add(Analysis_UpdateContent(filePath, overlay));
     }
 
-    // TODO(brianwilkerson) Randomize.
+    // TODO(brianwilkerson): Randomize.
     // Make the order of edits random. Doing so will require updating the
     // offsets of edits after the selected edit point.
     addUpdateContent(AddContentOverlay(content));

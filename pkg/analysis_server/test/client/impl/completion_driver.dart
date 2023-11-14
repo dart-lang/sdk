@@ -36,7 +36,7 @@ CompletionSuggestion _createCompletionSuggestionFromAvailableSuggestion(
     }
   }
 
-  // todo (pq): in IDEA, this is "UNKNOWN" but here we need a value; figure out what's up.
+  // TODO(pq): in IDEA, this is "UNKNOWN" but here we need a value; figure out what's up.
   var suggestionKind = CompletionSuggestionKind.IDENTIFIER;
   if (suggestion.element.kind == ElementKind.CONSTRUCTOR ||
       suggestion.element.kind == ElementKind.FUNCTION ||

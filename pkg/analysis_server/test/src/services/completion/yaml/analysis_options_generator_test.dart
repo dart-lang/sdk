@@ -127,7 +127,7 @@ code-style:
     assertSuggestion('${AnalyzerOptions.analyzer}: ');
     assertSuggestion('${AnalyzerOptions.codeStyle}: ');
     assertSuggestion('${AnalyzerOptions.include}: ');
-    // TODO(brianwilkerson) Replace this with a constant.
+    // TODO(brianwilkerson): Replace this with a constant.
     assertSuggestion('linter: ');
   }
 

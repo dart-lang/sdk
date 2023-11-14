@@ -93,12 +93,12 @@ class BulkFixProcessor {
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       DataDriven.new,
     ],
-    // TODO(brianwilkerson) The following fix fails if an invocation of the
+    // TODO(brianwilkerson): The following fix fails if an invocation of the
     //  function is the argument that needs to be removed.
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
     //   DataDriven.newInstance,
     // ],
-    // TODO(brianwilkerson) The following fix fails if an invocation of the
+    // TODO(brianwilkerson): The following fix fails if an invocation of the
     //  function is the argument that needs to be updated.
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
     //   DataDriven.newInstance,

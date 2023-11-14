@@ -115,7 +115,7 @@ class RemoveDeadCode extends ResolvedCorrectionProducer {
   Future<bool> _computeDoStatement(
       ChangeBuilder builder, DoStatement statement) async {
     if (statement.hasBreakStatement) {
-      // TODO(asashour) consider modifying the do statement to a label
+      // TODO(asashour): consider modifying the do statement to a label
       // https://github.com/dart-lang/sdk/issues/49091#issuecomment-1135489675
       return true;
     }

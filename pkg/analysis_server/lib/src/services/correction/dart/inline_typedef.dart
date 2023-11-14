@@ -59,7 +59,7 @@ class InlineTypedef extends ResolvedCorrectionProducer {
     } else {
       return;
     }
-    // TODO(brianwilkerson) Handle parts.
+    // TODO(brianwilkerson): Handle parts.
     var finder = _ReferenceFinder(_name);
     unit.accept(finder);
     var reference = finder.reference;

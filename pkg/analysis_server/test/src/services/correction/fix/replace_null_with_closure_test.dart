@@ -79,7 +79,7 @@ void f(String s) {
 
   @failingTest
   Future<void> test_required() async {
-    // TODO(brianwilkerson) I suspect that the lint should not be generated in
+    // TODO(brianwilkerson): I suspect that the lint should not be generated in
     //  this case because the parameter to `firstWhere` has the type
     //  `bool Function(int)`. If that's true, then this test should be deleted.
     await resolveTestCode('''

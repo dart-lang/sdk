@@ -112,7 +112,7 @@ class MemberSuggestionBuilder {
 
   /// Return `true` if a suggestion for the given [element] should be created.
   bool _shouldAddSuggestion(Element element) {
-    // TODO(brianwilkerson) Consider moving this into SuggestionBuilder.
+    // TODO(brianwilkerson): Consider moving this into SuggestionBuilder.
     var identifier = element.displayName;
 
     var alreadyGenerated = _completionTypesGenerated.putIfAbsent(
@@ -194,7 +194,7 @@ class SuggestionBuilder {
   /// A flag indicating whether a suggestion should replace any earlier
   /// suggestions for the same completion (`true`) or whether earlier
   /// suggestions should take priority over more recent suggestions.
-  // TODO(brianwilkerson) Attempt to convert the contributors so that a single
+  // TODO(brianwilkerson): Attempt to convert the contributors so that a single
   //  approach is followed.
   bool laterReplacesEarlier = true;
 
@@ -572,7 +572,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion to reference a [field] in a field formal parameter.
   void suggestFieldFormalParameter(FieldElement field) {
-    // TODO(brianwilkerson) Add a parameter (`bool includePrefix`) indicating
+    // TODO(brianwilkerson): Add a parameter (`bool includePrefix`) indicating
     //  whether to include the `this.` prefix in the completion.
     _addBuilder(
       _createCompletionSuggestionBuilder(
@@ -656,7 +656,7 @@ class SuggestionBuilder {
   /// Add a suggestion for a [label].
   void suggestLabel(Label label) {
     var completion = label.label.name;
-    // TODO(brianwilkerson) Figure out why we're excluding labels consisting of
+    // TODO(brianwilkerson): Figure out why we're excluding labels consisting of
     //  a single underscore.
     if (completion.isNotEmpty && completion != '_') {
       var suggestion = CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
@@ -670,7 +670,7 @@ class SuggestionBuilder {
   /// Add a suggestion for the `loadLibrary` [function] associated with a
   /// prefix.
   void suggestLoadLibraryFunction(FunctionElement function) {
-    // TODO(brianwilkerson) This might want to use the context type rather than
+    // TODO(brianwilkerson): This might want to use the context type rather than
     //  a fixed value.
     var relevance = Relevance.loadLibrary;
     _addBuilder(
@@ -720,7 +720,7 @@ class SuggestionBuilder {
   void suggestMethod(MethodElement method,
       {required CompletionSuggestionKind kind,
       required double inheritanceDistance}) {
-    // TODO(brianwilkerson) Refactor callers so that we're passing in the type
+    // TODO(brianwilkerson): Refactor callers so that we're passing in the type
     //  of the target (assuming we don't already have that type available via
     //  the [request]) and compute the [inheritanceDistance] in this method.
     var featureComputer = request.featureComputer;
@@ -753,7 +753,7 @@ class SuggestionBuilder {
     if (method.name == 'setState' &&
         enclosingElement is ClassElement &&
         flutter.isExactState(enclosingElement)) {
-      // TODO(brianwilkerson) Make this more efficient by creating the correct
+      // TODO(brianwilkerson): Make this more efficient by creating the correct
       //  suggestion in the first place.
       // Find the line indentation.
       var indent = getRequestLineIndent(request);
@@ -796,7 +796,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion to use the [name] at a declaration site.
   void suggestName(String name) {
-    // TODO(brianwilkerson) Explore whether there are any features of the name
+    // TODO(brianwilkerson): Explore whether there are any features of the name
     //  that can be used to provide better relevance scores.
     _addSuggestion(CompletionSuggestion(CompletionSuggestionKind.IDENTIFIER,
         500, name, name.length, 0, false, false));
@@ -821,7 +821,7 @@ class SuggestionBuilder {
     var selectionOffset = completion.length;
 
     // Optionally add Flutter child widget details.
-    // todo (pq): revisit this special casing; likely it can be generalized away
+    // TODO(pq): revisit this special casing; likely it can be generalized away
     var element = parameter.enclosingElement;
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
@@ -989,7 +989,7 @@ class SuggestionBuilder {
   /// Add a suggestion for a [parameter].
   void suggestParameter(ParameterElement parameter) {
     var variableType = parameter.type;
-    // TODO(brianwilkerson) Use the distance to the declaring function as
+    // TODO(brianwilkerson): Use the distance to the declaring function as
     //  another feature.
     var contextType = request.featureComputer
         .contextTypeFeature(request.contextType, variableType);
@@ -1015,7 +1015,7 @@ class SuggestionBuilder {
   /// Add a suggestion for a [prefix] associated with a [library].
   void suggestPrefix(LibraryElement library, String prefix) {
     var elementKind = _computeElementKind(library);
-    // TODO(brianwilkerson) If we are in a constant context it would be nice
+    // TODO(brianwilkerson): If we are in a constant context it would be nice
     //  to promote prefixes for libraries that define constants, but that
     //  might be more work than it's worth.
     var relevance = _computeRelevance(
@@ -1273,7 +1273,7 @@ class SuggestionBuilder {
       var key = suggestion.key;
       listener?.builtSuggestion(suggestion);
       if (laterReplacesEarlier || !_suggestionMap.containsKey(key)) {
-        // TODO(brianwilkerson) Add some specific tests of shadowing behavior.
+        // TODO(brianwilkerson): Add some specific tests of shadowing behavior.
         if (suggestion is _CompletionSuggestionBuilderImpl) {
           // We need to special-case constructors because the order in which
           // suggestions are added has been changed by the move to
@@ -1384,7 +1384,7 @@ class SuggestionBuilder {
   /// Return the relevance score for a top-level [element].
   int _computeTopLevelRelevance(Element element,
       {required DartType elementType}) {
-    // TODO(brianwilkerson) The old relevance computation used a signal based
+    // TODO(brianwilkerson): The old relevance computation used a signal based
     //  on whether the element being suggested was from the same library in
     //  which completion is being performed. Explore whether that's a useful
     //  signal.
@@ -1729,7 +1729,7 @@ class _CompletionSuggestionBuilderImpl implements CompletionSuggestionBuilder {
     required this.isNotImported,
   });
 
-  /// TODO(scheglov) implement better key for not-yet-imported
+  // TODO(scheglov): implement better key for not-yet-imported
   @override
   String get key {
     var key = completion;

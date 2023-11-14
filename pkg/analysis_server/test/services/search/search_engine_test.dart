@@ -23,7 +23,7 @@ void main() {
   });
 }
 
-/// TODO(scheglov) This class does not really belong here.
+// TODO(scheglov): This class does not really belong here.
 /// Consider merging it into [AbstractContextTest].
 class PubPackageResolutionTest extends AbstractContextTest {
   late ResolvedUnitResult result;

@@ -454,7 +454,7 @@ ${keywords.asKeywordSuggestions}
         final keywords = {
           Keyword.CONST,
           Keyword.DYNAMIC,
-          // TODO(scheglov) This does not look right.
+          // TODO(scheglov): This does not look right.
           Keyword.EXTERNAL,
           Keyword.FINAL,
           Keyword.VAR,

@@ -15,7 +15,7 @@ import 'package:yaml/yaml.dart';
 
 /// A parser used to parse the content of a configuration file.
 class TransformOverrideSetParser {
-  // TODO(brianwilkerson) Create a class or mixin that would allow this class
+  // TODO(brianwilkerson): Create a class or mixin that would allow this class
   //  and `TransformSetParser` to share code.
   static const String _bulkApplyKey = 'bulkApply';
 
@@ -208,7 +208,7 @@ class TransformOverrideSetParser {
       }
       return TransformOverrideSet(overrides);
     } else {
-      // TODO(brianwilkerson) Consider having a different error code for the
+      // TODO(brianwilkerson): Consider having a different error code for the
       //  top-level node (instead of using 'file' as the "key").
       _reportError(TransformSetErrorCode.invalidValue, node,
           ['file', 'Map', _nodeType(node)]);

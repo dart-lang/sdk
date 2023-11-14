@@ -588,12 +588,12 @@ mixin WithNullSafetyLintMixin on AbstractContextTest {
   }
 }
 
-/// todo (pq): temporary
+// TODO(pq): temporary
 extension FixExtension on Fix {
   bool isFixAllFix() => kind.canBeAppliedTogether();
 }
 
 extension FixKindExtension on FixKind {
-  /// todo (pq): temporary
+  // TODO(pq): temporary
   bool canBeAppliedTogether() => priority == DartFixKindPriority.IN_FILE;
 }

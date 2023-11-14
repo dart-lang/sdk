@@ -116,7 +116,7 @@ include: package:pedantic/analysis_options.yaml
     expect(initialDiagnostics!.first.severity, DiagnosticSeverity.Warning);
     expect(initialDiagnostics.first.code, 'include_file_not_found');
 
-    // TODO(scheglov) The server does not handle the file change.
+    // TODO(scheglov): The server does not handle the file change.
     throw 'Times out';
 
     // // Write a package file that allows resolving the include.

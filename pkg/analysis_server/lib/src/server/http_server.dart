@@ -84,7 +84,7 @@ class HttpAnalysisServer {
   /// Handle a GET request received by the HTTP server.
   Future<void> _handleGetRequest(HttpRequest request) async {
     getHandler ??= DiagnosticsSite(socketServer, _printBuffer);
-    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // TODO(brianwilkerson): Determine if await is necessary, if so, change the
     // return type of [AbstractGetHandler.handleGetRequest] to `Future<void>`.
     await (getHandler!.handleGetRequest(request) as dynamic);
   }

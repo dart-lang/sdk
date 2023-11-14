@@ -93,7 +93,7 @@ class AbstractNavigationTest extends PubPackageAnalysisServerTest {
     assertHasFileTarget(testFile.path, offset, length);
   }
 
-  /// TODO(scheglov) Improve target matching.
+  // TODO(scheglov): Improve target matching.
   void assertHasTargetInDartCore(String search) {
     var dartCoreFile = getFile('/sdk/lib/core/core.dart');
     var dartCoreContent = dartCoreFile.readAsStringSync();

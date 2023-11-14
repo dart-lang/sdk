@@ -62,7 +62,7 @@ class LspNotificationManager extends AbstractNotificationManager {
   @override
   void sendHighlightRegions(
       String filePath, List<protocol.HighlightRegion> mergedHighlights) {
-    // TODO: implement sendHighlightRegions
+    // TODO(dantup): implement sendHighlightRegions
   }
 
   @override
@@ -92,6 +92,6 @@ class LspNotificationManager extends AbstractNotificationManager {
 
   @override
   void sendPluginErrorNotification(Notification notification) {
-    // TODO: implement sendPluginErrorNotification
+    // TODO(dantup): implement sendPluginErrorNotification
   }
 }

@@ -143,7 +143,7 @@ class ReplacedBy extends Change<_Data> {
         var grandparent = parent.parent;
         if (grandparent is ConstructorName &&
             grandparent.name?.name == components[0]) {
-          // TODO(brianwilkerson) This doesn't correctly handle constructor
+          // TODO(brianwilkerson): This doesn't correctly handle constructor
           //  invocations with type arguments. We really need to replace the
           //  class and constructor names separately.
           return _Data(range.node(grandparent));

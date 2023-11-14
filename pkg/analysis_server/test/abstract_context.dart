@@ -37,7 +37,7 @@ class AbstractContextTest with ResourceProviderMixin {
   /// to this file, instead of the given file.
   File? fileForContextSelection;
 
-  /// TODO(scheglov) Stop writing into it. Convert into getter.
+  // TODO(scheglov): Stop writing into it. Convert into getter.
   late String testFilePath = '$testPackageLibPath/test.dart';
 
   List<AnalysisDriver> get allDrivers {

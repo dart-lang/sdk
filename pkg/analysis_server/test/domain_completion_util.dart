@@ -15,7 +15,7 @@ import 'constants.dart';
 
 class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
   late String completionId;
-  late int completionOffset; // TODO(scheglov) remove it
+  late int completionOffset; // TODO(scheglov): remove it
   int? replacementOffset;
   late int replacementLength;
   Map<String, Completer<void>> receivedSuggestionsCompleters = {};

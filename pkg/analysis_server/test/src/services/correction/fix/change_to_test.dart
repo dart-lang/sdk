@@ -41,7 +41,7 @@ class MyClass {
 
   @failingTest
   Future<void> test_annotation_variable() async {
-    // TODO(brianwilkerson) Add support for suggesting similar top-level
+    // TODO(brianwilkerson): Add support for suggesting similar top-level
     //  variables.
     await resolveTestCode('''
 const annotation = '';

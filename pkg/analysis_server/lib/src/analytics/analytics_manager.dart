@@ -578,7 +578,7 @@ class AnalyticsManager {
             ));
           }
         }
-        // TODO(brianwilkerson) We don't appear to have an event defined that we
+        // TODO(brianwilkerson): We don't appear to have an event defined that we
         //  can use to send analytics about how often old-style refactorings are
         //  being invoked.
         // var refactoringMap = data.additionalEnumCounts[refactoringKindEnumKey];

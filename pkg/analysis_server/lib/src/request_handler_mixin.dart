@@ -26,7 +26,7 @@ mixin RequestHandlerMixin<T extends AnalysisServer> {
     plugin.RequestParams? requestParameters,
     Duration timeout = const Duration(milliseconds: 500),
   }) async {
-    // TODO(brianwilkerson) requestParameters might need to be required.
+    // TODO(brianwilkerson): requestParameters might need to be required.
     var timer = Stopwatch()..start();
     var responses = <plugin.Response>[];
     for (var entry in futures.entries) {
@@ -36,7 +36,7 @@ mixin RequestHandlerMixin<T extends AnalysisServer> {
         var response = await future.timeout(timeout - timer.elapsed);
         var error = response.error;
         if (error != null) {
-          // TODO(brianwilkerson) Report the error to the plugin manager.
+          // TODO(brianwilkerson): Report the error to the plugin manager.
           server.instrumentationService.logPluginError(
               pluginInfo.data,
               error.code.name,
@@ -46,13 +46,13 @@ mixin RequestHandlerMixin<T extends AnalysisServer> {
           responses.add(response);
         }
       } on TimeoutException {
-        // TODO(brianwilkerson) Report the timeout to the plugin manager.
+        // TODO(brianwilkerson): Report the timeout to the plugin manager.
         server.instrumentationService.logPluginTimeout(
             pluginInfo.data,
             JsonEncoder()
                 .convert(requestParameters?.toRequest('-').toJson() ?? {}));
       } catch (exception, stackTrace) {
-        // TODO(brianwilkerson) Report the exception to the plugin manager.
+        // TODO(brianwilkerson): Report the exception to the plugin manager.
         server.instrumentationService
             .logPluginException(pluginInfo.data, exception, stackTrace);
       }

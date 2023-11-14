@@ -98,6 +98,8 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
     writeln();
     writeln("import 'integration_tests.dart';");
     writeln();
+    writeln('// ignore_for_file: flutter_style_todos');
+    writeln();
     var impliedTypes = computeImpliedTypes(api).values.toList();
     impliedTypes.sort((ImpliedType first, ImpliedType second) =>
         first.camelName.compareTo(second.camelName));

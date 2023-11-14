@@ -119,7 +119,7 @@ class DeclarationHelper {
   }
 
   void addMembersOfType(DartType type) {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
   }
 
   /// Add suggestions for any local declarations that are visible at the
@@ -270,7 +270,7 @@ class DeclarationHelper {
   /// Add suggestions for any top-level declarations that are visible within the
   /// [library].
   void _addTopLevelDeclarations(LibraryElement library) {
-    // TODO(brianwilkerson) Implement this.
+    // TODO(brianwilkerson): Implement this.
     // for (var unit in library.units) {
     //   for (var element in unit.accessors) {}
     //   for (var element in unit.classes) {}
@@ -506,7 +506,7 @@ class DeclarationHelper {
         // visited it and don't want to suggest declared variables twice.
         continue;
       }
-      // TODO(brianwilkerson) I think we need to compare to the end of the
+      // TODO(brianwilkerson): I think we need to compare to the end of the
       //  statement for variable declarations and the offset for functions.
       if (statement.offset < offset) {
         if (statement is VariableDeclarationStatement) {

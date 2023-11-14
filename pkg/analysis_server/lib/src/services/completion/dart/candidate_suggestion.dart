@@ -220,7 +220,7 @@ final class PropertyAccessSuggestion extends CandidateSuggestion {
 }
 
 extension SuggestionBuilderExtension on SuggestionBuilder {
-  // TODO(brianwilkerson) Move these to `SuggestionBuilder`, possibly as part
+  // TODO(brianwilkerson): Move these to `SuggestionBuilder`, possibly as part
   //  of splitting it into a legacy builder and an LSP builder.
 
   /// Add a suggestion based on the candidate [suggestion].
@@ -245,11 +245,11 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
       case LocalFunctionSuggestion():
         suggestTopLevelFunction(suggestion.element);
       case LocalVariableSuggestion():
-        // TODO(brianwilkerson) Enhance `suggestLocalVariable` to allow the
+        // TODO(brianwilkerson): Enhance `suggestLocalVariable` to allow the
         //  distance to be passed in.
         suggestLocalVariable(suggestion.element);
       case MethodSuggestion():
-        // TODO(brianwilkerson) Correctly set the kind of suggestion in cases
+        // TODO(brianwilkerson): Correctly set the kind of suggestion in cases
         //  where `isFunctionalArgument` would return `true` so we can stop
         //  using the `request.target`.
         var kind = request.target.isFunctionalArgument()

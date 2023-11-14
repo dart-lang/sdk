@@ -63,7 +63,7 @@ void buildTests({
 void buildTestsForAnalysisServer() {
   var excludedPaths = <String>[
     'test/mock_packages',
-    // TODO(brianwilkerson) Fix the generator to sort the generated files and
+    // TODO(brianwilkerson): Fix the generator to sort the generated files and
     //  remove these exclusions.
     'lib/protocol/protocol_constants.dart',
     'lib/protocol/protocol_generated.dart',
@@ -103,7 +103,7 @@ void buildTestsForAnalyzerCli() {
 }
 
 void buildTestsForAnalyzerPlugin() {
-  // TODO(brianwilkerson) Fix the generator to sort the generated files and
+  // TODO(brianwilkerson): Fix the generator to sort the generated files and
   //  remove these exclusions.
   var excludedPaths = <String>[
     'lib/protocol/protocol_common.dart',

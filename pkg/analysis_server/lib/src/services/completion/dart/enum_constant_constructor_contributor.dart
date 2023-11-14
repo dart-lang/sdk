@@ -20,7 +20,7 @@ class EnumConstantConstructorContributor extends DartCompletionContributor {
       return;
     }
 
-    // TODO(scheglov) It seems unfortunate that we have to re-discover
+    // TODO(scheglov): It seems unfortunate that we have to re-discover
     // the location in contributors. This is the work of `OpType`, so why
     // doesn't it provide all these enclosing `EnumConstantDeclaration`,
     // `ConstructorSelector`, `EnumDeclaration`?
