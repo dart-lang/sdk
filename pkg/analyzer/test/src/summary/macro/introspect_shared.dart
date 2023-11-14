@@ -118,6 +118,25 @@ abstract class SharedPrinter {
     }
   }
 
+  bool _shouldWriteArguments(ConstructorMetadataAnnotation annotation) {
+    return !const {
+      'IntrospectDeclarationsPhaseMacro',
+      'IntrospectTypesPhaseMacro',
+    }.contains(annotation.type.name);
+  }
+
+  Future<void> _writeExpressionCode(
+    ExpressionCode code, {
+    String? name,
+  }) async {
+    await sink.writeIndentedLine(() async {
+      if (name != null) {
+        sink.write('$name: ');
+      }
+      sink.write('${code.parts}');
+    });
+  }
+
   Future<void> _writeFormalParameter(ParameterDeclaration e) async {
     sink.writelnWithIndent(e.identifier.name);
     await sink.withIndent(() async {
@@ -149,6 +168,22 @@ abstract class SharedPrinter {
           final constructorName = e.constructor.name;
           if (constructorName.isNotEmpty) {
             sink.writelnWithIndent('constructorName: $constructorName');
+          }
+          if (_shouldWriteArguments(e)) {
+            await sink.writeElements(
+              'positionalArguments',
+              e.positionalArguments,
+              (argument) async {
+                await _writeExpressionCode(argument);
+              },
+            );
+            await sink.writeElements(
+              'namedArguments',
+              e.namedArguments.entries,
+              (entry) async {
+                await _writeExpressionCode(name: entry.key, entry.value);
+              },
+            );
           }
         });
       case IdentifierMetadataAnnotation():

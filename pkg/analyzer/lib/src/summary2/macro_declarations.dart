@@ -177,8 +177,9 @@ class DeclarationBuilder {
       getElement: () => identifierName.staticElement,
     );
 
-    final arguments = node.arguments;
-    if (arguments != null) {
+    final argumentList = node.arguments;
+    if (argumentList != null) {
+      final arguments = argumentList.arguments;
       return macro.ConstructorMetadataAnnotationImpl(
         id: macro.RemoteInstance.uniqueId,
         constructor: IdentifierImplFromNode(
@@ -187,8 +188,16 @@ class DeclarationBuilder {
           getElement: () => node.element,
         ),
         type: identifierMacro,
-        positionalArguments: [], // TODO(scheglov) implement
-        namedArguments: {}, // TODO(scheglov) implement
+        positionalArguments: arguments
+            .whereNotType<ast.NamedExpression>()
+            .map((e) => _expressionCode(e))
+            .toList(),
+        namedArguments: arguments.whereType<ast.NamedExpression>().map((e) {
+          return MapEntry(
+            e.name.label.name,
+            _expressionCode(e.expression),
+          );
+        }).mapFromEntries,
       );
     } else {
       return macro.IdentifierMetadataAnnotationImpl(
@@ -196,6 +205,10 @@ class DeclarationBuilder {
         identifier: identifierMacro,
       );
     }
+  }
+
+  static macro.ExpressionCode _expressionCode(ast.Expression node) {
+    return macro.ExpressionCode.fromString('$node');
   }
 }
 
