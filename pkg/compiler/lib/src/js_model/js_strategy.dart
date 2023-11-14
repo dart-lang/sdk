@@ -166,6 +166,7 @@ class JsBackendStrategy {
     KernelFrontendStrategy strategy = _compiler.frontendStrategy;
     _elementMap = JsKernelToElementMap(
         _compiler.reporter,
+        _compiler.environment,
         strategy.elementMap,
         closedWorld.liveMemberUsage,
         closedWorld.liveAbstractInstanceMembers,

@@ -16,6 +16,7 @@ import '../elements/entities.dart';
 import '../elements/entity_utils.dart' as utils;
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../environment.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/abstract_value_strategy.dart';
 import '../js_emitter/sorter.dart';
@@ -148,13 +149,14 @@ class JClosedWorld implements World {
   factory JClosedWorld.readFromDataSource(
       CompilerOptions options,
       DiagnosticReporter reporter,
+      Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       DataSourceReader source) {
     source.begin(tag);
 
     JsKernelToElementMap elementMap = JsKernelToElementMap.readFromDataSource(
-        options, reporter, component, source);
+        options, reporter, environment, component, source);
     ClassHierarchy classHierarchy =
         ClassHierarchy.readFromDataSource(source, elementMap.commonElements);
     NativeData nativeData =

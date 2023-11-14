@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart' as ir;
-import 'package:kernel/type_environment.dart' as ir;
 import 'closure.dart';
+import 'constants.dart' show Dart2jsConstantEvaluator;
 import 'scope_visitor.dart';
+import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
 
 class ScopeModel {
   final ClosureScopeModel? closureScopeModel;
@@ -19,8 +20,10 @@ class ScopeModel {
 
   /// Inspect members and mark if those members capture any state that needs to
   /// be marked as free variables.
-  factory ScopeModel.from(ir.Member node, ir.TypeEnvironment typeEnvironment) {
-    ScopeModelBuilder builder = ScopeModelBuilder(typeEnvironment);
+  factory ScopeModel.from(
+      ir.Member node, ir.ConstantEvaluator constantEvaluator) {
+    ScopeModelBuilder builder =
+        ScopeModelBuilder(constantEvaluator as Dart2jsConstantEvaluator);
     return builder.computeModel(node);
   }
 }
