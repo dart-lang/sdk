@@ -100,10 +100,8 @@ abstract class ByteDataBase implements ByteData {
 
   ByteDataBase(this.offsetInBytes, this.lengthInBytes);
 
-  UnmodifiableByteDataView immutable();
-
   @override
-  ByteData asUnmodifiableView() => immutable();
+  UnmodifiableByteDataView asUnmodifiableView();
 
   void _offsetRangeCheck(int byteOffset, int size) {
     if (byteOffset < 0 || byteOffset + size > lengthInBytes) {
@@ -477,7 +475,7 @@ class I8ByteData extends ByteDataBase {
           : _UnmodifiableI8ByteData._(data, offsetInBytes, lengthInBytes);
 
   @override
-  _UnmodifiableI8ByteData immutable() =>
+  _UnmodifiableI8ByteData asUnmodifiableView() =>
       _UnmodifiableI8ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
@@ -510,7 +508,7 @@ class _I16ByteData extends ByteDataBase {
           : _UnmodifiableI16ByteData._(data, offsetInBytes, lengthInBytes);
 
   @override
-  _UnmodifiableI16ByteData immutable() =>
+  _UnmodifiableI16ByteData asUnmodifiableView() =>
       _UnmodifiableI16ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
@@ -575,7 +573,7 @@ class _I32ByteData extends ByteDataBase {
           : _UnmodifiableI32ByteData._(data, offsetInBytes, lengthInBytes);
 
   @override
-  _UnmodifiableI32ByteData immutable() =>
+  _UnmodifiableI32ByteData asUnmodifiableView() =>
       _UnmodifiableI32ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
@@ -663,7 +661,7 @@ class _I64ByteData extends ByteDataBase {
           : _UnmodifiableI64ByteData._(data, offsetInBytes, lengthInBytes);
 
   @override
-  _UnmodifiableI64ByteData immutable() =>
+  _UnmodifiableI64ByteData asUnmodifiableView() =>
       _UnmodifiableI64ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
@@ -762,7 +760,7 @@ class _F32ByteData extends ByteDataBase {
           : _UnmodifiableF32ByteData._(data, offsetInBytes, lengthInBytes);
 
   @override
-  _UnmodifiableF32ByteData immutable() =>
+  _UnmodifiableF32ByteData asUnmodifiableView() =>
       _UnmodifiableF32ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
@@ -828,7 +826,7 @@ class _F64ByteData extends ByteDataBase {
           : _UnmodifiableF64ByteData._(data, offsetInBytes, lengthInBytes);
 
   @override
-  _UnmodifiableF64ByteData immutable() =>
+  _UnmodifiableF64ByteData asUnmodifiableView() =>
       _UnmodifiableF64ByteData._(_data, offsetInBytes, lengthInBytes);
 
   @override
@@ -2408,7 +2406,7 @@ class I8List extends _WasmI8ArrayBase
           : UnmodifiableI8List._(buffer, offsetInBytes, length);
 
   @override
-  Int8List asUnmodifiableView() => UnmodifiableInt8ListView(this);
+  UnmodifiableI8List asUnmodifiableView() => UnmodifiableI8List(this);
 
   @override
   I8List _createList(int length) => I8List(length);
@@ -2454,7 +2452,7 @@ class U8List extends _WasmI8ArrayBase
           : UnmodifiableU8List._(buffer, offsetInBytes, length);
 
   @override
-  Uint8List asUnmodifiableView() => UnmodifiableUint8ListView(this);
+  UnmodifiableU8List asUnmodifiableView() => UnmodifiableU8List(this);
 
   @override
   U8List _createList(int length) => U8List(length);
@@ -2498,8 +2496,8 @@ class U8ClampedList extends _WasmI8ArrayBase
           : UnmodifiableU8ClampedList._(buffer, offsetInBytes, length);
 
   @override
-  Uint8ClampedList asUnmodifiableView() =>
-      UnmodifiableUint8ClampedListView(this);
+  UnmodifiableU8ClampedList asUnmodifiableView() =>
+      UnmodifiableU8ClampedList(this);
 
   @override
   U8ClampedList _createList(int length) => U8ClampedList(length);
@@ -2543,7 +2541,7 @@ class I16List extends _WasmI16ArrayBase
           : UnmodifiableI16List._(buffer, offsetInBytes, length);
 
   @override
-  Int16List asUnmodifiableView() => UnmodifiableInt16ListView(this);
+  UnmodifiableI16List asUnmodifiableView() => UnmodifiableI16List(this);
 
   @override
   I16List _createList(int length) => I16List(length);
@@ -2587,7 +2585,7 @@ class U16List extends _WasmI16ArrayBase
           : UnmodifiableU16List._(buffer, offsetInBytes, length);
 
   @override
-  Uint16List asUnmodifiableView() => UnmodifiableUint16ListView(this);
+  UnmodifiableU16List asUnmodifiableView() => UnmodifiableU16List(this);
 
   @override
   U16List _createList(int length) => U16List(length);
@@ -2631,7 +2629,7 @@ class I32List extends _WasmI32ArrayBase
           : UnmodifiableI32List._(buffer, offsetInBytes, length);
 
   @override
-  Int32List asUnmodifiableView() => UnmodifiableInt32ListView(this);
+  UnmodifiableI32List asUnmodifiableView() => UnmodifiableI32List(this);
 
   @override
   I32List _createList(int length) => I32List(length);
@@ -2675,7 +2673,7 @@ class U32List extends _WasmI32ArrayBase
           : UnmodifiableU32List._(buffer, offsetInBytes, length);
 
   @override
-  Uint32List asUnmodifiableView() => UnmodifiableUint32ListView(this);
+  UnmodifiableU32List asUnmodifiableView() => UnmodifiableU32List(this);
 
   @override
   U32List _createList(int length) => U32List(length);
@@ -2719,7 +2717,7 @@ class I64List extends _WasmI64ArrayBase
           : UnmodifiableI64List._(buffer, offsetInBytes, length);
 
   @override
-  Int64List asUnmodifiableView() => UnmodifiableInt64ListView(this);
+  UnmodifiableI64List asUnmodifiableView() => UnmodifiableI64List(this);
 
   @override
   I64List _createList(int length) => I64List(length);
@@ -2763,7 +2761,7 @@ class U64List extends _WasmI64ArrayBase
           : UnmodifiableU64List._(buffer, offsetInBytes, length);
 
   @override
-  Uint64List asUnmodifiableView() => UnmodifiableUint64ListView(this);
+  UnmodifiableU64List asUnmodifiableView() => UnmodifiableU64List(this);
 
   @override
   U64List _createList(int length) => U64List(length);
@@ -2807,7 +2805,7 @@ class F32List extends _WasmF32ArrayBase
           : UnmodifiableF32List._(buffer, offsetInBytes, length);
 
   @override
-  Float32List asUnmodifiableView() => UnmodifiableFloat32ListView(this);
+  UnmodifiableF32List asUnmodifiableView() => UnmodifiableF32List(this);
 
   @override
   F32List _createList(int length) => F32List(length);
@@ -2851,7 +2849,7 @@ class F64List extends _WasmF64ArrayBase
           : UnmodifiableF64List._(buffer, offsetInBytes, length);
 
   @override
-  Float64List asUnmodifiableView() => UnmodifiableFloat64ListView(this);
+  UnmodifiableF64List asUnmodifiableView() => UnmodifiableF64List(this);
 
   @override
   F64List _createList(int length) => F64List(length);
@@ -3073,7 +3071,7 @@ class _SlowI8List extends _SlowListBase
           : UnmodifiableSlowI8List._(buffer, offsetInBytes, length);
 
   @override
-  Int8List asUnmodifiableView() => UnmodifiableInt8ListView(this);
+  UnmodifiableSlowI8List asUnmodifiableView() => UnmodifiableSlowI8List(this);
 
   @override
   I8List _createList(int length) => I8List(length);
@@ -3110,7 +3108,7 @@ class _SlowU8List extends _SlowListBase
           : UnmodifiableSlowU8List._(buffer, offsetInBytes, length);
 
   @override
-  Uint8List asUnmodifiableView() => UnmodifiableUint8ListView(this);
+  UnmodifiableSlowU8List asUnmodifiableView() => UnmodifiableSlowU8List(this);
 
   @override
   U8List _createList(int length) => U8List(length);
@@ -3147,8 +3145,8 @@ class _SlowU8ClampedList extends _SlowListBase
           : UnmodifiableSlowU8ClampedList._(buffer, offsetInBytes, length);
 
   @override
-  Uint8ClampedList asUnmodifiableView() =>
-      UnmodifiableUint8ClampedListView(this);
+  UnmodifiableSlowU8ClampedList asUnmodifiableView() =>
+      UnmodifiableSlowU8ClampedList(this);
 
   @override
   U8ClampedList _createList(int length) => U8ClampedList(length);
@@ -3186,7 +3184,7 @@ class _SlowI16List extends _SlowListBase
           : UnmodifiableSlowI16List._(buffer, offsetInBytes, length);
 
   @override
-  Int16List asUnmodifiableView() => UnmodifiableInt16ListView(this);
+  UnmodifiableSlowI16List asUnmodifiableView() => UnmodifiableSlowI16List(this);
 
   @override
   I16List _createList(int length) => I16List(length);
@@ -3225,7 +3223,7 @@ class _SlowU16List extends _SlowListBase
           : UnmodifiableSlowU16List._(buffer, offsetInBytes, length);
 
   @override
-  Uint16List asUnmodifiableView() => UnmodifiableUint16ListView(this);
+  UnmodifiableSlowU16List asUnmodifiableView() => UnmodifiableSlowU16List(this);
 
   @override
   U16List _createList(int length) => U16List(length);
@@ -3264,7 +3262,7 @@ class _SlowI32List extends _SlowListBase
           : UnmodifiableSlowI32List._(buffer, offsetInBytes, length);
 
   @override
-  Int32List asUnmodifiableView() => UnmodifiableInt32ListView(this);
+  UnmodifiableSlowI32List asUnmodifiableView() => UnmodifiableSlowI32List(this);
 
   @override
   I32List _createList(int length) => I32List(length);
@@ -3303,7 +3301,7 @@ class _SlowU32List extends _SlowListBase
           : UnmodifiableSlowU32List._(buffer, offsetInBytes, length);
 
   @override
-  Uint32List asUnmodifiableView() => UnmodifiableUint32ListView(this);
+  UnmodifiableSlowU32List asUnmodifiableView() => UnmodifiableSlowU32List(this);
 
   @override
   U32List _createList(int length) => U32List(length);
@@ -3342,7 +3340,7 @@ class _SlowI64List extends _SlowListBase
           : UnmodifiableSlowI64List._(buffer, offsetInBytes, length);
 
   @override
-  Int64List asUnmodifiableView() => UnmodifiableInt64ListView(this);
+  UnmodifiableSlowI64List asUnmodifiableView() => UnmodifiableSlowI64List(this);
 
   @override
   I64List _createList(int length) => I64List(length);
@@ -3381,7 +3379,7 @@ class _SlowU64List extends _SlowListBase
           : UnmodifiableSlowU64List._(buffer, offsetInBytes, length);
 
   @override
-  Uint64List asUnmodifiableView() => UnmodifiableUint64ListView(this);
+  UnmodifiableSlowU64List asUnmodifiableView() => UnmodifiableSlowU64List(this);
 
   @override
   U64List _createList(int length) => U64List(length);
@@ -3420,7 +3418,7 @@ class _SlowF32List extends _SlowListBase
           : UnmodifiableSlowF32List._(buffer, offsetInBytes, length);
 
   @override
-  Float32List asUnmodifiableView() => UnmodifiableFloat32ListView(this);
+  UnmodifiableSlowF32List asUnmodifiableView() => UnmodifiableSlowF32List(this);
 
   @override
   F32List _createList(int length) => F32List(length);
@@ -3459,7 +3457,7 @@ class SlowF64List extends _SlowListBase
           : UnmodifiableSlowF64List._(buffer, offsetInBytes, length);
 
   @override
-  Float64List asUnmodifiableView() => UnmodifiableFloat64ListView(this);
+  UnmodifiableSlowF64List asUnmodifiableView() => UnmodifiableSlowF64List(this);
 
   @override
   F64List _createList(int length) => F64List(length);
