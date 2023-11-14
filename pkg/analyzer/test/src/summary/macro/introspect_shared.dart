@@ -241,9 +241,13 @@ abstract class SharedPrinter {
     await sink.withIndent(() async {
       switch (type) {
         case NamedTypeAnnotation():
+          final identifier = type.identifier;
+          if (identifier.name == 'void') {
+            return;
+          }
+
           TypeDeclaration declaration;
           try {
-            final identifier = type.identifier;
             declaration = await introspector.typeDeclarationOf(identifier);
           } on ArgumentError {
             sink.writelnWithIndent('noDeclaration');

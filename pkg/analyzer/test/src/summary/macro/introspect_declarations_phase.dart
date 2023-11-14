@@ -12,6 +12,7 @@ import 'introspect_shared.dart';
     implements
         ClassDeclarationsMacro,
         FieldDeclarationsMacro,
+        MethodDeclarationsMacro,
         MixinDeclarationsMacro {
   final Set<Object?> withDetailsFor;
   final bool withMetadata;
@@ -38,6 +39,13 @@ import 'introspect_shared.dart';
   ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeField(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForMethod(declaration, builder) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeMethodDeclaration(declaration);
     });
   }
 
@@ -76,10 +84,9 @@ import 'introspect_shared.dart';
     await f(printer);
     final text = buffer.toString();
 
-    final resultName = 'introspect_$declarationName';
     builder.declareInLibrary(
       DeclarationCode.fromString(
-        'const $resultName = r"""$text""";',
+        'const _introspect = r"""$text""";',
       ),
     );
   }
