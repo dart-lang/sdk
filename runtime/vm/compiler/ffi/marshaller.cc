@@ -321,8 +321,7 @@ Representation BaseMarshaller::RepInFfiCall(intptr_t def_index_global) const {
 
   if (location.IsStack()) {
     // Split the struct in architecture size chunks.
-    return compiler::target::kWordSize == 8 ? Representation::kUnboxedInt64
-                                            : Representation::kUnboxedInt32;
+    return kUnboxedWord;
   }
 
   if (location.IsMultiple()) {

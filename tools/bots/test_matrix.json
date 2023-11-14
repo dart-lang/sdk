@@ -1778,7 +1778,8 @@
         "vm-win-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is for the ARM64 JIT builders, no shards."
+        "description": "This configuration is for the ARM64 JIT builders, no shards.",
+        "__comment__": "--no-clang because Clang is inconsisent about varargs: dartbug.com/52644"
       },
       "steps": [
         {
@@ -1786,6 +1787,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--no-goma",
+            "--no-clang",
             "runtime"
           ]
         },
@@ -1811,7 +1813,8 @@
         "vm-aot-win-release-arm64"
       ],
       "meta": {
-        "description": "This configuration is for the ARM64 AOT builders, no shards."
+        "description": "This configuration is for the ARM64 AOT builders, no shards.",
+        "__comment__": "--no-clang because Clang is inconsisent about varargs: dartbug.com/52644"
       },
       "steps": [
         {
@@ -1819,6 +1822,7 @@
           "script": "tools/build.py",
           "arguments": [
             "--no-goma",
+            "--no-clang",
             "dart_precompiled_runtime",
             "gen_snapshot",
             "runtime"

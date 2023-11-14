@@ -904,6 +904,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
+      ASSERT(destination.container_type().SizeInBytes() <=
+             compiler::target::kWordSize);
       if (!sign_or_zero_extend) {
 #if XLEN == 32
         __ MoveRegister(dst_reg, src_reg);
@@ -945,6 +947,24 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
             __ addiw(dst_reg, src_reg, 0);
             return;
 #endif
+          case compiler::ffi::kInt24:
+#if XLEN >= 64
+          case compiler::ffi::kInt40:
+          case compiler::ffi::kInt48:
+          case compiler::ffi::kInt56:
+#endif
+            __ slli(dst_reg, src_reg, XLEN - src_size * kBitsPerByte);
+            __ srai(dst_reg, dst_reg, XLEN - src_size * kBitsPerByte);
+            return;
+          case compiler::ffi::kUint24:
+#if XLEN >= 64
+          case compiler::ffi::kUint40:
+          case compiler::ffi::kUint48:
+          case compiler::ffi::kUint56:
+#endif
+            __ slli(dst_reg, src_reg, XLEN - src_size * kBitsPerByte);
+            __ srli(dst_reg, dst_reg, XLEN - src_size * kBitsPerByte);
+            return;
           default:
             UNREACHABLE();
         }
@@ -973,7 +993,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(destination.IsStack());
       const auto& dst = destination.AsStack();
       ASSERT(!sign_or_zero_extend);
-      auto const op_size = BytesToOperandSize(dst_size);
+      auto const op_size =
+          BytesToOperandSize(destination.container_type().SizeInBytes());
       __ StoreToOffset(src.reg_at(0), dst.base_register(),
                        dst.offset_in_bytes(), op_size);
     }
@@ -1030,9 +1051,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
-      ASSERT(!sign_or_zero_extend);
-      __ LoadFromOffset(dst_reg, src.base_register(), src.offset_in_bytes(),
-                        BytesToOperandSize(dst_size));
+      EmitNativeLoad(dst_reg, src.base_register(), src.offset_in_bytes(),
+                     src_type.AsPrimitive().representation());
     } else if (destination.IsFpuRegisters()) {
       ASSERT(src_type.Equals(dst_type));
       ASSERT(src_type.IsFloat());
@@ -1054,6 +1074,117 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       UNREACHABLE();
     }
   }
+}
+
+void FlowGraphCompiler::EmitNativeLoad(Register dst,
+                                       Register base,
+                                       intptr_t offset,
+                                       compiler::ffi::PrimitiveType type) {
+  switch (type) {
+    case compiler::ffi::kInt8:
+      __ lb(dst, compiler::Address(base, offset));
+      return;
+    case compiler::ffi::kUint8:
+      __ lbu(dst, compiler::Address(base, offset));
+      return;
+    case compiler::ffi::kInt16:
+      __ lh(dst, compiler::Address(base, offset));
+      return;
+    case compiler::ffi::kUint16:
+      __ lhu(dst, compiler::Address(base, offset));
+      return;
+    case compiler::ffi::kInt32:
+      __ lw(dst, compiler::Address(base, offset));
+      return;
+    case compiler::ffi::kUint32:
+    case compiler::ffi::kFloat:
+#if XLEN == 32
+      __ lw(dst, compiler::Address(base, offset));
+#else
+      __ lwu(dst, compiler::Address(base, offset));
+#endif
+      return;
+#if XLEN >= 64
+    case compiler::ffi::kInt64:
+    case compiler::ffi::kUint64:
+    case compiler::ffi::kDouble:
+      __ ld(dst, compiler::Address(base, offset));
+      return;
+#endif
+    default:
+      break;
+  }
+
+  Register tmp = kNoRegister;
+  if (dst != T1 && base != T1) tmp = T1;
+  if (dst != T2 && base != T2) tmp = T2;
+  if (dst != T3 && base != T3) tmp = T3;
+  ASSERT(tmp != kNoRegister);
+  if (base == SP) offset += compiler::target::kWordSize;
+  __ PushRegister(tmp);
+
+  switch (type) {
+    case compiler::ffi::kInt24:
+      __ lhu(dst, compiler::Address(base, offset));
+      __ lb(tmp, compiler::Address(base, offset + 2));
+      __ slli(tmp, tmp, 16);
+      __ or_(dst, dst, tmp);
+      break;
+    case compiler::ffi::kUint24:
+      __ lhu(dst, compiler::Address(base, offset));
+      __ lbu(tmp, compiler::Address(base, offset + 2));
+      __ slli(tmp, tmp, 16);
+      __ or_(dst, dst, tmp);
+      break;
+#if XLEN >= 64
+    case compiler::ffi::kInt40:
+      __ lwu(dst, compiler::Address(base, offset));
+      __ lb(tmp, compiler::Address(base, offset + 4));
+      __ slli(tmp, tmp, 32);
+      __ or_(dst, dst, tmp);
+      break;
+    case compiler::ffi::kUint40:
+      __ lwu(dst, compiler::Address(base, offset));
+      __ lbu(tmp, compiler::Address(base, offset + 4));
+      __ slli(tmp, tmp, 32);
+      __ or_(dst, dst, tmp);
+      break;
+    case compiler::ffi::kInt48:
+      __ lwu(dst, compiler::Address(base, offset));
+      __ lh(tmp, compiler::Address(base, offset + 4));
+      __ slli(tmp, tmp, 32);
+      __ or_(dst, dst, tmp);
+      break;
+    case compiler::ffi::kUint48:
+      __ lwu(dst, compiler::Address(base, offset));
+      __ lhu(tmp, compiler::Address(base, offset + 4));
+      __ slli(tmp, tmp, 32);
+      __ or_(dst, dst, tmp);
+      break;
+    case compiler::ffi::kInt56:
+      __ lwu(dst, compiler::Address(base, offset));
+      __ lhu(tmp, compiler::Address(base, offset + 4));
+      __ slli(tmp, tmp, 32);
+      __ or_(dst, dst, tmp);
+      __ lb(tmp, compiler::Address(base, offset + 6));
+      __ slli(tmp, tmp, 48);
+      __ or_(dst, dst, tmp);
+      break;
+    case compiler::ffi::kUint56:
+      __ lwu(dst, compiler::Address(base, offset));
+      __ lhu(tmp, compiler::Address(base, offset + 4));
+      __ slli(tmp, tmp, 32);
+      __ or_(dst, dst, tmp);
+      __ lbu(tmp, compiler::Address(base, offset + 6));
+      __ slli(tmp, tmp, 48);
+      __ or_(dst, dst, tmp);
+      break;
+#endif
+    default:
+      UNREACHABLE();
+  }
+
+  __ PopRegister(tmp);
 }
 
 void FlowGraphCompiler::LoadBSSEntry(BSS::Relocation relocation,

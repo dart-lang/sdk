@@ -76,6 +76,30 @@ static const NativeType& ConvertIfSoftFp(Zone* zone,
 const PrimitiveType kFfiIntPtr =
     compiler::target::kWordSize == 8 ? kInt64 : kUint32;
 
+static PrimitiveType TypeForSize(intptr_t size) {
+  switch (size) {
+    case 8:
+      return kUint64;
+    case 7:
+      return kUint56;
+    case 6:
+      return kUint48;
+    case 5:
+      return kUint40;
+    case 4:
+      return kUint32;
+    case 3:
+      return kUint24;
+    case 2:
+      return kUint16;
+    case 1:
+      return kUint8;
+    default:
+      UNREACHABLE();
+      return kVoid;
+  }
+}
+
 // Represents the state of a stack frame going into a call, between allocations
 // of argument locations.
 class ArgumentAllocator : public ValueObject {
@@ -276,9 +300,13 @@ class ArgumentAllocator : public ValueObject {
             multiple_locations.Add(new (zone_) NativeFpuRegistersLocation(
                 type, type, kQuadFpuReg, reg_index));
           } else {
-            const auto& type = *new (zone_) NativePrimitiveType(kInt64);
+            const auto& payload_type =
+                *new (zone_) NativePrimitiveType(TypeForSize(Utils::Minimum(
+                    size - offset, compiler::target::kWordSize)));
+            const auto& container_type = *new (zone_) NativePrimitiveType(
+                TypeForSize(compiler::target::kWordSize));
             multiple_locations.Add(new (zone_) NativeRegistersLocation(
-                zone_, type, type, AllocateCpuRegister()));
+                zone_, payload_type, container_type, AllocateCpuRegister()));
           }
         }
         return *new (zone_)
@@ -365,7 +393,7 @@ class ArgumentAllocator : public ValueObject {
         BlockAllFpuRegisters();
         return AllocateStack(payload_type);
       }
-    } else {
+    } else if (payload_type.AlignmentInBytesStack() == 8) {
       const intptr_t chunk_size = payload_type.AlignmentInBytesStack();
       ASSERT(chunk_size == 4 || chunk_size == 8);
       const intptr_t size_rounded =
@@ -392,6 +420,8 @@ class ArgumentAllocator : public ValueObject {
       }
       return *new (zone_)
           MultipleNativeLocations(compound_type, multiple_locations);
+    } else {
+      return AllocateCompoundAsMultiple(compound_type);
     }
   }
 #endif  // defined(TARGET_ARCH_ARM)
@@ -448,16 +478,7 @@ class ArgumentAllocator : public ValueObject {
       }
 #endif
 
-      const auto& chunk_type = *new (zone_) NativePrimitiveType(kInt64);
-
-      NativeLocations& multiple_locations =
-          *new (zone_) NativeLocations(zone_, num_chunks);
-      for (int i = 0; i < num_chunks; i++) {
-        const auto& allocated_chunk = &AllocateArgument(chunk_type, is_vararg);
-        multiple_locations.Add(allocated_chunk);
-      }
-      return *new (zone_)
-          MultipleNativeLocations(compound_type, multiple_locations);
+      return AllocateCompoundAsMultiple(payload_type);
     }
 
     const auto& pointer_location =
@@ -518,38 +539,58 @@ class ArgumentAllocator : public ValueObject {
     }
 
     // 2.1. Integer Calling Convention.
-    const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
-    const intptr_t size = compound_type.SizeInBytes();
-
     // If total size is <= XLEN, passed like an XLEN scalar: use a register if
     // available or pass by value on the stack.
-    if (size <= target::kWordSize) {
-      NativeLocations& multiple_locations =
-          *new (zone_) NativeLocations(zone_, 1);
-      multiple_locations.Add(&AllocateArgument(pointer_type));
-      return *new (zone_)
-          MultipleNativeLocations(compound_type, multiple_locations);
-    }
-
     // If total size is <= 2*XLEN, passed like two XLEN scalars: use registers
     // if available or pass by value on the stack. If only one register is
     // available, pass the low part by register and the high part on the
     // stack.
-    if (size <= 2 * target::kWordSize) {
-      NativeLocations& multiple_locations =
-          *new (zone_) NativeLocations(zone_, 2);
-      multiple_locations.Add(&AllocateArgument(pointer_type));
-      multiple_locations.Add(&AllocateArgument(pointer_type));
-      return *new (zone_)
-          MultipleNativeLocations(compound_type, multiple_locations);
+    if (compound_type.SizeInBytes() <= 2 * target::kWordSize) {
+      return AllocateCompoundAsMultiple(compound_type);
     }
 
     // Otherwise, passed by reference.
+    const auto& pointer_type = *new (zone_) NativePrimitiveType(kFfiIntPtr);
     const auto& pointer_location = AllocateArgument(pointer_type);
     return *new (zone_)
         PointerToMemoryLocation(pointer_location, compound_type);
   }
 #endif
+
+  // Allocate in word-sized chunks, with the container as a full word-sized
+  // register or stack slot and the payload constrained to the struct's size.
+  //
+  // Note this describes the location at call. Consumes of this location, such
+  // as FfiCallConvertCompoundArgumentToNative or EmitReturnMoves, often assume
+  // the location of the source compound in the heap corresponds to this
+  // location with just a change in base register. This is often true, except
+  // some ABIs assume zero extension of the last chunk, so the stack location at
+  // call is bigger than the location in the heap. Here we set the container
+  // size to reflect that zero-extended stack slot and rely on loads during
+  // moves opting to use the payload size instead of the container size to stay
+  // in-bounds.
+  const NativeLocation& AllocateCompoundAsMultiple(
+      const NativeCompoundType& compound_type) {
+    const intptr_t chunk_size = compiler::target::kWordSize;
+    const intptr_t num_chunks =
+        Utils::RoundUp(compound_type.SizeInBytes(), chunk_size) / chunk_size;
+    const NativeType& container_type =
+        *new (zone_) NativePrimitiveType(TypeForSize(chunk_size));
+    NativeLocations& locations =
+        *new (zone_) NativeLocations(zone_, num_chunks);
+    intptr_t size_remaining = compound_type.SizeInBytes();
+    while (size_remaining > 0) {
+      const auto& chunk = AllocateArgument(container_type);
+
+      const intptr_t size = Utils::Minimum(size_remaining, chunk_size);
+      const NativeType& payload_type =
+          *new (zone_) NativePrimitiveType(TypeForSize(size));
+      locations.Add(
+          &chunk.WithOtherNativeType(zone_, payload_type, container_type));
+      size_remaining -= size;
+    }
+    return *new (zone_) MultipleNativeLocations(compound_type, locations);
+  }
 
   static FpuRegisterKind FpuRegKind(const NativeType& payload_type) {
 #if defined(TARGET_ARCH_ARM)
@@ -744,7 +785,6 @@ static const NativeLocation& CompoundResultLocation(
     intptr_t used_xmm_regs = 0;
 
     const auto& double_type = *new (zone) NativePrimitiveType(kDouble);
-    const auto& int64_type = *new (zone) NativePrimitiveType(kInt64);
 
     const bool first_half_in_xmm = payload_type.ContainsOnlyFloats(
         Range::StartAndEnd(0, Utils::Minimum<intptr_t>(size, 8)));
@@ -754,8 +794,12 @@ static const NativeLocation& CompoundResultLocation(
           CallingConventions::kReturnFpuReg));
       used_xmm_regs++;
     } else {
+      const auto& payload_type = *new (zone) NativePrimitiveType(
+          TypeForSize(Utils::Minimum(size, compiler::target::kWordSize)));
+      const auto& container_type = *new (zone) NativePrimitiveType(
+          TypeForSize(compiler::target::kWordSize));
       multiple_locations.Add(new (zone) NativeRegistersLocation(
-          zone, int64_type, int64_type, CallingConventions::kReturnReg));
+          zone, payload_type, container_type, CallingConventions::kReturnReg));
       used_regs++;
     }
     if (size > 8) {
@@ -772,8 +816,12 @@ static const NativeLocation& CompoundResultLocation(
         const Register reg = used_regs == 0
                                  ? CallingConventions::kReturnReg
                                  : CallingConventions::kSecondReturnReg;
+        const auto& payload_type = *new (zone) NativePrimitiveType(
+            TypeForSize(Utils::Minimum(size - 8, compiler::target::kWordSize)));
+        const auto& container_type = *new (zone) NativePrimitiveType(
+            TypeForSize(compiler::target::kWordSize));
         multiple_locations.Add(new (zone) NativeRegistersLocation(
-            zone, int64_type, int64_type, reg));
+            zone, payload_type, container_type, reg));
         used_regs++;
       }
     }
