@@ -35,8 +35,9 @@ JSMethods _performJSInteropTransformations(
       additionalCoreLibraries: {
         '_js_helper',
         '_js_types',
+        'convert',
         'js_interop',
-        'js_interop_unsafe'
+        'js_interop_unsafe',
       });
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
