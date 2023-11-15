@@ -183,7 +183,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     if (constructor.factoryKeyword != null ||
         constructor.redirectedConstructor != null) {
       // Can't have a super constructor invocation.
-      // TODO(brianwilkerson) Consider extending the redirected constructor to
+      // TODO(brianwilkerson): Consider extending the redirected constructor to
       //  also take a key, or finding the constructor invocation in the body of
       //  the factory and updating it.
       return;

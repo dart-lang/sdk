@@ -11,7 +11,7 @@ Future<void> main(List<String> args, SendPort port) async {
   await prefix1.loadLibrary();
   // Notify the spawner that we've finished loading the library.
   port.send(null);
-  RawReceivePort _ = RawReceivePort();
+  final RawReceivePort _ = RawReceivePort();
   print('spawned isolate running');
 }
 

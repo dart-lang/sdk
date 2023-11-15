@@ -945,6 +945,10 @@ class FlowGraphCompiler : public ValueObject {
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
                                   const compiler::ffi::NativeLocation& src);
+  void EmitNativeLoad(Register dst,
+                      Register base,
+                      intptr_t offset,
+                      compiler::ffi::PrimitiveType type);
 
   void EmitFrameEntry();
 

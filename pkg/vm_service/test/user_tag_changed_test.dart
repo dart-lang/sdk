@@ -54,7 +54,7 @@ var tests = <IsolateTest>[
   }
 ];
 
-main([args = const <String>[]]) async => await runIsolateTests(
+Future<void> main([args = const <String>[]]) async => await runIsolateTests(
       args,
       tests,
       'user_tag_changed_test.dart',

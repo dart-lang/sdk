@@ -53,9 +53,11 @@ IsolateTest expectInstanceCounts(
       isolate.rootLib!.id!,
     ) as Library;
 
-    Future<int> instanceCount(String className,
-        {bool includeSubclasses = false,
-        bool includeImplementers = false}) async {
+    Future<int> instanceCount(
+      String className, {
+      bool includeSubclasses = false,
+      bool includeImplementers = false,
+    }) async {
       final result = await service.getInstancesAsList(
         isolateId,
         rootLib.classes!

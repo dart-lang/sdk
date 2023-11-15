@@ -338,6 +338,10 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // We pass in `variable` instead of on top of the stack so that we can have
   // multiple consecutive calls that keep only compound parts on the stack with
   // no compound parts in between.
+  Fragment LoadTail(LocalVariable* variable,
+                    intptr_t size,
+                    intptr_t offset_in_bytes,
+                    Representation representation);
   Fragment FfiCallConvertCompoundArgumentToNative(
       LocalVariable* variable,
       const compiler::ffi::BaseMarshaller& marshaller,
@@ -365,19 +369,6 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   // Loads the _typedDataBase field from a subclass of _Compound.
   Fragment LoadTypedDataBaseFromCompound();
-
-  // Breaks up a subclass of _Compound in multiple definitions and puts them on
-  // the stack.
-  //
-  // Takes in the _Compound as a local `variable` so that can be anywhere on
-  // the stack and this function can be called multiple times to leave only the
-  // results of this function on the stack without any _Compounds in between.
-  //
-  // The compound contents are heterogeneous, so pass in
-  // `representations` to know what representation to load.
-  Fragment CopyFromCompoundToStack(
-      LocalVariable* variable,
-      const GrowableArray<Representation>& representations);
 
   // Copy `definitions` into TypedData.
   //

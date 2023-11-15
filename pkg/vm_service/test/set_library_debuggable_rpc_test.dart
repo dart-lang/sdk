@@ -36,7 +36,10 @@ final tests = <IsolateTest>[
     bool caughtException = false;
     try {
       await service.setLibraryDebuggable(
-          isolateRef.id!, 'libraries/9999999', false);
+        isolateRef.id!,
+        'libraries/9999999',
+        false,
+      );
       fail('Unreachable');
     } on RPCError catch (e) {
       caughtException = true;

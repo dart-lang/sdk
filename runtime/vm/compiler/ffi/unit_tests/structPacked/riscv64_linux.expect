@@ -6,8 +6,8 @@ M(t4 int32[int8], fa4 double) Struct(size: 9)
 M(t5 int32[int8], fa5 double) Struct(size: 9)
 M(a6 int32[int8], fa6 double) Struct(size: 9)
 M(a7 int32[int8], fa7 double) Struct(size: 9)
-M(S+0 int64, S+8 int64) Struct(size: 9)
-M(S+16 int64, S+24 int64) Struct(size: 9)
+M(S+0 uint64, S+8 uint64[uint8]) Struct(size: 9)
+M(S+16 uint64, S+24 uint64[uint8]) Struct(size: 9)
 S+32 double
 S+40 int32
 S+48 int32

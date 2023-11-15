@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 mixin class Foo {
-  foo() {
+  void foo() {
     print('I should be breakable!');
   }
 }
 
 class Bar {
-  bar() {
+  void bar() {
     print('I should be breakable too!');
   }
 }

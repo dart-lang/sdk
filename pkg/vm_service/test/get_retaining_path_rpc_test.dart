@@ -59,62 +59,62 @@ void warmup() {
 }
 
 @pragma('vm:entry-point') // Prevent obfuscation
-getGlobalObject() => globalObject;
+_TestClass getGlobalObject() => globalObject;
 
 @pragma('vm:entry-point') // Prevent obfuscation
 _TestClass? takeTarget1() {
-  var tmp = target1;
+  final tmp = target1;
   target1 = null;
   return tmp;
 }
 
 @pragma('vm:entry-point') // Prevent obfuscation
 _TestClass? takeTarget2() {
-  var tmp = target2;
+  final tmp = target2;
   target2 = null;
   return tmp;
 }
 
 @pragma('vm:entry-point') // Prevent obfuscation
 _TestClass? takeTarget3() {
-  var tmp = target3;
+  final tmp = target3;
   target3 = null;
   return tmp;
 }
 
 @pragma('vm:entry-point') // Prevent obfuscation
 _TestClass? takeTarget4() {
-  var tmp = target4;
+  final tmp = target4;
   target4 = null;
   return tmp;
 }
 
 @pragma('vm:entry-point') // Prevent obfuscation
 _TestClass? takeTarget5() {
-  var tmp = target5;
+  final tmp = target5;
   target5 = null;
   return tmp;
 }
 
 @pragma('vm:entry-point') // Prevent obfuscation
 _TestClass? takeExpandoTarget() {
-  var tmp = target6;
+  final tmp = target6;
   target6 = null;
-  var tmp2 = _TestClass();
+  final tmp2 = _TestClass();
   expando[tmp!] = tmp2;
   return tmp2;
 }
 
 @pragma('vm:entry-point') // Prevent obfuscation
 _TestClass? takeWeakReachableTarget() {
-  var tmp = target7;
+  final tmp = target7;
   target7 = null;
   return tmp;
 }
 
 @pragma('vm:entry-point') // Prevent obfuscation
 _TestClass? takeWeakUnreachableTarget() {
-  var tmp = target8;
+  final tmp = target8;
   target8 = null;
   return tmp;
 }

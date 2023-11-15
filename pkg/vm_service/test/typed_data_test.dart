@@ -147,10 +147,10 @@ final tests = <IsolateTest>[
     Future<void> expectTypedData(String name, Object expectedValue) async {
       final variable = variables.singleWhere((v) => v.name == name);
       final actualValue = toTypedElement(
-        (await service.getObject(
+        await service.getObject(
           isolateId,
           variable.staticValue.id!,
-        ) as Instance),
+        ) as Instance,
       );
       if (expectedValue is Int32x4List) {
         expect(actualValue.length, equals(expectedValue.length));

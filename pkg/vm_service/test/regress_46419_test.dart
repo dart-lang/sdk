@@ -35,13 +35,13 @@ void printSync() {
   }
 }
 
-printSyncStar() sync* {
+Iterable<void> printSyncStar() sync* {
   // We'll end up resolving breakpoint 1 to this location instead of at LINE_A
   // if #46419 regresses.
   print('sync*'); // LINE_C
 }
 
-testeeDo() {
+void testeeDo() {
   printSync();
   final iterator = printSyncStar();
 

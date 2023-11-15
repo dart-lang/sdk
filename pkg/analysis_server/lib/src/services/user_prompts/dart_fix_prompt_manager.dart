@@ -70,7 +70,8 @@ class DartFixPromptManager {
   Map<String, String?> get currentContextSdkConstraints {
     return {
       for (final context in server.contextManager.analysisContexts)
-        // TODO(pq) getAllOptions.first
+        // TODO(pq): update to a new source for sdk version constraints
+        // https://github.com/dart-lang/sdk/issues/54043
         context.contextRoot.root.path:
             context.analysisOptions.sdkVersionConstraint?.toString(),
     };

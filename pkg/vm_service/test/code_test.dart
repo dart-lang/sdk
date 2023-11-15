@@ -57,7 +57,7 @@ var tests = <IsolateTest>[
 // Inspect code objects for top two frames.
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
-    Stack stack = await service.getStack(isolateId);
+    final Stack stack = await service.getStack(isolateId);
     // Make sure we are in the right place.
     expect(stack.frames!.length, greaterThanOrEqualTo(3));
     final frame0 = stack.frames![0];
@@ -82,7 +82,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'code_test.dart',

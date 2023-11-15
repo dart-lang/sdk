@@ -36,13 +36,17 @@ IsolateTest filterTestImpl(List<String> filters, Function(Set<String>) check) {
 }
 
 IsolateTest filterTestExactlyMatches(
-        List<String> filters, List<String> expectedScripts) =>
+  List<String> filters,
+  List<String> expectedScripts,
+) =>
     filterTestImpl(filters, (Set<String> scripts) {
       expect(scripts, unorderedEquals(expectedScripts));
     });
 
 IsolateTest filterTestContains(
-        List<String> filters, List<String> expectedScripts) =>
+  List<String> filters,
+  List<String> expectedScripts,
+) =>
     filterTestImpl(filters, (Set<String> scripts) {
       expect(scripts, containsAll(expectedScripts));
     });
@@ -80,7 +84,7 @@ var tests = <IsolateTest>[
   resumeIsolate,
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'source_report_package_filters_test.dart',

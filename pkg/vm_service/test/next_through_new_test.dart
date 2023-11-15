@@ -29,7 +29,7 @@ final stops = <String>[];
 const expected = <String>[
   '$file:${LINE_A + 0}:9', // on '(' in 'code()'
   '$file:${LINE_A + 1}:13', // on 'Foo'
-  '$file:${LINE_A + 2}:3' // on 'return'
+  '$file:${LINE_A + 2}:3', // on 'return'
 ];
 
 final tests = <IsolateTest>[

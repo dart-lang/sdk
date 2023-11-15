@@ -67,7 +67,7 @@ class F0 {}
 ''');
     // Part of the purpose of this test is to ensure that we don't suggest names
     // from other imports ('C0' and 'D0') or locally defined names ('F0').
-    // TODO(scheglov) It might be also interesting what happens when we have
+    // TODO(scheglov): It might be also interesting what happens when we have
     // just a getter, just a setter, a pair of a getter and a setter.
     assertResponse(r'''
 suggestions

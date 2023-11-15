@@ -55,7 +55,7 @@ final tests = <IsolateTest>[
     debugPrint: true,
     debugPrintFile: file,
     debugPrintLine: LINE_A,
-  )
+  ),
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

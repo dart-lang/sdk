@@ -202,7 +202,7 @@ class WaitForAnalysisCompleteOperation extends Operation {
     });
     timer = Timer.periodic(Duration(milliseconds: 20), (_) {
       if (!isAnalyzing) {
-        // TODO (danrubel) revisit this once source change requests are implemented
+        // TODO(danrubel): revisit this once source change requests are implemented
         subscription.cancel();
         timer.cancel();
         driver.logger.log(Level.INFO, 'analysis never started');

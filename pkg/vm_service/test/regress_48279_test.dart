@@ -17,17 +17,17 @@ class A<T, U, V> {
   List<T> foo = [];
 }
 
-testeeMain() {
-  A<num, Object, Object> object = A<int, String, String>();
+void testeeMain() {
+  final A<num, Object, Object> object = A<int, String, String>();
   object.foo = <double>[];
 }
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   hasStoppedWithUnhandledException,
-  (VmService? service, IsolateRef? isolateRef) async {
+  (VmService service, IsolateRef isolateRef) async {
     print('We stopped!');
-    final isolateId = isolateRef!.id!;
-    final stack = await service!.getStack(isolateId);
+    final isolateId = isolateRef.id!;
+    final stack = await service.getStack(isolateId);
     final topFrame = stack.frames![0];
     expect(topFrame.function!.name, equals('foo='));
     final result = await service.evaluateInFrame(isolateId, 0, 'T');
@@ -36,7 +36,7 @@ var tests = <IsolateTest>[
   }
 ];
 
-main(args) => runIsolateTests(
+Future<void> main(args) => runIsolateTests(
       args,
       tests,
       'regress_48279_test.dart',

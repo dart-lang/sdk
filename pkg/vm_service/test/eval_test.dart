@@ -29,12 +29,12 @@ void testFunction() {
   while (true) {
     if (++i % 100000000 == 0) {
       MyClass.method(10000);
-      (_MyClass()).foo();
+      _MyClass().foo();
     }
   }
 }
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
 
 // Evaluate against library, class, and instance.
@@ -57,8 +57,9 @@ var tests = <IsolateTest>[
     print(result);
     expect(result.valueAsString, '105');
 
-    await expectError(() =>
-        service.evaluate(isolateId, lib.id!, 'globalVar + staticVar + 5'));
+    await expectError(
+      () => service.evaluate(isolateId, lib.id!, 'globalVar + staticVar + 5'),
+    );
 
     result =
         await service.evaluate(isolateId, cls.id!, 'globalVar + staticVar + 5');
@@ -72,7 +73,8 @@ var tests = <IsolateTest>[
     expect(result.valueAsString, '10005');
 
     await expectError(
-        () => service.evaluate(isolateId, instance.id!, 'this + frog'));
+      () => service.evaluate(isolateId, instance.id!, 'this + frog'),
+    );
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
@@ -94,7 +96,7 @@ var tests = <IsolateTest>[
   }
 ];
 
-expectError(func) async {
+Future<void> expectError(func) async {
   bool gotException = false;
   dynamic result;
   try {
@@ -109,7 +111,7 @@ expectError(func) async {
   }
 }
 
-main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'eval_test.dart',

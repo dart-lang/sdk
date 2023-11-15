@@ -148,7 +148,7 @@ class ImportElementsComputer {
                 }
               } else if (combinator is ShowCombinator &&
                   namesToShow.isNotEmpty) {
-                // TODO(brianwilkerson) Add the names in alphabetic order.
+                // TODO(brianwilkerson): Add the names in alphabetic order.
                 builder.addInsertion(combinator.shownNames.last.end, (builder) {
                   for (var nameToShow in namesToShow) {
                     builder.write(', ');
@@ -294,14 +294,14 @@ class ImportElementsComputer {
     if (importDirectives.isEmpty) {
       if (libraryDirective == null) {
         if (otherDirectives.isEmpty) {
-          // TODO(brianwilkerson) Insert after any non-doc comments.
+          // TODO(brianwilkerson): Insert after any non-doc comments.
           return _InsertionDescription(0, after: 2);
         }
         return _InsertionDescription(otherDirectives[0].offset, after: 2);
       }
       return _InsertionDescription(libraryDirective.end, before: 2);
     }
-    // TODO(brianwilkerson) Fix this to find the right location.
+    // TODO(brianwilkerson): Fix this to find the right location.
     // See DartFileEditBuilderImpl._addLibraryImports for inspiration.
     return _InsertionDescription(importDirectives.last.end, before: 1);
   }

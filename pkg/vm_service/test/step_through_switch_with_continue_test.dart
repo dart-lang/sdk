@@ -49,7 +49,7 @@ const expected = <String>[
   '$file:${LINE_A + 7}:7', // on print
   '$file:${LINE_A + 8}:7', // on break
 
-  '$file:${LINE_A + 15}:1' // on ending '}'
+  '$file:${LINE_A + 15}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[

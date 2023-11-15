@@ -77,7 +77,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         ),
       );
     });
-    // TODO (danrubel) if request is obsolete (processAnalysisRequest returns
+    // TODO(danrubel): if request is obsolete (processAnalysisRequest returns
     // false) then send empty results
 
     //

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
@@ -18,7 +19,9 @@ import '../elements/entities.dart';
 import '../elements/entity_map.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
+import '../environment.dart';
 import '../ir/annotations.dart';
+import '../ir/constants.dart';
 import '../ir/element_map.dart';
 import '../ir/impact.dart';
 import '../ir/impact_data.dart';
@@ -59,6 +62,7 @@ class KernelToElementMap implements IrToElementMap {
   final CompilerOptions options;
   @override
   final DiagnosticReporter reporter;
+  final Environment _environment;
   final NativeBasicDataBuilder nativeBasicDataBuilder =
       NativeBasicDataBuilder();
   NativeBasicData? _nativeBasicData;
@@ -69,6 +73,7 @@ class KernelToElementMap implements IrToElementMap {
   ir.CoreTypes? _coreTypes;
   ir.TypeEnvironment? _typeEnvironment;
   ir.ClassHierarchy? _classHierarchy;
+  Dart2jsConstantEvaluator? _constantEvaluator;
   late final ConstantValuefier _constantValuefier;
 
   /// Library environment. Used for fast lookup.
@@ -110,7 +115,7 @@ class KernelToElementMap implements IrToElementMap {
   Map<JMember, Map<ir.Expression, TypeMap>>? typeMapsForTesting;
   Map<ir.Member, ImpactData>? impactDataForTesting;
 
-  KernelToElementMap(this.reporter, this.options) {
+  KernelToElementMap(this.reporter, this._environment, this.options) {
     _elementEnvironment = KernelElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
@@ -814,6 +819,18 @@ class KernelToElementMap implements IrToElementMap {
         getMemberNode(member as JMember), typeEnvironment);
   }
 
+  Dart2jsConstantEvaluator get constantEvaluator {
+    return _constantEvaluator ??=
+        Dart2jsConstantEvaluator(env.mainComponent, typeEnvironment,
+            (ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
+      reportLocatedMessage(reporter, message, context);
+    },
+            environment: _environment,
+            evaluationMode: options.useLegacySubtyping
+                ? ir.EvaluationMode.weak
+                : ir.EvaluationMode.strong);
+  }
+
   @override
   Name getName(ir.Name name, {bool setter = false}) {
     return Name(name.text, name.isPrivate ? name.library!.importUri : null,
@@ -1094,7 +1111,9 @@ class KernelToElementMap implements IrToElementMap {
       }
       return NullConstantValue();
     }
-    final constant = node is ir.ConstantExpression ? node.constant : null;
+    ir.Constant? constant = constantEvaluator.evaluateOrNull(
+        staticTypeContext, node,
+        requireConstant: requireConstant);
     if (constant == null) {
       if (requireConstant) {
         throw UnsupportedError(
@@ -2080,6 +2099,25 @@ class KernelNativeMemberResolver {
   bool _isJsInteropMember(ir.Member node) {
     return _nativeBasicData.isJsInteropMember(_elementMap.getMember(node));
   }
+}
+
+DiagnosticMessage _createDiagnosticMessage(
+    DiagnosticReporter reporter, ir.LocatedMessage message) {
+  SourceSpan sourceSpan = SourceSpan(
+      message.uri!, message.charOffset, message.charOffset + message.length);
+  return reporter.createMessage(
+      sourceSpan, MessageKind.GENERIC, {'text': message.problemMessage});
+}
+
+void reportLocatedMessage(DiagnosticReporter reporter,
+    ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
+  DiagnosticMessage diagnosticMessage =
+      _createDiagnosticMessage(reporter, message);
+  List<DiagnosticMessage> infos = [];
+  for (ir.LocatedMessage message in context ?? const []) {
+    infos.add(_createDiagnosticMessage(reporter, message));
+  }
+  reporter.reportError(diagnosticMessage, infos);
 }
 
 ForeignKind getForeignKindFromName(String name) {

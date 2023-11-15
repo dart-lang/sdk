@@ -82,7 +82,7 @@ class ConvertIntoForIndex extends ResolvedCorrectionProducer {
     var firstBlockLine = utils.getLineContentEnd(body.leftBracket.end);
     // add change
     await builder.addDartFileEdit(file, (builder) {
-      // TODO(brianwilkerson) Create linked positions for the loop variable.
+      // TODO(brianwilkerson): Create linked positions for the loop variable.
       builder.addSimpleReplacement(
           range.startEnd(forStatement, forStatement.rightParenthesis),
           'for (int $indexName = 0; $indexName < $listName.length; $indexName++)');

@@ -38,7 +38,7 @@ Future<void> testMain() async {
   print(baseUri);
   debugger(); // LINE_A
   // Spawn the child isolate.
-  I.Isolate isolate = await I.Isolate.spawnUri(spawnUri, [], null);
+  final I.Isolate isolate = await I.Isolate.spawnUri(spawnUri, [], null);
   print(isolate);
   debugger(); // LINE_B
 }

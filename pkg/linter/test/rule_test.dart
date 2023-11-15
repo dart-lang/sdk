@@ -225,9 +225,14 @@ Future<Iterable<AnalysisErrorInfo>> _getErrorInfos(String ruleName, File file,
     resourceProvider: PhysicalResourceProvider.INSTANCE,
   );
 
-  var context = collection.contexts[0];
-  var options = context.analysisOptions as AnalysisOptionsImpl;
-  options.lintRules = context.analysisOptions.lintRules.toList();
+  var context = collection.contexts.first;
+  var contextFile = (context.currentSession.getFile(path) as FileResult).file;
+  var options =
+      context.getAnalysisOptionsForFile(contextFile) as AnalysisOptionsImpl;
+  options.lintRules = options.lintRules.toList();
+
+  // TODO(pq): consider a different way to configure lints
+  // https://github.com/dart-lang/sdk/issues/54045
   options.lintRules.add(rule);
   options.lint = true;
 

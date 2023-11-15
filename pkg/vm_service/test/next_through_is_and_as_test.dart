@@ -21,7 +21,7 @@ void code() {
   final hex = 0x42;
   if (i is int) {
     print('i is int');
-    int x = i as int;
+    final int x = i as int;
     if (x.isEven) {
       print("it's even even!");
     } else {
@@ -34,7 +34,7 @@ void code() {
   // ignore: unnecessary_type_check_true
   if (hex is int) {
     print('hex is int');
-    int x = hex as dynamic;
+    final int x = hex as dynamic;
     if (x.isEven) {
       print("it's even even!");
     } else {
@@ -56,11 +56,11 @@ const expected = <String>[
   '$file:${LINE_A + 12}:5', // on call to 'print'
   '$file:${LINE_A + 15}:11', // in 'is'
   '$file:${LINE_A + 16}:5', // on call to 'print'
-  '$file:${LINE_A + 17}:11', // on '='
+  '$file:${LINE_A + 17}:17', // on '='
   '$file:${LINE_A + 18}:11', // on 'isEven'
   '$file:${LINE_A + 19}:7', // on call to 'print'
   '$file:${LINE_A + 25}:11', // on 'is!'
-  '$file:${LINE_A + 28}:1' // on ending '}'
+  '$file:${LINE_A + 28}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[

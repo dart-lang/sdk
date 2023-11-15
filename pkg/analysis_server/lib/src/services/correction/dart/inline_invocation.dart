@@ -59,7 +59,7 @@ class InlineInvocation extends ResolvedCorrectionProducer {
     var sections = cascade.cascadeSections;
     var target = cascade.target;
     if (target is! ListLiteral || sections[0] != invocation) {
-      // TODO(brianwilkerson) Consider extending this to handle set literals.
+      // TODO(brianwilkerson): Consider extending this to handle set literals.
       return;
     }
     var argument = invocation.argumentList.arguments[0];

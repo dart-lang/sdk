@@ -37,8 +37,8 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     if (body.keyword?.precedingComments != null ||
         body.block.leftBracket.precedingComments != null ||
         body.block.rightBracket.precedingComments != null) {
-      // TODO(https://github.com/dart-lang/sdk/issues/29313): Include comments
-      // in fixed output.
+      // TODO(srawlins): Include comments in fixed output.
+      // https://github.com/dart-lang/sdk/issues/29313
       return;
     }
     var parent = body.parent;
@@ -56,28 +56,30 @@ class ConvertToExpressionFunctionBody extends ResolvedCorrectionProducer {
     if (onlyStatement is ReturnStatement) {
       returnExpression = onlyStatement.expression;
       if (onlyStatement.returnKeyword.precedingComments != null) {
-        // TODO(https://github.com/dart-lang/sdk/issues/29313): Include comments
-        // in fixed output.
+        // TODO(srawlins): Include comments in fixed output.
+        // https://github.com/dart-lang/sdk/issues/29313
         return;
       }
-      // TODO(https://github.com/dart-lang/sdk/issues/29313): If there are
-      // comments after `return` keyword, before the expression, either return
-      // without offering a fix, or include the comments in the fixed output.
+      // TODO(srawlins): If there are comments after `return` keyword, before
+      // the expression, either return without offering a fix, or include the
+      // comments in the fixed output.
+      // https://github.com/dart-lang/sdk/issues/29313
 
       if (onlyStatement.semicolon.precedingComments != null) {
-        // TODO(https://github.com/dart-lang/sdk/issues/29313): Include
-        // comments in fixed output.
+        // TODO(srawlins): Include comments in fixed output.
+        // https://github.com/dart-lang/sdk/issues/29313
         return;
       }
     } else if (onlyStatement is ExpressionStatement) {
       returnExpression = onlyStatement.expression;
-      // TODO(https://github.com/dart-lang/sdk/issues/29313): If there are
-      // comments before the expression, either return without offering a fix,
-      // or include the comments in the fixed output.
+      // TODO(srawlins): If there are comments before the expression,
+      // either return without offering a fix, or include the comments in the
+      // fixed output.
+      // https://github.com/dart-lang/sdk/issues/29313
 
       if (onlyStatement.semicolon?.precedingComments != null) {
-        // TODO(https://github.com/dart-lang/sdk/issues/29313): Include comments
-        // in fixed output.
+        // TODO(srawlins): Include comments in fixed output.
+        // https://github.com/dart-lang/sdk/issues/29313
         return;
       }
     }

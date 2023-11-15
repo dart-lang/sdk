@@ -36,7 +36,7 @@ const expected = <String>[
   '$file:${LINE_A + 0}:13', // on 'Class2()'
   '$file:${LINE_A + 1}:4', // on '['
   '$file:${LINE_A + 2}:5', // on 'code'
-  '$file:${LINE_A + 3}:1' // on ending '}'
+  '$file:${LINE_A + 3}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[

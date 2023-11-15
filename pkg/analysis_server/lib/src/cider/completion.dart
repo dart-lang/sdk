@@ -169,8 +169,8 @@ class CiderCompletionComputer {
 
   /// Return suggestions from libraries imported into the [target].
   ///
-  /// TODO(scheglov) Implement show / hide combinators.
-  /// TODO(scheglov) Implement prefixes.
+  // TODO(scheglov): Implement show / hide combinators.
+  // TODO(scheglov): Implement prefixes.
   List<CompletionSuggestionBuilder> _importedLibrariesSuggestions({
     required LibraryElement target,
     required OperationPerformanceImpl performance,

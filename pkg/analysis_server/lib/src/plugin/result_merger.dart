@@ -80,7 +80,7 @@ class ResultMerger {
   /// list will contain duplications.
   List<AnalysisError> mergeAnalysisErrors(
       List<List<AnalysisError>> partialResultList) {
-    // TODO(brianwilkerson) Consider merging duplicate errors (same code,
+    // TODO(brianwilkerson): Consider merging duplicate errors (same code,
     // location, and messages). If we do that, we should return the logical-or
     // of the hasFix fields from the merged errors.
     var count = partialResultList.length;
@@ -401,7 +401,7 @@ class ResultMerger {
     void addToMap(Outline outline) {
       var key = computeKey(outline.element);
       if (outlineMap.containsKey(key)) {
-        // TODO(brianwilkerson) Decide how to handle this more gracefully.
+        // TODO(brianwilkerson): Decide how to handle this more gracefully.
         throw StateError('Inconsistent outlines');
       }
       outlineMap[key] = outline;
@@ -544,7 +544,7 @@ class ResultMerger {
       var lengths = first.lengths.toList();
       for (var i = 1; i < count; i++) {
         var feedback = feedbacks[i] as ExtractLocalVariableFeedback;
-        // TODO(brianwilkerson) This doesn't ensure that the covering data is in
+        // TODO(brianwilkerson): This doesn't ensure that the covering data is in
         // the right order and consistent.
         var coveringOffsets = feedback.coveringExpressionOffsets;
         if (coveringOffsets != null) {
@@ -589,8 +589,8 @@ class ResultMerger {
           }
         }
         canCreateGetter = canCreateGetter && feedback.canCreateGetter;
-        // TODO(brianwilkerson) This doesn't allow plugins to add parameters.
-        // TODO(brianwilkerson) This doesn't check for duplicate offsets.
+        // TODO(brianwilkerson): This doesn't allow plugins to add parameters.
+        // TODO(brianwilkerson): This doesn't check for duplicate offsets.
         offsets.addAll(feedback.offsets);
         lengths.addAll(feedback.lengths);
       }

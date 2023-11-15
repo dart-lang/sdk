@@ -17,6 +17,6 @@ void fooz() {
 }
 
 void main() {
-  Foo10 foo = Foo10('Foo!');
+  final Foo10 foo = Foo10('Foo!');
   print(foo);
 }

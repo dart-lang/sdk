@@ -71,8 +71,10 @@ final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     try {
-      await service.callServiceExtension('ext.dart.io.setup',
-          isolateId: isolateId);
+      await service.callServiceExtension(
+        'ext.dart.io.setup',
+        isolateId: isolateId,
+      );
       final result = await service.getOpenFiles(isolateId);
       expect(result.files.length, 2);
 

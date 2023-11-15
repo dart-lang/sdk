@@ -24,7 +24,7 @@ class TypeMemberTest2 extends AbstractCompletionDriverTest
 }
 
 mixin TypeMemberTestCases on AbstractCompletionDriverTest {
-  // TODO(brianwilkerson) These tests should be broken up depending on which
+  // TODO(brianwilkerson): These tests should be broken up depending on which
   //  kind of container the member belongs to.
   @override
   bool get includeKeywords => false;

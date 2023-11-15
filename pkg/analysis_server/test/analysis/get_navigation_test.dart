@@ -166,7 +166,7 @@ class Bar {
     expect(result['regions'], isEmpty);
   }
 
-  /// TODO(scheglov) Rewrite these tests to work with any file.
+  // TODO(scheglov): Rewrite these tests to work with any file.
   @FailingTest(reason: 'requires infrastructure rewriting')
   Future<void> test_fileOutsideOfRoot() async {
     var file = newFile('/outside.dart', '''

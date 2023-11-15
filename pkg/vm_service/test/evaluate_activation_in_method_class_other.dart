@@ -11,9 +11,9 @@ var topLevel = 'OtherLibrary';
 class Superclass2 {
   final _instVar = 'Superclass2';
   var instVar = 'Superclass2';
-  method() => 'Superclass2';
-  static staticMethod() => 'Superclass2';
-  suppressWarning() => _instVar;
+  String method() => 'Superclass2';
+  static String staticMethod() => 'Superclass2';
+  String suppressWarning() => _instVar;
 }
 
 class Superclass1 extends Superclass2 {
@@ -22,12 +22,12 @@ class Superclass1 extends Superclass2 {
   @override
   var instVar = 'Superclass1';
   @override
-  method() => 'Superclass1';
-  static staticMethod() => 'Superclass1';
+  String method() => 'Superclass1';
+  static String staticMethod() => 'Superclass1';
 
-  test() {
+  void test() {
     // ignore: no_leading_underscores_for_local_identifiers
-    var _local = 'Superclass1';
+    final _local = 'Superclass1';
     debugger();
     // Suppress unused variable warning.
     print(_local);

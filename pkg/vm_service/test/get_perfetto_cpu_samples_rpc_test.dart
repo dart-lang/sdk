@@ -33,7 +33,8 @@ int computeTimeExtentNanos(List<TracePacket> packets, int timeOrigin) {
   }
   int largestExtent = packetsWithPerfSamples[0].timestamp.toInt() - timeOrigin;
   for (var i = 0; i < packetsWithPerfSamples.length; i++) {
-    int duration = packetsWithPerfSamples[i].timestamp.toInt() - timeOrigin;
+    final int duration =
+        packetsWithPerfSamples[i].timestamp.toInt() - timeOrigin;
     if (duration > largestExtent) {
       largestExtent = duration;
     }
@@ -42,7 +43,8 @@ int computeTimeExtentNanos(List<TracePacket> packets, int timeOrigin) {
 }
 
 Iterable<PerfSample> extractPerfSamplesFromTracePackets(
-    List<TracePacket> packets) {
+  List<TracePacket> packets,
+) {
   return packets
       .where((packet) => packet.hasPerfSample())
       .map((packet) => packet.perfSample);
@@ -81,18 +83,24 @@ final tests = <IsolateTest>[
     final timeOriginNanos = computeTimeOriginNanos(packets);
     final timeExtentNanos = computeTimeExtentNanos(packets, timeOriginNanos);
     // Query for the samples within the time window.
-    final filteredResult = await service.getPerfettoCpuSamples(isolateRef.id!,
-        timeOriginMicros: timeOriginNanos ~/ 1000,
-        timeExtentMicros: timeExtentNanos ~/ 1000);
+    final filteredResult = await service.getPerfettoCpuSamples(
+      isolateRef.id!,
+      timeOriginMicros: timeOriginNanos ~/ 1000,
+      timeExtentMicros: timeExtentNanos ~/ 1000,
+    );
     // Verify that we have the same number of [PerfSample]s.
     final filteredTrace =
         Trace.fromBuffer(base64Decode(filteredResult.samples!));
-    expect(extractPerfSamplesFromTracePackets(filteredTrace.packet).length,
-        extractPerfSamplesFromTracePackets(packets).length);
+    expect(
+      extractPerfSamplesFromTracePackets(filteredTrace.packet).length,
+      extractPerfSamplesFromTracePackets(packets).length,
+    );
   },
 ];
 
-main([args = const <String>[]]) async {
-  await runIsolateTests(args, tests, 'get_perfetto_cpu_samples_rpc_test.dart',
-      extraArgs: ['--profiler=true']);
-}
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'get_perfetto_cpu_samples_rpc_test.dart',
+      extraArgs: ['--profiler=true'],
+    );

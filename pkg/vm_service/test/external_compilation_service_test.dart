@@ -83,7 +83,10 @@ void main() {
         await waitForRunnableIsolate(service, isolate);
         try {
           await service.evaluate(
-              isolate.id!, isolate.libraries!.first.id!, '1 + 1');
+            isolate.id!,
+            isolate.libraries!.first.id!,
+            '1 + 1',
+          );
         } catch (_) {
           // ignore error
         }

@@ -133,7 +133,7 @@ final tests = <IsolateTest>[
         'interfaceSetter2=',
         'staticMethod',
         'staticGetter',
-        'staticSetter='
+        'staticSetter=',
       ]),
     );
     expect(
@@ -196,7 +196,7 @@ final tests = <IsolateTest>[
   },
   (VmService service, _) async {
     // Ensure we can evaluate instance getters and methods.
-    dynamic e1 = await service.evaluate(isolateId, enumEClsId, 'e1');
+    final dynamic e1 = await service.evaluate(isolateId, enumEClsId, 'e1');
     expect(e1, isA<InstanceRef>());
     final e1Id = e1.id!;
 
@@ -238,7 +238,7 @@ final tests = <IsolateTest>[
   },
   (VmService service, _) async {
     // Ensure we can invoke instance methods.
-    dynamic e1 = await service.evaluate(isolateId, enumEClsId, 'e1');
+    final dynamic e1 = await service.evaluate(isolateId, enumEClsId, 'e1');
     expect(e1, isA<InstanceRef>());
     final e1Id = e1.id!;
 
@@ -261,7 +261,7 @@ final tests = <IsolateTest>[
   },
   (VmService service, _) async {
     // Ensure we can invoke static methods.
-    dynamic result =
+    final dynamic result =
         await service.evaluate(isolateId, enumEClsId, 'staticMethod()');
     expect(result, isA<InstanceRef>());
     expect(result.valueAsString, '42');
@@ -298,7 +298,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'enhanced_enum_test.dart',

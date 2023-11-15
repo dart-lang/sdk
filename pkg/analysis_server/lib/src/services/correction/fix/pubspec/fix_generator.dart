@@ -56,7 +56,7 @@ class PubspecFixGenerator {
 
   /// Returns the end-of-line marker to use for the `pubspec.yaml` file.
   String get endOfLine {
-    // TODO(brianwilkerson) Share this with CorrectionUtils, probably by
+    // TODO(brianwilkerson): Share this with CorrectionUtils, probably by
     //  creating a subclass of CorrectionUtils containing utilities that are
     //  only dependent on knowing the content of the file. Also consider moving
     //  this kind of utility into the ChangeBuilder API directly.
@@ -239,7 +239,7 @@ class PubspecFixGenerator {
       return;
     }
     await builder.addGenericFileEdit(file, (builder) {
-      // TODO(brianwilkerson) Generalize this to add a key to any map by
+      // TODO(brianwilkerson): Generalize this to add a key to any map by
       //  inserting the indentation of the line containing `firstOffset` after
       //  the end-of-line marker.
       builder.addSimpleInsertion(firstOffset, 'name: $packageName$endOfLine');

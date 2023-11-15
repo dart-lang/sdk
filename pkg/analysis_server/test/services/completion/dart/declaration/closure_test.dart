@@ -28,6 +28,12 @@ mixin ClosureTestCases on AbstractCompletionDriverTest {
   @override
   bool get includeKeywords => false;
 
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+    printerConfiguration.withDisplayText = true;
+  }
+
   Future<void> test_argumentList_named() async {
     await computeSuggestions('''
 void f({void Function(int a, String b) closure}) {}
@@ -40,11 +46,13 @@ void g() {
 suggestions
   (a, b) => ,
     kind: invocation
+    displayText: (a, b) =>
     selection: 10
   (a, b) {
 ${' ' * 4}
   },
     kind: invocation
+    displayText: (a, b) {}
     selection: 13
 ''');
   }
@@ -63,10 +71,12 @@ void g() {
 suggestions
   |(a, b) => |
     kind: invocation
+    displayText: (a, b) =>
   (a, b) {
 ${' ' * 6}
     }
     kind: invocation
+    displayText: (a, b) {}
     selection: 15
 ''');
   }
@@ -83,11 +93,13 @@ void g() {
 suggestions
   (a, b) => ,
     kind: invocation
+    displayText: (a, b) =>
     selection: 10
   (a, b) {
 ${' ' * 4}
   },
     kind: invocation
+    displayText: (a, b) {}
     selection: 13
 ''');
   }
@@ -104,10 +116,12 @@ void g() {
 suggestions
   |(a, b) => |
     kind: invocation
+    displayText: (a, b) =>
   (a, b) {
 ${' ' * 4}
   }
     kind: invocation
+    displayText: (a, b) {}
     selection: 13
 ''');
   }
@@ -124,11 +138,13 @@ void g() {
 suggestions
   (a, {b, c}) => ,
     kind: invocation
+    displayText: (a, {b, c}) =>
     selection: 15
   (a, {b, c}) {
 ${' ' * 4}
   },
     kind: invocation
+    displayText: (a, {b, c}) {}
     selection: 18
 ''');
   }
@@ -145,12 +161,37 @@ void g() {
 suggestions
   (a, [b, c]) => ,
     kind: invocation
+    displayText: (a, [b, c]) =>
     selection: 15
   (a, [b, c]) {
 ${' ' * 4}
   },
     kind: invocation
+    displayText: (a, [b, c]) {}
     selection: 18
+''');
+  }
+
+  Future<void> test_parameters_requiredNamed() async {
+    await computeSuggestions('''
+void f({void Function(int a, {int b, required int c}) closure}) {}
+
+void g() {
+  f(closure: ^);
+}
+''');
+    assertResponse('''
+suggestions
+  (a, {b, required c}) => ,
+    kind: invocation
+    displayText: (a, {b, c}) =>
+    selection: 24
+  (a, {b, required c}) {
+${' ' * 4}
+  },
+    kind: invocation
+    displayText: (a, {b, c}) {}
+    selection: 27
 ''');
   }
 
@@ -162,10 +203,12 @@ void Function(int a, int b) v = ^;
 suggestions
   |(a, b) => |
     kind: invocation
+    displayText: (a, b) =>
   (a, b) {
 ${' ' * 2}
 }
     kind: invocation
+    displayText: (a, b) {}
     selection: 11
 ''');
   }

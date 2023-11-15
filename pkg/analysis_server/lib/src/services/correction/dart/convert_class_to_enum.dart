@@ -614,7 +614,7 @@ class _EnumDescription {
       if (list.length == 1) {
         fieldsToConvert.add(list[0]);
       } else {
-        // TODO(brianwilkerson) We could potentially handle the case where
+        // TODO(brianwilkerson): We could potentially handle the case where
         //  there's only one non-deprecated field in the list. We'd need to
         //  change the return type for this method so that we could return two
         //  lists: the list of fields to convert and the list of fields whose

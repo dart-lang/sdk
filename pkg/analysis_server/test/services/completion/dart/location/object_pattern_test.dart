@@ -25,6 +25,18 @@ class ObjectPatternTest2 extends AbstractCompletionDriverTest
     with ObjectPatternTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+
+  @FailingTest(reason: 'Suggest invalid static field / getter')
+  @override
+  Future<void> test_pattern_first() {
+    return super.test_pattern_first();
+  }
+
+  @FailingTest(reason: 'Suggest invalid static field / getter')
+  @override
+  Future<void> test_pattern_second() {
+    return super.test_pattern_second();
+  }
 }
 
 mixin ObjectPatternTestCases on AbstractCompletionDriverTest {

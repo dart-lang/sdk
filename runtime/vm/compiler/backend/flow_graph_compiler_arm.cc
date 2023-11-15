@@ -956,9 +956,9 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
+      ASSERT(destination.container_type().SizeInBytes() <= 4);
       if (!sign_or_zero_extend) {
-        ASSERT(dst_size == 4);
-        __ mov(dst_reg, compiler::Operand(src_reg));
+        __ MoveRegister(dst_reg, src_reg);
       } else {
         if (src_payload_type.IsSigned()) {
           __ sbfx(dst_reg, src_reg, 0, src_size * kBitsPerByte);
@@ -977,8 +977,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(destination.IsStack());
       const auto& dst = destination.AsStack();
       ASSERT(!sign_or_zero_extend);
-      ASSERT(dst_size <= 4);
-      auto const op_size = BytesToOperandSize(dst_size);
+      auto const op_size =
+          BytesToOperandSize(destination.container_type().SizeInBytes());
       __ StoreToOffset(src.reg_at(0), dst.base_register(),
                        dst.offset_in_bytes(), op_size);
     }
@@ -1036,12 +1036,8 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       const auto& dst = destination.AsRegisters();
       ASSERT(dst.num_regs() == 1);
       const auto dst_reg = dst.reg_at(0);
-      ASSERT(!sign_or_zero_extend);
-      ASSERT(dst_size <= 4);
-      auto const op_size = BytesToOperandSize(dst_size);
-      __ LoadFromOffset(dst_reg, src.base_register(), src.offset_in_bytes(),
-                        op_size);
-
+      EmitNativeLoad(dst_reg, src.base_register(), src.offset_in_bytes(),
+                     src_payload_type.AsPrimitive().representation());
     } else if (destination.IsFpuRegisters()) {
       ASSERT(src_payload_type.Equals(dst_payload_type));
       ASSERT(src_payload_type.IsFloat());
@@ -1063,6 +1059,47 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       ASSERT(destination.IsStack());
       UNREACHABLE();
     }
+  }
+}
+
+void FlowGraphCompiler::EmitNativeLoad(Register dst,
+                                       Register base,
+                                       intptr_t offset,
+                                       compiler::ffi::PrimitiveType type) {
+  switch (type) {
+    case compiler::ffi::kInt8:
+      __ LoadFromOffset(dst, base, offset, compiler::kByte);
+      break;
+    case compiler::ffi::kUint8:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedByte);
+      break;
+    case compiler::ffi::kInt16:
+      __ LoadFromOffset(dst, base, offset, compiler::kTwoBytes);
+      break;
+    case compiler::ffi::kUint16:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedTwoBytes);
+      break;
+    case compiler::ffi::kInt32:
+      __ LoadFromOffset(dst, base, offset, compiler::kFourBytes);
+      break;
+    case compiler::ffi::kUint32:
+    case compiler::ffi::kFloat:
+    case compiler::ffi::kHalfDouble:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedFourBytes);
+      break;
+
+    case compiler::ffi::kInt24:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedTwoBytes);
+      __ LoadFromOffset(TMP, base, offset + 2, compiler::kByte);
+      __ orr(dst, dst, compiler::Operand(TMP, LSL, 16));
+      break;
+    case compiler::ffi::kUint24:
+      __ LoadFromOffset(dst, base, offset, compiler::kUnsignedTwoBytes);
+      __ LoadFromOffset(TMP, base, offset + 2, compiler::kUnsignedByte);
+      __ orr(dst, dst, compiler::Operand(TMP, LSL, 16));
+      break;
+    default:
+      UNREACHABLE();
   }
 }
 

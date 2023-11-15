@@ -817,7 +817,7 @@ import 'a.dart';
     };
   }
 
-  /// TODO(scheglov) Implement incremental updating
+  // TODO(scheglov): Implement incremental updating
   void _createFileResolver() {
     createFileResolver();
   }

@@ -33,7 +33,7 @@ const expected = <String>[
   '$file:${LINE_A + 0}:17', // on 'i' in 'codeXYZ(int i)'
   '$file:${LINE_A + 1}:3', // on 'int'
   '$file:${LINE_A + 5}:10', // on 'innerOne()' call
-  '$file:${LINE_A + 5}:3' // on 'return'
+  '$file:${LINE_A + 5}:3', // on 'return'
 ];
 
 final tests = <IsolateTest>[

@@ -60,7 +60,10 @@ Future<String> invokeTest(VmService service, IsolateRef isolateRef) async {
   final isolateId = isolateRef.id!;
   final isolate = await service.getIsolate(isolateId);
   final result = await service.evaluate(
-      isolateId, isolate.rootLib!.id!, 'test()') as InstanceRef;
+    isolateId,
+    isolate.rootLib!.id!,
+    'test()',
+  ) as InstanceRef;
   expect(result.kind, InstanceKind.kString);
   return result.valueAsString!;
 }

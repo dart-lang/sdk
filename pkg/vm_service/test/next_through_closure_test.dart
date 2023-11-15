@@ -17,7 +17,7 @@ const LINE_A = 22;
 const file = 'next_through_closure_test.dart';
 
 int codeXYZ(int i) {
-  x() =>
+  int x() =>
       // some comment here to allow this formatting
       i * i; // LINE_A
   return x();
@@ -32,14 +32,14 @@ const expected = <String>[
   '$file:${LINE_A + 0}:9', // on '*'
   '$file:${LINE_A + 0}:7', // on first 'i'
   '$file:${LINE_A + 1}:3', // on 'return'
-  '$file:${LINE_A + 6}:1' // on ending '}'
+  '$file:${LINE_A + 6}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE_A),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

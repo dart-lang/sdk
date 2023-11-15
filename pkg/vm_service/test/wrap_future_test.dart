@@ -70,7 +70,7 @@ var tests = <VMTest>[
   },
 ];
 
-main([args = const <String>[]]) async => runVMTests(
+void main([args = const <String>[]]) => runVMTests(
       args,
       tests,
       'wrap_future_test.dart',

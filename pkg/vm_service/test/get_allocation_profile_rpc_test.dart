@@ -65,7 +65,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'get_allocation_profile_rpc_test.dart',

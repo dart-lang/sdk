@@ -65,7 +65,7 @@ Stream<int> testMultipleFunctions() async* {
 
 // continue statement
 Stream<int> testContinueSwitch() async* {
-  int currentState = 0;
+  final int currentState = 0;
   switch (currentState) {
     case 0:
       {
@@ -86,7 +86,7 @@ Stream<int> testContinueSwitch() async* {
 }
 
 Stream<int> testNestFinally() async* {
-  int i = 0;
+  final int i = 0;
   try {
     if (i == 1) return;
     await throwException(); // LINE_E
@@ -102,13 +102,13 @@ Stream<int> testNestFinally() async* {
 }
 
 Stream<int> testAsyncClosureInFinally() async* {
-  int i = 0;
+  final int i = 0;
   try {
     if (i == 1) return;
     await throwException(); // LINE_F
   } catch (e) {
   } finally {
-    inner() async {
+    Future<void> inner() async {
       await Future.delayed(Duration(milliseconds: 10));
     }
 
@@ -141,7 +141,7 @@ final tests = <IsolateTest>[
     _expectSecondFrameFromTheTopToBeAt(line),
     resumeIsolate,
   ],
-  hasStoppedAtExit
+  hasStoppedAtExit,
 ];
 
 Future<void> Function(VmService, IsolateRef) _expectSecondFrameFromTheTopToBeAt(

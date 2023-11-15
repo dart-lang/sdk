@@ -246,7 +246,7 @@ class PropertyDescription {
           }
           parent._changeCode(builder, (builder) {
             builder.writeReference(classDescription.element);
-            // TODO(scheglov) constructor name
+            // TODO(scheglov): constructor name
             builder.write('(');
             builder.write(parameterName);
             builder.write(': ');
@@ -353,13 +353,13 @@ class PropertyDescription {
     builder.format(range.node(functionBody));
   }
 
-  /// TODO(scheglov) Generalize to identifying by type.
+  // TODO(scheglov): Generalize to identifying by type.
   bool _isChildArgument(NamedExpression argument) {
     var argumentName = argument.name.label.name;
     return argumentName == 'child';
   }
 
-  /// TODO(scheglov) Generalize to identifying by type.
+  // TODO(scheglov): Generalize to identifying by type.
   bool _isChildrenArgument(NamedExpression argument) {
     var argumentName = argument.name.label.name;
     return argumentName == 'children';

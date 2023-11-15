@@ -39,7 +39,7 @@ const expected = <String>[
   '$file:${LINE_A + 2}:7', // on "foo"
   '$file:${LINE_A + 3}:7', // on "fooMethod"
   '$file:${LINE_A + 4}:7', // on "foo"
-  '$file:${LINE_A + 5}:1' // on ending '}'
+  '$file:${LINE_A + 5}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[

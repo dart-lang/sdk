@@ -156,7 +156,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
       var memberCount = node.members.length;
       for (var i = 0; i < memberCount; ++i) {
-        // todo(pq): extract shared replacement logic
+        // TODO(pq): extract shared replacement logic
         var member = node.members[i];
         if (member is SwitchDefault) {
           convertSwitchDefault(builder, member);
@@ -215,7 +215,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
 
       var memberCount = node.members.length;
       for (var i = 0; i < memberCount; ++i) {
-        // todo(pq): extract shared replacement logic
+        // TODO(pq): extract shared replacement logic
         var member = node.members[i];
         if (member is SwitchDefault) {
           convertSwitchDefault(builder, member);
@@ -262,7 +262,7 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     return deletion;
   }
 
-  // todo(pq): refactor the `is` checks to a single `getSwitchKind`
+  // TODO(pq): refactor the `is` checks to a single `getSwitchKind`
   // that only looks at members once
   // see: https://dart-review.googlesource.com/c/sdk/+/287904
   bool isArgumentSwitch(SwitchStatement node) {

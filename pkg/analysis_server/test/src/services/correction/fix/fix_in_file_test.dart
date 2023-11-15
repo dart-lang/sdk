@@ -18,7 +18,7 @@ void main() {
   VerificationTests.defineTests();
 }
 
-//// todo (pq): update w/ a FixKind that we're sure we want to support as a file fix
+// /todo (pq): update w/ a FixKind that we're sure we want to support as a file fix
 // @reflectiveTest
 // class MultiFixInFileTest extends FixInFileProcessorTest
 //     with WithNullSafetyMixin {
@@ -143,7 +143,7 @@ class VerificationTests {
   }
 
   static void verify_fixInFileFixKindsHaveMultiFixes() {
-    // todo (pq): find a better way to verify dynamic producers.
+    // TODO(pq): find a better way to verify dynamic producers.
     var dynamicProducerTypes = ['ReplaceWithIsEmpty'];
 
     group('VerificationTests | fixInFileFixKindsHaveMultiFixes | lint |', () {
@@ -166,4 +166,4 @@ class VerificationTests {
   }
 }
 
-/// todo (pq): add negative tests
+// TODO(pq): add negative tests

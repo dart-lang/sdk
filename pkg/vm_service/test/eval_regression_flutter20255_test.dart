@@ -72,7 +72,7 @@ void testFunction() {
 }
 
 Future triggerEvaluation(VmService service, IsolateRef isolateRef) async {
-  Stack stack = await service.getStack(isolateRef.id!);
+  final Stack stack = await service.getStack(isolateRef.id!);
 
   // Make sure we are in the right place.
   expect(stack.frames!.length, greaterThanOrEqualTo(2));
@@ -105,7 +105,7 @@ final testSteps = <IsolateTest>[
   resumeIsolate,
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       testSteps,
       'eval_regression_flutter20255_test.dart',

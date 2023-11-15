@@ -151,7 +151,7 @@ int A04() => 0;
 int B04() => 0;
 ''');
     if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
+      // TODO(scheglov): This is wrong.
       assertResponse(r'''
 replacement
   left: 1
@@ -217,7 +217,7 @@ int A04() => 0;
 int B04() => 0;
 ''');
     if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
+      // TODO(scheglov): This is wrong.
       assertResponse(r'''
 replacement
   left: 1

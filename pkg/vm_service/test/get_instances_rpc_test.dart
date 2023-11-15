@@ -41,9 +41,10 @@ void testMain() {
 }
 
 IsolateTest expectInstanceCounts(
-    int numInstances,
-    int numInstancesWhenIncludingSubclasses,
-    int numInstancesWhenIncludingImplementers) {
+  int numInstances,
+  int numInstancesWhenIncludingSubclasses,
+  int numInstancesWhenIncludingImplementers,
+) {
   return (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
@@ -52,9 +53,11 @@ IsolateTest expectInstanceCounts(
       isolate.rootLib!.id!,
     ) as Library;
 
-    Future<int> instanceCount(String className,
-        {bool includeSubclasses = false,
-        bool includeImplementers = false}) async {
+    Future<int> instanceCount(
+      String className, {
+      bool includeSubclasses = false,
+      bool includeImplementers = false,
+    }) async {
       final result = await service.getInstances(
         isolateId,
         rootLib.classes!.singleWhere((cls) => cls.name == className).id!,

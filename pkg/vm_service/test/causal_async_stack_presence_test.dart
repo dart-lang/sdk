@@ -49,7 +49,7 @@ final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (VmService service, IsolateRef isolateRef) async {
-    Stack stack = await service.getStack(isolateRef.id!);
+    final Stack stack = await service.getStack(isolateRef.id!);
     // No causal frames because we are in a completely synchronous stack.
     // Async function hasn't yielded yet.
     expect(stack.asyncCausalFrames, isNull);
@@ -61,7 +61,7 @@ final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (VmService service, IsolateRef isolateRef) async {
-    Stack stack = await service.getStack(isolateRef.id!);
+    final Stack stack = await service.getStack(isolateRef.id!);
     // Async function has yielded once, so it's now running async.
     expect(stack.asyncCausalFrames, isNotNull);
   },
@@ -72,7 +72,7 @@ final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
   (VmService service, IsolateRef isolateRef) async {
-    Stack stack = await service.getStack(isolateRef.id!);
+    final Stack stack = await service.getStack(isolateRef.id!);
     // Has causal frames (we are inside a function called by an async function)
     expect(stack.asyncCausalFrames, isNotNull);
   },

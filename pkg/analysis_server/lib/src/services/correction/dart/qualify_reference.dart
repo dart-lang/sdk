@@ -43,7 +43,7 @@ class QualifyReference extends ResolvedCorrectionProducer {
     var enclosingElement = memberElement.enclosingElement;
     if (enclosingElement == null ||
         enclosingElement.library != libraryElement) {
-      // TODO(brianwilkerson) Support qualifying references to members defined
+      // TODO(brianwilkerson): Support qualifying references to members defined
       //  in other libraries. `DartEditBuilder` currently defines the method
       //  `writeType`, which is close, but we also need to handle extensions,
       //  which don't have a type.

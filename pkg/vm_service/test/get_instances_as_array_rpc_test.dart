@@ -44,9 +44,11 @@ final tests = <IsolateTest>[
           const <String>[],
         );
 
-    Future<int> instanceCount(String className,
-        {bool includeSubclasses = false,
-        bool includeImplementors = false}) async {
+    Future<int> instanceCount(
+      String className, {
+      bool includeSubclasses = false,
+      bool includeImplementors = false,
+    }) async {
       final objectId =
           rootLib.classes!.singleWhere((cls) => cls.name == className).id!;
       final result = await service.getInstancesAsList(

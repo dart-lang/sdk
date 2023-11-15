@@ -916,7 +916,7 @@ class PluginSession {
   /// Return `true` if there are any requests that have not been responded to
   /// within the maximum allowed amount of time.
   bool isNonResponsive() {
-    // TODO(brianwilkerson) Figure out when to invoke this method in order to
+    // TODO(brianwilkerson): Figure out when to invoke this method in order to
     // identify non-responsive plugins and kill them.
     var cutOffTime = DateTime.now().millisecondsSinceEpoch -
         MAXIMUM_RESPONSE_TIME.inMilliseconds;
@@ -966,7 +966,7 @@ class PluginSession {
       return false;
     }
     channel = info._createChannel();
-    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // TODO(brianwilkerson): Determine if await is necessary, if so, change the
     // return type of `channel.listen` to `Future<void>`.
     await (channel!.listen(handleResponse, handleNotification,
         onDone: handleOnDone, onError: handleOnError) as dynamic);

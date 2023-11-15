@@ -41,12 +41,14 @@ class MetricList {
 
 extension on VmService {
   Future<MetricList> getIsolateMetricList(String isolateId) async {
-    final response = await callMethod('_getIsolateMetricList',
-        isolateId: isolateId,
-        // Only native metrics are supported.
-        args: {
-          'type': 'Native',
-        });
+    final response = await callMethod(
+      '_getIsolateMetricList',
+      isolateId: isolateId,
+      // Only native metrics are supported.
+      args: {
+        'type': 'Native',
+      },
+    );
     return MetricList.parse(response.json)!;
   }
 

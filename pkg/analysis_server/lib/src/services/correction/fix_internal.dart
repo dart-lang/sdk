@@ -374,7 +374,7 @@ class FixInFileProcessor {
         return fixState;
       }
 
-      // todo (pq): consider discarding the change if the producer's fixKind
+      // TODO(pq): consider discarding the change if the producer's fixKind
       // doesn't match a previously cached one.
       return _NotEmptyFixState(
         builder: localBuilder,
@@ -392,7 +392,7 @@ class FixInFileProcessor {
     if (errorCode is LintCode) {
       return FixProcessor.lintProducerMap[errorCode.uniqueLintName] ?? [];
     } else {
-      // todo (pq): consider support for multiGenerators
+      // TODO(pq): consider support for multiGenerators
       return FixProcessor.nonLintProducerMap[errorCode] ?? [];
     }
   }
@@ -492,7 +492,7 @@ class FixProcessor extends BaseProcessor {
       RemoveTypeAnnotation.other,
     ],
     LintNames.avoid_returning_null_for_future: [
-      // TODO(brianwilkerson) Consider applying in bulk.
+      // TODO(brianwilkerson): Consider applying in bulk.
       AddAsync.new,
       WrapInFuture.new,
     ],
@@ -500,7 +500,7 @@ class FixProcessor extends BaseProcessor {
       RemoveReturnedValue.new,
     ],
     LintNames.avoid_single_cascade_in_expression_statements: [
-      // TODO(brianwilkerson) This fix should be applied to some non-lint
+      // TODO(brianwilkerson): This fix should be applied to some non-lint
       //  diagnostics and should also be available as an assist.
       ReplaceCascadeWithDot.new,
     ],
@@ -986,7 +986,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.new,
-      // TODO(brianwilkerson) Support ImportLibrary for non-extension members.
+      // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
       ImportLibrary.forExtensionMember,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
@@ -1426,14 +1426,14 @@ class FixProcessor extends BaseProcessor {
       CreateSetter.new,
     ],
     CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
-      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
+      // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
       //  method or setter. The existing _addFix methods would need to be
       //  updated so that only the appropriate subset is generated.
       QualifyReference.new,
     ],
     CompileTimeErrorCode
         .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
-      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
+      // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
       //  method or setter. The existing producers would need to be updated so
       //  that only the appropriate subset is generated.
       QualifyReference.new,
@@ -1559,12 +1559,12 @@ class FixProcessor extends BaseProcessor {
       RemoveDeadCode.new,
     ],
     WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      // TODO(brianwilkerson): Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
       RemoveDeadCode.new,
     ],
     WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      // TODO(brianwilkerson): Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
       RemoveDeadCode.new,
     ],

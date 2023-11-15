@@ -29,7 +29,7 @@ void testeeMain() {
 }
 
 int foo(x, y) {
-  var local = x + y;
+  final local = x + y;
   debugger(); // LINE_A
   return local;
 }
@@ -95,10 +95,15 @@ final tests = <IsolateTest>[
     );
 
     try {
-      await service.evaluate(isolateId, rootLibId, 'x + y', scope: {
-        'x': rootLibId,
-        'y': rootLibId,
-      });
+      await service.evaluate(
+        isolateId,
+        rootLibId,
+        'x + y',
+        scope: {
+          'x': rootLibId,
+          'y': rootLibId,
+        },
+      );
       fail('Evaluated against a VM-internal object');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kExpressionCompilationError.code);
@@ -109,15 +114,20 @@ final tests = <IsolateTest>[
     }
 
     try {
-      await service.evaluate(isolateId, rootLibId, 'x + y', scope: {
-        'not&an&identifier': thing1.id!,
-      });
+      await service.evaluate(
+        isolateId,
+        rootLibId,
+        'x + y',
+        scope: {
+          'not&an&identifier': thing1.id!,
+        },
+      );
       fail('Evaluated with an invalid identifier');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kExpressionCompilationError.code);
       expect(
         e.details,
-        contains('invalid \'scope\' parameter'),
+        contains("invalid 'scope' parameter"),
       );
     }
   },

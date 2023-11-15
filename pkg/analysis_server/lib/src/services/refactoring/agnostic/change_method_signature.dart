@@ -89,7 +89,7 @@ final class ChangeStatusFailure extends ChangeStatus {}
 /// The signal that the [ConstructorDeclaration] with a super formal parameter
 /// was found. This is not supported by the refactoring.
 ///
-/// TODO(scheglov) Make [ChangeStatusFailure] sealed.
+// TODO(scheglov): Make [ChangeStatusFailure] sealed.
 final class ChangeStatusFailureSuperFormalParameter
     extends ChangeStatusFailure {
   final ConstructorDeclaration constructorDeclaration;
@@ -156,7 +156,7 @@ class FormalParameterUpdate {
   /// The new kind for the formal parameter, might be the same as it were
   /// initially, or different.
   ///
-  /// TODO(scheglov) We might need `defaultValueText` added.
+  // TODO(scheglov): We might need `defaultValueText` added.
   final FormalParameterKind kind;
 
   FormalParameterUpdate({
@@ -173,7 +173,7 @@ class MethodSignatureUpdate {
   /// class hierarchy, will be updated. The new formal parameters will be
   /// written in the order [formalParameters] field, with new kinds.
   ///
-  /// TODO(scheglov) Consider adding.
+  // TODO(scheglov): Consider adding.
   final List<FormalParameterUpdate> formalParameters;
 
   /// Normally, after writing formal parameters in the order specified by
@@ -702,7 +702,7 @@ class _SignatureUpdater {
   }) async {
     final frameworkStatus = await framework.writeArguments(
       formalParameterUpdates: signatureUpdate.formalParameters.map((update) {
-        // TODO(scheglov) Maybe support adding formal parameters.
+        // TODO(scheglov): Maybe support adding formal parameters.
         final existing = selectionState.formalParameters[update.id];
         final reference = _asFrameworkFormalParameterReference(existing);
         switch (update.kind) {

@@ -144,7 +144,7 @@ suggestions
   }
 
   Future<void> test_afterRightParen_beforeRightBrace() async {
-    // TODO(brianwilkerson) Not clear that this is testing what the author
+    // TODO(brianwilkerson): Not clear that this is testing what the author
     //  thought it would test. Note the '}' where ')' is expected.
     await computeSuggestions('''
 void f() {foo(() ^}}

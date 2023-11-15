@@ -643,5 +643,5 @@ class C extends Widget with Diagnosticable {
 ''');
   }
 
-  // todo (pq): consider a test for a body w/ no CR
+  // TODO(pq): consider a test for a body w/ no CR
 }

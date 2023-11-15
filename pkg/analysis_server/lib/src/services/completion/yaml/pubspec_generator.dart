@@ -79,7 +79,7 @@ class PubspecGenerator extends YamlCompletionGenerator {
     }),
     'dependencies': PubPackageNameProducer(),
     'dev_dependencies': PubPackageNameProducer(),
-    // TODO(brianwilkerson) Suggest names already listed under 'dependencies'
+    // TODO(brianwilkerson): Suggest names already listed under 'dependencies'
     //  and 'dev_dependencies'.
     'dependency_overrides': EmptyProducer(),
     'flutter': MapProducer({

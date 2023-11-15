@@ -297,22 +297,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertSimpleIdentifier(
-    Expression node, {
-    required Object? element,
-    required String? type,
-  }) {
-    if (node is! SimpleIdentifier) {
-      _failNotSimpleIdentifier(node);
-    }
-
-    var isRead = node.inGetterContext();
-    expect(isRead, isTrue);
-
-    assertElement(node.staticElement, element);
-    assertType(node, type);
-  }
-
   void assertSubstitution(
     MapSubstitution substitution,
     Map<String, String> expected,
@@ -508,10 +492,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       return wrapMatcher(elementOrMatcher);
     }
-  }
-
-  Never _failNotSimpleIdentifier(AstNode node) {
-    fail('Expected SimpleIdentifier: (${node.runtimeType}) $node');
   }
 
   String _parsedNodeText(

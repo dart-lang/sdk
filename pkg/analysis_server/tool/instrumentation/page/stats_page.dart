@@ -192,7 +192,7 @@ class StatsPage extends PageWriter {
     var methodNames = latencyData.keys.toList()..sort();
     for (var method in methodNames) {
       var latencies = latencyData[method]!..sort();
-      // TODO(brianwilkerson) Add a spark-line distribution graph.
+      // TODO(brianwilkerson): Add a spark-line distribution graph.
       sink.write('<tr><td class="int">');
       sink.write(latencies[0]);
       sink.write('</td><td class="int">');
@@ -226,7 +226,7 @@ class StatsPage extends PageWriter {
         var methodNames = responseData.keys.toList()..sort();
         for (var method in methodNames) {
           var responseTimes = responseData[method]!..sort();
-          // TODO(brianwilkerson) Add a spark-line distribution graph.
+          // TODO(brianwilkerson): Add a spark-line distribution graph.
           sink.write('<tr><td class="int">');
           sink.write(responseTimes[0]);
           sink.write('</td><td class="int">');

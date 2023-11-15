@@ -22,7 +22,7 @@ bool hasFix(ErrorCode errorCode) {
     return FixProcessor.lintProducerMap.containsKey(lintName) ||
         FixProcessor.lintMultiProducerMap.containsKey(lintName);
   }
-  // TODO(brianwilkerson) Either deprecate the part of the protocol supported by
+  // TODO(brianwilkerson): Either deprecate the part of the protocol supported by
   //  this function, or handle error codes associated with non-dart files.
   return FixProcessor.nonLintProducerMap.containsKey(errorCode) ||
       FixProcessor.nonLintMultiProducerMap.containsKey(errorCode);
@@ -759,7 +759,7 @@ class DartFixKind {
     "Create method '{0}'",
   );
 
-  // todo (pq): used by LintNames.hash_and_equals; consider removing.
+  // TODO(pq): used by LintNames.hash_and_equals; consider removing.
   static const CREATE_METHOD_MULTI = FixKind(
     'dart.fix.create.method.multi',
     DartFixKindPriority.IN_FILE,
@@ -891,7 +891,7 @@ class DartFixKind {
     'Make final',
   );
 
-  // todo (pq): consider parameterizing: 'Make {fields} final...'
+  // TODO(pq): consider parameterizing: 'Make {fields} final...'
   static const MAKE_FINAL_MULTI = FixKind(
     'dart.fix.makeFinal.multi',
     DartFixKindPriority.IN_FILE,
@@ -988,7 +988,8 @@ class DartFixKind {
     'Remove argument',
   );
 
-  // todo (pq): used by LintNames.avoid_redundant_argument_values; consider a parameterized message
+  // TODO(pq): used by LintNames.avoid_redundant_argument_values;
+  //  consider a parameterized message
   static const REMOVE_ARGUMENT_MULTI = FixKind(
     'dart.fix.remove.argument.multi',
     DartFixKindPriority.IN_FILE,
@@ -1090,7 +1091,7 @@ class DartFixKind {
     'Remove duplicate case statement',
   );
 
-  // todo (pq): is this dangerous to bulk apply?  Consider removing.
+  // TODO(pq): is this dangerous to bulk apply?  Consider removing.
   static const REMOVE_DUPLICATE_CASE_MULTI = FixKind(
     'dart.fix.remove.duplicateCase.multi',
     DartFixKindPriority.IN_FILE,
@@ -1202,7 +1203,7 @@ class DartFixKind {
     'Remove method declaration',
   );
 
-  // todo (pq): parameterize to make scope explicit
+  // TODO(pq): parameterize to make scope explicit
   static const REMOVE_METHOD_DECLARATION_MULTI = FixKind(
     'dart.fix.remove.methodDeclaration.multi',
     DartFixKindPriority.IN_FILE,
@@ -1734,7 +1735,7 @@ class DartFixKind {
     'Replace with identifier',
   );
 
-  // todo (pq): parameterize message (used by LintNames.avoid_types_on_closure_parameters)
+  // TODO(pq): parameterize message (used by LintNames.avoid_types_on_closure_parameters)
   static const REPLACE_WITH_IDENTIFIER_MULTI = FixKind(
     'dart.fix.replace.withIdentifier.multi',
     DartFixKindPriority.IN_FILE,

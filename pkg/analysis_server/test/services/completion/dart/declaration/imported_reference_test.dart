@@ -3639,7 +3639,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3672,7 +3672,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3705,7 +3705,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3737,7 +3737,7 @@ suggestions
     parameterTypes: int?,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3792,7 +3792,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3825,7 +3825,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5198,7 +5198,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5229,7 +5229,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5260,7 +5260,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5313,7 +5313,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5346,7 +5346,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5811,7 +5811,7 @@ class B extends A {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) Figure out why there is no parameter information.
+      // TODO(brianwilkerson): Figure out why there is no parameter information.
       assertResponse(r'''
 suggestions
   x0

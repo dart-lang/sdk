@@ -34,10 +34,10 @@ Future testeeMain() async {
 }
 
 @pragma('vm:entry-point')
-getSelfId() => selfId;
+String getSelfId() => selfId;
 
 @pragma('vm:entry-point')
-getChildId() => childId;
+String getChildId() => childId;
 
 // tester state:
 late IsolateRef initialIsolate;
@@ -69,7 +69,7 @@ var tests = <VMTest>[
     initialIsolate = await service.getIsolate(initialIsolate.id!);
 
     // Grab the root library.
-    Library rootLib = await service.getObject(
+    final Library rootLib = await service.getObject(
       initialIsolate.id!,
       (initialIsolate as Isolate).rootLib!.id!,
     ) as Library;
@@ -99,7 +99,7 @@ var tests = <VMTest>[
   }
 ];
 
-main(args) async => runVMTests(
+void main([args = const <String>[]]) => runVMTests(
       args,
       tests,
       'developer_service_get_isolate_id_test.dart',

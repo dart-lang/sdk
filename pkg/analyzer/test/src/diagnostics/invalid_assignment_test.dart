@@ -1031,11 +1031,15 @@ int Function() foo(int Function<T extends int>() f) {
 }
 ''');
 
-    assertSimpleIdentifier(
-      findNode.simple('f;'),
-      element: findElement.parameter('f'),
-      type: 'int Function()',
-    );
+    final node = findNode.simple('f;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: f
+  staticElement: self::@function::foo::@parameter::f
+  staticType: int* Function()*
+  tearOffTypeArgumentTypes
+    int*
+''');
   }
 
   test_ifNullAssignment() async {

@@ -23,8 +23,6 @@ import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import 'package:compiler/src/util/memory_compiler.dart';
 
-const emptyEnv = <String, String>{};
-
 class TestData {
   final String name;
 
@@ -46,11 +44,12 @@ class ConstantData {
   /// a [ConstantResult].
   final expectedResults;
 
-  /// A [String] containing the code name for the error message expected as the
-  /// result of evaluating the constant under the empty environment.
-  final String? expectedError;
+  /// A [String] or a list of [String]s containing the code names for the error
+  /// messages expected as the result of evaluating the constant under the empty
+  /// environment.
+  final expectedErrors;
 
-  const ConstantData(this.code, this.expectedResults, {this.expectedError});
+  const ConstantData(this.code, this.expectedResults, {this.expectedErrors});
 }
 
 const List<TestData> DATA = [
@@ -93,24 +92,24 @@ const List<TestData> DATA = [
     ConstantData('Object', 'TypeConstant(Object)'),
     ConstantData('null ?? 0', 'IntConstant(0)'),
     ConstantData('const <int, int>{0: 1, 0: 2}', 'NonConstant',
-        expectedError: 'ConstEvalDuplicateKey'),
+        expectedErrors: 'ConstEvalDuplicateKey'),
     ConstantData(
         'const bool.fromEnvironment("foo", defaultValue: false)',
         <Map<String, String>, String>{
-          emptyEnv: 'BoolConstant(false)',
-          const {'foo': 'true'}: 'BoolConstant(true)'
+          {}: 'BoolConstant(false)',
+          {'foo': 'true'}: 'BoolConstant(true)'
         }),
     ConstantData(
         'const int.fromEnvironment("foo", defaultValue: 42)',
         <Map<String, String>, String>{
-          emptyEnv: 'IntConstant(42)',
-          const {'foo': '87'}: 'IntConstant(87)'
+          {}: 'IntConstant(42)',
+          {'foo': '87'}: 'IntConstant(87)'
         }),
     ConstantData(
         'const String.fromEnvironment("foo", defaultValue: "bar")',
         <Map<String, String>, String>{
-          emptyEnv: 'StringConstant("bar")',
-          const {'foo': 'foo'}: 'StringConstant("foo")'
+          {}: 'StringConstant("bar")',
+          {'foo': 'foo'}: 'StringConstant("foo")'
         }),
     ConstantData(
         'const [0, 1]', 'ListConstant(<int*>[IntConstant(0), IntConstant(1)])'),
@@ -176,9 +175,9 @@ class D extends C {
         'ConstructedConstant(C(field1=IntConstant(87),'
             'field2=IntConstant(87)))'),
     ConstantData('const C(field1: a, field2: b)', <Map<String, String>, String>{
-      emptyEnv: 'ConstructedConstant(C(field1=BoolConstant(true),'
+      {}: 'ConstructedConstant(C(field1=BoolConstant(true),'
           'field2=IntConstant(42)))',
-      const {'foo': 'false', 'bar': '87'}:
+      {'foo': 'false', 'bar': '87'}:
           'ConstructedConstant(C(field1=BoolConstant(false),'
               'field2=IntConstant(87)))',
     }),
@@ -230,13 +229,13 @@ class B extends A {
 }
 ''', [
     ConstantData('const A(c, d)', <Map<String, String>, String>{
-      emptyEnv: 'ConstructedConstant(A(field=IntConstant(15)))',
-      const {'foo': '7', 'bar': '11'}:
+      {}: 'ConstructedConstant(A(field=IntConstant(15)))',
+      {'foo': '7', 'bar': '11'}:
           'ConstructedConstant(A(field=IntConstant(18)))',
     }),
     ConstantData('const B(d)', <Map<String, String>, String>{
-      emptyEnv: 'ConstructedConstant(B(field=IntConstant(30)))',
-      const {'bar': '42'}: 'ConstructedConstant(B(field=IntConstant(126)))',
+      {}: 'ConstructedConstant(B(field=IntConstant(30)))',
+      {'bar': '42'}: 'ConstructedConstant(B(field=IntConstant(126)))',
     }),
   ]),
   TestData('construct', '''
@@ -318,89 +317,89 @@ class B extends A {
     ConstantData(
         r'"$integer $string $boolean"', 'StringConstant("5 baz false")'),
     ConstantData('integer ? true : false', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData(r'"${deprecated}"', 'NonConstant',
-        expectedError: 'ConstEvalInvalidStringInterpolationOperand'),
+        expectedErrors: 'ConstEvalInvalidStringInterpolationOperand'),
     ConstantData('0 + string', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('string + 0', 'NonConstant',
-        expectedError: 'ConstEvalInvalidBinaryOperandType'),
+        expectedErrors: 'ConstEvalInvalidBinaryOperandType'),
     ConstantData('boolean + string', 'NonConstant',
-        expectedError: 'ConstEvalInvalidMethodInvocation'),
+        expectedErrors: 'ConstEvalInvalidMethodInvocation'),
     ConstantData('boolean + false', 'NonConstant',
-        expectedError: 'ConstEvalInvalidMethodInvocation'),
+        expectedErrors: 'ConstEvalInvalidMethodInvocation'),
     ConstantData('0 * string', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('0 % string', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('0 << string', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('1 ~/ zero', 'NonConstant',
-        expectedError: 'ConstEvalZeroDivisor'),
+        expectedErrors: 'ConstEvalZeroDivisor'),
     ConstantData('1 % zero', 'NonConstant',
-        expectedError: 'ConstEvalZeroDivisor'),
+        expectedErrors: 'ConstEvalZeroDivisor'),
     ConstantData('1 << minus_one', 'NonConstant',
-        expectedError: 'ConstEvalNegativeShift'),
+        expectedErrors: 'ConstEvalNegativeShift'),
     ConstantData('1 >> minus_one', 'NonConstant',
-        expectedError: 'ConstEvalNegativeShift'),
+        expectedErrors: 'ConstEvalNegativeShift'),
     ConstantData('const bool.fromEnvironment(integer)', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('const bool.fromEnvironment("baz", defaultValue: integer)',
         'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('const int.fromEnvironment(integer)', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData(
         'const int.fromEnvironment("baz", defaultValue: string)', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('const String.fromEnvironment(integer)', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('const String.fromEnvironment("baz", defaultValue: integer)',
         'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('false || integer', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('integer || true', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('integer && true', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('!integer', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('!string', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('-(string)', 'NonConstant',
-        expectedError: 'ConstEvalInvalidMethodInvocation'),
+        expectedErrors: 'ConstEvalInvalidMethodInvocation'),
     ConstantData('not_string.length', 'NonConstant',
-        expectedError: 'ConstEvalInvalidPropertyGet'),
+        expectedErrors: 'ConstEvalInvalidPropertyGet'),
     ConstantData('const Class1()', 'NonConstant',
-        expectedError: 'ConstEvalInvalidPropertyGet'),
+        expectedErrors: 'ConstEvalInvalidPropertyGet'),
     ConstantData('const Class2()', 'NonConstant',
-        expectedError: 'ConstEvalFailedAssertion'),
+        expectedErrors: 'ConstEvalFailedAssertion'),
     ConstantData('const Class2.redirect()', 'NonConstant',
-        expectedError: 'ConstEvalFailedAssertion'),
+        expectedErrors: 'ConstEvalFailedAssertion'),
     ConstantData('const Class3()', 'NonConstant',
-        expectedError: 'ConstEvalFailedAssertionWithMessage'),
+        expectedErrors: 'ConstEvalFailedAssertionWithMessage'),
     ConstantData('const Class3.fact()', 'NonConstant',
-        expectedError: 'ConstEvalFailedAssertion'),
+        expectedErrors: 'ConstEvalFailedAssertion'),
     ConstantData('const Class4()', 'NonConstant',
-        expectedError: 'ConstEvalFailedAssertion'),
+        expectedErrors: 'ConstEvalFailedAssertion'),
     ConstantData('const Class5(0)', 'NonConstant',
-        expectedError: 'ConstEvalFailedAssertionWithMessage'),
+        expectedErrors: 'ConstEvalFailedAssertionWithMessage'),
     ConstantData('const Class5(1)', 'ConstructedConstant(Class5())'),
     ConstantData('const Class6(1)', 'NonConstant',
-        expectedError: 'ConstEvalFailedAssertionWithMessage'),
+        expectedErrors: 'ConstEvalFailedAssertionWithMessage'),
     ConstantData('const Class6(2)', 'ConstructedConstant(Class6())'),
     ConstantData('const Class7()', 'ConstructedConstant(Class7())'),
     ConstantData('const Class7() == const Class7()', 'NonConstant',
-        expectedError: 'ConstEvalInvalidEqualsOperandType'),
+        expectedErrors: 'ConstEvalInvalidEqualsOperandType'),
     ConstantData('const Class7() != const Class7()', 'NonConstant',
-        expectedError: 'ConstEvalInvalidEqualsOperandType'),
+        expectedErrors: 'ConstEvalInvalidEqualsOperandType'),
     ConstantData('const Class8(not_string.length)', 'NonConstant',
-        expectedError: 'ConstEvalInvalidPropertyGet'),
+        expectedErrors: 'ConstEvalInvalidPropertyGet'),
     ConstantData(
         'const Class9()', 'ConstructedConstant(Class9(field=NullConstant))'),
     ConstantData('const Class10()', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
   ]),
   TestData('assert', '''
     const true_ = bool.fromEnvironment('x') ? null : true;
@@ -518,11 +517,11 @@ class Subclass<T extends A> extends Class<T> {
 }
 ''', [
     ConstantData('const Class<B>.redirect(C())', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('const Class<A>.method(A())', 'NonConstant',
-        expectedError: 'ConstEvalInvalidMethodInvocation'),
+        expectedErrors: 'ConstEvalInvalidMethodInvocation'),
     ConstantData('const Subclass<B>(C())', 'NonConstant',
-        expectedError: 'ConstEvalInvalidType'),
+        expectedErrors: 'ConstEvalInvalidType'),
     ConstantData('const Class<A>(A())', 'ConstructedConstant(Class<A*>())'),
     ConstantData(
         'const Class<B>.redirect(B())', 'ConstructedConstant(Class<B*>())'),
@@ -557,20 +556,18 @@ int bar(String o) => int.parse(o);
     bool.fromEnvironment("baz") ? int.parse : null,
   )''',
       <Map<String, String>, String>{
-        emptyEnv: 'ConstructedConstant(Foo(_foo=FunctionConstant(bar)))',
-        const {'baz': 'true'}:
+        {}: 'ConstructedConstant(Foo(_foo=FunctionConstant(bar)))',
+        {'baz': 'true'}:
             'ConstructedConstant(Foo(_foo=FunctionConstant(int.parse)))'
       },
     ),
     ConstantData(
       '''String.fromEnvironment(String.fromEnvironment(String.fromEnvironment("foo")))''',
       <Map<String, String>, String>{
-        emptyEnv: 'StringConstant("")',
-        const {'foo': 'bar', 'bar': 'baz'}: 'StringConstant("")',
-        const {'foo': 'bar', 'bar': 'baz', 'baz': 'hello'}:
-            'StringConstant("hello")',
-        const {'foo': 'bar', 'bar': 'baz', 'baz': 'world'}:
-            'StringConstant("world")',
+        {}: 'StringConstant("")',
+        {'foo': 'bar', 'bar': 'baz'}: 'StringConstant("")',
+        {'foo': 'bar', 'bar': 'baz', 'baz': 'hello'}: 'StringConstant("hello")',
+        {'foo': 'bar', 'bar': 'baz', 'baz': 'world'}: 'StringConstant("world")',
       },
     ),
   ]),
@@ -586,125 +583,108 @@ main(List<String> args) {
 }
 
 Future testData(TestData data) async {
-  // Group tests by environment and then by expected error so that we can
-  // distinguish which constant triggered which errors in the CFE. There
-  // are too many constants to compile each individually, this test would
-  // timeout.
-  Map<Map<String, String>, Map<String?, List<(ConstantData, String)>>>
-      constants = {};
+  StringBuffer sb = StringBuffer();
+  sb.writeln('${data.declarations}');
+  Map<String, ConstantData> constants = {};
+  List<String> names = <String>[];
   data.constants.forEach((ConstantData constantData) {
-    final expectedResult = constantData.expectedResults;
-    if (expectedResult is String) {
-      ((constants[emptyEnv] ??= {})[constantData.expectedError] ??= [])
-          .add((constantData, expectedResult));
-    } else if (expectedResult is Map<Map<String, String>, String>) {
-      expectedResult.forEach((env, expectedString) {
-        ((constants[env] ??= {})[constantData.expectedError] ??= [])
-            .add((constantData, expectedString));
-      });
-    }
+    String name = 'c${constants.length}';
+    names.add(name);
+    // Encode the constants as part of a from-environment conditional to force
+    // CFE to create unevaluated constants.
+    sb.writeln('const $name = bool.fromEnvironment("x") ? '
+        'null : ${constantData.code};');
+    constants[name] = constantData;
   });
-
-  for (final env in constants.keys) {
-    final expectations = constants[env]!;
-    for (final errorString in expectations.keys) {
-      StringBuffer sb = StringBuffer();
-      sb.writeln('${data.declarations}');
-      final constantEntries = expectations[errorString]!;
-      final envData = <(String, (ConstantData, String))>[];
-      for (final constantEntry in constantEntries) {
-        final name = 'c${envData.length}';
-        final code = constantEntry.$1.code;
-        envData.add((name, constantEntry));
-        // Encode the constants as part of a from-environment conditional to
-        // force CFE to create unevaluated constants.
-        sb.writeln('const $name = bool.fromEnvironment("x") ? null : $code;');
-      }
-      sb.writeln('main() {');
-      for (final (name, _) in envData) {
-        sb.writeln('  print($name);');
-      }
-      sb.writeln('}');
-      String source = sb.toString();
-      print(
-          "--source '${data.name}'-------------------------------------------");
-      print("Compiling with env: $env");
-      print(source);
-      await runEnvTest(env, source, envData, errorString);
-    }
+  sb.writeln('main() {');
+  for (String name in names) {
+    sb.writeln('  print($name);');
   }
-}
+  sb.writeln('}');
+  String source = sb.toString();
+  print("--source '${data.name}'---------------------------------------------");
+  print(source);
 
-Future<void> runEnvTest(
-    Map<String, String> env,
-    String source,
-    List<(String, (ConstantData, String))> envData,
-    String? expectedError) async {
-  final diagnosticCollector = DiagnosticCollector();
-  CompilationResult result = await runCompiler(
-      memorySourceFiles: {'main.dart': source},
-      options: [Flags.enableAsserts, Flags.testMode],
-      environment: {...env},
-      diagnosticHandler: diagnosticCollector);
-  Compiler compiler = result.compiler;
-  KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
-  KernelToElementMap elementMap = frontEndStrategy.elementMap;
-  DartTypes dartTypes = elementMap.types;
-  ir.TypeEnvironment typeEnvironment = elementMap.typeEnvironment;
-  KElementEnvironment elementEnvironment =
-      compiler.frontendStrategy.elementEnvironment;
-  ConstantValuefier constantValuefier = ConstantValuefier(elementMap);
-  LibraryEntity library = elementEnvironment.mainLibrary!;
-  for (final (name, (data, expectedText)) in envData) {
-    final field = elementEnvironment.lookupLibraryMember(library, name)!;
-    compiler.reporter.withCurrentElement(field, () {
-      final node = elementMap.getMemberNode(field) as ir.Field;
-      final initializer = node.initializer as ir.ConstantExpression;
-      print('-- testing $field = ${data.code} --');
-      Dart2jsConstantEvaluator evaluator = Dart2jsConstantEvaluator(
-          elementMap.env.mainComponent, elementMap.typeEnvironment,
-          (ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
-        // Constants should be fully evaluated by this point so there should be
-        // no new messages.
-        throw StateError('There should be no unevaluated errors in the AST.');
-      },
-          environment: Environment(env),
-          supportReevaluationForTesting: true,
-          evaluationMode: compiler.options.useLegacySubtyping
-              ? ir.EvaluationMode.weak
-              : ir.EvaluationMode.strong);
-      ir.Constant evaluatedConstant = evaluator.evaluate(
-          ir.StaticTypeContext(node, typeEnvironment), initializer);
+  Future runTest() async {
+    CompilationResult result = await runCompiler(
+        memorySourceFiles: {'main.dart': source},
+        options: [Flags.enableAsserts]);
+    Compiler compiler = result.compiler;
+    KernelFrontendStrategy frontEndStrategy = compiler.frontendStrategy;
+    KernelToElementMap elementMap = frontEndStrategy.elementMap;
+    DartTypes dartTypes = elementMap.types;
+    ir.TypeEnvironment typeEnvironment = elementMap.typeEnvironment;
+    KElementEnvironment elementEnvironment =
+        compiler.frontendStrategy.elementEnvironment;
+    ConstantValuefier constantValuefier = ConstantValuefier(elementMap);
+    LibraryEntity library = elementEnvironment.mainLibrary!;
+    constants.forEach((String name, ConstantData data) {
+      final field = elementEnvironment.lookupLibraryMember(library, name)!;
+      compiler.reporter.withCurrentElement(field, () {
+        var expectedResults = data.expectedResults;
+        if (expectedResults is String) {
+          expectedResults = <Map<String, String>, String>{
+            const <String, String>{}: expectedResults
+          };
+        }
+        final node = elementMap.getMemberNode(field) as ir.Field;
+        final initializer = node.initializer as ir.ConstantExpression;
+        print('-- testing $field = ${data.code} --');
+        expectedResults
+            .forEach((Map<String, String> environment, String expectedText) {
+          List<String> errors = [];
+          Dart2jsConstantEvaluator evaluator = Dart2jsConstantEvaluator(
+              elementMap.env.mainComponent, elementMap.typeEnvironment,
+              (ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
+            // TODO(johnniwinther): Assert that `message.uri != null`. Currently
+            // all unevaluated constants have no uri.
+            // The actual message is a "constant errors starts here" message,
+            // the "real error message" is the first in the context.
+            errors.add(context!.first.code.name);
+            reportLocatedMessage(elementMap.reporter, message, context);
+          },
+              environment: Environment(environment),
+              supportReevaluationForTesting: true,
+              evaluationMode: compiler.options.useLegacySubtyping
+                  ? ir.EvaluationMode.weak
+                  : ir.EvaluationMode.strong);
+          ir.Constant evaluatedConstant = evaluator.evaluate(
+              ir.StaticTypeContext(node, typeEnvironment), initializer);
 
-      ConstantValue? value = evaluatedConstant is! ir.UnevaluatedConstant
-          ? constantValuefier.visitConstant(evaluatedConstant)
-          : null;
+          ConstantValue? value = evaluatedConstant is! ir.UnevaluatedConstant
+              ? constantValuefier.visitConstant(evaluatedConstant)
+              : null;
 
-      String valueText = value?.toStructuredText(dartTypes) ?? 'NonConstant';
-      Expect.equals(
-          expectedText,
-          valueText,
-          "Unexpected value '${valueText}' for field $field = "
-          "`${data.code}` in env $env, "
-          "expected '${expectedText}'.");
+          String valueText =
+              value?.toStructuredText(dartTypes) ?? 'NonConstant';
+          Expect.equals(
+              expectedText,
+              valueText,
+              "Unexpected value '${valueText}' for field $field = "
+              "`${data.code}` in env $environment, "
+              "expected '${expectedText}'.");
 
-      var expectedError = data.expectedError;
-      final errors = diagnosticCollector.contexts.map((e) => e.text).toList();
-      if (expectedError != null) {
-        // There should be 2 errors per constant in this test group, 1 for the
-        // declaration and another for the print.
-        Expect.equals(envData.length * 2, errors.length);
-        Expect.isTrue(
-            errors.every((e) => e == expectedError),
-            "Error mismatch for `$field = ${data.code}`:\n"
-            "Expected: ${expectedError},\n"
-            "Found: ${errors}.");
-      } else {
-        Expect.isTrue(
-            diagnosticCollector.contexts.isEmpty,
-            "Unexpected errors for `$field = ${data.code}`:\n"
-            "Found: ${errors}.");
-      }
+          var expectedErrors = data.expectedErrors;
+          if (expectedErrors != null) {
+            if (expectedErrors is! List) {
+              expectedErrors = [expectedErrors];
+            }
+            Expect.listEquals(
+                expectedErrors,
+                errors,
+                "Error mismatch for `$field = ${data.code}`:\n"
+                "Expected: ${data.expectedErrors},\n"
+                "Found: ${errors}.");
+          } else {
+            Expect.isTrue(
+                errors.isEmpty,
+                "Unexpected errors for `$field = ${data.code}`:\n"
+                "Found: ${errors}.");
+          }
+        });
+      });
     });
   }
+
+  await runTest();
 }

@@ -9,7 +9,7 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 void testFunction() {
-  List<dynamic> v = <dynamic>[1, 2, '3'];
+  final List<dynamic> v = <dynamic>[1, 2, '3'];
   debugger();
   print('v = $v');
 }

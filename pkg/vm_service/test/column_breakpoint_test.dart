@@ -6,7 +6,7 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 void testMain() {
-  var b = [1, 2].map((i) => i == 0).toList();
+  final b = [1, 2].map((i) => i == 0).toList();
   print(b.length);
 }
 
@@ -14,12 +14,12 @@ const int LINE = 9;
 const int COLUMN = 29;
 const String shortFile = 'column_breakpoint_test.dart';
 
-List<String> stops = [];
+final stops = <String>[];
 
-const List<String> expected = [
-  '$shortFile:${LINE + 0}:29', // on 'i == 0'
-  '$shortFile:${LINE + 0}:29', // iterate twice
-  '$shortFile:${LINE + 1}:11' //on 'b.length'
+const expected = <String>[
+  '$shortFile:${LINE + 0}:33', // on 'i == 0'
+  '$shortFile:${LINE + 0}:33', // iterate twice
+  '$shortFile:${LINE + 1}:11', //on 'b.length'
 ];
 
 final tests = <IsolateTest>[
@@ -30,13 +30,11 @@ final tests = <IsolateTest>[
   checkRecordedStops(stops, expected),
 ];
 
-main(args) {
-  runIsolateTestsSynchronous(
-    args,
-    tests,
-    'column_breakpoint_test.dart',
-    testeeConcurrent: testMain,
-    pauseOnStart: true,
-    pauseOnExit: true,
-  );
-}
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'column_breakpoint_test.dart',
+      testeeConcurrent: testMain,
+      pauseOnStart: true,
+      pauseOnExit: true,
+    );

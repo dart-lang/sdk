@@ -5,6 +5,6 @@ r3 int64
 r4 int64
 r5 int64
 r6 int64
-M(S+0 int64, S+8 int64) Struct(size: 12)
+M(S+0 uint64, S+8 uint64[uint32]) Struct(size: 12)
 =>
 r0 int64

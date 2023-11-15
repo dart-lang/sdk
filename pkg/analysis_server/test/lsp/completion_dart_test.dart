@@ -817,6 +817,60 @@ class B {
     expect(labels, contains('Deprecated(…)'));
   }
 
+  Future<void> test_closure() async {
+    final content = '''
+void f({void Function(int a, String b) closure}) {}
+
+void g() {
+  f(closure: ^);
+}
+''';
+
+    final expectedContent = '''
+void f({void Function(int a, String b) closure}) {}
+
+void g() {
+  f(closure: (a, b) => ^,);
+}
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      expectCompletions: ['(a, b) {}', '(a, b) =>'],
+      applyEditsFor: '(a, b) =>',
+      expectedContent: expectedContent,
+    );
+  }
+
+  Future<void> test_closure_requiredNamed() async {
+    final content = '''
+void f({void Function({int a, required String b}) closure}) {}
+
+void g() {
+  f(closure: ^);
+}
+''';
+
+    final expectedContent = '''
+void f({void Function({int a, required String b}) closure}) {}
+
+void g() {
+  f(closure: ({a, required b}) => ^,);
+}
+''';
+
+    await verifyCompletions(
+      mainFileUri,
+      content,
+      // Display text does not contain 'required' because it makes the
+      // completion much longer, we just include it in the completion text.
+      expectCompletions: ['({a, b}) {}', '({a, b}) =>'],
+      applyEditsFor: '({a, b}) =>',
+      expectedContent: expectedContent,
+    );
+  }
+
   Future<void> test_comment() async {
     final content = '''
     // foo ^

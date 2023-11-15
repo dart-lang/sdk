@@ -16,9 +16,10 @@ dynamic /*MirrorReference*/ ref;
 
 void script() {
   foo = Foo();
-  ClassMirror fooClassMirror = reflectClass(Foo);
-  InstanceMirror fooClassMirrorMirror = reflect(fooClassMirror);
-  LibraryMirror libmirrors = fooClassMirrorMirror.type.owner as LibraryMirror;
+  final ClassMirror fooClassMirror = reflectClass(Foo);
+  final InstanceMirror fooClassMirrorMirror = reflect(fooClassMirror);
+  final LibraryMirror libmirrors =
+      fooClassMirrorMirror.type.owner as LibraryMirror;
   ref = reflect(fooClassMirror)
       .getField(MirrorSystem.getSymbol('_reflectee', libmirrors))
       .reflectee;

@@ -28,7 +28,7 @@ class B extends A {
   B({required super.b, required super.c});
 }
 ''');
-    // TODO(asashour) consider inserting the named argument in the same
+    // TODO(asashour): consider inserting the named argument in the same
     // position as in the superclass.
     await assertHasFix('''
 class A {
@@ -68,7 +68,7 @@ class B extends A {
   B(super.i,);
 }
 ''');
-    // TODO(asashour) consider inserting the comma at the end
+    // TODO(asashour): consider inserting the comma at the end
     await assertHasFix('''
 class A {
   A(int i, {required int a, required int b});

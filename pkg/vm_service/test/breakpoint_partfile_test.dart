@@ -12,7 +12,7 @@ const int LINE = 9;
 const String breakpointFile = 'package:test_package/the_part_2.dart';
 const String shortFile = 'the_part_2.dart';
 
-code() {
+void code() {
   has_part.bar();
 }
 
@@ -20,14 +20,14 @@ final stops = <String>[];
 
 const expected = <String>[
   '$shortFile:${LINE + 0}:3', // on 'print'
-  '$shortFile:${LINE + 1}:1' // on class ending '}'
+  '$shortFile:${LINE + 1}:1', // on class ending '}'
 ];
 
 final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtUriAndLine(breakpointFile, LINE),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

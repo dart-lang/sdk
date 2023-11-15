@@ -131,7 +131,7 @@ suggestions
 
   Future<void>
       test_afterPeriod_beforeStatement_onlyStatic_notFromSuperclass() async {
-    // TODO(brianwilkerson) Split into two tests and remove extraneous code.
+    // TODO(brianwilkerson): Split into two tests and remove extraneous code.
     await computeSuggestions('''
 class B {
   static int b0;
@@ -154,7 +154,7 @@ suggestions
   }
 
   Future<void> test_afterPeriod_onlyStatic_notFromSuperclass() async {
-    // TODO(brianwilkerson) Split into two tests and remove extraneous code.
+    // TODO(brianwilkerson): Split into two tests and remove extraneous code.
     await computeSuggestions('''
 class B {
   static int b0;

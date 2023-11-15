@@ -34,8 +34,12 @@ void script() {
   print(weakProperty);
 }
 
-Future<Instance> getFieldValue(VmService service, String isolateId,
-    List<FieldRef> variables, String name) async {
+Future<Instance> getFieldValue(
+  VmService service,
+  String isolateId,
+  List<FieldRef> variables,
+  String name,
+) async {
   final fieldRef = variables.singleWhere((v) => v.name == name);
   final field = await service.getObject(
     isolateId,

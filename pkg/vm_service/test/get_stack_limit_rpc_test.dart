@@ -62,7 +62,7 @@ final tests = <IsolateTest>[
       'bar',
       'foo',
       'bar',
-      'foo'
+      'foo',
     ]);
 
     final fullStackLength = frames.length;
@@ -88,7 +88,7 @@ final tests = <IsolateTest>[
       'bar',
       'foo',
       'bar',
-      'foo'
+      'foo',
     ]);
 
     // Try a limit < actual stack depth and expect to get a stack of depth

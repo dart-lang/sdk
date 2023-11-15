@@ -6,7 +6,6 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../context_collection_resolution.dart';
-import '../resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,7 +18,7 @@ main() {
 class ExtensionMethodsTest extends PubPackageResolutionTest
     with ExtensionMethodsTestCases {}
 
-mixin ExtensionMethodsTestCases on ResolutionTest {
+mixin ExtensionMethodsTestCases on PubPackageResolutionTest {
   test_implicit_getter() async {
     await assertNoErrorsInCode('''
 class A<T> {}

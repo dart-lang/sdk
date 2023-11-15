@@ -61,7 +61,7 @@ abstract class RefactoringImpl implements Refactoring {
 
 /// The [SourceRange] in some [Source].
 ///
-/// TODO(scheglov) inline this class as SearchMatch
+// TODO(scheglov): inline this class as SearchMatch
 class SourceReference {
   final SearchMatch _match;
 

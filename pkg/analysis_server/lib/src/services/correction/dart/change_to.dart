@@ -56,9 +56,9 @@ class ChangeTo extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    // TODO(brianwilkerson) Unify these separate methods as much as is
+    // TODO(brianwilkerson): Unify these separate methods as much as is
     //  reasonably possible.
-    // TODO(brianwilkerson) Consider proposing all of the names within a
+    // TODO(brianwilkerson): Consider proposing all of the names within a
     //  reasonable distance, rather than just the first near match we find.
     if (_kind == _ReplacementKind.annotation) {
       await _proposeAnnotation(builder);

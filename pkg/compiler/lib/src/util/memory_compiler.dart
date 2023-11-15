@@ -91,7 +91,6 @@ Future<api.CompilationResult> runCompiler(
     api.CompilerDiagnostics? diagnosticHandler,
     api.CompilerOutput? outputProvider,
     List<String> options = const <String>[],
-    Map<String, String>? environment,
     bool showDiagnostics = true,
     Uri? librariesSpecificationUri,
     Uri? packageConfig,
@@ -106,7 +105,6 @@ Future<api.CompilationResult> runCompiler(
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
       options: options,
-      environment: environment,
       showDiagnostics: showDiagnostics,
       librariesSpecificationUri: librariesSpecificationUri,
       packageConfig: packageConfig,
@@ -127,7 +125,6 @@ Compiler compilerFor(
     api.CompilerDiagnostics? diagnosticHandler,
     api.CompilerOutput? outputProvider,
     List<String> options = const <String>[],
-    Map<String, String>? environment,
     bool showDiagnostics = true,
     Uri? librariesSpecificationUri,
     Uri? packageConfig,
@@ -202,7 +199,7 @@ Compiler compilerFor(
       platformBinaries: options.contains(Flags.noSoundNullSafety)
           ? buildPlatformBinariesUri
           : null)
-    ..environment = environment ?? {}
+    ..environment = {}
     ..packageConfig = packageConfig;
 
   compilerOptions.setDefaultOutputUriForTesting();

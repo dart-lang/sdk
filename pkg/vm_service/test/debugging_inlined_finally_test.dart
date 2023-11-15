@@ -29,9 +29,9 @@ num Function() testFunction() {
   try {
     late int b;
     try {
-      for (int i = 0; i < 10;) {
+      for (final int i = 0; i < 10;) {
         // ignore: prefer_function_declarations_over_variables
-        x() => i + a + b;
+        int x() => i + a + b;
         return x; // LINE_B
       }
     } finally {

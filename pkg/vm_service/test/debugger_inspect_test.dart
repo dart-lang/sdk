@@ -47,7 +47,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'debugger_inspect_test.dart',

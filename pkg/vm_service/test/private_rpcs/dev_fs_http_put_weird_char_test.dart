@@ -15,9 +15,12 @@ import 'private_rpc_common.dart';
 Future<String> readResponse(HttpClientResponse response) {
   final completer = Completer<String>();
   final contents = StringBuffer();
-  response.cast<List<int>>().transform(utf8.decoder).listen((String data) {
-    contents.write(data);
-  }, onDone: () => completer.complete(contents.toString()));
+  response.cast<List<int>>().transform(utf8.decoder).listen(
+    (String data) {
+      contents.write(data);
+    },
+    onDone: () => completer.complete(contents.toString()),
+  );
   return completer.future;
 }
 
@@ -62,7 +65,7 @@ final tests = <VMTest>[
 
     // Write the file by issuing an HTTP PUT.
     result = await postToDevFS(content: [9]);
-    if (result case {'result': Map<String, dynamic> innerResult}) {
+    if (result case {'result': final Map<String, dynamic> innerResult}) {
       expectSuccess(innerResult);
     } else {
       invalidResponse(result);
@@ -74,7 +77,7 @@ final tests = <VMTest>[
         case {
           'error': {
             'data': {
-              'details': String details,
+              'details': final String details,
             }
           }
         }) {
@@ -85,27 +88,35 @@ final tests = <VMTest>[
 
     // Write the file again but this time with the true file contents.
     result = await postToDevFS(content: fileContents);
-    if (result case {'result': Map<String, dynamic> innerResult}) {
+    if (result case {'result': final Map<String, dynamic> innerResult}) {
       expectSuccess(innerResult);
     } else {
       invalidResponse(result);
     }
 
     // Read the file back.
-    result = await callMethod(service, '_readDevFSFile', args: {
-      'fsName': fsId,
-      'path': filePath,
-    });
-    if (result case {'type': 'FSFile', 'fileContents': String contents}) {
+    result = await callMethod(
+      service,
+      '_readDevFSFile',
+      args: {
+        'fsName': fsId,
+        'path': filePath,
+      },
+    );
+    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
       expect(contents, fileContentsBase64);
     } else {
       invalidResponse(result);
     }
 
     // List all the files in the file system.
-    result = await callMethod(service, '_listDevFSFiles', args: {
-      'fsName': fsId,
-    });
+    result = await callMethod(
+      service,
+      '_listDevFSFiles',
+      args: {
+        'fsName': fsId,
+      },
+    );
     if (result case {'type': 'FSFileList', 'files': [{'name': filePath}]}) {
       // Expected
     } else {
@@ -113,9 +124,13 @@ final tests = <VMTest>[
     }
 
     // Delete DevFS.
-    result = await callMethod(service, '_deleteDevFS', args: {
-      'fsName': fsId,
-    });
+    result = await callMethod(
+      service,
+      '_deleteDevFS',
+      args: {
+        'fsName': fsId,
+      },
+    );
     expectSuccess(result);
   },
 ];

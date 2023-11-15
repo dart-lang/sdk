@@ -6131,7 +6131,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Expression left, Member? target, Expression right,
       {bool negated = false}) {
     var targetClass = target?.enclosingClass;
-    var leftType = left.getStaticType(_staticTypeContext);
+    var leftType = left.getStaticType(_staticTypeContext).extensionTypeErasure;
 
     // Conceptually `x == y` in Dart is defined as:
     //
@@ -6393,15 +6393,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // don't preserve the original type argument names into the runtime.
         // Those names are needed in the evaluation string used to extract the
         // types from the provided instance.
+        // At this time the only two uses of this method are extracting from
+        // `Iterable` and `Map`. There are no extension type uses so no need for
+        // erasure here.
         var extractionType = node.arguments.types.single;
         if (extractionType is! InterfaceType) {
           throw UnsupportedError(
-              'Type arguments can only be extracted from interface types.');
+              'Type arguments can only be extracted from interface types: '
+              'found $extractionType (${extractionType.runtimeType}) at '
+              '${node.location}');
         }
         var extractionTypeParameters = extractionType.classNode.typeParameters;
         if (extractionTypeParameters.isEmpty) {
           throw UnsupportedError(
-              'The extraction type must have type arguments to be extracted.');
+              'The extraction type must have type arguments to be extracted: '
+              'found $extractionType (${extractionType.runtimeType}) at '
+              '${node.location}');
         }
         var extractionTypeParameterNames = extractionTypeParameters
             .map((p) => '${extractionType.classNode.name}.${p.name!}');
@@ -6454,7 +6461,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           if (type is! InterfaceType) {
             throw UnsupportedError(
                 'JS_CLASS_REF only supports interface types: found $type '
-                'at ${node.location}');
+                '(${type.runtimeType}) at ${node.location}');
           }
           if (type.typeArguments.isNotEmpty) {
             throw UnsupportedError(
@@ -6534,6 +6541,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           }
           if (type is FutureOrType) {
             return _emitFutureOrNameNoInterop(suffix: '\$');
+          } else {
+            throw UnsupportedError(
+                '`getGenericClassStatic` Unsupported type found: '
+                '$type (${type.runtimeType}) at ${node.location}');
           }
         }
       } else if (node.arguments.positional.length == 1) {
@@ -6912,7 +6923,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           importUri.path == 'html_common');
 
   bool _isNull(Expression expr) =>
-      expr is NullLiteral || expr.getStaticType(_staticTypeContext) is NullType;
+      expr is NullLiteral ||
+      expr.getStaticType(_staticTypeContext).extensionTypeErasure is NullType;
 
   bool _doubleEqIsIdentity(Expression left, Expression right) {
     // If we statically know LHS or RHS is null we can use ==.
@@ -7221,8 +7233,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   js_ast.Expression visitIsExpression(IsExpression node) {
-    return _emitIsExpression(
-        node.operand, shallowExtensionTypeErasure(node.type));
+    return _emitIsExpression(node.operand, node.type.extensionTypeErasure);
   }
 
   js_ast.Expression _emitIsExpression(Expression operand, DartType type) {
@@ -7259,7 +7270,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var fromExpr = node.operand;
     var jsFrom = _visitExpression(fromExpr);
     if (node.isUnchecked) return jsFrom;
-    var to = shallowExtensionTypeErasure(node.type);
+    var to = node.type.extensionTypeErasure;
     var from = fromExpr.getStaticType(_staticTypeContext);
 
     // If the check was put here by static analysis to ensure soundness, we

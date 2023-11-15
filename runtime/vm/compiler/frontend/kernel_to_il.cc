@@ -4607,26 +4607,6 @@ Fragment FlowGraphBuilder::LoadTypedDataBaseFromCompound() {
   return body;
 }
 
-Fragment FlowGraphBuilder::CopyFromCompoundToStack(
-    LocalVariable* variable,
-    const GrowableArray<Representation>& representations) {
-  Fragment body;
-  const intptr_t num_defs = representations.length();
-  int offset_in_bytes = 0;
-  for (intptr_t i = 0; i < num_defs; i++) {
-    body += LoadLocal(variable);
-    body += LoadTypedDataBaseFromCompound();
-    body += LoadNativeField(Slot::PointerBase_data(),
-                            InnerPointerAccess::kMayBeInnerPointer);
-    body += IntConstant(offset_in_bytes);
-    const Representation representation = representations[i];
-    offset_in_bytes += RepresentationUtils::ValueSize(representation);
-    body += LoadIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
-                                        /*index_unboxed=*/false);
-  }
-  return body;
-}
-
 Fragment FlowGraphBuilder::PopFromStackToTypedDataBase(
     ZoneGrowableArray<LocalVariable*>* definitions,
     const GrowableArray<Representation>& representations) {
@@ -4757,6 +4737,68 @@ Fragment FlowGraphBuilder::CopyFromUnboxedAddressToTypedDataBase(
   return body;
 }
 
+Fragment FlowGraphBuilder::LoadTail(LocalVariable* variable,
+                                    intptr_t size,
+                                    intptr_t offset_in_bytes,
+                                    Representation representation) {
+  Fragment body;
+  if (size == 8 || size == 4) {
+    body += LoadLocal(variable);
+    body += LoadTypedDataBaseFromCompound();
+    body += LoadNativeField(Slot::PointerBase_data(),
+                            InnerPointerAccess::kMayBeInnerPointer);
+    body += IntConstant(offset_in_bytes);
+    body += LoadIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
+                                        /*index_unboxed=*/false);
+    return body;
+  }
+  ASSERT(representation != kUnboxedFloat);
+  ASSERT(representation != kUnboxedDouble);
+  intptr_t shift = 0;
+  intptr_t remaining = size;
+  auto step = [&](intptr_t part_bytes, intptr_t part_cid) {
+    while (remaining >= part_bytes) {
+      body += LoadLocal(variable);
+      body += LoadTypedDataBaseFromCompound();
+      body += LoadNativeField(Slot::PointerBase_data(),
+                              InnerPointerAccess::kMayBeInnerPointer);
+      body += IntConstant(offset_in_bytes);
+      body += LoadIndexed(part_cid, /*index_scale*/ 1,
+                          /*index_unboxed=*/false);
+      if (shift != 0) {
+        body += IntConstant(shift);
+        // 64-bit doesn't support kUnboxedInt32 ops.
+        Representation op_representation = kUnboxedFfiIntPtr;
+        body += BinaryIntegerOp(Token::kSHL, op_representation,
+                                /*is_truncating*/ true);
+        body += BinaryIntegerOp(Token::kBIT_OR, op_representation,
+                                /*is_truncating*/ true);
+      }
+      offset_in_bytes += part_bytes;
+      remaining -= part_bytes;
+      shift += part_bytes * kBitsPerByte;
+    }
+  };
+  step(8, kTypedDataUint64ArrayCid);
+  step(4, kTypedDataUint32ArrayCid);
+  step(2, kTypedDataUint16ArrayCid);
+  step(1, kTypedDataUint8ArrayCid);
+
+  // Sigh, LoadIndex's representation for int8/16 is [u]int64, but the FfiCall
+  // wants an [u]int32 input. Manually insert a "truncating" conversion so one
+  // isn't automatically added that thinks it can deopt.
+  Representation from_representation = Peek(0)->representation();
+  if (from_representation != representation) {
+    IntConverterInstr* convert = new IntConverterInstr(
+        from_representation, representation, Pop(), DeoptId::kNone);
+    convert->mark_truncating();
+    Push(convert);
+    body <<= convert;
+  }
+
+  return body;
+}
+
 Fragment FlowGraphBuilder::FfiCallConvertCompoundArgumentToNative(
     LocalVariable* variable,
     const compiler::ffi::BaseMarshaller& marshaller,
@@ -4778,21 +4820,25 @@ Fragment FlowGraphBuilder::FfiCallConvertCompoundArgumentToNative(
         // 32 bits.
         representation = loc.payload_type().AsRepresentationOverApprox(Z);
       }
-      body += LoadLocal(variable);
-      body += LoadTypedDataBaseFromCompound();
-      body += LoadNativeField(Slot::PointerBase_data(),
-                              InnerPointerAccess::kMayBeInnerPointer);
-      body += IntConstant(offset_in_bytes);
-      body += LoadIndexedTypedDataUnboxed(representation, /*index_scale=*/1,
-                                          /*index_unboxed=*/false);
-      offset_in_bytes += loc.payload_type().SizeInBytes();
+      intptr_t size = loc.payload_type().SizeInBytes();
+      body += LoadTail(variable, size, offset_in_bytes, representation);
+      offset_in_bytes += size;
     }
   } else if (native_loc.IsStack()) {
     // Break struct in pieces to separate IL definitions to pass those
     // separate definitions into the FFI call.
-    GrowableArray<Representation> representations;
-    marshaller.RepsInFfiCall(arg_index, &representations);
-    body += CopyFromCompoundToStack(variable, representations);
+    Representation representation = kUnboxedWord;
+    intptr_t remaining = native_loc.payload_type().SizeInBytes();
+    intptr_t offset_in_bytes = 0;
+    while (remaining >= compiler::target::kWordSize) {
+      body += LoadTail(variable, compiler::target::kWordSize, offset_in_bytes,
+                       representation);
+      offset_in_bytes += compiler::target::kWordSize;
+      remaining -= compiler::target::kWordSize;
+    }
+    if (remaining > 0) {
+      body += LoadTail(variable, remaining, offset_in_bytes, representation);
+    }
   } else {
     ASSERT(native_loc.IsPointerToMemory());
     // Only load the typed data, do copying in the FFI call machine code.

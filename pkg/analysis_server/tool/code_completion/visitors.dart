@@ -674,7 +674,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
         if (elementKind == protocol.ElementKind.CLASS) {
           var constructorName = node.parent?.parent;
           if (constructorName is ConstructorName) {
-            // TODO(scheglov) Commented out, probably does not work now.
+            // TODO(scheglov): Commented out, probably does not work now.
             // var instanceCreationExpression = constructorName.parent;
             // if (instanceCreationExpression is InstanceCreationExpression &&
             //     constructorName.type.name == node) {
@@ -815,7 +815,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
       return false;
     }
 
-    // TODO (jwren) If there is a mode of completing at a token location where
+    // TODO(jwren): If there is a mode of completing at a token location where
     //  the token is removed before the completion query happens, then this
     //  should be disabled in such a case:
     // Named arguments, i.e. the 'foo' in 'method_call(foo: 1)' should not be

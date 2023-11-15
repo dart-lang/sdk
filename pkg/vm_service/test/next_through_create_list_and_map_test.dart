@@ -22,26 +22,26 @@ void code() {
     1234567891,
     1234567892,
     1234567893,
-    1234567894
+    1234567894,
   ];
   final myConstList = const <int>[
     1234567890,
     1234567891,
     1234567892,
     1234567893,
-    1234567894
+    1234567894,
   ];
   final myMap = <int, int>{
     1: 42,
     2: 43,
     33242344: 432432432,
-    443243232: 543242454
+    443243232: 543242454,
   };
   final myConstMap = const <int, int>{
     1: 42,
     2: 43,
     33242344: 432432432,
-    443243232: 543242454
+    443243232: 543242454,
   };
   print(myList);
   print(myConstList);
@@ -83,14 +83,14 @@ const expected = <String>[
   '$file:${LINE_A + 32}:3',
 
   // End (on ending '}')
-  '$file:${LINE_A + 33}:1'
+  '$file:${LINE_A + 33}:1',
 ];
 
 final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE_A),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

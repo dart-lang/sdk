@@ -31,7 +31,7 @@ class AddOverride extends ResolvedCorrectionProducer {
       return;
     }
 
-    //TODO(pq): migrate annotation edit building to change_builder
+    // TODO(pq): migrate annotation edit building to change_builder
 
     // Handle doc comments.
     var token = member.beginToken;

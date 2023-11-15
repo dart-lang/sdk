@@ -11,9 +11,11 @@ import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 void testFunction() {
-  List<String> x = ['a', 'b', 'c'];
-  int xCombinedLength = x.fold<int>(
-      0, (previousValue, element) => previousValue + element.length);
+  final List<String> x = ['a', 'b', 'c'];
+  final int xCombinedLength = x.fold<int>(
+    0,
+    (previousValue, element) => previousValue + element.length,
+  );
   debugger();
   print('xCombinedLength = $xCombinedLength');
 }

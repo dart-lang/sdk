@@ -348,7 +348,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
   @failingTest
   void test_recordOutlines_withSubscription() {
     _fail('The outline handling needs to be re-worked slightly');
-    // TODO(brianwilkerson) Figure out outlines. What should we do when merge
+    // TODO(brianwilkerson): Figure out outlines. What should we do when merge
     // cannot produce a single outline?
     manager.setSubscriptions({
       server.AnalysisService.OUTLINE: {fileA, fileB}
@@ -359,14 +359,14 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     var outline1 = outline(0, 0);
     var outline2 = outline(5, 7);
     manager.recordOutlines('a', fileA, [outline1, outline2]);
-    // TODO(brianwilkerson) Figure out how to test this.
+    // TODO(brianwilkerson): Figure out how to test this.
 //    _verifyOutlines(fileA, [outline1, outline2]);
     //
     // Outlines from different plugins should be cumulative.
     //
     var outline3 = outline(10, 14);
     manager.recordOutlines('b', fileA, [outline3]);
-    // TODO(brianwilkerson) Figure out how to test this.
+    // TODO(brianwilkerson): Figure out how to test this.
 //    _verifyOutlines(fileA, [outline1, outline2, outline3]);
     //
     // Overwriting outlines from one plugin should not affect outlines from
@@ -374,7 +374,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     var outline4 = outline(15, 21);
     manager.recordOutlines('a', fileA, [outline4]);
-    // TODO(brianwilkerson) Figure out how to test this.
+    // TODO(brianwilkerson): Figure out how to test this.
 //    _verifyOutlines(fileA, [outline4, outline3]);
     //
     // Recording outlines against a file should not affect the outlines for
@@ -382,7 +382,7 @@ class NotificationManagerTest extends ProtocolTestUtilities {
     //
     var outline5 = outline(20, 28);
     manager.recordOutlines('a', fileB, [outline5]);
-    // TODO(brianwilkerson) Figure out how to test this.
+    // TODO(brianwilkerson): Figure out how to test this.
 //    _verifyOutlines(fileB, [outline5]);
   }
 

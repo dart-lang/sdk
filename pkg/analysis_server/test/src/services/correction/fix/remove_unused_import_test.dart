@@ -22,7 +22,7 @@ void main() {
 class RemoveUnusedImportBulkTest extends BulkFixProcessorTest {
   @FailingTest(reason: 'multiple deletions conflict')
   Future<void> test_multipleOnSingleLine() async {
-    // TODO(brianwilkerson) Remove test_multipleOnSingleLine_temporary when this
+    // TODO(brianwilkerson): Remove test_multipleOnSingleLine_temporary when this
     //  test starts to pass.
     await resolveTestCode('''
 import 'dart:collection'; import 'dart:math'; import 'dart:async';
@@ -120,7 +120,7 @@ void f() {}
 
   @FailingTest(reason: 'multiple deletions conflict')
   Future<void> test_all_singleLine() async {
-    // TODO(brianwilkerson) Remove test_multipleOnSingleLine_temporary when this
+    // TODO(brianwilkerson): Remove test_multipleOnSingleLine_temporary when this
     //  test starts to pass.
     await resolveTestCode('''
 import 'dart:math'; import 'dart:math'; import 'dart:math';

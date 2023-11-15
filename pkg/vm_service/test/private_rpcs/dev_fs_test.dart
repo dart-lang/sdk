@@ -88,10 +88,14 @@ final tests = <VMTest>[
     }
 
     try {
-      await callMethod(service, '_readDevFSFile', args: {
-        'fsName': fsId,
-        'path': filePath,
-      });
+      await callMethod(
+        service,
+        '_readDevFSFile',
+        args: {
+          'fsName': fsId,
+          'path': filePath,
+        },
+      );
       fail('Unreachable');
     } on RPCError catch (e) {
       expect(e.code, PrivateRpcErrorCodes.kFileDoesNotExist.code);
@@ -99,39 +103,55 @@ final tests = <VMTest>[
     }
 
     // Write a file.
-    result = await callMethod(service, '_writeDevFSFile', args: {
-      'fsName': fsId,
-      'path': filePath,
-      'fileContents': fileContents,
-    });
+    result = await callMethod(
+      service,
+      '_writeDevFSFile',
+      args: {
+        'fsName': fsId,
+        'path': filePath,
+        'fileContents': fileContents,
+      },
+    );
     expectSuccess(result);
 
     // Read the file back.
-    result = await callMethod(service, '_readDevFSFile', args: {
-      'fsName': fsId,
-      'path': filePath,
-    });
-    if (result case {'type': 'FSFile', 'fileContents': String contents}) {
+    result = await callMethod(
+      service,
+      '_readDevFSFile',
+      args: {
+        'fsName': fsId,
+        'path': filePath,
+      },
+    );
+    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
       expect(contents, fileContents);
     } else {
       invalidResponse(result);
     }
 
     // The leading '/' is optional.
-    result = await callMethod(service, '_readDevFSFile', args: {
-      'fsName': fsId,
-      'path': filePath.substring(1),
-    });
-    if (result case {'type': 'FSFile', 'fileContents': String contents}) {
+    result = await callMethod(
+      service,
+      '_readDevFSFile',
+      args: {
+        'fsName': fsId,
+        'path': filePath.substring(1),
+      },
+    );
+    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
       expect(contents, fileContents);
     }
 
     // Read a file outside of the fs.
     try {
-      await callMethod(service, '_readDevFSFile', args: {
-        'fsName': fsId,
-        'path': '../foo',
-      });
+      await callMethod(
+        service,
+        '_readDevFSFile',
+        args: {
+          'fsName': fsId,
+          'path': '../foo',
+        },
+      );
       fail('Unreachable');
     } on RPCError catch (e) {
       expect(e.code, RPCErrorKind.kInvalidParams.code);
@@ -139,31 +159,43 @@ final tests = <VMTest>[
     }
 
     // Write a set of files.
-    result = await callMethod(service, '_writeDevFSFiles', args: {
-      'fsName': fsId,
-      'files': [
-        ['/a', base64Encode(utf8.encode('a_contents'))],
-        ['/b', base64Encode(utf8.encode('b_contents'))]
-      ]
-    });
+    result = await callMethod(
+      service,
+      '_writeDevFSFiles',
+      args: {
+        'fsName': fsId,
+        'files': [
+          ['/a', base64Encode(utf8.encode('a_contents'))],
+          ['/b', base64Encode(utf8.encode('b_contents'))],
+        ],
+      },
+    );
     expectSuccess(result);
 
     // Read one of the files back.
-    result = await callMethod(service, '_readDevFSFile', args: {
-      'fsName': fsId,
-      'path': '/b',
-    });
+    result = await callMethod(
+      service,
+      '_readDevFSFile',
+      args: {
+        'fsName': fsId,
+        'path': '/b',
+      },
+    );
 
-    if (result case {'type': 'FSFile', 'fileContents': String contents}) {
+    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
       expect(contents, base64Encode(utf8.encode('b_contents')));
     } else {
       invalidResponse(result);
     }
 
     // List all the files in the file system.
-    result = await callMethod(service, '_listDevFSFiles', args: {
-      'fsName': fsId,
-    });
+    result = await callMethod(
+      service,
+      '_listDevFSFiles',
+      args: {
+        'fsName': fsId,
+      },
+    );
     if (result case {'type': 'FSFileList', 'files': [_, _, _]}) {
       // Expected
     } else {
@@ -171,9 +203,13 @@ final tests = <VMTest>[
     }
 
     // Delete DevFS.
-    result = await callMethod(service, '_deleteDevFS', args: {
-      'fsName': fsId,
-    });
+    result = await callMethod(
+      service,
+      '_deleteDevFS',
+      args: {
+        'fsName': fsId,
+      },
+    );
     expectSuccess(result);
   },
 ];

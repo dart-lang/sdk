@@ -63,7 +63,7 @@ const expected = <String>[
   'list.dart:91:23', // on '<' in 'i < length'
   'list.dart:97:5', // on 'return'
   '$file:${LINE_A + 4}:5', // on 'print'
-  '$file:${LINE_A + 6}:1' // on ending '}'
+  '$file:${LINE_A + 6}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[

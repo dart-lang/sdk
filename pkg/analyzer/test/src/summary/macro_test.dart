@@ -38,10 +38,10 @@ main() {
 
   defineReflectiveSuite(() {
     defineReflectiveTests(MacroArgumentsTest);
-    defineReflectiveTests(MacroTypesIntrospectTest);
+    defineReflectiveTests(MacroIntrospectNodeTest);
+    defineReflectiveTests(MacroIntrospectElementTest);
     defineReflectiveTests(MacroTypesTest_keepLinking);
     defineReflectiveTests(MacroTypesTest_fromBytes);
-    defineReflectiveTests(MacroDeclarationsIntrospectTest);
     defineReflectiveTests(MacroDeclarationsTest_keepLinking);
     defineReflectiveTests(MacroDeclarationsTest_fromBytes);
     defineReflectiveTests(MacroElementsTest_keepLinking);
@@ -1576,1621 +1576,6 @@ augment class A {
   }
 }
 
-@reflectiveTest
-class MacroDeclarationsIntrospectTest extends MacroElementsBaseTest {
-  @override
-  bool get keepLinkingLibraries => true;
-
-  String get _appendMacrosCode {
-    var code = MacrosEnvironment.instance.packageAnalyzerFolder
-        .getChildAssumingFile('test/src/summary/macro/append.dart')
-        .readAsStringSync();
-    return code.replaceAll('/*macro*/', 'macro');
-  }
-
-  /// Return the code for `IntrospectDeclarationsPhaseMacro`.
-  String get _introspectDeclarationsCode {
-    final code = MacrosEnvironment.instance.packageAnalyzerFolder
-        .getChildAssumingFolder('test/src/summary/macro')
-        .getChildAssumingFile('introspect_declarations_phase.dart')
-        .readAsStringSync();
-    return code.replaceAll('/*macro*/', 'macro');
-  }
-
-  test_element_class_field_flag_hasExternal() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  external int foo;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasExternal
-          type: int
-''');
-  }
-
-  test_element_class_field_flag_hasFinal() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  final int foo = 0;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasFinal
-          type: int
-''');
-  }
-
-  test_element_class_field_flag_hasLate() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  late int foo;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasLate
-          type: int
-''');
-  }
-
-  test_element_class_field_flag_isStatic() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  static int foo = 0;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: isStatic
-          type: int
-''');
-  }
-
-  test_element_class_field_metadata_identifier() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-
-class A {
-  @a
-  int? foo;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          type: int?
-''');
-  }
-
-  test_element_class_field_metadata_identifier_imported() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart';
-
-class A {
-  @a
-  int? foo;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          type: int?
-''');
-  }
-
-  test_element_class_fields_augmented() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-
-class A {
-  final int foo = 0;
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
-
-augment class A {
-  final int bar = 0;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasFinal
-          type: int
-        bar
-          flags: hasFinal
-          type: int
-''');
-  }
-
-  test_element_class_flags_hasAbstract() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-abstract class A {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      flags: hasAbstract
-      superclass: Object
-''');
-  }
-
-  test_element_class_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  int get foo => 0;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody isGetter
-          returnType: int
-''');
-  }
-
-  test_element_class_interfaces() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {}
-class B {}
-class C implements A, B {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'C'},
-)
-class X extends C {}
-''', r'''
-class X
-  superclass: C
-    class C
-      superclass: Object
-      interfaces
-        A
-        B
-''');
-  }
-
-  test_element_class_metadata_augmented() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-const b = 1;
-
-import augment 'b.dart';
-
-@a
-class A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
-
-@b
-augment class A {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-        IdentifierMetadataAnnotation
-          identifier: b
-      superclass: Object
-''');
-  }
-
-  test_element_class_metadata_constructor_named() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  const A.named()
-}
-
-@A.named()
-class B {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-          constructorName: named
-      superclass: Object
-''');
-  }
-
-  test_element_class_metadata_constructor_named_imported() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  const A.named()
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart';
-
-@A.named()
-class B {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-          constructorName: named
-      superclass: Object
-''');
-  }
-
-  test_element_class_metadata_constructor_named_imported_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  const A.named()
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart' as prefix;
-
-@prefix.A.named()
-class B {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-          constructorName: named
-      superclass: Object
-''');
-  }
-
-  test_element_class_metadata_constructor_unnamed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  const A()
-}
-
-@A()
-class B {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-      superclass: Object
-''');
-  }
-
-  test_element_class_metadata_constructor_unnamed_imported() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  const A()
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart';
-
-@A()
-class B {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-      superclass: Object
-''');
-  }
-
-  test_element_class_metadata_constructor_unnamed_imported_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  const A()
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart' as prefix;
-
-@prefix.A()
-class B {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-      superclass: Object
-''');
-  }
-
-  test_element_class_metadata_identifier() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-
-@a
-class A {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-      superclass: Object
-''');
-  }
-
-  test_element_class_metadata_identifier_imported() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart';
-
-@a
-class A {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-      superclass: Object
-''');
-  }
-
-  test_element_class_metadata_identifier_imported_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart' as prefix;
-
-@prefix.a
-class A {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-      superclass: Object
-''');
-  }
-
-  test_element_class_method_flags_hasBody_false() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-abstract class A {
-  void foo();
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      flags: hasAbstract
-      superclass: Object
-      methods
-        foo
-          flags: hasAbstract
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_method_flags_hasExternal() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  external void foo();
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody hasExternal
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_method_flags_isStatic() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  static void foo() {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody isStatic
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_method_metadata() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart';
-
-class A {
-  @a
-  void foo() {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_method_namedParameters() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  void foo({required int a, String? b}) {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          namedParameters
-            a
-              flags: isNamed isRequired
-              type: int
-            b
-              flags: isNamed
-              type: String?
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_method_namedParameters_metadata() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart';
-
-class A {
-  void foo({@a required int x}) {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          namedParameters
-            x
-              flags: isNamed isRequired
-              metadata
-                IdentifierMetadataAnnotation
-                  identifier: a
-              type: int
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_method_positionalParameters() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  void foo(int a, [String? b]) {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          positionalParameters
-            a
-              flags: isRequired
-              type: int
-            b
-              type: String?
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_method_positionalParameters_metadata() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart';
-
-class A {
-  void foo(@a int x) {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          positionalParameters
-            x
-              flags: isRequired
-              metadata
-                IdentifierMetadataAnnotation
-                  identifier: a
-              type: int
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_methods_augmented() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import augment 'b.dart';
-
-class A {
-  void foo() {}
-}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
-
-augment class A {
-  void bar() {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          returnType: void
-            noDeclaration
-        bar
-          flags: hasBody
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_mixins() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-mixin M1 {}
-mixin M2 {}
-class C with M1, M2 {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'C'},
-)
-class X extends C {}
-''', r'''
-class X
-  superclass: C
-    class C
-      superclass: Object
-      mixins
-        M1
-        M2
-''');
-  }
-
-  test_element_class_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A {
-  set foo(int value) {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody isSetter
-          positionalParameters
-            value
-              flags: isRequired
-              type: int
-          returnType: void
-            noDeclaration
-''');
-  }
-
-  test_element_class_superclass() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A<T> {}
-class B<U> extends A<U> {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A', 'B'},
-)
-class X extends B<int> {}
-''', r'''
-class X
-  superclass: B<int>
-    class B
-      superclass: A<U>
-        class A
-          superclass: Object
-          typeParameters
-            T
-      typeParameters
-        U
-''');
-  }
-
-  test_element_class_typeParameters() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A<T, U extends List<T>> {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      typeParameters
-        T
-        U
-          bound: List<T>
-''');
-  }
-
-  test_element_mixin_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-mixin A {
-  final int foo = 0;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        fields
-          foo
-            flags: hasFinal
-            type: int
-''');
-  }
-
-  test_element_mixin_field_metadata_identifier() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-
-mixin A {
-  @a
-  int? foo;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X with A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        fields
-          foo
-            metadata
-              IdentifierMetadataAnnotation
-                identifier: a
-            type: int?
-''');
-  }
-
-  test_element_mixin_field_metadata_identifier_imported() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-import 'a.dart';
-
-mixin A {
-  @a
-  int? foo;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X with A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        fields
-          foo
-            metadata
-              IdentifierMetadataAnnotation
-                identifier: a
-            type: int?
-''');
-  }
-
-  test_element_mixin_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-mixin A {
-  int get foo => 0;
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        methods
-          foo
-            flags: hasBody isGetter
-            returnType: int
-''');
-  }
-
-  test_element_mixin_metadata_augmented() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-const b = 1;
-
-import augment 'b.dart';
-
-@a
-mixin A {}
-''');
-
-    newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
-
-@b
-augment mixin A {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  superclass: A
-    mixin A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-        IdentifierMetadataAnnotation
-          identifier: b
-      superclassConstraints
-        Object
-''');
-  }
-
-  test_element_mixin_metadata_identifier() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-const a = 0;
-
-@a
-mixin A {}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X with A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: IntrospectDeclarationsPhaseMacro
-  mixins
-    A
-      mixin A
-        metadata
-          IdentifierMetadataAnnotation
-            identifier: a
-        superclassConstraints
-          Object
-''');
-  }
-
-  test_element_mixin_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-mixin A {
-  void foo() {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        methods
-          foo
-            flags: hasBody
-            returnType: void
-              noDeclaration
-''');
-  }
-
-  test_element_mixin_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-mixin A {
-  set foo(int value) {}
-}
-''');
-
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        methods
-          foo
-            flags: hasBody isSetter
-            positionalParameters
-              value
-                flags: isRequired
-                type: int
-            returnType: void
-              noDeclaration
-''');
-  }
-
-  test_node_class_appendInterfaces() async {
-    _newAppendMacrosFile();
-
-    await _assertIntrospectText(r'''
-import 'append.dart';
-
-@IntrospectDeclarationsPhaseMacro()
-@AppendInterfaceA()
-class X {}
-''', r'''
-class X
-  interfaces
-    A
-''');
-  }
-
-  test_node_class_appendMixins() async {
-    _newAppendMacrosFile();
-
-    await _assertIntrospectText(r'''
-import 'append.dart';
-
-@IntrospectDeclarationsPhaseMacro()
-@AppendMixinA()
-class X {}
-''', r'''
-class X
-  mixins
-    A
-''');
-  }
-
-  test_node_class_field_flags_hasExternal() async {
-    await _assertIntrospectText(r'''
-class X {
-  @IntrospectDeclarationsPhaseMacro()
-  external int foo;
-}
-''', r'''
-foo
-  flags: hasExternal
-  type: int
-''');
-  }
-
-  test_node_class_field_flags_hasFinal_false() async {
-    await _assertIntrospectText(r'''
-class X {
-  @IntrospectDeclarationsPhaseMacro()
-  int foo = 0;
-}
-''', r'''
-foo
-  type: int
-''');
-  }
-
-  test_node_class_field_flags_hasFinal_true() async {
-    await _assertIntrospectText(r'''
-class X {
-  @IntrospectDeclarationsPhaseMacro()
-  final int foo = 0;
-}
-''', r'''
-foo
-  flags: hasFinal
-  type: int
-''');
-  }
-
-  test_node_class_field_flags_hasLate() async {
-    await _assertIntrospectText(r'''
-class X {
-  @IntrospectDeclarationsPhaseMacro()
-  late int foo;
-}
-''', r'''
-foo
-  flags: hasLate
-  type: int
-''');
-  }
-
-  test_node_class_field_flags_isStatic() async {
-    await _assertIntrospectText(r'''
-class X {
-  @IntrospectDeclarationsPhaseMacro()
-  static int foo = 0;
-}
-''', r'''
-foo
-  flags: isStatic
-  type: int
-''');
-  }
-
-  test_node_class_field_type_explicit() async {
-    await _assertIntrospectText(r'''
-class X {
-  @IntrospectDeclarationsPhaseMacro()
-  int foo = 0;
-}
-''', r'''
-foo
-  type: int
-''');
-  }
-
-  test_node_class_field_type_implicit() async {
-    await _assertIntrospectText(r'''
-class X {
-  @IntrospectDeclarationsPhaseMacro()
-  final foo = 0;
-}
-''', r'''
-foo
-  flags: hasFinal
-  type: OmittedType
-''');
-  }
-
-  test_node_class_fields() async {
-    await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro()
-class X {
-  final int foo = 0;
-  String bar = '';
-}
-''', r'''
-class X
-  fields
-    foo
-      flags: hasFinal
-      type: int
-    bar
-      type: String
-''');
-  }
-
-  test_node_class_superclassOf() async {
-    await _assertIntrospectText(r'''
-class A {}
-
-@IntrospectDeclarationsPhaseMacro(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-''');
-  }
-
-  test_node_class_superclassOf_implicit() async {
-    await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro()
-class X {}
-''', r'''
-class X
-''');
-  }
-
-  test_node_class_superclassOf_unresolved() async {
-    await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro()
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    noDeclaration
-''');
-  }
-
-  test_node_mixin_appendInterfaces() async {
-    _newAppendMacrosFile();
-
-    await _assertIntrospectText(r'''
-import 'append.dart';
-
-@IntrospectDeclarationsPhaseMacro()
-@AppendInterfaceA()
-mixin X {}
-''', r'''
-mixin X
-  interfaces
-    A
-''');
-  }
-
-  test_node_mixin_fields() async {
-    await _assertIntrospectText(r'''
-@IntrospectDeclarationsPhaseMacro()
-mixin X {
-  final int foo = 0;
-  String bar = '';
-}
-''', r'''
-mixin X
-  fields
-    foo
-      flags: hasFinal
-      type: int
-    bar
-      type: String
-''');
-  }
-
-  /// Assert that the textual dump of the introspection information produced
-  /// by `IntrospectDeclarationsPhaseMacro` in [code], is the [expected].
-  Future<void> _assertIntrospectText(String code, String expected) async {
-    var actual = await _getIntrospectText(code);
-    if (actual != expected) {
-      print(actual);
-      NodeTextExpectationsCollector.add(actual);
-    }
-    expect(actual, expected);
-  }
-
-  /// The [code] is expected to have exactly one application of
-  /// `IntrospectDeclarationsPhaseMacro`. It may contain arbitrary code otherwise.
-  ///
-  /// The macro generates a top-level constant `x`, with a string literal
-  /// initializer - the textual dump of the introspection.
-  Future<String> _getIntrospectText(String code) async {
-    newFile(
-      '$testPackageLibPath/introspect_shared.dart',
-      _introspectSharedCode,
-    );
-
-    newFile(
-      '$testPackageLibPath/introspect_declarations_phase.dart',
-      _introspectDeclarationsCode,
-    );
-
-    var library = await buildLibrary('''
-import 'introspect_declarations_phase.dart';
-$code
-''');
-
-    library.assertNoMacroErrors();
-
-    return library.topLevelElements
-        .whereType<ConstTopLevelVariableElementImpl>()
-        .where((e) => e.name.startsWith('introspect_'))
-        .map((e) => (e.constantInitializer as SimpleStringLiteral).value)
-        .join('\n');
-  }
-
-  void _newAppendMacrosFile() {
-    newFile(
-      '$testPackageLibPath/append.dart',
-      _appendMacrosCode,
-    );
-  }
-}
-
 abstract class MacroDeclarationsTest extends MacroElementsBaseTest {
   test_addClass_addMethod_addMethod() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -3947,6 +2332,13 @@ class MacroDeclarationsTest_keepLinking extends MacroDeclarationsTest {
 }
 
 abstract class MacroElementsBaseTest extends ElementsBaseTest {
+  String get _appendMacrosCode {
+    var code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile('test/src/summary/macro/append.dart')
+        .readAsStringSync();
+    return code.replaceAll('/*macro*/', 'macro');
+  }
+
   String get _introspectSharedCode {
     return MacrosEnvironment.instance.packageAnalyzerFolder
         .getChildAssumingFile('test/src/summary/macro/introspect_shared.dart')
@@ -3961,6 +2353,8 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,
     );
+
+    _newAppendMacrosFile();
   }
 
   void _assertMacroCode(LibraryElementImpl library, String expected) {
@@ -3971,6 +2365,13 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
+  }
+
+  void _newAppendMacrosFile() {
+    newFile(
+      '$testPackageLibPath/append.dart',
+      _appendMacrosCode,
+    );
   }
 }
 
@@ -4168,22 +2569,1536 @@ augment class A {
 }
 
 @reflectiveTest
-class MacroTypesIntrospectTest extends MacroElementsBaseTest {
+class MacroIntrospectElementTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
-  /// Return the code for `IntrospectTypesPhaseMacro`.
-  String get _introspectTypesCode {
+  /// Return the code for `IntrospectDeclarationsPhaseMacro`.
+  String get _introspectDeclarationsCode {
     final code = MacrosEnvironment.instance.packageAnalyzerFolder
         .getChildAssumingFolder('test/src/summary/macro')
-        .getChildAssumingFile('introspect_types_phase.dart')
+        .getChildAssumingFile('introspect_declarations_phase.dart')
         .readAsStringSync();
     return code.replaceAll('/*macro*/', 'macro');
   }
 
+  test_class_field_flag_hasExternal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  external int foo;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          flags: hasExternal
+          type: int
+''');
+  }
+
+  test_class_field_flag_hasFinal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  final int foo = 0;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          flags: hasFinal
+          type: int
+''');
+  }
+
+  test_class_field_flag_hasLate() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  late int foo;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          flags: hasLate
+          type: int
+''');
+  }
+
+  test_class_field_flag_isStatic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int foo = 0;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          flags: isStatic
+          type: int
+''');
+  }
+
+  test_class_field_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+class A {
+  @a
+  int? foo;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          metadata
+            IdentifierMetadataAnnotation
+              identifier: a
+          type: int?
+''');
+  }
+
+  test_class_field_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+class A {
+  @a
+  int? foo;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          metadata
+            IdentifierMetadataAnnotation
+              identifier: a
+          type: int?
+''');
+  }
+
+  test_class_fields_augmented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  final int foo = 0;
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+augment class A {
+  final int bar = 0;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      fields
+        foo
+          flags: hasFinal
+          type: int
+        bar
+          flags: hasFinal
+          type: int
+''');
+  }
+
+  test_class_flags_hasAbstract() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+abstract class A {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      flags: hasAbstract
+      superclass: Object
+''');
+  }
+
+  test_class_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody isGetter
+          returnType: int
+''');
+  }
+
+  test_class_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+class C implements A, B {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'C'},
+)
+class X extends C {}
+''', r'''
+class X
+  superclass: C
+    class C
+      superclass: Object
+      interfaces
+        A
+        B
+''');
+  }
+
+  test_class_metadata_augmented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+const b = 1;
+
+import augment 'b.dart';
+
+@a
+class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+@b
+augment class A {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    class A
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+        IdentifierMetadataAnnotation
+          identifier: b
+      superclass: Object
+''');
+  }
+
+  test_class_metadata_constructor_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A.named()
+}
+
+@A.named()
+class B {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'B'},
+  withMetadata: true,
+)
+class X extends B {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: B
+    class B
+      metadata
+        ConstructorMetadataAnnotation
+          type: A
+          constructorName: named
+      superclass: Object
+''');
+  }
+
+  test_class_metadata_constructor_named_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A.named()
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+@A.named()
+class B {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'B'},
+  withMetadata: true,
+)
+class X extends B {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: B
+    class B
+      metadata
+        ConstructorMetadataAnnotation
+          type: A
+          constructorName: named
+      superclass: Object
+''');
+  }
+
+  test_class_metadata_constructor_named_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A.named()
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart' as prefix;
+
+@prefix.A.named()
+class B {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'B'},
+  withMetadata: true,
+)
+class X extends B {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: B
+    class B
+      metadata
+        ConstructorMetadataAnnotation
+          type: A
+          constructorName: named
+      superclass: Object
+''');
+  }
+
+  test_class_metadata_constructor_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A()
+}
+
+@A()
+class B {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'B'},
+  withMetadata: true,
+)
+class X extends B {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: B
+    class B
+      metadata
+        ConstructorMetadataAnnotation
+          type: A
+      superclass: Object
+''');
+  }
+
+  test_class_metadata_constructor_unnamed_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A()
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+@A()
+class B {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'B'},
+  withMetadata: true,
+)
+class X extends B {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: B
+    class B
+      metadata
+        ConstructorMetadataAnnotation
+          type: A
+      superclass: Object
+''');
+  }
+
+  test_class_metadata_constructor_unnamed_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  const A()
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart' as prefix;
+
+@prefix.A()
+class B {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'B'},
+  withMetadata: true,
+)
+class X extends B {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: B
+    class B
+      metadata
+        ConstructorMetadataAnnotation
+          type: A
+      superclass: Object
+''');
+  }
+
+  test_class_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+@a
+class A {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    class A
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      superclass: Object
+''');
+  }
+
+  test_class_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+@a
+class A {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    class A
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      superclass: Object
+''');
+  }
+
+  test_class_metadata_identifier_imported_withPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart' as prefix;
+
+@prefix.a
+class A {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    class A
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      superclass: Object
+''');
+  }
+
+  test_class_method_flags_hasBody_false() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+abstract class A {
+  void foo();
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      flags: hasAbstract
+      superclass: Object
+      methods
+        foo
+          flags: hasAbstract
+          returnType: void
+''');
+  }
+
+  test_class_method_flags_hasExternal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  external void foo();
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody hasExternal
+          returnType: void
+''');
+  }
+
+  test_class_method_flags_isStatic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static void foo() {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody isStatic
+          returnType: void
+''');
+  }
+
+  test_class_method_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+class A {
+  @a
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody
+          metadata
+            IdentifierMetadataAnnotation
+              identifier: a
+          returnType: void
+''');
+  }
+
+  test_class_method_namedParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void foo({required int a, String? b}) {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody
+          namedParameters
+            a
+              flags: isNamed isRequired
+              type: int
+            b
+              flags: isNamed
+              type: String?
+          returnType: void
+''');
+  }
+
+  test_class_method_namedParameters_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+class A {
+  void foo({@a required int x}) {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody
+          namedParameters
+            x
+              flags: isNamed isRequired
+              metadata
+                IdentifierMetadataAnnotation
+                  identifier: a
+              type: int
+          returnType: void
+''');
+  }
+
+  test_class_method_positionalParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void foo(int a, [String? b]) {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody
+          positionalParameters
+            a
+              flags: isRequired
+              type: int
+            b
+              type: String?
+          returnType: void
+''');
+  }
+
+  test_class_method_positionalParameters_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+class A {
+  void foo(@a int x) {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody
+          positionalParameters
+            x
+              flags: isRequired
+              metadata
+                IdentifierMetadataAnnotation
+                  identifier: a
+              type: int
+          returnType: void
+''');
+  }
+
+  test_class_methods_augmented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+
+class A {
+  void foo() {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+augment class A {
+  void bar() {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody
+          returnType: void
+        bar
+          flags: hasBody
+          returnType: void
+''');
+  }
+
+  test_class_mixins() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin M1 {}
+mixin M2 {}
+class C with M1, M2 {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'C'},
+)
+class X extends C {}
+''', r'''
+class X
+  superclass: C
+    class C
+      superclass: Object
+      mixins
+        M1
+        M2
+''');
+  }
+
+  test_class_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  set foo(int value) {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      methods
+        foo
+          flags: hasBody isSetter
+          positionalParameters
+            value
+              flags: isRequired
+              type: int
+          returnType: void
+''');
+  }
+
+  test_class_superclass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T> {}
+class B<U> extends A<U> {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A', 'B'},
+)
+class X extends B<int> {}
+''', r'''
+class X
+  superclass: B<int>
+    class B
+      superclass: A<U>
+        class A
+          superclass: Object
+          typeParameters
+            T
+      typeParameters
+        U
+''');
+  }
+
+  test_class_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T, U extends List<T>> {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+      superclass: Object
+      typeParameters
+        T
+        U
+          bound: List<T>
+''');
+  }
+
+  test_mixin_field() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin A {
+  final int foo = 0;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X with A {}
+''', r'''
+class X
+  mixins
+    A
+      mixin A
+        superclassConstraints
+          Object
+        fields
+          foo
+            flags: hasFinal
+            type: int
+''');
+  }
+
+  test_mixin_field_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+mixin A {
+  @a
+  int? foo;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X with A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  mixins
+    A
+      mixin A
+        superclassConstraints
+          Object
+        fields
+          foo
+            metadata
+              IdentifierMetadataAnnotation
+                identifier: a
+            type: int?
+''');
+  }
+
+  test_mixin_field_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+
+mixin A {
+  @a
+  int? foo;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'b.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X with A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  mixins
+    A
+      mixin A
+        superclassConstraints
+          Object
+        fields
+          foo
+            metadata
+              IdentifierMetadataAnnotation
+                identifier: a
+            type: int?
+''');
+  }
+
+  test_mixin_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin A {
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X with A {}
+''', r'''
+class X
+  mixins
+    A
+      mixin A
+        superclassConstraints
+          Object
+        methods
+          foo
+            flags: hasBody isGetter
+            returnType: int
+''');
+  }
+
+  test_mixin_metadata_augmented() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+const b = 1;
+
+import augment 'b.dart';
+
+@a
+mixin A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+
+@b
+augment mixin A {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X extends A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  superclass: A
+    mixin A
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+        IdentifierMetadataAnnotation
+          identifier: b
+      superclassConstraints
+        Object
+''');
+  }
+
+  test_mixin_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+@a
+mixin A {}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+  withMetadata: true,
+)
+class X with A {}
+''', r'''
+class X
+  metadata
+    ConstructorMetadataAnnotation
+      type: IntrospectDeclarationsPhaseMacro
+  mixins
+    A
+      mixin A
+        metadata
+          IdentifierMetadataAnnotation
+            identifier: a
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_mixin_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin A {
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X with A {}
+''', r'''
+class X
+  mixins
+    A
+      mixin A
+        superclassConstraints
+          Object
+        methods
+          foo
+            flags: hasBody
+            returnType: void
+''');
+  }
+
+  test_mixin_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin A {
+  set foo(int value) {}
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X with A {}
+''', r'''
+class X
+  mixins
+    A
+      mixin A
+        superclassConstraints
+          Object
+        methods
+          foo
+            flags: hasBody isSetter
+            positionalParameters
+              value
+                flags: isRequired
+                type: int
+            returnType: void
+''');
+  }
+
+  /// Checks the textual dump of the introspection information in [code].
+  Future<void> _assertIntrospectText(String code, String expected) async {
+    var actual = await _getIntrospectText(code);
+    if (actual != expected) {
+      print(actual);
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
+  /// The [code] should have exactly one application of `IntrospectMacro`.
+  /// It may contain arbitrary code otherwise.
+  ///
+  /// The macro generates a top-level constant `_introspect`, with a string
+  /// literal initializer - the textual dump of the introspection.
+  Future<String> _getIntrospectText(String code) async {
+    newFile(
+      '$testPackageLibPath/introspect_shared.dart',
+      _introspectSharedCode,
+    );
+
+    newFile(
+      '$testPackageLibPath/introspect_declarations_phase.dart',
+      _introspectDeclarationsCode,
+    );
+
+    var library = await buildLibrary('''
+import 'introspect_declarations_phase.dart';
+$code
+''');
+
+    library.assertNoMacroErrors();
+
+    return library.topLevelElements
+        .whereType<ConstTopLevelVariableElementImpl>()
+        .where((e) => e.name == '_introspect')
+        .map((e) => (e.constantInitializer as SimpleStringLiteral).value)
+        .join('\n');
+  }
+}
+
+@reflectiveTest
+class MacroIntrospectNodeTest extends MacroElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  /// Return the code for `IntrospectDeclarationsPhaseMacro`.
+  String get _introspectDeclarationsCode {
+    final code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFolder('test/src/summary/macro')
+        .getChildAssumingFile('introspect_declarations_phase.dart')
+        .readAsStringSync();
+    return code.replaceAll('/*macro*/', 'macro');
+  }
+
+  test_class_appendInterfaces() async {
+    await _assertIntrospectText(r'''
+import 'append.dart';
+
+@IntrospectDeclarationsPhaseMacro()
+@AppendInterfaceA()
+class X {}
+''', r'''
+class X
+  interfaces
+    A
+''');
+  }
+
+  test_class_appendMixins() async {
+    await _assertIntrospectText(r'''
+import 'append.dart';
+
+@IntrospectDeclarationsPhaseMacro()
+@AppendMixinA()
+class X {}
+''', r'''
+class X
+  mixins
+    A
+''');
+  }
+
+  test_class_field_flags_hasExternal() async {
+    await _assertIntrospectText(r'''
+class X {
+  @IntrospectDeclarationsPhaseMacro()
+  external int foo;
+}
+''', r'''
+foo
+  flags: hasExternal
+  type: int
+''');
+  }
+
+  test_class_field_flags_hasFinal_false() async {
+    await _assertIntrospectText(r'''
+class X {
+  @IntrospectDeclarationsPhaseMacro()
+  int foo = 0;
+}
+''', r'''
+foo
+  type: int
+''');
+  }
+
+  test_class_field_flags_hasFinal_true() async {
+    await _assertIntrospectText(r'''
+class X {
+  @IntrospectDeclarationsPhaseMacro()
+  final int foo = 0;
+}
+''', r'''
+foo
+  flags: hasFinal
+  type: int
+''');
+  }
+
+  test_class_field_flags_hasLate() async {
+    await _assertIntrospectText(r'''
+class X {
+  @IntrospectDeclarationsPhaseMacro()
+  late int foo;
+}
+''', r'''
+foo
+  flags: hasLate
+  type: int
+''');
+  }
+
+  test_class_field_flags_isStatic() async {
+    await _assertIntrospectText(r'''
+class X {
+  @IntrospectDeclarationsPhaseMacro()
+  static int foo = 0;
+}
+''', r'''
+foo
+  flags: isStatic
+  type: int
+''');
+  }
+
+  test_class_field_type_explicit() async {
+    await _assertIntrospectText(r'''
+class X {
+  @IntrospectDeclarationsPhaseMacro()
+  int foo = 0;
+}
+''', r'''
+foo
+  type: int
+''');
+  }
+
+  test_class_field_type_implicit() async {
+    await _assertIntrospectText(r'''
+class X {
+  @IntrospectDeclarationsPhaseMacro()
+  final foo = 0;
+}
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
+''');
+  }
+
+  test_class_fields() async {
+    await _assertIntrospectText(r'''
+@IntrospectDeclarationsPhaseMacro()
+class X {
+  final int foo = 0;
+  String bar = '';
+}
+''', r'''
+class X
+  fields
+    foo
+      flags: hasFinal
+      type: int
+    bar
+      type: String
+''');
+  }
+
   test_class_flags_hasAbstract() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 abstract class A {}
 ''', r'''
 class A
@@ -4194,7 +4109,7 @@ class A
   test_class_getter() async {
     await _assertIntrospectText(r'''
 abstract class A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   int get foo => 0;
 }
 ''', r'''
@@ -4206,19 +4121,21 @@ foo
 
   test_class_interfaces() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A implements B, C<int, String> {}
 ''', r'''
 class A
   interfaces
     B
+      noDeclaration
     C<int, String>
+      noDeclaration
 ''');
   }
 
   test_class_metadata_constructor_named() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @A.named()
 class X {}
 
@@ -4229,7 +4146,7 @@ class A {
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     ConstructorMetadataAnnotation
       type: A
       constructorName: named
@@ -4246,7 +4163,7 @@ class A {
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @A.named()
 class X {}
 
@@ -4254,7 +4171,7 @@ class X {}
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     ConstructorMetadataAnnotation
       type: A
       constructorName: named
@@ -4271,7 +4188,7 @@ class A {
     await _assertIntrospectText(r'''
 import 'a.dart' as prefix;
 
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @prefix.A.named()
 class X {}
 
@@ -4279,7 +4196,7 @@ class X {}
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     ConstructorMetadataAnnotation
       type: A
       constructorName: named
@@ -4288,7 +4205,7 @@ class X
 
   test_class_metadata_constructor_namedArguments() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @A(a: 42, b: 'foo')
 class X {}
 
@@ -4299,7 +4216,7 @@ class A {
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     ConstructorMetadataAnnotation
       type: A
       namedArguments
@@ -4310,7 +4227,7 @@ class X
 
   test_class_metadata_constructor_positionalArguments() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @A(42, 'foo')
 class X {}
 
@@ -4321,7 +4238,7 @@ class A {
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     ConstructorMetadataAnnotation
       type: A
       positionalArguments
@@ -4332,7 +4249,7 @@ class X
 
   test_class_metadata_constructor_unnamed() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @A()
 class X {}
 
@@ -4343,7 +4260,7 @@ class A {
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     ConstructorMetadataAnnotation
       type: A
 ''');
@@ -4359,7 +4276,7 @@ class A {
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @A()
 class X {}
 
@@ -4367,7 +4284,7 @@ class X {}
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     ConstructorMetadataAnnotation
       type: A
 ''');
@@ -4383,7 +4300,7 @@ class A {
     await _assertIntrospectText(r'''
 import 'a.dart' as prefix;
 
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @prefix.A()
 class X {}
 
@@ -4391,7 +4308,7 @@ class X {}
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     ConstructorMetadataAnnotation
       type: A
 ''');
@@ -4399,7 +4316,7 @@ class X
 
   test_class_metadata_identifier() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @a1
 @a2
 class X {}
@@ -4410,7 +4327,7 @@ const a2 = 0;
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a1
     IdentifierMetadataAnnotation
@@ -4427,7 +4344,7 @@ const a2 = 0;
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @a1
 @a2
 class X {}
@@ -4436,7 +4353,7 @@ class X {}
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a1
     IdentifierMetadataAnnotation
@@ -4453,7 +4370,7 @@ const a2 = 0;
     await _assertIntrospectText(r'''
 import 'a.dart' as prefix;
 
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @prefix.a1
 @prefix.a2
 class X {}
@@ -4462,7 +4379,7 @@ class X {}
 class X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a1
     IdentifierMetadataAnnotation
@@ -4473,7 +4390,7 @@ class X
   test_class_method_flags_hasBody_false() async {
     await _assertIntrospectText(r'''
 abstract class A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   void foo();
 }
 ''', r'''
@@ -4485,7 +4402,7 @@ foo
   test_class_method_flags_hasExternal() async {
     await _assertIntrospectText(r'''
 abstract class A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   external void foo();
 }
 ''', r'''
@@ -4498,7 +4415,7 @@ foo
   test_class_method_flags_isStatic() async {
     await _assertIntrospectText(r'''
 class A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   static void foo() {}
 }
 ''', r'''
@@ -4517,7 +4434,7 @@ const a = 0;
 import 'a.dart';
 
 class X {
-  @IntrospectTypesPhaseMacro(withMetadata: true)
+  @IntrospectDeclarationsPhaseMacro(withMetadata: true)
   @a
   void foo() {}
 }
@@ -4527,7 +4444,7 @@ foo
   flags: hasBody
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a
   returnType: void
@@ -4537,7 +4454,7 @@ foo
   test_class_method_namedParameters() async {
     await _assertIntrospectText(r'''
 abstract class A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   void foo({required int a, String? b}) {}
 }
 ''', r'''
@@ -4563,7 +4480,7 @@ const a = 0;
 import 'a.dart';
 
 abstract class A {
-  @IntrospectTypesPhaseMacro(withMetadata: true)
+  @IntrospectDeclarationsPhaseMacro(withMetadata: true)
   void foo({@a required int x}) {}
 }
 ''', r'''
@@ -4571,7 +4488,7 @@ foo
   flags: hasBody
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
   namedParameters
     x
       flags: isNamed isRequired
@@ -4586,7 +4503,7 @@ foo
   test_class_method_positionalParameters() async {
     await _assertIntrospectText(r'''
 abstract class A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   void foo(int a, [String? b]) {}
 }
 ''', r'''
@@ -4611,7 +4528,7 @@ const a = 0;
 import 'a.dart';
 
 abstract class A {
-  @IntrospectTypesPhaseMacro(withMetadata: true)
+  @IntrospectDeclarationsPhaseMacro(withMetadata: true)
   void foo(@a int x) {}
 }
 ''', r'''
@@ -4619,7 +4536,7 @@ foo
   flags: hasBody
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
   positionalParameters
     x
       flags: isRequired
@@ -4633,20 +4550,22 @@ foo
 
   test_class_mixins() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A with B, C<int, String> {}
 ''', r'''
 class A
   mixins
     B
+      noDeclaration
     C<int, String>
+      noDeclaration
 ''');
   }
 
   test_class_setter() async {
     await _assertIntrospectText(r'''
 abstract class A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   set foo(int value) {}
 }
 ''', r'''
@@ -4662,31 +4581,69 @@ foo
 
   test_class_superclass() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B {}
 ''', r'''
 class A
   superclass: B
+    noDeclaration
 ''');
   }
 
   test_class_superclass_nullable() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<int?> {}
 ''', r'''
 class A
   superclass: B<int?>
+    noDeclaration
 ''');
   }
 
   test_class_superclass_typeArguments() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<String, List<int>> {}
 ''', r'''
 class A
   superclass: B<String, List<int>>
+    noDeclaration
+''');
+  }
+
+  test_class_superclassOf() async {
+    await _assertIntrospectText(r'''
+class A {}
+
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'A'},
+)
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    class A
+''');
+  }
+
+  test_class_superclassOf_implicit() async {
+    await _assertIntrospectText(r'''
+@IntrospectDeclarationsPhaseMacro()
+class X {}
+''', r'''
+class X
+''');
+  }
+
+  test_class_superclassOf_unresolved() async {
+    await _assertIntrospectText(r'''
+@IntrospectDeclarationsPhaseMacro()
+class X extends A {}
+''', r'''
+class X
+  superclass: A
+    noDeclaration
 ''');
   }
 
@@ -4698,13 +4655,13 @@ const a = 0;
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 class A<@a T> {}
 ''', r'''
 class A
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
   typeParameters
     T
       metadata
@@ -4715,7 +4672,7 @@ class A
 
   test_class_typeParameters() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A<T, U extends List<T>> {}
 ''', r'''
 class A
@@ -4728,88 +4685,128 @@ class A
 
   test_functionTypeAnnotation_formalParameters_namedOptional_simpleFormalParameter() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<void Function(int a, {int? b, int? c})> {}
 ''', r'''
 class A
   superclass: B<void Function(int a, {int? b}, {int? c})>
+    noDeclaration
 ''');
   }
 
   test_functionTypeAnnotation_formalParameters_namedRequired_simpleFormalParameter() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<void Function(int a, {required int b, required int c})> {}
 ''', r'''
 class A
   superclass: B<void Function(int a, {required int b}, {required int c})>
+    noDeclaration
 ''');
   }
 
   test_functionTypeAnnotation_formalParameters_positionalOptional_simpleFormalParameter() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<void Function(int a, [int b, int c])> {}
 ''', r'''
 class A
   superclass: B<void Function(int a, [int b], [int c])>
+    noDeclaration
 ''');
   }
 
   /// TODO(scheglov) Tests for unnamed positional formal parameters.
   test_functionTypeAnnotation_formalParameters_positionalRequired_simpleFormalParameter() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<void Function(int a, double b)> {}
 ''', r'''
 class A
   superclass: B<void Function(int a, double b)>
+    noDeclaration
 ''');
   }
 
   test_functionTypeAnnotation_nullable() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<void Function()?> {}
 ''', r'''
 class A
   superclass: B<void Function()?>
+    noDeclaration
 ''');
   }
 
   test_functionTypeAnnotation_returnType() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<void Function()> {}
 ''', r'''
 class A
   superclass: B<void Function()>
+    noDeclaration
 ''');
   }
 
   test_functionTypeAnnotation_returnType_omitted() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<Function()> {}
 ''', r'''
 class A
   superclass: B<OmittedType Function()>
+    noDeclaration
 ''');
   }
 
   test_functionTypeAnnotation_typeParameters() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends B<void Function<T, U extends num>()> {}
 ''', r'''
 class A
   superclass: B<void Function<T, U extends num>()>
+    noDeclaration
+''');
+  }
+
+  test_mixin_appendInterfaces() async {
+    await _assertIntrospectText(r'''
+import 'append.dart';
+
+@IntrospectDeclarationsPhaseMacro()
+@AppendInterfaceA()
+mixin X {}
+''', r'''
+mixin X
+  interfaces
+    A
+''');
+  }
+
+  test_mixin_fields() async {
+    await _assertIntrospectText(r'''
+@IntrospectDeclarationsPhaseMacro()
+mixin X {
+  final int foo = 0;
+  String bar = '';
+}
+''', r'''
+mixin X
+  fields
+    foo
+      flags: hasFinal
+      type: int
+    bar
+      type: String
 ''');
   }
 
   test_mixin_flags_hasBase() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 base mixin A {}
 ''', r'''
 mixin A
@@ -4820,7 +4817,7 @@ mixin A
   test_mixin_getter() async {
     await _assertIntrospectText(r'''
 mixin A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   int get foo => 0;
 }
 ''', r'''
@@ -4832,13 +4829,15 @@ foo
 
   test_mixin_interfaces() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 mixin A implements B, C {}
 ''', r'''
 mixin A
   interfaces
     B
+      noDeclaration
     C
+      noDeclaration
 ''');
   }
 
@@ -4850,7 +4849,7 @@ const a = 0;
     await _assertIntrospectText(r'''
 import 'a.dart';
 
-@IntrospectTypesPhaseMacro(withMetadata: true)
+@IntrospectDeclarationsPhaseMacro(withMetadata: true)
 @a
 mixin X {}
 
@@ -4858,7 +4857,7 @@ mixin X {}
 mixin X
   metadata
     ConstructorMetadataAnnotation
-      type: IntrospectTypesPhaseMacro
+      type: IntrospectDeclarationsPhaseMacro
     IdentifierMetadataAnnotation
       identifier: a
 ''');
@@ -4867,7 +4866,7 @@ mixin X
   test_mixin_method() async {
     await _assertIntrospectText(r'''
 mixin A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   void foo() {}
 }
 ''', r'''
@@ -4880,7 +4879,7 @@ foo
   test_mixin_setter() async {
     await _assertIntrospectText(r'''
 mixin A {
-  @IntrospectTypesPhaseMacro()
+  @IntrospectDeclarationsPhaseMacro()
   set foo(int value) {}
 }
 ''', r'''
@@ -4896,19 +4895,21 @@ foo
 
   test_mixin_superclassConstraints() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 mixin A on B, C {}
 ''', r'''
 mixin A
   superclassConstraints
     B
+      noDeclaration
     C
+      noDeclaration
 ''');
   }
 
   test_mixin_typeParameters() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 mixin A<T, U extends List<T>> {}
 ''', r'''
 mixin A
@@ -4921,11 +4922,12 @@ mixin A
 
   test_namedTypeAnnotation_prefixed() async {
     await _assertIntrospectText(r'''
-@IntrospectTypesPhaseMacro()
+@IntrospectDeclarationsPhaseMacro()
 class A extends prefix.B {}
 ''', r'''
 class A
   superclass: B
+    noDeclaration
 ''');
   }
 
@@ -4955,12 +4957,12 @@ class A
     );
 
     newFile(
-      '$testPackageLibPath/introspect_types_phase.dart',
-      _introspectTypesCode,
+      '$testPackageLibPath/introspect_declarations_phase.dart',
+      _introspectDeclarationsCode,
     );
 
     var library = await buildLibrary('''
-import 'introspect_types_phase.dart';
+import 'introspect_declarations_phase.dart';
 
 $code
 ''');
@@ -4970,7 +4972,7 @@ $code
     final macroAugmentation = library.augmentations.first;
     final macroUnit = macroAugmentation.definingCompilationUnit;
     final x = macroUnit.topLevelVariables.single;
-    expect(x.name, 'x');
+    expect(x.name, '_introspect');
     x as ConstTopLevelVariableElementImpl;
     var x_literal = x.constantInitializer as SimpleStringLiteral;
     return x_literal.value;

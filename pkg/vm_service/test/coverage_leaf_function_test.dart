@@ -29,8 +29,10 @@ bool allRangesCompiled(coverage) {
   return true;
 }
 
-IsolateTest coverageTest(Map<String, dynamic> expectedRange,
-    {required bool reportLines}) {
+IsolateTest coverageTest(
+  Map<String, dynamic> expectedRange, {
+  required bool reportLines,
+}) {
   return (VmService service, IsolateRef isolateRef) async {
     final isolateId = isolateRef.id!;
     final isolate = await service.getIsolate(isolateId);
@@ -42,9 +44,9 @@ IsolateTest coverageTest(Map<String, dynamic> expectedRange,
 
     final root =
         await service.getObject(isolateId, isolate.rootLib!.id!) as Library;
-    FuncRef funcRef =
+    final FuncRef funcRef =
         root.functions!.singleWhere((f) => f.name == 'leafFunction');
-    Func func = await service.getObject(isolateId, funcRef.id!) as Func;
+    final Func func = await service.getObject(isolateId, funcRef.id!) as Func;
     final location = func.location!;
 
     final report = await service.getSourceReport(
@@ -76,8 +78,8 @@ var tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [],
-        'misses': [399]
-      }
+        'misses': [399],
+      },
     },
     reportLines: false,
   ),
@@ -89,8 +91,8 @@ var tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [],
-        'misses': [13]
-      }
+        'misses': [13],
+      },
     },
     reportLines: true,
   ),
@@ -104,8 +106,8 @@ var tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [399],
-        'misses': []
-      }
+        'misses': [],
+      },
     },
     reportLines: false,
   ),
@@ -117,14 +119,14 @@ var tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [13],
-        'misses': []
-      }
+        'misses': [],
+      },
     },
     reportLines: true,
   ),
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'coverage_leaf_function_test.dart',

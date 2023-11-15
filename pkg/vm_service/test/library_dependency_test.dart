@@ -41,7 +41,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'library_dependency_test.dart',

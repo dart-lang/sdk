@@ -939,7 +939,13 @@ lsp.CompletionItem toCompletionItem(
   // Displayed labels may have additional info appended (for example '(...)' on
   // callables and ` => ` on getters) that should not be included in filterText,
   // so strip anything from the first paren/space.
-  final filterText = label.split(_completionFilterTextSplitPattern).first;
+  //
+  // Only do this if label doesn't start with the pattern, because if it does
+  // (for example for a closure `(a, b) {}`) we'll end up with an empty string
+  // but we should instead use the whole label.
+  final filterText = !label.startsWith(_completionFilterTextSplitPattern)
+      ? label.split(_completionFilterTextSplitPattern).first
+      : label;
 
   // If we're using label details, we also don't want the label to include any
   // additional symbols as noted above, because they will appear in the extra

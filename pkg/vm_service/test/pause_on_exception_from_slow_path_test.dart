@@ -13,7 +13,7 @@ class X {
   String get y => _y;
 }
 
-void testeeMain() async {
+Future<void> testeeMain() async {
   final x = X();
   x._y = '';
   for (int i = 0; i < 2000; i++) {

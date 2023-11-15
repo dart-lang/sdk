@@ -10,11 +10,11 @@ import 'common/test_helper.dart';
 const int LINE = 18;
 const String file = 'breakpoint_on_if_null_1_test.dart';
 
-code() {
+void code() {
   foo(42);
 }
 
-foo(dynamic args) {
+void foo(dynamic args) {
   if (args == null) {
     print('was null');
   }
@@ -26,9 +26,9 @@ foo(dynamic args) {
   }
 }
 
-List<String> stops = [];
+final stops = <String>[];
 
-List<String> expected = [
+const expected = <String>[
   '$file:${LINE + 0}:12', // on '=='
   '$file:${LINE + 3}:12', // on '!='
   '$file:${LINE + 4}:5', // on 'print'
@@ -37,20 +37,18 @@ List<String> expected = [
   '$file:${LINE + 9}:1', // on ending '}'
 ];
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtUriAndLine(file, LINE),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
-main(args) {
-  runIsolateTestsSynchronous(
-    args,
-    tests,
-    'breakpoint_on_if_null_1_test.dart',
-    testeeConcurrent: code,
-    pauseOnStart: true,
-    pauseOnExit: true,
-  );
-}
+void main([args = const <String>[]]) => runIsolateTests(
+      args,
+      tests,
+      'breakpoint_on_if_null_1_test.dart',
+      testeeConcurrent: code,
+      pauseOnStart: true,
+      pauseOnExit: true,
+    );

@@ -26,11 +26,12 @@ const String file = 'break_on_unhandled_exception_test.dart';
 
 Future<int> testFunction() async {
   try {
-    var client = HttpClient();
+    final client = HttpClient();
     final urlstr = 'https://www.bbc.co.uk/';
     final uri = Uri.parse(urlstr);
-    var response = await client.getUrl(uri);
+    final response = await client.getUrl(uri);
     Expect.equals(urlstr, response.uri.toString());
+    await response.close();
     return 0;
   } catch (e) {
     print(e.toString());
@@ -38,7 +39,7 @@ Future<int> testFunction() async {
   }
 }
 
-void testMain() async {
+Future<void> testMain() async {
   debugger();
   final ret = await testFunction();
   Expect.equals(ret, 0);

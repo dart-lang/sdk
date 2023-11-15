@@ -23,24 +23,24 @@ class Subclass extends Superclass1 {
   @override
   var instVar = 'Subclass';
   @override
-  method() => 'Subclass';
-  static staticMethod() => 'Subclass';
+  String method() => 'Subclass';
+  static String staticMethod() => 'Subclass';
   @override
-  suppressWarning() => _instVar;
+  String suppressWarning() => _instVar;
 }
 
-testeeDo() {
-  var obj = Subclass();
+void testeeDo() {
+  final obj = Subclass();
   obj.test();
 }
 
-Future testerDo(VmService service, IsolateRef isolateRef) async {
+Future<void> testerDo(VmService service, IsolateRef isolateRef) async {
   await hasStoppedAtBreakpoint(service, isolateRef);
   final isolateId = isolateRef.id!;
 
   // Make sure we are in the right place.
-  var stack = await service.getStack(isolateId);
-  var topFrame = 0;
+  final stack = await service.getStack(isolateId);
+  final topFrame = 0;
   expect(
     stack.frames![topFrame].function!.name,
     equals('test'),
@@ -101,7 +101,7 @@ Future testerDo(VmService service, IsolateRef isolateRef) async {
   expect(result.valueAsString, equals('OtherLibrary'));
 }
 
-main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       [testerDo],
       'evaluate_activation_in_method_class_test.dart',

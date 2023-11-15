@@ -735,7 +735,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Implementation for `analysis.setAnalysisRoots`.
   ///
-  /// TODO(scheglov) implement complete projects/contexts semantics.
+  // TODO(scheglov): implement complete projects/contexts semantics.
   ///
   /// The current implementation is intentionally simplified and expected
   /// that only folders are given each given folder corresponds to the exactly
@@ -834,7 +834,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 
     pubApi.close();
 
-    // TODO(brianwilkerson) Remove the following 6 lines when the
+    // TODO(brianwilkerson): Remove the following 6 lines when the
     //  analyticsManager is being correctly initialized.
     var analytics = options.analytics;
     if (analytics != null) {
@@ -914,14 +914,14 @@ class LegacyAnalysisServer extends AnalysisServer {
       notifyDeclarationsTracker(file);
       notifyFlutterWidgetDescriptions(file);
 
-      // TODO(scheglov) implement other cases
+      // TODO(scheglov): implement other cases
     });
   }
 
   /// Use the given updaters to update the values of the options in every
   /// existing analysis context.
   void updateOptions(List<OptionUpdater> optionUpdaters) {
-    // TODO(scheglov) implement for the new analysis driver
+    // TODO(scheglov): implement for the new analysis driver
 //    //
 //    // Update existing contexts.
 //    //
@@ -932,7 +932,7 @@ class LegacyAnalysisServer extends AnalysisServer {
 //        optionUpdater(options);
 //      });
 //      context.analysisOptions = options;
-//      // TODO(brianwilkerson) As far as I can tell, this doesn't cause analysis
+//      // `TODO`(brianwilkerson) As far as I can tell, this doesn't cause analysis
 //      // to be scheduled for this context.
 //    }
 //    //
@@ -1048,7 +1048,7 @@ class ServerContextManagerCallbacks
     // if (analysisServer._hasAnalysisServiceSubscription(
     //     AnalysisService.OUTLINE, path)) {
     //   _runDelayed(() {
-    //     // TODO(brianwilkerson) Change NotificationManager to store params
+    //     // `TODO`(brianwilkerson) Change NotificationManager to store params
     //     // so that fileKind and libraryName can be recorded / passed along.
     //     notificationManager.recordOutlines(NotificationManager.serverId, path,
     //         _computeOutlineParams(path, unit, result.lineInfo));
@@ -1113,9 +1113,9 @@ class ServerContextManagerCallbacks
   /// important consumer of an analysis results, specifically a code completion
   /// computer, we want it to run before spending time of sending notifications.
   ///
-  /// TODO(scheglov) Consider replacing this with full priority based scheduler.
+  // TODO(scheglov): Consider replacing this with full priority based scheduler.
   ///
-  /// TODO(scheglov) Alternatively, if code completion work in a way that does
+  // TODO(scheglov): Alternatively, if code completion work in a way that does
   /// not produce (at first) fully resolved unit, but only part of it - a single
   /// method, or a top-level declaration, we would not have this problem - the
   /// completion computer would be the only consumer of the partial analysis

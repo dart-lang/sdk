@@ -257,7 +257,7 @@ class DartUnitHoverComputer {
   static Documentation? computeDocumentation(
       DartdocDirectiveInfo dartdocInfo, Element elementBeingDocumented,
       {bool includeSummary = false}) {
-    // TODO(dantup) We're reusing this in parameter information - move it
+    // TODO(dantup): We're reusing this in parameter information - move it
     // somewhere shared?
     Element? element = elementBeingDocumented;
     if (element is FieldFormalParameterElement) {

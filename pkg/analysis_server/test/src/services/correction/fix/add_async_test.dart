@@ -343,7 +343,7 @@ class AvoidReturningNullForFutureTest extends FixProcessorLintTest {
   String get lintCode => LintNames.avoid_returning_null_for_future;
 
   @override
-  // TODO(brianwilkerson) Migrate this test to null safety.
+  // TODO(brianwilkerson): Migrate this test to null safety.
   String? get testPackageLanguageVersion => '2.9';
 
   Future<void> test_asyncFor() async {

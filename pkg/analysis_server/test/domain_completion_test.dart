@@ -160,7 +160,7 @@ completion: Test
 
     var response = await handleRequest(request);
     expect(response.error?.code, RequestErrorCode.INVALID_PARAMETER);
-    // TODO(scheglov) Check that says "libraryUri".
+    // TODO(scheglov): Check that says "libraryUri".
   }
 
   Future<void> test_invalidPath() async {
@@ -2447,7 +2447,7 @@ extension MyClassExtension on MyClass {
 
   @failingTest
   Future<void> test_imports_aborted_source_changed() async {
-    // TODO(brianwilkerson) Figure out whether this test makes sense when
+    // TODO(brianwilkerson): Figure out whether this test makes sense when
     // running the new driver. It waits for an initial empty notification then
     // waits for a new notification. But I think that under the driver we only
     // ever send one notification.

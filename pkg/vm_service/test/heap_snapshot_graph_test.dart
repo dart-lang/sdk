@@ -20,8 +20,8 @@ void script() {
   // Create 3 instances of Foo, with out-degrees
   // 0 (for b), 1 (for a), and 2 (for staticFoo).
   r = Foo();
-  var a = Foo();
-  var b = Foo();
+  final a = Foo();
+  final b = Foo();
   r.left = a;
   r.right = b;
   a.left = b;
@@ -32,7 +32,7 @@ void script() {
   lst[1] = List.filled(1234569, null);
 }
 
-var tests = <IsolateTest>[
+final tests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
     final snapshotGraph = await HeapSnapshotGraph.getSnapshot(service, isolate);
     expect(snapshotGraph.name, 'main');
@@ -42,7 +42,7 @@ var tests = <IsolateTest>[
 
     int actualShallowSize = 0;
     int actualRefCount = 0;
-    for (var o in snapshotGraph.objects) {
+    for (final o in snapshotGraph.objects) {
       // -1 is the CID used by the sentinel.
       expect(o.classId >= -1, isTrue);
       expect(o.data, isNotNull);
@@ -78,7 +78,7 @@ var tests = <IsolateTest>[
     int foosFound = 0;
     int fooClassId = -1;
     for (int i = 0; i < snapshotGraph.classes.length; i++) {
-      HeapSnapshotClass c = snapshotGraph.classes[i];
+      final HeapSnapshotClass c = snapshotGraph.classes[i];
       if (c.name == 'Foo' &&
           c.libraryUri.toString().endsWith('heap_snapshot_graph_test.dart')) {
         foosFound++;
@@ -89,7 +89,7 @@ var tests = <IsolateTest>[
 
     // It knows about "Foo" objects.
     foosFound = 0;
-    for (var o in snapshotGraph.objects) {
+    for (final o in snapshotGraph.objects) {
       if (o.classId == 0) continue;
       if (o.classId == fooClassId) {
         foosFound++;
@@ -104,7 +104,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'heap_snapshot_graph_test.dart',

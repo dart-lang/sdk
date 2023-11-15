@@ -41,14 +41,14 @@ const expected = <String>[
   '$file:${LINE_A + 8}:5', // on 'throw'
   '$file:${LINE_A + 10}:5', // on call to 'print'
   '$file:${LINE_A + 11}:5', // on call to 'print'
-  '$file:${LINE_A + 13}:1' // on ending '}'
+  '$file:${LINE_A + 13}:1', // on ending '}'
 ];
 
 final tests = <IsolateTest>[
   hasPausedAtStart,
   setBreakpointAtLine(LINE_A),
   runStepThroughProgramRecordingStops(stops),
-  checkRecordedStops(stops, expected)
+  checkRecordedStops(stops, expected),
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(

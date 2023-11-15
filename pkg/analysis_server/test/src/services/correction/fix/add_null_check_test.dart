@@ -669,7 +669,7 @@ var i = n! as int;
   }
 
   Future<void> test_castNullable_unnecessaryCast() async {
-    // todo(pq): consider removing unnecessary 'as String' cast
+    // TODO(pq): consider removing unnecessary 'as String' cast
     await resolveTestCode(r'''
 String? s;
 var a = s as String;

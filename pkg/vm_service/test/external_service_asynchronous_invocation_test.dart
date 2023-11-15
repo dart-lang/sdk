@@ -68,11 +68,13 @@ Future<void> testSuccessService(
     // check requests while they arrive
     expect(params[paramKey + end], paramValue + end);
     // answer later
-    completions.add(() => responseCompleter.complete({
-          'result': {
-            resultKey + end: resultValue + end,
-          },
-        }));
+    completions.add(
+      () => responseCompleter.complete({
+        'result': {
+          resultKey + end: resultValue + end,
+        },
+      }),
+    );
   }
 
   // Shuffle and respond out of order.
