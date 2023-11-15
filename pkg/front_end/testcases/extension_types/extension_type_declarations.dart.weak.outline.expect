@@ -67,7 +67,7 @@ static extension-type-member method ExtensionType2|constructor#_#new#tearOff(cor
   return self::ExtensionType2|constructor#(it);
 static extension-type-member method ExtensionType3|constructor#<T extends core::num>(self::ExtensionType3|constructor#::T it) → self::ExtensionType3<self::ExtensionType3|constructor#::T> /* = self::ExtensionType3|constructor#::T */
   ;
-static extension-type-member method ExtensionType3|constructor#_#new#tearOff<T extends core::num>(self::ExtensionType3|constructor#_#new#tearOff::T it) → self::ExtensionType3<self::ExtensionType3|constructor#_#new#tearOff::T> /* = self::ExtensionType3|constructor#_#new#tearOff::T */
+static extension-type-member method ExtensionType3|constructor#_#new#tearOff<T extends core::num>(self::ExtensionType3|constructor#_#new#tearOff::T it) → self::ExtensionType3<self::ExtensionType3|constructor#_#new#tearOff::T>% /* = self::ExtensionType3|constructor#_#new#tearOff::T */
   return self::ExtensionType3|constructor#<self::ExtensionType3|constructor#_#new#tearOff::T>(it);
 static extension-type-member method ExtensionType4|constructor#(core::int it) → self::ExtensionType4 /* = core::int */
   ;
@@ -122,5 +122,5 @@ static extension-type-member method ExtensionType6|constructor#_#id#tearOff(core
   return self::ExtensionType6|constructor#id(it);
 static extension-type-member method ExtensionType7|constructor#id<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|constructor#id::T> /* = core::int */
   ;
-static extension-type-member method ExtensionType7|constructor#_#id#tearOff<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|constructor#_#id#tearOff::T> /* = core::int */
+static extension-type-member method ExtensionType7|constructor#_#id#tearOff<T extends core::num>(core::int it) → self::ExtensionType7<self::ExtensionType7|constructor#_#id#tearOff::T>% /* = core::int */
   return self::ExtensionType7|constructor#id<self::ExtensionType7|constructor#_#id#tearOff::T>(it);

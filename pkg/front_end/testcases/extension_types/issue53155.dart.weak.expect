@@ -6,7 +6,7 @@ typedef Foo<unrelated T extends self::V<core::num, core::Object> /* = core::num 
 typedef IntNumV = self::V<core::int, core::num> /* = core::int */;
 class C<T extends self::V<core::num, core::Object> /* = core::num */> extends core::Object {
   field (self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */ f = #C2;
-  synthetic constructor •() → self::C<self::C::T>
+  synthetic constructor •() → self::C<self::C::T%>
     : super core::Object::•()
     ;
 }
@@ -19,16 +19,16 @@ static extension-type-member method V|constructor#<X1 extends core::num, X2 exte
   lowered final self::V<self::V|constructor#::X1, self::V|constructor#::X2> /* = self::V|constructor#::X1 */ #this = id;
   return #this;
 }
-static extension-type-member method V|constructor#_#new#tearOff<X1 extends core::num, X2 extends core::Object>(self::V|constructor#_#new#tearOff::X1 id) → self::V<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2> /* = self::V|constructor#_#new#tearOff::X1 */
+static extension-type-member method V|constructor#_#new#tearOff<X1 extends core::num, X2 extends core::Object>(self::V|constructor#_#new#tearOff::X1 id) → self::V<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2>% /* = self::V|constructor#_#new#tearOff::X1 */
   return self::V|constructor#<self::V|constructor#_#new#tearOff::X1, self::V|constructor#_#new#tearOff::X2>(id);
-static method foo<T extends self::V<core::num, core::Object> /* = core::num */>(self::foo::T t) → self::V<core::int, core::int> /* = core::int */
+static method foo<T extends self::V<core::num, core::Object> /* = core::num */>(self::foo::T% t) → self::V<core::int, core::int> /* = core::int */
   return t as self::V<core::int, core::int> /* = core::int */;
 static method main() → dynamic {
-  self::V<core::int, core::num> /* = core::int */ v = self::V|constructor#<core::int, core::num>(42);
+  self::V<core::int, core::num>% /* = core::int */ v = self::V|constructor#<core::int, core::num>(42);
   self::expect(42, v as{Unchecked} core::int);
-  self::expect(v, self::foo<self::V<core::int, core::num> /* = core::int */>(v));
-  self::expect(self::V|constructor#<core::int, core::int>(0), let final self::C<self::V<core::int, core::int> /* = core::int */> #t1 = new self::C::•<self::V<core::int, core::int> /* = core::int */>() in let final self::V<core::int, core::int> /* = core::int */ #t2 = self::V|constructor#<core::int, core::int>(0) in #t1.{self::C::f}{(self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */}(#t2){(self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */});
-  self::expect(self::V|constructor#<core::int, core::Object>(1), let final self::C<self::V<core::int, core::int> /* = core::int */> #t3 = new self::C::•<self::V<core::int, core::int> /* = core::int */>() in let final self::V<core::int, core::int> /* = core::int */ #t4 = self::V|constructor#<core::int, core::int>(1) in #t3.{self::C::f}{(self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */}(#t4){(self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */});
+  self::expect(v, self::foo<self::V<core::int, core::num>% /* = core::int */>(v));
+  self::expect(self::V|constructor#<core::int, core::int>(0), let final self::C<self::V<core::int, core::int>% /* = core::int */> #t1 = new self::C::•<self::V<core::int, core::int> /* = core::int */>() in let final self::V<core::int, core::int>% /* = core::int */ #t2 = self::V|constructor#<core::int, core::int>(0) in #t1.{self::C::f}{(self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */}(#t2){(self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */});
+  self::expect(self::V|constructor#<core::int, core::Object>(1), let final self::C<self::V<core::int, core::int>% /* = core::int */> #t3 = new self::C::•<self::V<core::int, core::int> /* = core::int */>() in let final self::V<core::int, core::int>% /* = core::int */ #t4 = self::V|constructor#<core::int, core::int>(1) in #t3.{self::C::f}{(self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */}(#t4){(self::V<core::int, core::int> /* = core::int */) → self::V<core::int, core::int> /* = core::int */});
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

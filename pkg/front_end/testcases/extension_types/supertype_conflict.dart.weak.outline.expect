@@ -48,7 +48,7 @@ static extension-type-member method B|constructor#_#new#tearOff<T extends core::
   return self::B|constructor#<self::B|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method C|constructor#<T extends core::Object? = dynamic>(self::A<self::C|constructor#::T%> it) → self::C<self::C|constructor#::T%> /* = self::A<self::C|constructor#::T%> */
   ;
-static extension-type-member method C|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::A<self::C|constructor#_#new#tearOff::T%> it) → self::C<self::C|constructor#_#new#tearOff::T%> /* = self::A<self::C|constructor#_#new#tearOff::T%> */
+static extension-type-member method C|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::A<self::C|constructor#_#new#tearOff::T%> it) → self::C<self::C|constructor#_#new#tearOff::T%>% /* = self::A<self::C|constructor#_#new#tearOff::T%> */
   return self::C|constructor#<self::C|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method D|constructor#(self::A<Never> it) → self::D /* = self::A<Never> */
   ;

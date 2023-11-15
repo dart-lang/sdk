@@ -42,19 +42,19 @@ static extension-type-member method A|constructor#<T extends core::Object? = dyn
   lowered final self::A<self::A|constructor#::T%> /* = core::int */ #this = it;
   return #this;
 }
-static extension-type-member method A|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::A<self::A|constructor#_#new#tearOff::T%> /* = core::int */
+static extension-type-member method A|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::A<self::A|constructor#_#new#tearOff::T%>% /* = core::int */
   return self::A|constructor#<self::A|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method B|constructor#<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#::T%> /* = core::int */ {
   lowered final self::B<self::B|constructor#::T%> /* = core::int */ #this = it;
   return #this;
 }
-static extension-type-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#new#tearOff::T%> /* = core::int */
+static extension-type-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#new#tearOff::T%>% /* = core::int */
   return self::B|constructor#<self::B|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method C|constructor#<T extends core::Object? = dynamic>(core::int it) → self::C<self::C|constructor#::T%> /* = core::int */ {
   lowered final self::C<self::C|constructor#::T%> /* = core::int */ #this = it;
   return #this;
 }
-static extension-type-member method C|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::C<self::C|constructor#_#new#tearOff::T%> /* = core::int */
+static extension-type-member method C|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::C<self::C|constructor#_#new#tearOff::T%>% /* = core::int */
   return self::C|constructor#<self::C|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method D|constructor#(core::int it) → self::D /* = core::int */ {
   lowered final self::D /* = core::int */ #this = it;

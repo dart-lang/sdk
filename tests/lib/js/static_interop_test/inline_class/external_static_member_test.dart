@@ -16,7 +16,7 @@ import 'package:expect/minitest.dart';
 external void eval(String code);
 
 @JS()
-extension type ExternalStatic._(JSObject obj) {
+extension type ExternalStatic._(JSObject obj) implements Object {
   external ExternalStatic();
   external factory ExternalStatic.factory();
   external ExternalStatic.multipleArgs(double a, String b);

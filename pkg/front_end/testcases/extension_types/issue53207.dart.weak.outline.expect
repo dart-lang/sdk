@@ -56,7 +56,7 @@ static extension-type-member method E1|constructor#_#new#tearOff(asy::Future<cor
   return self::E1|constructor#(foo);
 static extension-type-member method E2|constructor#<X extends asy::Future<core::String>>(self::E2|constructor#::X foo) → self::E2<self::E2|constructor#::X> /* = self::E2|constructor#::X */
   ;
-static extension-type-member method E2|constructor#_#new#tearOff<X extends asy::Future<core::String>>(self::E2|constructor#_#new#tearOff::X foo) → self::E2<self::E2|constructor#_#new#tearOff::X> /* = self::E2|constructor#_#new#tearOff::X */
+static extension-type-member method E2|constructor#_#new#tearOff<X extends asy::Future<core::String>>(self::E2|constructor#_#new#tearOff::X foo) → self::E2<self::E2|constructor#_#new#tearOff::X>% /* = self::E2|constructor#_#new#tearOff::X */
   return self::E2|constructor#<self::E2|constructor#_#new#tearOff::X>(foo);
 static extension-type-member method E3|constructor#(FutureOr<core::bool>foo) → self::E3 /* = FutureOr<core::bool>*/
   ;
@@ -64,7 +64,7 @@ static extension-type-member method E3|constructor#_#new#tearOff(FutureOr<core::
   return self::E3|constructor#(foo);
 static extension-type-member method E4|constructor#<X extends FutureOr<core::double>>(self::E4|constructor#::X foo) → self::E4<self::E4|constructor#::X> /* = self::E4|constructor#::X */
   ;
-static extension-type-member method E4|constructor#_#new#tearOff<X extends FutureOr<core::double>>(self::E4|constructor#_#new#tearOff::X foo) → self::E4<self::E4|constructor#_#new#tearOff::X> /* = self::E4|constructor#_#new#tearOff::X */
+static extension-type-member method E4|constructor#_#new#tearOff<X extends FutureOr<core::double>>(self::E4|constructor#_#new#tearOff::X foo) → self::E4<self::E4|constructor#_#new#tearOff::X>% /* = self::E4|constructor#_#new#tearOff::X */
   return self::E4|constructor#<self::E4|constructor#_#new#tearOff::X>(foo);
 static extension-type-member method E5|constructor#<X extends core::Object? = dynamic>(self::E5|constructor#::X% foo) → self::E5<self::E5|constructor#::X%> /* = self::E5|constructor#::X% */
   ;

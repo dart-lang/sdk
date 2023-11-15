@@ -11998,18 +11998,27 @@ class ExtensionType extends TypeDeclarationType {
   DartType get extensionTypeErasure => _computeTypeErasure(
       extensionTypeDeclarationReference, typeArguments, declaredNullability);
 
+  Nullability get _nullabilityDerivedFromSupertypes {
+    for (DartType supertype in extensionTypeDeclaration.implements) {
+      if (supertype is! ExtensionType) {
+        // A supertype that is not an extension type has to be non-nullable and
+        // implement `Object` directly or indirectly.
+        return Nullability.nonNullable;
+      } else if (supertype._nullabilityDerivedFromSupertypes !=
+          Nullability.undetermined) {
+        // If an extension type is non-nullable, it implements `Object` directly
+        // or indirectly.
+        return Nullability.nonNullable;
+      }
+    }
+    // Direct or indirect implementation of `Objects` isn't found.
+    return Nullability.undetermined;
+  }
+
   @override
   Nullability get nullability {
-    Nullability nullabilityInducedByRepresentationType = _computeTypeErasure(
-                    extensionTypeDeclarationReference,
-                    typeArguments,
-                    Nullability.nonNullable)
-                .nullability ==
-            Nullability.nonNullable
-        ? Nullability.nonNullable
-        : Nullability.undetermined;
     return combineNullabilitiesForSubstitution(
-        nullabilityInducedByRepresentationType, declaredNullability);
+        _nullabilityDerivedFromSupertypes, declaredNullability);
   }
 
   @override
@@ -12046,8 +12055,21 @@ class ExtensionType extends TypeDeclarationType {
             extensionTypeDeclaration.typeParameters, typeArguments)
         .substituteType(extensionTypeDeclaration.declaredRepresentationType);
     result = result.extensionTypeErasure;
-    result = result.withDeclaredNullability(combineNullabilitiesForSubstitution(
-        result.nullability, declaredNullability));
+
+    // The nullability of the extension type affects the nullability of the type
+    // erasure only if it was [Nullability.nullable]. In all other cases, that
+    // is, [Nullability.nonNullable] or [Nullability.undetermined], it is
+    // unrelated to the nullability of the representation type and should be
+    // ignored.
+    Nullability erasureNullability;
+    if (declaredNullability == Nullability.nullable) {
+      erasureNullability = combineNullabilitiesForSubstitution(
+          result.nullability, declaredNullability);
+    } else {
+      erasureNullability = result.nullability;
+    }
+    result = result.withDeclaredNullability(erasureNullability);
+
     return result;
   }
 
@@ -12701,6 +12723,12 @@ class StructuralParameterType extends DartType {
   /// [from] to the parameter [to] on a generic type. The resulting structural
   /// parameter type is an occurrence of [to] as a type, but the nullability
   /// property is derived from the bound of [from].
+  ///
+  /// A typical use of this constructor is to create a [StructuralParameterType]
+  /// referring to [StructuralParameter] [from] that is not fully formed yet and
+  /// may miss a bound. In case of alpha renaming it is assumed that nothing but
+  /// the identity of the variables change, and the bound of the parameter being
+  /// replaced can be used to compute the nullability of the replacement.
   StructuralParameterType.forAlphaRenaming(
       StructuralParameter from, StructuralParameter to)
       : this(to, computeNullabilityFromBound(from));
