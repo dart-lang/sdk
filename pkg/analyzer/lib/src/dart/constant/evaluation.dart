@@ -1733,7 +1733,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             typeArguments: variableElement.typeParameters
                 .map((t) => _typeProvider.dynamicType)
                 .toFixedList(),
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           );
       return DartObjectImpl(
         typeSystem,
@@ -1752,7 +1752,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             typeArguments: variableElement.typeParameters
                 .map((t) => t.bound ?? _typeProvider.dynamicType)
                 .toList(),
-            nullabilitySuffix: NullabilitySuffix.star,
+            nullabilitySuffix: NullabilitySuffix.none,
           );
       return DartObjectImpl(
         typeSystem,

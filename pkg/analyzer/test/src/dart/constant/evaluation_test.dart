@@ -2915,7 +2915,7 @@ class C {}
 ''');
     final result = _topLevelVar('a');
     assertDartObjectText(result, '''
-Type C*
+Type C
   variable: self::@variable::a
 ''');
   }
