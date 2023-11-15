@@ -31,7 +31,7 @@ class PrefixedIdentifierResolver {
     final prefixElement = node.prefix.staticElement;
     if (prefixElement is! PrefixElement) {
       final prefixType = node.prefix.staticType;
-      // TODO(scheglov) It would be nice to rewrite all such cases.
+      // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefixType != null) {
         final prefixTypeResolved =
             _resolver.typeSystem.resolveToBound(prefixType);
@@ -129,7 +129,7 @@ class PrefixedIdentifierResolver {
 
   /// Return `true` if the given [node] is not a type literal.
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   bool _isExpressionIdentifier(Identifier node) {
     var parent = node.parent;
     if (node is SimpleIdentifier && node.inDeclarationContext()) {
@@ -150,7 +150,7 @@ class PrefixedIdentifierResolver {
     return true;
   }
 
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   void _setExtensionIdentifierType(IdentifierImpl node) {
     if (node is SimpleIdentifierImpl && node.inDeclarationContext()) {
       return;

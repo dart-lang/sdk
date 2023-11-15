@@ -323,7 +323,7 @@ final class DocCommentBuilder {
           }
           if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
             if (_isLinkText(content, index)) {
-              // TODO(brianwilkerson) Handle the case where there's a library
+              // TODO(brianwilkerson): Handle the case where there's a library
               // URI in the link text.
             } else {
               final reference = _parseOneCommentReference(
@@ -686,7 +686,7 @@ final class DocCommentBuilder {
                 keyword == Keyword.NULL ||
                 keyword == Keyword.TRUE ||
                 keyword == Keyword.FALSE)) {
-          // TODO(brianwilkerson) If we want to support this we will need to
+          // TODO(brianwilkerson): If we want to support this we will need to
           // extend the definition of CommentReference to take an expression
           // rather than an identifier. For now we just ignore it to reduce the
           // number of errors produced, but that's probably not a valid long

@@ -186,7 +186,7 @@ class ElementResolver {
     var exportElement = node.element;
     if (exportElement != null) {
       // The element is null when the URI is invalid
-      // TODO(brianwilkerson) Figure out whether the element can ever be
+      // TODO(brianwilkerson): Figure out whether the element can ever be
       // something other than an ExportElement
       _resolveCombinators(exportElement.exportedLibrary, node.combinators);
       _resolveAnnotations(node.metadata);
@@ -310,7 +310,7 @@ class ElementResolver {
       covariant RedirectingConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
     if (enclosingClass is! InterfaceElement) {
-      // TODO(brianwilkerson) Report this error.
+      // TODO(brianwilkerson): Report this error.
       return;
     }
     ConstructorElement? element;
@@ -321,7 +321,7 @@ class ElementResolver {
       element = enclosingClass.getNamedConstructor(name.name);
     }
     if (element == null) {
-      // TODO(brianwilkerson) Report this error and decide what element to
+      // TODO(brianwilkerson): Report this error and decide what element to
       // associate with the node.
       return;
     }
@@ -348,12 +348,12 @@ class ElementResolver {
       covariant SuperConstructorInvocationImpl node) {
     var enclosingClass = _resolver.enclosingClass;
     if (enclosingClass is! InterfaceElement) {
-      // TODO(brianwilkerson) Report this error.
+      // TODO(brianwilkerson): Report this error.
       return;
     }
     var superType = enclosingClass.supertype;
     if (superType == null) {
-      // TODO(brianwilkerson) Report this error.
+      // TODO(brianwilkerson): Report this error.
       return;
     }
     var name = node.constructorName;
@@ -386,7 +386,7 @@ class ElementResolver {
       name.staticElement = element;
     }
     node.staticElement = element;
-    // TODO(brianwilkerson) Defer this check until we know there's an error (by
+    // TODO(brianwilkerson): Defer this check until we know there's an error (by
     // in-lining _resolveArgumentsToFunction below).
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
     var extendedNamedType = declaration?.extendsClause?.superclass;

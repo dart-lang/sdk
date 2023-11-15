@@ -8,7 +8,7 @@ import 'package:analyzer/file_system/file_system.dart';
 /// Instances of the class [AnalysisOptionsMap] map [File]s under analysis to their
 /// corresponding [AnalysisOptions].
 class AnalysisOptionsMap {
-  // todo(pq): final backing representation TBD.
+  // TODO(pq): final backing representation TBD.
   final List<({Folder folder, AnalysisOptions options})> _entries = [];
 
   /// Map this [folder] to the given [options].

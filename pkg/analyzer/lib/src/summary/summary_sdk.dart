@@ -19,7 +19,7 @@ class SummaryBasedDartSdk implements DartSdk {
 
   SummaryBasedDartSdk.forBundle(this._bundle) {
     var dataStore = SummaryDataStore();
-    // TODO(scheglov) We need a solution to avoid these paths at all.
+    // TODO(scheglov): We need a solution to avoid these paths at all.
     dataStore.addBundle('', bundle);
 
     _uriResolver = InSummaryUriResolver(dataStore);

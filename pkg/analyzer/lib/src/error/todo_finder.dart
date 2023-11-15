@@ -67,7 +67,7 @@ class TodoFinder {
   Token? _scrapeTodoComment(Token commentToken, LineInfo lineInfo) {
     Iterable<RegExpMatch> matches =
         Todo.TODO_REGEX.allMatches(commentToken.lexeme);
-    // Track the comment that will be returned for looking for the next todo.
+    // Track the comment that will be returned for looking for the next `todo`.
     // This will be moved along if additional comments are consumed by multiline
     // TODOs.
     var nextComment = commentToken.next;

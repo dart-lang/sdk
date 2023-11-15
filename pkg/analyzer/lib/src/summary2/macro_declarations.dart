@@ -93,7 +93,7 @@ class DeclarationBuilder {
       case ast.VariableDeclaration():
         return fromNode.variableDeclaration(node);
     }
-    // TODO(scheglov) incomplete
+    // TODO(scheglov): incomplete
     throw UnimplementedError('${node.runtimeType}');
   }
 
@@ -132,7 +132,7 @@ class DeclarationBuilder {
           staticScope: null,
         );
       default:
-        // TODO(scheglov) other elements
+        // TODO(scheglov): other elements
         throw UnimplementedError('${element.runtimeType}');
     }
   }
@@ -663,7 +663,7 @@ class DeclarationBuilderFromNode {
         final typeElement = parentElement.augmentationTarget ?? parentElement;
         return _declaredIdentifier(parentNode.name, typeElement);
       default:
-        // TODO(scheglov) other parents
+        // TODO(scheglov): other parents
         throw UnimplementedError('(${parentNode.runtimeType}) $parentNode');
     }
   }

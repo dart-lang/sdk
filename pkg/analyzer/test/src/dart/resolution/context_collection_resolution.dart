@@ -273,7 +273,7 @@ abstract class ContextResolutionTest
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    final file = getFile(path); // TODO(scheglov) migrate to File
+    final file = getFile(path); // TODO(scheglov): migrate to File
     var analysisContext = contextFor(fileForContextSelection ?? file);
     var session = analysisContext.currentSession;
     return await session.getResolvedUnit(path) as ResolvedUnitResult;

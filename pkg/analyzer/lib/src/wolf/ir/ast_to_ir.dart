@@ -318,7 +318,7 @@ class _LocalTemplates extends _LValueTemplates {
 /// are abstract, and are defined in a derived class for each specific kind of
 /// L-value supported by Dart.
 ///
-/// TODO(paulberry): add null shorting support.
+// TODO(paulberry): add null shorting support.
 sealed class _LValueTemplates {
   /// Outputs the IR instructions for a simple read of the L-value.
   ///

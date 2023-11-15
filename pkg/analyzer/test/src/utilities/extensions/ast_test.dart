@@ -422,7 +422,7 @@ class C { void call() {} }  Function f = C^();
   }
 
   Future<SourceRange> _range(String sourceCode) async {
-    // TODO(brianwilkerson) Move TestCode to the analyzer package and make use
+    // TODO(brianwilkerson): Move TestCode to the analyzer package and make use
     //  of it here.
     var offset = sourceCode.indexOf('^');
     if (offset < 0 || sourceCode.contains('^', offset + 1)) {

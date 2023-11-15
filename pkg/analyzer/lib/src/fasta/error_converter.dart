@@ -341,7 +341,8 @@ class FastaErrorReporter {
             // followed by an EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD error,
             // or followed by an EXPECTED_TOKEN error as seen in
             // `language/constructor/explicit_instantiation_syntax_test`
-            // TODO(johnniwinther,srawlins): How can we be sure that no other
+            // TODO(srawlins): See below
+            // TODO(johnniwinther): How can we be sure that no other
             // cases exists?
             return;
           case codeSetOrMapLiteralTooManyTypeArguments:

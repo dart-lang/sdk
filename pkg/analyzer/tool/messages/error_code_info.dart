@@ -99,8 +99,9 @@ final String frontEndPkgPath =
     normalize(join(pkg_root.packageRoot, 'front_end'));
 
 /// Pattern used by the front end to identify placeholders in error message
-/// strings.  TODO(paulberry): share this regexp (and the code for interpreting
-/// it) between the CFE and analyzer.
+/// strings.
+// TODO(paulberry): share this regexp (and the code for interpreting
+// it) between the CFE and analyzer.
 final RegExp _placeholderPattern =
     RegExp('#([-a-zA-Z0-9_]+)(?:%([0-9]*).([0-9]+))?');
 

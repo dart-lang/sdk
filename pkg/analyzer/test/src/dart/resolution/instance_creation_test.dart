@@ -573,7 +573,7 @@ main() {
       error(ParserErrorCode.CONSTRUCTOR_WITH_TYPE_ARGUMENTS, 44, 3),
     ]);
 
-    // TODO(brianwilkerson) Test this more carefully after we can re-write the
+    // TODO(brianwilkerson): Test this more carefully after we can re-write the
     // AST to reflect the expected structure.
     var node = findNode.instanceCreation('Foo.bar<int>');
     assertResolvedNodeText(node, r'''

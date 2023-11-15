@@ -124,7 +124,7 @@ class ForResolver {
       loopVariable = forEachParts.loopVariable;
     } else if (forEachParts is ForEachPartsWithIdentifier) {
       identifier = forEachParts.identifier;
-      // TODO(scheglov) replace with lexical lookup
+      // TODO(scheglov): replace with lexical lookup
       identifier.accept(_resolver);
       AssignmentExpressionShared(
         resolver: _resolver,

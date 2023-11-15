@@ -16,7 +16,7 @@ main() {
 @reflectiveTest
 class InvalidDependencyTest extends PubspecDiagnosticTest {
   test_dependencyGit_malformed_empty() {
-    // todo (pq): consider validating.
+    // TODO(pq): consider validating.
     assertNoErrors('''
 name: sample
 dependencies:
@@ -26,7 +26,7 @@ dependencies:
   }
 
   test_dependencyGit_malformed_list() {
-    // todo (pq): consider validating.
+    // TODO(pq): consider validating.
     assertNoErrors('''
 name: sample
 dependencies:
@@ -37,7 +37,7 @@ dependencies:
   }
 
   test_dependencyGit_malformed_scalar() {
-    // todo (pq): consider validating.
+    // TODO(pq): consider validating.
     assertNoErrors('''
 name: sample
 dependencies:
@@ -95,7 +95,7 @@ dependencies:
   }
 
   test_dependencyPath_malformed_empty() {
-    // todo (pq): consider validating.
+    // TODO(pq): consider validating.
     assertNoErrors('''
 name: sample
 dependencies:
@@ -105,7 +105,7 @@ dependencies:
   }
 
   test_dependencyPath_malformed_list() {
-    // todo (pq): consider validating.
+    // TODO(pq): consider validating.
     assertNoErrors('''
 name: sample
 dependencies:

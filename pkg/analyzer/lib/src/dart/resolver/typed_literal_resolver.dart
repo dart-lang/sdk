@@ -242,7 +242,7 @@ class TypedLiteralResolver {
         }
       }
 
-      // TODO(brianwilkerson) Report this as an error.
+      // TODO(brianwilkerson): Report this as an error.
       return _typeProvider.dynamicType;
     }
     throw StateError('Unhandled element type ${element.runtimeType}');
@@ -310,7 +310,7 @@ class TypedLiteralResolver {
   _LiteralResolution _fromContextType(DartType? contextType) {
     if (contextType != null) {
       var unwrappedContextType = _typeSystem.futureOrBase(contextType);
-      // TODO(brianwilkerson) Find out what the "greatest closure" is and use that
+      // TODO(brianwilkerson): Find out what the "greatest closure" is and use that
       // where [unwrappedContextType] is used below.
       var iterableType = unwrappedContextType.asInstanceOf(
         _typeProvider.iterableElement,
@@ -636,7 +636,7 @@ class TypedLiteralResolver {
         _inferListTypeUpwards(inferrer!, node, contextType: contextType);
 
     if (inferred != listDynamicType) {
-      // TODO(brianwilkerson) Determine whether we need to make the inferred
+      // TODO(brianwilkerson): Determine whether we need to make the inferred
       //  type non-nullable here or whether it will already be non-nullable.
       node.staticType = inferred!;
       return;
@@ -700,7 +700,7 @@ class TypedLiteralResolver {
           node,
           [node.isMap ? 'Map' : 'Set']);
     }
-    // TODO(brianwilkerson) Decide whether the literalType needs to be made
+    // TODO(brianwilkerson): Decide whether the literalType needs to be made
     //  non-nullable here or whether that will have happened in
     //  _inferSetOrMapLiteralType.
     node.staticType = literalType;
@@ -900,7 +900,8 @@ class _LeafElements {
   /// Return `true` if the given collection [element] does not contain any
   /// synthetic tokens.
   bool _isComplete(CollectionElement element) {
-    // TODO(paulberry,brianwilkerson): the code below doesn't work because it
+    // TODO(brianwilkerson): (shared below)
+    // TODO(paulberry): the code below doesn't work because it
     // assumes access to token offsets, which aren't available when working with
     // expressions resynthesized from summaries.  For now we just assume the
     // collection element is complete.

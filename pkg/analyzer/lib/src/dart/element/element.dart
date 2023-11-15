@@ -159,11 +159,11 @@ abstract class AugmentedInstanceElementImpl
   List<MethodElement> methods = [];
 
   @override
-  // TODO: implement declaration
+  // TODO(scheglov): implement declaration
   InstanceElement get declaration => throw UnimplementedError();
 
   @override
-  // TODO: implement metadata
+  // TODO(scheglov): implement metadata
   List<ElementAnnotation> get metadata => throw UnimplementedError();
 
   @override
@@ -233,16 +233,16 @@ abstract class AugmentedInterfaceElementImpl
   List<ConstructorElement> constructors = [];
 
   @override
-  // TODO: implement declaration
+  // TODO(scheglov): implement declaration
   InterfaceElementImpl get declaration => throw UnimplementedError();
 
   @override
-  // TODO: implement unnamedConstructor
+  // TODO(scheglov): implement unnamedConstructor
   ConstructorElement? get unnamedConstructor => throw UnimplementedError();
 
   @override
   ConstructorElement? getNamedConstructor(String name) {
-    // TODO: implement getNamedConstructor
+    // TODO(scheglov): implement getNamedConstructor
     throw UnimplementedError();
   }
 }
@@ -708,7 +708,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
         implicitConstructor.parameters = implicitParameters.toFixedList();
       }
       implicitConstructor.enclosingElement = this;
-      // TODO(scheglov) Why do we manually map parameters types above?
+      // TODO(scheglov): Why do we manually map parameters types above?
       implicitConstructor.superConstructor =
           ConstructorMember.from(superclassConstructor, superType);
 
@@ -1009,7 +1009,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 
 /// A [FieldElement] for a 'const' or 'final' field that has an initializer.
 ///
-/// TODO(paulberry): we should rename this class to reflect the fact that it's
+// TODO(paulberry): we should rename this class to reflect the fact that it's
 /// used for both const and final fields.  However, we shouldn't do so until
 /// we've created an API for reading the values of constants; until that API is
 /// available, clients are likely to read constant values by casting to
@@ -1044,7 +1044,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// this constructor is not generative, or is redirecting, or the
   /// super-constructor is not resolved, or the enclosing class is `Object`.
   ///
-  /// TODO(scheglov) We cannot have both super and redirecting constructors.
+  // TODO(scheglov): We cannot have both super and redirecting constructors.
   /// So, ideally we should have some kind of "either" or "variant" here.
   ConstructorElement? _superConstructor;
 
@@ -1202,7 +1202,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   FunctionType get typeInternal {
-    // TODO(scheglov) Remove "element" in the breaking changes branch.
+    // TODO(scheglov): Remove "element" in the breaking changes branch.
     return _type ??= FunctionTypeImpl(
       typeFormals: typeParameters,
       parameters: parameters,
@@ -1310,7 +1310,7 @@ mixin ConstVariableElement implements ElementImpl, ConstantEvaluationTarget {
   DartObject? computeConstantValue() {
     if (evaluationResult == null) {
       final library = this.library;
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/47915
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/47915
       if (library == null) {
         throw StateError(
           '[library: null][this: ($runtimeType) $this]'
@@ -1684,7 +1684,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// or `null` if the compilation unit containing the variable has
   /// not been resolved.
   ///
-  /// TODO(kallentu): Remove this field once we fix up g3's dependency on
+  // TODO(kallentu): Remove this field once we fix up g3's dependency on
   /// annotations having a valid result as well as unresolved errors.
   List<AnalysisError>? additionalErrors;
 
@@ -2061,7 +2061,7 @@ abstract class ElementImpl implements Element {
 
   @override
   int get hashCode {
-    // TODO: We might want to re-visit this optimization in the future.
+    // TODO(scheglov): We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
     return _cachedHashCode ??= location.hashCode;
   }
@@ -2905,7 +2905,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     // It somewhere it between we access the type of this element, so it gets
     // cached in the element. When we are done static type analysis, we then
     // should clear this cached type to make it right.
-    // TODO(scheglov) Remove when type analysis is done in the single pass.
+    // TODO(scheglov): Remove when type analysis is done in the single pass.
     _type = null;
   }
 
@@ -2961,7 +2961,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   AugmentedExtensionElement? get augmented {
-    // TODO(scheglov) implement
+    // TODO(scheglov): implement
     throw UnimplementedError();
   }
 
@@ -3949,7 +3949,7 @@ abstract class InterfaceElementImpl extends InstanceElementImpl
 
   static PropertyAccessorElement? getSetterFromAccessors(
       String setterName, List<PropertyAccessorElement> accessors) {
-    // TODO (jwren) revisit- should we append '=' here or require clients to
+    // TODO(jwren): revisit- should we append '=' here or require clients to
     // include it?
     // Do we need the check for isSetter below?
     if (!setterName.endsWith('=')) {
@@ -4014,7 +4014,7 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
 class LabelElementImpl extends ElementImpl implements LabelElement {
   /// A flag indicating whether this label is associated with a `switch` member
   /// (`case` or `default`).
-  // TODO(brianwilkerson) Make this a modifier.
+  // TODO(brianwilkerson): Make this a modifier.
   final bool _onSwitchMember;
 
   /// Initialize a newly created label element to have the given [name].
@@ -4058,7 +4058,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
   }) : super(name: null);
 
   @override
-  // TODO: implement accessibleExtensions
+  // TODO(scheglov): implement accessibleExtensions
   List<ExtensionElement> get accessibleExtensions => throw UnimplementedError();
 
   @override
@@ -6400,7 +6400,7 @@ abstract class PropertyInducingElementImpl
   Element get nonSynthetic {
     if (isSynthetic) {
       if (enclosingElement is EnumElementImpl) {
-        // TODO(scheglov) remove 'index'?
+        // TODO(scheglov): remove 'index'?
         if (name == 'index' || name == 'values') {
           return enclosingElement;
         }
@@ -6426,7 +6426,7 @@ abstract class PropertyInducingElementImpl
   set type(DartType type) {
     super.type = type;
     // Reset cached types of synthetic getters and setters.
-    // TODO(scheglov) Consider not caching these types.
+    // TODO(scheglov): Consider not caching these types.
     if (!isSynthetic) {
       var getter = this.getter;
       if (getter is PropertyAccessorElementImpl_ImplicitGetter) {

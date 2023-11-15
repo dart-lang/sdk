@@ -115,7 +115,7 @@ class IgnoreValidator {
   /// from the [list] of names from which they were extracted.
   void _reportUnignorableAndDuplicateIgnores(List<IgnoredElement> unignorable,
       List<IgnoredElement> duplicated, List<IgnoredElement> list) {
-    // TODO(brianwilkerson) Uncomment the code below after the unignorable
+    // TODO(brianwilkerson): Uncomment the code below after the unignorable
     //  ignores in the Flutter code base have been cleaned up.
     // for (var unignorableName in unignorable) {
     //   var name = unignorableName.name;
@@ -144,7 +144,7 @@ class IgnoreValidator {
   /// Report the [ignoredNames] as being unnecessary.
   void _reportUnnecessaryOrRemovedOrDeprecatedIgnores(
       List<IgnoredElement> ignoredNames) {
-    // todo(pq): find the right way to roll-out enablement and uncomment
+    // TODO(pq): find the right way to roll-out enablement and uncomment
     // https://github.com/dart-lang/sdk/issues/51214
     // for (var ignoredName in ignoredNames) {
     //   if (ignoredName is DiagnosticName) {
@@ -154,7 +154,7 @@ class IgnoreValidator {
     //       var state = rule.state;
     //       var since = state.since.toString();
     //       if (state is DeprecatedState) {
-    //         // todo(pq): implement
+    //         // `todo`(pq): implement
     //       } else if (state is RemovedState) {
     //         var replacedBy = state.replacedBy;
     //         if (replacedBy != null) {
@@ -169,7 +169,7 @@ class IgnoreValidator {
     //       }
     //     }
     //
-    //     // TODO(brianwilkerson) Uncomment the code below after the unnecessary
+    //     // `TODO`(brianwilkerson) Uncomment the code below after the unnecessary
     //     //  ignores in the Flutter code base have been cleaned up.
     //     //   _errorReporter.reportErrorForOffset(
     //     //       WarningCode.UNNECESSARY_IGNORE, ignoredName.offset, name.length,

@@ -22,7 +22,7 @@ main() {
   });
 }
 
-/// TODO(scheglov) Move other for-in tests here.
+// TODO(scheglov): Move other for-in tests here.
 @reflectiveTest
 class ForStatementResolutionTest_ForEachPartsWithDeclaration
     extends PubPackageResolutionTest {

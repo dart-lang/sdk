@@ -194,7 +194,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
 
     String displayName = element!.displayName;
     if (element is ConstructorElement) {
-      // TODO(jwren) We should modify ConstructorElement.displayName,
+      // TODO(jwren): We should modify ConstructorElement.displayName,
       // or have the logic centralized elsewhere, instead of doing this logic
       // here.
       displayName = element.name == ''
@@ -259,7 +259,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
     }
 
     if (element is PropertyAccessorElement && element.isSynthetic) {
-      // TODO(brianwilkerson) Why isn't this the implementation for PropertyAccessorElement?
+      // TODO(brianwilkerson): Why isn't this the implementation for PropertyAccessorElement?
       Element variable = element.variable;
       return variable.hasDeprecated;
     }

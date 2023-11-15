@@ -84,7 +84,7 @@ class BinaryExpressionResolver {
   /// Set the static type of [node] to be the least upper bound of the static
   /// types [staticType1] and [staticType2].
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   void _analyzeLeastUpperBoundTypes(
       ExpressionImpl node, DartType staticType1, DartType staticType2,
       {required DartType? contextType}) {

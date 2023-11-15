@@ -597,7 +597,7 @@ class LinterContextUnit {
   LinterContextUnit(this.content, this.unit);
 }
 
-/// TODO(scheglov) This class exists only because there are places in the
+// TODO(scheglov): This class exists only because there are places in the
 /// analyzer and analysis server that instantiate [LinterContextUnit]. This
 /// should not happen, and should be fixed.
 class LinterContextUnit2 implements LinterContextUnit {
@@ -662,7 +662,7 @@ class LinterOptions extends DriverOptions {
   final String? analysisOptions;
   LintFilter? filter;
 
-  // todo (pq): consider migrating to named params (but note Linter dep).
+  // TODO(pq): consider migrating to named params (but note Linter dep).
   LinterOptions({
     Iterable<LintRule>? enabledRules,
     this.analysisOptions,

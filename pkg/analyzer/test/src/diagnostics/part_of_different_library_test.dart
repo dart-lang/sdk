@@ -31,7 +31,7 @@ part 'part.g.dart';
     ]);
   }
 
-  /// TODO(scheglov) Extract `package:build` base resolution class, move this.
+  // TODO(scheglov): Extract `package:build` base resolution class, move this.
   test_packageBuild_generated() async {
     var package = 'test';
     newPubspecYamlFile(testPackageRootPath, 'name: $package');

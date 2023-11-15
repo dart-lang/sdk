@@ -604,7 +604,7 @@ main() { // missing async
   }
 
   void test_directiveAfterDeclaration_classBeforeDirective() {
-    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
     CompilationUnit unit = parseCompilationUnit("class Foo{} library l;",
         codes: [
           ParserErrorCode.LIBRARY_DIRECTIVE_NOT_FIRST
@@ -616,7 +616,7 @@ main() { // missing async
   }
 
   void test_directiveAfterDeclaration_classBetweenDirectives() {
-    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
     CompilationUnit unit =
         parseCompilationUnit("library l;\nclass Foo{}\npart 'a.dart';", codes: [
       ParserErrorCode.DIRECTIVE_AFTER_DECLARATION
@@ -688,7 +688,7 @@ main() { // missing async
     createParser('enum E {}');
     var declaration = parseFullCompilationUnitMember() as EnumDeclaration;
     expectNotNullIfNoErrors(declaration);
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.EMPTY_ENUM_BODY]);
 //    listener
 //        .assertErrors([expectedError(ParserErrorCode.EMPTY_ENUM_BODY, 7, 2),]);
@@ -753,7 +753,7 @@ class Foo {
   }
 
   void test_expectedExecutable_afterAnnotation_atEOF() {
-    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
     parseCompilationUnit('@A',
         codes: [ParserErrorCode.EXPECTED_EXECUTABLE],
         errors: [expectedError(ParserErrorCode.EXPECTED_EXECUTABLE, 1, 1)]);
@@ -839,7 +839,7 @@ class Foo {
   }
 
   void test_expectedToken_semicolonMissingAfterExport() {
-    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
     CompilationUnit unit = parseCompilationUnit("export '' class A {}",
         codes: [ParserErrorCode.EXPECTED_TOKEN],
         errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 2)]);
@@ -857,14 +857,14 @@ class Foo {
 
   void test_expectedToken_semicolonMissingAfterExpression() {
     parseStatement("x");
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.EXPECTED_TOKEN]);
 //    listener
 //        .assertErrors([expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 1)]);
   }
 
   void test_expectedToken_semicolonMissingAfterImport() {
-    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
     CompilationUnit unit = parseCompilationUnit("import '' class A {}",
         codes: [ParserErrorCode.EXPECTED_TOKEN],
         errors: [expectedError(ParserErrorCode.EXPECTED_TOKEN, 7, 2)]);
@@ -979,7 +979,7 @@ class Foo {
     createParser('external C.c() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]);
 //      listener.assertErrors(
 //          [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 15, 2)]);
@@ -1030,7 +1030,7 @@ class Foo {
     createParser('external int get x {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]);
 //      listener.assertErrors(
 //          [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 19, 2)]);
@@ -1040,7 +1040,7 @@ class Foo {
     createParser('external m() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]);
 //    listener.assertErrors(
 //        [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 13, 2)]);
@@ -1050,7 +1050,7 @@ class Foo {
     createParser('external operator +(int value) {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]);
 //      listener.assertErrors(
 //          [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 31, 2)]);
@@ -1060,7 +1060,7 @@ class Foo {
     createParser('external set x(int value) {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.EXTERNAL_METHOD_WITH_BODY]);
 //      listener.assertErrors(
 //          [expectedError(ParserErrorCode.EXTERNAL_METHOD_WITH_BODY, 26, 2)]);
@@ -1334,7 +1334,7 @@ class Wrong<T> {
     createParser('int get x() {}');
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     listener.assertErrorsWithCodes([ParserErrorCode.GETTER_WITH_PARAMETERS]);
 //    listener.assertErrors(
 //        [expectedError(ParserErrorCode.GETTER_WITH_PARAMETERS, 9, 2)]);
@@ -2377,7 +2377,7 @@ class Wrong<T> {
   }
 
   void test_nonPartOfDirectiveInPart_before() {
-    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
     parseCompilationUnit("part 'f.dart'; part of m;", codes: [
       ParserErrorCode.NON_PART_OF_DIRECTIVE_IN_PART
     ], errors: [
@@ -2733,7 +2733,7 @@ m() {
   }
 
   void test_typedef_incomplete() {
-    // TODO(brianwilkerson) Improve recovery for this case.
+    // TODO(brianwilkerson): Improve recovery for this case.
     parseCompilationUnit('''
 class A {}
 class B extends A {}
@@ -2868,7 +2868,7 @@ void main() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
     parseCompilationUnit(r'''
 void main() {
   var x = """''', codes: [
@@ -2886,7 +2886,7 @@ void main() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
     parseCompilationUnit(r'''
 void main() {
   var x = """"''', codes: [
@@ -2904,7 +2904,7 @@ void main() {
     // Although the "unterminated string" error message is produced by the
     // scanner, we need to verify that the parser can handle the tokens
     // produced by the scanner when an unterminated string is encountered.
-    // TODO(brianwilkerson) Remove codes when highlighting is fixed.
+    // TODO(brianwilkerson): Remove codes when highlighting is fixed.
     parseCompilationUnit(r'''
 void main() {
   var x = """""''', codes: [

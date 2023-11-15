@@ -397,7 +397,7 @@ class ExtensionMemberResolver {
 
     // 5. ...the instantiate-to-bounds type of T1 is a subtype of the
     //    instantiate-to-bounds type of T2 and not vice versa.
-    // TODO(scheglov) store instantiated types
+    // TODO(scheglov): store instantiated types
     var extendedTypeBound1 = _instantiateToBounds(e1.extension);
     var extendedTypeBound2 = _instantiateToBounds(e2.extension);
     return _isSubtypeOf(extendedTypeBound1, extendedTypeBound2) &&

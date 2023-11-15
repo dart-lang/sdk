@@ -247,7 +247,7 @@ import 'a.dart';
     // But its `exportNamespace` can be accessed.
     expect(aElement.exportNamespace.definedNames, isNotEmpty);
 
-    // TODO(scheglov) This is not quite right.
+    // TODO(scheglov): This is not quite right.
     // When we return `LibraryElement` that is not fully read, and read
     // anything lazily, we can be in a situation when there was a change,
     // and an imported library does not define a referenced element anymore.

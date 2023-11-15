@@ -122,7 +122,7 @@ class _ElementWriter {
       sink: _sink,
       elementPrinter: _elementPrinter,
       configuration: ResolvedNodeTextConfiguration()
-        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49101
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
         ..withParameterElements = false,
       withOffsets: true,
     );
@@ -183,7 +183,7 @@ class _ElementWriter {
   }
 
   void _writeAugmented(InstanceElementImpl e) {
-    // TODO(scheglov) enable for other types
+    // TODO(scheglov): enable for other types
     if (!(e is ClassElementImpl || e is MixinElementImpl)) {
       return;
     }
@@ -248,7 +248,7 @@ class _ElementWriter {
           writeAccessors();
           writeMethods();
       }
-      // TODO(scheglov) Add other types and properties
+      // TODO(scheglov): Add other types and properties
     });
   }
 

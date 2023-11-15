@@ -1332,7 +1332,7 @@ class _ConstLiteralVerifier {
     }
     var map = value.toMapValue();
     if (map != null) {
-      // TODO(brianwilkerson) Figure out how to improve the error messages. They
+      // TODO(brianwilkerson): Figure out how to improve the error messages. They
       //  currently point to the whole spread expression, but the key and/or
       //  value being referenced might not be located there (if it's referenced
       //  through a const variable).

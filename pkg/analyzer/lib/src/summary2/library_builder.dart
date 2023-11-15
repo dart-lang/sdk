@@ -733,7 +733,7 @@ class LibraryBuilder {
         final unitNode = importedFile.parse();
         final unitElement = CompilationUnitElementImpl(
           source: importedFile.source,
-          // TODO(scheglov) Remove this parameter.
+          // TODO(scheglov): Remove this parameter.
           librarySource: importedFile.source,
           lineInfo: unitNode.lineInfo,
         );
@@ -810,7 +810,7 @@ class LibraryBuilder {
           ..end = unlinked.endOffset
           ..shownNames = unlinked.names;
       } else {
-        // TODO(scheglov) Why no offsets?
+        // TODO(scheglov): Why no offsets?
         return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
       }
     }).toFixedList();
@@ -1000,7 +1000,7 @@ class LibraryBuilder {
     required int nameOffset,
     required LibraryOrAugmentationElementImpl container,
   }) {
-    // TODO(scheglov) Make reference required.
+    // TODO(scheglov): Make reference required.
     final containerRef = container.reference!;
     final reference = containerRef.getChild('@prefix').getChild(name);
     final existing = reference.element;

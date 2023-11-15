@@ -328,7 +328,7 @@ class ImportsVerifier {
               }
               list.add(directive);
             }
-            // TODO (jwren) Can the element ever not be a PrefixElement?
+            // TODO(jwren): Can the element ever not be a PrefixElement?
           }
         }
         _addShownNames(directive);

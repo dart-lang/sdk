@@ -623,7 +623,7 @@ elementFactory
 ''');
   }
 
-  /// TODO(scheglov) Implement `asLibrary` testing.
+  // TODO(scheglov): Implement `asLibrary` testing.
   test_libraryCycle_part() {
 //     var a_path = convertPath('/aaa/lib/a.dart');
 //     var b_path = convertPath('/aaa/lib/b.dart');
@@ -5116,7 +5116,7 @@ library augment 'a.dart';
 
     // We will discover the target by URI.
     fileStateFor(b).refresh();
-    // TODO(scheglov) The API signature must be different.
+    // TODO(scheglov): The API signature must be different.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart

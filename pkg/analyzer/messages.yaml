@@ -323,7 +323,7 @@ CompileTimeErrorCode:
 
       Remove the invocation of the abstract member, possibly replacing it with an
       invocation of a concrete member.
-      TODO(brianwilkerson) This either needs to be generalized (use 'member'
+      TODO(brianwilkerson): This either needs to be generalized (use 'member'
        rather than '{0}') or split into multiple codes.
   AMBIGUOUS_EXPORT:
     problemMessage: "The name '{0}' is defined in the libraries '{1}' and '{2}'."
@@ -7834,7 +7834,7 @@ CompileTimeErrorCode:
   INVALID_CONSTANT:
     problemMessage: Invalid constant value.
     comment: |-
-      TODO(brianwilkerson) Remove this when we have decided on how to report
+      TODO(brianwilkerson): Remove this when we have decided on how to report
       errors in compile-time constants. Until then, this acts as a placeholder
       for more informative errors.
 
@@ -13365,7 +13365,7 @@ CompileTimeErrorCode:
     comment: |-
       No parameters.
 
-      TODO(scheglov) review this later, there are no explicit "it is a
+      TODO(scheglov): review this later, there are no explicit "it is a
       compile-time error" in specification. But it was added to the co19 and
       there is same error for factories.
 
@@ -17448,10 +17448,10 @@ CompileTimeErrorCode:
         int operator +(a) => 0;
       }
       ```
-      TODO(brianwilkerson) It would be good to add a link to the spec or some
+      TODO(brianwilkerson): It would be good to add a link to the spec or some
        other documentation that lists the number of parameters for each
        operator, but I don't know what to link to.
-      TODO(brianwilkerson) Another reasonable fix is to convert the operator to
+      TODO(brianwilkerson): Another reasonable fix is to convert the operator to
        be a normal method.
   WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR_MINUS:
     sharedName: WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR
@@ -21461,7 +21461,7 @@ StaticWarningCode:
         }
       }
       ```
-      TODO(brianwilkerson) This documentation will need to be updated when NNBD
+      TODO(brianwilkerson): This documentation will need to be updated when NNBD
        ships.
   UNNECESSARY_NON_NULL_ASSERTION:
     problemMessage: "The '!' will have no effect because the receiver can't be null."
@@ -25868,7 +25868,7 @@ WarningCode:
         }
       }
       ```
-      TODO(brianwilkerson) Highlight the identifier without the colon.
+      TODO(brianwilkerson): Highlight the identifier without the colon.
   UNUSED_LOCAL_VARIABLE:
     problemMessage: "The value of the local variable '{0}' isn't used."
     correctionMessage: Try removing the variable or using it.

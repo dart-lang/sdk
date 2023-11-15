@@ -14,6 +14,9 @@
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
+//
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/dart/error/hint_codes.g.dart";
@@ -2672,7 +2675,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The constructor returns type '{0}' that isn't of expected type '{1}'.",
   );
 
-  ///  TODO(brianwilkerson) Remove this when we have decided on how to report
+  ///  TODO(brianwilkerson): Remove this when we have decided on how to report
   ///  errors in compile-time constants. Until then, this acts as a placeholder
   ///  for more informative errors.
   ///
@@ -4374,7 +4377,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  No parameters.
   ///
-  ///  TODO(scheglov) review this later, there are no explicit "it is a
+  ///  TODO(scheglov): review this later, there are no explicit "it is a
   ///  compile-time error" in specification. But it was added to the co19 and
   ///  there is same error for factories.
   ///

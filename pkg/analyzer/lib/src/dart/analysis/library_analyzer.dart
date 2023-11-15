@@ -127,7 +127,7 @@ class LibraryAnalyzer {
     var errorListener = RecordingErrorListener();
 
     return performance.run('resolve', (performance) {
-      // TODO(scheglov) We don't need to do this for the whole unit.
+      // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(
         ResolutionVisitor(
           unitElement: unitElement,
@@ -142,7 +142,7 @@ class LibraryAnalyzer {
         ),
       );
 
-      // TODO(scheglov) We don't need to do this for the whole unit.
+      // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(ScopeResolverVisitor(
           _libraryElement, file.source, _typeProvider, errorListener,
           nameScope: _libraryElement.scope));
@@ -316,7 +316,7 @@ class LibraryAnalyzer {
     // before the list of diagnostics has been filtered.
     for (var file in _library.files) {
       final ignoreInfo = _fileToIgnoreInfo[file];
-      // TODO(scheglov) make it safer
+      // TODO(scheglov): make it safer
       if (ignoreInfo != null) {
         IgnoreValidator(
           _getErrorReporter(file),
@@ -565,7 +565,7 @@ class LibraryAnalyzer {
     String content = file.content;
     var unit = file.parse(errorListener);
 
-    // TODO(scheglov) Store [IgnoreInfo] as unlinked data.
+    // TODO(scheglov): Store [IgnoreInfo] as unlinked data.
     _fileToLineInfo[file] = unit.lineInfo;
     _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 

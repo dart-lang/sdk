@@ -91,7 +91,7 @@ class PrefixExpressionResolver {
   /// Check that the result [type] of a prefix or postfix `++` or `--`
   /// expression is assignable to the write type of the operand.
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   void _checkForInvalidAssignmentIncDec(
       PrefixExpressionImpl node, DartType type) {
     var operandWriteType = node.writeType!;
@@ -109,7 +109,7 @@ class PrefixExpressionResolver {
   /// @param element the element representing the method or function invoked by the given node
   /// @return the static return type that was computed
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   DartType _computeStaticReturnType(Element? element) {
     if (element is PropertyAccessorElement) {
       //

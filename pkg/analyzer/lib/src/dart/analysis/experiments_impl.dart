@@ -165,9 +165,9 @@ List<bool> restrictEnableFlagsToVersion({
 /// problems are found, the only negative side effect is that some flags in
 /// one list may be overridden by some flags in the other list.
 ///
-/// TODO(paulberry): if this method ever needs to be exposed via the analyzer
-/// public API, consider making a version that reports validation results using
-/// the AnalysisError type.
+// TODO(paulberry): if this method ever needs to be exposed via the analyzer
+// public API, consider making a version that reports validation results using
+// the AnalysisError type.
 Iterable<ConflictingFlagLists> validateFlagCombination(
     List<String> flags1, List<String> flags2) sync* {
   var flag1Map = _flagStringsToMap(flags1);
@@ -185,9 +185,9 @@ Iterable<ConflictingFlagLists> validateFlagCombination(
 ///
 /// The returned iterable yields any problems that were found.
 ///
-/// TODO(paulberry): if this method ever needs to be exposed via the analyzer
-/// public API, consider making a version that reports validation results using
-/// the AnalysisError type.
+// TODO(paulberry): if this method ever needs to be exposed via the analyzer
+// public API, consider making a version that reports validation results using
+// the AnalysisError type.
 Iterable<ValidationResult> validateFlags(List<String> flags) sync* {
   var previousFlagIndex = <int, int>{};
   var previousFlagValue = <int, bool>{};

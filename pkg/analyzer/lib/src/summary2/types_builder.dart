@@ -87,7 +87,7 @@ class TypesBuilder {
       builder.build();
     }
 
-    // TODO(scheglov) generalize
+    // TODO(scheglov): generalize
     _linker.elementNodes.forEach((element, node) {
       if (element is GenericFunctionTypeElementImpl &&
           node is GenericFunctionType) {

@@ -541,7 +541,7 @@ class FileState {
       signature.addBool(exists);
       _unlinkedSignature = signature.toByteList();
       var signatureHex = hex.encode(_unlinkedSignature!);
-      // TODO(scheglov) Use the path as the key, and store the signature.
+      // TODO(scheglov): Use the path as the key, and store the signature.
       _unlinkedKey = '$signatureHex.unlinked2';
     }
 
@@ -621,7 +621,7 @@ class FileState {
     }
   }
 
-  /// TODO(scheglov) move to _fsState?
+  // TODO(scheglov): move to _fsState?
   NamespaceDirectiveUris _buildNamespaceDirectiveUris(
     UnlinkedNamespaceDirective directive,
   ) {
@@ -758,7 +758,7 @@ class FileState {
     return unit;
   }
 
-  /// TODO(scheglov) write tests
+  // TODO(scheglov): write tests
   void _prefetchDirectReferences() {
     final prefetchFiles = _fsState.prefetchFiles;
     if (prefetchFiles == null) {
@@ -1302,7 +1302,7 @@ class FileSystemState {
 
   /// Return the [FileState] for the given absolute [path]. The returned file
   /// has the last known state since if was last refreshed.
-  /// TODO(scheglov) Merge with [getFileForPath2].
+  // TODO(scheglov): Merge with [getFileForPath2].
   FileState getFileForPath(String path) {
     return getFileForPath2(
       path: path,
@@ -1378,7 +1378,7 @@ class FileSystemState {
   List<String> getFilesContaining(String value) {
     var result = <String>[];
     _pathToFile.forEach((path, file) {
-      // TODO(scheglov) tests for excluding generated
+      // TODO(scheglov): tests for excluding generated
       if (!isGenerated(path)) {
         if (file.content.contains(value)) {
           result.add(path);

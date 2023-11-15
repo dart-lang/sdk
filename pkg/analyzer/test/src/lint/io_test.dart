@@ -12,7 +12,7 @@ main() {
 }
 
 defineTests() {
-  // TODO: redefine tests
+  // TODO(brianwilkerson): redefine tests
 
 //  group('commandline args', () {
 //    var mockFile = new File('foo.dart');
@@ -72,7 +72,7 @@ defineTests() {
     });
   });
 
-  // TODO(brianwilkerson) Rewrite this to use a memory resource provider.
+  // TODO(brianwilkerson): Rewrite this to use a memory resource provider.
 //  group('collecting', () {
 //    group('files', () {
 //      test('basic', () {

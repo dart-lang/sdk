@@ -1175,8 +1175,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (!node.isConst &&
         constructor.hasLiteral &&
         _linterContext.canBeConst(node)) {
-      // Echoing jwren's TODO from _checkForDeprecatedMemberUse:
-      // TODO(jwren) We should modify ConstructorElement.getDisplayName(), or
+      // Echoing jwren's `TODO` from _checkForDeprecatedMemberUse:
+      // TODO(jwren): We should modify ConstructorElement.getDisplayName(), or
       // have the logic centralized elsewhere, instead of doing this logic
       // here.
       String fullConstructorName = constructorName.type.qualifiedName;
@@ -1237,7 +1237,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
 
     var bodyContext = BodyInferenceContext.of(body)!;
-    // TODO(scheglov) Update InferenceContext to record any type, dynamic.
+    // TODO(scheglov): Update InferenceContext to record any type, dynamic.
     var returnType = bodyContext.contextType ?? DynamicTypeImpl.instance;
 
     if (_typeSystem.isNullable(returnType)) {

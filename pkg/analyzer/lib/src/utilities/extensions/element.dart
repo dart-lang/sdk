@@ -6,7 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 
 extension ElementExtension on Element {
-  /// TODO(scheglov) Maybe just add to `Element`?
+  // TODO(scheglov): Maybe just add to `Element`?
   Element? get augmentation {
     if (this case final AugmentableElement augmentable) {
       return augmentable.augmentation;

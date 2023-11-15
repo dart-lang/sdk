@@ -601,7 +601,7 @@ class BlazeWorkspacePackage extends WorkspacePackage {
   }
 
   @override
-  // TODO(brianwilkerson) Implement this by looking in the BUILD file for 'deps'
+  // TODO(brianwilkerson): Implement this by looking in the BUILD file for 'deps'
   //  lists.
   Packages packagesAvailableTo(String libraryPath) => Packages.empty;
 

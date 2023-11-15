@@ -956,7 +956,7 @@ main() {
   }
 
   void test_parseNonLabeledStatement_const_map_nonEmpty() {
-    // TODO(brianwilkerson) Implement more tests for this method.
+    // TODO(brianwilkerson): Implement more tests for this method.
     var statement = parseStatement("const {'a' : 1};") as ExpressionStatement;
     assertNoErrors();
     expect(statement.expression, isNotNull);
@@ -1235,7 +1235,7 @@ main() {
   }
 
   void test_parseStatement_functionDeclaration_returnType() {
-    // TODO(brianwilkerson) Implement more tests for this method.
+    // TODO(brianwilkerson): Implement more tests for this method.
     var statement =
         parseStatement('int f(a, b) {}') as FunctionDeclarationStatement;
     assertNoErrors();

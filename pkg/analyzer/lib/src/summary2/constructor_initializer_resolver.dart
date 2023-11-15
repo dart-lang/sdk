@@ -27,7 +27,7 @@ class ConstructorInitializerResolver {
         for (var constructorElement in interfaceElement.constructors) {
           _constructor(
             unitElement,
-            // TODO(scheglov) Avoid cast.
+            // TODO(scheglov): Avoid cast.
             interfaceElement.augmented!.declaration as InterfaceElementImpl,
             constructorElement,
           );

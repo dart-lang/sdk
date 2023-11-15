@@ -345,7 +345,7 @@ abstract class SomeUnitElementResult {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 ///
-/// TODO(scheglov) Stop implementing [FileResult].
+// TODO(scheglov): Stop implementing [FileResult].
 abstract class UnitElementResult implements SomeUnitElementResult, FileResult {
   /// The element of the file.
   CompilationUnitElement get element;

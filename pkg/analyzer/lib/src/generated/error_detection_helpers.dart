@@ -186,7 +186,7 @@ mixin ErrorDetectionHelpers {
           messages);
     }
 
-    // TODO(brianwilkerson) Define a hint corresponding to these errors and
+    // TODO(brianwilkerson): Define a hint corresponding to these errors and
     // report it if appropriate.
 //        // test the propagated type of the expression
 //        Type propagatedType = expression.getPropagatedType();

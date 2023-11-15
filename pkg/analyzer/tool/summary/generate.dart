@@ -877,7 +877,8 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
     out();
     // Standard flatbuffers only support one root type.  We support multiple
     // root types.  For now work around this by forcing PackageBundle to be the
-    // root type.  TODO(paulberry): come up with a better solution.
+    // root type.
+    // TODO(paulberry): come up with a better solution.
     final rootType = _idl.classes['AnalysisDriverResolvedUnit']!;
     out('root_type ${rootType.name};');
     var rootFileIdentifier = rootType.fileIdentifier;

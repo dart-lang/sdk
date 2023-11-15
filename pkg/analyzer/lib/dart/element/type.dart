@@ -253,7 +253,7 @@ abstract class FunctionType implements DartType {
   /// The formal type parameters of this generic function.
   /// For example `<T> T -> T`.
   ///
-  /// TODO(scheglov) Remove the mention for "typeParameters".
+  // TODO(scheglov): Remove the mention for "typeParameters".
   /// These are distinct from the `typeParameters` list, which contains type
   /// parameters from surrounding contexts, and thus are free type variables
   /// from the perspective of this function type.

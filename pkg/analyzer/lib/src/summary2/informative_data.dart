@@ -48,7 +48,7 @@ class ApplyConstantOffsets {
       );
       function.call(applier);
       // Clear the references to possible closure data.
-      // TODO(scheglov) We want to null the whole `linkedData` instead.
+      // TODO(scheglov): We want to null the whole `linkedData` instead.
       _offsets = null;
       _function = null;
     }
@@ -870,7 +870,8 @@ class _InfoClassDeclaration {
   factory _InfoClassDeclaration(
       InfoDeclarationStore cache, SummaryDataReader reader,
       {int nameOffsetDelta = 0}) {
-    // TODO(jensj/scheglov): Possibly we could just save the bytes and the
+    // TODO(scheglov): Shared below.
+    // TODO(jensj): Possibly we could just save the bytes and the
     // offset and then only read it when/if needed.
     // See https://dart-review.googlesource.com/c/sdk/+/318940.
     final initialOffset = reader.offset;
@@ -1660,7 +1661,7 @@ class _InformativeDataWriter {
     sink.writeUInt30(node.name.offset);
     _writeDocumentationComment(node);
 
-    // TODO(scheglov) Replace with some kind of double-iterating list.
+    // TODO(scheglov): Replace with some kind of double-iterating list.
     var declaration = node.parent!.parent as FieldDeclaration;
 
     _writeOffsets(
@@ -1881,7 +1882,7 @@ class _InformativeDataWriter {
     sink.writeUInt30(node.name.offset);
     _writeDocumentationComment(node);
 
-    // TODO(scheglov) Replace with some kind of double-iterating list.
+    // TODO(scheglov): Replace with some kind of double-iterating list.
     var declaration = node.parent!.parent as TopLevelVariableDeclaration;
 
     _writeOffsets(

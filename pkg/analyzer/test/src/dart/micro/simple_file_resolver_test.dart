@@ -1876,7 +1876,7 @@ void f(int? a) {}
   }
 
   test_part_notInLibrary_libraryDoesNotExist() async {
-    // TODO(scheglov) Should report CompileTimeErrorCode.URI_DOES_NOT_EXIST
+    // TODO(scheglov): Should report CompileTimeErrorCode.URI_DOES_NOT_EXIST
     await assertNoErrorsInCode(r'''
 part of 'a.dart';
 ''');
@@ -2381,7 +2381,7 @@ void f(A a) {}
 
     // We started resolution from the library, and then followed to the part.
     // So, the part knows its library, there is no need to discover it.
-    // TODO(scheglov) Use textual dump
+    // TODO(scheglov): Use textual dump
     // _assertDiscoveredLibraryForParts([]);
   }
 
@@ -2405,7 +2405,7 @@ void func() {
 }
 ''');
 
-    // TODO(scheglov) Use textual dump
+    // TODO(scheglov): Use textual dump
     final fsState = fileResolver.fsState!;
     final testState = fsState.getExisting(testFile)!;
     final testKind = testState.kind as PartFileKind;
@@ -2430,7 +2430,7 @@ void func() {
 }
 ''');
 
-    // TODO(scheglov) Use textual dump
+    // TODO(scheglov): Use textual dump
     final fsState = fileResolver.fsState!;
     final testState = fsState.getExisting(testFile)!;
     final testKind = testState.kind as PartFileKind;

@@ -102,7 +102,7 @@ class LintDriver {
   Future<List<AnalysisErrorInfo>> analyze(Iterable<io.File> files) async {
     AnalysisEngine.instance.instrumentationService = StdInstrumentation();
 
-    // TODO(scheglov) Enforce normalized absolute paths in the config.
+    // TODO(scheglov): Enforce normalized absolute paths in the config.
     var packageConfigPath = options.packageConfigPath;
     packageConfigPath = _absoluteNormalizedPath.ifNotNull(packageConfigPath);
 

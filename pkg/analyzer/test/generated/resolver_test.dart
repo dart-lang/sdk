@@ -372,7 +372,7 @@ main() {
 
   @failingTest
   test_propagatedReturnType_functionExpression() async {
-    // TODO(scheglov) disabled because we don't resolve function expression
+    // TODO(scheglov): disabled because we don't resolve function expression
     await resolveTestCode(r'''
 main() {
   var v = (() {return 42;})();

@@ -214,7 +214,7 @@ class LibraryContext {
         testData?.forCycle(cycle).getKeys.add(cycle.linkedKey);
         performance.getDataInt('bytesGet').add(linkedBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
-        // TODO(scheglov) Take / clear parsed units in files.
+        // TODO(scheglov): Take / clear parsed units in files.
         bytesGet += linkedBytes.length;
         librariesLoaded += cycle.libraries.length;
         final bundleReader = BundleReader(
@@ -352,7 +352,7 @@ class LibraryContext {
 class LibraryContextTestData {
   final FileSystemTestData fileSystemTestData;
 
-  /// TODO(scheglov) Use [libraryCycles] and textual dumps for the driver too.
+  // TODO(scheglov): Use [libraryCycles] and textual dumps for the driver too.
   final List<Set<String>> linkedCycles = [];
 
   /// Keys: the sorted list of library files.

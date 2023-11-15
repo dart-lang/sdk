@@ -322,7 +322,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// error listener that will be informed of any errors that are found during
   /// resolution.
   ///
-  /// TODO(paulberry): make [featureSet] a required parameter (this will be a
+  // TODO(paulberry): make [featureSet] a required parameter (this will be a
   /// breaking change).
   ResolverVisitor(
       InheritanceManager3 inheritanceManager,
@@ -583,7 +583,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return;
     }
 
-    // TODO(scheglov) encapsulate
+    // TODO(scheglov): encapsulate
     var bodyContext = BodyInferenceContext.of(body);
     if (bodyContext == null) {
       return;
@@ -1345,7 +1345,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// @param allowPrecisionLoss see @{code overrideVariable} docs
   void overrideExpression(Expression expression, DartType potentialType,
       bool allowPrecisionLoss, bool setExpressionType) {
-    // TODO(brianwilkerson) Remove this method.
+    // TODO(brianwilkerson): Remove this method.
   }
 
   /// Examines the top entry of [_rewriteStack] but does not pop it.
@@ -1525,7 +1525,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       final prefix = node.prefix;
       prefix.accept(this);
 
-      // TODO(scheglov) It would be nice to rewrite all such cases.
+      // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefix.staticType is RecordType) {
         final propertyAccess = PropertyAccessImpl(
           target: prefix,
@@ -3668,7 +3668,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.body.accept(this);
     flowAnalysis.flow?.whileStatement_end();
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
-    // TODO(brianwilkerson) If the loop can only be exited because the condition
+    // TODO(brianwilkerson): If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);
   }
 
@@ -4209,7 +4209,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
 /// Instances of the class `ScopeResolverVisitor` are used to resolve
 /// [SimpleIdentifier]s to declarations using scoping rules.
 ///
-/// TODO(paulberry): migrate the responsibility for all scope resolution into
+// TODO(paulberry): migrate the responsibility for all scope resolution into
 /// this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   static const _nameScopeProperty = 'nameScope';
@@ -4595,7 +4595,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// the normal call to the inherited visit method so that ResolverVisitor can
   /// intervene when type propagation is enabled.
   void visitForElementInScope(ForElement node) {
-    // TODO(brianwilkerson) Investigate the possibility of removing the
+    // TODO(brianwilkerson): Investigate the possibility of removing the
     //  visit...InScope methods now that type propagation is no longer done.
     node.forLoopParts.accept(this);
     node.body.accept(this);
@@ -4648,7 +4648,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// the normal call to the inherited visit method so that ResolverVisitor can
   /// intervene when type propagation is enabled.
   void visitForStatementInScope(ForStatement node) {
-    // TODO(brianwilkerson) Investigate the possibility of removing the
+    // TODO(brianwilkerson): Investigate the possibility of removing the
     //  visit...InScope methods now that type propagation is no longer done.
     node.forLoopParts.accept(this);
     visitStatementInScope(node.body);

@@ -187,7 +187,7 @@ issue_tracker: https://github.com/dart-lang/linter/issues
 //        verify(mock.visitPackageVersion(any)).called(1);
 //      });
 //    });
-    // TODO(brianwilkerson) Rewrite this to use a memory resource provider.
+    // TODO(brianwilkerson): Rewrite this to use a memory resource provider.
 //    group('initialization', () {
 //      test('sourceUrl', () {
 //        File ps = new File('test/_data/p1/_pubspec.yaml');

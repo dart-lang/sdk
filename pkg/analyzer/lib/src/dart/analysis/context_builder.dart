@@ -76,7 +76,7 @@ class ContextBuilderImpl implements ContextBuilder {
     MacroSupport? macroSupport,
     OwnedFiles? ownedFiles,
   }) {
-    // TODO(scheglov) Remove this, and make `sdkPath` required.
+    // TODO(scheglov): Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
     if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
@@ -110,7 +110,7 @@ class ContextBuilderImpl implements ContextBuilder {
       sdkSummaryPath: sdkSummaryPath,
     );
 
-    // TODO(scheglov) Ensure that "librarySummaryPaths" not null only
+    // TODO(scheglov): Ensure that "librarySummaryPaths" not null only
     // when "sdkSummaryPath" is not null.
     if (sdk is SummaryBasedDartSdk) {
       summaryData?.addBundle(null, sdk.bundle);
@@ -167,7 +167,7 @@ class ContextBuilderImpl implements ContextBuilder {
 
   /// Return [Packages] to analyze the [contextRoot].
   ///
-  /// TODO(scheglov) Get [Packages] from [Workspace]?
+  // TODO(scheglov): Get [Packages] from [Workspace]?
   Packages _createPackageMap({
     required ContextRoot contextRoot,
   }) {
@@ -199,7 +199,7 @@ class ContextBuilderImpl implements ContextBuilder {
     );
 
     {
-      // TODO(scheglov) We already had partial SourceFactory in ContextLocatorImpl.
+      // TODO(scheglov): We already had partial SourceFactory in ContextLocatorImpl.
       var partialSourceFactory = workspace.createSourceFactory(null, null);
       var embedderYamlSource = partialSourceFactory.forUri(
         'package:sky_engine/_embedder.yaml',
@@ -225,7 +225,7 @@ class ContextBuilderImpl implements ContextBuilder {
   /// Return the `pubspec.yaml` file that should be used when analyzing code in
   /// the [contextRoot], possibly `null`.
   ///
-  /// TODO(scheglov) Get it from [Workspace]?
+  // TODO(scheglov): Get it from [Workspace]?
   File? _findPubspecFile(ContextRoot contextRoot) {
     for (var current in contextRoot.root.withAncestors) {
       var file = current.getChildAssumingFile(file_paths.pubspecYaml);
@@ -239,7 +239,7 @@ class ContextBuilderImpl implements ContextBuilder {
   /// Return the analysis options that should be used to analyze code in the
   /// [contextRoot].
   ///
-  /// TODO(scheglov) We have already loaded it once in [ContextLocatorImpl].
+  // TODO(scheglov): We have already loaded it once in [ContextLocatorImpl].
   AnalysisOptionsImpl _getAnalysisOptions(
     ContextRoot contextRoot,
     SourceFactory sourceFactory,

@@ -1101,7 +1101,7 @@ f() {
           messageContains: ["The constructor 'A.named'"]),
     ]);
 
-    // TODO(scheglov) Move type arguments
+    // TODO(scheglov): Move type arguments
     var node = findNode.instanceCreation('named<int, String>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
@@ -1161,7 +1161,7 @@ f() {
           messageContains: ["The constructor 'A.new'"]),
     ]);
 
-    // TODO(scheglov) Move type arguments
+    // TODO(scheglov): Move type arguments
     var node = findNode.instanceCreation('new<int, String>(0);');
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression

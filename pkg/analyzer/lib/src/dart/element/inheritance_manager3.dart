@@ -508,7 +508,7 @@ class InheritanceManager3 {
       superImplemented.add(implemented);
     }
 
-    // TODO(scheglov) Handling of members for super and mixins is not
+    // TODO(scheglov): Handling of members for super and mixins is not
     // optimal. We always have just one member for each name in super,
     // multiple candidates happen only when we merge super and multiple
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
@@ -651,7 +651,7 @@ class InheritanceManager3 {
       }
     }
 
-    /// TODO(scheglov) Instead of merging conflicts we could report them on
+    // TODO(scheglov): Instead of merging conflicts we could report them on
     /// the corresponding mixins applied in the class.
     for (var mixinConflicts in mixinsConflicts) {
       if (mixinConflicts.isNotEmpty) {

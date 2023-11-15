@@ -154,7 +154,7 @@ class _LintConfig implements LintConfig {
               // style_guide: {unnecessary_getters: false, camel_case_types: true}
               if (value is YamlMap) {
                 value.nodes.cast<Object, YamlNode>().forEach((rule, args) {
-                  // TODO: verify format
+                  // TODO(brianwilkerson): verify format
                   // unnecessary_getters: false
                   var config = _RuleConfig();
                   config.group = asString(key);
