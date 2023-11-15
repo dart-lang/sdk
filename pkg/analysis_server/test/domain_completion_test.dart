@@ -1881,12 +1881,12 @@ suggestions
     kind: topLevelVariable
     isNotImported: null
     libraryUri: null
-    relevance: 504
+    relevance: 503
   fooAB
     kind: topLevelVariable
     isNotImported: null
     libraryUri: null
-    relevance: 504
+    relevance: 503
 ''');
   }
 
@@ -1914,12 +1914,12 @@ suggestions
     kind: topLevelVariable
     isNotImported: null
     libraryUri: null
-    relevance: 565
+    relevance: 558
   foo01
     kind: topLevelVariable
     isNotImported: null
     libraryUri: null
-    relevance: 511
+    relevance: 510
 ''');
   }
 

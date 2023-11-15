@@ -1367,7 +1367,8 @@ class SuggestionBuilder {
         isNotImported: isNotImported,
         keyword: keyword,
         startsWithDollar: startsWithDollar,
-        superMatches: superMatches);
+        superMatches: superMatches,
+        localVariableDistance: localVariableDistance);
     var relevance = toRelevance(score);
     listener?.computedFeatures(
       contextType: contextType,
