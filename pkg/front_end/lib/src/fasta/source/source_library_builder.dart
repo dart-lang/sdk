@@ -3057,9 +3057,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     AbstractSourceConstructorBuilder constructorBuilder;
 
     if (currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.inlineClassDeclaration ||
-        currentTypeParameterScopeBuilder.kind ==
-            TypeParameterScopeKind.extensionTypeDeclaration) {
+        TypeParameterScopeKind.extensionTypeDeclaration) {
       constructorBuilder = new SourceExtensionTypeConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
@@ -5444,7 +5442,6 @@ enum TypeParameterScopeKind {
   extensionOrExtensionTypeDeclaration,
   extensionDeclaration,
   extensionTypeDeclaration,
-  inlineClassDeclaration,
   typedef,
   staticMethod,
   instanceMethod,
@@ -5469,7 +5466,6 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.namedMixinApplication:
       case TypeParameterScopeKind.enumDeclaration:
       case TypeParameterScopeKind.extensionTypeDeclaration:
-      case TypeParameterScopeKind.inlineClassDeclaration:
         return new ClassName(name);
       case TypeParameterScopeKind.extensionDeclaration:
         return extensionName;
@@ -5500,7 +5496,6 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.extensionDeclaration:
         return ContainerType.Extension;
       case TypeParameterScopeKind.extensionTypeDeclaration:
-      case TypeParameterScopeKind.inlineClassDeclaration:
         return ContainerType.ExtensionType;
       case TypeParameterScopeKind.typedef:
       case TypeParameterScopeKind.staticMethod:
@@ -5652,18 +5647,6 @@ class TypeParameterScopeBuilder {
     assert(_kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
         "Unexpected declaration kind: $_kind");
     _kind = TypeParameterScopeKind.extensionTypeDeclaration;
-    _name = name;
-    _charOffset = charOffset;
-    _typeVariables = typeVariables;
-  }
-
-  /// Registers that this builder is preparing for an inline class declaration
-  /// with the given [name] and [typeVariables] located [charOffset].
-  void markAsInlineClassDeclaration(String name, int charOffset,
-      List<NominalVariableBuilder>? typeVariables) {
-    assert(_kind == TypeParameterScopeKind.classOrNamedMixinApplication,
-        "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.inlineClassDeclaration;
     _name = name;
     _charOffset = charOffset;
     _typeVariables = typeVariables;

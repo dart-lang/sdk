@@ -73,12 +73,17 @@ static extension-type-member method ExtensionType4|constructor#(core::int it) �
   ;
 static extension-type-member method ExtensionType4|constructor#_#new#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
   return self::ExtensionType4|constructor#(it);
-static extension-type-member method ExtensionType4|constructor#constructor(core::int it) → self::ExtensionType4 /* = core::int */
-  ;
+static extension-type-member method ExtensionType4|constructor#constructor(core::int it) → self::ExtensionType4 /* = core::int */ {
+  lowered final self::ExtensionType4 /* = core::int */ #this = it;
+  return #this;
+}
 static extension-type-member method ExtensionType4|constructor#_#constructor#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
   return self::ExtensionType4|constructor#constructor(it);
-static extension-type-member method ExtensionType4|constructor#redirect(core::int it) → self::ExtensionType4 /* = core::int */
-  ;
+static extension-type-member method ExtensionType4|constructor#redirect(core::int it) → self::ExtensionType4 /* = core::int */ {
+  lowered final self::ExtensionType4 /* = core::int */ #this;
+  #this = self::ExtensionType4|constructor#(it);
+  return #this;
+}
 static extension-type-member method ExtensionType4|constructor#_#redirect#tearOff(core::int it) → self::ExtensionType4 /* = core::int */
   return self::ExtensionType4|constructor#redirect(it);
 static extension-type-member method ExtensionType4|constructor#fact(core::int it) → self::ExtensionType4 /* = core::int */

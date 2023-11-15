@@ -4,23 +4,20 @@
 
 import 'dart:io' show Directory, Platform;
 
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualData, Id;
+import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:_fe_analyzer_shared/src/testing/features.dart';
-import 'package:_fe_analyzer_shared/src/testing/id.dart';
-import 'package:_fe_analyzer_shared/src/testing/id_testing.dart'
-    show DataInterpreter, runTests;
+import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/dart_scope_calculator.dart';
 
-import '../id_testing_helper.dart';
-
 Future<void> main(List<String> args) async {
-  var dataDir = Directory.fromUri(
-      Platform.script.resolve('../../../front_end/test/scopes/data'));
+  Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
   await runTests<Features>(dataDir,
       args: args,
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
-      runTest: runTestFor(const ScopeDataComputer(), [defaultDdcConfig]));
+      runTest: runTestFor(const ScopeDataComputer(), [defaultCfeConfig]));
 }
 
 class Tags {
@@ -31,15 +28,15 @@ class Tags {
   static const String variables = 'variables';
 }
 
-class ScopeDataComputer extends DdcDataComputer<Features> {
+class ScopeDataComputer extends CfeDataComputer<Features> {
   const ScopeDataComputer();
 
   @override
-  void computeMemberData(DdcTestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
-    member.accept(ScopeDataExtractor(
-        member.enclosingLibrary, testResultData.compilerResult, actualMap));
+    member.accept(ScopeDataExtractor(member.enclosingLibrary,
+        member.enclosingClass, testResultData.compilerResult, actualMap));
   }
 
   @override
@@ -47,24 +44,28 @@ class ScopeDataComputer extends DdcDataComputer<Features> {
       const FeaturesDataInterpreter();
 }
 
-class ScopeDataExtractor extends DdcDataExtractor<Features> {
+class ScopeDataExtractor extends CfeDataExtractor<Features> {
   final Library library;
+  final Class? cls;
 
-  ScopeDataExtractor(this.library, super.compilerResult, super.actualMap);
+  ScopeDataExtractor(
+      this.library, this.cls, super.compilerResult, super.actualMap);
 
-  Component get component => compilerResult.ddcResult.component;
+  Component get component => compilerResult.component!;
 
   @override
   Features? computeNodeValue(Id id, TreeNode node) {
     // We use references to a static variable 'x' as the marker for where we
     // want to compute the scope.
     if (node is StaticGet && node.target.name.text == 'x') {
-      var location = node.location;
+      Location? location = node.location;
       if (location != null) {
-        var scope = DartScopeBuilder.findScope(
-            component, library, location.line, location.column);
-        if (scope != null) {
-          var features = Features();
+        List<DartScope> scopes = DartScopeBuilder2.findScopeFromOffsetAndClass(
+            library, location.file, cls, node.fileOffset);
+        if (scopes.isNotEmpty) {
+          // TODO(johnniwinther,jensj): Support more than one scope.
+          DartScope scope = scopes.first;
+          Features features = Features();
           if (scope.cls != null) {
             features[Tags.cls] = scope.cls!.name;
           }
@@ -74,10 +75,10 @@ class ScopeDataExtractor extends DdcDataExtractor<Features> {
           if (scope.isStatic) {
             features.add(Tags.isStatic);
           }
-          for (var typeParameter in scope.typeParameters) {
+          for (TypeParameter typeParameter in scope.typeParameters) {
             features.addElement(Tags.typeParameter, typeParameter.name!);
           }
-          for (var variable in scope.definitions.keys) {
+          for (String variable in scope.definitions.keys) {
             features.addElement(Tags.variables, variable);
           }
           return features;

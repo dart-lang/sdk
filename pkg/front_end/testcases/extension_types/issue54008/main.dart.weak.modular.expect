@@ -1,0 +1,142 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+extension type SameString(core::String s) {
+  abstract extension-type-member representation-field get s() → core::String;
+  constructor • = self::SameString|constructor#;
+  constructor tearoff • = self::SameString|constructor#_#new#tearOff;
+  constructor named = self::SameString|constructor#named;
+  constructor tearoff named = self::SameString|constructor#_#named#tearOff;
+}
+extension type SameNullable(core::String? s) {
+  abstract extension-type-member representation-field get s() → core::String?;
+  constructor • = self::SameNullable|constructor#;
+  constructor tearoff • = self::SameNullable|constructor#_#new#tearOff;
+}
+extension type SameGeneric<T extends core::Object? = dynamic>(T% s) {
+  abstract extension-type-member representation-field get s() → T%;
+  constructor • = self::SameGeneric|constructor#;
+  constructor tearoff • = self::SameGeneric|constructor#_#new#tearOff;
+}
+static const field self::SameString /* = core::String */ sameString0 = #C1;
+static const field self::SameString /* = core::String */ sameString1 = #C2;
+static const field self::SameNullable /* = core::String? */ sameNullable0 = #C3;
+static const field self::SameNullable /* = core::String? */ sameNullable1 = #C1;
+static const field self::SameGeneric<core::String>% /* = core::String */ sameGeneric0 = #C1;
+static const field self::SameGeneric<core::String?>% /* = core::String? */ sameGeneric1 = #C3;
+static const field self::SameGeneric<core::String?>% /* = core::String? */ sameGeneric2 = #C1;
+static const field #lib1::ExtString /* = core::String */ valString0 = #C1;
+static const field #lib1::ExtString /* = core::String */ valString1 = #C2;
+static const field #lib1::ExtNullable /* = core::String? */ valNullable0 = #C3;
+static const field #lib1::ExtNullable /* = core::String? */ valNullable1 = #C1;
+static const field #lib1::ExtGeneric<core::String>% /* = core::String */ valGeneric0 = #C1;
+static const field #lib1::ExtGeneric<core::String?>% /* = core::String? */ valGeneric1 = #C3;
+static const field #lib1::ExtGeneric<core::String?>% /* = core::String? */ valGeneric2 = #C1;
+static extension-type-member method SameString|constructor#(core::String s) → self::SameString /* = core::String */ {
+  lowered final self::SameString /* = core::String */ #this = s;
+  return #this;
+}
+static extension-type-member method SameString|constructor#_#new#tearOff(core::String s) → self::SameString /* = core::String */
+  return self::SameString|constructor#(s);
+static extension-type-member method SameString|constructor#named(core::String s) → self::SameString /* = core::String */ {
+  lowered final self::SameString /* = core::String */ #this = "${s} world";
+  return #this;
+}
+static extension-type-member method SameString|constructor#_#named#tearOff(core::String s) → self::SameString /* = core::String */
+  return self::SameString|constructor#named(s);
+static extension-type-member method SameNullable|constructor#(core::String? s) → self::SameNullable /* = core::String? */ {
+  lowered final self::SameNullable /* = core::String? */ #this = s;
+  return #this;
+}
+static extension-type-member method SameNullable|constructor#_#new#tearOff(core::String? s) → self::SameNullable /* = core::String? */
+  return self::SameNullable|constructor#(s);
+static extension-type-member method SameGeneric|constructor#<T extends core::Object? = dynamic>(self::SameGeneric|constructor#::T% s) → self::SameGeneric<self::SameGeneric|constructor#::T%> /* = self::SameGeneric|constructor#::T% */ {
+  lowered final self::SameGeneric<self::SameGeneric|constructor#::T%> /* = self::SameGeneric|constructor#::T% */ #this = s;
+  return #this;
+}
+static extension-type-member method SameGeneric|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::SameGeneric|constructor#_#new#tearOff::T% s) → self::SameGeneric<self::SameGeneric|constructor#_#new#tearOff::T%>% /* = self::SameGeneric|constructor#_#new#tearOff::T% */
+  return self::SameGeneric|constructor#<self::SameGeneric|constructor#_#new#tearOff::T%>(s);
+static method sameLibrary() → dynamic {
+  self::SameString /* = core::String */ x0 = #C1;
+  self::sameString("hello", x0);
+  self::SameString /* = core::String */ x1 = #C2;
+  self::sameString("hello world", x1);
+  has-declared-initializer self::SameNullable /* = core::String? */ y0 = #C3;
+  self::sameNullable(null, y0);
+  self::SameNullable /* = core::String? */ y1 = #C1;
+  self::sameNullable("hello", y1);
+  self::SameGeneric<core::String> /* = core::String */ z0 = #C1;
+  self::sameGeneric<core::String>("hello", z0);
+  has-declared-initializer self::SameGeneric<core::String?> /* = core::String? */ z1 = #C3;
+  self::sameGeneric<core::String?>(null, z1);
+  self::SameGeneric<core::String?> /* = core::String? */ z2 = #C1;
+  self::sameGeneric<core::String?>("hello", z2);
+}
+static method sameString(dynamic expected, self::SameString /* = core::String */ es) → void {
+  self::expect(expected, es);
+}
+static method sameNullable(dynamic expected, self::SameNullable /* = core::String? */ es) → void {
+  self::expect(expected, es);
+}
+static method sameGeneric<T extends core::Object? = dynamic>(dynamic expected, self::SameGeneric<self::sameGeneric::T%> /* = self::sameGeneric::T% */ es) → void {
+  self::expect(expected, es);
+}
+static method otherLibrary() → dynamic {
+  #lib1::ExtString /* = core::String */ x0 = #C1;
+  self::extString("hello", x0);
+  #lib1::ExtString /* = core::String */ x1 = #C2;
+  self::extString("hello world", x1);
+  has-declared-initializer #lib1::ExtNullable /* = core::String? */ y0 = #C3;
+  self::extNullable(null, y0);
+  #lib1::ExtNullable /* = core::String? */ y1 = #C1;
+  self::extNullable("hello", y1);
+  #lib1::ExtGeneric<core::String> /* = core::String */ z0 = #C1;
+  self::extGeneric<core::String>("hello", z0);
+  has-declared-initializer #lib1::ExtGeneric<core::String?> /* = core::String? */ z1 = #C3;
+  self::extGeneric<core::String?>(null, z1);
+  #lib1::ExtGeneric<core::String?> /* = core::String? */ z2 = #C1;
+  self::extGeneric<core::String?>("hello", z2);
+}
+static method imported() → dynamic {
+  #lib1::ExtString /* = core::String */ x0 = #C1;
+  self::extString("hello", x0);
+  #lib1::ExtString /* = core::String */ x1 = #C2;
+  self::extString("hello world", x1);
+  has-declared-initializer #lib1::ExtNullable /* = core::String? */ y0 = #C3;
+  self::extNullable(null, y0);
+  #lib1::ExtNullable /* = core::String? */ y1 = #C1;
+  self::extNullable("hello", y1);
+  #lib1::ExtGeneric<core::String> /* = core::String */ z0 = #C1;
+  self::extGeneric<core::String>("hello", z0);
+  has-declared-initializer #lib1::ExtGeneric<core::String?> /* = core::String? */ z1 = #C3;
+  self::extGeneric<core::String?>(null, z1);
+  #lib1::ExtGeneric<core::String?> /* = core::String? */ z2 = #C1;
+  self::extGeneric<core::String?>("hello", z2);
+}
+static method extString(dynamic expected, #lib1::ExtString /* = core::String */ es) → void {
+  self::expect(expected, es);
+}
+static method extNullable(dynamic expected, #lib1::ExtNullable /* = core::String? */ es) → void {
+  self::expect(expected, es);
+}
+static method extGeneric<T extends core::Object? = dynamic>(dynamic expected, #lib1::ExtGeneric<self::extGeneric::T%> /* = self::extGeneric::T% */ es) → void {
+  self::expect(expected, es);
+}
+static method main() → dynamic {
+  self::sameLibrary();
+  self::otherLibrary();
+  self::imported();
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = "hello"
+  #C2 = "hello world"
+  #C3 = null
+}

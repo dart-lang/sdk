@@ -15,8 +15,10 @@ extension type Class(core::int i) {
   static redirecting-factory redirect2 = self::Class|constructor#redirect2;
   static redirecting-factory tearoff redirect2 = self::Class|constructor#_#redirect2#tearOff;
 }
-static extension-type-member method Class|constructor#(core::int i) → self::Class /* = core::int */
-  ;
+static extension-type-member method Class|constructor#(core::int i) → self::Class /* = core::int */ {
+  lowered final self::Class /* = core::int */ #this = i;
+  return #this;
+}
 static extension-type-member method Class|constructor#_#new#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|constructor#(i);
 static extension-type-member method Class|constructor#named(core::int i) → self::Class /* = core::int */

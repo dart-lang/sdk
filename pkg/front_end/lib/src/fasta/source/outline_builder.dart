@@ -2215,13 +2215,29 @@ class OutlineBuilder extends StackListenerImpl {
     }
     bool isStatic = (modifiers & staticMask) != 0;
     bool isConstructor = constructorName != null;
-    if (!isStatic &&
-        (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-                TypeParameterScopeKind.extensionDeclaration ||
-            libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-                TypeParameterScopeKind.inlineClassDeclaration ||
-            libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-                TypeParameterScopeKind.extensionTypeDeclaration)) {
+    bool cloneTypeVariablesFromEnclosingDeclaration;
+    switch (libraryBuilder.currentTypeParameterScopeBuilder.kind) {
+      case TypeParameterScopeKind.extensionDeclaration:
+      case TypeParameterScopeKind.extensionTypeDeclaration:
+        cloneTypeVariablesFromEnclosingDeclaration = !isStatic;
+      case TypeParameterScopeKind.library:
+      case TypeParameterScopeKind.classOrNamedMixinApplication:
+      case TypeParameterScopeKind.classDeclaration:
+      case TypeParameterScopeKind.mixinDeclaration:
+      case TypeParameterScopeKind.unnamedMixinApplication:
+      case TypeParameterScopeKind.namedMixinApplication:
+      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
+      case TypeParameterScopeKind.typedef:
+      case TypeParameterScopeKind.staticMethod:
+      case TypeParameterScopeKind.instanceMethod:
+      case TypeParameterScopeKind.constructor:
+      case TypeParameterScopeKind.topLevelMethod:
+      case TypeParameterScopeKind.factoryMethod:
+      case TypeParameterScopeKind.functionType:
+      case TypeParameterScopeKind.enumDeclaration:
+        cloneTypeVariablesFromEnclosingDeclaration = false;
+    }
+    if (cloneTypeVariablesFromEnclosingDeclaration) {
       TypeParameterScopeBuilder declaration =
           libraryBuilder.currentTypeParameterScopeBuilder;
       Map<NominalVariableBuilder, TypeBuilder>? substitution;

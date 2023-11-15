@@ -16,7 +16,6 @@ analyzer:
     - node_modules/**
     - test/codegen/**
     - test/samples/**
-    - test/scopes/data/**
     - test/transformer/hello_app/**
 
 linter:
