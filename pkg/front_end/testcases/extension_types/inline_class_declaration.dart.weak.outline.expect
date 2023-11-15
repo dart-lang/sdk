@@ -20,7 +20,7 @@ static extension-type-member method Class1|constructor#_#new#tearOff(core::int i
   return self::Class1|constructor#(it);
 static extension-type-member method Class3|constructor#<T extends core::Object? = dynamic>(core::List<self::Class3|constructor#::T%> it) → self::Class3<self::Class3|constructor#::T%> /* = core::List<self::Class3|constructor#::T%> */
   ;
-static extension-type-member method Class3|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::Class3|constructor#_#new#tearOff::T%> it) → self::Class3<self::Class3|constructor#_#new#tearOff::T%> /* = core::List<self::Class3|constructor#_#new#tearOff::T%> */
+static extension-type-member method Class3|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::Class3|constructor#_#new#tearOff::T%> it) → self::Class3<self::Class3|constructor#_#new#tearOff::T%>% /* = core::List<self::Class3|constructor#_#new#tearOff::T%> */
   return self::Class3|constructor#<self::Class3|constructor#_#new#tearOff::T%>(it);
 static method method(self::Class1 /* = core::int */ c1, self::Class3<core::int> /* = core::List<core::int> */ c3) → dynamic
   ;

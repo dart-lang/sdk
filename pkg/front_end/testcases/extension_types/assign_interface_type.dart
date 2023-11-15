@@ -8,7 +8,9 @@ class B extends A {}
 
 extension type C(Object? o) {}
 
-extension type D(Object o) {}
+extension type D(Object o) implements Object {}
+
+extension type D2(Object o) {}
 
 extension type E(B it) implements A {}
 
@@ -16,26 +18,32 @@ extension type F(B it) implements E, B {}
 
 extension type G<T>(T o) {}
 
-test<T1, T2 extends A>(
+extension type G2<T extends Object>(T o) implements Object {}
+
+test<T1, T2 extends A, T3 extends Object>(
     Object o,
     A a,
     B b,
     C c,
     D d,
+    D2 d2,
     E e,
     F f,
     G<T1> g1,
-    G<T2> g2) {
+    G<T2> g2,
+    G2<T3> g3) {
 
   o = o; // Ok
   o = a; // Ok
   o = b; // Ok
   o = c; // Error
   o = d; // Ok
+  o = d2; // Error
   o = e; // Ok
   o = f; // Ok
   o = g1; // Error
-  o = g2; // Ok
+  o = g2; // Error
+  o = g3; // Ok
 
   a = o; // Error
   a = a; // Ok

@@ -12,7 +12,7 @@ static extension-type-member method E|constructor#<T extends core::Object? = dyn
   lowered final self::E<self::E|constructor#::T%> /* =({required t: self::E|constructor#::T%}) */ #this = it;
   return #this;
 }
-static extension-type-member method E|constructor#_#new#tearOff<T extends core::Object? = dynamic>(({required t: self::E|constructor#_#new#tearOff::T%}) it) → self::E<self::E|constructor#_#new#tearOff::T%> /* =({required t: self::E|constructor#_#new#tearOff::T%}) */
+static extension-type-member method E|constructor#_#new#tearOff<T extends core::Object? = dynamic>(({required t: self::E|constructor#_#new#tearOff::T%}) it) → self::E<self::E|constructor#_#new#tearOff::T%>% /* =({required t: self::E|constructor#_#new#tearOff::T%}) */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method E|get#t<T extends core::Object? = dynamic>(lowered final self::E<self::E|get#t::T%> /* =({required t: self::E|get#t::T%}) */ #this) → self::E|get#t::T%
   return (#this as{Unchecked} ({required t: self::E|get#t::T%})).t{self::E|get#t::T%};

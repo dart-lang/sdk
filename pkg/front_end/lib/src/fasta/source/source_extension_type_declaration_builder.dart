@@ -47,7 +47,6 @@ class SourceExtensionTypeDeclarationBuilder
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
-  bool _builtRepresentationTypeAndName = false;
 
   SourceExtensionTypeDeclarationBuilder? _origin;
   SourceExtensionTypeDeclarationBuilder? patchForTesting;
@@ -255,19 +254,6 @@ class SourceExtensionTypeDeclarationBuilder
       }
     }
 
-    buildRepresentationTypeAndName();
-    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
-
-    return _extensionTypeDeclaration;
-  }
-
-  @override
-  void buildRepresentationTypeAndName() {
-    // We cut the potential infinite recursion here. The cyclic dependencies
-    // should be reported elsewhere.
-    if (_builtRepresentationTypeAndName) return;
-    _builtRepresentationTypeAndName = true;
-
     DartType representationType;
     String representationName;
     if (representationFieldBuilder != null) {
@@ -312,6 +298,9 @@ class SourceExtensionTypeDeclarationBuilder
     }
     _extensionTypeDeclaration.declaredRepresentationType = representationType;
     _extensionTypeDeclaration.representationName = representationName;
+    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
+
+    return _extensionTypeDeclaration;
   }
 
   bool _checkRepresentationDependency(

@@ -87,7 +87,7 @@ static extension-type-member method H|constructor#<T extends core::Object? = dyn
   lowered final self::H<self::H|constructor#::T%> /* = core::List<self::H|constructor#::T%> */ #this = h;
   return #this;
 }
-static extension-type-member method H|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::H|constructor#_#new#tearOff::T%> h) → self::H<self::H|constructor#_#new#tearOff::T%> /* = core::List<self::H|constructor#_#new#tearOff::T%> */
+static extension-type-member method H|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<self::H|constructor#_#new#tearOff::T%> h) → self::H<self::H|constructor#_#new#tearOff::T%>% /* = core::List<self::H|constructor#_#new#tearOff::T%> */
   return self::H|constructor#<self::H|constructor#_#new#tearOff::T%>(h);
 static method main() → dynamic {
   self::A /* = core::int */ a = self::A|constructor#(42);

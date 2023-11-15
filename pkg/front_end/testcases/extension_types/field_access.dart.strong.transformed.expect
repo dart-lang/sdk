@@ -383,7 +383,7 @@ static extension-type-member method FunctionInlineClass|constructor#<T extends c
   lowered final self::FunctionInlineClass<self::FunctionInlineClass|constructor#::T%> /* = () → self::FunctionInlineClass|constructor#::T% */ #this = it;
   return #this;
 }
-static extension-type-member method FunctionInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#_#new#tearOff::T%> /* = () → self::FunctionInlineClass|constructor#_#new#tearOff::T% */
+static extension-type-member method FunctionInlineClass|constructor#_#new#tearOff<T extends core::Object? = dynamic>(() → self::FunctionInlineClass|constructor#_#new#tearOff::T% it) → self::FunctionInlineClass<self::FunctionInlineClass|constructor#_#new#tearOff::T%>% /* = () → self::FunctionInlineClass|constructor#_#new#tearOff::T% */
   return self::FunctionInlineClass|constructor#<self::FunctionInlineClass|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method FunctionInlineClass|test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|test::T%> /* = () → self::FunctionInlineClass|test::T% */ #this, () → self::FunctionInlineClass|test::T% t) → void {
   () → self::FunctionInlineClass|test::T% a1 = #this as{Unchecked} () → self::FunctionInlineClass|test::T%;
@@ -409,7 +409,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   self::FunctionInlineClass|test::T% d3 = (#this as{Unchecked} () → self::FunctionInlineClass|test::T%)(){() → self::FunctionInlineClass|test::T%};
   self::FunctionInlineClass|test::T% d4 = (#this as{Unchecked} () → self::FunctionInlineClass|test::T%)(){() → self::FunctionInlineClass|test::T%};
 }
-static extension-type-member method FunctionInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|get#test::T%> /* = () → self::FunctionInlineClass|get#test::T% */ #this) → (() → self::FunctionInlineClass|get#test::T%) → void
+static extension-type-member method FunctionInlineClass|get#test<T extends core::Object? = dynamic>(lowered final self::FunctionInlineClass<self::FunctionInlineClass|get#test::T%>% /* = () → self::FunctionInlineClass|get#test::T% */ #this) → (() → self::FunctionInlineClass|get#test::T%) → void
   return (() → self::FunctionInlineClass|get#test::T% t) → void => self::FunctionInlineClass|test<self::FunctionInlineClass|get#test::T%>(#this, t);
 static extension-type-member method GenericFunctionInlineClass|constructor#(<T extends core::Object? = dynamic>() → T% it) → self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ {
   lowered final self::GenericFunctionInlineClass /* = <T extends core::Object? = dynamic>() → T% */ #this = it;

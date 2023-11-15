@@ -61,9 +61,9 @@ external static extension-type-member method B|set#field(lowered self::A #this, 
 external static extension-type-member method B|method(lowered final self::B /* = self::A */ #this) → self::A;
 static extension-type-member method B|get#method(lowered final self::B /* = self::A */ #this) → () → self::A
   return () → self::A => self::B|method(#this);
-external static extension-type-member method B|genericMethod<T extends self::B /* = self::A */>(lowered final self::B /* = self::A */ #this, self::B|genericMethod::T t) → self::B|genericMethod::T;
-static extension-type-member method B|get#genericMethod(lowered final self::B /* = self::A */ #this) → <T extends self::B /* = self::A */>(T) → T
-  return <T extends self::B /* = self::A */>(T t) → T => self::B|genericMethod<T>(#this, t);
+external static extension-type-member method B|genericMethod<T extends self::B /* = self::A */>(lowered final self::B /* = self::A */ #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%;
+static extension-type-member method B|get#genericMethod(lowered final self::B /* = self::A */ #this) → <T extends self::B /* = self::A */>(T%) → T%
+  return <T extends self::B /* = self::A */>(T% t) → T% => self::B|genericMethod<T%>(#this, t);
 external static extension-type-member method B|get#getter(lowered final self::B /* = self::A */ #this) → self::B /* = self::A */;
 external static extension-type-member method B|set#setter(lowered final self::B /* = self::A */ #this, self::B /* = self::A */ b) → void;
 external static extension-type-member method B|get#property(lowered final self::B /* = self::A */ #this) → self::B /* = self::A */;
@@ -71,7 +71,7 @@ external static extension-type-member method B|set#property(lowered final self::
 external static extension-type-member get B|staticField() → self::A;
 external static extension-type-member set B|staticField(self::A #externalFieldValue) → void;
 external static extension-type-member method B|staticMethod() → self::A;
-external static extension-type-member method B|staticGenericMethod<T extends self::B /* = self::A */>(self::B|staticGenericMethod::T t) → self::B|staticGenericMethod::T;
+external static extension-type-member method B|staticGenericMethod<T extends self::B /* = self::A */>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%;
 external static extension-type-member get B|staticGetter() → self::B /* = self::A */;
 external static extension-type-member set B|staticSetter(self::B /* = self::A */ b) → void;
 external static extension-type-member get B|staticProperty() → self::B /* = self::A */;

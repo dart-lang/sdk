@@ -39,16 +39,18 @@ extension GenericExtension<Y> on ExtendedGenericClass<Y>;
 extension TopExtension on dynamic;
 extension GenericTopExtension<Z> on dynamic;
 class ExtendedSubclass extends ExtendedClass;
-extension type NullableExtensionType(Object? it);
-extension type NonNullableExtensionType(Object it);
-extension type GenericExtensionType<T>(T it);
-extension type GenericExtensionSubType<T>(T it) implements GenericExtensionType<T>;
-extension type NonNullableGenericExtensionType<T extends Object>(T it);
+extension type NullableExtensionType(Object it);
+extension type NonNullableExtensionType(Object it) implements Object;
+extension type PotentiallyNullableGenericExtensionType<T>(T it);
+extension type PotentiallyNullableGenericExtensionSubType<T>(T it) implements PotentiallyNullableGenericExtensionType<T>;
+extension type NonNullableGenericExtensionType<T extends Object>(T it) implements Object;
+extension type NonNullableGenericExtensionSubType<T extends Object>(T it) implements NonNullableGenericExtensionType<T>;
 class GenericClass<T>;
 extension type GenericExtensionTypeImplements<T>(GenericClass<T> it) implements GenericClass<T>;
 class SubGenericClass<T> extends GenericClass<T>;
 extension type GenericSubExtensionTypeImplements<T>(SubGenericClass<T> it) implements GenericExtensionTypeImplements<T>, SubGenericClass<T>;
-extension type NestedGenericExtensionType<T>(GenericExtensionType<T> it);
+extension type PotentiallyNullableNestedGenericExtensionType<T>(PotentiallyNullableGenericExtensionType<T> it);
+extension type NonNullableNestedGenericExtensionType<T extends Object>(NonNullableGenericExtensionType<T> it) implements Object;
 """;
 
 const String expectedSdk = """
@@ -116,21 +118,25 @@ extension TopExtension on dynamic {
 }
 extension GenericTopExtension<Z extends self::Object? = dynamic> on dynamic {
 }
-extension type NullableExtensionType(self::Object? it) {
+extension type NullableExtensionType(self::Object it) {
 }
-extension type NonNullableExtensionType(self::Object it) {
+extension type NonNullableExtensionType(self::Object it) implements self::Object {
 }
-extension type GenericExtensionType<T extends self::Object? = dynamic>(T% it) {
+extension type PotentiallyNullableGenericExtensionType<T extends self::Object? = dynamic>(T% it) {
 }
-extension type GenericExtensionSubType<T extends self::Object? = dynamic>(T% it) implements self::GenericExtensionType<T%> /* = T% */ {
+extension type PotentiallyNullableGenericExtensionSubType<T extends self::Object? = dynamic>(T% it) implements self::PotentiallyNullableGenericExtensionType<T%> /* = T% */ {
 }
-extension type NonNullableGenericExtensionType<T extends self::Object>(T it) {
+extension type NonNullableGenericExtensionType<T extends self::Object>(T it) implements self::Object {
+}
+extension type NonNullableGenericExtensionSubType<T extends self::Object>(T it) implements self::NonNullableGenericExtensionType<T> /* = T */ {
 }
 extension type GenericExtensionTypeImplements<T extends self::Object? = dynamic>(self::GenericClass<T%> it) implements self::GenericClass<T%> {
 }
 extension type GenericSubExtensionTypeImplements<T extends self::Object? = dynamic>(self::SubGenericClass<T%> it) implements self::GenericExtensionTypeImplements<T%> /* = self::GenericClass<T%> */, self::SubGenericClass<T%> {
 }
-extension type NestedGenericExtensionType<T extends self::Object? = dynamic>(self::GenericExtensionType<T%> /* = T% */ it) {
+extension type PotentiallyNullableNestedGenericExtensionType<T extends self::Object? = dynamic>(self::PotentiallyNullableGenericExtensionType<T%> /* = T% */ it) {
+}
+extension type NonNullableNestedGenericExtensionType<T extends self::Object>(self::NonNullableGenericExtensionType<T> /* = T */ it) implements self::Object {
 }
 """;
 

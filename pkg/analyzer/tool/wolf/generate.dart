@@ -73,14 +73,22 @@ class _Instructions {
         encoding('FunctionFlags', fieldName: '_flags', constructorName: '_');
     var literal = encoding('LiteralRef');
     var type = encoding('TypeRef');
+    const uint = _TrivialEncoding('int');
 
+    // Local variable access
+    _addInstruction('alloc', [uint('count')]);
+    _addInstruction('release', [uint('count')]);
+    _addInstruction('readLocal', [uint('localIndex')]);
+    _addInstruction('writeLocal', [uint('localIndex')]);
     // Primitive operations
     _addInstruction('literal', [literal('value')]);
     // Stack manipulation
     _addInstruction('drop', []);
+    _addInstruction('dup', []);
     // Flow control
     _addInstruction('function', [type('type'), functionFlags('flags')]);
     _addInstruction('end', []);
+    _addInstruction('br', [uint('nesting')]);
   }
 
   _NontrivialEncoding encoding(String type,
@@ -297,6 +305,19 @@ class _ParameterShape {
     }
     return true;
   }
+}
+
+class _TrivialEncoding extends _Encoding {
+  const _TrivialEncoding(super.type);
+
+  @override
+  String decode(String value) => value;
+
+  @override
+  String encode(String value) => value;
+
+  @override
+  String stringInterpolation(String value) => '\${$value}';
 }
 
 extension<T> on List<T> {

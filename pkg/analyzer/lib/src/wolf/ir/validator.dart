@@ -40,7 +40,9 @@ class ValidationError extends Error {
 base class ValidationEventListener {
   late _Validator? _validator;
 
-  int get valueStackDepth => _validator!.valueStackDepth;
+  int get localCount => _validator!.localCount;
+
+  ValueCount get valueStackDepth => _validator!.valueStackDepth;
 
   /// Called for every iteration in the validation loop, just before visiting an
   /// instruction.
@@ -50,17 +52,65 @@ base class ValidationEventListener {
   void onAddress(int address) {}
 }
 
+/// A count of value entries.
+///
+/// The count may be [indeterminate], indicating that the current control flow
+/// state is unreachable, and so exact matching of value counts is unnecessary.
+///
+/// TODO(paulberry): when extension types are supported, make this an extension
+/// type.
+class ValueCount {
+  static const indeterminate = ValueCount._(-1);
+
+  final int _depth;
+
+  ValueCount(this._depth) : assert(_depth >= 0);
+
+  const ValueCount._(this._depth);
+
+  @override
+  int get hashCode => _depth.hashCode;
+
+  ValueCount operator +(int delta) {
+    assert(delta >= 0);
+    if (this == indeterminate) return indeterminate;
+    return ValueCount(_depth + delta);
+  }
+
+  ValueCount operator -(int delta) {
+    assert(delta >= 0);
+    if (this == indeterminate) return indeterminate;
+    return ValueCount(_depth - delta);
+  }
+
+  @override
+  bool operator ==(other) => other is ValueCount && _depth == other._depth;
+
+  bool indeterminateOrAtLeast(int other) =>
+      this == indeterminate || _depth >= other;
+
+  bool indeterminateOrEqualTo(int other) =>
+      this == indeterminate || _depth == other;
+
+  @override
+  String toString() => _depth.toString();
+}
+
 /// Used by [_Validator] to track a control flow instruction (`block`, `loop`,
 /// `tryCatch`, `tryFinally`, or `function` instruction) whose `matching `end`
 /// instruction has not yet been encountered.
 class _ControlFlowElement {
+  /// The state of [_Validator.localCount] before the control flow instruction
+  /// was encountered.
+  final int localCountBefore;
+
   /// The state of [_Validator.functionFlags] before the control flow
   /// instruction was encountered.
   final FunctionFlags functionFlagsBefore;
 
   /// The number of entries that will be in the value stack after the matching
   /// `end` instruction.
-  final int valueStackDepthAfter;
+  final ValueCount valueStackDepthAfter;
 
   /// The number of values that will be consumed from the value stack when the
   /// control flow construct is ended (or branched out of).
@@ -70,7 +120,8 @@ class _ControlFlowElement {
   final bool isFunction;
 
   _ControlFlowElement(
-      {required this.functionFlagsBefore,
+      {required this.localCountBefore,
+      required this.functionFlagsBefore,
       required this.valueStackDepthAfter,
       required this.branchValueCount,
       this.isFunction = false});
@@ -86,9 +137,20 @@ class _Validator {
   /// `end` instruction has not yet been encountered.
   var functionFlags = FunctionFlags();
 
-  var valueStackDepth = 0;
+  var localCount = 0;
+  var valueStackDepth = ValueCount(0);
 
   _Validator(this.ir, {required this.eventListener});
+
+  /// Validates a `br` or `brIf` instruction.
+  void branch(int nesting, {required bool conditional}) {
+    check(nesting >= 0, 'Negative branch nesting');
+    var target = controlFlowStack.length - 1 - nesting;
+    check(target >= 0, 'Control flow stack underflow');
+    var branchValueCount = controlFlowStack[target].branchValueCount;
+    popValues(branchValueCount);
+    valueStackDepth = ValueCount.indeterminate;
+  }
 
   /// Reports a validation error if [condition] is `false`.
   void check(bool condition, String message) {
@@ -108,13 +170,12 @@ class _Validator {
   }
 
   void popValues(int count) {
-    assert(count >= 0);
-    check(valueStackDepth >= count, 'Value stack underflow');
+    check(
+        valueStackDepth.indeterminateOrAtLeast(count), 'Value stack underflow');
     valueStackDepth -= count;
   }
 
   void pushValues(int count) {
-    assert(count >= 0);
     valueStackDepth += count;
   }
 
@@ -126,14 +187,26 @@ class _Validator {
       check(address != 0 || opcode == Opcode.function,
           'First instruction must be function');
       switch (opcode) {
+        case Opcode.alloc:
+          var count = Opcode.alloc.decodeCount(ir, address);
+          check(count >= 0, 'Negative alloc count');
+          localCount += count;
+        case Opcode.br:
+          var nesting = Opcode.br.decodeNesting(ir, address);
+          branch(nesting, conditional: false);
         case Opcode.drop:
           popValues(1);
+        case Opcode.dup:
+          popValues(1);
+          pushValues(2);
         case Opcode.end:
           check(controlFlowStack.isNotEmpty, 'Unmatched end');
           var controlFlowElement = controlFlowStack.removeLast();
+          check(localCount == controlFlowElement.localCountBefore,
+              'Unreleased locals');
           popValues(controlFlowElement.branchValueCount);
-          check(valueStackDepth == 0,
-              '$valueStackDepth superfluous value(s) remaining');
+          check(valueStackDepth.indeterminateOrEqualTo(0),
+              '${valueStackDepth._depth} superfluous value(s) remaining');
           valueStackDepth = controlFlowElement.valueStackDepthAfter;
           functionFlags = controlFlowElement.functionFlagsBefore;
         case Opcode.function:
@@ -142,15 +215,35 @@ class _Validator {
           check(!kind.isInstance || address == 0,
               'Instance function may only be used at instruction address 0');
           controlFlowStack.add(_ControlFlowElement(
+              localCountBefore: localCount,
               functionFlagsBefore: functionFlags,
               valueStackDepthAfter: valueStackDepth + 1,
               branchValueCount: 1,
               isFunction: true));
           functionFlags = kind;
           valueStackDepth =
-              ir.countParameters(type) + (kind.isInstance ? 1 : 0);
+              ValueCount(ir.countParameters(type) + (kind.isInstance ? 1 : 0));
         case Opcode.literal:
           pushValues(1);
+        case Opcode.readLocal:
+          var localIndex = Opcode.readLocal.decodeLocalIndex(ir, address);
+          check(localIndex >= 0, 'Negative local index');
+          check(localIndex < localCount, 'No such local');
+          pushValues(1);
+        case Opcode.release:
+          var count = Opcode.release.decodeCount(ir, address);
+          check(count >= 0, 'Negative release count');
+          var localCountFence =
+              controlFlowStack.lastOrNull?.localCountBefore ?? 0;
+          var newLocalCount = localCount - count;
+          check(newLocalCount >= localCountFence,
+              'Local variable stack underflow');
+          localCount = newLocalCount;
+        case Opcode.writeLocal:
+          var localIndex = Opcode.writeLocal.decodeLocalIndex(ir, address);
+          check(localIndex >= 0, 'Negative local index');
+          check(localIndex < localCount, 'No such local');
+          popValues(1);
         default:
           fail('Unexpected opcode ${opcode.describe()}');
       }

@@ -36,11 +36,11 @@ static extension-type-member method A|constructor#<T extends core::Object? = dyn
   lowered final self::A<self::A|constructor#::T%> /* = core::Object */ #this = it;
   return #this;
 }
-static extension-type-member method A|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Object it) → self::A<self::A|constructor#_#new#tearOff::T%> /* = core::Object */
+static extension-type-member method A|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::Object it) → self::A<self::A|constructor#_#new#tearOff::T%>% /* = core::Object */
   return self::A|constructor#<self::A|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method A|method<T extends core::Object? = dynamic>(lowered final self::A<self::A|method::T%> /* = core::Object */ #this) → self::A|method::T%
   return throw "";
-static extension-type-member method A|get#method<T extends core::Object? = dynamic>(lowered final self::A<self::A|get#method::T%> /* = core::Object */ #this) → () → self::A|get#method::T%
+static extension-type-member method A|get#method<T extends core::Object? = dynamic>(lowered final self::A<self::A|get#method::T%>% /* = core::Object */ #this) → () → self::A|get#method::T%
   return () → self::A|get#method::T% => self::A|method<self::A|get#method::T%>(#this);
 static extension-type-member method A|get#getter<T extends core::Object? = dynamic>(lowered final self::A<self::A|get#getter::T%> /* = core::Object */ #this) → self::A|get#getter::T%
   return throw "";
@@ -51,11 +51,11 @@ static extension-type-member method B|constructor#<S extends core::Object? = dyn
   lowered final self::B<self::B|constructor#::S%> /* = core::Object */ #this = it;
   return #this;
 }
-static extension-type-member method B|constructor#_#new#tearOff<S extends core::Object? = dynamic>(core::Object it) → self::B<self::B|constructor#_#new#tearOff::S%> /* = core::Object */
+static extension-type-member method B|constructor#_#new#tearOff<S extends core::Object? = dynamic>(core::Object it) → self::B<self::B|constructor#_#new#tearOff::S%>% /* = core::Object */
   return self::B|constructor#<self::B|constructor#_#new#tearOff::S%>(it);
 static extension-type-member method B|method2<S extends core::Object? = dynamic>(lowered final self::B<self::B|method2::S%> /* = core::Object */ #this) → self::B|method2::S%
   return self::A|method<self::B|method2::S%>(#this);
-static extension-type-member method B|get#method2<S extends core::Object? = dynamic>(lowered final self::B<self::B|get#method2::S%> /* = core::Object */ #this) → () → self::B|get#method2::S%
+static extension-type-member method B|get#method2<S extends core::Object? = dynamic>(lowered final self::B<self::B|get#method2::S%>% /* = core::Object */ #this) → () → self::B|get#method2::S%
   return () → self::B|get#method2::S% => self::B|method2<self::B|get#method2::S%>(#this);
 static extension-type-member method B|get#getter2<S extends core::Object? = dynamic>(lowered final self::B<self::B|get#getter2::S%> /* = core::Object */ #this) → self::B|get#getter2::S%
   return self::A|get#getter<self::B|get#getter2::S%>(#this);

@@ -10,7 +10,7 @@ extension type E<T extends core::Object? = dynamic>(({required t: T%}) it) {
 }
 static extension-type-member method E|constructor#<T extends core::Object? = dynamic>(({required t: self::E|constructor#::T%}) it) → self::E<self::E|constructor#::T%> /* =({required t: self::E|constructor#::T%}) */
   ;
-static extension-type-member method E|constructor#_#new#tearOff<T extends core::Object? = dynamic>(({required t: self::E|constructor#_#new#tearOff::T%}) it) → self::E<self::E|constructor#_#new#tearOff::T%> /* =({required t: self::E|constructor#_#new#tearOff::T%}) */
+static extension-type-member method E|constructor#_#new#tearOff<T extends core::Object? = dynamic>(({required t: self::E|constructor#_#new#tearOff::T%}) it) → self::E<self::E|constructor#_#new#tearOff::T%>% /* =({required t: self::E|constructor#_#new#tearOff::T%}) */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::T%>(it);
 static extension-type-member method E|get#t<T extends core::Object? = dynamic>(lowered final self::E<self::E|get#t::T%> /* =({required t: self::E|get#t::T%}) */ #this) → self::E|get#t::T%
   ;
