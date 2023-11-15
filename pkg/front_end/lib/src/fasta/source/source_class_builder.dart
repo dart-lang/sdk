@@ -45,6 +45,7 @@ import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
+import 'source_builder_mixins.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
@@ -85,7 +86,7 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    with ClassDeclarationMixin
+    with ClassDeclarationMixin, SourceTypedDeclarationBuilderMixin
     implements Comparable<SourceClassBuilder>, ClassDeclaration {
   final Class actualCls;
 
@@ -313,41 +314,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
 
-    NameIterator<MemberBuilder> iterator =
-        constructorScope.filteredNameIterator(
-            includeDuplicates: false, includeAugmentations: true);
-    while (iterator.moveNext()) {
-      String name = iterator.name;
-      MemberBuilder constructor = iterator.current;
-      Builder? member = scope.lookupLocalMember(name, setter: false);
-      if (member == null) continue;
-      if (!member.isStatic) continue;
-      // TODO(ahe): Revisit these messages. It seems like the last two should
-      // be `context` parameter to this message.
-      addProblem(templateConflictsWithMember.withArguments(name),
-          constructor.charOffset, noLength);
-      if (constructor.isFactory) {
-        addProblem(
-            templateConflictsWithFactory.withArguments("${this.name}.${name}"),
-            member.charOffset,
-            noLength);
-      } else {
-        addProblem(
-            templateConflictsWithConstructor
-                .withArguments("${this.name}.${name}"),
-            member.charOffset,
-            noLength);
-      }
-    }
-
-    scope.forEachLocalSetter((String name, Builder setter) {
-      Builder? constructor = constructorScope.lookupLocalMember(name);
-      if (constructor == null || !setter.isStatic) return;
-      addProblem(templateConflictsWithConstructor.withArguments(name),
-          setter.charOffset, noLength);
-      addProblem(templateConflictsWithSetter.withArguments(name),
-          constructor.charOffset, noLength);
-    });
+    checkConstructorStaticConflict();
 
     cls.procedures.sort(compareProcedures);
     return cls;

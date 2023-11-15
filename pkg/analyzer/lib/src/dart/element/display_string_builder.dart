@@ -28,9 +28,7 @@ class ElementDisplayStringBuilder {
         _multiline = multiline;
 
   @override
-  String toString() {
-    return _buffer.toString();
-  }
+  String toString() => _buffer.toString();
 
   void writeAbstractElement(ElementImpl element) {
     _write(element.name ?? '<unnamed $runtimeType>');
@@ -89,7 +87,7 @@ class ElementDisplayStringBuilder {
     _write('dynamic');
   }
 
-  void writeEnumElement(EnumElementImpl element) {
+  void writeEnumElement(EnumElement element) {
     _write('enum ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
@@ -122,7 +120,7 @@ class ElementDisplayStringBuilder {
     _writeDirectiveUri(element.uri);
   }
 
-  void writeExtensionElement(ExtensionElementImpl element) {
+  void writeExtensionElement(ExtensionElement element) {
     _write('extension ');
     _write(element.displayName);
     _writeTypeParameters(element.typeParameters);
@@ -195,7 +193,7 @@ class ElementDisplayStringBuilder {
     _writeTypesIfNotEmpty(' implements ', element.interfaces);
   }
 
-  void writeNeverType(NeverTypeImpl type) {
+  void writeNeverType(NeverType type) {
     _write('Never');
     _writeNullability(type.nullabilitySuffix);
   }
@@ -210,7 +208,7 @@ class ElementDisplayStringBuilder {
     _write(element.displayName);
   }
 
-  void writeRecordType(RecordTypeImpl type) {
+  void writeRecordType(RecordType type) {
     final positionalFields = type.positionalFields;
     final namedFields = type.namedFields;
     final fieldCount = positionalFields.length + namedFields.length;

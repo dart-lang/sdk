@@ -10,7 +10,9 @@ import '../builder/builder.dart';
 import '../builder/builder_mixins.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/procedure_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/body_builder_context.dart';
@@ -259,4 +261,46 @@ mixin SourceDeclarationBuilderMixin implements DeclarationBuilderMixin {
 
   @override
   int get typeVariablesCount => typeParameters?.length ?? 0;
+}
+
+mixin SourceTypedDeclarationBuilderMixin implements IDeclarationBuilder {
+  /// Checks for conflicts between constructors and static members declared
+  /// in this type declaration.
+  void checkConstructorStaticConflict() {
+    NameIterator<MemberBuilder> iterator =
+        constructorScope.filteredNameIterator(
+            includeDuplicates: false, includeAugmentations: true);
+    while (iterator.moveNext()) {
+      String name = iterator.name;
+      MemberBuilder constructor = iterator.current;
+      Builder? member = scope.lookupLocalMember(name, setter: false);
+      if (member == null) continue;
+      if (!member.isStatic) continue;
+      // TODO(ahe): Revisit these messages. It seems like the last two should
+      // be `context` parameter to this message.
+      addProblem(templateConflictsWithMember.withArguments(name),
+          constructor.charOffset, noLength);
+      if (constructor.isFactory) {
+        addProblem(
+            templateConflictsWithFactory.withArguments("${this.name}.${name}"),
+            member.charOffset,
+            noLength);
+      } else {
+        addProblem(
+            templateConflictsWithConstructor
+                .withArguments("${this.name}.${name}"),
+            member.charOffset,
+            noLength);
+      }
+    }
+
+    scope.forEachLocalSetter((String name, Builder setter) {
+      Builder? constructor = constructorScope.lookupLocalMember(name);
+      if (constructor == null || !setter.isStatic) return;
+      addProblem(templateConflictsWithConstructor.withArguments(name),
+          setter.charOffset, noLength);
+      addProblem(templateConflictsWithSetter.withArguments(name),
+          constructor.charOffset, noLength);
+    });
+  }
 }
