@@ -120,6 +120,7 @@ class LibraryAnalyzer {
     var parsedUnit = performance.run('parse', (performance) {
       return _parse(file);
     });
+    parsedUnit.declaredElement = unitElement;
 
     var node = NodeLocator(offset).searchWithin(parsedUnit);
 

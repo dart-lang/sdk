@@ -347,6 +347,8 @@ typedef F^
 extension ResolvedForCompletionResultImplExtension
     on ResolvedForCompletionResultImpl {
   void assertResolvedNodes(List<String> expected) {
+    expect(parsedUnit.declaredElement, isNotNull);
+
     var actual = resolvedNodes.map((e) => '$e').toList();
     expect(actual, expected);
   }
