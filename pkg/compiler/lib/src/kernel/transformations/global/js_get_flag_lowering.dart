@@ -30,7 +30,7 @@ class JsGetFlagLowering {
 
   JsGetFlagLowering(this._coreTypes, this._options);
 
-  TreeNode transformStaticInvocation(StaticInvocation node) {
+  Expression transformStaticInvocation(StaticInvocation node) {
     if (node.target != _coreTypes.jsGetFlag) return node;
     final argument = node.arguments.positional.single;
 
