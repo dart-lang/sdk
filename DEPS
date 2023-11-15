@@ -82,7 +82,7 @@ vars = {
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:e4702d7409069c4f12d45ea7b7f0890717ca3f4b",
 
-  "reclient_version": "git_revision:81e819b39d4743462857cc55430d898b9fcca1af",
+  "reclient_version": "git_revision:f75cfb7bca0c04516330f27867a855e8d1186677",
 
   # Update from https://chrome-infra-packages.appspot.com/p/fuchsia/sdk/core
   "fuchsia_sdk_version": "version:16.20231105.3.1",
