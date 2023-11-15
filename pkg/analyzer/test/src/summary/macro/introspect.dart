@@ -1,24 +1,193 @@
-// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
-abstract class SharedPrinter {
+/*macro*/ class Introspect
+    implements
+        ClassDeclarationsMacro,
+        FieldDeclarationsMacro,
+        MethodDeclarationsMacro,
+        MixinDeclarationsMacro {
+  final Set<Object?> withDetailsFor;
+  final bool withMetadata;
+
+  const Introspect({
+    this.withDetailsFor = const {},
+    this.withMetadata = false,
+  });
+
+  @override
+  Future<void> buildDeclarationsForClass(
+    IntrospectableClassDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeClassDeclaration(declaration);
+    });
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForField(
+    FieldDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeField(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForMethod(declaration, builder) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeMethodDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForMixin(
+    IntrospectableMixinDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeMixinDeclaration(declaration);
+    });
+  }
+
+  Future<void> _write(
+    DeclarationBuilder builder,
+    Declaration declaration,
+    Future<void> Function(_Printer printer) f,
+  ) async {
+    final declarationName = declaration.identifier.name;
+
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final printer = _Printer(
+      sink: sink,
+      withMetadata: withMetadata,
+      introspector: builder,
+      withDetailsFor: {
+        declarationName,
+        ...withDetailsFor.cast(),
+      },
+    );
+    await f(printer);
+    final text = buffer.toString();
+
+    builder.declareInLibrary(
+      DeclarationCode.fromString(
+        'const _introspect = r"""$text""";',
+      ),
+    );
+  }
+}
+
+/// Wrapper around a [StringSink] for writing tree structures.
+class TreeStringSink {
+  final StringSink _sink;
+  String _indent = '';
+
+  TreeStringSink({
+    required StringSink sink,
+    required String indent,
+  })  : _sink = sink,
+        _indent = indent;
+
+  Future<void> withIndent(Future<void> Function() f) async {
+    final indent = _indent;
+    _indent = '$indent  ';
+    await f();
+    _indent = indent;
+  }
+
+  void write(Object object) {
+    _sink.write(object);
+  }
+
+  Future<void> writeElements<T extends Object>(
+    String name,
+    Iterable<T> elements,
+    Future<void> Function(T) f,
+  ) async {
+    if (elements.isNotEmpty) {
+      writelnWithIndent(name);
+      await withIndent(() async {
+        for (final element in elements) {
+          await f(element);
+        }
+      });
+    }
+  }
+
+  Future<void> writeFlags(Map<String, bool> flags) async {
+    if (flags.values.any((flag) => flag)) {
+      await writeIndentedLine(() async {
+        write('flags:');
+        for (final entry in flags.entries) {
+          if (entry.value) {
+            write(' ${entry.key}');
+          }
+        }
+      });
+    }
+  }
+
+  void writeIf(bool flag, Object object) {
+    if (flag) {
+      write(object);
+    }
+  }
+
+  void writeIndent() {
+    _sink.write(_indent);
+  }
+
+  Future<void> writeIndentedLine(void Function() f) async {
+    writeIndent();
+    f();
+    writeln();
+  }
+
+  void writeln([Object? object = '']) {
+    _sink.writeln(object);
+  }
+
+  void writelnWithIndent(Object object) {
+    _sink.write(_indent);
+    _sink.writeln(object);
+  }
+
+  void writeWithIndent(Object object) {
+    _sink.write(_indent);
+    _sink.write(object);
+  }
+}
+
+class _Printer {
   final TreeStringSink sink;
   final bool withMetadata;
+  final DeclarationPhaseIntrospector introspector;
+  final Set<String> withDetailsFor;
 
   Identifier? _enclosingDeclarationIdentifier;
 
-  SharedPrinter({
+  _Printer({
     required this.sink,
     required this.withMetadata,
+    required this.introspector,
+    required this.withDetailsFor,
   });
 
-  TypePhaseIntrospector get introspector;
-
   bool shouldWriteDetailsFor(Declaration declaration) {
-    return true;
+    return withDetailsFor.contains(declaration.identifier.name);
   }
 
   Future<void> writeClassDeclaration(ClassDeclaration e) async {
@@ -120,8 +289,7 @@ abstract class SharedPrinter {
 
   bool _shouldWriteArguments(ConstructorMetadataAnnotation annotation) {
     return !const {
-      'IntrospectDeclarationsPhaseMacro',
-      'IntrospectTypesPhaseMacro',
+      'Introspect',
     }.contains(annotation.type.name);
   }
 
@@ -233,11 +401,6 @@ abstract class SharedPrinter {
   }
 
   Future<void> _writeTypeAnnotationDeclaration(TypeAnnotation type) async {
-    final introspector = this.introspector;
-    if (introspector is! DeclarationPhaseIntrospector) {
-      return;
-    }
-
     await sink.withIndent(() async {
       switch (type) {
         case NamedTypeAnnotation():
@@ -284,20 +447,17 @@ abstract class SharedPrinter {
   Future<void> _writeTypeDeclarationMembers(TypeDeclaration e) async {
     _enclosingDeclarationIdentifier = e.identifier;
 
-    final introspector = this.introspector;
-    if (introspector is DeclarationPhaseIntrospector) {
-      if (e is IntrospectableType) {
-        await sink.writeElements(
-          'fields',
-          await introspector.fieldsOf(e),
-          writeField,
-        );
-        await sink.writeElements(
-          'methods',
-          await introspector.methodsOf(e),
-          writeMethodDeclaration,
-        );
-      }
+    if (e is IntrospectableType) {
+      await sink.writeElements(
+        'fields',
+        await introspector.fieldsOf(e),
+        writeField,
+      );
+      await sink.writeElements(
+        'methods',
+        await introspector.methodsOf(e),
+        writeMethodDeclaration,
+      );
     }
 
     _enclosingDeclarationIdentifier = null;
@@ -318,87 +478,6 @@ abstract class SharedPrinter {
     Iterable<TypeParameterDeclaration> elements,
   ) async {
     await sink.writeElements('typeParameters', elements, _writeTypeParameter);
-  }
-}
-
-/// Wrapper around a [StringSink] for writing tree structures.
-class TreeStringSink {
-  final StringSink _sink;
-  String _indent = '';
-
-  TreeStringSink({
-    required StringSink sink,
-    required String indent,
-  })  : _sink = sink,
-        _indent = indent;
-
-  Future<void> withIndent(Future<void> Function() f) async {
-    final indent = _indent;
-    _indent = '$indent  ';
-    await f();
-    _indent = indent;
-  }
-
-  void write(Object object) {
-    _sink.write(object);
-  }
-
-  Future<void> writeElements<T extends Object>(
-    String name,
-    Iterable<T> elements,
-    Future<void> Function(T) f,
-  ) async {
-    if (elements.isNotEmpty) {
-      writelnWithIndent(name);
-      await withIndent(() async {
-        for (final element in elements) {
-          await f(element);
-        }
-      });
-    }
-  }
-
-  Future<void> writeFlags(Map<String, bool> flags) async {
-    if (flags.values.any((flag) => flag)) {
-      await writeIndentedLine(() async {
-        write('flags:');
-        for (final entry in flags.entries) {
-          if (entry.value) {
-            write(' ${entry.key}');
-          }
-        }
-      });
-    }
-  }
-
-  void writeIf(bool flag, Object object) {
-    if (flag) {
-      write(object);
-    }
-  }
-
-  void writeIndent() {
-    _sink.write(_indent);
-  }
-
-  Future<void> writeIndentedLine(void Function() f) async {
-    writeIndent();
-    f();
-    writeln();
-  }
-
-  void writeln([Object? object = '']) {
-    _sink.writeln(object);
-  }
-
-  void writelnWithIndent(Object object) {
-    _sink.write(_indent);
-    _sink.writeln(object);
-  }
-
-  void writeWithIndent(Object object) {
-    _sink.write(_indent);
-    _sink.write(object);
   }
 }
 
