@@ -886,7 +886,7 @@ class LspAnalysisServer extends AnalysisServer {
       List<String> addedPaths, List<String> removedPaths) async {
     // TODO(dantup): This is currently case-sensitive!
 
-    // Normalise all potential workspace folder paths as these may contain
+    // Normalize all potential workspace folder paths as these may contain
     // trailing slashes (the LSP spec does not specify whether folders
     // should/should not have them) and the analysis roots must be normalized.
     final pathContext = resourceProvider.pathContext;
@@ -1029,6 +1029,7 @@ class LspAnalysisServer extends AnalysisServer {
             // and caching the config for each one.
             : _workspaceFolders.map(
                 (root) => resourceProvider.pathContext.join(root, excludePath)))
+        .map(pathContext.normalize)
         .toSet();
 
     final completer = analysisContextRebuildCompleter = Completer();
