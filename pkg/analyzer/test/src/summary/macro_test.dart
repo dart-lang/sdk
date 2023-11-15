@@ -2522,6 +2522,178 @@ class MacroIntrospectElementTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
 
+  test_class_constructor_flags_isFactory() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A();
+  factory A.named() => A();
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+class X {
+  @Introspect(
+    withDetailsFor: {'A'},
+    withUnnamedConstructor: true,
+  )
+  A? foo;
+}
+''', r'''
+foo
+  type: A?
+    class A
+      superclass: Object
+      constructors
+        <unnamed>
+          flags: hasBody isStatic
+          returnType: A
+        named
+          flags: hasBody isFactory isStatic
+          returnType: A
+''');
+  }
+
+  test_class_constructor_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+class A {
+  @a
+  A();
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+class X {
+  @Introspect(
+    withDetailsFor: {'A'},
+    withMetadata: true,
+    withUnnamedConstructor: true,
+  )
+  A? foo;
+}
+''', r'''
+foo
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+  type: A?
+    class A
+      superclass: Object
+      constructors
+        <unnamed>
+          flags: hasBody isStatic
+          metadata
+            IdentifierMetadataAnnotation
+              identifier: a
+          returnType: A
+''');
+  }
+
+  test_class_constructor_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A.named();
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+class X {
+  @Introspect(
+    withDetailsFor: {'A'},
+    withUnnamedConstructor: true,
+  )
+  A? foo;
+}
+''', r'''
+foo
+  type: A?
+    class A
+      superclass: Object
+      constructors
+        named
+          flags: hasBody isStatic
+          returnType: A
+''');
+  }
+
+  test_class_constructor_namedParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A({required int a, String? b});
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+class X {
+  @Introspect(
+    withDetailsFor: {'A'},
+    withUnnamedConstructor: true,
+  )
+  A? foo;
+}
+''', r'''
+foo
+  type: A?
+    class A
+      superclass: Object
+      constructors
+        <unnamed>
+          flags: hasBody isStatic
+          namedParameters
+            a
+              flags: isNamed isRequired
+              type: int
+            b
+              flags: isNamed
+              type: String?
+          returnType: A
+''');
+  }
+
+  test_class_constructor_positionalParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A(int a, [String? b]);
+}
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+class X {
+  @Introspect(
+    withDetailsFor: {'A'},
+    withUnnamedConstructor: true,
+  )
+  A? foo;
+}
+''', r'''
+foo
+  type: A?
+    class A
+      superclass: Object
+      constructors
+        <unnamed>
+          flags: hasBody isStatic
+          positionalParameters
+            a
+              flags: isRequired
+              type: int
+            b
+              type: String?
+          returnType: A
+''');
+  }
+
   test_class_field_flag_hasExternal() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
@@ -3887,6 +4059,114 @@ class X {}
 class X
   mixins
     A
+''');
+  }
+
+  test_class_constructor_flags_isFactory() async {
+    await _assertIntrospectText(r'''
+class A {
+  A();
+
+  @Introspect()
+  factory A.named() => A();
+}
+''', r'''
+named
+  flags: hasBody isFactory isStatic
+  returnType: A
+''');
+  }
+
+  test_class_constructor_metadata() async {
+    await _assertIntrospectText(r'''
+class A {
+  @Introspect(
+    withMetadata: true,
+    withUnnamedConstructor: true,
+  )
+  @a1
+  @a2
+  A();
+}
+
+const a1 = 0;
+const a2 = 0;
+''', r'''
+<unnamed>
+  flags: isStatic
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  returnType: A
+''');
+  }
+
+  test_class_constructor_named() async {
+    await _assertIntrospectText(r'''
+class A {
+  @Introspect()
+  A.named();
+}
+''', r'''
+named
+  flags: isStatic
+  returnType: A
+''');
+  }
+
+  test_class_constructor_namedParameters() async {
+    await _assertIntrospectText(r'''
+class A {
+  @Introspect()
+  A({required int a, String? b});
+}
+''', r'''
+<unnamed>
+  flags: isStatic
+  namedParameters
+    a
+      flags: isNamed isRequired
+      type: int
+    b
+      flags: isNamed
+      type: String?
+  returnType: A
+''');
+  }
+
+  test_class_constructor_positionalParameters() async {
+    await _assertIntrospectText(r'''
+class A {
+  @Introspect()
+  A(int a, [String? b]);
+}
+''', r'''
+<unnamed>
+  flags: isStatic
+  positionalParameters
+    a
+      flags: isRequired
+      type: int
+    b
+      type: String?
+  returnType: A
+''');
+  }
+
+  test_class_constructor_unnamed() async {
+    await _assertIntrospectText(r'''
+class A {
+  @Introspect()
+  A();
+}
+''', r'''
+<unnamed>
+  flags: isStatic
+  returnType: A
 ''');
   }
 
