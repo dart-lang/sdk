@@ -13,21 +13,17 @@ class AddAwait extends ResolvedCorrectionProducer {
   /// The kind of correction to be made.
   final _CorrectionKind _correctionKind;
 
-  @override
-  bool canBeAppliedInBulk;
+  AddAwait.nonBool() : _correctionKind = _CorrectionKind.nonBool;
+
+  AddAwait.unawaited() : _correctionKind = _CorrectionKind.unawaited;
 
   @override
-  bool canBeAppliedToFile;
+  // Adding `await` can change behaviour and is not clearly the right choice.
+  // https://github.com/dart-lang/sdk/issues/54022
+  bool get canBeAppliedInBulk => false;
 
-  AddAwait.nonBool()
-      : _correctionKind = _CorrectionKind.nonBool,
-        canBeAppliedInBulk = false,
-        canBeAppliedToFile = false;
-
-  AddAwait.unawaited()
-      : _correctionKind = _CorrectionKind.unawaited,
-        canBeAppliedInBulk = true,
-        canBeAppliedToFile = true;
+  @override
+  bool get canBeAppliedToFile => false;
 
   @override
   FixKind get fixKind => DartFixKind.ADD_AWAIT;

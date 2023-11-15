@@ -377,47 +377,7 @@ class LibraryBuilder {
       return false;
     }
 
-    // No results from the application.
-    if (results.isEmpty) {
-      return true;
-    }
-
-    _macroResults.add(results);
-
-    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      results,
-    );
-    if (augmentationCode == null) {
-      return true;
-    }
-
-    final importState = kind.addMacroAugmentation(
-      augmentationCode,
-      addLibraryAugmentDirective: true,
-      partialIndex: _macroResults.length,
-    );
-
-    final augmentation = _addMacroAugmentation(importState);
-
-    final macroLinkingUnit = units.last;
-    ElementBuilder(
-      libraryBuilder: this,
-      container: macroLinkingUnit.container,
-      unitReference: macroLinkingUnit.reference,
-      unitElement: macroLinkingUnit.element,
-    ).buildDeclarationElements(macroLinkingUnit.node);
-
-    final nodesToBuildType = NodesToBuildType();
-    final resolver = ReferenceResolver(linker, nodesToBuildType, augmentation);
-    macroLinkingUnit.node.accept(resolver);
-    TypesBuilder(linker).build(nodesToBuildType);
-
-    // Append applications from the partial augmentation.
-    await macroApplier.add(
-      libraryElement: element,
-      container: augmentation,
-      unit: macroLinkingUnit.node,
-    );
+    await _addMacroResults(macroApplier, results, buildTypes: true);
     return true;
   }
 
@@ -432,55 +392,12 @@ class LibraryBuilder {
     while (true) {
       final results = await macroApplier.executeDefinitionsPhase();
 
-      // TODO(scheglov): Try to de-duplicate code below.
-
       // No more applications to execute.
       if (results == null) {
-        break;
+        return;
       }
 
-      // No results from the application.
-      if (results.isEmpty) {
-        continue;
-      }
-
-      _macroResults.add(results);
-
-      final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-        results,
-      );
-      if (augmentationCode == null) {
-        continue;
-      }
-
-      final importState = kind.addMacroAugmentation(
-        augmentationCode,
-        addLibraryAugmentDirective: true,
-        partialIndex: _macroResults.length,
-      );
-
-      final augmentation = _addMacroAugmentation(importState);
-
-      final macroLinkingUnit = units.last;
-      ElementBuilder(
-        libraryBuilder: this,
-        container: macroLinkingUnit.container,
-        unitReference: macroLinkingUnit.reference,
-        unitElement: macroLinkingUnit.element,
-      ).buildDeclarationElements(macroLinkingUnit.node);
-
-      final nodesToBuildType = NodesToBuildType();
-      final resolver =
-          ReferenceResolver(linker, nodesToBuildType, augmentation);
-      macroLinkingUnit.node.accept(resolver);
-      TypesBuilder(linker).build(nodesToBuildType);
-
-      // Append applications from the partial augmentation.
-      await macroApplier.add(
-        libraryElement: element,
-        container: augmentation,
-        unit: macroLinkingUnit.node,
-      );
+      await _addMacroResults(macroApplier, results, buildTypes: true);
     }
   }
 
@@ -500,42 +417,7 @@ class LibraryBuilder {
         break;
       }
 
-      // No results from the application.
-      if (results.isEmpty) {
-        continue;
-      }
-
-      _macroResults.add(results);
-
-      final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-        results,
-      );
-      if (augmentationCode == null) {
-        continue;
-      }
-
-      final importState = kind.addMacroAugmentation(
-        augmentationCode,
-        addLibraryAugmentDirective: true,
-        partialIndex: _macroResults.length,
-      );
-
-      final augmentation = _addMacroAugmentation(importState);
-
-      final macroLinkingUnit = units.last;
-      ElementBuilder(
-        libraryBuilder: this,
-        container: macroLinkingUnit.container,
-        unitReference: macroLinkingUnit.reference,
-        unitElement: macroLinkingUnit.element,
-      ).buildDeclarationElements(macroLinkingUnit.node);
-
-      // Append applications from the partial augmentation.
-      await macroApplier.add(
-        libraryElement: element,
-        container: augmentation,
-        unit: macroLinkingUnit.node,
-      );
+      await _addMacroResults(macroApplier, results, buildTypes: false);
     }
   }
 
@@ -784,6 +666,58 @@ class LibraryBuilder {
     );
 
     return augmentation;
+  }
+
+  /// Add results from the declarations or definitions phase.
+  Future<void> _addMacroResults(
+    LibraryMacroApplier macroApplier,
+    List<macro.MacroExecutionResult> results, {
+    required bool buildTypes,
+  }) async {
+    // No results from the application.
+    if (results.isEmpty) {
+      return;
+    }
+
+    _macroResults.add(results);
+
+    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
+      results,
+    );
+    if (augmentationCode == null) {
+      return;
+    }
+
+    final importState = kind.addMacroAugmentation(
+      augmentationCode,
+      addLibraryAugmentDirective: true,
+      partialIndex: _macroResults.length,
+    );
+
+    final augmentation = _addMacroAugmentation(importState);
+
+    final macroLinkingUnit = units.last;
+    ElementBuilder(
+      libraryBuilder: this,
+      container: macroLinkingUnit.container,
+      unitReference: macroLinkingUnit.reference,
+      unitElement: macroLinkingUnit.element,
+    ).buildDeclarationElements(macroLinkingUnit.node);
+
+    if (buildTypes) {
+      final nodesToBuildType = NodesToBuildType();
+      final resolver =
+          ReferenceResolver(linker, nodesToBuildType, augmentation);
+      macroLinkingUnit.node.accept(resolver);
+      TypesBuilder(linker).build(nodesToBuildType);
+    }
+
+    // Append applications from the partial augmentation.
+    await macroApplier.add(
+      libraryElement: element,
+      container: augmentation,
+      unit: macroLinkingUnit.node,
+    );
   }
 
   AugmentationImportElementImpl _buildAugmentationImport(

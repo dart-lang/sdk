@@ -12,36 +12,8 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddAwaitBulkTest);
     defineReflectiveTests(AddAwaitTest);
   });
-}
-
-@reflectiveTest
-class AddAwaitBulkTest extends BulkFixProcessorTest {
-  @override
-  String get lintCode => LintNames.unawaited_futures;
-
-  Future<void> test_singleFile() async {
-    await resolveTestCode('''
-Future doSomething() => Future.value('');
-Future doSomethingElse() => Future.value('');
-
-void f() async {
-  doSomething();
-  doSomethingElse();
-}
-''');
-    await assertHasFix('''
-Future doSomething() => Future.value('');
-Future doSomethingElse() => Future.value('');
-
-void f() async {
-  await doSomething();
-  await doSomethingElse();
-}
-''');
-  }
 }
 
 @reflectiveTest
