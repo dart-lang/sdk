@@ -39,7 +39,10 @@ import 'source_member_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
-    with SourceDeclarationBuilderMixin, ClassDeclarationMixin
+    with
+        SourceDeclarationBuilderMixin,
+        ClassDeclarationMixin,
+        SourceTypedDeclarationBuilderMixin
     implements
         Comparable<SourceExtensionTypeDeclarationBuilder>,
         ClassDeclaration {
@@ -299,6 +302,7 @@ class SourceExtensionTypeDeclarationBuilder
     _extensionTypeDeclaration.declaredRepresentationType = representationType;
     _extensionTypeDeclaration.representationName = representationName;
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
+    checkConstructorStaticConflict();
 
     return _extensionTypeDeclaration;
   }
