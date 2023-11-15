@@ -1168,13 +1168,8 @@ class _I16ByteBuffer extends ByteBufferBase {
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Int16List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Int16List.bytesPerElement);
-    if (offsetInBytes % Int16List.bytesPerElement != 0) {
-      return _SlowI16List._withMutability(
-          this, offsetInBytes, length, _mutable);
-    } else {
-      return I16List._withMutability(
-          _data, offsetInBytes ~/ Int16List.bytesPerElement, length, _mutable);
-    }
+    return I16List._withMutability(
+        _data, offsetInBytes ~/ Int16List.bytesPerElement, length, _mutable);
   }
 
   @override
@@ -1183,13 +1178,8 @@ class _I16ByteBuffer extends ByteBufferBase {
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Uint16List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Uint16List.bytesPerElement);
-    if (offsetInBytes % Uint16List.bytesPerElement != 0) {
-      return _SlowU16List._withMutability(
-          this, offsetInBytes, length, _mutable);
-    } else {
-      return U16List._withMutability(
-          _data, offsetInBytes ~/ Uint16List.bytesPerElement, length, _mutable);
-    }
+    return U16List._withMutability(
+        _data, offsetInBytes ~/ Uint16List.bytesPerElement, length, _mutable);
   }
 
   @override
@@ -1220,13 +1210,8 @@ class _I32ByteBuffer extends ByteBufferBase {
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Int32List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Int32List.bytesPerElement);
-    if (offsetInBytes % Uint32List.bytesPerElement != 0) {
-      return _SlowI32List._withMutability(
-          this, offsetInBytes, length, _mutable);
-    } else {
-      return I32List._withMutability(
-          _data, offsetInBytes ~/ Int32List.bytesPerElement, length, _mutable);
-    }
+    return I32List._withMutability(
+        _data, offsetInBytes ~/ Int32List.bytesPerElement, length, _mutable);
   }
 
   @override
@@ -1235,13 +1220,8 @@ class _I32ByteBuffer extends ByteBufferBase {
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Uint32List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Uint32List.bytesPerElement);
-    if (offsetInBytes % Uint32List.bytesPerElement != 0) {
-      return _SlowU32List._withMutability(
-          this, offsetInBytes, length, _mutable);
-    } else {
-      return U32List._withMutability(
-          _data, offsetInBytes ~/ Uint32List.bytesPerElement, length, _mutable);
-    }
+    return U32List._withMutability(
+        _data, offsetInBytes ~/ Uint32List.bytesPerElement, length, _mutable);
   }
 
   @override
@@ -1272,13 +1252,8 @@ class _I64ByteBuffer extends ByteBufferBase {
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Int64List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Int64List.bytesPerElement);
-    if (offsetInBytes % Int64List.bytesPerElement != 0) {
-      return _SlowI64List._withMutability(
-          this, offsetInBytes, length, _mutable);
-    } else {
-      return I64List._withMutability(
-          _data, offsetInBytes ~/ Int64List.bytesPerElement, length, _mutable);
-    }
+    return I64List._withMutability(
+        _data, offsetInBytes ~/ Int64List.bytesPerElement, length, _mutable);
   }
 
   @override
@@ -1287,13 +1262,8 @@ class _I64ByteBuffer extends ByteBufferBase {
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Uint64List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Uint64List.bytesPerElement);
-    if (offsetInBytes % Int64List.bytesPerElement != 0) {
-      return _SlowU64List._withMutability(
-          this, offsetInBytes, length, _mutable);
-    } else {
-      return U64List._withMutability(
-          _data, offsetInBytes ~/ Uint64List.bytesPerElement, length, _mutable);
-    }
+    return U64List._withMutability(
+        _data, offsetInBytes ~/ Uint64List.bytesPerElement, length, _mutable);
   }
 
   @override
@@ -1324,13 +1294,8 @@ class _F32ByteBuffer extends ByteBufferBase {
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Float32List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float32List.bytesPerElement);
-    if (offsetInBytes % Float32List.bytesPerElement != 0) {
-      return _SlowF32List._withMutability(
-          this, offsetInBytes, length, _mutable);
-    } else {
-      return F32List._withMutability(_data,
-          offsetInBytes ~/ Float32List.bytesPerElement, length, _mutable);
-    }
+    return F32List._withMutability(
+        _data, offsetInBytes ~/ Float32List.bytesPerElement, length, _mutable);
   }
 
   @override
@@ -1361,12 +1326,8 @@ class _F64ByteBuffer extends ByteBufferBase {
     _rangeCheck(
         lengthInBytes, offsetInBytes, length * Float64List.bytesPerElement);
     _offsetAlignmentCheck(offsetInBytes, Float64List.bytesPerElement);
-    if (offsetInBytes % Float64List.bytesPerElement != 0) {
-      return SlowF64List._withMutability(this, offsetInBytes, length, _mutable);
-    } else {
-      return F64List._withMutability(
-          _data, offsetInBytes ~/ Int64List.bytesPerElement, length, _mutable);
-    }
+    return F64List._withMutability(
+        _data, offsetInBytes ~/ Int64List.bytesPerElement, length, _mutable);
   }
 
   @override
