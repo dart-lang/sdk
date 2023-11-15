@@ -11,12 +11,17 @@ extension type ET3<T extends core::num>(core::int id) {
   static redirecting-factory f1 = self::ET3|constructor#f1;
   static redirecting-factory tearoff f1 = self::ET3|constructor#_#f1#tearOff;
 }
-static extension-type-member method ET3|constructor#<T extends core::num>(core::int id) → self::ET3<self::ET3|constructor#::T> /* = core::int */
-  ;
+static extension-type-member method ET3|constructor#<T extends core::num>(core::int id) → self::ET3<self::ET3|constructor#::T> /* = core::int */ {
+  lowered final self::ET3<self::ET3|constructor#::T> /* = core::int */ #this = id;
+  return #this;
+}
 static extension-type-member method ET3|constructor#_#new#tearOff<T extends core::num>(core::int id) → self::ET3<self::ET3|constructor#_#new#tearOff::T> /* = core::int */
   return self::ET3|constructor#<self::ET3|constructor#_#new#tearOff::T>(id);
-static extension-type-member method ET3|constructor#c1<T extends core::num>() → self::ET3<self::ET3|constructor#c1::T> /* = core::int */
-  ;
+static extension-type-member method ET3|constructor#c1<T extends core::num>() → self::ET3<self::ET3|constructor#c1::T> /* = core::int */ {
+  lowered final self::ET3<self::ET3|constructor#c1::T> /* = core::int */ #this;
+  #this = self::ET3|constructor#<self::ET3|constructor#c1::T>(0);
+  return #this;
+}
 static extension-type-member method ET3|constructor#_#c1#tearOff<T extends core::num>() → self::ET3<self::ET3|constructor#_#c1#tearOff::T> /* = core::int */
   return self::ET3|constructor#c1<self::ET3|constructor#_#c1#tearOff::T>();
 static extension-type-member method ET3|constructor#f1<T extends core::num>() → self::ET3<self::ET3|constructor#f1::T> /* = core::int */ /* redirection-target: self::ET3|constructor#c1<self::ET3|constructor#f1::T>*/

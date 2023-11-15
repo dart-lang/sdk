@@ -300,6 +300,35 @@ abstract class AbstractSourceConstructorBuilder
     }
   }
 
+  void _buildConstructorForOutline(
+      Token? beginInitializers,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      Scope declarationScope) {
+    if (beginInitializers != null) {
+      final Scope? formalParameterScope;
+      if (isConst) {
+        // We're going to fully build the constructor so we need scopes.
+        formalParameterScope = computeFormalParameterInitializerScope(
+            computeFormalParameterScope(
+                computeTypeParameterScope(declarationBuilder.scope)));
+      } else {
+        formalParameterScope = null;
+      }
+      BodyBuilder bodyBuilder = libraryBuilder.loader
+          .createBodyBuilderForOutlineExpression(
+              libraryBuilder, bodyBuilderContext, declarationScope, fileUri,
+              formalParameterScope: formalParameterScope);
+      if (isConst) {
+        bodyBuilder.constantContext = ConstantContext.required;
+      }
+      bodyBuilder.parseInitializers(beginInitializers,
+          doFinishConstructor: isConst);
+      bodyBuilder.performBacklogComputations(
+          delayedActionPerformers: delayedActionPerformers,
+          allowFurtherDelays: false);
+    }
+  }
+
   @override
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
@@ -759,35 +788,15 @@ class DeclaredSourceConstructorBuilder
     // For modular compilation purposes we need to include initializers
     // for const constructors into the outline. We also need to parse
     // initializers to infer types of the super-initializing parameters.
-    if ((isConst || _hasSuperInitializingFormals) &&
-        beginInitializers != null) {
-      final Scope? formalParameterScope;
-      if (isConst) {
-        // We're going to fully build the constructor so we need scopes.
-        formalParameterScope = computeFormalParameterInitializerScope(
-            computeFormalParameterScope(
-                computeTypeParameterScope(declarationBuilder.scope)));
-      } else {
-        formalParameterScope = null;
-      }
-      BodyBuilder bodyBuilder = libraryBuilder.loader
-          .createBodyBuilderForOutlineExpression(
-              libraryBuilder, bodyBuilderContext, classBuilder.scope, fileUri,
-              formalParameterScope: formalParameterScope);
-      if (isConst) {
-        bodyBuilder.constantContext = ConstantContext.required;
-      }
-      bodyBuilder.parseInitializers(beginInitializers!,
-          doFinishConstructor: isConst);
-      bodyBuilder.performBacklogComputations(
-          delayedActionPerformers: delayedActionPerformers,
-          allowFurtherDelays: false);
+    if (isConst || _hasSuperInitializingFormals) {
+      _buildConstructorForOutline(
+          beginInitializers, delayedActionPerformers, classBuilder.scope);
     }
-    beginInitializers = null;
     addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     if (isConst && isPatch) {
       _finishPatch();
     }
+    beginInitializers = null;
     _hasBuiltOutlines = true;
   }
 
@@ -1183,7 +1192,31 @@ class SourceExtensionTypeConstructorBuilder
   }
 
   @override
-  int buildBodyNodes(BuildNodesCallback f) {
+  void buildOutlineExpressions(
+      ClassHierarchy classHierarchy,
+      List<DelayedActionPerformer> delayedActionPerformers,
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
+    super.buildOutlineExpressions(
+        classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
+
+    if (isConst) {
+      // For modular compilation purposes we need to include initializers
+      // for const constructors into the outline.
+      Scope typeParameterScope =
+          computeTypeParameterScope(extensionTypeDeclarationBuilder.scope);
+      _buildConstructorForOutline(
+          beginInitializers, delayedActionPerformers, typeParameterScope);
+      _buildBody();
+    }
+    beginInitializers = null;
+  }
+
+  bool _hasBuiltBody = false;
+
+  void _buildBody() {
+    if (_hasBuiltBody) {
+      return;
+    }
     if (!isExternal) {
       VariableDeclaration thisVariable = this.thisVariable!;
       List<Statement> statements = [thisVariable];
@@ -1199,6 +1232,12 @@ class SourceExtensionTypeConstructorBuilder
       statements.add(new ReturnStatement(new VariableGet(thisVariable)));
       body = new Block(statements);
     }
+    _hasBuiltBody = true;
+  }
+
+  @override
+  int buildBodyNodes(BuildNodesCallback f) {
+    _buildBody();
     // TODO(johnniwinther): Support augmentation.
     return 0;
   }
