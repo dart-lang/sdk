@@ -164,7 +164,36 @@ class RawIRWriter with _RawIRWriterMixin {
   @override
   final _params1 = <int>[];
 
+  int _localVariableCount = 0;
+
+  int get localVariableCount => _localVariableCount;
+
   int get nextInstructionAddress => _opcodes.length;
+
+  @override
+  void alloc(int count) {
+    _localVariableCount += count;
+    super.alloc(count);
+  }
+
+  @override
+  void release(int count) {
+    _localVariableCount -= count;
+    super.release(count);
+  }
+
+  /// Outputs the necessary IR to release local variables until
+  /// [localVariableCount] is equal to [desiredLocalVariableCount].
+  ///
+  /// Does nothing if [localVariableCount] is already equal to
+  /// [desiredLocalVariableCount].
+  void releaseTo(int desiredLocalVariableCount) {
+    var releaseCount = localVariableCount - desiredLocalVariableCount;
+    assert(releaseCount >= 0);
+    if (releaseCount > 0) {
+      release(releaseCount);
+    }
+  }
 }
 
 /// Wrapper for an integer representing a Dart type.
