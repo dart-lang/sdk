@@ -17,6 +17,7 @@ analyzer:
     - test/macros/incremental/data/**
     - test/patching/data/**
     - test/predicates/data/**
+    - test/scopes/data/**
     - test/static_types/data/**
     - test/text_representation/data/**
     - testcases/**
