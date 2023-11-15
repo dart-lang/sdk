@@ -58,6 +58,13 @@ void _offsetAlignmentCheck(int offset, int alignment) {
   }
 }
 
+@pragma("wasm:prefer-inline")
+void _indexCheck(int index, int length) {
+  if (WasmI64.fromInt(length).leU(WasmI64.fromInt(index))) {
+    throw IndexError.withLength(index, length);
+  }
+}
+
 final class _TypedListIterator<E> implements Iterator<E> {
   final List<E> _array;
   final int _length;
@@ -2414,20 +2421,14 @@ class I8List extends _WasmI8ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.readSigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2460,20 +2461,14 @@ class U8List extends _WasmI8ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.readUnsigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2505,20 +2500,14 @@ class U8ClampedList extends _WasmI8ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.readUnsigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value.clamp(0, 255));
   }
 }
@@ -2549,20 +2538,14 @@ class I16List extends _WasmI16ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.readSigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2593,20 +2576,14 @@ class U16List extends _WasmI16ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.readUnsigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2637,20 +2614,14 @@ class I32List extends _WasmI32ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.readSigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2681,20 +2652,14 @@ class U32List extends _WasmI32ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.readUnsigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2725,20 +2690,14 @@ class I64List extends _WasmI64ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.readSigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2769,20 +2728,14 @@ class U64List extends _WasmI64ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.readUnsigned(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, int value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2813,20 +2766,14 @@ class F32List extends _WasmF32ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   double operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.read(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, double value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -2857,20 +2804,14 @@ class F64List extends _WasmF64ArrayBase
   @override
   @pragma("wasm:prefer-inline")
   double operator [](int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     return _data.read(_offsetInElements + index);
   }
 
   @override
   @pragma("wasm:prefer-inline")
   void operator []=(int index, double value) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
+    _indexCheck(index, length);
     _data.write(_offsetInElements + index, value);
   }
 }
@@ -3046,13 +2987,6 @@ class _SlowListBase {
 
   _SlowListBase(this.buffer, this.offsetInBytes, this.length)
       : _data = buffer.asByteData();
-
-  void _indexRangeCheck(int index) {
-    if (index < 0 || index >= length) {
-      throw IndexError.withLength(index, length,
-          indexable: this, name: "index");
-    }
-  }
 }
 
 class _SlowI8List extends _SlowListBase
@@ -3081,14 +3015,14 @@ class _SlowI8List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    _indexRangeCheck(index);
-    return _data.getInt8(offsetInBytes + (index * elementSizeInBytes));
+    _indexCheck(index, length);
+    return _data.getInt8(offsetInBytes + index);
   }
 
   @override
   void operator []=(int index, int value) {
-    _indexRangeCheck(index);
-    _data.setInt8(offsetInBytes + (index), value);
+    _indexCheck(index, length);
+    _data.setInt8(offsetInBytes + index, value);
   }
 }
 
@@ -3118,13 +3052,13 @@ class _SlowU8List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getUint8(offsetInBytes + (index * elementSizeInBytes));
   }
 
   @override
   void operator []=(int index, int value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setUint8(offsetInBytes + (index * elementSizeInBytes), value);
   }
 }
@@ -3156,13 +3090,13 @@ class _SlowU8ClampedList extends _SlowListBase
 
   @override
   int operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getUint8(offsetInBytes + (index * elementSizeInBytes));
   }
 
   @override
   void operator []=(int index, int value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setUint8(
         offsetInBytes + (index * elementSizeInBytes), value.clamp(0, 255));
   }
@@ -3194,14 +3128,14 @@ class _SlowI16List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getInt16(
         offsetInBytes + (index * elementSizeInBytes), Endian.little);
   }
 
   @override
   void operator []=(int index, int value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setInt16(
         offsetInBytes + (index * elementSizeInBytes), value, Endian.little);
   }
@@ -3233,14 +3167,14 @@ class _SlowU16List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getUint16(
         offsetInBytes + (index * elementSizeInBytes), Endian.little);
   }
 
   @override
   void operator []=(int index, int value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setUint16(
         offsetInBytes + (index * elementSizeInBytes), value, Endian.little);
   }
@@ -3272,14 +3206,14 @@ class _SlowI32List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getInt32(
         offsetInBytes + (index * elementSizeInBytes), Endian.little);
   }
 
   @override
   void operator []=(int index, int value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setInt32(
         offsetInBytes + (index * elementSizeInBytes), value, Endian.little);
   }
@@ -3311,14 +3245,14 @@ class _SlowU32List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getUint32(
         offsetInBytes + (index * elementSizeInBytes), Endian.little);
   }
 
   @override
   void operator []=(int index, int value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setUint32(
         offsetInBytes + (index * elementSizeInBytes), value, Endian.little);
   }
@@ -3350,14 +3284,14 @@ class _SlowI64List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getInt64(
         offsetInBytes + (index * elementSizeInBytes), Endian.little);
   }
 
   @override
   void operator []=(int index, int value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setInt64(
         offsetInBytes + (index * elementSizeInBytes), value, Endian.little);
   }
@@ -3389,14 +3323,14 @@ class _SlowU64List extends _SlowListBase
 
   @override
   int operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getUint64(
         offsetInBytes + (index * elementSizeInBytes), Endian.little);
   }
 
   @override
   void operator []=(int index, int value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setUint64(
         offsetInBytes + (index * elementSizeInBytes), value, Endian.little);
   }
@@ -3428,14 +3362,14 @@ class _SlowF32List extends _SlowListBase
 
   @override
   double operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getFloat32(
         offsetInBytes + (index * elementSizeInBytes), Endian.little);
   }
 
   @override
   void operator []=(int index, double value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setFloat32(
         offsetInBytes + (index * elementSizeInBytes), value, Endian.little);
   }
@@ -3467,14 +3401,14 @@ class SlowF64List extends _SlowListBase
 
   @override
   double operator [](int index) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     return _data.getFloat64(
         offsetInBytes + (index * elementSizeInBytes), Endian.little);
   }
 
   @override
   void operator []=(int index, double value) {
-    _indexRangeCheck(index);
+    _indexCheck(index, length);
     _data.setFloat64(
         offsetInBytes + (index * elementSizeInBytes), value, Endian.little);
   }
