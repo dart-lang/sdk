@@ -1065,8 +1065,8 @@ class AsyncCodeGenerator extends CodeGenerator {
       if (emitGuard) {
         _getCurrentException();
         b.ref_as_non_null();
-        types.emitTypeTest(
-            this, catch_.guard, translator.coreTypes.objectNonNullableRawType);
+        types.emitTypeCheck(this, catch_.guard,
+            translator.coreTypes.objectNonNullableRawType, catch_);
         b.i32_eqz();
         // When generating guards we can't generate the catch body inside the
         // `if` block for the guard as the catch body can have suspension

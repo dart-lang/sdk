@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
+import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
 void testMain() {
@@ -19,6 +20,7 @@ Future<bool> shouldPauseOnExit(VmService service, IsolateRef isolateRef) async {
 }
 
 final tests = <IsolateTest>[
+  hasPausedAtStart,
   (VmService service, IsolateRef isolateRef) async {
     await service.setIsolatePauseMode(isolateRef.id!, shouldPauseOnExit: false);
     expect(await shouldPauseOnExit(service, isolateRef), false);

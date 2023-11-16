@@ -14,10 +14,16 @@ aaa
 aarhus
 abcompile
 ac
+aci
+acn
+acr
 adapter
 adaptor
 adopted
 advantages
+aei
+aen
+aer
 af
 albeit
 aligns
@@ -360,6 +366,7 @@ hardcoding
 hardly
 hb
 hc
+helpfully
 hest
 heuristics
 hi
