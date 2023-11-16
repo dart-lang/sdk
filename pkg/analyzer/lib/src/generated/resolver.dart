@@ -323,7 +323,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// resolution.
   ///
   // TODO(paulberry): make [featureSet] a required parameter (this will be a
-  /// breaking change).
+  // breaking change).
   ResolverVisitor(
       InheritanceManager3 inheritanceManager,
       LibraryElementImpl definingLibrary,
@@ -4210,7 +4210,7 @@ class ResolverVisitorForMigration extends ResolverVisitor {
 /// [SimpleIdentifier]s to declarations using scoping rules.
 ///
 // TODO(paulberry): migrate the responsibility for all scope resolution into
-/// this visitor.
+// this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   static const _nameScopeProperty = 'nameScope';
 

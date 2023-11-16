@@ -61,7 +61,7 @@ abstract class BaseIRContainer with IRToStringMixin {
 /// interpretation of its body.
 ///
 // TODO(paulberry): when extension types are supported, make this an extension
-/// type.
+// type.
 class FunctionFlags {
   static const _asyncBit = 0;
   static const _generatorBit = 1;
@@ -113,7 +113,7 @@ class FunctionFlags {
 /// of [BaseIRContainer].
 ///
 // TODO(paulberry): when extension types are supported, make this an extension
-/// type.
+// type.
 class LiteralRef {
   final int index;
 
@@ -203,7 +203,7 @@ class RawIRWriter with _RawIRWriterMixin {
 /// [BaseIRContainer].
 ///
 // TODO(paulberry): when extension types are supported, make this an extension
-/// type.
+// type.
 class TypeRef {
   final int index;
 

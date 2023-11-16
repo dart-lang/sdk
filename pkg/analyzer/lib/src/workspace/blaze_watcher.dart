@@ -302,7 +302,7 @@ class BlazeFileWatcherService {
 
   /// Shuts everything down including the watcher isolate.
   // TODO(michalt): Remove this if we really never need to shut down the
-  /// isolate.
+  // isolate.
   void shutdown() {
     if (_isolateHasStarted.isCompleted) {
       _toIsolatePort.send(BlazeWatcherShutdownIsolate());

@@ -169,11 +169,11 @@ class IgnoreValidator {
     //       }
     //     }
     //
-    //     // `TODO`(brianwilkerson) Uncomment the code below after the unnecessary
-    //     //  ignores in the Flutter code base have been cleaned up.
-    //     //   _errorReporter.reportErrorForOffset(
-    //     //       WarningCode.UNNECESSARY_IGNORE, ignoredName.offset, name.length,
-    //     //       [name]);
+    // TODO(brianwilkerson): Uncomment the code below after the unnecessary
+    // ignores in the Flutter code base have been cleaned up.
+    //     _errorReporter.reportErrorForOffset(
+    //            WarningCode.UNNECESSARY_IGNORE, ignoredName.offset, name.length,
+    //            [name]);
     //   }
     // }
   }

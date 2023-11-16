@@ -16,8 +16,8 @@ main() {
 }
 
 // TODO(srawlins): Figure out what to do with the rest of these tests.
-///  The names do not correspond to diagnostic codes, so it isn't clear what
-///  they're testing.
+//  The names do not correspond to diagnostic codes, so it isn't clear what
+//  they're testing.
 @reflectiveTest
 class StaticTypeWarningCodeTest extends PubPackageResolutionTest {
   test_await_simple() async {

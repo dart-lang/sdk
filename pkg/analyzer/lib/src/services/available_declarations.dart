@@ -732,7 +732,7 @@ class DeclarationsTracker {
   }
 
   // TODO(scheglov): Remove after fixing
-  /// https://github.com/dart-lang/sdk/issues/45233
+  // https://github.com/dart-lang/sdk/issues/45233
   void _addPathOrUri(List<String> pathOrUriList, String path, Uri uri) {
     pathOrUriList.add('(uri: $uri, path: $path)');
 

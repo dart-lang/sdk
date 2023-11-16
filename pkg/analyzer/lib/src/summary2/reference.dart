@@ -217,7 +217,7 @@ class Reference {
   }
 
   // TODO(scheglov): Remove it, once when the actual issue is fixed.
-  /// https://buganizer.corp.google.com/issues/203423390
+  // https://buganizer.corp.google.com/issues/203423390
   static String _rewriteDartUi(String name) {
     const srcPrefix = 'dart:ui/src/ui/';
     if (name.startsWith(srcPrefix)) {

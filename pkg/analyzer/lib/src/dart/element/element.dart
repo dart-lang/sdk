@@ -1010,11 +1010,11 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
 /// A [FieldElement] for a 'const' or 'final' field that has an initializer.
 ///
 // TODO(paulberry): we should rename this class to reflect the fact that it's
-/// used for both const and final fields.  However, we shouldn't do so until
-/// we've created an API for reading the values of constants; until that API is
-/// available, clients are likely to read constant values by casting to
-/// ConstFieldElementImpl, so it would be a breaking change to rename this
-/// class.
+// used for both const and final fields.  However, we shouldn't do so until
+// we've created an API for reading the values of constants; until that API is
+// available, clients are likely to read constant values by casting to
+// ConstFieldElementImpl, so it would be a breaking change to rename this
+// class.
 class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   /// Initialize a newly created synthetic field element to have the given
   /// [name] and [offset].
@@ -1045,7 +1045,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   /// super-constructor is not resolved, or the enclosing class is `Object`.
   ///
   // TODO(scheglov): We cannot have both super and redirecting constructors.
-  /// So, ideally we should have some kind of "either" or "variant" here.
+  // So, ideally we should have some kind of "either" or "variant" here.
   ConstructorElement? _superConstructor;
 
   /// The constructor to which this constructor is redirecting.
@@ -1685,7 +1685,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// not been resolved.
   ///
   // TODO(kallentu): Remove this field once we fix up g3's dependency on
-  /// annotations having a valid result as well as unresolved errors.
+  // annotations having a valid result as well as unresolved errors.
   List<AnalysisError>? additionalErrors;
 
   /// Initialize a newly created annotation. The given [compilationUnit] is the
