@@ -1642,7 +1642,7 @@ class BodyBuilder extends StackListenerImpl
           allowSuperBounded: false, inferred: inferred);
       DartType unaliasedType = aliasedType.unalias;
       List<DartType>? invocationTypeArguments = null;
-      if (unaliasedType is InterfaceType) {
+      if (unaliasedType is TypeDeclarationType) {
         invocationTypeArguments = unaliasedType.typeArguments;
       }
       Arguments invocationArguments = forest.createArguments(
@@ -6397,7 +6397,7 @@ class BodyBuilder extends StackListenerImpl
 
   @override
   Expression buildConstructorInvocation(
-      TypeDeclarationBuilder? type,
+      TypeDeclarationBuilder? typeDeclarationBuilder,
       Token nameToken,
       Token nameLastToken,
       Arguments? arguments,
@@ -6421,9 +6421,9 @@ class BodyBuilder extends StackListenerImpl
     String? errorName;
     LocatedMessage? message;
 
-    if (type is TypeAliasBuilder) {
-      errorName = debugName(type.name, name);
-      TypeAliasBuilder aliasBuilder = type;
+    if (typeDeclarationBuilder is TypeAliasBuilder) {
+      errorName = debugName(typeDeclarationBuilder.name, name);
+      TypeAliasBuilder aliasBuilder = typeDeclarationBuilder;
       int numberOfTypeParameters = aliasBuilder.typeVariablesCount;
       int numberOfTypeArguments = typeArguments?.length ?? 0;
       if (typeArguments != null &&
@@ -6437,7 +6437,7 @@ class BodyBuilder extends StackListenerImpl
                 charOffset,
                 noLength));
       }
-      type = aliasBuilder.unaliasDeclaration(null,
+      typeDeclarationBuilder = aliasBuilder.unaliasDeclaration(null,
           isUsedAsClass: true,
           usedAsClassCharOffset: nameToken.charOffset,
           usedAsClassFileUri: uri);
@@ -6449,52 +6449,74 @@ class BodyBuilder extends StackListenerImpl
       } else {
         if (aliasBuilder.typeVariablesCount > 0) {
           // Raw generic type alias used for instance creation, needs inference.
-          switch (type) {
+          switch (typeDeclarationBuilder) {
             case ClassBuilder():
-              ClassBuilder classBuilder = type;
-              MemberBuilder? b = classBuilder.findConstructorOrFactory(
-                  name, charOffset, uri, libraryBuilder);
-              Member? target = b?.member;
-              if (b == null) {
+              MemberBuilder? constructorBuilder =
+                  typeDeclarationBuilder.findConstructorOrFactory(
+                      name, charOffset, uri, libraryBuilder);
+              Member? target = constructorBuilder?.member;
+              if (constructorBuilder == null) {
                 // Not found. Reported below.
-              } else if (b is AmbiguousMemberBuilder) {
-                message = b.message.withLocation(uri, charOffset, noLength);
-              } else if (b.isConstructor) {
-                if (classBuilder.isAbstract) {
+              } else if (constructorBuilder is AmbiguousMemberBuilder) {
+                message = constructorBuilder.message
+                    .withLocation(uri, charOffset, noLength);
+              } else if (constructorBuilder.isConstructor) {
+                if (typeDeclarationBuilder.isAbstract) {
                   return evaluateArgumentsBefore(
                       arguments,
                       buildAbstractClassInstantiationError(
                           fasta.templateAbstractClassInstantiation
-                              .withArguments(type.name),
-                          type.name,
+                              .withArguments(typeDeclarationBuilder.name),
+                          typeDeclarationBuilder.name,
                           nameToken.charOffset));
                 }
               }
               if (target is Constructor ||
                   (target is Procedure &&
                       target.kind == ProcedureKind.Factory)) {
-                Expression invocation;
-                invocation = buildStaticInvocation(target!, arguments,
+                return buildStaticInvocation(target!, arguments,
                     constness: constness,
                     typeAliasBuilder: aliasBuilder,
                     charOffset: nameToken.charOffset,
                     charLength: nameToken.length,
                     isConstructorInvocation: true);
-                return invocation;
               } else {
                 return buildUnresolvedError(errorName, nameLastToken.charOffset,
                     arguments: arguments,
                     message: message,
                     kind: UnresolvedKind.Constructor);
               }
+            case ExtensionTypeDeclarationBuilder():
+              // TODO(johnniwinther): Add shared interface between
+              //  [ClassBuilder] and [ExtensionTypeDeclarationBuilder].
+              MemberBuilder? constructorBuilder =
+                  typeDeclarationBuilder.findConstructorOrFactory(
+                      name, charOffset, uri, libraryBuilder);
+              if (constructorBuilder == null) {
+                // Not found. Reported below.
+              } else if (constructorBuilder is AmbiguousMemberBuilder) {
+                message = constructorBuilder.message
+                    .withLocation(uri, charOffset, noLength);
+              } else if (constructorBuilder.isConstructor ||
+                  constructorBuilder.isFactory) {
+                Member target = constructorBuilder.invokeTarget!;
+                return buildStaticInvocation(target, arguments,
+                    constness: constness,
+                    typeAliasBuilder: aliasBuilder,
+                    charOffset: nameToken.charOffset,
+                    charLength: nameToken.length,
+                    isConstructorInvocation: true);
+              }
+              return buildUnresolvedError(errorName, nameLastToken.charOffset,
+                  arguments: arguments,
+                  message: message,
+                  kind: UnresolvedKind.Constructor);
             case InvalidTypeDeclarationBuilder():
-              LocatedMessage message = type.message;
+              LocatedMessage message = typeDeclarationBuilder.message;
               return evaluateArgumentsBefore(
                   arguments,
                   buildProblem(message.messageObject, nameToken.charOffset,
                       nameToken.lexeme.length));
-            case ExtensionTypeDeclarationBuilder():
-            // TODO(johnniwinther): Handle this case.
             case TypeAliasBuilder():
             case NominalVariableBuilder():
             case StructuralVariableBuilder():
@@ -6511,8 +6533,9 @@ class BodyBuilder extends StackListenerImpl
         } else {
           // Empty `typeArguments` and `aliasBuilder``is non-generic, but it
           // may still unalias to a class type with some type arguments.
-          switch (type) {
+          switch (typeDeclarationBuilder) {
             case ClassBuilder():
+            case ExtensionTypeDeclarationBuilder():
               List<TypeBuilder>? unaliasedTypeArgumentBuilders =
                   aliasBuilder.unaliasTypeArguments(const []);
               if (unaliasedTypeArgumentBuilders == null) {
@@ -6534,8 +6557,6 @@ class BodyBuilder extends StackListenerImpl
               }
               assert(forest.argumentsTypeArguments(arguments).isEmpty);
               forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
-            case ExtensionTypeDeclarationBuilder():
-            // TODO(johnniwinther): Handle this case.
             case TypeAliasBuilder():
             case NominalVariableBuilder():
             case StructuralVariableBuilder():
@@ -6565,8 +6586,9 @@ class BodyBuilder extends StackListenerImpl
           typeToCheck, typeEnvironment, uri, charOffset,
           allowSuperBounded: false);
 
-      switch (type) {
+      switch (typeDeclarationBuilder) {
         case ClassBuilder():
+        case ExtensionTypeDeclarationBuilder():
           if (typeArguments != null) {
             int numberOfTypeParameters =
                 aliasBuilder.typeVariables?.length ?? 0;
@@ -6602,24 +6624,34 @@ class BodyBuilder extends StackListenerImpl
             assert(forest.argumentsTypeArguments(arguments).isEmpty);
             forest.argumentsSetTypeArguments(arguments, dartTypeArguments);
           } else {
-            ClassBuilder cls = type;
-            if (cls.typeVariables?.isEmpty ?? true) {
+            LibraryBuilder libraryBuilder;
+            List<NominalVariableBuilder>? typeVariables;
+            // TODO(johnniwinther): Add a shared interface for [ClassBuilder]
+            // and [ExtensionTypeDeclarationBuilder].
+            if (typeDeclarationBuilder is ClassBuilder) {
+              libraryBuilder = typeDeclarationBuilder.libraryBuilder;
+              typeVariables = typeDeclarationBuilder.typeVariables;
+            } else {
+              typeDeclarationBuilder as ExtensionTypeDeclarationBuilder;
+              libraryBuilder = typeDeclarationBuilder.libraryBuilder;
+              typeVariables = typeDeclarationBuilder.typeParameters;
+            }
+            if (typeVariables == null || typeVariables.isEmpty) {
               assert(forest.argumentsTypeArguments(arguments).isEmpty);
               forest.argumentsSetTypeArguments(arguments, []);
             } else {
               if (forest.argumentsTypeArguments(arguments).isEmpty) {
                 // No type arguments provided to unaliased class, use defaults.
                 List<DartType> result = new List<DartType>.generate(
-                    cls.typeVariables!.length,
-                    (int i) => cls.typeVariables![i].defaultType!.build(
-                        cls.libraryBuilder, TypeUse.constructorTypeArgument),
+                    typeVariables.length,
+                    (int i) => typeVariables![i]
+                        .defaultType!
+                        .build(libraryBuilder, TypeUse.constructorTypeArgument),
                     growable: true);
                 forest.argumentsSetTypeArguments(arguments, result);
               }
             }
           }
-        case ExtensionTypeDeclarationBuilder():
-        // TODO(johnniwinther): Handle this case.
         case TypeAliasBuilder():
         case NominalVariableBuilder():
         case StructuralVariableBuilder():
@@ -6640,30 +6672,31 @@ class BodyBuilder extends StackListenerImpl
                 allowPotentiallyConstantType: false));
       }
     }
-    switch (type) {
+    switch (typeDeclarationBuilder) {
       case ClassBuilder():
-        MemberBuilder? b = type.findConstructorOrFactory(
-            name, charOffset, uri, libraryBuilder);
+        MemberBuilder? constructorBuilder = typeDeclarationBuilder
+            .findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
         Member? target;
-        if (b == null) {
+        if (constructorBuilder == null) {
           // Not found. Reported below.
-        } else if (b is AmbiguousMemberBuilder) {
-          message = b.message.withLocation(uri, charOffset, noLength);
-        } else if (b.isConstructor) {
-          if (type.isAbstract) {
+        } else if (constructorBuilder is AmbiguousMemberBuilder) {
+          message = constructorBuilder.message
+              .withLocation(uri, charOffset, noLength);
+        } else if (constructorBuilder.isConstructor) {
+          if (typeDeclarationBuilder.isAbstract) {
             return evaluateArgumentsBefore(
                 arguments,
                 buildAbstractClassInstantiationError(
                     fasta.templateAbstractClassInstantiation
-                        .withArguments(type.name),
-                    type.name,
+                        .withArguments(typeDeclarationBuilder.name),
+                    typeDeclarationBuilder.name,
                     nameToken.charOffset));
           }
-          target = b.member;
+          target = constructorBuilder.member;
         } else {
-          target = b.member;
+          target = constructorBuilder.member;
         }
-        if (type.isEnum &&
+        if (typeDeclarationBuilder.isEnum &&
             !(libraryFeatures.enhancedEnums.isEnabled &&
                 target is Procedure &&
                 target.kind == ProcedureKind.Factory)) {
@@ -6682,18 +6715,19 @@ class BodyBuilder extends StackListenerImpl
               isConstructorInvocation: true);
           return invocation;
         } else {
-          errorName ??= debugName(type.name, name);
+          errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
       case ExtensionTypeDeclarationBuilder():
-        MemberBuilder? b = type.findConstructorOrFactory(
-            name, charOffset, uri, libraryBuilder);
+        MemberBuilder? constructorBuilder = typeDeclarationBuilder
+            .findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
         Member? target;
-        if (b == null) {
+        if (constructorBuilder == null) {
           // Not found. Reported below.
-        } else if (b is AmbiguousMemberBuilder) {
-          message = b.message.withLocation(uri, charOffset, noLength);
+        } else if (constructorBuilder is AmbiguousMemberBuilder) {
+          message = constructorBuilder.message
+              .withLocation(uri, charOffset, noLength);
         } else {
-          target = b.member;
+          target = constructorBuilder.member;
         }
         if (target != null) {
           return buildStaticInvocation(target, arguments,
@@ -6703,10 +6737,10 @@ class BodyBuilder extends StackListenerImpl
               typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?,
               isConstructorInvocation: true);
         } else {
-          errorName ??= debugName(type.name, name);
+          errorName ??= debugName(typeDeclarationBuilder.name, name);
         }
       case InvalidTypeDeclarationBuilder():
-        LocatedMessage message = type.message;
+        LocatedMessage message = typeDeclarationBuilder.message;
         return evaluateArgumentsBefore(
             arguments,
             buildProblem(message.messageObject, nameToken.charOffset,
@@ -6719,7 +6753,8 @@ class BodyBuilder extends StackListenerImpl
       // TODO(johnniwinther): How should we handle this case?
       case OmittedTypeDeclarationBuilder():
       case null:
-        errorName ??= debugName(type!.fullNameForErrors, name);
+        errorName ??=
+            debugName(typeDeclarationBuilder!.fullNameForErrors, name);
     }
     return buildUnresolvedError(errorName, nameLastToken.charOffset,
         arguments: arguments, message: message, kind: unresolvedKind);

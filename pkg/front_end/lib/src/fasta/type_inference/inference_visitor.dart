@@ -1362,7 +1362,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// Returns the function type of [factory] when called through [typedef].
   FunctionType _computeAliasedFactoryFunctionType(
       Procedure factory, Typedef typedef) {
-    assert(factory.isFactory, "Only run this method on a factory");
+    assert(factory.isFactory || factory.isExtensionTypeMember,
+        "Only run this method on a factory: $factory");
     ensureMemberType(factory);
     FunctionNode function = factory.function;
     // We need create a copy of the list of type parameters, otherwise
@@ -1377,9 +1378,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypedefType typedefType = new TypedefType(
         typedef, libraryBuilder.library.nonNullable, asTypeArguments);
     DartType unaliasedTypedef = typedefType.unalias;
-    assert(unaliasedTypedef is InterfaceType,
-        "[typedef] is assumed to resolve to an interface type");
-    InterfaceType targetType = unaliasedTypedef as InterfaceType;
+    assert(unaliasedTypedef is TypeDeclarationType,
+        "[typedef] is assumed to resolve to a type declaration type");
+    TypeDeclarationType targetType = unaliasedTypedef as TypeDeclarationType;
     Substitution substitution = Substitution.fromPairs(
         classTypeParametersCopy, targetType.typeArguments);
     List<DartType> positional = function.positionalParameters

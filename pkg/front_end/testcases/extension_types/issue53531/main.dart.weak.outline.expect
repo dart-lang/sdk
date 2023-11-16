@@ -1,0 +1,37 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+typedef F<X extends core::Object? = dynamic> = self::E<X%, X%> /* = core::String */;
+extension type E<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) {
+  abstract extension-type-member representation-field get s() → core::String;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static extension-type-member method E|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self::E<self::E|constructor#::X%, self::E|constructor#::Y%> /* = core::String */
+  ;
+static extension-type-member method E|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self::E<self::E|constructor#_#new#tearOff::X%, self::E|constructor#_#new#tearOff::Y%>% /* = core::String */
+  return self::E|constructor#<self::E|constructor#_#new#tearOff::X%, self::E|constructor#_#new#tearOff::Y%>(s);
+static method main() → void
+  ;
+static method _#F#new#tearOff<X extends core::Object? = dynamic>(core::String s) → self::E<self::_#F#new#tearOff::X%, self::_#F#new#tearOff::X%>% /* = core::String */
+  return self::E|constructor#<self::_#F#new#tearOff::X%, self::_#F#new#tearOff::X%>(s);
+
+library;
+import self as self2;
+import "dart:core" as core;
+
+typedef H<X extends core::Object? = dynamic> = self2::G<X%, X%> /* = core::String */;
+extension type G<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) {
+  abstract extension-type-member representation-field get s() → core::String;
+  constructor • = self2::G|constructor#;
+  constructor tearoff • = self2::G|constructor#_#new#tearOff;
+}
+static extension-type-member method G|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self2::G<self2::G|constructor#::X%, self2::G|constructor#::Y%> /* = core::String */
+  ;
+static extension-type-member method G|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self2::G<self2::G|constructor#_#new#tearOff::X%, self2::G|constructor#_#new#tearOff::Y%>% /* = core::String */
+  return self2::G|constructor#<self2::G|constructor#_#new#tearOff::X%, self2::G|constructor#_#new#tearOff::Y%>(s);
+static method _#H#new#tearOff<X extends core::Object? = dynamic>(core::String s) → self2::G<self2::_#H#new#tearOff::X%, self2::_#H#new#tearOff::X%>% /* = core::String */
+  return self2::G|constructor#<self2::_#H#new#tearOff::X%, self2::_#H#new#tearOff::X%>(s);

@@ -3313,7 +3313,7 @@ class TypeUseGenerator extends AbstractReadOnlyAccessGenerator {
                     allowPotentiallyConstantType: true);
               }
               if (isGenericTypedefTearOff) {
-                if (isProperRenameForClass(
+                if (isProperRenameForTypeDeclaration(
                     _helper.typeEnvironment,
                     aliasBuilder!.typedef,
                     aliasBuilder.libraryBuilder.library)) {

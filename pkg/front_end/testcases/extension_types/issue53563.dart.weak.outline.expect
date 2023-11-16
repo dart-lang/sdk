@@ -1,0 +1,58 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef A<X extends core::Object? = dynamic> = self::B<X%> /* = core::int */;
+extension type B<T extends core::Object? = dynamic>(core::int it) {
+  abstract extension-type-member representation-field get it() → core::int;
+  get g0 = self::B|get#g0;
+  get g1 = self::B|get#g1;
+  get g2 = self::B|get#g2;
+  get g3 = self::B|get#g3;
+  get g4 = self::B|get#g4;
+  get g5 = self::B|get#g5;
+  get g6 = self::B|get#g6;
+  get g7 = self::B|get#g7;
+  constructor • = self::B|constructor#;
+  constructor tearoff • = self::B|constructor#_#new#tearOff;
+  constructor named = self::B|constructor#named;
+  constructor tearoff named = self::B|constructor#_#named#tearOff;
+  static factory fact = self::B|constructor#fact;
+  static factory tearoff fact = self::B|constructor#_#fact#tearOff;
+  static redirecting-factory redirect = self::B|constructor#redirect;
+  static redirecting-factory tearoff redirect = self::B|constructor#_#redirect#tearOff;
+}
+static extension-type-member method B|constructor#<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#::T%> /* = core::int */
+  ;
+static extension-type-member method B|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#new#tearOff::T%>% /* = core::int */
+  return self::B|constructor#<self::B|constructor#_#new#tearOff::T%>(it);
+static extension-type-member method B|constructor#named<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#named::T%> /* = core::int */
+  ;
+static extension-type-member method B|constructor#_#named#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#named#tearOff::T%>% /* = core::int */
+  return self::B|constructor#named<self::B|constructor#_#named#tearOff::T%>(it);
+static extension-type-member method B|constructor#fact<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#fact::T%> /* = core::int */
+  ;
+static extension-type-member method B|constructor#_#fact#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#fact#tearOff::T%>% /* = core::int */
+  return self::B|constructor#fact<self::B|constructor#_#fact#tearOff::T%>(it);
+static extension-type-member method B|constructor#redirect<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#redirect::T%> /* = core::int */ /* redirection-target: self::B|constructor#<self::B|constructor#redirect::T%>*/
+  return self::B|constructor#<self::B|constructor#redirect::T%>(it);
+static extension-type-member method B|constructor#_#redirect#tearOff<T extends core::Object? = dynamic>(core::int it) → self::B<self::B|constructor#_#redirect#tearOff::T%>% /* = core::int */
+  return self::B|constructor#<self::B|constructor#_#redirect#tearOff::T%>(it);
+static extension-type-member method B|get#g0<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g0::T%> /* = core::int */ #this) → dynamic
+  ;
+static extension-type-member method B|get#g1<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g1::T%> /* = core::int */ #this) → dynamic
+  ;
+static extension-type-member method B|get#g2<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g2::T%> /* = core::int */ #this) → dynamic
+  ;
+static extension-type-member method B|get#g3<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g3::T%> /* = core::int */ #this) → dynamic
+  ;
+static extension-type-member method B|get#g4<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g4::T%> /* = core::int */ #this) → dynamic
+  ;
+static extension-type-member method B|get#g5<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g5::T%> /* = core::int */ #this) → dynamic
+  ;
+static extension-type-member method B|get#g6<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g6::T%> /* = core::int */ #this) → dynamic
+  ;
+static extension-type-member method B|get#g7<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#g7::T%> /* = core::int */ #this) → dynamic
+  ;
+static method main() → void
+  ;
