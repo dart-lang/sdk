@@ -994,14 +994,43 @@ class _TypeUniverse {
 _TypeUniverse _typeUniverse = _TypeUniverse.create();
 
 @pragma("wasm:entry-point")
-bool _isSubtype(Object? s, _Type t) {
+bool _isSubtype(Object? o, _Type t) {
   return _typeUniverse.isSubtype(
-      _getActualRuntimeTypeNullable(s), null, t, null);
+      _getActualRuntimeTypeNullable(o), null, t, null);
 }
 
 @pragma("wasm:entry-point")
 bool _isTypeSubtype(_Type s, _Type t) {
   return _typeUniverse.isSubtype(s, null, t, null);
+}
+
+@pragma("wasm:entry-point")
+bool _verifyOptimizedTypeCheck(
+    bool result, Object? o, _Type t, String? location) {
+  _Type s = _getActualRuntimeTypeNullable(o);
+  bool reference = _isTypeSubtype(s, t);
+  if (result != reference) {
+    throw _TypeCheckVerificationError(s, t, result, reference, location);
+  }
+  return result;
+}
+
+class _TypeCheckVerificationError extends Error {
+  final _Type left;
+  final _Type right;
+  final bool optimized;
+  final bool reference;
+  final String? location;
+
+  _TypeCheckVerificationError(
+      this.left, this.right, this.optimized, this.reference, this.location);
+
+  String toString() {
+    String locationString = location != null ? " at $location" : "";
+    return "Type check verification error$locationString\n"
+        "Checking $left <: $right\n"
+        "Optimized result $optimized, reference result $reference\n";
+  }
 }
 
 /// Checks that argument lists have expected number of arguments for the

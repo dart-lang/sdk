@@ -28,17 +28,18 @@ where *options* include:
 | `--dart-sdk=`*path*                     | relative to script | The location of the `sdk` directory inside the Dart SDK, containing the core library sources.
 | `--platform=`*path*                     | none    | The location of the platform `dill` file containing the compiled core libraries.
 | `--depfile=`*path*                      | none    | Write a Ninja depfile listing the input sources for the compilation.
+| `--`[`no-`]`enable-asserts`             | no      | Enable assertions at runtime.
 | `--`[`no-`]`export-all`                 | no      | Export all functions; otherwise, just export `main`.
 | `--`[`no-`]`import-shared-memory`       | no      | Import a shared memory buffer. If this is on, `--shared-memory-max-pages` must also be specified.
 | `--`[`no-`]`inlining`                   | yes     | Enable function inlining.
 | `--inlining-limit` *size*               | 0       | Always inline functions no larger than this number of AST nodes, if inlining is enabled.
+| `--`[`no-`]`js-compatibility`           | no      | Enable JS compatibility mode.
 | `--`[`no-`]`name-section`               | yes     | Emit Name Section with function names.
 | `--`[`no-`]`omit-type-checks`           | no      | Omit runtime type checks, such as covariance checks and downcasts.
 | `--`[`no-`]`polymorphic-specialization` | no      | Do virtual calls by switching on the class ID instead of using `call_indirect`.
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.
 | `--`[`no-`]`print-wasm`                 | no      | Print Wasm instructions of each compiled function.
-| `--`[`no-`]`enable-asserts`             | no      | Enable assertions at runtime.
-| `--`[`no-`]`js-compatibility`           | no      | Enable JS compatibility mode.
+| `--`[`no-`]`verify-type-checks`         | no      | Instrument code to verify that type check optimizations produce the correct result.
 | `--shared-memory-max-pages` *pagecount* |         | Max size of the imported memory buffer. If `--shared-import-memory` is specified, this must also be specified.
 | `--watch` *offset*                      |         | Print stack trace leading to the byte at offset *offset* in the `.wasm` output file. Can be specified multiple times.
 

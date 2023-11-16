@@ -249,6 +249,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_isSubtype");
   late final Procedure isTypeSubtype =
       index.getTopLevelProcedure("dart:core", "_isTypeSubtype");
+  late final Procedure verifyOptimizedTypeCheck =
+      index.getTopLevelProcedure("dart:core", "_verifyOptimizedTypeCheck");
   late final Procedure checkClosureShape =
       index.getTopLevelProcedure("dart:core", "_checkClosureShape");
   late final Procedure checkClosureType =
