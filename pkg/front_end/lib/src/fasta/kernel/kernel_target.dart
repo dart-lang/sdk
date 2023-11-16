@@ -1061,8 +1061,7 @@ class KernelTarget extends TargetImplementation {
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
-        new DelayedDefaultValueCloner(
-            superConstructor, constructor, substitutionMap,
+        new DelayedDefaultValueCloner(superConstructor, constructor,
             libraryBuilder: libraryBuilder);
 
     TypeDependency? typeDependency;

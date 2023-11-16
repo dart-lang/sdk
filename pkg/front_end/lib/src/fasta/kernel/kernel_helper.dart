@@ -20,12 +20,6 @@ import '../messages.dart';
 /// for redirecting factories, which are created from the effective target
 /// constructor.
 class DelayedDefaultValueCloner {
-  /// Type parameter map from type parameters in scope [_original] to types
-  /// in scope of [_synthesized].
-  // TODO(johnniwinther): Is this ever needed? Should occurrence of type
-  //  variable types in default values be a compile time error?
-  final Map<TypeParameter, DartType> _typeSubstitution;
-
   /// The original constructor or procedure.
   final Member original;
 
@@ -53,8 +47,7 @@ class DelayedDefaultValueCloner {
   /// isn't performed twice.
   bool _hasCloned = false;
 
-  DelayedDefaultValueCloner(
-      this.original, this.synthesized, this._typeSubstitution,
+  DelayedDefaultValueCloner(this.original, this.synthesized,
       {this.identicalSignatures = true,
       List<int?>? positionalSuperParameters = null,
       List<String>? namedSuperParameters = null,
@@ -216,8 +209,7 @@ class DelayedDefaultValueCloner {
   void _cloneInitializer(VariableDeclaration originalParameter,
       VariableDeclaration clonedParameter) {
     if (originalParameter.initializer != null) {
-      CloneVisitorNotMembers cloner = _cloner ??=
-          new CloneVisitorNotMembers(typeSubstitution: _typeSubstitution);
+      CloneVisitorNotMembers cloner = _cloner ??= new CloneVisitorNotMembers();
       clonedParameter.initializer = cloner.clone(originalParameter.initializer!)
         ..parent = clonedParameter;
     }

@@ -12,6 +12,7 @@ const_functions/const_functions_switch_statements: SemiFuzzFailure # https://git
 # POSSIBLY BAD ONES
 dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
+generic_metadata/alias_from_opt_in: SemiFuzzCrash # https://github.com/dart-lang/sdk/issues/54068
 
 # INCREMENTAL COMPILATION ERRORS
 inline_class/annotations: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.

@@ -1,0 +1,61 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef A = self::B /* = core::int */;
+typedef C<X extends core::num> = self::D<X> /* = X */;
+typedef E<X extends core::num> = self::F<X>;
+class F<Z extends core::Object? = dynamic> extends core::Object {
+  constructor •(self::F::Z% i) → self::F<self::F::Z%>
+    ;
+  constructor named(self::F::Z% i) → self::F<self::F::Z%>
+    ;
+  static method method<Z extends core::Object? = dynamic>(self::F::method::Z% i) → self::F<self::F::method::Z%>
+    ;
+}
+extension type B(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  static method method = self::B|method;
+  constructor • = self::B|constructor#;
+  constructor tearoff • = self::B|constructor#_#new#tearOff;
+  constructor named = self::B|constructor#named;
+  constructor tearoff named = self::B|constructor#_#named#tearOff;
+}
+extension type D<Y extends core::Object? = dynamic>(Y% i) {
+  abstract extension-type-member representation-field get i() → Y%;
+  static method method = self::D|method;
+  constructor • = self::D|constructor#;
+  constructor tearoff • = self::D|constructor#_#new#tearOff;
+  constructor named = self::D|constructor#named;
+  constructor tearoff named = self::D|constructor#_#named#tearOff;
+}
+static extension-type-member method B|constructor#(core::int i) → self::B /* = core::int */
+  ;
+static extension-type-member method B|constructor#_#new#tearOff(core::int i) → self::B /* = core::int */
+  return self::B|constructor#(i);
+static extension-type-member method B|constructor#named(core::int i) → self::B /* = core::int */
+  ;
+static extension-type-member method B|constructor#_#named#tearOff(core::int i) → self::B /* = core::int */
+  return self::B|constructor#named(i);
+static extension-type-member method B|method(core::int i) → self::B /* = core::int */
+  ;
+static extension-type-member method D|constructor#<Y extends core::Object? = dynamic>(self::D|constructor#::Y% i) → self::D<self::D|constructor#::Y%> /* = self::D|constructor#::Y% */
+  ;
+static extension-type-member method D|constructor#_#new#tearOff<Y extends core::Object? = dynamic>(self::D|constructor#_#new#tearOff::Y% i) → self::D<self::D|constructor#_#new#tearOff::Y%>% /* = self::D|constructor#_#new#tearOff::Y% */
+  return self::D|constructor#<self::D|constructor#_#new#tearOff::Y%>(i);
+static extension-type-member method D|constructor#named<Y extends core::Object? = dynamic>(self::D|constructor#named::Y% i) → self::D<self::D|constructor#named::Y%> /* = self::D|constructor#named::Y% */
+  ;
+static extension-type-member method D|constructor#_#named#tearOff<Y extends core::Object? = dynamic>(self::D|constructor#_#named#tearOff::Y% i) → self::D<self::D|constructor#_#named#tearOff::Y%>% /* = self::D|constructor#_#named#tearOff::Y% */
+  return self::D|constructor#named<self::D|constructor#_#named#tearOff::Y%>(i);
+static extension-type-member method D|method<Y extends core::Object? = dynamic>(self::D|method::Y% i) → self::D<self::D|method::Y%> /* = self::D|method::Y% */
+  ;
+static method method() → dynamic
+  ;
+static method _#C#new#tearOff<X extends core::num>(self::_#C#new#tearOff::X i) → self::D<self::_#C#new#tearOff::X>% /* = self::_#C#new#tearOff::X */
+  return self::D|constructor#<self::_#C#new#tearOff::X>(i);
+static method _#C#named#tearOff<X extends core::num>(self::_#C#named#tearOff::X i) → self::D<self::_#C#named#tearOff::X>% /* = self::_#C#named#tearOff::X */
+  return self::D|constructor#named<self::_#C#named#tearOff::X>(i);
+static method _#E#new#tearOff<X extends core::num>(self::_#E#new#tearOff::X i) → self::F<self::_#E#new#tearOff::X>
+  return new self::F::•<self::_#E#new#tearOff::X>(i);
+static method _#E#named#tearOff<X extends core::num>(self::_#E#named#tearOff::X i) → self::F<self::_#E#named#tearOff::X>
+  return new self::F::named<self::_#E#named#tearOff::X>(i);
