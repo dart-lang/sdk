@@ -33,7 +33,8 @@ Uri memoryDirectory = Uri.parse('memory://');
 /// be absolute, using [memoryDirectory] as base uri to refer to a file from
 /// [memoryFiles].
 Future<MemoryCompilerResult> compileFromMemory(
-    Map<String, String> memoryFiles, Uri entryPoint) async {
+    Map<String, String> memoryFiles, Uri entryPoint,
+    {Map<fe.ExperimentalFlag, bool>? explicitExperimentalFlags}) async {
   var errors = <fe.DiagnosticMessage>[];
   void diagnosticMessageHandler(fe.DiagnosticMessage message) {
     if (message.severity == fe.Severity.error) {
@@ -61,6 +62,7 @@ Future<MemoryCompilerResult> compileFromMemory(
           TargetFlags(trackWidgetCreation: false, soundNullSafety: true)),
       fileSystem: fe.HybridFileSystem(memoryFileSystem),
       environmentDefines: {},
+      explicitExperimentalFlags: explicitExperimentalFlags,
       nnbdMode: fe.NnbdMode.Strong);
   var result =
       await fe.compile(compilerState, [entryPoint], diagnosticMessageHandler);
