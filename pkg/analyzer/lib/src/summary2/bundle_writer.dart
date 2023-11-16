@@ -228,6 +228,8 @@ class BundleWriter {
       _resolutionSink.writeElement(element.superConstructor);
       _resolutionSink.writeElement(element.redirectedConstructor);
       _resolutionSink._writeNodeList(element.constantInitializers);
+      _resolutionSink.writeElement(element.augmentation);
+      _resolutionSink.writeElement(element.augmentationTarget);
     });
   }
 

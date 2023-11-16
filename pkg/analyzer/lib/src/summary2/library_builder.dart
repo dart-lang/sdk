@@ -40,6 +40,7 @@ class AugmentedClassDeclarationBuilder
     required this.declaration,
   }) {
     addFields(declaration.fields);
+    addConstructors(declaration.constructors);
     addAccessors(declaration.accessors);
     addMethods(declaration.methods);
   }
