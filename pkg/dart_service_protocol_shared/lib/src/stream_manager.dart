@@ -8,8 +8,7 @@ import 'client.dart';
 
 /// Manages state related to stream subscriptions made by [Client]s.
 abstract class StreamManager {
-  final _streamListeners =
-      <String, List<Client>>{}; // TODO should this be set of StreamClient?
+  final _streamListeners = <String, List<Client>>{};
   List<Client>? getListenersFor({required String stream}) =>
       _streamListeners[stream];
 
