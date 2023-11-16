@@ -659,7 +659,7 @@ class LanguageOptionValidator extends OptionsValidator {
 }
 
 /// Validates `linter` top-level options.
-/// TODO(pq): move into `linter` package and plugin.
+// TODO(pq): move into `linter` package and plugin.
 class LinterOptionsValidator extends TopLevelOptionValidator {
   LinterOptionsValidator() : super('linter', const ['rules']);
 }
@@ -929,7 +929,7 @@ class TopLevelOptionValidator extends OptionsValidator {
                 [pluginName, k.valueOrThrow, _valueProposal]);
           }
         }
-        //TODO(pq): consider an error if the node is not a Scalar.
+        // TODO(pq): consider an error if the node is not a Scalar.
       });
     }
     // TODO(srawlins): Report non-Map with

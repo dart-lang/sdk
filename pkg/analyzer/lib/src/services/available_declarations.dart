@@ -731,7 +731,7 @@ class DeclarationsTracker {
     }
   }
 
-  /// TODO(scheglov) Remove after fixing
+  // TODO(scheglov): Remove after fixing
   /// https://github.com/dart-lang/sdk/issues/45233
   void _addPathOrUri(List<String> pathOrUriList, String path, Uri uri) {
     pathOrUriList.add('(uri: $uri, path: $path)');
@@ -1551,7 +1551,7 @@ class _File {
               classMember.returnType.offset,
             );
 
-            // TODO(brianwilkerson) Should we be passing in `isConst`?
+            // TODO(brianwilkerson): Should we be passing in `isConst`?
             addDeclaration(
               defaultArgumentListString: defaultArguments?.text,
               defaultArgumentListTextRanges: defaultArguments?.ranges,
@@ -1572,7 +1572,7 @@ class _File {
             );
             hasConstructor = true;
           } else if (classMember is FieldDeclaration) {
-            // TODO(brianwilkerson) Why are we creating declarations for
+            // TODO(brianwilkerson): Why are we creating declarations for
             //  instance members?
             var isStatic = classMember.isStatic;
             var isConst = classMember.fields.isConst;
@@ -1730,7 +1730,7 @@ class _File {
             relevanceTags: [_elementKindExtension],
           );
         }
-        // TODO(brianwilkerson) Should we be creating declarations for the
+        // TODO(brianwilkerson): Should we be creating declarations for the
         //  static members of the extension?
       } else if (node is FunctionDeclaration) {
         var functionExpression = node.functionExpression;

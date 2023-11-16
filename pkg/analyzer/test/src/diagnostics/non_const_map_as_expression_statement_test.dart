@@ -18,7 +18,7 @@ main() {
 class NonConstMapAsExpressionStatementTest extends PubPackageResolutionTest {
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42850')
   test_beginningOfExpressionStatement() async {
-    // TODO(srawlins) Fasta is not recovering well.
+    // TODO(srawlins): Fasta is not recovering well.
     // Ideally we would produce a single diagnostic:
     // CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT
     addTestFile(r'''
@@ -33,7 +33,7 @@ f() {
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/42850')
   test_expressionStatementOnly() async {
-    // TODO(danrubel) Fasta is not recovering well.
+    // TODO(danrubel): Fasta is not recovering well.
     // Ideally we would produce a single diagnostic:
     // CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT
     addTestFile(r'''

@@ -42,8 +42,8 @@ class YieldStatementResolver {
   ///
   /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
   ///
-  /// TODO(scheglov) This is duplicate
-  /// TODO(scheglov) Also in [BoolExpressionVerifier]
+  // TODO(scheglov): This is duplicate
+  // TODO(scheglov): Also in [BoolExpressionVerifier]
   bool _checkForUseOfVoidResult(Expression expression) {
     if (!identical(expression.staticType, VoidTypeImpl.instance)) {
       return false;

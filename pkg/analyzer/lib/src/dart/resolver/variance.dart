@@ -38,7 +38,7 @@ class Variance {
         var argument = type.typeArguments[i];
         var parameter = type.element.typeParameters[i];
 
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
         var parameterVariance =
             (parameter as TypeParameterElementImpl).variance;

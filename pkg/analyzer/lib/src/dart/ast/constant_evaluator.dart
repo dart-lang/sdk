@@ -238,7 +238,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
       }
       break;
     }
-    // TODO(brianwilkerson) This doesn't handle numeric conversions.
+    // TODO(brianwilkerson): This doesn't handle numeric conversions.
     return visitExpression(node);
   }
 
@@ -377,7 +377,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
 
   @override
   Object? visitSymbolLiteral(SymbolLiteral node) {
-    // TODO(brianwilkerson) This isn't optimal because a Symbol is not a String.
+    // TODO(brianwilkerson): This isn't optimal because a Symbol is not a String.
     StringBuffer buffer = StringBuffer();
     for (Token component in node.components) {
       if (buffer.length > 0) {
@@ -391,7 +391,7 @@ class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   /// Return the constant value of the static constant represented by the given
   /// [element].
   Object _getConstantValue(Element? element) {
-    // TODO(brianwilkerson) Implement this
+    // TODO(brianwilkerson): Implement this
 //    if (element is FieldElement) {
 //      FieldElement field = element;
 //      if (field.isStatic && field.isConst) {

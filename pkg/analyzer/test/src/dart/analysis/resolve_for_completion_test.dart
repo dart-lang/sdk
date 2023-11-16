@@ -147,7 +147,7 @@ class A {
 }
 ''');
 
-    // TODO(scheglov) Resolve only the initializer.
+    // TODO(scheglov): Resolve only the initializer.
     result.assertResolvedNodes([
       'A(int a) : f = a + bar {print(0);}',
     ]);

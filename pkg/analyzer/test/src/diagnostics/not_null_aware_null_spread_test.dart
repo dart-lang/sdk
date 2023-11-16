@@ -16,8 +16,8 @@ main() {
 @reflectiveTest
 class NotNullAwareNullSpreadTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+  // TODO(srawlins): Use null safety in test cases.
+  // https://github.com/dart-lang/sdk/issues/44666
   test_listLiteral_notNullAware_nullLiteral() async {
     await assertErrorsInCode('''
 var v = [...null];

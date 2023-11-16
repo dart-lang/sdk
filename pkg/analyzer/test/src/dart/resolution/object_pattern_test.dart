@@ -1232,7 +1232,7 @@ PatternVariableDeclaration
 ''');
   }
 
-  /// TODO(scheglov) Remove `new` (everywhere), implement rewrite.
+  // TODO(scheglov): Remove `new` (everywhere), implement rewrite.
   test_variableDeclaration_typeSchema_withTypeArguments() async {
     await assertErrorsInCode(r'''
 void f() {

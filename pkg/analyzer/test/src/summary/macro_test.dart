@@ -4897,7 +4897,7 @@ class A
 ''');
   }
 
-  /// TODO(scheglov) Tests for unnamed positional formal parameters.
+  // TODO(scheglov): Tests for unnamed positional formal parameters.
   test_functionTypeAnnotation_formalParameters_positionalRequired_simpleFormalParameter() async {
     await _assertIntrospectText(r'''
 @Introspect()

@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// TODO(paulberry,johnniwinther): Use the code for extraction of test data from
+// TODO(johnniwinther): .
+// TODO(paulberry): Use the code for extraction of test data from
 // annotated code from CFE.
 
 import 'package:_fe_analyzer_shared/src/testing/annotated_code_helper.dart';
@@ -193,8 +194,8 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
 Uri _toTestUri(String relativePath) => _defaultDir.resolve(relativePath);
 
 class AnalyzerCompiledData<T> extends CompiledData<T> {
-  // TODO(johnniwinther,paulberry): Maybe this should have access to the
-  // [ResolvedUnitResult] instead.
+  // TODO(johnniwinther): .
+  // TODO(paulberry): Maybe this should have access to the [ResolvedUnitResult] instead.
   final Map<Uri, AnnotatedCode> code;
 
   AnalyzerCompiledData(

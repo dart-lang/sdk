@@ -414,7 +414,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.methods = holder.methods;
     element.typeParameters = holder.typeParameters;
 
-    // TODO(scheglov) We cannot do this anymore.
+    // TODO(scheglov): We cannot do this anymore.
     // Not for class augmentations, not for classes.
     _resolveConstructorFieldFormals(element);
   }
@@ -462,7 +462,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       }
     });
 
-    // TODO(scheglov) don't create a duplicate
+    // TODO(scheglov): don't create a duplicate
     {
       var holder = _EnclosingContext(reference, element);
       _withEnclosing(holder, () {
@@ -521,7 +521,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.implementsClause?.accept(this);
 
-    // TODO(scheglov) We cannot do this anymore.
+    // TODO(scheglov): We cannot do this anymore.
     // Not for class augmentations, not for classes.
     _resolveConstructorFieldFormals(element);
   }
@@ -603,7 +603,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredElement = element;
 
-    // TODO(scheglov) check that we don't set reference for parameters
+    // TODO(scheglov): check that we don't set reference for parameters
     var fakeReference = Reference.root();
     var holder = _EnclosingContext(fakeReference, element);
     _withEnclosing(holder, () {
@@ -1132,7 +1132,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     node.declaredElement = element;
 
-    // TODO(scheglov) check that we don't set reference for parameters
+    // TODO(scheglov): check that we don't set reference for parameters
     var fakeReference = Reference.root();
     var holder = _EnclosingContext(fakeReference, element);
     _withEnclosing(holder, () {
@@ -1246,7 +1246,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var hasConstConstructor = node.members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
-    // TODO(scheglov) don't create a duplicate
+    // TODO(scheglov): don't create a duplicate
     var holder = _EnclosingContext(element.reference!, element,
         hasConstConstructor: hasConstConstructor);
     _withEnclosing(holder, () {
@@ -1287,7 +1287,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     var hasConstConstructor = node.members.any((e) {
       return e is ConstructorDeclaration && e.constKeyword != null;
     });
-    // TODO(scheglov) don't create a duplicate
+    // TODO(scheglov): don't create a duplicate
     var holder = _EnclosingContext(element.reference!, element,
         hasConstConstructor: hasConstConstructor);
     _withEnclosing(holder, () {
@@ -1347,7 +1347,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
   }
 
-  /// TODO(scheglov) Maybe inline?
+  // TODO(scheglov): Maybe inline?
   void _buildType(TypeAnnotation? node) {
     node?.accept(this);
   }

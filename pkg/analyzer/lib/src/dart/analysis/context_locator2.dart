@@ -294,7 +294,7 @@ class ContextLocatorImpl2 implements ContextLocator {
     var buildGnFile = folder.getExistingFile(file_paths.buildGn);
 
     if (localOptionsFile != null) {
-      // todo(pq): remove cast when API is finalized.
+      // TODO(pq): remove cast when API is finalized.
       (containingRoot as ContextRootImpl).optionsFileMap[folder] =
           localOptionsFile;
     }
@@ -350,7 +350,7 @@ class ContextLocatorImpl2 implements ContextLocator {
           folder.shortName.startsWith('.')) {
         return true;
       }
-      // TODO(scheglov) Why not take it from `containingRoot`?
+      // TODO(scheglov): Why not take it from `containingRoot`?
       for (var pattern in excludedGlobs) {
         if (pattern.matches(folder.path)) {
           return true;
@@ -435,7 +435,7 @@ class ContextLocatorImpl2 implements ContextLocator {
       return null;
     }
 
-    // TODO(scheglov) Create SourceFactory once.
+    // TODO(scheglov): Create SourceFactory once.
     var sourceFactory = workspace.createSourceFactory(null, null);
     var uriStr = WorkspaceWithDefaultAnalysisOptions.uri;
     var path = sourceFactory.forUri(uriStr)?.fullName;

@@ -1053,7 +1053,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    // TODO(scheglov) Verify for all mixin errors.
+    // TODO(scheglov): Verify for all mixin errors.
     var outerClass = _enclosingClass;
     try {
       final element = node.declaredElement!;
@@ -1108,7 +1108,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitNativeClause(NativeClause node) {
-    // TODO(brianwilkerson) Figure out the right rule for when 'native' is
+    // TODO(brianwilkerson): Figure out the right rule for when 'native' is
     // allowed.
     if (!_isInSystemLibrary) {
       errorReporter.reportErrorForNode(
@@ -1711,7 +1711,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.ASSIGNMENT_TO_FINAL], and
   /// [CompileTimeErrorCode.ASSIGNMENT_TO_METHOD].
   void _checkForAssignmentToFinal(Expression expression) {
-    // TODO(scheglov) Check SimpleIdentifier(s) as all other nodes.
+    // TODO(scheglov): Check SimpleIdentifier(s) as all other nodes.
     if (expression is! SimpleIdentifier) return;
 
     // Already handled in the assignment resolver.
@@ -2672,7 +2672,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
 
-    // TODO(scheglov) use NullableDereferenceVerifier
+    // TODO(scheglov): use NullableDereferenceVerifier
     if (_isNonNullableByDefault) {
       if (typeSystem.isNullable(iterableType)) {
         return false;
@@ -2836,7 +2836,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var element = node.element!;
-    // TODO(scheglov) Expose from ExportElement.
+    // TODO(scheglov): Expose from ExportElement.
     var namespace =
         NamespaceBuilder().createExportNamespaceForDirective(element);
 
@@ -2906,7 +2906,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given [namedType] does not extend, implement or mixin
   /// classes such as 'num' or 'String'.
   ///
-  /// TODO(scheglov) Remove this method, when all inheritance / override
+  // TODO(scheglov): Remove this method, when all inheritance / override
   /// is concentrated. We keep it for now only because we need to know when
   /// inheritance is completely wrong, so that we don't need to check anything
   /// else.
@@ -3732,7 +3732,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     List<DartType> typeArguments = (mapType as InterfaceTypeImpl).typeArguments;
     // It is possible for the number of type arguments to be inconsistent when
     // the literal is ambiguous and a non-map type was selected.
-    // TODO(brianwilkerson) Unify this and _checkForSetElementTypeNotAssignable3
+    // TODO(brianwilkerson): Unify this and _checkForSetElementTypeNotAssignable3
     //  to better handle recovery situations.
     if (typeArguments.length == 2) {
       DartType keyType = typeArguments[0];
@@ -3763,7 +3763,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    // TODO(brianwilkerson) This needs to be checked after constant values have
+    // TODO(brianwilkerson): This needs to be checked after constant values have
     // been computed.
     var expressionType = statement.expression.staticType;
 
@@ -4268,7 +4268,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    /// TODO(srawlins): Add any tests showing this is reported.
+    // TODO(srawlins): Add any tests showing this is reported.
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
   }
@@ -4792,7 +4792,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     List<DartType> typeArguments = (setType as InterfaceTypeImpl).typeArguments;
     // It is possible for the number of type arguments to be inconsistent when
     // the literal is ambiguous and a non-set type was selected.
-    // TODO(brianwilkerson) Unify this and _checkForMapTypeNotAssignable3 to
+    // TODO(brianwilkerson): Unify this and _checkForMapTypeNotAssignable3 to
     //  better handle recovery situations.
     if (typeArguments.length == 1) {
       DartType setElementType = typeArguments[0];
@@ -5254,8 +5254,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 //        else {
-//        // TODO(jwren) Report error, constructor initializer variable is a top level element
-//        // (Either here or in ErrorVerifier.checkForAllFinalInitializedErrorCodes)
+// TODO(jwren): Report error, constructor initializer variable is a top level element
+// (Either here or in ErrorVerifier.checkForAllFinalInitializedErrorCodes)
 //        }
   }
 
@@ -5343,7 +5343,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
     if (_enclosingClass != null) {
       for (var typeParameter in _enclosingClass!.typeParameters) {
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
         if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
           var fields = node.fields;
@@ -5372,7 +5372,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     for (var typeParameter in _enclosingClass!.typeParameters) {
-      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
       if ((typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
         continue;
@@ -5422,7 +5422,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superInterface != null) {
         for (var typeParameter in _enclosingClass!.typeParameters) {
           var superVariance = Variance(typeParameter, superInterface);
-          // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+          // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
           // variance is added to the interface.
           var typeParameterElementImpl =
               typeParameter as TypeParameterElementImpl;
@@ -5698,7 +5698,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Given an [expression] in a switch case whose value is expected to be an
   /// enum constant, return the name of the constant.
   String? _getConstantName(Expression expression) {
-    // TODO(brianwilkerson) Convert this to return the element representing the
+    // TODO(brianwilkerson): Convert this to return the element representing the
     // constant.
     if (expression is SimpleIdentifier) {
       return expression.name;
@@ -5875,7 +5875,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             ],
           );
         } else {
-          // TODO(scheglov) Other implementations.
+          // TODO(scheglov): Other implementations.
           throw UnimplementedError('(${macroError.runtimeType}) $macroError');
         }
       }

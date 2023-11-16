@@ -78,7 +78,7 @@ class FromEnvironmentEvaluator {
 
     var defaultDefault = _defaultValueDefaultValue(constructor);
 
-    // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/40678
+    // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/40678
     if (defaultDefault.isNull) {
       return DartObjectImpl(
         _typeSystem,
@@ -116,7 +116,7 @@ class FromEnvironmentEvaluator {
 
     var defaultDefault = _defaultValueDefaultValue(constructor);
 
-    // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/40678
+    // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/40678
     if (defaultDefault.isNull) {
       return DartObjectImpl(
         _typeSystem,

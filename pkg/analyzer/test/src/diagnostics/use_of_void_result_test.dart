@@ -337,7 +337,7 @@ void main() {
 
   @failingTest
   test_useOfVoidInConditionalLhsError() async {
-    // TODO(mfairhurst) Enable this.
+    // TODO(mfairhurst): Enable this.
     await assertErrorsInCode('''
 void main(bool c) {
   void x;
@@ -350,7 +350,7 @@ void main(bool c) {
 
   @failingTest
   test_useOfVoidInConditionalRhsError() async {
-    // TODO(mfairhurst) Enable this.
+    // TODO(mfairhurst): Enable this.
     await assertErrorsInCode('''
 void main(bool c) {
   void x;
@@ -586,7 +586,7 @@ extension on void {
 
   @failingTest
   test_useOfVoidReturnInNonVoidFunctionError() async {
-    // TODO(mfairhurst) Get this test to pass once codebase is compliant.
+    // TODO(mfairhurst): Get this test to pass once codebase is compliant.
     await assertErrorsInCode('''
 dynamic main() {
   void x;

@@ -1004,7 +1004,7 @@ void main() {final c = C<int, int Function(String)>();}
   }
 
   void test_parseOptionalReturnType() {
-    // TODO(brianwilkerson) Implement tests for this method.
+    // TODO(brianwilkerson): Implement tests for this method.
   }
 
   void test_parseReturnStatement_noValue() {
@@ -1126,7 +1126,7 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeAnnotation_function_returnType_function() {
     createParser('A Function(B, C) Function(D)');
-    // TODO(scheglov) improve the test to verify also the node properties
+    // TODO(scheglov): improve the test to verify also the node properties
     var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
     expectNotNullIfNoErrors(functionType);
     assertNoErrors();
@@ -1175,7 +1175,7 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeAnnotation_function_returnType_simple() {
     createParser('A Function(B, C)');
-    // TODO(scheglov) improve the test to verify also the node properties
+    // TODO(scheglov): improve the test to verify also the node properties
     var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
     expectNotNullIfNoErrors(functionType);
     assertNoErrors();
@@ -1214,7 +1214,7 @@ Function<A>(core.List<core.int> x) m() => null;
 
   void test_parseTypeAnnotation_function_returnType_withArguments() {
     createParser('A<B> Function(C)');
-    // TODO(scheglov) improve this test to verify also the node properties
+    // TODO(scheglov): improve this test to verify also the node properties
     var functionType = parser.parseTypeAnnotation(false) as GenericFunctionType;
     expectNotNullIfNoErrors(functionType);
     assertNoErrors();

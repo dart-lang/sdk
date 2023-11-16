@@ -485,7 +485,7 @@ void f<T extends Map<int, String>>(T a) {
     assertType(setOrMapLiteral('{...'), 'Map<int, String>');
   }
 
-  /// TODO(scheglov) Should report [CompileTimeErrorCode.NOT_ITERABLE_SPREAD].
+  // TODO(scheglov): Should report [CompileTimeErrorCode.NOT_ITERABLE_SPREAD].
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsMap() async {
     await assertErrorsInCode('''
 void f<T extends num>(T a) {
@@ -498,7 +498,7 @@ void f<T extends num>(T a) {
     assertType(setOrMapLiteral('{...'), 'dynamic');
   }
 
-  /// TODO(scheglov) Should report [CompileTimeErrorCode.NOT_ITERABLE_SPREAD].
+  // TODO(scheglov): Should report [CompileTimeErrorCode.NOT_ITERABLE_SPREAD].
   test_noContext_noTypeArgs_spread_typeParameter_notImplementsMap2() async {
     await assertErrorsInCode('''
 void f<T extends num>(T a) {

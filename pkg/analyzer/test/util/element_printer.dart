@@ -185,7 +185,7 @@ class ElementPrinter {
         return 'self';
       }
 
-      // TODO(scheglov) Make it precise again, after Windows.
+      // TODO(scheglov): Make it precise again, after Windows.
       if (libraryUriStr.startsWith('file:')) {
         return libraryUriStr.substring(libraryUriStr.lastIndexOf('/') + 1);
       }

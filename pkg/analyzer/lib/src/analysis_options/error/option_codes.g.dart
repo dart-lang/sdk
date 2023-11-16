@@ -14,6 +14,9 @@
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
+//
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
 

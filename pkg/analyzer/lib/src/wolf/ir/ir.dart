@@ -60,7 +60,7 @@ abstract class BaseIRContainer with IRToStringMixin {
 /// Flags describing properties of a function declaration that affect the
 /// interpretation of its body.
 ///
-/// TODO(paulberry): when extension types are supported, make this an extension
+// TODO(paulberry): when extension types are supported, make this an extension
 /// type.
 class FunctionFlags {
   static const _asyncBit = 0;
@@ -112,7 +112,7 @@ class FunctionFlags {
 /// stream. This integer is an index into an auxiliary table stored in a subtype
 /// of [BaseIRContainer].
 ///
-/// TODO(paulberry): when extension types are supported, make this an extension
+// TODO(paulberry): when extension types are supported, make this an extension
 /// type.
 class LiteralRef {
   final int index;
@@ -202,7 +202,7 @@ class RawIRWriter with _RawIRWriterMixin {
 /// integer is an index into an auxiliary table stored in a subtype of
 /// [BaseIRContainer].
 ///
-/// TODO(paulberry): when extension types are supported, make this an extension
+// TODO(paulberry): when extension types are supported, make this an extension
 /// type.
 class TypeRef {
   final int index;

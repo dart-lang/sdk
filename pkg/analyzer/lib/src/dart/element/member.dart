@@ -833,7 +833,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
 
   @override
   MethodElement? get augmentation {
-    // TODO(scheglov) implement
+    // TODO(scheglov): implement
     throw UnimplementedError();
   }
 
@@ -1045,7 +1045,7 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyAccessorElement? get augmentation {
-    // TODO(scheglov) implement
+    // TODO(scheglov): implement
     throw UnimplementedError();
   }
 
@@ -1095,7 +1095,7 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   PropertyInducingElement get variable {
-    // TODO
+    // TODO(scheglov): revisit
     PropertyInducingElement variable = declaration.variable;
     if (variable is FieldElement) {
       return FieldMember(_typeProvider, variable, _substitution, isLegacy);

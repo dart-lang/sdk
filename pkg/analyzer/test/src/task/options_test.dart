@@ -47,7 +47,7 @@ class ErrorCodeValuesTest {
           .values
           .map((DeclarationMirror declarationMirror) {
         String name = declarationMirror.simpleName.toString();
-        //TODO(danrubel): find a better way to extract the text from the symbol
+        // TODO(danrubel): find a better way to extract the text from the symbol
         assert(name.startsWith('Symbol("') && name.endsWith('")'));
         return '$errorType.${name.substring(8, name.length - 2)}';
       }).where((String name) {

@@ -163,8 +163,8 @@ class _ParameterShape5 extends Opcode {
   }
 }
 
-/// TODO(paulberry): when extension types are supported, make this an extension
-/// type, as well as all the `_ParameterShape` classes.
+// TODO(paulberry): when extension types are supported, make this an extension
+// type, as well as all the `_ParameterShape` classes.
 class Opcode {
   final int index;
 

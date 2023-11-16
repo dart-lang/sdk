@@ -79,7 +79,7 @@ class PackageBuildPackageUriResolver extends UriResolver {
       : _workspace = workspace,
         _context = workspace.provider.pathContext;
 
-  /// TODO(scheglov) Finish switching to [Packages].
+  // TODO(scheglov): Finish switching to [Packages].
   Map<String, List<Folder>> get packageMap => _workspace.packageMap;
 
   @override
@@ -442,7 +442,7 @@ class PubWorkspacePackage extends WorkspacePackage {
 
   @override
   Packages packagesAvailableTo(String libraryPath) {
-    // TODO(brianwilkerson) Consider differentiating based on whether the
+    // TODO(brianwilkerson): Consider differentiating based on whether the
     //  [libraryPath] is inside the `lib` directory.
     return workspace.packages;
   }

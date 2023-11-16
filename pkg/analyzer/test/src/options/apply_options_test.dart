@@ -279,8 +279,8 @@ analyzer:
   test_mergeIncludedOptions() {
     // TODO(srawlins): Split this into smaller tests.
     // TODO(srawlins): add tests for multiple includes.
-    // TODO(https://github.com/dart-lang/sdk/issues/50980): add tests with
-    // duplicate plugin names.
+    // TODO(srawlins): add tests with duplicate plugin names.
+    // https://github.com/dart-lang/sdk/issues/50980
 
     newFile('/other_options.yaml', '''
 analyzer:

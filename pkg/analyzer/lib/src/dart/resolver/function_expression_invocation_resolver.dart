@@ -115,7 +115,7 @@ class FunctionExpressionInvocationResolver {
   ///
   /// See [CompileTimeErrorCode.USE_OF_VOID_RESULT].
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   bool _checkForUseOfVoidResult(Expression expression, DartType type) {
     if (!identical(type, VoidTypeImpl.instance)) {
       return false;

@@ -346,7 +346,7 @@ class UnitElementResultImpl extends FileResultImpl
 
 /// A visitor which locates the [AstNode] which declares [element].
 class _DeclarationByElementLocator extends UnifyingAstVisitor<void> {
-  // TODO: This visitor could be further optimized by special casing each static
+  // TODO(srawlins): This visitor could be further optimized by special casing each static
   // type of [element]. For example, for library-level elements (classes etc),
   // we can iterate over the compilation unit's declarations.
 

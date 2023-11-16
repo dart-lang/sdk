@@ -56,7 +56,7 @@ class Linker {
 
   final Map<ElementImpl, ast.AstNode> elementNodes = Map.identity();
 
-  late InheritanceManager3 inheritance; // TODO(scheglov) cache it
+  late InheritanceManager3 inheritance; // TODO(scheglov): cache it
 
   late Uint8List resolutionBytes;
 

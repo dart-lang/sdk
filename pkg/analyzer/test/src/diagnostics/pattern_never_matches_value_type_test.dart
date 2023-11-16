@@ -1188,7 +1188,7 @@ void f<T>(T x) {
 ''');
   }
 
-  /// TODO(scheglov) We should report that `B?` should be replaced with `B`.
+  // TODO(scheglov): We should report that `B?` should be replaced with `B`.
   test_requiredNullable_matchedNotNullable_match() async {
     await assertNoErrorsInCode('''
 void f(A x) {

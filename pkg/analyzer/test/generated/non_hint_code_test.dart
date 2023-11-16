@@ -141,7 +141,7 @@ f(A a, B b) {
 }
 
 class PubSuggestionCodeTest extends PubPackageResolutionTest {
-  // TODO(brianwilkerson) The tests in this class are not being run, and all but
+  // TODO(brianwilkerson): The tests in this class are not being run, and all but
   //  the first would fail. We should implement these checks and enable the
   //  tests.
   test_import_package() async {

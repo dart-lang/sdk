@@ -342,7 +342,7 @@ class ContextLocatorImpl implements ContextLocator {
           folder.shortName.startsWith('.')) {
         return true;
       }
-      // TODO(scheglov) Why not take it from `containingRoot`?
+      // TODO(scheglov): Why not take it from `containingRoot`?
       for (var pattern in excludedGlobs) {
         if (pattern.matches(folder.path)) {
           return true;
@@ -427,7 +427,7 @@ class ContextLocatorImpl implements ContextLocator {
       return null;
     }
 
-    // TODO(scheglov) Create SourceFactory once.
+    // TODO(scheglov): Create SourceFactory once.
     var sourceFactory = workspace.createSourceFactory(null, null);
     var uriStr = WorkspaceWithDefaultAnalysisOptions.uri;
     var path = sourceFactory.forUri(uriStr)?.fullName;

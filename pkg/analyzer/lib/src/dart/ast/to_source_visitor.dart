@@ -1379,7 +1379,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitTypeParameter(TypeParameter node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // TODO(kallentu): : Clean up TypeParameterImpl casting once variance is
     // added to the interface.
     var varianceKeyword = (node as TypeParameterImpl).varianceKeyword;
     if (varianceKeyword != null) {

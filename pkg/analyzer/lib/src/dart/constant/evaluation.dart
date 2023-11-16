@@ -743,8 +743,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     } else if (operatorType == TokenType.TILDE_SLASH) {
       return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
     } else {
-      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-      // error code.
+      // TODO(srawlins): Use a specific error code.
+      // https://github.com/dart-lang/sdk/issues/47061
       return InvalidConstant.genericError(node);
     }
   }
@@ -927,8 +927,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (!node.isConst) {
-      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-      // error code.
+      // TODO(srawlins): Use a specific error code.
+      // https://github.com/dart-lang/sdk/issues/47061
       return InvalidConstant.genericError(node);
     }
     var constructor = node.constructorName.staticElement;
@@ -1096,8 +1096,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitNode(AstNode node) {
-    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-    // error code.
+    // TODO(srawlins): Use a specific error code.
+    // https://github.com/dart-lang/sdk/issues/47061
     return InvalidConstant.genericError(node);
   }
 
@@ -1164,8 +1164,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     } else if (node.operator.type == TokenType.MINUS) {
       return _dartObjectComputer.negated(node, operand);
     } else {
-      // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-      // error code.
+      // TODO(srawlins): Use a specific error code.
+      // https://github.com/dart-lang/sdk/issues/47061
       return InvalidConstant.genericError(node);
     }
   }
@@ -1656,7 +1656,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// the [expression] is used to identify type parameter errors, and
   /// [identifier] to determine the constant of any [ExecutableElement]s.
   ///
-  /// TODO(kallentu): Revisit this method and clean it up a bit.
+  // TODO(kallentu): Revisit this method and clean it up a bit.
   Constant _getConstantValue({
     required AstNode errorNode,
     required Expression? expression,
@@ -1788,8 +1788,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return InvalidConstant.genericError(errorNode, isUnresolved: true);
     }
 
-    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-    // error code.
+    // TODO(srawlins): Use a specific error code.
+    // https://github.com/dart-lang/sdk/issues/47061
     return InvalidConstant.genericError(errorNode2);
   }
 

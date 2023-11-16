@@ -44,7 +44,7 @@ abstract class AbstractLinterContextTest extends PubPackageResolutionTest {
       result.typeSystem as TypeSystemImpl,
       InheritanceManager3(),
       analysisOptions,
-      // todo (pq): test package or consider passing in null
+      // TODO(pq): test package or consider passing in null
       workspacePackage,
       resourceProvider.pathContext,
     );

@@ -2029,7 +2029,7 @@ abstract class B extends A {
       findElement.classOrMixin('B'),
       Name(null, 'foo'),
     )!;
-    // TODO(scheglov) It would be nice to use `_assertGetMember`.
+    // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
     expect(member.parameters[0].isCovariant, isTrue);
@@ -2052,7 +2052,7 @@ class C extends B implements A {}
       Name(null, 'foo'),
       concrete: true,
     )!;
-    // TODO(scheglov) It would be nice to use `_assertGetMember`.
+    // TODO(scheglov): It would be nice to use `_assertGetMember`.
     expect(member.declaration, same(findElement.method('foo', of: 'B')));
     expect(member.parameters[0].isCovariant, isTrue);
   }
@@ -2142,7 +2142,7 @@ abstract class B extends A {
       findElement.classOrMixin('B'),
       Name(null, 'foo='),
     )!;
-    // TODO(scheglov) It would be nice to use `_assertGetMember`.
+    // TODO(scheglov): It would be nice to use `_assertGetMember`.
     // But we need a way to check covariance.
     // Maybe check the element display string, not the type.
     expect(member.parameters[0].isCovariant, isTrue);
@@ -2165,7 +2165,7 @@ class C extends B implements A {}
       Name(null, 'foo='),
       concrete: true,
     )!;
-    // TODO(scheglov) It would be nice to use `_assertGetMember`.
+    // TODO(scheglov): It would be nice to use `_assertGetMember`.
     expect(member.declaration, same(findElement.setter('foo', of: 'B')));
     expect(member.parameters[0].isCovariant, isTrue);
   }

@@ -320,7 +320,7 @@ class H extends G {
 ''');
     var node = findNode.commentReference('[p1]');
     expect(node, isNotNull);
-    // todo(pq): add expectations
+    // TODO(pq): add expectations
   }
 
   test_visitConstructorName_named() async {

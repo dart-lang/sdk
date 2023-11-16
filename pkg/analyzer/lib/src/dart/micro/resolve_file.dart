@@ -442,7 +442,7 @@ class FileResolver {
       performance: performance,
     );
 
-    // TODO(scheglov) Casts are unsafe.
+    // TODO(scheglov): Casts are unsafe.
     final kind = file.kind as LibraryFileKind;
     return kind.libraryCycle.apiSignature;
   }

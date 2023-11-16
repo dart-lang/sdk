@@ -34,7 +34,7 @@ class DocumentationValidator {
     'CompileTimeErrorCode.AMBIGUOUS_IMPORT',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE',
-    // TODO(kallentu) This is always reported with
+    // TODO(kallentu): This is always reported with
     // `ARGUMENT_TYPE_NOT_ASSIGNABLE` or is reported as
     // `CONST_EVAL_THROWS_EXCEPTION` in const constructor evaluation.
     'CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH',
@@ -114,7 +114,7 @@ class DocumentationValidator {
     // Reports CompileTimeErrorCode.FINAL_CLASS_EXTENDED_OUTSIDE_OF_LIBRARY
     'WarningCode.DEPRECATED_EXTENDS_FUNCTION',
     // Produces more than one error range by design.
-    // TODO: update verification to allow for multiple highlight ranges.
+    // TODO(srawlins): update verification to allow for multiple highlight ranges.
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT',
     // Produces more than one error range by design.
     'WarningCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL',

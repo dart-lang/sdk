@@ -203,7 +203,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   bool _isCoreFunction(DartType type) {
-    // TODO(scheglov) Can we optimize this?
+    // TODO(scheglov): Can we optimize this?
     return type is InterfaceType && type.isDartCoreFunction;
   }
 
@@ -341,7 +341,7 @@ class MethodInvocationResolver with ScopeHelpers {
   Element? _resolveElement(
       InterfaceElement classElement, SimpleIdentifier propertyName) {
     final augmented = classElement.augmentedOfDeclaration;
-    // TODO(scheglov) Replace with class hierarchy.
+    // TODO(scheglov): Replace with class hierarchy.
     String name = propertyName.name;
     Element? element;
     if (propertyName.inSetterContext()) {
@@ -585,7 +585,7 @@ class MethodInvocationResolver with ScopeHelpers {
         return _rewriteAsFunctionExpressionInvocation(node, targetType,
             contextType: contextType);
       }
-      // TODO(scheglov) This is a questionable distinction.
+      // TODO(scheglov): This is a questionable distinction.
       if (element is PrefixElement) {
         _setInvalidTypeResolution(node,
             whyNotPromotedList: whyNotPromotedList, contextType: contextType);
@@ -758,7 +758,7 @@ class MethodInvocationResolver with ScopeHelpers {
       assert(name == FunctionElement.CALL_METHOD_NAME);
       _setResolution(node, callFunctionType, whyNotPromotedList,
           contextType: contextType);
-      // TODO(scheglov) Replace this with using FunctionType directly.
+      // TODO(scheglov): Replace this with using FunctionType directly.
       // Here was erase resolution that _setResolution() sets.
       nameNode.staticElement = null;
       nameNode.staticType = _dynamicType;
@@ -971,7 +971,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Inference is done in type analyzer, so inferred type arguments might be
   /// set later.
   ///
-  /// TODO(scheglov) when we do inference in this resolver, do we need this?
+  // TODO(scheglov): when we do inference in this resolver, do we need this?
   void _setExplicitTypeArgumentTypes() {
     var typeArgumentList = _invocation!.typeArguments;
     if (typeArgumentList != null) {
@@ -1000,7 +1000,7 @@ class MethodInvocationResolver with ScopeHelpers {
   void _setResolution(MethodInvocationImpl node, DartType type,
       List<WhyNotPromotedGetter> whyNotPromotedList,
       {required DartType? contextType}) {
-    // TODO(scheglov) We need this for StaticTypeAnalyzer to run inference.
+    // TODO(scheglov): We need this for StaticTypeAnalyzer to run inference.
     // But it seems weird. Do we need to know the raw type of a function?!
     node.methodName.staticType = type;
 

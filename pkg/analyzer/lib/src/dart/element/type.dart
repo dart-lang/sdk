@@ -142,7 +142,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   Map<String, DartType> get namedParameterTypes {
-    // TODO(brianwilkerson) This implementation breaks the contract because the
+    // TODO(brianwilkerson): This implementation breaks the contract because the
     //  parameters will not necessarily be returned in the order in which they
     //  were declared.
     Map<String, DartType> types = <String, DartType>{};

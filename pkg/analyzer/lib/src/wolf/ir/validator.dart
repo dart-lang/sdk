@@ -57,7 +57,7 @@ base class ValidationEventListener {
 /// The count may be [indeterminate], indicating that the current control flow
 /// state is unreachable, and so exact matching of value counts is unnecessary.
 ///
-/// TODO(paulberry): when extension types are supported, make this an extension
+// TODO(paulberry): when extension types are supported, make this an extension
 /// type.
 class ValueCount {
   static const indeterminate = ValueCount._(-1);

@@ -208,7 +208,7 @@ void f() {
 }
 ''', [
       error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
-      // todo(pq): consider deduplicating.
+      // TODO(pq): consider deduplicating.
       error(HintCode.DEPRECATED_MEMBER_USE, 43, 1),
     ]);
   }

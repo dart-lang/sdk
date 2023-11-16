@@ -87,8 +87,8 @@ const bar = A.foo();
 @reflectiveTest
 class InvalidCodeWithoutNullSafetyTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+  // TODO(srawlins): Use null safety in test cases.
+  // https://github.com/dart-lang/sdk/issues/44666
   test_const_AwaitExpression() async {
     await _assertCanBeAnalyzed(r'''
 const a = await b();

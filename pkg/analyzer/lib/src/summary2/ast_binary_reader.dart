@@ -632,7 +632,7 @@ class AstBinaryReader {
 
   GenericFunctionType _readGenericFunctionType() {
     var flags = _readByte();
-    // TODO(scheglov) add type parameters to locals
+    // TODO(scheglov): add type parameters to locals
     var typeParameters = _readOptionalNode() as TypeParameterListImpl?;
     var returnType = _readOptionalNode() as TypeAnnotationImpl?;
     var formalParameters = readNode() as FormalParameterListImpl;
@@ -704,7 +704,7 @@ class AstBinaryReader {
     var flags = _readByte();
     var target = _readOptionalNode() as ExpressionImpl?;
     var index = readNode() as ExpressionImpl;
-    // TODO(scheglov) Is this clumsy?
+    // TODO(scheglov): Is this clumsy?
     IndexExpressionImpl node;
     if (target != null) {
       node = (IndexExpressionImpl.forTarget(
@@ -1170,7 +1170,7 @@ class AstBinaryReader {
           AstBinaryFlags.isRequired(flags) ? Tokens.required_() : null,
     );
     var actualType = _reader.readRequiredType();
-    _reader.readByte(); // TODO(scheglov) inherits covariant
+    _reader.readByte(); // TODO(scheglov): inherits covariant
 
     var element = ParameterElementImpl(
       name: name?.lexeme ?? '',

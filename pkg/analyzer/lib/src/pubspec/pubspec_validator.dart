@@ -35,7 +35,7 @@ const _pubspecValidators = <PubspecValidator>[
 /// The [source] argument must be the source of the file being validated.
 /// The [provider] argument must provide access to the file-system.
 List<AnalysisError> validatePubspec({
-  // TODO(brianwilkerson) This method needs to take a `YamlDocument` rather
+  // TODO(brianwilkerson): This method needs to take a `YamlDocument` rather
   //  than the contents of the document so that it can validate an empty file.
   required YamlNode contents,
   required Source source,

@@ -2007,8 +2007,8 @@ class C<T> {
 
 const x = C<int>.();
 ''', [
-      // TODO(https://github.com/dart-lang/sdk/issues/50441): This should not be
-      // reported.
+      // TODO(kallentu): This should not be reported.
+      // https://github.com/dart-lang/sdk/issues/50441
       error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
           45, 8),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 45,

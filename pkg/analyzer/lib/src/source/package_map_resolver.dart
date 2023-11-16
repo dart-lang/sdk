@@ -40,7 +40,7 @@ class PackageMapUriResolver extends UriResolver {
 
   @override
   Uri? pathToUri(String path) {
-    // TODO: There should be an index on this instead of trying all entries.
+    // TODO(jensj): There should be an index on this instead of trying all entries.
     // When analyzing rwf-materials (562 contexts) with a filled cache this
     // function is called 624,750 times and a combined 39,352,289 iterations
     // are done in the loop below.

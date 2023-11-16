@@ -297,7 +297,7 @@ class _IndexAssembler {
   /// Adds a prefix (or empty string for unprefixed) for an element.
   void addPrefixForElement(Element element, {PrefixElement? prefix}) {
     if (element is MultiplyDefinedElementImpl ||
-        // TODO(brianwilkerson) The last two conditions are here because the
+        // TODO(brianwilkerson): The last two conditions are here because the
         //  elements for `dynamic` and `Never` are singletons and hence don't have
         //  a parent element for which we can find an `_ElementInfo`. This means
         //  that any reference to either type via a prefix can't be stored in the

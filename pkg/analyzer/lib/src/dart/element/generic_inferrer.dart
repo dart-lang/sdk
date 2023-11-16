@@ -428,7 +428,7 @@ class GenericInferrer {
     var inferredTypes = List<DartType>.filled(
         _typeFormals.length, UnknownInferredType.instance);
     for (int i = 0; i < _typeFormals.length; i++) {
-      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
       var typeParam = _typeFormals[i] as TypeParameterElementImpl;
       _TypeConstraint? extendsClause;

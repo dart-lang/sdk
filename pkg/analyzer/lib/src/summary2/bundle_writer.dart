@@ -559,7 +559,7 @@ class BundleWriter {
     });
   }
 
-  /// TODO(scheglov) Deduplicate parameter writing implementation.
+  // TODO(scheglov): Deduplicate parameter writing implementation.
   void _writeParameterElement(ParameterElement element) {
     element as ParameterElementImpl;
     _sink._writeStringReference(element.name);
@@ -734,7 +734,7 @@ class ResolutionSink extends _SummaryDataWriter {
     required _BundleWriterReferences references,
   }) : _references = references;
 
-  /// TODO(scheglov) Triage places where we write elements.
+  // TODO(scheglov): Triage places where we write elements.
   /// Some of then cannot be members, e.g. type names.
   void writeElement(Element? element) {
     if (element is Member) {
@@ -807,11 +807,11 @@ class ResolutionSink extends _SummaryDataWriter {
         } else if (nullabilitySuffix == NullabilitySuffix.star) {
           writeByte(Tag.InterfaceType_noTypeArguments_star);
         }
-        // TODO(scheglov) Write raw
+        // TODO(scheglov): Write raw
         writeElement(type.element);
       } else {
         writeByte(Tag.InterfaceType);
-        // TODO(scheglov) Write raw
+        // TODO(scheglov): Write raw
         writeElement(type.element);
         writeUInt30(typeArguments.length);
         for (var i = 0; i < typeArguments.length; ++i) {
@@ -1021,7 +1021,7 @@ class ResolutionSink extends _SummaryDataWriter {
     Element declaration,
     Map<TypeParameterElement, DartType> substitution,
   ) {
-    // TODO(scheglov) Just keep it null in class Member?
+    // TODO(scheglov): Just keep it null in class Member?
     if (substitution.isEmpty) {
       return const [];
     }

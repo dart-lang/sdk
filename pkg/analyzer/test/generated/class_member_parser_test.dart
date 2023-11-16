@@ -376,7 +376,7 @@ class ClassMemberParserTest extends FastaParserTestCase
   }
 
   void test_parseClassMember_constructor_withInitializers() {
-    // TODO(brianwilkerson) Test other kinds of class members: fields, getters
+    // TODO(brianwilkerson): Test other kinds of class members: fields, getters
     // and setters.
     createParser('C(_, _\$, this.__) : _a = _ + _\$ {}');
     ClassMember member = parser.parseClassMember('C');
@@ -1027,7 +1027,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   void test_parseClassMember_method_native_with_body_allowed() {
     allowNativeClause = true;
     _parseClassMember_method_native_with_body();
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     assertErrorsWithCodes([
       ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,
     ]);
@@ -1039,7 +1039,7 @@ void Function<A>(core.List<core.int> x) m() => null;
   void test_parseClassMember_method_native_with_body_not_allowed() {
     allowNativeClause = false;
     _parseClassMember_method_native_with_body();
-    // TODO(brianwilkerson) Convert codes to errors when highlighting is fixed.
+    // TODO(brianwilkerson): Convert codes to errors when highlighting is fixed.
     assertErrorsWithCodes([
       ParserErrorCode.NATIVE_CLAUSE_SHOULD_BE_ANNOTATION,
       ParserErrorCode.EXTERNAL_METHOD_WITH_BODY,

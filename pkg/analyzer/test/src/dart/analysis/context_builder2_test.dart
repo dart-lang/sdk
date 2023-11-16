@@ -223,7 +223,7 @@ environment:
     AnalysisOptionsImpl actual,
     AnalysisOptionsImpl expected,
   ) {
-    // TODO(brianwilkerson) Consider moving this to AnalysisOptionsImpl.==.
+    // TODO(brianwilkerson): Consider moving this to AnalysisOptionsImpl.==.
     expect(actual.enableTiming, expected.enableTiming);
     expect(actual.lint, expected.lint);
     expect(actual.warning, expected.warning);

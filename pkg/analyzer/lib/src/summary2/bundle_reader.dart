@@ -589,7 +589,7 @@ class LibraryElementLinkedData extends ElementLinkedData<LibraryElementImpl> {
 
     for (var import in element.augmentationImports) {
       import.metadata = reader._readAnnotationList(
-        // TODO(scheglov) Here and for parts, unit is not valid. Test and fix.
+        // TODO(scheglov): Here and for parts, unit is not valid. Test and fix.
         unitElement: unitElement,
       );
       final importedAugmentation = import.importedAugmentation;
@@ -647,7 +647,7 @@ class LibraryReader {
     _reader.offset = _offset;
     var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
 
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/51855
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/51855
     // This should not be needed.
     // But I have a suspicion that we attempt to read the library twice.
     _classMembersLengthsIndex = 0;
@@ -731,7 +731,7 @@ class LibraryReader {
 
     final augmentation = LibraryAugmentationElementImpl(
       augmentationTarget: augmentationTarget,
-      nameOffset: -1, // TODO(scheglov) implement, test
+      nameOffset: -1, // TODO(scheglov): implement, test
     );
     augmentation.definingCompilationUnit = definingUnit;
     augmentation.reference = definingUnit.reference!;
@@ -754,7 +754,7 @@ class LibraryReader {
       container: container,
     );
     return AugmentationImportElementImpl(
-      importKeywordOffset: -1, // TODO(scheglov) implement, test
+      importKeywordOffset: -1, // TODO(scheglov): implement, test
       uri: uri,
     );
   }
@@ -791,7 +791,7 @@ class LibraryReader {
         _readClassElementMembers(unitElement, element, reference);
       };
       if (_classMembersLengthsIndex >= _classMembersLengths.length) {
-        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/51855
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/51855
         throw StateError(
           '[libraryReference: $_reference]'
           '[classReference: $reference]'
@@ -883,7 +883,7 @@ class LibraryReader {
       final sourceUri = uriCache.parse(sourceUriStr);
       final source = sourceFactory.forUri2(sourceUri);
 
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49431
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49431
       final fixedSource = source ?? sourceFactory.forUri('dart:math')!;
 
       return DirectiveUriWithSourceImpl(
@@ -1235,7 +1235,7 @@ class LibraryReader {
     required LibraryOrAugmentationElementImpl container,
   }) {
     PrefixElementImpl buildElement(String name) {
-      // TODO(scheglov) Make reference required.
+      // TODO(scheglov): Make reference required.
       final containerRef = container.reference!;
       final reference = containerRef.getChild('@prefix').getChild(name);
       final existing = reference.element;
@@ -1400,7 +1400,7 @@ class LibraryReader {
     );
   }
 
-  /// TODO(scheglov) Deduplicate parameter reading implementation.
+  // TODO(scheglov): Deduplicate parameter reading implementation.
   List<ParameterElementImpl> _readParameters() {
     return _reader.readTypedList(() {
       var name = _reader.readStringReference();
@@ -2147,7 +2147,7 @@ class ResolutionReader {
     if (aliasElement is TypeAliasElement) {
       var aliasArguments = _readTypeList();
       if (type is DynamicType) {
-        // TODO(scheglov) add support for `dynamic` aliasing
+        // TODO(scheglov): add support for `dynamic` aliasing
         return type;
       } else if (type is FunctionType) {
         return FunctionTypeImpl(
@@ -2190,7 +2190,7 @@ class ResolutionReader {
           ),
         );
       } else if (type is VoidType) {
-        // TODO(scheglov) add support for `void` aliasing
+        // TODO(scheglov): add support for `void` aliasing
         return type;
       } else {
         throw UnimplementedError('${type.runtimeType}');
@@ -2240,7 +2240,7 @@ class ResolutionReader {
         element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
         element.parameters = _readFormalParameters(unitElement);
-        // TODO(scheglov) reuse for formal parameters
+        // TODO(scheglov): reuse for formal parameters
         _localElements.length -= typeParameters.length;
         if (unitElement != null) {
           element.metadata = _readAnnotationList(unitElement: unitElement);
@@ -2255,7 +2255,7 @@ class ResolutionReader {
         element.hasImplicitType = hasImplicitType;
         element.typeParameters = typeParameters;
         element.parameters = _readFormalParameters(unitElement);
-        // TODO(scheglov) reuse for formal parameters
+        // TODO(scheglov): reuse for formal parameters
         _localElements.length -= typeParameters.length;
         if (unitElement != null) {
           element.metadata = _readAnnotationList(unitElement: unitElement);
@@ -2265,9 +2265,9 @@ class ResolutionReader {
     });
   }
 
-  /// TODO(scheglov) Optimize for write/read of types without type parameters.
+  // TODO(scheglov): Optimize for write/read of types without type parameters.
   FunctionType _readFunctionType() {
-    // TODO(scheglov) reuse for formal parameters
+    // TODO(scheglov): reuse for formal parameters
     var typeParameters = _readTypeParameters(null);
     var returnType = readRequiredType();
     var formalParameters = _readFormalParameters(null);

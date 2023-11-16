@@ -1948,7 +1948,7 @@ class _VariableBinderErrors
 
   @override
   void assertInErrorRecovery() {
-    // TODO: implement assertInErrorRecovery
+    // TODO(scheglov): implement assertInErrorRecovery
     throw UnimplementedError();
   }
 

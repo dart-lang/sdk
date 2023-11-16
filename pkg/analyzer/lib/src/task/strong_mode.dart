@@ -335,7 +335,7 @@ class InstanceMemberInferrer {
       //
       // Then infer the types for the members.
       //
-      // TODO(scheglov) get other members from the container
+      // TODO(scheglov): get other members from the container
       currentInterfaceElement = classElement;
       for (final container in classElement.withAugmentations) {
         for (final field in classElement.fields) {
