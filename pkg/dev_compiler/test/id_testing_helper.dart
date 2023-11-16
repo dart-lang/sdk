@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:front_end/src/api_prototype/experimental_flags.dart' as fe;
 import 'package:front_end/src/fasta/messages.dart';
 import 'package:front_end/src/testing/id_extractor.dart';
 import 'package:front_end/src/testing/kernel_id_testing.dart';
@@ -12,7 +13,13 @@ import 'package:kernel/ast.dart';
 import 'memory_compiler.dart';
 
 /// Test configuration used for testing CFE in its default state.
-const TestConfig defaultDdcConfig = TestConfig(ddcMarker, 'ddc');
+const DdcTestConfig defaultDdcConfig = DdcTestConfig(ddcMarker, 'ddc');
+
+class DdcTestConfig extends TestConfig {
+  final Map<fe.ExperimentalFlag, bool>? experimentalFlags;
+
+  const DdcTestConfig(super.marker, super.name, {this.experimentalFlags});
+}
 
 /// Convert relative file paths into an absolute Uri as expected by the test
 /// helpers above.
@@ -42,7 +49,7 @@ abstract class DdcDataComputer<T> extends DataComputer<T, TestConfig,
 
 /// Creates a test runner for [dataComputer] on [testedConfigs].
 RunTestFunction<T> runTestFor<T>(
-    DdcDataComputer<T> dataComputer, List<TestConfig> testedConfigs) {
+    DdcDataComputer<T> dataComputer, List<DdcTestConfig> testedConfigs) {
   return (MarkerOptions markerOptions, TestData testData,
       {required bool testAfterFailures,
       required bool verbose,
@@ -66,7 +73,7 @@ Future<Map<String, TestResult<T>>> runTest<T>(
     MarkerOptions markerOptions,
     TestData testData,
     DdcDataComputer<T> dataComputer,
-    List<TestConfig> testedConfigs,
+    List<DdcTestConfig> testedConfigs,
     {required bool testAfterFailures,
     required bool verbose,
     required bool succinct,
@@ -93,7 +100,7 @@ Future<Map<String, TestResult<T>>> runTest<T>(
 /// Computes the [TestResult] for running [dataComputer] on [testData] for
 /// the given test [config].
 Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
-    TestData testData, DdcDataComputer<T> dataComputer, TestConfig config,
+    TestData testData, DdcDataComputer<T> dataComputer, DdcTestConfig config,
     {required bool fatalErrors,
     required bool verbose,
     required bool succinct,
@@ -102,8 +109,9 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
     Iterable<Id> globalIds = const <Id>[],
     required void Function(String message) onFailure,
     required Uri nullUri}) async {
-  var result =
-      await compileFromMemory(testData.memorySourceFiles, testData.entryPoint);
+  var result = await compileFromMemory(
+      testData.memorySourceFiles, testData.entryPoint,
+      explicitExperimentalFlags: config.experimentalFlags);
 
   var errors = <FormattedMessage>[];
   for (var error in result.errors) {
