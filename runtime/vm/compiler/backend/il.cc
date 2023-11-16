@@ -7473,17 +7473,14 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
       __ LoadFromSlot(temp0, temp0, Slot::PointerBase_data());
 
-      // Copy chunks.
+      // Copy chunks. The destination may be rounded up to a multiple of the
+      // word size, because we do the same rounding when we allocate the space
+      // on the stack. But source may not be allocated by the VM and end at a
+      // page boundary.
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(arg_index);
-      // Struct size is rounded up to a multiple of target::kWordSize.
-      // This is safe because we do the same rounding when we allocate the
-      // space on the stack.
-      for (intptr_t i = 0; i < arg_target.payload_type().SizeInBytes();
-           i += compiler::target::kWordSize) {
-        __ LoadMemoryValue(temp1, temp0, i);
-        __ StoreMemoryValue(temp1, SPREG, i + sp_offset);
-      }
+      __ UnrolledMemCopy(SPREG, sp_offset, temp0, 0,
+                         arg_target.payload_type().SizeInBytes(), temp1);
 
       // Store the stack address in the argument location.
       __ MoveRegister(temp0, SPREG);

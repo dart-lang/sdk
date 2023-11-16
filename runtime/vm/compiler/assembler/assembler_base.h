@@ -724,6 +724,12 @@ class AssemblerBase : public StackResource {
                             Register temp,
                             Label* equals) = 0;
 
+  void UnrolledMemCopy(Register dst_base,
+                       intptr_t dst_offset,
+                       Register src_base,
+                       intptr_t src_offset,
+                       intptr_t size,
+                       Register temp);
   enum CanBeSmi {
     kValueCanBeSmi,
     kValueIsNotSmi,
