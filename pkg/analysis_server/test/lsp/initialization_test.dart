@@ -758,13 +758,62 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_excludedFolders_relative() async {
-    final excludedFolderPath = join(projectFolderPath, 'excluded');
+    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
 
     await provideConfig(
       initialize,
       // Exclude the folder with a relative path.
       {
-        'analysisExcludedFolders': ['excluded']
+        'analysisExcludedFolders': ['aaa', 'bbb'].join(pathContext.separator)
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  /// Check exclusions using explicit posix paths even if we're running
+  /// on Windows. It's common for shared configs in VS Code to always use
+  /// forward slashes in paths.
+  Future<void> test_excludedFolders_relative_posix() async {
+    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+
+    await provideConfig(
+      initialize,
+      // Exclude the folder with a relative path using forward slashes.
+      {
+        'analysisExcludedFolders': ['aaa', 'bbb'].join('/')
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  Future<void> test_excludedFolders_trailingSlash() async {
+    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+
+    await provideConfig(
+      initialize,
+      // Exclude the folder with a trailing slash.
+      {
+        'analysisExcludedFolders':
+            ['aaa', 'bbb', ''].join(pathContext.separator),
+      },
+    );
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+    expect(server.contextManager.excludedPaths, equals([excludedFolderPath]));
+  }
+
+  /// Check exclusions using explicit posix paths even if we're running
+  /// on Windows. It's common for shared configs in VS Code to always use
+  /// forward slashes in paths.
+  Future<void> test_excludedFolders_trailingSlash_posix() async {
+    final excludedFolderPath = join(projectFolderPath, 'aaa', 'bbb');
+
+    await provideConfig(
+      initialize,
+      // Exclude the folder with a forward trailing slash.
+      {
+        'analysisExcludedFolders': ['aaa', 'bbb', ''].join('/'),
       },
     );
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));

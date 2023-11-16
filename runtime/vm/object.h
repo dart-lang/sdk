@@ -7316,6 +7316,7 @@ class Code : public Object {
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
   friend class InstanceCall;       // for StorePointerUnaligned
   friend class StaticCall;         // for StorePointerUnaligned
+  friend void DumpStackFrame(intptr_t frame_index, uword pc, uword fp);
 };
 
 class Context : public Object {

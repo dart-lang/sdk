@@ -183,6 +183,16 @@ void Page::VisitObjects(ObjectVisitor* visitor) const {
   ASSERT(obj_addr == end_addr);
 }
 
+void Page::VisitObjectsUnsafe(ObjectVisitor* visitor) const {
+  uword obj_addr = object_start();
+  uword end_addr = object_end();
+  while (obj_addr < end_addr) {
+    ObjectPtr raw_obj = UntaggedObject::FromAddr(obj_addr);
+    visitor->VisitObject(raw_obj);
+    obj_addr += raw_obj->untag()->HeapSize();
+  }
+}
+
 void Page::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   ASSERT(Thread::Current()->OwnsGCSafepoint() ||
          (Thread::Current()->task_kind() == Thread::kCompactorTask) ||

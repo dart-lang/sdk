@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/dart2js.dart' as ir;
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -22,10 +20,8 @@ import '../elements/entity_utils.dart' as utils;
 import '../elements/entity_map.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
-import '../environment.dart';
 import '../ir/cached_static_type.dart';
 import '../ir/closure.dart';
-import '../ir/constants.dart';
 import '../ir/element_map.dart';
 import '../ir/types.dart';
 import '../ir/visitors.dart';
@@ -72,7 +68,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   final CompilerOptions options;
   @override
   final DiagnosticReporter reporter;
-  final Environment _environment;
   late final JCommonElements _commonElements;
   late final JsElementEnvironment _elementEnvironment;
   late final DartTypeConverter _typeConverter;
@@ -124,7 +119,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
 
   JsKernelToElementMap(
       this.reporter,
-      this._environment,
       KernelToElementMap _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
       Iterable<MemberEntity> liveAbstractMembers,
@@ -248,7 +242,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   JsKernelToElementMap.readFromDataSource(this.options, this.reporter,
-      this._environment, ir.Component component, DataSourceReader source) {
+      ir.Component component, DataSourceReader source) {
     _elementEnvironment = JsElementEnvironment(this);
     _typeConverter = DartTypeConverter(this);
     _types = KernelDartTypes(this, options);
@@ -1076,16 +1070,6 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return ir.StaticTypeContext(node, typeEnvironment);
   }
 
-  late final Dart2jsConstantEvaluator constantEvaluator =
-      Dart2jsConstantEvaluator(programEnv.mainComponent, typeEnvironment,
-          (ir.LocatedMessage message, List<ir.LocatedMessage>? context) {
-    reportLocatedMessage(reporter, message, context);
-  },
-          environment: _environment,
-          evaluationMode: options.useLegacySubtyping
-              ? ir.EvaluationMode.weak
-              : ir.EvaluationMode.strong);
-
   @override
   StaticTypeProvider getStaticTypeProvider(MemberEntity member) {
     MemberDefinition memberDefinition =
@@ -1399,29 +1383,12 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       return NullConstantValue();
     } else if (node is ir.ConstantExpression) {
       return _constantValuefier.visitConstant(node.constant);
+    } else if (requireConstant) {
+      throw UnsupportedError(
+          'No constant for ${DebugPrinter.prettyPrint(node)}');
     } else {
-      // TODO(johnniwinther,sigmund): Effectively constant expressions should
-      // be replaced in the scope visitor as part of the initializer complexity
-      // computation.
-      ir.StaticTypeContext staticTypeContext =
-          getStaticTypeContext(memberContext!);
-      ir.Constant? constant = constantEvaluator.evaluateOrNull(
-          staticTypeContext, node,
-          requireConstant: requireConstant);
-      if (constant == null) {
-        if (requireConstant) {
-          throw UnsupportedError(
-              'No constant for ${DebugPrinter.prettyPrint(node)}');
-        }
-      } else {
-        ConstantValue value = _constantValuefier.visitConstant(constant);
-        if (!value.isConstant && !requireConstant) {
-          return null;
-        }
-        return value;
-      }
+      return null;
     }
-    return null;
   }
 
   @override

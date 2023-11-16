@@ -122,7 +122,6 @@ class SerializationTask extends CompilerTask {
   }
 
   Future<JClosedWorld> deserializeClosedWorld(
-      Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       bool useDeferredSourceReads,
@@ -138,8 +137,8 @@ class SerializationTask extends CompilerTask {
           indices,
           interner: _valueInterner,
           useDeferredStrategy: useDeferredSourceReads);
-      var closedWorld = deserializeClosedWorldFromSource(_options, _reporter,
-          environment, abstractValueStrategy, component, source);
+      var closedWorld = deserializeClosedWorldFromSource(
+          _options, _reporter, abstractValueStrategy, component, source);
       return closedWorld;
     });
   }
@@ -346,10 +345,9 @@ void serializeClosedWorldToSink(JClosedWorld closedWorld, DataSinkWriter sink) {
 JClosedWorld deserializeClosedWorldFromSource(
     CompilerOptions options,
     DiagnosticReporter reporter,
-    Environment environment,
     AbstractValueStrategy abstractValueStrategy,
     ir.Component component,
     DataSourceReader source) {
   return JClosedWorld.readFromDataSource(
-      options, reporter, environment, abstractValueStrategy, component, source);
+      options, reporter, abstractValueStrategy, component, source);
 }

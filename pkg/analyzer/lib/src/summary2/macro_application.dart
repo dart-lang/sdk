@@ -339,7 +339,6 @@ class LibraryMacroApplier {
         declarationsPhaseElement: declarationsPhaseElement,
         targetNode: targetNode,
         targetElement: targetElement,
-        targetDeclarationKind: targetDeclarationKind,
         annotationNode: annotation,
         instance: instance,
         phasesToExecute: phasesToExecute,
@@ -375,12 +374,17 @@ class LibraryMacroApplier {
     );
 
     for (final member in members.reversed) {
+      final memberDeclarationKind = switch (member) {
+        ast.ConstructorDeclaration() => macro.DeclarationKind.constructor,
+        ast.FieldDeclaration() => macro.DeclarationKind.field,
+        ast.MethodDeclaration() => macro.DeclarationKind.method,
+      };
+
       await _addAnnotations(
         libraryElement: libraryElement,
         container: container,
         targetNode: member,
-        // TODO(scheglov) incomplete
-        targetDeclarationKind: macro.DeclarationKind.method,
+        targetDeclarationKind: memberDeclarationKind,
         declarationsPhaseElement: declarationsPhaseInterface,
         annotations: member.metadata,
       );
@@ -729,9 +733,15 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
-      covariant macro.IntrospectableType type) {
-    // TODO: implement constructorsOf
-    throw UnimplementedError();
+    covariant macro.IntrospectableType type,
+  ) async {
+    final element = (type as HasElement).element;
+    if (element case InterfaceElement(:final augmented?)) {
+      return augmented.constructors
+          .map(declarationBuilder.fromElement.constructorElement)
+          .toList();
+    }
+    throw StateError('Unexpected: ${type.runtimeType}');
   }
 
   @override
@@ -858,7 +868,6 @@ class _MacroApplication {
   final InstanceElement? declarationsPhaseElement;
   final ast.AstNode targetNode;
   final MacroTargetElement targetElement;
-  final macro.DeclarationKind targetDeclarationKind;
   final ast.Annotation annotationNode;
   final macro.MacroInstanceIdentifier instance;
   final Set<macro.Phase> phasesToExecute;
@@ -868,7 +877,6 @@ class _MacroApplication {
     required this.declarationsPhaseElement,
     required this.targetNode,
     required this.targetElement,
-    required this.targetDeclarationKind,
     required this.annotationNode,
     required this.instance,
     required this.phasesToExecute,

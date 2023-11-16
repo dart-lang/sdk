@@ -67,16 +67,14 @@ void main() {
     });
 
     test('streamListen already listening exception', () async {
-      int catchCount = 0;
       await manager.streamListen(client, 'A');
       try {
         await manager.streamListen(client, 'A');
+        fail('Should have thrown StreamAlreadyListeningException');
       } on StreamAlreadyListeningException catch (e) {
         expect(e.client, client);
         expect(e.stream, 'A');
-        catchCount++;
       }
-      expect(catchCount, 1);
     });
 
     test('streamCancel removes the client from the stream', () {

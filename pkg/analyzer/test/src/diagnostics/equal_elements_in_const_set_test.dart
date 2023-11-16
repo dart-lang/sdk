@@ -27,6 +27,16 @@ var c = const {1, 2, 1};
     ]);
   }
 
+  test_const_entry_extensionType_typeValue() async {
+    await assertErrorsInCode('''
+const x = {int, E};
+extension type E(int it) {}
+''', [
+      error(CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET, 16, 1,
+          contextMessages: [message('$testPackageLibPath/test.dart', 11, 3)]),
+    ]);
+  }
+
   test_const_ifElement_thenElseFalse() async {
     await assertErrorsInCode('''
 var c = const {1, if (1 < 0) 2 else 1};

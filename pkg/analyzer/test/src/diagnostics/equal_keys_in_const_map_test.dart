@@ -27,6 +27,16 @@ var c = const {1: null, 2: null, 1: null};
     ]);
   }
 
+  test_const_entry_extensionType_typeValue() async {
+    await assertErrorsInCode('''
+const x = {int: 0, E: 0};
+extension type E(int it) {}
+''', [
+      error(CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP, 19, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 11, 3)]),
+    ]);
+  }
+
   test_const_ifElement_thenElseFalse() async {
     await assertErrorsInCode('''
 var c = const {1: null, if (1 < 0) 2: null else 1: null};

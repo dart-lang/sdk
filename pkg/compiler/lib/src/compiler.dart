@@ -26,6 +26,7 @@ import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'deferred_load/program_split_constraints/nodes.dart' as psc
     show ConstraintData;
 import 'deferred_load/program_split_constraints/parser.dart' as psc show Parser;
+import 'diagnostics/diagnostic_listener.dart';
 import 'diagnostics/messages.dart' show Message;
 import 'dump_info.dart'
     show
@@ -54,7 +55,6 @@ import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
 import 'js_model/locals.dart';
 import 'kernel/dart2js_target.dart';
-import 'kernel/element_map.dart';
 import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/kernel_world.dart';
@@ -178,8 +178,8 @@ class Compiler {
     _outputProvider = _CompilerOutput(this, outputProvider);
     _reporter = DiagnosticReporter(this);
     kernelFrontEndTask = GenericTask('Front end', measurer);
-    frontendStrategy = KernelFrontendStrategy(
-        kernelFrontEndTask, options, reporter, environment);
+    frontendStrategy =
+        KernelFrontendStrategy(kernelFrontEndTask, options, reporter);
     backendStrategy = createBackendStrategy();
     _impactCache = <Entity, WorldImpact>{};
 
@@ -398,7 +398,12 @@ class Compiler {
   Future<load_kernel.Output?> produceKernel() async {
     if (!stage.shouldReadClosedWorld) {
       load_kernel.Output? output = await loadKernel();
-      if (output == null || compilationFailed) return null;
+      if (output == null) return null;
+      if (compilationFailed) {
+        // Some tests still use the component, even if the CFE failed.
+        frontendStrategy.registerComponent(output.component);
+        return null;
+      }
       ir.Component component = output.component;
       if (retainDataForTesting) {
         componentForTesting = component;
@@ -517,7 +522,7 @@ class Compiler {
     List<int> closedWorldData =
         strategy.serializeClosedWorld(closedWorld, options, indices);
     final component = closedWorld.elementMap.programEnv.mainComponent;
-    return strategy.deserializeClosedWorld(options, reporter, environment,
+    return strategy.deserializeClosedWorld(options, reporter,
         abstractValueStrategy, component, closedWorldData, indices);
   }
 
@@ -564,7 +569,7 @@ class Compiler {
         backendStrategy.registerJClosedWorld(closedWorld);
       }
     } else {
-      closedWorld = await serializationTask.deserializeClosedWorld(environment,
+      closedWorld = await serializationTask.deserializeClosedWorld(
           abstractValueStrategy, component, useDeferredSourceReads, indices);
     }
     if (retainDataForTesting) {
@@ -830,11 +835,17 @@ class Compiler {
       DiagnosticMessage diagnosticMessage, api.Diagnostic kind) {
     var span = diagnosticMessage.sourceSpan;
     var message = diagnosticMessage.message;
+    // If the message came from the CFE use the message code as the text
+    // so that tests can determine the cause of the message.
+    final messageText =
+        diagnosticMessage is DiagnosticCfeMessage && options.testMode
+            ? diagnosticMessage.messageCode
+            : '$message';
     if (span.isUnknown) {
-      callUserHandler(message, null, null, null, '$message', kind);
+      callUserHandler(message, null, null, null, messageText, kind);
     } else {
       callUserHandler(
-          message, span.uri, span.begin, span.end, '$message', kind);
+          message, span.uri, span.begin, span.end, messageText, kind);
     }
   }
 
