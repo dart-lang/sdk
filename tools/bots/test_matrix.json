@@ -191,27 +191,15 @@
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
-      "tests/co19_2/co19_2-analyzer.status",
-      "tests/co19_2/co19_2-co19.status",
-      "tests/co19_2/co19_2-dart2js.status",
-      "tests/co19_2/co19_2-dartdevc.status",
-      "tests/co19_2/co19_2-kernel.status",
-      "tests/co19_2/co19_2-runtime.status",
       "tests/corelib/",
-      "tests/corelib_2/",
       "tests/web/",
-      "tests/web_2/",
       "tests/dartdevc",
-      "tests/dartdevc_2",
       "tests/language/",
-      "tests/language_2/",
       "tests/lib/",
-      "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
       "tests/standalone/",
       "tests/ffi/",
-      "tests/ffi_2/",
       "pkg/_fe_analyzer_shared/",
       "pkg/async_helper/",
       "pkg/build_integration/",
@@ -235,8 +223,7 @@
       "pkg/vm_snapshot_analysis/",
       "runtime/",
       "sdk/",
-      ".dart_tool/package_config.json",
-      ".vpython"
+      ".dart_tool/package_config.json"
     ]
   },
   "configurations": {
@@ -510,30 +497,11 @@
         "use-elf": true
       }
     },
-    "dartkp-linux-(debug|release)-x64": {
-      "options": {
-        "nnbd": "legacy",
-        "vm-options": [
-          "--no-sound-null-safety"
-        ],
-        "gen-kernel-options": [
-          "--no-sound-null-safety"
-        ]
-      }
-    },
     "vm-aot-obfuscate-linux-(debug|release|product)-x64": {
       "options": {
         "builder-tag": "obfuscated",
         "vm-options": [
           "--obfuscate"
-        ]
-      }
-    },
-    "dartk-linux-(debug|release)-x64": {
-      "options": {
-        "nnbd": "legacy",
-        "vm-options": [
-          "--no-sound-null-safety"
         ]
       }
     },
@@ -958,23 +926,6 @@
           ]
         },
         {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 6
-        },
-        {
-          "name": "vm co19_2 tests",
-          "arguments": [
-            "-ndartkp-${system}-${mode}-${arch}",
-            "co19_2"
-          ],
-          "fileset": "vm",
-          "shards": 10
-        },
-        {
           "name": "vm nnbd tests in weak mode with asserts",
           "arguments": [
             "-ndartkp-weak-asserts-${system}-${mode}-${arch}"
@@ -1131,32 +1082,6 @@
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}"
           ]
-        }
-      ]
-    },
-    {
-      "builders": [
-        "vm-kernel-precomp-linux-debug-x64"
-      ],
-      "meta": {
-        "description": "This configuration is used by the vm kernel precomp debug builders. It uses 15 shards for testing to avoid 1 hour shard timeouts."
-      },
-      "steps": [
-        {
-          "name": "build dart",
-          "script": "tools/build.py",
-          "arguments": [
-            "runtime",
-            "dart_precompiled_runtime"
-          ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartkp-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 15
         }
       ]
     },
@@ -1509,23 +1434,6 @@
           "arguments": [
             "runtime"
           ]
-        },
-        {
-          "name": "vm tests",
-          "arguments": [
-            "-ndartk-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 10
-        },
-        {
-          "name": "vm co19 tests",
-          "arguments": [
-            "-ndartk-${system}-${mode}-${arch}",
-            "co19_2"
-          ],
-          "fileset": "vm",
-          "shards": 10
         },
         {
           "name": "vm nnbd tests in weak mode with asserts",
