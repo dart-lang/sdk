@@ -6130,7 +6130,7 @@ class PcDescriptors : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
+    return memcmp(untag()->data(), other.untag()->data(), Length()) == 0;
   }
 
  private:
@@ -6176,7 +6176,7 @@ class CodeSourceMap : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
+    return memcmp(untag()->data(), other.untag()->data(), Length()) == 0;
   }
 
   uint32_t Hash() const {
@@ -6212,7 +6212,7 @@ class CompressedStackMaps : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(payload_size())) == 0;
+    return memcmp(data(), other.data(), payload_size()) == 0;
   }
   uword Hash() const;
 
