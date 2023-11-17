@@ -187,7 +187,7 @@ vars = {
   "test_descriptor_rev": "c417cbb6498ba6d3ac6f7b14fdc43aefc212ab2e",
   "test_process_rev": "c21e40d7c06c862d14b1f53651ae0bd3cf81ca44",
   "test_reflective_loader_rev": "17d40bb06f55f727a79c0f0016d7510294f5db03",
-  "tools_rev": "46493078f067e3743ff10690a8e83cbcd367b491",
+  "tools_rev": "2e36b8d326e95ed256a74ee2ebdcfff5be502c57", # b/311742925
   "typed_data_rev": "0b16bd26c90bc9ac08e8b4b259aa3d7bead34feb",
   "usage_rev": "e99690ae6d5fa9ec24ac5218bcd3621e8e3ae8a9",
   "vector_math_rev": "294896dedc6da2a736f47c3c6a19643df934641c",
