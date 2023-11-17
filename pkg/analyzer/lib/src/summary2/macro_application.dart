@@ -406,8 +406,6 @@ class LibraryMacroApplier {
       switch (message.target) {
         case macro.DeclarationDiagnosticTarget macroTarget:
           final element = (macroTarget.declaration as HasElement).element;
-          // TODO(scheglov): Update HasElement instead of this cast.
-          element as ElementImpl;
           target = ElementMacroDiagnosticTarget(element: element);
           break;
         default:
@@ -417,7 +415,6 @@ class LibraryMacroApplier {
       }
 
       return MacroDiagnosticMessage(
-        // TODO(scheglov): other targets
         target: target,
         message: message.message,
       );
@@ -782,6 +779,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     final element = (type as HasElement).element;
     if (element case InterfaceElement(:final augmented?)) {
       return augmented.constructors
+          .map((e) => e.declaration as ConstructorElementImpl)
           .map(declarationBuilder.fromElement.constructorElement)
           .toList();
     }
@@ -795,7 +793,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     final element = (type as HasElement).element;
     if (element case InstanceElement(:final augmented?)) {
       return augmented.fields
-          .where((e) => !e.isSynthetic)
+          .whereNot((e) => e.isSynthetic)
+          .map((e) => e.declaration as FieldElementImpl)
           .map(declarationBuilder.fromElement.fieldElement)
           .toList();
     }
@@ -811,7 +810,10 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
       return [
         ...augmented.accessors.whereNot((e) => e.isSynthetic),
         ...augmented.methods,
-      ].map(declarationBuilder.fromElement.methodElement).toList();
+      ]
+          .map((e) => e.declaration as ExecutableElementImpl)
+          .map(declarationBuilder.fromElement.methodElement)
+          .toList();
     }
     throw StateError('Unexpected: ${type.runtimeType}');
   }
