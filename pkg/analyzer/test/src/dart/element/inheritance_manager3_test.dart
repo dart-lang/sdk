@@ -1132,31 +1132,9 @@ extension type A(int it) {}
     printerConfiguration.withObjectMembers = true;
     assertInterfaceText(element, r'''
 map
-  ==: dart:core::@class::Object::@method::==
-  hashCode: dart:core::@class::Object::@getter::hashCode
   it: self::@extensionType::A::@getter::it
-  noSuchMethod: dart:core::@class::Object::@method::noSuchMethod
-  runtimeType: dart:core::@class::Object::@getter::runtimeType
-  toString: dart:core::@class::Object::@method::toString
 declared
   it: self::@extensionType::A::@getter::it
-redeclared
-  ==
-    dart:core::@class::Object::@method::==
-  hashCode
-    dart:core::@class::Object::@getter::hashCode
-  noSuchMethod
-    dart:core::@class::Object::@method::noSuchMethod
-  runtimeType
-    dart:core::@class::Object::@getter::runtimeType
-  toString
-    dart:core::@class::Object::@method::toString
-inheritedMap
-  ==: dart:core::@class::Object::@method::==
-  hashCode: dart:core::@class::Object::@getter::hashCode
-  noSuchMethod: dart:core::@class::Object::@method::noSuchMethod
-  runtimeType: dart:core::@class::Object::@getter::runtimeType
-  toString: dart:core::@class::Object::@method::toString
 ''');
   }
 

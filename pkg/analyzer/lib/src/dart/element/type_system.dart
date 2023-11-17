@@ -1312,8 +1312,8 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isNonNullable(type.typeArguments[0]);
       }
-      if (type.representationType case final representationType?) {
-        return isNonNullable(representationType);
+      if (type.element is ExtensionTypeElement) {
+        return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
       var bound = type.element.bound;
@@ -1408,8 +1408,8 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isStrictlyNonNullable(type.typeArguments[0]);
       }
-      if (type.representationType case final representationType?) {
-        return isStrictlyNonNullable(representationType);
+      if (type.element is ExtensionTypeElement) {
+        return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
       return isStrictlyNonNullable(type.bound);

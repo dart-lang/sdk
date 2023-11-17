@@ -130,21 +130,8 @@ class InterfaceLeastUpperBoundHelper {
       return;
     }
 
-    final representationType = type.representationType;
-    if (representationType != null) {
-      // TODO(scheglov): See https://github.com/dart-lang/language/pull/3402
-      // When it lands, we might need to remove `Object` from the element
-      // interfaces, and return from the type interfaces.
-      final first = type.interfaces.singleOrNull;
-      if (first != null && first.isDartCoreObject) {
-        final replacement = typeSystem.isNonNullable(representationType)
-            ? typeSystem.objectNone
-            : typeSystem.objectQuestion;
-        if (set.add(replacement)) {
-          _addSuperinterfaces(set, replacement);
-        }
-        return;
-      }
+    if (type.element is ExtensionTypeElement) {
+      set.add(typeSystem.objectQuestion);
     }
 
     for (var interface in type.interfaces) {
