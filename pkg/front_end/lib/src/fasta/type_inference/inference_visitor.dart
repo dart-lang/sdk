@@ -5234,7 +5234,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           equalsNull,
           writeResult.expression,
           new NullLiteral()..fileOffset = node.fileOffset,
-          inferredType)
+          computeNullable(inferredType))
         ..fileOffset = node.fileOffset;
     } else {
       // Encode `a ??= b` as:

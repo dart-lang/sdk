@@ -67,9 +67,9 @@ static method test2(self::Class? c) → dynamic {
   self::expect(42, let final self::Class? #t52 = c in #t52 == null ?{core::int?} null : let final core::int? #t53 = self::Extension|get#property(#t52{self::Class}) in #t53 == null ?{core::int} let final core::int #t54 = 87 in let final void #t55 = self::Extension|set#property(#t52{self::Class}, #t54) in #t54 : #t53{core::int});
   let final self::Class? #t56 = c in #t56 == null ?{void} null : self::Extension|set#property(#t56{self::Class}, null);
   self::expect(null, let final self::Class? #t57 = c in #t57 == null ?{core::int?} null : self::Extension|get#property(#t57{self::Class}));
-  let final self::Class? #t58 = c in #t58 == null ?{core::int?} null : self::Extension|get#property(#t58{self::Class}) == null ?{core::int} self::Extension|set#property(#t58{self::Class}, 42) : null;
+  let final self::Class? #t58 = c in #t58 == null ?{core::int?} null : self::Extension|get#property(#t58{self::Class}) == null ?{core::int?} self::Extension|set#property(#t58{self::Class}, 42) : null;
   self::expect(42, let final self::Class? #t59 = c in #t59 == null ?{core::int?} null : self::Extension|get#property(#t59{self::Class}));
-  let final self::Class? #t60 = c in #t60 == null ?{core::int?} null : self::Extension|get#property(#t60{self::Class}) == null ?{core::int} self::Extension|set#property(#t60{self::Class}, 87) : null;
+  let final self::Class? #t60 = c in #t60 == null ?{core::int?} null : self::Extension|get#property(#t60{self::Class}) == null ?{core::int?} self::Extension|set#property(#t60{self::Class}, 87) : null;
   self::expect(42, let final self::Class? #t61 = c in #t61 == null ?{core::int?} null : self::Extension|get#property(#t61{self::Class}));
   let final self::Class? #t62 = c in #t62 == null ?{void} null : self::Extension|set#property(#t62{self::Class}, null);
   let final self::Class? #t63 = c in #t63 == null ?{dynamic} null : self::Extension|testImplicitThis(#t63{self::Class});
