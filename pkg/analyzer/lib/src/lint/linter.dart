@@ -598,8 +598,8 @@ class LinterContextUnit {
 }
 
 // TODO(scheglov): This class exists only because there are places in the
-/// analyzer and analysis server that instantiate [LinterContextUnit]. This
-/// should not happen, and should be fixed.
+// analyzer and analysis server that instantiate [LinterContextUnit]. This
+// should not happen, and should be fixed.
 class LinterContextUnit2 implements LinterContextUnit {
   final FileState file;
 

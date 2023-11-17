@@ -210,6 +210,9 @@ class ConstructorElementLinkedData
     element.superConstructor = reader.readElement() as ConstructorElement?;
     element.redirectedConstructor = reader.readElement() as ConstructorElement?;
     element.constantInitializers = reader._readNodeList();
+    element.augmentation = reader.readElement() as ConstructorElementImpl?;
+    element.augmentationTarget =
+        reader.readElement() as ConstructorElementImpl?;
     applyConstantOffsets?.perform();
   }
 }

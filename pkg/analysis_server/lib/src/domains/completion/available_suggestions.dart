@@ -132,10 +132,10 @@ protocol.Notification createExistingImportsNotification(
 }
 
 // TODO(dantup): We need to expose this because the Declarations code currently
-/// returns declarations with DeclarationKinds but the DartCompletionManager
-/// gives us a list of "included ElementKinds". Maybe it would be better to expose
-/// includedDeclarationKinds and then just map that list to ElementKinds once in
-/// domain_completion for the original protocol?
+// returns declarations with DeclarationKinds but the DartCompletionManager
+// gives us a list of "included ElementKinds". Maybe it would be better to expose
+// includedDeclarationKinds and then just map that list to ElementKinds once in
+// domain_completion for the original protocol?
 protocol.ElementKind protocolElementKind(DeclarationKind kind) {
   return switch (kind) {
     DeclarationKind.CLASS => protocol.ElementKind.CLASS,

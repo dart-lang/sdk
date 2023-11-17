@@ -42,8 +42,8 @@ class InterfaceLeastUpperBoundHelper {
   ///    (or might not) be a well-formed type.
   ///
   // TODO(leafp): Use matchTypes or something similar here to handle the
-  ///  case where one of the types is a superclass (but not supertype) of
-  ///  the other, e.g. LUB(Iterable<double>, List<int>) = Iterable<num>
+  // case where one of the types is a superclass (but not supertype) of
+  // the other, e.g. LUB(Iterable<double>, List<int>) = Iterable<num>
   // TODO(leafp): Figure out the right final algorithm and implement it.
   InterfaceTypeImpl compute(InterfaceTypeImpl type1, InterfaceTypeImpl type2) {
     var nullability = _chooseNullability(type1, type2);

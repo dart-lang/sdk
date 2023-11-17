@@ -652,7 +652,7 @@ class InheritanceManager3 {
     }
 
     // TODO(scheglov): Instead of merging conflicts we could report them on
-    /// the corresponding mixins applied in the class.
+    // the corresponding mixins applied in the class.
     for (var mixinConflicts in mixinsConflicts) {
       if (mixinConflicts.isNotEmpty) {
         conflicts.addAll(mixinConflicts);

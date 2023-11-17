@@ -740,8 +740,8 @@ class AstBuilder extends StackListener {
   }
 
   // TODO(scheglov): We should not do this.
-  /// Ideally, we should not test parsing pieces of class, and instead parse
-  /// the whole unit, and extract pieces that we need to validate.
+  // Ideally, we should not test parsing pieces of class, and instead parse
+  // the whole unit, and extract pieces that we need to validate.
   _ClassDeclarationBuilder createFakeClassDeclarationBuilder(String className) {
     return _classLikeBuilder = _ClassDeclarationBuilder(
       comment: null,

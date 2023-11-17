@@ -46,7 +46,7 @@ For more information, see https://github.com/dart-lang/linter
 }
 
 // TODO(pq): consider using `dart analyze` where possible
-/// see: https://github.com/dart-lang/linter/pull/2537
+// see: https://github.com/dart-lang/linter/pull/2537
 Future<void> runLinter(List<String> args) async {
   // Force the rule registry to be populated.
   registerLintRules();

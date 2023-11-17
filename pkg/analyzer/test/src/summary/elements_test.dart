@@ -2763,6 +2763,151 @@ library
 ''');
   }
 
+  test_constructors_augment2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment A.named();
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+class A {
+  A.named();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @56
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          named @64
+            periodOffset: 63
+            nameEnd: 69
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+        augmented
+          constructors
+            self::@augmentation::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+            constructors
+              augment named @59
+                periodOffset: 58
+                nameEnd: 64
+                augmentationTarget: self::@class::A::@constructor::named
+                augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@constructorAugmentation::named
+    package:test/b.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+            constructors
+              augment named @59
+                periodOffset: 58
+                nameEnd: 64
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+''');
+  }
+
+  test_constructors_augment_named() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment A.named();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  A.named();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          named @39
+            periodOffset: 38
+            nameEnd: 44
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+        augmented
+          constructors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::named
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              augment named @59
+                periodOffset: 58
+                nameEnd: 64
+                augmentationTarget: self::@class::A::@constructor::named
+''');
+  }
+
+  test_constructors_augment_unnamed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment A();
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  A();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          @37
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+        augmented
+          constructors
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@constructorAugmentation::new
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            constructors
+              augment @57
+                augmentationTarget: self::@class::A::@constructor::new
+''');
+  }
+
   test_inferTypes_method_ofAugment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

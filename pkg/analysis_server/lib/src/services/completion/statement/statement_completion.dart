@@ -108,8 +108,8 @@ class StatementCompletionProcessor {
   final CorrectionUtils utils;
 
   // TODO(brianwilkerson): Refactor the code so that the completion is returned
-  ///  from the methods in which it's computed rather than being a field that we
-  ///  have to test.
+  // from the methods in which it's computed rather than being a field that we
+  // have to test.
   StatementCompletion? completion;
   SourceChange change = SourceChange('statement-completion');
   List<engine.AnalysisError> errors = [];

@@ -80,6 +80,42 @@ void AssemblerBase::StoreToSlotNoBarrier(Register src,
   return StoreIntoObjectNoBarrier(base, address, src);
 }
 
+void AssemblerBase::UnrolledMemCopy(Register dst_base,
+                                    intptr_t dst_offset,
+                                    Register src_base,
+                                    intptr_t src_offset,
+                                    intptr_t size,
+                                    Register temp) {
+  intptr_t offset = 0;
+  if (target::kWordSize >= 8) {
+    while (offset + 8 <= size) {
+      LoadFromOffset(temp, Address(src_base, src_offset + offset), kEightBytes);
+      StoreToOffset(temp, Address(dst_base, dst_offset + offset), kEightBytes);
+      offset += 8;
+    }
+  }
+  while (offset + 4 <= size) {
+    LoadFromOffset(temp, Address(src_base, src_offset + offset),
+                   kUnsignedFourBytes);
+    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
+                  kUnsignedFourBytes);
+    offset += 4;
+  }
+  while (offset + 2 <= size) {
+    LoadFromOffset(temp, Address(src_base, src_offset + offset),
+                   kUnsignedTwoBytes);
+    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
+                  kUnsignedTwoBytes);
+    offset += 2;
+  }
+  while (offset + 1 <= size) {
+    LoadFromOffset(temp, Address(src_base, src_offset + offset), kUnsignedByte);
+    StoreToOffset(temp, Address(dst_base, dst_offset + offset), kUnsignedByte);
+    offset += 1;
+  }
+  ASSERT(offset == size);
+}
+
 void AssemblerBase::LoadTypeClassId(Register dst, Register src) {
   if (dst != src) {
     EnsureHasClassIdInDEBUG(kTypeCid, src, dst);

@@ -228,6 +228,8 @@ class BundleWriter {
       _resolutionSink.writeElement(element.superConstructor);
       _resolutionSink.writeElement(element.redirectedConstructor);
       _resolutionSink._writeNodeList(element.constantInitializers);
+      _resolutionSink.writeElement(element.augmentation);
+      _resolutionSink.writeElement(element.augmentationTarget);
     });
   }
 
@@ -735,7 +737,7 @@ class ResolutionSink extends _SummaryDataWriter {
   }) : _references = references;
 
   // TODO(scheglov): Triage places where we write elements.
-  /// Some of then cannot be members, e.g. type names.
+  // Some of then cannot be members, e.g. type names.
   void writeElement(Element? element) {
     if (element is Member) {
       var declaration = element.declaration;

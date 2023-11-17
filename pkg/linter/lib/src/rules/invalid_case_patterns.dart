@@ -252,7 +252,7 @@ class InvalidCasePatterns extends LintRule {
             group: Group.errors);
 
   // TODO(pq): update to add specific messages w/ specific corrections
-  /// https://github.com/dart-lang/linter/issues/4172
+  // https://github.com/dart-lang/linter/issues/4172
   @override
   LintCode get lintCode => code;
 

@@ -736,13 +736,13 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// Implementation for `analysis.setAnalysisRoots`.
   ///
   // TODO(scheglov): implement complete projects/contexts semantics.
-  ///
-  /// The current implementation is intentionally simplified and expected
-  /// that only folders are given each given folder corresponds to the exactly
-  /// one context.
-  ///
-  /// So, we can start working in parallel on adding services and improving
-  /// projects/contexts support.
+  //
+  // The current implementation is intentionally simplified and expected
+  // that only folders are given each given folder corresponds to the exactly
+  // one context.
+  //
+  // So, we can start working in parallel on adding services and improving
+  // projects/contexts support.
   Future<void> setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths) async {
     final completer = analysisContextRebuildCompleter = Completer();
@@ -1114,12 +1114,12 @@ class ServerContextManagerCallbacks
   /// computer, we want it to run before spending time of sending notifications.
   ///
   // TODO(scheglov): Consider replacing this with full priority based scheduler.
-  ///
+  //
   // TODO(scheglov): Alternatively, if code completion work in a way that does
-  /// not produce (at first) fully resolved unit, but only part of it - a single
-  /// method, or a top-level declaration, we would not have this problem - the
-  /// completion computer would be the only consumer of the partial analysis
-  /// result.
+  // not produce (at first) fully resolved unit, but only part of it - a single
+  // method, or a top-level declaration, we would not have this problem - the
+  // completion computer would be the only consumer of the partial analysis
+  // result.
   void _runDelayed(Function() f) {
     Future(f);
   }

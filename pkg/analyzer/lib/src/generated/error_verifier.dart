@@ -2907,9 +2907,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// classes such as 'num' or 'String'.
   ///
   // TODO(scheglov): Remove this method, when all inheritance / override
-  /// is concentrated. We keep it for now only because we need to know when
-  /// inheritance is completely wrong, so that we don't need to check anything
-  /// else.
+  // is concentrated. We keep it for now only because we need to know when
+  // inheritance is completely wrong, so that we don't need to check anything
+  // else.
   bool _checkForExtendsOrImplementsDisallowedClass(
       NamedType namedType, ErrorCode errorCode) {
     if (namedType.isSynthetic) {

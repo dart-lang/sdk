@@ -355,6 +355,8 @@ class _ElementWriter {
       }
 
       _writeNonSyntheticElement(e);
+      _writeAugmentationTarget(e);
+      _writeAugmentation(e);
     });
 
     expect(e.isAsynchronous, isFalse);
@@ -765,18 +767,8 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
-
-      if (e.isAugmentation) {
-        _elementPrinter.writeNamedElement(
-          'augmentationTarget',
-          e.augmentationTarget,
-        );
-      }
-
-      final augmentation = e.augmentation;
-      if (augmentation != null) {
-        _elementPrinter.writeNamedElement('augmentation', augmentation);
-      }
+      _writeAugmentationTarget(e);
+      _writeAugmentation(e);
     });
 
     if (e.isSynthetic && e.enclosingElement is EnumElementImpl) {
