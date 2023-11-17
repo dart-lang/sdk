@@ -556,6 +556,16 @@ class String {
   @patch
   factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]) {
+    RangeError.checkNotNegative(start, "start");
+    if (end != null) {
+      var maxLength = end - start;
+      if (maxLength < 0) {
+        throw RangeError.range(end, start, null, "end");
+      }
+      if (maxLength == 0) {
+        return "";
+      }
+    }
     if (charCodes is JSArray) {
       // Type promotion doesn't work unless the check is `is JSArray<int>`,
       // which is more expensive.
@@ -575,9 +585,14 @@ class String {
   }
 
   static String _stringFromJSArray(JSArray list, int start, int? endOrNull) {
+    // Caller guarantees: endOrNull == null || endOrNull > start
     int len = list.length;
-    int end = RangeError.checkValidRange(start, endOrNull, len);
+    int end = endOrNull ?? len;
     if (start > 0 || end < len) {
+      // JS `List.slice` allows positive indices greater than list length,
+      // and end before start (empty result).
+      // If `start >= len`, then the result will be empty, whether `endOrNull`
+      // is `null` or not.
       list = JS('JSArray', '#.slice(#, #)', list, start, end);
     }
     return Primitives.stringFromCharCodes(list);
@@ -586,34 +601,16 @@ class String {
   static String _stringFromUint8List(
       NativeUint8List charCodes, int start, int? endOrNull) {
     int len = charCodes.length;
-    int end = RangeError.checkValidRange(start, endOrNull, len);
+    if (start >= len) return "";
+    int end = (endOrNull == null || endOrNull > len) ? len : endOrNull;
     return Primitives.stringFromNativeUint8List(charCodes, start, end);
   }
 
   static String _stringFromIterable(
       Iterable<int> charCodes, int start, int? end) {
-    if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
-    if (end != null && end < start) {
-      throw new RangeError.range(end, start, charCodes.length);
-    }
-    var it = charCodes.iterator;
-    for (int i = 0; i < start; i++) {
-      if (!it.moveNext()) {
-        throw new RangeError.range(start, 0, i);
-      }
-    }
-    var list = [];
-    if (end == null) {
-      while (it.moveNext()) list.add(it.current);
-    } else {
-      for (int i = start; i < end; i++) {
-        if (!it.moveNext()) {
-          throw new RangeError.range(end, start, i);
-        }
-        list.add(it.current);
-      }
-    }
-    return Primitives.stringFromCharCodes(list);
+    if (end != null) charCodes = charCodes.take(end);
+    if (start > 0) charCodes = charCodes.skip(start);
+    return Primitives.stringFromCharCodes(List<int>.of(charCodes));
   }
 }
 

@@ -143,23 +143,26 @@ main() {
     "ABCDEFGH".codeUnits,
   ]) {
     test("ABCDEFGH", iterable);
-    // start varies, end is null.
+    // start provided, end is null.
     test("ABCDEFGH", iterable, 0);
     test("BCDEFGH", iterable, 1);
     test("H", iterable, 7);
     test("", iterable, 8);
-    // start = 0, end varies.
+    test("", iterable, 10);
+    // start = 0, end provided.
     test("ABCDEFGH", iterable, 0);
     test("A", iterable, 0, 1);
     test("AB", iterable, 0, 2);
     test("ABCDEFG", iterable, 0, 7);
     test("ABCDEFGH", iterable, 0, 8);
+    test("ABCDEFGH", iterable, 0, 10);
     test("", iterable, 0, 0);
-    // Both varying.
-    test("ABCDEFGH", iterable, 0, 8);
-    test("AB", iterable, 0, 2);
+    // Both provided and start > 0.
     test("GH", iterable, 6, 8);
+    test("GH", iterable, 6, 10);
     test("DE", iterable, 3, 5);
+    test("", iterable, 8, 10);
+    test("", iterable, 10, 12);
     test("", iterable, 3, 3);
   }
   // Can split surrogates in input, but not a single big code point.
@@ -198,9 +201,13 @@ main() {
       testThrowsRange(iterable, -1);
       testThrowsRange(iterable, 0, -1);
       testThrowsRange(iterable, 2, 1);
-      testThrowsRange(iterable, 0, length + 1);
-      testThrowsRange(iterable, length + 1);
-      testThrowsRange(iterable, length + 1, length + 2);
+
+      // Positions after end are acceptable.
+      test(string, iterable, 0, length + 1);
+      test(string.substring(string.length ~/ 2), iterable, string.length ~/ 2,
+          length + 1);
+      test("", iterable, length + 1);
+      test("", iterable, length + 1, length + 2);
     }
   }
 
