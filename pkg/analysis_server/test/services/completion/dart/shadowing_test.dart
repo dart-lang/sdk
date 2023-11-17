@@ -373,7 +373,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_typeParameter_localVariable() async {
     await computeSuggestions('''
 void f() {
@@ -391,7 +390,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_typeParameter_parameter() async {
     await computeSuggestions('''
 void f(int p0) {

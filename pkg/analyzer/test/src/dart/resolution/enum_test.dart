@@ -435,6 +435,13 @@ MethodDeclaration
     element: dart:core::@class::int
     type: int
   name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: U
+        declaredElement: U@27
+    rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter

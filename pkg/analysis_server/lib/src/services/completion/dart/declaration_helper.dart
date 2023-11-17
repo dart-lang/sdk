@@ -33,12 +33,16 @@ class DeclarationHelper {
   final bool mustBeConstant;
 
   /// A flag indicating whether suggestions should be limited to only include
+  /// methods with a non-`void` return type.
+  final bool mustBeNonVoid;
+
+  /// A flag indicating whether suggestions should be limited to only include
   /// static members.
   final bool mustBeStatic;
 
   /// A flag indicating whether suggestions should be limited to only include
-  /// methods with a non-`void` return type.
-  final bool mustBeNonVoid;
+  /// types.
+  final bool mustBeType;
 
   /// A flag indicating whether suggestions should be tear-offs rather than
   /// invocations where possible.
@@ -58,8 +62,9 @@ class DeclarationHelper {
       {required this.collector,
       required this.offset,
       required this.mustBeConstant,
-      required this.mustBeStatic,
       required this.mustBeNonVoid,
+      required this.mustBeStatic,
+      required this.mustBeType,
       required this.preferNonInvocation});
 
   /// Return the suggestion kind that should be used for executable elements.
@@ -108,28 +113,55 @@ class DeclarationHelper {
 
   /// Add any declarations that are visible at the completion location,
   /// given that the completion location is within the [node]. This includes
-  /// local variables, local functions, and parameters.
+  /// local variables, local functions, parameters, members of the enclosing
+  /// declaration, and top-level declarations in the enclosing library.
   void addLexicalDeclarations(AstNode node) {
-    var containingMember = _addLocalDeclarations(node);
+    var containingMember =
+        mustBeType ? _addLocalTypes(node) : _addLocalDeclarations(node);
     if (containingMember == null) {
       return;
     }
     var parent = containingMember.parent;
-    _addMembersOf(parent, containingMember);
+    if (parent is ClassMember) {
+      assert(node is CommentReference);
+      parent = parent.parent;
+    } else if (parent is CompilationUnit) {
+      parent = containingMember;
+    }
+    if (parent is CompilationUnitMember) {
+      _addMembersOf(parent, containingMember);
+      parent = parent.parent;
+    }
+    if (parent is CompilationUnit) {
+      var library = parent.declaredElement?.library;
+      if (library != null) {
+        _addTopLevelDeclarations(library);
+        _addImportedDeclarations(library);
+      }
+    }
   }
 
   void addMembersOfType(DartType type) {
     // TODO(brianwilkerson): Implement this.
   }
 
+  /// Add suggestions for any top-level declarations that are visible within the
+  /// [library].
+  void _addImportedDeclarations(LibraryElement library) {
+    // TODO(brianwilkerson): Implement this.
+    // for (var importedLibrary in library.importedLibraries) {}
+  }
+
   /// Add suggestions for any local declarations that are visible at the
   /// completion location, given that the completion location is within the
   /// [node].
   ///
-  /// This includes local variables, local functions, and parameters. Return the
-  /// member containing the local declarations that were added, or `null` if
-  /// there is an error such as the AST being malformed or we encountered an AST
-  /// structure that isn't handled correctly.
+  /// This includes local variables, local functions, parameters, and type
+  /// parameters defined on local functions.
+  ///
+  /// Return the member containing the local declarations that were added, or
+  /// `null` if there is an error such as the AST being malformed or we
+  /// encountered an AST structure that isn't handled correctly.
   ///
   /// The returned member can be either a [ClassMember] or a
   /// [CompilationUnitMember].
@@ -169,12 +201,14 @@ class DeclarationHelper {
           }
         case FunctionExpression():
           _visitParameterList(currentNode.parameters);
+          _visitTypeParameterList(currentNode.typeParameters);
         case IfElement():
           _visitIfElement(currentNode);
         case IfStatement():
           _visitIfStatement(currentNode);
         case MethodDeclaration():
           _visitParameterList(currentNode.parameters);
+          _visitTypeParameterList(currentNode.typeParameters);
           return currentNode;
         case SwitchCase():
           _visitStatements(currentNode.statements, previousNode);
@@ -186,8 +220,51 @@ class DeclarationHelper {
           _visitSwitchPatternCase(currentNode, previousNode);
         case VariableDeclarationList():
           _visitVariableDeclarationList(currentNode, previousNode);
+        case CompilationUnitMember():
+          return currentNode;
       }
       previousNode = currentNode;
+      currentNode = currentNode.parent;
+    }
+    return currentNode;
+  }
+
+  /// Add suggestions for any local types that are visible at the completion
+  /// location, given that the completion location is within the [node].
+  ///
+  /// This includes only type parameters.
+  ///
+  /// Return the member containing the local declarations that were added, or
+  /// `null` if there is an error such as the AST being malformed or we
+  /// encountered an AST structure that isn't handled correctly.
+  ///
+  /// The returned member can be either a [ClassMember] or a
+  /// [CompilationUnitMember].
+  AstNode? _addLocalTypes(AstNode node) {
+    AstNode? currentNode = node;
+    while (currentNode != null) {
+      switch (currentNode) {
+        case CommentReference():
+          return currentNode;
+        case ConstructorDeclaration():
+          _visitParameterList(currentNode.parameters);
+          return currentNode;
+        case FieldDeclaration():
+          return currentNode;
+        case FunctionDeclaration(:var parent):
+          if (parent is! FunctionDeclarationStatement) {
+            return currentNode;
+          }
+        case FunctionExpression():
+          _visitTypeParameterList(currentNode.typeParameters);
+        case GenericFunctionType():
+          _visitTypeParameterList(currentNode.typeParameters);
+        case MethodDeclaration():
+          _visitTypeParameterList(currentNode.typeParameters);
+          return currentNode;
+        case CompilationUnitMember():
+          return currentNode;
+      }
       currentNode = currentNode.parent;
     }
     return currentNode;
@@ -226,44 +303,65 @@ class DeclarationHelper {
 
   /// Add suggestions for any members of the [parent].
   ///
-  /// The [parent] is expected to be either a [CompilationUnitMember] or a
-  /// [CompilationUnit]. The [containingMember] is the member within the
-  /// [parent] in which completion was requested.
-  void _addMembersOf(AstNode? parent, AstNode containingMember) {
-    while (parent != null) {
-      switch (parent) {
-        case ClassDeclaration():
-          var classElement = parent.declaredElement;
-          if (classElement != null) {
+  /// The [containingMember] is the member within the [parent] in which
+  /// completion was requested.
+  void _addMembersOf(CompilationUnitMember parent, AstNode containingMember) {
+    switch (parent) {
+      case ClassDeclaration():
+        var classElement = parent.declaredElement;
+        if (classElement != null) {
+          if (!mustBeType) {
             _addMembers(classElement, parent.members);
           }
-        case CompilationUnit():
-          var library = parent.declaredElement?.library;
-          if (library != null) {
-            _addTopLevelDeclarations(library);
-          }
-        case EnumDeclaration():
-          var enumElement = parent.declaredElement;
-          if (enumElement != null) {
+          _suggestTypeParameters(classElement.typeParameters);
+        }
+      case EnumDeclaration():
+        var enumElement = parent.declaredElement;
+        if (enumElement != null) {
+          if (!mustBeType) {
             _addMembers(enumElement, parent.members);
           }
-        case ExtensionDeclaration():
-          var extensionElement = parent.declaredElement;
-          if (extensionElement != null) {
+          _suggestTypeParameters(enumElement.typeParameters);
+        }
+      case ExtensionDeclaration():
+        var extensionElement = parent.declaredElement;
+        if (extensionElement != null) {
+          if (!mustBeType) {
             _addMembers(extensionElement, parent.members);
           }
-        case ExtensionTypeDeclaration():
-          var extensionTypeElement = parent.declaredElement;
-          if (extensionTypeElement != null) {
+          _suggestTypeParameters(extensionElement.typeParameters);
+        }
+      case ExtensionTypeDeclaration():
+        var extensionTypeElement = parent.declaredElement;
+        if (extensionTypeElement != null) {
+          if (!mustBeType) {
             _addMembers(extensionTypeElement, parent.members);
           }
-        case MixinDeclaration():
-          var mixinElement = parent.declaredElement;
-          if (mixinElement != null) {
+          _suggestTypeParameters(extensionTypeElement.typeParameters);
+        }
+      case MixinDeclaration():
+        var mixinElement = parent.declaredElement;
+        if (mixinElement != null) {
+          if (!mustBeType) {
             _addMembers(mixinElement, parent.members);
           }
-      }
-      parent = parent.parent;
+          _suggestTypeParameters(mixinElement.typeParameters);
+        }
+      case ClassTypeAlias():
+        var aliasElement = parent.declaredElement;
+        if (aliasElement != null) {
+          _suggestTypeParameters(aliasElement.typeParameters);
+        }
+      case FunctionTypeAlias():
+        var aliasElement = parent.declaredElement;
+        if (aliasElement != null) {
+          _suggestTypeParameters(aliasElement.typeParameters);
+        }
+      case GenericTypeAlias():
+        var aliasElement = parent.declaredElement;
+        if (aliasElement is TypeAliasElement) {
+          _suggestTypeParameters(aliasElement.typeParameters);
+        }
     }
   }
 
@@ -349,6 +447,21 @@ class DeclarationHelper {
     }
   }
 
+  /// Add a suggestion for the type parameter represented by the [element].
+  void _suggestTypeParameter(TypeParameterElement element) {
+    if (visibilityTracker.isVisible(element)) {
+      var suggestion = TypeParameterSuggestion(element);
+      collector.addSuggestion(suggestion);
+    }
+  }
+
+  /// Suggest each of the [typeParameters].
+  void _suggestTypeParameters(List<TypeParameterElement> typeParameters) {
+    for (var parameter in typeParameters) {
+      _suggestTypeParameter(parameter);
+    }
+  }
+
   /// Add a suggestion for the local variable represented by the [element].
   void _suggestVariable(LocalVariableElement element) {
     if (mustBeConstant && !element.isConst) {
@@ -379,11 +492,15 @@ class DeclarationHelper {
       case ConstructorDeclaration():
         _visitParameterList(member.parameters);
       case FunctionDeclaration():
-        _visitParameterList(member.functionExpression.parameters);
+        var functionExpression = member.functionExpression;
+        _visitParameterList(functionExpression.parameters);
+        _visitTypeParameterList(functionExpression.typeParameters);
       case FunctionExpression():
         _visitParameterList(member.parameters);
+        _visitTypeParameterList(member.typeParameters);
       case MethodDeclaration():
         _visitParameterList(member.parameters);
+        _visitTypeParameterList(member.typeParameters);
     }
     return comment;
   }
@@ -562,6 +679,17 @@ class DeclarationHelper {
             break;
           }
           index--;
+        }
+      }
+    }
+  }
+
+  void _visitTypeParameterList(TypeParameterList? typeParameters) {
+    if (typeParameters != null) {
+      for (var typeParameter in typeParameters.typeParameters) {
+        var element = typeParameter.declaredElement;
+        if (element != null) {
+          _suggestTypeParameter(element);
         }
       }
     }

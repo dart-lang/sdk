@@ -4347,6 +4347,13 @@ MethodDeclaration
     element: T@26
     type: T
   name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredElement: T@26
+    rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
@@ -4376,6 +4383,13 @@ MethodDeclaration
     element: T@26
     type: T*
   name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredElement: T@26
+    rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
@@ -5457,6 +5471,13 @@ MethodDeclaration
     element: T@61
     type: T
   name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredElement: T@61
+    rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
@@ -5485,6 +5506,13 @@ MethodDeclaration
     element: T@61
     type: T*
   name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredElement: T@61
+    rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter
