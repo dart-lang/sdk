@@ -460,10 +460,6 @@ _nightly_builder(
 
 # vm|legacy|aot
 _nightly_builder(
-    "vm-kernel-precomp-linux-debug-x64",
-    category = "vm|legacy|aot|d",
-)
-_nightly_builder(
     "vm-kernel-precomp-linux-release-x64",
     category = "vm|legacy|aot|r",
 )
