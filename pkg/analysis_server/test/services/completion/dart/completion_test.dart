@@ -6387,13 +6387,27 @@ suggestions
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T a, T b){}final T^ f = null;}
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
   T
     kind: typeParameter
 ''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  T
+    kind: typeParameter
+  dynamic
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_commentSnippets031_1() async {
@@ -13111,10 +13125,14 @@ replacement
   left: 1
   right: 2
 suggestions
+  dynamic
+    kind: keyword
   num
     kind: class
   num
     kind: class
+  void
+    kind: keyword
 ''');
     }
   }

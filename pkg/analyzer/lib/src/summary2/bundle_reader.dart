@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -139,6 +140,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
@@ -205,6 +207,7 @@ class ConstructorElementLinkedData
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     reader._addFormalParameters(element.parameters);
     _readFormalParameters(reader, element.parameters);
     element.superConstructor = reader.readElement() as ConstructorElement?;
@@ -427,6 +430,7 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     element.type = reader.readRequiredType();
 
     final augmentationTarget = reader.readElement();
@@ -1820,6 +1824,7 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: unitElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
@@ -1985,6 +1990,10 @@ class ResolutionReader {
 
   List<T> readElementList<T extends Element>() {
     return _reader.readTypedListCast<T>(readElement);
+  }
+
+  List<AnalyzerMacroDiagnostic> readMacroDiagnostics() {
+    return readTypedList(_readMacroDiagnostic);
   }
 
   Map<K, V> readMap<K, V>({
@@ -2293,6 +2302,37 @@ class ResolutionReader {
 
   List<InterfaceType> _readInterfaceTypeList() {
     return readTypedList(_readInterfaceType);
+  }
+
+  AnalyzerMacroDiagnostic _readMacroDiagnostic() {
+    switch (readByte()) {
+      case 0x01:
+        return MacroDiagnostic(
+          severity: macro.Severity.values[readByte()],
+          message: _readMacroDiagnosticMessage(),
+          contextMessages: readTypedList(_readMacroDiagnosticMessage),
+        );
+      case final int tag:
+        throw UnimplementedError('tag: $tag');
+    }
+  }
+
+  MacroDiagnosticMessage _readMacroDiagnosticMessage() {
+    final message = _reader.readStringUtf8();
+    MacroDiagnosticTarget target;
+    switch (readByte()) {
+      case 0x00:
+        target = ApplicationMacroDiagnosticTarget(
+          annotationIndex: readUInt30(),
+        );
+      case final int tag:
+        throw UnimplementedError('tag: $tag');
+    }
+
+    return MacroDiagnosticMessage(
+      message: message,
+      target: target,
+    );
   }
 
   List<T> _readNodeList<T>() {

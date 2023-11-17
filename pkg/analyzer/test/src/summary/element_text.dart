@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/summary2/export.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -41,6 +42,7 @@ String getLibraryText({
 
 class ElementTextConfiguration {
   bool Function(Object) filter;
+  void Function(String message)? macroDiagnosticMessageValidator;
   bool withAllSupertypes = false;
   bool withAugmentedWithoutAugmentation = false;
   bool withCodeRanges = false;
@@ -355,6 +357,7 @@ class _ElementWriter {
       }
 
       _writeNonSyntheticElement(e);
+      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -621,6 +624,7 @@ class _ElementWriter {
       _writeSinceSdkVersion(e);
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
+      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
 
@@ -728,6 +732,63 @@ class _ElementWriter {
         _writeAugmentationImportElement);
   }
 
+  void _writeMacroDiagnostics(Element e) {
+    void writeMessage(MacroDiagnosticMessage object) {
+      // Write the text.
+      final validator = configuration.macroDiagnosticMessageValidator;
+      if (validator != null) {
+        validator(object.message);
+      } else {
+        var messageToWrite = object.message;
+        const stackTraceText = 'Stack trace:';
+        final stackTraceIndex = messageToWrite.indexOf(stackTraceText);
+        if (stackTraceIndex >= 0) {
+          final end = stackTraceIndex + stackTraceText.length;
+          messageToWrite = '${messageToWrite.substring(0, end)} <cut>';
+        }
+        _sink.writeln(messageToWrite);
+      }
+      // Write the target.
+      final target = object.target;
+      switch (target) {
+        case ApplicationMacroDiagnosticTarget():
+          _sink.writelnWithIndent('target: ApplicationMacroDiagnosticTarget');
+          _sink.withIndent(() {
+            _sink.writelnWithIndent(
+              'annotationIndex: ${target.annotationIndex}',
+            );
+          });
+      }
+    }
+
+    if (e case final MacroTargetElement macroTarget) {
+      _sink.writeElements(
+        'macroDiagnostics',
+        macroTarget.macroDiagnostics,
+        (diagnostic) {
+          switch (diagnostic) {
+            case ExceptionMacroDiagnostic():
+              // TODO(scheglov): Handle this case.
+              throw UnimplementedError();
+            case MacroDiagnostic():
+              _sink.writelnWithIndent('MacroDiagnostic');
+              _sink.withIndent(() {
+                _sink.writelnWithIndent('message');
+                _sink.withIndent(() {
+                  writeMessage(diagnostic.message);
+                });
+                _sink.writeElements(
+                  'contextMessages',
+                  diagnostic.contextMessages,
+                  writeMessage,
+                );
+              });
+          }
+        },
+      );
+    }
+  }
+
   void _writeMetadata(Element element) {
     if (configuration.withMetadata) {
       var annotations = element.metadata;
@@ -767,6 +828,7 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
+      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -1035,6 +1097,7 @@ class _ElementWriter {
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
       writeLinking();
+      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });

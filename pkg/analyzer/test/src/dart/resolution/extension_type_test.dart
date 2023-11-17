@@ -238,6 +238,13 @@ MethodDeclaration
     element: <null>
     type: void
   name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: U
+        declaredElement: U@41
+    rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: SimpleFormalParameter

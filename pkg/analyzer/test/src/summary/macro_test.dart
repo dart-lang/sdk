@@ -2332,37 +2332,6 @@ $code
 }
 
 abstract class MacroElementsTest extends MacroElementsBaseTest {
-  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
-  test_macroApplicationErrors_declarationsPhase_throwsException() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassDeclarationsMacro {
-  const MyMacro();
-
-  buildDeclarationsForClass(clazz, builder) async {
-    throw 'foo bar';
-  }
-}
-''');
-
-    final library = await buildLibrary(r'''
-import 'a.dart';
-
-@MyMacro()
-class A {}
-''');
-
-    final A = library.getClass('A') as ClassElementImpl;
-    final error = A.macroApplicationErrors.single;
-    error as UnknownMacroApplicationError;
-
-    expect(error.annotationIndex, 0);
-    expect(error.message, 'foo bar');
-    expect(error.stackTrace, contains('MyMacro.buildDeclarationsForClass'));
-  }
-
-  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
   test_macroApplicationErrors_typesPhase_compileTimeError() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -2383,43 +2352,245 @@ import 'a.dart';
 class A {}
 ''');
 
-    final A = library.getClass('A') as ClassElementImpl;
-    final error = A.macroApplicationErrors.single;
-    error as UnknownMacroApplicationError;
-
-    expect(error.annotationIndex, 0);
-    expect(error.message, contains('unresolved'));
-    expect(error.stackTrace, contains('executeTypesMacro'));
-  }
-
-  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
-  test_macroApplicationErrors_typesPhase_throwsException() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  buildTypesForClass(clazz, builder) {
-    throw 'foo bar';
-  }
-}
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..macroDiagnosticMessageValidator = (message) {
+        expect(message, contains('unresolved'));
+        expect(message, contains('executeTypesMacro'));
+      };
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    classes
+      class A @35
+        macroDiagnostics
+          MacroDiagnostic
+            message
+              target: ApplicationMacroDiagnosticTarget
+                annotationIndex: 0
 ''');
+  }
+
+  test_macroDiagnostics_throwException_declarationsPhase_class() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
 
     final library = await buildLibrary(r'''
-import 'a.dart';
+import 'diagnostic.dart';
 
-@MyMacro()
+@ThrowExceptionDeclarationsPhase()
 class A {}
 ''');
 
-    final A = library.getClass('A') as ClassElementImpl;
-    final error = A.macroApplicationErrors.single;
-    error as UnknownMacroApplicationError;
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @68
+        macroDiagnostics
+          MacroDiagnostic
+            message
+Unhandled error: My declarations phase
+Stack trace: <cut>
+              target: ApplicationMacroDiagnosticTarget
+                annotationIndex: 0
+''');
+  }
 
-    expect(error.annotationIndex, 0);
-    expect(error.message, 'foo bar');
-    expect(error.stackTrace, contains('MyMacro.buildTypesForClass'));
+  test_macroDiagnostics_throwException_declarationsPhase_class_constructor() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ThrowExceptionDeclarationsPhase()
+  A();
+}
+''');
+
+    configuration.withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        constructors
+          @76
+            macroDiagnostics
+              MacroDiagnostic
+                message
+Unhandled error: My declarations phase
+Stack trace: <cut>
+                  target: ApplicationMacroDiagnosticTarget
+                    annotationIndex: 0
+''');
+  }
+
+  test_macroDiagnostics_throwException_declarationsPhase_class_field() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ThrowExceptionDeclarationsPhase()
+  int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        fields
+          foo @80
+            type: int
+            shouldUseTypeForInitializerInference: true
+            macroDiagnostics
+              MacroDiagnostic
+                message
+Unhandled error: My declarations phase
+Stack trace: <cut>
+                  target: ApplicationMacroDiagnosticTarget
+                    annotationIndex: 0
+        accessors
+          synthetic get foo @-1
+            returnType: int
+          synthetic set foo= @-1
+            parameters
+              requiredPositional _foo @-1
+                type: int
+            returnType: void
+''');
+  }
+
+  test_macroDiagnostics_throwException_declarationsPhase_class_method() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ThrowExceptionDeclarationsPhase()
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        methods
+          foo @81
+            returnType: void
+            macroDiagnostics
+              MacroDiagnostic
+                message
+Unhandled error: My declarations phase
+Stack trace: <cut>
+                  target: ApplicationMacroDiagnosticTarget
+                    annotationIndex: 0
+''');
+  }
+
+  test_macroDiagnostics_throwException_definitionsPhase_class() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ThrowExceptionDefinitionsPhase()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @67
+        macroDiagnostics
+          MacroDiagnostic
+            message
+Unhandled error: My definitions phase
+Stack trace: <cut>
+              target: ApplicationMacroDiagnosticTarget
+                annotationIndex: 0
+''');
+  }
+
+  test_macroDiagnostics_throwException_typesPhase_class() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ThrowExceptionTypesPhase()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @61
+        macroDiagnostics
+          MacroDiagnostic
+            message
+Unhandled error: My types phase
+Stack trace: <cut>
+              target: ApplicationMacroDiagnosticTarget
+                annotationIndex: 0
+''');
   }
 
   test_macroFlag_class() async {

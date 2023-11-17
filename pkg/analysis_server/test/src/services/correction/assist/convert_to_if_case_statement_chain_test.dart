@@ -19,6 +19,16 @@ class ConvertToIfCaseStatementChainTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_IF_CASE_STATEMENT_CHAIN;
 
+  Future<void> test_noBody() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  switch (x) {
+  }
+}
+''');
+    await assertNoAssistAt('switch');
+  }
+
   Future<void> test_noDefault() async {
     await resolveTestCode('''
 void f(Object? x) {

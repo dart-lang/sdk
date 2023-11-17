@@ -2745,6 +2745,42 @@ static bool CanUnboxDouble() {
 #undef Z
 #define Z (flow_graph->zone())
 
+static bool InlineTypedDataIndexCheck(FlowGraph* flow_graph,
+                                      Instruction* call,
+                                      Definition* receiver,
+                                      GraphEntryInstr* graph_entry,
+                                      FunctionEntryInstr** entry,
+                                      Instruction** last,
+                                      Definition** result,
+                                      const String& symbol) {
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+  Instruction* cursor = *entry;
+
+  Definition* index = call->ArgumentAt(1);
+  Definition* length = call->ArgumentAt(2);
+
+  if (CompilerState::Current().is_aot()) {
+    // Add a null-check in case the index argument is known to be compatible
+    // but possibly nullable. We don't need to do the same for length
+    // because all callers in typed_data_patch.dart retrieve the length
+    // from the typed data object.
+    auto* const null_check =
+        new (Z) CheckNullInstr(new (Z) Value(index), symbol, call->deopt_id(),
+                               call->source(), CheckNullInstr::kArgumentError);
+    cursor = flow_graph->AppendTo(cursor, null_check, call->env(),
+                                  FlowGraph::kEffect);
+  }
+  index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
+  cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
+
+  *last = cursor;
+  *result = index;
+  return true;
+}
+
 static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        Instruction* call,
                                        intptr_t array_cid,
@@ -4564,6 +4600,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 
   const MethodRecognizer::Kind kind = target.recognized_kind();
   switch (kind) {
+    case MethodRecognizer::kTypedDataIndexCheck:
+      return InlineTypedDataIndexCheck(flow_graph, call, receiver, graph_entry,
+                                       entry, last, result, Symbols::Index());
+    case MethodRecognizer::kByteDataByteOffsetCheck:
+      return InlineTypedDataIndexCheck(flow_graph, call, receiver, graph_entry,
+                                       entry, last, result,
+                                       Symbols::byteOffset());
     // Recognized [] operators.
     case MethodRecognizer::kObjectArrayGetIndexed:
     case MethodRecognizer::kGrowableArrayGetIndexed:

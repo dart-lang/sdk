@@ -4948,12 +4948,32 @@ class MacroGeneratedAugmentationLibrary {
   });
 }
 
-mixin MacroTargetElement {
+mixin MacroTargetElement on ElementImpl {
   /// Errors registered while applying macros to this element.
+  // TODO(scheglov): Remove when migrated to [macroDiagnostics] everything.
   List<MacroApplicationError> macroApplicationErrors = const [];
+
+  /// Diagnostics registered while applying macros to this element.
+  List<AnalyzerMacroDiagnostic> _macroDiagnostics = const [];
+
+  ElementLinkedData? get linkedData;
+
+  /// Diagnostics registered while applying macros to this element.
+  List<AnalyzerMacroDiagnostic> get macroDiagnostics {
+    linkedData?.read(this);
+    return _macroDiagnostics;
+  }
+
+  set macroDiagnostics(List<AnalyzerMacroDiagnostic> value) {
+    _macroDiagnostics = value;
+  }
 
   void addMacroApplicationError(MacroApplicationError error) {
     macroApplicationErrors = [...macroApplicationErrors, error];
+  }
+
+  void addMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {
+    _macroDiagnostics = [..._macroDiagnostics, diagnostic];
   }
 }
 
@@ -6367,6 +6387,7 @@ abstract class PropertyInducingElementImpl
   /// this variable is not a subject of type inference, or there was no error.
   TopLevelInferenceError? typeInferenceError;
 
+  @override
   ElementLinkedData? linkedData;
 
   /// Initialize a newly created synthetic element to have the given [name] and

@@ -321,16 +321,6 @@ class _LocalVisitor extends LocalDeclarationVisitor {
   }
 
   @override
-  void declaredTypeParameter(TypeParameter node) {
-    var declaredElement = node.declaredElement;
-    if (declaredElement != null &&
-        visibilityTracker.isVisible(declaredElement) &&
-        opType.includeTypeNameSuggestions) {
-      builder.suggestTypeParameter(declaredElement);
-    }
-  }
-
-  @override
   void visitExtendsClause(ExtendsClause node) {
     inExtendsClause = true;
     super.visitExtendsClause(node);

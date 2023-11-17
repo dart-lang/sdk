@@ -219,6 +219,18 @@ final class PropertyAccessSuggestion extends CandidateSuggestion {
   String get completion => element.name;
 }
 
+/// The information about a candidate suggestion based on a type parameter.
+final class TypeParameterSuggestion extends CandidateSuggestion {
+  /// The element on which the suggestion is based.
+  final TypeParameterElement element;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element].
+  TypeParameterSuggestion(this.element);
+
+  @override
+  String get completion => element.name;
+}
+
 extension SuggestionBuilderExtension on SuggestionBuilder {
   // TODO(brianwilkerson): Move these to `SuggestionBuilder`, possibly as part
   //  of splitting it into a legacy builder and an LSP builder.
@@ -273,6 +285,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           suggestion.element,
           inheritanceDistance: inheritanceDistance,
         );
+      case TypeParameterSuggestion():
+        suggestTypeParameter(suggestion.element);
     }
   }
 

@@ -12145,6 +12145,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     ..addToken('propertyKeyword', propertyKeyword)
     ..addToken('operatorKeyword', operatorKeyword)
     ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
     ..addNode('parameters', parameters)
     ..addNode('body', body);
 
