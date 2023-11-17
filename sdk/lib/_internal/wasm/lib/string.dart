@@ -61,19 +61,16 @@ abstract final class StringBase implements String {
   bool _isWhitespace(int codeUnit);
 
   // Constants used by replaceAll encoding of string slices between matches.
-  // A string slice (start+length) is encoded in a single Smi to save memory
+  // A string slice (start+length) is encoded in a single "Smi" to save memory
   // overhead in the common case.
-  // We use fewer bits for length (11 bits) than for the start index (19+ bits).
-  // For long strings, it's possible to have many large indices,
-  // but it's unlikely to have many long lengths since slices don't overlap.
-  // If there are few matches in a long string, then there are few long slices,
-  // and if there are many matches, there'll likely be many short slices.
-  //
-  // Encoding is: 0((start << _lengthBits) | length)
+  // Wasm does not have a Smi type, so the entire 64-bit integer value can
+  // be used. Strings are limited to 2^32-1 characters, so using ~32 bits
+  // for both is reasonable.
+  // Encoding is: -((start << _lengthBits) | length)
 
   // Number of bits used by length.
   // This is the shift used to encode and decode the start index.
-  static const int _lengthBits = 11;
+  static const int _lengthBits = 31;
   // The maximal allowed length value in an encoded slice.
   static const int _maxLengthValue = (1 << _lengthBits) - 1;
   // Mask of length in encoded smi value.
@@ -81,14 +78,8 @@ abstract final class StringBase implements String {
   static const int _startBits = _maxUnsignedSmiBits - _lengthBits;
   // Maximal allowed start index value in an encoded slice.
   static const int _maxStartValue = (1 << _startBits) - 1;
-  // We pick 30 as a safe lower bound on available bits in a negative smi.
-  // TODO(lrn): Consider allowing more bits for start on 64-bit systems.
-  static const int _maxUnsignedSmiBits = 30;
-
-  // For longer strings, calling into C++ to create the result of a
-  // [replaceAll] is faster than [_joinReplaceAllOneByteResult].
-  // TODO(lrn): See if this limit can be tweaked.
-  static const int _maxJoinReplaceOneByteStringLength = 500;
+  // Size of unsigned "Smi"s, which are all non-negative Wasm integers.
+  static const int _maxUnsignedSmiBits = 63;
 
   int get hashCode {
     int hash = getHash(this);
@@ -111,7 +102,7 @@ abstract final class StringBase implements String {
    * It's `null` if unknown.
    */
   static String createFromCharCodes(
-      Iterable<int> charCodes, int start, int? end, int? limit) {
+      Iterable<int> charCodes, int start, int? end) {
     // TODO(srdjan): Also skip copying of wide typed arrays.
     final ccid = ClassID.getID(charCodes);
     if (ccid != ClassID.cidFixedLengthList &&
@@ -119,100 +110,119 @@ abstract final class StringBase implements String {
         ccid != ClassID.cidGrowableList &&
         ccid != ClassID.cidImmutableList) {
       if (charCodes is Uint8List) {
-        final actualEnd =
-            RangeError.checkValidRange(start, end, charCodes.length);
-        return createOneByteString(charCodes, start, actualEnd - start);
-      } else if (charCodes is! Uint16List) {
+        end = _actualEnd(end, charCodes.length);
+        if (start >= end) return "";
+        return createOneByteString(charCodes, start, end - start);
+      } else if (charCodes is Uint16List) {
+        end = _actualEnd(end, charCodes.length);
+        if (start >= end) return "";
+        for (var i = start; i < end; i++) {
+          if (charCodes[i] > _maxLatin1) {
+            return TwoByteString.allocateFromTwoByteList(charCodes, start, end);
+          }
+        }
+        return _createFromOneByteCodes(charCodes, start, end);
+      } else {
         return _createStringFromIterable(charCodes, start, end);
       }
     }
-    final int codeCount = charCodes.length;
-    final actualEnd = RangeError.checkValidRange(start, end, codeCount);
-    final len = actualEnd - start;
-    if (len == 0) return "";
+    end = _actualEnd(end, charCodes.length);
+    final len = end - start;
+    if (len <= 0) return "";
 
     final typedCharCodes = unsafeCast<List<int>>(charCodes);
 
-    final int actualLimit =
-        limit ?? _scanCodeUnits(typedCharCodes, start, actualEnd);
-    if (actualLimit < 0) {
+    // The bitwise-or of char codes below 0xFFFF in the input,
+    // and of the char codes above - 0x10000.
+    // If the result is negative, there was a negative input.
+    // If the result is in the range 0x00..0xFF, all inputs were in that range.
+    // If the result is in the range 0x100..0xFFFF, either all inputs were in
+    // that range, or `multiCodeUnitChars` below is greater than zero.
+    // If the result is > 0xFFFFF, the input contained a value > 0x10FFFF,
+    // which is invalid.
+    int bits = 0;
+    // The count of char codes above 0xFFFF in the input.
+    // If greater than zero, the char codes cannot directly be used
+    // as the content of a one-byte or two-byte string,
+    // but must be a two-byte string with this many code units *more* than
+    // `end - start` to account for surrogate pairs.
+    int multiCodeUnitChars = 0;
+    for (var i = start; i < end; i++) {
+      var code = typedCharCodes[i];
+      var nonBmpCode = code - 0x10000;
+      if (nonBmpCode < 0) {
+        bits |= code;
+        continue;
+      }
+      bits |= nonBmpCode | 0x10000;
+      multiCodeUnitChars += 1;
+    }
+    if (bits < 0 || bits > 0xFFFFF) {
       throw ArgumentError(typedCharCodes);
     }
-    if (actualLimit <= _maxLatin1) {
-      return createOneByteString(typedCharCodes, start, len);
+    if (multiCodeUnitChars == 0) {
+      if (bits <= _maxLatin1) {
+        return createOneByteString(typedCharCodes, start, len);
+      }
+      assert(bits <= _maxUtf16);
+      return TwoByteString.allocateFromTwoByteList(typedCharCodes, start, end);
     }
-    if (actualLimit <= _maxUtf16) {
-      return TwoByteString.allocateFromTwoByteList(
-          typedCharCodes, start, actualEnd);
-    }
-    // TODO(lrn): Consider passing limit to _createFromCodePoints, because
-    // the function is currently fully generic and doesn't know that its
-    // charCodes are not all Latin-1 or Utf-16.
-    return _createFromCodePoints(typedCharCodes, start, actualEnd);
+    return _createFromAdjustedCodePoints(
+        typedCharCodes, start, end, end - start + multiCodeUnitChars);
   }
 
-  static int _scanCodeUnits(List<int> charCodes, int start, int end) {
-    int bits = 0;
-    for (int i = start; i < end; i++) {
-      int code = charCodes[i];
-      bits |= code;
-    }
-    return bits;
-  }
+  static int _actualEnd(int? end, int length) =>
+      (end == null || end > length) ? length : end;
 
   static String _createStringFromIterable(
       Iterable<int> charCodes, int start, int? end) {
     // Treat charCodes as Iterable.
+    bool endKnown = false;
     if (charCodes is EfficientLengthIterable) {
-      int length = charCodes.length;
-      final endVal = RangeError.checkValidRange(start, end, length);
-      final charCodeList =
-          List<int>.from(charCodes.take(endVal).skip(start), growable: false);
-      return createFromCharCodes(charCodeList, 0, charCodeList.length, null);
+      endKnown = true;
+      int knownEnd = charCodes.length;
+      if (end == null || end > knownEnd) end = knownEnd;
+      if (start >= end) return "";
     }
-    // Don't know length of iterable, so iterate and see if all the values
-    // are there.
-    if (start < 0) throw RangeError.range(start, 0, charCodes.length);
+
     var it = charCodes.iterator;
-    for (int i = 0; i < start; i++) {
-      if (!it.moveNext()) {
-        throw RangeError.range(start, 0, i);
-      }
+
+    int skipCount = start;
+    while (skipCount > 0) {
+      if (!it.moveNext()) return "";
+      skipCount--;
     }
-    List<int> charCodeList;
-    int bits = 0; // Bitwise-or of all char codes in list.
-    final endVal = end;
-    if (endVal == null) {
-      var list = <int>[];
-      while (it.moveNext()) {
-        int code = it.current;
+
+    // Bitwise-or of all char codes in list,
+    // plus code - 0x10000 for values above 0x10000.
+    // If <0 or >0xFFFFF at the end, inputs were not valid.
+    int bits = 0;
+    int takeCount = end == null ? -1 : end - start;
+    final list = <int>[];
+    while (takeCount != 0 && it.moveNext()) {
+      takeCount--;
+      int code = it.current;
+      int nonBmpChar = code - 0x10000;
+      if (nonBmpChar < 0) {
         bits |= code;
         list.add(code);
+      } else {
+        bits |= nonBmpChar | 0xD800;
+        list
+          ..add(0xD800 | (nonBmpChar >> 10))
+          ..add(0xDC00 | (nonBmpChar & 0x3FF));
       }
-      charCodeList = makeListFixedLength<int>(list);
-    } else {
-      if (endVal < start) {
-        throw RangeError.range(endVal, start, charCodes.length);
-      }
-      int len = endVal - start;
-      charCodeList = List<int>.generate(len, (int i) {
-        if (!it.moveNext()) {
-          throw RangeError.range(endVal, start, start + i);
-        }
-        int code = it.current;
-        bits |= code;
-        return code;
-      });
     }
-    int length = charCodeList.length;
-    if (bits < 0) {
+    if (bits < 0 || bits > 0xFFFFF) {
       throw ArgumentError(charCodes);
     }
+    List<int> charCodeList = makeListFixedLength<int>(list);
+    int length = charCodeList.length;
     bool isOneByteString = (bits <= _maxLatin1);
     if (isOneByteString) {
       return createOneByteString(charCodeList, 0, length);
     }
-    return createFromCharCodes(charCodeList, 0, length, bits);
+    return TwoByteString.allocateFromTwoByteList(charCodeList, 0, length);
   }
 
   static String createOneByteString(List<int> charCodes, int start, int len) {
@@ -240,24 +250,31 @@ abstract final class StringBase implements String {
     return result;
   }
 
-  static String _createFromCodePoints(List<int> charCodes, int start, int end) {
+  /// Creates two-byte string for [codePoints] from [start] to [end].
+  ///
+  /// The code points contain a number of code points above 0xFFFF,
+  /// `length - (end - start)` of them, which is why they require
+  /// a two-byte string of length [length].
+  static String _createFromAdjustedCodePoints(
+      List<int> codePoints, int start, int end, int length) {
+    assert(length > end - start);
+    TwoByteString result = TwoByteString.withLength(length);
+    int cursor = 0;
     for (int i = start; i < end; i++) {
-      int c = charCodes[i];
-      if (c < 0) throw ArgumentError.value(i);
-      if (c > 0xff) {
-        return _createFromAdjustedCodePoints(charCodes, start, end);
+      var code = codePoints[i];
+      var nonBmpCode = code - 0x10000;
+      if (nonBmpCode < 0) {
+        result._setAt(cursor++, code);
+      } else {
+        result
+          .._setAt(cursor++, 0xD800 | (nonBmpCode >>> 10))
+          .._setAt(cursor++, 0xDC00 | (nonBmpCode & 0x3FF));
       }
     }
-    return _createFromOneByteCodes(charCodes, start, end);
-  }
-
-  static String _createFromAdjustedCodePoints(
-      List<int> codePoints, int start, int end) {
-    StringBuffer a = StringBuffer();
-    for (int i = start; i < end; i++) {
-      a.writeCharCode(codePoints[i]);
+    if (cursor != length) {
+      throw ConcurrentModificationError(codePoints);
     }
-    return a.toString();
+    return result;
   }
 
   String operator [](int index) => String.fromCharCode(codeUnitAt(index));
@@ -638,10 +655,7 @@ abstract final class StringBase implements String {
     if (startIndex == 0 && length == 0) return this;
     length += _addReplaceSlice(matches, startIndex, this.length);
     bool replacementIsOneByte = replacement is OneByteString;
-    if (replacementIsOneByte &&
-        length < _maxJoinReplaceOneByteStringLength &&
-        this is OneByteString) {
-      // TODO(lrn): Is there a cut-off point, or is runtime always faster?
+    if (replacementIsOneByte && this is OneByteString) {
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
     return _joinReplaceAllResult(this, matches, length, replacementIsOneByte);
@@ -699,7 +713,6 @@ abstract final class StringBase implements String {
    * If they are, then we have to check the base string slices to know
    * whether the result must be a one-byte string.
    */
-
   String _joinReplaceAllResult(String base, List matches, int length,
       bool replacementStringsAreOneByte) {
     if (length < 0) throw ArgumentError.value(length);
@@ -793,9 +806,7 @@ abstract final class StringBase implements String {
     }
     if (matches.isEmpty) return this;
     length += _addReplaceSlice(matches, startIndex, this.length);
-    if (replacementStringsAreOneByte &&
-        length < _maxJoinReplaceOneByteStringLength &&
-        this is OneByteString) {
+    if (replacementStringsAreOneByte && this is OneByteString) {
       return _joinReplaceAllOneByteResult(this, matches, length);
     }
     return _joinReplaceAllResult(

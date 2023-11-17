@@ -125,28 +125,44 @@ abstract final class _StringBase implements String {
    */
   static String createFromCharCodes(
       Iterable<int> charCodes, int start, int? end, int? limit) {
+    // Validate start/end first.
+    RangeError.checkNotNegative(start, "start");
+    if (end != null) {
+      var maxLength = end - start;
+      if (maxLength < 0) {
+        throw RangeError.range(end, start, null, "end");
+      }
+      if (maxLength == 0) {
+        return "";
+      }
+    }
     // TODO(srdjan): Also skip copying of wide typed arrays.
     final ccid = ClassID.getID(charCodes);
     if ((ccid != ClassID.cidArray) &&
         (ccid != ClassID.cidGrowableObjectArray) &&
         (ccid != ClassID.cidImmutableArray)) {
       if (charCodes is Uint8List) {
-        final actualEnd =
-            RangeError.checkValidRange(start, end, charCodes.length);
-        return _createOneByteString(charCodes, start, actualEnd - start);
+        final int codeCount = charCodes.length;
+        if (codeCount <= start) return "";
+        if (end == null || end > codeCount) {
+          end = codeCount;
+        }
+        return _createOneByteString(charCodes, start, end - start);
       } else if (charCodes is! Uint16List) {
         return _createStringFromIterable(charCodes, start, end);
       }
     }
     final int codeCount = charCodes.length;
-    final actualEnd = RangeError.checkValidRange(start, end, codeCount);
-    final len = actualEnd - start;
+    if (codeCount <= start) return "";
+    if (end == null || end > codeCount) {
+      end = codeCount;
+    }
+    final len = end - start;
     if (len == 0) return "";
 
     final typedCharCodes = unsafeCast<List<int>>(charCodes);
 
-    final int actualLimit =
-        limit ?? _scanCodeUnits(typedCharCodes, start, actualEnd);
+    final int actualLimit = limit ?? _scanCodeUnits(typedCharCodes, start, end);
     if (actualLimit < 0) {
       throw new ArgumentError(typedCharCodes);
     }
@@ -155,12 +171,12 @@ abstract final class _StringBase implements String {
     }
     if (actualLimit <= _maxUtf16) {
       return _TwoByteString._allocateFromTwoByteList(
-          typedCharCodes, start, actualEnd);
+          typedCharCodes, start, end);
     }
     // TODO(lrn): Consider passing limit to _createFromCodePoints, because
     // the function is currently fully generic and doesn't know that its
-    // charCodes are not all Latin-1 or Utf-16.
-    return _createFromCodePoints(typedCharCodes, start, actualEnd);
+    // charCodes are not all Latin-1 or UTF-16.
+    return _createFromCodePoints(typedCharCodes, start, end);
   }
 
   static int _scanCodeUnits(List<int> charCodes, int start, int end) {
@@ -175,58 +191,57 @@ abstract final class _StringBase implements String {
 
   static String _createStringFromIterable(
       Iterable<int> charCodes, int start, int? end) {
+    assert(start >= 0);
+    assert(end == null || start <= end);
     // Treat charCodes as Iterable.
     if (charCodes is EfficientLengthIterable) {
-      int length = charCodes.length;
-      final endVal = RangeError.checkValidRange(start, end, length);
-      final charCodeList = new List<int>.from(
-          charCodes.take(endVal).skip(start),
-          growable: false);
-      return createFromCharCodes(charCodeList, 0, charCodeList.length, null);
+      final int codeCount = charCodes.length;
+      if (start >= codeCount) return "";
+      if (end == null || end > codeCount) {
+        end = codeCount;
+      }
     }
-    // Don't know length of iterable, so iterate and see if all the values
-    // are there.
-    if (start < 0) throw new RangeError.range(start, 0, charCodes.length);
     var it = charCodes.iterator;
     for (int i = 0; i < start; i++) {
-      if (!it.moveNext()) {
-        throw new RangeError.range(start, 0, i);
-      }
+      if (!it.moveNext()) return "";
     }
-    List<int> charCodeList;
-    int bits = 0; // Bitwise-or of all char codes in list.
-    final endVal = end;
-    if (endVal == null) {
-      var list = <int>[];
-      while (it.moveNext()) {
-        int code = it.current;
+    // Bitwise-or of all char codes in list.
+    // There are two valid ranges:
+    // 0x00-0xFF: Valid one-byte string.
+    // 0x100-0xFFFFF: Valid two-byte string with bits-values in range
+    //    0x10000-0xFFFFF already encoded as surrogate pairs.
+    // Numbers above that, or negative, correspond to input "char codes"
+    // outside of the range U+0000 .. U+10FFFF.
+    int bits = 0;
+    int takeCount = (end == null) ? -1 : (end - start); // -1 means no limit.
+    var list = <int>[];
+    while (takeCount != 0 && it.moveNext()) {
+      takeCount -= 1;
+      int code = it.current;
+      if (code <= 0xFFFF) {
         bits |= code;
         list.add(code);
+      } else {
+        code -= 0x10000;
+        // Any value in the range 0x100..0xFFFFF can be used for the second
+        // number. Using 0xD800 to represent containing surrogate pairs.
+        bits |= code | 0xD800;
+        list
+          ..add(0xD800 + (code >>> 10))
+          ..add(0xDC00 + (code & 0x3FF));
       }
-      charCodeList = makeListFixedLength<int>(list);
-    } else {
-      if (endVal < start) {
-        throw new RangeError.range(endVal, start, charCodes.length);
-      }
-      int len = endVal - start;
-      charCodeList = new List<int>.generate(len, (int i) {
-        if (!it.moveNext()) {
-          throw new RangeError.range(endVal, start, start + i);
-        }
-        int code = it.current;
-        bits |= code;
-        return code;
-      });
     }
-    int length = charCodeList.length;
-    if (bits < 0) {
-      throw new ArgumentError(charCodes);
+    if (bits < 0 || bits > 0xFFFFF) {
+      throw ArgumentError.value(charCodes, "charCodes",
+          "Contains invalid character code, not 0 <= code <= 0x10FFFF");
     }
+    List<int> codeUnitList = makeListFixedLength<int>(list);
+    int length = codeUnitList.length;
     bool isOneByteString = (bits <= _maxLatin1);
     if (isOneByteString) {
-      return _createOneByteString(charCodeList, 0, length);
+      return _createOneByteString(codeUnitList, 0, length);
     }
-    return createFromCharCodes(charCodeList, 0, length, bits);
+    return _TwoByteString._allocateFromTwoByteList(codeUnitList, 0, length);
   }
 
   // Inlining is disabled as a workaround to http://dartbug.com/37800.

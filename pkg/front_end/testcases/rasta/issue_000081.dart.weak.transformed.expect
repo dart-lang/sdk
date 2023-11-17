@@ -16,7 +16,7 @@ class Sub extends self::Base {
   get hashCode() → core::int
     return let final core::int? #t1 = this.{self::Sub::_hashCode}{core::int?} in #t1 == null ?{core::int} this.{self::Sub::_hashCode} = super.{self::Base::hashCode} : #t1{core::int};
   method foo() → dynamic {
-    this.{self::Sub::_hashCode}{core::int?} == null ?{core::int} this.{self::Sub::_hashCode} = super.{self::Base::hashCode} : null;
+    this.{self::Sub::_hashCode}{core::int?} == null ?{core::int?} this.{self::Sub::_hashCode} = super.{self::Base::hashCode} : null;
   }
 }
 static method main() → dynamic {

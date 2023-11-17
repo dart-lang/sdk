@@ -287,7 +287,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     _in::Sort::sort<core::int>(this, let final (core::int, core::int) →? core::int #t4 = compare in #t4 == null ?{(core::int, core::int) → core::int} #C6 : #t4{(core::int, core::int) → core::int});
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([math::Random? random = #C2]) → void {
-    random == null ?{math::Random} random = math::Random::•() : null;
+    random == null ?{math::Random?} random = math::Random::•() : null;
     core::int length = this.{core::List::length}{core::int};
     while (length.{core::num::>}(1){(core::num) → core::bool}) {
       core::int pos = random{math::Random}.{math::Random::nextInt}(length){(core::int) → core::int};
@@ -307,7 +307,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     } =>#t5;
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sublist(core::int start, [core::int? end = #C2]) → core::List<core::int> {
     core::int listLength = this.{core::List::length}{core::int};
-    end == null ?{core::int} end = listLength : null;
+    end == null ?{core::int?} end = listLength : null;
     core::RangeError::checkValidRange(start, end{core::int}, listLength);
     return core::List::from<core::int>(this.{col::ListBase::getRange}(start, end{core::int}){(core::int, core::int) → core::Iterable<core::int>});
   }

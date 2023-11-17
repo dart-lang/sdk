@@ -252,8 +252,6 @@ void main(List<String> args) {
       final stop = await client.hitBreakpoint(
         testFile,
         breakpointLine,
-        // TODO(dantup): Remove toolArgs when this is no longer required.
-        toolArgs: ['--enable-experiment=records'],
       );
 
       // Check the fields directly on the record.

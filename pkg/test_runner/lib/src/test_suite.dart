@@ -333,8 +333,7 @@ class VMTestSuite extends TestSuite {
         ? '$buildDir/gen/kernel-service.dart.snapshot'
         : '$buildDir/gen/kernel_service.dill';
     var dfePath = Path(filename).absolute.toNativePath();
-    // Enable 'records' experiment as it is used by certain vm/cc unit tests.
-    final experiments = [...configuration.experiments, 'records'];
+    final experiments = [...configuration.experiments];
     var args = [
       ...initialTargetArguments,
       // '--dfe' must be the first VM argument for run_vm_test to pick it up.

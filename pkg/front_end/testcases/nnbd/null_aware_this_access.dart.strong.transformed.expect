@@ -135,7 +135,7 @@ class C extends core::Object {
     this.{self::C::property}{self::C}.{self::C::[]}(0){(core::int) → core::int?};
     this.{self::C::property}{self::C}.{self::C::[]=}(0, 0){(core::int, core::int) → void};
     let final self::C #t2 = this.{self::C::property}{self::C} in let final core::int #t3 = 0 in #t2.{self::C::[]}(#t3){(core::int) → core::int?} == null ?{core::int} #t2.{self::C::[]=}(#t3, 0){(core::int, core::int) → void} : null;
-    this.{self::C::m1}{core::int?} == null ?{core::int} this.{self::C::m1} = 42 : null;
+    this.{self::C::m1}{core::int?} == null ?{core::int?} this.{self::C::m1} = 42 : null;
     this.{self::C::m2} = this.{self::C::m2}{core::int}.{core::num::+}(2){(core::num) → core::int};
     this.{self::C::m2} = this.{self::C::m2}{core::int}.{core::num::+}(1){(core::num) → core::int};
     this.{self::C::m2} = this.{self::C::m2}{core::int}.{core::num::-}(1){(core::num) → core::int};
