@@ -19,12 +19,28 @@ class ConvertToSwitchExpressionTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_TO_SWITCH_EXPRESSION;
 
+  Future<void> test_argument_differentFunctions() async {
+    await resolveTestCode('''
+void f(String s) {
+  switch (s) {
+    case 'foo':
+      print('foo');
+    case _:
+      g('bar');
+  }
+}
+
+void g(String s) {}
+''');
+    await assertNoAssistAt('switch');
+  }
+
   Future<void> test_argument_switchExpression() async {
     await resolveTestCode('''
 enum Color {
   red, blue, green, yellow
 }
-    
+
 void f(Color color) {
   switch (color) {
     case Color.red:
@@ -47,7 +63,7 @@ void f(Color color) {
 enum Color {
   red, blue, green, yellow
 }
-    
+
 void f(Color color) {
   print(switch (color) {
     Color.red => 'red', // Red.
@@ -91,7 +107,7 @@ void f(String s) {
 enum Color {
   red, blue, green, yellow
 }
-    
+
 void f(Color color) {
   switch (color) {
     case Color.red:
@@ -111,7 +127,7 @@ void f(Color color) {
 enum Color {
   red, blue, green, yellow
 }
-    
+
 void f(Color color) {
   print(switch (color) {
     Color.red => 'red', // Red.
@@ -150,12 +166,37 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_assignment_differentVariables() async {
+    await resolveTestCode('''
+enum Color {
+  red, blue, green, yellow
+}
+
+String f(Color color) {
+  var name = '';
+  var favorite = '';
+  switch (color) {
+    case Color.red:
+      name = 'red';
+    case Color.blue:
+      favorite = 'blue';
+    case Color.green:
+      name = 'green';
+    case Color.yellow:
+      name = 'yellow';
+  }
+  return name;
+}
+''');
+    await assertNoAssistAt('switch');
+  }
+
   Future<void> test_assignment_switchExpression() async {
     await resolveTestCode('''
 enum Color {
   red, blue, green, yellow
 }
-    
+
 String f(Color color) {
   var name = '';
   switch (color) {
@@ -180,7 +221,7 @@ String f(Color color) {
 enum Color {
   red, blue, green, yellow
 }
-    
+
 String f(Color color) {
   var name = '';
   name = switch (color) {
@@ -230,7 +271,7 @@ String f(String s) {
 enum Color {
   red, blue, green, yellow
 }
-    
+
 String f(Color color) {
   var name = '';
   switch (color) {
@@ -252,7 +293,7 @@ String f(Color color) {
 enum Color {
   red, blue, green, yellow
 }
-    
+
 String f(Color color) {
   var name = '';
   name = switch (color) {
@@ -306,7 +347,67 @@ void f(int x) {
     await assertNoAssistAt('(x)');
   }
 
-  Future<void> test_return_notExhaustive_noAssist() async {
+  Future<void> test_return_justDefault_throw() async {
+    await resolveTestCode('''
+String f(int x) {
+  switch (x) {
+    default:
+      throw 'foo';
+  }
+}
+''');
+    await assertHasAssistAt('switch', '''
+String f(int x) {
+  return switch (x) {
+    _ => throw 'foo'
+  };
+}
+''');
+  }
+
+  Future<void> test_return_justDefault_value() async {
+    await resolveTestCode('''
+String f(int x) {
+  switch (x) {
+    default:
+      return 'foo';
+  }
+}
+''');
+    await assertHasAssistAt('switch', '''
+String f(int x) {
+  return switch (x) {
+    _ => 'foo'
+  };
+}
+''');
+  }
+
+  Future<void> test_return_multipleStatements() async {
+    await resolveTestCode('''
+enum Color {
+  red, orange, yellow, green
+}
+
+String name(Color color) {
+  switch (color) {
+    case Color.red:
+      print('red');
+      return 'red';
+    case Color.orange:
+      return 'orange';
+    case Color.green:
+      return 'green';
+    case Color.yellow:
+      return 'yellow';
+  }
+}
+''');
+
+    await assertNoAssistAt('switch');
+  }
+
+  Future<void> test_return_notExhaustive() async {
     await resolveTestCode('''
 String f(int i) {
   switch(i) {
@@ -327,7 +428,7 @@ String f(int i) {
 enum Color {
   red, orange, yellow, green
 }
-    
+
 String name(Color color) {
   switch (color) {
     case Color.red:
@@ -345,7 +446,7 @@ String name(Color color) {
 enum Color {
   red, orange, yellow, green
 }
-    
+
 String name(Color color) {
   return switch (color) {
     Color.red => throw 'red!',
@@ -362,7 +463,7 @@ String name(Color color) {
 enum Color {
   red, orange, yellow, green
 }
-    
+
 String name(Color color) {
   switch (color) {
     case Color.red:
@@ -380,7 +481,7 @@ String name(Color color) {
 enum Color {
   red, orange, yellow, green
 }
-    
+
 String name(Color color) {
   return switch (color) {
     Color.red => throw 'red!',
@@ -463,7 +564,7 @@ Color fromName(String name) {
 enum Color {
   red, orange, yellow, green
 }
-    
+
 String name(Color color) {
   switch (color) {
     case Color.red:
@@ -481,7 +582,7 @@ String name(Color color) {
 enum Color {
   red, orange, yellow, green
 }
-    
+
 String name(Color color) {
   return switch (color) {
     Color.red => throw 'red!',
@@ -498,7 +599,7 @@ String name(Color color) {
 enum Color {
   red, orange, yellow, green
 }
-    
+
 String name(Color color) {
   switch (color) {
     // Uh-oh.
@@ -519,7 +620,7 @@ String name(Color color) {
 enum Color {
   red, orange, yellow, green
 }
-    
+
 String name(Color color) {
   return switch (color) {
     // Uh-oh.
