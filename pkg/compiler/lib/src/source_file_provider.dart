@@ -63,7 +63,10 @@ abstract class SourceFileProvider implements api.CompilerInput {
     }
 
     registerUri(resourceUri);
-    if (!disableByteCache) {
+
+    // Source bytes can be empty when the dill has source content erased. In
+    // that case we should read the file contents from disk if we need them.
+    if (!disableByteCache && source.isNotEmpty) {
       _byteCache[resourceUri] = source;
     }
     sourceBytesFromDill += source.length;
@@ -93,6 +96,15 @@ abstract class SourceFileProvider implements api.CompilerInput {
       registerUri(uri);
     }
     return _sourceToFile(Uri.parse(relativizeUri(uri)), source, inputKind);
+  }
+
+  api.Input<List<int>>? _readFromFileSyncOrNull(
+      Uri uri, api.InputKind inputKind) {
+    try {
+      return _readFromFileSync(uri, inputKind);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Read [resourceUri] directly as a UTF-8 file. If reading fails, `null` is
@@ -129,7 +141,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
           resourceUri, _byteCache[resourceUri]!, api.InputKind.UTF8);
     }
     return resourceUri.isScheme('file')
-        ? _readFromFileSync(resourceUri, api.InputKind.UTF8)
+        ? _readFromFileSyncOrNull(resourceUri, api.InputKind.UTF8)
         : null;
   }
 
