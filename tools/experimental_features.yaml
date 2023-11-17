@@ -163,6 +163,7 @@ features:
       void main() {
         print('feature enabled');
       }
+    expired: true
 
   class-modifiers:
     help: "Class modifiers"
@@ -172,6 +173,7 @@ features:
       void main() {
         print('feature enabled');
       }
+    expired: true
 
   records:
     help: "Records"
@@ -181,6 +183,7 @@ features:
       void main() {
         print('${x.$1} ${x.a}');
       }
+    expired: true
 
   patterns:
     help: "Patterns"
@@ -190,14 +193,15 @@ features:
         final [a, b] = ['feature', 'enabled'];
         print('$a $b');
       }
+    expired: true
 
   unnamed-libraries:
     help: "Unnamed libraries"
     enabledIn: '2.19.0'
-    expired: true
     validation: |
       library;
       void main() => print('feature enabled');
+    expired: true
 
   alternative-invalidation-strategy:
     help: "Alternative invalidation strategy for incremental compilation."
@@ -208,7 +212,6 @@ features:
   inference-update-1:
     help: "Horizontal type inference for function expressions passed to generic invocations."
     enabledIn: '2.18.0'
-    expired: true
     validation: |
       void test(List<int> list) {
         var a = list.fold(0, (x, y) => x + y);
@@ -222,6 +225,7 @@ features:
       void main() {
         test([1, 2, 3]);
       }
+    expired: true
 
   enhanced-enums:
     help: "Enhanced Enums"

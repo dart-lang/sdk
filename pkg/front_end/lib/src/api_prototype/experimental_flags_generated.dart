@@ -62,7 +62,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag classModifiers = const ExperimentalFlag(
       name: 'class-modifiers',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -190,7 +190,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag patterns = const ExperimentalFlag(
       name: 'patterns',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -198,7 +198,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag records = const ExperimentalFlag(
       name: 'records',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -206,7 +206,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
@@ -747,199 +747,18 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
 };
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
-    const AllowedExperimentalFlags(sdkDefaultExperiments: {
-  ExperimentalFlag.records,
-  ExperimentalFlag.classModifiers,
-  ExperimentalFlag.sealedClass,
-}, sdkLibraryExperiments: {
-  "js_interop": {
-    ExperimentalFlag.inlineClass,
-  },
-}, packageExperiments: {
-  "async": {
-    ExperimentalFlag.nonNullable,
-  },
-  "boolean_selector": {
-    ExperimentalFlag.nonNullable,
-  },
-  "characters": {
-    ExperimentalFlag.nonNullable,
-  },
-  "clock": {
-    ExperimentalFlag.nonNullable,
-  },
-  "collection": {
-    ExperimentalFlag.nonNullable,
-  },
-  "connectivity": {
-    ExperimentalFlag.nonNullable,
-  },
-  "connectivity_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "convert": {
-    ExperimentalFlag.nonNullable,
-  },
-  "crypto": {
-    ExperimentalFlag.nonNullable,
-  },
-  "csslib": {
-    ExperimentalFlag.nonNullable,
-  },
-  "dart_internal": {
-    ExperimentalFlag.nonNullable,
-  },
-  "device_info": {
-    ExperimentalFlag.nonNullable,
-  },
-  "device_info_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "fake_async": {
-    ExperimentalFlag.nonNullable,
-  },
-  "file": {
-    ExperimentalFlag.nonNullable,
-  },
-  "fixnum": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter_driver": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter_test": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter_goldens": {
-    ExperimentalFlag.nonNullable,
-  },
-  "flutter_goldens_client": {
-    ExperimentalFlag.nonNullable,
-  },
-  "http": {
-    ExperimentalFlag.nonNullable,
-  },
-  "http_parser": {
-    ExperimentalFlag.nonNullable,
-  },
-  "intl": {
-    ExperimentalFlag.nonNullable,
-  },
-  "js": {
-    ExperimentalFlag.nonNullable,
-  },
-  "logging": {
-    ExperimentalFlag.nonNullable,
-  },
-  "matcher": {
-    ExperimentalFlag.nonNullable,
-  },
-  "meta": {
-    ExperimentalFlag.nonNullable,
-  },
-  "native_assets_builder": {
-    ExperimentalFlag.nonNullable,
-  },
-  "native_stack_traces": {
-    ExperimentalFlag.nonNullable,
-  },
-  "observatory": {
-    ExperimentalFlag.nonNullable,
-  },
-  "observatory_test_package": {
-    ExperimentalFlag.nonNullable,
-  },
-  "path": {
-    ExperimentalFlag.nonNullable,
-  },
-  "pedantic": {
-    ExperimentalFlag.nonNullable,
-  },
-  "platform": {
-    ExperimentalFlag.nonNullable,
-  },
-  "plugin_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "pool": {
-    ExperimentalFlag.nonNullable,
-  },
-  "process": {
-    ExperimentalFlag.nonNullable,
-  },
-  "pub_semver": {
-    ExperimentalFlag.nonNullable,
-  },
-  "sky_engine": {
-    ExperimentalFlag.nonNullable,
-  },
-  "source_maps": {
-    ExperimentalFlag.nonNullable,
-  },
-  "source_map_stack_trace": {
-    ExperimentalFlag.nonNullable,
-  },
-  "source_span": {
-    ExperimentalFlag.nonNullable,
-  },
-  "stack_trace": {
-    ExperimentalFlag.nonNullable,
-  },
-  "stream_channel": {
-    ExperimentalFlag.nonNullable,
-  },
-  "string_scanner": {
-    ExperimentalFlag.nonNullable,
-  },
-  "term_glyph": {
-    ExperimentalFlag.nonNullable,
-  },
-  "test": {
-    ExperimentalFlag.nonNullable,
-  },
-  "test_api": {
-    ExperimentalFlag.nonNullable,
-  },
-  "test_core": {
-    ExperimentalFlag.nonNullable,
-  },
-  "typed_data": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher_linux": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher_macos": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "url_launcher_windows": {
-    ExperimentalFlag.nonNullable,
-  },
-  "vector_math": {
-    ExperimentalFlag.nonNullable,
-  },
-  "video_player": {
-    ExperimentalFlag.nonNullable,
-  },
-  "video_player_platform_interface": {
-    ExperimentalFlag.nonNullable,
-  },
-  "video_player_web": {
-    ExperimentalFlag.nonNullable,
-  },
-  "web": {
-    ExperimentalFlag.inlineClass,
-  },
-});
+    const AllowedExperimentalFlags(
+        sdkDefaultExperiments: {},
+        sdkLibraryExperiments: {
+      "js_interop": {
+        ExperimentalFlag.inlineClass,
+      },
+    },
+        packageExperiments: {
+      "web": {
+        ExperimentalFlag.inlineClass,
+      },
+    });
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,

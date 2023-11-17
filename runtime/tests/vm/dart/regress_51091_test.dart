@@ -6,7 +6,6 @@
 // Verifies that compiler doesn't crash if there are two local
 // variables with the same name in the same local scope.
 
-// SharedOptions=--enable-experiment=patterns
 
 import 'package:expect/expect.dart';
 

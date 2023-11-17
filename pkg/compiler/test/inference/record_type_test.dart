@@ -32,7 +32,7 @@ main() {
       }
       """,
         testBackendWorld: true,
-        options: ['--enable-experiment=records', Flags.soundNullSafety]);
+        options: [Flags.soundNullSafety]);
     JClosedWorld world = env.jClosedWorld;
     final domain = world.abstractValueDomain as CommonMasks;
 
