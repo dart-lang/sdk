@@ -5434,7 +5434,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// members at runtime.
   bool _shouldCallObjectMemberHelper(Expression e) {
     if (isNullable(e)) return true;
-    var type = e.getStaticType(_staticTypeContext);
+    var type = e.getStaticType(_staticTypeContext).extensionTypeErasure;
     if (type is RecordType || type is FunctionType) return false;
     if (type is InterfaceType) {
       // TODO(nshahan): This could be expanded to any classes where we know all
@@ -5460,7 +5460,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// This is a simple approach and not an exhaustive search.
   bool _triviallyConstNoInterop(Expression? e) {
     if (e is ConstantExpression) {
-      var type = e.constant.getType(_staticTypeContext);
+      var type = e.constant.getType(_staticTypeContext).extensionTypeErasure;
       if (type is InterfaceType) return !usesJSInterop(type.classNode);
     } else if (e is StaticGet && e.target.isConst) {
       var target = e.target;
