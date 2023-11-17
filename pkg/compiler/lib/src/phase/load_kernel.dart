@@ -22,9 +22,14 @@ import '../commandline_options.dart';
 import '../common.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../environment.dart';
+import '../ir/annotations.dart';
 import '../ir/constants.dart';
 import '../kernel/dart2js_target.dart'
-    show Dart2jsTarget, implicitlyUsedLibraries;
+    show
+        Dart2jsConstantsBackend,
+        Dart2jsDartLibrarySupport,
+        Dart2jsTarget,
+        implicitlyUsedLibraries;
 import '../kernel/front_end_adapter.dart';
 import '../kernel/transformations/global/transform.dart' as globalTransforms;
 import '../options.dart';
@@ -113,6 +118,36 @@ class _LoadFromKernelResult {
   _LoadFromKernelResult(this.component, this.entryLibrary);
 }
 
+void _simplifyConstConditionals(ir.Component component, CompilerOptions options,
+    ir.ClassHierarchy classHierarchy, DiagnosticReporter reporter) {
+  void reportMessage(
+      fe.LocatedMessage message, List<fe.LocatedMessage>? context) {
+    reportLocatedMessage(reporter, message, context);
+  }
+
+  bool shouldNotInline(ir.TreeNode node) {
+    if (node is! ir.Annotatable) {
+      return false;
+    }
+    return computePragmaAnnotationDataFromIr(node).any((pragma) =>
+        pragma == const PragmaAnnotationData('noInline') ||
+        pragma == const PragmaAnnotationData('never-inline'));
+  }
+
+  fe.ConstConditionalSimplifier(
+          const Dart2jsDartLibrarySupport(),
+          const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
+          component,
+          reportMessage,
+          environmentDefines: options.environment,
+          classHierarchy: classHierarchy,
+          evaluationMode: options.useLegacySubtyping
+              ? fe.EvaluationMode.weak
+              : fe.EvaluationMode.strong,
+          shouldNotInline: shouldNotInline)
+      .run();
+}
+
 // Perform any backend-specific transforms here that can be done on both
 // serialized components and components from source.
 void _doTransformsOnKernelLoad(
@@ -142,6 +177,7 @@ void _doTransformsOnKernelLoad(
         .visitComponent(component);
     globalTransforms.transformLibraries(
         component.libraries, constantsEvaluator, coreTypes, options);
+    _simplifyConstConditionals(component, options, classHierarchy, reporter);
   }
 }
 

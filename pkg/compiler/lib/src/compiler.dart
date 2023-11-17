@@ -47,14 +47,12 @@ import 'inferrer/types.dart'
     show GlobalTypeInferenceResults, GlobalTypeInferenceTask;
 import 'inferrer/wrapped.dart' show WrappedAbstractValueStrategy;
 import 'io/source_information.dart';
-import 'ir/annotations.dart';
 import 'js_backend/codegen_inputs.dart' show CodegenInputs;
 import 'js_backend/enqueuer.dart';
 import 'js_backend/inferred_data.dart';
 import 'js_model/js_strategy.dart';
 import 'js_model/js_world.dart';
 import 'js_model/locals.dart';
-import 'kernel/dart2js_target.dart';
 import 'kernel/front_end_adapter.dart' show CompilerFileSystem;
 import 'kernel/kernel_strategy.dart';
 import 'kernel/kernel_world.dart';
@@ -437,34 +435,6 @@ class Compiler {
   bool shouldStopAfterLoadKernel(load_kernel.Output? output) =>
       output == null || compilationFailed || stage.shouldOnlyComputeDill;
 
-  void simplifyConstConditionals(ir.Component component) {
-    void reportMessage(
-        fe.LocatedMessage message, List<fe.LocatedMessage>? context) {
-      reportLocatedMessage(reporter, message, context);
-    }
-
-    bool shouldNotInline(ir.TreeNode node) {
-      if (node is! ir.Annotatable) {
-        return false;
-      }
-      return computePragmaAnnotationDataFromIr(node).any((pragma) =>
-          pragma == const PragmaAnnotationData('noInline') ||
-          pragma == const PragmaAnnotationData('never-inline'));
-    }
-
-    fe.ConstConditionalSimplifier(
-            const Dart2jsDartLibrarySupport(),
-            const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
-            component,
-            reportMessage,
-            environmentDefines: environment.definitions,
-            evaluationMode: options.useLegacySubtyping
-                ? fe.EvaluationMode.weak
-                : fe.EvaluationMode.strong,
-            shouldNotInline: shouldNotInline)
-        .run();
-  }
-
   GlobalTypeInferenceResults performGlobalTypeInference(
       JClosedWorld closedWorld) {
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction!;
@@ -551,11 +521,6 @@ class Compiler {
     ir.Component component = output.component;
     JClosedWorld? closedWorld;
     if (!stage.shouldReadClosedWorld) {
-      // If we're deserializing the closed world, the input .dill already
-      // contains the modified AST, so the transformer only needs to run if
-      // the closed world is being computed from scratch.
-      simplifyConstConditionals(component);
-
       Uri rootLibraryUri = output.rootLibraryUri!;
       List<Uri> libraries = output.libraries!;
       closedWorld = computeClosedWorld(component, rootLibraryUri, libraries);
