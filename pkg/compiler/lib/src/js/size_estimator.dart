@@ -139,16 +139,6 @@ class SizeEstimator implements NodeVisitor {
     }
   }
 
-  Statement unwrapBlockIfSingleStatement(Statement body) {
-    Statement result = body;
-    while (result is Block) {
-      Block block = result;
-      if (block.statements.length != 1) break;
-      result = block.statements.single;
-    }
-    return result;
-  }
-
   bool blockBody(Statement body, {required bool needsSeparation}) {
     if (body is Block) {
       blockOut(body);
@@ -196,7 +186,7 @@ class SizeEstimator implements NodeVisitor {
   }
 
   void ifOut(If node) {
-    Statement then = unwrapBlockIfSingleStatement(node.then);
+    Statement then = node.then;
     Statement elsePart = node.otherwise;
     bool hasElse = node.hasElse;
 
@@ -211,8 +201,7 @@ class SizeEstimator implements NodeVisitor {
         pendingSpace = true;
         ifOut(elsePart);
       } else {
-        blockBody(unwrapBlockIfSingleStatement(elsePart),
-            needsSeparation: true);
+        blockBody(elsePart, needsSeparation: true);
       }
     }
   }
@@ -240,7 +229,7 @@ class SizeEstimator implements NodeVisitor {
           newInForInit: false, newAtStatementBegin: false);
     }
     out(')'); // ')'
-    blockBody(unwrapBlockIfSingleStatement(loop.body), needsSeparation: false);
+    blockBody(loop.body, needsSeparation: false);
   }
 
   @override
@@ -253,7 +242,7 @@ class SizeEstimator implements NodeVisitor {
     visitNestedExpression(loop.object, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out(')'); // ')'
-    blockBody(unwrapBlockIfSingleStatement(loop.body), needsSeparation: false);
+    blockBody(loop.body, needsSeparation: false);
   }
 
   @override
@@ -262,14 +251,13 @@ class SizeEstimator implements NodeVisitor {
     visitNestedExpression(loop.condition, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out(')'); // ')'
-    blockBody(unwrapBlockIfSingleStatement(loop.body), needsSeparation: false);
+    blockBody(loop.body, needsSeparation: false);
   }
 
   @override
   void visitDo(Do loop) {
     out('do'); // 'do'
-    if (blockBody(unwrapBlockIfSingleStatement(loop.body),
-        needsSeparation: true)) {}
+    if (blockBody(loop.body, needsSeparation: true)) {}
     out('while('); // 'while('
     visitNestedExpression(loop.condition, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
@@ -384,18 +372,8 @@ class SizeEstimator implements NodeVisitor {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    Statement body = unwrapBlockIfSingleStatement(node.body);
-    // `label: break label;`
-    // Does not work on IE. The statement is a nop, so replace it by an empty
-    // statement.
-    // See:
-    // https://connect.microsoft.com/IE/feedback/details/891889/parser-bugs
-    if (body is Break && body.targetLabel == node.label) {
-      visit(EmptyStatement());
-      return;
-    }
     out('${node.label}:');
-    blockBody(body, needsSeparation: false);
+    blockBody(node.body, needsSeparation: false);
   }
 
   int functionOut(Fun fun, Expression? name, VarCollector vars) {
@@ -849,13 +827,6 @@ class SizeEstimator implements NodeVisitor {
     out("=>");
     int closingPosition;
     Node body = fun.body;
-    // Simplify arrow functions that return a single expression.
-    if (fun.implicitReturnAllowed && body is Block) {
-      final statement = unwrapBlockIfSingleStatement(body);
-      if (statement is Return) {
-        body = statement.value!;
-      }
-    }
     if (body is Block) {
       closingPosition = blockOut(body);
     } else {

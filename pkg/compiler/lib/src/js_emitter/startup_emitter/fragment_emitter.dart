@@ -1659,10 +1659,24 @@ class FragmentEmitter {
           : locals.find('_lazyOld', 'hunkHelpers.lazyOld');
       js.Expression staticFieldCode = field.code;
       if (staticFieldCode is js.Fun) {
+        // An arrow function `() => { ...; return e }` is smaller that
+        // `function(){ ...; return e }`, and has compatible semantics for the
+        // initializer expression thunk.
         js.Fun fun = staticFieldCode;
-        staticFieldCode = js.ArrowFunction(fun.params, fun.body,
-                asyncModifier: fun.asyncModifier)
-            .withInformationFrom(fun);
+        js.Node body = fun.body;
+        // Convert `() => { return e; }` into `() => e`.
+        if (body is js.Block) {
+          final statements = body.statements;
+          if (statements.length == 1) {
+            final first = statements.single;
+            if (first is js.Return && first.value != null) {
+              body = first.value!;
+            }
+          }
+        }
+        staticFieldCode =
+            js.ArrowFunction(fun.params, body, asyncModifier: fun.asyncModifier)
+                .withInformationFrom(fun);
       }
       js.Statement statement = js.js.statement("#(#, #, #, #);", [
         helper,

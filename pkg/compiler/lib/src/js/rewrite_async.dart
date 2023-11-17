@@ -732,7 +732,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       rewrittenBody = js.LabeledStatement(outerLabelName, rewrittenBody);
     }
     rewrittenBody = js.js
-        .statement('while (true) {#}', rewrittenBody)
+        .statement('while (true) #', rewrittenBody)
         .withSourceInformation(bodySourceInformation);
     List<js.VariableInitialization> variables = [];
 
@@ -883,14 +883,14 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
             ? js.Block.empty()
             : js.js.statement('# = #;', [result, left]);
         if (node.op == "&&") {
-          addStatement(js.js.statement('if (#) {#} else #', [
+          addStatement(js.js.statement('if (#) #; else #', [
             left,
             gotoAndBreak(thenLabel, node.sourceInformation),
             assignLeft
           ]));
         } else {
           assert(node.op == "||");
-          addStatement(js.js.statement('if (#) {#} else #', [
+          addStatement(js.js.statement('if (#) #; else #', [
             left,
             assignLeft,
             gotoAndBreak(thenLabel, node.sourceInformation)
@@ -1913,31 +1913,39 @@ class AsyncRewriter extends AsyncRewriterBase {
       js.VariableDeclarationList variableDeclarations,
       js.JavaScriptNodeSourceInformation? functionSourceInformation,
       js.JavaScriptNodeSourceInformation? bodySourceInformation) {
-    js.Expression asyncRethrowCall =
-        js.js("#asyncRethrow(#result, #completer)", {
-      "result": resultName,
-      "asyncRethrow": asyncRethrow,
-      "completer": completer,
-    }).withSourceInformation(bodySourceInformation);
-    js.Statement returnAsyncRethrow = js.Return(asyncRethrowCall)
-        .withSourceInformation(bodySourceInformation);
-    js.Statement errorCheck = js.js.statement("""
-      if (#errorCode === #ERROR) {
-        if (#hasHandlerLabels) {
-            #currentError = #result;
-            #goto = #handler;
-        } else
-            #returnAsyncRethrow;
-      }""", {
-      "errorCode": errorCodeName,
-      "ERROR": js.number(status_codes.ERROR),
-      "hasHandlerLabels": hasHandlerLabels,
-      "currentError": currentError,
-      "result": resultName,
-      "goto": goto,
-      "handler": handler,
-      "returnAsyncRethrow": returnAsyncRethrow,
-    }).withSourceInformation(bodySourceInformation);
+    js.Statement errorCheck;
+    if (hasHandlerLabels) {
+      errorCheck = js.js.statement("""
+            if (#errorCode === #ERROR) {
+              #currentError = #result;
+              #goto = #handler;
+            }""", {
+        "errorCode": errorCodeName,
+        "ERROR": js.number(status_codes.ERROR),
+        "currentError": currentError,
+        "result": resultName,
+        "goto": goto,
+        "handler": handler,
+      }).withSourceInformation(bodySourceInformation);
+    } else {
+      js.Expression asyncRethrowCall =
+          js.js("#asyncRethrow(#result, #completer)", {
+        "result": resultName,
+        "asyncRethrow": asyncRethrow,
+        "completer": completer,
+      }).withSourceInformation(bodySourceInformation);
+      js.Statement returnAsyncRethrow = js.Return(asyncRethrowCall)
+          .withSourceInformation(bodySourceInformation);
+      errorCheck = js.js.statement("""
+            if (#errorCode === #ERROR)
+              #returnAsyncRethrow;
+            """, {
+        "errorCode": errorCodeName,
+        "ERROR": js.number(status_codes.ERROR),
+        "returnAsyncRethrow": returnAsyncRethrow,
+      }).withSourceInformation(bodySourceInformation);
+    }
+
     js.Expression innerFunction = js.js("""
       function (#errorCode, #result) {
         #errorCheck;
