@@ -669,14 +669,12 @@
     },
     "analyzer-(linux|mac|win)": {
       "options": {
-        "nnbd": "legacy",
         "compiler": "dart2analyzer",
         "use-sdk": true
       }
     },
     "analyzer-asserts-(linux|mac|win)": {
       "options": {
-        "nnbd": "legacy",
         "compiler": "dart2analyzer",
         "enable-asserts": true,
         "use-sdk": true
@@ -2691,7 +2689,7 @@
           "name": "unit tests",
           "arguments": [
             "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/(analyzer|analysis_server|nnbd_migration|analyzer_cli|analyzer_plugin)"
+            "pkg/(analyzer|analysis_server|analyzer_cli|analyzer_plugin)"
           ],
           "shards": 9,
           "fileset": "analyzer_unit_tests"
@@ -2703,17 +2701,10 @@
           ]
         },
         {
-          "name": "enable-asserts",
+          "name": "analyze co19 tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-${system}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "standalone",
-            "pkg",
-            "co19",
-            "co19_2"
+            "co19"
           ]
         }
       ]
@@ -2753,29 +2744,9 @@
           "fileset": "analyzer_unit_tests"
         },
         {
-          "name": "nnbd_migration unit tests",
-          "arguments": [
-            "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/nnbd_migration"
-          ],
-          "shards": 1,
-          "fileset": "analyzer_unit_tests"
-        },
-        {
           "name": "analyze tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-${system}"
-          ]
-        },
-        {
-          "name": "analyze migrated tests enable-asserts",
-          "arguments": [
-            "-nanalyzer-asserts-${system}",
-            "corelib",
-            "ffi",
-            "language",
-            "lib",
-            "standalone"
           ]
         },
         {
