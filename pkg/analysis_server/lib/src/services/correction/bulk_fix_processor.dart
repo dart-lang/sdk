@@ -372,8 +372,12 @@ class BulkFixProcessor {
           continue;
         }
         // Get the list of imports used in the files.
-        var result = context.currentSession.getParsedLibrary(path)
-            as ParsedLibraryResult;
+
+        var result = context.currentSession.getParsedLibrary(path);
+        if (result is! ParsedLibraryResult) {
+          return PubspecFixRequestResult(fixes, details);
+        }
+
         for (var unit in result.units) {
           var directives = unit.unit.directives;
           for (var directive in directives) {
