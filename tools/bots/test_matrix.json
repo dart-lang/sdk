@@ -2572,10 +2572,11 @@
           ]
         },
         {
-          "name": "analyze co19 tests enable-asserts",
+          "name": "analyze co19 and pkg tests enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-${system}",
-            "co19"
+            "co19",
+            "pkg"
           ]
         }
       ]
