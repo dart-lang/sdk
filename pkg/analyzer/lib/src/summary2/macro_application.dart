@@ -402,11 +402,23 @@ class LibraryMacroApplier {
     MacroDiagnosticMessage convertMessage(
       macro.DiagnosticMessage message,
     ) {
+      MacroDiagnosticTarget target;
+      switch (message.target) {
+        case macro.DeclarationDiagnosticTarget macroTarget:
+          final element = (macroTarget.declaration as HasElement).element;
+          // TODO(scheglov): Update HasElement instead of this cast.
+          element as ElementImpl;
+          target = ElementMacroDiagnosticTarget(element: element);
+          break;
+        default:
+          target = ApplicationMacroDiagnosticTarget(
+            annotationIndex: application.annotationIndex,
+          );
+      }
+
       return MacroDiagnosticMessage(
         // TODO(scheglov): other targets
-        target: ApplicationMacroDiagnosticTarget(
-          annotationIndex: application.annotationIndex,
-        ),
+        target: target,
         message: message.message,
       );
     }

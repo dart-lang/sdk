@@ -41,7 +41,9 @@ class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
   });
 }
 
-class ConstructorDeclarationImpl extends macro.ConstructorDeclarationImpl {
+class ConstructorDeclarationImpl extends macro.ConstructorDeclarationImpl
+    implements HasElement {
+  @override
   final ConstructorElement element;
 
   ConstructorDeclarationImpl._({
@@ -383,6 +385,7 @@ class DeclarationBuilderFromElement {
   }
 
   FieldDeclarationImpl _fieldElement(FieldElement element) {
+    element as FieldElementImpl;
     final enclosing = element.enclosingInstanceElement;
     return FieldDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -395,6 +398,7 @@ class DeclarationBuilderFromElement {
       type: _dartType(element.type),
       definingType: identifier(enclosing),
       isStatic: element.isStatic,
+      element: element,
     );
   }
 
@@ -610,7 +614,7 @@ class DeclarationBuilderFromNode {
     final variablesDeclaration = variableList.parent;
     switch (variablesDeclaration) {
       case ast.FieldDeclaration():
-        final element = node.declaredElement!;
+        final element = node.declaredElement as FieldElementImpl;
         return FieldDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
           identifier: _declaredIdentifier(node.name, element),
@@ -622,6 +626,7 @@ class DeclarationBuilderFromNode {
           type: _typeAnnotation(variableList.type),
           definingType: _definingType(variablesDeclaration),
           isStatic: element.isStatic,
+          element: element,
         );
       default:
         // TODO(scheglov): top-level variables
@@ -939,7 +944,11 @@ class DeclarationBuilderFromNode {
   }
 }
 
-class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
+class FieldDeclarationImpl extends macro.FieldDeclarationImpl
+    implements HasElement {
+  @override
+  final FieldElementImpl element;
+
   FieldDeclarationImpl({
     required super.id,
     required super.identifier,
@@ -951,6 +960,7 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
     required super.type,
     required super.definingType,
     required super.isStatic,
+    required this.element,
   });
 }
 
@@ -1059,7 +1069,9 @@ class LibraryImplFromElement extends LibraryImpl {
   });
 }
 
-class MethodDeclarationImpl extends macro.MethodDeclarationImpl {
+class MethodDeclarationImpl extends macro.MethodDeclarationImpl
+    implements HasElement {
+  @override
   final ExecutableElement element;
 
   MethodDeclarationImpl._({

@@ -2325,6 +2325,11 @@ class ResolutionReader {
         target = ApplicationMacroDiagnosticTarget(
           annotationIndex: readUInt30(),
         );
+      case 0x01:
+        final element = readElement();
+        target = ElementMacroDiagnosticTarget(
+          element: element as ElementImpl,
+        );
       case final int tag:
         throw UnimplementedError('tag: $tag');
     }

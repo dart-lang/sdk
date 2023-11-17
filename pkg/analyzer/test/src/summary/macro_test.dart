@@ -2371,6 +2371,254 @@ library
             message
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
+            severity: error
+''');
+  }
+
+  test_macroDiagnostics_report_atDeclaration_class() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtTargetDeclaration()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @62
+        macroDiagnostics
+          MacroDiagnostic
+            message
+Reported message
+              target: ElementMacroDiagnosticTarget
+                element: self::@class::A
+            severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_atDeclaration_constructor() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTargetDeclaration()
+  A();
+}
+''');
+
+    configuration.withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        constructors
+          @70
+            macroDiagnostics
+              MacroDiagnostic
+                message
+Reported message
+                  target: ElementMacroDiagnosticTarget
+                    element: self::@class::A::@constructor::new
+                severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_atDeclaration_field() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTargetDeclaration()
+  final int foo = 0;
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        fields
+          final foo @80
+            type: int
+            shouldUseTypeForInitializerInference: true
+            macroDiagnostics
+              MacroDiagnostic
+                message
+Reported message
+                  target: ElementMacroDiagnosticTarget
+                    element: self::@class::A::@field::foo
+                severity: warning
+        accessors
+          synthetic get foo @-1
+            returnType: int
+''');
+  }
+
+  test_macroDiagnostics_report_atDeclaration_method() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTargetDeclaration()
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @33
+        methods
+          foo @75
+            returnType: void
+            macroDiagnostics
+              MacroDiagnostic
+                message
+Reported message
+                  target: ElementMacroDiagnosticTarget
+                    element: self::@class::A::@method::foo
+                severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_withoutTarget_error() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportWithoutTargetError()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @61
+        macroDiagnostics
+          MacroDiagnostic
+            message
+Reported message
+              target: ApplicationMacroDiagnosticTarget
+                annotationIndex: 0
+            severity: error
+''');
+  }
+
+  test_macroDiagnostics_report_withoutTarget_info() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportWithoutTargetInfo()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @60
+        macroDiagnostics
+          MacroDiagnostic
+            message
+Reported message
+              target: ApplicationMacroDiagnosticTarget
+                annotationIndex: 0
+            severity: info
+''');
+  }
+
+  test_macroDiagnostics_report_withoutTarget_warning() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportWithoutTargetWarning()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @63
+        macroDiagnostics
+          MacroDiagnostic
+            message
+Reported message
+              target: ApplicationMacroDiagnosticTarget
+                annotationIndex: 0
+            severity: warning
 ''');
   }
 
@@ -2404,6 +2652,7 @@ Unhandled error: My declarations phase
 Stack trace: <cut>
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
+            severity: error
 ''');
   }
 
@@ -2439,6 +2688,7 @@ Unhandled error: My declarations phase
 Stack trace: <cut>
                   target: ApplicationMacroDiagnosticTarget
                     annotationIndex: 0
+                severity: error
 ''');
   }
 
@@ -2478,6 +2728,7 @@ Unhandled error: My declarations phase
 Stack trace: <cut>
                   target: ApplicationMacroDiagnosticTarget
                     annotationIndex: 0
+                severity: error
         accessors
           synthetic get foo @-1
             returnType: int
@@ -2524,6 +2775,7 @@ Unhandled error: My declarations phase
 Stack trace: <cut>
                   target: ApplicationMacroDiagnosticTarget
                     annotationIndex: 0
+                severity: error
 ''');
   }
 
@@ -2557,6 +2809,7 @@ Unhandled error: My definitions phase
 Stack trace: <cut>
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
+            severity: error
 ''');
   }
 
@@ -2590,6 +2843,7 @@ Unhandled error: My types phase
 Stack trace: <cut>
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
+            severity: error
 ''');
   }
 
