@@ -118,26 +118,14 @@
       "tests/co19/co19-dartdevc.status",
       "tests/co19/co19-kernel.status",
       "tests/co19/co19-runtime.status",
-      "tests/co19_2/co19_2-analyzer.status",
-      "tests/co19_2/co19_2-co19.status",
-      "tests/co19_2/co19_2-dart2js.status",
-      "tests/co19_2/co19_2-dartdevc.status",
-      "tests/co19_2/co19_2-kernel.status",
-      "tests/co19_2/co19_2-runtime.status",
       "tests/corelib/",
-      "tests/corelib_2/",
       "tests/web/",
-      "tests/web_2/",
       "tests/dartdevc/",
-      "tests/dartdevc_2/",
       "tests/language/",
-      "tests/language_2/",
       "tests/lib/",
-      "tests/lib_2/",
       "tests/light_unittest.dart",
       "tests/search/",
       "tests/ffi/",
-      "tests/ffi_2/",
       "third_party/d8/",
       "third_party/pkg/",
       "third_party/requirejs/",
@@ -651,12 +639,6 @@
         "use-sdk": true
       }
     },
-    "cfe-(linux|mac|win)": {
-      "options": {
-        "nnbd": "legacy",
-        "compiler": "fasta"
-      }
-    },
     "cfe-weak-(linux|mac|win)": {
       "options": {
         "compiler": "fasta"
@@ -684,9 +666,7 @@
   "builder_configurations": [
     {
       "builders": [
-        "front-end-linux-release-x64",
-        "front-end-mac-release-x64",
-        "front-end-win-release-x64"
+        "front-end-linux-release-x64"
       ],
       "meta": {
         "description": "Runs the cfe tests."
@@ -701,23 +681,6 @@
             "kernel_platform_files",
             "runtime"
           ]
-        },
-        {
-          "name": "front_end co19_2 tests",
-          "arguments": [
-            "-ncfe-${system}",
-            "co19_2"
-          ],
-          "fileset": "front-end",
-          "shards": 1
-        },
-        {
-          "name": "front_end sdk tests",
-          "arguments": [
-            "-ncfe-${system}"
-          ],
-          "fileset": "front-end",
-          "shards": 1
         },
         {
           "name": "front_end unit tests (no git)",
