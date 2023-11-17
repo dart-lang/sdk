@@ -1,3 +1,12 @@
+## 3.2.1
+
+This is a patch release that:
+
+- Fixes the left/mobile sidebar being empty on non-class pages
+  in documentation generated with `dart doc` (issue [#54073][]).
+
+[#54073]: https://github.com/dart-lang/sdk/issues/54073
+
 ## 3.2.0 - 2023-11-15
 
 ### Language
