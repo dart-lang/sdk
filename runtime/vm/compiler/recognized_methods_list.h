@@ -120,6 +120,8 @@ namespace dart {
   V(_TypedListBase, _memMove8, TypedData_memMove8, 0xd1d8e325)                 \
   V(_TypedListBase, _memMove16, TypedData_memMove16, 0x07861cd5)               \
   V(::, _toClampedUint8, ConvertIntToClampedUint8, 0xd0e522d0)                 \
+  V(::, _typedDataIndexCheck, TypedDataIndexCheck, 0xc54f594f)                 \
+  V(::, _byteDataByteOffsetCheck, ByteDataByteOffsetCheck, 0x4ae73104)         \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
     CopyRangeFromUint8ListToOneByteString, 0xcc42cce1)                         \
   V(_StringBase, _interpolate, StringBaseInterpolate, 0x7c662480)              \
@@ -390,40 +392,40 @@ namespace dart {
   V(_IntegerImplementation, <<, Integer_shl, 0x2d253e1b)                       \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
-  V(_Int8List, [], Int8ArrayGetIndexed, 0xb8ab318e)                            \
-  V(_Int8List, []=, Int8ArraySetIndexed, 0xd832152f)                           \
-  V(_Uint8List, [], Uint8ArrayGetIndexed, 0x1e23b54e)                          \
-  V(_Uint8List, []=, Uint8ArraySetIndexed, 0x24c120f3)                         \
-  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 0x1e23b54e)         \
-  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 0x24c120f3)        \
-  V(_Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 0x1e23b54e)            \
-  V(_Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 0x1ac0d693)           \
+  V(_Int8List, [], Int8ArrayGetIndexed, 0x7b31eba4)                            \
+  V(_Int8List, []=, Int8ArraySetIndexed, 0x02734e41)                           \
+  V(_Uint8List, [], Uint8ArrayGetIndexed, 0xe0aa6f64)                          \
+  V(_Uint8List, []=, Uint8ArraySetIndexed, 0x4f025a05)                         \
+  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 0xe0aa6f64)         \
+  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 0x4f025a05)        \
+  V(_Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 0xe0aa6f64)            \
+  V(_Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 0x45020fa5)           \
   V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
-    0x1e23b54e)                                                                \
+    0xe0aa6f64)                                                                \
   V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
-    0x1ac0d693)                                                                \
-  V(_Int16List, [], Int16ArrayGetIndexed, 0x98a990ee)                          \
-  V(_Int16List, []=, Int16ArraySetIndexed, 0x68b1d8ba)                         \
-  V(_Uint16List, [], Uint16ArrayGetIndexed, 0x7c826cee)                        \
-  V(_Uint16List, []=, Uint16ArraySetIndexed, 0x50f48031)                       \
-  V(_Int32List, [], Int32ArrayGetIndexed, 0x9a47368d)                          \
-  V(_Int32List, []=, Int32ArraySetIndexed, 0x46e65559)                         \
-  V(_Uint32List, [], Uint32ArrayGetIndexed, 0xe9999c2d)                        \
-  V(_Uint32List, []=, Uint32ArraySetIndexed, 0x3289c9d9)                       \
-  V(_Int64List, [], Int64ArrayGetIndexed, 0xd30f90cd)                          \
-  V(_Int64List, []=, Int64ArraySetIndexed, 0xa79b0f2f)                         \
-  V(_Uint64List, [], Uint64ArrayGetIndexed, 0x0fd3f64d)                        \
-  V(_Uint64List, []=, Uint64ArraySetIndexed, 0x72fc8067)                       \
-  V(_Float64List, [], Float64ArrayGetIndexed, 0x0ccc6114)                      \
-  V(_Float64List, []=, Float64ArraySetIndexed, 0xa6594c8d)                     \
-  V(_Float32List, [], Float32ArrayGetIndexed, 0xe2ca6234)                      \
-  V(_Float32List, []=, Float32ArraySetIndexed, 0x01a7a9bb)                     \
-  V(_Float32x4List, [], Float32x4ArrayGetIndexed, 0xe48a60cd)                  \
-  V(_Float32x4List, []=, Float32x4ArraySetIndexed, 0x85f79568)                 \
-  V(_Int32x4List, [], Int32x4ArrayGetIndexed, 0xfa032945)                      \
-  V(_Int32x4List, []=, Int32x4ArraySetIndexed, 0x6f45f1f8)                     \
-  V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0x2e4ca3f7)                  \
-  V(_Float64x2List, []=, Float64x2ArraySetIndexed, 0x75cd3b10)                 \
+    0x45020fa5)                                                                \
+  V(_Int16List, [], Int16ArrayGetIndexed, 0x5b304b04)                          \
+  V(_Int16List, []=, Int16ArraySetIndexed, 0x92f311cc)                         \
+  V(_Uint16List, [], Uint16ArrayGetIndexed, 0x3f092704)                        \
+  V(_Uint16List, []=, Uint16ArraySetIndexed, 0x7b35b943)                       \
+  V(_Int32List, [], Int32ArrayGetIndexed, 0x5ccdf0a3)                          \
+  V(_Int32List, []=, Int32ArraySetIndexed, 0x71278e6b)                         \
+  V(_Uint32List, [], Uint32ArrayGetIndexed, 0xac205643)                        \
+  V(_Uint32List, []=, Uint32ArraySetIndexed, 0x5ccb02eb)                       \
+  V(_Int64List, [], Int64ArrayGetIndexed, 0x95964ae3)                          \
+  V(_Int64List, []=, Int64ArraySetIndexed, 0xf550bf5d)                         \
+  V(_Uint64List, [], Uint64ArrayGetIndexed, 0xd25ab063)                        \
+  V(_Uint64List, []=, Uint64ArraySetIndexed, 0xc0b23095)                       \
+  V(_Float64List, [], Float64ArrayGetIndexed, 0x85ff7e1e)                      \
+  V(_Float64List, []=, Float64ArraySetIndexed, 0xb12e72af)                     \
+  V(_Float32List, [], Float32ArrayGetIndexed, 0x5bfd7f3e)                      \
+  V(_Float32List, []=, Float32ArraySetIndexed, 0x0c7ccfdd)                     \
+  V(_Float32x4List, [], Float32x4ArrayGetIndexed, 0xbbf0c685)                  \
+  V(_Float32x4List, []=, Float32x4ArraySetIndexed, 0x2f5090b8)                 \
+  V(_Int32x4List, [], Int32x4ArrayGetIndexed, 0x11605fcd)                      \
+  V(_Int32x4List, []=, Int32x4ArraySetIndexed, 0x3624ca18)                     \
+  V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0x2ff8c69b)                  \
+  V(_Float64x2List, []=, Float64x2ArraySetIndexed, 0xcef0684c)                 \
   V(_TypedListBase, get:length, TypedListBaseLength, 0x5842648b)               \
   V(_ByteDataView, get:length, ByteDataViewLength, 0x5842648b)                 \
   V(_Float32x4, get:x, Float32x4GetX, 0x3a2af950)                              \

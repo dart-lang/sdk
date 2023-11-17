@@ -480,6 +480,7 @@ class ObjectPointerVisitor;
   V(add, "add")                                                                \
   V(addStream, "addStream")                                                    \
   V(asyncStarBody, "asyncStarBody")                                            \
+  V(byteOffset, "byteOffset")                                                  \
   V(c_result, ":result")                                                       \
   V(call, "call")                                                              \
   V(callback, "callback")                                                      \
