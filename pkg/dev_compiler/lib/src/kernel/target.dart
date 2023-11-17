@@ -509,9 +509,7 @@ class _CovarianceTransformer extends RecursiveVisitor {
 List<Pattern> _allowedNativeTestPatterns = [
   'tests/dartdevc',
   'tests/web/native',
-  'tests/web_2/native',
   'tests/web/internal',
-  'tests/web_2/internal',
 ];
 
 bool allowedNativeTest(Uri uri) {

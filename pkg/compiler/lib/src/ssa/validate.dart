@@ -137,7 +137,7 @@ class HValidator extends HInstructionVisitor {
   // than this are OK in order to avoid the O(N^2) validation getting out of
   // hand.
   //
-  // Poster child: corelib_2/regexp/pcre_test.dart, which has a 7KLOC main().
+  // Poster child: corelib/regexp/pcre_test.dart, which has a 7KLOC main().
   static const int kMaxValidatedInstructionListLength = 1000;
 
   /// Verifies [instruction] is contained in [instructions] [count] times.

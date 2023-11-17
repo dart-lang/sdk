@@ -1048,6 +1048,7 @@ import 'dart:ffi';
 """;
 }
 
+// TODO: Remove non-nnbd support.
 String compoundsPath({required bool isNnbd}) {
   final folder = isNnbd ? 'ffi' : 'ffi_2';
   return Platform.script
