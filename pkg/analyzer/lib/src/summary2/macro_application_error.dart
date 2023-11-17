@@ -2,9 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:meta/meta.dart';
+
+/// Base for all macro related diagnostics.
+sealed class AnalyzerMacroDiagnostic {}
+
+final class ApplicationMacroDiagnosticTarget extends MacroDiagnosticTarget {
+  final int annotationIndex;
+
+  ApplicationMacroDiagnosticTarget({
+    required this.annotationIndex,
+  });
+}
 
 /// An error during evaluating annotation arguments.
 class ArgumentMacroApplicationError extends MacroApplicationError {
@@ -42,6 +54,19 @@ class ArgumentMacroApplicationError extends MacroApplicationError {
     sink.writeUInt30(argumentIndex);
     sink.writeStringUtf8(message);
   }
+}
+
+/// An exception while preparing macro application.
+final class ExceptionMacroDiagnostic extends AnalyzerMacroDiagnostic {
+  final int annotationIndex;
+  final String message;
+  final String stackTrace;
+
+  ExceptionMacroDiagnostic({
+    required this.annotationIndex,
+    required this.message,
+    required this.stackTrace,
+  });
 }
 
 /// An error that happened while applying a macro.
@@ -90,6 +115,31 @@ enum MacroApplicationErrorKind {
   /// Any other exception that happened during application.
   unknown,
 }
+
+/// Diagnostic from the macro framework.
+final class MacroDiagnostic extends AnalyzerMacroDiagnostic {
+  final macro.Severity severity;
+  final MacroDiagnosticMessage message;
+  final List<MacroDiagnosticMessage> contextMessages;
+
+  MacroDiagnostic({
+    required this.severity,
+    required this.message,
+    required this.contextMessages,
+  });
+}
+
+final class MacroDiagnosticMessage {
+  final MacroDiagnosticTarget target;
+  final String message;
+
+  MacroDiagnosticMessage({
+    required this.target,
+    required this.message,
+  });
+}
+
+sealed class MacroDiagnosticTarget {}
 
 /// Any other exception that happened during macro application.
 class UnknownMacroApplicationError extends MacroApplicationError {

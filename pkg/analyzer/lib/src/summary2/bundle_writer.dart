@@ -178,6 +178,7 @@ class BundleWriter {
     );
 
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink.writeType(element.supertype);
@@ -222,6 +223,7 @@ class BundleWriter {
     _writeReference(element);
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _resolutionSink.localElements.withElements(element.parameters, () {
       _writeList(element.parameters, _writeParameterElement);
@@ -386,6 +388,7 @@ class BundleWriter {
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
 
     _resolutionSink.writeElement(element.augmentationTarget);
@@ -488,6 +491,7 @@ class BundleWriter {
     MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
       _writeList(element.parameters, _writeParameterElement);
@@ -768,6 +772,10 @@ class ResolutionSink extends _SummaryDataWriter {
     }
   }
 
+  void writeMacroDiagnostics(List<AnalyzerMacroDiagnostic> elements) {
+    writeList(elements, _writeMacroDiagnostic);
+  }
+
   void writeMap<K, V>(
     Map<K, V> map, {
     required void Function(K key) writeKey,
@@ -939,6 +947,32 @@ class ResolutionSink extends _SummaryDataWriter {
       _writeFormalParameters(type.parameters, withAnnotations: false);
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
+  }
+
+  void _writeMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {
+    switch (diagnostic) {
+      case ExceptionMacroDiagnostic():
+        // TODO(scheglov): Handle this case.
+        throw UnimplementedError();
+      case MacroDiagnostic():
+        writeByte(0x01);
+        writeByte(diagnostic.severity.index);
+        _writeMacroDiagnosticMessage(diagnostic.message);
+        writeList(
+          diagnostic.contextMessages,
+          _writeMacroDiagnosticMessage,
+        );
+    }
+  }
+
+  void _writeMacroDiagnosticMessage(MacroDiagnosticMessage object) {
+    writeStringUtf8(object.message);
+    final target = object.target;
+    switch (target) {
+      case ApplicationMacroDiagnosticTarget():
+        writeByte(0x00);
+        writeUInt30(target.annotationIndex);
+    }
   }
 
   void _writeNode(AstNode node) {

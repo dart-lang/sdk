@@ -189,11 +189,12 @@ class LibraryMacroApplier {
           introspector,
         );
 
+        _addDiagnostics(application, result);
         if (result.isNotEmpty) {
           results.add(result);
         }
       },
-      annotationIndex: 0, // TODO(scheglov): revisit
+      annotationIndex: application.annotationIndex,
       onError: (error) {
         application.targetElement.addMacroApplicationError(error);
       },
@@ -226,11 +227,12 @@ class LibraryMacroApplier {
           introspector,
         );
 
+        _addDiagnostics(application, result);
         if (result.isNotEmpty) {
           results.add(result);
         }
       },
-      annotationIndex: 0, // TODO(scheglov): revisit
+      annotationIndex: application.annotationIndex,
       onError: (error) {
         application.targetElement.addMacroApplicationError(error);
       },
@@ -257,11 +259,12 @@ class LibraryMacroApplier {
           _typesPhaseIntrospector,
         );
 
+        _addDiagnostics(application, result);
         if (result.isNotEmpty) {
           results.add(result);
         }
       },
-      annotationIndex: 0, // TODO(scheglov): revisit
+      annotationIndex: application.annotationIndex,
       onError: (error) {
         application.targetElement.addMacroApplicationError(error);
       },
@@ -298,7 +301,7 @@ class LibraryMacroApplier {
       return;
     }
 
-    for (final annotation in annotations) {
+    for (final (annotationIndex, annotation) in annotations.indexed) {
       final importedMacro = _importedMacro(
         container: container,
         annotation: annotation,
@@ -310,11 +313,11 @@ class LibraryMacroApplier {
       final arguments = await _runWithCatchingExceptions(
         () async {
           return _buildArguments(
-            annotationIndex: 0, // TODO(scheglov): revisit
+            annotationIndex: annotationIndex,
             node: importedMacro.arguments,
           );
         },
-        annotationIndex: 0, // TODO(scheglov): revisit
+        annotationIndex: annotationIndex,
         onError: (error) {
           targetElement.addMacroApplicationError(error);
         },
@@ -339,6 +342,7 @@ class LibraryMacroApplier {
         declarationsPhaseElement: declarationsPhaseElement,
         targetNode: targetNode,
         targetElement: targetElement,
+        annotationIndex: annotationIndex,
         annotationNode: annotation,
         instance: instance,
         phasesToExecute: phasesToExecute,
@@ -387,6 +391,34 @@ class LibraryMacroApplier {
         targetDeclarationKind: memberDeclarationKind,
         declarationsPhaseElement: declarationsPhaseInterface,
         annotations: member.metadata,
+      );
+    }
+  }
+
+  void _addDiagnostics(
+    _MacroApplication application,
+    macro.MacroExecutionResult result,
+  ) {
+    MacroDiagnosticMessage convertMessage(
+      macro.DiagnosticMessage message,
+    ) {
+      return MacroDiagnosticMessage(
+        // TODO(scheglov): other targets
+        target: ApplicationMacroDiagnosticTarget(
+          annotationIndex: application.annotationIndex,
+        ),
+        message: message.message,
+      );
+    }
+
+    for (final diagnostic in result.diagnostics) {
+      application.targetElement.addMacroDiagnostic(
+        MacroDiagnostic(
+          severity: diagnostic.severity,
+          message: convertMessage(diagnostic.message),
+          contextMessages:
+              diagnostic.contextMessages.map(convertMessage).toList(),
+        ),
       );
     }
   }
@@ -868,6 +900,7 @@ class _MacroApplication {
   final InstanceElement? declarationsPhaseElement;
   final ast.AstNode targetNode;
   final MacroTargetElement targetElement;
+  final int annotationIndex;
   final ast.Annotation annotationNode;
   final macro.MacroInstanceIdentifier instance;
   final Set<macro.Phase> phasesToExecute;
@@ -877,6 +910,7 @@ class _MacroApplication {
     required this.declarationsPhaseElement,
     required this.targetNode,
     required this.targetElement,
+    required this.annotationIndex,
     required this.annotationNode,
     required this.instance,
     required this.phasesToExecute,
