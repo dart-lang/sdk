@@ -27,15 +27,64 @@ intptr_t OS::ProcessId() {
   return static_cast<intptr_t>(GetCurrentProcessId());
 }
 
-// As a side-effect sets the globals _timezone, _daylight and _tzname.
+// 100-nanoseconds intervals from from 1601-01-01 to 1970-01-01.
+const int64_t kTimeEpoc = 116444736000000000LL;
+
 static bool LocalTime(int64_t seconds_since_epoch, tm* tm_result) {
   time_t seconds = static_cast<time_t>(seconds_since_epoch);
-  if (seconds != seconds_since_epoch) {
+  SYSTEMTIME systemTime;
+  union {
+    FILETIME fileTime;
+    ULARGE_INTEGER ulargeInt;
+  };
+  const int64_t kTimeScaler = 10 * 1000 * 1000;  // 100 ns to s.
+  const int64_t hundreds_us = seconds_since_epoch * kTimeScaler;
+  ulargeInt.QuadPart = kTimeEpoc + hundreds_us;
+
+  if (!FileTimeToSystemTime(&fileTime, &systemTime)) {
     return false;
   }
-  // localtime_s implicitly sets _timezone, _daylight and _tzname.
-  errno_t error_code = localtime_s(tm_result, &seconds);
-  return error_code == 0;
+
+  TIME_ZONE_INFORMATION timeZoneInformation;
+  if (!GetTimeZoneInformationForYear(systemTime.wYear, nullptr,
+                                     &timeZoneInformation)) {
+    return false;
+  }
+
+  SYSTEMTIME localTime;
+  if (!SystemTimeToTzSpecificLocalTime(&timeZoneInformation, &systemTime,
+                                       &localTime)) {
+    return false;
+  }
+  // To determine whether the date is in DST or not, if tz has daylight
+  // bias set, we run convert system  time to tz-specific time twice: first
+  // with the original bias, then with bias reset 0 and compare the result
+  // time. If they match, we are oustide of DST, if they don't - we are inside.
+  ASSERT(tm_result != nullptr);
+  if (timeZoneInformation.DaylightBias == 0) {
+    tm_result->tm_isdst = 0;
+  } else {
+    const auto hourWithDaylightBias = localTime.wHour;
+    timeZoneInformation.DaylightBias = 0;
+    if (!SystemTimeToTzSpecificLocalTime(&timeZoneInformation, &systemTime,
+                                         &localTime)) {
+      return false;
+    }
+    const auto hourWithoutDaylightBias = localTime.wHour;
+    tm_result->tm_isdst = hourWithDaylightBias != hourWithoutDaylightBias;
+  }
+
+  // Populate the rest of the fields even though they are not really used
+  // in this module.
+  tm_result->tm_year = localTime.wYear;
+  tm_result->tm_mon = localTime.wMonth;
+  tm_result->tm_hour = localTime.wHour;
+  tm_result->tm_wday = localTime.wDayOfWeek;
+  tm_result->tm_mday = localTime.wDay;
+  tm_result->tm_min = localTime.wMinute;
+  tm_result->tm_sec = localTime.wSecond;
+  tm_result->tm_yday = 0;  // Seemingly no easily-available source for this.
+  return true;
 }
 
 static int GetDaylightSavingBiasInSeconds() {
@@ -56,7 +105,7 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
   // Initialize and grab the time zone data.
   _tzset();
   DWORD status = GetTimeZoneInformation(&zone_information);
-  if (GetTimeZoneInformation(&zone_information) == TIME_ZONE_ID_INVALID) {
+  if (status == TIME_ZONE_ID_INVALID) {
     // If we can't get the time zone data, the Windows docs indicate that we
     // are probably out of memory. Return an empty string.
     return "";
@@ -85,11 +134,11 @@ const char* OS::GetTimeZoneName(int64_t seconds_since_epoch) {
 
 int OS::GetTimeZoneOffsetInSeconds(int64_t seconds_since_epoch) {
   tm decomposed;
-  // LocalTime will set _timezone.
   bool succeeded = LocalTime(seconds_since_epoch, &decomposed);
   if (succeeded) {
     int inDaylightSavingsTime = decomposed.tm_isdst;
     ASSERT(inDaylightSavingsTime == 0 || inDaylightSavingsTime == 1);
+    tzset();
     // Dart and Windows disagree on the sign of the bias.
     int offset = static_cast<int>(-_timezone);
     if (inDaylightSavingsTime == 1) {
@@ -109,7 +158,6 @@ int64_t OS::GetCurrentTimeMillis() {
 }
 
 int64_t OS::GetCurrentTimeMicros() {
-  const int64_t kTimeEpoc = 116444736000000000LL;
   const int64_t kTimeScaler = 10;  // 100 ns to us.
 
   // Although win32 uses 64-bit integers for representing timestamps,

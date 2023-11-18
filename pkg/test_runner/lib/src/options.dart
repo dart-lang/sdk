@@ -15,16 +15,6 @@ import 'repository.dart';
 import 'test_configurations.dart';
 import 'utils.dart';
 
-const _legacyTestSelectors = [
-  'corelib_2',
-  'ffi_2',
-  'language_2',
-  'lib_2',
-  'kernel',
-  'utils',
-  'vm',
-];
-
 const _defaultTestSelectors = [
   'corelib',
   'ffi',
@@ -506,7 +496,6 @@ has been specified on the command line.''')
     var allSuiteDirectories = [
       ...testSuiteDirectories,
       Path('tests/co19'),
-      Path('tests/co19_2'),
     ];
 
     var selectors = <String>[];
@@ -523,8 +512,8 @@ has been specified on the command line.''')
         if (selector.startsWith('$path/')) {
           selector = selector.substring(path.lastIndexOf('/') + 1);
 
-          // Remove the `src/` subdirectories from the co19 and co19_2
-          // directories that do not appear in the test names.
+          // Remove the `src/` subdirectories from the co19 directories that do
+          // not appear in the test names.
           if (selector.startsWith('co19')) {
             selector = selector.replaceFirst(RegExp('src/'), '');
           }
@@ -859,11 +848,7 @@ has been specified on the command line.''')
             .toSet()
             .toList();
       } else {
-        if (nnbdMode == NnbdMode.legacy) {
-          selectors.addAll(_legacyTestSelectors);
-        } else {
-          selectors.addAll(_defaultTestSelectors);
-        }
+        selectors.addAll(_defaultTestSelectors);
       }
 
       var excludeSuites = configuration['exclude-suite'] != null

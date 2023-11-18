@@ -1098,7 +1098,7 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   /// Matches the location and message of a dart2js error message, which looks
   /// like:
   ///
-  ///     tests/language_2/some_test.dart:9:3:
+  ///     tests/language/some_test.dart:9:3:
   ///     Error: Some message.
   ///       BadThing();
   ///       ^
@@ -1130,7 +1130,7 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
   /// Matches the location and message of a dart2wasm error message, which looks
   /// like:
   ///
-  ///     tests/language_2/some_test.dart:9:3: Error: Some message.
+  ///     tests/language/some_test.dart:9:3: Error: Some message.
   ///       BadThing();
   ///       ^
   ///
@@ -1155,7 +1155,7 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   /// Matches the first line of a DDC error message. DDC prints errors to
   /// stdout that look like:
   ///
-  ///     org-dartlang-app:/tests/language_2/some_test.dart:7:21: Error: Some message.
+  ///     org-dartlang-app:/tests/language/some_test.dart:7:21: Error: Some message.
   ///     Try fixing the code to be less bad.
   ///       var _ = <int>[if (1) 2];
   ///                    ^
@@ -1462,7 +1462,7 @@ class FastaCommandOutput extends CompilationCommandOutput
   /// Matches the first line of a Fasta error, warning, or context message.
   /// Fasta prints to stdout like:
   ///
-  ///     tests/language_2/some_test.dart:7:21: Error: Some message.
+  ///     tests/language/some_test.dart:7:21: Error: Some message.
   ///     Try fixing the code to be less bad.
   ///       var _ = <int>[if (1) 2];
   ///                    ^

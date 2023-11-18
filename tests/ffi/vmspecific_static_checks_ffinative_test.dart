@@ -2,9 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// NOTE: There is no `test/ffi_2/...` version of this test since annotations
-// with type arguments isn't supported in that version of Dart.
-
 import 'dart:ffi';
 import 'dart:nativewrappers';
 

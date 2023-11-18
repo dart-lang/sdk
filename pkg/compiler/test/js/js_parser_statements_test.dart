@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show json;
 import 'package:expect/expect.dart';
 import 'package:compiler/src/js/js.dart' as jsAst;
 import 'package:compiler/src/js/js.dart' show js;
@@ -9,7 +10,12 @@ import 'package:compiler/src/js/js.dart' show js;
 testStatement(String statement, arguments, String expect) {
   jsAst.Node node = js.statement(statement, arguments);
   String jsText = jsAst.prettyPrint(node, allowVariableMinification: false);
-  Expect.stringEquals(expect.trim(), jsText.trim());
+  Expect.stringEquals(
+      expect.trim(),
+      jsText.trim(),
+      '\n'
+      'expected: ${json.encode(expect.trim())}\n'
+      'actual:   ${json.encode(jsText.trim())}\n');
 }
 
 testError(String statement, arguments, [String expect = ""]) {
@@ -420,8 +426,10 @@ a = {1: 1,
           '  return name4_5.name4_5;\n'
           '};');
 
+  testStatement('label: while (a) label2: break label;', [],
+      'label:\n  while (a)\n    label2:\n      break label;\n');
   testStatement('label: while (a) { label2: break label;}', [],
-      'label:\n  while (a)\n    label2:\n      break label;\n  ');
+      'label:\n  while (a) {\n    label2:\n      break label;\n  }');
 
   testStatement('var # = 3', ['x'], 'var x = 3;');
   testStatement(
@@ -438,38 +446,29 @@ a = {1: 1,
   testStatement('try {} catch (#a) {}', {"a": jsAst.VariableDeclaration('x')},
       'try {\n} catch (x) {\n}');
 
-  // Test that braces around a single-statement block are removed by printer.
-  testStatement('while (a) {foo()}', [], 'while (a)\n  foo();');
-  testStatement('if (a) {foo();}', [], 'if (a)\n  foo();');
+  // Test that braces around a single-statement block are NOT removed by
+  // printer.
+  testStatement('while (a) {foo()}', [], 'while (a) {\n  foo();\n}');
+  testStatement('if (a) {foo();}', [], 'if (a) {\n  foo();\n}');
   testStatement('if (a) {foo();} else {foo2();}', [],
-      'if (a)\n  foo();\nelse\n  foo2();');
+      'if (a) {\n  foo();\n} else {\n  foo2();\n}');
+  testStatement('if (a) foo(); else {foo2();}', [],
+      'if (a)\n  foo();\nelse {\n  foo2();\n}');
+  testStatement('do {foo();} while(a);', [], 'do {\n  foo();\n} while (a);');
+  testStatement('label: {foo();}', [], 'label: {\n  foo();\n}');
   testStatement(
-      'if (a) foo(); else {foo2();}', [], 'if (a)\n  foo();\nelse\n  foo2();');
-  testStatement('do {foo();} while(a);', [], 'do\n  foo();\nwhile (a);');
-  testStatement('label: {foo();}', [], 'label:\n  foo();');
-  testStatement(
-      'for (var key in a) {foo();}', [], 'for (var key in a)\n  foo();');
-  // `label: break label;` gives problems on IE. Test that it is avoided.
-  testStatement('label: {break label;}', [], ';');
-  // This works on IE:
-  testStatement('label: {label2: {break label;}}', [],
-      'label:\n  label2:\n    break label;\n');
+      'for (var key in a) {foo();}', [], 'for (var key in a) {\n  foo();\n}');
+
   // Test dangling else:
-  testStatement('if (a) {if (b) {foo1();}} else {foo2();}', [], """
+  testStatement('if (a) #; else foo2();', [js.statement('if (b) foo1()')], """
 if (a) {
   if (b)
     foo1();
 } else
   foo2();""");
-  testStatement('if (a) {if (b) {foo1();} else {foo2();}}', [], """
-if (a)
-  if (b)
-    foo1();
-  else
-    foo2();
-""");
-  testStatement(
-      'if (a) {if (b) {foo1();} else {foo2();}} else {foo3();}', [], """
+
+  testStatement('if (a) #; else foo3();',
+      [js.statement('if (b) foo1(); else foo2();')], """
 if (a)
   if (b)
     foo1();
@@ -477,11 +476,49 @@ if (a)
     foo2();
 else
   foo3();""");
-  testStatement('if (a) {while (true) if (b) {foo1();}} else {foo2();}', [], """
+
+  testStatement('if (a) {if (b) foo1(); else foo2();}', [], """
+if (a) {
+  if (b)
+    foo1();
+  else
+    foo2();
+}""");
+
+  testStatement('if (a) if (b) foo1(); else foo2(); else foo3();', [], """
+if (a)
+  if (b)
+    foo1();
+  else
+    foo2();
+else
+  foo3();""");
+
+  testStatement('if (a) while (true) #; else foo2();',
+      [js.statement('if (b) foo1()')], """
 if (a) {
   while (true)
     if (b)
       foo1();
+} else
+  foo2();""");
+
+  testStatement(
+      'if (a) L: #; else foo2();', [js.statement('if (b) foo1()')], """
+if (a) {
+  L:
+    if (b)
+      foo1();
+} else
+  foo2();""");
+
+  testStatement('if (a) L: while (true) #; else foo2();',
+      [js.statement('if (b) foo1()')], """
+if (a) {
+  L:
+    while (true)
+      if (b)
+        foo1();
 } else
   foo2();""");
 }

@@ -16,7 +16,7 @@ main() {
 
 test(List<String> options) async {
   DiagnosticCollector collector = DiagnosticCollector();
-  String fileName = 'sdk/tests/web_2/native/main.dart';
+  String fileName = 'sdk/tests/web/native/main.dart';
   Uri entryPoint = Uri.parse('memory:$fileName');
   await runCompiler(
       entryPoint: entryPoint,

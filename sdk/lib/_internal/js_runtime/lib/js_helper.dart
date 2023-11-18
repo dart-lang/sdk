@@ -3271,7 +3271,7 @@ void applyExtension(name, nativeObject) {}
 // This is currently a no-op in dart2js, but used for native tests.
 void applyTestExtensions(List<String> names) {}
 
-// See tests/web_2/platform_environment_variable1_test.dart
+// See tests/web/platform_environment_variable1_test.dart
 const String testPlatformEnvironmentVariableValue = String.fromEnvironment(
     'dart2js.test.platform.environment.variable',
     defaultValue: 'not-specified');

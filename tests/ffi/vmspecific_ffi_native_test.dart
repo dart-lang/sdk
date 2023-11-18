@@ -4,9 +4,6 @@
 //
 // SharedObjects=ffi_test_functions
 
-// NOTE: There is no `test/ffi_2/...` version of this test since annotations
-// with type arguments isn't supported in that version of Dart.
-
 import 'dart:ffi';
 import 'dart:nativewrappers';
 

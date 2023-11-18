@@ -1110,7 +1110,7 @@ class AnalyzeLibraryTestSuite extends StandardTestSuite {
 
   AnalyzeLibraryTestSuite(TestConfiguration configuration)
       : super(configuration, 'analyze_library', _libraryPath(configuration),
-            ['tests/lib_2/analyzer/analyze_library.status']);
+            ['tests/lib/analyzer/analyze_library.status']);
 
   @override
   List<String> additionalOptions(Path? filePath, {bool? showSdkWarnings}) =>

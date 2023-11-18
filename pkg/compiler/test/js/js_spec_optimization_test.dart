@@ -89,7 +89,7 @@ main() {
   runTests() async {
     check(String test) async {
       var checker = checkerForAbsentPresent(test);
-      String main = 'sdk/tests/web_2/native/main.dart';
+      String main = 'sdk/tests/web/native/main.dart';
       Uri entryPoint = Uri.parse('memory:$main');
       var result = await runCompiler(
           entryPoint: entryPoint, memorySourceFiles: {main: test});
