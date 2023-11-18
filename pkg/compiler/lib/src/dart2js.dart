@@ -751,17 +751,15 @@ Future<api.CompilationResult> compile(List<String> argv,
       case Dart2JSStage.cfe:
       case Dart2JSStage.allFromDill:
       case Dart2JSStage.cfeFromDill:
-      case Dart2JSStage.closedWorld:
         final sourceCharCount =
             _formatCharacterCount(inputProvider.sourceBytesFromDill);
         inputName = 'input bytes ($sourceCharCount characters source)';
         inputSize = inputProvider.bytesRead;
         summary = 'Dart file $input ';
         break;
+      case Dart2JSStage.closedWorld:
       case Dart2JSStage.deferredLoadIds:
-        final sourceCharCount =
-            _formatCharacterCount(inputProvider.sourceBytesFromDill);
-        inputName = 'input bytes ($sourceCharCount characters source)';
+        inputName = 'input bytes';
         inputSize = inputProvider.bytesRead;
         summary = 'Dart file $input ';
         break;
@@ -833,12 +831,11 @@ Future<api.CompilationResult> compile(List<String> argv,
         processName = 'Serialized';
         outputName = 'bytes data';
         outputSize = outputProvider.totalDataWritten;
-        String output = fe.relativizeUri(Uri.base, out!, Platform.isWindows);
         String dataOutput = fe.relativizeUri(
             Uri.base,
             compilerOptions.dataOutputUriForStage(compilerOptions.stage),
             Platform.isWindows);
-        summary += 'serialized to dill and data: ${output} and ${dataOutput}.';
+        summary += 'serialized to data: ${dataOutput}.';
         break;
       case Dart2JSStage.deferredLoadIds:
         processName = 'Serialized';
