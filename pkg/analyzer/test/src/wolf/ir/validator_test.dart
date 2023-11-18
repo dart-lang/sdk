@@ -78,6 +78,25 @@ class ValidatorTest {
     _checkInvalidMessageAt('bad').equals('Negative branch nesting');
   }
 
+  test_call_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..call(ir.encodeCallDescriptor('f'), ir.encodeArgumentNames([null, null]))
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end());
+    _validate();
+  }
+
+  test_call_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('bad')
+      ..call(ir.encodeCallDescriptor('f'), ir.encodeArgumentNames([null, null]))
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
   test_drop_ok() {
     _analyze((ir) => ir
       ..ordinaryFunction(parameterCount: 2)
@@ -326,6 +345,55 @@ class ValidatorTest {
       ..end()
       ..end());
     _checkInvalidMessageAt('bad').equals('Local variable stack underflow');
+  }
+
+  test_shuffle_negativePopCount() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('bad')
+      ..shuffle(-1, ir.encodeStackIndices([]))
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Negative pop count');
+  }
+
+  test_shuffle_negativeStackIndex() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..label('bad')
+      ..shuffle(2, ir.encodeStackIndices([-1]))
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Negative stack index');
+  }
+
+  test_shuffle_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..shuffle(2, ir.encodeStackIndices([0, 1, 0, 1]))
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(4)))
+      ..drop()
+      ..drop()
+      ..drop()
+      ..end());
+    _validate();
+  }
+
+  test_shuffle_stackIndexTooLarge() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..label('bad')
+      ..shuffle(2, ir.encodeStackIndices([2]))
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Stack index too large');
+  }
+
+  test_shuffle_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('bad')
+      ..shuffle(2, ir.encodeStackIndices([0, 1, 0, 1]))
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
 
   test_stack_push() {

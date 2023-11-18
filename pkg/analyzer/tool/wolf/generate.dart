@@ -69,9 +69,12 @@ class _Instructions {
 
   _Instructions() {
     // Encodings
+    var callDescriptor = encoding('CallDescriptorRef');
+    var argumentNames = encoding('ArgumentNamesRef');
     var functionFlags =
         encoding('FunctionFlags', fieldName: '_flags', constructorName: '_');
     var literal = encoding('LiteralRef');
+    var stackIndices = encoding('StackIndicesRef');
     var type = encoding('TypeRef');
     const uint = _TrivialEncoding('int');
 
@@ -85,10 +88,15 @@ class _Instructions {
     // Stack manipulation
     _addInstruction('drop', []);
     _addInstruction('dup', []);
+    _addInstruction(
+        'shuffle', [uint('popCount'), stackIndices('stackIndices')]);
     // Flow control
     _addInstruction('function', [type('type'), functionFlags('flags')]);
     _addInstruction('end', []);
     _addInstruction('br', [uint('nesting')]);
+    // Invocations and tearoffs
+    _addInstruction('call',
+        [(callDescriptor('callDescriptor')), (argumentNames('argumentNames'))]);
   }
 
   _NontrivialEncoding encoding(String type,

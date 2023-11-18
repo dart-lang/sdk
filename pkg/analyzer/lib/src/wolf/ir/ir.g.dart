@@ -22,6 +22,12 @@ mixin _RawIRWriterMixin implements _RawIRWriterMixinInterface {
     _params1.add(0);
   }
 
+  void call(CallDescriptorRef callDescriptor, ArgumentNamesRef argumentNames) {
+    _opcodes.add(Opcode.call);
+    _params0.add(callDescriptor.index);
+    _params1.add(argumentNames.index);
+  }
+
   void drop() {
     _opcodes.add(Opcode.drop);
     _params0.add(0);
@@ -64,6 +70,12 @@ mixin _RawIRWriterMixin implements _RawIRWriterMixinInterface {
     _params1.add(0);
   }
 
+  void shuffle(int popCount, StackIndicesRef stackIndices) {
+    _opcodes.add(Opcode.shuffle);
+    _params0.add(popCount);
+    _params1.add(stackIndices.index);
+  }
+
   void writeLocal(int localIndex) {
     _opcodes.add(Opcode.writeLocal);
     _params0.add(localIndex);
@@ -95,6 +107,9 @@ mixin IRToStringMixin implements RawIRContainerInterface {
       case Opcode.dup:
         return 'dup';
 
+      case Opcode.shuffle:
+        return 'shuffle(${Opcode.shuffle.decodePopCount(this, address)}, ${stackIndicesRefToString(Opcode.shuffle.decodeStackIndices(this, address))})';
+
       case Opcode.function:
         return 'function(${typeRefToString(Opcode.function.decodeType(this, address))}, ${functionFlagsToString(Opcode.function.decodeFlags(this, address))})';
 
@@ -103,6 +118,9 @@ mixin IRToStringMixin implements RawIRContainerInterface {
 
       case Opcode.br:
         return 'br(${Opcode.br.decodeNesting(this, address)})';
+
+      case Opcode.call:
+        return 'call(${callDescriptorRefToString(Opcode.call.decodeCallDescriptor(this, address))}, ${argumentNamesRefToString(Opcode.call.decodeArgumentNames(this, address))})';
       default:
         return '???';
     }
@@ -143,6 +161,20 @@ class _ParameterShape3 extends Opcode {
 class _ParameterShape4 extends Opcode {
   const _ParameterShape4._(super.index) : super._();
 
+  int decodePopCount(RawIRContainerInterface ir, int address) {
+    assert(ir.opcodeAt(address).index == index);
+    return ir._params0[address];
+  }
+
+  StackIndicesRef decodeStackIndices(RawIRContainerInterface ir, int address) {
+    assert(ir.opcodeAt(address).index == index);
+    return StackIndicesRef(ir._params1[address]);
+  }
+}
+
+class _ParameterShape5 extends Opcode {
+  const _ParameterShape5._(super.index) : super._();
+
   TypeRef decodeType(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
     return TypeRef(ir._params0[address]);
@@ -154,12 +186,28 @@ class _ParameterShape4 extends Opcode {
   }
 }
 
-class _ParameterShape5 extends Opcode {
-  const _ParameterShape5._(super.index) : super._();
+class _ParameterShape6 extends Opcode {
+  const _ParameterShape6._(super.index) : super._();
 
   int decodeNesting(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
     return ir._params0[address];
+  }
+}
+
+class _ParameterShape7 extends Opcode {
+  const _ParameterShape7._(super.index) : super._();
+
+  CallDescriptorRef decodeCallDescriptor(
+      RawIRContainerInterface ir, int address) {
+    assert(ir.opcodeAt(address).index == index);
+    return CallDescriptorRef(ir._params0[address]);
+  }
+
+  ArgumentNamesRef decodeArgumentNames(
+      RawIRContainerInterface ir, int address) {
+    assert(ir.opcodeAt(address).index == index);
+    return ArgumentNamesRef(ir._params1[address]);
   }
 }
 
@@ -177,9 +225,11 @@ class Opcode {
   static const literal = _ParameterShape2._(4);
   static const drop = _ParameterShape3._(5);
   static const dup = _ParameterShape3._(6);
-  static const function = _ParameterShape4._(7);
-  static const end = _ParameterShape3._(8);
-  static const br = _ParameterShape5._(9);
+  static const shuffle = _ParameterShape4._(7);
+  static const function = _ParameterShape5._(8);
+  static const end = _ParameterShape3._(9);
+  static const br = _ParameterShape6._(10);
+  static const call = _ParameterShape7._(11);
 
   String describe() => opcodeNameTable[index];
 
@@ -191,8 +241,10 @@ class Opcode {
     "literal",
     "drop",
     "dup",
+    "shuffle",
     "function",
     "end",
     "br",
+    "call",
   ];
 }

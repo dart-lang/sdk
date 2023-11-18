@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
+import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
 import 'package:analyzer/src/wolf/ir/ir.dart';
 
@@ -71,12 +72,32 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   final AstToIREventListener eventListener;
   final ir = CodedIRWriter();
   final Map<VariableElement, int> locals = {};
+  late final oneArgument = ir.encodeArgumentNames([null]);
+  late final twoArguments = ir.encodeArgumentNames([null, null]);
   late final null_ = ir.encodeLiteral(null);
+  late final stackIndices101 = ir.encodeStackIndices(const [1, 0, 1]);
 
   _AstToIRVisitor(
       {required this.typeSystem,
       required this.typeProvider,
       required this.eventListener});
+
+  /// If [node] is used as the target of a [CompoundAssignmentExpression],
+  /// returns the [CompoundAssignmentExpression].
+  CompoundAssignmentExpression? assignmentTargeting(AstNode node) {
+    while (true) {
+      var parent = node.parent!;
+      switch (parent) {
+        case PrefixedIdentifier() when identical(node, parent.identifier):
+        case PropertyAccess() when identical(node, parent.propertyName):
+          node = parent;
+        case AssignmentExpression() when identical(node, parent.leftHandSide):
+          return parent;
+        case dynamic(:var runtimeType):
+          throw UnimplementedError('TODO(paulberry): $runtimeType');
+      }
+    }
+  }
 
   /// Visits L-value [node] and returns the templates for reading/writing it.
   _LValueTemplates dispatchLValue(Expression node) => node.accept(this)!;
@@ -96,6 +117,22 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     var result = CodedIRContainer(ir);
     eventListener.onFinished(result);
     return result;
+  }
+
+  void instanceGet(PropertyAccessorElement? staticElement, String name) {
+    if (staticElement == null) {
+      throw UnimplementedError('TODO(paulberry): dynamic instance get');
+    }
+    ir.call(ir.encodeCallDescriptor(InstanceGetDescriptor(staticElement)),
+        oneArgument);
+  }
+
+  void instanceSet(PropertyAccessorElement? staticElement, String name) {
+    if (staticElement == null) {
+      throw UnimplementedError('TODO(paulberry): dynamic instance set');
+    }
+    ir.call(ir.encodeCallDescriptor(InstanceSetDescriptor(staticElement)),
+        twoArguments);
   }
 
   Null this_() {
@@ -211,6 +248,37 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   }
 
   @override
+  Null visitParenthesizedExpression(ParenthesizedExpression node) {
+    dispatchNode(node.expression);
+    // Stack: expression
+  }
+
+  @override
+  _LValueTemplates? visitPrefixedIdentifier(PrefixedIdentifier node) {
+    var prefix = node.prefix;
+    var prefixElement = prefix.staticElement;
+    switch (prefixElement) {
+      case ParameterElement():
+      case LocalVariableElement():
+        dispatchNode(prefix);
+        // Stack: prefix
+        return _PropertyAccessTemplates(node.identifier);
+      case dynamic(:var runtimeType):
+        throw UnimplementedError(
+            'TODO(paulberry): $runtimeType: $prefixElement');
+    }
+  }
+
+  @override
+  _LValueTemplates visitPropertyAccess(PropertyAccess node) {
+    // TODO(paulberry): handle null shorting
+    // TODO(paulberry): handle cascades
+    dispatchNode(node.target!);
+    // Stack: target
+    return _PropertyAccessTemplates(node.propertyName);
+  }
+
+  @override
   Null visitReturnStatement(ReturnStatement node) {
     switch (node.expression) {
       case null:
@@ -229,10 +297,20 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   @override
   _LValueTemplates visitSimpleIdentifier(SimpleIdentifier node) {
     var staticElement = node.staticElement;
+    if (staticElement == null) {
+      if (assignmentTargeting(node) case var assignment?) {
+        staticElement = assignment.readElement ?? assignment.writeElement;
+      }
+    }
     switch (staticElement) {
       case ParameterElement():
       case LocalVariableElement():
         return _LocalTemplates(locals[staticElement]!);
+      case PropertyAccessorElement(isStatic: false):
+        this_();
+        // Stack: this
+        return _PropertyAccessTemplates(node);
+      // Stack: value
       case dynamic(:var runtimeType):
         throw UnimplementedError(
             'TODO(paulberry): $runtimeType: $staticElement');
@@ -333,4 +411,48 @@ sealed class _LValueTemplates {
   ///
   /// On exit, the stack contents will be the value that was written.
   void write(_AstToIRVisitor visitor);
+}
+
+/// Instruction templates for converting a property access to IR.
+///
+// TODO(paulberry): handle null shorting
+class _PropertyAccessTemplates extends _LValueTemplates {
+  final SimpleIdentifier property;
+
+  /// Creates a property access template.
+  ///
+  /// Caller is responsible for ensuring that the target of the property access
+  /// is pushed to the stack.
+  _PropertyAccessTemplates(this.property);
+
+  void read(_AstToIRVisitor visitor) {
+    // Stack: target
+    visitor.instanceGet(
+        (property.staticElement ??
+                visitor.assignmentTargeting(property)?.readElement)
+            as PropertyAccessorElement?,
+        property.name);
+    // Stack: value
+  }
+
+  @override
+  void simpleRead(_AstToIRVisitor visitor) {
+    // Stack: target
+    read(visitor);
+    // Stack: value
+  }
+
+  @override
+  void write(_AstToIRVisitor visitor) {
+    // Stack: target value
+    visitor.ir.shuffle(2, visitor.stackIndices101);
+    // Stack: value target value
+    visitor.instanceSet(
+        visitor.assignmentTargeting(property)!.writeElement
+            as PropertyAccessorElement?,
+        property.name);
+    // Stack: value returnValue
+    visitor.ir.drop();
+    // Stack: value
+  }
 }

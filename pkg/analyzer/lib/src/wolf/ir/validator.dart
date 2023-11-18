@@ -194,6 +194,10 @@ class _Validator {
         case Opcode.br:
           var nesting = Opcode.br.decodeNesting(ir, address);
           branch(nesting, conditional: false);
+        case Opcode.call:
+          var argumentNames = Opcode.call.decodeArgumentNames(ir, address);
+          popValues(ir.decodeArgumentNames(argumentNames).length);
+          pushValues(1);
         case Opcode.drop:
           popValues(1);
         case Opcode.dup:
@@ -239,6 +243,17 @@ class _Validator {
           check(newLocalCount >= localCountFence,
               'Local variable stack underflow');
           localCount = newLocalCount;
+        case Opcode.shuffle:
+          var popCount = Opcode.shuffle.decodePopCount(ir, address);
+          var stackIndices = ir.decodeStackIndices(
+              Opcode.shuffle.decodeStackIndices(ir, address));
+          check(popCount >= 0, 'Negative pop count');
+          for (var stackIndex in stackIndices) {
+            check(stackIndex >= 0, 'Negative stack index');
+            check(stackIndex < popCount, 'Stack index too large');
+          }
+          popValues(popCount);
+          pushValues(stackIndices.length);
         case Opcode.writeLocal:
           var localIndex = Opcode.writeLocal.decodeLocalIndex(ir, address);
           check(localIndex >= 0, 'Negative local index');
