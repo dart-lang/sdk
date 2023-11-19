@@ -407,7 +407,6 @@ class LibraryMacroApplier {
         case macro.DeclarationDiagnosticTarget macroTarget:
           final element = (macroTarget.declaration as HasElement).element;
           target = ElementMacroDiagnosticTarget(element: element);
-          break;
         default:
           target = ApplicationMacroDiagnosticTarget(
             annotationIndex: application.annotationIndex,

@@ -125,7 +125,6 @@ class _LintConfig implements LintConfig {
             addAsListOrString(v['include'], fileIncludes);
             addAsListOrString(v['exclude'], fileExcludes);
           }
-          break;
 
         case 'rules':
 
@@ -165,7 +164,6 @@ class _LintConfig implements LintConfig {
               }
             });
           }
-          break;
       }
     });
   }
