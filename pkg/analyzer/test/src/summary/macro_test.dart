@@ -2368,7 +2368,7 @@ library
       class A @35
         macroDiagnostics
           MacroDiagnostic
-            message
+            message: MacroDiagnosticMessage
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
             severity: error
@@ -2400,8 +2400,8 @@ library
       class A @62
         macroDiagnostics
           MacroDiagnostic
-            message
-Reported message
+            message: MacroDiagnosticMessage
+              message: Reported message
               target: ElementMacroDiagnosticTarget
                 element: self::@class::A
             severity: warning
@@ -2435,8 +2435,8 @@ library
           @70
             macroDiagnostics
               MacroDiagnostic
-                message
-Reported message
+                message: MacroDiagnosticMessage
+                  message: Reported message
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@constructor::new
                 severity: warning
@@ -2474,8 +2474,8 @@ library
             shouldUseTypeForInitializerInference: true
             macroDiagnostics
               MacroDiagnostic
-                message
-Reported message
+                message: MacroDiagnosticMessage
+                  message: Reported message
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@field::foo
                 severity: warning
@@ -2515,11 +2515,61 @@ library
             returnType: void
             macroDiagnostics
               MacroDiagnostic
-                message
-Reported message
+                message: MacroDiagnosticMessage
+                  message: Reported message
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@method::foo
                 severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_contextMessages() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportWithContextMessages()
+class A {
+  void foo() {}
+  void bar() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @62
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementMacroDiagnosticTarget
+                element: self::@class::A
+            contextMessages
+              MacroDiagnosticMessage
+                message: See foo
+                target: ElementMacroDiagnosticTarget
+                  element: self::@class::A::@method::foo
+              MacroDiagnosticMessage
+                message: See bar
+                target: ElementMacroDiagnosticTarget
+                  element: self::@class::A::@method::bar
+            severity: warning
+        methods
+          foo @73
+            returnType: void
+          bar @89
+            returnType: void
 ''');
   }
 
@@ -2548,8 +2598,8 @@ library
       class A @61
         macroDiagnostics
           MacroDiagnostic
-            message
-Reported message
+            message: MacroDiagnosticMessage
+              message: Reported message
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
             severity: error
@@ -2581,8 +2631,8 @@ library
       class A @60
         macroDiagnostics
           MacroDiagnostic
-            message
-Reported message
+            message: MacroDiagnosticMessage
+              message: Reported message
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
             severity: info
@@ -2614,8 +2664,8 @@ library
       class A @63
         macroDiagnostics
           MacroDiagnostic
-            message
-Reported message
+            message: MacroDiagnosticMessage
+              message: Reported message
               target: ApplicationMacroDiagnosticTarget
                 annotationIndex: 0
             severity: warning
@@ -2647,7 +2697,8 @@ library
       class A @68
         macroDiagnostics
           MacroDiagnostic
-            message
+            message: MacroDiagnosticMessage
+              message:
 Unhandled error: My declarations phase
 Stack trace: <cut>
               target: ApplicationMacroDiagnosticTarget
@@ -2683,7 +2734,8 @@ library
           @76
             macroDiagnostics
               MacroDiagnostic
-                message
+                message: MacroDiagnosticMessage
+                  message:
 Unhandled error: My declarations phase
 Stack trace: <cut>
                   target: ApplicationMacroDiagnosticTarget
@@ -2723,7 +2775,8 @@ library
             shouldUseTypeForInitializerInference: true
             macroDiagnostics
               MacroDiagnostic
-                message
+                message: MacroDiagnosticMessage
+                  message:
 Unhandled error: My declarations phase
 Stack trace: <cut>
                   target: ApplicationMacroDiagnosticTarget
@@ -2770,7 +2823,8 @@ library
             returnType: void
             macroDiagnostics
               MacroDiagnostic
-                message
+                message: MacroDiagnosticMessage
+                  message:
 Unhandled error: My declarations phase
 Stack trace: <cut>
                   target: ApplicationMacroDiagnosticTarget
@@ -2804,7 +2858,8 @@ library
       class A @67
         macroDiagnostics
           MacroDiagnostic
-            message
+            message: MacroDiagnosticMessage
+              message:
 Unhandled error: My definitions phase
 Stack trace: <cut>
               target: ApplicationMacroDiagnosticTarget
@@ -2838,7 +2893,8 @@ library
       class A @61
         macroDiagnostics
           MacroDiagnostic
-            message
+            message: MacroDiagnosticMessage
+              message:
 Unhandled error: My types phase
 Stack trace: <cut>
               target: ApplicationMacroDiagnosticTarget
