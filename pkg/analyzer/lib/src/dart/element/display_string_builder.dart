@@ -9,7 +9,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 
 /// A class that builds a "display string" for [Element]s and [DartType]s.
 class ElementDisplayStringBuilder {
@@ -529,8 +528,6 @@ class ElementDisplayStringBuilder {
       var newTypeParameter = TypeParameterElementImpl(name, -1);
       newTypeParameter.bound = typeParameter.bound;
       newTypeParameters.add(newTypeParameter);
-      ElementTypeProvider.current
-          .freshTypeParameterCreated(newTypeParameter, typeParameter);
     }
 
     return replaceTypeParameters(type as FunctionTypeImpl, newTypeParameters);

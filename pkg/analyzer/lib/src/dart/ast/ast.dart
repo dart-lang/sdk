@@ -7610,18 +7610,6 @@ sealed class FormalParameterImpl extends AstNodeImpl
   @override
   ParameterElementImpl? declaredElement;
 
-  // TODO(scheglov): I was not able to update 'nnbd_migration' any better.
-  SimpleIdentifier? get identifierForMigration {
-    final token = name;
-    if (token != null) {
-      final result = SimpleIdentifierImpl(token);
-      result.staticElement = declaredElement;
-      _becomeParentOf(result);
-      return result;
-    }
-    return null;
-  }
-
   @override
   bool get isNamed => kind.isNamed;
 

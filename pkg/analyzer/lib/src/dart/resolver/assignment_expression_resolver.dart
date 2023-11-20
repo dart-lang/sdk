@@ -79,8 +79,6 @@ class AssignmentExpressionResolver {
       writeElement,
       atDynamicTarget: leftResolution.atDynamicTarget,
     );
-    _resolver.migrationResolutionHooks
-        ?.setCompoundAssignmentExpressionTypes(node);
 
     // TODO(scheglov): Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(left);

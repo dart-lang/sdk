@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
@@ -56,8 +55,6 @@ class MethodInvocationResolver with ScopeHelpers {
 
   final InvocationInferenceHelper _inferenceHelper;
 
-  final MigratableAstInfoProvider _migratableAstInfoProvider;
-
   /// The invocation being resolved.
   MethodInvocationImpl? _invocation;
 
@@ -65,8 +62,7 @@ class MethodInvocationResolver with ScopeHelpers {
   Name? _currentName;
 
   MethodInvocationResolver(
-    this._resolver,
-    this._migratableAstInfoProvider, {
+    this._resolver, {
     required InvocationInferenceHelper inferenceHelper,
   })  : _typeType = _resolver.typeProvider.typeType,
         _inheritance = _resolver.inheritance,
@@ -169,8 +165,7 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node) &&
-        _typeSystem.isNonNullableByDefault) {
+    if (node.isNullAware && _typeSystem.isNonNullableByDefault) {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
 

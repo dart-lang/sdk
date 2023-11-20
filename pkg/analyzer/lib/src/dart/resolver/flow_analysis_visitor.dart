@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
-import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
 /// Data gathered by flow analysis, retained for testing purposes.
@@ -368,29 +367,6 @@ class FlowAnalysisHelper {
       }
     }
     return false;
-  }
-}
-
-/// Override of [FlowAnalysisHelper] that invokes methods of
-/// [MigrationResolutionHooks] when appropriate.
-class FlowAnalysisHelperForMigration extends FlowAnalysisHelper {
-  final MigrationResolutionHooks migrationResolutionHooks;
-
-  FlowAnalysisHelperForMigration(TypeSystemImpl typeSystem,
-      this.migrationResolutionHooks, FeatureSet featureSet)
-      : super(typeSystem, false, featureSet);
-
-  @override
-  void topLevelDeclaration_enter(AstNode node, FormalParameterList? parameters,
-      {void Function(AstVisitor<Object?> visitor)? visit}) {
-    super.topLevelDeclaration_enter(node, parameters, visit: visit);
-    migrationResolutionHooks.setFlowAnalysis(flow);
-  }
-
-  @override
-  void topLevelDeclaration_exit() {
-    super.topLevelDeclaration_exit();
-    migrationResolutionHooks.setFlowAnalysis(null);
   }
 }
 

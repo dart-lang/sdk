@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -49,15 +48,12 @@ class TypedLiteralResolver {
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final ErrorReporter _errorReporter;
-  final MigratableAstInfoProvider _migratableAstInfoProvider;
 
   final bool _strictInference;
   final bool _isNonNullableByDefault;
 
   factory TypedLiteralResolver(ResolverVisitor resolver, FeatureSet featureSet,
-      TypeSystemImpl typeSystem, TypeProviderImpl typeProvider,
-      {MigratableAstInfoProvider migratableAstInfoProvider =
-          const MigratableAstInfoProvider()}) {
+      TypeSystemImpl typeSystem, TypeProviderImpl typeProvider) {
     var library = resolver.definingLibrary;
     var analysisOptions = library.context.analysisOptions;
     var analysisOptionsImpl = analysisOptions as AnalysisOptionsImpl;
@@ -67,18 +63,11 @@ class TypedLiteralResolver {
         typeProvider,
         resolver.errorReporter,
         analysisOptionsImpl.strictInference,
-        featureSet.isEnabled(Feature.non_nullable),
-        migratableAstInfoProvider);
+        featureSet.isEnabled(Feature.non_nullable));
   }
 
-  TypedLiteralResolver._(
-      this._resolver,
-      this._typeSystem,
-      this._typeProvider,
-      this._errorReporter,
-      this._strictInference,
-      this._isNonNullableByDefault,
-      this._migratableAstInfoProvider);
+  TypedLiteralResolver._(this._resolver, this._typeSystem, this._typeProvider,
+      this._errorReporter, this._strictInference, this._isNonNullableByDefault);
 
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
@@ -254,7 +243,7 @@ class TypedLiteralResolver {
     _LiteralResolution typeArgumentsResolution =
         _fromTypeArguments(literal.typeArguments?.arguments);
     _LiteralResolution contextResolution = _fromContextType(contextType);
-    _LeafElements elementCounts = _LeafElements(_getSetOrMapElements(literal));
+    _LeafElements elementCounts = _LeafElements(literal.elements);
     _LiteralResolution elementResolution = elementCounts.resolution;
 
     List<_LiteralResolution> unambiguousResolutions = [];
@@ -295,7 +284,7 @@ class TypedLiteralResolver {
           : unambiguousResolutions[0];
     } else if (unambiguousResolutions.length == 1) {
       return unambiguousResolutions[0];
-    } else if (_getSetOrMapElements(literal).isEmpty) {
+    } else if (literal.elements.isEmpty) {
       return _LiteralResolution(_LiteralResolutionKind.map,
           _typeProvider.mapType(_dynamicType, _dynamicType));
     }
@@ -356,12 +345,6 @@ class TypedLiteralResolver {
     }
     return _LiteralResolution(_LiteralResolutionKind.ambiguous, null);
   }
-
-  List<CollectionElement> _getListElements(ListLiteral node) =>
-      _migratableAstInfoProvider.getListElements(node);
-
-  List<CollectionElement> _getSetOrMapElements(SetOrMapLiteral node) =>
-      _migratableAstInfoProvider.getSetOrMapElements(node);
 
   _InferredCollectionElementTypeInformation _inferCollectionElementType(
       CollectionElement? element) {
@@ -481,7 +464,7 @@ class TypedLiteralResolver {
 
     // Also use upwards information to infer the type.
     List<DartType> elementTypes =
-        _getListElements(node).map(_computeElementType).toList();
+        node.elements.map(_computeElementType).toList();
     var syntheticParameter = ParameterElementImpl.synthetic(
         'element', genericElementType, ParameterKind.POSITIONAL);
     List<ParameterElement> parameters =
@@ -522,7 +505,7 @@ class TypedLiteralResolver {
     var literalImpl = literal as SetOrMapLiteralImpl;
     var contextType = literalImpl.contextType;
     literalImpl.contextType = null; // Not needed anymore.
-    List<CollectionElement> elements = _getSetOrMapElements(literal);
+    List<CollectionElement> elements = literal.elements;
     List<_InferredCollectionElementTypeInformation> inferredTypes = [];
     bool canBeAMap = true;
     bool mustBeAMap = false;
@@ -690,7 +673,7 @@ class TypedLiteralResolver {
       node.becomeSet();
     }
     if (_strictInference &&
-        _getSetOrMapElements(node).isEmpty &&
+        node.elements.isEmpty &&
         contextType is UnknownInferredType) {
       // We cannot infer the type of a collection literal with no elements, and
       // no context type. If there are any elements, inference has not failed,
