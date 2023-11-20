@@ -19,6 +19,95 @@ class ConvertClassToEnumTest extends AssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.CONVERT_CLASS_TO_ENUM;
 
+  Future<void> test_documentationComments_mix() async {
+    await resolveTestCode('''
+class E {
+  /// AAA
+  static const E a = E._('a');
+  static const E b = E._('b');
+
+  /// CCC
+  static const E c = E._('c');
+
+  final String name;
+
+  const E._(this.name);
+}
+''');
+    await assertHasAssistAt('E {', '''
+enum E {
+  /// AAA
+  a._('a'),
+  b._('b'),
+
+  /// CCC
+  c._('c');
+
+  final String name;
+
+  const E._(this.name);
+}
+''');
+  }
+
+  Future<void> test_documentationComments_multiple() async {
+    await resolveTestCode('''
+class E {
+  /// AAA
+  static const E a = E._('a');
+
+  /// BBB
+  /// BBB
+  static const E b = E._('b');
+
+  /// Name.
+  final String name;
+
+  const E._(this.name);
+}
+''');
+    await assertHasAssistAt('E {', '''
+enum E {
+  /// AAA
+  a._('a'),
+
+  /// BBB
+  /// BBB
+  b._('b');
+
+  /// Name.
+  final String name;
+
+  const E._(this.name);
+}
+''');
+  }
+
+  Future<void> test_documentationComments_single() async {
+    await resolveTestCode('''
+class E {
+  /// AAA
+  static const E a = E._('a');
+
+  /// Name.
+  final String name;
+
+  const E._(this.name);
+}
+''');
+    await assertHasAssistAt('E {', '''
+enum E {
+  /// AAA
+  a._('a');
+
+  /// Name.
+  final String name;
+
+  const E._(this.name);
+}
+''');
+  }
+
   Future<void> test_extends_object_privateClass() async {
     await resolveTestCode('''
 class _E extends Object {
