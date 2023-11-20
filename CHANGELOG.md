@@ -5,7 +5,12 @@ This is a patch release that:
 - Fixes the left/mobile sidebar being empty on non-class pages
   in documentation generated with `dart doc` (issue [#54073][]).
 
+- Fixes a JSON array parsing bug that causes seg fault when --coverage is used.
+  This bug has been reported by flutter customers here
+  https://github.com/flutter/flutter/issues/124145 (issue [#54059][])
+
 [#54073]: https://github.com/dart-lang/sdk/issues/54073
+[#54059]: https://github.com/dart-lang/sdk/issues/54059
 
 ## 3.2.0 - 2023-11-15
 
