@@ -777,7 +777,7 @@ class _SelectorApproximation {
   /// Approximation [_Invocation] with raw arguments is created and used
   /// after number of [_Invocation] objects with same selector but
   /// different arguments reaches this limit.
-  static const int maxInvocationsPerSelector = 5000;
+  static const int maxInvocationsPerSelector = 1000;
 
   /// [_DirectInvocation] can be approximated with raw arguments
   /// if number of operations in its summary exceeds this threshold.
