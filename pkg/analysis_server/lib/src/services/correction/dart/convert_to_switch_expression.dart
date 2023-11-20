@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -19,6 +20,9 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   /// Local variable reference used in assignment switch expression generation.
   LocalVariableElement? writeElement;
+
+  /// Assignment operator used in assignment switch expression generation.
+  TokenType? assignmentOperator;
 
   /// Function reference used in argument switch expression generation.
   FunctionElement? functionElement;
@@ -155,7 +159,8 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
     }
 
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleInsertion(node.offset, '${writeElement!.name} = ');
+      builder.addSimpleInsertion(
+          node.offset, '${writeElement!.name} ${assignmentOperator!.lexeme} ');
 
       var memberCount = node.members.length;
       for (var i = 0; i < memberCount; ++i) {
@@ -358,8 +363,11 @@ class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
             var element = leftHandSide.staticElement;
             if (element is! LocalVariableElement) return null;
             writeElement = element;
-          } else if (writeElement != leftHandSide.staticElement) {
-            // The variable written to in each case must be the same.
+            assignmentOperator = expression.operator.type;
+          } else if (writeElement != leftHandSide.staticElement ||
+              expression.operator.type != assignmentOperator) {
+            // The variable written to and the assignment operator used
+            // in each case must be the same.
             return null;
           }
         } else {

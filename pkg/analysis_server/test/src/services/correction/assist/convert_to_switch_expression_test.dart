@@ -166,6 +166,80 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_assignment_compound_different() async {
+    await resolveTestCode('''
+int f(int x) {
+  var value = 0;
+  switch (x) {
+    case 1:
+      value = 3;
+    case 2:
+      value += 5;
+    default:
+      throw 'unrecognized';
+  }
+  return value;
+}
+''');
+    await assertNoAssistAt('switch');
+  }
+
+  Future<void> test_assignment_compound_same_addition() async {
+    await resolveTestCode('''
+int f(int x) {
+  var value = 0;
+  switch (x) {
+    case 1:
+      value += 3;
+    case 2:
+      value += 5;
+    default:
+      throw 'unrecognized';
+  }
+  return value;
+}
+''');
+    await assertHasAssistAt('switch', '''
+int f(int x) {
+  var value = 0;
+  value += switch (x) {
+    1 => 3,
+    2 => 5,
+    _ => throw 'unrecognized'
+  };
+  return value;
+}
+''');
+  }
+
+  Future<void> test_assignment_compound_same_nullAware() async {
+    await resolveTestCode('''
+int f(int x) {
+  int? value = null;
+  switch (x) {
+    case 1:
+      value ??= 3;
+    case 2:
+      value ??= 5;
+    default:
+      throw 'unrecognized';
+  }
+  return value;
+}
+''');
+    await assertHasAssistAt('switch', '''
+int f(int x) {
+  int? value = null;
+  value ??= switch (x) {
+    1 => 3,
+    2 => 5,
+    _ => throw 'unrecognized'
+  };
+  return value;
+}
+''');
+  }
+
   Future<void> test_assignment_differentVariables() async {
     await resolveTestCode('''
 enum Color {
