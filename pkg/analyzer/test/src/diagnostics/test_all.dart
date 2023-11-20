@@ -65,7 +65,6 @@ import 'built_in_identifier_as_type_parameter_name_test.dart'
     as built_in_as_type_parameter_name;
 import 'built_in_identifier_as_typedef_name_test.dart'
     as built_in_as_typedef_name;
-import 'can_be_null_after_null_aware_test.dart' as can_be_null_after_null_aware;
 import 'case_block_not_terminated_test.dart' as case_block_not_terminated;
 import 'case_expression_type_implements_equals_test.dart'
     as case_expression_type_implements_equals;
@@ -659,10 +658,6 @@ import 'not_map_spread_test.dart' as not_map_spread;
 import 'not_null_aware_null_spread_test.dart' as not_null_aware_null_spread;
 import 'null_argument_to_non_null_type_test.dart'
     as null_argument_to_non_null_type;
-import 'null_aware_before_operator_test.dart' as null_aware_before_operator;
-import 'null_aware_in_condition_test.dart' as null_aware_in_condition;
-import 'null_aware_in_logical_operator_test.dart'
-    as null_aware_in_logical_operator;
 import 'null_check_always_fails_test.dart' as null_check_always_fails;
 import 'null_safety_read_write_test.dart' as null_safety_read_write;
 import 'nullable_type_in_catch_clause_test.dart'
@@ -966,7 +961,6 @@ main() {
     built_in_as_type_name.main();
     built_in_as_type_parameter_name.main();
     built_in_as_typedef_name.main();
-    can_be_null_after_null_aware.main();
     case_block_not_terminated.main();
     case_expression_type_implements_equals.main();
     case_expression_type_is_not_switch_expression_subtype.main();
@@ -1348,9 +1342,6 @@ main() {
     not_map_spread.main();
     not_null_aware_null_spread.main();
     null_argument_to_non_null_type.main();
-    null_aware_before_operator.main();
-    null_aware_in_condition.main();
-    null_aware_in_logical_operator.main();
     null_check_always_fails.main();
     null_safety_read_write.main();
     nullable_type_in_catch_clause.main();

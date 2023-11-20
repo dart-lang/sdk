@@ -1460,9 +1460,6 @@ class FixProcessor extends BaseProcessor {
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
       RemoveNameFromDeclarationClause.new,
     ],
-    HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
-      ReplaceWithNullAware.inChain,
-    ],
     HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
       ReplaceColonWithEquals.new,
     ],
