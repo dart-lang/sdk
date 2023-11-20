@@ -117,7 +117,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
   @override
   visitProcedure(Procedure node) {
     // Only transform functions that are external and have Native annotation:
-    //   @Native<Double Function(Double)>('Math_sqrt')
+    //   @Native<Double Function(Double)>(symbol: 'Math_sqrt')
     //   external double _square_root(double x);
     final nativeAnnotation = tryGetNativeAnnotation(node);
     if (nativeAnnotation == null) {

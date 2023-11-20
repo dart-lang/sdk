@@ -5,24 +5,23 @@
 import 'dart:ffi';
 
 void main() {
-  // Does nothing, FfiNative aren't resolved.
+  // Does nothing, Native's aren't resolved.
 }
 
-@FfiNative<Int Function(Pointer<Int>, Int)>('subtract')
+@Native<Int Function(Pointer<Int>, Int)>()
 external int subtract(
   Pointer<Int> a,
   int b,
 );
 
-@FfiNative<Pointer<Double> Function(Pointer<Float>, Pointer<Float>)>(
-    'dividePrecision')
+@Native<Pointer<Double> Function(Pointer<Float>, Pointer<Float>)>()
 external Pointer<Double> dividePrecision(
   Pointer<Float> a,
   Pointer<Float> b,
 );
 
-@FfiNative<Void Function(Pointer)>('free')
+@Native<Void Function(Pointer)>(symbol: 'free')
 external void posixFree(Pointer pointer);
 
-@FfiNative<Void Function(Pointer)>('CoTaskMemFree')
+@Native<Void Function(Pointer)>(symbol: 'CoTaskMemFree')
 external void winCoTaskMemFree(Pointer pv);

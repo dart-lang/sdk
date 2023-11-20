@@ -122,16 +122,10 @@ Future<void> runTests() async {
   testNonExistingFunction();
 }
 
-@FfiNative<Int32 Function(Int32, Int32)>('SumPlus42')
-external int sumPlus42(int a, int b);
-
 @Native<Int32 Function(Int32, Int32)>()
 external int SumPlus42(int a, int b);
 
 void testFfiTestfunctionsDll() {
-  final result = sumPlus42(2, 3);
-  Expect.equals(2 + 3 + 42, result);
-
   final result2 = SumPlus42(2, 3);
   Expect.equals(2 + 3 + 42, result2);
 }

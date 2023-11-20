@@ -864,12 +864,6 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   external T operator [](int index);
 }
 
-final class FfiNative<T> {
-  final String nativeName;
-  final bool isLeaf;
-  const FfiNative(this.nativeName, {this.isLeaf = false});
-}
-
 @Since('2.19')
 final class Native<T> {
   final String? symbol;

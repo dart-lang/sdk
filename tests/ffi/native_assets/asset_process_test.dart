@@ -68,16 +68,16 @@ Future<void> runTests() async {
   testNonExistingFunction();
 }
 
-@FfiNative<Pointer Function(IntPtr)>('malloc')
+@Native<Pointer Function(IntPtr)>(symbol: 'malloc')
 external Pointer posixMalloc(int size);
 
-@FfiNative<Void Function(Pointer)>('free')
+@Native<Void Function(Pointer)>(symbol: 'free')
 external void posixFree(Pointer pointer);
 
-@FfiNative<Pointer Function(Size)>('CoTaskMemAlloc')
+@Native<Pointer Function(Size)>(symbol: 'CoTaskMemAlloc')
 external Pointer winCoTaskMemAlloc(int cb);
 
-@FfiNative<Void Function(Pointer)>('CoTaskMemFree')
+@Native<Void Function(Pointer)>(symbol: 'CoTaskMemFree')
 external void winCoTaskMemFree(Pointer pv);
 
 @Native<Pointer Function(IntPtr)>()

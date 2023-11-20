@@ -346,7 +346,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               declarationElement is PropertyAccessorElementImpl) &&
           !declarationElement.isStatic) {
         // Instance methods must have the receiver as an extra parameter in the
-        // FfiNative annotation.
+        // Native annotation.
         if (formalParameters.length + 1 != ffiParameterTypes.length) {
           _errorReporter.reportErrorForNode(
               FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
@@ -370,7 +370,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         ffiParameterTypes = ffiParameterTypes.sublist(1);
         ffiParameters = ffiParameters.sublist(1);
       } else {
-        // Number of parameters in the FfiNative annotation must match the
+        // Number of parameters in the Native annotation must match the
         // annotated declaration.
         if (formalParameters.length != ffiParameterTypes.length) {
           _errorReporter.reportErrorForNode(

@@ -1659,7 +1659,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       // the GC.
       // As an alternative design we could introduce an ExchangeNativeFieldInstr
       // that uses the same machine code as std::atomic::exchange. Or we could
-      // use an FfiNative to do that in C.
+      // use an Native to do that in C.
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
       // No GC from here til StoreNativeField.
       body += LoadNativeField(Slot::FinalizerBase_entries_collected());

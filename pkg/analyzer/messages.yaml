@@ -18455,7 +18455,7 @@ FfiCode:
       }
       ```
   FFI_NATIVE_MUST_BE_EXTERNAL:
-    problemMessage: FfiNative functions must be declared external.
+    problemMessage: Native functions must be declared external.
     correctionMessage: Add the `external` keyword to the function.
     comment: No parameters.
   FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
@@ -18463,14 +18463,14 @@ FfiCode:
     correctionMessage: Pass as Handle instead.
     comment: No parameters.
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
-    problemMessage: Unexpected number of FfiNative annotation parameters. Expected {0} but has {1}.
+    problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}.
     correctionMessage: Make sure parameters match the function annotated.
     comment: |-
       Parameters:
       0: the expected number of parameters
       1: the actual number of parameters
   FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
-    problemMessage: Unexpected number of FfiNative annotation parameters. Expected {0} but has {1}. FfiNative instance method annotation must have receiver as first argument.
+    problemMessage: Unexpected number of Native annotation parameters. Expected {0} but has {1}. Native instance method annotation must have receiver as first argument.
     correctionMessage: Make sure parameters match the function annotated, including an extra first parameter for the receiver.
     comment: |-
       Parameters:
@@ -18750,7 +18750,7 @@ FfiCode:
       returned would have a return type of `Handle`.
 
       The analyzer also produces this diagnostic when the value of the `isLeaf`
-      argument in an `FfiNative` annotation is `true` and the type argument on
+      argument in an `Native` annotation is `true` and the type argument on
       the annotation is a function type whose return type is `Handle`.
 
       In all of these cases, leaf calls are only supported for the types `bool`,

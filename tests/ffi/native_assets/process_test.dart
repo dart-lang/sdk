@@ -22,19 +22,19 @@ void testSuccess() {
   malloc.free(p1);
 }
 
-@FfiNative<Pointer Function(IntPtr)>('malloc')
+@Native<Pointer Function(IntPtr)>(symbol: 'malloc')
 external Pointer posixMalloc(int size);
 
-@FfiNative<Pointer Function(IntPtr, IntPtr)>('calloc')
+@Native<Pointer Function(IntPtr, IntPtr)>(symbol: 'calloc')
 external Pointer posixCalloc(int num, int size);
 
-@FfiNative<Void Function(Pointer)>('free')
+@Native<Void Function(Pointer)>(symbol: 'free')
 external void posixFree(Pointer pointer);
 
-@FfiNative<Pointer Function(Size)>('CoTaskMemAlloc')
+@Native<Pointer Function(Size)>(symbol: 'CoTaskMemAlloc')
 external Pointer winCoTaskMemAlloc(int cb);
 
-@FfiNative<Void Function(Pointer)>('CoTaskMemFree')
+@Native<Void Function(Pointer)>(symbol: 'CoTaskMemFree')
 external void winCoTaskMemFree(Pointer pv);
 
 class _MallocAllocator implements Allocator {
@@ -87,5 +87,5 @@ void testFailure() {
   }
 }
 
-@FfiNative<Void Function()>('symbol_is_not_defined_29903211')
+@Native<Void Function()>(symbol: 'symbol_is_not_defined_29903211')
 external void symbolIsNotDefined();
