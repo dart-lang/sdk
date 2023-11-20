@@ -26,8 +26,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
-import 'package:analyzer/src/dart/element/type_system.dart'
-    show ExtensionTypeErasure, TypeSystemImpl;
+import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -3140,7 +3139,7 @@ extension RuntimeExtensions on TypeSystemImpl {
     DartObjectImpl obj,
     DartType type,
   ) {
-    type = ExtensionTypeErasure().perform(type);
+    type = type.extensionTypeErasure;
     if (!isNonNullableByDefault) {
       type = toLegacyTypeIfOptOut(type);
     }

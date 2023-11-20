@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -4904,7 +4903,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final boundNode = current.bound;
           if (boundNode is NamedType) {
             var boundType = boundNode.typeOrThrow;
-            boundType = boundType.representationTypeErasureOrSelf;
+            boundType = boundType.extensionTypeErasure;
             current = elementToNode[boundType.element];
           } else {
             current = null;

@@ -36,15 +36,16 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
 class ExtensionTypeErasure extends ReplacementVisitor {
+  const ExtensionTypeErasure();
+
   DartType perform(DartType type) {
     return type.accept(this) ?? type;
   }
 
   @override
   DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
-    final typeErasure = type.representationTypeErasure;
-    if (typeErasure != null) {
-      return typeErasure;
+    if (type.representationType case final representationType?) {
+      return representationType.accept(this) ?? representationType;
     }
 
     return super.visitInterfaceType(type);
@@ -156,9 +157,7 @@ class TypeSystemImpl implements TypeSystem {
   /// type that implements both [left] and [right], regardless of whether
   /// [left] is a subtype of [right], or [right] is a subtype of [left].
   bool canBeSubtypeOf(DartType left, DartType right) {
-    if (left case InterfaceTypeImpl(:final representationTypeErasure?)) {
-      left = representationTypeErasure;
-    }
+    left = left.extensionTypeErasure;
 
     // If one is `Null`, then the other must be nullable.
     final leftIsNullable = isPotentiallyNullable(left);

@@ -666,17 +666,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return null;
   }
 
-  /// The instantiated representation type erasure, if [element] is an
-  /// extension type.
-  DartType? get representationTypeErasure {
-    if (element case ExtensionTypeElement element) {
-      final substitution = Substitution.fromInterfaceType(this);
-      final typeErasure = element.typeErasure;
-      return substitution.substituteType(typeErasure);
-    }
-    return null;
-  }
-
   @override
   InterfaceType? get superclass {
     var supertype = element.supertype;
@@ -1268,6 +1257,11 @@ abstract class TypeImpl implements DartType {
 
   /// Initialize a newly created type.
   TypeImpl({this.alias});
+
+  @override
+  DartType get extensionTypeErasure {
+    return const ExtensionTypeErasure().perform(this);
+  }
 
   @override
   bool get isBottom => false;
