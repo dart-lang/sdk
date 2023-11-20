@@ -1117,45 +1117,6 @@ abstract final class NativeApi {
   external static Pointer<Void> get initializeApiDLData;
 }
 
-/// Annotation to be used for marking an external function as FFI native.
-///
-/// Example:
-///
-/// ```dart template:top
-/// @Native<Int64 Function(Int64, Int64)>(symbol: 'FfiNative_Sum', isLeaf:true)
-/// external int sum(int a, int b);
-/// ```
-///
-/// Calling such functions will throw an exception if no resolver
-/// was set on the library or the resolver failed to resolve the name.
-///
-/// See `Dart_SetFfiNativeResolver` in `dart_api.h`
-///
-/// NOTE: This experimental feature is replaced by [Native].
-@Since('2.14')
-@Deprecated('Use Native instead.')
-final class FfiNative<T extends Function> {
-  final String nativeName;
-
-  /// Whether the function is a leaf function.
-  ///
-  /// Leaf functions are small, short-running, non-blocking functions which are
-  /// not allowed to call back into Dart or use any Dart VM APIs. Leaf functions
-  /// are invoked bypassing some of the heavier parts of the standard
-  /// Dart-to-Native calling sequence which reduces the invocation overhead,
-  /// making leaf calls faster than non-leaf calls. However, this implies that a
-  /// thread executing a leaf function can't cooperate with the Dart runtime. A
-  /// long running or blocking leaf function will delay any operation which
-  /// requires synchronization between all threads associated with an isolate
-  /// group until after the leaf function returns. For example, if one isolate
-  /// in a group is trying to perform a GC and a second isolate is blocked in a
-  /// leaf call, then the first isolate will have to pause and wait until this
-  /// leaf call returns.
-  final bool isLeaf;
-
-  const FfiNative(this.nativeName, {this.isLeaf = false});
-}
-
 /// Annotation specifying how to bind an external function to native code.
 ///
 /// The annotation applies only to `external` function declarations.

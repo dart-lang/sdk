@@ -186,7 +186,6 @@ class FfiTransformer extends Transformer {
   final Class abiSpecificIntegerClass;
   final Class abiSpecificIntegerMappingClass;
   final Class varArgsClass;
-  final Class ffiNativeClass;
   final Class nativeFieldWrapperClass1Class;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
@@ -358,7 +357,6 @@ class FfiTransformer extends Transformer {
         abiSpecificIntegerMappingClass =
             index.getClass('dart:ffi', 'AbiSpecificIntegerMapping'),
         varArgsClass = index.getClass('dart:ffi', 'VarArgs'),
-        ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFieldWrapperClass1Class =
             index.getClass('dart:nativewrappers', 'NativeFieldWrapperClass1'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),

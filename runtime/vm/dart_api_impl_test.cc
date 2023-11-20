@@ -4573,7 +4573,7 @@ TEST_CASE(DartAPI_NativeFieldAccess) {
       external void _keepSecret(int secret);
     }
     // Argument auto-conversion will wrap `o` in `_getNativeField()`.
-    @FfiNative<IntPtr Function(Pointer<Void>)>('returnPtrAsInt')
+    @Native<IntPtr Function(Pointer<Void>)>(symbol: 'returnPtrAsInt')
     external int returnPtrAsInt(NativeFieldWrapperClass1 o);
     main() => returnPtrAsInt(SecretKeeper(321));
   )";
@@ -4605,7 +4605,7 @@ TEST_CASE(DartAPI_NativeFieldAccess_Throws) {
       ForgetfulSecretKeeper(int secret) { /* Forget to init. native field. */ }
     }
     // Argument auto-conversion will wrap `o` in `_getNativeField()`.
-    @FfiNative<IntPtr Function(Pointer<Void>)>('returnPtrAsInt')
+    @Native<IntPtr Function(Pointer<Void>)>(symbol: 'returnPtrAsInt')
     external int returnPtrAsInt(NativeFieldWrapperClass1 o);
     main() => returnPtrAsInt(ForgetfulSecretKeeper(321));
   )";
@@ -10439,7 +10439,7 @@ static void* FfiNativeResolver(const char* name, uintptr_t args_n) {
 TEST_CASE(Dart_SetFfiNativeResolver) {
   const char* kScriptChars = R"(
     import 'dart:ffi';
-    @FfiNative<IntPtr Function(Double)>('EchoInt', isLeaf:true)
+    @Native<IntPtr Function(Double)>(symbol: 'EchoInt', isLeaf:true)
     external int echoInt(double x);
     main() => echoInt(7.0);
     )";
@@ -10461,7 +10461,7 @@ TEST_CASE(Dart_SetFfiNativeResolver) {
 TEST_CASE(Dart_SetFfiNativeResolver_MissingResolver) {
   const char* kScriptChars = R"(
     import 'dart:ffi';
-    @FfiNative<IntPtr Function(Double)>('EchoInt', isLeaf:true)
+    @Native<IntPtr Function(Double)>(symbol: 'EchoInt', isLeaf:true)
     external int echoInt(double x);
     main() => echoInt(7.0);
     )";
@@ -10482,7 +10482,7 @@ static void* NopResolver(const char* name, uintptr_t args_n) {
 TEST_CASE(Dart_SetFfiNativeResolver_DoesNotResolve) {
   const char* kScriptChars = R"(
     import 'dart:ffi';
-    @FfiNative<Void Function()>('DoesNotResolve')
+    @Native<Void Function()>(symbol: 'DoesNotResolve')
     external void doesNotResolve();
     main() => doesNotResolve();
     )";
@@ -10564,8 +10564,7 @@ static void HeapSamplingDelete(void* data) {
   free(data);
 }
 
-void HeapSamplingReport(void* context,
-                        void* data) {
+void HeapSamplingReport(void* context, void* data) {
   last_allocation_context = context;
   if (strcmp(reinterpret_cast<char*>(data), expected_allocation_cls) == 0) {
     found_allocation = true;

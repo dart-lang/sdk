@@ -76,18 +76,6 @@ Future<void> runTests() async {
   testNonExistingFunction();
 }
 
-@FfiNative<Pointer Function(IntPtr)>('malloc')
-external Pointer posixMalloc(int size);
-
-@FfiNative<Void Function(Pointer)>('free')
-external void posixFree(Pointer pointer);
-
-@FfiNative<Pointer Function(Size)>('CoTaskMemAlloc')
-external Pointer winCoTaskMemAlloc(int cb);
-
-@FfiNative<Void Function(Pointer)>('CoTaskMemFree')
-external void winCoTaskMemFree(Pointer pv);
-
 @Native<Pointer Function(IntPtr)>()
 external Pointer malloc(int size);
 
@@ -102,16 +90,10 @@ external void CoTaskMemFree(Pointer pv);
 
 void testProcessOrSystem() {
   if (Platform.isWindows) {
-    final pointer = winCoTaskMemAlloc(8);
-    Expect.notEquals(nullptr, pointer);
-    winCoTaskMemFree(pointer);
     final pointer2 = CoTaskMemAlloc(8);
     Expect.notEquals(nullptr, pointer2);
     CoTaskMemFree(pointer2);
   } else {
-    final pointer = posixMalloc(8);
-    Expect.notEquals(nullptr, pointer);
-    posixFree(pointer);
     final pointer2 = malloc(8);
     Expect.notEquals(nullptr, pointer2);
     free(pointer2);

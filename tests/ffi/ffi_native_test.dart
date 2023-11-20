@@ -6,33 +6,33 @@ import 'dart:ffi';
 import 'dart:nativewrappers';
 
 class Classy {
-  @FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr')
+  @Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr')
   external static int returnIntPtrStatic(int x);
 
-  @FfiNative<Void Function(Handle, IntPtr)>('doesntmatter')
+  @Native<Void Function(Handle, IntPtr)>(symbol: 'doesntmatter')
   external void goodHasReceiverHandle(int v);
 }
 
 base class NativeClassy extends NativeFieldWrapperClass1 {
-  @FfiNative<IntPtr Function(IntPtr)>('ReturnIntPtr')
+  @Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr')
   external static int returnIntPtrStatic(int x);
 
-  @FfiNative<Void Function(Pointer<Void>, IntPtr)>('doesntmatter')
+  @Native<Void Function(Pointer<Void>, IntPtr)>(symbol: 'doesntmatter')
   external void goodHasReceiverPointer(int v);
 
-  @FfiNative<Void Function(Handle, IntPtr)>('doesntmatter')
+  @Native<Void Function(Handle, IntPtr)>(symbol: 'doesntmatter')
   external void goodHasReceiverHandle(int v);
 }
 
-// Regression test: Ensure same-name FfiNative functions don't collide in the
+// Regression test: Ensure same-name Native functions don't collide in the
 // top-level namespace, but instead live under their parent (Library, Class).
 class A {
-  @FfiNative<Void Function()>('nop')
+  @Native<Void Function()>(symbol: 'nop')
   external static void foo();
 }
 
 class B {
-  @FfiNative<Void Function()>('nop')
+  @Native<Void Function()>(symbol: 'nop')
   external static void foo();
 }
 

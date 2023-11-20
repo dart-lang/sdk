@@ -1125,7 +1125,7 @@ DART_EXPORT void SetArgumentTo42(void* token) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Functions for testing @FfiNative.
+// Functions for testing @Native.
 
 DART_EXPORT Dart_Handle GetRootLibraryUrl() {
   Dart_Handle root_lib = Dart_RootLibrary();
@@ -1312,7 +1312,7 @@ DART_EXPORT void Regress216834909_SetAtExit(int64_t install) {
     Regress216834909_hang_at_exit = false;
   }
 }
-#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||
+#endif  // defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID) ||     \
         // defined(DART_HOST_OS_MACOS)
 
 DART_EXPORT bool IsNull(Dart_Handle object) {

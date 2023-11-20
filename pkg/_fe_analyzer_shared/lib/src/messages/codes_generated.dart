@@ -5115,7 +5115,7 @@ const Code<Null> codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiNativeMustBeExternal = const MessageCode(
     "FfiNativeMustBeExternal",
-    problemMessage: r"""FfiNative functions must be marked external.""");
+    problemMessage: r"""Native functions must be marked external.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
@@ -5133,7 +5133,7 @@ const Template<Message Function(int count, int count2)>
     const Template<Message Function(int count, int count2)>(
         "FfiNativeUnexpectedNumberOfParameters",
         problemMessageTemplate:
-            r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2.""",
+            r"""Unexpected number of Native annotation parameters. Expected #count but has #count2.""",
         withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5148,7 +5148,7 @@ Message _withArgumentsFfiNativeUnexpectedNumberOfParameters(
     int count, int count2) {
   return new Message(codeFfiNativeUnexpectedNumberOfParameters,
       problemMessage:
-          """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}.""",
+          """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}.""",
       arguments: {'count': count, 'count2': count2});
 }
 
@@ -5158,7 +5158,7 @@ const Template<Message Function(int count, int count2)>
     const Template<Message Function(int count, int count2)>(
         "FfiNativeUnexpectedNumberOfParametersWithReceiver",
         problemMessageTemplate:
-            r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2. FfiNative instance method annotation must have receiver as first argument.""",
+            r"""Unexpected number of Native annotation parameters. Expected #count but has #count2. Native instance method annotation must have receiver as first argument.""",
         withArguments:
             _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver);
 
@@ -5174,7 +5174,7 @@ Message _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver(
     int count, int count2) {
   return new Message(codeFfiNativeUnexpectedNumberOfParametersWithReceiver,
       problemMessage:
-          """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}. FfiNative instance method annotation must have receiver as first argument.""",
+          """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}. Native instance method annotation must have receiver as first argument.""",
       arguments: {'count': count, 'count2': count2});
 }
 

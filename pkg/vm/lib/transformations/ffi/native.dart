@@ -38,7 +38,7 @@ void transformLibraries(
     'dart:isolate'
   ]);
   // Skip if dart:ffi isn't loaded (e.g. during incremental compile).
-  if (index.tryGetClass('dart:ffi', 'FfiNative') == null) {
+  if (index.tryGetClass('dart:ffi', 'Native') == null) {
     return;
   }
   final transformer = FfiNativeTransformer(
@@ -50,15 +50,12 @@ class FfiNativeTransformer extends FfiTransformer {
   final DiagnosticReporter diagnosticReporter;
   final ReferenceFromIndex? referenceFromIndex;
   final Class assetClass;
-  final Class ffiNativeClass;
   final Class nativeClass;
   final Class nativeFunctionClass;
   final Field assetAssetField;
   final Field nativeSymbolField;
-  final Field ffiNativeNameField;
   final Field nativeAssetField;
   final Field nativeIsLeafField;
-  final Field ffiNativeIsLeafField;
   final Field resolverField;
 
   StringConstant? currentAsset;
@@ -75,16 +72,11 @@ class FfiNativeTransformer extends FfiTransformer {
       this.referenceFromIndex)
       : assetClass = index.getClass('dart:ffi', 'DefaultAsset'),
         nativeClass = index.getClass('dart:ffi', 'Native'),
-        ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
         assetAssetField = index.getField('dart:ffi', 'DefaultAsset', 'id'),
         nativeSymbolField = index.getField('dart:ffi', 'Native', 'symbol'),
-        ffiNativeNameField =
-            index.getField('dart:ffi', 'FfiNative', 'nativeName'),
         nativeAssetField = index.getField('dart:ffi', 'Native', 'assetId'),
         nativeIsLeafField = index.getField('dart:ffi', 'Native', 'isLeaf'),
-        ffiNativeIsLeafField =
-            index.getField('dart:ffi', 'FfiNative', 'isLeaf'),
         resolverField = index.getTopLevelField('dart:ffi', '_ffi_resolver'),
         super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex);
@@ -121,9 +113,6 @@ class FfiNativeTransformer extends FfiTransformer {
 
   ConstantExpression? tryGetAssetAnnotation(Library node) =>
       tryGetAnnotation(node, [assetClass]);
-
-  ConstantExpression? tryGetFfiNativeAnnotation(Member node) =>
-      tryGetAnnotation(node, [ffiNativeClass]);
 
   ConstantExpression? tryGetNativeAnnotation(Member node) =>
       tryGetAnnotation(node, [nativeClass]);
@@ -186,7 +175,7 @@ class FfiNativeTransformer extends FfiTransformer {
   // Create field holding the resolved native function pointer.
   //
   // For:
-  //   @FfiNative<IntPtr Function(Pointer<Void>)>('DoXYZ', isLeaf:true)
+  //   @Native<IntPtr Function(Pointer<Void>)>('DoXYZ', isLeaf:true)
   //   external int doXyz(NativeFieldWrapperClass1 obj);
   //
   // Create:
@@ -333,10 +322,10 @@ class FfiNativeTransformer extends FfiTransformer {
     return VariableGet(temporary);
   }
 
-  // FfiNative calls that pass objects extending NativeFieldWrapperClass1
+  // Native calls that pass objects extending NativeFieldWrapperClass1
   // should be passed as Pointer instead so we don't have the overhead of
   // converting Handles.
-  // If we find a NativeFieldWrapperClass1 object being passed to an FfiNative
+  // If we find a NativeFieldWrapperClass1 object being passed to an Native
   // signature taking a Pointer, we automatically wrap the argument in a call to
   // `Pointer.fromAddress(_getNativeField(obj))`.
   //
@@ -522,13 +511,13 @@ class FfiNativeTransformer extends FfiTransformer {
       node.fileUri,
     );
 
-    // Add field to the parent the FfiNative function belongs to.
+    // Add field to the parent the Native function belongs to.
     if (parent is Class) {
       parent.addField(resolvedField);
     } else if (parent is Library) {
       parent.addField(resolvedField);
     } else {
-      throw 'Unexpected parent of @FfiNative function. '
+      throw 'Unexpected parent of @Native function. '
           'Expected Class or Library, but found ${parent}.';
     }
 
@@ -556,10 +545,10 @@ class FfiNativeTransformer extends FfiTransformer {
     return node;
   }
 
-  // Transform FfiNative instance methods.
+  // Transform Native instance methods.
   // Example:
   //   class MyNativeClass extends NativeFieldWrapperClass1 {
-  //     @FfiNative<IntPtr Function(Pointer<Void>, IntPtr)>('MyClass_MyMethod')
+  //     @Native<IntPtr Function(Pointer<Void>, IntPtr)>('MyClass_MyMethod')
   //     external int myMethod(int x);
   //   }
   // Becomes, roughly:
@@ -608,9 +597,9 @@ class FfiNativeTransformer extends FfiTransformer {
     );
   }
 
-  // Transform FfiNative static functions.
+  // Transform Native static functions.
   // Example:
-  //   @FfiNative<IntPtr Function(Pointer<Void>, IntPtr)>('MyFunction')
+  //   @Native<IntPtr Function(Pointer<Void>, IntPtr)>('MyFunction')
   //   external int myFunction(MyNativeClass obj, int x);
   // Becomes, roughly:
   //   static final _myFunction$FfiNative$Ptr = ...
@@ -647,11 +636,10 @@ class FfiNativeTransformer extends FfiTransformer {
 
   @override
   visitProcedure(Procedure node) {
-    // Only transform functions that are external and have FfiNative annotation:
-    //   @FfiNative<Double Function(Double)>('Math_sqrt')
+    // Only transform functions that are external and have Native annotation:
+    //   @Native<Double Function(Double)>(symbol: 'Math_sqrt')
     //   external double _square_root(double x);
-    final ffiNativeAnnotation =
-        tryGetNativeAnnotation(node) ?? tryGetFfiNativeAnnotation(node);
+    final ffiNativeAnnotation = tryGetNativeAnnotation(node);
     if (ffiNativeAnnotation == null) {
       return node;
     }
@@ -678,8 +666,7 @@ class FfiNativeTransformer extends FfiTransformer {
     }
     final ffiFunctionType = ffiConstant.typeArguments[0] as FunctionType;
     final nativeFunctionConst =
-        (ffiConstant.fieldValues[nativeSymbolField.fieldReference] ??
-            ffiConstant.fieldValues[ffiNativeNameField.fieldReference]);
+        (ffiConstant.fieldValues[nativeSymbolField.fieldReference]);
     final nativeFunctionName = nativeFunctionConst is StringConstant
         ? nativeFunctionConst
         : StringConstant(node.name.text);
@@ -687,9 +674,7 @@ class FfiNativeTransformer extends FfiTransformer {
         ffiConstant.fieldValues[nativeAssetField.fieldReference];
     final assetName =
         assetConstant is StringConstant ? assetConstant : currentAsset;
-    final isLeaf = ((ffiConstant
-                    .fieldValues[nativeIsLeafField.fieldReference] ??
-                ffiConstant.fieldValues[ffiNativeIsLeafField.fieldReference])
+    final isLeaf = ((ffiConstant.fieldValues[nativeIsLeafField.fieldReference])
             as BoolConstant)
         .value;
 

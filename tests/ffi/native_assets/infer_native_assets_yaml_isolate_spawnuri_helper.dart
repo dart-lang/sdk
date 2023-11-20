@@ -27,5 +27,5 @@ void main(List<String> args, Object? message) {
   print('run done');
 }
 
-@FfiNative<Int32 Function(Int32, Int32)>('SumPlus42')
+@Native<Int32 Function(Int32, Int32)>(symbol: 'SumPlus42')
 external int sumPlus42(int a, int b);

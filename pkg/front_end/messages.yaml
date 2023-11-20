@@ -5149,12 +5149,12 @@ FfiLeafCallMustNotReturnHandle:
 
 FfiNativeUnexpectedNumberOfParametersWithReceiver:
   # Used by dart:ffi
-  problemMessage: "Unexpected number of FfiNative annotation parameters. Expected #count but has #count2. FfiNative instance method annotation must have receiver as first argument."
+  problemMessage: "Unexpected number of Native annotation parameters. Expected #count but has #count2. Native instance method annotation must have receiver as first argument."
   external: test/ffi_test.dart
 
 FfiNativeUnexpectedNumberOfParameters:
   # Used by dart:ffi
-  problemMessage: "Unexpected number of FfiNative annotation parameters. Expected #count but has #count2."
+  problemMessage: "Unexpected number of Native annotation parameters. Expected #count but has #count2."
   external: test/ffi_test.dart
 
 FfiNativeOnlyNativeFieldWrapperClassCanBePointer:
@@ -5164,7 +5164,7 @@ FfiNativeOnlyNativeFieldWrapperClassCanBePointer:
 
 FfiNativeMustBeExternal:
   # Used by dart:ffi
-  problemMessage: "FfiNative functions must be marked external."
+  problemMessage: "Native functions must be marked external."
   external: test/ffi_test.dart
 
 SpreadTypeMismatch:
