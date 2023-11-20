@@ -758,6 +758,11 @@ class _ElementWriter {
               'annotationIndex: ${target.annotationIndex}',
             );
           });
+        case ElementMacroDiagnosticTarget():
+          _sink.writelnWithIndent('target: ElementMacroDiagnosticTarget');
+          _sink.withIndent(() {
+            _elementPrinter.writeNamedElement('element', target.element);
+          });
       }
     }
 
@@ -781,6 +786,9 @@ class _ElementWriter {
                   'contextMessages',
                   diagnostic.contextMessages,
                   writeMessage,
+                );
+                _sink.writelnWithIndent(
+                  'severity: ${diagnostic.severity.name}',
                 );
               });
           }

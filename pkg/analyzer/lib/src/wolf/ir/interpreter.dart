@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
 import 'package:analyzer/src/wolf/ir/ir.dart';
 import 'package:meta/meta.dart';
@@ -13,12 +14,21 @@ import 'package:meta/meta.dart';
 /// directly with the corresponding Dart value. All other values are represented
 /// via objects of type [Instance].
 ///
+/// The behavior of the `call` instruction is governed by the [callDispatcher]
+/// parameter, which specifies the behavior of each possible [CallDescriptor].
+///
 /// This interpreter is neither efficient nor full-featured, so it shouldn't be
 /// used in production code. It is solely intended to allow unit tests to verify
 /// that an instruction sequence behaves as it's expected to.
 @visibleForTesting
-Object? interpret(CodedIRContainer ir, List<Object?> args) =>
-    _IRInterpreter(ir).run(args);
+Object? interpret(CodedIRContainer ir, List<Object?> args,
+    {required CallHandler Function(CallDescriptor) callDispatcher}) {
+  return _IRInterpreter(ir, callDispatcher: callDispatcher).run(args);
+}
+
+/// Function type invoked by [interpret] to execute a `call` instruction.
+typedef CallHandler = Object? Function(
+    List<Object?> positionalArguments, Map<String, Object?> namedArguments);
 
 /// Interpreter representation of a heap object.
 ///
@@ -54,11 +64,14 @@ class SoundnessError extends Error {
 
 class _IRInterpreter {
   final CodedIRContainer ir;
+  final List<CallHandler> callHandlers;
   final stack = <Object?>[];
   final locals = <_LocalSlot>[];
   var address = 1;
 
-  _IRInterpreter(this.ir);
+  _IRInterpreter(this.ir,
+      {required CallHandler Function(CallDescriptor) callDispatcher})
+      : callHandlers = ir.mapCallDescriptors(callDispatcher);
 
   /// Performs the necessary logic for a `br`, `brIf`, or `brIndex` instruction.
   ///
@@ -94,6 +107,24 @@ class _IRInterpreter {
         case Opcode.br:
           var nesting = Opcode.br.decodeNesting(ir, address);
           return branch(nesting);
+        case Opcode.call:
+          var argumentNames = ir.decodeArgumentNames(
+              Opcode.call.decodeArgumentNames(ir, address));
+          var callDescriptorRef = Opcode.call.decodeCallDescriptor(ir, address);
+          var newStackLength = stack.length - argumentNames.length;
+          var positionalArguments = <Object?>[];
+          var namedArguments = <String, Object?>{};
+          for (var i = 0; i < argumentNames.length; i++) {
+            var argument = stack[newStackLength + i];
+            if (argumentNames[i] case var name?) {
+              namedArguments[name] = argument;
+            } else {
+              positionalArguments.add(argument);
+            }
+          }
+          stack.length = newStackLength;
+          stack.add(callHandlers[callDescriptorRef.index](
+              positionalArguments, namedArguments));
         case Opcode.drop:
           stack.removeLast();
         case Opcode.dup:
@@ -114,6 +145,16 @@ class _IRInterpreter {
         case Opcode.release:
           var count = Opcode.release.decodeCount(ir, address);
           locals.length -= count;
+        case Opcode.shuffle:
+          var popCount = Opcode.shuffle.decodePopCount(ir, address);
+          var stackIndices = ir.decodeStackIndices(
+              Opcode.shuffle.decodeStackIndices(ir, address));
+          var newStackLength = stack.length - popCount;
+          var poppedValues = stack.sublist(newStackLength);
+          stack.length = newStackLength;
+          for (var index in stackIndices) {
+            stack.add(poppedValues[index]);
+          }
         case Opcode.writeLocal:
           var localIndex = Opcode.writeLocal.decodeLocalIndex(ir, address);
           locals[localIndex].contents = stack.removeLast();

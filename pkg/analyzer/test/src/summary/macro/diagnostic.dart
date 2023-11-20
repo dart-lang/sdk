@@ -4,6 +4,89 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/*macro*/ class ReportAtTargetDeclaration
+    implements
+        ClassTypesMacro,
+        ConstructorTypesMacro,
+        FieldTypesMacro,
+        MethodTypesMacro {
+  const ReportAtTargetDeclaration();
+
+  @override
+  buildTypesForClass(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  @override
+  buildTypesForConstructor(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  @override
+  buildTypesForField(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  @override
+  buildTypesForMethod(declaration, builder) {
+    _report(declaration, builder);
+  }
+
+  void _report(Declaration declaration, Builder builder) {
+    builder.report(
+      Diagnostic(
+        DiagnosticMessage(
+          'Reported message',
+          target: declaration.asDiagnosticTarget,
+        ),
+        Severity.warning,
+      ),
+    );
+  }
+}
+
+/*macro*/ class ReportWithoutTargetError implements ClassTypesMacro {
+  const ReportWithoutTargetError();
+
+  @override
+  buildTypesForClass(clazz, builder) {
+    builder.report(
+      Diagnostic(
+        DiagnosticMessage('Reported message'),
+        Severity.error,
+      ),
+    );
+  }
+}
+
+/*macro*/ class ReportWithoutTargetInfo implements ClassTypesMacro {
+  const ReportWithoutTargetInfo();
+
+  @override
+  buildTypesForClass(clazz, builder) {
+    builder.report(
+      Diagnostic(
+        DiagnosticMessage('Reported message'),
+        Severity.info,
+      ),
+    );
+  }
+}
+
+/*macro*/ class ReportWithoutTargetWarning implements ClassTypesMacro {
+  const ReportWithoutTargetWarning();
+
+  @override
+  buildTypesForClass(clazz, builder) {
+    builder.report(
+      Diagnostic(
+        DiagnosticMessage('Reported message'),
+        Severity.warning,
+      ),
+    );
+  }
+}
+
 /*macro*/ class ThrowExceptionDeclarationsPhase
     implements
         ClassDeclarationsMacro,

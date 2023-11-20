@@ -153,18 +153,14 @@ class _Node extends graph.Node<_Node> {
     element.representation.type = type;
     element.typeErasure = ExtensionTypeErasure().perform(type);
 
-    var interfaces = node.implementsClause?.interfaces
+    final interfaces = node.implementsClause?.interfaces
         .map((e) => e.type)
         .whereType<InterfaceType>()
         .where(typeSystem.isValidExtensionTypeSuperinterface)
         .toFixedList();
-    if (interfaces == null || interfaces.isEmpty) {
-      final superInterface = typeSystem.isNonNullable(type)
-          ? typeSystem.objectNone
-          : typeSystem.objectQuestion;
-      interfaces = [superInterface];
+    if (interfaces != null) {
+      element.interfaces = interfaces;
     }
-    element.interfaces = interfaces;
 
     final primaryConstructor = element.constructors.first;
     final primaryFormalParameter = primaryConstructor.parameters.first;

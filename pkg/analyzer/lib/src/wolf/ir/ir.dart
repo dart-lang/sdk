@@ -11,7 +11,35 @@
 /// without requiring the implementer to handle every possible Dart construct.
 library;
 
+import 'dart:collection';
+import 'dart:convert';
+
+import 'package:analyzer/src/generated/utilities_collection.dart';
+
 part 'ir.g.dart';
+
+/// Wrapper for an integer representing a list of nullable argument names.
+///
+/// The actual list isn't stored directly in the instruction stream. This
+/// integer is an index into an auxiliary table stored in a subtype of
+/// [BaseIRContainer].
+///
+// TODO(paulberry): when extension types are supported, make this an extension
+// type.
+class ArgumentNamesRef {
+  final int index;
+
+  ArgumentNamesRef(this.index);
+
+  @override
+  int get hashCode => index.hashCode;
+
+  @override
+  bool operator ==(other) => other is ArgumentNamesRef && index == other.index;
+
+  @override
+  String toString() => index.toString();
+}
 
 /// Container for a sequence of IR instructions, which represents the body of a
 /// single function, method, getter, setter, constructor, or initializer
@@ -22,7 +50,11 @@ part 'ir.g.dart';
 /// cache lines that need to be loaded in order to perform analysis.
 ///
 /// Other data structures that need to be referenced by the IR (e.g. types) are
-/// stored in auxiliary tables, which are provided by subclasses.
+/// stored in auxiliary tables. The auxiliary tables whose types don't depend on
+/// analyzer types are provided by this class; the auxiliary tables whose types
+/// do depend on analyzer types are provided by derived classes. (This allows
+/// for some unit tests to use more lightweight types in place of analyzer
+/// types).
 ///
 /// To construct a sequence of IR instructions, see [RawIRWriter].
 abstract class BaseIRContainer with IRToStringMixin {
@@ -32,17 +64,37 @@ abstract class BaseIRContainer with IRToStringMixin {
   final List<int> _params0;
   @override
   final List<int> _params1;
+  final List<List<String?>> _argumentNamesTable;
+  final List<List<int>> _stackIndicesTable;
 
   BaseIRContainer(RawIRWriter writer)
       : _opcodes = writer._opcodes,
         _params0 = writer._params0,
-        _params1 = writer._params1;
+        _params1 = writer._params1,
+        _argumentNamesTable = writer._argumentNamesTable,
+        _stackIndicesTable = writer._stackIndicesTable;
 
   int get endAddress => _opcodes.length;
+
+  @override
+  String argumentNamesRefToString(ArgumentNamesRef argumentNames) => [
+        for (var literal in decodeArgumentNames(argumentNames))
+          json.encode(literal)
+      ].toString();
+
+  @override
+  String callDescriptorRefToString(CallDescriptorRef callDescriptor) =>
+      'callDescriptor#${callDescriptor.index}';
 
   /// Given a [TypeRef] that represents a function type, returns the number of
   /// function parameters.
   int countParameters(TypeRef type);
+
+  List<String?> decodeArgumentNames(ArgumentNamesRef argumentNames) =>
+      _argumentNamesTable[argumentNames.index];
+
+  List<int> decodeStackIndices(StackIndicesRef stackIndices) =>
+      _stackIndicesTable[stackIndices.index];
 
   @override
   String functionFlagsToString(FunctionFlags flags) => flags.describe();
@@ -54,7 +106,34 @@ abstract class BaseIRContainer with IRToStringMixin {
   Opcode opcodeAt(int address) => _opcodes[address];
 
   @override
+  String stackIndicesRefToString(StackIndicesRef stackIndices) =>
+      decodeStackIndices(stackIndices).toString();
+
+  @override
   String typeRefToString(TypeRef type) => 'typeRef#${type.index}';
+}
+
+/// Wrapper for an integer representing a call descriptor.
+///
+/// The actual call descriptor isn't stored directly in the instruction stream.
+/// This integer is an index into an auxiliary table stored in a subtype of
+/// [BaseIRContainer].
+///
+// TODO(paulberry): when extension types are supported, make this an extension
+// type.
+class CallDescriptorRef {
+  final int index;
+
+  CallDescriptorRef(this.index);
+
+  @override
+  int get hashCode => index.hashCode;
+
+  @override
+  bool operator ==(other) => other is CallDescriptorRef && index == other.index;
+
+  @override
+  String toString() => index.toString();
 }
 
 /// Flags describing properties of a function declaration that affect the
@@ -138,11 +217,17 @@ abstract class RawIRContainerInterface {
   /// The second parameter of each encoded instruction.
   List<int> get _params1;
 
+  String argumentNamesRefToString(ArgumentNamesRef argumentNames);
+
+  String callDescriptorRefToString(CallDescriptorRef callDescriptor);
+
   String functionFlagsToString(FunctionFlags flags);
 
   String literalRefToString(LiteralRef literal);
 
   Opcode opcodeAt(int address);
+
+  String stackIndicesRefToString(StackIndicesRef stackIndices);
 
   String typeRefToString(TypeRef type);
 }
@@ -154,8 +239,9 @@ abstract class RawIRContainerInterface {
 /// instance of this class, call methods in [_RawIRWriterMixin] to add the
 /// instructions, and then pass this object to [BaseIRContainer].
 ///
-/// Subclasses provide the ability to create reference to other data structures
-/// (e.g. types), which are stored in auxiliary tables.
+/// This class provides the ability to encode data in the auxiliary tables
+/// provided by [BaseIRContainer]. Subclasses provide the ability to encode data
+/// in other auxiliary tables.
 class RawIRWriter with _RawIRWriterMixin {
   @override
   final _opcodes = <Opcode>[];
@@ -163,6 +249,12 @@ class RawIRWriter with _RawIRWriterMixin {
   final _params0 = <int>[];
   @override
   final _params1 = <int>[];
+  final _argumentNamesTable = <List<String?>>[];
+  final _argumentNamesToRef = LinkedHashMap<List<String?>, ArgumentNamesRef>(
+      equals: listsEqual, hashCode: Object.hashAll);
+  final _stackIndicesTable = <List<int>>[];
+  final _stackIndicesToRef = LinkedHashMap<List<int>, StackIndicesRef>(
+      equals: listsEqual, hashCode: Object.hashAll);
 
   int _localVariableCount = 0;
 
@@ -175,6 +267,22 @@ class RawIRWriter with _RawIRWriterMixin {
     _localVariableCount += count;
     super.alloc(count);
   }
+
+  ArgumentNamesRef encodeArgumentNames(List<String?> argumentNames) =>
+      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+      _argumentNamesToRef.putIfAbsent(argumentNames, () {
+        var encoding = ArgumentNamesRef(_argumentNamesTable.length);
+        _argumentNamesTable.add(argumentNames);
+        return encoding;
+      });
+
+  StackIndicesRef encodeStackIndices(List<int> stackIndices) =>
+      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+      _stackIndicesToRef.putIfAbsent(stackIndices, () {
+        var encoding = StackIndicesRef(_stackIndicesTable.length);
+        _stackIndicesTable.add(stackIndices);
+        return encoding;
+      });
 
   @override
   void release(int count) {
@@ -194,6 +302,30 @@ class RawIRWriter with _RawIRWriterMixin {
       release(releaseCount);
     }
   }
+}
+
+/// Wrapper for an integer representing a list of stack indices used by the
+/// `shuffle` instruction.
+///
+/// The actual list isn't stored directly in the instruction stream. This
+/// integer is an index into an auxiliary table stored in a subtype of
+/// [BaseIRContainer].
+///
+// TODO(paulberry): when extension types are supported, make this an extension
+// type.
+class StackIndicesRef {
+  final int index;
+
+  StackIndicesRef(this.index);
+
+  @override
+  int get hashCode => index.hashCode;
+
+  @override
+  bool operator ==(other) => other is StackIndicesRef && index == other.index;
+
+  @override
+  String toString() => index.toString();
 }
 
 /// Wrapper for an integer representing a Dart type.

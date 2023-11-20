@@ -493,6 +493,7 @@ class List<E> implements Iterable<E> {
   external factory List.unmodifiable(Iterable elements);
 
   E get last => throw 0;
+  set length(int newLength) {}
   E operator [](int index) => throw 0;
   void operator []=(int index, E value) {}
 

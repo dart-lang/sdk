@@ -458,25 +458,21 @@ class _BuilderGenerator extends _BaseGenerator {
             ref += " ?? ''";
           }
           out("signatureSink.addString($ref);");
-          break;
         case 'int':
           if (couldBeNull) {
             ref += ' ?? 0';
           }
           out('signatureSink.addInt($ref);');
-          break;
         case 'bool':
           if (couldBeNull) {
             ref += ' == true';
           }
           out('signatureSink.addBool($ref);');
-          break;
         case 'double':
           if (couldBeNull) {
             ref += ' ?? 0.0';
           }
           out('signatureSink.addDouble($ref);');
-          break;
         default:
           throw "Don't know how to generate signature call for $typeName";
       }
@@ -895,16 +891,12 @@ class _FlatBufferSchemaGenerator extends _BaseGenerator {
     switch (type.typeName) {
       case 'bool':
         typeStr = 'bool';
-        break;
       case 'double':
         typeStr = 'double';
-        break;
       case 'int':
         typeStr = 'uint';
-        break;
       case 'String':
         typeStr = 'string';
-        break;
       default:
         typeStr = type.typeName;
         break;

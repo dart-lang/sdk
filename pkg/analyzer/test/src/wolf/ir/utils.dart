@@ -10,6 +10,12 @@ import 'package:checks/checks.dart';
 import 'package:checks/context.dart';
 import 'package:meta/meta.dart' as meta;
 
+void dumpInstructions(BaseIRContainer ir) {
+  for (var i = 0; i < ir.endAddress; i++) {
+    print('$i: ${ir.instructionToString(i)}');
+  }
+}
+
 /// Event listener for [astToIR] that records the range of IR instructions
 /// associated with each AST node.
 ///
@@ -147,11 +153,20 @@ class TestIRContainer extends BaseIRContainer {
 /// than generate them from a Dart AST.
 class TestIRWriter extends RawIRWriter {
   final _addressToLabel = <int, String>{};
+  final _callDescriptorTable = <String>[];
+  final _callDescriptorToRef = <String, CallDescriptorRef>{};
   final _functionTypes = <TestFunctionType>[];
   final _labelToAddress = <String, int>{};
   final _literalTable = <Object?>[];
   final _literalToRef = <Object?, LiteralRef>{};
   final _parameterCountToFunctionTypeMap = <int, TypeRef>{};
+
+  CallDescriptorRef encodeCallDescriptor(String name) =>
+      _callDescriptorToRef.putIfAbsent(name, () {
+        var encoding = CallDescriptorRef(_callDescriptorTable.length);
+        _callDescriptorTable.add(name);
+        return encoding;
+      });
 
   TypeRef encodeFunctionType({required int parameterCount}) =>
       _parameterCountToFunctionTypeMap.putIfAbsent(parameterCount, () {

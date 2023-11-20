@@ -914,7 +914,6 @@ class AstBuilder extends StackListener {
             ),
           ),
         );
-        break;
       case Assert.Initializer:
         push(
           AssertInitializerImpl(
@@ -926,7 +925,6 @@ class AstBuilder extends StackListener {
             rightParenthesis: leftParenthesis.endGroup!,
           ),
         );
-        break;
       case Assert.Statement:
         push(
           AssertStatementImpl(
@@ -939,7 +937,6 @@ class AstBuilder extends StackListener {
             semicolon: semicolon,
           ),
         );
-        break;
     }
   }
 
@@ -2838,7 +2835,6 @@ class AstBuilder extends StackListener {
             typeArguments: null,
             question: null,
           );
-          break;
       }
       if (firstFormalParameter.keyword case final keyword?) {
         if (keyword.keyword != Keyword.CONST) {

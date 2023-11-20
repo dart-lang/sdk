@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 import 'package:meta/meta.dart';
@@ -54,6 +55,14 @@ class ArgumentMacroApplicationError extends MacroApplicationError {
     sink.writeUInt30(argumentIndex);
     sink.writeStringUtf8(message);
   }
+}
+
+final class ElementMacroDiagnosticTarget extends MacroDiagnosticTarget {
+  final ElementImpl element;
+
+  ElementMacroDiagnosticTarget({
+    required this.element,
+  });
 }
 
 /// An exception while preparing macro application.

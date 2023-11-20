@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart
     as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
-import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -19,30 +18,10 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
-class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
-  late final ClassElement element;
-
-  ClassDeclarationImpl._({
-    required super.id,
-    required super.identifier,
-    required super.library,
-    required super.metadata,
-    required super.typeParameters,
-    required super.interfaces,
-    required super.hasAbstract,
-    required super.hasBase,
-    required super.hasExternal,
-    required super.hasFinal,
-    required super.hasInterface,
-    required super.hasMixin,
-    required super.hasSealed,
-    required super.mixins,
-    required super.superclass,
-  });
-}
-
-class ConstructorDeclarationImpl extends macro.ConstructorDeclarationImpl {
-  final ConstructorElement element;
+class ConstructorDeclarationImpl extends macro.ConstructorDeclarationImpl
+    implements HasElement {
+  @override
+  final ConstructorElementImpl element;
 
   ConstructorDeclarationImpl._({
     required super.id,
@@ -82,13 +61,13 @@ class DeclarationBuilder {
 
   macro.Declaration buildDeclaration(ast.AstNode node) {
     switch (node) {
-      case ast.ClassDeclaration():
+      case ast.ClassDeclarationImpl():
         return fromNode.classDeclaration(node);
-      case ast.ConstructorDeclaration():
+      case ast.ConstructorDeclarationImpl():
         return fromNode.constructorDeclaration(node);
-      case ast.MethodDeclaration():
+      case ast.MethodDeclarationImpl():
         return fromNode.methodDeclaration(node);
-      case ast.MixinDeclaration():
+      case ast.MixinDeclarationImpl():
         return fromNode.mixinDeclaration(node);
       case ast.VariableDeclaration():
         return fromNode.variableDeclaration(node);
@@ -262,15 +241,19 @@ class DeclarationBuilderFromElement {
 
   DeclarationBuilderFromElement(this.declarationBuilder);
 
-  macro.IntrospectableClassDeclarationImpl classElement(ClassElement element) {
+  macro.IntrospectableClassDeclarationImpl classElement(
+    ClassElementImpl element,
+  ) {
     return _classMap[element] ??= _introspectableClassElement(element);
   }
 
-  ConstructorDeclarationImpl constructorElement(ConstructorElement element) {
+  ConstructorDeclarationImpl constructorElement(
+    ConstructorElementImpl element,
+  ) {
     return _constructorMap[element] ??= _constructorElement(element);
   }
 
-  macro.FieldDeclarationImpl fieldElement(FieldElement element) {
+  macro.FieldDeclarationImpl fieldElement(FieldElementImpl element) {
     return _fieldMap[element] ??= _fieldElement(element);
   }
 
@@ -304,11 +287,13 @@ class DeclarationBuilderFromElement {
     return library;
   }
 
-  MethodDeclarationImpl methodElement(ExecutableElement element) {
+  MethodDeclarationImpl methodElement(ExecutableElementImpl element) {
     return _methodMap[element] ??= _methodElement(element);
   }
 
-  macro.IntrospectableMixinDeclarationImpl mixinElement(MixinElement element) {
+  macro.IntrospectableMixinDeclarationImpl mixinElement(
+    MixinElementImpl element,
+  ) {
     return _mixinMap[element] ??= _introspectableMixinElement(element);
   }
 
@@ -333,7 +318,9 @@ class DeclarationBuilderFromElement {
     return declarationBuilder._buildMetadata(element);
   }
 
-  ConstructorDeclarationImpl _constructorElement(ConstructorElement element) {
+  ConstructorDeclarationImpl _constructorElement(
+    ConstructorElementImpl element,
+  ) {
     final enclosing = element.enclosingInstanceElement;
     return ConstructorDeclarationImpl._(
       element: element,
@@ -382,7 +369,7 @@ class DeclarationBuilderFromElement {
     }
   }
 
-  FieldDeclarationImpl _fieldElement(FieldElement element) {
+  FieldDeclarationImpl _fieldElement(FieldElementImpl element) {
     final enclosing = element.enclosingInstanceElement;
     return FieldDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -395,6 +382,7 @@ class DeclarationBuilderFromElement {
       type: _dartType(element.type),
       definingType: identifier(enclosing),
       isStatic: element.isStatic,
+      element: element,
     );
   }
 
@@ -420,7 +408,8 @@ class DeclarationBuilderFromElement {
   }
 
   IntrospectableClassDeclarationImpl _introspectableClassElement(
-      ClassElement element) {
+    ClassElementImpl element,
+  ) {
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
@@ -442,7 +431,8 @@ class DeclarationBuilderFromElement {
   }
 
   IntrospectableMixinDeclarationImpl _introspectableMixinElement(
-      MixinElement element) {
+    MixinElementImpl element,
+  ) {
     return IntrospectableMixinDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
@@ -457,7 +447,7 @@ class DeclarationBuilderFromElement {
     );
   }
 
-  MethodDeclarationImpl _methodElement(ExecutableElement element) {
+  MethodDeclarationImpl _methodElement(ExecutableElementImpl element) {
     final enclosing = element.enclosingInstanceElement;
     return MethodDeclarationImpl._(
       element: element,
@@ -468,9 +458,9 @@ class DeclarationBuilderFromElement {
       hasAbstract: element.isAbstract,
       hasBody: !element.isAbstract,
       hasExternal: element.isExternal,
-      isGetter: element is PropertyAccessorElement && element.isGetter,
+      isGetter: element is PropertyAccessorElementImpl && element.isGetter,
       isOperator: element.isOperator,
-      isSetter: element is PropertyAccessorElement && element.isSetter,
+      isSetter: element is PropertyAccessorElementImpl && element.isSetter,
       isStatic: element.isStatic,
       namedParameters: _namedFormalParameters(element.parameters),
       positionalParameters: _positionalFormalParameters(element.parameters),
@@ -521,13 +511,13 @@ class DeclarationBuilderFromNode {
   DeclarationBuilderFromNode(this.declarationBuilder);
 
   macro.ClassDeclarationImpl classDeclaration(
-    ast.ClassDeclaration node,
+    ast.ClassDeclarationImpl node,
   ) {
     return _introspectableClassDeclaration(node);
   }
 
   macro.ConstructorDeclarationImpl constructorDeclaration(
-    ast.ConstructorDeclaration node,
+    ast.ConstructorDeclarationImpl node,
   ) {
     final definingType = _definingType(node);
     final element = node.declaredElement!;
@@ -581,25 +571,26 @@ class DeclarationBuilderFromNode {
   }
 
   macro.MethodDeclarationImpl methodDeclaration(
-    ast.MethodDeclaration node,
+    ast.MethodDeclarationImpl node,
   ) {
     return _methodDeclaration(node);
   }
 
   macro.MixinDeclarationImpl mixinDeclaration(
-    ast.MixinDeclaration node,
+    ast.MixinDeclarationImpl node,
   ) {
     return _introspectableMixinDeclaration(node);
   }
 
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(ast.AstNode node) {
-    if (node is ast.ClassDeclaration) {
-      return classDeclaration(node);
-    } else if (node is ast.MixinDeclaration) {
-      return mixinDeclaration(node);
-    } else {
-      throw ArgumentError('node: $node');
+    switch (node) {
+      case ast.ClassDeclarationImpl():
+        return classDeclaration(node);
+      case ast.MixinDeclarationImpl():
+        return mixinDeclaration(node);
+      default:
+        throw ArgumentError('node: $node');
     }
   }
 
@@ -609,8 +600,8 @@ class DeclarationBuilderFromNode {
     final variableList = node.parent as ast.VariableDeclarationList;
     final variablesDeclaration = variableList.parent;
     switch (variablesDeclaration) {
-      case ast.FieldDeclaration():
-        final element = node.declaredElement!;
+      case ast.FieldDeclarationImpl():
+        final element = node.declaredElement as FieldElementImpl;
         return FieldDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
           identifier: _declaredIdentifier(node.name, element),
@@ -622,6 +613,7 @@ class DeclarationBuilderFromNode {
           type: _typeAnnotation(variableList.type),
           definingType: _definingType(variablesDeclaration),
           isStatic: element.isStatic,
+          element: element,
         );
       default:
         // TODO(scheglov): top-level variables
@@ -720,9 +712,9 @@ class DeclarationBuilderFromNode {
   }
 
   IntrospectableClassDeclarationImpl _introspectableClassDeclaration(
-    ast.ClassDeclaration node,
+    ast.ClassDeclarationImpl node,
   ) {
-    final element = node.declaredElement as ClassElementImpl;
+    final element = node.declaredElement!;
 
     final interfaceNodes = <ast.NamedType>[];
     final mixinNodes = <ast.NamedType>[];
@@ -735,7 +727,7 @@ class DeclarationBuilderFromNode {
       }
       final nextElement = current.declaredElement?.augmentation;
       final nextNode = declarationBuilder.nodeOfElement(nextElement);
-      if (nextNode is! ast.ClassDeclaration) {
+      if (nextNode is! ast.ClassDeclarationImpl) {
         break;
       }
       current = nextNode;
@@ -762,9 +754,9 @@ class DeclarationBuilderFromNode {
   }
 
   IntrospectableMixinDeclarationImpl _introspectableMixinDeclaration(
-    ast.MixinDeclaration node,
+    ast.MixinDeclarationImpl node,
   ) {
-    final element = node.declaredElement as MixinElementImpl;
+    final element = node.declaredElement!;
 
     final onNodes = <ast.NamedType>[];
     final interfaceNodes = <ast.NamedType>[];
@@ -777,7 +769,7 @@ class DeclarationBuilderFromNode {
       }
       final nextElement = current.declaredElement?.augmentation;
       final nextNode = declarationBuilder.nodeOfElement(nextElement);
-      if (nextNode is! ast.MixinDeclaration) {
+      if (nextNode is! ast.MixinDeclarationImpl) {
         break;
       }
       current = nextNode;
@@ -797,7 +789,7 @@ class DeclarationBuilderFromNode {
   }
 
   MethodDeclarationImpl _methodDeclaration(
-    ast.MethodDeclaration node,
+    ast.MethodDeclarationImpl node,
   ) {
     final definingType = _definingType(node);
     final element = node.declaredElement!;
@@ -939,7 +931,11 @@ class DeclarationBuilderFromNode {
   }
 }
 
-class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
+class FieldDeclarationImpl extends macro.FieldDeclarationImpl
+    implements HasElement {
+  @override
+  final FieldElementImpl element;
+
   FieldDeclarationImpl({
     required super.id,
     required super.identifier,
@@ -951,12 +947,13 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
     required super.type,
     required super.definingType,
     required super.isStatic,
+    required this.element,
   });
 }
 
 /// A macro declaration that has an [Element].
 abstract interface class HasElement {
-  Element get element;
+  ElementImpl get element;
 }
 
 abstract class IdentifierImpl extends macro.IdentifierImpl {
@@ -995,7 +992,7 @@ class IdentifierImplFromNode extends IdentifierImpl {
 class IntrospectableClassDeclarationImpl
     extends macro.IntrospectableClassDeclarationImpl implements HasElement {
   @override
-  final ClassElement element;
+  final ClassElementImpl element;
 
   IntrospectableClassDeclarationImpl._({
     required super.id,
@@ -1020,7 +1017,7 @@ class IntrospectableClassDeclarationImpl
 class IntrospectableMixinDeclarationImpl
     extends macro.IntrospectableMixinDeclarationImpl implements HasElement {
   @override
-  final MixinElement element;
+  final MixinElementImpl element;
 
   IntrospectableMixinDeclarationImpl._({
     required super.id,
@@ -1059,8 +1056,10 @@ class LibraryImplFromElement extends LibraryImpl {
   });
 }
 
-class MethodDeclarationImpl extends macro.MethodDeclarationImpl {
-  final ExecutableElement element;
+class MethodDeclarationImpl extends macro.MethodDeclarationImpl
+    implements HasElement {
+  @override
+  final ExecutableElementImpl element;
 
   MethodDeclarationImpl._({
     required super.id,

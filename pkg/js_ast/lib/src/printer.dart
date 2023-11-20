@@ -291,11 +291,17 @@ class Printer implements NodeVisitor<void> {
   }
 
   bool blockBody(Statement body,
-      {required bool needsSeparation, required bool needsNewline}) {
+      {required bool needsSeparation,
+      required bool needsNewline,
+      bool needsBraces = false}) {
     if (body is Block) {
       spaceOut();
       blockOut(body, shouldIndent: false, needsNewline: needsNewline);
       return true;
+    }
+    if (needsBraces) {
+      spaceOut();
+      out('{');
     }
     if (shouldCompressOutput && needsSeparation) {
       // If [shouldCompressOutput] is false, then the 'lineOut' will insert
@@ -307,6 +313,11 @@ class Printer implements NodeVisitor<void> {
     indentMore();
     visit(body);
     indentLess();
+    if (needsBraces) {
+      indent();
+      out('}');
+      return true;
+    }
     return false;
   }
 
@@ -369,12 +380,8 @@ class Printer implements NodeVisitor<void> {
     // Handle dangling elses and a workaround for Android 4.0 stock browser.
     // Android 4.0 requires braces for a single do-while in the `then` branch.
     // See issue 10923.
-    if (hasElse) {
-      bool needsBraces = then.accept(danglingElseVisitor) || then is Do;
-      if (needsBraces) {
-        then = Block(<Statement>[then]);
-      }
-    }
+    bool needsBraces =
+        hasElse && (then is Do || then.accept(danglingElseVisitor));
     if (shouldIndent) indent();
     out('if');
     spaceOut();
@@ -382,8 +389,10 @@ class Printer implements NodeVisitor<void> {
     visitNestedExpression(node.condition, EXPRESSION,
         newInForInit: false, newAtStatementBegin: false);
     out(')');
-    bool thenWasBlock =
-        blockBody(then, needsSeparation: false, needsNewline: !hasElse);
+    bool thenWasBlock = blockBody(then,
+        needsSeparation: false,
+        needsNewline: !hasElse,
+        needsBraces: needsBraces);
     if (hasElse) {
       if (thenWasBlock) {
         spaceOut();

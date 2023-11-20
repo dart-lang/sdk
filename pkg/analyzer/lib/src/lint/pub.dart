@@ -378,16 +378,12 @@ class _PSDependency extends PSDependency {
         switch (key.toString()) {
           case 'path':
             dep.path = _processScalar(key, v, resourceProvider);
-            break;
           case 'version':
             dep.version = _processScalar(key, v, resourceProvider);
-            break;
           case 'hosted':
             dep.host = _processHost(key, v, resourceProvider);
-            break;
           case 'git':
             dep.git = _processGitRepo(key, v, resourceProvider);
-            break;
         }
       });
     }
@@ -648,43 +644,30 @@ class _Pubspec implements Pubspec {
       switch (key.toString()) {
         case 'author':
           author = _processScalar(key, v, resourceProvider);
-          break;
         case 'authors':
           authors = _processScalarList(key, v, resourceProvider);
-          break;
         case 'homepage':
           homepage = _processScalar(key, v, resourceProvider);
-          break;
         case 'repository':
           repository = _processScalar(key, v, resourceProvider);
-          break;
         case 'issue_tracker':
           issueTracker = _processScalar(key, v, resourceProvider);
-          break;
         case 'name':
           name = _processScalar(key, v, resourceProvider);
-          break;
         case 'description':
           description = _processScalar(key, v, resourceProvider);
-          break;
         case 'documentation':
           documentation = _processScalar(key, v, resourceProvider);
-          break;
         case 'dependencies':
           dependencies = _processDependencies(key, v, resourceProvider);
-          break;
         case 'dev_dependencies':
           devDependencies = _processDependencies(key, v, resourceProvider);
-          break;
         case 'dependency_overrides':
           dependencyOverrides = _processDependencies(key, v, resourceProvider);
-          break;
         case 'environment':
           environment = _processEnvironment(key, v, resourceProvider);
-          break;
         case 'version':
           version = _processScalar(key, v, resourceProvider);
-          break;
       }
     });
   }

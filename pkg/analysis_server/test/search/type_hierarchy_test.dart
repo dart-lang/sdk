@@ -1470,17 +1470,6 @@ extension type E2(A it) implements E1 {}
           'location': anything,
           'flags': 0
         },
-        'interfaces': [2],
-        'mixins': [],
-        'subclasses': []
-      },
-      {
-        'classElement': {
-          'kind': 'CLASS',
-          'name': 'Object',
-          'location': anything,
-          'flags': 0
-        },
         'interfaces': [],
         'mixins': [],
         'subclasses': []

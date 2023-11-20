@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/ir.dart';
 
 /// Container for a sequence of IR instructions, along with auxiliary tables
@@ -14,16 +15,25 @@ import 'package:analyzer/src/wolf/ir/ir.dart';
 ///
 /// To construct a sequence of IR instructions, see [CodedIRWriter].
 class CodedIRContainer extends BaseIRContainer {
+  final List<CallDescriptor> _callDescriptorTable;
   final List<Object?> _literalTable;
   final List<DartType> _typeTable;
 
   CodedIRContainer(CodedIRWriter super.writer)
-      : _literalTable = writer._literalTable,
+      : _callDescriptorTable = writer._callDescriptorTable,
+        _literalTable = writer._literalTable,
         _typeTable = writer._typeTable;
+
+  @override
+  String callDescriptorRefToString(CallDescriptorRef callDescriptor) =>
+      decodeCallDescriptor(callDescriptor).toString();
 
   @override
   int countParameters(TypeRef type) =>
       (decodeType(type) as FunctionType).parameters.length;
+
+  CallDescriptor decodeCallDescriptor(CallDescriptorRef callDescriptorRef) =>
+      _callDescriptorTable[callDescriptorRef.index];
 
   Object? decodeLiteral(LiteralRef literal) => _literalTable[literal.index];
 
@@ -32,6 +42,11 @@ class CodedIRContainer extends BaseIRContainer {
   @override
   String literalRefToString(LiteralRef value) =>
       json.encode(decodeLiteral(value));
+
+  /// Applies [f] to each call descriptor in the call descriptor table, and
+  /// gathers the results into a list.
+  List<T> mapCallDescriptors<T>(T Function(CallDescriptor) f) =>
+      _callDescriptorTable.map(f).toList();
 
   @override
   String typeRefToString(TypeRef type) => decodeType(type).toString();
@@ -42,10 +57,20 @@ class CodedIRContainer extends BaseIRContainer {
 ///
 /// See [RawIRWriter] for more information.
 class CodedIRWriter extends RawIRWriter {
+  final _callDescriptorTable = <CallDescriptor>[];
+  final _callDescriptorToRef = <CallDescriptor, CallDescriptorRef>{};
   final _literalTable = <Object?>[];
-  final _typeTable = <DartType>[];
   final _literalToRef = <Object?, LiteralRef>{};
+  final _typeTable = <DartType>[];
   final _typeToRef = <DartType, TypeRef>{};
+
+  CallDescriptorRef encodeCallDescriptor(CallDescriptor callDescriptor) =>
+      // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?
+      _callDescriptorToRef.putIfAbsent(callDescriptor, () {
+        var encoding = CallDescriptorRef(_callDescriptorTable.length);
+        _callDescriptorTable.add(callDescriptor);
+        return encoding;
+      });
 
   LiteralRef encodeLiteral(Object? value) =>
       // TODO(paulberry): is `putIfAbsent` the best-performing way to do this?

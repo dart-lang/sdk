@@ -1265,16 +1265,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       switch (fileChange.kind) {
         case _FileChangeKind.add:
           _fileTracker.addFile(path);
-          break;
         case _FileChangeKind.change:
           _fileTracker.changeFile(path);
-          break;
         case _FileChangeKind.remove:
           _fileTracker.removeFile(path);
           // TODO(scheglov): We have to do this because we discard files.
           // But this is not right, we need to handle removing better.
           clearLibraryContext();
-          break;
       }
     }
     _pendingFileChanges.clear();

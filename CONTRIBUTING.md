@@ -30,7 +30,8 @@ This repository primarily uses [Gerrit for code reviews](https://dart-review.goo
 
 ## Setting up the environment
 
-In order to submit a patch from a local workspace, you need to get the [depot\_tools](http://dev.chromium.org/developers/how-tos/depottools).
+In order to submit a patch from a local workspace, you need to install the Chromium
+[depot\_tools](https://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up).
 
 ## Getting the code
 

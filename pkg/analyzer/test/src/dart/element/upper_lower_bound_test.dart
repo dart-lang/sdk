@@ -2885,80 +2885,23 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_extensionType_noTypeParameters_noInterfaces() {
-    // A(Object?) and B(Object?)
+    // extension type A(int) {}
+    // extension type B(double) {}
+
     _checkLeastUpperBound(
       interfaceTypeNone(
         extensionType(
           'A',
-          representationType: objectQuestion,
-          interfaces: [objectQuestion],
+          representationType: intNone,
         ),
       ),
       interfaceTypeNone(
         extensionType(
           'B',
-          representationType: objectQuestion,
-          interfaces: [objectQuestion],
+          representationType: doubleNone,
         ),
       ),
       objectQuestion,
-    );
-
-    // A(Object) and B(Object?)
-    _checkLeastUpperBound(
-      interfaceTypeNone(
-        extensionType(
-          'A',
-          representationType: objectNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      interfaceTypeNone(
-        extensionType(
-          'B',
-          representationType: objectQuestion,
-          interfaces: [objectQuestion],
-        ),
-      ),
-      objectQuestion,
-    );
-
-    // A(Object) and B(Object)
-    _checkLeastUpperBound(
-      interfaceTypeNone(
-        extensionType(
-          'A',
-          representationType: objectNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      interfaceTypeNone(
-        extensionType(
-          'B',
-          representationType: objectNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      objectNone,
-    );
-
-    // A(String) and B(num)
-    _checkLeastUpperBound(
-      interfaceTypeNone(
-        extensionType(
-          'A',
-          representationType: stringNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      interfaceTypeNone(
-        extensionType(
-          'B',
-          representationType: numNone,
-          interfaces: [objectNone],
-        ),
-      ),
-      objectNone,
     );
   }
 

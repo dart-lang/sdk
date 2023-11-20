@@ -972,6 +972,9 @@ class ResolutionSink extends _SummaryDataWriter {
       case ApplicationMacroDiagnosticTarget():
         writeByte(0x00);
         writeUInt30(target.annotationIndex);
+      case ElementMacroDiagnosticTarget():
+        writeByte(0x01);
+        writeElement(target.element);
     }
   }
 

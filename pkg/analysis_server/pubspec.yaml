@@ -93,6 +93,8 @@ dependency_overrides:
     path: ../../third_party/pkg/logging
   matcher:
     path: ../../third_party/pkg/matcher
+  memory_usage:
+    path: ../../third_party/pkg/leak_tracker/pkgs/memory_usage
   meta:
     path: ../meta
   mime:

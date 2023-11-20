@@ -97,40 +97,37 @@ main() {
 
     // Run closed world only
     await test(['${Flags.stage}=closed-world', 'foo.dill'],
-        writeClosedWorld: 'world.data', out: 'out.dill');
+        writeClosedWorld: 'world.data');
     await test(['${Flags.stage}=closed-world', '${Flags.inputDill}=foo.dill'],
-        writeClosedWorld: 'world.data', out: 'out.dill');
-    await test(['${Flags.stage}=closed-world', '--out=out1.dill', 'foo.dill'],
-        writeClosedWorld: 'world.data', out: 'out1.dill');
+        writeClosedWorld: 'world.data');
+    await test(['${Flags.stage}=closed-world', 'foo.dill'],
+        writeClosedWorld: 'world.data');
     await test([
       '${Flags.stage}=closed-world',
       '${Flags.writeClosedWorld}=world1.data',
       'foo.dill'
-    ], writeClosedWorld: 'world1.data', out: 'out.dill');
+    ], writeClosedWorld: 'world1.data');
     await test([
       '${Flags.writeClosedWorld}=world1.data',
       'foo.dill',
-      '--out=out1.dill'
-    ], out: 'out1.dill', writeClosedWorld: 'world1.data');
-    await test(
-        ['${Flags.writeClosedWorld}=world1.data', 'foo.dill', '-oout1.dill'],
-        out: 'out1.dill', writeClosedWorld: 'world1.data');
+    ], writeClosedWorld: 'world1.data');
+    await test(['${Flags.writeClosedWorld}=world1.data', 'foo.dill'],
+        writeClosedWorld: 'world1.data');
     await test(
         ['${Flags.writeClosedWorld}=world1.data', 'foo.dill', '--out=prefix-'],
-        out: 'prefix-', writeClosedWorld: 'world1.data');
+        writeClosedWorld: 'world1.data');
     await test([
       '${Flags.writeClosedWorld}=world1.data',
       'foo.dill',
       '--out=/some/path/prefix-'
-    ], out: '/some/path/prefix-', writeClosedWorld: 'world1.data');
+    ], writeClosedWorld: 'world1.data');
     await test(['foo.dill', '${Flags.stage}=closed-world', '--out=/some/path/'],
-        writeClosedWorld: '/some/path/world.data', out: '/some/path/out.dill');
+        writeClosedWorld: '/some/path/world.data');
     await test(['foo.dill', '${Flags.stage}=closed-world', '--out=prefix-'],
-        writeClosedWorld: 'prefix-world.data', out: 'prefix-out.dill');
+        writeClosedWorld: 'prefix-world.data');
     await test(
         ['foo.dill', '${Flags.stage}=closed-world', '--out=/some/path/prefix-'],
-        writeClosedWorld: '/some/path/prefix-world.data',
-        out: '/some/path/prefix-out.dill');
+        writeClosedWorld: '/some/path/prefix-world.data');
 
     // Run global inference only
     await test(['${Flags.stage}=global-inference', 'foo.dill'],
