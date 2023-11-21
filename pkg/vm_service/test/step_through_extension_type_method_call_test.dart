@@ -17,7 +17,7 @@ const int inlineClassDefinitionStartLine = 19;
 const String fileName = 'step_through_extension_type_method_call_test.dart';
 
 extension type IdNumber(int i) {
-  operator <(IdNumber other) => i < other.i;
+  bool operator <(IdNumber other) => i < other.i;
 }
 
 void testMain() {
@@ -33,9 +33,9 @@ const expected = <String>[
   '$fileName:${testMainStartLine + 1}:24', // on 'IdNumber'
   '$fileName:${testMainStartLine + 2}:24', // on 'IdNumber'
   '$fileName:${testMainStartLine + 3}:7', // on '<'
-  '$fileName:${inlineClassDefinitionStartLine + 1}:23', // on 'other'
-  '$fileName:${inlineClassDefinitionStartLine + 1}:35', // on '<'
-  '$fileName:${inlineClassDefinitionStartLine + 1}:33', // on 'i'
+  '$fileName:${inlineClassDefinitionStartLine + 1}:28', // on 'other'
+  '$fileName:${inlineClassDefinitionStartLine + 1}:40', // on '<'
+  '$fileName:${inlineClassDefinitionStartLine + 1}:38', // on 'i'
   '$fileName:${testMainStartLine + 4}:1', // on closing '}' of [testMain]
 ];
 
