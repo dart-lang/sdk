@@ -1688,18 +1688,18 @@ class _Utf8Decoder {
     int localStart = start;
     while (end - localStart > scanChunkSize) {
       int localEnd = localStart + scanChunkSize;
-      size += _scan(bytes, localStart, localEnd, scanTable);
+      size += _scan(bytes, localStart, localEnd);
       localStart = localEnd;
     }
-    size += _scan(bytes, localStart, end, scanTable);
+    size += _scan(bytes, localStart, end);
     return size;
   }
 
-  int _scan(Uint8List bytes, int start, int end, String scanTable) {
+  int _scan(Uint8List bytes, int start, int end) {
     int size = 0;
     int flags = 0;
     for (int i = start; i < end; i++) {
-      int t = scanTable.codeUnitAt(bytes[i]);
+      int t = scanTable.oneByteStringCodeUnitAtUnchecked(bytes[i]);
       size += t & sizeMask;
       flags |= t;
     }
@@ -1963,7 +1963,6 @@ class _Utf8Decoder {
 
   String decode16(Uint8List bytes, int start, int end, int size) {
     assert(start < end);
-    final String typeTable = _Utf8Decoder.typeTable;
     final String transitionTable = _Utf8Decoder.transitionTable;
     TwoByteString result = TwoByteString.withLength(size);
     int i = start;
@@ -1974,7 +1973,9 @@ class _Utf8Decoder {
     // First byte
     assert(!isErrorState(state));
     final int byte = bytes[i++];
-    final int type = typeTable.codeUnitAt(byte) & typeMask;
+    final int type =
+        _Utf8Decoder.typeTable.oneByteStringCodeUnitAtUnchecked(byte) &
+            typeMask;
     if (state == accept) {
       char = byte & (shiftedByteMask >> type);
       state = transitionTable.codeUnitAt(type);
@@ -1985,7 +1986,9 @@ class _Utf8Decoder {
 
     while (i < end) {
       final int byte = bytes[i++];
-      final int type = typeTable.codeUnitAt(byte) & typeMask;
+      final int type =
+          _Utf8Decoder.typeTable.oneByteStringCodeUnitAtUnchecked(byte) &
+              typeMask;
       if (state == accept) {
         if (char >= 0x10000) {
           assert(char < 0x110000);
