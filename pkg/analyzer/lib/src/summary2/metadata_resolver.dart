@@ -7,27 +7,34 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 
 class MetadataResolver extends ThrowingAstVisitor<void> {
   final Linker _linker;
   final Scope _libraryScope;
+  final LibraryBuilder _libraryBuilder;
   final CompilationUnitElementImpl _unitElement;
   Scope _scope;
 
   MetadataResolver(
     this._linker,
-    LibraryElementImpl libraryElement,
     this._unitElement,
-  )   : _libraryScope = libraryElement.scope,
-        _scope = libraryElement.scope;
+    this._libraryBuilder,
+  )   : _libraryScope = _libraryBuilder.element.scope,
+        _scope = _libraryBuilder.element.scope;
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     var annotationElement = node.elementAnnotation;
     if (annotationElement is ElementAnnotationImpl) {
-      var astResolver = AstResolver(_linker, _unitElement, _scope);
+      var file = _libraryBuilder.kind.file.resource;
+      // TODO(pq): precache options in file state and fetch them from there
+      var analysisOptions =
+          _linker.analysisContext.getAnalysisOptionsForFile(file);
+      var astResolver =
+          AstResolver(_linker, _unitElement, _scope, analysisOptions);
       astResolver.resolveAnnotation(node);
       annotationElement.element = node.element;
     }

@@ -178,6 +178,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   final ErrorReporter errorReporter;
 
+  /// The analysis options used by this resolver.
+  final AnalysisOptionsImpl analysisOptions;
+
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
   InterfaceElement? enclosingClass;
@@ -325,6 +328,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
       {required FeatureSet featureSet,
+      required AnalysisOptionsImpl analysisOptions,
       required FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritanceManager,
@@ -334,6 +338,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             typeProvider as TypeProviderImpl,
             errorListener,
             featureSet,
+            analysisOptions,
             flowAnalysisHelper);
 
   ResolverVisitor._(
@@ -344,6 +349,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       this.typeProvider,
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
+      this.analysisOptions,
       this.flowAnalysis)
       : errorReporter = ErrorReporter(
           errorListener,

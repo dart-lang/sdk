@@ -563,16 +563,16 @@ class LibraryBuilder {
   }
 
   void resolveConstructors() {
-    ConstructorInitializerResolver(linker, element).resolve();
+    ConstructorInitializerResolver(linker, this).resolve();
   }
 
   void resolveDefaultValues() {
-    DefaultValueResolver(linker, element).resolve();
+    DefaultValueResolver(linker, this).resolve();
   }
 
   void resolveMetadata() {
     for (var linkingUnit in units) {
-      var resolver = MetadataResolver(linker, element, linkingUnit.element);
+      var resolver = MetadataResolver(linker, linkingUnit.element, this);
       linkingUnit.node.accept(resolver);
     }
   }

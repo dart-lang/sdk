@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/task/inference_error.dart';
@@ -22,6 +23,7 @@ import 'package:collection/collection.dart';
 class ConstantInitializersResolver {
   final Linker linker;
 
+  late LibraryBuilder _libraryBuilder;
   late CompilationUnitElementImpl _unitElement;
   late LibraryElement _library;
   bool _enclosingClassHasConstConstructor = false;
@@ -32,6 +34,7 @@ class ConstantInitializersResolver {
   void perform() {
     for (var builder in linker.builders.values) {
       _library = builder.element;
+      _libraryBuilder = builder;
       for (var unit in _library.units) {
         _unitElement = unit as CompilationUnitElementImpl;
         unit.classes.forEach(_resolveInterfaceFields);
@@ -49,9 +52,7 @@ class ConstantInitializersResolver {
   void _resolveExtensionFields(ExtensionElement extension_) {
     var node = linker.getLinkingNode(extension_)!;
     _scope = LinkingNodeContext.get(node).scope;
-    for (var element in extension_.fields) {
-      _resolveVariable(element);
-    }
+    extension_.fields.forEach(_resolveVariable);
   }
 
   void _resolveInterfaceFields(InterfaceElement class_) {
@@ -60,9 +61,7 @@ class ConstantInitializersResolver {
 
     var node = linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
-    for (var element in class_.fields) {
-      _resolveVariable(element);
-    }
+    class_.fields.forEach(_resolveVariable);
     _enclosingClassHasConstConstructor = false;
   }
 
@@ -77,7 +76,12 @@ class ConstantInitializersResolver {
 
     if (declarationList.isConst ||
         declarationList.isFinal && _enclosingClassHasConstConstructor) {
-      var astResolver = AstResolver(linker, _unitElement, _scope);
+      var file = _libraryBuilder.kind.file.resource;
+      // TODO(pq): precache options in file state and fetch them from there
+      var analysisOptions =
+          linker.analysisContext.getAnalysisOptionsForFile(file);
+      var astResolver =
+          AstResolver(linker, _unitElement, _scope, analysisOptions);
       astResolver.resolveExpression(() => variable.initializer!,
           contextType: element.type);
     }
@@ -120,6 +124,7 @@ class _InitializerInference {
   final List<PropertyInducingElementImpl> _toInfer = [];
   final List<_PropertyInducingElementTypeInference> _inferring = [];
 
+  late LibraryBuilder _libraryBuilder;
   late CompilationUnitElementImpl _unitElement;
   late Scope _scope;
 
@@ -127,6 +132,7 @@ class _InitializerInference {
 
   void createNodes() {
     for (var builder in _linker.builders.values) {
+      _libraryBuilder = builder;
       for (var unit in builder.element.units) {
         _unitElement = unit;
         unit.classes.forEach(_addClassElementFields);
@@ -136,9 +142,7 @@ class _InitializerInference {
         unit.mixins.forEach(_addClassElementFields);
 
         _scope = unit.enclosingElement.scope;
-        for (var element in unit.topLevelVariables) {
-          _addVariableNode(element);
-        }
+        unit.topLevelVariables.forEach(_addVariableNode);
       }
     }
   }
@@ -154,17 +158,13 @@ class _InitializerInference {
   void _addClassElementFields(InterfaceElement class_) {
     var node = _linker.getLinkingNode(class_)!;
     _scope = LinkingNodeContext.get(node).scope;
-    for (var element in class_.fields) {
-      _addVariableNode(element);
-    }
+    class_.fields.forEach(_addVariableNode);
   }
 
   void _addExtensionElementFields(ExtensionElement extension_) {
     var node = _linker.getLinkingNode(extension_)!;
     _scope = LinkingNodeContext.get(node).scope;
-    for (var element in extension_.fields) {
-      _addVariableNode(element);
-    }
+    extension_.fields.forEach(_addVariableNode);
   }
 
   void _addVariableNode(PropertyInducingElement element) {
@@ -180,8 +180,8 @@ class _InitializerInference {
     _toInfer.add(element);
 
     var node = _linker.getLinkingNode(element) as VariableDeclaration;
-    element.typeInference = _PropertyInducingElementTypeInference(
-        _linker, _inferring, _unitElement, _scope, element, node);
+    element.typeInference = _PropertyInducingElementTypeInference(_linker,
+        _inferring, _unitElement, _scope, element, node, _libraryBuilder);
   }
 }
 
@@ -197,13 +197,20 @@ class _PropertyInducingElementTypeInference
   /// type, but the status is already [_InferenceStatus.beingInferred].
   _InferenceStatus _status = _InferenceStatus.notInferred;
 
+  final LibraryBuilder _libraryBuilder;
   final CompilationUnitElementImpl _unitElement;
   final Scope _scope;
   final PropertyInducingElementImpl _element;
   final VariableDeclaration _node;
 
-  _PropertyInducingElementTypeInference(this._linker, this._inferring,
-      this._unitElement, this._scope, this._element, this._node);
+  _PropertyInducingElementTypeInference(
+      this._linker,
+      this._inferring,
+      this._unitElement,
+      this._scope,
+      this._element,
+      this._node,
+      this._libraryBuilder);
 
   @override
   DartType perform() {
@@ -248,7 +255,13 @@ class _PropertyInducingElementTypeInference
     final enclosingClassElement =
         enclosingElement is InterfaceElement ? enclosingElement : null;
 
-    var astResolver = AstResolver(_linker, _unitElement, _scope,
+    var file = _libraryBuilder.kind.file.resource;
+    // TODO(pq): precache options in file state and fetch them from there
+    var analysisOptions =
+        _linker.analysisContext.getAnalysisOptionsForFile(file);
+
+    var astResolver = AstResolver(
+        _linker, _unitElement, _scope, analysisOptions,
         enclosingClassElement: enclosingClassElement);
     astResolver.resolveExpression(() => _node.initializer!);
 
