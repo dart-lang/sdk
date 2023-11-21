@@ -39,46 +39,7 @@ class Utf8Decoder {
   @patch
   static String? _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int? end) {
-    // We intercept the calls always to make sure the standard library UTF8
-    // decoder is only passed `U8List`, so that array accesses will be
-    // monomorphic and inlined.
-    if (codeUnits is U8List) {
-      return _Utf8Decoder(allowMalformed)._convertSingle(
-          unsafeCast<U8List>(codeUnits), start, end, codeUnits, start);
-    } else {
-      // TODO(omersa): Check if `codeUnits` is a JS array and call browser UTF8
-      // decoder here.
-      //
-      // If we're passed a `List<int>` other than `U8List` or a JS typed array,
-      // it means the performance is not too important. So we convert the input
-      // to `U8List` to avoid shipping another UTF8 decoder.
-      end ??= codeUnits.length;
-      final length = end - start;
-      final u8list = U8List(length);
-      final u8listData = u8list.data;
-      if (allowMalformed) {
-        int u8listIdx = 0;
-        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
-          int byte = codeUnits[codeUnitsIdx];
-          if (byte < 0 || byte > 255) {
-            byte = 0xFF;
-          }
-          u8listData.write(u8listIdx++, byte);
-        }
-      } else {
-        int u8listIdx = 0;
-        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
-          final byte = codeUnits[codeUnitsIdx];
-          if (byte < 0 || byte > 255) {
-            throw FormatException(
-                'Invalid UTF-8 byte', codeUnits, codeUnitsIdx);
-          }
-          u8listData.write(u8listIdx++, byte);
-        }
-      }
-      return _Utf8Decoder(allowMalformed)
-          ._convertSingle(u8list, 0, length, codeUnits, start);
-    }
+    return null;
   }
 }
 
@@ -1713,14 +1674,47 @@ class _Utf8Decoder {
 
   @patch
   String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
-    // `Utf8Decoder._convertIntercepted` should intercept all calls to call the
-    // right decoder for the `codeUnits` type.
-    throw 'Utf8Decoder.convert was not intercepted';
-  }
+    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
+    if (start == end) return "";
 
-  String _convertSingle(U8List bytes, int start, int? maybeEnd,
-      List<int> actualSource, int actualStart) {
-    final int end = RangeError.checkValidRange(start, maybeEnd, bytes.length);
+    final U8List bytes;
+    if (codeUnits is U8List) {
+      bytes = unsafeCast<U8List>(codeUnits);
+    } else {
+      // TODO(omersa): Check if `codeUnits` is a JS array and call browser UTF8
+      // decoder here.
+      //
+      // If we're passed a `List<int>` other than `U8List` or a JS typed array,
+      // it means the performance is not too important. Convert the input to
+      // `U8List` to avoid shipping another UTF-8 decoder.
+      final length = end - start;
+      bytes = U8List(length);
+      final u8listData = bytes.data;
+      if (allowMalformed) {
+        int u8listIdx = 0;
+        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
+          int byte = codeUnits[codeUnitsIdx];
+          if (byte < 0 || byte > 255) {
+            byte = 0xFF;
+          }
+          u8listData.write(u8listIdx++, byte);
+        }
+      } else {
+        int u8listIdx = 0;
+        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
+          final byte = codeUnits[codeUnitsIdx];
+          if (byte < 0 || byte > 255) {
+            throw FormatException(
+                'Invalid UTF-8 byte', codeUnits, codeUnitsIdx);
+          }
+          u8listData.write(u8listIdx++, byte);
+        }
+      }
+      start = 0;
+      end = length;
+    }
+
+    final actualStart = start;
 
     // Skip initial BOM.
     start = skipBomSingle(bytes, start, end);
@@ -1760,7 +1754,7 @@ class _Utf8Decoder {
         _charOrIndex = end;
       }
       final String message = errorDescription(_state);
-      throw FormatException(message, actualSource, actualStart + _charOrIndex);
+      throw FormatException(message, codeUnits, actualStart + _charOrIndex);
     }
 
     // Start over on slow path.
