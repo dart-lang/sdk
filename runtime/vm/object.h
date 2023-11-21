@@ -6133,6 +6133,10 @@ class PcDescriptors : public Object {
     return memcmp(untag()->data(), other.untag()->data(), Length()) == 0;
   }
 
+  // Writes the contents of the PcDescriptors object to the given buffer.
+  // The base argument is added to the PC offset for each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
+
  private:
   static const char* KindAsStr(UntaggedPcDescriptors::Kind kind);
 
@@ -6482,7 +6486,12 @@ class CompressedStackMaps : public Object {
 
   Iterator<CompressedStackMaps> iterator(Thread* thread) const;
 
-  void WriteToBuffer(BaseTextBuffer* buffer, const char* separator) const;
+  // Writes the contents of the CompressedStackMaps object to the given buffer.
+  // The base argument is added to the PC offset for each entry, and the
+  // separator string is inserted between each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer,
+                     uword base,
+                     const char* separator) const;
 
  private:
   static CompressedStackMapsPtr New(const void* payload,
@@ -6543,6 +6552,10 @@ class ExceptionHandlers : public Object {
 
   // We would have a VisitPointers function here to traverse the
   // exception handler table to visit objects if any in the table.
+
+  // Writes the contents of the ExceptionHandlers object to the given buffer.
+  // The base argument is added to the PC offset for each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
  private:
   // Pick somewhat arbitrary maximum number of exception handlers
