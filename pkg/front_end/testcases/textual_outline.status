@@ -9,15 +9,11 @@ super_parameters/issue47741: FormatterCrash # https://github.com/dart-lang/dart_
 
 # These tests have errors in them which isn't reported by the parser but the
 # formatter still sees as syntax errors and thus won't format.
-# Before the extension_types flag is flipped they are allowed to crash though,
-# so for now they're marked as both crashing and passing.
-extension_types/field_access: FormatterCrash, Pass
-extension_types/issue52119: FormatterCrash, Pass
-extension_types/issue53212: FormatterCrash, Pass
-extension_types/representation: FormatterCrash, Pass
-
-# These tests have errors in them which isn't reported by the parser but the
-# formatter still sees as syntax errors and thus won't format.
+extension_types/const_constructor_body: FormatterCrash
+extension_types/field_access: FormatterCrash
+extension_types/issue52119: FormatterCrash
+extension_types/issue53212: FormatterCrash
+extension_types/representation: FormatterCrash
 general/base_class_declaration: FormatterCrash
 general/constants/non_const_constructor: FormatterCrash
 general/constants/various: FormatterCrash
