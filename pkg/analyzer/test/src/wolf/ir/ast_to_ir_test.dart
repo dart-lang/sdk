@@ -53,6 +53,10 @@ class AstToIRTest extends AstToIRTestBase {
 
   final _expectedHooks = <String>[];
 
+  Object? Function(Instance)? _onAwait;
+
+  void Function(Object?)? _onYield;
+
   Future<void> checkBinaryOp(String op) async {
     await assertNoErrorsInCode('''
 class C {
@@ -125,7 +129,10 @@ test(List<C> list, int other) => list.first $op= other;
       typeProvider.listType(typeProvider.objectQuestionType), values);
 
   Object? runInterpreter(List<Object?> args) => interpret(ir, args,
-      scopes: scopes, callDispatcher: _CallDispatcher(this));
+      scopes: scopes,
+      callDispatcher: _CallDispatcher(this),
+      typeProvider: typeProvider,
+      typeSystem: typeSystem);
 
   test_assignmentExpression_binaryAndEq() => checkBinaryOpEq('&');
 
@@ -549,6 +556,21 @@ extension E on List {
 
   test_assignmentExpression_timesEq() => checkBinaryOpEq('*');
 
+  test_awaitExpression_future() async {
+    await assertNoErrorsInCode('''
+test(Future f) async => await f;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.awaitExpression('await')]
+        .containsSubrange(astNodes[findNode.simple('f;')]!);
+    var f = Instance(typeProvider.futureType(typeProvider.intType));
+    _onAwait = (operand) {
+      check(operand).identicalTo(f);
+      return 123;
+    };
+    check(runInterpreter([f])).equals(123);
+  }
+
   test_binaryExpression_and() async {
     await assertNoErrorsInCode('''
 external bool hook(bool b, String s);
@@ -963,6 +985,28 @@ test() => 123;
     analyze(findNode.singleFunctionDeclaration);
     check(astNodes).containsNode(findNode.integerLiteral('123'));
     check(runInterpreter([])).equals(123);
+  }
+
+  test_isExpression_inverted() async {
+    await assertNoErrorsInCode('''
+test(Object? o) => o is! String;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.isExpression('is')]
+        .containsSubrange(astNodes[findNode.simple('o is')]!);
+    check(runInterpreter([123])).equals(true);
+    check(runInterpreter(['123'])).equals(false);
+  }
+
+  test_isExpression_uninverted() async {
+    await assertNoErrorsInCode('''
+test(Object? o) => o is String;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.isExpression('is')]
+        .containsSubrange(astNodes[findNode.simple('o is')]!);
+    check(runInterpreter([123])).equals(false);
+    check(runInterpreter(['123'])).equals(true);
   }
 
   test_methodInvocation_identical() async {
@@ -1696,6 +1740,22 @@ test(int count, List<int> result) {
     check(values).deepEquals([4, 3, 2, 1, 0]);
   }
 
+  test_yieldStatement() async {
+    await assertNoErrorsInCode('''
+test(Object? o) sync* {
+  yield o;
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.yieldStatement('yield')]
+        .containsSubrange(astNodes[findNode.simple('o;')]!);
+    _onYield = (value) {
+      check(value).equals(123);
+      hook(null, 'onYield');
+    };
+    expectHooks(['onYield'], () => check(runInterpreter([123])).equals(null));
+  }
+
   static CallHandler binaryFunction<T, U>(Object? Function(T, U) f) =>
       (callDescriptor, positionalArguments, namedArguments) {
         check(callDescriptor.typeArguments).isEmpty;
@@ -1759,6 +1819,15 @@ class _CallDispatcher implements CallDispatcher {
   _CallDispatcher(this._test);
 
   @override
+  Object? await_(Instance future) {
+    if (_test._onAwait case var onAwait?) {
+      return onAwait(future);
+    } else {
+      fail('Unexpected await');
+    }
+  }
+
+  @override
   bool equals(Object firstValue, Object secondValue) {
     if (firstValue is Literal) {
       throw UnimplementedError('TODO(paulberry): call custom operator==');
@@ -1780,6 +1849,15 @@ class _CallDispatcher implements CallDispatcher {
       throw StateError('No handler for $callDescriptor');
     }
     return handler;
+  }
+
+  @override
+  void yield_(Object? value) {
+    if (_test._onYield case var onYield?) {
+      onYield(value);
+    } else {
+      fail('Unexpected yield');
+    }
   }
 }
 

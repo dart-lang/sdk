@@ -301,6 +301,18 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   }
 
   @override
+  Null visitAwaitExpression(AwaitExpression node) {
+    dispatchNode(node.expression);
+    // Stack: expression
+    if (!typeSystem.isSubtypeOf(
+        node.expression.staticType!, typeProvider.futureDynamicType)) {
+      throw UnimplementedError('TODO(paulberry): handle await of non-future');
+    }
+    ir.await_();
+    // Stack: result
+  }
+
+  @override
   Null visitBinaryExpression(BinaryExpression node) {
     var tokenType = node.operator.type;
     switch (tokenType) {
@@ -641,6 +653,18 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   }
 
   @override
+  Null visitIsExpression(IsExpression node) {
+    dispatchNode(node.expression);
+    // Stack: expression
+    ir.is_(ir.encodeType(node.type.type!));
+    // Stack: (expression is type)
+    if (node.notOperator != null) {
+      ir.not();
+      // Stack: (expression is! type)
+    }
+  }
+
+  @override
   Null visitMethodInvocation(MethodInvocation node) {
     var previousNestingLevel = ir.nestingLevel;
     var argumentNames = <String?>[];
@@ -895,6 +919,14 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     // Stack: BLOCK(0) indeterminate
     breakStack.removeLast();
     ir.end();
+    // Stack: (empty)
+  }
+
+  @override
+  Null visitYieldStatement(YieldStatement node) {
+    dispatchNode(node.expression);
+    // Stack: expression
+    ir.yield_();
     // Stack: (empty)
   }
 

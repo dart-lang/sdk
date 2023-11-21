@@ -41,6 +41,37 @@ class ValidatorTest {
     _validate();
   }
 
+  test_await_inSynchronousFunction() {
+    _analyze((ir) => ir
+      ..function(
+          ir.encodeFunctionType(parameterCount: 1), FunctionFlags(async: false))
+      ..label('bad')
+      ..await_()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Await in synchronous function');
+  }
+
+  test_await_ok() {
+    _analyze((ir) => ir
+      ..function(
+          ir.encodeFunctionType(parameterCount: 1), FunctionFlags(async: true))
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..await_()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end());
+    _validate();
+  }
+
+  test_await_underflow() {
+    _analyze((ir) => ir
+      ..function(
+          ir.encodeFunctionType(parameterCount: 0), FunctionFlags(async: true))
+      ..label('bad')
+      ..await_()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
   test_block_negativeInputCount() {
     _analyze((ir) => ir
       ..ordinaryFunction()
@@ -595,6 +626,25 @@ class ValidatorTest {
     _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
 
+  test_is_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..is_(ir.encodeFunctionType(parameterCount: 0))
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end());
+    _validate();
+  }
+
+  test_is_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 0)
+      ..label('bad')
+      ..is_(ir.encodeFunctionType(parameterCount: 0))
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
   test_literal_ok() {
     _analyze((ir) => ir
       ..ordinaryFunction()
@@ -840,6 +890,38 @@ class ValidatorTest {
       ..alloc(1)
       ..label('bad')
       ..writeLocal(0)
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
+  test_yield_inNonGeneratorFunction() {
+    _analyze((ir) => ir
+      ..function(ir.encodeFunctionType(parameterCount: 1),
+          FunctionFlags(generator: false))
+      ..label('bad')
+      ..yield_()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Yield in non-generator function');
+  }
+
+  test_yield_ok() {
+    _analyze((ir) => ir
+      ..function(ir.encodeFunctionType(parameterCount: 1),
+          FunctionFlags(generator: true))
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..yield_()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(0)))
+      ..literal(ir.encodeLiteral(null))
+      ..end());
+    _validate();
+  }
+
+  test_yield_underflow() {
+    _analyze((ir) => ir
+      ..function(ir.encodeFunctionType(parameterCount: 0),
+          FunctionFlags(generator: true))
+      ..label('bad')
+      ..yield_()
       ..end());
     _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
