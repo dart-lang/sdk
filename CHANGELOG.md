@@ -9,8 +9,11 @@ This is a patch release that:
   This bug has been reported by flutter customers here
   https://github.com/flutter/flutter/issues/124145 (issue [#54059][])
 
+- Upgrades Dart DevTools to version 2.28.3 (issue [#54085][])
+
 [#54073]: https://github.com/dart-lang/sdk/issues/54073
 [#54059]: https://github.com/dart-lang/sdk/issues/54059
+[#54085]: https://github.com/dart-lang/sdk/issues/54085
 
 ## 3.2.0 - 2023-11-15
 
