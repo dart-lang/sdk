@@ -957,6 +957,44 @@ class ExtensionDeclarationImpl extends ParameterizedTypeDeclarationImpl
   }
 }
 
+mixin _IntrospectableExtensionType on ExtensionTypeDeclarationImpl
+    implements IntrospectableType, IntrospectableExtensionTypeDeclaration {
+  @override
+  RemoteInstanceKind get kind =>
+      RemoteInstanceKind.introspectableExtensionTypeDeclaration;
+}
+
+class IntrospectableExtensionTypeDeclarationImpl = ExtensionTypeDeclarationImpl
+    with _IntrospectableExtensionType;
+
+class ExtensionTypeDeclarationImpl extends ParameterizedTypeDeclarationImpl
+    implements ExtensionTypeDeclaration {
+  @override
+  final TypeAnnotationImpl onType;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.extensionTypeDeclaration;
+
+  ExtensionTypeDeclarationImpl({
+    // Declaration fields.
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    // ParameterizedTypeDeclaration fields.
+    required super.typeParameters,
+    // ExtensionTypeDeclaration fields.
+    required this.onType,
+  });
+
+  @override
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
+
+    onType.serialize(serializer);
+  }
+}
+
 mixin _IntrospectableMixin on MixinDeclarationImpl
     implements IntrospectableMixinDeclaration {
   @override

@@ -405,6 +405,19 @@ void main() {
               extension, mode, RemoteInstance.deserialize);
         });
 
+        test('ExtensionTypeDeclaration', () {
+          var extensionType = ExtensionTypeDeclarationImpl(
+              id: RemoteInstance.uniqueId,
+              identifier: IdentifierImpl(
+                  id: RemoteInstance.uniqueId, name: 'MyExtensionType'),
+              library: Fixtures.library,
+              metadata: [],
+              typeParameters: [],
+              onType: Fixtures.myClassType);
+          expectSerializationEquality<DeclarationImpl>(
+              extensionType, mode, RemoteInstance.deserialize);
+        });
+
         test('MixinDeclaration', () {
           for (var base in [true, false]) {
             var mixin = MixinDeclarationImpl(

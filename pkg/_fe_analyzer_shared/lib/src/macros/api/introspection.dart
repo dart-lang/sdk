@@ -219,7 +219,7 @@ abstract interface class IntrospectableEnumDeclaration
 /// The class for introspecting on an extension.
 ///
 /// Note that extensions do not actually introduce a new type, but we model them
-/// as [ParameterizedTypeDeclaration]s anyways, because they generally look
+/// as [ParameterizedTypeDeclaration]s anyway, because they generally look
 /// exactly like other type declarations, and are treated the same.
 abstract interface class ExtensionDeclaration
     implements ParameterizedTypeDeclaration, Declaration {
@@ -230,6 +230,17 @@ abstract interface class ExtensionDeclaration
 /// An introspectable extension declaration.
 abstract interface class IntrospectableExtensionDeclaration
     implements ExtensionDeclaration, IntrospectableType {}
+
+/// The class for introspecting on an extension type.
+abstract interface class ExtensionTypeDeclaration
+    implements ParameterizedTypeDeclaration, Declaration {
+  /// The type that appears on the `on` clause of this extension type.
+  TypeAnnotation get onType;
+}
+
+/// An introspectable extension type declaration.
+abstract interface class IntrospectableExtensionTypeDeclaration
+    implements ExtensionTypeDeclaration, IntrospectableType {}
 
 /// Mixin introspection information.
 ///
