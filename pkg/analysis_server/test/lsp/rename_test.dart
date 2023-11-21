@@ -973,7 +973,6 @@ final a = new MyNewClass();
 
     setDocumentChangesSupport();
     setFileRenameSupport();
-    final initialAnalysis = waitForAnalysisComplete();
 
     final code = TestCode.parse(content);
     await initialize(

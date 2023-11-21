@@ -159,7 +159,7 @@ class LspAnalysisServer extends AnalysisServer {
           instrumentationService,
           httpClient,
           processRunner,
-          LspNotificationManager(channel, baseResourceProvider.pathContext),
+          LspNotificationManager(baseResourceProvider.pathContext),
           enableBlazeWatcher: enableBlazeWatcher,
           dartFixPromptManager: dartFixPromptManager,
         ) {

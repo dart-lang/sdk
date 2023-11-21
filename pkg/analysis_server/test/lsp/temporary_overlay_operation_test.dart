@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/temporary_overlay_operation.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:test/test.dart';
@@ -32,17 +31,12 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_noIntermediateAnalysisResults() async {
     newFile(mainFilePath, '');
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
 
-    // Capture any diagnostics from this point on.
-    final diagnostics = <NotificationMessage>[];
-    final subscription = notificationsFromServer
-        .where((notification) =>
-            notification.method == Method.textDocument_publishDiagnostics)
-        .listen(diagnostics.add);
+    // Clear any previous diagnostics since we want to only capture from this
+    // point.
+    diagnostics.clear();
 
     // Modify the overlays to have invalid code, which will then be reverted.
     // At no point should diagnostics or closing labels be transmitted for the
@@ -53,7 +47,6 @@ class TemporaryOverlayOperationTest extends AbstractLspAnalysisServerTest {
     }).doWork();
 
     await pumpEventQueue(times: 5000);
-    await subscription.cancel();
     expect(diagnostics, isEmpty);
   }
 

@@ -74,17 +74,14 @@ String b = "Test";
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, initialContents);
 
-    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await initialize();
-    final initialDiagnostics = await firstDiagnosticsUpdate;
-    expect(initialDiagnostics, hasLength(0));
-
     await openFile(mainFileUri, initialContents);
+    await pumpEventQueue(times: 5000);
+    expect(diagnostics[mainFilePath], isEmpty);
 
-    final secondDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await replaceFile(222, mainFileUri, 'String a = 1;');
-    final updatedDiagnostics = await secondDiagnosticsUpdate;
-    expect(updatedDiagnostics, hasLength(1));
+    await pumpEventQueue(times: 5000);
+    expect(diagnostics[mainFilePath], isNotEmpty);
   }
 
   Future<void> test_analysisOptionsFile() async {
@@ -502,13 +499,11 @@ analyzer:
     ''';
     newFile(mainFilePath, contents);
 
-    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await provideConfig(
       initialize,
       {'showTodos': true},
     );
-    final initialDiagnostics = await firstDiagnosticsUpdate;
-    expect(initialDiagnostics, hasLength(2));
+    expect(diagnostics[mainFilePath], hasLength(2));
   }
 
   Future<void> test_todos_disabled() async {
@@ -518,11 +513,10 @@ analyzer:
     ''';
     newFile(mainFilePath, contents);
 
-    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     // TODOs are disabled by default so we don't need to send any config.
     await initialize();
-    final initialDiagnostics = await firstDiagnosticsUpdate;
-    expect(initialDiagnostics, hasLength(0));
+    await pumpEventQueue(times: 5000);
+    expect(diagnostics[mainFilePath], isEmpty);
   }
 
   Future<void> test_todos_enabledAfterAnalysis() async {
@@ -531,29 +525,15 @@ analyzer:
     String a = "";
     ''';
 
-    final initialAnalysis = waitForAnalysisComplete();
-    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
-    await provideConfig(
-      initialize,
-      {},
-    );
+    await provideConfig(initialize, {});
     await openFile(mainFileUri, contents);
-    final initialDiagnostics = await firstDiagnosticsUpdate;
-    expect(initialDiagnostics, hasLength(0));
-
-    // Ensure initial analysis completely finished before we continue.
     await initialAnalysis;
-
-    // Capture any diagnostic updates. We might get multiple, because during
-    // a reanalyze, all diagnostics are flushed (to empty) and then analysis
-    // occurs.
-    Map<String, List<Diagnostic>> latestDiagnostics = {};
-    trackDiagnostics(latestDiagnostics);
+    expect(diagnostics[mainFilePath], isEmpty);
 
     final nextAnalysis = waitForAnalysisComplete();
     await updateConfig({'showTodos': true});
     await nextAnalysis;
-    expect(latestDiagnostics[mainFilePath], hasLength(1));
+    expect(diagnostics[mainFilePath], hasLength(1));
   }
 
   Future<void> test_todos_specific() async {
@@ -566,7 +546,6 @@ analyzer:
     ''';
     newFile(mainFilePath, contents);
 
-    final firstDiagnosticsUpdate = waitForDiagnostics(mainFileUri);
     await provideConfig(
       initialize,
       {
@@ -575,7 +554,9 @@ analyzer:
         'showTodos': ['TODO', 'fixme']
       },
     );
-    final initialDiagnostics = (await firstDiagnosticsUpdate)!;
+    await initialAnalysis;
+
+    final initialDiagnostics = diagnostics[mainFilePath]!;
     expect(initialDiagnostics, hasLength(2));
     expect(
       initialDiagnostics.map((e) => e.code!),
