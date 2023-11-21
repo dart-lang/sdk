@@ -9,6 +9,8 @@ import 'dart:core' hide Type;
 
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     show StaticWeakReferences;
+import 'package:front_end/src/fasta/kernel/resource_identifier.dart'
+    as ResourceIdentifiers;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
@@ -260,14 +262,24 @@ class CleanupAnnotations extends RecursiveVisitor {
     }
   }
 
+  /// We do not want to eliminate
+  /// * `pragma`s
+  /// * Protobuf annotations
+  /// * `ResourceIdentifier` annotations
+  ///
+  /// as we need these later in the pipeline.
   bool _keepAnnotation(Expression annotation) {
     if (annotation is ConstantExpression) {
       final constant = annotation.constant;
       if (constant is InstanceConstant) {
         final cls = constant.classNode;
-        return (cls == pragmaClass) ||
-            (protobufHandler != null &&
-                protobufHandler!.usesAnnotationClass(cls));
+        final usesProtobufAnnotation =
+            protobufHandler?.usesAnnotationClass(cls) ?? false;
+        bool usesResourceIdentifier =
+            ResourceIdentifiers.isResourceIdentifier(cls);
+        return cls == pragmaClass ||
+            usesProtobufAnnotation ||
+            usesResourceIdentifier;
       }
     }
     return false;

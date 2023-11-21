@@ -49,6 +49,10 @@ Future markExecutable(String outputFile) {
   return Process.run('chmod', ['+x', outputFile]);
 }
 
+/// Generates the AOT kernel by running the provided [genKernel] path.
+///
+/// Also takes a path to the [resourcesFile] JSON file, where the method calls
+/// to static functions annotated with [Resource] will be collected.
 Future<ProcessResult> generateAotKernel(
   String dart,
   String genKernel,
@@ -61,6 +65,7 @@ Future<ProcessResult> generateAotKernel(
   String? targetOS,
   List<String> extraGenKernelOptions = const [],
   String? nativeAssets,
+  String? resourcesFile,
 }) {
   return Process.run(dart, [
     genKernel,
@@ -76,6 +81,7 @@ Future<ProcessResult> generateAotKernel(
     kernelFile,
     ...extraGenKernelOptions,
     if (nativeAssets != null) ...['--native-assets', nativeAssets],
+    if (resourcesFile != null) ...['--resources-file', resourcesFile],
     sourceFile
   ]);
 }

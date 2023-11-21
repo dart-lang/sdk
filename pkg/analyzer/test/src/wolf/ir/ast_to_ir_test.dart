@@ -26,16 +26,16 @@ main() {
 
 @reflectiveTest
 class AstToIRTest extends AstToIRTestBase {
-  final _instanceGetHandlers = {
+  final _callHandlers = {
     'int.isEven': unaryFunction<int>((i) => i.isEven),
+    'int.parse': unaryFunction<String>((s) => int.parse(s)),
     'Iterable.first': unaryFunction<ListInstance>((list) => list.values.first),
-    'Object.hashCode': unaryFunction<Object?>((o) => o.hashCode),
-    'String.length': unaryFunction<String>((s) => s.length)
-  };
-
-  final _instanceSetHandlers = {
     'List.length=': binaryFunction<ListInstance, int>(
-        (list, newLength) => list.values.length = newLength)
+        (list, newLength) => list.values.length = newLength),
+    'Object.hashCode': unaryFunction<Object?>((o) => o.hashCode),
+    'String.contains':
+        binaryFunction<String, String>((this_, other) => this_.contains(other)),
+    'String.length': unaryFunction<String>((s) => s.length)
   };
 
   ListInstance makeList(List<Object?> values) => ListInstance(
@@ -350,6 +350,210 @@ test() => 123;
     check(runInterpreter([])).equals(123);
   }
 
+  test_methodInvocation_identical() async {
+    await assertNoErrorsInCode('''
+test(Object? x, Object? y) => identical(x, y);
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.methodInvocation('identical(x, y)')]
+      ..containsSubrange(astNodes[findNode.simple('x, y')]!)
+      ..containsSubrange(astNodes[findNode.simple('y);')]!);
+    var s1 = 's';
+    var s2 = String.fromCharCode(s1.codeUnitAt(0));
+    assert(!identical(s1, s2));
+    check(runInterpreter([s1, s2])).equals(false);
+    check(runInterpreter([s1, s1])).equals(true);
+  }
+
+  test_methodInvocation_identical_decoy() async {
+    await assertNoErrorsInCode('''
+external bool identical(Object? x, Object? y);
+test(Object? x, Object? y) => identical(x, y); // invocation
+''');
+    analyze(findNode.functionDeclaration('test'));
+    check(astNodes)[findNode.methodInvocation('identical(x, y)')]
+      ..containsSubrange(astNodes[findNode.simple('x, y')]!)
+      ..containsSubrange(astNodes[findNode.simple('y); // invocation')]!);
+    var s1 = 's';
+    var s2 = String.fromCharCode(s1.codeUnitAt(0));
+    assert(!identical(s1, s2));
+    _callHandlers['identical'] =
+        binaryFunction<Object?, Object?>((x, y) => !identical(x, y));
+    check(runInterpreter([s1, s2])).equals(true);
+    check(runInterpreter([s1, s1])).equals(false);
+  }
+
+  test_methodInvocation_instanceMethod() async {
+    await assertNoErrorsInCode('''
+test(String s1, String s2) => s1.contains(s2);
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.methodInvocation('s1.contains(s2)')]
+      ..containsSubrange(astNodes[findNode.simple('s1.contains')]!)
+      ..containsSubrange(astNodes[findNode.simple('s2);')]!);
+    check(runInterpreter(['abcde', 'bcd'])).equals(true);
+    check(runInterpreter(['abc', 'abcde'])).equals(false);
+  }
+
+  test_methodInvocation_instanceMethod_implicitThis() async {
+    await assertNoErrorsInCode('''
+class C {
+  external int f(int x);
+  test(int x) => f(x); // invocation
+}
+''');
+    analyze(findNode.methodDeclaration('test'));
+    check(astNodes)[findNode.methodInvocation('f(x)')]
+        .containsSubrange(astNodes[findNode.simple('x); // invocation')]!);
+    var c = Instance(findElement.class_('C').thisType);
+    _callHandlers['C.f'] = binaryFunction<Instance, int>((this_, x) {
+      check(this_).identicalTo(c);
+      check(x).equals(123);
+      return 456;
+    });
+    check(runInterpreter([c, 123])).equals(456);
+  }
+
+  test_methodInvocation_nullAware() async {
+    await assertNoErrorsInCode('''
+external String f();
+test(String? s) => s?.contains(f());
+''');
+    analyze(findNode.functionDeclaration('test'));
+    check(astNodes)[findNode.methodInvocation('s?.contains(f())')]
+      ..containsSubrange(astNodes[findNode.simple('s?.contains')]!)
+      ..containsSubrange(astNodes[findNode.methodInvocation('f())')]!);
+    late bool fCalled;
+    late String fValue;
+    _callHandlers['f'] = nullaryFunction(() {
+      check(fCalled).isFalse();
+      fCalled = true;
+      return fValue;
+    });
+    fCalled = false;
+    fValue = 'bcd';
+    check(runInterpreter(['abcde'])).equals(true);
+    check(fCalled).isTrue;
+    fCalled = false;
+    fValue = 'abcde';
+    check(runInterpreter(['abc'])).equals(false);
+    check(fCalled).isTrue;
+    fCalled = false;
+    fValue = 'irrelevant';
+    check(runInterpreter([null])).equals(null);
+    check(fCalled).isFalse;
+  }
+
+  test_methodInvocation_staticMethod() async {
+    await assertNoErrorsInCode('''
+test(String s) => int.parse(s);
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.methodInvocation('int.parse(s)')]
+        .containsSubrange(astNodes[findNode.simple('s);')]!);
+    check(astNodes).not((s) => s.containsNode(findNode.simple('int')));
+    check(runInterpreter(['123'])).equals(123);
+  }
+
+  test_methodInvocation_staticMethod_inScope() async {
+    await assertNoErrorsInCode('''
+class C {
+  external static int f(int x);
+  test(int x) => f(x); // invocation
+  }
+''');
+    analyze(findNode.methodDeclaration('test'));
+    check(astNodes)[findNode.methodInvocation('f(x)')]
+        .containsSubrange(astNodes[findNode.simple('x); // invocation')]!);
+    _callHandlers['C.f'] = unaryFunction<int>((x) {
+      check(x).equals(123);
+      return 456;
+    });
+    var c = Instance(findElement.class_('C').thisType);
+    check(runInterpreter([c, 123])).equals(456);
+  }
+
+  test_methodInvocation_topLevelFunction_nullary() async {
+    await assertNoErrorsInCode('''
+external int f();
+test() => f(); // invocation
+''');
+    analyze(findNode.functionDeclaration('test'));
+    check(astNodes)
+        .containsNode(findNode.methodInvocation('f(); // invocation'));
+    _callHandlers['f'] = nullaryFunction(() => 123);
+    check(runInterpreter([])).equals(123);
+  }
+
+  test_methodInvocation_topLevelFunction_oneNamedArgument() async {
+    await assertNoErrorsInCode('''
+external int f(int x, {required int y});
+test(int x, int y) => f(x, y: y); // invocation
+''');
+    analyze(findNode.functionDeclaration('test'));
+    check(astNodes)[findNode.methodInvocation('f(x, y: y)')]
+      ..containsSubrange(astNodes[findNode.simple('x, y')]!)
+      ..containsSubrange(astNodes[findNode.simple('y); // invocation')]!);
+    _callHandlers['f'] = (callDescriptor, positionalArguments, namedArguments) {
+      check(callDescriptor.typeArguments).isEmpty;
+      check(positionalArguments).length.equals(1);
+      var x = positionalArguments[0] as int;
+      check(namedArguments).keys.unorderedEquals(['y']);
+      var y = namedArguments['y'] as int;
+      return 10 * x + y;
+    };
+    check(runInterpreter([1, 2])).equals(12);
+  }
+
+  test_methodInvocation_topLevelFunction_positionalArguments() async {
+    await assertNoErrorsInCode('''
+external int f(int x, int y);
+test(int x, int y) => f(x, y); // invocation
+''');
+    analyze(findNode.functionDeclaration('test'));
+    check(astNodes)[findNode.methodInvocation('f(x, y)')]
+      ..containsSubrange(astNodes[findNode.simple('x, y')]!)
+      ..containsSubrange(astNodes[findNode.simple('y); // invocation')]!);
+    _callHandlers['f'] = binaryFunction<int, int>((x, y) => 10 * x + y);
+    check(runInterpreter([1, 2])).equals(12);
+  }
+
+  test_methodInvocation_topLevelFunction_twoNamedArguments() async {
+    await assertNoErrorsInCode('''
+external int f({required int x, required int y});
+test(int x, int y) => f(y: y, x: x);
+''');
+    analyze(findNode.functionDeclaration('test'));
+    check(astNodes)[findNode.methodInvocation('f(y: y, x: x)')]
+      ..containsSubrange(astNodes[findNode.simple('y, x')]!)
+      ..containsSubrange(astNodes[findNode.simple('x);')]!);
+    _callHandlers['f'] = (callDescriptor, positionalArguments, namedArguments) {
+      check(callDescriptor.typeArguments).isEmpty;
+      check(positionalArguments).isEmpty;
+      check(namedArguments).keys.unorderedEquals(['x', 'y']);
+      var x = namedArguments['x'] as int;
+      var y = namedArguments['y'] as int;
+      return 10 * x + y;
+    };
+    check(runInterpreter([1, 2])).equals(12);
+  }
+
+  test_methodInvocation_typeArguments_explicit() async {
+    await assertNoErrorsInCode('''
+external f<T, U>();
+test() => f<int, String>();
+''');
+    analyze(findNode.functionDeclaration('test'));
+    check(astNodes).containsNode(findNode.methodInvocation('f<int, String>()'));
+    _callHandlers['f'] = (callDescriptor, positinalArguments, namedArguments) {
+      check(callDescriptor.typeArguments).length.equals(2);
+      check(callDescriptor.typeArguments[0]).equals(typeProvider.intType);
+      check(callDescriptor.typeArguments[1]).equals(typeProvider.stringType);
+      return null;
+    };
+    check(runInterpreter([])).equals(null);
+  }
+
   test_multipleParameters_first() async {
     await assertNoErrorsInCode('''
 test(int i, int j) => i;
@@ -653,14 +857,24 @@ test() {
   }
 
   static CallHandler binaryFunction<T, U>(Object? Function(T, U) f) =>
-      (positionalArguments, namedArguments) {
+      (callDescriptor, positionalArguments, namedArguments) {
+        check(callDescriptor.typeArguments).isEmpty;
         check(positionalArguments).length.equals(2);
         check(namedArguments).isEmpty();
         return f(positionalArguments[0] as T, positionalArguments[1] as U);
       };
 
+  static CallHandler nullaryFunction(Object? Function() f) =>
+      (callDescriptor, positionalArguments, namedArguments) {
+        check(callDescriptor.typeArguments).isEmpty;
+        check(positionalArguments).isEmpty();
+        check(namedArguments).isEmpty();
+        return f();
+      };
+
   static CallHandler unaryFunction<T>(Object? Function(T) f) =>
-      (positionalArguments, namedArguments) {
+      (callDescriptor, positionalArguments, namedArguments) {
+        check(callDescriptor.typeArguments).isEmpty;
         check(positionalArguments).length.equals(1);
         check(namedArguments).isEmpty();
         return f(positionalArguments[0] as T);
@@ -716,22 +930,11 @@ class _CallDispatcher implements CallDispatcher {
   CallHandler lookupCallDescriptor(CallDescriptor callDescriptor) {
     CallHandler? handler;
     switch (callDescriptor) {
-      case InstanceGetDescriptor(
-          getter: PropertyAccessorElement(
-            enclosingElement: InstanceElement(name: var typeName?)
-          )
-        ):
-        handler =
-            _test._instanceGetHandlers['$typeName.${callDescriptor.name}'];
-      case InstanceSetDescriptor(
-          setter: PropertyAccessorElement(
-            enclosingElement: InstanceElement(name: var typeName?)
-          )
-        ):
-        handler =
-            _test._instanceSetHandlers['$typeName.${callDescriptor.name}'];
-      case dynamic(:var runtimeType):
-        throw UnimplementedError('TODO(paulberry): $runtimeType');
+      case ElementCallDescriptor(:var name, :var element):
+        if (element.enclosingElement case InstanceElement(name: var typeName)) {
+          name = '${typeName ?? '<unnamed>'}.$name';
+        }
+        handler = _test._callHandlers[name];
     }
     if (handler == null) {
       throw StateError('No handler for $callDescriptor');

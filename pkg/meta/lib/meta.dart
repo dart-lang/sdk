@@ -394,6 +394,23 @@ class Immutable {
   const Immutable([this.reason = '']);
 }
 
+/// Annotate a static method for collection.
+///
+/// During compilation, all calls to static methods annotated with
+/// [ResourceIdentifier] are stored with the calling arguments, as far as they
+/// can be resolved at compile time. This information is then made available to
+/// post-compile steps.
+@experimental
+class ResourceIdentifier {
+  /// An identifier which can be used when retrieving the stored calls.
+  ///
+  /// This could, for example, be the name of the package which places and
+  /// retrieves the annotation.
+  final Object? metadata;
+
+  const ResourceIdentifier([this.metadata]);
+}
+
 /// Used to annotate a named parameter `p` in a method or function `f`.
 ///
 /// See [required] for more details.

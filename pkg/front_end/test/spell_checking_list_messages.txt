@@ -102,6 +102,7 @@ pubspec.yaml
 r
 re
 refutable
+resource
 sdksummary
 size
 solutions

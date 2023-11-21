@@ -203,6 +203,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
 
+  static const ExperimentalFlag resourceIdentifiers = const ExperimentalFlag(
+      name: 'resource-identifiers',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
       isEnabledByDefault: true,
@@ -390,6 +398,10 @@ class GlobalFeatures {
   GlobalFeature get records =>
       _records ??= _computeGlobalFeature(ExperimentalFlag.records);
 
+  GlobalFeature? _resourceIdentifiers;
+  GlobalFeature get resourceIdentifiers => _resourceIdentifiers ??=
+      _computeGlobalFeature(ExperimentalFlag.resourceIdentifiers);
+
   GlobalFeature? _sealedClass;
   GlobalFeature get sealedClass =>
       _sealedClass ??= _computeGlobalFeature(ExperimentalFlag.sealedClass);
@@ -536,6 +548,11 @@ class LibraryFeatures {
       _records ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.records, canonicalUri, libraryVersion);
 
+  LibraryFeature? _resourceIdentifiers;
+  LibraryFeature get resourceIdentifiers =>
+      _resourceIdentifiers ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.resourceIdentifiers, canonicalUri, libraryVersion);
+
   LibraryFeature? _sealedClass;
   LibraryFeature get sealedClass =>
       _sealedClass ??= globalFeatures._computeLibraryFeature(
@@ -616,6 +633,8 @@ class LibraryFeatures {
         return patterns;
       case shared.ExperimentalFlag.records:
         return records;
+      case shared.ExperimentalFlag.resourceIdentifiers:
+        return resourceIdentifiers;
       case shared.ExperimentalFlag.sealedClass:
         return sealedClass;
       case shared.ExperimentalFlag.setLiterals:
@@ -679,6 +698,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.patterns;
     case "records":
       return ExperimentalFlag.records;
+    case "resource-identifiers":
+      return ExperimentalFlag.resourceIdentifiers;
     case "sealed-class":
       return ExperimentalFlag.sealedClass;
     case "set-literals":
@@ -733,6 +754,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.nonfunctionTypeAliases.isEnabledByDefault,
   ExperimentalFlag.patterns: ExperimentalFlag.patterns.isEnabledByDefault,
   ExperimentalFlag.records: ExperimentalFlag.records.isEnabledByDefault,
+  ExperimentalFlag.resourceIdentifiers:
+      ExperimentalFlag.resourceIdentifiers.isEnabledByDefault,
   ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass.isEnabledByDefault,
   ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals.isEnabledByDefault,
   ExperimentalFlag.spreadCollections:
@@ -783,6 +806,8 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.nonfunctionTypeAliases,
   shared.ExperimentalFlag.patterns: ExperimentalFlag.patterns,
   shared.ExperimentalFlag.records: ExperimentalFlag.records,
+  shared.ExperimentalFlag.resourceIdentifiers:
+      ExperimentalFlag.resourceIdentifiers,
   shared.ExperimentalFlag.sealedClass: ExperimentalFlag.sealedClass,
   shared.ExperimentalFlag.setLiterals: ExperimentalFlag.setLiterals,
   shared.ExperimentalFlag.spreadCollections: ExperimentalFlag.spreadCollections,

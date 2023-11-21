@@ -29,7 +29,7 @@ Object? interpret(CodedIRContainer ir, List<Object?> args,
 }
 
 /// Function type invoked by [interpret] to execute a `call` instruction.
-typedef CallHandler = Object? Function(
+typedef CallHandler = Object? Function(CallDescriptor descriptor,
     List<Object?> positionalArguments, Map<String, Object?> namedArguments);
 
 /// Interface used by [interpret] to query the behavior of calls to external
@@ -240,7 +240,9 @@ class _IRInterpreter {
           }
           stack.length = newStackLength;
           stack.add(callHandlers[callDescriptorRef.index](
-              positionalArguments, namedArguments));
+              ir.decodeCallDescriptor(callDescriptorRef),
+              positionalArguments,
+              namedArguments));
         case Opcode.drop:
           stack.removeLast();
         case Opcode.dup:
@@ -267,6 +269,10 @@ class _IRInterpreter {
           } else {
             stack.add(callDispatcher.equals(firstValue, secondValue));
           }
+        case Opcode.identical:
+          var secondValue = stack.removeLast();
+          var firstValue = stack.removeLast();
+          stack.add(identical(firstValue, secondValue));
         case Opcode.literal:
           var value = Opcode.literal.decodeValue(ir, address);
           stack.add(ir.decodeLiteral(value));

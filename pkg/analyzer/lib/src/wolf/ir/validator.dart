@@ -254,6 +254,9 @@ class _Validator {
           functionFlags = kind;
           valueStackDepth =
               ValueCount(ir.countParameters(type) + (kind.isInstance ? 1 : 0));
+        case Opcode.identical:
+          popValues(2);
+          pushValues(1);
         case Opcode.literal:
           pushValues(1);
         case Opcode.not:
