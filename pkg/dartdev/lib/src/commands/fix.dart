@@ -151,15 +151,6 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         // TODO(brianwilkerson) Be more intelligent about detecting infinite
         //  loops so that we can increase [maxPasses].
       } while (pass < maxPasses && edits.isNotEmpty);
-      // If there are no more dart edits, check if there are any changes
-      // to pubspec
-      if (edits.isEmpty && detailsMap.isNotEmpty) {
-        var fixes = await server.requestBulkFixes(fixPath, inTestMode, [],
-            updatePubspec: true);
-        _mergeDetails(detailsMap, fixes.details);
-        edits = fixes.edits;
-        _applyEdits(server, edits);
-      }
       return _FixRequestResult(details: detailsMap);
     }
 
