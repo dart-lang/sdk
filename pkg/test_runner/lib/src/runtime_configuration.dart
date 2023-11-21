@@ -137,8 +137,8 @@ abstract class RuntimeConfiguration {
 
   String get d8FileName {
     var d8Dir = Repository.dir.append('third_party/d8');
-    var d8Path =
-        d8Dir.append('${Platform.operatingSystem}/d8$executableExtension');
+    var d8Path = d8Dir.append(
+        '${Platform.operatingSystem}/${Architecture.host}/d8$executableExtension');
     var d8 = d8Path.toNativePath();
     TestUtils.ensureExists(d8, _configuration);
     return d8;
