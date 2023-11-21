@@ -241,7 +241,8 @@ class LoadedElf {
   const dart::elf::Symbol* dynamic_symbol_table_ = nullptr;
   uword dynamic_symbol_count_ = 0;
 
-#if defined(DART_HOST_OS_WINDOWS) && defined(HOST_ARCH_X64)
+#if defined(DART_HOST_OS_WINDOWS) &&                                           \
+    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64))
   // Dynamic table for looking up unwinding exceptions info.
   // Initialized by LoadSegments as we load executable segment.
   MallocGrowableArray<void*> dynamic_runtime_function_tables_;
@@ -293,7 +294,8 @@ bool LoadedElf::Load() {
 }
 
 LoadedElf::~LoadedElf() {
-#if defined(DART_HOST_OS_WINDOWS) && defined(HOST_ARCH_X64)
+#if defined(DART_HOST_OS_WINDOWS) &&                                           \
+    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64))
   for (intptr_t i = 0; i < dynamic_runtime_function_tables_.length(); i++) {
     UnwindingRecordsPlatform::UnregisterDynamicTable(
         dynamic_runtime_function_tables_[i]);
@@ -463,7 +465,8 @@ bool LoadedElf::LoadSegments() {
     CHECK_ERROR(memory != nullptr, "Could not map segment.");
     CHECK_ERROR(memory->address() == memory_start,
                 "Mapping not at requested address.");
-#if defined(DART_HOST_OS_WINDOWS) && defined(HOST_ARCH_X64)
+#if defined(DART_HOST_OS_WINDOWS) &&                                           \
+    (defined(HOST_ARCH_X64) || defined(HOST_ARCH_ARM64))
     // For executable pages register unwinding information that should be
     // present on the page.
     if (map_type == File::kReadExecute) {
