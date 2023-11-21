@@ -23,86 +23,16 @@ dynamic _parseJson(
 
 @patch
 class Utf8Decoder {
-  // Always fall back to the Dart implementation for strings shorter than this
-  // threshold, as there is a large, constant overhead for using TextDecoder.
-  // TODO(omersa): This is copied from dart2js runtime, make sure the value is
-  // right for dart2wasm.
-  static const int _shortInputThreshold = 15;
-
   @patch
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     return super.fuse(next);
   }
 
-  // Allow intercepting of UTF-8 decoding when built-in lists are passed.
   @patch
   static String? _convertIntercepted(
       bool allowMalformed, List<int> codeUnits, int start, int? end) {
-    if (codeUnits is JSUint8ArrayImpl) {
-      final JSUint8ArrayImpl jsCodeUnits = codeUnits;
-      end ??= jsCodeUnits.length;
-      if (end - start < _shortInputThreshold) {
-        return null;
-      }
-      return _convertInterceptedUint8List(
-          allowMalformed, jsCodeUnits, start, end);
-    }
-    return null; // This call was not intercepted.
-  }
-
-  static String? _convertInterceptedUint8List(
-      bool allowMalformed, JSUint8ArrayImpl codeUnits, int start, int end) {
-    final JSAny? decoder = allowMalformed ? _decoderNonFatal : _decoder;
-    if (decoder == null) {
-      return null;
-    }
-
-    if (0 == start && end == codeUnits.length) {
-      return _useTextDecoder(
-          externRefForJSAny(decoder), codeUnits.toJSArrayExternRef());
-    }
-    RangeError.checkValidRange(start, end, codeUnits.length);
-    final length = end - start;
-    return _useTextDecoder(externRefForJSAny(decoder),
-        codeUnits.toJSArrayExternRef(start, length));
-  }
-
-  static String? _useTextDecoder(
-      WasmExternRef? decoder, WasmExternRef? codeUnits) {
-    // If the input is malformed, catch the exception and return `null` to fall
-    // back on unintercepted decoder. The fallback will either succeed in
-    // decoding, or report the problem better than TextDecoder.
-    try {
-      return JSStringImpl(js.JS<WasmExternRef?>(
-          '(decoder, codeUnits) => decoder.decode(codeUnits)',
-          decoder,
-          codeUnits));
-    } catch (e) {}
     return null;
   }
-
-  // TextDecoder is not defined on some browsers and on the stand-alone d8 and
-  // jsshell engines. Use a lazy initializer to do feature detection once.
-  //
-  // Globls need to return boxed Dart values, so these return `JSAny?` instead
-  // of `WasmExternRef?`.
-  static final JSAny? _decoder = () {
-    try {
-      return js
-          .JS<WasmExternRef>('() => new TextDecoder("utf-8", {fatal: true})')
-          .toJS;
-    } catch (e) {}
-    return null;
-  }();
-
-  static final JSAny? _decoderNonFatal = () {
-    try {
-      return js
-          .JS<WasmExternRef>('() => new TextDecoder("utf-8", {fatal: false})')
-          .toJS;
-    } catch (e) {}
-    return null;
-  }();
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
@@ -1556,8 +1486,34 @@ class _Utf8Decoder {
   @patch
   _Utf8Decoder(this.allowMalformed) : _state = beforeBom;
 
+  // Always fall back to the Dart implementation for strings shorter than this
+  // threshold, as there is a large, constant overhead for using TextDecoder.
+  // TODO(omersa): This is copied from dart2js runtime, make sure the value is
+  // right for dart2wasm.
+  static const int _shortInputThreshold = 15;
+
   @patch
   String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
+    final codeUnitsLength = codeUnits.length;
+    final end = RangeError.checkValidRange(start, maybeEnd, codeUnitsLength);
+    if (start == end) return "";
+
+    final length = end - start;
+
+    if (codeUnits is JSUint8ArrayImpl) {
+      if (length >= _shortInputThreshold) {
+        final JSAny? decoder = allowMalformed ? _decoderNonFatal : _decoder;
+        if (decoder != null) {
+          final arrayRef = codeUnits.toJSArrayExternRef(start, length);
+          final textDecoderResult =
+              _useTextDecoder(externRefForJSAny(decoder), arrayRef);
+          if (textDecoderResult != null) {
+            return textDecoderResult;
+          }
+        }
+      }
+    }
+
     return convertGeneral(codeUnits, start, maybeEnd, true);
   }
 
@@ -1565,6 +1521,43 @@ class _Utf8Decoder {
   String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
     return convertGeneral(codeUnits, start, maybeEnd, false);
   }
+
+  static String? _useTextDecoder(
+      WasmExternRef? decoder, WasmExternRef? codeUnits) {
+    // If the input is malformed, catch the exception and return `null` to fall
+    // back on unintercepted decoder. The fallback will either succeed in
+    // decoding, or report the problem better than TextDecoder.
+    try {
+      return JSStringImpl(js.JS<WasmExternRef?>(
+          '(decoder, codeUnits) => decoder.decode(codeUnits)',
+          decoder,
+          codeUnits));
+    } catch (e) {}
+    return null;
+  }
+
+  // TextDecoder is not defined on some browsers and on the stand-alone d8 and
+  // jsshell engines. Use a lazy initializer to do feature detection once.
+  //
+  // Globls need to return boxed Dart values, so these return `JSAny?` instead
+  // of `WasmExternRef?`.
+  static final JSAny? _decoder = () {
+    try {
+      return js
+          .JS<WasmExternRef>('() => new TextDecoder("utf-8", {fatal: true})')
+          .toJS;
+    } catch (e) {}
+    return null;
+  }();
+
+  static final JSAny? _decoderNonFatal = () {
+    try {
+      return js
+          .JS<WasmExternRef>('() => new TextDecoder("utf-8", {fatal: false})')
+          .toJS;
+    } catch (e) {}
+    return null;
+  }();
 }
 
 double _parseDouble(String source, int start, int end) =>

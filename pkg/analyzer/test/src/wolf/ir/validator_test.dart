@@ -502,6 +502,25 @@ class ValidatorTest {
     _checkInvalidMessageAt('bad').equals('No instructions');
   }
 
+  test_not_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..not()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end());
+    _validate();
+  }
+
+  test_not_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction()
+      ..label('bad')
+      ..not()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
   test_readLocal_negativeLocalIndex() {
     _analyze((ir) => ir
       ..ordinaryFunction()

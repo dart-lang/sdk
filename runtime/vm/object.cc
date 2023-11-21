@@ -15768,19 +15768,19 @@ const char* PcDescriptors::KindAsStr(UntaggedPcDescriptors::Kind kind) {
     case UntaggedPcDescriptors::kDeopt:
       return "deopt        ";
     case UntaggedPcDescriptors::kIcCall:
-      return "ic-call      ";
+      return "ic-call";
     case UntaggedPcDescriptors::kUnoptStaticCall:
-      return "unopt-call   ";
+      return "unopt-call";
     case UntaggedPcDescriptors::kRuntimeCall:
-      return "runtime-call ";
+      return "runtime-call";
     case UntaggedPcDescriptors::kOsrEntry:
-      return "osr-entry    ";
+      return "osr-entry";
     case UntaggedPcDescriptors::kRewind:
-      return "rewind       ";
+      return "rewind";
     case UntaggedPcDescriptors::kBSSRelocation:
-      return "bss reloc    ";
+      return "bss reloc";
     case UntaggedPcDescriptors::kOther:
-      return "other        ";
+      return "other";
     case UntaggedPcDescriptors::kAnyKind:
       UNREACHABLE();
       break;
@@ -15789,48 +15789,31 @@ const char* PcDescriptors::KindAsStr(UntaggedPcDescriptors::Kind kind) {
   return "";
 }
 
-void PcDescriptors::PrintHeaderString() {
-  // 4 bits per hex digit + 2 for "0x".
-  const int addr_width = (kBitsPerWord / 4) + 2;
+void PcDescriptors::WriteToBuffer(BaseTextBuffer* buffer, uword base) const {
+  // 4 bits per hex digit.
+  const int addr_width = kBitsPerWord / 4;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  THR_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\tyield-idx\n", addr_width,
-            "pc");
+  buffer->Printf(
+      "%-*s  kind           deopt-id  tok-ix        try-ix yield-idx\n",
+      addr_width, "pc");
+  Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    buffer->Printf("%#-*" Px "  %-13s  % 8" Pd "  %-10s  % 8" Pd "  % 8" Pd
+                   "\n",
+                   addr_width, base + iter.PcOffset(), KindAsStr(iter.Kind()),
+                   iter.DeoptId(), iter.TokenPos().ToCString(), iter.TryIndex(),
+                   iter.YieldIndex());
+  }
 }
 
 const char* PcDescriptors::ToCString() const {
-// "*" in a printf format specifier tells it to read the field width from
-// the printf argument list.
-#define FORMAT "%#-*" Px "\t%s\t%" Pd "\t\t%s\t%" Pd "\t%" Pd "\n"
   if (Length() == 0) {
-    return "empty PcDescriptors\n";
+    return "empty PcDescriptors";
   }
-  // 4 bits per hex digit.
-  const int addr_width = kBitsPerWord / 4;
-  // First compute the buffer size required.
-  intptr_t len = 1;  // Trailing '\0'.
-  {
-    Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
-    while (iter.MoveNext()) {
-      len += Utils::SNPrint(nullptr, 0, FORMAT, addr_width, iter.PcOffset(),
-                            KindAsStr(iter.Kind()), iter.DeoptId(),
-                            iter.TokenPos().ToCString(), iter.TryIndex(),
-                            iter.YieldIndex());
-    }
-  }
-  // Allocate the buffer.
-  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
-  // Layout the fields in the buffer.
-  intptr_t index = 0;
-  Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    index += Utils::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
-                            iter.PcOffset(), KindAsStr(iter.Kind()),
-                            iter.DeoptId(), iter.TokenPos().ToCString(),
-                            iter.TryIndex(), iter.YieldIndex());
-  }
-  return buffer;
-#undef FORMAT
+  ZoneTextBuffer buffer(Thread::Current()->zone());
+  WriteToBuffer(&buffer, /*base=*/0);
+  return buffer.buffer();
 }
 
 // Verify assumptions (in debug mode only).
@@ -15910,6 +15893,7 @@ uword CompressedStackMaps::Hash() const {
 }
 
 void CompressedStackMaps::WriteToBuffer(BaseTextBuffer* buffer,
+                                        uword base,
                                         const char* separator) const {
   auto it = iterator(Thread::Current());
   bool first_entry = true;
@@ -15917,7 +15901,7 @@ void CompressedStackMaps::WriteToBuffer(BaseTextBuffer* buffer,
     if (!first_entry) {
       buffer->AddString(separator);
     }
-    buffer->Printf("0x%.8" Px32 ": ", it.pc_offset());
+    buffer->Printf("0x%.8" Px ": ", base + it.pc_offset());
     for (intptr_t i = 0, n = it.Length(); i < n; i++) {
       buffer->AddString(it.IsObject(i) ? "1" : "0");
     }
@@ -15982,7 +15966,7 @@ const char* CompressedStackMaps::ToCString() const {
   auto const t = Thread::Current();
   ZoneTextBuffer buffer(t->zone(), 100);
   buffer.AddString("CompressedStackMaps(");
-  WriteToBuffer(&buffer, ", ");
+  WriteToBuffer(&buffer, /*base=*/0, ", ");
   buffer.AddString(")");
   return buffer.buffer();
 }
@@ -16233,67 +16217,41 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
   return result.ptr();
 }
 
-const char* ExceptionHandlers::ToCString() const {
-#define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d)%s%s\n"
-#define FORMAT2 "  %d. %s\n"
-#define FORMAT3 "<async handler>\n"
-  if (num_entries() == 0) {
-    return has_async_handler()
-               ? "empty ExceptionHandlers (with <async handler>)\n"
-               : "empty ExceptionHandlers\n";
-  }
+void ExceptionHandlers::WriteToBuffer(BaseTextBuffer* buffer,
+                                      uword base) const {
   auto& handled_types = Array::Handle();
   auto& type = AbstractType::Handle();
   ExceptionHandlerInfo info;
-  // First compute the buffer size required.
-  intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
-    len += Utils::SNPrint(
-        nullptr, 0, FORMAT1, i, info.handler_pc_offset, num_types,
-        info.outer_try_index,
-        ((info.needs_stacktrace != 0) ? " (needs stack trace)" : ""),
-        ((info.is_generated != 0) ? " (generated)" : ""));
+    buffer->Printf("%" Pd " => %#" Px "  (%" Pd " types) (outer %d)%s%s\n", i,
+                   base + info.handler_pc_offset, num_types,
+                   info.outer_try_index,
+                   ((info.needs_stacktrace != 0) ? " (needs stack trace)" : ""),
+                   ((info.is_generated != 0) ? " (generated)" : ""));
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       ASSERT(!type.IsNull());
-      len += Utils::SNPrint(nullptr, 0, FORMAT2, k, type.ToCString());
+      buffer->Printf("  %d. %s\n", k, type.ToCString());
     }
   }
   if (has_async_handler()) {
-    len += Utils::SNPrint(nullptr, 0, FORMAT3);
+    buffer->AddString("<async handler>\n");
   }
-  // Allocate the buffer.
-  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
-  // Layout the fields in the buffer.
-  intptr_t num_chars = 0;
-  for (intptr_t i = 0; i < num_entries(); i++) {
-    GetHandlerInfo(i, &info);
-    handled_types = GetHandledTypes(i);
-    const intptr_t num_types =
-        handled_types.IsNull() ? 0 : handled_types.Length();
-    num_chars += Utils::SNPrint(
-        (buffer + num_chars), (len - num_chars), FORMAT1, i,
-        info.handler_pc_offset, num_types, info.outer_try_index,
-        ((info.needs_stacktrace != 0) ? " (needs stack trace)" : ""),
-        ((info.is_generated != 0) ? " (generated)" : ""));
-    for (int k = 0; k < num_types; k++) {
-      type ^= handled_types.At(k);
-      num_chars += Utils::SNPrint((buffer + num_chars), (len - num_chars),
-                                  FORMAT2, k, type.ToCString());
-    }
+}
+
+const char* ExceptionHandlers::ToCString() const {
+  if (num_entries() == 0) {
+    return has_async_handler()
+               ? "empty ExceptionHandlers (with <async handler>)"
+               : "empty ExceptionHandlers";
   }
-  if (has_async_handler()) {
-    num_chars +=
-        Utils::SNPrint((buffer + num_chars), (len - num_chars), FORMAT3);
-  }
-  return buffer;
-#undef FORMAT1
-#undef FORMAT2
-#undef FORMAT3
+  ZoneTextBuffer buffer(Thread::Current()->zone());
+  WriteToBuffer(&buffer, /*base=*/0);
+  return buffer.buffer();
 }
 
 void SingleTargetCache::set_target(const Code& value) const {

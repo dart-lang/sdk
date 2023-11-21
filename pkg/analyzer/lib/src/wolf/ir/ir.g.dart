@@ -76,6 +76,12 @@ mixin _RawIRWriterMixin implements _RawIRWriterMixinInterface {
     _params1.add(0);
   }
 
+  void not() {
+    _opcodes.add(Opcode.not);
+    _params0.add(0);
+    _params1.add(0);
+  }
+
   void readLocal(int localIndex) {
     _opcodes.add(Opcode.readLocal);
     _params0.add(localIndex);
@@ -121,6 +127,9 @@ mixin IRToStringMixin implements RawIRContainerInterface {
 
       case Opcode.eq:
         return 'eq';
+
+      case Opcode.not:
+        return 'not';
 
       case Opcode.drop:
         return 'drop';
@@ -265,15 +274,16 @@ class Opcode {
   static const writeLocal = _ParameterShape1._(3);
   static const literal = _ParameterShape2._(4);
   static const eq = _ParameterShape3._(5);
-  static const drop = _ParameterShape3._(6);
-  static const dup = _ParameterShape3._(7);
-  static const shuffle = _ParameterShape4._(8);
-  static const block = _ParameterShape5._(9);
-  static const function = _ParameterShape6._(10);
-  static const end = _ParameterShape3._(11);
-  static const br = _ParameterShape7._(12);
-  static const brIf = _ParameterShape7._(13);
-  static const call = _ParameterShape8._(14);
+  static const not = _ParameterShape3._(6);
+  static const drop = _ParameterShape3._(7);
+  static const dup = _ParameterShape3._(8);
+  static const shuffle = _ParameterShape4._(9);
+  static const block = _ParameterShape5._(10);
+  static const function = _ParameterShape6._(11);
+  static const end = _ParameterShape3._(12);
+  static const br = _ParameterShape7._(13);
+  static const brIf = _ParameterShape7._(14);
+  static const call = _ParameterShape8._(15);
 
   String describe() => opcodeNameTable[index];
 
@@ -284,6 +294,7 @@ class Opcode {
     "writeLocal",
     "literal",
     "eq",
+    "not",
     "drop",
     "dup",
     "shuffle",

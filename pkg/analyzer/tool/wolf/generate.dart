@@ -86,6 +86,7 @@ class _Instructions {
     // Primitive operations
     _addInstruction('literal', [literal('value')]);
     _addInstruction('eq', []);
+    _addInstruction('not', []);
     // Stack manipulation
     _addInstruction('drop', []);
     _addInstruction('dup', []);

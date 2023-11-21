@@ -24,7 +24,10 @@ int retrieveFromBase(Int8List src, int n) => src[n];
 int retrieveFromExternal(Int8List src, int n) => src[n];
 
 void matchIL$retrieveFromView(FlowGraph graph) {
-  graph.dump();
+  // TODO(https://github.com/flutter/flutter/issues/138689): Once the regression
+  // for doing the replacement with the GenericCheckBound instruction is fixed
+  // on 32-bit archs, remove this.
+  if (is32BitConfiguration) return;
   graph.match([
     match.block('Graph'),
     match.block('Function', [
@@ -57,7 +60,10 @@ void matchIL$retrieveFromView(FlowGraph graph) {
 }
 
 void matchIL$retrieveFromBase(FlowGraph graph) {
-  graph.dump();
+  // TODO(https://github.com/flutter/flutter/issues/138689): Once the regression
+  // for doing the replacement with the GenericCheckBound instruction is fixed
+  // on 32-bit archs, remove this.
+  if (is32BitConfiguration) return;
   graph.match([
     match.block('Graph'),
     match.block('Function', [
@@ -80,7 +86,10 @@ void matchIL$retrieveFromBase(FlowGraph graph) {
 }
 
 void matchIL$retrieveFromExternal(FlowGraph graph) {
-  graph.dump();
+  // TODO(https://github.com/flutter/flutter/issues/138689): Once the regression
+  // for doing the replacement with the GenericCheckBound instruction is fixed
+  // on 32-bit archs, remove this.
+  if (is32BitConfiguration) return;
   graph.match([
     match.block('Graph'),
     match.block('Function', [

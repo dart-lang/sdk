@@ -1134,6 +1134,8 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockExclusiveNestedWriter_Regress44000) {
   // Ensure the reader thread had to wait before it entered the
   // SafepointWriteRwLocker scope.
   EXPECT(state.observed_value == 2);
+
+  delete state.monitor;
 }
 
 ISOLATE_UNIT_TEST_CASE(SafepointMonitorUnlockScope) {
