@@ -9,7 +9,6 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:_interceptors' show JSExtendableArray;
 import 'dart:_internal' show MappedIterable, ListIterable, patch;
 import 'dart:collection' show LinkedHashMap, MapBase;
-import 'dart:_native_typed_data' show NativeUint8List;
 
 /**
  * Parses [json] and builds the corresponding parsed JSON value.
@@ -385,103 +384,5 @@ class _JsonDecoderSink extends _StringSinkConversionSink<StringBuffer> {
     Object? decoded = _parseJson(accumulated, _reviver);
     _sink.add(decoded);
     _sink.close();
-  }
-}
-
-@patch
-class Utf8Decoder {
-  // Always fall back to the Dart implementation for strings shorter than this
-  // threshold, as there is a large, constant overhead for using TextDecoder.
-  static const int _shortInputThreshold = 15;
-
-  @patch
-  Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
-    return super.fuse(next);
-  }
-
-  // Currently not intercepting UTF8 decoding.
-  @patch
-  static String? _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int? end) {
-    // Test `codeUnits is NativeUint8List`. Dart's NativeUint8List is
-    // implemented by JavaScript's Uint8Array.
-    if (JS<bool>('!', '# instanceof Uint8Array', codeUnits)) {
-      // JS 'cast' to avoid a downcast equivalent to the is-check we hand-coded.
-      NativeUint8List casted = JS<NativeUint8List>('!', '#', codeUnits);
-      // Always use Dart implementation for short strings.
-      end ??= casted.length;
-      if (end - start < _shortInputThreshold) {
-        return null;
-      }
-      String? result =
-          _convertInterceptedUint8List(allowMalformed, casted, start, end);
-      if (result != null && allowMalformed) {
-        // In principle, TextDecoder should have provided the correct result
-        // here, but some browsers deviate from the standard as to how many
-        // replacement characters they produce. Thus, we fall back to the Dart
-        // implementation if the result contains any replacement characters.
-        if (JS<int>('int', r'#.indexOf(#)', result, '\uFFFD') >= 0) {
-          return null;
-        }
-      }
-      return result;
-    }
-    return null; // This call was not intercepted.
-  }
-
-  static String? _convertInterceptedUint8List(
-      bool allowMalformed, NativeUint8List codeUnits, int start, int end) {
-    final decoder = allowMalformed ? _decoderNonfatal : _decoder;
-    if (decoder == null) return null;
-    if (0 == start && end == codeUnits.length) {
-      return _useTextDecoder(decoder, codeUnits);
-    }
-
-    int length = codeUnits.length;
-    end = RangeError.checkValidRange(start, end, length);
-
-    return _useTextDecoder(decoder,
-        JS<NativeUint8List>('!', '#.subarray(#, #)', codeUnits, start, end));
-  }
-
-  static String? _useTextDecoder(decoder, NativeUint8List codeUnits) {
-    // If the input is malformed, catch the exception and return `null` to fall
-    // back on unintercepted decoder. The fallback will either succeed in
-    // decoding, or report the problem better than TextDecoder.
-    try {
-      return JS<String>('!', '#.decode(#)', decoder, codeUnits);
-    } catch (e) {}
-    return null;
-  }
-
-  // TextDecoder is not defined on some browsers and on the stand-alone d8 and
-  // jsshell engines. Use a lazy initializer to do feature detection once.
-  static final _decoder = () {
-    try {
-      return JS('', 'new TextDecoder("utf-8", {fatal: true})');
-    } catch (e) {}
-    return null;
-  }();
-  static final _decoderNonfatal = () {
-    try {
-      return JS('', 'new TextDecoder("utf-8", {fatal: false})');
-    } catch (e) {}
-    return null;
-  }();
-}
-
-@patch
-class _Utf8Decoder {
-  @patch
-  _Utf8Decoder(this.allowMalformed) : _state = beforeBom;
-
-  @patch
-  String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
-    return convertGeneral(codeUnits, start, maybeEnd, true);
-  }
-
-  @patch
-  String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
-    return convertGeneral(codeUnits, start, maybeEnd, false);
   }
 }
