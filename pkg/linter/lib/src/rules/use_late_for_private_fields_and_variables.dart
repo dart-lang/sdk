@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -125,31 +124,29 @@ class _Visitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    if (node.featureSet.isEnabled(Feature.non_nullable)) {
-      var declaredElement = node.declaredElement;
-      if (declaredElement == null) {
-        return;
-      }
-      lateables.putIfAbsent(declaredElement, () => []);
-      nullableAccess.putIfAbsent(declaredElement, () => {});
-      currentUnit = declaredElement;
+    var declaredElement = node.declaredElement;
+    if (declaredElement == null) {
+      return;
+    }
+    lateables.putIfAbsent(declaredElement, () => []);
+    nullableAccess.putIfAbsent(declaredElement, () => {});
+    currentUnit = declaredElement;
 
-      super.visitCompilationUnit(node);
+    super.visitCompilationUnit(node);
 
-      var unitsInContext =
-          context.allUnits.map((e) => e.unit.declaredElement).toSet();
-      var libraryUnitsInContext =
-          declaredElement.library.units.where(unitsInContext.contains).toSet();
-      var areAllLibraryUnitsVisited =
-          libraryUnitsInContext.every(lateables.containsKey);
-      if (areAllLibraryUnitsVisited) {
-        _checkAccess(libraryUnitsInContext);
+    var unitsInContext =
+        context.allUnits.map((e) => e.unit.declaredElement).toSet();
+    var libraryUnitsInContext =
+        declaredElement.library.units.where(unitsInContext.contains).toSet();
+    var areAllLibraryUnitsVisited =
+        libraryUnitsInContext.every(lateables.containsKey);
+    if (areAllLibraryUnitsVisited) {
+      _checkAccess(libraryUnitsInContext);
 
-        // Clean up.
-        for (var unit in libraryUnitsInContext) {
-          lateables.remove(unit);
-          nullableAccess.remove(unit);
-        }
+      // Clean up.
+      for (var unit in libraryUnitsInContext) {
+        lateables.remove(unit);
+        nullableAccess.remove(unit);
       }
     }
   }

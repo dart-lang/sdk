@@ -281,22 +281,7 @@ class DartFixKind {
   static const ADD_REQUIRED = FixKind(
     'dart.fix.add.required',
     DartFixKindPriority.DEFAULT,
-    "Add '@required' annotation",
-  );
-  static const ADD_REQUIRED_MULTI = FixKind(
-    'dart.fix.add.required.multi',
-    DartFixKindPriority.IN_FILE,
-    "Add '@required' annotations everywhere in file",
-  );
-  static const ADD_REQUIRED2 = FixKind(
-    'dart.fix.add.required',
-    DartFixKindPriority.DEFAULT,
     "Add 'required' keyword",
-  );
-  static const ADD_REQUIRED2_MULTI = FixKind(
-    'dart.fix.add.required.multi',
-    DartFixKindPriority.IN_FILE,
-    "Add 'required' keywords everywhere in file",
   );
   static const ADD_RETURN_NULL = FixKind(
     'dart.fix.add.returnNull',
@@ -1940,11 +1925,6 @@ class DartFixKind {
     'dart.fix.use.rethrow.multi',
     DartFixKindPriority.IN_FILE,
     'Replace throw with rethrow where possible in file',
-  );
-  static const WRAP_IN_FUTURE = FixKind(
-    'dart.fix.wrap.future',
-    DartFixKindPriority.DEFAULT,
-    "Wrap in 'Future.value'",
   );
   static const WRAP_IN_TEXT = FixKind(
     'dart.fix.flutter.wrap.text',

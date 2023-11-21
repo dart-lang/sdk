@@ -20,8 +20,6 @@ linter:
     - avoid_positional_boolean_parameters
     - avoid_print
     - avoid_redundant_argument_values
-    - avoid_returning_null
-    - avoid_returning_null_for_future
     - avoid_returning_this
     - avoid_setters_without_getters
     - avoid_slow_async_io

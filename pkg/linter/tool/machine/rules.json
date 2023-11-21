@@ -70,11 +70,11 @@
     "name": "avoid_returning_null_for_future",
     "description": "Avoid returning null for Future.",
     "group": "errors",
-    "state": "deprecated",
+    "state": "removed",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "hasFix",
-    "details": "**AVOID** returning null for Future.\n\nIt is almost always wrong to return `null` for a `Future`.  Most of the time the\ndeveloper simply forgot to put an `async` keyword on the function.\n\n",
+    "fixStatus": "noFix",
+    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**AVOID** returning null for Future.\n\nIt is almost always wrong to return `null` for a `Future`.  Most of the time the\ndeveloper simply forgot to put an `async` keyword on the function.\n",
     "sinceDartSdk": "2.1.1"
   },
   {
@@ -292,7 +292,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DON'T** test for conditions that can be inferred at compile time or test the\nsame condition twice.\n\nConditional statements using a condition which cannot be anything but `false`\nhave the effect of making blocks of code non-functional.  If the condition\ncannot evaluate to anything but `true`, the conditional statement is completely\nredundant, and makes the code less readable.\nIt is quite likely that the code does not match the programmer's intent.\nEither the condition should be removed or it should be updated so that it does\nnot always evaluate to `true` or `false` and does not perform redundant tests.\nThis rule will hint to the test conflicting with the linted one.\n\n**BAD:**\n```dart\n// foo can't be both equal and not equal to bar in the same expression\nif(foo == bar && something && foo != bar) {...}\n```\n\n**BAD:**\n```dart\nvoid compute(int foo) {\n  if (foo == 4) {\n    doSomething();\n    // we know foo is equal to 4 at this point, so the next condition is always false\n    if (foo > 4) {...}\n    ...\n  }\n  ...\n}\n```\n\n**BAD:**\n```dart\nvoid compute(bool foo) {\n  if (foo) {\n    return;\n  }\n  doSomething();\n  // foo is always false here\n  if (foo){...}\n  ...\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOK() {\n  if (foo == bar) {\n    foo = baz;\n    if (foo != bar) {...}\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOk2() {\n  if (foo == bar) {\n    return;\n  }\n\n  foo = baz;\n  if (foo == bar) {...} // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOk5() {\n  if (foo != null) {\n    if (bar != null) {\n      return;\n    }\n  }\n\n  if (bar != null) {...} // OK\n}\n```\n\n",
+    "details": "NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.\n\n**DON'T** test for conditions that can be inferred at compile time or test the\nsame condition twice.\n\nConditional statements using a condition which cannot be anything but `false`\nhave the effect of making blocks of code non-functional.  If the condition\ncannot evaluate to anything but `true`, the conditional statement is completely\nredundant, and makes the code less readable.\nIt is quite likely that the code does not match the programmer's intent.\nEither the condition should be removed or it should be updated so that it does\nnot always evaluate to `true` or `false` and does not perform redundant tests.\nThis rule will hint to the test conflicting with the linted one.\n\n**BAD:**\n```dart\n// foo can't be both equal and not equal to bar in the same expression\nif(foo == bar && something && foo != bar) {...}\n```\n\n**BAD:**\n```dart\nvoid compute(int foo) {\n  if (foo == 4) {\n    doSomething();\n    // we know foo is equal to 4 at this point, so the next condition is always false\n    if (foo > 4) {...}\n    ...\n  }\n  ...\n}\n```\n\n**BAD:**\n```dart\nvoid compute(bool foo) {\n  if (foo) {\n    return;\n  }\n  doSomething();\n  // foo is always false here\n  if (foo){...}\n  ...\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOK() {\n  if (foo == bar) {\n    foo = baz;\n    if (foo != bar) {...}\n  }\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOk2() {\n  if (foo == bar) {\n    return;\n  }\n\n  foo = baz;\n  if (foo == bar) {...} // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid nestedOk5() {\n  if (foo != null) {\n    if (bar != null) {\n      return;\n    }\n  }\n\n  if (bar != null) {...} // OK\n}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -303,7 +303,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DON'T** invoke `contains` on `Iterable` with an instance of different type\nthan the parameter type.\n\nDoing this will invoke `==` on its elements and most likely will return `false`.\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.contains('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction3() {\n  List<int> list = <int>[];\n  if (list.contains('1')) print('someFunction3'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction8() {\n  List<DerivedClass2> list = <DerivedClass2>[];\n  DerivedClass3 instance;\n  if (list.contains(instance)) print('someFunction8'); // LINT\n}\n```\n\n**BAD:**\n```dart\nabstract class SomeIterable<E> implements Iterable<E> {}\n\nabstract class MyClass implements SomeIterable<int> {\n  bool badMethod(String thing) => this.contains(thing); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10() {\n  var list = [];\n  if (list.contains(1)) print('someFunction10'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction1() {\n  var list = <int>[];\n  if (list.contains(1)) print('someFunction1'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  List<int> list = <int>[];\n  if (list.contains(1)) print('someFunction4'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction5() {\n  List<ClassBase> list = <ClassBase>[];\n  DerivedClass1 instance;\n  if (list.contains(instance)) print('someFunction5'); // OK\n}\n\nabstract class ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction6() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass2 instance;\n  if (list.contains(instance)) print('someFunction6'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass3 instance;\n  if (list.contains(instance)) print('someFunction7'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n",
+    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**DON'T** invoke `contains` on `Iterable` with an instance of different type\nthan the parameter type.\n\nDoing this will invoke `==` on its elements and most likely will return `false`.\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.contains('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction3() {\n  List<int> list = <int>[];\n  if (list.contains('1')) print('someFunction3'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction8() {\n  List<DerivedClass2> list = <DerivedClass2>[];\n  DerivedClass3 instance;\n  if (list.contains(instance)) print('someFunction8'); // LINT\n}\n```\n\n**BAD:**\n```dart\nabstract class SomeIterable<E> implements Iterable<E> {}\n\nabstract class MyClass implements SomeIterable<int> {\n  bool badMethod(String thing) => this.contains(thing); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10() {\n  var list = [];\n  if (list.contains(1)) print('someFunction10'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction1() {\n  var list = <int>[];\n  if (list.contains(1)) print('someFunction1'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  List<int> list = <int>[];\n  if (list.contains(1)) print('someFunction4'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction5() {\n  List<ClassBase> list = <ClassBase>[];\n  DerivedClass1 instance;\n  if (list.contains(instance)) print('someFunction5'); // OK\n}\n\nabstract class ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction6() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass2 instance;\n  if (list.contains(instance)) print('someFunction6'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass3 instance;\n  if (list.contains(instance)) print('someFunction7'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -314,7 +314,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DON'T** invoke `remove` on `List` with an instance of different type than\nthe parameter type.\n\nDoing this will invoke `==` on its elements and most likely will\nreturn `false`.\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.remove('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction3() {\n  List<int> list = <int>[];\n  if (list.remove('1')) print('someFunction3'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction8() {\n  List<DerivedClass2> list = <DerivedClass2>[];\n  DerivedClass3 instance;\n  if (list.remove(instance)) print('someFunction8'); // LINT\n}\n```\n\n**BAD:**\n```dart\nabstract class SomeList<E> implements List<E> {}\n\nabstract class MyClass implements SomeList<int> {\n  bool badMethod(String thing) => this.remove(thing); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10() {\n  var list = [];\n  if (list.remove(1)) print('someFunction10'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction1() {\n  var list = <int>[];\n  if (list.remove(1)) print('someFunction1'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  List<int> list = <int>[];\n  if (list.remove(1)) print('someFunction4'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction5() {\n  List<ClassBase> list = <ClassBase>[];\n  DerivedClass1 instance;\n  if (list.remove(instance)) print('someFunction5'); // OK\n}\n\nabstract class ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction6() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass2 instance;\n  if (list.remove(instance)) print('someFunction6'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass3 instance;\n  if (list.remove(instance)) print('someFunction7'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n",
+    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**DON'T** invoke `remove` on `List` with an instance of different type than\nthe parameter type.\n\nDoing this will invoke `==` on its elements and most likely will\nreturn `false`.\n\n**BAD:**\n```dart\nvoid someFunction() {\n  var list = <int>[];\n  if (list.remove('1')) print('someFunction'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction3() {\n  List<int> list = <int>[];\n  if (list.remove('1')) print('someFunction3'); // LINT\n}\n```\n\n**BAD:**\n```dart\nvoid someFunction8() {\n  List<DerivedClass2> list = <DerivedClass2>[];\n  DerivedClass3 instance;\n  if (list.remove(instance)) print('someFunction8'); // LINT\n}\n```\n\n**BAD:**\n```dart\nabstract class SomeList<E> implements List<E> {}\n\nabstract class MyClass implements SomeList<int> {\n  bool badMethod(String thing) => this.remove(thing); // LINT\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction10() {\n  var list = [];\n  if (list.remove(1)) print('someFunction10'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction1() {\n  var list = <int>[];\n  if (list.remove(1)) print('someFunction1'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction4() {\n  List<int> list = <int>[];\n  if (list.remove(1)) print('someFunction4'); // OK\n}\n```\n\n**GOOD:**\n```dart\nvoid someFunction5() {\n  List<ClassBase> list = <ClassBase>[];\n  DerivedClass1 instance;\n  if (list.remove(instance)) print('someFunction5'); // OK\n}\n\nabstract class ClassBase {}\n\nclass DerivedClass1 extends ClassBase {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction6() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass2 instance;\n  if (list.remove(instance)) print('someFunction6'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass2 extends ClassBase with Mixin {}\n```\n\n**GOOD:**\n```dart\nvoid someFunction7() {\n  List<Mixin> list = <Mixin>[];\n  DerivedClass3 instance;\n  if (list.remove(instance)) print('someFunction7'); // OK\n}\n\nabstract class ClassBase {}\n\nabstract class Mixin {}\n\nclass DerivedClass3 extends ClassBase implements Mixin {}\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -609,11 +609,11 @@
     "name": "always_require_non_null_named_parameters",
     "description": "Specify `@required` on named parameters without defaults.",
     "group": "style",
-    "state": "deprecated",
+    "state": "removed",
     "incompatible": [],
     "sets": [],
-    "fixStatus": "hasFix",
-    "details": "**DO** specify `@required` on named parameters without a default value on which \nan `assert(param != null)` is done.\n\n**BAD:**\n```dart\nm1({a}) {\n  assert(a != null);\n}\n```\n\n**GOOD:**\n```dart\nm1({@required a}) {\n  assert(a != null);\n}\n\nm2({a: 1}) {\n  assert(a != null);\n}\n```\n\nNOTE: Only asserts at the start of the bodies will be taken into account.\n\n",
+    "fixStatus": "noFix",
+    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**DO** specify `@required` on named parameters without a default value on which \nan `assert(param != null)` is done.\n\n**BAD:**\n```dart\nm1({a}) {\n  assert(a != null);\n}\n```\n\n**GOOD:**\n```dart\nm1({@required a}) {\n  assert(a != null);\n}\n\nm2({a: 1}) {\n  assert(a != null);\n}\n```\n\nNOTE: Only asserts at the start of the bodies will be taken into account.\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -918,11 +918,11 @@
     "name": "avoid_returning_null",
     "description": "Avoid returning null from members whose return type is bool, double, int, or num.",
     "group": "style",
-    "state": "deprecated",
+    "state": "removed",
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**AVOID** returning null from members whose return type is bool, double, int,\nor num.\n\nFunctions that return primitive types such as bool, double, int, and num are\ngenerally expected to return non-nullable values.  Thus, returning null where a\nprimitive type was expected can lead to runtime exceptions.\n\n**BAD:**\n```dart\nbool getBool() => null;\nnum getNum() => null;\nint getInt() => null;\ndouble getDouble() => null;\n```\n\n**GOOD:**\n```dart\nbool getBool() => false;\nnum getNum() => -1;\nint getInt() => -1;\ndouble getDouble() => -1.0;\n```\n\n",
+    "details": "NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.\n\n**AVOID** returning null from members whose return type is bool, double, int,\nor num.\n\nFunctions that return primitive types such as bool, double, int, and num are\ngenerally expected to return non-nullable values.  Thus, returning null where a\nprimitive type was expected can lead to runtime exceptions.\n\n**BAD:**\n```dart\nbool getBool() => null;\nnum getNum() => null;\nint getInt() => null;\ndouble getDouble() => null;\n```\n\n**GOOD:**\n```dart\nbool getBool() => false;\nnum getNum() => -1;\nint getInt() => -1;\ndouble getDouble() => -1.0;\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -1241,7 +1241,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** use sound null safety, by not specifying a dart version lower than `2.12`.\n\n**BAD:**\n```dart\n// @dart=2.8\na() {\n}\n```\n\n**GOOD:**\n```dart\nb() {\n}\n```\n",
+    "details": "NOTE: This rule is removed in Dart 2.12.0; it is no longer functional.\n\n**DO** use sound null safety, by not specifying a dart version lower than `2.12`.\n\n**BAD:**\n```dart\n// @dart=2.8\na() {\n}\n```\n\n**GOOD:**\n```dart\nb() {\n}\n```\n\n",
     "sinceDartSdk": "2.19.0"
   },
   {
@@ -1678,7 +1678,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** use a boolean for assert conditions.\n\nNot using booleans in assert conditions can lead to code where it isn't clear\nwhat the intention of the assert statement is.\n\n**BAD:**\n```dart\nassert(() {\n  f();\n  return true;\n});\n```\n\n**GOOD:**\n```dart\nassert(() {\n  f();\n  return true;\n}());\n```\n",
+    "details": "NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.\n\n**DO** use a boolean for assert conditions.\n\nNot using booleans in assert conditions can lead to code where it isn't clear\nwhat the intention of the assert statement is.\n\n**BAD:**\n```dart\nassert(() {\n  f();\n  return true;\n});\n```\n\n**GOOD:**\n```dart\nassert(() {\n  f();\n  return true;\n}());\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -1807,7 +1807,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** use `=` to separate a named parameter from its default value.\n\n**BAD:**\n```dart\nm({a: 1})\n```\n\n**GOOD:**\n```dart\nm({a = 1})\n```\n",
+    "details": "NOTE: This rule is removed in Dart 3.0; it is no longer functional.\n\n**DO** use `=` to separate a named parameter from its default value.\n\n**BAD:**\n```dart\nm({a: 1})\n```\n\n**GOOD:**\n```dart\nm({a = 1})\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {
@@ -2274,7 +2274,7 @@
     "incompatible": [],
     "sets": [],
     "fixStatus": "noFix",
-    "details": "**DO** place the `super` call last in a constructor initialization list.\n\nField initializers are evaluated in the order that they appear in the\nconstructor initialization list.  If you place a `super()` call in the middle of\nan initializer list, the superclass's initializers will be evaluated right then\nbefore evaluating the rest of the subclass's initializers.\n\nWhat it doesn't mean is that the superclass's constructor body will be executed\nthen.  That always happens after all initializers are run regardless of where\n`super` appears.  It's vanishingly rare that the order of initializers matters,\nso the placement of `super` in the list almost never matters either.\n\nGetting in the habit of placing it last improves consistency, visually\nreinforces when the superclass's constructor body is run, and may help\nperformance.\n\n**BAD:**\n```dart\nView(Style style, List children)\n    : super(style),\n      _children = children {\n```\n\n**GOOD:**\n```dart\nView(Style style, List children)\n    : _children = children,\n      super(style) {\n```\n",
+    "details": "NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.\n\n**DO** place the `super` call last in a constructor initialization list.\n\nField initializers are evaluated in the order that they appear in the\nconstructor initialization list.  If you place a `super()` call in the middle of\nan initializer list, the superclass's initializers will be evaluated right then\nbefore evaluating the rest of the subclass's initializers.\n\nWhat it doesn't mean is that the superclass's constructor body will be executed\nthen.  That always happens after all initializers are run regardless of where\n`super` appears.  It's vanishingly rare that the order of initializers matters,\nso the placement of `super` in the list almost never matters either.\n\nGetting in the habit of placing it last improves consistency, visually\nreinforces when the superclass's constructor body is run, and may help\nperformance.\n\n**BAD:**\n```dart\nView(Style style, List children)\n    : super(style),\n      _children = children {\n```\n\n**GOOD:**\n```dart\nView(Style style, List children)\n    : _children = children,\n      super(style) {\n```\n\n",
     "sinceDartSdk": "2.0.0"
   },
   {

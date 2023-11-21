@@ -8,6 +8,8 @@ const _desc =
     r'Conditions should not unconditionally evaluate to `true` or to `false`.';
 
 const _details = r'''
+NOTE: This rule is removed in Dart 3.0.0; it is no longer functional.
+
 **DON'T** test for conditions that can be inferred at compile time or test the
 same condition twice.
 

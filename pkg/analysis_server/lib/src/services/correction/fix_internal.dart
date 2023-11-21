@@ -32,7 +32,6 @@ import 'package:analysis_server/src/services/correction/dart/add_null_check.dart
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_redeclare.dart';
 import 'package:analysis_server/src/services/correction/dart/add_reopen.dart';
-import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
@@ -230,7 +229,6 @@ import 'package:analysis_server/src/services/correction/dart/use_eq_eq_null.dart
 import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dart';
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
-import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -436,9 +434,6 @@ class FixProcessor extends BaseProcessor {
     LintNames.always_put_required_named_parameters_first: [
       MakeRequiredNamedParametersFirst.new,
     ],
-    LintNames.always_require_non_null_named_parameters: [
-      AddRequired.new,
-    ],
     LintNames.always_specify_types: [
       AddTypeAnnotation.bulkFixable,
     ],
@@ -490,11 +485,6 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.avoid_return_types_on_setters: [
       RemoveTypeAnnotation.other,
-    ],
-    LintNames.avoid_returning_null_for_future: [
-      // TODO(brianwilkerson): Consider applying in bulk.
-      AddAsync.new,
-      WrapInFuture.new,
     ],
     LintNames.avoid_returning_null_for_void: [
       RemoveReturnedValue.new,

@@ -1857,9 +1857,9 @@ LintCode.always_put_control_body_on_new_line:
 LintCode.always_put_required_named_parameters_first:
   status: hasFix
 LintCode.always_require_non_null_named_parameters:
-  status: hasFix
+  status: noFix
   notes: |-
-    Deprecated.
+      Removed.
 LintCode.always_specify_types:
   status: hasFix
 LintCode.always_use_package_imports:
@@ -1952,9 +1952,9 @@ LintCode.avoid_returning_null:
   notes: |-
     Deprecated.
 LintCode.avoid_returning_null_for_future:
-  status: hasFix
+  status: noFix
   notes: |-
-    Deprecated.
+      Removed.
 LintCode.avoid_returning_null_for_void:
   status: hasFix
 LintCode.avoid_returning_this:

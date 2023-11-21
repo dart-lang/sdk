@@ -7,6 +7,8 @@ import '../analyzer.dart';
 const _desc = r'Invocation of `remove` with references of unrelated types.';
 
 const _details = r'''
+NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
+
 **DON'T** invoke `remove` on `List` with an instance of different type than
 the parameter type.
 

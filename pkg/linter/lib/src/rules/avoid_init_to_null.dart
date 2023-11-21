@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -87,12 +86,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
 
-  final bool nnbdEnabled;
-  _Visitor(this.rule, this.context)
-      : nnbdEnabled = context.isEnabled(Feature.non_nullable);
+  _Visitor(this.rule, this.context);
 
-  bool isNullable(DartType type) =>
-      !nnbdEnabled || context.typeSystem.isNullable(type);
+  bool isNullable(DartType type) => context.typeSystem.isNullable(type);
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
