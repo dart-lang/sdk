@@ -169,9 +169,7 @@ int variadicAt1Int64x2CalculateResult() {
 int variadicAt1Int64x2(int a0, int a1) {
   print("variadicAt1Int64x2(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Int64x2 throwing on purpose!");
@@ -219,9 +217,7 @@ double variadicAt1Doublex2CalculateResult() {
 double variadicAt1Doublex2(double a0, double a1) {
   print("variadicAt1Doublex2(${a0}, ${a1})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Doublex2 throwing on purpose!");
@@ -276,9 +272,7 @@ int variadicAt1Int64x5CalculateResult() {
 int variadicAt1Int64x5(int a0, int a1, int a2, int a3, int a4) {
   print("variadicAt1Int64x5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Int64x5 throwing on purpose!");
@@ -337,9 +331,7 @@ double variadicAt1Doublex5(
     double a0, double a1, double a2, double a3, double a4) {
   print("variadicAt1Doublex5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Doublex5 throwing on purpose!");
@@ -470,9 +462,7 @@ int variadicAt1Int64x20(
   print(
       "variadicAt1Int64x20(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Int64x20 throwing on purpose!");
@@ -618,9 +608,7 @@ double variadicAt1Doublex20(
   print(
       "variadicAt1Doublex20(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12}, ${a13}, ${a14}, ${a15}, ${a16}, ${a17}, ${a18}, ${a19})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt1Doublex20 throwing on purpose!");
@@ -695,9 +683,7 @@ int variadicAt1Int64x2Struct8BytesIntInt64(
     int a0, int a1, Struct8BytesInt a2, int a3) {
   print("variadicAt1Int64x2Struct8BytesIntInt64(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -760,9 +746,7 @@ double variadicAt1Doublex2Struct32BytesHomogeneousDoubleD(
   print(
       "variadicAt1Doublex2Struct32BytesHomogeneousDoubleD(${a0}, ${a1}, ${a2}, ${a3})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -824,9 +808,7 @@ double variadicAt1DoubleStruct12BytesHomogeneousFloatDoub(
   print(
       "variadicAt1DoubleStruct12BytesHomogeneousFloatDoub(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -889,9 +871,7 @@ int variadicAt1Int32Struct20BytesHomogeneousInt32Int32(
   print(
       "variadicAt1Int32Struct20BytesHomogeneousInt32Int32(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -954,9 +934,7 @@ double variadicAt1DoubleStruct20BytesHomogeneousFloatDoub(
   print(
       "variadicAt1DoubleStruct20BytesHomogeneousFloatDoub(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -1012,9 +990,7 @@ int variadicAt2Int32Int64IntPtrCalculateResult() {
 int variadicAt2Int32Int64IntPtr(int a0, int a1, int a2) {
   print("variadicAt2Int32Int64IntPtr(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt2Int32Int64IntPtr throwing on purpose!");
@@ -1074,9 +1050,7 @@ double variadicAt1DoubleInt64Int32DoubleInt64Int32(
   print(
       "variadicAt1DoubleInt64Int32DoubleInt64Int32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -1138,9 +1112,7 @@ double variadicAt1Int64Int32Struct12BytesHomogeneousFloat(
   print(
       "variadicAt1Int64Int32Struct12BytesHomogeneousFloat(${a0}, ${a1}, ${a2})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -1249,9 +1221,7 @@ double variadicAt11Doublex8FloatStruct12BytesHomogeneousF(
   print(
       "variadicAt11Doublex8FloatStruct12BytesHomogeneousF(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8}, ${a9}, ${a10}, ${a11}, ${a12})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -1360,9 +1330,7 @@ double variadicAt1DoubleInt64Int32Struct20BytesHomogeneou(
   print(
       "variadicAt1DoubleInt64Int32Struct20BytesHomogeneou(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7}, ${a8})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
@@ -1428,9 +1396,7 @@ double variadicAt5Doublex5(
     double a0, double a1, double a2, double a3, double a4) {
   print("variadicAt5Doublex5(${a0}, ${a1}, ${a2}, ${a3}, ${a4})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception("VariadicAt5Doublex5 throwing on purpose!");
@@ -1510,9 +1476,7 @@ int variadicAt1Int64x7Struct12BytesHomogeneousInt32(int a0, int a1, int a2,
   print(
       "variadicAt1Int64x7Struct12BytesHomogeneousInt32(${a0}, ${a1}, ${a2}, ${a3}, ${a4}, ${a5}, ${a6}, ${a7})");
 
-  // In legacy mode, possibly return null.
-
-  // In both nnbd and legacy mode, possibly throw.
+  // Possibly throw.
   if (a0 == 42 || a0 == 84) {
     print("throwing!");
     throw Exception(
