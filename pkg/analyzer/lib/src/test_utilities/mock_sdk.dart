@@ -496,6 +496,7 @@ class List<E> implements Iterable<E> {
   set length(int newLength) {}
   E operator [](int index) => throw 0;
   void operator []=(int index, E value) {}
+  void set first(E value) {}
 
   void add(E value) {}
   void addAll(Iterable<E> iterable) {}

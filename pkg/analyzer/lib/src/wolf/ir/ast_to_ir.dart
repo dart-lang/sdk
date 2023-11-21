@@ -168,15 +168,28 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 
   /// Performs a null check that is part of a null shorting expression.
   ///
-  /// If the value at the top of the stack is `null`, execution will branch to
-  /// the end of the null shorting expression, and the null shorting expression
-  /// will evaluate to `null`. Otherwise, execution will proceed normally.
+  /// If [nonNull] is `false` (the default), and the value at the top of the
+  /// stack is `null`, execution will branch to the end of the null shorting
+  /// expression, and the null shorting expression will evaluate to `null`.
+  /// Otherwise, execution will proceed normally.
+  ///
+  /// If [nonNull] is `true`, and the value at the top of the stack is not
+  /// `null`, execution will branch to the end of the null shorting expression,
+  /// and the null shorting expression will evaluate to the value at the top of
+  /// the stack. Otherwise, execution will proceed normally.
+  ///
+  /// [additionalDiscardDepth] specifies the number of additional stack values
+  /// (beyond the value that is null checked) which should be discarded if the
+  /// expression is null shorted.
   ///
   /// [previousNestingLevel] is the value returned by [RawIRWriter.nestingLevel]
   /// at the beginning of the null shorting expression. It is used to detect
   /// whether null shorting has already been begun, and therefore whether a
   /// `block` instruction needs to be output.
-  void nullShortingCheck({required int previousNestingLevel}) {
+  void nullShortingCheck(
+      {required int previousNestingLevel,
+      bool nonNull = false,
+      int additionalDiscardDepth = 0}) {
     assert(previousNestingLevel <= ir.nestingLevel);
     // Stack: value
     ir.dup();
@@ -185,12 +198,16 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     // Stack: value value null
     ir.eq();
     // Stack: value (value == null)
+    if (nonNull) {
+      ir.not();
+      // Stack: value (value != null)
+    }
     if (previousNestingLevel == ir.nestingLevel) {
       // Null shorting hasn't begun yet for the containing expression, so start
       // it now by opening a block; the block will be ended at the end of the
       // null shorting expression, so it will be the branch target for null
       // shorts.
-      ir.block(2, 1);
+      ir.block(2 + additionalDiscardDepth, 1);
       // Stack: BLOCK(1) value (value == null)
     }
     ir.brIf(0);
@@ -203,15 +220,58 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 
   @override
   Null visitAssignmentExpression(AssignmentExpression node) {
+    var previousNestingLevel = ir.nestingLevel;
+    var lValueTemplates = dispatchLValue(node.leftHandSide);
+    // Stack: lValue
     switch (node.operator.type) {
       case TokenType.EQ:
-        var lValueTemplates = dispatchLValue(node.leftHandSide);
-        // Stack: lValue
         dispatchNode(node.rightHandSide);
         // Stack: lValue rhs
         eventListener.onEnterNode(node.leftHandSide);
         lValueTemplates.write(this);
         // Stack: rhs
+        eventListener.onExitNode();
+      // Stack: result
+      case TokenType.QUESTION_QUESTION_EQ:
+        lValueTemplates.readForCompoundAssignment(this);
+        // Stack: lValue oldValue
+        nullShortingCheck(
+            previousNestingLevel: previousNestingLevel,
+            nonNull: true,
+            additionalDiscardDepth: lValueTemplates.subexpressionCount);
+        // Stack: BLOCK(1)? lvalue oldValue
+        ir.drop();
+        // Stack: BLOCK(1)? lvalue
+        dispatchNode(node.rightHandSide);
+        // Stack: lValue rhs
+        eventListener.onEnterNode(node.leftHandSide);
+        lValueTemplates.write(this);
+        // Stack: rhs
+        eventListener.onExitNode();
+      case TokenType.AMPERSAND_EQ:
+      case TokenType.BAR_EQ:
+      case TokenType.CARET_EQ:
+      case TokenType.GT_GT_EQ:
+      case TokenType.GT_GT_GT_EQ:
+      case TokenType.LT_LT_EQ:
+      case TokenType.MINUS_EQ:
+      case TokenType.PERCENT_EQ:
+      case TokenType.PLUS_EQ:
+      case TokenType.SLASH_EQ:
+      case TokenType.STAR_EQ:
+      case TokenType.TILDE_SLASH_EQ:
+        lValueTemplates.readForCompoundAssignment(this);
+        // Stack: lValue oldValue
+        dispatchNode(node.rightHandSide);
+        // Stack: lValue oldValue rhs
+        var lexeme = node.operator.lexeme;
+        assert(lexeme.endsWith('='));
+        instanceCall(node.staticElement, lexeme.substring(0, lexeme.length - 1),
+            const [], twoArguments);
+        // Stack: lValue newValue
+        eventListener.onEnterNode(node.leftHandSide);
+        lValueTemplates.write(this);
+        // Stack: newValue
         eventListener.onExitNode();
       // Stack: result
       case var tokenType:
@@ -239,6 +299,81 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         // Stack: (lhs == rhs)
         ir.not();
       // Stack: (lhs != rhs)
+      case TokenType.AMPERSAND_AMPERSAND:
+        ir.block(0, 1);
+        // Stack: BLOCK(1)
+        dispatchNode(node.leftOperand);
+        // Stack: BLOCK(1) lhs
+        ir.dup();
+        // Stack: BLOCK(1) lhs lhs
+        ir.not();
+        // Stack: BLOCK(1) lhs !lhs
+        ir.brIf(0);
+        // Stack: BLOCK(1) lhs
+        ir.drop();
+        // Stack: BLOCK(1)
+        dispatchNode(node.rightOperand);
+        // Stack: BLOCK(1) rhs
+        ir.end();
+      // Stack: result
+      case TokenType.BAR_BAR:
+        ir.block(0, 1);
+        // Stack: BLOCK(1)
+        dispatchNode(node.leftOperand);
+        // Stack: BLOCK(1) lhs
+        ir.dup();
+        // Stack: BLOCK(1) lhs lhs
+        ir.brIf(0);
+        // Stack: BLOCK(1) lhs
+        ir.drop();
+        // Stack: BLOCK(1)
+        dispatchNode(node.rightOperand);
+        // Stack: BLOCK(1) rhs
+        ir.end();
+      // Stack: result
+      case TokenType.QUESTION_QUESTION:
+        ir.block(0, 1);
+        // Stack: BLOCK(1)
+        dispatchNode(node.leftOperand);
+        // Stack: BLOCK(1) lhs
+        ir.dup();
+        // Stack: BLOCK(1) lhs lhs
+        ir.literal(null_);
+        // Stack: BLOCK(1) lhs lhs null
+        ir.eq();
+        // Stack: BLOCK(1) lhs (lhs == null)
+        ir.not();
+        // Stack: BLOCK(1) lhs (lhs != null)
+        ir.brIf(0);
+        // Stack: BLOCK(1) lhs
+        ir.drop();
+        // Stack: BLOCK(1)
+        dispatchNode(node.rightOperand);
+        // Stack: BLOCK(1) rhs
+        ir.end();
+      // Stack: result
+      case TokenType.AMPERSAND:
+      case TokenType.BAR:
+      case TokenType.CARET:
+      case TokenType.GT:
+      case TokenType.GT_EQ:
+      case TokenType.GT_GT:
+      case TokenType.GT_GT_GT:
+      case TokenType.LT:
+      case TokenType.LT_EQ:
+      case TokenType.LT_LT:
+      case TokenType.MINUS:
+      case TokenType.PERCENT:
+      case TokenType.PLUS:
+      case TokenType.SLASH:
+      case TokenType.STAR:
+      case TokenType.TILDE_SLASH:
+        dispatchNode(node.leftOperand);
+        // Stack: lhs
+        dispatchNode(node.rightOperand);
+        // Stack: lhs rhs
+        instanceCall(node.staticElement, tokenType.lexeme, [], twoArguments);
+      // Stack: result
       default:
         throw UnimplementedError('TODO(paulberry): $node');
     }
@@ -611,10 +746,16 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 class _LocalTemplates extends _LValueTemplates {
   final int localIndex;
 
-  _LocalTemplates(this.localIndex);
+  _LocalTemplates(this.localIndex) : super(subexpressionCount: 0);
 
   void read(_AstToIRVisitor visitor) {
     visitor.ir.readLocal(localIndex);
+    // Stack: value
+  }
+
+  @override
+  void readForCompoundAssignment(_AstToIRVisitor visitor) {
+    read(visitor);
     // Stack: value
   }
 
@@ -645,6 +786,21 @@ class _LocalTemplates extends _LValueTemplates {
 /// are abstract, and are defined in a derived class for each specific kind of
 /// L-value supported by Dart.
 sealed class _LValueTemplates {
+  final int subexpressionCount;
+
+  _LValueTemplates({required this.subexpressionCount});
+
+  /// Outputs the IR instructions for reading from the L-value in a way that
+  /// remains prepared for a compound assignment.
+  ///
+  /// On entry, the stack contents should be the subexpression values.
+  ///
+  /// On exit, the stack contents will be the subexpression values, followed by
+  /// the result of the read operation. (This allows the caller to implement a
+  /// compound assignment by modifying the value at the top of the stack and
+  /// then making a follow-up call to [write]).
+  void readForCompoundAssignment(_AstToIRVisitor visitor);
+
   /// Outputs the IR instructions for a simple read of the L-value.
   ///
   /// On entry, the stack contents should be the subexpression values.
@@ -668,7 +824,7 @@ class _PropertyAccessTemplates extends _LValueTemplates {
   ///
   /// Caller is responsible for ensuring that the target of the property access
   /// is pushed to the stack.
-  _PropertyAccessTemplates(this.property);
+  _PropertyAccessTemplates(this.property) : super(subexpressionCount: 1);
 
   void read(_AstToIRVisitor visitor) {
     // Stack: target
@@ -678,6 +834,15 @@ class _PropertyAccessTemplates extends _LValueTemplates {
             as PropertyAccessorElement?,
         property.name);
     // Stack: value
+  }
+
+  @override
+  void readForCompoundAssignment(_AstToIRVisitor visitor) {
+    // Stack: target
+    visitor.ir.dup();
+    // Stack: target target
+    read(visitor);
+    // Stack: target value
   }
 
   @override
