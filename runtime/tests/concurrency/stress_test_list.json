@@ -32,7 +32,6 @@
   "../vm/dart/double_hash_code_double_values_test.dart",
   "../vm/dart/double_materialize_test.dart",
   "../vm/dart/double_to_smi_test.dart",
-  "../vm/dart/elide_store_instance_test.dart",
   "../vm/dart/error_stacktrace_test.dart",
   "../vm/dart/exported_symbols_test.dart",
   "../vm/dart/extension_names_test.dart",
