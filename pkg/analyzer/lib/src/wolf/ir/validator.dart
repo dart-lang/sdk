@@ -144,12 +144,21 @@ class _Validator {
 
   /// Validates a `br` or `brIf` instruction.
   void branch(int nesting, {required bool conditional}) {
+    if (conditional) popValues(1);
     check(nesting >= 0, 'Negative branch nesting');
     var target = controlFlowStack.length - 1 - nesting;
     check(target >= 0, 'Control flow stack underflow');
+    for (var i = target + 1; i < controlFlowStack.length; i++) {
+      check(!controlFlowStack[i].isFunction,
+          'Cannot branch outside of enclosing function');
+    }
     var branchValueCount = controlFlowStack[target].branchValueCount;
     popValues(branchValueCount);
-    valueStackDepth = ValueCount.indeterminate;
+    if (conditional) {
+      pushValues(branchValueCount);
+    } else {
+      valueStackDepth = ValueCount.indeterminate;
+    }
   }
 
   /// Reports a validation error if [condition] is `false`.
@@ -191,9 +200,24 @@ class _Validator {
           var count = Opcode.alloc.decodeCount(ir, address);
           check(count >= 0, 'Negative alloc count');
           localCount += count;
+        case Opcode.block:
+          var inputCount = Opcode.block.decodeInputCount(ir, address);
+          var outputCount = Opcode.block.decodeOutputCount(ir, address);
+          check(inputCount >= 0, 'Negative input count');
+          check(outputCount >= 0, 'Negative output count');
+          popValues(inputCount);
+          controlFlowStack.add(_ControlFlowElement(
+              localCountBefore: localCount,
+              functionFlagsBefore: functionFlags,
+              valueStackDepthAfter: valueStackDepth + outputCount,
+              branchValueCount: outputCount));
+          valueStackDepth = ValueCount(inputCount);
         case Opcode.br:
           var nesting = Opcode.br.decodeNesting(ir, address);
           branch(nesting, conditional: false);
+        case Opcode.brIf:
+          var nesting = Opcode.brIf.decodeNesting(ir, address);
+          branch(nesting, conditional: true);
         case Opcode.call:
           var argumentNames = Opcode.call.decodeArgumentNames(ir, address);
           popValues(ir.decodeArgumentNames(argumentNames).length);
@@ -213,6 +237,9 @@ class _Validator {
               '${valueStackDepth._depth} superfluous value(s) remaining');
           valueStackDepth = controlFlowElement.valueStackDepthAfter;
           functionFlags = controlFlowElement.functionFlagsBefore;
+        case Opcode.eq:
+          popValues(2);
+          pushValues(1);
         case Opcode.function:
           var type = Opcode.function.decodeType(ir, address);
           var kind = Opcode.function.decodeFlags(ir, address);

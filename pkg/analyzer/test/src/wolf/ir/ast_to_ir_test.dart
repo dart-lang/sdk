@@ -10,6 +10,7 @@ import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
 import 'package:analyzer/src/wolf/ir/interpreter.dart';
 import 'package:analyzer/src/wolf/ir/ir.dart';
+import 'package:analyzer/src/wolf/ir/scope_analyzer.dart';
 import 'package:analyzer/src/wolf/ir/validator.dart';
 import 'package:checks/checks.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -27,6 +28,8 @@ main() {
 class AstToIRTest extends AstToIRTestBase {
   final _instanceGetHandlers = {
     'int.isEven': unaryFunction<int>((i) => i.isEven),
+    'Iterable.first': unaryFunction<ListInstance>((list) => list.values.first),
+    'Object.hashCode': unaryFunction<Object?>((o) => o.hashCode),
     'String.length': unaryFunction<String>((s) => s.length)
   };
 
@@ -38,8 +41,8 @@ class AstToIRTest extends AstToIRTestBase {
   ListInstance makeList(List<Object?> values) => ListInstance(
       typeProvider.listType(typeProvider.objectQuestionType), values);
 
-  Object? runInterpreter(List<Object?> args) =>
-      interpret(ir, args, callDispatcher: _callDispatcher);
+  Object? runInterpreter(List<Object?> args) => interpret(ir, args,
+      scopes: scopes, callDispatcher: _CallDispatcher(this));
 
   test_assignmentExpression_local_simple_sideEffect() async {
     await assertNoErrorsInCode('''
@@ -95,6 +98,21 @@ test(int i) => i = 123;
     check(runInterpreter([1])).equals(123);
   }
 
+  test_assignmentExpression_property_nullShorting_simple() async {
+    await assertNoErrorsInCode('''
+test(List? l) => l?.length = 3;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.assignment('l?.length = 3')]
+      ..containsSubrange(astNodes[findNode.simple('l?.length')]!)
+      ..containsSubrange(astNodes[findNode.propertyAccess('l?.length')]!)
+      ..containsSubrange(astNodes[findNode.integerLiteral('3')]!);
+    check(runInterpreter([null])).equals(null);
+    var l = ['a', 'b', 'c', 'd', 'e'];
+    check(runInterpreter([makeList(l)])).equals(3);
+    check(l).deepEquals(['a', 'b', 'c']);
+  }
+
   test_assignmentExpression_property_prefixedIdentifier_simple() async {
     await assertNoErrorsInCode('''
 test(List l) => l.length = 3;
@@ -136,6 +154,21 @@ extension E on List {
     var l = ['a', 'b', 'c', 'd', 'e'];
     check(runInterpreter([makeList(l)])).equals(3);
     check(l).deepEquals(['a', 'b', 'c']);
+  }
+
+  test_binaryExpression_equal() async {
+    await assertNoErrorsInCode('''
+test(Object? x, Object? y) => x == y;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.binary('x == y')]
+      ..containsSubrange(astNodes[findNode.simple('x ==')]!)
+      ..containsSubrange(astNodes[findNode.simple('y;')]!);
+    check(runInterpreter([null, null])).equals(true);
+    check(runInterpreter([null, 1])).equals(false);
+    check(runInterpreter([1, null])).equals(false);
+    check(runInterpreter([1, 2])).equals(false);
+    check(runInterpreter([1, 1])).equals(true);
   }
 
   test_block() async {
@@ -256,6 +289,55 @@ test(int i) => (i);
     check(astNodes)[findNode.parenthesized('(i)')]
         .containsSubrange(astNodes[findNode.simple('i);')]!);
     check(runInterpreter([123])).equals(123);
+  }
+
+  test_parenthesizedExpression_stopsNullShorting() async {
+    await assertNoErrorsInCode('''
+test(List<Object?>? list) => (list?.first).hashCode;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(runInterpreter([null])).equals(null.hashCode);
+    check(runInterpreter([
+      makeList([123])
+    ])).equals(123.hashCode);
+  }
+
+  test_propertyAccess_allowsNullShorting() async {
+    await assertNoErrorsInCode('''
+test(List<Object?>? list) => list?.first.hashCode;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(runInterpreter([null])).equals(null);
+    check(runInterpreter([
+      makeList([123])
+    ])).equals(123.hashCode);
+  }
+
+  test_propertyAccess_nestedNullShorting() async {
+    await assertNoErrorsInCode('''
+test(List<Object?>? list) => list?.first?.hashCode;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes, because: 'both null checks should use the same block')[
+            findNode.singleFunctionBody]
+        .instructions
+        .withOpcode(Opcode.block)
+        .hasLength(1);
+    check(runInterpreter([null])).equals(null);
+    check(runInterpreter([
+      makeList([123])
+    ])).equals(123.hashCode);
+  }
+
+  test_propertyGet_nullShorting() async {
+    await assertNoErrorsInCode('''
+test(String? s) => s?.length;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.propertyAccess('s?.length')]
+        .containsSubrange(astNodes[findNode.simple('s?.length')]!);
+    check(runInterpreter([null])).equals(null);
+    check(runInterpreter(['foo'])).equals(3);
   }
 
   test_propertyGet_prefixedIdentifier() async {
@@ -457,30 +539,6 @@ test() {
     check(runInterpreter([])).identicalTo(null);
   }
 
-  CallHandler _callDispatcher(CallDescriptor callDescriptor) {
-    CallHandler? handler;
-    switch (callDescriptor) {
-      case InstanceGetDescriptor(
-          getter: PropertyAccessorElement(
-            enclosingElement: InstanceElement(name: var typeName?)
-          )
-        ):
-        handler = _instanceGetHandlers['$typeName.${callDescriptor.name}'];
-      case InstanceSetDescriptor(
-          setter: PropertyAccessorElement(
-            enclosingElement: InstanceElement(name: var typeName?)
-          )
-        ):
-        handler = _instanceSetHandlers['$typeName.${callDescriptor.name}'];
-      case dynamic(:var runtimeType):
-        throw UnimplementedError('TODO(paulberry): $runtimeType');
-    }
-    if (handler == null) {
-      throw StateError('No handler for $callDescriptor');
-    }
-    return handler;
-  }
-
   static CallHandler binaryFunction<T, U>(Object? Function(T, U) f) =>
       (positionalArguments, namedArguments) {
         check(positionalArguments).length.equals(2);
@@ -499,6 +557,7 @@ test() {
 class AstToIRTestBase extends PubPackageResolutionTest {
   final astNodes = AstNodes();
   late final CodedIRContainer ir;
+  late final Scopes scopes;
 
   void analyze(Declaration declaration) {
     switch (declaration) {
@@ -516,6 +575,7 @@ class AstToIRTestBase extends PubPackageResolutionTest {
             'TODO(paulberry): ${declaration.declaredElement}');
     }
     validate(ir);
+    scopes = analyzeScopes(ir);
   }
 }
 
@@ -524,6 +584,47 @@ class ListInstance extends Instance {
   final List<Object?> values;
 
   ListInstance(super.type, this.values);
+}
+
+class _CallDispatcher implements CallDispatcher {
+  final AstToIRTest _test;
+
+  _CallDispatcher(this._test);
+
+  @override
+  bool equals(Object firstValue, Object secondValue) {
+    if (firstValue is Literal) {
+      throw UnimplementedError('TODO(paulberry): call custom operator==');
+    }
+    return firstValue == secondValue;
+  }
+
+  @override
+  CallHandler lookupCallDescriptor(CallDescriptor callDescriptor) {
+    CallHandler? handler;
+    switch (callDescriptor) {
+      case InstanceGetDescriptor(
+          getter: PropertyAccessorElement(
+            enclosingElement: InstanceElement(name: var typeName?)
+          )
+        ):
+        handler =
+            _test._instanceGetHandlers['$typeName.${callDescriptor.name}'];
+      case InstanceSetDescriptor(
+          setter: PropertyAccessorElement(
+            enclosingElement: InstanceElement(name: var typeName?)
+          )
+        ):
+        handler =
+            _test._instanceSetHandlers['$typeName.${callDescriptor.name}'];
+      case dynamic(:var runtimeType):
+        throw UnimplementedError('TODO(paulberry): $runtimeType');
+    }
+    if (handler == null) {
+      throw StateError('No handler for $callDescriptor');
+    }
+    return handler;
+  }
 }
 
 extension on Subject<SoundnessError> {

@@ -258,7 +258,11 @@ class RawIRWriter with _RawIRWriterMixin {
 
   int _localVariableCount = 0;
 
+  int _nestingLevel = 0;
+
   int get localVariableCount => _localVariableCount;
+
+  int get nestingLevel => _nestingLevel;
 
   int get nextInstructionAddress => _opcodes.length;
 
@@ -266,6 +270,12 @@ class RawIRWriter with _RawIRWriterMixin {
   void alloc(int count) {
     _localVariableCount += count;
     super.alloc(count);
+  }
+
+  @override
+  void block(int inputCount, int outputCount) {
+    _nestingLevel++;
+    super.block(inputCount, outputCount);
   }
 
   ArgumentNamesRef encodeArgumentNames(List<String?> argumentNames) =>
@@ -283,6 +293,27 @@ class RawIRWriter with _RawIRWriterMixin {
         _stackIndicesTable.add(stackIndices);
         return encoding;
       });
+
+  @override
+  void end() {
+    _nestingLevel--;
+    super.end();
+  }
+
+  /// Outputs enough `end` instructions to cause [nestingLevel] to equal
+  /// [desiredNestingLevel].
+  void endTo(int desiredNestingLevel) {
+    assert(desiredNestingLevel <= nestingLevel);
+    while (desiredNestingLevel < nestingLevel) {
+      end();
+    }
+  }
+
+  @override
+  void function(TypeRef type, FunctionFlags flags) {
+    _nestingLevel++;
+    super.function(type, flags);
+  }
 
   @override
   void release(int count) {

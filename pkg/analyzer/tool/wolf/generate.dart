@@ -85,15 +85,18 @@ class _Instructions {
     _addInstruction('writeLocal', [uint('localIndex')]);
     // Primitive operations
     _addInstruction('literal', [literal('value')]);
+    _addInstruction('eq', []);
     // Stack manipulation
     _addInstruction('drop', []);
     _addInstruction('dup', []);
     _addInstruction(
         'shuffle', [uint('popCount'), stackIndices('stackIndices')]);
     // Flow control
+    _addInstruction('block', [uint('inputCount'), uint('outputCount')]);
     _addInstruction('function', [type('type'), functionFlags('flags')]);
     _addInstruction('end', []);
     _addInstruction('br', [uint('nesting')]);
+    _addInstruction('brIf', [uint('nesting')]);
     // Invocations and tearoffs
     _addInstruction('call',
         [(callDescriptor('callDescriptor')), (argumentNames('argumentNames'))]);

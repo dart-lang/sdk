@@ -41,6 +41,48 @@ class ValidatorTest {
     _validate();
   }
 
+  test_block_negativeInputCount() {
+    _analyze((ir) => ir
+      ..ordinaryFunction()
+      ..label('bad')
+      ..block(-1, 0)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Negative input count');
+  }
+
+  test_block_negativeOutputCount() {
+    _analyze((ir) => ir
+      ..ordinaryFunction()
+      ..label('bad')
+      ..block(0, -1)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Negative output count');
+  }
+
+  test_block_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..block(2, 1)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..drop()
+      ..end()
+      ..end());
+    _validate();
+  }
+
+  test_block_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('bad')
+      ..block(2, 1)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
   test_br_controlFlowStackUnderflow() {
     _analyze((ir) => ir
       ..ordinaryFunction()
@@ -48,6 +90,33 @@ class ValidatorTest {
       ..br(1)
       ..end());
     _checkInvalidMessageAt('bad').equals('Control flow stack underflow');
+  }
+
+  test_br_fromBlock_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..block(2, 1)
+      ..drop()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..br(0)
+      ..onValidate(
+          (v) => check(v.valueStackDepth).equals(ValueCount.indeterminate))
+      ..end()
+      ..end());
+    _validate();
+  }
+
+  test_br_fromBlock_stackUnderflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..block(2, 1)
+      ..drop()
+      ..drop()
+      ..label('bad')
+      ..br(0)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
 
   test_br_fromFunction_ok() {
@@ -76,6 +145,90 @@ class ValidatorTest {
       ..br(-1)
       ..end());
     _checkInvalidMessageAt('bad').equals('Negative branch nesting');
+  }
+
+  test_br_outsideOfEnclosingFunction() {
+    _analyze((ir) => ir
+      ..ordinaryFunction()
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('bad')
+      ..br(1)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad')
+        .equals('Cannot branch outside of enclosing function');
+  }
+
+  test_brIf_controlFlowStackUnderflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..label('bad')
+      ..brIf(1)
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Control flow stack underflow');
+  }
+
+  test_brIf_fromBlock_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..block(2, 1)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..brIf(0)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end()
+      ..end());
+    _validate();
+  }
+
+  test_brIf_fromBlock_stackUnderflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..block(2, 1)
+      ..drop()
+      ..label('bad')
+      ..brIf(0)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
+  test_brIf_fromFunction_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..brIf(0)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end());
+    _validate();
+  }
+
+  test_brIf_fromFunction_stackUnderflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('bad')
+      ..brIf(0)
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
+  test_brIf_negativeNesting() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..label('bad')
+      ..brIf(-1)
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Negative branch nesting');
+  }
+
+  test_brIf_outsideOfEnclosingFunction() {
+    _analyze((ir) => ir
+      ..ordinaryFunction()
+      ..ordinaryFunction(parameterCount: 2)
+      ..label('bad')
+      ..br(1)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad')
+        .equals('Cannot branch outside of enclosing function');
   }
 
   test_call_ok() {
@@ -132,6 +285,53 @@ class ValidatorTest {
       ..ordinaryFunction()
       ..label('bad')
       ..dup()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
+  test_end_block_indeterminate() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..block(2, 1)
+      ..br(1)
+      ..onValidate(
+          (v) => check(v.valueStackDepth).equals(ValueCount.indeterminate))
+      ..end()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end());
+    _validate();
+  }
+
+  test_end_block_preservesStackValuesBelowInput() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 3)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(3)))
+      ..block(2, 1)
+      ..drop()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..drop()
+      ..end());
+    _validate();
+  }
+
+  test_end_block_superfluousValues() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..block(2, 1)
+      ..label('bad')
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('1 superfluous value(s) remaining');
+  }
+
+  test_end_block_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction()
+      ..block(0, 1)
+      ..label('bad')
+      ..end()
       ..end());
     _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
@@ -194,6 +394,24 @@ class ValidatorTest {
       ..label('bad')
       ..end());
     _checkInvalidMessageAt('bad').equals('Unreleased locals');
+  }
+
+  test_eq_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..eq()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end());
+  }
+
+  test_eq_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('bad')
+      ..eq()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
 
   test_firstInstruction_function_ok() {

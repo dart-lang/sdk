@@ -88,6 +88,11 @@ class Instruction {
   final int address;
 
   Instruction(this.ir, this.address);
+
+  Opcode get opcode => ir.opcodeAt(address);
+
+  @override
+  String toString() => '$address: ${ir.instructionToString(address)}';
 }
 
 /// Reference to a range of instructions in a [CodedIRContainer].
@@ -226,8 +231,23 @@ extension SubjectAstNodes on Subject<AstNodes> {
 /// Testing methods for [Instruction].
 extension SubjectInstruction on Subject<Instruction> {
   @meta.useResult
-  Subject<Opcode> get opcode => has(
-      (instruction) => instruction.ir.opcodeAt(instruction.address), 'opcode');
+  Subject<Opcode> get opcode =>
+      has((instruction) => instruction.opcode, 'opcode');
+}
+
+/// Testing methods for `Iterable<Instruction>`.
+extension SubjectInstructionIterable on Subject<Iterable<Instruction>> {
+  void hasLength(int expectedLength) => context.expect(
+      () => ['has length $expectedLength'],
+      (instructions) => instructions.length == expectedLength
+          ? null
+          : Rejection(which: ['does not have length $expectedLength']));
+
+  @meta.useResult
+  Subject<Iterable<Instruction>> withOpcode(Opcode opcode) => context.nest(
+      () => ['contains instructions matching ${opcode.describe()}'],
+      (instructions) =>
+          Extracted.value(instructions.where((i) => i.opcode == opcode)));
 }
 
 /// Testing methods for [InstructionRange].
