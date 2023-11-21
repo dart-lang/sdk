@@ -22,6 +22,7 @@ void main(List<String> args) async {
         legacyCode: false,
         moduleFormat: ModuleFormat.amd,
         args: args,
+        enableExperiments: ['inline-class'],
       );
       runSharedTests(setup, driver);
     });
@@ -34,6 +35,7 @@ void main(List<String> args) async {
         legacyCode: false,
         moduleFormat: ModuleFormat.amd,
         args: args,
+        enableExperiments: ['inline-class'],
       );
       runSharedTests(setup, driver);
     });
@@ -62,6 +64,16 @@ class BaseClass {
   void Function() functionField = staticMethod;
   BaseClass? nullableField;
   AnotherClass nonNullableField = AnotherClass();
+
+  Ext get extensionTypeGetter => Ext(AnotherClass());
+  Ext get _privateExtensionTypeGetter => Ext(AnotherClass());
+  ExtString extensionTypeField = ExtString('hello');
+  ExtString _privateExtensionTypeField = ExtString('hello');
+  static const ExtDuration staticConstExtensionTypeField =
+      const ExtDuration(Duration.zero);
+  static ExtDuration staticExtensionTypeField = ExtDuration(Duration.zero);
+  static final ExtDuration staticFinalExtensionTypeField =
+      ExtDuration(Duration.zero);
 
   BaseClass(this.field, this._field) {
     int y = 1;
@@ -95,6 +107,12 @@ void globalFunction() {}
 class AnotherClass {
   int a = 0;
 }
+
+extension type Ext(AnotherClass _) {}
+
+extension type ExtString(String _) {}
+
+extension type const ExtDuration(Duration _) {}
 
 main() {
   int x = 15;
@@ -195,6 +213,20 @@ void runSharedTests(
               'staticField': {'isStatic': true},
               '_staticField': {'isStatic': true},
               '_unusedStaticField': {'isStatic': true},
+              // NOTE: Fields typed as an extension type appear as their static
+              // erased type for now. This isn't necessarily the runtime type
+              // of the value either.
+              'extensionTypeField': {
+                'className': 'String',
+                'classLibraryId': 'dart:core',
+              },
+              '_privateExtensionTypeField': {
+                'className': 'String',
+                'classLibraryId': 'dart:core',
+              },
+              'staticConstExtensionTypeField': {'isStatic': true},
+              'staticExtensionTypeField': {'isStatic': true},
+              'staticFinalExtensionTypeField': {'isStatic': true},
             },
             'methods': {
               'method': {},
@@ -204,6 +236,8 @@ void runSharedTests(
               '_privateGetter': {'isGetter': true},
               'factory': {'isStatic': true},
               'staticMethod': {'isStatic': true},
+              'extensionTypeGetter': {'isGetter': true},
+              '_privateExtensionTypeGetter': {'isGetter': true},
             },
           });
     });
@@ -237,6 +271,8 @@ void runSharedTests(
               '_privateGetter': {'isGetter': true},
               'factory': {'isStatic': true},
               'staticMethod': {'isStatic': true},
+              'extensionTypeGetter': {'isGetter': true},
+              '_privateExtensionTypeGetter': {'isGetter': true},
             },
           });
     });
@@ -529,7 +565,9 @@ void runSharedTests(
           expectedResult: [
             '_field',
             '_newPrivateField',
+            '_privateExtensionTypeField',
             '_unusedField',
+            'extensionTypeField',
             'field',
             'functionField',
             'lateFinalField',
@@ -545,7 +583,9 @@ void runSharedTests(
           expression: 'dart.getObjectFieldNames(base)',
           expectedResult: [
             '_field',
+            '_privateExtensionTypeField',
             '_unusedField',
+            'extensionTypeField',
             'field',
             'functionField',
             'lateFinalField',

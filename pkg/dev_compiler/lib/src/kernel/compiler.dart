@@ -1877,8 +1877,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.Expression _emitClassFieldSignature(Field field, Class fromClass) {
-    var type = _typeFromClass(field.type, field.enclosingClass!, fromClass);
-    var fieldType = field.type;
+    var fieldType = _typeFromClass(field.type, field.enclosingClass!, fromClass)
+        .extensionTypeErasure;
     var uri = fieldType is InterfaceType
         ? _cacheUri(jsLibraryDebuggerName(fieldType.classNode.enclosingLibrary))
         : null;
@@ -1887,9 +1887,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     return uri == null
         ? js('{type: #, isConst: #, isFinal: #}',
-            [_emitType(type), isConst, isFinal])
+            [_emitType(fieldType), isConst, isFinal])
         : js('{type: #, isConst: #, isFinal: #, libraryUri: #}',
-            [_emitType(type), isConst, isFinal, uri]);
+            [_emitType(fieldType), isConst, isFinal, uri]);
   }
 
   DartType _memberRuntimeType(Member member, Class fromClass) {
