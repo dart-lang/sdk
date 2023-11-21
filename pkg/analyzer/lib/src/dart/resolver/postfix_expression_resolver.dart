@@ -65,8 +65,6 @@ class PostfixExpressionResolver {
       writeElement,
       atDynamicTarget: operandResolution.atDynamicTarget,
     );
-    _resolver.migrationResolutionHooks
-        ?.setCompoundAssignmentExpressionTypes(node);
 
     // TODO(scheglov): Use VariableElement and do in resolveForWrite() ?
     _assignmentShared.checkFinalAlreadyAssigned(operand);

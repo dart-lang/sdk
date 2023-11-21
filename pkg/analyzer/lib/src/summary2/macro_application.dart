@@ -194,10 +194,8 @@ class LibraryMacroApplier {
           results.add(result);
         }
       },
+      targetElement: application.targetElement,
       annotationIndex: application.annotationIndex,
-      onError: (error) {
-        application.targetElement.addMacroApplicationError(error);
-      },
     );
 
     return results;
@@ -232,10 +230,8 @@ class LibraryMacroApplier {
           results.add(result);
         }
       },
+      targetElement: application.targetElement,
       annotationIndex: application.annotationIndex,
-      onError: (error) {
-        application.targetElement.addMacroApplicationError(error);
-      },
     );
 
     return results;
@@ -264,10 +260,8 @@ class LibraryMacroApplier {
           results.add(result);
         }
       },
+      targetElement: application.targetElement,
       annotationIndex: application.annotationIndex,
-      onError: (error) {
-        application.targetElement.addMacroApplicationError(error);
-      },
     );
 
     return results;
@@ -317,10 +311,8 @@ class LibraryMacroApplier {
             node: importedMacro.arguments,
           );
         },
+        targetElement: targetElement,
         annotationIndex: annotationIndex,
-        onError: (error) {
-          targetElement.addMacroApplicationError(error);
-        },
       );
       if (arguments == null) {
         continue;
@@ -634,30 +626,30 @@ class LibraryMacroApplier {
     return macro.Arguments(positional, named);
   }
 
-  /// Run the [body], report exceptions as [MacroApplicationError]s to [onError].
+  /// Run the [body], report [AnalyzerMacroDiagnostic]s to [onDiagnostic].
   static Future<T?> _runWithCatchingExceptions<T>(
     Future<T> Function() body, {
+    required MacroTargetElement targetElement,
     required int annotationIndex,
-    required void Function(MacroApplicationError) onError,
   }) async {
     try {
       return await body();
-    } on MacroApplicationError catch (e) {
-      onError(e);
+    } on AnalyzerMacroDiagnostic catch (e) {
+      targetElement.addMacroDiagnostic(e);
     } on macro.RemoteException catch (e) {
-      onError(
-        UnknownMacroApplicationError(
+      targetElement.addMacroDiagnostic(
+        ExceptionMacroDiagnostic(
           annotationIndex: annotationIndex,
           message: e.error,
           stackTrace: e.stackTrace ?? '<null>',
         ),
       );
     } catch (e, stackTrace) {
-      onError(
-        UnknownMacroApplicationError(
+      targetElement.addMacroDiagnostic(
+        ExceptionMacroDiagnostic(
           annotationIndex: annotationIndex,
-          message: e.toString(),
-          stackTrace: stackTrace.toString(),
+          message: '$e',
+          stackTrace: '$stackTrace',
         ),
       );
     }
@@ -753,7 +745,7 @@ class _ArgumentEvaluation {
   }
 
   Never _throwError(ast.AstNode node, String message) {
-    throw ArgumentMacroApplicationError(
+    throw ArgumentMacroDiagnostic(
       annotationIndex: annotationIndex,
       argumentIndex: argumentIndex,
       message: message,

@@ -64,7 +64,8 @@ abstract class AugmentationFileKind<U extends DirectiveUri>
 }
 
 /// Information about a single `import augment` directive.
-class AugmentationImportState<U extends DirectiveUri> extends DirectiveState {
+final class AugmentationImportState<U extends DirectiveUri>
+    extends DirectiveState {
   final UnlinkedAugmentationImportDirective unlinked;
   final U uri;
 
@@ -80,7 +81,7 @@ class AugmentationImportState<U extends DirectiveUri> extends DirectiveState {
 }
 
 /// [AugmentationImportWithUri] that has a valid URI that references a file.
-class AugmentationImportWithFile
+final class AugmentationImportWithFile
     extends AugmentationImportWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
 
@@ -114,7 +115,7 @@ class AugmentationImportWithFile
 }
 
 /// [AugmentationImportState] that has a valid URI.
-class AugmentationImportWithUri<U extends DirectiveUriWithUri>
+final class AugmentationImportWithUri<U extends DirectiveUriWithUri>
     extends AugmentationImportWithUriStr<U> {
   AugmentationImportWithUri({
     required super.unlinked,
@@ -123,7 +124,7 @@ class AugmentationImportWithUri<U extends DirectiveUriWithUri>
 }
 
 /// [AugmentationImportState] that has a relative URI string.
-class AugmentationImportWithUriStr<U extends DirectiveUriWithString>
+final class AugmentationImportWithUriStr<U extends DirectiveUriWithString>
     extends AugmentationImportState<U> {
   AugmentationImportWithUriStr({
     required super.unlinked,
@@ -215,7 +216,7 @@ class AugmentationUnknownFileKind extends AugmentationFileKind<DirectiveUri> {
 /// Information about a directive that "includes" a file - `import`, `export`,
 /// or `part`. But not `part of` or `library augment` - these are modelled as
 /// kinds.
-class DirectiveState {
+sealed class DirectiveState {
   void dispose() {}
 }
 
@@ -1584,7 +1585,7 @@ class FileUriProperties {
 }
 
 /// Information about a single `export` directive.
-class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
+final class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedLibraryExportDirective unlinked;
   final U selectedUri;
   final NamespaceDirectiveUris uris;
@@ -1607,7 +1608,8 @@ class LibraryExportState<U extends DirectiveUri> extends DirectiveState {
 }
 
 /// [LibraryExportWithUri] that has a valid URI that references a file.
-class LibraryExportWithFile extends LibraryExportWithUri<DirectiveUriWithFile> {
+final class LibraryExportWithFile
+    extends LibraryExportWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
 
   LibraryExportWithFile({
@@ -1648,7 +1650,7 @@ class LibraryExportWithFile extends LibraryExportWithUri<DirectiveUriWithFile> {
 }
 
 /// [LibraryExportWithUri] with a URI that resolves to [InSummarySource].
-class LibraryExportWithInSummarySource
+final class LibraryExportWithInSummarySource
     extends LibraryExportWithUri<DirectiveUriWithInSummarySource> {
   LibraryExportWithInSummarySource({
     required super.unlinked,
@@ -1670,7 +1672,7 @@ class LibraryExportWithInSummarySource
 }
 
 /// [LibraryExportState] that has a valid URI.
-class LibraryExportWithUri<U extends DirectiveUriWithUri>
+final class LibraryExportWithUri<U extends DirectiveUriWithUri>
     extends LibraryExportWithUriStr<U> {
   LibraryExportWithUri({
     required super.unlinked,
@@ -1680,7 +1682,7 @@ class LibraryExportWithUri<U extends DirectiveUriWithUri>
 }
 
 /// [LibraryExportState] that has a relative URI string.
-class LibraryExportWithUriStr<U extends DirectiveUriWithString>
+final class LibraryExportWithUriStr<U extends DirectiveUriWithString>
     extends LibraryExportState<U> {
   LibraryExportWithUriStr({
     required super.unlinked,
@@ -1935,7 +1937,7 @@ $code
 }
 
 /// Information about a single `import` directive.
-class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
+final class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
   final UnlinkedLibraryImportDirective unlinked;
   final U selectedUri;
   final NamespaceDirectiveUris uris;
@@ -1960,7 +1962,8 @@ class LibraryImportState<U extends DirectiveUri> extends DirectiveState {
 }
 
 /// [LibraryImportWithUri] that has a valid URI that references a file.
-class LibraryImportWithFile extends LibraryImportWithUri<DirectiveUriWithFile> {
+final class LibraryImportWithFile
+    extends LibraryImportWithUri<DirectiveUriWithFile> {
   final LibraryOrAugmentationFileKind container;
 
   LibraryImportWithFile({
@@ -2001,7 +2004,7 @@ class LibraryImportWithFile extends LibraryImportWithUri<DirectiveUriWithFile> {
 }
 
 /// [LibraryImportWithUri] with a URI that resolves to [InSummarySource].
-class LibraryImportWithInSummarySource
+final class LibraryImportWithInSummarySource
     extends LibraryImportWithUri<DirectiveUriWithInSummarySource> {
   LibraryImportWithInSummarySource({
     required super.unlinked,
@@ -2023,7 +2026,7 @@ class LibraryImportWithInSummarySource
 }
 
 /// [LibraryImportState] that has a valid URI.
-class LibraryImportWithUri<U extends DirectiveUriWithUri>
+final class LibraryImportWithUri<U extends DirectiveUriWithUri>
     extends LibraryImportWithUriStr<U> {
   LibraryImportWithUri({
     required super.unlinked,
@@ -2033,7 +2036,7 @@ class LibraryImportWithUri<U extends DirectiveUriWithUri>
 }
 
 /// [LibraryImportState] that has a relative URI string.
-class LibraryImportWithUriStr<U extends DirectiveUriWithString>
+final class LibraryImportWithUriStr<U extends DirectiveUriWithString>
     extends LibraryImportState<U> {
   LibraryImportWithUriStr({
     required super.unlinked,
@@ -2389,7 +2392,7 @@ class PartOfUriUnknownFileKind extends PartOfUriFileKind {
 }
 
 /// Information about a single `part` directive.
-class PartState<U extends DirectiveUri> extends DirectiveState {
+final class PartState<U extends DirectiveUri> extends DirectiveState {
   final LibraryFileKind library;
   final UnlinkedPartDirective unlinked;
   final U uri;
@@ -2407,7 +2410,7 @@ class PartState<U extends DirectiveUri> extends DirectiveState {
 }
 
 /// [PartWithUri] that has a valid URI that references a file.
-class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
+final class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
   PartWithFile({
     required super.library,
     required super.unlinked,
@@ -2438,7 +2441,8 @@ class PartWithFile extends PartWithUri<DirectiveUriWithFile> {
 }
 
 /// [PartState] that has a valid URI.
-class PartWithUri<U extends DirectiveUriWithUri> extends PartWithUriStr<U> {
+final class PartWithUri<U extends DirectiveUriWithUri>
+    extends PartWithUriStr<U> {
   PartWithUri({
     required super.library,
     required super.unlinked,
@@ -2447,7 +2451,8 @@ class PartWithUri<U extends DirectiveUriWithUri> extends PartWithUriStr<U> {
 }
 
 /// [PartState] that has a relative URI string.
-class PartWithUriStr<U extends DirectiveUriWithString> extends PartState<U> {
+final class PartWithUriStr<U extends DirectiveUriWithString>
+    extends PartState<U> {
   PartWithUriStr({
     required super.library,
     required super.unlinked,

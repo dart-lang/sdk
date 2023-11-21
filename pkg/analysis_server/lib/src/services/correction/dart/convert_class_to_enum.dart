@@ -194,8 +194,20 @@ class _EnumDescription {
         .sort((first, second) => first.indexValue.compareTo(second.indexValue));
     for (var field in fieldsToConvert) {
       // Compute the declaration of the corresponding enum constant.
+      var documentationComment = field.element.documentationComment;
       if (constantsBuffer.isNotEmpty) {
-        constantsBuffer.write(',$eol$indent');
+        constantsBuffer.write(',$eol');
+        if (documentationComment != null) {
+          // If the current field has a documentation comment and
+          // it's not the first field, add an extra new line.
+          constantsBuffer.write(eol);
+        }
+        constantsBuffer.write(indent);
+      }
+      if (documentationComment != null) {
+        constantsBuffer
+            .write(documentationComment.replaceAll(eol, '$eol$indent'));
+        constantsBuffer.write('$eol$indent');
       }
       constantsBuffer.write(field.name);
       var invocation = field.instanceCreation;

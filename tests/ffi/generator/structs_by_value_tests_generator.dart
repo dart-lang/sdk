@@ -1048,9 +1048,8 @@ import 'dart:ffi';
 """;
 }
 
-// TODO: Remove non-nnbd support.
-String compoundsPath({required bool isNnbd}) {
-  final folder = isNnbd ? 'ffi' : 'ffi_2';
+String compoundsPath() {
+  final folder = 'ffi';
   return Platform.script
       .resolve(
           "../../$folder/function_structs_by_value_generated_compounds.dart")
@@ -1064,7 +1063,7 @@ Future<void> writeDartCompounds() async {
 
     buffer.writeAll(compounds.map((e) => e.dartClass(isNnbd: isNnbd)));
 
-    final path = compoundsPath(isNnbd: isNnbd);
+    final path = compoundsPath();
     await File(path).writeAsString(buffer.toString());
     await runProcess(Platform.resolvedExecutable, ["format", path]);
   }));
@@ -1147,7 +1146,6 @@ void main() {$forceDlOpen
         .map((e) => e.dartCallCode(isLeaf: isLeaf, isNative: isNative)));
 
     final path = callTestPath(
-        isNnbd: isNnbd,
         isLeaf: isLeaf,
         isNative: isNative,
         nameSuffix: nameSuffix,
@@ -1158,13 +1156,12 @@ void main() {$forceDlOpen
 }
 
 String callTestPath({
-  required bool isNnbd,
   required bool isLeaf,
   required bool isNative,
   String nameSuffix = '',
   required bool isVarArgs,
 }) {
-  final folder = isNnbd ? 'ffi' : 'ffi_2';
+  final folder = 'ffi';
   final baseName = isVarArgs ? 'varargs' : 'structs_by_value';
   final suffix =
       '$nameSuffix${isNative ? '_native' : ''}${isLeaf ? '_leaf' : ''}';
@@ -1242,9 +1239,7 @@ Future<void> writeDartCallbackTest(
       buffer.writeAll(functions.map((e) => e.dartCallbackCode(isNnbd: isNnbd)));
 
       final path = callbackTestPath(
-          isNnbd: isNnbd,
-          isVarArgs: isVarArgs,
-          isNativeCallable: isNativeCallable);
+          isVarArgs: isVarArgs, isNativeCallable: isNativeCallable);
       await File(path).writeAsString(buffer.toString());
       await runProcess(Platform.resolvedExecutable, ["format", path]);
     }
@@ -1252,11 +1247,10 @@ Future<void> writeDartCallbackTest(
 }
 
 String callbackTestPath({
-  required bool isNnbd,
   required bool isVarArgs,
   required bool isNativeCallable,
 }) {
-  final folder = isNnbd ? "ffi" : "ffi_2";
+  final folder = "ffi";
   final baseName = isVarArgs ? "varargs" : "structs_by_value";
   final natCall = isNativeCallable ? "_native_callable" : "";
   return Platform.script

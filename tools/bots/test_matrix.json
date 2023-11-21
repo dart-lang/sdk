@@ -3258,22 +3258,9 @@
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--no-aot",
-            "--no-sound-null-safety",
             "-o",
             "runtime/tests/concurrency/generated_stress_test.dart.jit.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"
-          ]
-        },
-        {
-          "name": "Generate Isolate Stress Test - JIT Dill NNBD",
-          "script": "out/ReleaseX64/dart",
-          "arguments": [
-            "pkg/vm/bin/gen_kernel.dart",
-            "--platform=out/ReleaseX64/vm_platform_strong.dill",
-            "--no-aot",
-            "-o",
-            "runtime/tests/concurrency/generated_stress_test_nnbd.dart.jit.dill",
-            "runtime/tests/concurrency/generated_stress_test_nnbd.dart"
           ]
         },
         {
@@ -3283,22 +3270,9 @@
             "pkg/vm/bin/gen_kernel.dart",
             "--platform=out/ReleaseX64/vm_platform_strong.dill",
             "--aot",
-            "--no-sound-null-safety",
             "-o",
             "runtime/tests/concurrency/generated_stress_test.dart.aot.dill",
             "runtime/tests/concurrency/generated_stress_test.dart"
-          ]
-        },
-        {
-          "name": "Generate Isolate Stress Test - AOT Dill NNBD",
-          "script": "out/ReleaseX64/dart",
-          "arguments": [
-            "pkg/vm/bin/gen_kernel.dart",
-            "--platform=out/ReleaseX64/vm_platform_strong.dill",
-            "--aot",
-            "-o",
-            "runtime/tests/concurrency/generated_stress_test_nnbd.dart.aot.dill",
-            "runtime/tests/concurrency/generated_stress_test_nnbd.dart"
           ]
         },
         {

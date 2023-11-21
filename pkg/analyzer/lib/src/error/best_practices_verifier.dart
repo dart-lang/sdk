@@ -634,7 +634,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _deprecatedVerifier.methodInvocation(node);
-    _checkForNullAwareWarnings(node, node.operator);
     _errorHandlerVerifier.verifyMethodInvocation(node);
     _nullSafeApiVerifier.methodInvocation(node);
     super.visitMethodInvocation(node);
@@ -707,12 +706,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitPrefixExpression(PrefixExpression node) {
     _deprecatedVerifier.prefixExpression(node);
     super.visitPrefixExpression(node);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _checkForNullAwareWarnings(node, node.operator);
-    super.visitPropertyAccess(node);
   }
 
   @override
@@ -1284,81 +1277,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE,
         type,
       );
-    }
-  }
-
-  /// Produce several null-aware related warnings.
-  void _checkForNullAwareWarnings(Expression node, Token? operator) {
-    if (_isNonNullableByDefault) {
-      return;
-    }
-
-    if (operator == null || operator.type != TokenType.QUESTION_PERIOD) {
-      return;
-    }
-
-    // childOfParent is used to know from which branch node comes.
-    var childOfParent = node;
-    var parent = node.parent;
-    while (parent is ParenthesizedExpression) {
-      childOfParent = parent;
-      parent = parent.parent;
-    }
-
-    // CAN_BE_NULL_AFTER_NULL_AWARE
-    if (parent is MethodInvocation &&
-        !parent.isNullAware &&
-        _nullType.lookUpMethod2(parent.methodName.name, _currentLibrary) ==
-            null) {
-      _errorReporter.reportErrorForNode(
-          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
-      return;
-    }
-    if (parent is PropertyAccess &&
-        !parent.isNullAware &&
-        _nullType.lookUpGetter2(parent.propertyName.name, _currentLibrary) ==
-            null) {
-      _errorReporter.reportErrorForNode(
-          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
-      return;
-    }
-    if (parent is CascadeExpression && parent.target == childOfParent) {
-      _errorReporter.reportErrorForNode(
-          HintCode.CAN_BE_NULL_AFTER_NULL_AWARE, childOfParent);
-      return;
-    }
-
-    // NULL_AWARE_IN_CONDITION
-    if (parent is IfStatement && parent.expression == childOfParent ||
-        parent is ForPartsWithDeclarations &&
-            parent.condition == childOfParent ||
-        parent is DoStatement && parent.condition == childOfParent ||
-        parent is WhileStatement && parent.condition == childOfParent ||
-        parent is ConditionalExpression && parent.condition == childOfParent ||
-        parent is AssertStatement && parent.condition == childOfParent) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.NULL_AWARE_IN_CONDITION, childOfParent);
-      return;
-    }
-
-    // NULL_AWARE_IN_LOGICAL_OPERATOR
-    if (parent is PrefixExpression && parent.operator.type == TokenType.BANG ||
-        parent is BinaryExpression &&
-            [TokenType.BAR_BAR, TokenType.AMPERSAND_AMPERSAND]
-                .contains(parent.operator.type)) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR, childOfParent);
-      return;
-    }
-
-    // NULL_AWARE_BEFORE_OPERATOR
-    if (parent is BinaryExpression &&
-        ![TokenType.EQ_EQ, TokenType.BANG_EQ, TokenType.QUESTION_QUESTION]
-            .contains(parent.operator.type) &&
-        parent.leftOperand == childOfParent) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.NULL_AWARE_BEFORE_OPERATOR, childOfParent);
-      return;
     }
   }
 

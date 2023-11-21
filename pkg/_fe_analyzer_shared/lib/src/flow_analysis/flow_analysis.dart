@@ -3215,11 +3215,6 @@ class PromotionModel<Type extends Object> {
       Type declaredType, List<Type>? promotedTypes, Type writtenType) {
     assert(!writeCaptured);
 
-    if (typeOperations.forcePromotion(
-        writtenType, declaredType, this.promotedTypes, promotedTypes)) {
-      return _addToPromotedTypes(promotedTypes, writtenType);
-    }
-
     // Figure out if we have any promotion candidates (types that are a
     // supertype of writtenType and a proper subtype of the currently-promoted
     // type).  If at any point we find an exact match, we take it immediately.
@@ -3360,8 +3355,6 @@ class PromotionModel<Type extends Object> {
     TypeOperations<Type> typeOperations = helper.typeOperations;
     List<Type>? newPromotedTypes = joinPromotedTypes(
         first.promotedTypes, second.promotedTypes, typeOperations);
-    newPromotedTypes = typeOperations.refinePromotedTypes(
-        first.promotedTypes, second.promotedTypes, newPromotedTypes);
     bool newAssigned = first.assigned && second.assigned;
     bool newUnassigned = first.unassigned && second.unassigned;
     bool newWriteCaptured = first.writeCaptured || second.writeCaptured;

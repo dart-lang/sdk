@@ -9041,13 +9041,6 @@ CompileTimeErrorCode:
       ```dart
       List<num> x = [1, 2.5, 3];
       ```
-  MACRO_EXECUTION_EXCEPTION:
-    problemMessage: "Exception during macro execution: {0}\n{1}"
-    correctionMessage: Re-install the Dart or Flutter SDK.
-    comment: |-
-      Parameters:
-      0: the message of the exception
-      1: the stack trace
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.
@@ -19696,17 +19689,6 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
     hasPublishedDocs: true
 HintCode:
-  CAN_BE_NULL_AFTER_NULL_AWARE:
-    problemMessage: "The receiver uses '?.', so its value can be null."
-    correctionMessage: "Replace the '.' with a '?.' in the invocation."
-    comment: |-
-      When the target expression uses '?.' operator, it can be `null`, so all the
-      subsequent invocations should also use '?.' operator.
-
-      Note: This diagnostic is only generated in pre-null safe code.
-
-      Note: Since this diagnostic is only produced in pre-null safe code, we do
-      not plan to go through the exercise of converting it to a Warning.
   DEPRECATED_COLON_FOR_DEFAULT_VALUE:
     problemMessage: Using a colon as the separator before a default value is deprecated and will not be supported in language version 3.0 and later.
     correctionMessage: Try replacing the colon with an equal sign.
@@ -24108,22 +24090,6 @@ WarningCode:
         return Future.value('');
       }
       ```
-  NULL_AWARE_BEFORE_OPERATOR:
-    problemMessage: "The left operand uses '?.', so its value can be null."
-    comment: |-
-      When the left operand of a binary expression uses '?.' operator, it can be
-      `null`.
-  NULL_AWARE_IN_CONDITION:
-    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate in a condition."
-    correctionMessage: "Try replacing the '?.' with a '.', testing the left-hand side for null if necessary."
-    comment: |-
-      A condition in a control flow statement could evaluate to `null` because it
-      uses the null-aware '?.' operator.
-  NULL_AWARE_IN_LOGICAL_OPERATOR:
-    problemMessage: "The value of the '?.' operator can be 'null', which isn't appropriate as an operand of a logical operator."
-    comment: |-
-      A condition in operands of a logical operator could evaluate to `null`
-      because it uses the null-aware '?.' operator.
   NULL_CHECK_ALWAYS_FAILS:
     problemMessage: "This null-check will always throw an exception because the expression will always evaluate to 'null'."
     comment: |-

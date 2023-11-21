@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
@@ -343,7 +342,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       TypeParameterElement p2 = params2[i];
       TypeParameterElementImpl pFresh =
           TypeParameterElementImpl.synthetic(p2.name);
-      ElementTypeProvider.current.freshTypeParameterCreated(pFresh, p2);
 
       var variableFresh = pFresh.instantiate(
         nullabilitySuffix: NullabilitySuffix.none,
@@ -662,17 +660,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       final substitution = Substitution.fromInterfaceType(this);
       final representationType = element.representation.type;
       return substitution.substituteType(representationType);
-    }
-    return null;
-  }
-
-  /// The instantiated representation type erasure, if [element] is an
-  /// extension type.
-  DartType? get representationTypeErasure {
-    if (element case ExtensionTypeElement element) {
-      final substitution = Substitution.fromInterfaceType(this);
-      final typeErasure = element.typeErasure;
-      return substitution.substituteType(typeErasure);
     }
     return null;
   }
@@ -1268,6 +1255,11 @@ abstract class TypeImpl implements DartType {
 
   /// Initialize a newly created type.
   TypeImpl({this.alias});
+
+  @override
+  DartType get extensionTypeErasure {
+    return const ExtensionTypeErasure().perform(this);
+  }
 
   @override
   bool get isBottom => false;

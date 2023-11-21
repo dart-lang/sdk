@@ -82,8 +82,6 @@ import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
-import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -197,10 +195,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The feature set that is enabled for the current unit.
   final FeatureSet _featureSet;
-
-  final MigratableAstInfoProvider _migratableAstInfoProvider;
-
-  final MigrationResolutionHooks? migrationResolutionHooks;
 
   /// Helper for checking that subtypes of a base or final type must be base,
   /// final, or sealed.
@@ -340,9 +334,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             typeProvider as TypeProviderImpl,
             errorListener,
             featureSet,
-            flowAnalysisHelper,
-            const MigratableAstInfoProvider(),
-            null);
+            flowAnalysisHelper);
 
   ResolverVisitor._(
       this.inheritance,
@@ -352,9 +344,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       this.typeProvider,
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
-      this.flowAnalysis,
-      this._migratableAstInfoProvider,
-      this.migrationResolutionHooks)
+      this.flowAnalysis)
       : errorReporter = ErrorReporter(
           errorListener,
           source,
@@ -382,16 +372,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorReporter: errorReporter,
       nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
-    _typedLiteralResolver = TypedLiteralResolver(
-        this, _featureSet, typeSystem, typeProvider,
-        migratableAstInfoProvider: _migratableAstInfoProvider);
+    _typedLiteralResolver =
+        TypedLiteralResolver(this, _featureSet, typeSystem, typeProvider);
     extensionResolver = ExtensionMemberResolver(this);
     typePropertyResolver = TypePropertyResolver(this);
     inferenceHelper = InvocationInferenceHelper(
       resolver: this,
       errorReporter: errorReporter,
       typeSystem: typeSystem,
-      migrationResolutionHooks: migrationResolutionHooks,
     );
     _assignmentExpressionResolver = AssignmentExpressionResolver(
       resolver: this,
@@ -403,10 +391,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         FunctionExpressionInvocationResolver(
       resolver: this,
     );
-    _functionExpressionResolver = FunctionExpressionResolver(
-      resolver: this,
-      migrationResolutionHooks: migrationResolutionHooks,
-    );
+    _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
     _forResolver = ForResolver(
       resolver: this,
     );
@@ -429,8 +414,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorReporter,
       flowAnalysis,
     );
-    elementResolver = ElementResolver(this,
-        migratableAstInfoProvider: _migratableAstInfoProvider);
+    elementResolver = ElementResolver(this);
     inferenceContext = InferenceContext._(this);
     typeAnalyzer = StaticTypeAnalyzer(this);
     _functionReferenceResolver =
@@ -1809,7 +1793,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void startNullAwareIndexExpression(IndexExpression node) {
-    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node)) {
+    if (node.isNullAware) {
       var flow = flowAnalysis.flow;
       if (flow != null) {
         flow.nullAwareAccess_rightBegin(node.target,
@@ -1820,7 +1804,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void startNullAwarePropertyAccess(PropertyAccess node) {
-    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node)) {
+    if (node.isNullAware) {
       var flow = flowAnalysis.flow;
       if (flow != null) {
         var target = node.target;
@@ -2010,10 +1994,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitBinaryExpression(BinaryExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
-    var migrationResolutionHooks = this.migrationResolutionHooks;
-    if (migrationResolutionHooks != null) {
-      migrationResolutionHooks.reportBinaryExpressionContext(node, contextType);
-    }
     _binaryExpressionResolver.resolve(node as BinaryExpressionImpl,
         contextType: contextType);
     _insertImplicitCallReference(
@@ -3025,7 +3005,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     target?.accept(this);
     target = node.target;
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node)) {
+    if (node.isNullAware) {
       var flow = flowAnalysis.flow;
       if (flow != null) {
         if (target is SimpleIdentifierImpl &&
@@ -3849,7 +3829,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var function = node.function;
 
     if (function is PropertyAccess &&
-        _migratableAstInfoProvider.isPropertyAccessNullAware(function) &&
+        function.isNullAware &&
         _isNonNullableByDefault) {
       var target = function.target;
       if (target is SimpleIdentifier &&
@@ -4125,84 +4105,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       arguments.add(name);
     }
     errorReporter.reportErrorForToken(errorCode, token, arguments);
-  }
-}
-
-/// Override of [ResolverVisitorForMigration] that invokes methods of
-/// [MigrationResolutionHooks] when appropriate.
-class ResolverVisitorForMigration extends ResolverVisitor {
-  final MigrationResolutionHooks _migrationResolutionHooks;
-
-  ResolverVisitorForMigration(
-      InheritanceManager3 inheritanceManager,
-      LibraryElementImpl definingLibrary,
-      Source source,
-      TypeProvider typeProvider,
-      AnalysisErrorListener errorListener,
-      TypeSystemImpl typeSystem,
-      FeatureSet featureSet,
-      MigrationResolutionHooks migrationResolutionHooks)
-      : _migrationResolutionHooks = migrationResolutionHooks,
-        super._(
-            inheritanceManager,
-            definingLibrary,
-            source,
-            typeSystem,
-            typeProvider as TypeProviderImpl,
-            errorListener,
-            featureSet,
-            FlowAnalysisHelperForMigration(
-                typeSystem, migrationResolutionHooks, featureSet),
-            migrationResolutionHooks,
-            migrationResolutionHooks);
-
-  @override
-  void visitConditionalExpression(covariant ConditionalExpressionImpl node,
-      {DartType? contextType}) {
-    var conditionalKnownValue =
-        _migrationResolutionHooks.getConditionalKnownValue(node);
-    if (conditionalKnownValue == null) {
-      super.visitConditionalExpression(node, contextType: contextType);
-      return;
-    } else {
-      var subexpressionToKeep =
-          conditionalKnownValue ? node.thenExpression : node.elseExpression;
-      subexpressionToKeep.accept(this);
-      inferenceHelper.recordStaticType(node, subexpressionToKeep.typeOrThrow,
-          contextType: contextType);
-    }
-  }
-
-  @override
-  void visitIfElement(
-    covariant IfElementImpl node, {
-    CollectionLiteralContext? context,
-  }) {
-    var conditionalKnownValue =
-        _migrationResolutionHooks.getConditionalKnownValue(node);
-    if (conditionalKnownValue == null) {
-      super.visitIfElement(node, context: context);
-      return;
-    } else {
-      var element = conditionalKnownValue ? node.thenElement : node.elseElement;
-      if (element != null) {
-        element.resolveElement(this, context);
-        popRewrite();
-      }
-    }
-  }
-
-  @override
-  void visitIfStatement(covariant IfStatementImpl node) {
-    var conditionalKnownValue =
-        _migrationResolutionHooks.getConditionalKnownValue(node);
-    if (conditionalKnownValue == null) {
-      super.visitIfStatement(node);
-      return;
-    } else {
-      (conditionalKnownValue ? node.thenStatement : node.elseStatement)
-          ?.accept(this);
-    }
   }
 }
 

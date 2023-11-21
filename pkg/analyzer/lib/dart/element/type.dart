@@ -44,6 +44,17 @@ abstract class DartType {
   @Deprecated('Use element instead')
   Element? get element2;
 
+  /// The extension type erasure of this type.
+  ///
+  /// The extension type erasure of a type `V` is obtained by recursively
+  /// replacing every subterm of `V` which is an extension type with the
+  /// corresponding representation type.
+  ///
+  /// This getter can be used on any type, not necessary on a type that has
+  /// an extension type as a subterm. If there are no extension types, the
+  /// same type is returned.
+  DartType get extensionTypeErasure;
+
   /// Return `true` if this type represents the bottom type.
   bool get isBottom;
 

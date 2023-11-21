@@ -187,7 +187,7 @@ class DartObjectImpl implements DartObject, Constant {
     InstanceState state, {
     VariableElementImpl? variable,
   }) {
-    type = ExtensionTypeErasure().perform(type);
+    type = type.extensionTypeErasure;
     return DartObjectImpl._(
       typeSystem,
       type,
@@ -2506,7 +2506,7 @@ class ListState extends InstanceState {
     required List<DartObjectImpl> elements,
     bool isUnknown = false,
   }) {
-    elementType = ExtensionTypeErasure().perform(elementType);
+    elementType = elementType.extensionTypeErasure;
     return ListState._(
       elementType: elementType,
       elements: elements,
@@ -3105,9 +3105,7 @@ class TypeState extends InstanceState {
   final DartType? _type;
 
   factory TypeState(DartType? type) {
-    if (type != null) {
-      type = ExtensionTypeErasure().perform(type);
-    }
+    type = type?.extensionTypeErasure;
     return TypeState._(type);
   }
 

@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -48,7 +47,6 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
-import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
@@ -471,10 +469,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
-      _reportMacroApplicationErrors(
-        annotations: node.metadata,
-        macroErrors: declarationElement.macroApplicationErrors,
-      );
+      // TODO(scheglov): Report macro diagnostics.
 
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
@@ -4904,7 +4899,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final boundNode = current.bound;
           if (boundNode is NamedType) {
             var boundType = boundNode.typeOrThrow;
-            boundType = boundType.representationTypeErasureOrSelf;
+            boundType = boundType.extensionTypeErasure;
             current = elementToNode[boundType.element];
           } else {
             current = null;
@@ -5856,30 +5851,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return parameter.parameter.name;
     }
     return null;
-  }
-
-  void _reportMacroApplicationErrors({
-    required List<Annotation> annotations,
-    required List<MacroApplicationError> macroErrors,
-  }) {
-    for (final macroError in macroErrors) {
-      if (macroError.annotationIndex < annotations.length) {
-        final applicationNode = annotations[macroError.annotationIndex];
-        if (macroError is UnknownMacroApplicationError) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MACRO_EXECUTION_EXCEPTION,
-            applicationNode,
-            [
-              macroError.message,
-              macroError.stackTrace,
-            ],
-          );
-        } else {
-          // TODO(scheglov): Other implementations.
-          throw UnimplementedError('(${macroError.runtimeType}) $macroError');
-        }
-      }
-    }
   }
 
   void _withEnclosingExecutable(

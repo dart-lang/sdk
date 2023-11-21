@@ -139,7 +139,7 @@ final configurations = <TestRunner>[
   JitTestRunner('out/DebugX64', [
     '--disable-dart-dev',
     '--sound-null-safety',
-    'runtime/tests/concurrency/generated_stress_test_nnbd.dart.jit.dill',
+    'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
   ]),
   JitTestRunner('out/ReleaseX64', [
     '--disable-dart-dev',
@@ -147,7 +147,7 @@ final configurations = <TestRunner>[
     '--no-inline-alloc',
     '--use-slow-path',
     '--deoptimize-on-runtime-call-every=3',
-    'runtime/tests/concurrency/generated_stress_test_nnbd.dart.jit.dill',
+    'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
   ]),
   for (int i = 0; i < tsanShards; ++i)
     JitTestRunner('out/ReleaseTSANX64', [
@@ -156,17 +156,17 @@ final configurations = <TestRunner>[
       '-Dshard=$i',
       '-Dshards=$tsanShards',
       '--sound-null-safety',
-      'runtime/tests/concurrency/generated_stress_test_nnbd.dart.jit.dill',
+      'runtime/tests/concurrency/generated_stress_test.dart.jit.dill',
     ]),
   AotTestRunner('out/ReleaseX64', [
     '--sound-null-safety',
-    'runtime/tests/concurrency/generated_stress_test_nnbd.dart.aot.dill',
+    'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
   ], [
     '--sound-null-safety',
   ]),
   AotTestRunner('out/DebugX64', [
     '--sound-null-safety',
-    'runtime/tests/concurrency/generated_stress_test_nnbd.dart.aot.dill',
+    'runtime/tests/concurrency/generated_stress_test.dart.aot.dill',
   ], [
     '--sound-null-safety',
   ]),

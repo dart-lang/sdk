@@ -1042,8 +1042,6 @@ CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
     Remove `final`.
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.MACRO_EXECUTION_EXCEPTION:
-  status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
   notes: |-
@@ -1820,8 +1818,6 @@ FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
   status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
-  status: hasFix
-HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
 HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
@@ -3691,12 +3687,6 @@ WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
 WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
   status: noFix
   since: ~2.15
-WarningCode.NULL_AWARE_BEFORE_OPERATOR:
-  status: noFix
-WarningCode.NULL_AWARE_IN_CONDITION:
-  status: noFix
-WarningCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
-  status: noFix
 WarningCode.NULL_CHECK_ALWAYS_FAILS:
   status: needsFix
   notes: |-

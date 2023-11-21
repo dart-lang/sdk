@@ -68,8 +68,6 @@ class PrefixExpressionResolver {
         writeElement,
         atDynamicTarget: operandResolution.atDynamicTarget,
       );
-      _resolver.migrationResolutionHooks
-          ?.setCompoundAssignmentExpressionTypes(node);
 
       _assignmentShared.checkFinalAlreadyAssigned(node.operand);
     } else {

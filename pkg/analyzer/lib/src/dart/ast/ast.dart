@@ -350,8 +350,8 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @override
   Element? get element {
-    if (_element != null) {
-      return _element!;
+    if (_element case final element?) {
+      return element;
     } else if (_constructorName == null) {
       return _name.staticElement;
     }
@@ -364,10 +364,10 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @override
   Token get endToken {
-    if (_arguments != null) {
-      return _arguments!.endToken;
-    } else if (_constructorName != null) {
-      return _constructorName!.endToken;
+    if (arguments case final arguments?) {
+      return arguments.endToken;
+    } else if (constructorName case final constructorName?) {
+      return constructorName.endToken;
     }
     return _name.endToken;
   }
@@ -1888,8 +1888,8 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   Token get beginToken {
-    if (keyword != null) {
-      return keyword!;
+    if (keyword case final keyword?) {
+      return keyword;
     }
     return _block.beginToken;
   }
@@ -2502,8 +2502,8 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @override
   Token get beginToken {
-    if (onKeyword != null) {
-      return onKeyword!;
+    if (onKeyword case final onKeyword?) {
+      return onKeyword;
     }
     return catchKeyword!;
   }
@@ -4489,8 +4489,8 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   @override
   Token get beginToken {
-    if (thisKeyword != null) {
-      return thisKeyword!;
+    if (thisKeyword case final thisKeyword?) {
+      return thisKeyword;
     }
     return _fieldName.beginToken;
   }
@@ -4606,8 +4606,8 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @override
   Token get endToken {
-    if (_name != null) {
-      return _name!.endToken;
+    if (name case final name?) {
+      return name.endToken;
     }
     return _type.endToken;
   }
@@ -5251,8 +5251,8 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @override
   Token get endToken {
-    if (_defaultValue != null) {
-      return _defaultValue!.endToken;
+    if (defaultValue case final defaultValue?) {
+      return defaultValue.endToken;
     }
     return _parameter.endToken;
   }
@@ -6155,16 +6155,16 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   Token get beginToken {
-    if (keyword != null) {
-      return keyword!;
+    if (keyword case final keyword?) {
+      return keyword;
     }
     return functionDefinition;
   }
 
   @override
   Token get endToken {
-    if (semicolon != null) {
-      return semicolon!;
+    if (semicolon case final semicolon?) {
+      return semicolon;
     }
     return _expression.endToken;
   }
@@ -6360,8 +6360,8 @@ final class ExpressionStatementImpl extends StatementImpl
 
   @override
   Token get endToken {
-    if (semicolon != null) {
-      return semicolon!;
+    if (semicolon case final semicolon?) {
+      return semicolon;
     }
     return _expression.endToken;
   }
@@ -7101,14 +7101,14 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword != null) {
-      return requiredKeyword!;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword!;
-    } else if (keyword != null) {
-      return keyword!;
-    } else if (_type != null) {
-      return _type!.beginToken;
+    } else if (requiredKeyword case final requiredKeyword?) {
+      return requiredKeyword;
+    } else if (covariantKeyword case final covariantKeyword?) {
+      return covariantKeyword;
+    } else if (keyword case final keyword?) {
+      return keyword;
+    } else if (type case final type?) {
+      return type.beginToken;
     }
     return thisKeyword;
   }
@@ -7609,18 +7609,6 @@ sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
   ParameterElementImpl? declaredElement;
-
-  // TODO(scheglov): I was not able to update 'nnbd_migration' any better.
-  SimpleIdentifier? get identifierForMigration {
-    final token = name;
-    if (token != null) {
-      final result = SimpleIdentifierImpl(token);
-      result.staticElement = declaredElement;
-      _becomeParentOf(result);
-      return result;
-    }
-    return null;
-  }
 
   @override
   bool get isNamed => kind.isNamed;
@@ -8498,10 +8486,10 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken {
-    if (_typeParameters != null) {
-      return _typeParameters!.beginToken;
-    } else if (_parameters != null) {
-      return _parameters!.beginToken;
+    if (typeParameters case final typeParameters?) {
+      return typeParameters.beginToken;
+    } else if (parameters case final parameters?) {
+      return parameters.beginToken;
     }
     return _body.beginToken;
   }
@@ -8929,12 +8917,12 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword != null) {
-      return requiredKeyword!;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword!;
-    } else if (_returnType != null) {
-      return _returnType!.beginToken;
+    } else if (requiredKeyword case final requiredKeyword?) {
+      return requiredKeyword;
+    } else if (covariantKeyword case final covariantKeyword?) {
+      return covariantKeyword;
+    } else if (returnType case final returnType?) {
+      return returnType.beginToken;
     }
     return name;
   }
@@ -9690,8 +9678,8 @@ final class IfStatementImpl extends StatementImpl
 
   @override
   Token get endToken {
-    if (_elseStatement != null) {
-      return _elseStatement!.endToken;
+    if (elseStatement case final elseStatement?) {
+      return elseStatement.endToken;
     }
     return _thenStatement.endToken;
   }
@@ -10229,8 +10217,8 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken {
-    if (_target != null) {
-      return _target!.beginToken;
+    if (target case final target?) {
+      return target.beginToken;
     }
     return period!;
   }
@@ -11376,8 +11364,8 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @override
   Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword!;
+    if (constKeyword case final constKeyword?) {
+      return constKeyword;
     }
     final typeArguments = this.typeArguments;
     if (typeArguments != null) {
@@ -12253,10 +12241,10 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   Token get beginToken {
-    if (_target != null) {
-      return _target!.beginToken;
-    } else if (operator != null) {
-      return operator!;
+    if (target case final target?) {
+      return target.beginToken;
+    } else if (operator case final operator?) {
+      return operator;
     }
     return _methodName.beginToken;
   }
@@ -14687,8 +14675,8 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @override
   Token get beginToken {
-    if (_target != null) {
-      return _target!.beginToken;
+    if (target case final target?) {
+      return target.beginToken;
     }
     return operator;
   }
@@ -15848,8 +15836,8 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   @override
   Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword!;
+    if (constKeyword case final constKeyword?) {
+      return constKeyword;
     }
     final typeArguments = this.typeArguments;
     if (typeArguments != null) {
@@ -16008,14 +15996,14 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword != null) {
-      return requiredKeyword!;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword!;
-    } else if (keyword != null) {
-      return keyword!;
-    } else if (_type != null) {
-      return _type!.beginToken;
+    } else if (requiredKeyword case final requiredKeyword?) {
+      return requiredKeyword;
+    } else if (covariantKeyword case final covariantKeyword?) {
+      return covariantKeyword;
+    } else if (keyword case final keyword?) {
+      return keyword;
+    } else if (type case final type?) {
+      return type.beginToken;
     }
     return name!;
   }
@@ -17094,14 +17082,14 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword != null) {
-      return requiredKeyword!;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword!;
-    } else if (keyword != null) {
-      return keyword!;
-    } else if (_type != null) {
-      return _type!.beginToken;
+    } else if (requiredKeyword case final requiredKeyword?) {
+      return requiredKeyword;
+    } else if (covariantKeyword case final covariantKeyword?) {
+      return covariantKeyword;
+    } else if (keyword case final keyword?) {
+      return keyword;
+    } else if (type case final type?) {
+      return type.beginToken;
     }
     return superKeyword;
   }
@@ -18094,12 +18082,12 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @override
   Token get endToken {
-    if (_finallyBlock != null) {
-      return _finallyBlock!.endToken;
-    } else if (finallyKeyword != null) {
-      return finallyKeyword!;
-    } else if (_catchClauses.isNotEmpty) {
-      return _catchClauses.endToken!;
+    if (finallyBlock case final finallyBlock?) {
+      return finallyBlock.endToken;
+    } else if (finallyKeyword case final finallyKeyword?) {
+      return finallyKeyword;
+    } else if (_catchClauses case [..., final last]) {
+      return last.endToken;
     }
     return _body.endToken;
   }
@@ -18759,8 +18747,8 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @override
   Token get endToken {
-    if (_initializer != null) {
-      return _initializer!.endToken;
+    if (initializer case final initializer?) {
+      return initializer.endToken;
     }
     return name;
   }

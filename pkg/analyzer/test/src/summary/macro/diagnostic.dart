@@ -45,6 +45,30 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 }
 
+/*macro*/ class ReportWithContextMessages implements ClassDeclarationsMacro {
+  const ReportWithContextMessages();
+
+  @override
+  buildDeclarationsForClass(declaration, builder) async {
+    final methods = await builder.methodsOf(declaration);
+    builder.report(
+      Diagnostic(
+        DiagnosticMessage(
+          'Reported message',
+          target: declaration.asDiagnosticTarget,
+        ),
+        Severity.warning,
+        contextMessages: methods.map((method) {
+          return DiagnosticMessage(
+            'See ${method.identifier.name}',
+            target: method.asDiagnosticTarget,
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
 /*macro*/ class ReportWithoutTargetError implements ClassTypesMacro {
   const ReportWithoutTargetError();
 

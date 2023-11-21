@@ -318,7 +318,9 @@ _dart2js_common:
 
     convert:
       uri: "convert/convert.dart"
-      patches: "_internal/js_runtime/lib/convert_patch.dart"
+      patches:
+        - "_internal/js_shared/lib/convert_utf_patch.dart"
+        - "_internal/js_runtime/lib/convert_patch.dart"
 
     core:
       uri: "core/core.dart"
@@ -486,7 +488,9 @@ dartdevc:
 
       convert:
         uri: "convert/convert.dart"
-        patches: "_internal/js_dev_runtime/patch/convert_patch.dart"
+        patches:
+          - "_internal/js_shared/lib/convert_utf_patch.dart"
+          - "_internal/js_dev_runtime/patch/convert_patch.dart"
 
       core:
         uri: "core/core.dart"

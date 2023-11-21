@@ -46,16 +46,6 @@ mixin TypeOperations<Type extends Object> {
   /// consideration by an instance check.
   Type factor(Type from, Type what);
 
-  /// Whether the possible promotion from [from] to [to] should be forced, given
-  /// the current [promotedTypes], and [newPromotedTypes] resulting from
-  /// possible demotion.
-  ///
-  /// It is not expected that any implementation would override this except for
-  /// the migration engine.
-  bool forcePromotion(Type to, Type from, List<Type>? promotedTypes,
-          List<Type>? newPromotedTypes) =>
-      false;
-
   /// Computes the greatest lower bound of [type1] and [type2].
   Type glb(Type type1, Type type2);
 
@@ -118,15 +108,6 @@ mixin TypeOperations<Type extends Object> {
   /// Note that some types don't have a non-nullable version (e.g.
   /// `FutureOr<int?>`), so [type] may be returned even if it is nullable.
   Type /*!*/ promoteToNonNull(Type type);
-
-  /// Performs refinements on the [promotedTypes] chain which resulted in
-  /// intersecting [chain1] and [chain2].
-  ///
-  /// It is not expected that any implementation would override this except for
-  /// the migration engine.
-  List<Type>? refinePromotedTypes(
-          List<Type>? chain1, List<Type>? chain2, List<Type>? promotedTypes) =>
-      promotedTypes;
 
   /// Tries to promote to the first type from the second type, and returns the
   /// promoted type if it succeeds, otherwise null.

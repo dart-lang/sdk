@@ -172,11 +172,6 @@ class BundleWriter {
     _writeReference(element);
     ClassElementFlags.write(_sink, element);
 
-    _sink.writeList<MacroApplicationError>(
-      element.macroApplicationErrors,
-      (x) => x.write(_sink),
-    );
-
     _resolutionSink._writeAnnotationList(element.metadata);
     _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
@@ -951,11 +946,16 @@ class ResolutionSink extends _SummaryDataWriter {
 
   void _writeMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {
     switch (diagnostic) {
+      case ArgumentMacroDiagnostic():
+        writeByte(0x00);
+        writeUInt30(diagnostic.annotationIndex);
+        writeUInt30(diagnostic.argumentIndex);
+        writeStringUtf8(diagnostic.message);
       case ExceptionMacroDiagnostic():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
       case MacroDiagnostic():
-        writeByte(0x01);
+        writeByte(0x02);
         writeByte(diagnostic.severity.index);
         _writeMacroDiagnosticMessage(diagnostic.message);
         writeList(

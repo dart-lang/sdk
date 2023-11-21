@@ -391,7 +391,9 @@ class BinaryExpressionResolver {
     }
 
     var staticType = node.staticInvokeType?.returnType;
-    if (leftType is DynamicType) {
+    if (node.operator.type == TokenType.EQ_EQ) {
+      staticType = _typeSystem.typeProvider.boolType;
+    } else if (leftType is DynamicType) {
       staticType ??= DynamicTypeImpl.instance;
     } else {
       staticType ??= InvalidTypeImpl.instance;

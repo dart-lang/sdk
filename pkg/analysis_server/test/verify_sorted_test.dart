@@ -31,10 +31,6 @@ void main() {
   group('linter', () {
     buildTestsForLinter();
   });
-
-  group('nnbd_migration', () {
-    buildTestsForNnbdMigration();
-  });
 }
 
 void buildTests({
@@ -67,7 +63,6 @@ void buildTestsForAnalysisServer() {
     //  remove these exclusions.
     'lib/protocol/protocol_constants.dart',
     'lib/protocol/protocol_generated.dart',
-    'lib/src/edit/nnbd_migration/resources/resources.g.dart',
     'test/integration/support/integration_test_methods.dart',
     'test/integration/support/protocol_matchers.dart',
     // The following are not generated, but can't be sorted because they contain
@@ -122,12 +117,6 @@ void buildTestsForLinter() {
   buildTests(packagePath: 'linter', excludedPaths: [
     'test_data',
   ]);
-}
-
-void buildTestsForNnbdMigration() {
-  buildTests(
-      packagePath: 'nnbd_migration',
-      excludedPaths: ['lib/src/front_end/resources/resources.g.dart']);
 }
 
 void buildTestsIn(AnalysisSession session, String testDirPath,

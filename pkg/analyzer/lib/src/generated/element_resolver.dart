@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
@@ -86,13 +85,10 @@ class ElementResolver {
 
   /// Initialize a newly created visitor to work for the given [_resolver] to
   /// resolve the nodes in a compilation unit.
-  ElementResolver(this._resolver,
-      {MigratableAstInfoProvider migratableAstInfoProvider =
-          const MigratableAstInfoProvider()})
+  ElementResolver(this._resolver)
       : _definingLibrary = _resolver.definingLibrary,
         _methodInvocationResolver = MethodInvocationResolver(
           _resolver,
-          migratableAstInfoProvider,
           inferenceHelper: _resolver.inferenceHelper,
         );
 

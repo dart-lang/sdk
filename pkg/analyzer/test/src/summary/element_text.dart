@@ -734,19 +734,21 @@ class _ElementWriter {
 
   void _writeMacroDiagnostics(Element e) {
     void writeMessage(MacroDiagnosticMessage object) {
-      // Write the text.
+      // Write the message.
       final validator = configuration.macroDiagnosticMessageValidator;
       if (validator != null) {
         validator(object.message);
       } else {
-        var messageToWrite = object.message;
+        final message = object.message;
         const stackTraceText = 'Stack trace:';
-        final stackTraceIndex = messageToWrite.indexOf(stackTraceText);
+        final stackTraceIndex = message.indexOf(stackTraceText);
         if (stackTraceIndex >= 0) {
           final end = stackTraceIndex + stackTraceText.length;
-          messageToWrite = '${messageToWrite.substring(0, end)} <cut>';
+          final withoutStackTrace = message.substring(0, end);
+          _sink.writelnWithIndent('message:\n$withoutStackTrace <cut>');
+        } else {
+          _sink.writelnWithIndent('message: $message');
         }
-        _sink.writeln(messageToWrite);
       }
       // Write the target.
       final target = object.target;
@@ -772,20 +774,36 @@ class _ElementWriter {
         macroTarget.macroDiagnostics,
         (diagnostic) {
           switch (diagnostic) {
+            case ArgumentMacroDiagnostic():
+              _sink.writelnWithIndent('ArgumentMacroDiagnostic');
+              _sink.withIndent(() {
+                _sink.writelnWithIndent(
+                  'annotationIndex: ${diagnostic.annotationIndex}',
+                );
+                _sink.writelnWithIndent(
+                  'argumentIndex: ${diagnostic.argumentIndex}',
+                );
+                _sink.writelnWithIndent('message: ${diagnostic.message}');
+              });
             case ExceptionMacroDiagnostic():
               // TODO(scheglov): Handle this case.
               throw UnimplementedError();
             case MacroDiagnostic():
               _sink.writelnWithIndent('MacroDiagnostic');
               _sink.withIndent(() {
-                _sink.writelnWithIndent('message');
+                _sink.writelnWithIndent('message: MacroDiagnosticMessage');
                 _sink.withIndent(() {
                   writeMessage(diagnostic.message);
                 });
                 _sink.writeElements(
                   'contextMessages',
                   diagnostic.contextMessages,
-                  writeMessage,
+                  (message) {
+                    _sink.writelnWithIndent('MacroDiagnosticMessage');
+                    _sink.withIndent(() {
+                      writeMessage(message);
+                    });
+                  },
                 );
                 _sink.writelnWithIndent(
                   'severity: ${diagnostic.severity.name}',

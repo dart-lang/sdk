@@ -10,20 +10,15 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
-import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:collection/collection.dart';
 
 class FunctionExpressionResolver {
   final ResolverVisitor _resolver;
-  final MigrationResolutionHooks? _migrationResolutionHooks;
   final InvocationInferenceHelper _inferenceHelper;
 
-  FunctionExpressionResolver({
-    required ResolverVisitor resolver,
-    required MigrationResolutionHooks? migrationResolutionHooks,
-  })  : _resolver = resolver,
-        _migrationResolutionHooks = migrationResolutionHooks,
+  FunctionExpressionResolver({required ResolverVisitor resolver})
+      : _resolver = resolver,
         _inferenceHelper = resolver.inferenceHelper;
 
   bool get _isNonNullableByDefault => _typeSystem.isNonNullableByDefault;
@@ -105,12 +100,7 @@ class FunctionExpressionResolver {
               ? _typeSystem.objectQuestion
               : _typeSystem.objectStar;
         }
-        if (_migrationResolutionHooks != null) {
-          inferredType = _migrationResolutionHooks!
-              .modifyInferredParameterType(p, inferredType);
-        } else {
-          inferredType = _typeSystem.nonNullifyLegacy(inferredType);
-        }
+        inferredType = _typeSystem.nonNullifyLegacy(inferredType);
         if (inferredType is! DynamicType) {
           p.type = inferredType;
         }

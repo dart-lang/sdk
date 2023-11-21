@@ -486,6 +486,28 @@ suggestions
     }
   }
 
+  Future<void> test_staticMemberAccess_none() async {
+    allowedIdentifiers = {
+      'hashCode',
+      'noSuchMethod',
+      'runtimeType',
+      'toString'
+    };
+    await computeSuggestions('''
+extension E on int {
+  void a0() {}
+}
+void f() {
+  E.^
+}
+''');
+    // The purpose of this test is to verify that Type instance members
+    // are not suggested when accessing static members of an extension.
+    assertResponse(r'''
+suggestions
+''');
+  }
+
   Future<void> test_staticMemberAccess_none_partial() async {
     await computeSuggestions('''
 extension E on int {

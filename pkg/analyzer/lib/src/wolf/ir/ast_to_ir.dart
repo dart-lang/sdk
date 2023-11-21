@@ -103,12 +103,23 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   _LValueTemplates dispatchLValue(Expression node) => node.accept(this)!;
 
   /// Visits [node], reporting progress to [eventListener].
-  void dispatchNode(AstNode node) {
+  ///
+  /// If [node] has null shorting behavior, then [terminateNullShorting]
+  /// determines how the null shorting behavior is handled. If
+  /// [terminateNullShorting] is `true` (the default), then null shorting will
+  /// be terminated after visiting [node], by emitting an `end` instruction;
+  /// this means that in the case where the null short occurs, the expression
+  /// will evaluate to `null`. If [terminateNullShorting] is `false`, then null
+  /// shorting won't be terminated; this means that in the case where the null
+  /// short occurs, execution of the parent node will be skipped too.
+  void dispatchNode(AstNode node, {bool terminateNullShorting = true}) {
     eventListener.onEnterNode(node);
+    var previousNestingLevel = ir.nestingLevel;
     var lValueTemplates = node.accept(this);
     // If the node was an L-value, then its visitor didn't actually perform the
     // read, so do that now.
     lValueTemplates?.simpleRead(this);
+    if (terminateNullShorting) ir.endTo(previousNestingLevel);
     eventListener.onExitNode();
   }
 
@@ -135,6 +146,37 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         twoArguments);
   }
 
+  /// Performs a null check that is part of a null shorting expression.
+  ///
+  /// If the value at the top of the stack is `null`, execution will branch to
+  /// the end of the null shorting expression, and the null shorting expression
+  /// will evaluate to `null`. Otherwise, execution will proceed normally.
+  ///
+  /// [previousNestingLevel] is the value returned by [RawIRWriter.nestingLevel]
+  /// at the beginning of the null shorting expression. It is used to detect
+  /// whether null shorting has already been begun, and therefore whether a
+  /// `block` instruction needs to be output.
+  void nullShortingCheck({required int previousNestingLevel}) {
+    assert(previousNestingLevel <= ir.nestingLevel);
+    // Stack: value
+    ir.dup();
+    // Stack: value value
+    ir.literal(null_);
+    // Stack: value value null
+    ir.eq();
+    // Stack: value (value == null)
+    if (previousNestingLevel == ir.nestingLevel) {
+      // Null shorting hasn't begun yet for the containing expression, so start
+      // it now by opening a block; the block will be ended at the end of the
+      // null shorting expression, so it will be the branch target for null
+      // shorts.
+      ir.block(2, 1);
+      // Stack: BLOCK(1) value (value == null)
+    }
+    ir.brIf(0);
+    // Stack: BLOCK(1)? value
+  }
+
   Null this_() {
     ir.readLocal(0); // Stack: this
   }
@@ -154,6 +196,22 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
       // Stack: result
       case var tokenType:
         throw UnimplementedError('TODO(paulberry): $tokenType');
+    }
+  }
+
+  @override
+  Null visitBinaryExpression(BinaryExpression node) {
+    var tokenType = node.operator.type;
+    switch (tokenType) {
+      case TokenType.EQ_EQ:
+        dispatchNode(node.leftOperand);
+        // Stack: lhs
+        dispatchNode(node.rightOperand);
+        // Stack: lhs rhs
+        ir.eq();
+      // Stack: (lhs == rhs)
+      default:
+        throw UnimplementedError('TODO(paulberry): $node');
     }
   }
 
@@ -271,10 +329,14 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 
   @override
   _LValueTemplates visitPropertyAccess(PropertyAccess node) {
-    // TODO(paulberry): handle null shorting
+    var previousNestingLevel = ir.nestingLevel;
     // TODO(paulberry): handle cascades
-    dispatchNode(node.target!);
+    dispatchNode(node.target!, terminateNullShorting: false);
     // Stack: target
+    if (node.isNullAware) {
+      nullShortingCheck(previousNestingLevel: previousNestingLevel);
+    }
+    // Stack: BLOCK(1)? target
     return _PropertyAccessTemplates(node.propertyName);
   }
 
@@ -395,8 +457,6 @@ class _LocalTemplates extends _LValueTemplates {
 /// subexpression values in order to read or write the L-value.  These methods
 /// are abstract, and are defined in a derived class for each specific kind of
 /// L-value supported by Dart.
-///
-// TODO(paulberry): add null shorting support.
 sealed class _LValueTemplates {
   /// Outputs the IR instructions for a simple read of the L-value.
   ///
@@ -414,8 +474,6 @@ sealed class _LValueTemplates {
 }
 
 /// Instruction templates for converting a property access to IR.
-///
-// TODO(paulberry): handle null shorting
 class _PropertyAccessTemplates extends _LValueTemplates {
   final SimpleIdentifier property;
 
