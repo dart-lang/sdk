@@ -270,6 +270,8 @@ class _IRInterpreter {
         case Opcode.literal:
           var value = Opcode.literal.decodeValue(ir, address);
           stack.add(ir.decodeLiteral(value));
+        case Opcode.not:
+          stack.add(!(stack.removeLast() as bool));
         case Opcode.readLocal:
           var localIndex = Opcode.readLocal.decodeLocalIndex(ir, address);
           var value = locals[localIndex].contents;

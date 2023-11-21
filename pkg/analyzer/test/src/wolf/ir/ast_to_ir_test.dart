@@ -171,6 +171,21 @@ test(Object? x, Object? y) => x == y;
     check(runInterpreter([1, 1])).equals(true);
   }
 
+  test_binaryExpression_notEqual() async {
+    await assertNoErrorsInCode('''
+test(Object? x, Object? y) => x != y;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.binary('x != y')]
+      ..containsSubrange(astNodes[findNode.simple('x !=')]!)
+      ..containsSubrange(astNodes[findNode.simple('y;')]!);
+    check(runInterpreter([null, null])).equals(false);
+    check(runInterpreter([null, 1])).equals(true);
+    check(runInterpreter([1, null])).equals(true);
+    check(runInterpreter([1, 2])).equals(true);
+    check(runInterpreter([1, 1])).equals(false);
+  }
+
   test_block() async {
     await assertNoErrorsInCode('''
 test(int i) {
@@ -208,6 +223,19 @@ test() => true;
     check(runInterpreter([])).equals(true);
   }
 
+  test_conditionalExpression() async {
+    await assertNoErrorsInCode('''
+test(bool b) => b ? 1 : 2;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.conditionalExpression('b ? 1 : 2')]
+      ..containsSubrange(astNodes[findNode.simple('b ?')]!)
+      ..containsSubrange(astNodes[findNode.integerLiteral('1')]!)
+      ..containsSubrange(astNodes[findNode.integerLiteral('2')]!);
+    check(runInterpreter([true])).equals(1);
+    check(runInterpreter([false])).equals(2);
+  }
+
   test_doubleLiteral() async {
     await assertNoErrorsInCode('''
 test() => 1.5;
@@ -237,6 +265,80 @@ test(int i) {
     check(astNodes)[findNode.expressionStatement('i = 123')]
         .containsSubrange(astNodes[findNode.assignment('i = 123')]!);
     check(runInterpreter([1])).equals(123);
+  }
+
+  test_ifStatement_noElse() async {
+    await assertNoErrorsInCode('''
+test(bool b) {
+  Object? result;
+  if (b /*test*/) {
+    result = 1;
+  }
+  return result;
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.ifStatement('if')]
+      ..containsSubrange(astNodes[findNode.simple('b /*test*/')]!)
+      ..containsSubrange(astNodes[findNode.block('result = 1')]!);
+    check(runInterpreter([true])).equals(1);
+    check(runInterpreter([false])).equals(null);
+  }
+
+  test_ifStatement_noElse_earlyReturn() async {
+    await assertNoErrorsInCode('''
+test(bool b) {
+  if (b /*test*/) {
+    return 1;
+  }
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.ifStatement('if')]
+      ..containsSubrange(astNodes[findNode.simple('b /*test*/')]!)
+      ..containsSubrange(astNodes[findNode.block('return 1')]!);
+    check(runInterpreter([true])).equals(1);
+    check(runInterpreter([false])).equals(null);
+  }
+
+  test_ifStatement_withElse() async {
+    await assertNoErrorsInCode('''
+test(bool b) {
+  Object? result;
+  if (b /*test*/) {
+    result = 1;
+  } else {
+    result = 2;
+  }
+  return result;
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.ifStatement('if')]
+      ..containsSubrange(astNodes[findNode.simple('b /*test*/')]!)
+      ..containsSubrange(astNodes[findNode.block('result = 1')]!)
+      ..containsSubrange(astNodes[findNode.block('result = 2')]!);
+    check(runInterpreter([true])).equals(1);
+    check(runInterpreter([false])).equals(2);
+  }
+
+  test_ifStatement_withElse_earlyReturn() async {
+    await assertNoErrorsInCode('''
+test(bool b) {
+  if (b /*test*/) {
+    return 1;
+  } else {
+    return 2;
+  }
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.ifStatement('if')]
+      ..containsSubrange(astNodes[findNode.simple('b /*test*/')]!)
+      ..containsSubrange(astNodes[findNode.block('return 1')]!)
+      ..containsSubrange(astNodes[findNode.block('return 2')]!);
+    check(runInterpreter([true])).equals(1);
+    check(runInterpreter([false])).equals(2);
   }
 
   test_integerLiteral() async {
@@ -300,6 +402,17 @@ test(List<Object?>? list) => (list?.first).hashCode;
     check(runInterpreter([
       makeList([123])
     ])).equals(123.hashCode);
+  }
+
+  test_prefixExpression_not() async {
+    await assertNoErrorsInCode('''
+test(bool b) => !b;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.prefix('!b')]
+        .containsSubrange(astNodes[findNode.simple('b;')]!);
+    check(runInterpreter([true])).equals(false);
+    check(runInterpreter([false])).equals(true);
   }
 
   test_propertyAccess_allowsNullShorting() async {

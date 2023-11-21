@@ -256,6 +256,9 @@ class _Validator {
               ValueCount(ir.countParameters(type) + (kind.isInstance ? 1 : 0));
         case Opcode.literal:
           pushValues(1);
+        case Opcode.not:
+          popValues(1);
+          pushValues(1);
         case Opcode.readLocal:
           var localIndex = Opcode.readLocal.decodeLocalIndex(ir, address);
           check(localIndex >= 0, 'Negative local index');

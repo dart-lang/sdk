@@ -70,6 +70,15 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   final TypeSystem typeSystem;
   final TypeProvider typeProvider;
   final AstToIREventListener eventListener;
+
+  /// For each unmatched `function` instruction that has been output, the value
+  /// returned by [RawIRWriter.nestingLevel] after emitting that `function`
+  /// instruction.
+  ///
+  /// This is used to compute the appropriate parameter to the `br` instruction
+  /// when generating IR for a `return` statement.
+  final functionNestingStack = <int>[];
+
   final ir = CodedIRWriter();
   final Map<VariableElement, int> locals = {};
   late final oneArgument = ir.encodeArgumentNames([null]);
@@ -125,6 +134,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 
   /// Called by [astToIR] after visiting the code to be analyzed.
   CodedIRContainer finish() {
+    assert(functionNestingStack.isEmpty);
     var result = CodedIRContainer(ir);
     eventListener.onFinished(result);
     return result;
@@ -210,6 +220,15 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         // Stack: lhs rhs
         ir.eq();
       // Stack: (lhs == rhs)
+      case TokenType.BANG_EQ:
+        dispatchNode(node.leftOperand);
+        // Stack: lhs
+        dispatchNode(node.rightOperand);
+        // Stack: lhs rhs
+        ir.eq();
+        // Stack: (lhs == rhs)
+        ir.not();
+      // Stack: (lhs != rhs)
       default:
         throw UnimplementedError('TODO(paulberry): $node');
     }
@@ -235,6 +254,30 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   Null visitBooleanLiteral(BooleanLiteral node) {
     ir.literal(ir.encodeLiteral(node.value));
     // Stack: value
+  }
+
+  @override
+  Null visitConditionalExpression(ConditionalExpression node) {
+    ir.block(0, 1);
+    // Stack: BLOCK(1)
+    ir.block(0, 0);
+    // Stack: BLOCK(1) BLOCK(0)
+    dispatchNode(node.condition);
+    // Stack: BLOCK(1) BLOCK(0) condition
+    ir.not();
+    // Stack: BLOCK(1) BLOCK(0) !condition
+    ir.brIf(0);
+    // Stack: BLOCK(1) BLOCK(0)
+    dispatchNode(node.thenExpression);
+    // Stack: BLOCK(1) BLOCK(0) thenExpression
+    ir.br(1);
+    // Stack: BLOCK(1) BLOCK(0) indeterminate
+    ir.end();
+    // Stack: BLOCK(1)
+    dispatchNode(node.elseExpression);
+    // Stack: BLOCK(1) elseExpression
+    ir.end();
+    // Stack: result
   }
 
   @override
@@ -275,6 +318,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         instance: isInstanceMember);
     ir.function(ir.encodeType(element.type), flags);
     // Stack: FUNCTION(flags) parameters
+    functionNestingStack.add(ir.nestingLevel);
     if (count > 0) {
       ir.alloc(count);
       // Stack: FUNCTION(flags) parameters
@@ -290,6 +334,45 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     }
     ir.end();
     // Stack: (empty)
+    functionNestingStack.removeLast();
+  }
+
+  @override
+  Null visitIfStatement(IfStatement node) {
+    if (node.caseClause != null) throw UnimplementedError('TODO(paulberry)');
+    var elseStatement = node.elseStatement;
+    if (elseStatement == null) {
+      dispatchNode(node.expression);
+      // Stack: expression
+      ir.not();
+      // Stack: !expression
+      ir.block(1, 0);
+      // Stack: BLOCK(0) !expression
+      ir.brIf(0);
+      // Stack: BLOCK(0)
+      dispatchNode(node.thenStatement);
+      ir.end();
+      // Stack: (empty)
+    } else {
+      dispatchNode(node.expression);
+      // Stack: expression
+      ir.not();
+      // Stack: !expression
+      ir.block(1, 0);
+      // Stack: BLOCK(0) !expression
+      ir.block(1, 0);
+      // Stack: BLOCK(0) BLOCK(0) !expression
+      ir.brIf(0);
+      // Stack: BLOCK(0) BLOCK(0)
+      dispatchNode(node.thenStatement);
+      ir.br(1);
+      // Stack: BLOCK(0) BLOCK(0) indeterminate
+      ir.end();
+      // Stack: BLOCK(0)
+      dispatchNode(elseStatement);
+      ir.end();
+      // Stack: (empty)
+    }
   }
 
   @override
@@ -328,6 +411,19 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   }
 
   @override
+  Null visitPrefixExpression(PrefixExpression node) {
+    switch (node.operator.type) {
+      case TokenType.BANG:
+        dispatchNode(node.operand);
+        // Stack: operand
+        ir.not();
+      // Stack: !operand
+      default:
+        throw UnimplementedError('TODO(paulberry): ${node.operator.type}');
+    }
+  }
+
+  @override
   _LValueTemplates visitPropertyAccess(PropertyAccess node) {
     var previousNestingLevel = ir.nestingLevel;
     // TODO(paulberry): handle cascades
@@ -349,10 +445,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         dispatchNode(expression);
     }
     // Stack: returnValue
-    // TODO(paulberry): once some other control flow constructs are implemented,
-    // the argument to `ir.br` will need to be chosen based on how deeply nested
-    // the control flow constructs are.
-    ir.br(0);
+    ir.br(ir.nestingLevel - functionNestingStack.last);
     // Stack: indeterminate
   }
 
