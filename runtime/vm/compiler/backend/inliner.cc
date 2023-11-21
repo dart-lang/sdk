@@ -2753,6 +2753,13 @@ static bool InlineTypedDataIndexCheck(FlowGraph* flow_graph,
                                       Instruction** last,
                                       Definition** result,
                                       const String& symbol) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  // TODO(https://github.com/flutter/flutter/issues/138689): We only convert
+  // the index check to a GenericCheckBound instruction on 64-bit architectures,
+  // where the inputs are always unboxed. Once the regressions on 32-bit
+  // architectures has been identified and fixed, remove the #ifdef.
+  return false;
+#else
   *entry =
       new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
                                  call->GetBlock()->try_index(), DeoptId::kNone);
@@ -2779,6 +2786,7 @@ static bool InlineTypedDataIndexCheck(FlowGraph* flow_graph,
   *last = cursor;
   *result = index;
   return true;
+#endif
 }
 
 static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
