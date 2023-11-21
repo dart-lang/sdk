@@ -5388,7 +5388,17 @@ class A
 ''');
   }
 
-  // TODO(scheglov): Tests for unnamed positional formal parameters.
+  test_functionTypeAnnotation_formalParameters_positionalOptional_simpleFormalParameter_noName() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+class A extends B<void Function(int a, [int, int])> {}
+''', r'''
+class A
+  superclass: B<void Function(int a, [int], [int])>
+    noDeclaration
+''');
+  }
+
   test_functionTypeAnnotation_formalParameters_positionalRequired_simpleFormalParameter() async {
     await _assertIntrospectText(r'''
 @Introspect()
@@ -5396,6 +5406,17 @@ class A extends B<void Function(int a, double b)> {}
 ''', r'''
 class A
   superclass: B<void Function(int a, double b)>
+    noDeclaration
+''');
+  }
+
+  test_functionTypeAnnotation_formalParameters_positionalRequired_simpleFormalParameter_noName() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+class A extends B<void Function(int, double)> {}
+''', r'''
+class A
+  superclass: B<void Function(int, double)>
     noDeclaration
 ''');
   }
