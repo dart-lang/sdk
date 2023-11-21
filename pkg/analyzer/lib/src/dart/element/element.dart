@@ -4890,10 +4890,6 @@ class MacroGeneratedAugmentationLibrary {
 }
 
 mixin MacroTargetElement on ElementImpl {
-  /// Errors registered while applying macros to this element.
-  // TODO(scheglov): Remove when migrated to [macroDiagnostics] everything.
-  List<MacroApplicationError> macroApplicationErrors = const [];
-
   /// Diagnostics registered while applying macros to this element.
   List<AnalyzerMacroDiagnostic> _macroDiagnostics = const [];
 
@@ -4907,10 +4903,6 @@ mixin MacroTargetElement on ElementImpl {
 
   set macroDiagnostics(List<AnalyzerMacroDiagnostic> value) {
     _macroDiagnostics = value;
-  }
-
-  void addMacroApplicationError(MacroApplicationError error) {
-    macroApplicationErrors = [...macroApplicationErrors, error];
   }
 
   void addMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {

@@ -1130,8 +1130,20 @@ class MacroArgumentsTest extends MacroElementsBaseTest {
       },
       constructorParametersCode: '(this.foo, this.bar)',
       argumentsCode: '(0, const Object())',
-      expectedErrors: 'Argument(annotation: 0, argument: 1, '
-          'message: Not supported: InstanceCreationExpressionImpl)',
+      hasErrors: true,
+      expected: r'''
+library
+  imports
+    package:test/arguments_text.dart
+  definingUnit
+    classes
+      class A @76
+        macroDiagnostics
+          ArgumentMacroDiagnostic
+            annotationIndex: 0
+            argumentIndex: 1
+            message: Not supported: InstanceCreationExpressionImpl
+''',
     );
   }
 
@@ -1330,8 +1342,8 @@ foo: aaabbbccc
     required Map<String, String> fields,
     required String constructorParametersCode,
     required String argumentsCode,
-    String? expected,
-    String? expectedErrors,
+    required String expected,
+    bool hasErrors = false,
   }) async {
     final dumpCode = fields.keys.map((name) {
       return "$name: \$$name\\\\n";
@@ -1364,27 +1376,25 @@ import 'arguments_text.dart';
 class A {}
 ''');
 
-    if (expectedErrors != null) {
-      expect(library.macroErrorsStr, expectedErrors);
-      return;
+    if (hasErrors) {
+      configuration
+        ..withConstructors = false
+        ..withMetadata = false;
+      checkElementText(library, expected);
     } else {
       library.assertNoMacroErrors();
-    }
 
-    if (expected != null) {
-      final macroAugmentation = library.augmentations.first;
-      final macroUnit = macroAugmentation.definingCompilationUnit;
-      final x = macroUnit.topLevelVariables.single;
+      final x = library.topLevelElements
+          .whereType<ConstTopLevelVariableElementImpl>()
+          .single;
       expect(x.name, 'x');
-      x as ConstTopLevelVariableElementImpl;
       final actual = (x.constantInitializer as SimpleStringLiteral).value;
-
       if (actual != expected) {
-        print(actual);
+        print('-------- Actual --------');
+        print('$actual------------------------');
+        NodeTextExpectationsCollector.add(actual);
       }
       expect(actual, expected);
-    } else {
-      fail("Either 'expected' or 'expectedErrors' must be provided.");
     }
   }
 }
@@ -6598,14 +6608,13 @@ class MacroTypesTest_keepLinking extends MacroTypesTest {
   bool get keepLinkingLibraries => true;
 }
 
-class _MacroApplicationErrorsCollector
-    extends GeneralizingElementVisitor<void> {
-  final List<MacroApplicationError> errors = [];
+class _MacroDiagnosticsCollector extends GeneralizingElementVisitor<void> {
+  final List<AnalyzerMacroDiagnostic> diagnostics = [];
 
   @override
   void visitElement(Element element) {
     if (element case final MacroTargetElement element) {
-      errors.addAll(element.macroApplicationErrors);
+      diagnostics.addAll(element.macroDiagnostics);
     }
 
     super.visitElement(element);
@@ -6613,20 +6622,14 @@ class _MacroApplicationErrorsCollector
 }
 
 extension on LibraryElement {
-  List<MacroApplicationError> get macroErrors {
-    final collector = _MacroApplicationErrorsCollector();
+  List<AnalyzerMacroDiagnostic> get macroDiagnostics {
+    final collector = _MacroDiagnosticsCollector();
     accept(collector);
-    return collector.errors;
-  }
-
-  String get macroErrorsStr {
-    return macroErrors.map((e) {
-      return e.toStringForTest();
-    }).join('\n');
+    return collector.diagnostics;
   }
 
   void assertNoMacroErrors() {
-    expect(macroErrorsStr, isEmpty);
+    expect(macroDiagnostics, isEmpty);
   }
 }
 

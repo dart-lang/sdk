@@ -785,9 +785,6 @@ class LibraryReader {
     );
     element.setLinkedData(reference, linkedData);
     ClassElementFlags.read(_reader, element);
-    element.macroApplicationErrors = _reader.readTypedList(
-      () => MacroApplicationError(_reader),
-    );
 
     element.typeParameters = _readTypeParameters();
 
@@ -2306,7 +2303,13 @@ class ResolutionReader {
 
   AnalyzerMacroDiagnostic _readMacroDiagnostic() {
     switch (readByte()) {
-      case 0x01:
+      case 0x00:
+        return ArgumentMacroDiagnostic(
+          annotationIndex: readUInt30(),
+          argumentIndex: readUInt30(),
+          message: _reader.readStringUtf8(),
+        );
+      case 0x02:
         return MacroDiagnostic(
           severity: macro.Severity.values[readByte()],
           message: _readMacroDiagnosticMessage(),

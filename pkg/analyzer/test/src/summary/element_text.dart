@@ -774,6 +774,17 @@ class _ElementWriter {
         macroTarget.macroDiagnostics,
         (diagnostic) {
           switch (diagnostic) {
+            case ArgumentMacroDiagnostic():
+              _sink.writelnWithIndent('ArgumentMacroDiagnostic');
+              _sink.withIndent(() {
+                _sink.writelnWithIndent(
+                  'annotationIndex: ${diagnostic.annotationIndex}',
+                );
+                _sink.writelnWithIndent(
+                  'argumentIndex: ${diagnostic.argumentIndex}',
+                );
+                _sink.writelnWithIndent('message: ${diagnostic.message}');
+              });
             case ExceptionMacroDiagnostic():
               // TODO(scheglov): Handle this case.
               throw UnimplementedError();
