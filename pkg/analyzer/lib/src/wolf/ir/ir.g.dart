@@ -70,6 +70,12 @@ mixin _RawIRWriterMixin implements _RawIRWriterMixinInterface {
     _params1.add(flags._flags);
   }
 
+  void identical() {
+    _opcodes.add(Opcode.identical);
+    _params0.add(0);
+    _params1.add(0);
+  }
+
   void literal(LiteralRef value) {
     _opcodes.add(Opcode.literal);
     _params0.add(value.index);
@@ -124,6 +130,9 @@ mixin IRToStringMixin implements RawIRContainerInterface {
 
       case Opcode.literal:
         return 'literal(${literalRefToString(Opcode.literal.decodeValue(this, address))})';
+
+      case Opcode.identical:
+        return 'identical';
 
       case Opcode.eq:
         return 'eq';
@@ -273,17 +282,18 @@ class Opcode {
   static const readLocal = _ParameterShape1._(2);
   static const writeLocal = _ParameterShape1._(3);
   static const literal = _ParameterShape2._(4);
-  static const eq = _ParameterShape3._(5);
-  static const not = _ParameterShape3._(6);
-  static const drop = _ParameterShape3._(7);
-  static const dup = _ParameterShape3._(8);
-  static const shuffle = _ParameterShape4._(9);
-  static const block = _ParameterShape5._(10);
-  static const function = _ParameterShape6._(11);
-  static const end = _ParameterShape3._(12);
-  static const br = _ParameterShape7._(13);
-  static const brIf = _ParameterShape7._(14);
-  static const call = _ParameterShape8._(15);
+  static const identical = _ParameterShape3._(5);
+  static const eq = _ParameterShape3._(6);
+  static const not = _ParameterShape3._(7);
+  static const drop = _ParameterShape3._(8);
+  static const dup = _ParameterShape3._(9);
+  static const shuffle = _ParameterShape4._(10);
+  static const block = _ParameterShape5._(11);
+  static const function = _ParameterShape6._(12);
+  static const end = _ParameterShape3._(13);
+  static const br = _ParameterShape7._(14);
+  static const brIf = _ParameterShape7._(15);
+  static const call = _ParameterShape8._(16);
 
   String describe() => opcodeNameTable[index];
 
@@ -293,6 +303,7 @@ class Opcode {
     "readLocal",
     "writeLocal",
     "literal",
+    "identical",
     "eq",
     "not",
     "drop",

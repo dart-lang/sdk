@@ -85,6 +85,7 @@ class _Instructions {
     _addInstruction('writeLocal', [uint('localIndex')]);
     // Primitive operations
     _addInstruction('literal', [literal('value')]);
+    _addInstruction('identical', []);
     _addInstruction('eq', []);
     _addInstruction('not', []);
     // Stack manipulation

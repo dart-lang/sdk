@@ -3,48 +3,31 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 /// The target of a `call` instruction in the IR.
 sealed class CallDescriptor {
   String get name;
+  List<DartType> get typeArguments;
 }
 
-/// Call descriptor for an instance (non-static) getter.
-class InstanceGetDescriptor extends CallDescriptor {
-  final PropertyAccessorElement getter;
-
-  InstanceGetDescriptor(this.getter) : assert(getter.isGetter);
-
-  @override
-  int get hashCode => getter.hashCode;
+/// Call descriptor for a call that resolves to a specific element (i.e., a
+/// non-dynamic call).
+class ElementCallDescriptor extends CallDescriptor {
+  final ExecutableElement element;
 
   @override
-  String get name => getter.name;
+  final List<DartType> typeArguments;
+
+  ElementCallDescriptor(this.element, {this.typeArguments = const []});
 
   @override
-  bool operator ==(Object other) =>
-      other is InstanceGetDescriptor && getter == other.getter;
+  String get name => element.name;
 
   @override
-  String toString() => '${getter.enclosingElement.name}.$name';
-}
-
-/// Call descriptor for an instance (non-static) setter.
-class InstanceSetDescriptor extends CallDescriptor {
-  final PropertyAccessorElement setter;
-
-  InstanceSetDescriptor(this.setter) : assert(setter.isSetter);
-
-  @override
-  int get hashCode => setter.hashCode;
-
-  @override
-  String get name => setter.name;
-
-  @override
-  bool operator ==(Object other) =>
-      other is InstanceSetDescriptor && setter == other.setter;
-
-  @override
-  String toString() => '${setter.enclosingElement.name}.$name';
+  String toString() => switch (element.enclosingElement) {
+        InstanceElement(name: var typeName) =>
+          '${typeName ?? '<unnamed>'}.${element.name}',
+        _ => element.name
+      };
 }

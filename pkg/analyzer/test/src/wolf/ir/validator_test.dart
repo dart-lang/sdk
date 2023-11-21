@@ -479,6 +479,24 @@ class ValidatorTest {
     _validate();
   }
 
+  test_identical_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..identical()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end());
+  }
+
+  test_identical_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('bad')
+      ..identical()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
   test_literal_ok() {
     _analyze((ir) => ir
       ..ordinaryFunction()
