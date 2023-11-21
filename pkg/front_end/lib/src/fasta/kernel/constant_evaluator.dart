@@ -47,6 +47,7 @@ import '../type_inference/matching_expressions.dart';
 import 'constant_int_folder.dart';
 import 'exhaustiveness.dart';
 import 'static_weak_references.dart' show StaticWeakReferences;
+import 'resource_identifier.dart' as ResourceIdentifiers;
 
 part 'constant_collection_builders.dart';
 
@@ -601,6 +602,12 @@ class ConstantsTransformer extends RemovingTransformer {
           parent, typeEnvironment.coreTypes)) {
         StaticWeakReferences.validateWeakReferenceDeclaration(
             parent, constantEvaluator.errorReporter);
+      }
+      final Iterable<InstanceConstant> resourceAnnotations =
+          ResourceIdentifiers.findResourceAnnotations(parent);
+      if (resourceAnnotations.isNotEmpty) {
+        ResourceIdentifiers.validateResourceIdentifierDeclaration(
+            parent, constantEvaluator.errorReporter, resourceAnnotations);
       }
     }
   }

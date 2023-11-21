@@ -12558,6 +12558,26 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
         r"""Try removing the default value or making the parameter optional.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeResourceIdentifiersMultiple =
+    messageResourceIdentifiersMultiple;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageResourceIdentifiersMultiple = const MessageCode(
+    "ResourceIdentifiersMultiple",
+    problemMessage:
+        r"""Only one resource identifier pragma can be used at a time.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeResourceIdentifiersNotStatic =
+    messageResourceIdentifiersNotStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageResourceIdentifiersNotStatic = const MessageCode(
+    "ResourceIdentifiersNotStatic",
+    problemMessage:
+        r"""Resource identifier pragma can be used on a static method only.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRestPatternInMapPattern = messageRestPatternInMapPattern;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -1091,6 +1091,10 @@ WeakReferenceNotOneArgument/analyzerCode: Fail
 WeakReferenceNotOneArgument/example: Fail
 WeakReferenceNotStatic/analyzerCode: Fail
 WeakReferenceNotStatic/example: Fail
+ResourceIdentifiersNotStatic/analyzerCode: Fail
+ResourceIdentifiersNotStatic/example: Fail
+ResourceIdentifiersMultiple/analyzerCode: Fail
+ResourceIdentifiersMultiple/example: Fail
 WeakReferenceReturnTypeNotNullable/analyzerCode: Fail
 WeakReferenceReturnTypeNotNullable/example: Fail
 WeakReferenceTargetHasParameters/analyzerCode: Fail

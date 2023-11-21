@@ -147,6 +147,7 @@ Use linkMode as dynamic library instead.""");
 
     Uri? tempUri;
     Uri? nativeAssetsDartUri;
+    final tempDir = Directory.systemTemp.createTempSync();
     if (nativeAssets.isNotEmpty) {
       stdout.writeln('Copying native assets.');
       Asset targetLocation(Asset asset) {
@@ -181,7 +182,7 @@ Use linkMode as dynamic library instead.""");
                     .toFilePath())
       ]);
 
-      tempUri = (await Directory.systemTemp.createTemp()).uri;
+      tempUri = tempDir.uri;
       nativeAssetsDartUri = tempUri.resolve('native_assets.yaml');
       final assetsContent =
           assetTargetLocations.values.toList().toNativeAssetsFile();
@@ -200,6 +201,8 @@ Use linkMode as dynamic library instead.""");
       nativeAssets: nativeAssetsDartUri?.toFilePath(),
       packages: packageConfig?.toFilePath(),
       targetOS: targetOS,
+      enableExperiment: args.enabledExperiments.join(','),
+      resourcesFile: path.join(tempDir.path, 'resources.json'),
     );
 
     if (tempUri != null) {

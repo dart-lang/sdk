@@ -129,6 +129,9 @@ features:
   native-assets:
     help: "Compile and bundle native assets."
 
+  resource-identifiers:
+    help: "Output arguments used by static functions."
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

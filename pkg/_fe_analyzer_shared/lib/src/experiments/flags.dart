@@ -136,6 +136,13 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
 
+  resourceIdentifiers(
+      name: 'resource-identifiers',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   sealedClass(
       name: 'sealed-class',
       isEnabledByDefault: true,
