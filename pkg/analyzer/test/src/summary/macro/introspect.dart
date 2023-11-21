@@ -240,7 +240,6 @@ class _Printer {
 
     await sink.withIndent(() async {
       await sink.writeFlags({
-        'hasAbstract': e.hasAbstract,
         'hasBody': e.hasBody,
         'hasExternal': e.hasExternal,
         'isFactory': e.isFactory,
@@ -263,6 +262,7 @@ class _Printer {
 
     await sink.withIndent(() async {
       await sink.writeFlags({
+        'hasAbstract': e.hasAbstract,
         'hasExternal': e.hasExternal,
         'hasFinal': e.hasFinal,
         'hasLate': e.hasLate,
@@ -279,7 +279,6 @@ class _Printer {
 
     await sink.withIndent(() async {
       await sink.writeFlags({
-        'hasAbstract': e.hasAbstract,
         'hasBody': e.hasBody,
         'hasExternal': e.hasExternal,
         'isGetter': e.isGetter,

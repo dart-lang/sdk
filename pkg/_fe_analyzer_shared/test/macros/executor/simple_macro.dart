@@ -442,7 +442,10 @@ class SimpleMacro
         variable.identifier.name,
         ''' {
           print('parentClass: $definingClass');
-          print('isExternal: ${variable.hasExternal}');
+        ''',
+        if (variable is FieldDeclaration)
+          "print('isAbstract: ${variable.hasAbstract}');\n",
+        '''print('isExternal: ${variable.hasExternal}');
           print('isFinal: ${variable.hasFinal}');
           print('isLate: ${variable.hasLate}');
           return augment super;
@@ -733,7 +736,6 @@ Future<FunctionBodyCode> _buildFunctionAugmentation(
     if (function is ConstructorDeclaration)
       "print('isFactory: ${function.isFactory}');\n",
     '''
-      print('isAbstract: ${function.hasAbstract}');
       print('isExternal: ${function.hasExternal}');
       print('isGetter: ${function.isGetter}');
       print('isSetter: ${function.isSetter}');

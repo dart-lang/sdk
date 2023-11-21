@@ -197,7 +197,6 @@ extension DeserializerExtensions on Deserializer {
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasAbstract: (this..moveNext()).expectBool(),
         hasBody: (this..moveNext()).expectBool(),
         hasExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
@@ -215,7 +214,6 @@ extension DeserializerExtensions on Deserializer {
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasAbstract: (this..moveNext()).expectBool(),
         hasBody: (this..moveNext()).expectBool(),
         hasExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
@@ -235,7 +233,6 @@ extension DeserializerExtensions on Deserializer {
         identifier: expectRemoteInstance(),
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
-        hasAbstract: (this..moveNext()).expectBool(),
         hasBody: (this..moveNext()).expectBool(),
         hasExternal: (this..moveNext()).expectBool(),
         isGetter: (this..moveNext()).expectBool(),
@@ -278,6 +275,7 @@ extension DeserializerExtensions on Deserializer {
         hasLate: (this..moveNext()).expectBool(),
         type: RemoteInstance.deserialize(this),
         definingType: RemoteInstance.deserialize(this),
+        hasAbstract: (this..moveNext()).expectBool(),
         isStatic: (this..moveNext()).expectBool(),
       );
 

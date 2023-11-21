@@ -484,9 +484,6 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
 class FunctionDeclarationImpl extends DeclarationImpl
     implements FunctionDeclaration {
   @override
-  final bool hasAbstract;
-
-  @override
   final bool hasBody;
 
   @override
@@ -521,7 +518,6 @@ class FunctionDeclarationImpl extends DeclarationImpl
     required super.identifier,
     required super.library,
     required super.metadata,
-    required this.hasAbstract,
     required this.hasBody,
     required this.hasExternal,
     required this.isGetter,
@@ -538,7 +534,6 @@ class FunctionDeclarationImpl extends DeclarationImpl
     super.serializeUncached(serializer);
 
     serializer
-      ..addBool(hasAbstract)
       ..addBool(hasBody)
       ..addBool(hasExternal)
       ..addBool(isGetter)
@@ -582,7 +577,6 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.library,
     required super.metadata,
     // Function fields.
-    required super.hasAbstract,
     required super.hasBody,
     required super.hasExternal,
     required super.isGetter,
@@ -621,7 +615,6 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required super.library,
     required super.metadata,
     // Function fields.
-    required super.hasAbstract,
     required super.hasBody,
     required super.hasExternal,
     required super.isGetter,
@@ -693,6 +686,9 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   final IdentifierImpl definingType;
 
   @override
+  final bool hasAbstract;
+
+  @override
   final bool isStatic;
 
   FieldDeclarationImpl({
@@ -708,6 +704,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required super.type,
     // Field fields.
     required this.definingType,
+    required this.hasAbstract,
     required this.isStatic,
   });
 
@@ -719,7 +716,9 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     super.serializeUncached(serializer);
 
     definingType.serialize(serializer);
-    serializer.addBool(isStatic);
+    serializer
+      ..addBool(hasAbstract)
+      ..addBool(isStatic);
   }
 }
 

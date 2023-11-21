@@ -65,9 +65,6 @@ class FunctionDeclarationsMacro1 implements FunctionDeclarationsMacro {
   FutureOr<void> buildDeclarationsForFunction(FunctionDeclaration function,
       DeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (function.hasAbstract) {
-      sb.write('a');
-    }
     if (function.hasExternal) {
       sb.write('e');
     }
@@ -116,9 +113,6 @@ class MethodDeclarationsMacro1 implements MethodDeclarationsMacro {
   FutureOr<void> buildDeclarationsForMethod(MethodDeclaration method,
       MemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (method.hasAbstract) {
-      sb.write('a');
-    }
     if (method.hasExternal) {
       sb.write('e');
     }
@@ -174,6 +168,9 @@ class FieldDeclarationsMacro1 implements FieldDeclarationsMacro {
   FutureOr<void> buildDeclarationsForField(FieldDeclaration field,
       MemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
+    if (field.hasAbstract) {
+      sb.write('a');
+    }
     if (field.hasExternal) {
       sb.write('e');
     }
@@ -283,9 +280,6 @@ class ConstructorDeclarationsMacro1
       ConstructorDeclaration constructor,
       MemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (constructor.hasAbstract) {
-      sb.write('a');
-    }
     if (constructor.hasExternal) {
       sb.write('e');
     }

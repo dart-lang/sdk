@@ -3847,7 +3847,6 @@ class X
       superclass: Object
       methods
         foo
-          flags: hasAbstract
           returnType: void
 ''');
   }
