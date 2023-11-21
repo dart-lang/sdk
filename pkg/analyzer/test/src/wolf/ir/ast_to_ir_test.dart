@@ -1081,6 +1081,214 @@ test(List<Object?>? list) => (list?.first).hashCode;
     ])).equals(123.hashCode);
   }
 
+  test_postfixExpression_decrement_property_nullShorting() async {
+    await assertNoErrorsInCode('''
+test(List? l) => l?.length--;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.postfix('l?.length--')]
+      ..containsSubrange(astNodes[findNode.simple('l?.length')]!)
+      ..containsSubrange(astNodes[findNode.propertyAccess('l?.length')]!);
+    check(runInterpreter([null])).equals(null);
+    var l = ['a', 'b', 'c', 'd', 'e'];
+    check(runInterpreter([makeList(l)])).equals(5);
+    check(l).deepEquals(['a', 'b', 'c', 'd']);
+  }
+
+  test_postfixExpression_decrement_property_prefixedIdentifier() async {
+    await assertNoErrorsInCode('''
+test(List l) => l.length--;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.postfix('l.length--')]
+      ..containsSubrange(astNodes[findNode.simple('l.length')]!)
+      ..containsSubrange(astNodes[findNode.prefixed('l.length')]!);
+    var l = ['a', 'b', 'c', 'd', 'e'];
+    check(runInterpreter([makeList(l)])).equals(5);
+    check(l).deepEquals(['a', 'b', 'c', 'd']);
+  }
+
+  test_postfixExpression_decrement_property_propertyAccess() async {
+    await assertNoErrorsInCode('''
+test(List l) => (l).length--;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.postfix('(l).length--')]
+      ..containsSubrange(astNodes[findNode.parenthesized('(l)')]!)
+      ..containsSubrange(astNodes[findNode.propertyAccess('(l).length')]!);
+    var l = ['a', 'b', 'c', 'd', 'e'];
+    check(runInterpreter([makeList(l)])).equals(5);
+    check(l).deepEquals(['a', 'b', 'c', 'd']);
+  }
+
+  test_postfixExpression_decrement_property_simpleIdentifier() async {
+    await assertNoErrorsInCode('''
+extension E on List {
+  test() => length--;
+}
+''');
+    analyze(findNode.singleMethodDeclaration);
+    check(astNodes)[findNode.postfix('length--')]
+        .containsSubrange(astNodes[findNode.simple('length')]!);
+    var l = ['a', 'b', 'c', 'd', 'e'];
+    check(runInterpreter([makeList(l)])).equals(5);
+    check(l).deepEquals(['a', 'b', 'c', 'd']);
+  }
+
+  test_postfixExpression_increment_local_sideEffect() async {
+    await assertNoErrorsInCode('''
+test() {
+  int i = 123;
+  i++;
+  return i;
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.postfix('i++')]
+        .containsSubrange(astNodes[findNode.simple('i++')]!);
+    check(runInterpreter([])).equals(124);
+  }
+
+  test_postfixExpression_increment_local_value() async {
+    await assertNoErrorsInCode('''
+test() {
+  int i = 123;
+  return i++;
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.postfix('i++')]
+        .containsSubrange(astNodes[findNode.simple('i++')]!);
+    check(runInterpreter([])).equals(123);
+  }
+
+  test_postfixExpression_increment_parameter_sideEffect() async {
+    await assertNoErrorsInCode('''
+test(int i) {
+  i++;
+  return i;
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.postfix('i++')]
+        .containsSubrange(astNodes[findNode.simple('i++')]!);
+    check(runInterpreter([123])).equals(124);
+  }
+
+  test_postfixExpression_increment_parameter_value() async {
+    await assertNoErrorsInCode('''
+test(int i) => i++;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.postfix('i++')]
+        .containsSubrange(astNodes[findNode.simple('i++')]!);
+    check(runInterpreter([123])).equals(123);
+  }
+
+  test_prefixExpression_decrement_property_nullShorting() async {
+    await assertNoErrorsInCode('''
+test(List? l) => --l?.length;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.prefix('--l?.length')]
+      ..containsSubrange(astNodes[findNode.simple('l?.length')]!)
+      ..containsSubrange(astNodes[findNode.propertyAccess('l?.length')]!);
+    check(runInterpreter([null])).equals(null);
+    var l = ['a', 'b', 'c', 'd', 'e'];
+    check(runInterpreter([makeList(l)])).equals(4);
+    check(l).deepEquals(['a', 'b', 'c', 'd']);
+  }
+
+  test_prefixExpression_decrement_property_prefixedIdentifier() async {
+    await assertNoErrorsInCode('''
+test(List l) => --l.length;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.prefix('--l.length')]
+      ..containsSubrange(astNodes[findNode.simple('l.length')]!)
+      ..containsSubrange(astNodes[findNode.prefixed('l.length')]!);
+    var l = ['a', 'b', 'c', 'd', 'e'];
+    check(runInterpreter([makeList(l)])).equals(4);
+    check(l).deepEquals(['a', 'b', 'c', 'd']);
+  }
+
+  test_prefixExpression_decrement_property_propertyAccess() async {
+    await assertNoErrorsInCode('''
+test(List l) => --(l).length;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.prefix('--(l).length')]
+      ..containsSubrange(astNodes[findNode.parenthesized('(l)')]!)
+      ..containsSubrange(astNodes[findNode.propertyAccess('(l).length')]!);
+    var l = ['a', 'b', 'c', 'd', 'e'];
+    check(runInterpreter([makeList(l)])).equals(4);
+    check(l).deepEquals(['a', 'b', 'c', 'd']);
+  }
+
+  test_prefixExpression_decrement_property_simpleIdentifier() async {
+    await assertNoErrorsInCode('''
+extension E on List {
+  test() => --length;
+}
+''');
+    analyze(findNode.singleMethodDeclaration);
+    check(astNodes)[findNode.prefix('--length')]
+        .containsSubrange(astNodes[findNode.simple('length')]!);
+    var l = ['a', 'b', 'c', 'd', 'e'];
+    check(runInterpreter([makeList(l)])).equals(4);
+    check(l).deepEquals(['a', 'b', 'c', 'd']);
+  }
+
+  test_prefixExpression_increment_local_sideEffect() async {
+    await assertNoErrorsInCode('''
+test() {
+  int i = 123;
+  ++i; // increment
+  return i;
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.prefix('++i')]
+        .containsSubrange(astNodes[findNode.simple('i; // increment')]!);
+    check(runInterpreter([])).equals(124);
+  }
+
+  test_prefixExpression_increment_local_value() async {
+    await assertNoErrorsInCode('''
+test() {
+  int i = 123;
+  return ++i;
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.prefix('++i')]
+        .containsSubrange(astNodes[findNode.simple('i;')]!);
+    check(runInterpreter([])).equals(124);
+  }
+
+  test_prefixExpression_increment_parameter_sideEffect() async {
+    await assertNoErrorsInCode('''
+test(int i) {
+  ++i; // increment
+  return i;
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.prefix('++i')]
+        .containsSubrange(astNodes[findNode.simple('i; // increment')]!);
+    check(runInterpreter([123])).equals(124);
+  }
+
+  test_prefixExpression_increment_parameter_value() async {
+    await assertNoErrorsInCode('''
+test(int i) => ++i;
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.prefix('++i')]
+        .containsSubrange(astNodes[findNode.simple('i;')]!);
+    check(runInterpreter([123])).equals(124);
+  }
+
   test_prefixExpression_not() async {
     await assertNoErrorsInCode('''
 test(bool b) => !b;

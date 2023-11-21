@@ -85,6 +85,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   late final oneArgument = ir.encodeArgumentNames([null]);
   late final twoArguments = ir.encodeArgumentNames([null, null]);
   late final null_ = ir.encodeLiteral(null);
+  late final one = ir.encodeLiteral(1);
   late final stackIndices101 = ir.encodeStackIndices(const [1, 0, 1]);
 
   _AstToIRVisitor(
@@ -102,6 +103,12 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         case PropertyAccess() when identical(node, parent.propertyName):
           node = parent;
         case AssignmentExpression() when identical(node, parent.leftHandSide):
+          return parent;
+        case PostfixExpression(operator: Token(:var type))
+            when type == TokenType.PLUS_PLUS || type == TokenType.MINUS_MINUS:
+          return parent;
+        case PrefixExpression(operator: Token(:var type))
+            when type == TokenType.PLUS_PLUS || type == TokenType.MINUS_MINUS:
           return parent;
         case dynamic(:var runtimeType):
           throw UnimplementedError('TODO(paulberry): $runtimeType');
@@ -604,6 +611,31 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   }
 
   @override
+  Null visitPostfixExpression(PostfixExpression node) {
+    switch (node.operator.type) {
+      case TokenType.PLUS_PLUS:
+      case TokenType.MINUS_MINUS:
+        var lValueTemplates = dispatchLValue(node.operand);
+        // Stack: lValue
+        eventListener.onEnterNode(node.operand);
+        lValueTemplates.readForPostfixIncDec(this);
+        // Stack: oldValue lValue oldValue
+        eventListener.onExitNode();
+        ir.literal(one);
+        // Stack: oldValue lValue oldValue 1
+        instanceCall(
+            node.staticElement, node.operator.lexeme[0], [], twoArguments);
+        // Stack: oldValue lValue newValue
+        lValueTemplates.write(this);
+        // Stack: oldValue newValue
+        ir.drop();
+      // Stack: oldValue
+      default:
+        throw UnimplementedError('TODO(paulberry): ${node.operator.type}');
+    }
+  }
+
+  @override
   _LValueTemplates? visitPrefixedIdentifier(PrefixedIdentifier node) {
     var prefix = node.prefix;
     var prefixElement = prefix.staticElement;
@@ -627,6 +659,21 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         // Stack: operand
         ir.not();
       // Stack: !operand
+      case TokenType.PLUS_PLUS:
+      case TokenType.MINUS_MINUS:
+        var lValueTemplates = dispatchLValue(node.operand);
+        // Stack: lValue
+        lValueTemplates.readForCompoundAssignment(this);
+        // Stack: lValue oldValue
+        ir.literal(one);
+        // Stack: lValue oldValue 1
+        instanceCall(
+            node.staticElement, node.operator.lexeme[0], [], twoArguments);
+        // Stack: lValue newValue
+        eventListener.onEnterNode(node.operand);
+        lValueTemplates.write(this);
+        // Stack: newValue
+        eventListener.onExitNode();
       default:
         throw UnimplementedError('TODO(paulberry): ${node.operator.type}');
     }
@@ -760,6 +807,14 @@ class _LocalTemplates extends _LValueTemplates {
   }
 
   @override
+  void readForPostfixIncDec(_AstToIRVisitor visitor) {
+    read(visitor);
+    // Stack: value
+    visitor.ir.dup();
+    // Stack: value value
+  }
+
+  @override
   void simpleRead(_AstToIRVisitor visitor) {
     read(visitor);
     // Stack: value
@@ -800,6 +855,19 @@ sealed class _LValueTemplates {
   /// compound assignment by modifying the value at the top of the stack and
   /// then making a follow-up call to [write]).
   void readForCompoundAssignment(_AstToIRVisitor visitor);
+
+  /// Outputs the IR instructions for reading from the L-value in a way that
+  /// remains prepared for a postfix increment or decrement.
+  ///
+  /// On entry, the stack contents should be the subexpression values.
+  ///
+  /// On exit, the stack contents will be the result of the read operation,
+  /// followed by the subexpression values, followed by the result of the read
+  /// operation again. (This allows the caller to implement a postfix increment
+  /// or decrement by modifying the value at the top of the stack, then making a
+  /// follow-up call to [write], then dropping the result of the write so that
+  /// the result of the read operation remains).
+  void readForPostfixIncDec(_AstToIRVisitor visitor);
 
   /// Outputs the IR instructions for a simple read of the L-value.
   ///
@@ -843,6 +911,17 @@ class _PropertyAccessTemplates extends _LValueTemplates {
     // Stack: target target
     read(visitor);
     // Stack: target value
+  }
+
+  @override
+  void readForPostfixIncDec(_AstToIRVisitor visitor) {
+    // Stack: target
+    visitor.ir.dup();
+    // Stack: target target
+    read(visitor);
+    // Stack: target value
+    visitor.ir.shuffle(2, visitor.stackIndices101);
+    // Stack: value target value
   }
 
   @override
