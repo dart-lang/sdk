@@ -37,20 +37,15 @@ class ServerDartFixPromptTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_trigger_afterInitialAnalysis() async {
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
     await pumpEventQueue(times: 5000);
     expect(promptManager.checksTriggered, 1);
   }
 
   Future<void> test_trigger_afterPackageConfigChange() async {
-    // Set up and let initial analysis complete.
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
     await pumpEventQueue(times: 5000);
     expect(promptManager.checksTriggered, 1);
 

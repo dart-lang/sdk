@@ -839,6 +839,10 @@ mixin LspAnalysisServerTestMixin
   Map<String, Object?>? defaultInitializationOptions;
 
   /// The current state of all diagnostics from the server.
+  ///
+  /// A file that has never had diagnostics will not be in the map. A file that
+  /// has ever had diagnostics will be in the map, even if the entry is an empty
+  /// list.
   final diagnostics = <String, List<Diagnostic>>{};
 
   /// A stream of [NotificationMessage]s from the server that may be errors.

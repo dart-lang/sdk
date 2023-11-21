@@ -145,7 +145,7 @@ class Bar {
 
     // Expect no diagnostics because the file didn't actually change content
     // when the overlay was created, so it should not have triggered analysis.
-    expect(diagnostics[mainFilePath], isEmpty);
+    expect(diagnostics[mainFilePath], isNull);
   }
 
   Future<void> test_documentOpen_createsOverlay() async {
@@ -264,11 +264,8 @@ class Foo {}
     newFolder(binFolder);
     newFile(binMainFilePath, binMainContent);
 
-    // Initialize the server and wait for initial analysis to complete.
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
 
     // Expect diagnostics because 'foo.dart' doesn't exist.
     expect(diagnostics[binMainFilePath], isNotEmpty);

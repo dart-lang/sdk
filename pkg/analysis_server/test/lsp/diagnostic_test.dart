@@ -20,6 +20,8 @@ void main() {
   });
 }
 
+typedef _VoidCallback = Future<void> Function();
+
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerTest {
   Future<void> checkPluginErrorsForFile(String pluginAnalyzedFilePath) async {
@@ -77,7 +79,7 @@ String b = "Test";
     await initialize();
     await openFile(mainFileUri, initialContents);
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isEmpty);
+    expect(diagnostics[mainFilePath], isNull);
 
     await replaceFile(222, mainFileUri, 'String a = 1;');
     await pumpEventQueue(times: 5000);
@@ -302,6 +304,52 @@ void f() {
     expect(diagnostics, isNull);
   }
 
+  /// Verify we don't send a redundant set of empty diagnostics during startup.
+  Future<void> test_emptyDiagnostics_notInitial() async {
+    newFile(mainFilePath, 'void f() {}');
+
+    final notifications = <PublishDiagnosticsParams>[];
+    publishedDiagnostics.listen(notifications.add);
+
+    await initialize();
+    await pumpEventQueue(times: 5000);
+
+    expect(notifications.length, isZero);
+  }
+
+  /// Verify we only send diagnostic updates when a) they're not empty or
+  /// b) they're empty, but the previous set was not empty.
+  Future<void> test_emptyDiagnostics_onlyOnce() async {
+    final notifications = <PublishDiagnosticsParams>[];
+    publishedDiagnostics.listen(notifications.add);
+
+    await initialize();
+    await pumpEventQueue(times: 5000);
+
+    /// Helper that executes [f] and checks whether it produces a diagnostic
+    /// update.
+    Future<void> verifyAction(_VoidCallback f, bool expectUpdate) async {
+      notifications.clear();
+      await f();
+      await pumpEventQueue(times: 5000);
+      expect(notifications, hasLength(expectUpdate ? 1 : 0));
+    }
+
+    Future<void> expectUpdate(_VoidCallback f) => verifyAction(f, true);
+    Future<void> expectNoUpdate(_VoidCallback f) => verifyAction(f, false);
+
+    // New file, 0 diagnostics, sends no notification
+    await expectNoUpdate(() => openFile(mainFileUri, 'void f() {}'));
+    // Update, non-empty diagnostic always sends notification
+    await expectUpdate(() => replaceFile(1, mainFileUri, 'v'));
+    // Update, non-empty diagnostic always sends notification
+    await expectUpdate(() => replaceFile(1, mainFileUri, 'g'));
+    // Update, 1->0 diagnostics, sends notification
+    await expectUpdate(() => replaceFile(2, mainFileUri, 'void g() {}'));
+    // Update, 0->0 diagnostics, sends no notification
+    await expectNoUpdate(() => replaceFile(3, mainFileUri, 'void h() {}'));
+  }
+
   Future<void> test_fixDataFile() async {
     var fixDataPath = join(projectFolderPath, 'lib', 'fix_data.yaml');
     var fixDataUri = pathContext.toUri(fixDataPath);
@@ -516,7 +564,7 @@ analyzer:
     // TODOs are disabled by default so we don't need to send any config.
     await initialize();
     await pumpEventQueue(times: 5000);
-    expect(diagnostics[mainFilePath], isEmpty);
+    expect(diagnostics[mainFilePath], isNull);
   }
 
   Future<void> test_todos_enabledAfterAnalysis() async {
@@ -528,7 +576,7 @@ analyzer:
     await provideConfig(initialize, {});
     await openFile(mainFileUri, contents);
     await initialAnalysis;
-    expect(diagnostics[mainFilePath], isEmpty);
+    expect(diagnostics[mainFilePath], isNull);
 
     final nextAnalysis = waitForAnalysisComplete();
     await updateConfig({'showTodos': true});
