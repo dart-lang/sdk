@@ -34,12 +34,17 @@ class AstToIRTest extends AstToIRTestBase {
     'Iterable.first': unaryFunction<ListInstance>((list) => list.values.first),
     'Iterable.length':
         unaryFunction<ListInstance>((list) => list.values.length),
+    'List.add': binaryFunction<ListInstance, Object?>(
+        (list, value) => list.values.add(value)),
     'List.first=': binaryFunction<ListInstance, Object?>(
         (list, value) => list.values.first = value),
     'List.length=': binaryFunction<ListInstance, int>(
         (list, newLength) => list.values.length = newLength),
     'num.+': binaryFunction<num, num>((x, y) => x + y),
     'num.-': binaryFunction<num, num>((x, y) => x - y),
+    'num.>': binaryFunction<num, num>((x, y) => x > y),
+    'num.>=': binaryFunction<num, num>((x, y) => x >= y),
+    'num.<': binaryFunction<num, num>((x, y) => x < y),
     'Object.hashCode': unaryFunction<Object?>((o) => o.hashCode),
     'String.contains':
         binaryFunction<String, String>((this_, other) => this_.contains(other)),
@@ -696,6 +701,54 @@ test() => true;
     check(runInterpreter([])).equals(true);
   }
 
+  test_breakStatement_fromDoLoop() async {
+    await assertNoErrorsInCode('''
+test(int count, List<int> result) {
+  do {
+    result.add(count--);
+    if (count < 3) break;
+  } while (count > 0);
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes).containsNode(findNode.breakStatement('break'));
+    var values = <int>[];
+    check(runInterpreter([5, makeList(values)])).equals(null);
+    check(values).deepEquals([5, 4, 3]);
+  }
+
+  test_breakStatement_fromForStatement_forParts() async {
+    await assertNoErrorsInCode('''
+test(int count, List<int> result) {
+  for (var i = 0; i < count; i++) {
+    result.add(i);
+    if (i >= 2) break;
+  }
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes).containsNode(findNode.breakStatement('break'));
+    var values = <int>[];
+    check(runInterpreter([5, makeList(values)])).equals(null);
+    check(values).deepEquals([0, 1, 2]);
+  }
+
+  test_breakStatement_fromWhileLoop() async {
+    await assertNoErrorsInCode('''
+test(int count, List<int> result) {
+  while (count-- > 0) {
+    result.add(count);
+    if (count == 2) break;
+  }
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes).containsNode(findNode.breakStatement('break'));
+    var values = <int>[];
+    check(runInterpreter([5, makeList(values)])).equals(null);
+    check(values).deepEquals([4, 3, 2]);
+  }
+
   test_conditionalExpression() async {
     await assertNoErrorsInCode('''
 test(bool b) => b ? 1 : 2;
@@ -707,6 +760,75 @@ test(bool b) => b ? 1 : 2;
       ..containsSubrange(astNodes[findNode.integerLiteral('2')]!);
     check(runInterpreter([true])).equals(1);
     check(runInterpreter([false])).equals(2);
+  }
+
+  test_continueStatement_inDoLoop() async {
+    await assertNoErrorsInCode('''
+test(int count, List<int> result) {
+  do {
+    if ((--count).isEven) continue;
+    result.add(count);
+  } while (count > 0);
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes).containsNode(findNode.continueStatement('continue'));
+    var values = <int>[];
+    check(runInterpreter([5, makeList(values)])).equals(null);
+    check(values).deepEquals([3, 1]);
+  }
+
+  test_continueStatement_inForStatement_forParts() async {
+    await assertNoErrorsInCode('''
+test(int count, List<int> result) {
+  for (var i = 0; i < count; i++) {
+    if (i.isEven) continue;
+    result.add(i);
+  }
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes).containsNode(findNode.continueStatement('continue'));
+    var values = <int>[];
+    check(runInterpreter([5, makeList(values)])).equals(null);
+    check(values).deepEquals([1, 3]);
+  }
+
+  test_continueStatement_inWhileLoop() async {
+    await assertNoErrorsInCode('''
+test(int count, List<int> result) {
+  while (count-- > 0) {
+    if (count.isEven) continue;
+    result.add(count);
+  }
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes).containsNode(findNode.continueStatement('continue'));
+    var values = <int>[];
+    check(runInterpreter([5, makeList(values)])).equals(null);
+    check(values).deepEquals([3, 1]);
+  }
+
+  test_doStatement_simple() async {
+    await assertNoErrorsInCode('''
+test(int count, List<int> result) {
+  do {
+    result.add(count--);
+  } while (count > 0);
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.doStatement('do')]
+      ..containsSubrange(astNodes[findNode.block('result.add')]!)
+      ..containsSubrange(astNodes[findNode.binary('count > 0')]!);
+    var values = <int>[];
+    check(runInterpreter([5, makeList(values)])).equals(null);
+    check(values).deepEquals([5, 4, 3, 2, 1]);
+    values.clear();
+    // Make sure the loop always runs at least once.
+    check(runInterpreter([0, makeList(values)])).equals(null);
+    check(values).deepEquals([0]);
   }
 
   test_doubleLiteral() async {
@@ -738,6 +860,26 @@ test(int i) {
     check(astNodes)[findNode.expressionStatement('i = 123')]
         .containsSubrange(astNodes[findNode.assignment('i = 123')]!);
     check(runInterpreter([1])).equals(123);
+  }
+
+  test_forStatement_forParts_withDeclaration() async {
+    await assertNoErrorsInCode('''
+test(int count, List<int> result) {
+  for (var i = 0; i < count; i++) {
+    result.add(i);
+  }
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.forStatement('for')]
+      ..containsSubrange(
+          astNodes[findNode.variableDeclarationList('var i = 0')]!)
+      ..containsSubrange(astNodes[findNode.binary('i < count')]!)
+      ..containsSubrange(astNodes[findNode.postfix('i++')]!)
+      ..containsSubrange(astNodes[findNode.block('result.add')]!);
+    var values = <int>[];
+    check(runInterpreter([5, makeList(values)])).equals(null);
+    check(values).deepEquals([0, 1, 2, 3, 4]);
   }
 
   test_ifStatement_noElse() async {
@@ -1535,6 +1677,23 @@ test() {
         .containsSubrange(
             astNodes[findNode.variableDeclarationList('int i = 123')]!);
     check(runInterpreter([])).identicalTo(null);
+  }
+
+  test_whileStatement_simple() async {
+    await assertNoErrorsInCode('''
+test(int count, List<int> result) {
+  while (count-- > 0) {
+    result.add(count);
+  }
+}
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.whileStatement('while')]
+      ..containsSubrange(astNodes[findNode.binary('count-- > 0')]!)
+      ..containsSubrange(astNodes[findNode.block('result.add')]!);
+    var values = <int>[];
+    check(runInterpreter([5, makeList(values)])).equals(null);
+    check(values).deepEquals([4, 3, 2, 1, 0]);
   }
 
   static CallHandler binaryFunction<T, U>(Object? Function(T, U) f) =>

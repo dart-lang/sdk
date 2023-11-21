@@ -82,6 +82,12 @@ mixin _RawIRWriterMixin implements _RawIRWriterMixinInterface {
     _params1.add(0);
   }
 
+  void loop(int inputCount) {
+    _opcodes.add(Opcode.loop);
+    _params0.add(inputCount);
+    _params1.add(0);
+  }
+
   void not() {
     _opcodes.add(Opcode.not);
     _params0.add(0);
@@ -151,6 +157,9 @@ mixin IRToStringMixin implements RawIRContainerInterface {
 
       case Opcode.block:
         return 'block(${Opcode.block.decodeInputCount(this, address)}, ${Opcode.block.decodeOutputCount(this, address)})';
+
+      case Opcode.loop:
+        return 'loop(${Opcode.loop.decodeInputCount(this, address)})';
 
       case Opcode.function:
         return 'function(${typeRefToString(Opcode.function.decodeType(this, address))}, ${functionFlagsToString(Opcode.function.decodeFlags(this, address))})';
@@ -234,6 +243,15 @@ class _ParameterShape5 extends Opcode {
 class _ParameterShape6 extends Opcode {
   const _ParameterShape6._(super.index) : super._();
 
+  int decodeInputCount(RawIRContainerInterface ir, int address) {
+    assert(ir.opcodeAt(address).index == index);
+    return ir._params0[address];
+  }
+}
+
+class _ParameterShape7 extends Opcode {
+  const _ParameterShape7._(super.index) : super._();
+
   TypeRef decodeType(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
     return TypeRef(ir._params0[address]);
@@ -245,8 +263,8 @@ class _ParameterShape6 extends Opcode {
   }
 }
 
-class _ParameterShape7 extends Opcode {
-  const _ParameterShape7._(super.index) : super._();
+class _ParameterShape8 extends Opcode {
+  const _ParameterShape8._(super.index) : super._();
 
   int decodeNesting(RawIRContainerInterface ir, int address) {
     assert(ir.opcodeAt(address).index == index);
@@ -254,8 +272,8 @@ class _ParameterShape7 extends Opcode {
   }
 }
 
-class _ParameterShape8 extends Opcode {
-  const _ParameterShape8._(super.index) : super._();
+class _ParameterShape9 extends Opcode {
+  const _ParameterShape9._(super.index) : super._();
 
   CallDescriptorRef decodeCallDescriptor(
       RawIRContainerInterface ir, int address) {
@@ -289,11 +307,12 @@ class Opcode {
   static const dup = _ParameterShape3._(9);
   static const shuffle = _ParameterShape4._(10);
   static const block = _ParameterShape5._(11);
-  static const function = _ParameterShape6._(12);
-  static const end = _ParameterShape3._(13);
-  static const br = _ParameterShape7._(14);
-  static const brIf = _ParameterShape7._(15);
-  static const call = _ParameterShape8._(16);
+  static const loop = _ParameterShape6._(12);
+  static const function = _ParameterShape7._(13);
+  static const end = _ParameterShape3._(14);
+  static const br = _ParameterShape8._(15);
+  static const brIf = _ParameterShape8._(16);
+  static const call = _ParameterShape9._(17);
 
   String describe() => opcodeNameTable[index];
 
@@ -310,6 +329,7 @@ class Opcode {
     "dup",
     "shuffle",
     "block",
+    "loop",
     "function",
     "end",
     "br",

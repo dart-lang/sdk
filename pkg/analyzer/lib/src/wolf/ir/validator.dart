@@ -259,6 +259,17 @@ class _Validator {
           pushValues(1);
         case Opcode.literal:
           pushValues(1);
+        case Opcode.loop:
+          var inputCount = Opcode.loop.decodeInputCount(ir, address);
+          check(inputCount >= 0, 'Negative input count');
+          popValues(inputCount);
+          controlFlowStack.add(_ControlFlowElement(
+              localCountBefore: localCount,
+              functionFlagsBefore: functionFlags,
+              valueStackDepthAfter: ValueCount.indeterminate,
+              branchValueCount: inputCount));
+          valueStackDepth = ValueCount(0);
+          pushValues(inputCount);
         case Opcode.not:
           popValues(1);
           pushValues(1);

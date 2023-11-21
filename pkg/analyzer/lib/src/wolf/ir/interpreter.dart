@@ -87,6 +87,8 @@ class SoundnessError extends Error {
 /// An entry on the control flow stack, representing a control flow construct
 /// (such as a `block`) that the interpreter is currently executing.
 class _ControlFlowStackEntry {
+  final _ControlFlowStackEntryKind kind;
+
   /// The index into [_IRInterpreter.stack] before the first input to control
   /// flow construct.
   ///
@@ -123,11 +125,14 @@ class _ControlFlowStackEntry {
   final int scope;
 
   _ControlFlowStackEntry(
-      {required this.stackFence,
+      {required this.kind,
+      required this.stackFence,
       required this.localFence,
       required this.outputCount,
       required this.scope});
 }
+
+enum _ControlFlowStackEntryKind { block, loop }
 
 class _IRInterpreter {
   static const keepGoing = _KeepGoing();
@@ -163,7 +168,7 @@ class _IRInterpreter {
       controlFlowStack.removeLast();
     }
     if (controlFlowStack.isNotEmpty) {
-      var stackEntry = controlFlowStack.removeLast();
+      var stackEntry = controlFlowStack.last;
       var stackFence = stackEntry.stackFence;
       var outputCount = stackEntry.outputCount;
       var newStackLength = stackFence + outputCount;
@@ -172,8 +177,17 @@ class _IRInterpreter {
       stack.length = stackFence + outputCount;
       locals.length = stackEntry.localFence;
       var scope = stackEntry.scope;
-      address = scopes.endAddress(scope);
-      mostRecentScope = scopes.lastDescendant(scope);
+      switch (stackEntry.kind) {
+        case _ControlFlowStackEntryKind.block:
+          // Continue with the code following the block.
+          controlFlowStack.removeLast();
+          address = scopes.endAddress(scope);
+          mostRecentScope = scopes.lastDescendant(scope);
+        case _ControlFlowStackEntryKind.loop:
+          // Jump back to the `loop` instruction.
+          address = scopes.beginAddress(scope);
+          mostRecentScope = scope;
+      }
       return keepGoing;
     } else {
       // Branch targets the function, so return from the code being interpreted.
@@ -205,6 +219,7 @@ class _IRInterpreter {
           var scope = ++mostRecentScope;
           assert(scopes.beginAddress(scope) == address);
           controlFlowStack.add(_ControlFlowStackEntry(
+              kind: _ControlFlowStackEntryKind.block,
               stackFence: stack.length - inputCount,
               localFence: locals.length,
               outputCount: outputCount,
@@ -256,8 +271,16 @@ class _IRInterpreter {
             assert(
                 stack.length == stackEntry.stackFence + stackEntry.outputCount);
             assert(locals.length == stackEntry.localFence);
-            // Continue with the code following the block.
-            controlFlowStack.removeLast();
+            switch (stackEntry.kind) {
+              case _ControlFlowStackEntryKind.block:
+                // Continue with the code following the block.
+                controlFlowStack.removeLast();
+              case _ControlFlowStackEntryKind.loop:
+                // Jump back to the `loop` instruction.
+                var scope = stackEntry.scope;
+                address = scopes.beginAddress(scope);
+                mostRecentScope = scope;
+            }
           }
         case Opcode.eq:
           var secondValue = stack.removeLast();
@@ -276,6 +299,16 @@ class _IRInterpreter {
         case Opcode.literal:
           var value = Opcode.literal.decodeValue(ir, address);
           stack.add(ir.decodeLiteral(value));
+        case Opcode.loop:
+          var inputCount = Opcode.loop.decodeInputCount(ir, address);
+          var scope = ++mostRecentScope;
+          assert(scopes.beginAddress(scope) == address);
+          controlFlowStack.add(_ControlFlowStackEntry(
+              kind: _ControlFlowStackEntryKind.loop,
+              stackFence: stack.length - inputCount,
+              localFence: locals.length,
+              outputCount: inputCount,
+              scope: scope));
         case Opcode.not:
           stack.add(!(stack.removeLast() as bool));
         case Opcode.readLocal:

@@ -95,6 +95,7 @@ class _Instructions {
         'shuffle', [uint('popCount'), stackIndices('stackIndices')]);
     // Flow control
     _addInstruction('block', [uint('inputCount'), uint('outputCount')]);
+    _addInstruction('loop', [uint('inputCount')]);
     _addInstruction('function', [type('type'), functionFlags('flags')]);
     _addInstruction('end', []);
     _addInstruction('br', [uint('nesting')]);

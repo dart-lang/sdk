@@ -316,6 +316,12 @@ class RawIRWriter with _RawIRWriterMixin {
   }
 
   @override
+  void loop(int inputCount) {
+    _nestingLevel++;
+    super.loop(inputCount);
+  }
+
+  @override
   void release(int count) {
     _localVariableCount -= count;
     super.release(count);

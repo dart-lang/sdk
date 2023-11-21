@@ -138,6 +138,31 @@ class ValidatorTest {
     _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
 
+  test_br_fromLoop_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..loop(2)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..br(0)
+      ..onValidate(
+          (v) => check(v.valueStackDepth).equals(ValueCount.indeterminate))
+      ..end()
+      ..end());
+    _validate();
+  }
+
+  test_br_fromLoop_stackUnderflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..loop(2)
+      ..drop()
+      ..label('bad')
+      ..br(0)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
   test_br_negativeNesting() {
     _analyze((ir) => ir
       ..ordinaryFunction()
@@ -206,6 +231,30 @@ class ValidatorTest {
       ..ordinaryFunction(parameterCount: 1)
       ..label('bad')
       ..brIf(0)
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
+  test_brIf_fromLoop_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..loop(2)
+      ..dup()
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(3)))
+      ..brIf(0)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..end()
+      ..end());
+    _validate();
+  }
+
+  test_brIf_fromLoop_stackUnderflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..loop(2)
+      ..label('bad')
+      ..brIf(0)
+      ..end()
       ..end());
     _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
@@ -378,6 +427,55 @@ class ValidatorTest {
     _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
 
+  test_end_loop_indeterminate() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..loop(2)
+      ..br(1)
+      ..onValidate(
+          (v) => check(v.valueStackDepth).equals(ValueCount.indeterminate))
+      ..end()
+      ..onValidate(
+          (v) => check(v.valueStackDepth).equals(ValueCount.indeterminate))
+      ..end());
+    _validate();
+  }
+
+  test_end_loop_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 3)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(3)))
+      ..loop(2)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..end()
+      ..onValidate(
+          (v) => check(v.valueStackDepth).equals(ValueCount.indeterminate))
+      ..end());
+    _validate();
+  }
+
+  test_end_loop_superfluousValues() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..loop(2)
+      ..dup()
+      ..label('bad')
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('1 superfluous value(s) remaining');
+  }
+
+  test_end_loop_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..loop(2)
+      ..drop()
+      ..label('bad')
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
   test_end_unmatched() {
     _analyze((ir) => ir
       ..ordinaryFunction(parameterCount: 1)
@@ -505,6 +603,37 @@ class ValidatorTest {
       ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
       ..end());
     _validate();
+  }
+
+  test_loop_negativeInputCount() {
+    _analyze((ir) => ir
+      ..ordinaryFunction()
+      ..label('bad')
+      ..loop(-1)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Negative input count');
+  }
+
+  test_loop_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..loop(2)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(2)))
+      ..end()
+      ..end());
+    _validate();
+  }
+
+  test_loop_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('bad')
+      ..loop(2)
+      ..end()
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
 
   test_missingEnd() {
