@@ -20,19 +20,23 @@ import '../common_test_utils.dart';
 final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source) async {
-  final target = new VmTarget(new TargetFlags());
+  // Do not perform constant evaluation for a specific target operating system.
+  final targetOS = null;
+  final enableAsserts = false;
+  final soundNullSafety = true;
+  final nnbdMode = NnbdMode.Strong;
+
+  final target =
+      new VmTarget(new TargetFlags(soundNullSafety: soundNullSafety));
   Component component = await compileTestCaseToKernelProgram(source,
       target: target,
       environmentDefines: {
         'test.define.isTrue': 'true',
         'test.define.isFalse': 'false'
       });
-
-  // Do not perform constant evaluation for a specific target operating system.
-  final evaluator = VMConstantEvaluator.create(
-      target, component, /* targetOS = */ null, NnbdMode.Strong);
-  component =
-      transformComponent(component, /* enableAsserts = */ false, evaluator);
+  final evaluator =
+      VMConstantEvaluator.create(target, component, targetOS, nnbdMode);
+  component = transformComponent(target, component, evaluator, enableAsserts);
   verifyComponent(
       target, VerificationStage.afterGlobalTransformations, component);
 
