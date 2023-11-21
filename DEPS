@@ -74,7 +74,7 @@ vars = {
   # d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
   "d8_tag": "version:12.1.97",
-  "jsshell_tag": "version:95.0",
+  "jsshell_tag": "version:120.0",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
   "clang_version": "git_revision:00396e6a1a0b79fda008cb4e86b616d7952b33c8",
