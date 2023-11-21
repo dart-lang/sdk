@@ -156,7 +156,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   late final InterfaceType _intType;
 
   /// The options for verification.
-  late final AnalysisOptionsImpl _options;
+  final AnalysisOptionsImpl _options;
 
   /// The object providing access to the types defined by the language.
   final TypeProvider _typeProvider;
@@ -242,7 +242,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Initialize a newly created error verifier.
   ErrorVerifier(this.errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.libraryVerificationContext)
+      this._inheritanceManager, this.libraryVerificationContext, this._options)
       : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
@@ -258,7 +258,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _isInConstructorInitializer = false;
     _intType = _typeProvider.intType;
     typeSystem = _currentLibrary.typeSystem;
-    _options = _currentLibrary.context.analysisOptions as AnalysisOptionsImpl;
     _typeArgumentsVerifier =
         TypeArgumentsVerifier(_options, _currentLibrary, errorReporter);
     _constructorFieldsVerifier = ConstructorFieldsVerifier(

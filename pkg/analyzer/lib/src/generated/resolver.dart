@@ -363,9 +363,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             nullSafetyEnabled: definingLibrary.isNonNullableByDefault,
             patternsEnabled:
                 definingLibrary.featureSet.isEnabled(Feature.patterns)) {
-    var analysisOptions =
-        definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
-
     nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -378,8 +375,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorReporter: errorReporter,
       nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
-    _typedLiteralResolver =
-        TypedLiteralResolver(this, _featureSet, typeSystem, typeProvider);
+    _typedLiteralResolver = TypedLiteralResolver(
+        this, _featureSet, typeSystem, typeProvider, analysisOptions);
     extensionResolver = ExtensionMemberResolver(this);
     typePropertyResolver = TypePropertyResolver(this);
     inferenceHelper = InvocationInferenceHelper(

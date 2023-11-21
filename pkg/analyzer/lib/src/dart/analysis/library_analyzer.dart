@@ -403,8 +403,13 @@ class LibraryAnalyzer {
     //
     // Use the ErrorVerifier to compute errors.
     //
-    ErrorVerifier errorVerifier = ErrorVerifier(errorReporter, _libraryElement,
-        _typeProvider, _inheritance, _libraryVerificationContext);
+    ErrorVerifier errorVerifier = ErrorVerifier(
+        errorReporter,
+        _libraryElement,
+        _typeProvider,
+        _inheritance,
+        _libraryVerificationContext,
+        _analysisOptions);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
