@@ -74,6 +74,10 @@ class TypeMemberContributor extends DartCompletionContributor {
         // Suggestions provided by StaticMemberContributor.
         return;
       }
+      if (elem is ExtensionElement) {
+        // Suggestions provided by StaticMemberContributor.
+        return;
+      }
       if (elem is PrefixElement) {
         // Suggestions provided by LibraryMemberContributor.
         return;
