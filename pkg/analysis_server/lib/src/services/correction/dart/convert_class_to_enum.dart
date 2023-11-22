@@ -205,8 +205,11 @@ class _EnumDescription {
         constantsBuffer.write(indent);
       }
       if (documentationComment != null) {
-        constantsBuffer
-            .write(documentationComment.replaceAll(eol, '$eol$indent'));
+        constantsBuffer.write(
+          // Always replace '\n' because documentationComment is normalized to
+          // always '\n' (in `getCommentNodeRawText`).
+          documentationComment.replaceAll('\n', '$eol$indent'),
+        );
         constantsBuffer.write('$eol$indent');
       }
       constantsBuffer.write(field.name);
