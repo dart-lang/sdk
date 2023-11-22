@@ -530,16 +530,19 @@ class FunctionDeclarationImpl extends DeclarationImpl
   });
 
   @override
-  void serializeUncached(Serializer serializer) {
+  void serializeUncached(Serializer serializer, {bool isConstructor = false}) {
     super.serializeUncached(serializer);
 
     serializer
       ..addBool(hasBody)
-      ..addBool(hasExternal)
-      ..addBool(isGetter)
-      ..addBool(isOperator)
-      ..addBool(isSetter)
-      ..startList();
+      ..addBool(hasExternal);
+    if (!isConstructor) {
+      serializer
+        ..addBool(isGetter)
+        ..addBool(isOperator)
+        ..addBool(isSetter);
+    }
+    serializer.startList();
     for (ParameterDeclarationImpl named in namedParameters) {
       named.serialize(serializer);
     }
@@ -592,11 +595,11 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
   });
 
   @override
-  void serializeUncached(Serializer serializer) {
-    super.serializeUncached(serializer);
+  void serializeUncached(Serializer serializer, {bool isConstructor = false}) {
+    super.serializeUncached(serializer, isConstructor: isConstructor);
 
     definingType.serialize(serializer);
-    serializer.addBool(isStatic);
+    if (!isConstructor) serializer.addBool(isStatic);
   }
 }
 
@@ -617,9 +620,6 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     // Function fields.
     required super.hasBody,
     required super.hasExternal,
-    required super.isGetter,
-    required super.isOperator,
-    required super.isSetter,
     required super.namedParameters,
     required super.positionalParameters,
     required super.returnType,
@@ -629,12 +629,16 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     // Constructor fields.
     required this.isFactory,
   }) : super(
+          isGetter: false,
+          isOperator: false,
+          isSetter: false,
           isStatic: true,
         );
 
   @override
-  void serializeUncached(Serializer serializer) {
-    super.serializeUncached(serializer);
+  void serializeUncached(Serializer serializer, {bool isConstructor = true}) {
+    assert(isConstructor);
+    super.serializeUncached(serializer, isConstructor: isConstructor);
 
     serializer.addBool(isFactory);
   }
