@@ -27,7 +27,7 @@ abstract class StreamManager {
   @mustCallSuper
   void postEvent(
     String stream,
-    Map<String, Object?> data, {
+    Object data, {
     Client? excludedClient,
   }) {
     final listeners = _streamListeners[stream] ?? const <Client>[];

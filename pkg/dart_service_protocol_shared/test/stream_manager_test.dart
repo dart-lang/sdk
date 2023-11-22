@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:dart_service_protocol_shared/src/client.dart';
 import 'package:dart_service_protocol_shared/src/stream_manager.dart';
 
@@ -11,7 +13,7 @@ class TestStreamClient extends Client {
   int closeCount = 0;
   int sendRequestCount = 0;
   int streamNotifyCount = 0;
-  Map<String, dynamic>? notification;
+  Object? notification;
 
   @override
   Future<void> close() {
@@ -26,7 +28,7 @@ class TestStreamClient extends Client {
   }
 
   @override
-  void streamNotify(String stream, Map<String, Object?> data) {
+  void streamNotify(String stream, Object data) {
     streamNotifyCount++;
     notification = data;
   }
@@ -135,6 +137,23 @@ void main() {
       expect(clientA2.notification, messageA);
       expect(clientB.streamNotifyCount, 1);
       expect(clientB.notification, messageB);
+    });
+
+    test('postEvent can use binary data', () {
+      final messageA = Uint8List(4);
+      messageA[0] = 1;
+      messageA[1] = 2;
+      messageA[2] = 3;
+      messageA[3] = 4;
+      manager.streamListen(client, 'A');
+
+      manager.postEvent(
+        'A',
+        messageA,
+      );
+
+      expect(client.streamNotifyCount, 1);
+      expect(client.notification, messageA);
     });
 
     test('onClientDisconnect cancels a client from all streams', () async {

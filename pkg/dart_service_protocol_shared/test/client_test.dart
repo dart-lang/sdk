@@ -25,7 +25,7 @@ class TestClient extends Client {
   }
 
   @override
-  void streamNotify(String stream, Map<String, Object?> data) {
+  void streamNotify(String stream, Object data) {
     streamNotifyCount++;
   }
 }
