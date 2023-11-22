@@ -469,7 +469,7 @@ _nightly_builder(
 # Isolate stress test builder
 _vm_builder(
     "iso-stress-linux",
-    channels = [],
+    channels = ["try"],
     notifies = "dart-vm-team",
     properties = slow_shards,
 )
