@@ -91,6 +91,7 @@ dart.try_builder(
         "disable_bcid": True,
     },
     recipe = "release/sdk",
+    goma = False,  # RBE gcc cross-compilation isn't supported yet
 )
 
 dart.try_builder(
