@@ -1373,19 +1373,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
+    "An enum constant can't invoke a factory constructor.",
+    correctionMessage: "Try using a generative constructor.",
+  );
+
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
     "The name of the enum constant can't be the same as the enum's name.",
     correctionMessage: "Try renaming the constant.",
-    hasPublishedDocs: true,
-  );
-
-  static const CompileTimeErrorCode ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR =
-      CompileTimeErrorCode(
-    'ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR',
-    "The invoked constructor isn't a 'const' constructor.",
-    correctionMessage: "Try invoking a 'const' generative constructor.",
     hasPublishedDocs: true,
   );
 

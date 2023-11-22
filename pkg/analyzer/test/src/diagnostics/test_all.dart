@@ -207,10 +207,10 @@ import 'duplicate_rest_element_in_pattern_test.dart'
     as duplicate_rest_element_in_pattern;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'duplicate_variable_pattern_test.dart' as duplicate_variable_pattern;
+import 'enum_constant_invokes_factory_constructor_test.dart'
+    as enum_constant_invokes_factory_constructor;
 import 'enum_constant_same_name_as_enclosing_test.dart'
     as enum_constant_same_name_as_enclosing;
-import 'enum_constant_with_non_const_constructor_test.dart'
-    as enum_constant_with_non_const_constructor;
 import 'enum_instantiated_to_bounds_is_not_well_bounded_test.dart'
     as enum_instantiated_to_bounds_is_not_well_bounded;
 import 'enum_mixin_with_instance_variable_test.dart'
@@ -1055,8 +1055,8 @@ main() {
     duplicate_rest_element_in_pattern.main();
     duplicate_shown_name.main();
     duplicate_variable_pattern.main();
+    enum_constant_invokes_factory_constructor.main();
     enum_constant_same_name_as_enclosing.main();
-    enum_constant_with_non_const_constructor.main();
     enum_instantiated_to_bounds_is_not_well_bounded.main();
     enum_mixin_with_instance_variable.main();
     enum_with_abstract_member.main();

@@ -4193,6 +4193,9 @@ CompileTimeErrorCode:
         if (x case Map(isEmpty: true)) {}
       }
       ```
+  ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR:
+    problemMessage: "An enum constant can't invoke a factory constructor."
+    correctionMessage: Try using a generative constructor.
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum constant can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
@@ -4232,6 +4235,7 @@ CompileTimeErrorCode:
       }
       ```
   ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
+    removedIn: "3.3"
     problemMessage: The invoked constructor isn't a 'const' constructor.
     correctionMessage: Try invoking a 'const' generative constructor.
     hasPublishedDocs: true

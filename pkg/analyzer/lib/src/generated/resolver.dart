@@ -2370,11 +2370,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorElement = constructorName.staticElement;
       if (constructorElement != null) {
         node.constructorElement = constructorElement;
-        if (!constructorElement.isConst && constructorElement.isFactory) {
-          final errorTarget =
-              node.arguments?.constructorSelector?.name ?? node.name;
+        if (constructorElement.isFactory) {
+          final constructorName = node.arguments?.constructorSelector?.name;
+          final errorTarget = constructorName ?? node.name;
           errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR,
+            CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
             errorTarget.offset,
             errorTarget.length,
           );
