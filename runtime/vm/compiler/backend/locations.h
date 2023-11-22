@@ -286,11 +286,17 @@ class Location : public ValueObject {
     kRequiresFpuRegister,
     kWritableRegister,
     kSameAsFirstInput,
+    // Forces the location to be spilled to the stack.
+    // Currently only used for `Handle` arguments in `FfiCall` instructions.
+    // Only available in optimized mode.
+    kRequiresStack,
   };
 
   bool IsUnallocated() const { return kind() == kUnallocated; }
 
-  bool IsRegisterBeneficial() { return !Equals(Any()); }
+  bool IsRegisterBeneficial() {
+    return !Equals(Any()) && !Equals(RequiresStack());
+  }
 
   static Location UnallocatedLocation(Policy policy) {
     return Location(kUnallocated, PolicyField::encode(policy));
@@ -298,6 +304,10 @@ class Location : public ValueObject {
 
   // Any free register is suitable to replace this unallocated location.
   static Location Any() { return UnallocatedLocation(kAny); }
+
+  static Location RequiresStack() {
+    return UnallocatedLocation(kRequiresStack);
+  }
 
   static Location PrefersRegister() {
     return UnallocatedLocation(kPrefersRegister);

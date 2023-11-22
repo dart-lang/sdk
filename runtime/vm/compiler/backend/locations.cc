@@ -223,12 +223,15 @@ void LocationSummary::set_in(intptr_t index, Location loc) {
   // restrictions.
   if (always_calls()) {
     if (loc.IsUnallocated()) {
-      ASSERT(loc.policy() == Location::kAny);
+      ASSERT(loc.policy() == Location::kAny ||
+             loc.policy() == Location::kRequiresStack);
     } else if (loc.IsPairLocation()) {
       ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
-             loc.AsPairLocation()->At(0).policy() == Location::kAny);
-      ASSERT(!loc.AsPairLocation()->At(0).IsUnallocated() ||
-             loc.AsPairLocation()->At(0).policy() == Location::kAny);
+             loc.AsPairLocation()->At(0).policy() == Location::kAny ||
+             loc.AsPairLocation()->At(0).policy() == Location::kRequiresStack);
+      ASSERT(!loc.AsPairLocation()->At(1).IsUnallocated() ||
+             loc.AsPairLocation()->At(1).policy() == Location::kAny ||
+             loc.AsPairLocation()->At(1).policy() == Location::kRequiresStack);
     }
     if (index == 0 && out(0).IsUnallocated() &&
         out(0).policy() == Location::kSameAsFirstInput) {
@@ -381,6 +384,8 @@ const char* Location::Name() const {
           return "WR";
         case kSameAsFirstInput:
           return "0";
+        case kRequiresStack:
+          return "RS";
       }
       UNREACHABLE();
     default:

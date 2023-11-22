@@ -730,6 +730,45 @@ void FlowGraphAllocator::AllocateSpillSlotForInitialDefinition(
   }
 }
 
+void FlowGraphAllocator::CompleteRange(Definition* defn, LiveRange* range) {
+  AssignSafepoints(defn, range);
+
+  if (range->has_uses_which_require_stack()) {
+    // Reserve a spill slot on the stack if it is not yet reserved.
+    if (range->spill_slot().IsInvalid() ||
+        !range->spill_slot().HasStackIndex()) {
+      range->set_spill_slot(Location());  // Clear current spill slot if any.
+      AllocateSpillSlotFor(range);
+      TRACE_ALLOC(
+          THR_Print("Allocated spill slot for %s which has use(s) which "
+                    "require a stack slot.\n",
+                    defn->ToCString()));
+      if (range->representation() == kTagged) {
+        MarkAsObjectAtSafepoints(range);
+      }
+    }
+
+    // Eagerly allocate all uses which require stack.
+    UsePosition* prev = nullptr;
+    for (UsePosition* use = range->first_use(); use != nullptr;
+         use = use->next()) {
+      if (use->location_slot()->Equals(Location::RequiresStack())) {
+        // Allocate this use and remove it from the list.
+        ConvertUseTo(use, range->spill_slot());
+
+        // Unlink the current use.
+        if (prev == nullptr) {
+          range->set_first_use(use->next());
+        } else {
+          prev->set_next(use->next());
+        }
+      } else {
+        prev = use;
+      }
+    }
+  }
+}
+
 void FlowGraphAllocator::ProcessInitialDefinition(
     Definition* defn,
     LiveRange* range,
@@ -756,7 +795,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(
           UNREACHABLE();
       }
       range->set_assigned_location(loc);
-      AssignSafepoints(defn, range);
+      CompleteRange(defn, range);
       range->finger()->Initialize(range);
       SplitInitialDefinitionAt(range, GetLifetimePosition(block) + 1);
       ConvertAllUses(range);
@@ -785,7 +824,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(
     loc = Location::RegisterLocation(ARGS_DESC_REG);
     range->set_assigned_location(loc);
     if (loc.IsRegister()) {
-      AssignSafepoints(defn, range);
+      CompleteRange(defn, range);
       if (range->End() > (GetLifetimePosition(block) + 2)) {
         SplitInitialDefinitionAt(range, GetLifetimePosition(block) + 2);
       }
@@ -801,7 +840,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(
     range->set_assigned_location(Location::Constant(constant, pair_index));
     range->set_spill_slot(Location::Constant(constant, pair_index));
   }
-  AssignSafepoints(defn, range);
+  CompleteRange(defn, range);
   range->finger()->Initialize(range);
   UsePosition* use =
       range->finger()->FirstRegisterBeneficialUse(block->start_pos());
@@ -814,7 +853,7 @@ void FlowGraphAllocator::ProcessInitialDefinition(
   if (spill_slot.IsStackSlot() && spill_slot.base_reg() == FPREG &&
       spill_slot.stack_index() <=
           compiler::target::frame_layout.first_local_from_fp &&
-      !IsSuspendStateParameter(defn)) {
+      !IsSuspendStateParameter(defn) && !defn->IsConstant()) {
     // On entry to the function, range is stored on the stack above the FP in
     // the same space which is used for spill slots. Update spill slot state to
     // reflect that and prevent register allocator from reusing this space as a
@@ -1211,6 +1250,10 @@ void FlowGraphAllocator::ProcessOneInput(BlockEntryInstr* block,
       *in_ref = Location::RequiresRegister();
       CompleteRange(temp, RegisterKindFromPolicy(*in_ref));
     } else {
+      if (in_ref->policy() == Location::kRequiresStack) {
+        range->mark_has_uses_which_require_stack();
+      }
+
       // Normal unallocated input. Expected shape of
       // live ranges:
       //
@@ -1507,12 +1550,15 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       if (locs->in(j).IsPairLocation()) {
         PairLocation* pair = locs->in_slot(j)->AsPairLocation();
         ASSERT(!pair->At(0).IsUnallocated() ||
-               pair->At(0).policy() == Location::kAny);
+               pair->At(0).policy() == Location::kAny ||
+               pair->At(0).policy() == Location::kRequiresStack);
         ASSERT(!pair->At(1).IsUnallocated() ||
-               pair->At(1).policy() == Location::kAny);
+               pair->At(1).policy() == Location::kAny ||
+               pair->At(1).policy() == Location::kRequiresStack);
       } else {
         ASSERT(!locs->in(j).IsUnallocated() ||
-               locs->in(j).policy() == Location::kAny);
+               locs->in(j).policy() == Location::kAny ||
+               locs->in(j).policy() == Location::kRequiresStack);
       }
     }
 
@@ -2076,7 +2122,10 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
   }
 
   // Assign spill slot to the range.
-  if (register_kind_ == Location::kRegister) {
+  if (RepresentationUtils::IsUnboxedInteger(range->representation()) ||
+      range->representation() == kTagged ||
+      range->representation() == kPairOfTagged ||
+      range->representation() == kUntagged) {
     const intptr_t slot_index =
         compiler::target::frame_layout.FrameSlotForVariableIndex(-idx);
     range->set_spill_slot(Location::StackSlot(slot_index, FPREG));
@@ -2636,7 +2685,6 @@ void FlowGraphAllocator::ConvertUseTo(UsePosition* use, Location loc) {
   ASSERT(!loc.IsPairLocation());
   ASSERT(use->location_slot() != nullptr);
   Location* slot = use->location_slot();
-  ASSERT(slot->IsUnallocated());
   TRACE_ALLOC(THR_Print("  use at %" Pd " converted to ", use->pos()));
   TRACE_ALLOC(loc.Print());
   if (loc.IsConstant()) {
@@ -3065,8 +3113,21 @@ void FlowGraphAllocator::ResolveControlFlow() {
   for (intptr_t i = 0; i < spilled_.length(); i++) {
     LiveRange* range = spilled_[i];
     if (!range->assigned_location().Equals(range->spill_slot())) {
-      AddMoveAt(range->Start() + 1, range->spill_slot(),
-                range->assigned_location());
+      if (range->Start() == 0) {
+        // We need to handle spilling of constants in a special way. Simply
+        // place spilling move in the FunctionEntry successors of the graph
+        // entry.
+        RELEASE_ASSERT(range->assigned_location().IsConstant());
+        for (auto block : flow_graph_.graph_entry()->successors()) {
+          if (block->IsFunctionEntry()) {
+            AddMoveAt(block->start_pos() + 1, range->spill_slot(),
+                      range->assigned_location());
+          }
+        }
+      } else {
+        AddMoveAt(range->Start() + 1, range->spill_slot(),
+                  range->assigned_location());
+      }
     }
   }
 }

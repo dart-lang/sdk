@@ -19,7 +19,7 @@ class NodeTextExpectationsCollector {
   /// This should only happen locally, to update tests or implementation.
   ///
   /// This flag should be `false` during code review.
-  static const updatingIsEnabled = true;
+  static const updatingIsEnabled = false;
 
   static final assertMethods = [
     _AssertMethod(

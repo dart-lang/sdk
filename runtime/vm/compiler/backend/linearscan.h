@@ -143,6 +143,7 @@ class FlowGraphAllocator : public ValueObject {
 
   static constexpr intptr_t kNormalEntryPos = 2;
 
+  void CompleteRange(Definition* defn, LiveRange* range);
   void ProcessInitialDefinition(Definition* defn,
                                 LiveRange* range,
                                 BlockEntryInstr* block,
@@ -588,6 +589,13 @@ class LiveRange : public ZoneAllocated {
   bool is_loop_phi() const { return is_loop_phi_; }
   void mark_loop_phi() { is_loop_phi_ = true; }
 
+  void mark_has_uses_which_require_stack() {
+    has_uses_which_require_stack_ = true;
+  }
+  bool has_uses_which_require_stack() const {
+    return has_uses_which_require_stack_;
+  }
+
  private:
   LiveRange(intptr_t vreg,
             Representation rep,
@@ -626,6 +634,9 @@ class LiveRange : public ZoneAllocated {
   static constexpr intptr_t kMaxLoops = sizeof(uint64_t) * kBitsPerByte;
   uint64_t has_only_any_uses_in_loops_;
   bool is_loop_phi_;
+
+  // Does this range have any unallocated uses with kRequiresStack policy.
+  bool has_uses_which_require_stack_ = false;
 
   AllocationFinger finger_;
 

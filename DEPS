@@ -53,11 +53,9 @@ vars = {
   # Use a published dev version to support unstable platforms.
   "sdk_tag": "version:3.2.0-150.0.dev",
 
-  # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
-  # hashes.
+  # co19 is a cipd package automatically generated for each co19 commit.
+  # Use tests/co19/update.sh to update this hash.
   "co19_rev": "460758bf4c298812d47b24f7e5040c75088c3ebf",
-  # This line prevents conflicts when both packages are rolled simultaneously.
-  "co19_2_rev": "d87f9096ec0a14cd7c32c33316fb2378b89d6a45",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "f048a4a853e3062056d39c3db100acdde42f16d6",
@@ -265,13 +263,6 @@ deps = {
       "packages": [{
           "package": "dart/third_party/co19",
           "version": "git_revision:" + Var("co19_rev"),
-      }],
-      "dep_type": "cipd",
-  },
-  Var("dart_root") + "/tests/co19_2/src": {
-      "packages": [{
-          "package": "dart/third_party/co19/legacy",
-          "version": "git_revision:" + Var("co19_2_rev"),
       }],
       "dep_type": "cipd",
   },

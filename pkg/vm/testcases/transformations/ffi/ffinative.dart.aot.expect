@@ -1,129 +1,144 @@
 library #lib;
 import self as self;
 import "dart:core" as core;
-import "dart:ffi" as ffi;
 import "dart:nativewrappers" as nat;
+import "dart:ffi" as ffi;
 import "dart:_internal" as _in;
 
 import "dart:ffi";
 import "dart:nativewrappers";
 
 abstract class Classy extends core::Object {
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (core::int) → core::int _returnIntPtrStatic$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr) → ffi::IntPtr>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr) → ffi::IntPtr>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-[@vm.unboxing-info.metadata=()->i]  static method returnIntPtrStatic() → core::int
-    return self::Classy::_returnIntPtrStatic$Method$FfiNative$Ptr(#C4){(core::int) → core::int};
+[@vm.unboxing-info.metadata=(i)->i]  @#C6
+  external static method returnIntPtrStatic([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 222)] core::int x) → core::int;
 }
 class NativeClassy extends nat::NativeFieldWrapperClass1 {
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (ffi::Pointer<ffi::Void>, core::int) → void _goodHasReceiverPointer$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::int) → void, (ffi::Pointer<ffi::Void>, ffi::IntPtr) → ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>, ffi::IntPtr) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C5, #C6){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (self::NativeClassy, core::int) → void _goodHasReceiverHandle$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(self::NativeClassy, core::int) → void, (ffi::Handle, ffi::IntPtr) → ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle, ffi::IntPtr) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C5, #C6){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (self::NativeClassy, ffi::Pointer<ffi::Void>) → void _goodHasReceiverHandleAndPtr$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(self::NativeClassy, ffi::Pointer<ffi::Void>) → void, (ffi::Handle, ffi::Pointer<ffi::Void>) → ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle, ffi::Pointer<ffi::Void>) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C5, #C6){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (self::NativeClassy, self::NativeClassy) → void _goodHasReceiverHandleAndHandle$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(self::NativeClassy, self::NativeClassy) → void, (ffi::Handle, ffi::Handle) → ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Handle, ffi::Handle) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C5, #C6){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (ffi::Pointer<ffi::Void>, self::NativeClassy) → void _goodHasReceiverPtrAndHandle$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, self::NativeClassy) → void, (ffi::Pointer<ffi::Void>, ffi::Handle) → ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>, ffi::Handle) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C5, #C6){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (ffi::Pointer<ffi::Void>, core::bool) → core::Object? _meh$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::bool) → core::Object?, (ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Handle>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Handle>*>(ffi::_ffi_resolver(#C1, #C5, #C6){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (ffi::Pointer<ffi::Void>) → core::bool _blah$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>) → core::bool, (ffi::Pointer<ffi::Void>) → ffi::Bool>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>) → ffi::Bool>*>(ffi::_ffi_resolver(#C1, #C5, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (ffi::Pointer<ffi::Void>) → core::bool _myField$Getter$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>) → core::bool, (ffi::Pointer<ffi::Void>) → ffi::Bool>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>) → ffi::Bool>*>(ffi::_ffi_resolver(#C1, #C5, #C3){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.core::_Closure]  static final field (ffi::Pointer<ffi::Void>, core::bool) → void _myField$Setter$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(ffi::Pointer<ffi::Void>, core::bool) → void, (ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Void>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Void>*>(ffi::_ffi_resolver(#C1, #C5, #C6){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
   synthetic constructor •() → self::NativeClassy
     : super nat::NativeFieldWrapperClass1::•()
     ;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method goodHasReceiverPointer() → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  @#C9
+  method goodHasReceiverPointer() → void
     return block {
       final nat::NativeFieldWrapperClass1 #t1 = this;
-      final core::int #t2 = #C7;
-      final void #t3 = self::NativeClassy::_goodHasReceiverPointer$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+      final core::int #t2 = #C10;
+      final void #t3 = self::NativeClassy::_goodHasReceiverPointer$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t1);
-        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
-          core::StateError::_throwNew(#C9);
+        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C11){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C12);
         else
           ;
-      } =>#pointerAddress), #t2){(ffi::Pointer<ffi::Void>, core::int) → void};
+      } =>#pointerAddress), #t2);
       _in::reachabilityFence(#t1);
     } =>#t3;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  method goodHasReceiverHandle() → void
-    return self::NativeClassy::_goodHasReceiverHandle$Method$FfiNative$Ptr(this, #C7){(self::NativeClassy, core::int) → void};
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  method goodHasReceiverHandleAndPtr([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]  @#C9
+  method goodHasReceiverHandle() → void
+    return self::NativeClassy::_goodHasReceiverHandle$Method$FfiNative(this, #C10);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]  @#C9
+  method goodHasReceiverHandleAndPtr([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
     return block {
       final self::NativeClassy #t4 = this;
       final nat::NativeFieldWrapperClass1 #t5 = v;
-      final void #t6 = self::NativeClassy::_goodHasReceiverHandleAndPtr$Method$FfiNative$Ptr(#t4, ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t5))){(self::NativeClassy, ffi::Pointer<ffi::Void>) → void};
+      final void #t6 = self::NativeClassy::_goodHasReceiverHandleAndPtr$Method$FfiNative(#t4, [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>([@vm.inferred-type.metadata=int] nat::_getNativeField(#t5)));
       _in::reachabilityFence(#t5);
     } =>#t6;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  method goodHasReceiverHandleAndHandle([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
-    return self::NativeClassy::_goodHasReceiverHandleAndHandle$Method$FfiNative$Ptr(this, v){(self::NativeClassy, self::NativeClassy) → void};
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  method goodHasReceiverPtrAndHandle([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:7,getterSelectorId:8]  @#C9
+  method goodHasReceiverHandleAndHandle([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
+    return self::NativeClassy::_goodHasReceiverHandleAndHandle$Method$FfiNative(this, v);
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]  @#C9
+  method goodHasReceiverPtrAndHandle([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy v) → void
     return block {
       final nat::NativeFieldWrapperClass1 #t7 = this;
       final self::NativeClassy #t8 = v;
-      final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+      final void #t9 = self::NativeClassy::_goodHasReceiverPtrAndHandle$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t7);
-        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
-          core::StateError::_throwNew(#C9);
+        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C11){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C12);
         else
           ;
-      } =>#pointerAddress), #t8){(ffi::Pointer<ffi::Void>, self::NativeClassy) → void};
+      } =>#pointerAddress), #t8);
       _in::reachabilityFence(#t7);
     } =>#t9;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  method meh() → core::String?
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:11,getterSelectorId:12]  @#C9
+  method meh() → core::String?
     return block {
       final nat::NativeFieldWrapperClass1 #t10 = this;
-      final core::bool #t11 = #C10;
-      final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+      final core::bool #t11 = #C13;
+      final core::String? #t12 = _in::unsafeCast<core::String?>(self::NativeClassy::_meh$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t10);
-        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
-          core::StateError::_throwNew(#C9);
+        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C11){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C12);
         else
           ;
-      } =>#pointerAddress), #t11){(ffi::Pointer<ffi::Void>, core::bool) → core::Object?});
+      } =>#pointerAddress), #t11));
       _in::reachabilityFence(#t10);
     } =>#t12;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  method blah() → core::bool
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:13,getterSelectorId:14]  @#C9
+  method blah() → core::bool
     return block {
       final nat::NativeFieldWrapperClass1 #t13 = this;
-      final core::bool #t14 = self::NativeClassy::_blah$Method$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+      final core::bool #t14 = [@vm.inferred-type.metadata=dart.core::bool] self::NativeClassy::_blah$Method$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t13);
-        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
-          core::StateError::_throwNew(#C9);
+        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C11){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C12);
         else
           ;
-      } =>#pointerAddress)){(ffi::Pointer<ffi::Void>) → core::bool};
+      } =>#pointerAddress));
       _in::reachabilityFence(#t13);
     } =>#t14;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  get myField() → core::bool
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  @#C9
+  get myField() → core::bool
     return block {
       final nat::NativeFieldWrapperClass1 #t15 = this;
-      final core::bool #t16 = self::NativeClassy::_myField$Getter$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+      final core::bool #t16 = [@vm.inferred-type.metadata=dart.core::bool] self::NativeClassy::_myField$Getter$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t15);
-        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
-          core::StateError::_throwNew(#C9);
+        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C11){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C12);
         else
           ;
-      } =>#pointerAddress)){(ffi::Pointer<ffi::Void>) → core::bool};
+      } =>#pointerAddress));
       _in::reachabilityFence(#t15);
     } =>#t16;
-[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  set myField([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool value) → void
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:15,getterSelectorId:16]  @#C9
+  set myField([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool value) → void
     return block {
       final nat::NativeFieldWrapperClass1 #t17 = this;
       final core::bool #t18 = value;
-      final void #t19 = self::NativeClassy::_myField$Setter$FfiNative$Ptr(ffi::_fromAddress<ffi::Void>( block {
+      final void #t19 = self::NativeClassy::_myField$Setter$FfiNative([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::Void>( block {
         synthesized core::int #pointerAddress = [@vm.inferred-type.metadata=int] nat::_getNativeField(#t17);
-        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C8){(core::Object) → core::bool})
-          core::StateError::_throwNew(#C9);
+        if([@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] #pointerAddress.{core::Object::==}(#C11){(core::Object) → core::bool})
+          core::StateError::_throwNew(#C12);
         else
           ;
-      } =>#pointerAddress), #t18){(ffi::Pointer<ffi::Void>, core::bool) → void};
+      } =>#pointerAddress), #t18);
       _in::reachabilityFence(#t17);
     } =>#t19;
+[@vm.unboxing-info.metadata=(b,i)->b]  @#C16
+  external static method _goodHasReceiverPointer$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 175)] core::int #t1) → void;
+[@vm.unboxing-info.metadata=(b,i)->b]  @#C18
+  external static method _goodHasReceiverHandle$Method$FfiNative([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t0, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 175)] core::int #t1) → void;
+  @#C20
+  external static method _goodHasReceiverHandleAndPtr$Method$FfiNative([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t0, [@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t1) → void;
+  @#C22
+  external static method _goodHasReceiverHandleAndHandle$Method$FfiNative([@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t0, [@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t1) → void;
+  @#C24
+  external static method _goodHasReceiverPtrAndHandle$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=#lib::NativeClassy] self::NativeClassy #t1) → void;
+  @#C26
+  external static method _meh$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::bool (value: true)] core::bool #t1) → core::Object?;
+  @#C28
+  external static method _blah$Method$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0) → core::bool;
+  @#C30
+  external static method _myField$Getter$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0) → core::bool;
+  @#C32
+  external static method _myField$Setter$FfiNative([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] ffi::Pointer<ffi::Void> #t0, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool #t1) → void;
 }
-[@vm.inferred-type.metadata=dart.core::_Closure]static final field (core::int) → core::int _returnIntPtr$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr) → ffi::IntPtr>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr) → ffi::IntPtr>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
-[@vm.inferred-type.metadata=dart.core::_Closure]static final field (core::int) → core::int _returnIntPtrLeaf$Method$FfiNative$Ptr = [@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(core::int) → core::int, (ffi::IntPtr) → ffi::IntPtr>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::IntPtr) → ffi::IntPtr>*>(ffi::_ffi_resolver(#C1, #C2, #C3){(core::Object, core::Object, core::int) → core::int}), true)/*isLegacy*/;
-[@vm.unboxing-info.metadata=()->i]static method returnIntPtr() → core::int
-  return self::_returnIntPtr$Method$FfiNative$Ptr(#C11){(core::int) → core::int};
-[@vm.unboxing-info.metadata=()->i]static method returnIntPtrLeaf() → core::int
-  return self::_returnIntPtrLeaf$Method$FfiNative$Ptr(#C12){(core::int) → core::int};
+[@vm.unboxing-info.metadata=(i)->i]@#C6
+external static method returnIntPtr([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 13)] core::int x) → core::int;
+[@vm.unboxing-info.metadata=(i)->i]@#C34
+external static method returnIntPtrLeaf([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 37)] core::int x) → core::int;
 static method main() → void {
-  self::returnIntPtr();
-  self::returnIntPtrLeaf();
-  self::Classy::returnIntPtrStatic();
+  self::returnIntPtr(13);
+  self::returnIntPtrLeaf(37);
+  self::Classy::returnIntPtrStatic(222);
   [@vm.direct-call.metadata=#lib::NativeClassy.goodHasReceiverPointer] [@vm.inferred-type.metadata=!? (skip check)] new self::NativeClassy::•().{self::NativeClassy::goodHasReceiverPointer}(){(core::int) → void};
   [@vm.direct-call.metadata=#lib::NativeClassy.goodHasReceiverHandle] [@vm.inferred-type.metadata=!? (skip check)] new self::NativeClassy::•().{self::NativeClassy::goodHasReceiverHandle}(){(core::int) → void};
   [@vm.direct-call.metadata=#lib::NativeClassy.goodHasReceiverHandleAndPtr] [@vm.inferred-type.metadata=!? (skip check)] new self::NativeClassy::•().{self::NativeClassy::goodHasReceiverHandleAndPtr}(new self::NativeClassy::•()){(self::NativeClassy) → void};
@@ -135,16 +150,38 @@ static method main() → void {
   [@vm.direct-call.metadata=#lib::NativeClassy.myField] [@vm.inferred-type.metadata=!? (skip check)] new self::NativeClassy::•().{self::NativeClassy::myField} = !b;
 }
 constants  {
-  #C1 = "#lib"
+  #C1 = "vm:ffi:native"
   #C2 = "ReturnIntPtr"
-  #C3 = 1
-  #C4 = 222
-  #C5 = "doesntmatter"
-  #C6 = 2
-  #C7 = 175
-  #C8 = 0
-  #C9 = "A Dart object attempted to access a native peer, but the native peer has been collected (nullptr). This is usually the result of calling methods on a native-backed object when the native resources have already been disposed."
-  #C10 = true
-  #C11 = 13
-  #C12 = 37
+  #C3 = "#lib"
+  #C4 = false
+  #C5 = ffi::Native<(ffi::IntPtr) → ffi::IntPtr> {symbol:#C2, assetId:#C3, isLeaf:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = "vm:prefer-inline"
+  #C8 = null
+  #C9 = core::pragma {name:#C7, options:#C8}
+  #C10 = 175
+  #C11 = 0
+  #C12 = "A Dart object attempted to access a native peer, but the native peer has been collected (nullptr). This is usually the result of calling methods on a native-backed object when the native resources have already been disposed."
+  #C13 = true
+  #C14 = "doesntmatter"
+  #C15 = ffi::Native<(ffi::Pointer<ffi::Void>, ffi::IntPtr) → ffi::Void> {symbol:#C14, assetId:#C3, isLeaf:#C4}
+  #C16 = core::pragma {name:#C1, options:#C15}
+  #C17 = ffi::Native<(ffi::Handle, ffi::IntPtr) → ffi::Void> {symbol:#C14, assetId:#C3, isLeaf:#C4}
+  #C18 = core::pragma {name:#C1, options:#C17}
+  #C19 = ffi::Native<(ffi::Handle, ffi::Pointer<ffi::Void>) → ffi::Void> {symbol:#C14, assetId:#C3, isLeaf:#C4}
+  #C20 = core::pragma {name:#C1, options:#C19}
+  #C21 = ffi::Native<(ffi::Handle, ffi::Handle) → ffi::Void> {symbol:#C14, assetId:#C3, isLeaf:#C4}
+  #C22 = core::pragma {name:#C1, options:#C21}
+  #C23 = ffi::Native<(ffi::Pointer<ffi::Void>, ffi::Handle) → ffi::Void> {symbol:#C14, assetId:#C3, isLeaf:#C4}
+  #C24 = core::pragma {name:#C1, options:#C23}
+  #C25 = ffi::Native<(ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Handle> {symbol:#C14, assetId:#C3, isLeaf:#C4}
+  #C26 = core::pragma {name:#C1, options:#C25}
+  #C27 = ffi::Native<(ffi::Pointer<ffi::Void>) → ffi::Bool> {symbol:#C14, assetId:#C3, isLeaf:#C4}
+  #C28 = core::pragma {name:#C1, options:#C27}
+  #C29 = ffi::Native<(ffi::Pointer<ffi::Void>) → ffi::Bool> {symbol:#C14, assetId:#C3, isLeaf:#C13}
+  #C30 = core::pragma {name:#C1, options:#C29}
+  #C31 = ffi::Native<(ffi::Pointer<ffi::Void>, ffi::Bool) → ffi::Void> {symbol:#C14, assetId:#C3, isLeaf:#C13}
+  #C32 = core::pragma {name:#C1, options:#C31}
+  #C33 = ffi::Native<(ffi::IntPtr) → ffi::IntPtr> {symbol:#C2, assetId:#C3, isLeaf:#C13}
+  #C34 = core::pragma {name:#C1, options:#C33}
 }

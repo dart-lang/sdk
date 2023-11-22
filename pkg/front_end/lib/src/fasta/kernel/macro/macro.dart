@@ -972,9 +972,6 @@ class MacroApplications {
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
       hasExternal: builder.isExternal,
-      isGetter: builder.isGetter,
-      isOperator: builder.isOperator,
-      isSetter: builder.isSetter,
       positionalParameters: parameters[0],
       namedParameters: parameters[1],
       // TODO(johnniwinther): Support constructor return type.
@@ -1006,9 +1003,6 @@ class MacroApplications {
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
       hasExternal: builder.isExternal,
-      isGetter: builder.isGetter,
-      isOperator: builder.isOperator,
-      isSetter: builder.isSetter,
       positionalParameters: parameters[0],
       namedParameters: parameters[1],
       // TODO(johnniwinther): Support constructor return type.

@@ -503,9 +503,6 @@ class Fixtures {
       metadata: [],
       hasBody: true,
       hasExternal: false,
-      isGetter: false,
-      isOperator: false,
-      isSetter: false,
       namedParameters: [],
       positionalParameters: [
         ParameterDeclarationImpl(
@@ -616,9 +613,6 @@ class Fixtures {
       metadata: [],
       hasBody: true,
       hasExternal: false,
-      isGetter: false,
-      isOperator: false,
-      isSetter: false,
       namedParameters: [],
       positionalParameters: [
         ParameterDeclarationImpl(

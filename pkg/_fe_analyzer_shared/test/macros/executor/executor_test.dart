@@ -645,7 +645,6 @@ class LibraryInfo {
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
                 augment String myFunction() {
-                  print('isAbstract: false');
                   print('isExternal: false');
                   print('isGetter: false');
                   print('isSetter: false');
@@ -703,7 +702,6 @@ class LibraryInfo {
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
                 augment String get myVariable {
-                  print('isAbstract: false');
                   print('isExternal: false');
                   print('isGetter: true');
                   print('isSetter: false');
@@ -725,7 +723,6 @@ class LibraryInfo {
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
                 augment void myVariable(String value, ) {
-                  print('isAbstract: false');
                   print('isExternal: false');
                   print('isGetter: false');
                   print('isSetter: true');
@@ -828,7 +825,6 @@ class LibraryInfo {
                         augment MyEnum.myEnumConstructor(String myField, ) {
                           print('definingClass: MyEnum');
                           print('isFactory: false');
-                          print('isAbstract: false');
                           print('isExternal: false');
                           print('isGetter: false');
                           print('isSetter: false');
@@ -963,7 +959,6 @@ final constructorDefinitionMatcher = equalsIgnoringWhitespace('''
 augment MyClass.myConstructor(/*inferred*/String myField, ) {
   print('definingClass: MyClass');
   print('isFactory: false');
-  print('isAbstract: false');
   print('isExternal: false');
   print('isGetter: false');
   print('isSetter: false');
@@ -976,6 +971,7 @@ final fieldDefinitionMatchers = [
   equalsIgnoringWhitespace('''
     augment String get myField {
       print('parentClass: MyClass');
+      print('isAbstract: false');
       print('isExternal: false');
       print('isFinal: false');
       print('isLate: false');
@@ -993,7 +989,6 @@ final methodDefinitionMatchers = [
   equalsIgnoringWhitespace('''
     augment (String, bool? hello, {String world}) myMethod() {
       print('definingClass: MyClass');
-      print('isAbstract: false');
       print('isExternal: false');
       print('isGetter: false');
       print('isSetter: false');
@@ -1024,7 +1019,6 @@ final mixinMethodDefinitionMatchers = [
   equalsIgnoringWhitespace('''
     augment (String, bool? hello, {String world}) myMixinMethod() {
       print('definingClass: MyMixin');
-      print('isAbstract: false');
       print('isExternal: false');
       print('isGetter: false');
       print('isSetter: false');

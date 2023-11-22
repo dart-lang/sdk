@@ -235,21 +235,12 @@ extension DeserializerExtensions on Deserializer {
         metadata: (this..moveNext())._expectRemoteInstanceList(),
         hasBody: (this..moveNext()).expectBool(),
         hasExternal: (this..moveNext()).expectBool(),
-        isGetter: (this..moveNext()).expectBool(),
-        isOperator: (this..moveNext()).expectBool(),
-        isSetter: (this..moveNext()).expectBool(),
         namedParameters: (this..moveNext())._expectRemoteInstanceList(),
         positionalParameters: (this..moveNext())._expectRemoteInstanceList(),
         returnType: RemoteInstance.deserialize(this),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
         definingType: RemoteInstance.deserialize(this),
-        // There is an extra boolean here representing the `isStatic` field
-        // which we just skip past.
-        isFactory: (this
-              ..moveNext()
-              ..expectBool()
-              ..moveNext())
-            .expectBool(),
+        isFactory: (this..moveNext()).expectBool(),
       );
 
   VariableDeclarationImpl _expectVariableDeclaration(int id) =>

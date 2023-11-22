@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "lib/ffi_dynamic_library.h"
+
 #include "platform/globals.h"
 #if defined(DART_HOST_OS_WINDOWS)
 #include <Psapi.h>
@@ -438,6 +440,39 @@ static void ThrowFfiResolveError(const String& symbol,
   Exceptions::ThrowArgumentError(error_message);
 }
 
+intptr_t FfiResolveInternal(const String& asset,
+                            const String& symbol,
+                            uintptr_t args_n,
+                            char** error) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  // Resolver resolution.
+  auto resolver = GetFfiNativeResolver(thread, asset);
+  if (resolver != nullptr) {
+    void* ffi_native_result = FfiResolveWithFfiNativeResolver(
+        thread, resolver, symbol, args_n, error);
+    return reinterpret_cast<intptr_t>(ffi_native_result);
+  }
+
+  // Native assets resolution.
+  const auto& asset_location =
+      Array::Handle(zone, GetAssetLocation(thread, asset));
+  if (!asset_location.IsNull()) {
+    void* asset_result = FfiResolveAsset(thread, asset_location, symbol, error);
+    return reinterpret_cast<intptr_t>(asset_result);
+  }
+
+  // Resolution in current process.
+#if !defined(DART_HOST_OS_WINDOWS)
+  void* const result = Utils::ResolveSymbolInDynamicLibrary(
+      RTLD_DEFAULT, symbol.ToCString(), error);
+#else
+  void* const result = LookupSymbolInProcess(symbol.ToCString(), error);
+#endif
+  return reinterpret_cast<intptr_t>(result);
+}
+
 // FFI native C function pointer resolver.
 static intptr_t FfiResolve(Dart_Handle asset_handle,
                            Dart_Handle symbol_handle,
@@ -449,40 +484,12 @@ static intptr_t FfiResolve(Dart_Handle asset_handle,
   const String& symbol = Api::UnwrapStringHandle(zone, symbol_handle);
   char* error = nullptr;
 
-  // Resolver resolution.
-  auto resolver = GetFfiNativeResolver(thread, asset);
-  if (resolver != nullptr) {
-    void* ffi_native_result = FfiResolveWithFfiNativeResolver(
-        thread, resolver, symbol, args_n, &error);
-    if (error != nullptr) {
-      ThrowFfiResolveError(symbol, asset, error);
-    }
-    return reinterpret_cast<intptr_t>(ffi_native_result);
-  }
-
-  // Native assets resolution.
-  const auto& asset_location =
-      Array::Handle(zone, GetAssetLocation(thread, asset));
-  if (!asset_location.IsNull()) {
-    void* asset_result =
-        FfiResolveAsset(thread, asset_location, symbol, &error);
-    if (error != nullptr) {
-      ThrowFfiResolveError(symbol, asset, error);
-    }
-    return reinterpret_cast<intptr_t>(asset_result);
-  }
-
-  // Resolution in current process.
-#if !defined(DART_HOST_OS_WINDOWS)
-  void* const result = Utils::ResolveSymbolInDynamicLibrary(
-      RTLD_DEFAULT, symbol.ToCString(), &error);
-#else
-  void* const result = LookupSymbolInProcess(symbol.ToCString(), &error);
-#endif
+  const intptr_t result = FfiResolveInternal(asset, symbol, args_n, &error);
   if (error != nullptr) {
     ThrowFfiResolveError(symbol, asset, error);
   }
-  return reinterpret_cast<intptr_t>(result);
+  ASSERT(result != 0x0);
+  return result;
 }
 
 // Bootstrap to get the FFI Native resolver through a `native` call.
