@@ -173,7 +173,12 @@ dart.ci_sandbox_builder(
 )
 
 # Try only builders
-dart.try_builder("benchmark-linux", on_cq = True, properties = js_engines)
+dart.try_builder(
+    "benchmark-linux",
+    cq_branches = ["main"],
+    on_cq = True,
+    properties = js_engines,
+)
 
 dart.try_builder(
     "presubmit",
