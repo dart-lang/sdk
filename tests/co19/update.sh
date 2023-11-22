@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Uploads a new version of the co19 CIPD package.
+# Updates DEPS to the latest co19 CIPD package.
 
 set -e
 set -x

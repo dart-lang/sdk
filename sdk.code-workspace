@@ -51,7 +51,6 @@
       "tests",
       "runtime/tests",
       "runtime/observatory/tests",
-      "runtime/observatory_2/tests",
 
       // We don't control the third_party code, so don't analyze it.
       // It includes old Dart examples (e.g. protobuf) or README.dart
