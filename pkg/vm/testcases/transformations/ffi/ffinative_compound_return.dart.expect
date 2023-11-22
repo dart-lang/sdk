@@ -27,15 +27,17 @@ final class Struct1ByteInt extends ffi::Struct {
   static get #sizeOf() → core::int*
     return #C13.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
 }
-static final field (core::int) → self::Struct1ByteInt _returnStruct1ByteIntNative$Method$FfiNative$Ptr = block {
-  _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase(typ::Uint8List::•(#C12)));
-} =>ffi::_asFunctionInternal<(core::int) → self::Struct1ByteInt, (ffi::Int8) → self::Struct1ByteInt>(ffi::_fromAddress<ffi::NativeFunction<(ffi::Int8) → self::Struct1ByteInt>*>(ffi::_ffi_resolver(#C14, #C15, #C12){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
 static method main() → void {
   final self::Struct1ByteInt result = self::returnStruct1ByteIntNative(1.{core::int::unary-}(){() → core::int});
   core::print("result = ${result}");
 }
+@#C11
 static method returnStruct1ByteIntNative(core::int a0) → self::Struct1ByteInt
-  return self::_returnStruct1ByteIntNative$Method$FfiNative$Ptr(a0){(core::int) → self::Struct1ByteInt};
+  return block {
+    _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase(typ::Uint8List::•(#C12)));
+  } =>self::_returnStruct1ByteIntNative$Method$FfiNative(a0);
+@#C19
+external static method _returnStruct1ByteIntNative$Method$FfiNative(core::int #t0) → self::Struct1ByteInt;
 constants  {
   #C1 = "vm:ffi:struct-fields"
   #C2 = TypeLiteralConstant(ffi::Int8)
@@ -50,6 +52,10 @@ constants  {
   #C11 = core::pragma {name:#C10, options:#C4}
   #C12 = 1
   #C13 = <core::int*>[#C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12, #C12]
-  #C14 = "#lib"
+  #C14 = "vm:ffi:native"
   #C15 = "ReturnStruct1ByteInt"
+  #C16 = "#lib"
+  #C17 = false
+  #C18 = ffi::Native<(ffi::Int8) → self::Struct1ByteInt> {symbol:#C15, assetId:#C16, isLeaf:#C17}
+  #C19 = core::pragma {name:#C14, options:#C18}
 }

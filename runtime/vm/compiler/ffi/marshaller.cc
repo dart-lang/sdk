@@ -87,10 +87,10 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
 
 CallMarshaller* CallMarshaller::FromFunction(Zone* zone,
                                              const Function& function,
+                                             const FunctionType& c_signature,
                                              const char** error) {
   DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
-  const auto& c_signature =
-      FunctionType::ZoneHandle(zone, function.FfiCSignature());
+  DEBUG_ASSERT(c_signature.IsNotTemporaryScopedHandle());
   const auto native_function_signature =
       NativeFunctionTypeFromFunctionType(zone, c_signature, error);
   if (*error != nullptr) {
@@ -169,7 +169,7 @@ bool BaseMarshaller::IsCompound(intptr_t arg_index) const {
 }
 
 bool BaseMarshaller::ContainsHandles() const {
-  return dart_signature_.FfiCSignatureContainsHandles();
+  return c_signature_.ContainsHandles();
 }
 
 intptr_t BaseMarshaller::NumDefinitions() const {
@@ -446,12 +446,8 @@ Location CallMarshaller::LocInFfiCall(intptr_t def_index_global) const {
   }
 
   // Force all handles to be Stack locations.
-  // Since non-leaf calls block all registers, Any locations effectively mean
-  // Stack.
-  // TODO(dartbug.com/38985): Once we start inlining FFI trampolines, the inputs
-  // can be constants as well.
   if (IsHandle(arg_index)) {
-    return Location::Any();
+    return Location::RequiresStack();
   }
 
   if (loc.IsMultiple()) {
