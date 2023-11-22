@@ -28,9 +28,16 @@ class DeprecatedRule extends LintRule {
 
 @reflectiveTest
 class RemoveLintTest extends AnalysisOptionsFixTest {
+  // Keep track of this rule so it can be unregistered in `tearDown`.
+  var deprecatedRule = DeprecatedRule();
+
   void setUp() {
     registerLintRules();
-    Registry.ruleRegistry.register(DeprecatedRule());
+    Registry.ruleRegistry.register(deprecatedRule);
+  }
+
+  void tearDown() {
+    Registry.ruleRegistry.unregister(deprecatedRule);
   }
 
   Future<void> test_deprecated() async {
