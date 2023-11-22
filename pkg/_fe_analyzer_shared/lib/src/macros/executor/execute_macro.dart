@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/builder_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /// Runs [macro] in the types phase and returns a  [MacroExecutionResult].
 Future<MacroExecutionResult> executeTypesMacro(
@@ -44,6 +44,8 @@ Future<MacroExecutionResult> executeTypesMacro(
                 target.identifier as IdentifierImpl, introspector));
       case (ExtensionDeclaration target, ExtensionTypesMacro macro):
         await macro.buildTypesForExtension(target, typeBuilder);
+      case (ExtensionTypeDeclaration target, ExtensionTypeTypesMacro macro):
+        await macro.buildTypesForExtensionType(target, typeBuilder);
       case (MixinDeclaration target, MixinTypesMacro macro):
         await macro.buildTypesForMixin(
             target,
@@ -120,6 +122,16 @@ Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
               'introspectable in the declarations phase.');
         }
         await macro.buildDeclarationsForExtension(target, memberBuilder);
+      case (
+          ExtensionTypeDeclaration target,
+          ExtensionTypeDeclarationsMacro macro
+        ):
+        if (target is! IntrospectableExtensionTypeDeclarationImpl) {
+          throw new ArgumentError(
+              'Extension type declarations annotated with a macro should be '
+              'introspectable in the declarations phase.');
+        }
+        await macro.buildDeclarationsForExtensionType(target, memberBuilder);
       case (MixinDeclaration target, MixinDeclarationsMacro macro):
         if (target is! IntrospectableMixinDeclarationImpl) {
           throw new ArgumentError(
@@ -197,6 +209,16 @@ Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
               'introspectable in the definitions phase.');
         }
         await macro.buildDefinitionForExtension(target, typeBuilder);
+      case (
+          ExtensionTypeDeclaration target,
+          ExtensionTypeDefinitionMacro macro
+        ):
+        if (target is! IntrospectableExtensionTypeDeclaration) {
+          throw new ArgumentError(
+              'Extension declarations annotated with a macro should be '
+              'introspectable in the definitions phase.');
+        }
+        await macro.buildDefinitionForExtensionType(target, typeBuilder);
       case (MixinDeclaration target, MixinDefinitionMacro macro):
         if (target is! IntrospectableMixinDeclaration) {
           throw new ArgumentError(

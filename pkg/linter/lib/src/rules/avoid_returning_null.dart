@@ -2,19 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/type.dart';
-
 import '../analyzer.dart';
-import '../extensions.dart';
 
 const _desc =
     r'Avoid returning null from members whose return type is bool, double, int,'
     r' or num.';
 
 const _details = r'''
+NOTE: This rule is removed in Dart 3.3.0; it is no longer functional.
+
 **AVOID** returning null from members whose return type is bool, double, int,
 or num.
 
@@ -40,13 +36,6 @@ double getDouble() => -1.0;
 
 ''';
 
-bool _isPrimitiveType(DartType type) =>
-    type is InterfaceType &&
-    (type.isDartCoreBool ||
-        type.isDartCoreDouble ||
-        type.isDartCoreInt ||
-        type.isDartCoreNum);
-
 class AvoidReturningNull extends LintRule {
   static const LintCode code = LintCode(
       'avoid_returning_null',
@@ -59,74 +48,9 @@ class AvoidReturningNull extends LintRule {
             name: 'avoid_returning_null',
             description: _desc,
             details: _details,
-            state: State.deprecated(since: dart2_12),
+            state: State.removed(since: dart3_3),
             group: Group.style);
 
   @override
   LintCode get lintCode => code;
-
-  @override
-  void registerNodeProcessors(
-      NodeLintRegistry registry, LinterContext context) {
-    // This lint does not make sense in the context of nullability.
-    // Long-term it should be deprecated and slated for removal.
-    // See: https://github.com/dart-lang/linter/issues/2636
-    if (!context.isEnabled(Feature.non_nullable)) {
-      var visitor = _Visitor(this);
-      registry.addFunctionExpression(this, visitor);
-      registry.addMethodDeclaration(this, visitor);
-    }
-  }
-}
-
-class _BodyVisitor extends RecursiveAstVisitor {
-  final LintRule rule;
-  _BodyVisitor(this.rule);
-
-  @override
-  visitFunctionExpression(FunctionExpression node) {
-    // Skip Function expressions.
-  }
-
-  @override
-  visitReturnStatement(ReturnStatement node) {
-    if (node.expression.isNullLiteral) {
-      rule.reportLint(node);
-    }
-
-    super.visitReturnStatement(node);
-  }
-}
-
-class _Visitor extends SimpleAstVisitor<void> {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    var declaredElement = node.declaredElement;
-    if (declaredElement != null &&
-        _isPrimitiveType(declaredElement.returnType)) {
-      _visitFunctionBody(node.body);
-    }
-  }
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    var declaredElement = node.declaredElement;
-    if (declaredElement != null &&
-        _isPrimitiveType(declaredElement.returnType)) {
-      _visitFunctionBody(node.body);
-    }
-  }
-
-  void _visitFunctionBody(FunctionBody node) {
-    if (node is ExpressionFunctionBody && node.expression.isNullLiteral) {
-      rule.reportLint(node);
-      return;
-    }
-
-    node.accept(_BodyVisitor(rule));
-  }
 }

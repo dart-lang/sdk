@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddRequiredKeyword extends ResolvedCorrectionProducer {
   @override
-  FixKind get fixKind => DartFixKind.ADD_REQUIRED2;
+  FixKind get fixKind => DartFixKind.ADD_REQUIRED;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {

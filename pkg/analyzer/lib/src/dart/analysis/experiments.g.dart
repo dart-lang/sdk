@@ -244,8 +244,8 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.inline_class,
     isExpired: IsExpired.inline_class,
     documentation: 'Extension Types',
-    experimentalReleaseVersion: Version.parse('3.3.0'),
-    releaseVersion: null,
+    experimentalReleaseVersion: null,
+    releaseVersion: Version.parse('3.3.0'),
   );
 
   static final macros = ExperimentalFeature(
@@ -444,7 +444,7 @@ class IsEnabledByDefault {
   static const bool inference_update_2 = true;
 
   /// Default state of the experiment "inline-class"
-  static const bool inline_class = false;
+  static const bool inline_class = true;
 
   /// Default state of the experiment "macros"
   static const bool macros = false;

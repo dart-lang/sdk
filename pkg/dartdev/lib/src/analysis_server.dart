@@ -199,12 +199,10 @@ class AnalysisServer {
   }
 
   Future<EditBulkFixesResult> requestBulkFixes(
-      String filePath, bool inTestMode, List<String> codes,
-      {bool updatePubspec = false}) {
+      String filePath, bool inTestMode, List<String> codes) {
     return _sendCommand('edit.bulkFixes', params: <String, dynamic>{
       'included': [path.canonicalize(filePath)],
       'inTestMode': inTestMode,
-      'updatePubspec': updatePubspec,
       if (codes.isNotEmpty) 'codes': codes,
     }).then((result) {
       return EditBulkFixesResult.fromJson(
@@ -214,18 +212,13 @@ class AnalysisServer {
 
   Future<void> shutdown({Duration? timeout}) async {
     // Request shutdown.
-    final Future<void> future =
-        _sendCommand('server.shutdown').then((Map<String, dynamic> value) {
+    final Future<void> future = _sendCommand('server.shutdown').then((Map<String, dynamic> value) {
       _shutdownResponseReceived = true;
       return;
     });
-    await (timeout != null
-            ? future.timeout(timeout, onTimeout: () {
-                log.stderr(
-                    'The analysis server timed out while shutting down.');
-              })
-            : future)
-        .whenComplete(dispose);
+    await (timeout != null ? future.timeout(timeout, onTimeout: () {
+      log.stderr('The analysis server timed out while shutting down.');
+    }) : future).whenComplete(dispose);
   }
 
   /// Send an `analysis.updateContent` request with the given [files].

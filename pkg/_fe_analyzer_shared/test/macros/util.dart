@@ -381,7 +381,6 @@ class Fixtures {
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myFunction'),
       library: Fixtures.library,
       metadata: [],
-      hasAbstract: false,
       hasBody: true,
       hasExternal: false,
       isGetter: false,
@@ -407,7 +406,6 @@ class Fixtures {
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
       library: Fixtures.library,
       metadata: [],
-      hasAbstract: false,
       hasBody: true,
       hasExternal: false,
       isGetter: true,
@@ -423,7 +421,6 @@ class Fixtures {
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
       library: Fixtures.library,
       metadata: [],
-      hasAbstract: false,
       hasBody: true,
       hasExternal: false,
       isGetter: false,
@@ -504,7 +501,6 @@ class Fixtures {
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myConstructor'),
       library: Fixtures.library,
       metadata: [],
-      hasAbstract: false,
       hasBody: true,
       hasExternal: false,
       isGetter: false,
@@ -531,6 +527,7 @@ class Fixtures {
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
       library: Fixtures.library,
       metadata: [],
+      hasAbstract: false,
       hasExternal: false,
       hasFinal: false,
       hasLate: false,
@@ -558,7 +555,6 @@ class Fixtures {
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMethod'),
       library: Fixtures.library,
       metadata: [],
-      hasAbstract: false,
       hasBody: true,
       hasExternal: false,
       isGetter: false,
@@ -618,7 +614,6 @@ class Fixtures {
           id: RemoteInstance.uniqueId, name: 'myEnumConstructor'),
       library: Fixtures.library,
       metadata: [],
-      hasAbstract: false,
       hasBody: true,
       hasExternal: false,
       isGetter: false,
@@ -657,7 +652,6 @@ class Fixtures {
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMixinMethod'),
       library: Fixtures.library,
       metadata: [],
-      hasAbstract: false,
       hasBody: true,
       hasExternal: false,
       isGetter: false,
@@ -679,18 +673,26 @@ class Fixtures {
       typeParameters: [],
       onType: myClassType);
 
+  static final myExtensionType = IntrospectableExtensionTypeDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyExtensionType'),
+      library: Fixtures.library,
+      metadata: [],
+      typeParameters: [],
+      onType: myClassType);
+
   static final myGeneratedExtensionMethod = MethodDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'onTypeFieldNames'),
       library: library,
       metadata: [],
-      hasAbstract: false,
       hasBody: true,
       hasExternal: false,
       isGetter: true,
       isOperator: false,
-      isSetter: true,
+      isSetter: false,
       namedParameters: [],
       positionalParameters: [],
       returnType: NamedTypeAnnotationImpl(
@@ -700,6 +702,30 @@ class Fixtures {
           typeArguments: [stringType]),
       typeParameters: [],
       definingType: myExtension.identifier,
+      // TODO: This is a bit weird, the method is actually static, but doesn't
+      // have the keyword because it is implicit.
+      isStatic: false);
+
+  static final myGeneratedExtensionTypeMethod = MethodDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'onTypeFieldNames'),
+      library: library,
+      metadata: [],
+      hasBody: true,
+      hasExternal: false,
+      isGetter: true,
+      isOperator: false,
+      isSetter: false,
+      namedParameters: [],
+      positionalParameters: [],
+      returnType: NamedTypeAnnotationImpl(
+          id: RemoteInstance.uniqueId,
+          isNullable: false,
+          identifier: listIdentifier,
+          typeArguments: [stringType]),
+      typeParameters: [],
+      definingType: myExtensionType.identifier,
       // TODO: This is a bit weird, the method is actually static, but doesn't
       // have the keyword because it is implicit.
       isStatic: false);
@@ -720,6 +746,7 @@ class Fixtures {
     myMixin: [myMixinMethod],
     myEnum: [],
     myExtension: [myGeneratedExtensionMethod],
+    myExtensionType: [myGeneratedExtensionTypeMethod],
   }, libraryTypes: {
     Fixtures.library: [
       myClass,

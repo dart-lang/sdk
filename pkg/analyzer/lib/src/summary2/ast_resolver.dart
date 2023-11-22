@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
@@ -22,6 +23,7 @@ class AstResolver {
   final FeatureSet _featureSet;
   final AnalysisErrorListener _errorListener =
       AnalysisErrorListener.NULL_LISTENER;
+  final AnalysisOptionsImpl analysisOptions;
   final InterfaceElement? enclosingClassElement;
   final ExecutableElement? enclosingExecutableElement;
   late final _resolutionVisitor = ResolutionVisitor(
@@ -46,13 +48,15 @@ class AstResolver {
     _unitElement.library.typeProvider,
     _errorListener,
     featureSet: _featureSet,
+    analysisOptions: analysisOptions,
     flowAnalysisHelper: _flowAnalysis,
   );
 
   AstResolver(
     this._linker,
     this._unitElement,
-    this._nameScope, {
+    this._nameScope,
+    this.analysisOptions, {
     this.enclosingClassElement,
     this.enclosingExecutableElement,
   }) : _featureSet = _unitElement.library.featureSet;

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/registry.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -13,10 +15,29 @@ void main() {
   });
 }
 
+class DeprecatedRule extends LintRule {
+  DeprecatedRule()
+      : super(
+          name: 'deprecated_rule',
+          description: '',
+          details: '...',
+          group: Group.errors,
+          state: State.deprecated(since: dart2_12),
+        );
+}
+
 @reflectiveTest
 class RemoveLintTest extends AnalysisOptionsFixTest {
+  // Keep track of this rule so it can be unregistered in `tearDown`.
+  var deprecatedRule = DeprecatedRule();
+
   void setUp() {
     registerLintRules();
+    Registry.ruleRegistry.register(deprecatedRule);
+  }
+
+  void tearDown() {
+    Registry.ruleRegistry.unregister(deprecatedRule);
   }
 
   Future<void> test_deprecated() async {
@@ -24,7 +45,7 @@ class RemoveLintTest extends AnalysisOptionsFixTest {
 linter:
   rules:
     - camel_case_types
-    - avoid_returning_null
+    - deprecated_rule
 ''', '''
 linter:
   rules:
@@ -36,7 +57,7 @@ linter:
     await assertHasFix('''
 linter:
   rules:
-    - avoid_returning_null
+    - deprecated_rule
 ''', '''
 ''');
   }
@@ -46,7 +67,7 @@ linter:
 linter:
   rules:
     - camel_case_types
-    - avoid_returning_null
+    - deprecated_rule
 section:
   - foo
 ''', '''
@@ -67,7 +88,7 @@ analyzer:
 linter:
   rules:
     - camel_case_types
-    - avoid_returning_null
+    - deprecated_rule
 ''', '''
 analyzer:
   exclude:

@@ -55,10 +55,8 @@ class _Utf8Decoder {
       bytes = casted;
       errorOffset = 0;
     } else {
-      // TODO(sra): Use a persistent buffer to avoid allocations for shorter
-      // inputs, perhaps up to several kB.
       bytes = JS<NativeUint8List>(
-          'NativeUint8List', '#', _makeUint8List(codeUnits, start, end));
+          'NativeUint8List', '#', _makeNativeUint8List(codeUnits, start, end));
       errorOffset = start;
       end -= start;
       start = 0;
@@ -112,6 +110,29 @@ class _Utf8Decoder {
     }
     return decodeGeneral(bytes, start, end, single);
   }
+
+  static Uint8List _makeNativeUint8List(
+      List<int> codeUnits, int start, int end) {
+    final int length = end - start;
+    // Re-use a dedicated buffer to avoid allocating small buffers as this is
+    // unreasonably expensive on some JavaScript engines.
+    final Uint8List bytes =
+        length <= _reusableBufferSize ? _reusableBuffer : Uint8List(length);
+
+    for (int i = 0; i < length; i++) {
+      int b = codeUnits[start + i];
+      if ((b & 0xFF) != b) {
+        // Replace invalid byte values by 0xFF, which is a valid byte value that
+        // is an invalid UTF8 sequence.
+        b = 0xFF;
+      }
+      JS('', '#[#] = #', bytes, i, b); //  bytes[i] = b;
+    }
+    return bytes;
+  }
+
+  static const _reusableBufferSize = 4096;
+  static final Uint8List _reusableBuffer = Uint8List(_reusableBufferSize);
 
   static String? _convertInterceptedUint8List(
       bool allowMalformed, NativeUint8List codeUnits, int start, int end) {

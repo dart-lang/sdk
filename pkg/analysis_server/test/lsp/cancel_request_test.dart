@@ -26,7 +26,6 @@ void f() {
 }
 ''');
 
-    final initialAnalysis = waitForAnalysisComplete();
     await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;

@@ -6,6 +6,7 @@
 ///
 /// This is a shell that runs multiple tests, one per folder under `data/`.
 import 'dart:io';
+import 'dart:ffi';
 import 'dart:async';
 
 import 'package:compiler/src/commandline_options.dart';
@@ -585,12 +586,13 @@ Future<ProcessResult> _runProcess(
 }
 
 String get _d8executable {
+  final arch = Abi.current().toString().split('_')[1];
   if (Platform.isWindows) {
-    return 'third_party/d8/windows/d8.exe';
+    return 'third_party/d8/windows/$arch/d8.exe';
   } else if (Platform.isLinux) {
-    return 'third_party/d8/linux/d8';
+    return 'third_party/d8/linux/$arch/d8';
   } else if (Platform.isMacOS) {
-    return 'third_party/d8/macos/d8';
+    return 'third_party/d8/macos/$arch/d8';
   }
   throw UnsupportedError('Unsupported platform.');
 }

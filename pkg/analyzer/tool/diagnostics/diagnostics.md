@@ -8866,46 +8866,40 @@ _Publishable packages can't have '{0}' dependencies._
 
 #### Description
 
-The analyzer produces this diagnostic when a package under either
-`dependencies` or `dev_dependencies` isn't a pub, `git`, or `path` based
-dependency.
+The analyzer produces this diagnostic when a publishable package
+includes a package in the `dependencies` list of its `pubspec.yaml` file
+that isn't a pub-hosted dependency.
 
-See [Package dependencies](https://dart.dev/tools/pub/dependencies) for
-more information about the kind of dependencies that are supported.
+To learn more about the different types of dependency sources,
+check out [Package dependencies](https://dart.dev/tools/pub/dependencies).
 
 #### Example
 
-The following code produces this diagnostic because the dependency on the
-package `transmogrify` isn't a pub, `git`, or `path` based dependency:
+The following code produces this diagnostic because the dependency on
+the package `transmogrify` isn't a pub-hosted dependency.
 
 {% prettify yaml tag=pre+code %}
 name: example
 dependencies:
   transmogrify:
-    hosted:
-      name: transmogrify
-      url: http://your-package-server.com
-    version: ^1.4.0
+    [!path!]: ../transmogrify
 {% endprettify %}
 
 #### Common fixes
 
-If you want to publish your package to `pub.dev`, then change the
-dependencies to ones that are supported by `pub`.
+If you want to publish the package to `pub.dev`, then change
+the dependency to a hosted package that is published on `pub.dev`.
 
-If you don't want to publish your package to `pub.dev`, then add a
-`publish_to: none` entry to mark the package as one that isn't intended to
-be published:
+If the package isn't intended to be published on `pub.dev`, then
+add a `publish_to: none` entry to its `pubspec.yaml` file to
+mark it as not intended to be published:
 
 {% prettify yaml tag=pre+code %}
 name: example
 publish_to: none
 dependencies:
   transmogrify:
-    hosted:
-      name: transmogrify
-      url: http://your-package-server.com
-    version: ^1.4.0
+    path: ../transmogrify
 {% endprettify %}
 
 ### invalid_exception_value

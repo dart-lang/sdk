@@ -152,9 +152,14 @@ class LibraryAnalyzer {
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting!);
 
+      // TODO(pq): precache options in file state and fetch them from there
+      var analysisOptions = _libraryElement.context
+          .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
+
       var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
           file.source, _typeProvider, errorListener,
           featureSet: _libraryElement.featureSet,
+          analysisOptions: analysisOptions,
           flowAnalysisHelper: flowAnalysisHelper);
 
       var nodeToResolve = node?.thisOrAncestorMatching((e) {
@@ -398,8 +403,13 @@ class LibraryAnalyzer {
     //
     // Use the ErrorVerifier to compute errors.
     //
-    ErrorVerifier errorVerifier = ErrorVerifier(errorReporter, _libraryElement,
-        _typeProvider, _inheritance, _libraryVerificationContext);
+    ErrorVerifier errorVerifier = ErrorVerifier(
+        errorReporter,
+        _libraryElement,
+        _typeProvider,
+        _inheritance,
+        _libraryVerificationContext,
+        _analysisOptions);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
@@ -781,9 +791,15 @@ class LibraryAnalyzer {
     _testingData?.recordFlowAnalysisDataForTesting(
         file.uri, flowAnalysisHelper.dataForTesting!);
 
+    // TODO(pq): precache options in file state and fetch them from there
+    var analysisOptions = _libraryElement.context
+        .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
+
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
-        featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
+        analysisOptions: analysisOptions,
+        featureSet: unit.featureSet,
+        flowAnalysisHelper: flowAnalysisHelper));
   }
 
   void _resolveLibraryAugmentationDirective({

@@ -295,9 +295,6 @@ abstract class AbstractLspAnalysisServerTest
 analyzer:
   enable-experiment:
     - inline-class
-    - records
-    - patterns
-    - sealed-class
 ''');
 
     analysisOptionsUri = pathContext.toUri(analysisOptionsPath);
@@ -841,10 +838,21 @@ mixin LspAnalysisServerTestMixin
   /// options explicitly.
   Map<String, Object?>? defaultInitializationOptions;
 
+  /// The current state of all diagnostics from the server.
+  ///
+  /// A file that has never had diagnostics will not be in the map. A file that
+  /// has ever had diagnostics will be in the map, even if the entry is an empty
+  /// list.
+  final diagnostics = <String, List<Diagnostic>>{};
+
   /// A stream of [NotificationMessage]s from the server that may be errors.
   Stream<NotificationMessage> get errorNotificationsFromServer {
     return notificationsFromServer.where(_isErrorNotification);
   }
+
+  /// A [Future] that completes with the first analysis after initialization.
+  Future<void> get initialAnalysis =>
+      initialized ? Future.value() : waitForAnalysisComplete();
 
   bool get initialized => _clientCapabilities != null;
 
@@ -862,6 +870,15 @@ mixin LspAnalysisServerTestMixin
           OpenUriParams.fromJson(message.params as Map<String, Object?>));
 
   path.Context get pathContext;
+
+  /// A stream of diagnostic notifications from the server.
+  Stream<PublishDiagnosticsParams> get publishedDiagnostics {
+    return notificationsFromServer
+        .where((notification) =>
+            notification.method == Method.textDocument_publishDiagnostics)
+        .map((notification) => PublishDiagnosticsParams.fromJson(
+            notification.params as Map<String, Object?>));
+  }
 
   /// A stream of [RequestMessage]s from the server.
   Stream<RequestMessage> get requestsFromServer {
@@ -1094,6 +1111,10 @@ mixin LspAnalysisServerTestMixin
         await _handleProgress(notification);
       }
     });
+
+    // Track diagnostics from the server so tests can easily access the current
+    // state.
+    trackDiagnostics(diagnostics);
 
     // Assume if none of the project options were set, that we want to default to
     // opening the test project folder.
@@ -1396,12 +1417,7 @@ mixin LspAnalysisServerTestMixin
   /// diagnostics.
   StreamSubscription<PublishDiagnosticsParams> trackDiagnostics(
       Map<String, List<Diagnostic>> latestDiagnostics) {
-    return notificationsFromServer
-        .where((notification) =>
-            notification.method == Method.textDocument_publishDiagnostics)
-        .map((notification) => PublishDiagnosticsParams.fromJson(
-            notification.params as Map<String, Object?>))
-        .listen((diagnostics) {
+    return publishedDiagnostics.listen((diagnostics) {
       latestDiagnostics[pathContext.fromUri(diagnostics.uri)] =
           diagnostics.diagnostics;
     });
@@ -1478,18 +1494,10 @@ mixin LspAnalysisServerTestMixin
   }
 
   Future<List<Diagnostic>?> waitForDiagnostics(Uri uri) async {
-    PublishDiagnosticsParams? diagnosticParams;
-    await notificationsFromServer
-        .map<NotificationMessage?>((message) => message)
-        .firstWhere((message) {
-      if (message?.method == Method.textDocument_publishDiagnostics) {
-        diagnosticParams = PublishDiagnosticsParams.fromJson(
-            message!.params as Map<String, Object?>);
-        return diagnosticParams!.uri == uri;
-      }
-      return false;
-    }, orElse: () => null);
-    return diagnosticParams?.diagnostics;
+    return publishedDiagnostics
+        .where((params) => params.uri == uri)
+        .map<List<Diagnostic>?>((params) => params.diagnostics)
+        .firstWhere((_) => true, orElse: () => null);
   }
 
   Future<FlutterOutline> waitForFlutterOutline(Uri uri) async {

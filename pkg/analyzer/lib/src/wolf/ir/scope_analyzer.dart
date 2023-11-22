@@ -152,6 +152,7 @@ base class _ScopeAnalyzer {
         case Opcode.function:
           pushScope(address);
         case Opcode.block:
+        case Opcode.loop:
           pushScope(address);
         case Opcode.end:
           popScope(address);

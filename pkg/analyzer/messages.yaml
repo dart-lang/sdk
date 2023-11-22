@@ -4193,6 +4193,9 @@ CompileTimeErrorCode:
         if (x case Map(isEmpty: true)) {}
       }
       ```
+  ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR:
+    problemMessage: "An enum constant can't invoke a factory constructor."
+    correctionMessage: Try using a generative constructor.
   ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
     problemMessage: "The name of the enum constant can't be the same as the enum's name."
     correctionMessage: Try renaming the constant.
@@ -4232,6 +4235,7 @@ CompileTimeErrorCode:
       }
       ```
   ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
+    removedIn: "3.3"
     problemMessage: The invoked constructor isn't a 'const' constructor.
     correctionMessage: Try invoking a 'const' generative constructor.
     hasPublishedDocs: true
@@ -20790,37 +20794,34 @@ PubspecWarningCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a package under either
-      `dependencies` or `dev_dependencies` isn't a pub, `git`, or `path` based
-      dependency.
+      The analyzer produces this diagnostic when a publishable package
+      includes a package in the `dependencies` list of its `pubspec.yaml` file
+      that isn't a pub-hosted dependency.
 
-      See [Package dependencies](https://dart.dev/tools/pub/dependencies) for
-      more information about the kind of dependencies that are supported.
+      To learn more about the different types of dependency sources,
+      check out [Package dependencies](https://dart.dev/tools/pub/dependencies).
 
       #### Example
 
-      The following code produces this diagnostic because the dependency on the
-      package `transmogrify` isn't a pub, `git`, or `path` based dependency:
+      The following code produces this diagnostic because the dependency on
+      the package `transmogrify` isn't a pub-hosted dependency.
 
       ```yaml
       %uri="pubspec.yaml"
       name: example
       dependencies:
         transmogrify:
-          hosted:
-            name: transmogrify
-            url: http://your-package-server.com
-          version: ^1.4.0
+          [!path!]: ../transmogrify
       ```
 
       #### Common fixes
 
-      If you want to publish your package to `pub.dev`, then change the
-      dependencies to ones that are supported by `pub`.
+      If you want to publish the package to `pub.dev`, then change
+      the dependency to a hosted package that is published on `pub.dev`.
 
-      If you don't want to publish your package to `pub.dev`, then add a
-      `publish_to: none` entry to mark the package as one that isn't intended to
-      be published:
+      If the package isn't intended to be published on `pub.dev`, then
+      add a `publish_to: none` entry to its `pubspec.yaml` file to
+      mark it as not intended to be published:
 
       ```yaml
       %uri="pubspec.yaml"
@@ -20828,10 +20829,7 @@ PubspecWarningCode:
       publish_to: none
       dependencies:
         transmogrify:
-          hosted:
-            name: transmogrify
-            url: http://your-package-server.com
-          version: ^1.4.0
+          path: ../transmogrify
       ```
   INVALID_PLATFORMS_FIELD:
     problemMessage: "The 'platforms' field must be a map with platforms as keys."

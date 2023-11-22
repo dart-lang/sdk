@@ -8,15 +8,14 @@ import 'dart:isolate';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
     as isolatedExecutor;
 import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
     as processExecutor show start;
 import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
     hide start;
-
+import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
@@ -332,6 +331,19 @@ void main() {
                     equalsIgnoringWhitespace('class MyExtensionOnMyClass {}'));
               });
 
+              test('on extension types', () async {
+                var result = await executor.executeTypesPhase(
+                    simpleMacroInstanceId,
+                    Fixtures.myExtensionType,
+                    TestTypePhaseIntrospector());
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
+                    equalsIgnoringWhitespace(
+                        'class MyExtensionTypeOnMyClass {}'));
+              });
+
               test('on mixins', () async {
                 var result = await executor.executeTypesPhase(
                     simpleMacroInstanceId,
@@ -555,6 +567,25 @@ class LibraryInfo {
                 expect(result.typeAugmentations, hasLength(1));
                 expect(
                     result.typeAugmentations[Fixtures.myExtension.identifier]!
+                        .single
+                        .debugString()
+                        .toString(),
+                    equalsIgnoringWhitespace('''
+                List<String> get onTypeFieldNames;
+              '''));
+                expect(result.libraryAugmentations, isEmpty);
+              });
+
+              test('on extension types', () async {
+                var result = await executor.executeDeclarationsPhase(
+                    simpleMacroInstanceId,
+                    Fixtures.myExtensionType,
+                    Fixtures.testDeclarationPhaseIntrospector);
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, hasLength(1));
+                expect(
+                    result
+                        .typeAugmentations[Fixtures.myExtensionType.identifier]!
                         .single
                         .debugString()
                         .toString(),
@@ -834,6 +865,24 @@ class LibraryInfo {
                 expect(
                     definitionResult
                         .typeAugmentations[Fixtures.myExtension.identifier]!
+                        .single
+                        .debugString()
+                        .toString(),
+                    equalsIgnoringWhitespace(
+                        "augment List<String> get onTypeFieldNames => "
+                        "['myField',];"));
+              });
+
+              test('on extension types', () async {
+                var definitionResult = await executor.executeDefinitionsPhase(
+                    simpleMacroInstanceId,
+                    Fixtures.myExtensionType,
+                    Fixtures.testDefinitionPhaseIntrospector);
+                expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.typeAugmentations, hasLength(1));
+                expect(
+                    definitionResult
+                        .typeAugmentations[Fixtures.myExtensionType.identifier]!
                         .single
                         .debugString()
                         .toString(),

@@ -43,7 +43,6 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     class ^A {}
     ''');
 
-    final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
       initialize,
       {
@@ -73,7 +72,6 @@ class HoverTest extends AbstractLspAnalysisServerTest {
 
     final code = TestCode.parse(content);
 
-    final initialAnalysis = waitForAnalysisComplete();
     await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;
@@ -90,7 +88,6 @@ class HoverTest extends AbstractLspAnalysisServerTest {
     setHoverContentFormat([MarkupKind.PlainText]);
     final code = TestCode.parse(content);
 
-    final initialAnalysis = waitForAnalysisComplete();
     await initialize();
     await openFile(mainFileUri, code.code);
     await initialAnalysis;

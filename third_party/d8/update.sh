@@ -20,8 +20,8 @@ cleanup() {
 trap cleanup EXIT HUP INT QUIT TERM PIPE
 cd "$tmpdir"
 
-arch=("linux64" "linux32" "linux64" "linux-arm32" "mac64" "win64")
-path=("linux" "linux/ia32" "linux/x64" "linux/arm32" "macos" "windows")
+arch=("linux64" "linux-arm64" "mac64" "mac-arm64" "win64")
+path=("linux/x64" "linux/arm64" "macos/x64" "macos/arm64" "windows/x64")
 
 for i in "${!arch[@]}"
 do

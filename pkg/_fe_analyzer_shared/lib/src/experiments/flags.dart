@@ -82,9 +82,9 @@ enum ExperimentalFlag {
 
   inlineClass(
       name: 'inline-class',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      experimentEnabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: const Version(3, 3),
       experimentReleasedVersion: const Version(3, 3)),
 
   macros(

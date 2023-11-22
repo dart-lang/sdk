@@ -562,18 +562,13 @@ CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
     We cannot figure out the intent of the user to suggest the right fix.
 CompileTimeErrorCode.EMPTY_MAP_PATTERN:
   status: hasFix
+CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR:
+  status: noFix
+  since: 3.3
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
-CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
-  status: noFix
-  since: 2.17
-  notes: |-
-    This is only reported on enum constant declarations calling a factory
-    constructor. No enum factory constructor can be const. The correction is to
-    call a different constructor, or refactor the factory constructor to be
-    const and generative.
 CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
   status: noFix
   since: 2.17
@@ -1857,9 +1852,9 @@ LintCode.always_put_control_body_on_new_line:
 LintCode.always_put_required_named_parameters_first:
   status: hasFix
 LintCode.always_require_non_null_named_parameters:
-  status: hasFix
+  status: noFix
   notes: |-
-    Deprecated.
+      Removed.
 LintCode.always_specify_types:
   status: hasFix
 LintCode.always_use_package_imports:
@@ -1952,9 +1947,9 @@ LintCode.avoid_returning_null:
   notes: |-
     Deprecated.
 LintCode.avoid_returning_null_for_future:
-  status: hasFix
+  status: noFix
   notes: |-
-    Deprecated.
+      Removed.
 LintCode.avoid_returning_null_for_void:
   status: hasFix
 LintCode.avoid_returning_this:

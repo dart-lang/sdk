@@ -52,17 +52,18 @@ class TypedLiteralResolver {
   final bool _strictInference;
   final bool _isNonNullableByDefault;
 
-  factory TypedLiteralResolver(ResolverVisitor resolver, FeatureSet featureSet,
-      TypeSystemImpl typeSystem, TypeProviderImpl typeProvider) {
-    var library = resolver.definingLibrary;
-    var analysisOptions = library.context.analysisOptions;
-    var analysisOptionsImpl = analysisOptions as AnalysisOptionsImpl;
+  factory TypedLiteralResolver(
+      ResolverVisitor resolver,
+      FeatureSet featureSet,
+      TypeSystemImpl typeSystem,
+      TypeProviderImpl typeProvider,
+      AnalysisOptionsImpl analysisOptions) {
     return TypedLiteralResolver._(
         resolver,
         typeSystem,
         typeProvider,
         resolver.errorReporter,
-        analysisOptionsImpl.strictInference,
+        analysisOptions.strictInference,
         featureSet.isEnabled(Feature.non_nullable));
   }
 

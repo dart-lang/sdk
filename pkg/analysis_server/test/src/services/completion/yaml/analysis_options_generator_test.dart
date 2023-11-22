@@ -19,7 +19,7 @@ void main() {
 
 @reflectiveTest
 class AnalysisOptionsGeneratorTest extends YamlGeneratorTest {
-  // Keep track of any added rules so they can be unregistered at tearDown
+  // Keep track of any added rules so they can be unregistered in `tearDown`.
   var addedRules = <LintRule>[];
 
   @override

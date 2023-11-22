@@ -579,7 +579,7 @@ Future runGlobalTransformations(
       target, component, os, nnbdMode,
       environmentDefines: environmentDefines, coreTypes: coreTypes);
   unreachable_code_elimination.transformComponent(
-      component, enableAsserts, evaluator);
+      target, component, evaluator, enableAsserts);
 
   if (useGlobalTypeFlowAnalysis) {
     globalTypeFlow.transformComponent(target, coreTypes, component,

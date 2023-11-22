@@ -51,6 +51,9 @@ class SimpleMacro
         ExtensionTypesMacro,
         ExtensionDeclarationsMacro,
         ExtensionDefinitionMacro,
+        ExtensionTypeTypesMacro,
+        ExtensionTypeDeclarationsMacro,
+        ExtensionTypeDefinitionMacro,
         FieldTypesMacro,
         FieldDeclarationsMacro,
         FieldDefinitionMacro,
@@ -439,7 +442,10 @@ class SimpleMacro
         variable.identifier.name,
         ''' {
           print('parentClass: $definingClass');
-          print('isExternal: ${variable.hasExternal}');
+        ''',
+        if (variable is FieldDeclaration)
+          "print('isAbstract: ${variable.hasAbstract}');\n",
+        '''print('isExternal: ${variable.hasExternal}');
           print('isFinal: ${variable.hasFinal}');
           print('isLate: ${variable.hasLate}');
           return augment super;
@@ -662,6 +668,54 @@ class LibraryInfo {
       '];',
     ]));
   }
+
+  @override
+  FutureOr<void> buildTypesForExtensionType(
+      ExtensionTypeDeclaration extensionType, TypeBuilder builder) {
+    final onType = extensionType.onType as NamedTypeAnnotation;
+    final name = '${extensionType.identifier.name}On${onType.identifier.name}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForExtensionType(
+      IntrospectableExtensionTypeDeclaration extensionType,
+      MemberDeclarationBuilder builder) async {
+    final dartCoreList =
+        // ignore: deprecated_member_use_from_same_package
+        await builder.resolveIdentifier(Uri.parse('dart:core'), 'List');
+    final dartCoreString =
+        // ignore: deprecated_member_use_from_same_package
+        await builder.resolveIdentifier(Uri.parse('dart:core'), 'String');
+    builder.declareInType(DeclarationCode.fromParts([
+      NamedTypeAnnotationCode(name: dartCoreList, typeArguments: [
+        NamedTypeAnnotationCode(name: dartCoreString),
+      ]),
+      ' get onTypeFieldNames;',
+    ]));
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForExtensionType(
+      IntrospectableExtensionTypeDeclaration extensionType,
+      TypeDefinitionBuilder builder) async {
+    // Get a builder for the getter we added earlier.
+    final extensionTypeMethods = await builder.methodsOf(extensionType);
+    final getterBuilder = await builder.buildMethod(extensionTypeMethods
+        .singleWhere((m) => m.identifier.name == 'onTypeFieldNames')
+        .identifier);
+
+    // Introspect on our `on` type.
+    final onType = (await builder.typeDeclarationOf(
+        (extensionType.onType as NamedTypeAnnotation).identifier));
+    final onTypeFields = await builder.fieldsOf(onType);
+
+    getterBuilder.augment(FunctionBodyCode.fromParts([
+      '=> [',
+      for (var field in onTypeFields) "'${field.identifier.name}',",
+      '];',
+    ]));
+  }
 }
 
 Future<FunctionBodyCode> _buildFunctionAugmentation(
@@ -682,7 +736,6 @@ Future<FunctionBodyCode> _buildFunctionAugmentation(
     if (function is ConstructorDeclaration)
       "print('isFactory: ${function.isFactory}');\n",
     '''
-      print('isAbstract: ${function.hasAbstract}');
       print('isExternal: ${function.hasExternal}');
       print('isGetter: ${function.isGetter}');
       print('isSetter: ${function.isSetter}');

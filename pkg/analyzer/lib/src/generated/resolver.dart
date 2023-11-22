@@ -178,6 +178,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   final ErrorReporter errorReporter;
 
+  /// The analysis options used by this resolver.
+  final AnalysisOptionsImpl analysisOptions;
+
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
   InterfaceElement? enclosingClass;
@@ -325,6 +328,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
       {required FeatureSet featureSet,
+      required AnalysisOptionsImpl analysisOptions,
       required FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritanceManager,
@@ -334,6 +338,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             typeProvider as TypeProviderImpl,
             errorListener,
             featureSet,
+            analysisOptions,
             flowAnalysisHelper);
 
   ResolverVisitor._(
@@ -344,6 +349,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       this.typeProvider,
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
+      this.analysisOptions,
       this.flowAnalysis)
       : errorReporter = ErrorReporter(
           errorListener,
@@ -357,9 +363,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             nullSafetyEnabled: definingLibrary.isNonNullableByDefault,
             patternsEnabled:
                 definingLibrary.featureSet.isEnabled(Feature.patterns)) {
-    var analysisOptions =
-        definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
-
     nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -372,8 +375,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorReporter: errorReporter,
       nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
-    _typedLiteralResolver =
-        TypedLiteralResolver(this, _featureSet, typeSystem, typeProvider);
+    _typedLiteralResolver = TypedLiteralResolver(
+        this, _featureSet, typeSystem, typeProvider, analysisOptions);
     extensionResolver = ExtensionMemberResolver(this);
     typePropertyResolver = TypePropertyResolver(this);
     inferenceHelper = InvocationInferenceHelper(
@@ -2367,11 +2370,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorElement = constructorName.staticElement;
       if (constructorElement != null) {
         node.constructorElement = constructorElement;
-        if (!constructorElement.isConst && constructorElement.isFactory) {
-          final errorTarget =
-              node.arguments?.constructorSelector?.name ?? node.name;
+        if (constructorElement.isFactory) {
+          final constructorName = node.arguments?.constructorSelector?.name;
+          final errorTarget = constructorName ?? node.name;
           errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR,
+            CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
             errorTarget.offset,
             errorTarget.length,
           );

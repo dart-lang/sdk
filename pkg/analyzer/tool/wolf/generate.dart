@@ -88,6 +88,7 @@ class _Instructions {
     _addInstruction('identical', []);
     _addInstruction('eq', []);
     _addInstruction('not', []);
+    _addInstruction('is_', [type('type')]);
     // Stack manipulation
     _addInstruction('drop', []);
     _addInstruction('dup', []);
@@ -95,10 +96,13 @@ class _Instructions {
         'shuffle', [uint('popCount'), stackIndices('stackIndices')]);
     // Flow control
     _addInstruction('block', [uint('inputCount'), uint('outputCount')]);
+    _addInstruction('loop', [uint('inputCount')]);
     _addInstruction('function', [type('type'), functionFlags('flags')]);
     _addInstruction('end', []);
     _addInstruction('br', [uint('nesting')]);
     _addInstruction('brIf', [uint('nesting')]);
+    _addInstruction('await_', []);
+    _addInstruction('yield_', []);
     // Invocations and tearoffs
     _addInstruction('call',
         [(callDescriptor('callDescriptor')), (argumentNames('argumentNames'))]);

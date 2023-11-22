@@ -620,6 +620,16 @@ def main():
         help='the path to the source code of the output binary, '
         'default set to current directory. Used in the'
         ' disambiguation process.')
+    parser.add_option(
+        '--check-support',
+        dest='check_support',
+        default=True,
+        action='store_true',
+        help='Check that the version of the available tools is sufficient to '
+        'read the data from the library given by --library')
+    parser.add_option('--no-check-support',
+                      action='store_false',
+                      dest='check_support')
     opts, _args = parser.parse_args()
 
     if ((not opts.library) and
@@ -663,7 +673,7 @@ def main():
     print('addr2line: %s' % addr2line_binary)
     print('nm: %s' % nm_binary)
 
-    if opts.library:
+    if opts.library and opts.check_support:
         CheckDebugFormatSupport(opts.library, addr2line_binary)
 
     # Prepare output directory and report guts

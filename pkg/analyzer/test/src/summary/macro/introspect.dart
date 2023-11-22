@@ -240,7 +240,6 @@ class _Printer {
 
     await sink.withIndent(() async {
       await sink.writeFlags({
-        'hasAbstract': e.hasAbstract,
         'hasBody': e.hasBody,
         'hasExternal': e.hasExternal,
         'isFactory': e.isFactory,
@@ -263,6 +262,7 @@ class _Printer {
 
     await sink.withIndent(() async {
       await sink.writeFlags({
+        'hasAbstract': e.hasAbstract,
         'hasExternal': e.hasExternal,
         'hasFinal': e.hasFinal,
         'hasLate': e.hasLate,
@@ -279,7 +279,6 @@ class _Printer {
 
     await sink.withIndent(() async {
       await sink.writeFlags({
-        'hasAbstract': e.hasAbstract,
         'hasBody': e.hasBody,
         'hasExternal': e.hasExternal,
         'isGetter': e.isGetter,
@@ -549,7 +548,38 @@ class _TypeAnnotationStringBuilder {
     }
   }
 
-  void _writeFormalParameter(FunctionTypeParameter node) {
+  void _writeFunctionTypeAnnotation(FunctionTypeAnnotation type) {
+    write(type.returnType);
+    _sink.write(' Function');
+
+    _sink.writeList(
+      elements: type.typeParameters,
+      write: _writeTypeParameter,
+      separator: ', ',
+      open: '<',
+      close: '>',
+    );
+
+    _sink.write('(');
+    var hasFormalParameter = false;
+    for (final formalParameter in type.positionalParameters) {
+      if (hasFormalParameter) {
+        _sink.write(', ');
+      }
+      _writeFunctionTypeParameter(formalParameter);
+      hasFormalParameter = true;
+    }
+    for (final formalParameter in type.namedParameters) {
+      if (hasFormalParameter) {
+        _sink.write(', ');
+      }
+      _writeFunctionTypeParameter(formalParameter);
+      hasFormalParameter = true;
+    }
+    _sink.write(')');
+  }
+
+  void _writeFunctionTypeParameter(FunctionTypeParameter node) {
     final String closeSeparator;
     if (node.isNamed) {
       _sink.write('{');
@@ -571,37 +601,6 @@ class _TypeAnnotationStringBuilder {
     }
 
     _sink.write(closeSeparator);
-  }
-
-  void _writeFunctionTypeAnnotation(FunctionTypeAnnotation type) {
-    write(type.returnType);
-    _sink.write(' Function');
-
-    _sink.writeList(
-      elements: type.typeParameters,
-      write: _writeTypeParameter,
-      separator: ', ',
-      open: '<',
-      close: '>',
-    );
-
-    _sink.write('(');
-    var hasFormalParameter = false;
-    for (final formalParameter in type.positionalParameters) {
-      if (hasFormalParameter) {
-        _sink.write(', ');
-      }
-      _writeFormalParameter(formalParameter);
-      hasFormalParameter = true;
-    }
-    for (final formalParameter in type.namedParameters) {
-      if (hasFormalParameter) {
-        _sink.write(', ');
-      }
-      _writeFormalParameter(formalParameter);
-      hasFormalParameter = true;
-    }
-    _sink.write(')');
   }
 
   void _writeNamedTypeAnnotation(NamedTypeAnnotation type) {

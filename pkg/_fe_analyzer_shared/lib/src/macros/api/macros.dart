@@ -243,3 +243,28 @@ abstract interface class ExtensionDefinitionMacro implements Macro {
       IntrospectableExtensionDeclaration extension,
       TypeDefinitionBuilder builder);
 }
+
+/// The interface for [Macro]s that can be applied to any extension type
+/// declaration, and want to contribute new type declarations to the program.
+abstract interface class ExtensionTypeTypesMacro implements Macro {
+  FutureOr<void> buildTypesForExtensionType(
+      ExtensionTypeDeclaration extension, TypeBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any extension type
+/// declaration, and want to contribute new non-type declarations to the
+/// program.
+abstract interface class ExtensionTypeDeclarationsMacro implements Macro {
+  FutureOr<void> buildDeclarationsForExtensionType(
+      IntrospectableExtensionTypeDeclaration extension,
+      MemberDeclarationBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to any extension type
+/// declaration, and want to augment the definitions of the members of that
+/// extension.
+abstract interface class ExtensionTypeDefinitionMacro implements Macro {
+  FutureOr<void> buildDefinitionForExtensionType(
+      IntrospectableExtensionTypeDeclaration extension,
+      TypeDefinitionBuilder builder);
+}

@@ -238,7 +238,7 @@ abstract class Class2 {
   /*member: Class2.instanceMethod1:
 declarations:
 
-void Class2_instanceMethod1GeneratedMethod_a() {}
+void Class2_instanceMethod1GeneratedMethod_() {}
 
 */
   void instanceMethod1();
@@ -247,7 +247,7 @@ void Class2_instanceMethod1GeneratedMethod_a() {}
   /*member: Class2.instanceField1:
 declarations:
 
-void Class2_instanceField1GeneratedMethod_() {}
+void Class2_instanceField1GeneratedMethod_a() {}
 
 */
   abstract int? instanceField1;

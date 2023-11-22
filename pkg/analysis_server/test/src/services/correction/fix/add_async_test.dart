@@ -13,7 +13,6 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddAsyncTest);
-    defineReflectiveTests(AvoidReturningNullForFutureTest);
     defineReflectiveTests(DiscardedFuturesTest);
   });
 }
@@ -329,32 +328,6 @@ foo() {}
 f() async {
   await foo();
   return 42;
-}
-''');
-  }
-}
-
-@reflectiveTest
-class AvoidReturningNullForFutureTest extends FixProcessorLintTest {
-  @override
-  FixKind get kind => DartFixKind.ADD_ASYNC;
-
-  @override
-  String get lintCode => LintNames.avoid_returning_null_for_future;
-
-  @override
-  // TODO(brianwilkerson): Migrate this test to null safety.
-  String? get testPackageLanguageVersion => '2.9';
-
-  Future<void> test_asyncFor() async {
-    await resolveTestCode('''
-Future<String> f() {
-  return null;
-}
-''');
-    await assertHasFix('''
-Future<String> f() async {
-  return null;
 }
 ''');
   }

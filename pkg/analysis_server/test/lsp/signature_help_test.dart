@@ -47,7 +47,6 @@ mixin SignatureHelpMixin on AbstractLspAnalysisServerTest {
     if (state == _FileState.closed) {
       newFile(mainFilePath, code.code);
     }
-    final initialAnalysis = waitForAnalysisComplete();
     await initialize();
     if (state == _FileState.open) {
       await openFile(mainFileUri, code.code);
@@ -119,7 +118,6 @@ final a = A(^);
     required bool includesFull,
   }) async {
     final code = TestCode.parse(content);
-    final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
       initialize,
       {

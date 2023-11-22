@@ -219,7 +219,7 @@ abstract interface class IntrospectableEnumDeclaration
 /// The class for introspecting on an extension.
 ///
 /// Note that extensions do not actually introduce a new type, but we model them
-/// as [ParameterizedTypeDeclaration]s anyways, because they generally look
+/// as [ParameterizedTypeDeclaration]s anyway, because they generally look
 /// exactly like other type declarations, and are treated the same.
 abstract interface class ExtensionDeclaration
     implements ParameterizedTypeDeclaration, Declaration {
@@ -230,6 +230,17 @@ abstract interface class ExtensionDeclaration
 /// An introspectable extension declaration.
 abstract interface class IntrospectableExtensionDeclaration
     implements ExtensionDeclaration, IntrospectableType {}
+
+/// The class for introspecting on an extension type.
+abstract interface class ExtensionTypeDeclaration
+    implements ParameterizedTypeDeclaration, Declaration {
+  /// The type that appears on the `on` clause of this extension type.
+  TypeAnnotation get onType;
+}
+
+/// An introspectable extension type declaration.
+abstract interface class IntrospectableExtensionTypeDeclaration
+    implements ExtensionTypeDeclaration, IntrospectableType {}
 
 /// Mixin introspection information.
 ///
@@ -260,9 +271,6 @@ abstract interface class TypeAliasDeclaration
 
 /// Function introspection information.
 abstract interface class FunctionDeclaration implements Declaration {
-  /// Whether this function has an `abstract` modifier.
-  bool get hasAbstract;
-
   /// Whether or not this function has a body.
   ///
   /// This is useful when augmenting a function, so you know whether an
@@ -309,13 +317,13 @@ abstract interface class ConstructorDeclaration implements MethodDeclaration {
 
 /// Variable introspection information.
 abstract interface class VariableDeclaration implements Declaration {
-  /// Whether this field has an `external` modifier.
+  /// Whether this variable has an `external` modifier.
   bool get hasExternal;
 
-  /// Whether this field has a `final` modifier.
+  /// Whether this variable has a `final` modifier.
   bool get hasFinal;
 
-  /// Whether this field has a `late` modifier.
+  /// Whether this variable has a `late` modifier.
   bool get hasLate;
 
   /// The type of this field.
@@ -324,7 +332,10 @@ abstract interface class VariableDeclaration implements Declaration {
 
 /// Field introspection information.
 abstract interface class FieldDeclaration
-    implements VariableDeclaration, MemberDeclaration {}
+    implements VariableDeclaration, MemberDeclaration {
+  /// Whether this field has an `abstract` modifier.
+  bool get hasAbstract;
+}
 
 /// General parameter introspection information, see the subtypes
 /// [FunctionTypeParameter] and [ParameterDeclaration].

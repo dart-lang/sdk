@@ -141,10 +141,10 @@ class ExperimentalFlag {
 
   static const ExperimentalFlag inlineClass = const ExperimentalFlag(
       name: 'inline-class',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
-      enabledVersion: defaultLanguageVersion,
-      experimentEnabledVersion: defaultLanguageVersion,
+      enabledVersion: const Version(3, 3),
+      experimentEnabledVersion: const Version(3, 3),
       experimentReleasedVersion: const Version(3, 3));
 
   static const ExperimentalFlag macros = const ExperimentalFlag(

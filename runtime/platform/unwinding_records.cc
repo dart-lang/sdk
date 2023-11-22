@@ -5,7 +5,8 @@
 #include "platform/unwinding_records.h"
 #include "platform/globals.h"
 
-#if !defined(DART_HOST_OS_WINDOWS) || !defined(TARGET_ARCH_X64)
+#if !defined(DART_HOST_OS_WINDOWS) ||                                          \
+    (!defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64))
 
 namespace dart {
 

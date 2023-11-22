@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
+import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/wolf/ir/call_descriptor.dart';
 import 'package:analyzer/src/wolf/ir/coded_ir.dart';
 import 'package:analyzer/src/wolf/ir/ir.dart';
@@ -23,8 +25,15 @@ import 'package:meta/meta.dart';
 /// that an instruction sequence behaves as it's expected to.
 @visibleForTesting
 Object? interpret(CodedIRContainer ir, List<Object?> args,
-    {required Scopes scopes, required CallDispatcher callDispatcher}) {
-  return _IRInterpreter(ir, scopes: scopes, callDispatcher: callDispatcher)
+    {required Scopes scopes,
+    required CallDispatcher callDispatcher,
+    required TypeProvider typeProvider,
+    required TypeSystem typeSystem}) {
+  return _IRInterpreter(ir,
+          scopes: scopes,
+          callDispatcher: callDispatcher,
+          typeProvider: typeProvider,
+          typeSystem: typeSystem)
       .run(args);
 }
 
@@ -35,6 +44,16 @@ typedef CallHandler = Object? Function(CallDescriptor descriptor,
 /// Interface used by [interpret] to query the behavior of calls to external
 /// code.
 abstract interface class CallDispatcher {
+  /// Evaluates an `await` expression.
+  ///
+  /// In a real Dart program, execution of an `await` would cause the current
+  /// stack frame to be suspended and then resumed after other, unrelated code,
+  /// had a chance to execute. But since the purpose of the interpreter is to
+  /// simulate Dart code execution with just enough fidelity to be able to unit
+  /// test the IR, it is good enough to simply execute the `await`
+  /// synchronously.
+  Object? await_(Instance future);
+
   /// Evaluates a call to `operator==`, using virtual dispatch on [firstValue],
   /// and passing [secondValue] as the parameter to `operator==`.
   ///
@@ -50,6 +69,15 @@ abstract interface class CallDispatcher {
   /// the results. However, it is guaranteed to call the [CallHandler] exactly
   /// once for each `call` instruction that is interpreted.
   CallHandler lookupCallDescriptor(CallDescriptor callDescriptor);
+
+  /// Executes a `yield` statement.
+  ///
+  /// In a real Dart program, execution of a `yield` would cause the current
+  /// stack frame to be suspended and then resumed after the caller advanced an
+  /// iterator. But since the purpose of the interpreter is to simulate Dart
+  /// code with just enough fidelity to be able to unit test the IR, it is good
+  /// enough to simply execute the `yield` synchronously.
+  void yield_(Object? value);
 }
 
 /// Interpreter representation of a heap object.
@@ -87,6 +115,8 @@ class SoundnessError extends Error {
 /// An entry on the control flow stack, representing a control flow construct
 /// (such as a `block`) that the interpreter is currently executing.
 class _ControlFlowStackEntry {
+  final _ControlFlowStackEntryKind kind;
+
   /// The index into [_IRInterpreter.stack] before the first input to control
   /// flow construct.
   ///
@@ -123,11 +153,14 @@ class _ControlFlowStackEntry {
   final int scope;
 
   _ControlFlowStackEntry(
-      {required this.stackFence,
+      {required this.kind,
+      required this.stackFence,
       required this.localFence,
       required this.outputCount,
       required this.scope});
 }
+
+enum _ControlFlowStackEntryKind { block, loop }
 
 class _IRInterpreter {
   static const keepGoing = _KeepGoing();
@@ -135,6 +168,8 @@ class _IRInterpreter {
   final Scopes scopes;
   final CallDispatcher callDispatcher;
   final List<CallHandler> callHandlers;
+  final TypeProvider typeProvider;
+  final TypeSystem typeSystem;
   final stack = <Object?>[];
   final locals = <_LocalSlot>[];
   final controlFlowStack = <_ControlFlowStackEntry>[];
@@ -144,7 +179,11 @@ class _IRInterpreter {
   /// instruction preceding [address].
   var mostRecentScope = 0;
 
-  _IRInterpreter(this.ir, {required this.scopes, required this.callDispatcher})
+  _IRInterpreter(this.ir,
+      {required this.scopes,
+      required this.callDispatcher,
+      required this.typeProvider,
+      required this.typeSystem})
       : callHandlers =
             ir.mapCallDescriptors(callDispatcher.lookupCallDescriptor);
 
@@ -163,7 +202,7 @@ class _IRInterpreter {
       controlFlowStack.removeLast();
     }
     if (controlFlowStack.isNotEmpty) {
-      var stackEntry = controlFlowStack.removeLast();
+      var stackEntry = controlFlowStack.last;
       var stackFence = stackEntry.stackFence;
       var outputCount = stackEntry.outputCount;
       var newStackLength = stackFence + outputCount;
@@ -172,14 +211,33 @@ class _IRInterpreter {
       stack.length = stackFence + outputCount;
       locals.length = stackEntry.localFence;
       var scope = stackEntry.scope;
-      address = scopes.endAddress(scope);
-      mostRecentScope = scopes.lastDescendant(scope);
+      switch (stackEntry.kind) {
+        case _ControlFlowStackEntryKind.block:
+          // Continue with the code following the block.
+          controlFlowStack.removeLast();
+          address = scopes.endAddress(scope);
+          mostRecentScope = scopes.lastDescendant(scope);
+        case _ControlFlowStackEntryKind.loop:
+          // Jump back to the `loop` instruction.
+          address = scopes.beginAddress(scope);
+          mostRecentScope = scope;
+      }
       return keepGoing;
     } else {
       // Branch targets the function, so return from the code being interpreted.
       return stack.last;
     }
   }
+
+  DartType getRuntimeType(Object? value) => switch (value) {
+        String() => typeProvider.stringType,
+        int() => typeProvider.intType,
+        double() => typeProvider.doubleType,
+        null => typeProvider.nullType,
+        Instance(:var type) => type,
+        dynamic(:var runtimeType) =>
+          throw StateError('Unexpected interpreter value of type $runtimeType')
+      };
 
   Object? run(List<Object?> args) {
     var functionType = Opcode.function.decodeType(ir, 0);
@@ -199,12 +257,19 @@ class _IRInterpreter {
           for (var i = 0; i < count; i++) {
             locals.add(_LocalSlot());
           }
+        case Opcode.await_:
+          var future = stack.removeLast();
+          if (future is! Instance || !future.type.isDartAsyncFuture) {
+            throw StateError('Await of non-future');
+          }
+          stack.add(callDispatcher.await_(future));
         case Opcode.block:
           var inputCount = Opcode.block.decodeInputCount(ir, address);
           var outputCount = Opcode.block.decodeOutputCount(ir, address);
           var scope = ++mostRecentScope;
           assert(scopes.beginAddress(scope) == address);
           controlFlowStack.add(_ControlFlowStackEntry(
+              kind: _ControlFlowStackEntryKind.block,
               stackFence: stack.length - inputCount,
               localFence: locals.length,
               outputCount: outputCount,
@@ -256,8 +321,16 @@ class _IRInterpreter {
             assert(
                 stack.length == stackEntry.stackFence + stackEntry.outputCount);
             assert(locals.length == stackEntry.localFence);
-            // Continue with the code following the block.
-            controlFlowStack.removeLast();
+            switch (stackEntry.kind) {
+              case _ControlFlowStackEntryKind.block:
+                // Continue with the code following the block.
+                controlFlowStack.removeLast();
+              case _ControlFlowStackEntryKind.loop:
+                // Jump back to the `loop` instruction.
+                var scope = stackEntry.scope;
+                address = scopes.beginAddress(scope);
+                mostRecentScope = scope;
+            }
           }
         case Opcode.eq:
           var secondValue = stack.removeLast();
@@ -273,9 +346,23 @@ class _IRInterpreter {
           var secondValue = stack.removeLast();
           var firstValue = stack.removeLast();
           stack.add(identical(firstValue, secondValue));
+        case Opcode.is_:
+          var testType = ir.decodeType(Opcode.is_.decodeType(ir, address));
+          stack.add(typeSystem.isSubtypeOf(
+              getRuntimeType(stack.removeLast()), testType));
         case Opcode.literal:
           var value = Opcode.literal.decodeValue(ir, address);
           stack.add(ir.decodeLiteral(value));
+        case Opcode.loop:
+          var inputCount = Opcode.loop.decodeInputCount(ir, address);
+          var scope = ++mostRecentScope;
+          assert(scopes.beginAddress(scope) == address);
+          controlFlowStack.add(_ControlFlowStackEntry(
+              kind: _ControlFlowStackEntryKind.loop,
+              stackFence: stack.length - inputCount,
+              localFence: locals.length,
+              outputCount: inputCount,
+              scope: scope));
         case Opcode.not:
           stack.add(!(stack.removeLast() as bool));
         case Opcode.readLocal:
@@ -301,6 +388,8 @@ class _IRInterpreter {
         case Opcode.writeLocal:
           var localIndex = Opcode.writeLocal.decodeLocalIndex(ir, address);
           locals[localIndex].contents = stack.removeLast();
+        case Opcode.yield_:
+          callDispatcher.yield_(stack.removeLast());
         case var opcode:
           throw UnimplementedError(
               'TODO(paulberry): implement ${opcode.describe()} in '

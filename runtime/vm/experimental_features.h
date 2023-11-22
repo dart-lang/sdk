@@ -12,6 +12,7 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  inline_class,
   inference_update_2,
   sealed_class,
   class_modifiers,
