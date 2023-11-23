@@ -11,7 +11,7 @@ abstract class Client {
   ///
   /// This method should do any formatting needed on [data], then send it to
   /// the [Client].
-  void streamNotify(String stream, Map<String, Object?> data);
+  void streamNotify(String stream, Object data);
 
   /// Called if the connection to the client should be closed.
   Future<void> close();
