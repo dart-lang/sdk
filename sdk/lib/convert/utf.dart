@@ -345,16 +345,8 @@ final class Utf8Decoder extends Converter<List<int>, String> {
   ///
   /// If the [codeUnits] start with the encoding of a
   /// [unicodeBomCharacterRune], that character is discarded.
-  String convert(List<int> codeUnits, [int start = 0, int? end]) {
-    // Allow the implementation to intercept and specialize based on the type
-    // of codeUnits.
-    var result = _convertIntercepted(_allowMalformed, codeUnits, start, end);
-    if (result != null) {
-      return result;
-    }
-
-    return _Utf8Decoder(_allowMalformed).convertSingle(codeUnits, start, end);
-  }
+  String convert(List<int> codeUnits, [int start = 0, int? end]) =>
+      _Utf8Decoder(_allowMalformed).convertSingle(codeUnits, start, end);
 
   /// Starts a chunked conversion.
   ///
@@ -374,9 +366,6 @@ final class Utf8Decoder extends Converter<List<int>, String> {
   Stream<String> bind(Stream<List<int>> stream) => super.bind(stream);
 
   external Converter<List<int>, T> fuse<T>(Converter<String, T> next);
-
-  external static String? _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int? end);
 }
 
 // UTF-8 constants.

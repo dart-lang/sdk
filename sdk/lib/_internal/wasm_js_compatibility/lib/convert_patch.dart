@@ -27,12 +27,6 @@ class Utf8Decoder {
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     return super.fuse(next);
   }
-
-  @patch
-  static String? _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int? end) {
-    return null;
-  }
 }
 
 //// Implementation ///////////////////////////////////////////////////////////
