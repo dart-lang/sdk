@@ -7,7 +7,7 @@ Defines the dart2wasm builders.
 
 load("//lib/cron.star", "cron")
 load("//lib/dart.star", "dart")
-load("//lib/defaults.star", "chrome", "emscripten", "no_android")
+load("//lib/defaults.star", "chrome", "emscripten", "firefox", "no_android")
 load("//lib/paths.star", "paths")
 
 dart.poller(
@@ -39,4 +39,12 @@ cron.nightly_builder(
     category = "d2w|cm",
     channels = ["try"],
     properties = [chrome, emscripten, no_android],
+)
+
+cron.nightly_builder(
+    "dart2wasm-linux-firefox",
+    category = "d2w|f",
+    channels = ["try"],
+    properties = [firefox, emscripten, no_android],
+    location_filters = paths.to_location_filters(paths.dart2wasm),
 )
