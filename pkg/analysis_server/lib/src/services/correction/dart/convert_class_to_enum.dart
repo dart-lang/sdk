@@ -194,7 +194,7 @@ class _EnumDescription {
         .sort((first, second) => first.indexValue.compareTo(second.indexValue));
     for (var field in fieldsToConvert) {
       // Compute the declaration of the corresponding enum constant.
-      var documentationComment = field.element.documentationComment;
+      var documentationComment = field.fieldDeclaration.documentationComment;
       if (constantsBuffer.isNotEmpty) {
         constantsBuffer.write(',$eol');
         if (documentationComment != null) {
@@ -205,11 +205,7 @@ class _EnumDescription {
         constantsBuffer.write(indent);
       }
       if (documentationComment != null) {
-        constantsBuffer.write(
-          // Always replace '\n' because documentationComment is normalized to
-          // always '\n' (in `getCommentNodeRawText`).
-          documentationComment.replaceAll('\n', '$eol$indent'),
-        );
+        constantsBuffer.write(utils.getNodeText(documentationComment));
         constantsBuffer.write('$eol$indent');
       }
       constantsBuffer.write(field.name);
