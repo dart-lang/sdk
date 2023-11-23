@@ -179,7 +179,7 @@ class _List<E> extends _ModifiableList<E> with FixedLengthListMixin<E> {
   }
 
   Iterator<E> get iterator {
-    return new _FixedSizeListIterator<E>(this);
+    return _FixedSizeListIterator<E>(this);
   }
 }
 
@@ -191,19 +191,19 @@ class _ImmutableList<E> extends _ListBase<E> with UnmodifiableListMixin<E> {
   }
 
   Iterator<E> get iterator {
-    return new _FixedSizeListIterator<E>(this);
+    return _FixedSizeListIterator<E>(this);
   }
 }
 
 // Iterator for lists with fixed size.
 class _FixedSizeListIterator<E> implements Iterator<E> {
-  final _ListBase<E> _list;
+  final WasmObjectArray<Object?> _data;
   final int _length; // Cache list length for faster access.
   int _index;
   E? _current;
 
   _FixedSizeListIterator(_ListBase<E> list)
-      : _list = list,
+      : _data = list._data,
         _length = list.length,
         _index = 0 {
     assert(list is _List<E> || list is _ImmutableList<E>);
@@ -216,7 +216,7 @@ class _FixedSizeListIterator<E> implements Iterator<E> {
       _current = null;
       return false;
     }
-    _current = unsafeCast(_list._data.read(_index));
+    _current = unsafeCast(_data.read(_index));
     _index++;
     return true;
   }
