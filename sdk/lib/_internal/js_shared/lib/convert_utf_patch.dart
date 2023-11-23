@@ -13,13 +13,6 @@ class Utf8Decoder {
   Converter<List<int>, T> fuse<T>(Converter<String, T> next) {
     return super.fuse(next);
   }
-
-  // TODO(54018): Deprecate this hook.
-  @patch
-  static String? _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int? end) {
-    return null; // This call was not intercepted.
-  }
 }
 
 @patch

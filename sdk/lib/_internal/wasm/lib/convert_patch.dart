@@ -35,12 +35,6 @@ class Utf8Decoder {
     // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
     return super.fuse<T>(next);
   }
-
-  @patch
-  static String? _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int? end) {
-    return null;
-  }
 }
 
 class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
