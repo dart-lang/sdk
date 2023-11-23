@@ -242,8 +242,8 @@ class EmitterImpl extends ModularEmitterBase implements Emitter {
   @override
   Map<OutputUnit, int> get generatedSizes {
     final mappedSizes = <OutputUnit, int>{};
-    _emitter.emittedOutputBuffers.forEach((outputUnit, outputData) {
-      mappedSizes[outputUnit] = outputData.length;
+    _emitter.emittedOutputSizes.forEach((outputUnit, dataLength) {
+      mappedSizes[outputUnit] = dataLength;
     });
     _emitter.omittedOutputUnits
         .forEach((outputUnit) => mappedSizes[outputUnit] = 0);
