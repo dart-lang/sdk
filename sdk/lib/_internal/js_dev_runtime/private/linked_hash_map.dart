@@ -150,7 +150,8 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
       return null;
     }
     V value = JS('', '#.get(#)', _map, key);
-    return value == null ? null : value; // coerce undefined to null.
+    // coerce undefined to null.
+    return JS<bool>('!', '# === void 0', value) ? null : value;
   }
 
   void operator []=(K key, V value) {
@@ -228,7 +229,8 @@ base class LinkedMap<K, V> extends InternalMap<K, V> {
     if (JS<bool>('!', '#.delete(#)', map, key)) {
       _modifications = (_modifications + 1) & 0x3fffffff;
     }
-    return value == null ? null : value; // coerce undefined to null.
+    // coerce undefined to null.
+    return JS<bool>('!', '# === void 0', value) ? null : value;
   }
 
   void clear() {
