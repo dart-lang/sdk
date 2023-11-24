@@ -1,3 +1,12 @@
+## 3.2.2
+
+This is a patch release that:
+
+- Adjusts the nullablity computations in the implementation of the
+  upper bound algorithm in the CFE (issue [#53999][]).
+
+[#53999]: https://github.com/dart-lang/sdk/issues/53999
+
 ## 3.2.1 - 2023-11-22
 
 This is a patch release that:
