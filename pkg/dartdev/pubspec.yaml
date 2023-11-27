@@ -34,10 +34,7 @@ dependencies:
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  clock: any
   expect: any
-  file: any
-  http: any
   lints: any
   pub_semver: any
   test: any
