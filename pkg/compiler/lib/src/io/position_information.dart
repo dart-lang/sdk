@@ -31,9 +31,7 @@ class PositionSourceInformation extends SourceInformation {
   final List<FrameContext>? inliningContext;
 
   PositionSourceInformation(
-      this.startPosition, this.innerPosition, this.inliningContext) {
-    assert((startPosition as dynamic) != null);
-  }
+      this.startPosition, this.innerPosition, this.inliningContext);
 
   factory PositionSourceInformation.readFromDataSource(
       DataSourceReader source) {
@@ -256,7 +254,6 @@ enum SourcePositionKind {
 
 SourceLocation? getSourceLocation(SourceInformation sourceInformation,
     [SourcePositionKind sourcePositionKind = SourcePositionKind.START]) {
-  assert((sourceInformation as dynamic) != null);
   switch (sourcePositionKind) {
     case SourcePositionKind.START:
       return sourceInformation.startPosition;

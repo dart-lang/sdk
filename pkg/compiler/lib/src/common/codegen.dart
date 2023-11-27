@@ -2095,7 +2095,6 @@ class ModularName extends js.Name implements js.AstContainer {
 
   void set value(js.Name node) {
     assert(!isFinalized);
-    assert((node as dynamic) != null);
     _value = node.withSourceInformation(sourceInformation) as js.Name;
   }
 

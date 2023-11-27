@@ -1127,7 +1127,7 @@ abstract class DartTypeSubstitutionVisitor<A>
   final Map<DartType, DartType> _map = Map.identity();
 
   DartType _mapped(DartType oldType, DartType newType) {
-    assert(_map[oldType] == null);
+    assert(!_map.containsKey(oldType));
     return _map[oldType] = newType;
   }
 
