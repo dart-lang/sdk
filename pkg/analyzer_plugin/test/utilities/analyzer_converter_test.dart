@@ -16,16 +16,17 @@ import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../support/abstract_context.dart';
 import '../support/abstract_single_unit.dart';
 
 void main() {
   defineReflectiveTests(AnalyzerConverterTest);
-  defineReflectiveTests(AnalyzerConverterWithoutNullSafetyTest);
 }
 
 @reflectiveTest
-class AnalyzerConverterTest extends _AnalyzerConverterTest {
+class AnalyzerConverterTest extends AbstractSingleUnitTest {
+  AnalyzerConverter converter = AnalyzerConverter();
+  late analyzer.Source source;
+
   /// Assert that the given [pluginError] matches the given [analyzerError].
   void assertError(
       plugin.AnalysisError pluginError, analyzer.AnalysisError analyzerError,
@@ -66,6 +67,13 @@ class AnalyzerConverterTest extends _AnalyzerConverterTest {
       errorCode: analyzer.CompileTimeErrorCode.AWAIT_IN_WRONG_CONTEXT,
       contextMessages: contextMessages,
     );
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    source = newFile('/foo/bar.dart', '').createSource();
+    testFile = convertPath('$testPackageRootPath/lib/test.dart');
   }
 
   void test_convertAnalysisError_contextMessages() {
@@ -615,46 +623,5 @@ typedef A<T> = Map<int, T>;
     for (var type in analyzer.ErrorType.values) {
       expect(converter.convertErrorType(type), isNotNull, reason: type.name);
     }
-  }
-}
-
-@reflectiveTest
-class AnalyzerConverterWithoutNullSafetyTest extends _AnalyzerConverterTest
-    with WithoutNullSafetyMixin {
-  Future<void> test_convertElement_method() async {
-    await resolveTestCode('''
-class A {
-  static List<String> myMethod(int a, {String b, int c}) {
-    return [];
-  }
-}''');
-    var engineElement = findElement.method('myMethod');
-    // create notification Element
-    var element = converter.convertElement(engineElement);
-    expect(element.kind, plugin.ElementKind.METHOD);
-    expect(element.name, 'myMethod');
-    {
-      var location = element.location!;
-      expect(location.file, testFile);
-      expect(location.offset, 32);
-      expect(location.length, 'myGetter'.length);
-      expect(location.startLine, 2);
-      expect(location.startColumn, 23);
-    }
-    expect(element.parameters, '(int a, {String b, int c})');
-    expect(element.returnType, 'List<String>');
-    expect(element.flags, plugin.Element.FLAG_STATIC);
-  }
-}
-
-class _AnalyzerConverterTest extends AbstractSingleUnitTest {
-  AnalyzerConverter converter = AnalyzerConverter();
-  late analyzer.Source source;
-
-  @override
-  void setUp() {
-    super.setUp();
-    source = newFile('/foo/bar.dart', '').createSource();
-    testFile = convertPath('$testPackageRootPath/lib/test.dart');
   }
 }
