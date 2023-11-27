@@ -7,11 +7,10 @@ JSDIR=${0%/*}/../../../third_party/firefox_jsshell
 
 case $OSTYPE in
     *[Dd]arwin*)
-        exec $JSDIR/mac/jsshell/js "$@"
+        exec $JSDIR/js "$@"
         ;;
     *[Ll]inux*)
-        LD_LIBRARY_PATH=$JSDIR/linux/jsshell/ \
-            exec $JSDIR/linux/jsshell/js "$@"
+        exec $JSDIR/js "$@"
         ;;
     *)
         echo No jsshell binary for $(uname) >2
