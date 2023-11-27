@@ -860,7 +860,8 @@ abstract class TypeConstraintGatherer {
           _protoConstraints.length = baseConstraintCount;
           NullabilityAwareTypeVariableEliminator eliminator =
               new NullabilityAwareTypeVariableEliminator(
-                  eliminationTargets: p.typeParameters.toSet(),
+                  structuralEliminationTargets: p.typeParameters.toSet(),
+                  nominalEliminationTargets: {},
                   bottomType: const NeverType.nonNullable(),
                   topType: coreTypes.objectNullableRawType,
                   topFunctionType: coreTypes.functionNonNullableRawType,
