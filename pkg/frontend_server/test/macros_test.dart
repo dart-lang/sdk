@@ -7,12 +7,18 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:frontend_server/compute_kernel.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() async {
+  late String productPlatformDill;
+
   group('basic macro', () {
     late Directory tempDir;
     setUp(() {
+      var binDir = File(Platform.resolvedExecutable).parent;
+      productPlatformDill = path.join(binDir.parent.path, 'lib', '_internal',
+          'vm_platform_strong_product.dill');
       var systemTempDir = Directory.systemTemp;
       tempDir = systemTempDir.createTempSync('frontendServerTest');
       Directory('${tempDir.path}/.dart_tool').createSync();
@@ -80,11 +86,7 @@ macro class TestMacro implements ClassDeclarationsMacro {
         '--no-summary',
         '--no-summary-only',
         '--target=vm',
-        '--dart-sdk-summary',
-        Uri.base
-            .resolve(Platform.resolvedExecutable)
-            .resolve('../lib/_internal/vm_platform_strong_product.dill')
-            .toFilePath(),
+        '--dart-sdk-summary=$productPlatformDill',
         '--output=${bootstrapDillFile.path}',
         '--source=${bootstrapFile.path}',
         '--source=${testMacroFile.path}',
@@ -113,11 +115,7 @@ void main() {
         '--no-summary',
         '--no-summary-only',
         '--target=vm',
-        '--dart-sdk-summary',
-        Uri.base
-            .resolve(Platform.resolvedExecutable)
-            .resolve('../lib/_internal/vm_platform_strong_product.dill')
-            .toFilePath(),
+        '--dart-sdk-summary=$productPlatformDill',
         '--output=${applyTestMacroDill.path}',
         '--source=${applyTestMacroFile.path}',
         '--packages-file=${packageConfig.path}',
