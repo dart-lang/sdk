@@ -271,12 +271,7 @@ class DataSourceReader {
   List<E>? readListOrNull<E>(E f()) {
     int count = readInt();
     if (count == 0) return null;
-    final first = f();
-    List<E> list = List<E>.filled(count, first);
-    for (int i = 1; i < count; i++) {
-      list[i] = f();
-    }
-    return list;
+    return List<E>.generate(count, (_) => f(), growable: false);
   }
 
   bool readBool() {
@@ -334,30 +329,32 @@ class DataSourceReader {
     return null;
   }
 
-  /// Reads a list of string values from this data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty list.
+  /// Reads a list of string values from this data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStrings].
-  List<String>? readStrings({bool emptyAsNull = false}) {
+  List<String> readStrings() {
+    return readStringsOrNull() ?? const <String>[];
+  }
+
+  /// Reads a list of string values from this data source. If the list would be
+  /// empty returns `null` instead.
+  ///
+  /// This is a convenience method to be used together with
+  /// [DataSinkWriter.writeStrings].
+  List<String>? readStringsOrNull() {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    List<String> list = List<String>.filled(count, '');
-    for (int i = 0; i < count; i++) {
-      list[i] = readString();
-    }
-    return list;
+    if (count == 0) return null;
+    return List.generate(count, (_) => readString(), growable: false);
   }
 
   /// Reads a map from [Name] values to [V] values from this data source,
-  /// calling [f] to read each value from the data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty map.
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeNameMap].
-  Map<Name, V>? readNameMap<V>(V f(), {bool emptyAsNull = false}) {
+  Map<Name, V> readNameMap<V>(V f()) {
     int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
     Map<Name, V> map = {};
     for (int i = 0; i < count; i++) {
       Name key = readMemberName();
@@ -368,8 +365,7 @@ class DataSourceReader {
   }
 
   /// Reads a map from string values to [V] values from this data source,
-  /// calling [f] to read each value from the data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty map.
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeStringMap].
@@ -625,8 +621,7 @@ class DataSourceReader {
   }
 
   /// Reads a map from kernel tree nodes to [V] values from this data source,
-  /// calling [f] to read each value from the data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty map.
+  /// calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTreeNodeMap].
@@ -665,21 +660,6 @@ class DataSourceReader {
       return readTreeNodeInContextInternal(currentMemberData);
     }
     return null;
-  }
-
-  /// Reads a list of references to kernel tree nodes in the known [context]
-  /// from this data source. If [emptyAsNull] is `true`, `null` is returned
-  /// instead of an empty list.
-  ///
-  /// This is a convenience method to be used together with
-  /// [DataSinkWriter.writeTreeNodesInContext].
-  List<E>? readTreeNodesInContext<E extends ir.TreeNode>(
-      {bool emptyAsNull = false}) {
-    int count = readInt();
-    if (count == 0 && emptyAsNull) return null;
-    return List<E>.generate(
-        count, (index) => readTreeNodeInContextInternal(currentMemberData) as E,
-        growable: false);
   }
 
   /// Reads a map from kernel tree nodes to [V] values in the known [context]
@@ -729,8 +709,7 @@ class DataSourceReader {
   }
 
   /// Reads a list of references to kernel type parameter nodes from this data
-  /// source. If [emptyAsNull] is `true`, `null` is returned instead of an empty
-  /// list.
+  /// source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTypeParameterNodes].
@@ -1131,8 +1110,7 @@ class DataSourceReader {
   }
 
   /// Reads a map from type variable entities to [V] values from this data
-  /// source, calling [f] to read each value from the data source. If
-  /// [emptyAsNull] is `true`, `null` is returned instead of an empty map.
+  /// source, calling [f] to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeTypeVariableMap].
@@ -1178,8 +1156,7 @@ class DataSourceReader {
   }
 
   /// Reads a map from locals to [V] values from this data source, calling [f]
-  /// to read each value from the data source. If [emptyAsNull] is `true`,
-  /// `null` is returned instead of an empty map.
+  /// to read each value from the data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeLocalMap].
@@ -1295,8 +1272,7 @@ class DataSourceReader {
     return null;
   }
 
-  /// Reads a list of constant values from this data source. If [emptyAsNull] is
-  /// `true`, `null` is returned instead of an empty list.
+  /// Reads a list of constant values from this data source.
   ///
   /// This is a convenience method to be used together with
   /// [DataSinkWriter.writeConstants].

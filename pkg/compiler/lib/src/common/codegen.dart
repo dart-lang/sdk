@@ -118,7 +118,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     final typeVariableBoundsSubtypeChecks = source.readListOrNull(() {
       return Pair(source.readDartType(), source.readDartType());
     })?.toSet();
-    final constSymbols = source.readStrings(emptyAsNull: true)?.toSet();
+    final constSymbols = source.readStringsOrNull()?.toSet();
     final specializedGetInterceptors = source.readListOrNull(() {
       return source.readClasses().toSet();
     });

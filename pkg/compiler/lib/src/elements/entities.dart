@@ -360,9 +360,9 @@ class ParameterStructure {
     source.begin(tag);
     int requiredPositionalParameters = source.readInt();
     int positionalParameters = source.readInt();
-    List<String> namedParameters = source.readStrings()!;
+    List<String> namedParameters = source.readStrings();
     Set<String> requiredNamedParameters =
-        source.readStrings(emptyAsNull: true)?.toSet() ?? const <String>{};
+        source.readStringsOrNull()?.toSet() ?? const <String>{};
     int typeParameters = source.readInt();
     source.end(tag);
     return ParameterStructure(

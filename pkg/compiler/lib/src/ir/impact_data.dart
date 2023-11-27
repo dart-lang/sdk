@@ -1562,7 +1562,7 @@ class _CallStructure {
     source.begin(tag);
     List<ir.DartType> typeArguments = source.readDartTypeNodes();
     int positionalArguments = source.readInt();
-    List<String> namedArguments = source.readStrings() ?? const [];
+    List<String> namedArguments = source.readStrings();
     source.end(tag);
     return _CallStructure.internal(
         typeArguments, positionalArguments, namedArguments);
