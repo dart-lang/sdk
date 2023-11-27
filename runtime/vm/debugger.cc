@@ -1912,9 +1912,9 @@ static void RefineBreakpointPos(const Script& script,
                                 intptr_t* best_column,
                                 intptr_t* best_line,
                                 TokenPosition* best_token_pos) {
-  ASSERT(requested_column == -1 &&
-             exact_token_pos == TokenPosition::kNoSource ||
-         requested_column > -1 && exact_token_pos != TokenPosition::kNoSource);
+  ASSERT(
+      (requested_column == -1 && exact_token_pos == TokenPosition::kNoSource) ||
+      (requested_column > -1 && exact_token_pos != TokenPosition::kNoSource));
 
   intptr_t token_start_column = -1;
   intptr_t token_line = -1;
@@ -2020,9 +2020,9 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
                                           intptr_t requested_column,
                                           TokenPosition exact_token_pos) {
   ASSERT(!func.HasOptimizedCode());
-  ASSERT(requested_column == -1 &&
-             exact_token_pos == TokenPosition::kNoSource ||
-         requested_column > -1 && exact_token_pos != TokenPosition::kNoSource);
+  ASSERT(
+      (requested_column == -1 && exact_token_pos == TokenPosition::kNoSource) ||
+      (requested_column > -1 && exact_token_pos != TokenPosition::kNoSource));
 
   requested_token_pos =
       TokenPosition::Max(requested_token_pos, func.token_pos());
@@ -2466,9 +2466,9 @@ BreakpointLocation* Debugger::SetCodeBreakpoints(
     intptr_t requested_column,
     TokenPosition exact_token_pos,
     const GrowableObjectArray& functions) {
-  ASSERT(requested_column == -1 &&
-             exact_token_pos == TokenPosition::kNoSource ||
-         requested_column > -1 && exact_token_pos != TokenPosition::kNoSource);
+  ASSERT(
+      (requested_column == -1 && exact_token_pos == TokenPosition::kNoSource) ||
+      (requested_column > -1 && exact_token_pos != TokenPosition::kNoSource));
 
   Function& function = Function::Handle();
   function ^= functions.At(0);
