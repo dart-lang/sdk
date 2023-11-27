@@ -46,5 +46,4 @@ cron.nightly_builder(
     category = "d2w|f",
     channels = ["try"],
     properties = [firefox, emscripten, no_android],
-    location_filters = paths.to_location_filters(paths.dart2wasm),
 )
