@@ -1895,7 +1895,12 @@ void Debugger::PauseException(const Instance& exc) {
   ClearCachedStackTraces();
 }
 
-// Helper to refine the resolved token pos.
+// Helper that refines the resolved token pos.
+//
+// If |requested_column| is specified, then |exact_token_pos| must be the exact
+// position where the user requested a column breakpoint to be set. If
+// |requested_column| is |-1|, |exact_token_pos| must be
+// |TokenPosition::kNoSource|.
 static void RefineBreakpointPos(const Script& script,
                                 TokenPosition pos,
                                 TokenPosition next_closest_token_position,
@@ -1907,6 +1912,10 @@ static void RefineBreakpointPos(const Script& script,
                                 intptr_t* best_column,
                                 intptr_t* best_line,
                                 TokenPosition* best_token_pos) {
+  ASSERT(requested_column == -1 &&
+             exact_token_pos == TokenPosition::kNoSource ||
+         requested_column > -1 && exact_token_pos != TokenPosition::kNoSource);
+
   intptr_t token_start_column = -1;
   intptr_t token_line = -1;
   if (requested_column >= 0) {
@@ -1914,14 +1923,19 @@ static void RefineBreakpointPos(const Script& script,
     TokenPosition end_of_line_pos = TokenPosition::kNoSource;
     script.GetTokenLocation(pos, &token_line, &token_start_column);
     script.TokenRangeAtLine(token_line, &ignored, &end_of_line_pos);
-    TokenPosition token_end_pos =
-        TokenPosition::Min(next_closest_token_position, end_of_line_pos);
+
+    TokenPosition token_end_pos = TokenPosition::Min(
+        TokenPosition::Deserialize(next_closest_token_position.Pos() - 1),
+        end_of_line_pos);
 
     if ((token_end_pos.IsReal() && exact_token_pos.IsReal() &&
          (token_end_pos < exact_token_pos)) ||
         (token_start_column > *best_column)) {
-      // Prefer the token with the lowest column number compatible
-      // with the requested column.
+      // We prefer the token with the lowest column number compatible with the
+      // requested column. The current token under consideration either ends
+      // before the requested column, and is thus incompatible with it, or
+      // has a higher column number than the best token we've found so far, so
+      // we reject the current token under consideration.
       return;
     }
   }
@@ -1945,6 +1959,11 @@ static void RefineBreakpointPos(const Script& script,
 // an optional column (requested_column).  The range of tokens usually
 // represents one line of the program text, but can represent a larger
 // range on recursive calls.
+//
+// If |requested_column| is specified, then |exact_token_pos| must be the exact
+// position where the user requested a column breakpoint to be set. If
+// |requested_column| is |-1|, |exact_token_pos| must be
+// |TokenPosition::kNoSource|.
 //
 // The best fit is found in two passes.
 //
@@ -2001,6 +2020,9 @@ static TokenPosition ResolveBreakpointPos(const Function& func,
                                           intptr_t requested_column,
                                           TokenPosition exact_token_pos) {
   ASSERT(!func.HasOptimizedCode());
+  ASSERT(requested_column == -1 &&
+             exact_token_pos == TokenPosition::kNoSource ||
+         requested_column > -1 && exact_token_pos != TokenPosition::kNoSource);
 
   requested_token_pos =
       TokenPosition::Max(requested_token_pos, func.token_pos());
@@ -2432,6 +2454,10 @@ bool Debugger::FindBestFit(const Script& script,
   return false;
 }
 
+// If |requested_column| is specified, then |exact_token_pos| must be the exact
+// position where the user requested a column breakpoint to be set. If
+// |requested_column| is |-1|, |exact_token_pos| must be
+// |TokenPosition::kNoSource|.
 BreakpointLocation* Debugger::SetCodeBreakpoints(
     const GrowableHandlePtrArray<const Script>& scripts,
     TokenPosition token_pos,
@@ -2440,6 +2466,10 @@ BreakpointLocation* Debugger::SetCodeBreakpoints(
     intptr_t requested_column,
     TokenPosition exact_token_pos,
     const GrowableObjectArray& functions) {
+  ASSERT(requested_column == -1 &&
+             exact_token_pos == TokenPosition::kNoSource ||
+         requested_column > -1 && exact_token_pos != TokenPosition::kNoSource);
+
   Function& function = Function::Handle();
   function ^= functions.At(0);
   TokenPosition breakpoint_pos = ResolveBreakpointPos(
@@ -2526,14 +2556,6 @@ BreakpointLocation* Debugger::SetBreakpoint(
     }
   }
 
-  TokenPosition exact_token_pos = token_pos;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (token_pos != last_token_pos && requested_column >= 0) {
-    exact_token_pos =
-        FindExactTokenPosition(script, token_pos, requested_column);
-  }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
   if (!func.IsNull()) {
     // There may be more than one function object for a given function
     // in source code. There may be implicit closure functions, and
@@ -2550,6 +2572,13 @@ BreakpointLocation* Debugger::SetBreakpoint(
       // have already been compiled. We can resolve the breakpoint now.
       // If requested_column is larger than zero, [token_pos, last_token_pos]
       // governs one single line of code.
+      TokenPosition exact_token_pos = TokenPosition::kNoSource;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (token_pos != last_token_pos && requested_column >= 0) {
+        exact_token_pos =
+            FindExactTokenPosition(script, token_pos, requested_column);
+      }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
       DeoptimizeWorld();
       BreakpointLocation* loc =
           SetCodeBreakpoints(scripts, token_pos, last_token_pos, requested_line,
@@ -2565,7 +2594,7 @@ BreakpointLocation* Debugger::SetBreakpoint(
   if (FLAG_verbose_debug) {
     intptr_t line_number = -1;
     intptr_t column_number = -1;
-    script.GetTokenLocation(exact_token_pos, &line_number, &column_number);
+    script.GetTokenLocation(token_pos, &line_number, &column_number);
     if (func.IsNull()) {
       OS::PrintErr(
           "Registering pending breakpoint for "
@@ -2580,11 +2609,10 @@ BreakpointLocation* Debugger::SetBreakpoint(
   }
   const String& script_url = String::Handle(script.url());
   BreakpointLocation* loc = GetBreakpointLocation(
-      script_url, exact_token_pos, requested_line, requested_column);
+      script_url, token_pos, requested_line, requested_column);
   if (loc == nullptr) {
-    loc =
-        new BreakpointLocation(this, scripts, exact_token_pos, exact_token_pos,
-                               requested_line, requested_column);
+    loc = new BreakpointLocation(this, scripts, token_pos, last_token_pos,
+                                 requested_line, requested_column);
     RegisterBreakpointLocation(loc);
   }
   return loc;
@@ -2890,7 +2918,16 @@ void GroupDebugger::NotifyCompilation(const Function& function) {
                                         location->debugger()->isolate());
 
       // Ensure the location is resolved for the original function.
-      location->EnsureIsResolved(function, location->token_pos());
+      TokenPosition exact_token_pos = TokenPosition::kNoSource;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+      if (location->token_pos() != location->end_token_pos() &&
+          location->requested_column_number() >= 0) {
+        exact_token_pos = FindExactTokenPosition(
+            Script::Handle(location->script()), location->token_pos(),
+            location->requested_column_number());
+      }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+      location->EnsureIsResolved(function, exact_token_pos);
       if (FLAG_verbose_debug) {
         Breakpoint* bpt = location->breakpoints();
         while (bpt != nullptr) {

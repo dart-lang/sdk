@@ -88,7 +88,7 @@ var tests = <IsolateTest>[
       int resolvedLine = await bpt.location!.getLine() as int;
       int resolvedCol = await bpt.location!.getColumn() as int;
       print('$LINE_A:${col} -> ${resolvedLine}:${resolvedCol}');
-      if (col <= 12) {
+      if (col < 12) {
         expect(resolvedLine, equals(LINE_A));
         expect(resolvedCol, equals(3));
       } else if (col <= 36) {
