@@ -1,0 +1,56 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+[217]static method method([224] dynamic o) → dynamic {
+[231]  #L1:
+[231]  {
+[239]    [239] final synthesized dynamic #0#0 = [239] [239] o;
+[253]    [253] synthesized core::bool #0#4;
+[253]    [253] synthesized core::bool #0#4#isSet = [253] [253] false;
+[253]    [253] synthesized core::int #0#2;
+[253]    [253] synthesized core::bool #0#2#isSet = [253] [253] false;
+[-1]    function #0#2#func() → core::int
+[253]      return [253] [253] [253] [253] #0#2#isSet ?{core::int} [253] [253] #0#2 : [253] [253] let [253] final core::bool* #t1 = [253] [253] #0#2#isSet = [253] [253] true in [253] [253] #0#2 = [253] [253] [239]([239] [239] [239] #0#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+[-1]    function #0#4#func() → core::bool
+[253]      return [253] [253] [253] [253] #0#4#isSet ?{core::bool} [253] [253] #0#4 : [253] [253] let [253] final core::bool* #t2 = [253] [253] #0#4#isSet = [253] [253] true in [253] [253] #0#4 = [253] [253] [253] [253] #0#2#func [253](){() → core::int} =={core::num::==}{(core::Object) → core::bool} [253] [253] #C1;
+[253]    [253] synthesized dynamic #0#6;
+[253]    [253] synthesized core::bool #0#6#isSet = [253] [253] false;
+[-1]    function #0#6#func() → dynamic
+[253]      return [253] [253] [253] [253] #0#6#isSet ?{dynamic} [253] [253] #0#6 : [253] [253] let [253] final core::bool* #t3 = [253] [253] #0#6#isSet = [253] [253] true in [253] [253] #0#6 = [253] [253] [239]([239] [239] [239] #0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}[253]([253] 0){(core::int) → dynamic};
+[282]    [282] synthesized core::bool #0#8;
+[282]    [282] synthesized core::bool #0#8#isSet = [282] [282] false;
+[-1]    function #0#8#func() → core::bool
+[282]      return [282] [282] [282] [282] #0#8#isSet ?{core::bool} [282] [282] #0#8 : [282] [282] let [282] final core::bool* #t4 = [282] [282] #0#8#isSet = [282] [282] true in [282] [282] #0#8 = [282] [282] [253] [253] #0#2#func [253](){() → core::int} =={core::num::==}{(core::Object) → core::bool} [282] [282] #C2;
+[282]    [282] synthesized dynamic #0#10;
+[282]    [282] synthesized core::bool #0#10#isSet = [282] [282] false;
+[-1]    function #0#10#func() → dynamic
+[282]      return [282] [282] [282] [282] #0#10#isSet ?{dynamic} [282] [282] #0#10 : [282] [282] let [282] final core::bool* #t5 = [282] [282] #0#10#isSet = [282] [282] true in [282] [282] #0#10 = [282] [282] [239]([239] [239] [239] #0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}[282]([282] 1){(core::int) → dynamic};
+[-1]    [-1] dynamic #t6;
+[248]    {
+[258]      [258] lowered hoisted dynamic a#case#0;
+[290]      [290] lowered hoisted dynamic a#case#1;
+[248]      if([231] [231] [268] [268] [253] [253] [253] [253] [253] [253] [239] [239] #0#0 is core::List<dynamic> && [253] [253] #0#4#func [253](){() → core::bool} && [258]([258] let [258] final dynamic #t7 = [258] [258] a#case#0 = [253] [253] #0#6#func [253](){() → dynamic} in [258] [258] true) && [268] [268] [268] [268] [266] [266] a#case#0{dynamic}.< [268]([270] 5) as{TypeError} core::bool || [300] [300] [282] [282] [282] [282] [282] [282] [239] [239] #0#0 is core::List<dynamic> && [282] [282] #0#8#func [282](){() → core::bool} && [290]([290] let [290] final dynamic #t8 = [290] [290] a#case#1 = [282] [282] #0#10#func [282](){() → dynamic} in [290] [290] true) && [300] [300] [300] [300] [298] [298] a#case#1{dynamic}.> [300]([302] 5) as{TypeError} core::bool) {
+[248]        {
+[311]          [311] [311] core::print [316]([317] "1");
+[231]          break #L1;
+        }
+      }
+    }
+[327]    {
+[337]      [337] lowered hoisted dynamic b#case#0;
+[369]      [369] lowered hoisted dynamic b#case#1;
+[327]      if([231] [231] [337] [337] [347] [347] [332] [332] [332] [332] [332] [332] [239] [239] #0#0 is core::List<dynamic> && [253] [253] #0#4#func [253](){() → core::bool} && [337]([337] let [337] final dynamic #t9 = [337] [337] b#case#0 = [253] [253] #0#6#func [253](){() → dynamic} in [337] [337] true) && [347] [347] [347] [347] [345] [345] b#case#0{dynamic}.< [347]([349] 5) as{TypeError} core::bool && [231]([231] let [231] final dynamic #t10 = [231] [231] #t6 = [337] [337] b#case#0 in [337] [337] true) || [369] [369] [379] [379] [361] [361] [361] [361] [361] [361] [239] [239] #0#0 is core::List<dynamic> && [282] [282] #0#8#func [282](){() → core::bool} && [369]([369] let [369] final dynamic #t11 = [369] [369] b#case#1 = [282] [282] #0#10#func [282](){() → dynamic} in [369] [369] true) && [379] [379] [379] [379] [377] [377] b#case#1{dynamic}.> [379]([381] 5) as{TypeError} core::bool && [231]([231] let [231] final dynamic #t12 = [231] [231] #t6 = [369] [369] b#case#1 in [369] [369] true)) {
+[337]        [337] dynamic b = [-1] [-1] #t6{dynamic};
+[327]        {
+[390]          [390] [390] core::print [395]([396] b);
+        }
+      }
+    }
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}
