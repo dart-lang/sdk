@@ -142,24 +142,24 @@
       "path": "../../tests/",
       "status": "testcases/incremental_bulk_compiler_smoke.status",
       "pattern": [
-        "/language_2/accessor_conflict_export2_test\\.dart$",
-        "/language_2/accessor_conflict_export_test\\.dart$",
-        "/language_2/regress_14348_test\\.dart$",
-        "/language_2/regress_18535_test\\.dart$",
-        "/language_2/deferred_super_dependency_test\\.dart$",
-        "/language_2/export_ambiguous_main_test\\.dart$",
-        "/language_2/export_double_same_main_test\\.dart$",
-        "/language_2/export_main_test\\.dart$",
-        "/language_2/import_nonexisting_dart_uri_test\\.dart$",
-        "/language_2/internal_library_test\\.dart$",
-        "/language_2/issue1578_negative_test\\.dart$",
-        "/language_2/missing_part_of_tag_test\\.dart$",
-        "/language_2/no_main_test\\.dart$",
-        "/language_2/part_refers_to_core_library_test\\.dart$",
-        "/language_2/regress_27957_test\\.dart$",
-        "/language_2/script1_negative_test\\.dart$",
-        "/language_2/script2_negative_test\\.dart$",
-        "/language_2/unbalanced_brace_test\\.dart$"
+        "/language/accessor_conflict_export2_test\\.dart$",
+        "/language/accessor_conflict_export_test\\.dart$",
+        "/language/regress_14348_test\\.dart$",
+        "/language/regress_18535_test\\.dart$",
+        "/language/deferred_super_dependency_test\\.dart$",
+        "/language/export_ambiguous_main_test\\.dart$",
+        "/language/export_double_same_main_test\\.dart$",
+        "/language/export_main_test\\.dart$",
+        "/language/import_nonexisting_dart_uri_test\\.dart$",
+        "/language/internal_library_test\\.dart$",
+        "/language/issue1578_negative_test\\.dart$",
+        "/language/missing_part_of_tag_test\\.dart$",
+        "/language/no_main_test\\.dart$",
+        "/language/part_refers_to_core_library_test\\.dart$",
+        "/language/regress_27957_test\\.dart$",
+        "/language/script1_negative_test\\.dart$",
+        "/language/script2_negative_test\\.dart$",
+        "/language/unbalanced_brace_test\\.dart$"
       ],
       "exclude": []
     },
@@ -170,7 +170,7 @@
       "path": "../../tests/",
       "status": "testcases/incremental_bulk_compiler_full.status",
       "pattern": [
-        "language_2/.*_test\\.dart$"
+        "language/.*_test\\.dart$"
       ],
       "exclude": []
     },
@@ -340,7 +340,7 @@
       "status": "testcases/sdk.status",
       "process-multitests": true,
       "pattern": [
-        "/sdk/tests/language_2/.*_test\\.dart$"
+        "/sdk/tests/language/.*_test\\.dart$"
       ],
       "": "deep_nesting{1,2}_negative_test are ignored because they cause a",
       "": "crash that we're ignoring for now (it was fixed in Rasta).",
@@ -348,15 +348,13 @@
       "": "subtest name in multi test.",
       "": "Tracked by: https://github.com/dart-lang/sdk/issues/28436",
       "exclude": [
-        "/sdk/tests/language/regress_23996_test\\.dart$",
+        "/sdk/tests/language/abstract_getter2_test\\.dart$",
         "/sdk/tests/language/round_test\\.dart$",
-        "/sdk/tests/language_2/abstract_getter2_test\\.dart$",
-        "/sdk/tests/language_2/round_test\\.dart$",
-        "/sdk/tests/language_2/regress_23996_test\\.dart$",
-        "/sdk/tests/language_2/regress_30669_test\\.dart$",
-        "/sdk/tests/language_2/regress_30927_test\\.dart$",
-        "/sdk/tests/language_2/runtime_type_function_test\\.dart$",
-        "/sdk/tests/language_2/setter_override_test\\.dart$"
+        "/sdk/tests/language/regress_23996_test\\.dart$",
+        "/sdk/tests/language/regress_30669_test\\.dart$",
+        "/sdk/tests/language/regress_30927_test\\.dart$",
+        "/sdk/tests/language/runtime_type_function_test\\.dart$",
+        "/sdk/tests/language/setter_override_test\\.dart$"
       ]
     },
     {
@@ -369,7 +367,7 @@
       "command-lines": [
         "--checked dart2js",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 web_2"
+        "-cdart2js -rd8 web"
       ]
     },
     {
@@ -396,7 +394,7 @@
         "-t240 --checked pkg/(kernel|front_end|fasta) dart2js",
         "-cdartk -rvm",
         "-cdart2js -rd8 --exclude-suite=observatory_ui",
-        "-cdart2js -rd8 web_2"
+        "-cdart2js -rd8 web"
       ]
     },
     {
@@ -407,7 +405,7 @@
       "mode": "release",
       "common": "--time -pcolor --report -ax64 -mrelease --write-result-log",
       "command-lines": [
-        "-cdart2js -rd8 --use-sdk --minified language language_2 web_2 corelib corelib_2"
+        "-cdart2js -rd8 --use-sdk --minified language corelib"
       ]
     }
   ],
