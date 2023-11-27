@@ -428,7 +428,7 @@ void main() {
       z2.expectStaticType<Exactly<X1>>();
 
       var z3 = condition ? x1 : t2;
-      z3.expectStaticType<Exactly<FutureOr<Object>?>>();
+      z3.expectStaticType<Exactly<FutureOr<Object?>>>();
 
       // UP(FutureOr<Object> /*T2*/, X1 & FutureOr<X1> /*B1*/) =
       //   X1 if T2 <: X1
@@ -443,7 +443,7 @@ void main() {
       z5.expectStaticType<Exactly<X1>>();
 
       var z6 = condition ? t2 : x1;
-      z6.expectStaticType<Exactly<FutureOr<Object>?>>();
+      z6.expectStaticType<Exactly<FutureOr<Object?>>>();
     }
   }
 
@@ -462,7 +462,7 @@ void main() {
       z2.expectStaticType<Exactly<X1>>();
 
       var z3 = condition ? x1 : t2;
-      z3.expectStaticType<Exactly<FutureOr<Object>?>>();
+      z3.expectStaticType<Exactly<FutureOr<Object?>>>();
 
       // UP(FutureOr<Object> /*T2*/, X1 & FutureOr<X1?> /*B1*/) =
       //   X1 if T2 <: X1
@@ -477,7 +477,7 @@ void main() {
       z5.expectStaticType<Exactly<X1>>();
 
       var z6 = condition ? t2 : x1;
-      z6.expectStaticType<Exactly<FutureOr<Object>?>>();
+      z6.expectStaticType<Exactly<FutureOr<Object?>>>();
     }
   }
 
