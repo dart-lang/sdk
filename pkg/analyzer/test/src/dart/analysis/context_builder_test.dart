@@ -14,7 +14,6 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -198,8 +197,9 @@ environment:
       analysisContext.uriResolvers,
       unorderedEquals([
         isA<DartUriResolver>(),
-        isA<PackageMapUriResolver>(),
+        isA<PackageBuildPackageUriResolver>(),
         isA<ResourceUriResolver>(),
+        isA<PackageBuildFileUriResolver>(),
       ]),
     );
   }
