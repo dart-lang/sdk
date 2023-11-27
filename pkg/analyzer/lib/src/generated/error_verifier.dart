@@ -873,6 +873,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitFunctionReference(FunctionReference node) {
     _typeArgumentsVerifier.checkFunctionReference(node);
+    super.visitFunctionReference(node);
   }
 
   @override
