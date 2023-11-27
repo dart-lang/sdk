@@ -797,8 +797,13 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
     // Redirection to generative enum constructors is forbidden and is reported
     // as an error elsewhere.
+    Builder? redirectionTargetParent = redirectionTarget.target?.parent;
+    bool redirectingTargetParentIsEnum = redirectionTargetParent is ClassBuilder
+        ? redirectionTargetParent.isEnum
+        : false;
     if (!((classBuilder?.cls.isEnum ?? false) &&
-        (redirectionTarget.target?.isConstructor ?? false))) {
+        (redirectionTarget.target?.isConstructor ?? false) &&
+        redirectingTargetParentIsEnum)) {
       // Check whether [redirecteeType] <: [factoryType].
       if (!typeEnvironment.isSubtypeOf(
           redirecteeType,
