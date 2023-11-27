@@ -557,12 +557,12 @@ class ClassSet {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeClass(node.cls);
-    sink.writeList(_subtypes, (ClassHierarchyNode node) {
+    sink.writeListOrNull(_subtypes, (ClassHierarchyNode node) {
       sink.writeClass(node.cls);
-    }, allowNull: true);
-    sink.writeList(_mixinApplications, (ClassHierarchyNode node) {
+    });
+    sink.writeListOrNull(_mixinApplications, (ClassHierarchyNode node) {
       sink.writeClass(node.cls);
-    }, allowNull: true);
+    });
     sink.end(tag);
   }
 
