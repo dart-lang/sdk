@@ -81,8 +81,9 @@ class FrameContext {
 
   factory FrameContext.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    SourceInformation callInformation = source.readIndexed<SourceInformation>(
-        () => SourceInformation.readFromDataSource(source));
+    SourceInformation callInformation =
+        source.readIndexedNoCache<SourceInformation>(
+            () => SourceInformation.readFromDataSource(source));
     String inlinedMethodName = source.readString();
     source.end(tag);
     return FrameContext(callInformation, inlinedMethodName);

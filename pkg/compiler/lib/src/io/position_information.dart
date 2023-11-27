@@ -38,13 +38,17 @@ class PositionSourceInformation extends SourceInformation {
   factory PositionSourceInformation.readFromDataSource(
       DataSourceReader source) {
     source.begin(tag);
-    SourceLocation startPosition = source.readIndexed<SourceLocation>(
+    SourceLocation startPosition = source.readIndexedNoCache<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
-    SourceLocation? innerPosition = source.readIndexedOrNull<SourceLocation>(
-        () => SourceLocation.readFromDataSource(source));
+    SourceLocation? innerPosition =
+        source.readIndexedOrNullNoCache<SourceLocation>(
+            () => SourceLocation.readFromDataSource(source));
     List<FrameContext>? inliningContext =
-        source.readIndexedOrNull<List<FrameContext>>(() => source.readList(() =>
-            source.readIndexed(() => FrameContext.readFromDataSource(source))));
+        source.readIndexedOrNullNoCache<List<FrameContext>>(() =>
+            // FrameContext must be cached since PositionSourceInformation.==
+            // requires identity comparison on the objects in inliningContext.
+            source.readList(() => source
+                .readIndexed(() => FrameContext.readFromDataSource(source))));
     source.end(tag);
     return PositionSourceInformation(
         startPosition, innerPosition, inliningContext);

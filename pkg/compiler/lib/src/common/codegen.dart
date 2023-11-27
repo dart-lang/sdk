@@ -1943,7 +1943,8 @@ class JsNodeDeserializer {
     final hasSourceInformation = infoCode.isOdd;
     final annotationCount = infoCode ~/ 2;
     if (hasSourceInformation) {
-      final sourceInformation = source.readIndexedOrNull<SourceInformation>(() {
+      final sourceInformation =
+          source.readIndexedOrNullNoCache<SourceInformation>(() {
         return SourceInformation.readFromDataSource(source);
       });
       node = node.withSourceInformation(sourceInformation);
