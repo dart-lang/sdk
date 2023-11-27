@@ -22,6 +22,10 @@
 // (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+// When running on the interpreter this test needs a bigger backtracking stack
+// then we allocate by default.
+// VMOptions=--regexp_backtrack_stack_size_kb=512
+
 import 'v8_regexp_utils.dart';
 import 'package:expect/expect.dart';
 

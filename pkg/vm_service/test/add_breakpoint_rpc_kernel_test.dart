@@ -144,12 +144,14 @@ final tests = <IsolateTest>[
         bpt.location!.tokenPos!,
       )!;
       print('$LINE_A:$col -> $resolvedLine:$resolvedCol');
-      if (col <= 12) {
+      if (col < 12) {
+        // The second 'incValue' begins at column 12.
         expect(resolvedLine, LINE_A);
         expect(bpt.location!.line, LINE_A);
         expect(resolvedCol, 3);
         expect(bpt.location!.column, 3);
       } else if (col <= 36) {
+        // The newline character at the end of LINE_A is at column 36.
         expect(resolvedLine, LINE_A);
         expect(bpt.location!.line, LINE_A);
         expect(resolvedCol, 12);

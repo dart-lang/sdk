@@ -868,6 +868,7 @@ class Compiler extends NamedEnum {
       case Compiler.dart2wasm:
         return const [
           Runtime.none,
+          Runtime.jsshell,
           Runtime.d8,
           Runtime.chrome,
           Runtime.firefox,

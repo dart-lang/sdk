@@ -136,7 +136,7 @@ class DataSinkWriter {
   /// [identity] is true then the cache is backed by a [Map] created using
   /// [Map.identity]. (i.e. comparisons are done using [identical] rather than
   /// `==`)
-  void writeCached<E extends Object>(E? value, void f(E value),
+  void writeIndexed<E extends Object>(E? value, void f(E value),
       {bool identity = false}) {
     IndexedSink<E> sink = (_generalCaches[E] ??=
             importedIndices.getIndexedSink<E>(identity: identity))
@@ -711,7 +711,7 @@ class DataSinkWriter {
   /// Writes a reference to the library entity [value] to this data sink.
   void writeLibrary(LibraryEntity value) {
     if (value is JLibrary) {
-      writeCached<LibraryEntity>(value, (_) => value.writeToDataSink(this));
+      writeIndexed<LibraryEntity>(value, (_) => value.writeToDataSink(this));
     } else {
       failedAt(value, 'Unexpected library entity type ${value.runtimeType}');
     }
@@ -752,7 +752,7 @@ class DataSinkWriter {
   /// Writes a reference to the class entity [value] to this data sink.
   void writeClass(ClassEntity value) {
     if (value is JClass) {
-      writeCached<ClassEntity>(value, (_) => value.writeToDataSink(this));
+      writeIndexed<ClassEntity>(value, (_) => value.writeToDataSink(this));
     } else {
       failedAt(value, 'Unexpected class entity type ${value.runtimeType}');
     }
@@ -810,7 +810,7 @@ class DataSinkWriter {
   /// Writes a reference to the member entity [value] to this data sink.
   void writeMember(MemberEntity value) {
     if (value is JMember) {
-      writeCached<MemberEntity>(value, (_) => value.writeToDataSink(this));
+      writeIndexed<MemberEntity>(value, (_) => value.writeToDataSink(this));
     } else {
       failedAt(value, 'Unexpected member entity type ${value.runtimeType}');
     }
@@ -869,7 +869,7 @@ class DataSinkWriter {
   /// Writes a reference to the type variable entity [value] to this data sink.
   void writeTypeVariable(TypeVariableEntity value) {
     if (value is JTypeVariable) {
-      writeCached<TypeVariableEntity>(
+      writeIndexed<TypeVariableEntity>(
           value, (_) => value.writeToDataSink(this));
     } else {
       failedAt(
@@ -896,7 +896,7 @@ class DataSinkWriter {
   void writeLocal(Local local) {
     if (local is JLocal) {
       writeEnum(LocalKind.jLocal);
-      writeCached<Local>(local, (_) => local.writeToDataSink(this));
+      writeIndexed<Local>(local, (_) => local.writeToDataSink(this));
     } else if (local is ThisLocal) {
       writeEnum(LocalKind.thisLocal);
       writeClass(local.enclosingClass);
@@ -1190,7 +1190,7 @@ class DataSinkWriter {
 
   /// Writes a reference to the output unit [value] to this data sink.
   void writeOutputUnitReference(OutputUnit value) {
-    writeCached<OutputUnit>(value, (v) => v.writeToDataSink(this));
+    writeIndexed<OutputUnit>(value, (v) => v.writeToDataSink(this));
   }
 
   void withDeferredExpressionRegistry(

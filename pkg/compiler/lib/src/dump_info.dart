@@ -74,7 +74,7 @@ class DumpInfoJsAstRegistry {
 
   void registerConstantAst(ConstantValue constant, jsAst.Node code) {
     if (_disabled) return;
-    assert(_constantRegistry[constant] == null ||
+    assert(!_constantRegistry.containsKey(constant) ||
         _constantRegistry[constant] == code);
     _constantRegistry[code] = constant;
   }
@@ -1787,14 +1787,14 @@ class LocalFunctionInfoCollector extends ir.RecursiveVisitor<void> {
 
   @override
   void visitFunctionExpression(ir.FunctionExpression node) {
-    assert(localFunctions[node] == null);
+    assert(!localFunctions.containsKey(node));
     localFunctions[node] = generateLocalFunctionInfo(node);
     defaultExpression(node);
   }
 
   @override
   void visitFunctionDeclaration(ir.FunctionDeclaration node) {
-    assert(localFunctions[node] == null);
+    assert(!localFunctions.containsKey(node));
     localFunctions[node] = generateLocalFunctionInfo(node);
     defaultStatement(node);
   }

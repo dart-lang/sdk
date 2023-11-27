@@ -208,18 +208,38 @@ class DataSourceReader {
 
   /// Reads a reference to an [E] value from this data source. If the value has
   /// not yet been deserialized, [f] is called to deserialize the value itself.
-  E readCached<E extends Object>(E f()) {
-    E? value = readCachedOrNull(f);
+  E readIndexed<E extends Object>(E f()) {
+    E? value = readIndexedOrNull(f);
     if (value == null) throw StateError("Unexpected 'null' for $E");
     return value;
   }
 
-  /// Reads a reference to an [E] value from this data source. If the value has
-  /// not yet been deserialized, [f] is called to deserialize the value itself.
-  E? readCachedOrNull<E extends Object>(E f()) {
+  /// Reads a reference to an [E] value from this data source. [f] is called to
+  /// deserialize the value at the relevant index. Use [readIndexed] if the value
+  /// should be cached and all reads of the index should return the same object.
+  E readIndexedNoCache<E extends Object>(E f()) {
+    E? value = readIndexedOrNullNoCache(f);
+    if (value == null) throw StateError("Unexpected 'null' for $E");
+    return value;
+  }
+
+  /// Reads a reference to a nullable [E] value from this data source. If the
+  /// value has not yet been deserialized, [f] is called to deserialize the
+  /// value itself.
+  E? readIndexedOrNull<E extends Object>(E f()) {
     IndexedSource<E> source = (_generalCaches[E] ??=
         importedIndices.getIndexedSource<E>()) as IndexedSource<E>;
     return source.read(this, f);
+  }
+
+  /// Reads a reference to a nullable [E] value from this data source. [f] is
+  /// called to deserialize the value at the relevant index. Use
+  /// [readIndexedOrNull] if the value should be cached and all reads of the
+  /// index should return the same object.
+  E? readIndexedOrNullNoCache<E extends Object>(E f()) {
+    IndexedSource<E> source = (_generalCaches[E] ??=
+        importedIndices.getIndexedSource<E>()) as IndexedSource<E>;
+    return source.readWithoutCache(this, f);
   }
 
   /// Reads a potentially `null` [E] value from this data source, calling [f] to
@@ -939,7 +959,7 @@ class DataSourceReader {
 
   /// Reads a reference to a library entity from this data source.
   LibraryEntity readLibrary() {
-    return readCached<LibraryEntity>(() => JLibrary.readFromDataSource(this));
+    return readIndexed<LibraryEntity>(() => JLibrary.readFromDataSource(this));
   }
 
   /// Reads a reference to a potentially `null` library entity from this data
@@ -981,7 +1001,7 @@ class DataSourceReader {
 
   /// Reads a reference to an class entity from this data source.
   ClassEntity readClass() {
-    return readCached<ClassEntity>(() => JClass.readFromDataSource(this));
+    return readIndexed<ClassEntity>(() => JClass.readFromDataSource(this));
   }
 
   /// Reads a reference to a potentially `null` class entity from this data
@@ -1043,7 +1063,7 @@ class DataSourceReader {
 
   /// Reads a reference to an member entity from this data source.
   MemberEntity readMember() {
-    return readCached<MemberEntity>(() => JMember.readFromDataSource(this));
+    return readIndexed<MemberEntity>(() => JMember.readFromDataSource(this));
   }
 
   /// Reads a reference to a potentially `null` member entity from this data
@@ -1106,7 +1126,7 @@ class DataSourceReader {
 
   /// Reads a reference to an type variable entity from this data source.
   TypeVariableEntity readTypeVariable() {
-    return readCached<TypeVariableEntity>(
+    return readIndexed<TypeVariableEntity>(
         () => JTypeVariable.readFromDataSource(this));
   }
 
@@ -1132,7 +1152,7 @@ class DataSourceReader {
     LocalKind kind = readEnum(LocalKind.values);
     switch (kind) {
       case LocalKind.jLocal:
-        return readCached<Local>(() => JLocal.readFromDataSource(this));
+        return readIndexed<Local>(() => JLocal.readFromDataSource(this));
       case LocalKind.thisLocal:
         ClassEntity cls = readClass();
         return ThisLocal(cls);
@@ -1426,7 +1446,7 @@ class DataSourceReader {
 
   /// Reads a reference to an [OutputUnit] from this data source.
   OutputUnit readOutputUnitReference() {
-    return readCached<OutputUnit>(() => OutputUnit.readFromDataSource(this));
+    return readIndexed<OutputUnit>(() => OutputUnit.readFromDataSource(this));
   }
 
   /// Reads a [js.Node] value from this data source.

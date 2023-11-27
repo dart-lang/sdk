@@ -56,7 +56,6 @@ class CodegenImpactTransformer {
   DartTypes get _dartTypes => _closedWorld.dartTypes;
 
   void onIsCheckForCodegen(DartType type, TransformedWorldImpact transformed) {
-    assert((type as dynamic) != null);
     if (_dartTypes.isTopType(type)) return;
 
     _impacts.typeCheck.registerImpact(transformed, _elementEnvironment);

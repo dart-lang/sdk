@@ -2,13 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Runner V8 script for testing dart2wasm, takes ".wasm" files as arguments.
+// Runner V8/JSShell script for testing dart2wasm, takes ".wasm" files as
+// arguments.
 //
-// Run as follows:
+// Run as follows on D8:
 //
 // $> d8 run_wasm.js \
 //       -- /abs/path/to/<dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
 //       [-- Dart commandline arguments...]
+//
+// Run as follows on JSShell:
+//
+// $> js run_wasm.js \
+//       /abs/path/to/<dart_module>.mjs <dart_module>.wasm [<ffi_module>.wasm] \
+//       [-- Dart commandline arguments...]
+//
+// (Notice the missing -- here!)
 //
 // Please note we require an absolute path for the JS runtime. This is a
 // workaround for a discrepancy in D8. Specifically, `import`(used to load .mjs
@@ -306,11 +315,17 @@ const ffiArg = 2;
   self.dartUseDateNowForTicks = true;
 })(this, []);
 
+
+// This script is intended to be used by either D8 or JSShell. We distinguish
+// the two by seeing whether the global `arguments` exists (D8 uses `arguments`
+// and JsShell uses `scriptArgs`).
+var isD8 = (typeof arguments != "undefined");
+
 // We would like this itself to be a ES module rather than a script, but
 // unfortunately d8 does not return a failed error code if an unhandled
 // exception occurs asynchronously in an ES module.
 const main = async () => {
-    var args = arguments;
+    var args =  isD8 ? arguments : scriptArgs;
     var dartArgs = [];
     const argsSplit = args.indexOf("--");
     if (argsSplit != -1) {
@@ -321,7 +336,7 @@ const main = async () => {
     const dart2wasm = await import(args[jsRuntimeArg]);
     function compile(filename) {
         // Create a Wasm module from the binary wasm file.
-        var bytes = readbuffer(filename);
+        var bytes = isD8 ? readbuffer(filename) : readRelativeToScript(filename, "binary") ;
         return new WebAssembly.Module(bytes);
     }
 

@@ -8,6 +8,7 @@ abstract class IndexedSource<E extends Object> {
   Map<int, E> get cache;
 
   E? read(DataSourceReader source, E readValue());
+  E? readWithoutCache(DataSourceReader source, E readValue());
 }
 
 abstract class IndexedSink<E extends Object> {
@@ -187,7 +188,8 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
   @override
   Map<int, E> get cache => _cache;
 
-  /// Reads a reference to an [E?] value from the data source.
+  /// Reads a reference to an [E?] value from the data source or the backing
+  /// cache if the index has already been read.
   ///
   /// If the value hasn't yet been read, [readValue] is called to deserialize
   /// the value itself.
@@ -213,7 +215,30 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
           isLocal ? _localToGlobalOffset(offset, source) : offset;
       final cachedValue = _cache[globalOffset];
       if (cachedValue != null) return cachedValue;
-      return _readAtOffset(source, readValue, globalOffset, isLocal);
+      return _readAtOffset(source, readValue, globalOffset, isLocal,
+          isCached: true);
+    }
+  }
+
+  /// Reads a reference to an [E?] value from the data source.
+  ///
+  /// Does not cache the read value so each call to [readWithoutCache] of the
+  /// associated index will create a new object.
+  @override
+  E? readWithoutCache(DataSourceReader source, E readValue()) {
+    final markerOrOffset = source.readInt();
+
+    if (markerOrOffset == _dataInPlaceIndicator) {
+      return readValue();
+    } else if (markerOrOffset == _nullIndicator) {
+      return null;
+    } else {
+      final offset = markerOrOffset - _indicatorOffset;
+      bool isLocal = _isLocalOffset(offset);
+      final globalOffset =
+          isLocal ? _localToGlobalOffset(offset, source) : offset;
+      return _readAtOffset(source, readValue, globalOffset, isLocal,
+          isCached: false);
     }
   }
 
@@ -228,14 +253,15 @@ class UnorderedIndexedSource<E extends Object> implements IndexedSource<E> {
   }
 
   E _readAtOffset(
-      DataSourceReader source, E readValue(), int globalOffset, bool isLocal) {
+      DataSourceReader source, E readValue(), int globalOffset, bool isLocal,
+      {required bool isCached}) {
     final realSource = isLocal ? source : findSource(globalOffset);
     final realOffset = _globalToRealOffset(globalOffset, realSource);
     final value = isLocal
         ? source.readWithOffset(realOffset, readValue)
         : source.readWithSource(
             realSource, () => source.readWithOffset(realOffset, readValue));
-    _cache[globalOffset] = value;
+    if (isCached) _cache[globalOffset] = value;
     return value;
   }
 }

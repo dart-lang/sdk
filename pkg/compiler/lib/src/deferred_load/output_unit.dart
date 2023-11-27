@@ -96,7 +96,7 @@ class LateOutputUnitDataBuilder {
   /// [existingEntity];
   void registerColocatedMembers(
       MemberEntity existingEntity, MemberEntity newEntity) {
-    assert(_outputUnitData._memberToUnit[newEntity] == null);
+    assert(!_outputUnitData._memberToUnit.containsKey(newEntity));
     _outputUnitData._memberToUnit[newEntity] =
         _outputUnitData.outputUnitForMember(existingEntity);
   }

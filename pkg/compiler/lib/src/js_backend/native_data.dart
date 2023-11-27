@@ -56,7 +56,7 @@ class NativeBasicDataBuilder {
     // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
     // method.
     assert(
-        _nativeClassTagInfo[cls] == null ||
+        !_nativeClassTagInfo.containsKey(cls) ||
             _nativeClassTagInfo[cls]!.text == tagText,
         failedAt(
             cls,
@@ -412,7 +412,7 @@ class NativeDataBuilder {
     // might enqueue [element] several times (before processing it) and computes
     // name on each call to `internalAddToWorkList`.
     assert(
-        _nativeMemberName[element] == null ||
+        !_nativeMemberName.containsKey(element) ||
             _nativeMemberName[element] == name,
         failedAt(
             element,
