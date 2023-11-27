@@ -828,7 +828,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     final hasSourceInformation = infoCode.isOdd;
     final annotationCount = infoCode ~/ 2;
     if (hasSourceInformation) {
-      sink.writeCached<SourceInformation>(sourceInformation,
+      sink.writeIndexed<SourceInformation>(sourceInformation,
           (SourceInformation sourceInformation) {
         SourceInformation.writeToDataSink(sink, sourceInformation);
       });
@@ -969,7 +969,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     if (node is ModularName) {
       sink.writeEnum(JsNodeKind.modularName);
       sink.begin(JsNodeTags.modularName);
-      sink.writeCached<ModularName>(node, (_) {
+      sink.writeIndexed<ModularName>(node, (_) {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
@@ -1065,7 +1065,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     if (node is ModularExpression) {
       sink.writeEnum(JsNodeKind.modularExpression);
       sink.begin(JsNodeTags.modularExpression);
-      sink.writeCached<ModularExpression>(node, (_) {
+      sink.writeIndexed<ModularExpression>(node, (_) {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
@@ -1074,7 +1074,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     } else if (node is TypeReference) {
       sink.writeEnum(JsNodeKind.typeReference);
       sink.begin(JsNodeTags.typeReference);
-      sink.writeCached<TypeReference>(node, (_) {
+      sink.writeIndexed<TypeReference>(node, (_) {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
@@ -1083,7 +1083,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     } else if (node is StringReference) {
       sink.writeEnum(JsNodeKind.stringReference);
       sink.begin(JsNodeTags.stringReference);
-      sink.writeCached<StringReference>(node, (_) {
+      sink.writeIndexed<StringReference>(node, (_) {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
@@ -1092,7 +1092,7 @@ class JsNodeSerializer implements js.NodeVisitor<void> {
     } else if (node is DeferredHolderExpression) {
       sink.writeEnum(JsNodeKind.deferredHolderExpression);
       sink.begin(JsNodeTags.deferredHolderExpression);
-      sink.writeCached<DeferredHolderExpression>(node, (_) {
+      sink.writeIndexed<DeferredHolderExpression>(node, (_) {
         node.writeToDataSink(sink);
         _writeInfo(node);
       }, identity: true);
@@ -1584,7 +1584,7 @@ class JsNodeDeserializer {
       case JsNodeKind.modularName:
         source.begin(JsNodeTags.modularName);
         needsInfo = false;
-        node = source.readCached<ModularName>(
+        node = source.readIndexed<ModularName>(
             () => _readInfo(ModularName.readFromDataSource(source)));
         source.end(JsNodeTags.modularName);
         break;
@@ -1635,7 +1635,7 @@ class JsNodeDeserializer {
       case JsNodeKind.modularExpression:
         source.begin(JsNodeTags.modularExpression);
         needsInfo = false;
-        node = source.readCached<ModularExpression>(
+        node = source.readIndexed<ModularExpression>(
             () => _readInfo(ModularExpression.readFromDataSource(source)));
         source.end(JsNodeTags.modularExpression);
         break;
@@ -1915,21 +1915,21 @@ class JsNodeDeserializer {
       case JsNodeKind.stringReference:
         source.begin(JsNodeTags.stringReference);
         needsInfo = false;
-        node = source.readCached<StringReference>(
+        node = source.readIndexed<StringReference>(
             () => _readInfo(StringReference.readFromDataSource(source)));
         source.end(JsNodeTags.stringReference);
         break;
       case JsNodeKind.typeReference:
         source.begin(JsNodeTags.typeReference);
         needsInfo = false;
-        node = source.readCached<TypeReference>(
+        node = source.readIndexed<TypeReference>(
             () => _readInfo(TypeReference.readFromDataSource(source)));
         source.end(JsNodeTags.typeReference);
         break;
       case JsNodeKind.deferredHolderExpression:
         source.begin(JsNodeTags.deferredHolderExpression);
         needsInfo = false;
-        node = source.readCached<DeferredHolderExpression>(() =>
+        node = source.readIndexed<DeferredHolderExpression>(() =>
             _readInfo(DeferredHolderExpression.readFromDataSource(source)));
         source.end(JsNodeTags.deferredHolderExpression);
         break;
@@ -1943,7 +1943,7 @@ class JsNodeDeserializer {
     final hasSourceInformation = infoCode.isOdd;
     final annotationCount = infoCode ~/ 2;
     if (hasSourceInformation) {
-      final sourceInformation = source.readCachedOrNull<SourceInformation>(() {
+      final sourceInformation = source.readIndexedOrNull<SourceInformation>(() {
         return SourceInformation.readFromDataSource(source);
       });
       node = node.withSourceInformation(sourceInformation);

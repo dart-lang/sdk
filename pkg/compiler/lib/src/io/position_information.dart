@@ -38,13 +38,13 @@ class PositionSourceInformation extends SourceInformation {
   factory PositionSourceInformation.readFromDataSource(
       DataSourceReader source) {
     source.begin(tag);
-    SourceLocation startPosition = source.readCached<SourceLocation>(
+    SourceLocation startPosition = source.readIndexed<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
-    SourceLocation? innerPosition = source.readCachedOrNull<SourceLocation>(
+    SourceLocation? innerPosition = source.readIndexedOrNull<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
     List<FrameContext>? inliningContext =
-        source.readCachedOrNull<List<FrameContext>>(() => source.readList(() =>
-            source.readCached(() => FrameContext.readFromDataSource(source))));
+        source.readIndexedOrNull<List<FrameContext>>(() => source.readList(() =>
+            source.readIndexed(() => FrameContext.readFromDataSource(source))));
     source.end(tag);
     return PositionSourceInformation(
         startPosition, innerPosition, inliningContext);
@@ -52,20 +52,20 @@ class PositionSourceInformation extends SourceInformation {
 
   void writeToDataSinkInternal(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeCached(
+    sink.writeIndexed(
         startPosition,
         (SourceLocation sourceLocation) =>
             SourceLocation.writeToDataSink(sink, sourceLocation));
-    sink.writeCached(
+    sink.writeIndexed(
         innerPosition,
         (SourceLocation sourceLocation) =>
             SourceLocation.writeToDataSink(sink, sourceLocation));
-    sink.writeCached(
+    sink.writeIndexed(
         inliningContext,
         (_) => sink.writeList(
             inliningContext,
-            (FrameContext context) =>
-                sink.writeCached(context, (_) => context.writeToDataSink(sink)),
+            (FrameContext context) => sink.writeIndexed(
+                context, (_) => context.writeToDataSink(sink)),
             allowNull: true));
     sink.end(tag);
   }
