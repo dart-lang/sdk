@@ -83,6 +83,7 @@ declare_args() {
 # ......core/
 # ......dev_compiler/
 #.........amd/require.js
+#.........ddc/ddc_module_loader.js
 #.........web/dart_stack_trace_mapper.js
 # ......developer/
 # ......html/
@@ -579,6 +580,16 @@ copy("copy_dev_compiler_amd_require_js") {
   ]
 }
 
+# Copies dart_library.js to lib/dev_compiler/ddc as 'ddc_module_loader.js'.
+# Used to load DDC compiled legacy/DDC modules.
+copy("copy_dev_compiler_ddc_dart_library_js") {
+  visibility = [ ":copy_dev_compiler_sdk" ]
+  sources = [ "../pkg/dev_compiler/lib/js/legacy/dart_library.js" ]
+  outputs = [
+    "$root_out_dir/$dart_sdk_output/lib/dev_compiler/ddc/ddc_module_loader.js",
+  ]
+}
+
 # Copies stack_trace_mapper tool to lib/dev_compiler/web.
 # Used when running DDC compiled applications.
 copy("copy_dev_compiler_stack_trace_mapper") {
@@ -596,6 +607,7 @@ group("copy_dev_compiler_sdk") {
   visibility = [ ":create_full_sdk" ]
   public_deps = [
     ":copy_dev_compiler_amd_require_js",
+    ":copy_dev_compiler_ddc_dart_library_js",
     ":copy_dev_compiler_dills",
     ":copy_dev_compiler_stack_trace_mapper",
   ]
