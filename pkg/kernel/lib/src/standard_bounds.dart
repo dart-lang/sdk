@@ -1556,7 +1556,8 @@ mixin StandardBounds {
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
-            eliminationTargets: <StructuralParameter>{},
+            structuralEliminationTargets: {},
+            nominalEliminationTargets: {type1.parameter},
             bottomType: const NeverType.nonNullable(),
             topType: coreTypes.objectNullableRawType,
             topFunctionType: coreTypes.functionNonNullableRawType,
@@ -1589,7 +1590,8 @@ mixin StandardBounds {
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
-            eliminationTargets: <StructuralParameter>{},
+            structuralEliminationTargets: {},
+            nominalEliminationTargets: {type1.left.parameter},
             bottomType: const NeverType.nonNullable(),
             topType: coreTypes.objectNullableRawType,
             topFunctionType: coreTypes.functionNonNullableRawType,

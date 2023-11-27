@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+[261]class X1 extends core::Object {
+[276]  field core::String? s;
+[286]  field core::int? i;
+[299]  field core::double? d;
+[261]  synthetic constructor •() → self::X1
+[-1]    ;
+}
+[311]class X2 extends core::Object {
+[326]  field core::String? s2;
+[337]  field core::int? i;
+[350]  field core::double? d;
+[311]  synthetic constructor •() → self::X2
+[-1]    ;
+}
+[5]static method method([12] dynamic o) → void
+[-1]  ;

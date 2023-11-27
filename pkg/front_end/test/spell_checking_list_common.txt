@@ -1652,6 +1652,7 @@ invalidated
 invalidates
 invalidating
 invalidation
+invariance
 invariant
 invariantly
 inversion

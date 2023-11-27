@@ -6454,12 +6454,14 @@ class BodyBuilder extends StackListenerImpl
               MemberBuilder? constructorBuilder =
                   typeDeclarationBuilder.findConstructorOrFactory(
                       name, charOffset, uri, libraryBuilder);
-              Member? target = constructorBuilder?.member;
+              Member? target;
               if (constructorBuilder == null) {
                 // Not found. Reported below.
+                target = null;
               } else if (constructorBuilder is AmbiguousMemberBuilder) {
                 message = constructorBuilder.message
                     .withLocation(uri, charOffset, noLength);
+                target = null;
               } else if (constructorBuilder.isConstructor) {
                 if (typeDeclarationBuilder.isAbstract) {
                   return evaluateArgumentsBefore(
@@ -6470,6 +6472,9 @@ class BodyBuilder extends StackListenerImpl
                           typeDeclarationBuilder.name,
                           nameToken.charOffset));
                 }
+                target = constructorBuilder.member;
+              } else {
+                target = constructorBuilder.member;
               }
               if (target is Constructor ||
                   (target is Procedure &&
