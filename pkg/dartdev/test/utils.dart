@@ -6,10 +6,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:cli_util/cli_logging.dart';
+import 'package:clock/clock.dart';
+import 'package:dartdev/dartdev.dart';
 import 'package:dartdev/src/core.dart';
+import 'package:file/memory.dart';
 import 'package:path/path.dart' as path;
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
+import 'package:unified_analytics/src/enums.dart';
+import 'package:unified_analytics/src/survey_handler.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 /// A long [Timeout] is provided for tests that start a process on
 /// `bin/dartdev.dart` as the command is not compiled ahead of time, and each
@@ -32,7 +38,6 @@ void initGlobalState() {
 TestProject project(
     {String? mainSrc,
     String? analysisOptions,
-    bool logAnalytics = false,
     String name = TestProject._defaultProjectName,
     VersionConstraint? sdkConstraint,
     Map<String, dynamic>? pubspecExtras}) {
@@ -40,7 +45,6 @@ TestProject project(
       mainSrc: mainSrc,
       name: name,
       analysisOptions: analysisOptions,
-      logAnalytics: logAnalytics,
       sdkConstraint: sdkConstraint,
       pubspecExtras: pubspecExtras);
   addTearDown(() => testProject.dispose());
@@ -66,15 +70,12 @@ class TestProject {
 
   String get relativeFilePath => 'lib/main.dart';
 
-  final bool logAnalytics;
-
   Process? _process;
 
   TestProject({
     String? mainSrc,
     String? analysisOptions,
     this.name = _defaultProjectName,
-    this.logAnalytics = false,
     VersionConstraint? sdkConstraint,
     Map<String, dynamic>? pubspecExtras,
   }) {
@@ -85,7 +86,7 @@ class TestProject {
       JsonEncoder.withIndent('  ').convert(
         {
           'name': name,
-          'environment': {'sdk': sdkConstraint?.toString() ?? '^2.19.0'},
+          'environment': {'sdk': sdkConstraint?.toString() ?? '^3.0.0'},
           ...?pubspecExtras,
         },
       ),
@@ -158,10 +159,84 @@ class TestProject {
         ],
         workingDirectory: workingDir ?? dir.path,
         environment: {
-          if (logAnalytics) '_DARTDEV_LOG_ANALYTICS': 'true',
           'PUB_CACHE': pubCachePath,
         })
       ..then((p) => _process = p);
+  }
+
+  Future<FakeAnalytics> runLocalWithFakeAnalytics(
+    List<String> arguments, {
+    String? workingDir,
+  }) async {
+    final analytics = _createFakeAnalytics();
+
+    final originalDir = Directory.current;
+    Directory.current = dir;
+
+    final runner = DartdevRunner(arguments, analyticsOverride: analytics);
+    await runner.runCommand(runner.parse(arguments));
+
+    Directory.current = originalDir;
+    return analytics;
+  }
+
+  FakeAnalytics _createFakeAnalytics() {
+    final testSurvey = Survey(
+      uniqueId: 'uniqueId',
+      startDate: DateTime(2022, 1, 1),
+      endDate: DateTime(2022, 12, 31),
+      description: 'description',
+      snoozeForMinutes: 10,
+      samplingRate: 1.0, // 100% sample rate
+      excludeDashToolList: [],
+      conditionList: <Condition>[],
+      buttonList: [
+        SurveyButton(
+          buttonText: 'buttonText',
+          action: 'accept',
+          promptRemainsVisible: false,
+        ),
+        SurveyButton(
+          buttonText: 'buttonText',
+          action: 'dismiss',
+          promptRemainsVisible: false,
+        ),
+      ],
+    );
+
+    final fs = MemoryFileSystem.test(style: FileSystemStyle.posix);
+    final homeDirectory = fs.directory('home');
+
+    final initialAnalytics = Analytics.test(
+      tool: DashTool.flutterTool,
+      homeDirectory: homeDirectory,
+      measurementId: 'measurementId',
+      apiSecret: 'apiSecret',
+      dartVersion: 'dartVersion',
+      toolsMessageVersion: 1,
+      fs: fs,
+      platform: DevicePlatform.macos,
+    );
+    initialAnalytics.clientShowedMessage();
+
+    late FakeAnalytics analytics;
+    // Recreate a second instance since events cannot be sent on
+    // the first run
+    withClock(Clock.fixed(DateTime(2022, 3, 3)), () {
+      analytics = FakeAnalytics(
+        tool: DashTool.flutterTool,
+        homeDirectory: homeDirectory,
+        dartVersion: 'dartVersion',
+        platform: DevicePlatform.macos,
+        fs: fs,
+        surveyHandler: FakeSurveyHandler.fromList(
+          homeDirectory: homeDirectory,
+          fs: fs,
+          initializedSurveys: [testSurvey],
+        ),
+      );
+    });
+    return analytics;
   }
 
   String? _sdkRootPath;
