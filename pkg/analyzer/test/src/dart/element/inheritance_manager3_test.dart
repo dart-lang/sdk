@@ -450,6 +450,94 @@ declared
 ''');
   }
 
+  test_declareGetter_implementClass_precludeGetter() async {
+    final library = await buildLibrary(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {}
+
+extension type C(B it) implements A {
+  int get foo => 0;
+}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  foo: self::@extensionType::C::@getter::foo
+  it: self::@extensionType::C::@getter::it
+declared
+  foo: self::@extensionType::C::@getter::foo
+  it: self::@extensionType::C::@getter::it
+redeclared
+  foo
+    self::@class::A::@getter::foo
+inheritedMap
+  foo: self::@class::A::@getter::foo
+''');
+  }
+
+  test_declareGetter_implementClass_precludeMethod() async {
+    final library = await buildLibrary(r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+
+extension type C(B it) implements A {
+  int get foo => 0;
+}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  foo: self::@extensionType::C::@getter::foo
+  it: self::@extensionType::C::@getter::it
+declared
+  foo: self::@extensionType::C::@getter::foo
+  it: self::@extensionType::C::@getter::it
+redeclared
+  foo
+    self::@class::A::@method::foo
+inheritedMap
+  foo: self::@class::A::@method::foo
+''');
+  }
+
+  test_declareGetter_implementClass_withSetter() async {
+    final library = await buildLibrary(r'''
+class A {
+  set foo(_) {}
+}
+
+class B extends A {}
+
+extension type C(B it) implements A {
+  int get foo => 0;
+}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  foo: self::@extensionType::C::@getter::foo
+  foo=: self::@class::A::@setter::foo
+  it: self::@extensionType::C::@getter::it
+declared
+  foo: self::@extensionType::C::@getter::foo
+  it: self::@extensionType::C::@getter::it
+redeclared
+  foo=
+    self::@class::A::@setter::foo
+inheritedMap
+  foo=: self::@class::A::@setter::foo
+''');
+  }
+
   test_declareGetter_static() async {
     final library = await buildLibrary(r'''
 extension type A(int it) {
@@ -549,7 +637,7 @@ redeclared
 ''');
   }
 
-  test_declareMethod_implementClass_noOverride() async {
+  test_declareMethod_implementClass_noPreclude() async {
     final library = await buildLibrary(r'''
 class A {}
 
@@ -573,7 +661,38 @@ declared
 ''');
   }
 
-  test_declareMethod_implementClass_override() async {
+  test_declareMethod_implementClass_precludeGetter() async {
+    final library = await buildLibrary(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void bar() {}
+}
+
+extension type C(B it) implements A {
+  void foo() {}
+}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  foo: self::@extensionType::C::@method::foo
+  it: self::@extensionType::C::@getter::it
+declared
+  foo: self::@extensionType::C::@method::foo
+  it: self::@extensionType::C::@getter::it
+redeclared
+  foo
+    self::@class::A::@getter::foo
+inheritedMap
+  foo: self::@class::A::@getter::foo
+''');
+  }
+
+  test_declareMethod_implementClass_precludeMethod() async {
     final library = await buildLibrary(r'''
 class A {
   void foo() {}
@@ -604,15 +723,13 @@ inheritedMap
 ''');
   }
 
-  test_declareMethod_implementClass_override_getter() async {
+  test_declareMethod_implementClass_precludeSetter() async {
     final library = await buildLibrary(r'''
 class A {
-  int get foo => 0;
+  set foo(_) {}
 }
 
-class B extends A {
-  void bar() {}
-}
+class B extends A {}
 
 extension type C(B it) implements A {
   void foo() {}
@@ -628,10 +745,10 @@ declared
   foo: self::@extensionType::C::@method::foo
   it: self::@extensionType::C::@getter::it
 redeclared
-  foo
-    self::@class::A::@getter::foo
+  foo=
+    self::@class::A::@setter::foo
 inheritedMap
-  foo: self::@class::A::@getter::foo
+  foo=: self::@class::A::@setter::foo
 ''');
   }
 
@@ -671,7 +788,37 @@ inheritedMap
 ''');
   }
 
-  test_declareMethod_implementExtensionType_override() async {
+  test_declareMethod_implementExtensionType_precludeGetter() async {
+    final library = await buildLibrary(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+extension type B(int it) implements A {
+  void foo() {}
+}
+''');
+
+    final element = library.extensionType('B');
+    assertInterfaceText(element, r'''
+map
+  foo: self::@extensionType::B::@method::foo
+  it: self::@extensionType::B::@getter::it
+declared
+  foo: self::@extensionType::B::@method::foo
+  it: self::@extensionType::B::@getter::it
+redeclared
+  foo
+    self::@extensionType::A::@getter::foo
+  it
+    self::@extensionType::A::@getter::it
+inheritedMap
+  foo: self::@extensionType::A::@getter::foo
+  it: self::@extensionType::A::@getter::it
+''');
+  }
+
+  test_declareMethod_implementExtensionType_precludeMethod() async {
     final library = await buildLibrary(r'''
 extension type A(int it) {
   void foo() {}
@@ -701,10 +848,10 @@ inheritedMap
 ''');
   }
 
-  test_declareMethod_implementExtensionType_override_getter() async {
+  test_declareMethod_implementExtensionType_precludeSetter() async {
     final library = await buildLibrary(r'''
 extension type A(int it) {
-  int get foo => 0;
+  set foo(_) {}
 }
 
 extension type B(int it) implements A {
@@ -721,12 +868,12 @@ declared
   foo: self::@extensionType::B::@method::foo
   it: self::@extensionType::B::@getter::it
 redeclared
-  foo
-    self::@extensionType::A::@getter::foo
+  foo=
+    self::@extensionType::A::@setter::foo
   it
     self::@extensionType::A::@getter::it
 inheritedMap
-  foo: self::@extensionType::A::@getter::foo
+  foo=: self::@extensionType::A::@setter::foo
   it: self::@extensionType::A::@getter::it
 ''');
   }
@@ -761,6 +908,126 @@ map
   it: self::@extensionType::A::@getter::it
 declared
   foo=: self::@extensionType::A::@setter::foo
+  it: self::@extensionType::A::@getter::it
+''');
+  }
+
+  test_declareSetter_implementClass_withGetter() async {
+    final library = await buildLibrary(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {}
+
+extension type C(B it) implements A {
+  set foo(_) {}
+}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  foo: self::@class::A::@getter::foo
+  foo=: self::@extensionType::C::@setter::foo
+  it: self::@extensionType::C::@getter::it
+declared
+  foo=: self::@extensionType::C::@setter::foo
+  it: self::@extensionType::C::@getter::it
+redeclared
+  foo
+    self::@class::A::@getter::foo
+inheritedMap
+  foo: self::@class::A::@getter::foo
+''');
+  }
+
+  test_declareSetter_implementClass_withMethod() async {
+    final library = await buildLibrary(r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+
+extension type C(B it) implements A {
+  set foo(_) {}
+}
+''');
+
+    final element = library.extensionType('C');
+    assertInterfaceText(element, r'''
+map
+  foo=: self::@extensionType::C::@setter::foo
+  it: self::@extensionType::C::@getter::it
+declared
+  foo=: self::@extensionType::C::@setter::foo
+  it: self::@extensionType::C::@getter::it
+redeclared
+  foo
+    self::@class::A::@method::foo
+inheritedMap
+  foo: self::@class::A::@method::foo
+''');
+  }
+
+  test_declareSetter_implementExtensionType_withGetter() async {
+    final library = await buildLibrary(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+extension type B(int it) implements A {
+  set foo(_) {}
+}
+''');
+
+    final element = library.extensionType('B');
+    assertInterfaceText(element, r'''
+map
+  foo: self::@extensionType::A::@getter::foo
+  foo=: self::@extensionType::B::@setter::foo
+  it: self::@extensionType::B::@getter::it
+declared
+  foo=: self::@extensionType::B::@setter::foo
+  it: self::@extensionType::B::@getter::it
+redeclared
+  foo
+    self::@extensionType::A::@getter::foo
+  it
+    self::@extensionType::A::@getter::it
+inheritedMap
+  foo: self::@extensionType::A::@getter::foo
+  it: self::@extensionType::A::@getter::it
+''');
+  }
+
+  test_declareSetter_implementExtensionType_withMethod() async {
+    final library = await buildLibrary(r'''
+extension type A(int it) {
+  void foo() {}
+}
+
+extension type B(int it) implements A {
+  set foo(_) {}
+}
+''');
+
+    final element = library.extensionType('B');
+    assertInterfaceText(element, r'''
+map
+  foo=: self::@extensionType::B::@setter::foo
+  it: self::@extensionType::B::@getter::it
+declared
+  foo=: self::@extensionType::B::@setter::foo
+  it: self::@extensionType::B::@getter::it
+redeclared
+  foo
+    self::@extensionType::A::@method::foo
+  it
+    self::@extensionType::A::@getter::it
+inheritedMap
+  foo: self::@extensionType::A::@method::foo
   it: self::@extensionType::A::@getter::it
 ''');
   }

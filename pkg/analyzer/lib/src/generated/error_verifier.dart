@@ -2031,6 +2031,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         }
       }
 
+      // Extension type methods preclude accessors.
+      if (enclosingClass is ExtensionTypeElement) {
+        continue;
+      }
+
       void reportFieldConflict(PropertyAccessorElement inherited) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
@@ -2041,12 +2046,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       if (getter is PropertyAccessorElement) {
-        if (enclosingClass is ExtensionTypeElement) {
-          // Extension type methods redeclare getters with the same name.
-        } else {
-          reportFieldConflict(getter);
-          continue;
-        }
+        reportFieldConflict(getter);
+        continue;
       }
 
       if (setter is PropertyAccessorElement) {
@@ -2074,8 +2075,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         ]);
         conflictingDeclaredNames.add(name);
       } else if (inherited is MethodElement) {
-        // Extension type getters redeclare methods with the same name.
-        if (enclosingClass is ExtensionTypeElement && accessor.isGetter) {
+        // Extension type accessors preclude inherited accessors/methods.
+        if (enclosingClass is ExtensionTypeElement) {
           continue;
         }
         errorReporter.reportErrorForElement(
