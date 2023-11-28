@@ -258,7 +258,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE',
     "The 'await' expression can't be used for an expression with an extension "
         "type that is not a subtype of 'Future'.",
-    correctionMessage: "Try updating the extension type to implement 'Future'.",
+    correctionMessage:
+        "Try removing the `await`, or updating the extension type to implement "
+        "'Future'.",
   );
 
   ///  Parameters:
@@ -1672,8 +1674,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode
       EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION = CompileTimeErrorCode(
     'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
-    "Extension type constructors can't include superinitializers.",
-    correctionMessage: "Try removing the superconstructor invocation.",
+    "Extension type constructors can't include super initializers.",
+    correctionMessage: "Try removing the super constructor invocation.",
   );
 
   ///  No parameters.

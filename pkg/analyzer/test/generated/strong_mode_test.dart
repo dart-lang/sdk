@@ -20,19 +20,14 @@ import 'test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StrongModeLocalInferenceTest);
-    defineReflectiveTests(StrongModeLocalInferenceWithoutNullSafetyTest);
     defineReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
-    defineReflectiveTests(StrongModeStaticTypeAnalyzer2WithoutNullSafetyTest);
     defineReflectiveTests(StrongModeTypePropagationTest);
   });
 }
 
 /// Strong mode static analyzer local type inference tests.
 @reflectiveTest
-class StrongModeLocalInferenceTest extends PubPackageResolutionTest
-    with StrongModeLocalInferenceTestCases {}
-
-mixin StrongModeLocalInferenceTestCases on PubPackageResolutionTest {
+class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
   TypeAssertions? _assertions;
 
   late final Asserter<DartType> _isDynamic;
@@ -4049,17 +4044,8 @@ $code
   }
 }
 
-/// Strong mode static analyzer local type inference tests.
 @reflectiveTest
-class StrongModeLocalInferenceWithoutNullSafetyTest
-    extends PubPackageResolutionTest
-    with StrongModeLocalInferenceTestCases, WithoutNullSafetyMixin {}
-
-@reflectiveTest
-class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared
-    with StrongModeStaticTypeAnalyzer2TestCases {}
-
-mixin StrongModeStaticTypeAnalyzer2TestCases on StaticTypeAnalyzer2TestShared {
+class StrongModeStaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
   test_dynamicObjectGetter_hashCode() async {
     await assertErrorsInCode(r'''
 main() {
@@ -6745,11 +6731,6 @@ main() {
     _assertLocalVarType('t5', "int");
   }
 }
-
-@reflectiveTest
-class StrongModeStaticTypeAnalyzer2WithoutNullSafetyTest
-    extends StaticTypeAnalyzer2TestShared
-    with StrongModeStaticTypeAnalyzer2TestCases, WithoutNullSafetyMixin {}
 
 @reflectiveTest
 class StrongModeTypePropagationTest extends PubPackageResolutionTest {
