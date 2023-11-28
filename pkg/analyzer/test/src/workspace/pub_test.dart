@@ -269,11 +269,14 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
 
   String get myPackageRootPath => '$myWorkspacePath/my';
 
-  String get myWorkspacePath => '/workspace';
+  String get myWorkspacePath => '/workspace2';
 
   setUp() {
-    newPubspecYamlFile(myPackageRootPath, 'name: my');
-    newFolder(myPackageGeneratedPath);
+    // Setup two workspaces, one at path /workspace that does not have generated
+    // files, and the second at path /workspace2 which uses the build package
+    // and has generated files.
+
+    // workspace 1 with packages 'p1' and 'workspace'
     newPubspecYamlFile('/workspace', 'name: project');
     workspace = PubWorkspace.find(
       resourceProvider,
@@ -295,6 +298,9 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
     )!;
     expect(workspace.isBlaze, isFalse);
 
+    // workspace 2 with packages 'my' and 'foo'
+    newPubspecYamlFile(myPackageRootPath, 'name: my');
+    newFolder(myPackageGeneratedPath);
     myWorkspace = PubWorkspace.find(
       resourceProvider,
       Packages({
@@ -318,12 +324,12 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
   }
 
   void test_contains_differentWorkspace() {
-    newFile('/workspace2/project/lib/file.dart', '');
+    newFile('$myWorkspacePath/project/lib/file.dart', '');
 
     var package = findPackage('/workspace/project/lib/code.dart')!;
     expect(
         package.contains(
-            TestSource(convertPath('/workspace2/project/lib/file.dart'))),
+            TestSource(convertPath('$myWorkspacePath/project/lib/file.dart'))),
         isFalse);
   }
 
@@ -474,7 +480,7 @@ class PubWorkspacePackageTest extends WorkspacePackageTest {
   void test_findPackageFor_unrelatedFile() {
     newFile('/workspace/project/lib/file.dart', '');
 
-    var package = findPackage('/workspace2/project/lib/file.dart');
+    var package = findPackage('$myWorkspacePath/project/lib/file.dart');
     expect(package, isNull);
   }
 
@@ -562,10 +568,23 @@ class PubWorkspaceTest with ResourceProviderMixin {
 
     newFolder('/workspace/aaa/.dart_tool/build/generated');
     newPubspecYamlFile('/workspace/aaa', '*');
+    newPackageConfigJsonFile('/workspace/aaa', '');
 
     PubWorkspace workspace = _createWorkspace('/workspace/aaa/lib', []);
     expect(workspace, isNotNull);
-    expect(workspace.usesPackageBuild, false);
+    expect(workspace.root, '/workspace/aaa');
+  }
+
+  void test_find_hasBuild_hasPubspec_malformed_goToUp() {
+    newFolder('/workspace/.dart_tool/build/generated');
+    newPubspecYamlFile('/workspace', 'name: project');
+
+    newFolder('/workspace/aaa/.dart_tool/build/generated');
+    newPubspecYamlFile('/workspace/aaa', '*');
+
+    PubWorkspace workspace = _createWorkspace('/workspace/aaa/lib', []);
+    expect(workspace, isNotNull);
+    expect(workspace.root, '/workspace');
   }
 
   void test_find_hasDartToolAndPubspec() {
@@ -575,18 +594,17 @@ class PubWorkspaceTest with ResourceProviderMixin {
     PubWorkspace workspace = _createWorkspace('/workspace', []);
 
     expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.projectPackageName, 'project');
   }
 
   void test_find_hasDartToolAndPubspec_inParentDirectory() {
     newFolder('/workspace/.dart_tool/build/generated/project/lib');
     newFolder('/workspace/opened/up/a/child/dir/.dart_tool/build');
     newPubspecYamlFile('/workspace/opened/up/a/child/dir', 'name: subproject');
+    newPackageConfigJsonFile('/workspace/opened/up/a/child/dir', '');
     newPubspecYamlFile('/workspace', 'name: project');
     PubWorkspace workspace =
         _createWorkspace('/workspace/opened/up/a/child/dir', ['project']);
     expect(workspace.root, convertPath('/workspace/opened/up/a/child/dir'));
-    expect(workspace.projectPackageName, 'subproject');
   }
 
   void test_find_hasDartToolAndPubspec_inParentDirectory_ignoresSoloDartTool() {
@@ -597,7 +615,6 @@ class PubWorkspaceTest with ResourceProviderMixin {
     PubWorkspace workspace =
         _createWorkspace('/workspace/opened/up/a/child/dir', ['project']);
     expect(workspace.root, convertPath('/workspace'));
-    expect(workspace.projectPackageName, 'project');
   }
 
   void test_find_hasDartToolNoBuild() {
@@ -606,7 +623,6 @@ class PubWorkspaceTest with ResourceProviderMixin {
     newPubspecYamlFile('/workspace', 'name: project');
     PubWorkspace workspace = _createWorkspace('/workspace', ['project']);
     expect(workspace, isNotNull);
-    expect(workspace.usesPackageBuild, isFalse);
   }
 
   void test_find_hasDartToolNoPubspec() {
@@ -628,7 +644,7 @@ class PubWorkspaceTest with ResourceProviderMixin {
       Packages.empty,
       convertPath('/workspace'),
     );
-    expect(workspace?.usesPackageBuild, isFalse);
+    expect(workspace!.root, '/workspace');
   }
 
   void test_find_hasMalformedPubspec() {
@@ -639,10 +655,10 @@ class PubWorkspaceTest with ResourceProviderMixin {
       Packages.empty,
       convertPath('/workspace'),
     );
-    expect(workspace?.usesPackageBuild, isFalse);
+    expect(workspace?.root, '/workspace');
   }
 
-  void test_find_hasPubspec_noDartTool_dontGoUp() {
+  void test_find_hasPubspec_noDartTool_goUp() {
     newFolder('/workspace/.dart_tool/build/generated');
     newPubspecYamlFile('/workspace', 'name: project');
 
@@ -653,7 +669,7 @@ class PubWorkspaceTest with ResourceProviderMixin {
       Packages.empty,
       convertPath('/workspace/aaa/lib'),
     );
-    expect(workspace?.usesPackageBuild, isFalse);
+    expect(workspace?.root, '/workspace');
   }
 
   void test_find_hasPubspecNoDartTool() {
@@ -663,7 +679,7 @@ class PubWorkspaceTest with ResourceProviderMixin {
       Packages.empty,
       convertPath('/workspace'),
     );
-    expect(workspace?.usesPackageBuild, isFalse);
+    expect(workspace?.root, '/workspace');
   }
 
   void test_find_missingPubspec() {

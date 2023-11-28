@@ -29,7 +29,7 @@ JSMethods _performJSInteropTransformations(
   // We want static types to help us specialize methods based on receivers.
   // Therefore, erasure must come after the lowering.
   final jsValueClass = coreTypes.index.getClass('dart:_js_helper', 'JSValue');
-  final staticInteropClassEraser = StaticInteropClassEraser(coreTypes, null,
+  final staticInteropClassEraser = StaticInteropClassEraser(coreTypes,
       eraseStaticInteropType: (staticInteropType) =>
           InterfaceType(jsValueClass, staticInteropType.declaredNullability),
       additionalCoreLibraries: {
