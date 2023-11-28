@@ -11,7 +11,7 @@ part of dart.core;
 /// Non-platform classes cannot extend or mix in this class.
 /// Concrete classes cannot implement the interface.
 ///
-/// The intentifier used to name an `enum` value is available as a [String],
+/// The identifier used to name an `enum` value is available as a [String],
 /// via the [EnumName.name] extension property on the `enum` value.
 @Since("2.14")
 abstract interface class Enum {
