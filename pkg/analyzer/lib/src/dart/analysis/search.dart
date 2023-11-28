@@ -370,7 +370,16 @@ class Search {
       return _searchReferences_PatternVariable(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
-      return _searchReferences_Local(element, (n) => n is Block, searchedFiles);
+      return _searchReferences_Local(
+          element,
+          (n) =>
+              n is Block ||
+              n is ForElement ||
+              n is FunctionBody ||
+              n is TopLevelVariableDeclaration ||
+              n is SwitchExpression ||
+              n.parent is CompilationUnit,
+          searchedFiles);
     } else if (element is LibraryElement) {
       return _searchReferences_Library(element, searchedFiles);
     } else if (element is ParameterElement) {
@@ -754,7 +763,14 @@ class Search {
     }
 
     // Prepare the enclosing node.
-    var enclosingNode = node.thisOrAncestorMatching(isRootNode);
+    var enclosingNode = node.thisOrAncestorMatching((node) =>
+        isRootNode(node) || node is ClassMember || node is CompilationUnit);
+    assert(
+      enclosingNode != null && enclosingNode is! CompilationUnit,
+      'Did not find enclosing node for local "${element.name}". '
+      'Perhaps the isRootNode function is missing a condition to locate the '
+      'outermost node where this element is in scope?',
+    );
     if (enclosingNode == null) {
       return const <SearchResult>[];
     }
