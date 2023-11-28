@@ -10,7 +10,6 @@ import '../src/dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(StrictModeTest);
-    defineReflectiveTests(StrictModeWithoutNullSafetyTest);
     defineReflectiveTests(TypePropagationTest);
   });
 }
@@ -18,60 +17,7 @@ main() {
 /// The class `StrictModeTest` contains tests to ensure that the correct errors
 /// and warnings are reported when the analysis engine is run in strict mode.
 @reflectiveTest
-class StrictModeTest extends PubPackageResolutionTest with StrictModeTestCases {
-  test_conditional_isNot() async {
-    await assertNoErrorsInCode(r'''
-int f(num n) {
-  return (n is! int) ? 0 : n & 0x0F;
-}
-''');
-  }
-
-  test_conditional_or_is() async {
-    await assertNoErrorsInCode(r'''
-int f(num n) {
-  return (n is! int || n < 0) ? 0 : n & 0x0F;
-}
-''');
-  }
-
-  test_if_isNot() async {
-    await assertNoErrorsInCode(r'''
-int f(num n) {
-  if (n is! int) {
-    return 0;
-  } else {
-    return n & 0x0F;
-  }
-}
-''');
-  }
-
-  test_if_isNot_abrupt() async {
-    await assertNoErrorsInCode(r'''
-int f(num n) {
-  if (n is! int) {
-    return 0;
-  }
-  return n & 0x0F;
-}
-''');
-  }
-
-  test_if_or_is() async {
-    await assertNoErrorsInCode(r'''
-int f(num n) {
-  if (n is! int || n < 0) {
-    return 0;
-  } else {
-    return n & 0x0F;
-  }
-}
-''');
-  }
-}
-
-mixin StrictModeTestCases on PubPackageResolutionTest {
+class StrictModeTest extends PubPackageResolutionTest {
   test_assert_is() async {
     await assertErrorsInCode(r'''
 int f(num n) {
@@ -94,6 +40,22 @@ int f(num n) {
 int f(num n) {
   return (n is int) ? n & 0x0F : 0;
 }''');
+  }
+
+  test_conditional_isNot() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  return (n is! int) ? 0 : n & 0x0F;
+}
+''');
+  }
+
+  test_conditional_or_is() async {
+    await assertNoErrorsInCode(r'''
+int f(num n) {
+  return (n is! int || n < 0) ? 0 : n & 0x0F;
+}
+''');
   }
 
   test_for() async {
@@ -140,44 +102,8 @@ int f(num n) {
 }''');
   }
 
-  test_localVar() async {
-    await assertErrorsInCode(r'''
-int f() {
-  num n = 1234;
-  return n & 0x0F;
-}''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1),
-    ]);
-  }
-}
-
-/// The class `StrictModeTest` contains tests to ensure that the correct errors
-/// and warnings are reported when the analysis engine is run in strict mode.
-@reflectiveTest
-class StrictModeWithoutNullSafetyTest extends PubPackageResolutionTest
-    with StrictModeTestCases, WithoutNullSafetyMixin {
-  test_conditional_isNot() async {
-    await assertErrorsInCode(r'''
-int f(num n) {
-  return (n is! int) ? 0 : n & 0x0F;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 44, 1),
-    ]);
-  }
-
-  test_conditional_or_is() async {
-    await assertErrorsInCode(r'''
-int f(num n) {
-  return (n is! int || n < 0) ? 0 : n & 0x0F;
-}
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 53, 1),
-    ]);
-  }
-
   test_if_isNot() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   if (n is! int) {
     return 0;
@@ -185,26 +111,22 @@ int f(num n) {
     return n & 0x0F;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 72, 1),
-    ]);
+''');
   }
 
   test_if_isNot_abrupt() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   if (n is! int) {
     return 0;
   }
   return n & 0x0F;
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 63, 1),
-    ]);
+''');
   }
 
   test_if_or_is() async {
-    await assertErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 int f(num n) {
   if (n is! int || n < 0) {
     return 0;
@@ -212,8 +134,16 @@ int f(num n) {
     return n & 0x0F;
   }
 }
-''', [
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 81, 1),
+''');
+  }
+
+  test_localVar() async {
+    await assertErrorsInCode(r'''
+int f() {
+  num n = 1234;
+  return n & 0x0F;
+}''', [
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 37, 1),
     ]);
   }
 }
