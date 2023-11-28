@@ -101,14 +101,14 @@ extension Extension on int {
     /*cfe.
      member=Extension|oneTypeParameter,
      static,
-     typeParameters=[T],
+     typeParameters=[Extension|oneTypeParameter.T],
      variables=[#this]
     */
     /*ddc.
      member=Extension|get#oneTypeParameter,
      static,
      typeParameters=[
-      T,
+      Extension|oneTypeParameter.T,
       T],
      variables=[#this]
     */
@@ -121,15 +121,15 @@ extension GenericExtension<T> on T {
     /*cfe.
      member=GenericExtension|classTypeParameter,
      static,
-     typeParameters=[T],
+     typeParameters=[GenericExtension|classTypeParameter.T],
      variables=[#this]
     */
     /*ddc.
      member=GenericExtension|get#classTypeParameter,
      static,
      typeParameters=[
-      T,
-      T],
+      GenericExtension|classTypeParameter.T,
+      GenericExtension|get#classTypeParameter.T],
      variables=[#this]
     */
     x;
@@ -140,18 +140,18 @@ extension GenericExtension<T> on T {
      member=GenericExtension|mixedTypeParameter,
      static,
      typeParameters=[
-      S,
-      T],
+      GenericExtension|mixedTypeParameter.S,
+      GenericExtension|mixedTypeParameter.T],
      variables=[#this]
     */
     /*ddc.
      member=GenericExtension|get#mixedTypeParameter,
      static,
      typeParameters=[
-      S,
-      S,
-      T,
-      T],
+      GenericExtension|get#mixedTypeParameter.T,
+      GenericExtension|mixedTypeParameter.S,
+      GenericExtension|mixedTypeParameter.T,
+      S],
      variables=[#this]
     */
     x;
@@ -214,7 +214,7 @@ extension GenericExtension<T> on T {
     /*
      member=GenericExtension|oneTypeParameter,
      static,
-     typeParameters=[T]
+     typeParameters=[GenericExtension|oneTypeParameter.T]
     */
     x;
   }
