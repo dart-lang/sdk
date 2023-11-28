@@ -44,3 +44,46 @@ class A {}
     ]);
   }
 }
+
+/*macro*/ class DeclareInLibrary implements ClassDeclarationsMacro {
+  final String code;
+
+  const DeclareInLibrary(this.code);
+
+  @override
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInLibrary(
+      DeclarationCode.fromString(code),
+    );
+  }
+}
+
+/*macro*/ class DeclareInType implements ClassDeclarationsMacro {
+  final String code;
+
+  const DeclareInType(this.code);
+
+  @override
+  buildDeclarationsForClass(clazz, builder) async {
+    builder.declareInType(
+      DeclarationCode.fromString(code),
+    );
+  }
+}
+
+/*macro*/ class DeclareType implements ClassTypesMacro {
+  final String name;
+  final String code;
+
+  const DeclareType(this.name, this.code);
+
+  const DeclareType.named(this.name, this.code);
+
+  @override
+  buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      name,
+      DeclarationCode.fromString(code),
+    );
+  }
+}
