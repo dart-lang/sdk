@@ -5,7 +5,11 @@ This is a patch release that:
 - Adjusts the nullablity computations in the implementation of the
   upper bound algorithm in the CFE (issue [#53999][]).
 
+- Fixes missing closure code completion entries for function parameters 
+  (issue [#54112][]) for LSP-based editors like VS Code.
+
 [#53999]: https://github.com/dart-lang/sdk/issues/53999
+[#54112]: https://github.com/dart-lang/sdk/issues/54112
 
 ## 3.2.1 - 2023-11-22
 
