@@ -3072,11 +3072,7 @@ suggestions
     kind: field
   null
     kind: keyword
-  super
-    kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -3142,11 +3138,7 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  super
-    kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -3202,11 +3194,7 @@ suggestions
     kind: methodInvocation
   null
     kind: keyword
-  super
-    kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -3884,7 +3872,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_032_1() async {
     allowedIdentifiers = {'ONE', 'UKSI'};
     await computeSuggestions('''
@@ -3916,6 +3903,10 @@ suggestions
 replacement
   left: 3
 suggestions
+  ONE
+    kind: topLevelVariable
+  UKSI
+    kind: topLevelVariable
   const
     kind: keyword
   false
@@ -3924,8 +3915,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  ONE
-    kind: topLevelVariable
+  switch
+    kind: keyword
   true
     kind: keyword
   var
@@ -3934,7 +3925,6 @@ suggestions
     }
   }
 
-  @failingTest
   Future<void> test_032_2() async {
     allowedIdentifiers = {'EIN', 'ICHI'};
     await computeSuggestions('''
@@ -3966,15 +3956,19 @@ suggestions
 replacement
   left: 3
 suggestions
-  const
-    kind: keyword
   EIN
     kind: topLevelVariable
+  ICHI
+    kind: topLevelVariable
+  const
+    kind: keyword
   false
     kind: keyword
   final
     kind: keyword
   null
+    kind: keyword
+  switch
     kind: keyword
   true
     kind: keyword
@@ -4763,21 +4757,29 @@ suggestions
     selection: 90 38
   A
     kind: class
-  abstract
-    kind: keyword
   const
     kind: keyword
   covariant
     kind: keyword
-  external
+  dynamic
+    kind: keyword
+  factory
     kind: keyword
   final
     kind: keyword
+  get
+    kind: keyword
   late
+    kind: keyword
+  operator
+    kind: keyword
+  set
     kind: keyword
   static
     kind: keyword
   var
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -5018,14 +5020,11 @@ suggestions
     kind: class
 ''');
     } else {
-      // TODO(brianwilkerson): 'int' should not be suggested twice
       assertResponse(r'''
 replacement
   left: 2
   right: 1
 suggestions
-  int
-    kind: class
   int
     kind: class
 ''');
@@ -6114,8 +6113,6 @@ replacement
 suggestions
   List
     kind: class
-  List
-    kind: class
 ''');
     }
   }
@@ -6140,10 +6137,6 @@ replacement
 suggestions
   List
     kind: class
-  List
-    kind: class
-  String
-    kind: class
   String
     kind: class
 ''');
@@ -6167,10 +6160,6 @@ suggestions
       assertResponse(r'''
 suggestions
   DateTime
-    kind: class
-  DateTime
-    kind: class
-  String
     kind: class
   String
     kind: class
@@ -9449,7 +9438,6 @@ suggestions
     }
   }
 
-  // resume here
   Future<void> test_completion_annotation_type_1() async {
     allowedIdentifiers = {'AAA', 'nnn'};
     await computeSuggestions('''
@@ -9468,6 +9456,8 @@ replacement
   left: 3
 suggestions
   AAA
+    kind: class
+  AAA
     kind: constructorInvocation
 ''');
     } else {
@@ -9475,6 +9465,8 @@ suggestions
 replacement
   left: 3
 suggestions
+  AAA
+    kind: class
   AAA
     kind: constructorInvocation
   AAA.nnn
@@ -9500,6 +9492,8 @@ replacement
   left: 1
 suggestions
   AAA
+    kind: class
+  AAA
     kind: constructorInvocation
 ''');
     } else {
@@ -9508,31 +9502,9 @@ replacement
   left: 1
 suggestions
   AAA
+    kind: class
+  AAA
     kind: constructorInvocation
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
 ''');
     }
   }
@@ -9672,6 +9644,8 @@ void f(p) {
 suggestions
   MyClass
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -10837,8 +10811,6 @@ replacement
 suggestions
   int
     kind: class
-  int
-    kind: class
 ''');
     }
   }
@@ -11704,9 +11676,9 @@ suggestions
   const
     kind: keyword
   f1
-    kind: functionInvocation
+    kind: function
   f2
-    kind: functionInvocation
+    kind: function
   false
     kind: keyword
   null
@@ -13171,8 +13143,6 @@ suggestions
     kind: keyword
   num
     kind: class
-  num
-    kind: class
   static
     kind: keyword
   var
@@ -13186,7 +13156,8 @@ suggestions
     await computeSuggestions('''
 class num{}class Sunflower {static final num MAX_D = 300;num xc, yc;Sun^flower() {xc = yc = MA }}
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 replacement
   left: 3
   right: 6
@@ -13194,6 +13165,17 @@ suggestions
   Sunflower
     kind: class
 ''');
+    } else {
+      // TODO(brianwilkerson): We used to suggest the class name in a constructor
+      //  declaration, but I don't think this case is useful enough to worry about
+      //  supporting.
+      assertResponse(r'''
+replacement
+  left: 3
+  right: 6
+suggestions
+''');
+    }
   }
 
   Future<void> test_completion_staticField1_X() async {

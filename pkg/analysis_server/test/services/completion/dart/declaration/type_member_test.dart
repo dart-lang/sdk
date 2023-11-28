@@ -230,6 +230,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: function
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -248,6 +250,8 @@ suggestions
     kind: function
   b1
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -286,6 +290,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: function
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -304,6 +310,8 @@ suggestions
     kind: function
   b1
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -430,6 +438,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: function
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -448,6 +458,8 @@ suggestions
     kind: function
   b1
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -484,6 +496,8 @@ suggestions
     kind: class
   B0
     kind: constructorInvocation
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -500,6 +514,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -2227,17 +2243,25 @@ class A0 {
   a0(blat: ^) {}
 }
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      // TODO(brianwilkerson): We shouldn't be suggesting either the non-const
+      //  constructor nor the function invocation.
+      assertResponse(r'''
 suggestions
   A0
     kind: class
   A0
     kind: constructorInvocation
-  a0
-    kind: methodInvocation
   f0
     kind: functionInvocation
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  A0
+    kind: class
+''');
+    }
   }
 
   Future<void> test_enumConst() async {
@@ -2375,8 +2399,7 @@ class C2 {
   void b0() {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -2399,29 +2422,6 @@ suggestions
   f0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  C1
-    kind: class
-  C2
-    kind: class
-  C2
-    kind: constructorInvocation
-  F0
-    kind: functionInvocation
-  F1
-    kind: typeAlias
-  b0
-    kind: methodInvocation
-  f0
-    kind: methodInvocation
-''');
-    }
   }
 
   Future<void> test_expressionStatement_name() async {

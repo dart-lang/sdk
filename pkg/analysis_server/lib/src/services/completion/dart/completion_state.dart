@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -10,16 +11,19 @@ import 'package:analyzer/dart/element/type.dart';
 
 /// The information used to compute the suggestions for a completion request.
 class CompletionState {
-  /// The element of the library containing the completion location.
-  final LibraryElement libraryElement;
+  /// The completion request being processed.
+  final DartCompletionRequest request;
 
   /// The selection at the time completion was requested. The selection is
   /// required to have a length of zero.
   final Selection selection;
 
   /// Initialize a newly created completion state.
-  CompletionState(this.libraryElement, this.selection)
-      : assert(selection.length == 0);
+  CompletionState(this.request, this.selection) : assert(selection.length == 0);
+
+  /// Returns the type of value required by the context in which completion was
+  /// requested.
+  DartType? get contextType => request.contextType;
 
   /// Return the [ClassMember] that encloses the completion location, or `null`
   /// if the completion location isn't in a class member.
@@ -33,6 +37,9 @@ class CompletionState {
     var member = enclosingMember;
     return member != null && !member.isStatic;
   }
+
+  /// Returns the element of the library containing the completion location.
+  LibraryElement get libraryElement => request.libraryElement;
 
   /// Return the type of `this` at the completion location, or `null`
   /// if the completion location doesn't allow `this` to be used.

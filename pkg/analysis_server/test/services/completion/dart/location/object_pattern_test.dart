@@ -475,6 +475,8 @@ suggestions
     kind: getter
   const
     kind: keyword
+  f1
+    kind: functionInvocation
   false
     kind: keyword
   final
@@ -566,6 +568,8 @@ suggestions
     kind: getter
   const
     kind: keyword
+  f1
+    kind: functionInvocation
   false
     kind: keyword
   final

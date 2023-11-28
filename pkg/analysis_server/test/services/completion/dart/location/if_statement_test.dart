@@ -44,11 +44,8 @@ final v01 = 0;
 
 int f01() => 0;
 ''');
-    // TODO(scheglov): This is wrong.
-    // We should not suggest `v01`.
-    // We could suggest `f01`, but not as an invocation.
-    // We suggest `A1`, but almost always we want `A1()`.
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
   A1
     kind: class
@@ -73,6 +70,27 @@ suggestions
   var
     kind: keyword
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  A1
+    kind: class
+  c01
+    kind: topLevelVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_afterCase_partial() async {
@@ -118,24 +136,12 @@ replacement
 suggestions
   A01
     kind: class
-  A01
-    kind: constructorInvocation
   A02
     kind: topLevelVariable
-  A03
-    kind: topLevelVariable
-  A04
-    kind: functionInvocation
   B01
     kind: class
-  B01
-    kind: constructorInvocation
   B02
     kind: topLevelVariable
-  B03
-    kind: topLevelVariable
-  B04
-    kind: functionInvocation
   const
     kind: keyword
   false

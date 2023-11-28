@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
-import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -13,9 +12,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/completion_target.dart';
-import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
-import 'package:analyzer_plugin/src/utilities/visitors/local_declaration_visitor.dart'
-    show LocalDeclarationVisitor;
 
 /// A contributor that produces suggestions based on the declarations in the
 /// local file and containing library.  This contributor also produces
@@ -40,50 +36,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
   Future<void> computeSuggestions({
     required OperationPerformanceImpl performance,
   }) async {
-    var opType = request.opType;
-    AstNode? node = request.target.containingNode;
-
-    // Suggest local fields for constructor initializers.
-    var suggestLocalFields = node is ConstructorDeclaration &&
-        node.initializers.contains(request.target.entity);
-
-    // Collect suggestions from the specific child [AstNode] that contains the
-    // completion offset and all of its parents recursively.
-    if (!opType.isPrefixed) {
-      if (opType.includeReturnValueSuggestions ||
-          opType.includeTypeNameSuggestions ||
-          opType.includeAnnotationSuggestions ||
-          opType.includeVoidReturnSuggestions ||
-          opType.includeConstructorSuggestions ||
-          suggestLocalFields) {
-        // Do not suggest local variables within the current expression.
-        while (node is Expression) {
-          node = node.parent;
-        }
-
-        // Do not suggest loop variable of a ForEachStatement when completing
-        // the expression of the ForEachStatement.
-        if (node is ForStatement && node.forLoopParts is ForEachParts) {
-          node = node.parent;
-        } else if (node is ForEachParts) {
-          node = node.parent?.parent;
-        }
-
-        if (node != null) {
-          try {
-            builder.laterReplacesEarlier = false;
-            var localVisitor = _LocalVisitor(
-                request, builder, visibilityTracker,
-                suggestLocalFields: suggestLocalFields);
-            localVisitor.visit(node);
-          } finally {
-            builder.laterReplacesEarlier = true;
-          }
-        }
-      }
-    }
-
-    // From this point forward the logic is for the inherited references.
+    // The remaining logic is for the inherited references.
     if (request.includeIdentifiers) {
       var member = _enclosingMember(request.target);
       if (member != null) {
@@ -181,198 +134,5 @@ class LocalReferenceContributor extends DartCompletionContributor {
       node = node.parent;
     }
     return null;
-  }
-}
-
-/// A visitor for collecting suggestions from the most specific child [AstNode]
-/// that contains the completion offset to the [CompilationUnit].
-class _LocalVisitor extends LocalDeclarationVisitor {
-  /// The request for which suggestions are being computed.
-  final DartCompletionRequest request;
-
-  /// The builder used to build the suggestions.
-  final SuggestionBuilder builder;
-
-  /// The op type associated with the request.
-  final OpType opType;
-
-  /// A flag indicating whether the target of the request is a function-valued
-  /// argument in an argument list.
-  final bool targetIsFunctionalArgument;
-
-  /// A flag indicating whether local fields should be suggested.
-  final bool suggestLocalFields;
-
-  /// A flag indicating whether suggestions are being made inside an `extends`
-  /// clause.
-  bool inExtendsClause = false;
-
-  VisibilityTracker visibilityTracker;
-
-  _LocalVisitor(this.request, this.builder, this.visibilityTracker,
-      {required this.suggestLocalFields})
-      : opType = request.opType,
-        targetIsFunctionalArgument = request.target.isFunctionalArgument(),
-        super(request.offset);
-
-  CompletionSuggestionKind get _defaultKind => targetIsFunctionalArgument
-      ? CompletionSuggestionKind.IDENTIFIER
-      : opType.suggestKind;
-
-  @override
-  void declaredClass(ClassDeclaration declaration) {
-    _declaredInterfaceElement(declaration.declaredElement);
-  }
-
-  @override
-  void declaredClassTypeAlias(ClassTypeAlias declaration) {
-    var declaredElement = declaration.declaredElement;
-    if (declaredElement != null && opType.includeTypeNameSuggestions) {
-      builder.suggestInterface(declaredElement);
-    }
-  }
-
-  @override
-  void declaredConstructor(ConstructorDeclaration declaration) {
-    // ignored: constructor completions are handled in declaredClass() above
-  }
-
-  @override
-  void declaredEnum(EnumDeclaration declaration) {
-    _declaredInterfaceElement(declaration.declaredElement);
-  }
-
-  @override
-  void declaredExtension(ExtensionDeclaration declaration) {
-    var declaredElement = declaration.declaredElement;
-    if (declaredElement != null &&
-        visibilityTracker.isVisible(declaredElement) &&
-        opType.includeReturnValueSuggestions &&
-        declaration.name != null) {
-      builder.suggestExtension(declaredElement, kind: _defaultKind);
-    }
-  }
-
-  @override
-  void declaredFunction(FunctionDeclaration declaration) {
-    if (visibilityTracker.isVisible(declaration.declaredElement) &&
-        (opType.includeReturnValueSuggestions ||
-            opType.includeVoidReturnSuggestions)) {
-      if (declaration.isSetter) {
-        if (!opType.includeVoidReturnSuggestions) {
-          return;
-        }
-      } else if (!declaration.isGetter) {
-        if (!opType.includeVoidReturnSuggestions &&
-            _isVoid(declaration.returnType)) {
-          return;
-        }
-      }
-      var declaredElement = declaration.declaredElement;
-      if (declaredElement is FunctionElement) {
-        builder.suggestTopLevelFunction(declaredElement, kind: _defaultKind);
-      } else if (declaredElement is PropertyAccessorElement) {
-        builder.suggestTopLevelPropertyAccessor(declaredElement);
-      }
-    }
-  }
-
-  @override
-  void declaredFunctionTypeAlias(FunctionTypeAlias declaration) {
-    var declaredElement = declaration.declaredElement;
-    if (declaredElement != null && opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(declaredElement);
-    }
-  }
-
-  @override
-  void declaredGenericTypeAlias(GenericTypeAlias declaration) {
-    var declaredElement = declaration.declaredElement;
-    if (declaredElement is TypeAliasElement &&
-        opType.includeTypeNameSuggestions) {
-      builder.suggestTypeAlias(declaredElement);
-    }
-  }
-
-  @override
-  void declaredMixin(MixinDeclaration declaration) {
-    var declaredElement = declaration.declaredElement;
-    if (!inExtendsClause &&
-        declaredElement != null &&
-        visibilityTracker.isVisible(declaredElement) &&
-        opType.includeTypeNameSuggestions) {
-      builder.suggestInterface(declaredElement);
-    }
-  }
-
-  @override
-  void declaredTopLevelVar(
-      VariableDeclarationList varList, VariableDeclaration varDecl) {
-    var variableElement = varDecl.declaredElement;
-    if (variableElement is TopLevelVariableElement &&
-        visibilityTracker.isVisible(variableElement) &&
-        (opType.includeReturnValueSuggestions ||
-            (opType.includeAnnotationSuggestions && variableElement.isConst))) {
-      var getter = variableElement.getter;
-      if (getter != null) {
-        builder.suggestTopLevelPropertyAccessor(getter);
-      }
-    }
-  }
-
-  @override
-  void visitExtendsClause(ExtendsClause node) {
-    inExtendsClause = true;
-    super.visitExtendsClause(node);
-  }
-
-  void _declaredInterfaceElement(InterfaceElement? element) {
-    if (element != null && visibilityTracker.isVisible(element)) {
-      if (opType.includeTypeNameSuggestions) {
-        builder.suggestInterface(element);
-      }
-
-      final includeConstructors = opType.includeConstructorSuggestions ||
-          opType.includeAnnotationSuggestions;
-      final includeOnlyConstConstructors =
-          opType.includeAnnotationSuggestions &&
-              !opType.includeConstructorSuggestions;
-      if (!opType.isPrefixed &&
-          includeConstructors &&
-          element is ClassElement) {
-        for (final constructor in element.constructors) {
-          if (!element.isConstructable && !constructor.isFactory) {
-            continue;
-          }
-          if (includeOnlyConstConstructors && !constructor.isConst) {
-            continue;
-          }
-          builder.suggestConstructor(constructor);
-        }
-      }
-
-      if (!opType.isPrefixed && opType.includeReturnValueSuggestions) {
-        final typeSystem = request.libraryElement.typeSystem;
-        final contextType = request.contextType;
-        if (contextType is InterfaceType) {
-          // TODO(scheglov): This looks not ideal - we should suggest getters.
-          for (final field in element.fields) {
-            if (field.isStatic &&
-                typeSystem.isSubtypeOf(field.type, contextType)) {
-              builder.suggestStaticField(field);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  bool _isVoid(TypeAnnotation? returnType) {
-    if (returnType is NamedType) {
-      if (returnType.name2.lexeme == 'void') {
-        return true;
-      }
-    }
-    return false;
   }
 }

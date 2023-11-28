@@ -104,7 +104,8 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of an element in a collection [literal].
   void addCollectionElementKeywords(
-      TypedLiteral literal, NodeList<CollectionElement> elements) {
+      TypedLiteral literal, NodeList<CollectionElement> elements,
+      {bool mustBeStatic = false}) {
     // TODO(brianwilkerson): Consider determining whether there is a comma before
     //  the selection and inserting the comma if there isn't one.
     addKeyword(Keyword.FOR);
@@ -127,7 +128,7 @@ class KeywordHelper {
         }
       }
     }
-    addExpressionKeywords(literal);
+    addExpressionKeywords(literal, mustBeStatic: mustBeStatic);
   }
 
   /// Add the keywords that are appropriate when the selection is after the
@@ -245,7 +246,8 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of an expression. The [node] provides context to determine which
   /// keywords to include.
-  void addExpressionKeywords(AstNode? node) {
+  void addExpressionKeywords(AstNode? node,
+      {bool mustBeConstant = false, bool mustBeStatic = false}) {
     /// Return `true` if `const` should be suggested for the given [node].
     bool constIsValid(AstNode? node) {
       if (node is CollectionElement && node is! Expression) {
@@ -295,7 +297,7 @@ class KeywordHelper {
       if (constIsValid(node)) {
         addKeyword(Keyword.CONST);
       }
-      if (node.inClassMemberBody) {
+      if (!mustBeConstant && !mustBeStatic) {
         addKeyword(Keyword.SUPER);
         addKeyword(Keyword.THIS);
       }

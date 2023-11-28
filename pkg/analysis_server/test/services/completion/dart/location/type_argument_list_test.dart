@@ -160,13 +160,9 @@ suggestions
     kind: class
   B01
     kind: class
-  false
+  dynamic
     kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
+  void
     kind: keyword
 ''');
   }

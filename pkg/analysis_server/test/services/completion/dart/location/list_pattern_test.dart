@@ -40,7 +40,8 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
@@ -61,6 +62,27 @@ suggestions
   var
     kind: keyword
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  c01
+    kind: topLevelVariable
+  c11
+    kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_element_last() async {
@@ -75,7 +97,8 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
@@ -96,6 +119,27 @@ suggestions
   var
     kind: keyword
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  c01
+    kind: topLevelVariable
+  c11
+    kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_element_middle() async {
@@ -110,7 +154,8 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
@@ -131,6 +176,27 @@ suggestions
   var
     kind: keyword
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  c01
+    kind: topLevelVariable
+  c11
+    kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_element_only() async {
@@ -145,7 +211,8 @@ void f(Object o1) {
   }
 }
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
   c01
     kind: topLevelVariable
@@ -166,5 +233,26 @@ suggestions
   var
     kind: keyword
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  c01
+    kind: topLevelVariable
+  c11
+    kind: localVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
   }
 }
