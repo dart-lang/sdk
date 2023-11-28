@@ -788,12 +788,6 @@ class Assembler : public AssemblerBase {
   void bx(Register rm, Condition cond = AL);
   void blx(Register rm, Condition cond = AL);
 
-  void Branch(const Code& code,
-              ObjectPoolBuilderEntry::Patchability patchable =
-                  ObjectPoolBuilderEntry::kNotPatchable,
-              Register pp = PP,
-              Condition cond = AL);
-
   void Branch(const Address& address, Condition cond = AL);
 
   void BranchLink(const Code& code,
@@ -1678,6 +1672,7 @@ class Assembler : public AssemblerBase {
   void BindARMv7(Label* label);
 
   void BranchLink(const ExternalLabel* label);
+  void BranchLink(intptr_t target_code_pool_index, CodeEntryKind entry_kind);
 
   void LoadObjectHelper(
       Register rd,

@@ -1006,11 +1006,6 @@ class Assembler : public MicroAssembler {
                     Register temp,
                     Label* equals) override;
 
-  void Jump(const Code& code,
-            Register pp,
-            ObjectPoolBuilderEntry::Patchability patchable =
-                ObjectPoolBuilderEntry::kNotPatchable);
-
   void JumpAndLink(const Code& code,
                    ObjectPoolBuilderEntry::Patchability patchable =
                        ObjectPoolBuilderEntry::kNotPatchable,
@@ -1669,6 +1664,8 @@ class Assembler : public MicroAssembler {
       bool is_unique,
       ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior =
           ObjectPoolBuilderEntry::kSnapshotable);
+
+  void JumpAndLink(intptr_t target_code_pool_index, CodeEntryKind entry_kind);
 
   friend class dart::FlowGraphCompiler;
   std::function<void(Register reg)> generate_invoke_write_barrier_wrapper_;

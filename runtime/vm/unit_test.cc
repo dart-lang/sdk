@@ -753,6 +753,17 @@ void AssemblerTest::Assemble() {
 #endif  // !PRODUCT
 }
 
+const Code& AssemblerTest::Generate(
+    const char* name,
+    const std::function<void(compiler::Assembler* assembler)>& generator) {
+  compiler::ObjectPoolBuilder object_pool_builder;
+  compiler::Assembler assembler(&object_pool_builder, /*far_branch_level=*/0);
+  AssemblerTest test(name, &assembler, Thread::Current()->zone());
+  assembler.Ret();
+  test.Assemble();
+  return test.code();
+}
+
 bool CompilerTest::TestCompileFunction(const Function& function) {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);

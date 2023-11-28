@@ -62,6 +62,18 @@ void Assembler::call(const ExternalLabel* label) {
   call(TMP);
 }
 
+void Assembler::CallCodeThroughPool(intptr_t target_code_pool_index,
+                                    CodeEntryKind entry_kind) {
+  // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+  // We don't actually use CODE_REG in the callee and caller might
+  // be using CODE_REG for a live value (e.g. a value that is alive
+  // across invocation of a shared stub like the one we use for
+  // allocating Mint boxes).
+  const Register code_reg = FLAG_precompiled_mode ? TMP : CODE_REG;
+  LoadWordFromPoolIndex(code_reg, target_code_pool_index);
+  call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
+}
+
 void Assembler::CallPatchable(
     const Code& target,
     CodeEntryKind entry_kind,
@@ -69,8 +81,7 @@ void Assembler::CallPatchable(
   ASSERT(constant_pool_allowed());
   const intptr_t idx = object_pool_builder().AddObject(
       ToObject(target), ObjectPoolBuilderEntry::kPatchable, snapshot_behavior);
-  LoadWordFromPoolIndex(CODE_REG, idx);
-  call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  CallCodeThroughPool(idx, entry_kind);
 }
 
 void Assembler::CallWithEquivalence(const Code& target,
@@ -79,8 +90,7 @@ void Assembler::CallWithEquivalence(const Code& target,
   ASSERT(constant_pool_allowed());
   const intptr_t idx =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, idx);
-  call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  CallCodeThroughPool(idx, entry_kind);
 }
 
 void Assembler::Call(
@@ -90,8 +100,7 @@ void Assembler::Call(
   const intptr_t idx = object_pool_builder().FindObject(
       ToObject(target), ObjectPoolBuilderEntry::kNotPatchable,
       snapshot_behavior);
-  LoadWordFromPoolIndex(CODE_REG, idx);
-  call(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  CallCodeThroughPool(idx, CodeEntryKind::kNormal);
 }
 
 void Assembler::pushq(Register reg) {

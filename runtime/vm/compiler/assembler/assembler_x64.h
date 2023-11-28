@@ -1483,6 +1483,9 @@ class Assembler : public AssemblerBase {
  private:
   bool constant_pool_allowed_;
 
+  void CallCodeThroughPool(intptr_t target_code_pool_index,
+                           CodeEntryKind entry_kind);
+
   bool CanLoadFromObjectPool(const Object& object) const;
   void LoadObjectHelper(
       Register dst,

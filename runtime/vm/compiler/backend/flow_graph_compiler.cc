@@ -57,6 +57,10 @@ DEFINE_FLAG(int,
             2000,
             "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
+DEFINE_FLAG(bool,
+            force_indirect_calls,
+            false,
+            "Do not emit PC relative calls.");
 
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, intrinsify);
@@ -3492,18 +3496,21 @@ void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
 }
 
 bool FlowGraphCompiler::CanPcRelativeCall(const Function& target) const {
-  return FLAG_precompiled_mode && (LoadingUnit::LoadingUnitOf(function()) ==
-                                   LoadingUnit::LoadingUnitOf(target));
+  return FLAG_precompiled_mode && !FLAG_force_indirect_calls &&
+         (LoadingUnit::LoadingUnitOf(function()) ==
+          LoadingUnit::LoadingUnitOf(target));
 }
 
 bool FlowGraphCompiler::CanPcRelativeCall(const Code& target) const {
-  return FLAG_precompiled_mode && !target.InVMIsolateHeap() &&
+  return FLAG_precompiled_mode && !FLAG_force_indirect_calls &&
+         !target.InVMIsolateHeap() &&
          (LoadingUnit::LoadingUnitOf(function()) ==
           LoadingUnit::LoadingUnitOf(target));
 }
 
 bool FlowGraphCompiler::CanPcRelativeCall(const AbstractType& target) const {
-  return FLAG_precompiled_mode && !target.InVMIsolateHeap() &&
+  return FLAG_precompiled_mode && !FLAG_force_indirect_calls &&
+         !target.InVMIsolateHeap() &&
          (LoadingUnit::LoadingUnitOf(function()) ==
           LoadingUnit::LoadingUnit::kRootId);
 }
