@@ -34,7 +34,7 @@ class Bar {
     await analysisFinished;
 
     var result =
-        // ignore: deprecated_member_use
+        // ignore: deprecated_member_use_from_same_package
         await sendAnalysisGetReachableSources(pathname);
     var sources = result.sources;
     var keys = sources.keys.toList();
