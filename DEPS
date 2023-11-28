@@ -190,6 +190,7 @@ vars = {
   "usage_rev": "e99690ae6d5fa9ec24ac5218bcd3621e8e3ae8a9",
   "vector_math_rev": "e4066cc85355b99b613ed9e30927bfbaf00cbafe",
   "watcher_rev": "6ac67f18d7f3a0eea728c45ea16993bdfb91ea42",
+  "web_rev": "fdfbaef2e1322058502936a972e6608754e1613a",
   "web_socket_channel_rev": "5241175e7c66271850d6e75fb9ec90068f9dd3c4", # https://github.com/dart-lang/sdk/issues/54165
   "webdev_rev": "6961b202c343e12893e6c664ef70336b7c3845c3",
   "webdriver_rev": "43ed1dbefc39866ebccc31d3704a0e71400ef4a2",
@@ -496,7 +497,8 @@ Var("dart_root") + "/third_party/pkg/tar":
   Var("dart_root") + "/third_party/pkg/webkit_inspection_protocol":
       Var("dart_git") + "external/github.com/google/webkit_inspection_protocol.dart.git" +
       "@" + Var("webkit_inspection_protocol_rev"),
-
+  Var("dart_root") + "/third_party/pkg/web":
+      Var("dart_git") + "web.git" + "@" + Var("web_rev"),
   Var("dart_root") + "/third_party/pkg/web_socket_channel":
       Var("dart_git") + "web_socket_channel.git" +
       "@" + Var("web_socket_channel_rev"),
