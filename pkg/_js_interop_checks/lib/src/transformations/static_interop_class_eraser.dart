@@ -9,7 +9,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
-import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/src/constant_replacer.dart';
 import 'package:kernel/src/replacement_visitor.dart';
 
@@ -141,7 +140,6 @@ class StaticInteropClassEraser extends Transformer {
   late final _StaticInteropConstantReplacer _constantReplacer;
   late final _TypeSubstitutor _typeSubstitutor;
   Component? currentComponent;
-  ReferenceFromIndex? referenceFromIndex;
   // Custom erasure function for `@staticInterop` types. This is useful for when
   // they should be erased to another type besides `JavaScriptObject`, like in
   // dart2wasm.
@@ -159,7 +157,7 @@ class StaticInteropClassEraser extends Transformer {
     '_wasm',
   };
 
-  StaticInteropClassEraser(CoreTypes coreTypes, this.referenceFromIndex,
+  StaticInteropClassEraser(CoreTypes coreTypes,
       {InterfaceType Function(InterfaceType staticInteropType)?
           eraseStaticInteropType,
       Set<String> additionalCoreLibraries = const {}}) {
@@ -195,12 +193,7 @@ class StaticInteropClassEraser extends Transformer {
       Name name = Name(stubName);
       var staticMethod = Procedure(
           name, ProcedureKind.Method, FunctionNode(null),
-          isStatic: true,
-          fileUri: factoryTarget.fileUri,
-          reference: referenceFromIndex
-              ?.lookupLibrary(factoryClass.enclosingLibrary)
-              ?.lookupIndexedClass(factoryClass.name)
-              ?.lookupGetterReference(name))
+          isStatic: true, fileUri: factoryTarget.fileUri)
         ..fileOffset = factoryTarget.fileOffset;
       factoryClass.addProcedure(staticMethod);
       // Clone function node after processing the stub in case of mutually

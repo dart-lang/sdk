@@ -168,11 +168,7 @@ void _doTransformsOnKernelLoad(
         evaluationMode: options.useLegacySubtyping
             ? fe.EvaluationMode.weak
             : fe.EvaluationMode.strong);
-    // referenceFromIndex is only necessary in the case where a module
-    // containing a stub definition is invalidated, and then reloaded, because
-    // we need to keep existing references to that stub valid. Here, we have the
-    // whole program, and therefore do not need it.
-    StaticInteropClassEraser(coreTypes, null,
+    StaticInteropClassEraser(coreTypes,
             additionalCoreLibraries: {'_js_types', 'js_interop'})
         .visitComponent(component);
     globalTransforms.transformLibraries(
