@@ -661,7 +661,7 @@ final class _DispatchableInvocation extends _Invocation {
 
   void addCallSite(Call callSite) {
     _notifyCallSite(callSite);
-    if (!callSite.isPolymorphic) {
+    if (!callSite.isPolymorphic || !callSite.useCheckedEntry) {
       (_callSites ??= new Set<Call>()).add(callSite);
     }
   }
