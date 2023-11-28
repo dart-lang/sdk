@@ -11,8 +11,8 @@ import "default.dart"
 
 void main() async {
   asyncStart();
-  final io = const bool.fromEnvironment("dart.library.io");
-  final html = const bool.fromEnvironment("dart.library.html");
+  final io = const String.fromEnvironment("dart.library.io") == "true";
+  final html = const String.fromEnvironment("dart.library.html") == "true";
   await d.loadLibrary().timeout(const Duration(seconds: 5));
   if (io) {
     Expect.equals("io", d.value);
