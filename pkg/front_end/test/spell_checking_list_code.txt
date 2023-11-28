@@ -51,6 +51,7 @@ allocate
 allocator
 altered
 ambiguities
+amd
 analogous
 analogy
 analyzes
@@ -212,6 +213,7 @@ casts
 categorized
 ce
 ceil
+certainly
 cfe
 ch
 chaining
@@ -246,6 +248,8 @@ clil
 clock
 cls
 cm
+cmdline
+cmdlines
 cn
 cnt
 co
@@ -331,6 +335,8 @@ counted
 counters
 covariances
 coverage
+cp
+cpu
 cr
 creator
 creators
@@ -350,6 +356,7 @@ customized
 cut
 cuts
 cwd
+cyc
 cyclical
 cyclically
 d
@@ -359,6 +366,7 @@ dangerous
 dangling
 danrubel
 daringfireball
+dartaotruntime
 dartbug
 dartdoc
 dartfix
@@ -421,6 +429,7 @@ dev
 developed
 device
 dictates
+dies
 diff
 differs
 difficult
@@ -468,6 +477,8 @@ dquote
 drawn
 ds
 dsdk
+dso
+dsos
 dst
 dummy
 dupdate
@@ -790,6 +801,7 @@ instanceof
 instantiable
 instantiator
 integrate
+intel
 intends
 intention
 intentionally
@@ -940,6 +952,7 @@ macro
 macros
 maintaining
 malbounded
+man
 manage
 mangled
 manipulating
@@ -989,6 +1002,7 @@ moretop
 moves
 msdn
 msg
+mtc
 murmur
 mus
 mvar
@@ -997,6 +1011,8 @@ na
 nagle's
 nameless
 namer
+nano
+nanosecond
 natively
 nativewrappers
 nbsp
@@ -1023,6 +1039,7 @@ nonetheless
 nonexistent
 nonimplementation
 nonzero
+noretcomp
 norm
 normalization
 notifier
@@ -1123,6 +1140,7 @@ pedantic
 per
 percentages
 perf
+perfetto
 permanently
 permit
 permits
@@ -1131,6 +1149,8 @@ pertinent
 physically
 pi
 picking
+pid
+pids
 pieces
 pipe
 pkg
@@ -1188,10 +1208,12 @@ proc
 proceeds
 processes
 processor
+processors
 producers
 product
 productions
 profile
+profiled
 progresses
 prohibited
 promo
@@ -1212,6 +1234,7 @@ provider
 provisional
 prune
 ps
+pt
 pulled
 pure
 puts
@@ -1371,6 +1394,7 @@ rhs
 ri
 right's
 rightmost
+ring
 risk
 rn
 rnystrom
@@ -1398,6 +1422,7 @@ sandboxed
 sanitize
 sanitized
 sanitizing
+saves
 saw
 say
 saying
@@ -1463,6 +1488,7 @@ sides
 sigmund
 signaling
 significant
+sigusr
 silenceable
 silenced
 simplifier
@@ -1627,6 +1653,7 @@ tarjan
 tarjan's
 tb
 tcp
+tcsetattr
 team
 tearoff
 tearoffable
@@ -1652,6 +1679,8 @@ therein
 thereof
 they'll
 thought
+thread
+thresh
 ti
 tick
 ticker
@@ -1661,6 +1690,8 @@ tighter
 tiki
 tilde
 till
+timer
+timestamp
 timings
 tiny
 tj
@@ -1831,6 +1862,7 @@ violating
 visit*
 visitors
 visits
+visualize
 vm's
 vn
 vs
