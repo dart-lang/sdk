@@ -71,7 +71,7 @@ class Class {
      class=Class,
      member=oneTypeParameter,
      static,
-     typeParameters=[T]
+     typeParameters=[Class.oneTypeParameter.T]
     */
     x;
   }

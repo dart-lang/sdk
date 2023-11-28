@@ -65,7 +65,7 @@ mixin Mixin {
     /*
      class=Mixin,
      member=oneTypeParameter,
-     typeParameters=[T]
+     typeParameters=[Mixin.oneTypeParameter.T]
     */
     x;
   }
@@ -76,7 +76,7 @@ mixin GenericMixin<T> {
     /*
      class=GenericMixin,
      member=classTypeParameter,
-     typeParameters=[T]
+     typeParameters=[GenericMixin.T]
     */
     x;
   }
@@ -86,8 +86,8 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=mixedTypeParameter,
      typeParameters=[
-      S,
-      T]
+      GenericMixin.T,
+      GenericMixin.mixedTypeParameter.S]
     */
     x;
   }
@@ -95,7 +95,7 @@ mixin GenericMixin<T> {
   static var field = /*
    class=GenericMixin,
    member=field,
-   typeParameters=[T]
+   typeParameters=[GenericMixin.T]
   */
       x;
 
@@ -104,7 +104,7 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=empty,
      static,
-     typeParameters=[T]
+     typeParameters=[GenericMixin.T]
     */
     x;
   }
@@ -114,7 +114,7 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=oneParameter,
      static,
-     typeParameters=[T],
+     typeParameters=[GenericMixin.T],
      variables=[a]
     */
     x;
@@ -125,7 +125,7 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=twoParameters,
      static,
-     typeParameters=[T],
+     typeParameters=[GenericMixin.T],
      variables=[
       a,
       b]
@@ -138,7 +138,7 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=optionalParameter,
      static,
-     typeParameters=[T],
+     typeParameters=[GenericMixin.T],
      variables=[
       a,
       b]
@@ -151,7 +151,7 @@ mixin GenericMixin<T> {
      class=GenericMixin,
      member=namedParameter,
      static,
-     typeParameters=[T],
+     typeParameters=[GenericMixin.T],
      variables=[
       a,
       b]
@@ -165,8 +165,8 @@ mixin GenericMixin<T> {
      member=oneTypeParameter,
      static,
      typeParameters=[
-      T,
-      T]
+      GenericMixin.T,
+      GenericMixin.oneTypeParameter.T]
     */
     x;
   }

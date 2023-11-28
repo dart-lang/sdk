@@ -11,6 +11,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/testing/id_testing_helper.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/dart_scope_calculator.dart';
+import 'package:kernel/src/printer.dart' show AstPrinter, AstTextStrategy;
 
 Future<void> main(List<String> args) async {
   Directory dataDir = new Directory.fromUri(Platform.script.resolve('data'));
@@ -80,7 +81,13 @@ class ScopeDataExtractor extends CfeDataExtractor<Features> {
             features.add(Tags.isStatic);
           }
           for (TypeParameter typeParameter in scope.typeParameters) {
-            features.addElement(Tags.typeParameter, typeParameter.name!);
+            AstPrinter printer = new AstPrinter(const AstTextStrategy(
+                useQualifiedTypeParameterNames: true,
+                useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions:
+                    true,
+                includeLibraryNamesInTypes: false));
+            printer.writeTypeParameterName(typeParameter);
+            features.addElement(Tags.typeParameter, printer.getText());
           }
           for (String variable in scope.definitions.keys) {
             features.addElement(Tags.variables, variable);

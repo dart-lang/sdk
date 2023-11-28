@@ -65,7 +65,7 @@ class Class {
     /*
      class=Class,
      member=oneTypeParameter,
-     typeParameters=[T]
+     typeParameters=[Class.oneTypeParameter.T]
     */
     x;
   }
@@ -76,7 +76,7 @@ class GenericClass<T> {
     /*
      class=GenericClass,
      member=classTypeParameter,
-     typeParameters=[T]
+     typeParameters=[GenericClass.T]
     */
     x;
   }
@@ -86,8 +86,8 @@ class GenericClass<T> {
      class=GenericClass,
      member=mixedTypeParameter,
      typeParameters=[
-      S,
-      T]
+      GenericClass.T,
+      GenericClass.mixedTypeParameter.S]
     */
     x;
   }

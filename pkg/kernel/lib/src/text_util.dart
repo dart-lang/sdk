@@ -271,37 +271,58 @@ String memberNameToString(Member node) {
 }
 
 String qualifiedTypeParameterNameToString(TypeParameter node,
-    {bool includeLibraryName = false}) {
+    {required bool includeLibraryName, required bool recurseOnLocalFunction}) {
   GenericDeclaration? declaration = node.declaration;
+  String? declarationName =
+      _qualifiedTypeParameterGenericDeclarationNameToString(declaration,
+          includeLibraryName: includeLibraryName,
+          recurseOnLocalFunction: recurseOnLocalFunction);
+  if (declarationName != null) {
+    return "$declarationName.${typeParameterNameToString(node)}";
+  }
+
+  return typeParameterNameToString(node);
+}
+
+String? _qualifiedTypeParameterGenericDeclarationNameToString(
+    GenericDeclaration? declaration,
+    {required bool includeLibraryName,
+    required bool recurseOnLocalFunction}) {
   switch (declaration) {
     case Class():
       return qualifiedClassNameToString(declaration,
-              includeLibraryName: includeLibraryName) +
-          '.' +
-          typeParameterNameToString(node);
+          includeLibraryName: includeLibraryName);
     case Extension():
       return qualifiedExtensionNameToString(declaration,
-              includeLibraryName: includeLibraryName) +
-          '.' +
-          typeParameterNameToString(node);
+          includeLibraryName: includeLibraryName);
     case ExtensionTypeDeclaration():
       return qualifiedExtensionTypeDeclarationNameToString(declaration,
-              includeLibraryName: includeLibraryName) +
-          '.' +
-          typeParameterNameToString(node);
+          includeLibraryName: includeLibraryName);
     case Typedef():
       return qualifiedTypedefNameToString(declaration,
-              includeLibraryName: includeLibraryName) +
-          '.' +
-          typeParameterNameToString(node);
+          includeLibraryName: includeLibraryName);
     case Procedure():
       return qualifiedMemberNameToString(declaration,
-              includeLibraryName: includeLibraryName) +
-          '.' +
-          typeParameterNameToString(node);
+          includeLibraryName: includeLibraryName);
     case LocalFunction():
+      if (recurseOnLocalFunction &&
+          declaration is FunctionDeclaration &&
+          declaration.variable.name != null) {
+        TreeNode? parent = declaration.parent;
+        while (parent != null && parent is! GenericDeclaration) {
+          parent = parent.parent;
+        }
+        if (parent is GenericDeclaration) {
+          String? parentName =
+              _qualifiedTypeParameterGenericDeclarationNameToString(parent,
+                  includeLibraryName: includeLibraryName,
+                  recurseOnLocalFunction: recurseOnLocalFunction);
+          return "$parentName.${declaration.variable.name}";
+        }
+      }
+      return null;
     case null:
-      return typeParameterNameToString(node);
+      return null;
   }
 }
 

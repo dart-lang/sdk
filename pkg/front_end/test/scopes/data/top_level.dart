@@ -58,7 +58,7 @@ oneTypeParameter<T>() {
   /*
    member=oneTypeParameter,
    static,
-   typeParameters=[T]
+   typeParameters=[oneTypeParameter.T]
   */
   x;
 }
