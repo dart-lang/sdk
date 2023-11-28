@@ -336,6 +336,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return libraryContext.elementFactory.analysisSession;
   }
 
+  /// Return a list of the names of all the plugins enabled in analysis options
+  /// in this driver.
+  List<String> get enabledPluginNames =>
+      // TODO(pq): get this value from a union of all the plugins enabled in the  `_analysisOptionsMap`
+      _analysisOptions.enabledPluginNames;
+
   /// Return the stream that produces [ExceptionResult]s.
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;
 
