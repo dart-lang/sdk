@@ -1353,7 +1353,7 @@ class Assembler : public MicroAssembler {
     LoadObjectHelper(dst, obj, true, snapshot_behavior);
   }
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadImmediate(Register reg, intx_t imm);
+  void LoadImmediate(Register reg, intx_t imm) override;
 
   void LoadSImmediate(FRegister reg, float imms);
   void LoadDImmediate(FRegister reg, double immd);

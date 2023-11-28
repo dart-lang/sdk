@@ -863,6 +863,8 @@ class AssemblerBase : public StackResource {
                                           /*Nullability*/ int8_t value,
                                           Register scratch);
 
+  virtual void LoadImmediate(Register dst, target::word imm) = 0;
+
   virtual void CompareImmediate(Register reg,
                                 target::word imm,
                                 OperandSize width = kWordBytes) = 0;
@@ -919,6 +921,9 @@ class AssemblerBase : public StackResource {
                                        bool can_be_null = false) = 0;
 
   intptr_t InsertAlignedRelocation(BSS::Relocation reloc);
+
+  void MsanUnpoison(Register base, intptr_t length_in_bytes);
+  void MsanUnpoison(Register base, Register length_in_bytes);
 
   void Unimplemented(const char* message);
   void Untested(const char* message);

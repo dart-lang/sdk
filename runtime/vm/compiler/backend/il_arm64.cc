@@ -241,14 +241,17 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
                                    compiler::Label* done,
                                    compiler::Label* copy_forwards) {
   const bool reversed = copy_forwards != nullptr;
+  const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
+                         (unboxed_inputs() ? 0 : kSmiTagShift);
+#if defined(USING_MEMORY_SANITIZER)
+  __ PushPair(length_reg, dest_reg);
+#endif
   if (reversed) {
     // Verify that the overlap actually exists by checking to see if
     // dest_start < src_end.
     if (!unboxed_inputs()) {
       __ ExtendNonNegativeSmi(length_reg);
     }
-    const intptr_t shift = Utils::ShiftForPowerOfTwo(element_size_) -
-                           (unboxed_inputs() ? 0 : kSmiTagShift);
     if (shift < 0) {
       __ add(TMP, src_reg, compiler::Operand(length_reg, ASR, -shift));
     } else {
@@ -285,6 +288,19 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   __ subs(length_reg, length_reg, compiler::Operand(loop_subtract),
           compiler::kObjectBytes);
   __ b(&loop, NOT_ZERO);
+
+#if defined(USING_MEMORY_SANITIZER)
+  __ PopPair(length_reg, dest_reg);
+  if (!unboxed_inputs()) {
+    __ ExtendNonNegativeSmi(length_reg);
+  }
+  if (shift < 0) {
+    __ AsrImmediate(length_reg, length_reg, -shift);
+  } else {
+    __ LslImmediate(length_reg, length_reg, shift);
+  }
+  __ MsanUnpoison(dest_reg, length_reg);
+#endif
 }
 
 void MemoryCopyInstr::EmitComputeStartPointer(FlowGraphCompiler* compiler,
@@ -1406,27 +1422,22 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     RegisterSet kVolatileRegisterSet(kAbiVolatileCpuRegs & ~(1 << SP),
                                      kAbiVolatileFpuRegs);
     __ mov(temp1, SP);
-    __ PushRegisters(kVolatileRegisterSet);
+    SPILLS_LR_TO_FRAME(__ PushRegisters(kVolatileRegisterSet));
 
     // Outgoing arguments passed on the stack to the foreign function.
-    __ mov(R0, temp1);
-    __ LoadImmediate(R1, stack_space);
-    __ CallCFunction(
-        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+    __ MsanUnpoison(temp1, stack_space);
 
     // Incoming Dart arguments to this trampoline are potentially used as local
     // handles.
-    __ mov(R0, is_leaf_ ? FPREG : saved_fp_or_sp);
-    __ LoadImmediate(R1, (kParamEndSlotFromFp + InputCount()) * kWordSize);
-    __ CallCFunction(
-        compiler::Address(THR, kMsanUnpoisonRuntimeEntry.OffsetFromThread()));
+    __ MsanUnpoison(is_leaf_ ? FPREG : saved_fp_or_sp,
+                    (kParamEndSlotFromFp + InputCount()) * kWordSize);
 
     // Outgoing arguments passed by register to the foreign function.
     __ LoadImmediate(R0, InputCount());
     __ CallCFunction(compiler::Address(
         THR, kMsanUnpoisonParamRuntimeEntry.OffsetFromThread()));
 
-    __ PopRegisters(kVolatileRegisterSet);
+    RESTORES_LR_FROM_FRAME(__ PopRegisters(kVolatileRegisterSet));
   }
 #endif
 
@@ -2278,6 +2289,37 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     default:
       UNREACHABLE();
   }
+
+#if defined(USING_MEMORY_SANITIZER)
+  if (index.IsRegister()) {
+    __ ComputeElementAddressForRegIndex(TMP, IsExternal(), class_id(),
+                                        index_scale(), index_unboxed_, array,
+                                        index.reg());
+  } else {
+    __ ComputeElementAddressForIntIndex(TMP, IsExternal(), class_id(),
+                                        index_scale(), array,
+                                        Smi::Cast(index.constant()).Value());
+  }
+  intptr_t length_in_bytes;
+  if (IsTypedDataBaseClassId(class_id_)) {
+    length_in_bytes = compiler::TypedDataElementSizeInBytes(class_id_);
+  } else {
+    switch (class_id_) {
+      case kArrayCid:
+        length_in_bytes = compiler::target::kWordSize;
+        break;
+      case kOneByteStringCid:
+        length_in_bytes = 1;
+        break;
+      case kTwoByteStringCid:
+        length_in_bytes = 2;
+        break;
+      default:
+        FATAL("Unknown cid: %" Pd, class_id_);
+    }
+  }
+  __ MsanUnpoison(TMP, length_in_bytes);
+#endif
 }
 
 static void LoadValueCid(FlowGraphCompiler* compiler,

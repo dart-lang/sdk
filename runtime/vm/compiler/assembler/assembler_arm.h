@@ -951,7 +951,10 @@ class Assembler : public AssemblerBase {
   void LoadPatchableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadDecodableImmediate(Register rd, int32_t value, Condition cond = AL);
   void LoadImmediate(Register rd, Immediate value, Condition cond = AL);
-  void LoadImmediate(Register rd, int32_t value, Condition cond = AL);
+  void LoadImmediate(Register rd, int32_t value, Condition cond);
+  void LoadImmediate(Register rd, int32_t value) override {
+    LoadImmediate(rd, value, AL);
+  }
   // These two may clobber IP.
   void LoadSImmediate(SRegister sd, float value, Condition cond = AL);
   void LoadDImmediate(DRegister dd,

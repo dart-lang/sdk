@@ -812,7 +812,7 @@ class Assembler : public AssemblerBase {
     cmpl(reg, Immediate(immediate));
   }
 
-  void LoadImmediate(Register reg, int32_t immediate) {
+  void LoadImmediate(Register reg, int32_t immediate) override {
     if (immediate == 0) {
       xorl(reg, reg);
     } else {

@@ -2153,7 +2153,7 @@ class Assembler : public AssemblerBase {
   // Note: the function never clobbers TMP, TMP2 scratch registers.
   void LoadUniqueObject(Register dst, const Object& obj);
   // Note: the function never clobbers TMP, TMP2 scratch registers.
-  void LoadImmediate(Register reg, int64_t imm);
+  void LoadImmediate(Register reg, int64_t imm) override;
   void LoadImmediate(Register reg, Immediate imm) {
     LoadImmediate(reg, imm.value());
   }

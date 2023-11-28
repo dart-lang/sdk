@@ -811,7 +811,7 @@ class Assembler : public AssemblerBase {
 
   // Unlike movq this can affect the flags or use the constant pool.
   void LoadImmediate(Register reg, const Immediate& imm);
-  void LoadImmediate(Register reg, int64_t immediate) {
+  void LoadImmediate(Register reg, int64_t immediate) override {
     LoadImmediate(reg, Immediate(immediate));
   }
   void LoadSImmediate(FpuRegister dst, float immediate);
@@ -1223,9 +1223,6 @@ class Assembler : public AssemblerBase {
       movaps(dst, src);
     }
   }
-
-  void MsanUnpoison(Register base, intptr_t length_in_bytes);
-  void MsanUnpoison(Register base, Register length_in_bytes);
 
 #if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Address addr);
