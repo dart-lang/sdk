@@ -190,7 +190,7 @@ vars = {
   "usage_rev": "e99690ae6d5fa9ec24ac5218bcd3621e8e3ae8a9",
   "vector_math_rev": "e4066cc85355b99b613ed9e30927bfbaf00cbafe",
   "watcher_rev": "6ac67f18d7f3a0eea728c45ea16993bdfb91ea42",
-  "web_socket_channel_rev": "82ac73fef05c474095c740a9525b4cfb61611c3d", # https://github.com/dart-lang/sdk/issues/54165
+  "web_socket_channel_rev": "5241175e7c66271850d6e75fb9ec90068f9dd3c4", # https://github.com/dart-lang/sdk/issues/54165
   "webdev_rev": "6961b202c343e12893e6c664ef70336b7c3845c3",
   "webdriver_rev": "43ed1dbefc39866ebccc31d3704a0e71400ef4a2",
   "webkit_inspection_protocol_rev": "667c55e6f65638592768e0325b75420e39b01d2e",
