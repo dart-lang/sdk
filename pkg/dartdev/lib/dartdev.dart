@@ -13,9 +13,8 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:dart_style/src/cli/format_command.dart';
 import 'package:meta/meta.dart';
 import 'package:pub/pub.dart';
-import 'package:usage/usage.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
-import 'src/analytics.dart';
 import 'src/commands/analyze.dart';
 import 'src/commands/build.dart';
 import 'src/commands/compilation_server.dart';
@@ -30,7 +29,6 @@ import 'src/commands/language_server.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
-import 'src/events.dart';
 import 'src/experiments.dart';
 import 'src/unified_analytics.dart';
 import 'src/utils.dart';
@@ -55,7 +53,7 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
     }
 
     // Finally, call the runner to execute the command; see DartdevRunner.
-    final runner = DartdevRunner(args, io.Platform.executableArguments);
+    final runner = DartdevRunner(args, vmArgs: io.Platform.executableArguments);
     exitCode = await runner.run(args);
   } on UsageException catch (e) {
     // TODO(sigurdm): It is unclear when a UsageException gets to here, and
@@ -89,13 +87,17 @@ class DartdevRunner extends CommandRunner<int> {
 
   final List<String> vmEnabledExperiments;
 
-  late Analytics _analytics;
+  Analytics? _unifiedAnalytics;
 
-  DartdevRunner(List<String> args, [List<String> vmArgs = const []])
-      : verbose = args.contains('-v') || args.contains('--verbose'),
+  DartdevRunner(
+    List<String> args, {
+    Analytics? analyticsOverride,
+    List<String> vmArgs = const [],
+  })  : verbose = args.contains('-v') || args.contains('--verbose'),
         argParser = globalDartdevOptionsParser(
             verbose: args.contains('-v') || args.contains('--verbose')),
         vmEnabledExperiments = parseVmEnabledExperiments(vmArgs),
+        _unifiedAnalytics = analyticsOverride,
         super('dart', '$dartdevDescription.') {
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CompilationServerCommand(verbose: verbose));
@@ -119,8 +121,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(
       pubCommand(
         analytics: PubAnalytics(
-          () => analytics,
-          dependencyKindCustomDimensionName: dependencyKindCustomDimensionName,
+          () => unifiedAnalytics,
         ),
         isVerbose: () => verbose,
       ),
@@ -135,7 +136,7 @@ class DartdevRunner extends CommandRunner<int> {
   }
 
   @visibleForTesting
-  Analytics get analytics => _analytics;
+  Analytics get unifiedAnalytics => _unifiedAnalytics!;
 
   @override
   String get invocation =>
@@ -155,31 +156,35 @@ class DartdevRunner extends CommandRunner<int> {
           '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
           'to disable analytics for one run instead.');
     }
-    // The Analytics instance used to report information back to Google Analytics;
-    // see lib/src/analytics.dart.
-    _analytics = createAnalyticsInstance(suppressAnalytics);
+    final enableAnalytics = topLevelResults['enable-analytics'];
+    final disableAnalytics = topLevelResults['disable-analytics'];
 
-    // If we have not printed the analyticsNoticeOnFirstRunMessage to stdout,
-    // the user is on a terminal, and the machine is not a bot, then print the
-    // disclosure and set analytics.disclosureShownOnTerminal to true.
-    if (analytics is DartdevAnalytics &&
-        !(analytics as DartdevAnalytics).disclosureShownOnTerminal &&
+    if (suppressAnalytics && (enableAnalytics || disableAnalytics)) {
+      io.stderr.writeln('`--suppress-analytics` cannot be used with either'
+          ' `--enable-analytics` or `--disable-analytics`.');
+      return 254;
+    }
+    // The Analytics instance used to report information back to Google Analytics;
+    // see lib/src/unified_analytics.dart.
+    _unifiedAnalytics ??= createUnifiedAnalytics(
+      disableAnalytics: suppressAnalytics,
+    );
+
+    // If we have not printed the analytics notification to stdout, the user is
+    // on a terminal, and the machine is not a bot, then print the disclosure.
+    bool analyticsMessagePrinted = false;
+    if (unifiedAnalytics.shouldShowMessage &&
         io.stdout.hasTerminal &&
         !isBot()) {
-      print(analyticsNoticeOnFirstRunMessage);
-      (analytics as DartdevAnalytics).disclosureShownOnTerminal = true;
+      print(unifiedAnalytics.getConsentMessage);
+      unifiedAnalytics.clientShowedMessage();
+      analyticsMessagePrinted = true;
     }
 
     // When `--disable-analytics` or `--enable-analytics` are called we perform
     // the respective intention and print any notices to standard out and exit.
-    if (topLevelResults['disable-analytics'] ||
-        topLevelResults['disable-telemetry']) {
-      // This block also potentially catches the case of (disableAnalytics &&
-      // enableAnalytics), in which we favor the disabling of analytics.
-      analytics.enabled = false;
-
+    if (topLevelResults['disable-analytics']) {
       // Disable sending data via the unified analytics package.
-      var unifiedAnalytics = createUnifiedAnalytics();
       await unifiedAnalytics.setTelemetry(false);
       unifiedAnalytics.close();
 
@@ -187,15 +192,14 @@ class DartdevRunner extends CommandRunner<int> {
       print(analyticsDisabledNoticeMessage);
       return 0;
     } else if (topLevelResults['enable-analytics']) {
-      analytics.enabled = true;
-
       // Enable sending data via the unified analytics package.
-      var unifiedAnalytics = createUnifiedAnalytics();
       await unifiedAnalytics.setTelemetry(true);
       unifiedAnalytics.close();
 
       // Alert the user again that data will be collected.
-      print(analyticsNoticeOnFirstRunMessage);
+      if (!analyticsMessagePrinted) {
+        print(unifiedAnalytics.getConsentMessage);
+      }
       return 0;
     }
 
@@ -223,41 +227,22 @@ class DartdevRunner extends CommandRunner<int> {
       command = command.command;
     }
 
-    final path = commandNames.join('/');
-    // Send the screen view to analytics
-    unawaited(
-      analytics.sendScreenView(path, parameters:
-          // Starts a new analytics session.
-          // https://developers.google.com/analytics/devguides/collection/protocol/v1/parameters#sc
-          {'sc': 'start'}),
-    );
-
     // The exit code for the dartdev process; null indicates that it has not been
     // set yet. The value is set in the catch and finally blocks below.
     int? exitCode;
 
     // Any caught non-UsageExceptions when running the sub command.
-    Object? exception;
-    StackTrace? stackTrace;
     try {
       exitCode = await super.runCommand(topLevelResults);
-
-      if (analytics.enabled) {
+      if (unifiedAnalytics.telemetryEnabled) {
         // Send the event to analytics
-        unawaited(
-          sendUsageEvent(
-            analytics,
-            path,
-            exitCode: exitCode,
-            commandFlags:
-                // This finds the options that where explicitly given to the command
-                // (and not for an eventual subcommand) without including the actual
-                // value.
-                //
-                // Note that this will also conflate short-options and long-options.
-                command?.options.where(command.wasParsed).toList() ??
-                    const <String>[],
-            specifiedExperiments: topLevelResults.enabledExperiments,
+        final path = commandNames.join('/');
+        final experiments = topLevelResults.enabledExperiments
+          ..sort((a, b) => a.compareTo(b));
+        unifiedAnalytics.send(
+          Event.dartCliCommandExecuted(
+            name: path,
+            enabledExperiments: experiments.join(','),
           ),
         );
       }
@@ -266,54 +251,15 @@ class DartdevRunner extends CommandRunner<int> {
       exitCode = 64;
     } catch (e, st) {
       // Set the exception and stack trace only for non-UsageException cases:
-      exception = e;
-      stackTrace = st;
       io.stderr.writeln('$e');
       io.stderr.writeln('$st');
       exitCode = 1;
     } finally {
       stopwatch.stop();
 
-      if (analytics.enabled) {
-        unawaited(
-          analytics.sendTiming(
-            path,
-            stopwatch.elapsedMilliseconds,
-            category: 'commands',
-          ),
-        );
-      }
-
       // Set the exitCode, if it wasn't set in the catch block above.
       exitCode ??= 0;
-
-      // Send analytics before exiting
-      if (analytics.enabled) {
-        // And now send the exceptions and events to Google Analytics:
-        if (exception != null) {
-          unawaited(
-            analytics.sendException(
-                '${exception.runtimeType}\n${sanitizeStacktrace(stackTrace)}',
-                fatal: true),
-          );
-        }
-
-        // Use no more than 5% of the running time or 1 second to process
-        // analytics, whichever is less.  Assume a base of 150ms for dart VM
-        // initialization (not counted by stopwatch).
-        var ms = stopwatch.elapsedMilliseconds + 150;
-        var timeout = ms ~/ 20 > 1000 ? 1000 : ms ~/ 20;
-        await analytics.waitForLastPing(
-            timeout: Duration(milliseconds: timeout));
-      }
-
-      // Set the enabled flag in the analytics object to true. Note: this will not
-      // enable the analytics unless the disclosure was shown (terminal detected),
-      // and the machine is not detected to be a bot.
-      if (analytics.firstRun) {
-        analytics.enabled = true;
-      }
-      analytics.close();
+      unifiedAnalytics.close();
     }
 
     return exitCode;

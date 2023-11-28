@@ -3,16 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:dartdev/dartdev.dart';
-import 'package:dartdev/src/analytics.dart';
+import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as path;
+// Needed to reset the global HTTP client after a test.
+import 'package:pub/src/http.dart' show innerHttpClient;
 import 'package:test/test.dart';
+import 'package:unified_analytics/unified_analytics.dart';
 
 import 'experiment_util.dart';
 import 'utils.dart';
 
-List<Map> extractAnalytics(ProcessResult result) {
+List<Map> extractAnalytics(io.ProcessResult result) {
   return LineSplitter.split(result.stderr)
       .where((line) => line.startsWith('[analytics]: '))
       .map((line) => json.decode(line.substring('[analytics]: '.length)) as Map)
@@ -21,315 +25,200 @@ List<Map> extractAnalytics(ProcessResult result) {
 
 void main() {
   final experiments = experimentsWithValidation();
-  group('DisabledAnalytics', disabledAnalyticsObject);
 
   group('VM -> CLI --analytics flag smoke test:', () {
-    final command = DartdevRunner(['--analytics']);
-    test('--analytics', () {
-      command.runCommand(command.parse(['--analytics']));
-      expect(command.analytics is! DisabledAnalytics, true);
+    late DartdevRunner command;
+    setUp(() {
+      command = DartdevRunner(['--analytics']);
     });
 
-    test('--no-analytics', () {
-      command.runCommand(command.parse(['--no-analytics']));
-      expect(command.analytics is DisabledAnalytics, true);
+    test('--analytics', () async {
+      final result = await command.runCommand(command.parse(['--analytics']));
+      expect(result, 0);
+      expect(command.unifiedAnalytics.telemetryEnabled, true);
     });
 
-    test('--suppress-analytics', () {
-      command.runCommand(command.parse(['--suppress-analytics']));
-      expect(command.analytics is DisabledAnalytics, true);
+    test('--no-analytics', () async {
+      final result =
+          await command.runCommand(command.parse(['--no-analytics']));
+      expect(result, 0);
+      expect(command.unifiedAnalytics.telemetryEnabled, false);
     });
 
-    test('--suppress-analytics and --analytics', () {
-      command
-          .runCommand(command.parse(['--analytics', '--suppress-analytics']));
-      expect(command.analytics is DisabledAnalytics, true);
+    test('--suppress-analytics', () async {
+      final result =
+          await command.runCommand(command.parse(['--suppress-analytics']));
+      expect(result, 0);
+      expect(command.unifiedAnalytics.telemetryEnabled, false);
+    });
+
+    test('--suppress-analytics and --analytics', () async {
+      final result = await command.runCommand(
+        command.parse(
+          [
+            '--analytics',
+            '--suppress-analytics',
+          ],
+        ),
+      );
+      expect(result, 0);
+      expect(command.unifiedAnalytics.telemetryEnabled, false);
+    });
+
+    test('--suppress-analytics and --disable-analytics', () async {
+      final result = await command.runCommand(
+        command.parse(
+          [
+            '--suppress-analytics',
+            '--disable-analytics',
+          ],
+        ),
+      );
+      // --suppress-analytics and --disable-analytics can't be provided
+      // together to ensure analytics state properly sticks.
+      expect(result, 254);
+    });
+
+    test('--suppress-analytics and --enable-analytics', () async {
+      final result = await command.runCommand(
+        command.parse(
+          [
+            '--suppress-analytics',
+            '--enable-analytics',
+          ],
+        ),
+      );
+      // --suppress-analytics and --enable-analytics can't be provided
+      // together to ensure analytics state properly sticks.
+      expect(result, 254);
     });
 
     test('No flag', () {
       command.runCommand(command.parse([]));
-      expect(command.analytics is! DisabledAnalytics, true);
+      expect(command.unifiedAnalytics.telemetryEnabled, true);
     });
-  });
-
-  test('Analytics control smoke test', () async {
-    final p = project(logAnalytics: true);
-    var result = await p.run(['--disable-analytics']);
-    expect(result.stdout, contains('''
-  ╔════════════════════════════════════════════════════════════════════════════╗
-  ║ Analytics reporting disabled. In order to enable it, run:                  ║
-  ║                                                                            ║
-  ║   dart --enable-analytics                                                  ║
-  ║                                                                            ║
-  ╚════════════════════════════════════════════════════════════════════════════╝
-'''));
-
-    result = await p.run(['--enable-analytics']);
-    expect(result.stdout, contains('''
-  ╔════════════════════════════════════════════════════════════════════════════╗
-  ║ The Dart tool uses Google Analytics to report feature usage statistics     ║
-  ║ and to send basic crash reports. This data is used to help improve the     ║
-  ║ Dart platform and tools over time.                                         ║
-  ║                                                                            ║
-  ║ To disable reporting of analytics, run:                                    ║
-  ║                                                                            ║
-  ║   dart --disable-analytics                                                 ║
-  ║                                                                            ║
-  ╚════════════════════════════════════════════════════════════════════════════╝
-'''));
   });
 
   group('Sending analytics', () {
     test('help', () async {
-      final p = project(logAnalytics: true);
-      final result = await p.run(['help']);
-      expect(extractAnalytics(result), [
-        {
-          'hitType': 'screenView',
-          'message': {'viewName': 'help', 'sc': 'start'}
-        },
-        {
-          'hitType': 'event',
-          'message': {
-            'category': 'dartdev',
-            'action': 'help',
-            'label': null,
-            'value': null
-          }
-        },
-        {
-          'hitType': 'timing',
-          'message': {
-            'variableName': 'help',
-            'time': isA<int>(),
-            'category': 'commands',
-            'label': null
-          }
-        }
+      final p = project();
+      final analytics = await p.runLocalWithFakeAnalytics(['help']);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'help',
+          enabledExperiments: '',
+        )
       ]);
     });
+
     test('create', () async {
-      final p = project(logAnalytics: true);
-      final result =
-          await p.run(['create', '--no-pub', '-tpackage-simple', 'name']);
-      expect(extractAnalytics(result), [
-        {
-          'hitType': 'screenView',
-          'message': {'viewName': 'create', 'sc': 'start'}
-        },
-        {
-          'hitType': 'event',
-          'message': {
-            'category': 'dartdev',
-            'action': 'create',
-            'label': null,
-            'value': null,
-            'cd1': '0',
-            'cd3': ' pub template ',
-          }
-        },
-        {
-          'hitType': 'timing',
-          'message': {
-            'variableName': 'create',
-            'time': isA<int>(),
-            'category': 'commands',
-            'label': null
-          }
-        }
+      final p = project();
+      final analytics = await p.runLocalWithFakeAnalytics([
+        'create',
+        '--no-pub',
+        '-tpackage-simple',
+        path.join(io.Directory.systemTemp.createTempSync().path, 'name'),
+      ]);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'create',
+          enabledExperiments: '',
+        ),
       ]);
     });
 
-    test('pub get dry run', () async {
-      final p = project(logAnalytics: true, pubspecExtras: {
-        'dependencies': {'lints': '2.0.1'}
+    group('pub', () {
+      setUp(() {
+        // Inside each pub test reset the pub http client
+        innerHttpClient = http.Client();
       });
-      final result = await p.run(['pub', 'get', '--dry-run']);
-      expect(extractAnalytics(result), [
-        {
-          'hitType': 'screenView',
-          'message': {'viewName': 'pub/get', 'sc': 'start'}
-        },
-        {
-          'hitType': 'event',
-          'message': {
-            'category': 'dartdev',
-            'action': 'pub/get',
-            'label': null,
-            'value': null,
-            'cd1': '0',
-            'cd3': ' dry-run '
-          }
-        },
-        {
-          'hitType': 'timing',
-          'message': {
-            'variableName': 'pub/get',
-            'time': isA<int>(),
-            'category': 'commands',
-            'label': null
-          }
-        }
-      ]);
-    });
+      test('get dry run', () async {
+        final p = project();
+        final analytics = await p.runLocalWithFakeAnalytics([
+          'pub',
+          'get',
+          '--dry-run',
+        ]);
+        expect(analytics.sentEvents, [
+          Event.dartCliCommandExecuted(
+            name: 'pub/get',
+            enabledExperiments: '',
+          ),
+        ]);
+      });
 
-    test('pub get', () async {
-      final p = project(logAnalytics: true, pubspecExtras: {
-        'dependencies': {'lints': '2.0.1'}
-      });
-      final result = await p.run(['pub', 'get']);
-      expect(extractAnalytics(result), [
-        {
-          'hitType': 'screenView',
-          'message': {'viewName': 'pub/get', 'sc': 'start'},
+      test(
+        'get',
+        () async {
+          final p = project(
+            pubspecExtras: {
+              'dependencies': {'lints': '2.0.1'}
+            },
+          );
+          final analytics = await p.runLocalWithFakeAnalytics(['pub', 'get']);
+          expect(analytics.sentEvents, [
+            Event.pubGet(
+              packageName: 'lints',
+              version: '2.0.1',
+              dependencyType: 'direct',
+            ),
+            Event.dartCliCommandExecuted(
+              name: 'pub/get',
+              enabledExperiments: '',
+            ),
+          ]);
         },
-        {
-          'hitType': 'event',
-          'message': {
-            'category': 'pub-get',
-            'action': 'lints',
-            'label': '2.0.1',
-            'value': 1,
-            'ni': '1',
-            'cd4': 'direct'
-          }
-        },
-        {
-          'hitType': 'timing',
-          'message': {
-            'variableName': 'resolution',
-            'time': isA<int>(),
-            'category': 'pub-get',
-            'label': null
-          }
-        },
-        {
-          'hitType': 'event',
-          'message': {
-            'category': 'dartdev',
-            'action': 'pub/get',
-            'label': null,
-            'value': null,
-            'cd1': '0',
-          }
-        },
-        {
-          'hitType': 'timing',
-          'message': {
-            'variableName': 'pub/get',
-            'time': isA<int>(),
-            'category': 'commands',
-            'label': null
-          }
-        }
-      ]);
+        // This test does a pub get, so it might run slow. Consider adding
+        // retries if necessary.
+        timeout: Timeout.factor(5),
+      );
     });
 
     test('format', () async {
-      final p = project(logAnalytics: true);
-      final result = await p.run(['format', '-l80', '.']);
-      expect(extractAnalytics(result), [
-        {
-          'hitType': 'screenView',
-          'message': {'viewName': 'format', 'sc': 'start'}
-        },
-        {
-          'hitType': 'event',
-          'message': {
-            'category': 'dartdev',
-            'action': 'format',
-            'label': null,
-            'value': null,
-            'cd1': '0',
-            'cd3': ' line-length ',
-          }
-        },
-        {
-          'hitType': 'timing',
-          'message': {
-            'variableName': 'format',
-            'time': isA<int>(),
-            'category': 'commands',
-            'label': null
-          }
-        }
+      final p = project();
+      final analytics =
+          await p.runLocalWithFakeAnalytics(['format', '-l80', '.']);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'format',
+          enabledExperiments: '',
+        ),
       ]);
     });
 
     test('run', () async {
-      final p = project(
-          mainSrc: 'void main(List<String> args) => print(args)',
-          logAnalytics: true);
-      final result = await p.run([
+      final p = project(mainSrc: 'void main(List<String> args) => print(args)');
+      final analytics = await p.runLocalWithFakeAnalytics([
         'run',
         '--no-pause-isolates-on-exit',
         '--enable-asserts',
         'lib/main.dart',
         '--argument'
       ]);
-      expect(extractAnalytics(result), [
-        {
-          'hitType': 'screenView',
-          'message': {'viewName': 'run', 'sc': 'start'},
-        },
-        {
-          'hitType': 'event',
-          'message': {
-            'category': 'dartdev',
-            'action': 'run',
-            'label': null,
-            'value': null,
-            'cd1': '0',
-            'cd3': ' enable-asserts pause-isolates-on-exit ',
-          }
-        },
-        {
-          'hitType': 'timing',
-          'message': {
-            'variableName': 'run',
-            'time': isA<int>(),
-            'category': 'commands',
-            'label': null
-          }
-        }
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'run',
+          enabledExperiments: '',
+        ),
       ]);
     });
+
     group('run --enable-experiments', () {
       for (final experiment in experiments) {
         test(experiment.name, () async {
-          final p = project(mainSrc: experiment.validation, logAnalytics: true);
+          final p = project(mainSrc: experiment.validation);
           {
             for (final no in ['', 'no-']) {
-              final result = await p.run([
+              final analytics = await p.runLocalWithFakeAnalytics([
                 'run',
                 '--enable-experiment=$no${experiment.name}',
                 'lib/main.dart',
               ]);
-              expect(extractAnalytics(result), [
-                {
-                  'hitType': 'screenView',
-                  'message': {'viewName': 'run', 'sc': 'start'},
-                },
-                {
-                  'hitType': 'event',
-                  'message': {
-                    'category': 'dartdev',
-                    'action': 'run',
-                    'label': null,
-                    'value': null,
-                    'cd1': '0',
-                    'cd2': ' $no${experiment.name} ',
-                  }
-                },
-                {
-                  'hitType': 'timing',
-                  'message': {
-                    'variableName': 'run',
-                    'time': isA<int>(),
-                    'category': 'commands',
-                    'label': null
-                  }
-                }
+              expect(analytics.sentEvents, [
+                Event.dartCliCommandExecuted(
+                  name: 'run',
+                  enabledExperiments: '$no${experiment.name}',
+                ),
               ]);
             }
           }
@@ -339,46 +228,21 @@ void main() {
 
     test('compile', () async {
       final p = project(
-          mainSrc: 'void main(List<String> args) => print(args);',
-          logAnalytics: true);
-      final result = await p
-          .run(['compile', 'kernel', 'lib/main.dart', '-o', 'main.kernel']);
-      expect(extractAnalytics(result), [
-        {
-          'hitType': 'screenView',
-          'message': {'viewName': 'compile/kernel', 'sc': 'start'},
-        },
-        {
-          'hitType': 'event',
-          'message': {
-            'category': 'dartdev',
-            'action': 'compile/kernel',
-            'label': null,
-            'value': null,
-            'cd1': '0',
-            'cd3': ' output ',
-          }
-        },
-        {
-          'hitType': 'timing',
-          'message': {
-            'variableName': 'compile/kernel',
-            'time': isA<int>(),
-            'category': 'commands',
-            'label': null
-          }
-        }
+        mainSrc: 'void main(List<String> args) => print(args);',
+      );
+      final analytics = await p.runLocalWithFakeAnalytics([
+        'compile',
+        'kernel',
+        'lib/main.dart',
+        '-o',
+        'main.kernel',
+      ]);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'compile/kernel',
+          enabledExperiments: '',
+        ),
       ]);
     });
-  });
-}
-
-void disabledAnalyticsObject() {
-  test('object', () {
-    var disabledAnalytics = DisabledAnalytics('trackingId', 'appName');
-    expect(disabledAnalytics.trackingId, 'trackingId');
-    expect(disabledAnalytics.applicationName, 'appName');
-    expect(disabledAnalytics.enabled, isFalse);
-    expect(disabledAnalytics.firstRun, isFalse);
   });
 }

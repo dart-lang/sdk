@@ -9,11 +9,11 @@ import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
 
-import 'analytics.dart';
 import 'core.dart';
 import 'resident_frontend_constants.dart';
 import 'resident_frontend_utils.dart';
 import 'sdk.dart';
+import 'unified_analytics.dart';
 
 typedef CompileRequestGeneratorCallback = String Function({
   required String executable,
