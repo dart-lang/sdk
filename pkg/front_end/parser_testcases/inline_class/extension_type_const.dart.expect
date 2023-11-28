@@ -1,3 +1,9 @@
+Problems reported:
+
+parser/inline_class/extension_type_const:10:7: Extension types can't declare instance fields
+  int field = 42;
+      ^^^^^
+
 beginCompilationUnit(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
@@ -236,6 +242,7 @@ beginCompilationUnit(extension)
             beginFieldInitializer(=)
               handleLiteralInt(42)
             endFieldInitializer(=, ;)
+            handleRecoverableError(ExtensionTypeDeclaresInstanceField, field, field)
           endExtensionTypeFields(null, null, null, null, null, null, null, 1, int, ;)
         endMember()
         beginMetadataStar(int)

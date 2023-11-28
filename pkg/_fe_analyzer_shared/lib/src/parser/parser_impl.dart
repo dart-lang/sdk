@@ -3735,6 +3735,10 @@ class Parser {
             token);
         break;
       case DeclarationKind.ExtensionType:
+        if (staticToken == null && externalToken == null) {
+          reportRecoverableError(
+              firstName, codes.messageExtensionTypeDeclaresInstanceField);
+        }
         listener.endExtensionTypeFields(
             abstractToken,
             augmentToken,
@@ -4978,7 +4982,10 @@ class Parser {
               beforeParam.next!, beforeInitializers?.next, token);
           break;
         case DeclarationKind.ExtensionType:
-          // TODO(johnniwinther): Report an error on abstract methods.
+          if (optional(';', bodyStart) && externalToken == null) {
+            reportRecoverableError(isOperator ? name.next! : name,
+                codes.messageExtensionTypeDeclaresAbstractMember);
+          }
           listener.endExtensionTypeMethod(getOrSet, beforeStart.next!,
               beforeParam.next!, beforeInitializers?.next, token);
           break;

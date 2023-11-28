@@ -1,4 +1,12 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extension_types/extension_type_declarations.dart:14:13: Error: Extension types can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   final int field = 42;
+//             ^^^^^
+//
 import self as self;
 import "dart:core" as core;
 

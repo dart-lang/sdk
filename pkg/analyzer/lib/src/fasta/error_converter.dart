@@ -333,6 +333,17 @@ class FastaErrorReporter {
       case "NON_SYNC_ABSTRACT_METHOD":
         // Not reported but followed by a MISSING_FUNCTION_BODY error.
         return;
+      case "ABSTRACT_EXTENSION_FIELD":
+        // Not reported but followed by a
+        // ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD.
+        return;
+      case "EXTENSION_TYPE_WITH_ABSTRACT_MEMBER":
+        // Reported by [ErrorVerifier._checkForExtensionTypeWithAbstractMember].
+        return;
+      case "EXTENSION_TYPE_DECLARES_INSTANCE_FIELD":
+        // Reported by
+        // [ErrorVerifier._checkForExtensionTypeDeclaresInstanceField]
+        return;
       case null:
         switch (message.code) {
           case codeAssertAsExpression:

@@ -61,6 +61,7 @@ const Code<Null> codeAbstractExtensionField = messageAbstractExtensionField;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractExtensionField = const MessageCode(
     "AbstractExtensionField",
+    analyzerCodes: <String>["ABSTRACT_EXTENSION_FIELD"],
     problemMessage: r"""Extension fields can't be declared 'abstract'.""",
     correctionMessage: r"""Try removing the 'abstract' keyword.""");
 
@@ -4432,6 +4433,30 @@ const MessageCode messageExtensionTypeDeclarationCause = const MessageCode(
     severity: Severity.context,
     problemMessage:
         r"""The issue arises via this extension type declaration.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeDeclaresAbstractMember =
+    messageExtensionTypeDeclaresAbstractMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeDeclaresAbstractMember =
+    const MessageCode("ExtensionTypeDeclaresAbstractMember",
+        analyzerCodes: <String>["EXTENSION_TYPE_WITH_ABSTRACT_MEMBER"],
+        problemMessage: r"""Extension types can't declare abstract members.""",
+        correctionMessage:
+            r"""Try providing an implementation for the member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeDeclaresInstanceField =
+    messageExtensionTypeDeclaresInstanceField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeDeclaresInstanceField = const MessageCode(
+    "ExtensionTypeDeclaresInstanceField",
+    analyzerCodes: <String>["EXTENSION_TYPE_DECLARES_INSTANCE_FIELD"],
+    problemMessage: r"""Extension types can't declare instance fields""",
+    correctionMessage:
+        r"""Try removing the field declaration or making it a static field""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeExtends = messageExtensionTypeExtends;

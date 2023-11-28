@@ -1011,10 +1011,10 @@ AbstractStaticField:
 AbstractExtensionField:
   problemMessage: "Extension fields can't be declared 'abstract'."
   correctionMessage: "Try removing the 'abstract' keyword."
-# Separate class and extension field handling to support this.
-#  configuration: nnbd-strong
-#  script:
-#    - "extension C on int {abstract static var f;}"
+  analyzerCode: ABSTRACT_EXTENSION_FIELD
+  exampleAllowMoreCodes: true
+  script:
+    - "extension C on int {abstract static var f;}"
 
 AbstractFieldInitializer:
   problemMessage: "Abstract fields cannot have initializers."
@@ -2669,6 +2669,10 @@ ExtensionDeclaresAbstractMember:
   index: 94
   problemMessage: "Extensions can't declare abstract members."
   correctionMessage: "Try providing an implementation for the member."
+  script: |
+    extension E on int {
+      void method();
+    }
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER
   comment: No parameters.
   documentation: |-
@@ -2693,10 +2697,24 @@ ExtensionDeclaresAbstractMember:
     Either provide an implementation for the member or remove it.
   hasPublishedDocs: true
 
+ExtensionTypeDeclaresAbstractMember:
+  problemMessage: "Extension types can't declare abstract members."
+  correctionMessage: "Try providing an implementation for the member."
+  analyzerCode: EXTENSION_TYPE_WITH_ABSTRACT_MEMBER
+  experiments: inline-class
+  script: |
+    extension type ET(int id) {
+      void method();
+    }
+
 ExtensionDeclaresConstructor:
   index: 92
   problemMessage: "Extensions can't declare constructors."
   correctionMessage: "Try removing the constructor declaration."
+  script: |
+    extension E on int {
+      E();
+    }
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR
   comment: No parameters.
   documentation: |-
@@ -2728,6 +2746,10 @@ ExtensionDeclaresInstanceField:
   problemMessage: "Extensions can't declare instance fields"
   correctionMessage: "Try removing the field declaration or making it a static field"
   analyzerCode: ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD
+  script: |
+    extension E on int {
+      int? field;
+    }
   comment: No parameters.
   documentation: |-
     #### Description
@@ -2753,6 +2775,16 @@ ExtensionDeclaresInstanceField:
     Remove the field, make it a static field, or convert it to be a getter,
     setter, or method.
   hasPublishedDocs: true
+
+ExtensionTypeDeclaresInstanceField:
+  problemMessage: "Extension types can't declare instance fields"
+  correctionMessage: "Try removing the field declaration or making it a static field"
+  analyzerCode: EXTENSION_TYPE_DECLARES_INSTANCE_FIELD
+  experiments: inline-class
+  script: |
+    extension type ET(int id) {
+      int? field;
+    }
 
 ConflictsWithConstructor:
   problemMessage: "Conflicts with constructor '#name'."
