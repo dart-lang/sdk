@@ -118,7 +118,7 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
     final typeVariableBoundsSubtypeChecks = source.readListOrNull(() {
       return Pair(source.readDartType(), source.readDartType());
     })?.toSet();
-    final constSymbols = source.readStrings(emptyAsNull: true)?.toSet();
+    final constSymbols = source.readStringsOrNull()?.toSet();
     final specializedGetInterceptors = source.readListOrNull(() {
       return source.readClasses().toSet();
     });
@@ -158,36 +158,29 @@ class _CodegenImpact extends WorldImpactBuilderImpl implements CodegenImpact {
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
     sink.writeMember(member);
-    sink.writeList(dynamicUses, (DynamicUse use) => use.writeToDataSink(sink),
-        allowNull: true);
-    sink.writeList(staticUses, (StaticUse use) => use.writeToDataSink(sink),
-        allowNull: true);
-    sink.writeList(typeUses, (TypeUse use) => use.writeToDataSink(sink),
-        allowNull: true);
-    sink.writeList(constantUses, (ConstantUse use) => use.writeToDataSink(sink),
-        allowNull: true);
-    sink.writeList<Pair<DartType, DartType>>(_typeVariableBoundsSubtypeChecks,
-        (pair) {
+    sink.writeList(dynamicUses, (DynamicUse use) => use.writeToDataSink(sink));
+    sink.writeList(staticUses, (StaticUse use) => use.writeToDataSink(sink));
+    sink.writeList(typeUses, (TypeUse use) => use.writeToDataSink(sink));
+    sink.writeList(
+        constantUses, (ConstantUse use) => use.writeToDataSink(sink));
+    sink.writeListOrNull<Pair<DartType, DartType>>(
+        _typeVariableBoundsSubtypeChecks, (pair) {
       sink.writeDartType(pair.a);
       sink.writeDartType(pair.b);
-    }, allowNull: true);
-    sink.writeStrings(_constSymbols, allowNull: true);
-    sink.writeList(_specializedGetInterceptors, sink.writeClasses,
-        allowNull: true);
+    });
+    sink.writeStringsOrNull(_constSymbols);
+    sink.writeListOrNull(_specializedGetInterceptors, sink.writeClasses);
     sink.writeBool(_usesInterceptor);
     sink.writeIntOrNull(_asyncMarkers?.value);
-    sink.writeList(
+    sink.writeListOrNull(
         _genericInstantiations,
         (GenericInstantiation instantiation) =>
-            instantiation.writeToDataSink(sink),
-        allowNull: true);
-    sink.writeList(_nativeBehaviors,
-        (NativeBehavior behavior) => behavior.writeToDataSink(sink),
-        allowNull: true);
-    sink.writeMembers(_nativeMethods, allowNull: true);
-    sink.writeList(_oneShotInterceptors,
-        (Selector selector) => selector.writeToDataSink(sink),
-        allowNull: true);
+            instantiation.writeToDataSink(sink));
+    sink.writeListOrNull(_nativeBehaviors,
+        (NativeBehavior behavior) => behavior.writeToDataSink(sink));
+    sink.writeMembersOrNull(_nativeMethods);
+    sink.writeListOrNull(_oneShotInterceptors,
+        (Selector selector) => selector.writeToDataSink(sink));
     sink.end(tag);
   }
 
@@ -2071,12 +2064,12 @@ class ModularName extends js.Name implements js.AstContainer {
         sink.writeTypeVariable(typeVariable);
         break;
       case ModularNameKind.nameForGetInterceptor:
-        sink.writeClasses(set);
+        sink.writeClasses(set!);
         break;
       case ModularNameKind.nameForOneShotInterceptor:
         final selector = data as Selector;
         selector.writeToDataSink(sink);
-        sink.writeClasses(set);
+        sink.writeClasses(set!);
         break;
       case ModularNameKind.asName:
         sink.writeString(data as String);

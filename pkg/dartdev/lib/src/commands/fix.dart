@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
 import '../core.dart';
+import '../experiments.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
@@ -59,6 +60,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
           'Compare the result of applying fixes to a golden file for testing.',
       hide: !verbose,
     );
+    argParser.addExperimentalFlags(verbose: verbose);
   }
 
   @override
@@ -116,6 +118,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       commandName: 'fix',
       argResults: argResults,
       suppressAnalytics: suppressAnalytics,
+      enabledExperiments: args.enabledExperiments,
     );
 
     await server.start(setAnalysisRoots: false);

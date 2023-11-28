@@ -209,6 +209,20 @@ B f() => B(A());
     assertCanBeConst("B(A(", false);
   }
 
+  void test_false_constructorReference_typeParameter() async {
+    await resolve('''
+class A<T> {
+  const A();
+}
+class B<T> {
+  final A<T> Function() fn;
+  const B(this.fn);
+}
+B<T> fn<T>() => B(A<T>.new);
+''');
+    assertCanBeConst('B(A<T>.new)', false);
+  }
+
   void test_false_mapKeyType_implementsEqual() async {
     await resolve('''
 class A {

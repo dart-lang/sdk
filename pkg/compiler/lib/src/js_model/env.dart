@@ -258,7 +258,7 @@ class JClassEnvImpl implements JClassEnv {
     ir.Class cls = source.readClassNode();
     Map<String, ir.Member> constructorMap =
         source.readStringMap(source.readMemberNode);
-    Map<Name, ir.Member> memberMap = source.readNameMap(source.readMemberNode)!;
+    Map<Name, ir.Member> memberMap = source.readNameMap(source.readMemberNode);
     List<ir.Member> members = source.readMemberNodes();
     bool isSuperMixinApplication = source.readBool();
     source.end(tag);
@@ -330,7 +330,7 @@ class ContextEnv implements JClassEnv {
   factory ContextEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Map<Name, MemberEntity> _memberMap =
-        source.readNameMap(() => source.readMember())!;
+        source.readNameMap(() => source.readMember());
     source.end(tag);
     return ContextEnv(_memberMap);
   }
@@ -390,7 +390,7 @@ class ClosureClassEnv extends ContextEnv {
   factory ClosureClassEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Map<Name, MemberEntity> _memberMap =
-        source.readNameMap(() => source.readMember())!;
+        source.readNameMap(() => source.readMember());
     source.end(tag);
     return ClosureClassEnv(_memberMap);
   }
@@ -416,7 +416,7 @@ class RecordClassEnv implements JClassEnv {
   factory RecordClassEnv.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     Map<Name, MemberEntity> _memberMap =
-        source.readNameMap(() => source.readMember())!;
+        source.readNameMap(() => source.readMember());
     source.end(tag);
     return RecordClassEnv(_memberMap);
   }

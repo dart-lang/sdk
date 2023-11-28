@@ -45,7 +45,6 @@ void main() {
     defineReflectiveTests(CompletionDocumentationResolutionTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
-    defineReflectiveTests(FlutterSnippetCompletionWithoutNullSafetyTest);
   });
 }
 
@@ -4621,20 +4620,6 @@ stle^
     final snippetItems = res.where((c) => c.kind == CompletionItemKind.Snippet);
     expect(snippetItems, hasLength(0));
   }
-}
-
-@reflectiveTest
-class FlutterSnippetCompletionWithoutNullSafetyTest
-    extends FlutterSnippetCompletionTest {
-  @override
-  String get expectedImports => '''
-import 'package:flutter/widgets.dart';''';
-
-  @override
-  String get expectedWidgetConstructorParams => '({Key key}) : super(key: key)';
-
-  @override
-  String get testPackageLanguageVersion => '2.9';
 }
 
 abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest

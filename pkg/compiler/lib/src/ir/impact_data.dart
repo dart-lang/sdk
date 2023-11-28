@@ -1140,81 +1140,65 @@ class ImpactData {
   void toDataSink(DataSinkWriter sink) {
     sink.begin(tag);
 
-    sink.writeList(
-        _superInitializers, (_SuperInitializer o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_superSets, sink.writeMemberNode, allowNull: true);
-    sink.writeList(_superGets, sink.writeMemberNode, allowNull: true);
-    sink.writeList(
-        _superInvocations, (_SuperInvocation o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_instanceSets, (_InstanceAccess o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_dynamicSets, (_DynamicAccess o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_instanceGets, (_InstanceAccess o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_dynamicGets, (_DynamicAccess o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(
-        _functionInvocations, (_FunctionInvocation o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(
-        _instanceInvocations, (_InstanceInvocation o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(
-        _dynamicInvocations, (_DynamicInvocation o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_localFunctionInvocations,
-        (_LocalFunctionInvocation o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(
-        _staticInvocations, (_StaticInvocation o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_constructorInvocations,
-        (_ConstructorInvocation o) => o.toDataSink(sink),
-        allowNull: true);
+    sink.writeListOrNull(
+        _superInitializers, (_SuperInitializer o) => o.toDataSink(sink));
+    sink.writeListOrNull(_superSets, sink.writeMemberNode);
+    sink.writeListOrNull(_superGets, sink.writeMemberNode);
+    sink.writeListOrNull(
+        _superInvocations, (_SuperInvocation o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _instanceSets, (_InstanceAccess o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _dynamicSets, (_DynamicAccess o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _instanceGets, (_InstanceAccess o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _dynamicGets, (_DynamicAccess o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _functionInvocations, (_FunctionInvocation o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _instanceInvocations, (_InstanceInvocation o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _dynamicInvocations, (_DynamicInvocation o) => o.toDataSink(sink));
+    sink.writeListOrNull(_localFunctionInvocations,
+        (_LocalFunctionInvocation o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _staticInvocations, (_StaticInvocation o) => o.toDataSink(sink));
+    sink.writeListOrNull(_constructorInvocations,
+        (_ConstructorInvocation o) => o.toDataSink(sink));
     sink.writeInt(_features?.value ?? 0);
-    sink.writeList(_typeUses, (_TypeUse o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_redirectingInitializers,
-        (_RedirectingInitializer o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeMemberNodes(_fieldInitializers, allowNull: true);
-    sink.writeMemberNodeMap(_fieldConstantInitializers, sink.writeTreeNodes,
-        allowNull: true);
-    sink.writeList(_typeLiterals, (_TypeLiteral o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeTreeNodes(_localFunctions, allowNull: true);
-    sink.writeList(
-        _genericInstantiations, (_GenericInstantiation o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_staticSets, (_StaticAccess o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_staticGets, (_StaticAccess o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_staticTearOffs, (_StaticAccess o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_weakStaticTearOffs, (_StaticAccess o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_mapLiterals, (_MapLiteral o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_listLiterals, (_ContainerLiteral o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_setLiterals, (_ContainerLiteral o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_recordLiterals, (_RecordLiteral o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_runtimeTypeUses, (_RuntimeTypeUse o) => o.toDataSink(sink),
-        allowNull: true);
-    sink.writeList(_forInData, (_ForInData o) => o.toDataSink(sink),
-        allowNull: true);
+    sink.writeListOrNull(_typeUses, (_TypeUse o) => o.toDataSink(sink));
+    sink.writeListOrNull(_redirectingInitializers,
+        (_RedirectingInitializer o) => o.toDataSink(sink));
+    sink.writeMemberNodesOrNull(_fieldInitializers);
+    sink.writeMemberNodeMapOrNull(
+        _fieldConstantInitializers, sink.writeTreeNodes);
+    sink.writeListOrNull(_typeLiterals, (_TypeLiteral o) => o.toDataSink(sink));
+    sink.writeTreeNodesOrNull(_localFunctions);
+    sink.writeListOrNull(_genericInstantiations,
+        (_GenericInstantiation o) => o.toDataSink(sink));
+    sink.writeListOrNull(_staticSets, (_StaticAccess o) => o.toDataSink(sink));
+    sink.writeListOrNull(_staticGets, (_StaticAccess o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _staticTearOffs, (_StaticAccess o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _weakStaticTearOffs, (_StaticAccess o) => o.toDataSink(sink));
+    sink.writeListOrNull(_mapLiterals, (_MapLiteral o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _listLiterals, (_ContainerLiteral o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _setLiterals, (_ContainerLiteral o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _recordLiterals, (_RecordLiteral o) => o.toDataSink(sink));
+    sink.writeListOrNull(
+        _runtimeTypeUses, (_RuntimeTypeUse o) => o.toDataSink(sink));
+    sink.writeListOrNull(_forInData, (_ForInData o) => o.toDataSink(sink));
 
-    sink.writeMemberNodes(_externalConstructorNodes, allowNull: true);
-    sink.writeMemberNodes(_fieldNodes, allowNull: true);
-    sink.writeMemberNodes(_externalProcedureNodes, allowNull: true);
-    sink.writeTreeNodes(_switchStatementNodes, allowNull: true);
-    sink.writeTreeNodes(_foreignStaticInvocationNodes, allowNull: true);
+    sink.writeMemberNodesOrNull(_externalConstructorNodes);
+    sink.writeMemberNodesOrNull(_fieldNodes);
+    sink.writeMemberNodesOrNull(_externalProcedureNodes);
+    sink.writeTreeNodesOrNull(_switchStatementNodes);
+    sink.writeTreeNodesOrNull(_foreignStaticInvocationNodes);
     sink.writeBool(_hasConstSymbolConstructorInvocation);
 
     sink.end(tag);
@@ -1578,7 +1562,7 @@ class _CallStructure {
     source.begin(tag);
     List<ir.DartType> typeArguments = source.readDartTypeNodes();
     int positionalArguments = source.readInt();
-    List<String> namedArguments = source.readStrings() ?? const [];
+    List<String> namedArguments = source.readStrings();
     source.end(tag);
     return _CallStructure.internal(
         typeArguments, positionalArguments, namedArguments);

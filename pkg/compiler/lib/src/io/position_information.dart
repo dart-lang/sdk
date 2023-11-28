@@ -64,11 +64,10 @@ class PositionSourceInformation extends SourceInformation {
             SourceLocation.writeToDataSink(sink, sourceLocation));
     sink.writeIndexed(
         inliningContext,
-        (_) => sink.writeList(
+        (_) => sink.writeListOrNull(
             inliningContext,
             (FrameContext context) => sink.writeIndexed(
-                context, (_) => context.writeToDataSink(sink)),
-            allowNull: true));
+                context, (_) => context.writeToDataSink(sink))));
     sink.end(tag);
   }
 

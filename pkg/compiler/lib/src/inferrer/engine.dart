@@ -1646,26 +1646,22 @@ class KernelGlobalTypeInferenceElementData
       AbstractValueDomain abstractValueDomain) {
     sink.inMemberContext(context, () {
       sink.begin(tag);
-      sink.writeTreeNodeMapInContext(
+      sink.writeTreeNodeMapInContextOrNull(
           _receiverMap,
           (AbstractValue? value) =>
-              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-          allowNull: true);
-      sink.writeTreeNodeMapInContext(
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value));
+      sink.writeTreeNodeMapInContextOrNull(
           _iteratorMap,
           (AbstractValue? value) =>
-              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-          allowNull: true);
-      sink.writeTreeNodeMapInContext(
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value));
+      sink.writeTreeNodeMapInContextOrNull(
           _currentMap,
           (AbstractValue? value) =>
-              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-          allowNull: true);
-      sink.writeTreeNodeMapInContext(
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value));
+      sink.writeTreeNodeMapInContextOrNull(
           _moveNextMap,
           (AbstractValue? value) =>
-              abstractValueDomain.writeAbstractValueToDataSink(sink, value),
-          allowNull: true);
+              abstractValueDomain.writeAbstractValueToDataSink(sink, value));
       sink.end(tag);
     });
   }

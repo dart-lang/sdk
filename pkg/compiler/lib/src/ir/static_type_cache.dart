@@ -32,9 +32,8 @@ class StaticTypeCache {
     sink.inMemberContext(context, () {
       sink.begin(tag);
       sink.writeTreeNodeMapInContext(_expressionTypes, sink.writeDartTypeNode);
-      sink.writeTreeNodeMapInContext(
-          _forInIteratorTypes, sink.writeDartTypeNode,
-          allowNull: true);
+      sink.writeTreeNodeMapInContextOrNull(
+          _forInIteratorTypes, sink.writeDartTypeNode);
       sink.end(tag);
     });
   }
