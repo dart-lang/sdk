@@ -44,6 +44,10 @@ class DocumentationValidator {
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
     // Also reports CompileTimeErrorCode.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
     'CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS',
+    // The following codes produce two diagnostics because they illustrate a
+    // cycle.
+    'CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_ITSELF',
+    'CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
     // Has code in the example section that needs to be skipped (because it's
     // part of the explanatory text not part of the example), but there's
     // currently no way to do that.

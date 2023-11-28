@@ -1473,6 +1473,55 @@ Future<int> f() async {
 }
 {% endprettify %}
 
+### await_of_extension_type_not_future
+
+_The 'await' expression can't be used for an expression with an extension type
+that is not a subtype of 'Future'._
+
+#### Description
+
+The analyzer produces this diagnostic when the type of the expression in
+an `await` expression is an extension type, and the extension type isn't a
+subclass of `Future`.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `E`
+isn't a subclass of `Future`:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {}
+
+void f(E e) async {
+  [!await!] e;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the extension type is correctly defined, then remove the `await`:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {}
+
+void f(E e) {
+  e;
+}
+{% endprettify %}
+
+If the extension type is intended to be awaitable, then add `Future` (or a
+subtype of `Future`) to the `implements` clause (adding an `implements`
+clause if there isn't one already), and make the representation type
+match:
+
+{% prettify dart tag=pre+code %}
+extension type E(Future<int> i) implements Future<int> {}
+
+void f(E e) async {
+  await e;
+}
+{% endprettify %}
+
 ### body_might_complete_normally
 
 _The body might complete normally, causing 'null' to be returned, but the return
@@ -6139,6 +6188,409 @@ f() {
 If there are multiple cascaded accesses, you'll need to duplicate the
 extension override for each one.
 
+### extension_type_constructor_with_super_formal_parameter
+
+_Extension type constructors can't declare super formal parameters._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor in an extension
+type has a super parameter. Super parameters aren't valid because
+extension types don't have a superclass.
+
+#### Example
+
+The following code produces this diagnostic because the named constructor
+`n` contains a super parameter:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n(this.i, [!super!].foo);
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need the parameter, replace the super parameter with a normal
+parameter:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n(this.i, String foo);
+}
+{% endprettify %}
+
+If you don't need the parameter, remove the super parameter:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n(this.i);
+}
+{% endprettify %}
+
+### extension_type_constructor_with_super_invocation
+
+_Extension type constructors can't include super initializers._
+
+#### Description
+
+The analyzer produces this diagnostic when a constructor in an extension
+type includes an invocation of a super constructor in the initializer
+list. Because extension types don't have a superclass, there's no
+constructor to invoke.
+
+#### Example
+
+The following code produces this diagnostic because the constructor `E.n`
+invokes a super constructor in its initializer list:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n() : i = 0, [!super!].n();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the invocation of the super constructor:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  E.n() : i = 0;
+}
+{% endprettify %}
+
+### extension_type_declares_instance_field
+
+_Extension types can't declare instance fields._
+
+#### Description
+
+The analyzer produces this diagnostic when there's a field declaration in
+the body of an extension type declaration.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `E`
+declares a field named `f`:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  final int [!f!] = 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you don't need the field, then remove it or replace it with a getter
+and/or setter:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  int get f => 0;
+}
+{% endprettify %}
+
+If you need the field, then convert the extension type into a class:
+
+{% prettify dart tag=pre+code %}
+class E {
+  final int i;
+
+  final int f = 0;
+
+  E(this.i);
+}
+{% endprettify %}
+
+### extension_type_declares_member_of_object
+
+_Extension types can't declare members with the same name as a member declared
+by 'Object'._
+
+#### Description
+
+The analyzer produces this diagnostic when the body of an extension type
+declaration contains a member with the same name as one of the members
+declared by `Object`.
+
+#### Example
+
+The following code produces this diagnostic because the class `Object`
+already defines a member named `hashCode`:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  int get [!hashCode!] => 0;
+}
+{% endprettify %}
+
+#### Common fixes
+
+If you need a member with the implemented semantics, then rename the
+member:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {
+  int get myHashCode => 0;
+}
+{% endprettify %}
+
+If you don't need a member with the implemented semantics, then remove the
+member:
+
+{% prettify dart tag=pre+code %}
+extension type E(int i) {}
+{% endprettify %}
+
+### extension_type_implements_disallowed_type
+
+_Extension types can't implement '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements a
+type that it isn't allowed to implement.
+
+#### Example
+
+The following code produces this diagnostic because extension types can't
+implement the type `dynamic`:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) implements [!dynamic!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the disallowed type from the implements clause:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) {}
+{% endprettify %}
+
+### extension_type_implements_itself
+
+_The extension type can't implement itself._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements
+itself, either directly or indirectly.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `A`
+directly implements itself:
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](int i) implements A {}
+{% endprettify %}
+
+The following code produces this diagnostic because the extension type `A`
+indirectly implements itself (through `B`):
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](int i) implements B {}
+
+extension type [!B!](int i) implements A {}
+{% endprettify %}
+
+#### Common fixes
+
+Break the cycle by removing a type from the implements clause of at least
+one of the types involved in the cycle:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) implements B {}
+
+extension type B(int i) {}
+{% endprettify %}
+
+### extension_type_implements_not_supertype
+
+_'{0}' is not a supertype of '{1}', the representation type._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements a
+type that isn't a supertype of the representation type.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `A`
+implements `String`, but `String` isn't a supertype of the representation
+type `int`:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) implements [!String!] {}
+{% endprettify %}
+
+#### Common fixes
+
+If the representation type is correct, then remove or replace the type in
+the implements clause:
+
+{% prettify dart tag=pre+code %}
+extension type A(int i) {}
+{% endprettify %}
+
+If the representation type isn't correct, then replace it with the correct
+type:
+
+{% prettify dart tag=pre+code %}
+extension type A(String s) implements String {}
+{% endprettify %}
+
+### extension_type_implements_representation_not_supertype
+
+_'{0}', the representation type of '{1}', is not a supertype of '{2}', the
+representation type of '{3}'._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements
+another extension type, and the representation type of the implemented
+extension type isn't a subtype of the representation type of the implementing
+extension type.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `B`
+implements `A`, but the representation type of `A` (`num`) isn't a
+subtype of the representation type of `B` (`String`):
+
+{% prettify dart tag=pre+code %}
+extension type A(num i) {}
+
+extension type B(String s) implements [!A!] {}
+{% endprettify %}
+
+#### Common fixes
+
+Either change the representation types of the two extension types so that
+the representation type of the implemented type is a supertype of the
+representation type of the implementing type:
+
+{% prettify dart tag=pre+code %}
+extension type A(num i) {}
+
+extension type B(int n) implements A {}
+{% endprettify %}
+
+Or remove the implemented type from the implements clause:
+
+{% prettify dart tag=pre+code %}
+extension type A(num i) {}
+
+extension type B(String s) {}
+{% endprettify %}
+
+### extension_type_inherited_member_conflict
+
+_The extension type '{0}' has more than one distinct member named '{1}' from
+implemented types._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type implements
+two or more other types, and at least two of those types declare a member
+with the same name.
+
+#### Example
+
+The following code produces this diagnostic because the extension type `C`
+implements both `A` and `B`, and both declare a member named `m`:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
+}
+
+extension type B(A a) {
+  void m() {}
+}
+
+extension type [!C!](A a) implements A, B {}
+{% endprettify %}
+
+#### Common fixes
+
+If the extension type doesn't need to implement all of the listed types,
+then remove all but one of the types introducing the conflicting members:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
+}
+
+extension type B(A a) {
+  void m() {}
+}
+
+extension type C(A a) implements A {}
+{% endprettify %}
+
+If the extension type needs to implement all of the listed types but you
+can rename the members in those types, then give the conflicting members
+unique names:
+
+{% prettify dart tag=pre+code %}
+class A {
+  void m() {}
+}
+
+extension type B(A a) {
+  void n() {}
+}
+
+extension type C(A a) implements A, B {}
+{% endprettify %}
+
+### extension_type_representation_depends_on_itself
+
+_The extension type representation can't depend on itself._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type has a
+representation type that depends on the extension type itself, either
+directly or indirectly.
+
+#### Example
+
+The following code produces this diagnostic because the representation
+type of the extension type `A` depends on `A` directly:
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](A a) {}
+{% endprettify %}
+
+The following two code examples produce this diagnostic because the
+representation type of the extension type `A` depends on `A`
+indirectly through the extension type `B`:
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](B b) {}
+
+extension type [!B!](A a) {}
+{% endprettify %}
+
+{% prettify dart tag=pre+code %}
+extension type [!A!](List<B> b) {}
+
+extension type [!B!](List<A> a) {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the dependency by choosing a different representation type for at
+least one of the types in the cycle:
+
+{% prettify dart tag=pre+code %}
+extension type A(String s) {}
+{% endprettify %}
+
 ### external_with_initializer
 
 _External fields can't have initializers._
@@ -10186,7 +10638,7 @@ platforms:
 #### Common fixes
 
 If you can rely on automatic platform detection, then omit the
-top-level `platforms` field. 
+top-level `platforms` field.
 
 {% prettify yaml tag=pre+code %}
 name: example
@@ -14219,6 +14671,35 @@ enum E {
 }
 {% endprettify %}
 
+### non_covariant_type_parameter_position_in_representation_type
+
+_An extension type parameter can't be used in a non-covariant position of its
+representation type._
+
+#### Description
+
+The analyzer produces this diagnostic when a type parameter of an
+extension type is used in a non-covariant position in the representation
+type of that extension type.
+
+#### Example
+
+The following code produces this diagnostic because the type parameter `T`
+is used as a parameter type in the function type `void Function(T)`, and
+parameters are not covariant:
+
+{% prettify dart tag=pre+code %}
+extension type A<[!T!]>(void Function(T) f) {}
+{% endprettify %}
+
+#### Common fixes
+
+Remove the use of the type parameter:
+
+{% prettify dart tag=pre+code %}
+extension type A(void Function(String) f) {}
+{% endprettify %}
+
 ### non_exhaustive_switch_expression
 
 _The type '{0}' is not exhaustively matched by the switch cases since it doesn't
@@ -16890,6 +17371,66 @@ class B implements A {}
 #### Common fixes
 
 Change the type hierarchy so that there's no circularity.
+
+### redeclare_on_non_redeclaring_member
+
+_The {0} doesn't redeclare a {0} declared in a superinterface._
+
+#### Description
+
+The analyzer produces this diagnostic when a member of an extension type
+is annotated with `@redeclare`, but none of the implemented interfaces
+has a member with the same name.
+
+#### Example
+
+The following code produces this diagnostic because the member `n`
+declared by the extension type `E` is annotated with `@redeclare`, but `C`
+doesn't have a member named `n`:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class C {
+  void m() {}
+}
+
+extension type E(C c) implements C {
+  @redeclare
+  void [!n!]() {}
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the annotated member has the right name, then remove the annotation:
+
+{% prettify dart tag=pre+code %}
+class C {
+  void m() {}
+}
+
+extension type E(C c) implements C {
+  void n() {}
+}
+{% endprettify %}
+
+If the annotated member is suppose to replace a member from the
+implemented interfaces, then change the name of the annotated member to
+match the member being replaced:
+
+{% prettify dart tag=pre+code %}
+import 'package:meta/meta.dart';
+
+class C {
+  void m() {}
+}
+
+extension type E(C c) implements C {
+  @redeclare
+  void m() {}
+}
+{% endprettify %}
 
 ### redirect_generative_to_missing_constructor
 
