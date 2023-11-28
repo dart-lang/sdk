@@ -40,7 +40,9 @@ class BaseTest {
 
   late Driver driver;
 
-  AnalysisOptions get analysisOptions => driver.analysisDriver!.analysisOptions;
+  AnalysisOptions get analysisOptions =>
+      driver.analysisDriver!.getAnalysisOptionsForFile(driver.resourceProvider
+          .getFile(path.normalize(path.absolute(emptyOptionsFile))));
 
   /// Normalize text with bullets.
   String bulletToDash(StringSink? item) => '$item'.replaceAll('•', '-');
