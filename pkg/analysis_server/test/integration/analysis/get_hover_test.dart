@@ -162,10 +162,10 @@ void f() {
     await checkHover('topLevelVar.length;', 11, ['List', 'topLevelVar'],
         'top level variable', ['List']);
 
-    await checkHover('length;', 6, ['get', 'length', 'int'], 'getter', null,
+    await checkHover('length;', 6, ['get', 'length', 'int'], 'getter', ['int'],
         isCore: true, docRegexp: '.*');
 
-    await checkHover('length =', 6, ['set', 'length', 'int'], 'setter', null,
+    await checkHover('length =', 6, ['set', 'length', 'int'], 'setter', ['int'],
         isCore: true, docRegexp: '.*');
 
     await checkHover('param;', 5, ['int', 'param'], 'parameter', ['int'],

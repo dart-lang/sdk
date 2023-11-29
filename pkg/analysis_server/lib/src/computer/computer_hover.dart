@@ -236,7 +236,10 @@ class DartUnitHoverComputer {
   String? _typeDisplayString(AstNode node, Element? element) {
     var parent = node.parent;
     DartType? staticType;
-    if (node is Expression && (element == null || element is VariableElement)) {
+    if (node is Expression &&
+        (element == null ||
+            element is VariableElement ||
+            element is PropertyAccessorElement)) {
       staticType = _getTypeOfDeclarationOrReference(node);
     } else if (element is VariableElement) {
       staticType = element.type;
@@ -349,6 +352,22 @@ class DartUnitHoverComputer {
         var parent2 = node.parent?.parent;
         if (parent2 is NamedExpression && parent2.name.label == node) {
           return element.type;
+        }
+      }
+      var parent = node.parent;
+      var parent2 = parent?.parent;
+
+      if (parent is AssignmentExpression && parent.leftHandSide == node) {
+        // Direct setter reference
+        return parent.writeType;
+      } else if (parent2 is AssignmentExpression &&
+          parent2.leftHandSide == parent) {
+        if (parent is PrefixedIdentifier && parent.identifier == node) {
+          // Prefixed setter (`myInstance.foo =`)
+          return parent2.writeType;
+        } else if (parent is PropertyAccess && parent.propertyName == node) {
+          // Expression prefix (`A<int>().foo =`)
+          return parent2.writeType;
         }
       }
     }
