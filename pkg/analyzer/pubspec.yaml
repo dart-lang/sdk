@@ -45,5 +45,7 @@ dependency_overrides:
     path: ../analyzer_utilities
   heap_snapshot:
     path: ../heap_snapshot
+  linter:
+    path: ../linter
   vm_service:
     path: ../vm_service
