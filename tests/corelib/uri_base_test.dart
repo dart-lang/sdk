@@ -7,7 +7,6 @@ import "package:expect/expect.dart";
 main() {
   try {
     Uri base = Uri.base;
-    print(Uri.base);
     Expect.isTrue(Uri.base.isScheme("file") ||
         Uri.base.isScheme("http") ||
         // Location set in sdk/lib/_internal/js_runtime/lib/preambles/d8.js
