@@ -37,27 +37,30 @@ class C extends B<A> {
 }
 
 main() {
+  // Covariance checks are omitted in dart2js production mode.
+  if (dart2jsProductionMode) return;
+
   // Dynamic method calls should always have their arguments type checked.
   dynamic d = new C();
-  Expect.throwsTypeError(() => d.f1(new Object())); //# 01: ok
+  Expect.throwsTypeError(() => d.f1(new Object()));
 
   // Closure calls should have any arguments marked "genericCovariantImpl" type
   // checked.
   B<Object> b = new C();
   void Function(Object) f = b.f2;
-  Expect.throwsTypeError(() => f(new Object())); //# 02: ok
+  Expect.throwsTypeError(() => f(new Object()));
 
   // Interface calls should have any arguments marked "genericCovariantImpl"
   // type checked provided that the corresponding argument on the interface
   // target is marked "genericCovariantInterface".
-  Expect.throwsTypeError(() => b.f2(new Object())); //# 03: ok
+  Expect.throwsTypeError(() => b.f2(new Object()));
 
   // Interface calls should have any arguments marked "covariant" type checked,
   // regardless of whether the corresponding argument on the interface target is
   // marked "genericCovariantInterface".
-  Expect.throwsTypeError(() => b.f3(new Object())); //# 04: ok
-  Expect.throwsTypeError(() => b.f4(new Object())); //# 05: ok
+  Expect.throwsTypeError(() => b.f3(new Object()));
+  Expect.throwsTypeError(() => b.f4(new Object()));
 
   // This calls should have any arguments marked "covariant" type checked.
-  Expect.throwsTypeError(() => b.f5(new Object())); //# 06: ok
+  Expect.throwsTypeError(() => b.f5(new Object()));
 }
