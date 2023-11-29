@@ -814,6 +814,8 @@ final class Packed {
 
 abstract final class DynamicLibrary {
   external factory DynamicLibrary.open(String name);
+
+  external Pointer<T> lookup<T extends NativeType>(String symbolName);
 }
 
 extension DynamicLibraryExtension on DynamicLibrary {

@@ -506,11 +506,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validates that the given [nativeType] is a valid dart:ffi native type.
-  bool _isValidFfiNativeType(DartType? nativeType,
-      {bool allowVoid = false,
-      bool allowEmptyStruct = false,
-      bool allowArray = false,
-      bool allowHandle = false}) {
+  bool _isValidFfiNativeType(
+    DartType? nativeType, {
+    bool allowVoid = false,
+    bool allowEmptyStruct = false,
+    bool allowArray = false,
+    bool allowHandle = false,
+    bool allowOpaque = false,
+  }) {
     if (nativeType is InterfaceType) {
       final primitiveType = _primitiveNativeType(nativeType);
       switch (primitiveType) {
@@ -531,8 +534,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       if (nativeType.isPointer) {
         final nativeArgumentType = nativeType.typeArguments.single;
-        return _isValidFfiNativeType(nativeArgumentType,
-                allowVoid: true, allowEmptyStruct: true, allowHandle: true) ||
+        return _isValidFfiNativeType(
+              nativeArgumentType,
+              allowVoid: true,
+              allowEmptyStruct: true,
+              allowHandle: true,
+              allowOpaque: true,
+            ) ||
             nativeArgumentType.isCompoundSubtype ||
             nativeArgumentType.isNativeType;
       }
@@ -546,6 +554,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           }
         }
         return true;
+      }
+      if (nativeType.isOpaque) {
+        return allowOpaque;
       }
       if (nativeType.isOpaqueSubtype) {
         return true;
@@ -1536,6 +1547,14 @@ extension on Element? {
         element.isFfiExtension;
   }
 
+  /// Return `true` if this represents the class `Opaque`.
+  bool get isOpaque {
+    final element = this;
+    return element is ClassElement &&
+        element.name == FfiVerifier._opaqueClassName &&
+        element.isFfiClass;
+  }
+
   /// Return `true` if this represents the class `Pointer`.
   bool get isPointer {
     final element = this;
@@ -1725,15 +1744,18 @@ extension on DartType {
     return false;
   }
 
+  bool get isOpaque {
+    final self = this;
+    return self is InterfaceType && self.element.isOpaque;
+  }
+
   /// Returns `true` iff this is a opaque type, i.e. a subtype of `Opaque`.
   bool get isOpaqueSubtype {
     final self = this;
     if (self is InterfaceType) {
       final superType = self.element.supertype;
       if (superType != null) {
-        final superClassElement = superType.element;
-        return superClassElement.name == FfiVerifier._opaqueClassName &&
-            superClassElement.isFfiClass;
+        return superType.element.isOpaque;
       }
     }
     return false;
