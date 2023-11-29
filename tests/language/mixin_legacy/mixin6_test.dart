@@ -28,7 +28,7 @@ class C<T> = S<List<T>> with B implements K<T>; // B is raw.
 
 main() {
   var c = new C<int>();
-  Expect.equals("Map<dynamic, Set<dynamic>>", c.m().toString());
+  Expect.equals(Map<dynamic, Set<dynamic>>, c.m());
   Expect.isTrue(c is K<int>);
   Expect.isTrue(c is J);
   Expect.isTrue(c is I<Set>);

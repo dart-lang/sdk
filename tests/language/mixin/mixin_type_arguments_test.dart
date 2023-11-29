@@ -28,27 +28,27 @@ class F {}
 
 @pragma("vm:entry-point") // Prevent obfuscation
 class M1<Tm1> {
-  m1() => "M1<$Tm1>";
+  Type m1() => M1<Tm1>;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
 class M2<Tm2> {
-  m2() => "M2<$Tm2>";
+  Type m2() => M2<Tm2>;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
 class M3<Tm3> {
-  m3() => "M3<$Tm3>";
+  Type m3() => M3<Tm3>;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
 class M4<Tm4> {
-  m4() => "M4<$Tm4>";
+  Type m4() => M4<Tm4>;
 }
 
 @pragma("vm:entry-point") // Prevent obfuscation
 class M5<Tm5> {
-  m5() => "M5<$Tm5>";
+  Type m5() => M5<Tm5>;
 }
 
 class C1 = Object with M1, M2<A>, M3, M4<B>, M5<C>;
@@ -73,29 +73,29 @@ class C9 = Object
 class CA extends Object
     with M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>> {}
 
-trace(x) => "${x.m1()}, ${x.m2()}, ${x.m3()}, ${x.m4()}, ${x.m5()}";
+List<Type> trace(x) => [x.m1(), x.m2(), x.m3(), x.m4(), x.m5()];
 
 main() {
-  Expect.stringEquals(
-      "M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>", trace(new C1()));
-  Expect.stringEquals("M1<A>, M2<B>, M3<C>, M4<D>, M5<E>", trace(new C2()));
-  Expect.stringEquals(
-      "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>", trace(new C3()));
-  Expect.stringEquals(
-      "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>", trace(new C3<F>()));
-  Expect.stringEquals(
-      "M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>", trace(new C4()));
-  Expect.stringEquals("M1<A>, M2<B>, M3<C>, M4<D>, M5<E>", trace(new C5()));
-  Expect.stringEquals(
-      "M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>", trace(new C6()));
-  Expect.stringEquals(
-      "M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>", trace(new C6<F>()));
-  Expect.stringEquals("M1<A>, M2<A>, M3<A>, M4<A>, M5<A>", trace(new C7()));
-  Expect.stringEquals("M1<A>, M2<A>, M3<A>, M4<A>, M5<A>", trace(new C8()));
-  Expect.stringEquals(
-      "M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>",
+  Expect.listEquals(
+      [M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>], trace(new C1()));
+  Expect.listEquals([M1<A>, M2<B>, M3<C>, M4<D>, M5<E>], trace(new C2()));
+  Expect.listEquals(
+      [M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>], trace(new C3()));
+  Expect.listEquals(
+      [M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>], trace(new C3<F>()));
+  Expect.listEquals(
+      [M1<dynamic>, M2<A>, M3<dynamic>, M4<B>, M5<C>], trace(new C4()));
+  Expect.listEquals([M1<A>, M2<B>, M3<C>, M4<D>, M5<E>], trace(new C5()));
+  Expect.listEquals(
+      [M1<A>, M2<dynamic>, M3<dynamic>, M4<dynamic>, M5<B>], trace(new C6()));
+  Expect.listEquals(
+      [M1<A>, M2<F>, M3<dynamic>, M4<dynamic>, M5<B>], trace(new C6<F>()));
+  Expect.listEquals([M1<A>, M2<A>, M3<A>, M4<A>, M5<A>], trace(new C7()));
+  Expect.listEquals([M1<A>, M2<A>, M3<A>, M4<A>, M5<A>], trace(new C8()));
+  Expect.listEquals(
+      [M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>],
       trace(new C9()));
-  Expect.stringEquals(
-      "M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>",
+  Expect.listEquals(
+      [M1<List<A>>, M2<List<A>>, M3<List<A>>, M4<List<A>>, M5<List<A>>],
       trace(new CA()));
 }
