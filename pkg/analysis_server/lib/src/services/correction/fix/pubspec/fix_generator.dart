@@ -22,6 +22,11 @@ import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in pubspec.yaml files.
 class PubspecFixGenerator {
+  static const List<ErrorCode> codesWithFixes = [
+    PubspecWarningCode.MISSING_DEPENDENCY,
+    PubspecWarningCode.MISSING_NAME,
+  ];
+
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
@@ -88,6 +93,15 @@ class PubspecFixGenerator {
     }
 
     var errorCode = error.errorCode;
+    // Check whether [errorCode] is within [codeWithFixes], which is (currently)
+    // the canonical list of pubspec error codes with fixes. If we move pubspec
+    // fixes to the style of correction producers, and a map from error codes to
+    // the correction producers that can fix violations, we won't need this
+    // check.
+    if (!codesWithFixes.contains(errorCode)) {
+      return fixes;
+    }
+
     if (errorCode == PubspecWarningCode.ASSET_DOES_NOT_EXIST) {
       // Consider replacing the path with a valid path.
     } else if (errorCode == PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST) {

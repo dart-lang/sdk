@@ -59,9 +59,7 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
 AnalysisOptionsHintCode.DEPRECATED_LINT:
-  status: needsFix
-  notes: |-
-    We should be able to remove the lint rule.
+  status: hasFix
 AnalysisOptionsHintCode.DEPRECATED_LINT_WITH_REPLACEMENT:
   status: needsFix
   notes: |-
@@ -75,9 +73,7 @@ AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
   notes: |-
     The fix is to remove the deprecated option.
 AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
-  status: needsFix
-  notes: |-
-    The fix is to replace the deprecated option.
+  status: hasFix
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
   notes: |-
@@ -123,6 +119,8 @@ AnalysisOptionsWarningCode.REMOVED_LINT:
     The fix is to remove the name of the removed lint rule.
 AnalysisOptionsWarningCode.REPLACED_LINT:
   status: needsFix
+  notes: |-
+    We should be able to replace the deprecated lint rule with its replacement.
 AnalysisOptionsWarningCode.UNDEFINED_LINT:
   status: needsFix
   notes: |-
@@ -141,13 +139,7 @@ AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES:
   notes: |-
     The fix is to replace the unsupported option with one of the legal values.
 AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITHOUT_VALUES:
-  status: noFix
-  notes: |-
-    There are either no valid options to suggest, or there are too many to
-    provide a fix for every one of them. For some cases it might be possible to
-    suggest similarly spelled valid options, but we'd probably want to split
-    this code into an `UNSUPPORTED_OPTION_WITH_SIMILAR_VALUES` code to handle
-    those cases.
+  status: hasFix
 AnalysisOptionsWarningCode.UNSUPPORTED_VALUE:
   status: needsFix
   notes: |-
@@ -3371,10 +3363,9 @@ PubspecWarningCode.INVALID_DEPENDENCY:
 PubspecWarningCode.INVALID_PLATFORMS_FIELD:
   status: needsEvaluation
 PubspecWarningCode.MISSING_DEPENDENCY:
-  status: noFix
+  status: hasFix
 PubspecWarningCode.MISSING_NAME:
-  status: noFix
-  since: ~2.15
+  status: hasFix
 PubspecWarningCode.NAME_NOT_STRING:
   status: noFix
   since: ~2.15

@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
+import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/extensions.dart';
+import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -22,10 +24,12 @@ bool hasFix(ErrorCode errorCode) {
     return FixProcessor.lintProducerMap.containsKey(lintName) ||
         FixProcessor.lintMultiProducerMap.containsKey(lintName);
   }
-  // TODO(brianwilkerson): Either deprecate the part of the protocol supported by
-  //  this function, or handle error codes associated with non-dart files.
+  // TODO(brianwilkerson): Either deprecate the part of the protocol supported
+  //  by this function, or handle error codes associated with non-dart files.
   return FixProcessor.nonLintProducerMap.containsKey(errorCode) ||
-      FixProcessor.nonLintMultiProducerMap.containsKey(errorCode);
+      FixProcessor.nonLintMultiProducerMap.containsKey(errorCode) ||
+      AnalysisOptionsFixGenerator.codesWithFixes.contains(errorCode) ||
+      PubspecFixGenerator.codesWithFixes.contains(errorCode);
 }
 
 /// An enumeration of quick fix kinds for the errors found in an analysis
