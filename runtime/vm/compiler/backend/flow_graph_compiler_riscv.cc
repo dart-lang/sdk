@@ -796,9 +796,6 @@ void FlowGraphCompiler::EmitMove(Location destination,
                                  TemporaryRegisterAllocator* allocator) {
   if (destination.Equals(source)) return;
 
-  destination = RebaseIfImprovesAddressing(destination);
-  source = RebaseIfImprovesAddressing(source);
-
   if (source.IsRegister()) {
     if (destination.IsRegister()) {
       __ mv(destination.reg(), source.reg());

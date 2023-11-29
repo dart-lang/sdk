@@ -241,8 +241,12 @@ void ParallelMoveEmitter::EmitNativeCode() {
 }
 
 void ParallelMoveEmitter::EmitMove(const MoveOperands& move) {
-  const Location src = move.src();
-  const Location dst = move.dest();
+  Location src = move.src();
+  Location dst = move.dest();
+#if defined(TARGET_ARCH_RISCV32) || defined(TARGET_ARCH_RISCV64)
+  dst = compiler_->RebaseIfImprovesAddressing(dst);
+  src = compiler_->RebaseIfImprovesAddressing(src);
+#endif
   ParallelMoveEmitter::TemporaryAllocator temp(this, /*blocked=*/kNoRegister);
   compiler_->EmitMove(dst, src, &temp);
 #if defined(DEBUG)
