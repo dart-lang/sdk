@@ -5,7 +5,7 @@
 // Regression test for dart2js, that used to minify a captured
 // variable's name to the same name as inherited Object methods.
 
-var array = [new A()];
+List<dynamic> array = [new A()];
 
 class A {
   operator ==(other) {
