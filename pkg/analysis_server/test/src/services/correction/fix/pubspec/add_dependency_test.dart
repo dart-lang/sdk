@@ -154,6 +154,56 @@ dev_dependencies:
 ''');
   }
 
+  Future<void> test_addRemoveMissingDependency_in_the_end() async {
+    _runValidator('''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+dev_dependencies:
+  test: any
+  matcher: any
+''', {'path', 'matcher'}, {});
+    await assertHasFix('''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+  matcher: any
+dev_dependencies:
+  test: any
+''');
+  }
+
+  Future<void> test_addRemoveMissingDependency_multiple() async {
+    _runValidator('''
+name: tests
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+dev_dependencies:
+  matcher: any
+  checks: any
+  test: any
+  lints: any
+''', {'path', 'matcher', 'test', 'lints'}, {});
+    await assertHasFix('''
+name: tests
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+  matcher: any
+  test: any
+  lints: any
+dev_dependencies:
+  checks: any
+''');
+  }
+
   Future<void> test_addRemoveMissingDependency_not_in_the_end() async {
     _runValidator('''
 name: test
@@ -171,6 +221,81 @@ environment:
 dependencies:
   path: any
   matcher: any
+''');
+  }
+
+  Future<void> test_addRemoveMissingDependency_two() async {
+    _runValidator('''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+dev_dependencies:
+  matcher: any
+  test: any
+  checks: any
+''', {'path', 'matcher', 'checks'}, {});
+    await assertHasFix('''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+  matcher: any
+  checks: any
+dev_dependencies:
+  test: any
+''');
+  }
+
+  Future<void> test_addRemoveMissingDependency_two_at_end() async {
+    _runValidator('''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+dev_dependencies:
+  test: any
+  matcher: any
+  checks: any
+''', {'path', 'matcher', 'checks'}, {});
+    await assertHasFix('''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+  matcher: any
+  checks: any
+dev_dependencies:
+  test: any
+''');
+  }
+
+  Future<void> test_addRemoveMissingDependency_two_at_start() async {
+    _runValidator('''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+dev_dependencies:
+  matcher: any
+  checks: any
+  test: any
+''', {'path', 'matcher', 'checks'}, {});
+    await assertHasFix('''
+name: test
+environment:
+  sdk: '>=2.12.0 <3.0.0'
+dependencies:
+  path: any
+  matcher: any
+  checks: any
+dev_dependencies:
+  test: any
 ''');
   }
 
