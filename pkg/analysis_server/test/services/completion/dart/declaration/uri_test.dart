@@ -139,6 +139,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
@@ -189,6 +191,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -225,6 +229,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -265,6 +271,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -302,6 +310,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -338,6 +348,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -377,6 +389,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -430,6 +444,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -470,6 +486,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
 ''');
     } else {
       assertResponse(r'''
@@ -497,6 +515,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -539,6 +559,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
 ''');
     } else {
       assertResponse(r'''
@@ -566,6 +588,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -609,6 +633,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -661,6 +687,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -712,6 +740,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -772,6 +802,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -829,6 +861,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -880,6 +914,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -933,6 +969,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -985,6 +1023,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1056,6 +1096,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1133,6 +1175,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1212,6 +1256,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1294,6 +1340,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
@@ -1363,6 +1411,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1437,6 +1487,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
@@ -1484,6 +1536,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1540,6 +1594,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -1578,6 +1634,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1632,6 +1690,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
 ''');
     } else {
       assertResponse(r'''
@@ -1659,6 +1719,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import

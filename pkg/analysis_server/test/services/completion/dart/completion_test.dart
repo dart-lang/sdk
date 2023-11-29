@@ -2661,6 +2661,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -11379,6 +11381,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -11403,6 +11407,8 @@ suggestions
   dart:core
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
 ''');
   }
@@ -11437,6 +11443,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import

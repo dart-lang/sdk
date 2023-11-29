@@ -4720,6 +4720,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:test/test.dart
     kind: import
 ''');
@@ -4749,6 +4751,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
