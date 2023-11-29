@@ -262,7 +262,7 @@ class SourceExtensionTypeDeclarationBuilder
     if (representationFieldBuilder != null) {
       TypeBuilder typeBuilder = representationFieldBuilder!.type;
       if (typeBuilder.isExplicit) {
-        if (_checkRepresentationDependency(typeBuilder, {this}, {})) {
+        if (_checkRepresentationDependency(typeBuilder, this, {this}, {})) {
           representationType = const InvalidType();
         } else {
           representationType =
@@ -309,6 +309,7 @@ class SourceExtensionTypeDeclarationBuilder
 
   bool _checkRepresentationDependency(
       TypeBuilder? typeBuilder,
+      ExtensionTypeDeclarationBuilder rootExtensionTypeDeclaration,
       Set<ExtensionTypeDeclarationBuilder> seenExtensionTypeDeclarations,
       Set<TypeAliasBuilder> usedTypeAliasBuilders) {
     TypeBuilder? unaliased = typeBuilder?.unalias(
@@ -322,7 +323,9 @@ class SourceExtensionTypeDeclarationBuilder
           typeArguments: List<TypeBuilder>? arguments
         ):
         if (declaration is ExtensionTypeDeclarationBuilder) {
-          if (!seenExtensionTypeDeclarations.add(declaration)) {
+          bool declarationSeenFirstTime =
+              seenExtensionTypeDeclarations.add(declaration);
+          if (declaration == rootExtensionTypeDeclaration) {
             List<LocatedMessage> context = [];
             for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
                 in seenExtensionTypeDeclarations) {
@@ -349,9 +352,10 @@ class SourceExtensionTypeDeclarationBuilder
           } else {
             TypeBuilder? representationTypeBuilder =
                 declaration.declaredRepresentationTypeBuilder;
-            if (representationTypeBuilder != null) {
+            if (declarationSeenFirstTime && representationTypeBuilder != null) {
               if (_checkRepresentationDependency(
                   representationTypeBuilder,
+                  rootExtensionTypeDeclaration,
                   seenExtensionTypeDeclarations.toSet(),
                   usedTypeAliasBuilders.toSet())) {
                 return true;
@@ -363,6 +367,7 @@ class SourceExtensionTypeDeclarationBuilder
           for (TypeBuilder typeArgument in arguments) {
             if (_checkRepresentationDependency(
                 typeArgument,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
@@ -376,6 +381,7 @@ class SourceExtensionTypeDeclarationBuilder
         ):
         if (_checkRepresentationDependency(
             returnType,
+            rootExtensionTypeDeclaration,
             seenExtensionTypeDeclarations.toSet(),
             usedTypeAliasBuilders.toSet())) {
           return true;
@@ -384,6 +390,7 @@ class SourceExtensionTypeDeclarationBuilder
           for (ParameterBuilder formal in formals) {
             if (_checkRepresentationDependency(
                 formal.type,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
@@ -395,6 +402,7 @@ class SourceExtensionTypeDeclarationBuilder
             TypeBuilder? bound = typeVariable.bound;
             if (_checkRepresentationDependency(
                 bound,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
@@ -409,6 +417,7 @@ class SourceExtensionTypeDeclarationBuilder
           for (RecordTypeFieldBuilder field in positionalFields) {
             if (_checkRepresentationDependency(
                 field.type,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
@@ -419,6 +428,7 @@ class SourceExtensionTypeDeclarationBuilder
           for (RecordTypeFieldBuilder field in namedFields) {
             if (_checkRepresentationDependency(
                 field.type,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
