@@ -24824,7 +24824,8 @@ TwoByteStringPtr TwoByteString::New(const uint16_t* utf16_array,
   const String& result = String::Handle(TwoByteString::New(array_len, space));
   {
     NoSafepointScope no_safepoint;
-    memmove(DataStart(result), utf16_array, (array_len * 2));
+    memmove(reinterpret_cast<void*>(DataStart(result)),
+            reinterpret_cast<const void*>(utf16_array), (array_len * 2));
   }
   return TwoByteString::raw(result);
 }
