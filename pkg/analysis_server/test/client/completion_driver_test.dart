@@ -163,7 +163,7 @@ $actual
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
-    suggestions = await driver.getSuggestions2();
+    suggestions = await driver.getSuggestions();
     return suggestions;
   }
 
