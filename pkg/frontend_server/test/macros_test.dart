@@ -24,7 +24,7 @@ void main() async {
           'vm_platform_strong_product.dill');
       var systemTempDir = Directory.systemTemp;
       tempDir = systemTempDir.createTempSync('frontendServerTest');
-      Directory('${tempDir.path}/.dart_tool').createSync();
+      Directory(path.join(tempDir.path, '.dart_tool')).createSync();
 
       testMacroUri = Uri.parse('package:test_macro/test_macro.dart');
       var bootstrapContent = bootstrapMacroIsolate(
@@ -35,11 +35,12 @@ void main() async {
         },
         SerializationMode.byteData,
       );
-      var bootstrapFile = File('${tempDir.path}/bootstrap.dart')
+      var bootstrapFile = File(path.join(tempDir.path, 'bootstrap.dart'))
         ..writeAsStringSync(bootstrapContent);
-      packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      packageConfig =
+          File(path.join(tempDir.path, '.dart_tool', 'package_config.json'))
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
   {
     "configVersion": 2,
     "packages": [
@@ -61,9 +62,10 @@ void main() async {
     ]
   }
   ''');
-      var testMacroFile = File('${tempDir.path}/lib/test_macro.dart')
-        ..createSync(recursive: true)
-        ..writeAsStringSync('''
+      var testMacroFile =
+          File(path.join(tempDir.path, 'lib', 'test_macro.dart'))
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class TestMacro implements ClassDeclarationsMacro {
@@ -77,17 +79,17 @@ macro class TestMacro implements ClassDeclarationsMacro {
 }
 ''');
 
-      bootstrapDillFile = File('${tempDir.path}/bootstrap.dart.dill');
+      bootstrapDillFile = File(path.join(tempDir.path, 'bootstrap.dart.dill'));
       var bootstrapResult = await computeKernel([
         '--enable-experiment=macros',
         '--no-summary',
         '--no-summary-only',
         '--target=vm',
-        '--dart-sdk-summary=$productPlatformDill',
+        '--dart-sdk-summary=file:$productPlatformDill',
         '--output=${bootstrapDillFile.path}',
-        '--source=${bootstrapFile.path}',
-        '--source=${testMacroFile.path}',
-        '--packages-file=${packageConfig.path}',
+        '--source=file:${bootstrapFile.path}',
+        '--source=file:${testMacroFile.path}',
+        '--packages-file=file:${packageConfig.path}',
       ]);
       expect(bootstrapResult.succeeded, true);
     });
@@ -117,21 +119,21 @@ void main() {
 }
 ''');
         var applyTestMacroDill =
-            File('${tempDir.path}/apply_test_macro.dart.dill');
+            File(path.join(tempDir.path, 'apply_test_macro.dart.dill'));
         var applyTestMacroResult = await computeKernel([
           if (useIncrementalCompiler) '--use-incremental-compiler',
           '--enable-experiment=macros',
           '--no-summary',
           '--no-summary-only',
           '--target=vm',
-          '--dart-sdk-summary=$productPlatformDill',
+          '--dart-sdk-summary=file:$productPlatformDill',
           '--output=${applyTestMacroDill.path}',
-          '--source=${applyTestMacroFile.path}',
-          '--packages-file=${packageConfig.path}',
+          '--source=file:${applyTestMacroFile.path}',
+          '--packages-file=file:${packageConfig.path}',
           '--enable-experiment=macros',
           '--precompiled-macro-format=kernel',
           '--precompiled-macro',
-          '${bootstrapDillFile.path};$testMacroUri',
+          'file:${bootstrapDillFile.path};$testMacroUri',
           '--macro-serialization-mode=bytedata',
         ]);
         expect(applyTestMacroResult.succeeded, true);
