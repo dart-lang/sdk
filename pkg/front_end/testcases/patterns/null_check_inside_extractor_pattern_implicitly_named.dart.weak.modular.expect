@@ -15,7 +15,7 @@ static method test(dynamic x) → dynamic {
     late final synthesized core::int? #0#2 = (#0#0 as{Unchecked} self::C).{self::C::f}{core::int?};
     {
       hoisted core::int f;
-      if(#0#0 is self::C && (!(#0#2 == null) ?{core::bool} let final dynamic #t1 = f = #0#2{core::int} in true : false)) {
+      if(#0#0 is self::C && (!(#0#2 == null) && (let final dynamic #t1 = f = #0#2{core::int} in true))) {
         {
           break #L1;
         }

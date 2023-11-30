@@ -16,7 +16,7 @@ static method test(dynamic x) → dynamic {
       return (#0#0 as{Unchecked} self::C).{self::C::f}{core::int?};
     late final synthesized core::int? #0#2 = ##0#2#initializer(){() → core::int?};
     {
-      if(#0#0 is self::C && (!(#0#2 == null) ?{core::bool} #C1 =={core::num::==}{(core::Object) → core::bool} #0#2 : false)) {
+      if(#0#0 is self::C && (!(#0#2 == null) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#2)) {
         {
           break #L1;
         }

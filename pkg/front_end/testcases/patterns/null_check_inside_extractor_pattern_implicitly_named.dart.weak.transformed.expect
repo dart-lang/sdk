@@ -17,7 +17,7 @@ static method test(dynamic x) → dynamic {
     late final synthesized core::int? #0#2 = ##0#2#initializer(){() → core::int?};
     {
       hoisted core::int f;
-      if(#0#0 is self::C && (!(#0#2 == null) ?{core::bool} let final core::int #t1 = f = #0#2{core::int} in true : false)) {
+      if(#0#0 is self::C && (!(#0#2 == null) && (let final core::int #t1 = f = #0#2{core::int} in true))) {
         {
           break #L1;
         }

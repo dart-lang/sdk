@@ -231,7 +231,7 @@ static method matchedTypeIsStrictlyNonNullable(core::List<core::int> list) → d
     final synthesized core::List<core::int> #0#0 = list;
     late final synthesized core::int #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int};
     late final synthesized core::int #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int};
-    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = #0#4! in let final dynamic #t4 = a = #0#4! in true) && (!(#0#6 == null) ?{core::bool} let final dynamic #t5 = b = #0#6 in true : false)) {
+    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = #0#4! in let final dynamic #t4 = a = #0#4! in true) && (!(#0#6 == null) && (let final dynamic #t5 = b = #0#6 in true))) {
       core::print(0);
     }
   }
@@ -251,7 +251,7 @@ static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
   hoisted has-declared-initializer core::int a;
   {
     final synthesized core::int? #0#0 = x;
-    if(!(!(#0#0 == null) ?{core::bool} let final dynamic #t6 = a = #0#0{core::int} in true : false))
+    if(!(!(#0#0 == null) && (let final dynamic #t6 = a = #0#0{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }
