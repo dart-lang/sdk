@@ -25,7 +25,9 @@ import 'package:test/test.dart';
 import '../../../generated/test_support.dart';
 import '../../../util/element_printer.dart';
 import '../../../util/tree_string_sink.dart';
+import '../../summary/macros_environment.dart';
 import '../../summary/resolved_ast_printer.dart';
+import '../analysis/result_printer.dart';
 import 'dart_object_printer.dart';
 import 'node_text_expectations.dart';
 
@@ -288,6 +290,35 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
+  void assertResolvedLibraryResultText(
+    SomeResolvedLibraryResult result,
+    String expected, {
+    void Function(ResolvedLibraryResultPrinterConfiguration)? configure,
+  }) {
+    final configuration = ResolvedLibraryResultPrinterConfiguration();
+    configure?.call(configuration);
+
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(sink: buffer, indent: '');
+    ResolvedLibraryResultPrinter(
+      configuration: configuration,
+      sink: sink,
+      elementPrinter: ElementPrinter(
+        sink: sink,
+        configuration: ElementPrinterConfiguration(),
+        selfUriStr: null,
+      ),
+    ).write(result);
+
+    final actual = buffer.toString();
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
   void assertResolvedNodeText(AstNode node, String expected) {
     var actual = _resolvedNodeText(node);
     if (actual != expected) {
@@ -374,6 +405,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       return legacy;
     }
+  }
+
+  String getMacroCode(String relativePath) {
+    final code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile('test/src/summary/macro/$relativePath')
+        .readAsStringSync();
+    return code.replaceAll('/*macro*/', 'macro');
   }
 
   Element? getNodeElement(AstNode node) {
@@ -600,5 +638,11 @@ class _MultiplyDefinedElementMatcher extends Matcher {
       return actualSet.isEmpty;
     }
     return false;
+  }
+}
+
+extension ResolvedUnitResultExtension on ResolvedUnitResult {
+  FindNode get findNode {
+    return FindNode(content, unit);
   }
 }

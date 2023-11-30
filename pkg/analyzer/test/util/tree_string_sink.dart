@@ -39,6 +39,19 @@ class TreeStringSink {
     }
   }
 
+  Future<void> writeFlags(Map<String, bool> flags) async {
+    if (flags.values.any((flag) => flag)) {
+      writeIndentedLine(() {
+        write('flags:');
+        for (final entry in flags.entries) {
+          if (entry.value) {
+            write(' ${entry.key}');
+          }
+        }
+      });
+    }
+  }
+
   void writeIf(bool flag, Object object) {
     if (flag) {
       write(object);
