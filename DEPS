@@ -517,6 +517,16 @@ Var("dart_root") + "/third_party/pkg/tar":
       "condition": "host_os == linux",
       "dep_type": "cipd",
   },
+  Var("dart_root") + "/buildtools/sysroot/focal": {
+      "packages": [
+          {
+              "package": "fuchsia/third_party/sysroot/focal",
+              "version": "git_revision:fa7a5a9710540f30ff98ae48b62f2cdf72ed2acd",
+          },
+      ],
+      "condition": "host_os == linux",
+      "dep_type": "cipd",
+  },
 
   # Keep consistent with pkg/test_runner/lib/src/options.dart.
   Var("dart_root") + "/buildtools/linux-x64/clang": {
