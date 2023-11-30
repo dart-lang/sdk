@@ -12,12 +12,6 @@ library;
 import 'dart:async';
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
-    as isolated_executor;
-import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
-    as multi_executor;
-import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
-    as process_executor;
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
     show SerializationMode;
 import 'package:args/args.dart';
@@ -28,7 +22,6 @@ import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
-import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:kernel/ast.dart'
     show Component, Library, NonNullableByDefaultCompiledMode;
 import 'package:kernel/target/targets.dart';
@@ -321,6 +314,13 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     }
   }
 
+  SerializationMode macroSerializationMode =
+      switch (parsedArgs['macro-serialization-mode']) {
+    'json' => SerializationMode.json,
+    'bytedata' => SerializationMode.byteData,
+    _ => throw ArgumentError('Unrecognized macro serialization mode '
+        '${parsedArgs['macro-serialization-mode']}'),
+  };
   if (usingIncrementalCompiler) {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with
@@ -358,7 +358,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         nullableEnvironmentDefines!,
         trackNeededDillLibraries: recordUsedInputs,
         verbose: verbose,
-        nnbdMode: nnbdMode);
+        nnbdMode: nnbdMode,
+        precompiledMacros: parsedArgs['precompiled-macro'],
+        macroSerializationMode: macroSerializationMode);
   } else {
     state = fe.initializeCompiler(
         // TODO(sigmund): pass an old state once we can make use of it.
@@ -372,69 +374,9 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         parsedArgs['enable-experiment'] as List<String>,
         nullableEnvironmentDefines,
         verbose: verbose,
-        nnbdMode: nnbdMode);
-  }
-
-  // Either set up or reset the state for macros based on experiment status.
-  // TODO(jakemac,johnniwinther): Make this a part of `initializeCompiler`,
-  // if/when we want to make it more widely supported.
-  var registeredMacroExecutors = <multi_executor.ExecutorFactoryToken>[];
-  if (state.processedOpts.globalFeatures.macros.isEnabled) {
-    enableMacros = true;
-    forceEnableMacros = true;
-
-    SerializationMode serializationMode;
-    switch (parsedArgs['macro-serialization-mode']) {
-      case 'json':
-        serializationMode = SerializationMode.json;
-        break;
-      case 'bytedata':
-        serializationMode = SerializationMode.byteData;
-        break;
-      default:
-        throw ArgumentError('Unrecognized macro serialization mode '
-            '${parsedArgs['macro-serialization-mode']}');
-    }
-
-    // TODO: Handle invalidation of precompiled macros.
-    // TODO: Handle multiple macro libraries compiled to a single precompiled
-    // kernel file.
-    var macroExecutor = state.processedOpts.macroExecutor;
-    var format = parsedArgs['precompiled-macro-format'];
-    for (var parts in (parsedArgs['precompiled-macro'] as List<String>)
-        .map((arg) => arg.split(';'))) {
-      var libraries = parts
-          .skip(1)
-          .map(Uri.parse)
-          .where((library) => !macroExecutor.libraryIsRegistered(library))
-          .toSet();
-      if (libraries.isEmpty) {
-        continue;
-      }
-      var programUri = toUri(parts[0]);
-      switch (format) {
-        case 'kernel':
-          registeredMacroExecutors.add(macroExecutor.registerExecutorFactory(
-              () => isolated_executor.start(serializationMode, programUri),
-              libraries));
-          break;
-        case 'aot':
-          registeredMacroExecutors.add(macroExecutor.registerExecutorFactory(
-              () => process_executor.start(
-                  serializationMode,
-                  process_executor.CommunicationChannel.socket,
-                  programUri.toFilePath()),
-              libraries));
-          break;
-        default:
-          throw ArgumentError('Unrecognized precompiled macro format $format');
-      }
-    }
-  } else {
-    enableMacros = false;
-    forceEnableMacros = false;
-    await state.options.macroExecutor?.close();
-    state.options.macroExecutor = null;
+        nnbdMode: nnbdMode,
+        precompiledMacros: parsedArgs['precompiled-macro'],
+        macroSerializationMode: macroSerializationMode);
   }
 
   void onDiagnostic(fe.DiagnosticMessage message) {
@@ -532,14 +474,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
   state.options.onDiagnostic = null; // See http://dartbug.com/36983.
 
-  // Unregister any macros executors so the processes can be shut down.
-  // TODO(jakemac,johnniwinther): A better cleanup mechanism? Should these be
-  // longer lived?
-  if (state.options.macroExecutor != null &&
-      registeredMacroExecutors.isNotEmpty) {
-    await Future.wait(registeredMacroExecutors.map((token) =>
-        state.options.macroExecutor!.unregisterExecutorFactory(token)));
-  }
+  await state.processedOpts.dispose();
 
   if (!wroteUsedDills && recordUsedInputs) {
     // The path taken didn't record inputs used: Say we used everything.

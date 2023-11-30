@@ -2736,6 +2736,7 @@ semantic
 semantics
 semi
 semicolon
+semicolons
 send
 sending
 sends

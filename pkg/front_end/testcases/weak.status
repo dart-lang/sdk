@@ -41,6 +41,7 @@ general/redirection/main: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_2/abstract_field: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_2/external_field: semiFuzzFailureOnForceRebuildBodies # privacy.
 inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
+macros/macro_class: SemiFuzzFailure # Declares macros.
 patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/exhaustiveness/issue52041: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
 nnbd_mixed/exhaustiveness: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
