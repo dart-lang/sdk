@@ -7407,15 +7407,22 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
 
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
-        // Can't occur because we currently don't inline FFI trampolines (see
-        // http://dartbug.com/45055), which means all incoming arguments
-        // originate from parameters and thus are non-constant.
-        UNREACHABLE();
-      }
-
-      // Handles are passed into FfiCalls as Tagged values on the stack, and
-      // then we pass pointers to these handles to the native function here.
-      if (marshaller_.IsHandle(arg_index)) {
+        __ Comment("origin.IsConstant()");
+        if (marshaller_.IsHandle(arg_index)) {
+          UNIMPLEMENTED();
+        } else {
+          compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
+        }
+      } else if (origin.IsPairLocation() &&
+                 (origin.AsPairLocation()->At(0).IsConstant() ||
+                  origin.AsPairLocation()->At(1).IsConstant())) {
+        // Note: half of the pair can be constant.
+        __ Comment("origin.IsPairLocation() and constant");
+        compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
+      } else if (marshaller_.IsHandle(arg_index)) {
+        __ Comment("marshaller_.IsHandle(arg_index)");
+        // Handles are passed into FfiCalls as Tagged values on the stack, and
+        // then we pass pointers to these handles to the native function here.
         ASSERT(compiler::target::LocalHandle::ptr_offset() == 0);
         ASSERT(compiler::target::LocalHandle::InstanceSize() ==
                compiler::target::kWordSize);
@@ -7473,17 +7480,14 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       compiler->EmitNativeMove(dst, pointer_loc, &temp_alloc);
       __ LoadFromSlot(temp0, temp0, Slot::PointerBase_data());
 
-      // Copy chunks.
+      // Copy chunks. The destination may be rounded up to a multiple of the
+      // word size, because we do the same rounding when we allocate the space
+      // on the stack. But source may not be allocated by the VM and end at a
+      // page boundary.
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(arg_index);
-      // Struct size is rounded up to a multiple of target::kWordSize.
-      // This is safe because we do the same rounding when we allocate the
-      // space on the stack.
-      for (intptr_t i = 0; i < arg_target.payload_type().SizeInBytes();
-           i += compiler::target::kWordSize) {
-        __ LoadMemoryValue(temp1, temp0, i);
-        __ StoreMemoryValue(temp1, SPREG, i + sp_offset);
-      }
+      __ UnrolledMemCopy(SPREG, sp_offset, temp0, 0,
+                         arg_target.payload_type().SizeInBytes(), temp1);
 
       // Store the stack address in the argument location.
       __ MoveRegister(temp0, SPREG);

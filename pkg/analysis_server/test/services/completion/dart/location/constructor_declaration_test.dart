@@ -30,23 +30,102 @@ class ConstructorDeclarationTest2 extends AbstractCompletionDriverTest
 mixin ConstructorDeclarationTestCases on AbstractCompletionDriverTest {
   Future<void> test_initializers_beforeInitializer() async {
     await computeSuggestions('''
-class A { int f; A() : ^, f = 1; }
+class A {
+  int f0;
+  int f1;
+  A() : ^, f1 = 1;
+}
 ''');
     assertResponse(r'''
 suggestions
   assert
+    kind: keyword
+  f0
+    kind: field
+  this
     kind: keyword
 ''');
   }
 
   Future<void> test_initializers_first() async {
     await computeSuggestions('''
-class A { A() : ^; }
+class A {
+  int f0;
+  int f1;
+  A() : ^;
+}
 ''');
     assertResponse(r'''
 suggestions
   assert
     kind: keyword
+  f0
+    kind: field
+  f1
+    kind: field
+  super
+    kind: keyword
+  this
+    kind: keyword
+''');
+  }
+
+  Future<void> test_initializers_last() async {
+    await computeSuggestions('''
+class A {
+  int f0;
+  int f1;
+  A() : f0 = 1, ^;
+}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  f1
+    kind: field
+  super
+    kind: keyword
+  this
+    kind: keyword
+''');
+  }
+
+  Future<void> test_initializers_withDeclarationInitializer() async {
+    await computeSuggestions('''
+class A {
+  int f0 = 0;
+  int f1;
+  A() : ^;
+}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  f1
+    kind: field
+  super
+    kind: keyword
+  this
+    kind: keyword
+''');
+  }
+
+  Future<void> test_initializers_withFieldFormalInitializer() async {
+    await computeSuggestions('''
+class A {
+  int f0;
+  int f1;
+  A(this.f0) : ^;
+}
+''');
+    assertResponse(r'''
+suggestions
+  assert
+    kind: keyword
+  f1
+    kind: field
   super
     kind: keyword
   this

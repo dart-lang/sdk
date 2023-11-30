@@ -344,8 +344,8 @@ class BackendUsageImpl implements BackendUsage {
   @override
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeMembers(_globalFunctionDependencies, allowNull: true);
-    sink.writeClasses(_globalClassDependencies, allowNull: true);
+    sink.writeMembersOrNull(_globalFunctionDependencies);
+    sink.writeClassesOrNull(_globalClassDependencies);
     sink.writeMembers(_helperFunctionsUsed);
     sink.writeClasses(_helperClassesUsed);
     sink.writeList(runtimeTypeUses, (RuntimeTypeUse runtimeTypeUse) {

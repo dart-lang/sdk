@@ -337,7 +337,7 @@ static Heap::Space SpaceForRuntimeAllocation() {
 
 static void RuntimeAllocationEpilogue(Thread* thread) {
   if (UNLIKELY(FLAG_runtime_allocate_spill_tlab)) {
-    static uword count = 0;
+    static RelaxedAtomic<uword> count = 0;
     if ((count++ % 10) == 0) {
       thread->heap()->new_space()->AbandonRemainingTLAB(thread);
     }

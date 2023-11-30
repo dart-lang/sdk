@@ -627,37 +627,47 @@ class Types {
     return functionTypeParameterIndex[type]!;
   }
 
-  /// Test value against a Dart type. Expects the value on the stack as a
-  /// (ref null #Top) and leaves the result on the stack as an i32.
-  /// TODO(joshualitt): Remove dependency on [CodeGenerator]
-  void emitTypeTest(
-      CodeGenerator codeGen, DartType type, DartType operandType) {
+  /// Emit code for testing a value against a Dart type. Expects the value on
+  /// the stack as a (ref null #Top) and leaves the result on the stack as an
+  /// i32.
+  void emitTypeCheck(CodeGenerator codeGen, DartType type, DartType operandType,
+      [TreeNode? node]) {
     final b = codeGen.b;
-    if (type is! InterfaceType) {
+    w.Local? operandTemp;
+    if (translator.options.verifyTypeChecks) {
+      operandTemp = codeGen.addLocal(translator.topInfo.nullableType);
+      b.local_tee(operandTemp);
+    }
+    if (_emitOptimizedTypeCheck(codeGen, type, operandType)) {
+      if (translator.options.verifyTypeChecks) {
+        b.local_get(operandTemp!);
+        makeType(codeGen, type);
+        if (node != null && node.location != null) {
+          w.FunctionType verifyFunctionType = translator.functions
+              .getFunctionType(translator.verifyOptimizedTypeCheck.reference);
+          String location = node.location.toString();
+          translator.constants.instantiateConstant(codeGen.function, b,
+              StringConstant(location), verifyFunctionType.inputs.last);
+        } else {
+          b.ref_null(w.HeapType.none);
+        }
+        codeGen.call(translator.verifyOptimizedTypeCheck.reference);
+      }
+    } else {
+      // General fallback path
       makeType(codeGen, type);
       codeGen.call(translator.isSubtype.reference);
-      return;
     }
-    bool isPotentiallyNullable = operandType.isPotentiallyNullable;
-    w.Label? resultLabel;
-    if (isPotentiallyNullable) {
-      // Store operand in a temporary variable, since Binaryen does not support
-      // block inputs.
-      w.Local operand = codeGen.addLocal(translator.topInfo.nullableType);
-      b.local_set(operand);
-      resultLabel = b.block(const [], const [w.NumType.i32]);
-      w.Label nullLabel = b.block(const [], const []);
-      b.local_get(operand);
-      b.br_on_null(nullLabel);
-    }
-    void _endPotentiallyNullableBlock() {
-      if (isPotentiallyNullable) {
-        b.br(resultLabel!);
-        b.end(); // nullLabel
-        b.i32_const(encodedNullability(type));
-        b.end(); // resultLabel
-      }
-    }
+  }
+
+  /// Emit optimized code for testing a value against a Dart type. If the type
+  /// to be tested against is of a shape where we can generate more efficient
+  /// code than the general fallback path, generate such code and return `true`.
+  /// Otherwise, return `false` to indicate that the general path should be
+  /// taken.
+  bool _emitOptimizedTypeCheck(
+      CodeGenerator codeGen, DartType type, DartType operandType) {
+    if (type is! InterfaceType) return false;
 
     if (type.typeArguments.any((t) => t is! DynamicType)) {
       // Type has at least one type argument that is not `dynamic`.
@@ -677,12 +687,24 @@ class Types {
           operandType.typeArguments.length == type.typeArguments.length;
 
       if (!(sameNumTypeParams && base == operandType)) {
-        makeType(codeGen, type);
-        codeGen.call(translator.isSubtype.reference);
-        _endPotentiallyNullableBlock();
-        return;
+        return false;
       }
     }
+
+    final b = codeGen.b;
+    bool isPotentiallyNullable = operandType.isPotentiallyNullable;
+    w.Label? resultLabel;
+    if (isPotentiallyNullable) {
+      // Store operand in a temporary variable, since Binaryen does not support
+      // block inputs.
+      w.Local operand = codeGen.addLocal(translator.topInfo.nullableType);
+      b.local_set(operand);
+      resultLabel = b.block(const [], const [w.NumType.i32]);
+      w.Label nullLabel = b.block(const [], const []);
+      b.local_get(operand);
+      b.br_on_null(nullLabel);
+    }
+
     List<Class> concrete = _getConcreteSubtypes(type.classNode).toList();
     if (type.classNode == coreTypes.objectClass) {
       b.drop();
@@ -714,7 +736,15 @@ class Types {
       b.i32_const(0);
       b.end(); // done
     }
-    _endPotentiallyNullableBlock();
+
+    if (isPotentiallyNullable) {
+      b.br(resultLabel!);
+      b.end(); // nullLabel
+      b.i32_const(encodedNullability(type));
+      b.end(); // resultLabel
+    }
+
+    return true;
   }
 
   int encodedNullability(DartType type) =>

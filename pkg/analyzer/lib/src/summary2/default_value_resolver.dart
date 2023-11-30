@@ -8,19 +8,20 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 
 class DefaultValueResolver {
   final Linker _linker;
-  final LibraryElementImpl _libraryElement;
+  final LibraryBuilder _libraryBuilder;
   final TypeSystemImpl _typeSystem;
 
-  DefaultValueResolver(this._linker, this._libraryElement)
-      : _typeSystem = _libraryElement.typeSystem;
+  DefaultValueResolver(this._linker, this._libraryBuilder)
+      : _typeSystem = _libraryBuilder.element.typeSystem;
 
   void resolve() {
-    for (var unitElement in _libraryElement.units.impl) {
+    for (var unitElement in _libraryBuilder.element.units.impl) {
       _UnitContext(unitElement)
         ..forEach(unitElement.classes, _interface)
         ..forEach(unitElement.enums, _interface)
@@ -72,10 +73,16 @@ class DefaultValueResolver {
 
     var contextType = _typeSystem.eliminateTypeVariables(parameter.type);
 
+    var file = _libraryBuilder.kind.file.resource;
+    // TODO(pq): precache options in file state and fetch them from there
+    var analysisOptions =
+        _linker.analysisContext.getAnalysisOptionsForFile(file);
+
     var astResolver = AstResolver(
       _linker,
       context.unitElement,
       context.scope,
+      analysisOptions,
       enclosingClassElement: context.classElement,
       enclosingExecutableElement: context.executableElement,
     );

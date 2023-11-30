@@ -7,8 +7,9 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/code_actions/abstract_code_actions_producer.dart';
 import 'package:analysis_server/src/services/correction/fix/analysis_options/fix_generator.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/task/options.dart';
 import 'package:yaml/yaml.dart';
 
@@ -16,7 +17,7 @@ import 'package:yaml/yaml.dart';
 class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
   AnalysisOptionsCodeActionsProducer(
     super.server,
-    super.path,
+    super.file,
     super.lineInfo, {
     required super.offset,
     required super.length,
@@ -56,12 +57,15 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       return [];
     }
 
+    final analysisContext = session.analysisContext;
+    final analysisOptions =
+        analysisContext.getAnalysisOptionsForFile(optionsFile);
     final errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
       sourceFactory,
-      session.analysisContext.contextRoot.root.path,
-      session.analysisContext.analysisOptions.sdkVersionConstraint,
+      analysisContext.contextRoot.root.path,
+      analysisOptions.sdkVersionConstraint,
     );
 
     final codeActions = <CodeActionWithPriority>[];

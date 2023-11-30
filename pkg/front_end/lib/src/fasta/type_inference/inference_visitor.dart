@@ -1362,7 +1362,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// Returns the function type of [factory] when called through [typedef].
   FunctionType _computeAliasedFactoryFunctionType(
       Procedure factory, Typedef typedef) {
-    assert(factory.isFactory, "Only run this method on a factory");
+    assert(factory.isFactory || factory.isExtensionTypeMember,
+        "Only run this method on a factory: $factory");
     ensureMemberType(factory);
     FunctionNode function = factory.function;
     // We need create a copy of the list of type parameters, otherwise
@@ -1377,9 +1378,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     TypedefType typedefType = new TypedefType(
         typedef, libraryBuilder.library.nonNullable, asTypeArguments);
     DartType unaliasedTypedef = typedefType.unalias;
-    assert(unaliasedTypedef is InterfaceType,
-        "[typedef] is assumed to resolve to an interface type");
-    InterfaceType targetType = unaliasedTypedef as InterfaceType;
+    assert(unaliasedTypedef is TypeDeclarationType,
+        "[typedef] is assumed to resolve to a type declaration type");
+    TypeDeclarationType targetType = unaliasedTypedef as TypeDeclarationType;
     Substitution substitution = Substitution.fromPairs(
         classTypeParametersCopy, targetType.typeArguments);
     List<DartType> positional = function.positionalParameters
@@ -1505,7 +1506,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferExpression(iterable, context, isVoidAllowed: false);
     DartType iterableType = iterableResult.inferredType;
     iterable = iterableResult.expression;
-    DartType inferredExpressionType = resolveTypeParameter(iterableType);
+    DartType inferredExpressionType = iterableType.nonTypeVariableBound;
     iterable = ensureAssignable(
         wrapType(
             const DynamicType(), iterableClass, libraryBuilder.nonNullable),
@@ -2143,7 +2144,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType spreadType = spreadResult.inferredType;
     inferredSpreadTypes[element.expression] = spreadType;
     Expression replacement = element;
-    DartType spreadTypeBound = resolveTypeParameter(spreadType);
+    DartType spreadTypeBound = spreadType.nonTypeVariableBound;
     DartType? spreadElementType =
         getSpreadElementType(spreadType, spreadTypeBound, element.isNullAware);
     if (spreadElementType == null) {
@@ -2990,8 +2991,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.iterableType(
-                typeMatches ? elementType : const DynamicType(),
-                libraryBuilder.nullable));
+                elementType, libraryBuilder.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -3013,35 +3013,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.iterableType(
-                typeMatches ? elementType : const DynamicType(),
-                libraryBuilder.nullable));
+                const DynamicType(), libraryBuilder.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
 
-      VariableDeclaration variable;
-      Statement loopBody;
-      if (!typeMatches) {
-        variable =
-            _createForInVariable(element.fileOffset, const DynamicType());
-        VariableDeclaration castedVar = _createVariable(
-            _createImplicitAs(element.expression.fileOffset,
-                _createVariableGet(variable), elementType),
-            elementType);
-        loopBody = _createBlock(<Statement>[
-          castedVar,
-          _createExpressionStatement(_createAdd(_createVariableGet(result),
-              receiverType, _createVariableGet(castedVar),
-              isSet: isSet))
-        ]);
-      } else {
-        variable = _createForInVariable(element.fileOffset, elementType);
-        loopBody = _createExpressionStatement(_createAdd(
-            _createVariableGet(result),
-            receiverType,
-            _createVariableGet(variable),
-            isSet: isSet));
-      }
+      VariableDeclaration variable =
+          _createForInVariable(element.fileOffset, const DynamicType());
+      VariableDeclaration castedVar = _createVariable(
+          _createImplicitAs(element.expression.fileOffset,
+              _createVariableGet(variable), elementType),
+          elementType);
+      Statement loopBody = _createBlock(<Statement>[
+        castedVar,
+        _createExpressionStatement(_createAdd(_createVariableGet(result),
+            receiverType, _createVariableGet(castedVar),
+            isSet: isSet))
+      ]);
       Statement statement =
           _createForInStatement(element.fileOffset, variable, value, loopBody);
 
@@ -3340,9 +3328,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.mapType(
-                typeMatches ? keyType : const DynamicType(),
-                typeMatches ? valueType : const DynamicType(),
-                libraryBuilder.nullable));
+                keyType, valueType, libraryBuilder.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -3363,10 +3349,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (entry.isNullAware) {
         temp = _createVariable(
             value,
-            typeSchemaEnvironment.mapType(
-                typeMatches ? keyType : const DynamicType(),
-                typeMatches ? valueType : const DynamicType(),
-                libraryBuilder.nullable));
+            typeSchemaEnvironment.mapType(const DynamicType(),
+                const DynamicType(), libraryBuilder.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -3818,7 +3802,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   // is a function type, the original values in output are preserved.
   void storeSpreadMapEntryElementTypes(DartType spreadMapEntryType,
       bool isNullAware, List<DartType?> output, int offset) {
-    DartType typeBound = resolveTypeParameter(spreadMapEntryType);
+    DartType typeBound = spreadMapEntryType.nonTypeVariableBound;
     if (coreTypes.isNull(typeBound)) {
       if (isNullAware) {
         if (isNonNullableByDefault) {
@@ -3868,7 +3852,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         spreadType, entry.isNullAware, actualTypes, length);
     DartType? actualKeyType = actualTypes[length];
     DartType? actualValueType = actualTypes[length + 1];
-    DartType spreadTypeBound = resolveTypeParameter(spreadType);
+    DartType spreadTypeBound = spreadType.nonTypeVariableBound;
     DartType? actualElementType =
         getSpreadElementType(spreadType, spreadTypeBound, entry.isNullAware);
 
@@ -4587,19 +4571,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         (node.valueType is ImplicitTypeArgument));
     bool inferenceNeeded = node.keyType is ImplicitTypeArgument;
     bool typeContextIsMap = node.keyType is! ImplicitTypeArgument;
-    bool typeContextIsIterable = false;
+    DartType? typeContextAsIterable;
     DartType? unfuturedTypeContext = typeSchemaEnvironment.flatten(typeContext);
     // Ambiguous set/map literal
-    // TODO(johnniwinther): Should we support extension types as the type
-    //  context?
-    if (unfuturedTypeContext is InterfaceType) {
-      typeContextIsMap = typeContextIsMap ||
-          hierarchyBuilder.isSubtypeOf(
-              unfuturedTypeContext.classNode, coreTypes.mapClass);
-      typeContextIsIterable = typeContextIsIterable ||
-          hierarchyBuilder.isSubtypeOf(
-              unfuturedTypeContext.classNode, coreTypes.iterableClass);
-      if (node.entries.isEmpty && typeContextIsIterable && !typeContextIsMap) {
+    if (unfuturedTypeContext is TypeDeclarationType) {
+      if (!typeContextIsMap) {
+        // TODO(johnniwinther): Can we use the found type arguments instead of
+        // the inferred types?
+        typeContextIsMap = hierarchyBuilder.getTypeArgumentsAsInstanceOf(
+                unfuturedTypeContext, coreTypes.mapClass) !=
+            null;
+      }
+      typeContextAsIterable = hierarchyBuilder.getTypeAsInstanceOf(
+          unfuturedTypeContext, coreTypes.iterableClass,
+          isNonNullableByDefault: isNonNullableByDefault);
+      if (node.entries.isEmpty &&
+          typeContextAsIterable != null &&
+          !typeContextIsMap) {
         // Set literal
         SetLiteral setLiteral = new SetLiteral([],
             typeArgument: const ImplicitTypeArgument(), isConst: node.isConst)
@@ -4640,13 +4628,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     bool hasIterableSpread = false;
     _MapLiteralEntryOffsets offsets = new _MapLiteralEntryOffsets();
     DartType spreadTypeContext = const UnknownType();
-    if (typeContextIsIterable && !typeContextIsMap) {
-      spreadTypeContext = typeSchemaEnvironment.getTypeAsInstanceOf(
-          unfuturedTypeContext as InterfaceType,
-          coreTypes.iterableClass,
-          coreTypes,
-          isNonNullableByDefault: isNonNullableByDefault)!;
-    } else if (!typeContextIsIterable && typeContextIsMap) {
+    if (typeContextAsIterable != null && !typeContextIsMap) {
+      spreadTypeContext = typeContextAsIterable;
+    } else if (typeContextAsIterable == null && typeContextIsMap) {
       spreadTypeContext = new InterfaceType(
           coreTypes.mapClass,
           libraryBuilder.nonNullable,
@@ -4675,7 +4659,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     hasIterableSpread = offsets.iterableSpreadOffset != null;
     if (inferenceNeeded) {
       bool canBeSet = !hasMapSpread && !hasMapEntry && !typeContextIsMap;
-      bool canBeMap = !hasIterableSpread && !typeContextIsIterable;
+      bool canBeMap = !hasIterableSpread && typeContextAsIterable == null;
       if (canBeSet && !canBeMap) {
         List<Expression> setElements = <Expression>[];
         List<DartType> formalTypesForSet = <DartType>[];
@@ -4815,7 +4799,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (member.isInstanceMember) {
       ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
           thisType!, member,
-          isPotentiallyNullable: false);
+          hasNonObjectMemberAccess: true);
       Link<NullAwareGuard> nullAwareGuards = const Link<NullAwareGuard>();
       Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
       DartType receiverType = thisType!;
@@ -5233,7 +5217,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           equalsNull,
           writeResult.expression,
           new NullLiteral()..fileOffset = node.fileOffset,
-          inferredType)
+          computeNullable(inferredType))
         ..fileOffset = node.fileOffset;
     } else {
       // Encode `a ??= b` as:
@@ -5378,7 +5362,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       SuperIndexSet node, DartType typeContext) {
     ObjectAccessTarget indexSetTarget = thisType!.classNode.isMixinDeclaration
         ? new ObjectAccessTarget.interfaceMember(thisType!, node.setter,
-            isPotentiallyNullable: false)
+            hasNonObjectMemberAccess: true)
         : new ObjectAccessTarget.superMember(thisType!, node.setter);
 
     DartType indexType = indexSetTarget.getIndexKeyType(this);
@@ -5701,7 +5685,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget readTarget = node.getter != null
         ? (thisType!.classNode.isMixinDeclaration
             ? new ObjectAccessTarget.interfaceMember(thisType!, node.getter!,
-                isPotentiallyNullable: false)
+                hasNonObjectMemberAccess: true)
             : new ObjectAccessTarget.superMember(thisType!, node.getter!))
         : const ObjectAccessTarget.missing();
 
@@ -5713,7 +5697,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget writeTarget = node.setter != null
         ? (thisType!.classNode.isMixinDeclaration
             ? new ObjectAccessTarget.interfaceMember(thisType!, node.setter!,
-                isPotentiallyNullable: false)
+                hasNonObjectMemberAccess: true)
             : new ObjectAccessTarget.superMember(thisType!, node.setter!))
         : const ObjectAccessTarget.missing();
 
@@ -7157,7 +7141,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       CompoundSuperIndexSet node, DartType typeContext) {
     ObjectAccessTarget readTarget = thisType!.classNode.isMixinDeclaration
         ? new ObjectAccessTarget.interfaceMember(thisType!, node.getter,
-            isPotentiallyNullable: false)
+            hasNonObjectMemberAccess: true)
         : new ObjectAccessTarget.superMember(thisType!, node.getter);
 
     DartType readType = readTarget.getReturnType(this);
@@ -7204,7 +7188,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     ObjectAccessTarget writeTarget = thisType!.classNode.isMixinDeclaration
         ? new ObjectAccessTarget.interfaceMember(thisType!, node.setter,
-            isPotentiallyNullable: false)
+            hasNonObjectMemberAccess: true)
         : new ObjectAccessTarget.superMember(thisType!, node.setter);
 
     DartType writeIndexType = writeTarget.getIndexKeyType(this);
@@ -7538,7 +7522,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
           thisType!, member,
-          isPotentiallyNullable: false);
+          hasNonObjectMemberAccess: true);
       if (target.isInstanceMember || target.isObjectMember) {
         if (instrumentation != null && receiverType == const DynamicType()) {
           instrumentation!.record(uriForInstrumentation, node.fileOffset,
@@ -7792,7 +7776,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (member.isInstanceMember) {
       ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
           thisType!, member,
-          isPotentiallyNullable: false);
+          hasNonObjectMemberAccess: true);
       Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
       DartType receiverType = thisType!;
 
@@ -8193,7 +8177,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       AbstractSuperPropertySet node, DartType typeContext) {
     ObjectAccessTarget writeTarget = new ObjectAccessTarget.interfaceMember(
         thisType!, node.interfaceTarget,
-        isPotentiallyNullable: false);
+        hasNonObjectMemberAccess: true);
     DartType writeContext = writeTarget.getSetterType(this);
     writeContext = computeTypeFromSuperClass(
         node.interfaceTarget.enclosingClass!, writeContext);
@@ -8212,7 +8196,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     ObjectAccessTarget writeTarget = thisType!.classNode.isMixinDeclaration
         ? new ObjectAccessTarget.interfaceMember(
             thisType!, node.interfaceTarget,
-            isPotentiallyNullable: false)
+            hasNonObjectMemberAccess: true)
         : new ObjectAccessTarget.superMember(thisType!, node.interfaceTarget);
     DartType writeContext = writeTarget.getSetterType(this);
     writeContext = computeTypeFromSuperClass(
@@ -10448,12 +10432,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           break;
         case ObjectAccessTargetKind.recordNamed:
           field.recordType =
-              node.requiredType.resolveTypeParameterType as RecordType;
+              node.requiredType.nonTypeVariableBound as RecordType;
           field.accessKind = ObjectAccessKind.RecordNamed;
           break;
         case ObjectAccessTargetKind.recordIndexed:
           field.recordType =
-              node.requiredType.resolveTypeParameterType as RecordType;
+              node.requiredType.nonTypeVariableBound as RecordType;
           field.accessKind = ObjectAccessKind.RecordIndexed;
           field.recordFieldIndex = fieldTarget.recordFieldIndex!;
           break;
@@ -10487,11 +10471,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           problems.unsupported(
               'Object field target $fieldTarget', node.fileOffset, helper.uri);
         case ObjectAccessTargetKind.extensionMember:
-        case ObjectAccessTargetKind.extensionTypeMember:
-          field.accessKind = ObjectAccessKind.Static;
+          field.accessKind = ObjectAccessKind.Extension;
           field.resultType = fieldTarget.getGetterType(this);
           field.typeArguments = fieldTarget.receiverTypeArguments;
           field.target = fieldTarget.tearoffTarget;
+          break;
+        case ObjectAccessTargetKind.extensionTypeMember:
+          field.accessKind = ObjectAccessKind.ExtensionType;
+          field.resultType = fieldTarget.getGetterType(this);
+          field.typeArguments = fieldTarget.receiverTypeArguments;
+          // TODO(johnniwinther): Extension type getters currently have no
+          // explicitly set tear-off target. Maybe they should.
+          field.target = fieldTarget.tearoffTarget ?? fieldTarget.member;
           break;
         case ObjectAccessTargetKind.dynamic:
           field.accessKind = ObjectAccessKind.Dynamic;
@@ -10853,7 +10844,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (node.needsCheck) {
       node.lookupType = requiredType;
     } else {
-      DartType resolvedType = matchedValueType.resolveTypeParameterType;
+      DartType resolvedType = matchedValueType.nonTypeVariableBound;
       if (resolvedType is RecordType) {
         node.lookupType = resolvedType;
       } else {
@@ -11081,6 +11072,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               contextType: matchedType);
           requiredType = new InterfaceType(requiredType.classNode,
               requiredType.declaredNullability, inferredTypeArguments);
+        }
+      } else if (requiredType is ExtensionType) {
+        List<TypeParameter> typeParameters =
+            requiredType.extensionTypeDeclaration.typeParameters;
+        if (typeParameters.isNotEmpty) {
+          // It's possible that one of the callee type parameters might match a
+          // type that already exists as part of inference.  This might happen,
+          // for instance, in the case where a method in a generic class
+          // contains an object pattern naming the enclosing class.  To avoid
+          // creating invalid inference results, we need to create fresh type
+          // parameters.
+          FreshTypeParameters fresh = getFreshTypeParameters(typeParameters);
+          ExtensionType declaredType = new ExtensionType(
+              requiredType.extensionTypeDeclaration,
+              requiredType.declaredNullability,
+              fresh.freshTypeArguments);
+          typeParameters = fresh.freshTypeParameters;
+
+          List<DartType> inferredTypeArguments = _inferTypeArguments(
+              typeParameters: typeParameters,
+              declaredType: declaredType,
+              contextType: matchedType);
+          requiredType = new ExtensionType(
+              requiredType.extensionTypeDeclaration,
+              requiredType.declaredNullability,
+              inferredTypeArguments);
         }
       }
     }

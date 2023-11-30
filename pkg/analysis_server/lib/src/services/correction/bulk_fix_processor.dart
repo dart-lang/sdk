@@ -93,12 +93,12 @@ class BulkFixProcessor {
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       DataDriven.new,
     ],
-    // TODO(brianwilkerson) The following fix fails if an invocation of the
+    // TODO(brianwilkerson): The following fix fails if an invocation of the
     //  function is the argument that needs to be removed.
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS: [
     //   DataDriven.newInstance,
     // ],
-    // TODO(brianwilkerson) The following fix fails if an invocation of the
+    // TODO(brianwilkerson): The following fix fails if an invocation of the
     //  function is the argument that needs to be updated.
     // CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS_COULD_BE_NAMED: [
     //   DataDriven.newInstance,
@@ -179,6 +179,9 @@ class BulkFixProcessor {
       DataDriven.new,
     ],
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
+      DataDriven.new,
+    ],
+    WarningCode.DEPRECATED_EXPORT_USE: [
       DataDriven.new,
     ],
     WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
@@ -369,8 +372,12 @@ class BulkFixProcessor {
           continue;
         }
         // Get the list of imports used in the files.
-        var result = context.currentSession.getParsedLibrary(path)
-            as ParsedLibraryResult;
+
+        var result = context.currentSession.getParsedLibrary(path);
+        if (result is! ParsedLibraryResult) {
+          return PubspecFixRequestResult(fixes, details);
+        }
+
         for (var unit in result.units) {
           var directives = unit.unit.directives;
           for (var directive in directives) {
@@ -574,7 +581,8 @@ class BulkFixProcessor {
   Future<void> _fixErrorsInLibraryUnit(
       ResolvedUnitResult unit, ResolvedLibraryResult library,
       {bool stopAfterFirst = false, bool autoTriggered = false}) async {
-    var analysisOptions = unit.session.analysisContext.analysisOptions;
+    var analysisOptions =
+        unit.session.analysisContext.getAnalysisOptionsForFile(unit.file);
 
     DartFixContextImpl fixContext(
       AnalysisError diagnostic, {
@@ -669,9 +677,9 @@ class BulkFixProcessor {
   Future<void> _fixErrorsInParsedLibrary(
       ParsedLibraryResult result, List<AnalysisError> errors,
       {required bool stopAfterFirst}) async {
-    var analysisOptions = result.session.analysisContext.analysisOptions;
-
     for (var unitResult in result.units) {
+      var analysisOptions = result.session.analysisContext
+          .getAnalysisOptionsForFile(unitResult.file);
       var overrideSet = _readOverrideSet(unitResult);
       for (var error in _filterErrors(analysisOptions, errors)) {
         await _fixSingleParseError(unitResult, error, overrideSet);
@@ -839,8 +847,9 @@ class BulkFixProcessor {
       return false;
     }
 
-    final filteredErrors =
-        _filterErrors(context.analysisOptions, errorsResult.errors);
+    final analysisOptions = errorsResult.session.analysisContext
+        .getAnalysisOptionsForFile(errorsResult.file);
+    final filteredErrors = _filterErrors(analysisOptions, errorsResult.errors);
     return filteredErrors.any(_isFixableError);
   }
 

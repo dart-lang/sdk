@@ -12,47 +12,57 @@ import 'common/expect.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-Future<ServiceExtensionResponse> Handler(String method, Map parameters) {
+Future<ServiceExtensionResponse> handler(String method, Map parameters) {
   print('Invoked extension: $method');
   switch (method) {
     case 'ext..delay':
-      var c = Completer<ServiceExtensionResponse>();
+      final c = Completer<ServiceExtensionResponse>();
       Timer(Duration(seconds: 1), () {
-        c.complete(ServiceExtensionResponse.result(jsonEncode({
-          'type': '_delayedType',
-          'method': method,
-          'parameters': parameters,
-        })));
+        c.complete(
+          ServiceExtensionResponse.result(
+            jsonEncode({
+              'type': '_delayedType',
+              'method': method,
+              'parameters': parameters,
+            }),
+          ),
+        );
       });
       return c.future;
     case 'ext..error':
       return Future<ServiceExtensionResponse>.value(
-          ServiceExtensionResponse.error(
-              ServiceExtensionResponse.extensionErrorMin, 'My error detail.'));
+        ServiceExtensionResponse.error(
+          ServiceExtensionResponse.extensionErrorMin,
+          'My error detail.',
+        ),
+      );
     case 'ext..exception':
-      throw "I always throw!";
+      throw 'I always throw!';
     case 'ext..success':
       return Future<ServiceExtensionResponse>.value(
-          ServiceExtensionResponse.result(jsonEncode({
-        'type': '_extensionType',
-        'method': method,
-        'parameters': parameters,
-      })));
+        ServiceExtensionResponse.result(
+          jsonEncode({
+            'type': '_extensionType',
+            'method': method,
+            'parameters': parameters,
+          }),
+        ),
+      );
   }
-  throw "Unknown extension: $method";
+  throw 'Unknown extension: $method';
 }
 
 void test() {
-  registerExtension('ext..delay', Handler);
+  registerExtension('ext..delay', handler);
   debugger();
   postEvent('ALPHA', {'cat': 'dog'});
   debugger();
-  registerExtension('ext..error', Handler);
-  registerExtension('ext..exception', Handler);
-  registerExtension('ext..success', Handler);
+  registerExtension('ext..error', handler);
+  registerExtension('ext..exception', handler);
+  registerExtension('ext..success', handler);
   bool exceptionThrown = false;
   try {
-    registerExtension('ext..delay', Handler);
+    registerExtension('ext..delay', handler);
   } catch (e) {
     exceptionThrown = true;
   }
@@ -128,7 +138,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) async => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'developer_extension_test.dart',

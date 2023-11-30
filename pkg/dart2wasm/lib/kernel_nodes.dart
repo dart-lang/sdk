@@ -199,6 +199,8 @@ mixin KernelNodes {
       index.getProcedure("dart:_string", "StringBase", "==");
   late final Procedure stringInterpolate =
       index.getProcedure("dart:_string", "StringBase", "_interpolate");
+  late final Procedure truncDiv =
+      index.getProcedure("dart:core", "_BoxedInt", "_truncDiv");
 
   // dart:core invocation/exception procedures
   late final Procedure invocationGetterFactory =
@@ -247,6 +249,8 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_isSubtype");
   late final Procedure isTypeSubtype =
       index.getTopLevelProcedure("dart:core", "_isTypeSubtype");
+  late final Procedure verifyOptimizedTypeCheck =
+      index.getTopLevelProcedure("dart:core", "_verifyOptimizedTypeCheck");
   late final Procedure checkClosureShape =
       index.getTopLevelProcedure("dart:core", "_checkClosureShape");
   late final Procedure checkClosureType =

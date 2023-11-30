@@ -27,6 +27,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
@@ -81,9 +82,6 @@ import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/migratable_ast_info_provider.dart';
-import 'package:analyzer/src/generated/migration.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/this_access_tracker.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -180,6 +178,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   final ErrorReporter errorReporter;
 
+  /// The analysis options used by this resolver.
+  final AnalysisOptionsImpl analysisOptions;
+
   /// The class containing the AST nodes being visited,
   /// or `null` if we are not in the scope of a class.
   InterfaceElement? enclosingClass;
@@ -197,10 +198,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   /// The feature set that is enabled for the current unit.
   final FeatureSet _featureSet;
-
-  final MigratableAstInfoProvider _migratableAstInfoProvider;
-
-  final MigrationResolutionHooks? migrationResolutionHooks;
 
   /// Helper for checking that subtypes of a base or final type must be base,
   /// final, or sealed.
@@ -322,15 +319,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// error listener that will be informed of any errors that are found during
   /// resolution.
   ///
-  /// TODO(paulberry): make [featureSet] a required parameter (this will be a
-  /// breaking change).
+  // TODO(paulberry): make [featureSet] a required parameter (this will be a
+  // breaking change).
   ResolverVisitor(
       InheritanceManager3 inheritanceManager,
       LibraryElementImpl definingLibrary,
       Source source,
       TypeProvider typeProvider,
       AnalysisErrorListener errorListener,
-      {FeatureSet? featureSet,
+      {required FeatureSet featureSet,
+      required AnalysisOptionsImpl analysisOptions,
       required FlowAnalysisHelper flowAnalysisHelper})
       : this._(
             inheritanceManager,
@@ -339,11 +337,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             definingLibrary.typeSystem,
             typeProvider as TypeProviderImpl,
             errorListener,
-            featureSet ??
-                definingLibrary.context.analysisOptions.contextFeatures,
-            flowAnalysisHelper,
-            const MigratableAstInfoProvider(),
-            null);
+            featureSet,
+            analysisOptions,
+            flowAnalysisHelper);
 
   ResolverVisitor._(
       this.inheritance,
@@ -353,9 +349,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       this.typeProvider,
       AnalysisErrorListener errorListener,
       FeatureSet featureSet,
-      this.flowAnalysis,
-      this._migratableAstInfoProvider,
-      this.migrationResolutionHooks)
+      this.analysisOptions,
+      this.flowAnalysis)
       : errorReporter = ErrorReporter(
           errorListener,
           source,
@@ -368,9 +363,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             nullSafetyEnabled: definingLibrary.isNonNullableByDefault,
             patternsEnabled:
                 definingLibrary.featureSet.isEnabled(Feature.patterns)) {
-    var analysisOptions =
-        definingLibrary.context.analysisOptions as AnalysisOptionsImpl;
-
     nullableDereferenceVerifier = NullableDereferenceVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -384,15 +376,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       nullableDereferenceVerifier: nullableDereferenceVerifier,
     );
     _typedLiteralResolver = TypedLiteralResolver(
-        this, _featureSet, typeSystem, typeProvider,
-        migratableAstInfoProvider: _migratableAstInfoProvider);
+        this, _featureSet, typeSystem, typeProvider, analysisOptions);
     extensionResolver = ExtensionMemberResolver(this);
     typePropertyResolver = TypePropertyResolver(this);
     inferenceHelper = InvocationInferenceHelper(
       resolver: this,
       errorReporter: errorReporter,
       typeSystem: typeSystem,
-      migrationResolutionHooks: migrationResolutionHooks,
     );
     _assignmentExpressionResolver = AssignmentExpressionResolver(
       resolver: this,
@@ -404,10 +394,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         FunctionExpressionInvocationResolver(
       resolver: this,
     );
-    _functionExpressionResolver = FunctionExpressionResolver(
-      resolver: this,
-      migrationResolutionHooks: migrationResolutionHooks,
-    );
+    _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
     _forResolver = ForResolver(
       resolver: this,
     );
@@ -430,8 +417,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       errorReporter,
       flowAnalysis,
     );
-    elementResolver = ElementResolver(this,
-        migratableAstInfoProvider: _migratableAstInfoProvider);
+    elementResolver = ElementResolver(this);
     inferenceContext = InferenceContext._(this);
     typeAnalyzer = StaticTypeAnalyzer(this);
     _functionReferenceResolver =
@@ -584,7 +570,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       return;
     }
 
-    // TODO(scheglov) encapsulate
+    // TODO(scheglov): encapsulate
     var bodyContext = BodyInferenceContext.of(body);
     if (bodyContext == null) {
       return;
@@ -1346,7 +1332,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// @param allowPrecisionLoss see @{code overrideVariable} docs
   void overrideExpression(Expression expression, DartType potentialType,
       bool allowPrecisionLoss, bool setExpressionType) {
-    // TODO(brianwilkerson) Remove this method.
+    // TODO(brianwilkerson): Remove this method.
   }
 
   /// Examines the top entry of [_rewriteStack] but does not pop it.
@@ -1526,7 +1512,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       final prefix = node.prefix;
       prefix.accept(this);
 
-      // TODO(scheglov) It would be nice to rewrite all such cases.
+      // TODO(scheglov): It would be nice to rewrite all such cases.
       if (prefix.staticType is RecordType) {
         final propertyAccess = PropertyAccessImpl(
           target: prefix,
@@ -1810,7 +1796,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void startNullAwareIndexExpression(IndexExpression node) {
-    if (_migratableAstInfoProvider.isIndexExpressionNullAware(node)) {
+    if (node.isNullAware) {
       var flow = flowAnalysis.flow;
       if (flow != null) {
         flow.nullAwareAccess_rightBegin(node.target,
@@ -1821,7 +1807,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   void startNullAwarePropertyAccess(PropertyAccess node) {
-    if (_migratableAstInfoProvider.isPropertyAccessNullAware(node)) {
+    if (node.isNullAware) {
       var flow = flowAnalysis.flow;
       if (flow != null) {
         var target = node.target;
@@ -2011,10 +1997,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void visitBinaryExpression(BinaryExpression node, {DartType? contextType}) {
     checkUnreachableNode(node);
-    var migrationResolutionHooks = this.migrationResolutionHooks;
-    if (migrationResolutionHooks != null) {
-      migrationResolutionHooks.reportBinaryExpressionContext(node, contextType);
-    }
     _binaryExpressionResolver.resolve(node as BinaryExpressionImpl,
         contextType: contextType);
     _insertImplicitCallReference(
@@ -2388,11 +2370,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var constructorElement = constructorName.staticElement;
       if (constructorElement != null) {
         node.constructorElement = constructorElement;
-        if (!constructorElement.isConst && constructorElement.isFactory) {
-          final errorTarget =
-              node.arguments?.constructorSelector?.name ?? node.name;
+        if (constructorElement.isFactory) {
+          final constructorName = node.arguments?.constructorSelector?.name;
+          final errorTarget = constructorName ?? node.name;
           errorReporter.reportErrorForOffset(
-            CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR,
+            CompileTimeErrorCode.ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR,
             errorTarget.offset,
             errorTarget.length,
           );
@@ -3026,7 +3008,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     target?.accept(this);
     target = node.target;
 
-    if (_migratableAstInfoProvider.isMethodInvocationNullAware(node)) {
+    if (node.isNullAware) {
       var flow = flowAnalysis.flow;
       if (flow != null) {
         if (target is SimpleIdentifierImpl &&
@@ -3669,7 +3651,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     node.body.accept(this);
     flowAnalysis.flow?.whileStatement_end();
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
-    // TODO(brianwilkerson) If the loop can only be exited because the condition
+    // TODO(brianwilkerson): If the loop can only be exited because the condition
     // is false, then propagateFalseState(condition);
   }
 
@@ -3850,7 +3832,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     var function = node.function;
 
     if (function is PropertyAccess &&
-        _migratableAstInfoProvider.isPropertyAccessNullAware(function) &&
+        function.isNullAware &&
         _isNonNullableByDefault) {
       var target = function.target;
       if (target is SimpleIdentifier &&
@@ -4129,89 +4111,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 }
 
-/// Override of [ResolverVisitorForMigration] that invokes methods of
-/// [MigrationResolutionHooks] when appropriate.
-class ResolverVisitorForMigration extends ResolverVisitor {
-  final MigrationResolutionHooks _migrationResolutionHooks;
-
-  ResolverVisitorForMigration(
-      InheritanceManager3 inheritanceManager,
-      LibraryElementImpl definingLibrary,
-      Source source,
-      TypeProvider typeProvider,
-      AnalysisErrorListener errorListener,
-      TypeSystemImpl typeSystem,
-      FeatureSet featureSet,
-      MigrationResolutionHooks migrationResolutionHooks)
-      : _migrationResolutionHooks = migrationResolutionHooks,
-        super._(
-            inheritanceManager,
-            definingLibrary,
-            source,
-            typeSystem,
-            typeProvider as TypeProviderImpl,
-            errorListener,
-            featureSet,
-            FlowAnalysisHelperForMigration(
-                typeSystem, migrationResolutionHooks, featureSet),
-            migrationResolutionHooks,
-            migrationResolutionHooks);
-
-  @override
-  void visitConditionalExpression(covariant ConditionalExpressionImpl node,
-      {DartType? contextType}) {
-    var conditionalKnownValue =
-        _migrationResolutionHooks.getConditionalKnownValue(node);
-    if (conditionalKnownValue == null) {
-      super.visitConditionalExpression(node, contextType: contextType);
-      return;
-    } else {
-      var subexpressionToKeep =
-          conditionalKnownValue ? node.thenExpression : node.elseExpression;
-      subexpressionToKeep.accept(this);
-      inferenceHelper.recordStaticType(node, subexpressionToKeep.typeOrThrow,
-          contextType: contextType);
-    }
-  }
-
-  @override
-  void visitIfElement(
-    covariant IfElementImpl node, {
-    CollectionLiteralContext? context,
-  }) {
-    var conditionalKnownValue =
-        _migrationResolutionHooks.getConditionalKnownValue(node);
-    if (conditionalKnownValue == null) {
-      super.visitIfElement(node, context: context);
-      return;
-    } else {
-      var element = conditionalKnownValue ? node.thenElement : node.elseElement;
-      if (element != null) {
-        element.resolveElement(this, context);
-        popRewrite();
-      }
-    }
-  }
-
-  @override
-  void visitIfStatement(covariant IfStatementImpl node) {
-    var conditionalKnownValue =
-        _migrationResolutionHooks.getConditionalKnownValue(node);
-    if (conditionalKnownValue == null) {
-      super.visitIfStatement(node);
-      return;
-    } else {
-      (conditionalKnownValue ? node.thenStatement : node.elseStatement)
-          ?.accept(this);
-    }
-  }
-}
-
 /// Instances of the class `ScopeResolverVisitor` are used to resolve
 /// [SimpleIdentifier]s to declarations using scoping rules.
 ///
-/// TODO(paulberry): migrate the responsibility for all scope resolution into
-/// this visitor.
+// TODO(paulberry): migrate the responsibility for all scope resolution into
+// this visitor.
 class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   static const _nameScopeProperty = 'nameScope';
 
@@ -4409,6 +4313,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           element,
         );
         node.initializers.accept(this);
+        node.documentationComment?.accept(this);
       } finally {
         nameScope = outerScope;
       }
@@ -4419,15 +4324,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.parameters,
       );
-      visitConstructorDeclarationInScope(node);
+      node.body.accept(this);
     } finally {
       nameScope = outerScope;
     }
-  }
-
-  void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
-    node.documentationComment?.accept(this);
-    node.body.accept(this);
   }
 
   @override
@@ -4596,7 +4496,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// the normal call to the inherited visit method so that ResolverVisitor can
   /// intervene when type propagation is enabled.
   void visitForElementInScope(ForElement node) {
-    // TODO(brianwilkerson) Investigate the possibility of removing the
+    // TODO(brianwilkerson): Investigate the possibility of removing the
     //  visit...InScope methods now that type propagation is no longer done.
     node.forLoopParts.accept(this);
     node.body.accept(this);
@@ -4649,7 +4549,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   /// the normal call to the inherited visit method so that ResolverVisitor can
   /// intervene when type propagation is enabled.
   void visitForStatementInScope(ForStatement node) {
-    // TODO(brianwilkerson) Investigate the possibility of removing the
+    // TODO(brianwilkerson): Investigate the possibility of removing the
     //  visit...InScope methods now that type propagation is no longer done.
     node.forLoopParts.accept(this);
     visitStatementInScope(node.body);

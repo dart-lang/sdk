@@ -102,7 +102,7 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
     var value = param.computeConstantValue();
-    // todo(pq): reenable and do ecosystem cleanup (https://github.com/dart-lang/linter/issues/4368)
+    // TODO(pq): reenable and do ecosystem cleanup (https://github.com/dart-lang/linter/issues/4368)
     // if (value == null && arg is NullLiteral) {
     //   rule.reportLint(arg);
     // } else ...

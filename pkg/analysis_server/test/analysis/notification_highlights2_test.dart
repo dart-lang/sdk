@@ -2215,7 +2215,7 @@ void f(Object o) {
         ? SourceRange(0, testCode.code.length)
         : testCode.ranges[index].sourceRange;
 
-    // TODO(scheglov) Apparently, we don't sort in the server.
+    // TODO(scheglov): Apparently, we don't sort in the server.
     var sortedRegions = regions.sortedBy<num>((e) => e.offset);
 
     var buffer = StringBuffer();

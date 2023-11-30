@@ -12,59 +12,59 @@ extension DoubleToJSNumber on core::double {
   get toJS = self::DoubleToJSNumber|get#toJS;
 }
 extension type JSAny(core::Object value) {
-  abstract inline-class-member representation-field get value() → core::Object;
+  abstract extension-type-member representation-field get value() → core::Object;
   constructor • = self::JSAny|constructor#;
   constructor tearoff • = self::JSAny|constructor#_#new#tearOff;
 }
 extension type JSObject(core::Object value) implements self::JSAny /* = core::Object */ {
-  abstract inline-class-member representation-field get value() → core::Object;
+  abstract extension-type-member representation-field get value() → core::Object;
   constructor • = self::JSObject|constructor#;
   constructor tearoff • = self::JSObject|constructor#_#new#tearOff;
 }
 extension type JSArray(core::List<self::JSAny? /* = core::Object? */> value) implements self::JSObject /* = core::Object */ {
-  abstract inline-class-member representation-field get value() → core::List<self::JSAny? /* = core::Object? */>;
+  abstract extension-type-member representation-field get value() → core::List<self::JSAny? /* = core::Object? */>;
   constructor • = self::JSArray|constructor#;
   constructor tearoff • = self::JSArray|constructor#_#new#tearOff;
 }
 extension type JSExportedDartObject(core::Object value) implements self::JSObject /* = core::Object */ {
-  abstract inline-class-member representation-field get value() → core::Object;
+  abstract extension-type-member representation-field get value() → core::Object;
   constructor • = self::JSExportedDartObject|constructor#;
   constructor tearoff • = self::JSExportedDartObject|constructor#_#new#tearOff;
 }
 extension type JSNumber(core::double value) implements self::JSAny /* = core::Object */ {
-  abstract inline-class-member representation-field get value() → core::double;
+  abstract extension-type-member representation-field get value() → core::double;
   constructor • = self::JSNumber|constructor#;
   constructor tearoff • = self::JSNumber|constructor#_#new#tearOff;
 }
-static inline-class-member method JSAny|constructor#(core::Object value) → self::JSAny /* = core::Object */ {
+static extension-type-member method JSAny|constructor#(core::Object value) → self::JSAny /* = core::Object */ {
   lowered final self::JSAny /* = core::Object */ #this = value;
   return #this;
 }
-static inline-class-member method JSAny|constructor#_#new#tearOff(core::Object value) → self::JSAny /* = core::Object */
+static extension-type-member method JSAny|constructor#_#new#tearOff(core::Object value) → self::JSAny /* = core::Object */
   return self::JSAny|constructor#(value);
-static inline-class-member method JSObject|constructor#(core::Object value) → self::JSObject /* = core::Object */ {
+static extension-type-member method JSObject|constructor#(core::Object value) → self::JSObject /* = core::Object */ {
   lowered final self::JSObject /* = core::Object */ #this = value;
   return #this;
 }
-static inline-class-member method JSObject|constructor#_#new#tearOff(core::Object value) → self::JSObject /* = core::Object */
+static extension-type-member method JSObject|constructor#_#new#tearOff(core::Object value) → self::JSObject /* = core::Object */
   return self::JSObject|constructor#(value);
-static inline-class-member method JSArray|constructor#(core::List<self::JSAny? /* = core::Object? */> value) → self::JSArray /* = core::List<core::Object?> */ {
+static extension-type-member method JSArray|constructor#(core::List<self::JSAny? /* = core::Object? */> value) → self::JSArray /* = core::List<core::Object?> */ {
   lowered final self::JSArray /* = core::List<core::Object?> */ #this = value;
   return #this;
 }
-static inline-class-member method JSArray|constructor#_#new#tearOff(core::List<self::JSAny? /* = core::Object? */> value) → self::JSArray /* = core::List<core::Object?> */
+static extension-type-member method JSArray|constructor#_#new#tearOff(core::List<self::JSAny? /* = core::Object? */> value) → self::JSArray /* = core::List<core::Object?> */
   return self::JSArray|constructor#(value);
-static inline-class-member method JSExportedDartObject|constructor#(core::Object value) → self::JSExportedDartObject /* = core::Object */ {
+static extension-type-member method JSExportedDartObject|constructor#(core::Object value) → self::JSExportedDartObject /* = core::Object */ {
   lowered final self::JSExportedDartObject /* = core::Object */ #this = value;
   return #this;
 }
-static inline-class-member method JSExportedDartObject|constructor#_#new#tearOff(core::Object value) → self::JSExportedDartObject /* = core::Object */
+static extension-type-member method JSExportedDartObject|constructor#_#new#tearOff(core::Object value) → self::JSExportedDartObject /* = core::Object */
   return self::JSExportedDartObject|constructor#(value);
-static inline-class-member method JSNumber|constructor#(core::double value) → self::JSNumber /* = core::double */ {
+static extension-type-member method JSNumber|constructor#(core::double value) → self::JSNumber /* = core::double */ {
   lowered final self::JSNumber /* = core::double */ #this = value;
   return #this;
 }
-static inline-class-member method JSNumber|constructor#_#new#tearOff(core::double value) → self::JSNumber /* = core::double */
+static extension-type-member method JSNumber|constructor#_#new#tearOff(core::double value) → self::JSNumber /* = core::double */
   return self::JSNumber|constructor#(value);
 static extension-member method ObjectToJSExportedDartObject|get#toJS(lowered final core::Object #this) → self::JSExportedDartObject /* = core::Object */
   return self::JSExportedDartObject|constructor#(#this);

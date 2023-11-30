@@ -329,7 +329,11 @@ Remove debugging information from the output and save it separately to the speci
         return 255;
       }
     } else {
-      final (_, assets) = await compileNativeAssetsJit(verbose: verbose);
+      final (success, assets) = await compileNativeAssetsJit(verbose: verbose);
+      if (!success) {
+        stderr.writeln('Native assets build failed.');
+        return 255;
+      }
       if (assets.isNotEmpty) {
         stderr.writeln(
             "'dart compile' does currently not support native assets.");

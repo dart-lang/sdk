@@ -84,7 +84,7 @@ class BinaryExpressionResolver {
   /// Set the static type of [node] to be the least upper bound of the static
   /// types [staticType1] and [staticType2].
   ///
-  /// TODO(scheglov) this is duplicate
+  // TODO(scheglov): this is duplicate
   void _analyzeLeastUpperBoundTypes(
       ExpressionImpl node, DartType staticType1, DartType staticType2,
       {required DartType? contextType}) {
@@ -391,7 +391,9 @@ class BinaryExpressionResolver {
     }
 
     var staticType = node.staticInvokeType?.returnType;
-    if (leftType is DynamicType) {
+    if (node.operator.type == TokenType.EQ_EQ) {
+      staticType = _typeSystem.typeProvider.boolType;
+    } else if (leftType is DynamicType) {
       staticType ??= DynamicTypeImpl.instance;
     } else {
       staticType ??= InvalidTypeImpl.instance;

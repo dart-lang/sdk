@@ -88,14 +88,10 @@ class JsInteropChecks extends RecursiveVisitor {
     RegExp(r'(?<!generated_)tests/web/native'),
     RegExp(r'(?<!generated_)tests/web/internal'),
     'generated_tests/web/native/native_test',
-    RegExp(r'(?<!generated_)tests/web_2/native'),
-    RegExp(r'(?<!generated_)tests/web_2/internal'),
-    'generated_tests/web_2/native/native_test',
   ];
 
   static final List<Pattern> _allowedTrustTypesTestPatterns = [
     RegExp(r'(?<!generated_)tests/lib/js'),
-    RegExp(r'(?<!generated_)tests/lib_2/js'),
   ];
 
   /// Libraries that cannot be used when [_enforceStrictMode] is true.

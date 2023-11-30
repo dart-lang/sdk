@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 
 extension type ExtensionType(core::int id) {
-  abstract inline-class-member representation-field get id() → core::int;
+  abstract extension-type-member representation-field get id() → core::int;
   constructor • = self::ExtensionType|constructor#;
   constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
 }
 static const field core::Object annotation = const core::Object::•();
-static inline-class-member method ExtensionType|constructor#(core::int id) → self::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#(core::int id) → self::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|constructor#_#new#tearOff(core::int id) → self::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int id) → self::ExtensionType /* = core::int */
   return self::ExtensionType|constructor#(id);
 
 

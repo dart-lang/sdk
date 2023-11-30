@@ -63,7 +63,7 @@ final tests = <IsolateTest>[
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+Future<void> main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'eval_named_args_anywhere_test.dart',

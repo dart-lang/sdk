@@ -31,7 +31,7 @@ import augment 'a.dart';
 class A {}
 ''');
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
 
     nodeTextConfiguration.withInterfaceTypeElements = true;
 
@@ -61,7 +61,7 @@ import augment 'a.dart';
 mixin M {}
 ''');
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
 
     nodeTextConfiguration.withInterfaceTypeElements = true;

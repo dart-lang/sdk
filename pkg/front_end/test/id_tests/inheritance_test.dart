@@ -27,13 +27,13 @@ Future<void> main(List<String> args) async {
       createUriForFileName: createUriForFileName,
       onFailure: onFailure,
       runTest: runTestFor(const InheritanceDataComputer(), [
-        new TestConfig(cfeMarker, 'cfe with nnbd',
+        new CfeTestConfig(cfeMarker, 'cfe with nnbd',
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
             librariesSpecificationUri: createUriForFileName('libraries.json'),
             compileSdk: true),
-        new TestConfig(cfeFromBuilderMarker, 'cfe from builder',
+        new CfeTestConfig(cfeFromBuilderMarker, 'cfe from builder',
             explicitExperimentalFlags: const {
               ExperimentalFlag.nonNullable: true
             },
@@ -42,14 +42,14 @@ Future<void> main(List<String> args) async {
       ]));
 }
 
-class InheritanceDataComputer extends DataComputer<String> {
+class InheritanceDataComputer extends CfeDataComputer<String> {
   const InheritanceDataComputer();
 
   /// Function that computes a data mapping for [library].
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     new InheritanceDataExtractor(testResultData, actualMap)
@@ -57,7 +57,7 @@ class InheritanceDataComputer extends DataComputer<String> {
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(CfeTestResultData testResultData, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     new InheritanceDataExtractor(testResultData, actualMap)
@@ -69,7 +69,7 @@ class InheritanceDataComputer extends DataComputer<String> {
 
   @override
   String computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
     return errorsToText(errors, useCodes: true);
   }
 
@@ -78,13 +78,13 @@ class InheritanceDataComputer extends DataComputer<String> {
 }
 
 class InheritanceDataExtractor extends CfeDataExtractor<String> {
-  final TestResultData _testResultData;
+  final CfeTestResultData _testResultData;
 
   InheritanceDataExtractor(
       this._testResultData, Map<Id, ActualData<String>> actualMap)
       : super(_testResultData.compilerResult, actualMap);
 
-  TestConfig get _config => _testResultData.config;
+  CfeTestConfig get _config => _testResultData.config;
 
   InternalCompilerResult get _compilerResult => _testResultData.compilerResult;
 

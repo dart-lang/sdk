@@ -4,22 +4,22 @@ import "dart:async" as asy;
 import "dart:core" as core;
 
 extension type V1(asy::Future<core::int> id) implements asy::Future<core::int> {
-  abstract inline-class-member representation-field get id() → asy::Future<core::int>;
+  abstract extension-type-member representation-field get id() → asy::Future<core::int>;
   constructor • = self::V1|constructor#;
   constructor tearoff • = self::V1|constructor#_#new#tearOff;
 }
 extension type V2<T extends asy::Future<core::Object>>(T id) implements asy::Future<core::Object> {
-  abstract inline-class-member representation-field get id() → T;
+  abstract extension-type-member representation-field get id() → T;
   constructor • = self::V2|constructor#;
   constructor tearoff • = self::V2|constructor#_#new#tearOff;
 }
-static inline-class-member method V1|constructor#(asy::Future<core::int> id) → self::V1 /* = asy::Future<core::int> */
+static extension-type-member method V1|constructor#(asy::Future<core::int> id) → self::V1 /* = asy::Future<core::int> */
   ;
-static inline-class-member method V1|constructor#_#new#tearOff(asy::Future<core::int> id) → self::V1 /* = asy::Future<core::int> */
+static extension-type-member method V1|constructor#_#new#tearOff(asy::Future<core::int> id) → self::V1 /* = asy::Future<core::int> */
   return self::V1|constructor#(id);
-static inline-class-member method V2|constructor#<T extends asy::Future<core::Object>>(self::V2|constructor#::T id) → self::V2<self::V2|constructor#::T> /* = self::V2|constructor#::T */
+static extension-type-member method V2|constructor#<T extends asy::Future<core::Object>>(self::V2|constructor#::T id) → self::V2<self::V2|constructor#::T> /* = self::V2|constructor#::T */
   ;
-static inline-class-member method V2|constructor#_#new#tearOff<T extends asy::Future<core::Object>>(self::V2|constructor#_#new#tearOff::T id) → self::V2<self::V2|constructor#_#new#tearOff::T> /* = self::V2|constructor#_#new#tearOff::T */
+static extension-type-member method V2|constructor#_#new#tearOff<T extends asy::Future<core::Object>>(self::V2|constructor#_#new#tearOff::T id) → self::V2<self::V2|constructor#_#new#tearOff::T> /* = self::V2|constructor#_#new#tearOff::T */
   return self::V2|constructor#<self::V2|constructor#_#new#tearOff::T>(id);
 static method main() → dynamic async 
   ;

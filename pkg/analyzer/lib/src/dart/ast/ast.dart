@@ -16,13 +16,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/to_source_visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/fasta/token_utils.dart' as util show findPrevious;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart' show LineInfo;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
@@ -350,8 +350,8 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @override
   Element? get element {
-    if (_element != null) {
-      return _element!;
+    if (_element case final element?) {
+      return element;
     } else if (_constructorName == null) {
       return _name.staticElement;
     }
@@ -364,10 +364,10 @@ final class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @override
   Token get endToken {
-    if (_arguments != null) {
-      return _arguments!.endToken;
-    } else if (_constructorName != null) {
-      return _constructorName!.endToken;
+    if (arguments case final arguments?) {
+      return arguments.endToken;
+    } else if (constructorName case final constructorName?) {
+      return constructorName.endToken;
     }
     return _name.endToken;
   }
@@ -1888,8 +1888,8 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   Token get beginToken {
-    if (keyword != null) {
-      return keyword!;
+    if (keyword case final keyword?) {
+      return keyword;
     }
     return _block.beginToken;
   }
@@ -2502,8 +2502,8 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @override
   Token get beginToken {
-    if (onKeyword != null) {
-      return onKeyword!;
+    if (onKeyword case final onKeyword?) {
+      return onKeyword;
     }
     return catchKeyword!;
   }
@@ -4489,8 +4489,8 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   @override
   Token get beginToken {
-    if (thisKeyword != null) {
-      return thisKeyword!;
+    if (thisKeyword case final thisKeyword?) {
+      return thisKeyword;
     }
     return _fieldName.beginToken;
   }
@@ -4606,8 +4606,8 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @override
   Token get endToken {
-    if (_name != null) {
-      return _name!.endToken;
+    if (name case final name?) {
+      return name.endToken;
     }
     return _type.endToken;
   }
@@ -5251,8 +5251,8 @@ final class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @override
   Token get endToken {
-    if (_defaultValue != null) {
-      return _defaultValue!.endToken;
+    if (defaultValue case final defaultValue?) {
+      return defaultValue.endToken;
     }
     return _parameter.endToken;
   }
@@ -5943,7 +5943,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   }
 
   @override
-  // TODO(brianwilkerson) Add commas?
+  // TODO(brianwilkerson): Add commas?
   ChildEntities get _childEntities => super._childEntities
     ..addToken('enumKeyword', enumKeyword)
     ..addToken('name', name)
@@ -6155,16 +6155,16 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   Token get beginToken {
-    if (keyword != null) {
-      return keyword!;
+    if (keyword case final keyword?) {
+      return keyword;
     }
     return functionDefinition;
   }
 
   @override
   Token get endToken {
-    if (semicolon != null) {
-      return semicolon!;
+    if (semicolon case final semicolon?) {
+      return semicolon;
     }
     return _expression.endToken;
   }
@@ -6277,7 +6277,7 @@ sealed class ExpressionImpl extends AstNodeImpl
         return parent._staticParameterElementForIndex;
       }
     } else if (parent is BinaryExpressionImpl) {
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49102
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49102
       if (identical(parent.rightOperand, this)) {
         var parameters = parent.staticInvokeType?.parameters;
         if (parameters != null && parameters.isNotEmpty) {
@@ -6290,12 +6290,12 @@ sealed class ExpressionImpl extends AstNodeImpl
         return parent._staticParameterElementForRightHandSide;
       }
     } else if (parent is PrefixExpressionImpl) {
-      // TODO(scheglov) This does not look right, there is no element for
+      // TODO(scheglov): This does not look right, there is no element for
       // the operand, for `a++` we invoke `a = a + 1`, so the parameter
       // is for `1`, not for `a`.
       return parent._staticParameterElementForOperand;
     } else if (parent is PostfixExpressionImpl) {
-      // TODO(scheglov) The same as above.
+      // TODO(scheglov): The same as above.
       return parent._staticParameterElementForOperand;
     }
     return null;
@@ -6360,8 +6360,8 @@ final class ExpressionStatementImpl extends StatementImpl
 
   @override
   Token get endToken {
-    if (semicolon != null) {
-      return semicolon!;
+    if (semicolon case final semicolon?) {
+      return semicolon;
     }
     return _expression.endToken;
   }
@@ -7101,14 +7101,14 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword != null) {
-      return requiredKeyword!;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword!;
-    } else if (keyword != null) {
-      return keyword!;
-    } else if (_type != null) {
-      return _type!.beginToken;
+    } else if (requiredKeyword case final requiredKeyword?) {
+      return requiredKeyword;
+    } else if (covariantKeyword case final covariantKeyword?) {
+      return covariantKeyword;
+    } else if (keyword case final keyword?) {
+      return keyword;
+    } else if (type case final type?) {
+      return type.beginToken;
     }
     return thisKeyword;
   }
@@ -7609,18 +7609,6 @@ sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
   ParameterElementImpl? declaredElement;
-
-  /// TODO(scheglov) I was not able to update 'nnbd_migration' any better.
-  SimpleIdentifier? get identifierForMigration {
-    final token = name;
-    if (token != null) {
-      final result = SimpleIdentifierImpl(token);
-      result.staticElement = declaredElement;
-      _becomeParentOf(result);
-      return result;
-    }
-    return null;
-  }
 
   @override
   bool get isNamed => kind.isNamed;
@@ -8498,10 +8486,10 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken {
-    if (_typeParameters != null) {
-      return _typeParameters!.beginToken;
-    } else if (_parameters != null) {
-      return _parameters!.beginToken;
+    if (typeParameters case final typeParameters?) {
+      return typeParameters.beginToken;
+    } else if (parameters case final parameters?) {
+      return parameters.beginToken;
     }
     return _body.beginToken;
   }
@@ -8929,12 +8917,12 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword != null) {
-      return requiredKeyword!;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword!;
-    } else if (_returnType != null) {
-      return _returnType!.beginToken;
+    } else if (requiredKeyword case final requiredKeyword?) {
+      return requiredKeyword;
+    } else if (covariantKeyword case final covariantKeyword?) {
+      return covariantKeyword;
+    } else if (returnType case final returnType?) {
+      return returnType.beginToken;
     }
     return name;
   }
@@ -9604,7 +9592,7 @@ abstract final class IfStatement implements Statement {
   Expression get expression;
 
   /// Return the token representing the 'if' keyword.
-  /// TODO(scheglov) Extract shared `IfCondition`, see the patterns spec.
+  // TODO(scheglov): Extract shared `IfCondition`, see the patterns spec.
   Token get ifKeyword;
 
   /// Return the left parenthesis.
@@ -9690,8 +9678,8 @@ final class IfStatementImpl extends StatementImpl
 
   @override
   Token get endToken {
-    if (_elseStatement != null) {
-      return _elseStatement!.endToken;
+    if (elseStatement case final elseStatement?) {
+      return elseStatement.endToken;
     }
     return _thenStatement.endToken;
   }
@@ -10155,7 +10143,7 @@ abstract final class IndexExpression
   /// Note that [inGetterContext] and [inSetterContext] are not opposites, nor
   /// are they mutually exclusive. In other words, it is possible for both
   /// methods to return `true` when invoked on the same node.
-  // TODO(brianwilkerson) Convert this to a getter.
+  // TODO(brianwilkerson): Convert this to a getter.
   bool inGetterContext();
 
   /// Return `true` if this expression is computing a left-hand value (that is,
@@ -10165,7 +10153,7 @@ abstract final class IndexExpression
   /// Note that [inGetterContext] and [inSetterContext] are not opposites, nor
   /// are they mutually exclusive. In other words, it is possible for both
   /// methods to return `true` when invoked on the same node.
-  // TODO(brianwilkerson) Convert this to a getter.
+  // TODO(brianwilkerson): Convert this to a getter.
   bool inSetterContext();
 }
 
@@ -10229,8 +10217,8 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   Token get beginToken {
-    if (_target != null) {
-      return _target!.beginToken;
+    if (target case final target?) {
+      return target.beginToken;
     }
     return period!;
   }
@@ -10330,7 +10318,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   bool inGetterContext() {
-    // TODO(brianwilkerson) Convert this to a getter.
+    // TODO(brianwilkerson): Convert this to a getter.
     final parent = this.parent!;
     if (parent is AssignmentExpression) {
       AssignmentExpression assignment = parent;
@@ -10344,7 +10332,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @override
   bool inSetterContext() {
-    // TODO(brianwilkerson) Convert this to a getter.
+    // TODO(brianwilkerson): Convert this to a getter.
     final parent = this.parent!;
     if (parent is PrefixExpression) {
       return parent.operator.type.isIncrementOperator;
@@ -10401,7 +10389,7 @@ abstract final class InstanceCreationExpression implements Expression {
 ///        [ArgumentList]
 final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
-  // TODO(brianwilkerson) Consider making InstanceCreationExpressionImpl extend
+  // TODO(brianwilkerson): Consider making InstanceCreationExpressionImpl extend
   // InvocationExpressionImpl. This would probably be a breaking change, but is
   // also probably worth it.
 
@@ -11376,8 +11364,8 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @override
   Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword!;
+    if (constKeyword case final constKeyword?) {
+      return constKeyword;
     }
     final typeArguments = this.typeArguments;
     if (typeArguments != null) {
@@ -12145,6 +12133,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     ..addToken('propertyKeyword', propertyKeyword)
     ..addToken('operatorKeyword', operatorKeyword)
     ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
     ..addNode('parameters', parameters)
     ..addNode('body', body);
 
@@ -12252,10 +12241,10 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   Token get beginToken {
-    if (_target != null) {
-      return _target!.beginToken;
-    } else if (operator != null) {
-      return operator!;
+    if (target case final target?) {
+      return target.beginToken;
+    } else if (operator case final operator?) {
+      return operator;
     }
     return _methodName.beginToken;
   }
@@ -14000,7 +13989,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   }
 
   @override
-  // TODO(brianwilkerson) Create a new precedence constant for pattern
+  // TODO(brianwilkerson): Create a new precedence constant for pattern
   //  assignments. The proposal doesn't make the actual value clear.
   Precedence get precedence => Precedence.assignment;
 
@@ -14686,8 +14675,8 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @override
   Token get beginToken {
-    if (_target != null) {
-      return _target!.beginToken;
+    if (target case final target?) {
+      return target.beginToken;
     }
     return operator;
   }
@@ -15847,8 +15836,8 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   @override
   Token get beginToken {
-    if (constKeyword != null) {
-      return constKeyword!;
+    if (constKeyword case final constKeyword?) {
+      return constKeyword;
     }
     final typeArguments = this.typeArguments;
     if (typeArguments != null) {
@@ -16007,14 +15996,14 @@ final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword != null) {
-      return requiredKeyword!;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword!;
-    } else if (keyword != null) {
-      return keyword!;
-    } else if (_type != null) {
-      return _type!.beginToken;
+    } else if (requiredKeyword case final requiredKeyword?) {
+      return requiredKeyword;
+    } else if (covariantKeyword case final covariantKeyword?) {
+      return covariantKeyword;
+    } else if (keyword case final keyword?) {
+      return keyword;
+    } else if (type case final type?) {
+      return type.beginToken;
     }
     return name!;
   }
@@ -16085,7 +16074,7 @@ abstract final class SimpleIdentifier implements Identifier {
 
   /// Return `true` if this identifier is the name being declared in a
   /// declaration.
-  // TODO(brianwilkerson) Convert this to a getter.
+  // TODO(brianwilkerson): Convert this to a getter.
   bool inDeclarationContext();
 
   /// Return `true` if this expression is computing a right-hand value.
@@ -16093,7 +16082,7 @@ abstract final class SimpleIdentifier implements Identifier {
   /// Note that [inGetterContext] and [inSetterContext] are not opposites, nor
   /// are they mutually exclusive. In other words, it is possible for both
   /// methods to return `true` when invoked on the same node.
-  // TODO(brianwilkerson) Convert this to a getter.
+  // TODO(brianwilkerson): Convert this to a getter.
   bool inGetterContext();
 
   /// Return `true` if this expression is computing a left-hand value.
@@ -16101,7 +16090,7 @@ abstract final class SimpleIdentifier implements Identifier {
   /// Note that [inGetterContext] and [inSetterContext] are not opposites, nor
   /// are they mutually exclusive. In other words, it is possible for both
   /// methods to return `true` when invoked on the same node.
-  // TODO(brianwilkerson) Convert this to a getter.
+  // TODO(brianwilkerson): Convert this to a getter.
   bool inSetterContext();
 }
 
@@ -16236,7 +16225,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inGetterContext() {
-    // TODO(brianwilkerson) Convert this to a getter.
+    // TODO(brianwilkerson): Convert this to a getter.
     AstNode initialParent = this.parent!;
     AstNode parent = initialParent;
     AstNode target = this;
@@ -16279,7 +16268,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool inSetterContext() {
-    // TODO(brianwilkerson) Convert this to a getter.
+    // TODO(brianwilkerson): Convert this to a getter.
     AstNode initialParent = this.parent!;
     AstNode parent = initialParent;
     AstNode target = this;
@@ -16619,7 +16608,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   StringInterpolationImpl({
     required List<InterpolationElementImpl> elements,
   }) {
-    // TODO(scheglov) Replace asserts with appropriately typed parameters.
+    // TODO(scheglov): Replace asserts with appropriately typed parameters.
     assert(elements.length > 2, 'Expected at last three elements.');
     assert(
       elements.first is InterpolationStringImpl,
@@ -17093,14 +17082,14 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     final metadata = this.metadata;
     if (metadata.isNotEmpty) {
       return metadata.beginToken!;
-    } else if (requiredKeyword != null) {
-      return requiredKeyword!;
-    } else if (covariantKeyword != null) {
-      return covariantKeyword!;
-    } else if (keyword != null) {
-      return keyword!;
-    } else if (_type != null) {
-      return _type!.beginToken;
+    } else if (requiredKeyword case final requiredKeyword?) {
+      return requiredKeyword;
+    } else if (covariantKeyword case final covariantKeyword?) {
+      return covariantKeyword;
+    } else if (keyword case final keyword?) {
+      return keyword;
+    } else if (type case final type?) {
+      return type.beginToken;
     }
     return superKeyword;
   }
@@ -17458,7 +17447,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
 /// legacy code (code opted into a version prior to the release of patterns)
 /// will likely wrap the expression in a [ConstantPattern] with synthetic
 /// tokens.
-// TODO(brianwilkerson) Consider renaming `SwitchMember`, `SwitchCase`, and
+// TODO(brianwilkerson): Consider renaming `SwitchMember`, `SwitchCase`, and
 //  `SwitchDefault` to start with `SwitchStatement` for consistency.
 sealed class SwitchMember implements AstNode {
   /// Return the colon separating the keyword or the expression from the
@@ -18093,12 +18082,12 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @override
   Token get endToken {
-    if (_finallyBlock != null) {
-      return _finallyBlock!.endToken;
-    } else if (finallyKeyword != null) {
-      return finallyKeyword!;
-    } else if (_catchClauses.isNotEmpty) {
-      return _catchClauses.endToken!;
+    if (finallyBlock case final finallyBlock?) {
+      return finallyBlock.endToken;
+    } else if (finallyKeyword case final finallyKeyword?) {
+      return finallyKeyword;
+    } else if (_catchClauses case [..., final last]) {
+      return last.endToken;
     }
     return _body.endToken;
   }
@@ -18703,10 +18692,10 @@ abstract final class VariableDeclaration implements Declaration {
 ///    variableDeclaration ::=
 ///        [SimpleIdentifier] ('=' [Expression])?
 ///
-/// TODO(paulberry): the grammar does not allow metadata to be associated with
-/// a VariableDeclaration, and currently we don't record comments for it either.
-/// Consider changing the class hierarchy so that [VariableDeclaration] does not
-/// extend [Declaration].
+// TODO(paulberry): the grammar does not allow metadata to be associated with
+// a VariableDeclaration, and currently we don't record comments for it either.
+// Consider changing the class hierarchy so that [VariableDeclaration] does not
+// extend [Declaration].
 final class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
@@ -18758,8 +18747,8 @@ final class VariableDeclarationImpl extends DeclarationImpl
 
   @override
   Token get endToken {
-    if (_initializer != null) {
-      return _initializer!.endToken;
+    if (initializer case final initializer?) {
+      return initializer.endToken;
     }
     return name;
   }

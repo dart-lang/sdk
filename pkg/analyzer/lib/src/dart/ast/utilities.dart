@@ -1541,7 +1541,7 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitTypeParameter(TypeParameter node) {
     TypeParameter other = _other as TypeParameter;
-    // TODO (kallentu) : Clean up TypeParameterImpl casting once variance is
+    // TODO(kallentu): : Clean up TypeParameterImpl casting once variance is
     // added to the interface.
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
@@ -3396,7 +3396,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
     if (identical(node.initializer, _oldNode)) {
       node.initializer = _newNode as ExpressionImpl;
       return true;
-      // TODO(srawlins) also replace node's declared element's
+      // TODO(srawlins): also replace node's declared element's
       // `constantInitializer`, if the element is [ConstFieldElementImpl],
       // [ConstLocalVariableElementImpl], or [ConstTopLevelVariableElementImpl].
     }

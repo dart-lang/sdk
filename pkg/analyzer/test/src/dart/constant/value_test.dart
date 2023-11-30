@@ -2086,7 +2086,7 @@ class DartObjectImplTest {
   }
 
   void _assertInstanceOfObjectArray(Object? result) {
-    // TODO(scheglov) implement
+    // TODO(scheglov): implement
   }
 
   /// Assert that the result of dividing the [left] and [right] operands as

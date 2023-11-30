@@ -303,15 +303,13 @@ library_for_all_configs("libdart") {
   extra_nonproduct_deps = [ "vm:libprotozero" ]
   extra_deps = [
     ":generate_version_cc_file",
-    "third_party/double-conversion/src:libdouble_conversion",
+    "../third_party/double-conversion/src:libdouble_conversion",
   ]
   if (is_fuchsia) {
     if (using_fuchsia_gn_sdk) {
       extra_deps += [
-        "$fuchsia_sdk_root/build/config:runtime_library_group",
         "$fuchsia_sdk_root/pkg/fdio",
         "$fuchsia_sdk_root/pkg/trace-engine",
-        "//build/fuchsia/config/clang:c++-runtime-deps",
       ]
     } else if (using_fuchsia_sdk) {
       extra_deps += [

@@ -123,8 +123,11 @@ abstract final class String implements Comparable<String>, Pattern {
   /// ```
   /// If [start] and [end] are provided, only the values of [charCodes]
   /// at positions from `start` to, but not including, `end`, are used.
-  /// The `start` and `end` values must satisfy
-  /// `0 <= start <= end <= charCodes.length`.
+  /// The `start` and `end` values must satisfy `0 <= start <= end`.
+  /// If [start] is omitted, it defaults to zero, the start of [charCodes],
+  /// and if [end] is omitted, all char-codes after [start] are included.
+  /// If [charCodes] does not have [end], or even [start], elements,
+  /// the specified char-codes may be shorter than `end - start`, or even empty.
   external factory String.fromCharCodes(Iterable<int> charCodes,
       [int start = 0, int? end]);
 

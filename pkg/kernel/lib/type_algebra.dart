@@ -74,7 +74,7 @@ bool containsTypeVariable(DartType type, Set<TypeParameter> variables,
       .visit(type);
 }
 
-/// Returns true if [type] contains a reference to any of the given [variables].
+/// Returns true if [type] contains a reference to any of the given [parameters]
 ///
 /// [unhandledTypeHandler] is a helper function invoked on unknown implementers
 /// of [DartType].  Its arguments are the unhandled type and the function that
@@ -83,12 +83,12 @@ bool containsTypeVariable(DartType type, Set<TypeParameter> variables,
 /// unhandled implementer of [DartType] is encountered.
 ///
 /// It is an error to call this with a [type] that contains a [FunctionType]
-/// that declares one of the parameters in [variables].
+/// that declares one of the parameters in [parameters].
 bool containsStructuralTypeVariable(
-    DartType type, Set<StructuralParameter> variables,
+    DartType type, Set<StructuralParameter> parameters,
     {DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler}) {
-  if (variables.isEmpty) return false;
-  return new _StructuralParameterOccurrenceVisitor(variables,
+  if (parameters.isEmpty) return false;
+  return new _StructuralParameterOccurrenceVisitor(parameters,
           unhandledTypeHandler: unhandledTypeHandler)
       .visit(type);
 }
@@ -1992,6 +1992,8 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
 
   bool isStructuralVariableToEliminate(StructuralParameter typeParameter);
 
+  bool isNominalVariableToEliminate(TypeParameter typeParameter);
+
   /// Returns a subtype of [type] for all variables to be eliminated.
   DartType eliminateToLeast(DartType type) {
     _isLeastClosure = true;
@@ -2040,7 +2042,15 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
 
   @override
   DartType? visitTypeParameterType(TypeParameterType node, int variance) {
-    return getTypeParameterReplacement(variance);
+    if (isNominalVariableToEliminate(node.parameter)) {
+      return getTypeParameterReplacement(variance);
+    }
+    return super.visitTypeParameterType(node, variance);
+  }
+
+  @override
+  DartType? visitIntersectionType(IntersectionType node, int variance) {
+    return visitTypeParameterType(node.left, variance);
   }
 
   @override
@@ -2066,11 +2076,13 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
 /// https://github.com/dart-lang/language/pull/957
 class NullabilityAwareTypeVariableEliminator
     extends NullabilityAwareTypeVariableEliminatorBase {
-  final Set<StructuralParameter> eliminationTargets;
+  final Set<StructuralParameter> structuralEliminationTargets;
+  final Set<TypeParameter> nominalEliminationTargets;
   final DartTypeVisitorAuxiliaryFunction<bool>? unhandledTypeHandler;
 
   NullabilityAwareTypeVariableEliminator(
-      {required this.eliminationTargets,
+      {required this.structuralEliminationTargets,
+      required this.nominalEliminationTargets,
       required DartType bottomType,
       required DartType topType,
       required DartType topFunctionType,
@@ -2082,13 +2094,20 @@ class NullabilityAwareTypeVariableEliminator
 
   @override
   bool containsTypeVariablesToEliminate(DartType type) {
-    return containsStructuralTypeVariable(type, eliminationTargets,
-        unhandledTypeHandler: unhandledTypeHandler);
+    return containsStructuralTypeVariable(type, structuralEliminationTargets,
+            unhandledTypeHandler: unhandledTypeHandler) ||
+        containsTypeVariable(type, nominalEliminationTargets,
+            unhandledTypeHandler: unhandledTypeHandler);
   }
 
   @override
   bool isStructuralVariableToEliminate(StructuralParameter typeParameter) {
-    return eliminationTargets.contains(typeParameter);
+    return structuralEliminationTargets.contains(typeParameter);
+  }
+
+  @override
+  bool isNominalVariableToEliminate(TypeParameter typeParameter) {
+    return nominalEliminationTargets.contains(typeParameter);
   }
 }
 
@@ -2135,6 +2154,12 @@ class NullabilityAwareFreeTypeVariableEliminator
   @override
   bool isStructuralVariableToEliminate(StructuralParameter typeParameter) {
     return !_boundVariables.contains(typeParameter);
+  }
+
+  @override
+  bool isNominalVariableToEliminate(TypeParameter typeParameter) {
+    // All nominal type variables are considered free in a type term.
+    return true;
   }
 }
 

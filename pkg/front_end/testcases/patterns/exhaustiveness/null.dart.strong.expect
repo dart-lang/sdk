@@ -58,7 +58,7 @@ static method exhaustiveWithField(Null n) → dynamic
     {
       {
         hoisted core::int hashCode;
-        if(let final dynamic #t4 = hashCode = #0#0.{core::Object::hashCode}{core::int} in true) {
+        if(let final dynamic #t4 = hashCode = #0#0.{core::Object::hashCode}{<object>}.{core::int} in true) {
           #t3 = hashCode;
           break #L4;
         }
@@ -72,7 +72,7 @@ static method nonExhaustiveRestrictedField(Null n) → dynamic
     #L5:
     {
       {
-        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{core::int}) {
+        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{<object>}.{core::int}) {
           #t5 = 0;
           break #L5;
         }
@@ -120,7 +120,7 @@ static method nonExhaustiveNullableRestricted(core::Object? o) → dynamic
     #L8:
     {
       {
-        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{core::int}) {
+        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{<object>}.{core::int}) {
           #t8 = 1;
           break #L8;
         }

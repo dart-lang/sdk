@@ -9,7 +9,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart' show AnalysisDriver;
 import 'package:analyzer/src/dart/sdk/sdk.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptions;
-import 'package:meta/meta.dart';
 
 /// An analysis context whose implementation is based on an analysis driver.
 class DriverBasedAnalysisContext implements AnalysisContext {
@@ -31,6 +30,9 @@ class DriverBasedAnalysisContext implements AnalysisContext {
     @Deprecated('AnalysisDriver will set itself, remove this')
     AnalysisDriver? analysisDriver,
   ]);
+
+  /// Get all the analysis options objects associated with this context.
+  List<AnalysisOptions> get allAnalysisOptions => [analysisOptions];
 
   @override
   AnalysisOptions get analysisOptions => driver.analysisOptions;
@@ -57,7 +59,7 @@ class DriverBasedAnalysisContext implements AnalysisContext {
     driver.changeFile(path);
   }
 
-  @experimental
-  AnalysisOptions? getAnalysisOptionsForFile(File file) =>
+  @override
+  AnalysisOptions getAnalysisOptionsForFile(File file) =>
       driver.getAnalysisOptionsForFile(file);
 }

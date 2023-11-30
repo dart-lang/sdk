@@ -6,8 +6,8 @@ import 'dart:convert';
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_cli/src/ansi.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
@@ -306,7 +306,7 @@ class HumanErrorFormatter extends ErrorFormatter {
     }
     var contextMessages = <ContextMessage>[];
     for (var message in error.contextMessages) {
-      // TODO(scheglov) We should add `LineInfo` to `DiagnosticMessage`.
+      // TODO(scheglov): We should add `LineInfo` to `DiagnosticMessage`.
       var session = result.session.analysisContext;
       if (session is DriverBasedAnalysisContext) {
         var fileResult = session.driver.getFileSync(message.filePath);

@@ -34,7 +34,7 @@ int sideEffect() {
 }
 
 void main() {
-  expectSideEffect(() {
+  expectNoSideEffect(() {
     expectThrowsNotLoaded(() {
       lib.foo(sideEffect());
     });
@@ -44,7 +44,7 @@ void main() {
       lib.C.foo(sideEffect());
     });
   });
-  expectSideEffect(() {
+  expectNoSideEffect(() {
     expectThrowsNotLoaded(() {
       new lib.C(sideEffect());
     });
@@ -52,7 +52,7 @@ void main() {
   expectThrowsNotLoaded(() {
     lib.a;
   });
-  expectSideEffect(() {
+  expectNoSideEffect(() {
     expectThrowsNotLoaded(() {
       lib.a = sideEffect();
     });
@@ -60,7 +60,7 @@ void main() {
   expectThrowsNotLoaded(() {
     lib.getter;
   });
-  expectSideEffect(() {
+  expectNoSideEffect(() {
     expectThrowsNotLoaded(() {
       lib.setter = sideEffect();
     });
@@ -70,7 +70,7 @@ void main() {
       lib.list[sideEffect()] = sideEffect();
     });
   });
-  expectSideEffect(() {
+  expectNoSideEffect(() {
     expectThrowsNotLoaded(() {
       lib.closure(sideEffect());
     });

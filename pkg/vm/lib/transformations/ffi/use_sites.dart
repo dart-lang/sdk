@@ -352,7 +352,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             .where((c) =>
                 c.superclass == structClass || c.superclass == unionClass)
             .toList();
-        return _invokeCompoundConstructors(replacement, compoundClasses);
+        return invokeCompoundConstructors(replacement, compoundClasses);
       } else if (target == allocateMethod) {
         final DartType nativeType = node.arguments.types[0];
 
@@ -387,7 +387,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return node;
   }
 
-  Expression _invokeCompoundConstructors(
+  Expression invokeCompoundConstructors(
           Expression nestedExpression, List<Class> compoundClasses) =>
       compoundClasses
           .distinct()
@@ -748,7 +748,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         .map((t) => t.classNode)
         .where((c) => c.superclass == structClass || c.superclass == unionClass)
         .toList();
-    return _invokeCompoundConstructors(replacement, compoundClasses);
+    return invokeCompoundConstructors(replacement, compoundClasses);
   }
 
   Expression _replaceGetRef(StaticInvocation node) {
@@ -989,7 +989,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     ];
     final superClass = klass.superclass;
     for (final onlyDirectExtendsClass in onlyDirectExtendsClasses) {
-      if (hierarchy.isSubtypeOf(klass, onlyDirectExtendsClass)) {
+      if (hierarchy.isSubInterfaceOf(klass, onlyDirectExtendsClass)) {
         if (superClass == onlyDirectExtendsClass) {
           // Directly extending is fine.
           return null;

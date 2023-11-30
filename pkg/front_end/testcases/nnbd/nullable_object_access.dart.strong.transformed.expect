@@ -94,19 +94,19 @@ static method test(self::Class c1, self::Class? c2, core::Invocation invocation,
  - 'Type' is from 'dart:core'.
  - 'CustomType' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
   CustomType runtimeType2 = c2.runtimeType; // error
-                               ^" in c2.{core::Object::runtimeType}{core::Type} as{TypeError} self::CustomType;
-  core::Type runtimeTypeVariable2 = c2.{core::Object::runtimeType}{core::Type};
+                               ^" in c2.{core::Object::runtimeType}{<object>}.{core::Type} as{TypeError} self::CustomType;
+  core::Type runtimeTypeVariable2 = c2.{core::Object::runtimeType}{<object>}.{core::Type};
   invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:44:17: Error: 'runtimeType' isn't a function or method and can't be invoked.
   c2.runtimeType(); // error
-                ^^^^^^^^^^^" in c2.{core::Object::runtimeType}{core::Type}{<unresolved>}.call();
+                ^^^^^^^^^^^" in c2.{core::Object::runtimeType}{<object>}.{core::Type}{<unresolved>}.call();
   (self::CustomInvocation) → core::String noSuchMethodTearOff2 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:47:10: Error: A value of type 'dynamic Function(Invocation)' can't be assigned to a variable of type 'String Function(CustomInvocation)'.
  - 'Invocation' is from 'dart:core'.
  - 'CustomInvocation' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
       c2.noSuchMethod; // error
-         ^" in c2.{core::Object::noSuchMethod}{(core::Invocation) → dynamic} as{TypeError} (self::CustomInvocation) → core::String;
-  (core::Invocation) → dynamic noSuchMethodTearOffVariable2 = c2.{core::Object::noSuchMethod}{(core::Invocation) → dynamic};
-  core::int noSuchMethod2 = c2.{core::Object::noSuchMethod}(invocation){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
-  dynamic noSuchMethodVariable2 = c2.{core::Object::noSuchMethod}(invocation){(core::Invocation) → dynamic};
+         ^" in c2.{core::Object::noSuchMethod}{<object>}.{(core::Invocation) → dynamic} as{TypeError} (self::CustomInvocation) → core::String;
+  (core::Invocation) → dynamic noSuchMethodTearOffVariable2 = c2.{core::Object::noSuchMethod}{<object>}.{(core::Invocation) → dynamic};
+  core::int noSuchMethod2 = c2.{core::Object::noSuchMethod}{<object>}.(invocation){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int;
+  dynamic noSuchMethodVariable2 = c2.{core::Object::noSuchMethod}{<object>}.(invocation){(core::Invocation) → dynamic};
   c2 =={self::Class::==}{(self::Class) → core::bool} invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:56:9: Error: The argument type 'String' can't be assigned to the parameter type 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/nnbd/nullable_object_access.dart'.
   c2 == ''; // ok or error?
@@ -115,8 +115,8 @@ static method test(self::Class c1, self::Class? c2, core::Invocation invocation,
   ({o: core::Object}) → core::String toStringTearOff2 = invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:59:53: Error: A value of type 'String Function()' can't be assigned to a variable of type 'String Function({Object o})'.
  - 'Object' is from 'dart:core'.
   String Function({Object o}) toStringTearOff2 = c2.toString; // error
-                                                    ^" in c2.{core::Object::toString}{() → core::String} as{TypeError} ({o: core::Object}) → core::String;
-  () → core::String toStringTearOffVariable2 = c2.{core::Object::toString}{() → core::String};
+                                                    ^" in c2.{core::Object::toString}{<object>}.{() → core::String} as{TypeError} ({o: core::Object}) → core::String;
+  () → core::String toStringTearOffVariable2 = c2.{core::Object::toString}{<object>}.{() → core::String};
   invalid-expression "pkg/front_end/testcases/nnbd/nullable_object_access.dart:62:15: Error: No named parameter with the name 'o'.
   c2.toString(o: c1); // error
               ^" in c2.{core::Object::toString}{<inapplicable>}.(o: c1){({o: invalid-type}) → invalid-type};

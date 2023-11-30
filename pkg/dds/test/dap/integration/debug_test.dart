@@ -89,7 +89,10 @@ main() {
       expect(proc, isNotNull);
       expect(
         runInTerminalArgs!.args,
-        containsAllInOrder([Platform.resolvedExecutable, testFile.path]),
+        containsAllInOrder([
+          Platform.resolvedExecutable,
+          dap.client.uppercaseDriveLetter(testFile.path),
+        ]),
       );
       expect(proc!.pid, isPositive);
       expect(proc!.exitCode, completes);

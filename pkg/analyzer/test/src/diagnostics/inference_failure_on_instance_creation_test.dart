@@ -21,6 +21,7 @@ class InferenceFailureOnInstanceCreationTest extends PubPackageResolutionTest {
     super.setUp();
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: experiments,
         strictInference: true,
       ),
     );
@@ -81,6 +82,17 @@ void f() {
   HashMap<int, int>();
 }
 ''');
+  }
+
+  test_extensionType() async {
+    await assertErrorsInCode('''
+extension type E<T>(int i) {}
+void f() {
+  E(1);
+}
+''', [
+      error(WarningCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION, 43, 1),
+    ]);
   }
 
   test_genericMetadata_missingTypeArg() async {

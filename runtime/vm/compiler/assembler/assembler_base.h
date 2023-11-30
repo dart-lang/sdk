@@ -724,6 +724,12 @@ class AssemblerBase : public StackResource {
                             Register temp,
                             Label* equals) = 0;
 
+  void UnrolledMemCopy(Register dst_base,
+                       intptr_t dst_offset,
+                       Register src_base,
+                       intptr_t src_offset,
+                       intptr_t size,
+                       Register temp);
   enum CanBeSmi {
     kValueCanBeSmi,
     kValueIsNotSmi,
@@ -857,6 +863,8 @@ class AssemblerBase : public StackResource {
                                           /*Nullability*/ int8_t value,
                                           Register scratch);
 
+  virtual void LoadImmediate(Register dst, target::word imm) = 0;
+
   virtual void CompareImmediate(Register reg,
                                 target::word imm,
                                 OperandSize width = kWordBytes) = 0;
@@ -913,6 +921,9 @@ class AssemblerBase : public StackResource {
                                        bool can_be_null = false) = 0;
 
   intptr_t InsertAlignedRelocation(BSS::Relocation reloc);
+
+  void MsanUnpoison(Register base, intptr_t length_in_bytes);
+  void MsanUnpoison(Register base, Register length_in_bytes);
 
   void Unimplemented(const char* message);
   void Untested(const char* message);

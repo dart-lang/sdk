@@ -6,12 +6,12 @@ import 'test_helper.dart';
 import 'service_test_common.dart';
 
 void testMain() {
-  var b = [1, 2].map((i) => i == 0).toList();
+  final b = [1, 2].map((i) => i == 0).toList();
   print(b.length);
 }
 
-const int LINE = 9;
-const int COLUMN = 29;
+const LINE_A = 9;
+const LINE_B = 10;
 const String shortFile = "column_breakpoint_test.dart";
 const String breakpointFile =
     "package:observatory_test_package/column_breakpoint_test.dart";
@@ -19,15 +19,15 @@ const String breakpointFile =
 List<String> stops = [];
 
 const List<String> expected = [
-  "$shortFile:${LINE + 0}:29", // on 'i == 0'
-  "$shortFile:${LINE + 0}:29", // iterate twice
-  "$shortFile:${LINE + 1}:11" //on 'b.length'
+  '$shortFile:$LINE_A:33', // on first '=' of 'i == 0'
+  '$shortFile:$LINE_A:33', // iterate twice
+  '$shortFile:$LINE_B:11', // on 'l' of 'b.length'
 ];
 
 final tests = <IsolateTest>[
   hasPausedAtStart,
-  setBreakpointAtLineColumn(LINE, COLUMN), // on 'i == 0'
-  setBreakpointAtLineColumn(LINE + 1, 9), // on 'b.length'
+  setBreakpointAtLineColumn(LINE_A, 34), // on second '=' of 'i == 0'
+  setBreakpointAtLineColumn(LINE_B, 13), // on 'n' of 'b.length'
   resumeProgramRecordingStops(stops, false),
   checkRecordedStops(stops, expected)
 ];

@@ -2715,18 +2715,22 @@ void Assembler::Vdivqs(QRegister qd, QRegister qn, QRegister qm) {
   vmulqs(qd, qn, qd);
 }
 
-void Assembler::Branch(const Code& target,
-                       ObjectPoolBuilderEntry::Patchability patchable,
-                       Register pp,
-                       Condition cond) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index, pp, cond);
-  Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()), cond);
-}
-
 void Assembler::Branch(const Address& address, Condition cond) {
   ldr(PC, address, cond);
+}
+
+void Assembler::BranchLink(intptr_t target_code_pool_index,
+                           CodeEntryKind entry_kind) {
+  CLOBBERS_LR({
+    // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+    // We don't actually use CODE_REG in the callee and caller might
+    // be using CODE_REG for a live value (e.g. a value that is alive
+    // across invocation of a shared stub like the one we use for
+    // allocating Mint boxes).
+    const Register code_reg = FLAG_precompiled_mode ? LR : CODE_REG;
+    LoadWordFromPoolIndex(code_reg, target_code_pool_index, PP, AL);
+    Call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
+  });
 }
 
 void Assembler::BranchLink(
@@ -2740,8 +2744,7 @@ void Assembler::BranchLink(
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const intptr_t index = object_pool_builder().FindObject(
       ToObject(target), patchable, snapshot_behavior);
-  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::BranchLinkPatchable(
@@ -2761,8 +2764,7 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
   // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, index, PP, AL);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::BranchLink(const ExternalLabel* label) {

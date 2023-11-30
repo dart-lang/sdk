@@ -306,23 +306,6 @@ test() {}
     expect(prefixed.identifier.staticElement, findElement.method('=='));
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/51578')
-  test_visitCommentReference_superParameter() async {
-    await assertNoErrorsInCode('''
-class G {
-  G(int p1);
-}
-
-class H extends G {
-  /// [p1]
-  H(super.p1);
-}
-''');
-    var node = findNode.commentReference('[p1]');
-    expect(node, isNotNull);
-    // todo(pq): add expectations
-  }
-
   test_visitConstructorName_named() async {
     await assertNoErrorsInCode('''
 class A implements B {

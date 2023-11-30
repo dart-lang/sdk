@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
@@ -26,8 +27,7 @@ import 'mocks.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(DartEditBuilderImpl_WithNullSafetyTest);
-    defineReflectiveTests(DartEditBuilderImpl_WithoutNullSafetyTest);
+    defineReflectiveTests(DartEditBuilderImpl);
     defineReflectiveTests(DartFileEditBuilderImplTest);
     defineReflectiveTests(DartLinkedEditBuilderImplTest);
     defineReflectiveTests(ImportLibraryTest);
@@ -36,7 +36,59 @@ void main() {
 }
 
 @reflectiveTest
-class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
+class DartEditBuilderImpl extends DartEditBuilderImplTest {
+  Future<void> test_writeParameter_covariantAndRequired() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isCovariant: true, isRequiredNamed: true);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(
+        edits[0].replacement, equalsIgnoringWhitespace('covariant required a'));
+  }
+
+  Future<void> test_writeParameter_required_addImport() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = 'class A {}';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement, equalsIgnoringWhitespace('required a'));
+  }
+
+  Future<void> test_writeParameter_required_existingImport() async {
+    var path = convertPath('$testPackageRootPath/lib/test.dart');
+    var content = '''
+import 'package:meta/meta.dart';
+
+class A {}
+''';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameter('a', isRequiredNamed: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('required a'));
+  }
+
   Future<void> test_writeParameter_required_keyword() async {
     var path = convertPath('$testPackageRootPath/lib/test.dart');
     var content = 'class A {}';
@@ -78,66 +130,6 @@ class DartEditBuilderImpl_WithNullSafetyTest extends DartEditBuilderImplTest {
 
   Future<void> test_writeType_recordType_positional() async {
     await _assertWriteType('(int, int)');
-  }
-}
-
-@reflectiveTest
-class DartEditBuilderImpl_WithoutNullSafetyTest extends DartEditBuilderImplTest
-    with WithoutNullSafetyMixin {
-  Future<void> test_writeParameter_covariantAndRequired() async {
-    var path = convertPath('$testPackageRootPath/lib/test.dart');
-    var content = 'class A {}';
-    addSource(path, content);
-
-    var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameter('a', isCovariant: true, isRequiredNamed: true);
-      });
-    });
-    var edits = getEdits(builder);
-    expect(edits, hasLength(2));
-    expect(edits[0].replacement,
-        equalsIgnoringWhitespace('covariant @required a'));
-    expect(edits[1].replacement,
-        equalsIgnoringWhitespace("import 'package:meta/meta.dart';"));
-  }
-
-  Future<void> test_writeParameter_required_addImport() async {
-    var path = convertPath('$testPackageRootPath/lib/test.dart');
-    var content = 'class A {}';
-    addSource(path, content);
-
-    var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameter('a', isRequiredNamed: true);
-      });
-    });
-    var edits = getEdits(builder);
-    expect(edits, hasLength(2));
-    expect(edits[0].replacement, equalsIgnoringWhitespace('@required a'));
-    expect(edits[1].replacement,
-        equalsIgnoringWhitespace("import 'package:meta/meta.dart';"));
-  }
-
-  Future<void> test_writeParameter_required_existingImport() async {
-    var path = convertPath('$testPackageRootPath/lib/test.dart');
-    var content = '''
-import 'package:meta/meta.dart';
-
-class A {}
-''';
-    addSource(path, content);
-
-    var builder = await newBuilder();
-    await builder.addDartFileEdit(path, (builder) {
-      builder.addInsertion(content.length - 1, (builder) {
-        builder.writeParameter('a', isRequiredNamed: true);
-      });
-    });
-    var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('@required a'));
   }
 }
 
@@ -1218,10 +1210,8 @@ f(int i, String s) {
       });
     });
     var edit = getEdit(builder);
-    var expectedReplacement = this is WithoutNullSafetyMixin
-        ? 'String s, {int index}'
-        : 'String s, {required int index}';
-    expect(edit.replacement, equalsIgnoringWhitespace(expectedReplacement));
+    expect(edit.replacement,
+        equalsIgnoringWhitespace('String s, {required int index}'));
   }
 
   Future<void> test_writeParametersMatchingArguments_required() async {

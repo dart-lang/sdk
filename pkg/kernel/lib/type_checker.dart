@@ -249,7 +249,7 @@ class TypeCheckingVisitor
       return Substitution.empty; // Members on Object are always accessible.
     }
 
-    type = type.resolveTypeParameterType;
+    type = type.nonTypeVariableBound;
     if (type is NeverType || type is NullType || type is InvalidType) {
       // The bottom type is a subtype of all types, so it should be allowed.
       return Substitution.bottomForTypeDeclaration(typeDeclaration);

@@ -226,7 +226,11 @@ class JsonDeserializer implements Deserializer {
       throw new StateError(
           'You must call `moveNext()` before reading any values.');
     }
-    return _path.last.current as T;
+    Object? current = _path.last.current;
+    if (current is! T) {
+      throw new StateError('Expected $T, got: ${_path.last.current}');
+    }
+    return current;
   }
 
   @override

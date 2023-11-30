@@ -11,17 +11,17 @@ import 'common/test_helper.dart';
 
 extension on String {
   String printAndReturnHello() {
-    String response = "Hello from String '$this'";
+    final String response = "Hello from String '$this'";
     print(response);
     return response;
   }
 }
 
 void testFunction() {
-  String x = "hello";
-  String value = x.printAndReturnHello();
+  final String x = 'hello';
+  final String value = x.printAndReturnHello();
   debugger();
-  print("value = $value");
+  print('value = $value');
 }
 
 final tests = <IsolateTest>[

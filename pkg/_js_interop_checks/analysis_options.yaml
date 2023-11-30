@@ -2,6 +2,5 @@ include: package:lints/recommended.yaml
 
 linter:
   rules:
-    depend_on_referenced_packages: true
-    directives_ordering: true
-    sort_pub_dependencies: true
+    - directives_ordering
+    - sort_pub_dependencies

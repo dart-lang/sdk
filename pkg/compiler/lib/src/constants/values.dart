@@ -905,15 +905,9 @@ class ConstructedConstantValue extends ObjectConstantValue {
   @override
   final int hashCode;
 
-  ConstructedConstantValue(
-      InterfaceType type, Map<FieldEntity, ConstantValue> fields)
+  ConstructedConstantValue(super.type, Map<FieldEntity, ConstantValue> fields)
       : this.fields = fields,
-        hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type)),
-        super(type) {
-    assert((type as dynamic) != null);
-    assert(!fields.containsKey(null));
-    assert(!fields.containsValue(null));
-  }
+        hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type));
 
   @override
   bool operator ==(var otherVar) {

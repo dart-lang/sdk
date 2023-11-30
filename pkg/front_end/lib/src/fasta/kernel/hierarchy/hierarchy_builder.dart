@@ -112,12 +112,12 @@ class ClassHierarchyBuilder
   }
 
   @override
-  InterfaceType getInterfaceTypeAsInstanceOfClass(
+  InterfaceType? getInterfaceTypeAsInstanceOfClass(
       InterfaceType type, Class superclass,
       {required bool isNonNullableByDefault}) {
     if (type.classNode == superclass) return type;
-    return asSupertypeOf(type, superclass)!
-        .asInterfaceType
+    return asSupertypeOf(type, superclass)
+        ?.asInterfaceType
         .withDeclaredNullability(type.nullability);
   }
 
@@ -129,7 +129,7 @@ class ClassHierarchyBuilder
   }
 
   @override
-  bool isSubtypeOf(Class subtype, Class superclass) {
+  bool isSubInterfaceOf(Class subtype, Class superclass) {
     return getClassAsInstanceOf(subtype, superclass) != null;
   }
 
@@ -174,18 +174,11 @@ class ClassHierarchyBuilder
     for (int i = 0; i < common.length - 1; i++) {
       ClassHierarchyNode node = common[i];
       if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
-        if (type1 is InterfaceType) {
-          return getInterfaceTypeAsInstanceOfClass(type1, node.classBuilder.cls,
-                  isNonNullableByDefault: isNonNullableByDefault)
-              .withDeclaredNullability(
-                  uniteNullabilities(type1.nullability, type2.nullability));
-        } else {
-          type1 as ExtensionType;
-          return getExtensionTypeAsInstanceOfClass(type1, node.classBuilder.cls,
-                  isNonNullableByDefault: isNonNullableByDefault)!
-              .withDeclaredNullability(
-                  uniteNullabilities(type1.nullability, type2.nullability));
-        }
+        return getTypeAsInstanceOf(type1, node.classBuilder.cls,
+                    isNonNullableByDefault: isNonNullableByDefault)!
+                .withDeclaredNullability(
+                    uniteNullabilities(type1.nullability, type2.nullability))
+            as InterfaceType;
       } else {
         do {
           i++;

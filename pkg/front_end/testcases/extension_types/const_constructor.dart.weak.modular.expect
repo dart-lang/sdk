@@ -21,7 +21,7 @@ import self as self;
 import "dart:core" as core;
 
 extension type Class(core::int i) {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   constructor • = self::Class|constructor#;
   constructor tearoff • = self::Class|constructor#_#new#tearOff;
   constructor named = self::Class|constructor#named;
@@ -33,29 +33,29 @@ extension type Class(core::int i) {
   static redirecting-factory redirect2 = self::Class|constructor#redirect2;
   static redirecting-factory tearoff redirect2 = self::Class|constructor#_#redirect2#tearOff;
 }
-static inline-class-member method Class|constructor#(core::int i) → self::Class /* = core::int */ {
+static extension-type-member method Class|constructor#(core::int i) → self::Class /* = core::int */ {
   lowered final self::Class /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method Class|constructor#_#new#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#new#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|constructor#(i);
-static inline-class-member method Class|constructor#named(core::int i) → self::Class /* = core::int */ {
+static extension-type-member method Class|constructor#named(core::int i) → self::Class /* = core::int */ {
   lowered final self::Class /* = core::int */ #this = i;
   return #this;
 }
-static inline-class-member method Class|constructor#_#named#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#named#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|constructor#named(i);
-static inline-class-member method Class|constructor#redirect(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class|constructor# */
+static extension-type-member method Class|constructor#redirect(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class|constructor# */
   return self::Class|constructor#(i);
-static inline-class-member method Class|constructor#_#redirect#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#redirect#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|constructor#(i);
-static inline-class-member method Class|constructor#fact(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#fact(core::int i) → self::Class /* = core::int */
   return self::Class|constructor#(i);
-static inline-class-member method Class|constructor#_#fact#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#fact#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|constructor#fact(i);
-static inline-class-member method Class|constructor#redirect2(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class|constructor# */
+static extension-type-member method Class|constructor#redirect2(core::int i) → self::Class /* = core::int */ /* redirection-target: self::Class|constructor# */
   return self::Class|constructor#(i);
-static inline-class-member method Class|constructor#_#redirect2#tearOff(core::int i) → self::Class /* = core::int */
+static extension-type-member method Class|constructor#_#redirect2#tearOff(core::int i) → self::Class /* = core::int */
   return self::Class|constructor#(i);
 static method test() → dynamic {
   invalid-expression "pkg/front_end/testcases/extension_types/const_constructor.dart:16:9: Error: Cannot invoke a non-'const' constructor where a const expression is expected.

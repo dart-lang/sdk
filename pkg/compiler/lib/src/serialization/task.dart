@@ -6,7 +6,6 @@ import 'dart:async';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/binary/ast_from_binary.dart' as ir;
 import 'package:kernel/binary/ast_to_binary.dart' as ir;
-import 'package:front_end/src/fasta/util/bytes_sink.dart';
 import '../../compiler_api.dart' as api;
 import '../commandline_options.dart' show Flags;
 import '../common/codegen.dart';
@@ -20,7 +19,6 @@ import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/abstract_value_strategy.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
-import '../ir/modular.dart';
 import '../js_backend/codegen_inputs.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/js_world.dart';
@@ -59,9 +57,6 @@ class SerializationTask extends CompilerTask {
   void serializeComponent(ir.Component component,
       {bool includeSourceBytes = true}) {
     measureSubtask('serialize dill', () {
-      // TODO(sigmund): remove entirely: we will do this immediately as soon as
-      // we get the component in the kernel/loader.dart task once we refactor
-      // how we apply our modular kernel transformation for super mixin calls.
       _reporter.log('Writing dill to ${_options.outputUri}');
       api.BinaryOutputSink dillOutput =
           _outputProvider.createBinarySink(_options.outputUri!);
@@ -112,80 +107,6 @@ class SerializationTask extends CompilerTask {
     return component;
   }
 
-  void serializeModuleData(
-      ModuleData data, ir.Component component, Set<Uri> includedLibraries) {
-    measureSubtask('serialize transformed dill', () {
-      _reporter.log('Writing dill to ${_options.outputUri}');
-      var dillOutput = _outputProvider.createBinarySink(_options.outputUri!);
-      ir.BinaryPrinter printer = ir.BinaryPrinter(dillOutput,
-          libraryFilter: (ir.Library l) =>
-              includedLibraries.contains(l.importUri));
-      printer.writeComponentFile(component);
-      dillOutput.close();
-    });
-
-    measureSubtask('serialize module data', () {
-      final outputUri =
-          _options.dataOutputUriForStage(Dart2JSStage.modularAnalysis);
-      _reporter.log('Writing data to $outputUri');
-      api.BinaryOutputSink dataOutput =
-          _outputProvider.createBinarySink(outputUri);
-      // Use empty indices since module data is ephemeral, later phases should
-      // not depend on data indexed in this file.
-      DataSinkWriter sink = DataSinkWriter(
-          BinaryDataSink(dataOutput), _options, SerializationIndices());
-      data.toDataSink(sink);
-      sink.close();
-    });
-  }
-
-  void testModuleSerialization(ModuleData data, ir.Component component) {
-    if (_options.testMode) {
-      // TODO(joshualitt):
-      // Consider using a strategy like we do for the global data, so we can also
-      // test it with the objectSink/objectSource:
-      //   List<Object> encoding = [];
-      //   DataSink sink = ObjectSink(encoding, useDataKinds: true);
-      //   data.toDataSink(sink);
-      //   DataSource source = ObjectSource(encoding, useDataKinds: true);
-      //   source.registerComponentLookup(new ComponentLookup(component));
-      //   ModuleData.fromDataSource(source);
-
-      // Use empty indices since module data is ephemeral, later phases should
-      // not depend on data indexed in this file.
-      BytesSink bytes = BytesSink();
-      DataSinkWriter binarySink = DataSinkWriter(
-          BinaryDataSink(bytes), _options, SerializationIndices(),
-          useDataKinds: true);
-      data.toDataSink(binarySink);
-      binarySink.close();
-      var source = DataSourceReader(BinaryDataSource(bytes.builder.toBytes()),
-          _options, SerializationIndices(),
-          useDataKinds: true, interner: _valueInterner);
-      source.registerComponentLookup(ComponentLookup(component));
-      ModuleData.fromDataSource(source);
-    }
-  }
-
-  Future<ModuleData> deserializeModuleData(ir.Component component) async {
-    return await measureIoSubtask('deserialize module data', () async {
-      _reporter.log('Reading data from ${_options.modularAnalysisInputs}');
-      final results = ModuleData();
-      for (Uri uri in _options.modularAnalysisInputs!) {
-        final dataInput =
-            await _provider.readFromUri(uri, inputKind: api.InputKind.binary);
-        // Use empty indices since module data is ephemeral, later phases should
-        // not depend on data indexed in this file.
-        DataSourceReader source = DataSourceReader(
-            BinaryDataSource(dataInput.data), _options, SerializationIndices(),
-            interner: _valueInterner);
-        source.registerComponentLookup(ComponentLookup(component));
-        results.readMoreFromDataSource(source);
-      }
-      return results;
-    });
-  }
-
   void serializeClosedWorld(
       JClosedWorld closedWorld, SerializationIndices indices) {
     measureSubtask('serialize closed world', () {
@@ -201,7 +122,6 @@ class SerializationTask extends CompilerTask {
   }
 
   Future<JClosedWorld> deserializeClosedWorld(
-      Environment environment,
       AbstractValueStrategy abstractValueStrategy,
       ir.Component component,
       bool useDeferredSourceReads,
@@ -217,8 +137,8 @@ class SerializationTask extends CompilerTask {
           indices,
           interner: _valueInterner,
           useDeferredStrategy: useDeferredSourceReads);
-      var closedWorld = deserializeClosedWorldFromSource(_options, _reporter,
-          environment, abstractValueStrategy, component, source);
+      var closedWorld = deserializeClosedWorldFromSource(
+          _options, _reporter, abstractValueStrategy, component, source);
       return closedWorld;
     });
   }
@@ -425,10 +345,9 @@ void serializeClosedWorldToSink(JClosedWorld closedWorld, DataSinkWriter sink) {
 JClosedWorld deserializeClosedWorldFromSource(
     CompilerOptions options,
     DiagnosticReporter reporter,
-    Environment environment,
     AbstractValueStrategy abstractValueStrategy,
     ir.Component component,
     DataSourceReader source) {
   return JClosedWorld.readFromDataSource(
-      options, reporter, environment, abstractValueStrategy, component, source);
+      options, reporter, abstractValueStrategy, component, source);
 }

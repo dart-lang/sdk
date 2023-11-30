@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
@@ -48,7 +48,7 @@ class ApplyConstantOffsets {
       );
       function.call(applier);
       // Clear the references to possible closure data.
-      // TODO(scheglov) We want to null the whole `linkedData` instead.
+      // TODO(scheglov): We want to null the whole `linkedData` instead.
       _offsets = null;
       _function = null;
     }
@@ -870,7 +870,8 @@ class _InfoClassDeclaration {
   factory _InfoClassDeclaration(
       InfoDeclarationStore cache, SummaryDataReader reader,
       {int nameOffsetDelta = 0}) {
-    // TODO(jensj/scheglov): Possibly we could just save the bytes and the
+    // TODO(scheglov): Shared below.
+    // TODO(jensj): Possibly we could just save the bytes and the
     // offset and then only read it when/if needed.
     // See https://dart-review.googlesource.com/c/sdk/+/318940.
     final initialOffset = reader.offset;
@@ -1660,7 +1661,7 @@ class _InformativeDataWriter {
     sink.writeUInt30(node.name.offset);
     _writeDocumentationComment(node);
 
-    // TODO(scheglov) Replace with some kind of double-iterating list.
+    // TODO(scheglov): Replace with some kind of double-iterating list.
     var declaration = node.parent!.parent as FieldDeclaration;
 
     _writeOffsets(
@@ -1881,7 +1882,7 @@ class _InformativeDataWriter {
     sink.writeUInt30(node.name.offset);
     _writeDocumentationComment(node);
 
-    // TODO(scheglov) Replace with some kind of double-iterating list.
+    // TODO(scheglov): Replace with some kind of double-iterating list.
     var declaration = node.parent!.parent as TopLevelVariableDeclaration;
 
     _writeOffsets(

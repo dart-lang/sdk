@@ -3,15 +3,15 @@ import self as self;
 import "dart:core" as core;
 
 extension type I<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(X% value) {
-  abstract inline-class-member representation-field get value() → X%;
+  abstract extension-type-member representation-field get value() → X%;
   constructor • = self::I|constructor#;
   constructor tearoff • = self::I|constructor#_#new#tearOff;
 }
-static inline-class-member method I|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|constructor#::X% value) → self::I<self::I|constructor#::X%, self::I|constructor#::Y%> /* = self::I|constructor#::X% */ {
+static extension-type-member method I|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|constructor#::X% value) → self::I<self::I|constructor#::X%, self::I|constructor#::Y%> /* = self::I|constructor#::X% */ {
   lowered final self::I<self::I|constructor#::X%, self::I|constructor#::Y%> /* = self::I|constructor#::X% */ #this = value;
   return #this;
 }
-static inline-class-member method I|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|constructor#_#new#tearOff::X% value) → self::I<self::I|constructor#_#new#tearOff::X%, self::I|constructor#_#new#tearOff::Y%>% /* = self::I|constructor#_#new#tearOff::X% */
+static extension-type-member method I|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::I|constructor#_#new#tearOff::X% value) → self::I<self::I|constructor#_#new#tearOff::X%, self::I|constructor#_#new#tearOff::Y%>% /* = self::I|constructor#_#new#tearOff::X% */
   return self::I|constructor#<self::I|constructor#_#new#tearOff::X%, self::I|constructor#_#new#tearOff::Y%>(value);
 static method f(self::I<core::int, core::String> /* = core::int */ i) → void {}
 static method main() → void {

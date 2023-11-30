@@ -17,9 +17,11 @@ dev_dependencies:
   async: any
   collection: any
   lints: any
+  logging: any
   markdown: any
   path: any
   pub_semver: any
+  stack_trace: any
   test_package: any
   test: any
   vm_service_protos: any

@@ -44,7 +44,7 @@ final /*[1*/a^/*1]*/ = A();
     expect(result.originSelectionRange, originRange);
     expect(result.targetUri, mainFileUri);
     expect(result.targetSelectionRange, targetRange);
-    expect(result.targetRange, rangeOfString(code.code, 'class A {}'));
+    expect(result.targetRange, rangeOfString(code, 'class A {}'));
   }
 
   Future<void> test_doubleLiteral() async {
@@ -128,7 +128,7 @@ class [!A!] {}
     expect(result.originSelectionRange, code.range.range);
     expect(result.targetUri, otherFileUri);
     expect(result.targetSelectionRange, otherCode.range.range);
-    expect(result.targetRange, rangeOfString(otherCode.code, 'class A {}'));
+    expect(result.targetRange, rangeOfString(otherCode, 'class A {}'));
   }
 
   Future<void> test_parameter() async {

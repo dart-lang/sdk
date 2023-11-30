@@ -9,21 +9,22 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-doThrow() {
-  throw "TheException"; // Line 13.
+Never doThrow() {
+  throw 'TheException'; // Line 13.
 }
 
-doCaught() {
+String doCaught() {
   try {
     doThrow();
   } catch (e) {
-    return "end of doCaught";
+    return 'end of doCaught';
   }
 }
 
-doUncaught() {
+String doUncaught() {
   doThrow();
-  return "end of doUncaught";
+  // ignore: dead_code
+  return 'end of doUncaught';
 }
 
 final tests = <IsolateTest>[
@@ -36,15 +37,15 @@ final tests = <IsolateTest>[
 
     final stream = service.onDebugEvent;
     final subscription = stream.listen((Event event) {
-      print("Event $event");
+      print('Event $event');
       if (event.kind == EventKind.kPauseException) {
-        if (onPaused == null) throw "Unexpected pause event $event";
+        if (onPaused == null) throw 'Unexpected pause event $event';
         final t = onPaused;
         onPaused = null;
         t!.complete(event);
       }
       if (event.kind == EventKind.kResume) {
-        if (onResume == null) throw "Unexpected resume event $event";
+        if (onResume == null) throw 'Unexpected resume event $event';
         final t = onResume;
         onResume = null;
         t!.complete(event);
@@ -52,12 +53,18 @@ final tests = <IsolateTest>[
     });
     await service.streamListen(EventStreams.kDebug);
 
-    test(String pauseMode, String expression, bool shouldPause,
-        bool shouldBeCaught) async {
-      print("Evaluating $expression with pause on $pauseMode exception");
+    Future<void> test(
+      String pauseMode,
+      String expression,
+      bool shouldPause,
+      bool shouldBeCaught,
+    ) async {
+      print('Evaluating $expression with pause on $pauseMode exception');
 
-      await service.setIsolatePauseMode(isolate.id!,
-          exceptionPauseMode: pauseMode);
+      await service.setIsolatePauseMode(
+        isolate.id!,
+        exceptionPauseMode: pauseMode,
+      );
 
       late Completer t;
       if (shouldPause) {
@@ -81,31 +88,31 @@ final tests = <IsolateTest>[
       if (shouldBeCaught) {
         expect(res is InstanceRef, true);
         expect(res.kind, 'String');
-        expect(res.valueAsString, equals("end of doCaught"));
+        expect(res.valueAsString, equals('end of doCaught'));
       } else {
         print(res.json);
         expect(res is ErrorRef, true);
         res = await service.getObject(isolate.id!, res.id!);
         expect(res is Error, true);
         expect(res.exception.kind, 'String');
-        expect(res.exception.valueAsString, equals("TheException"));
+        expect(res.exception.valueAsString, equals('TheException'));
       }
     }
 
-    await test("All", "doCaught()", true, true);
-    await test("All", "doUncaught()", true, false);
+    await test('All', 'doCaught()', true, true);
+    await test('All', 'doUncaught()', true, false);
 
-    await test("Unhandled", "doCaught()", false, true);
-    await test("Unhandled", "doUncaught()", true, false);
+    await test('Unhandled', 'doCaught()', false, true);
+    await test('Unhandled', 'doUncaught()', true, false);
 
-    await test("None", "doCaught()", false, true);
-    await test("None", "doUncaught()", false, false);
+    await test('None', 'doCaught()', false, true);
+    await test('None', 'doUncaught()', false, false);
 
     await subscription.cancel();
   },
 ];
 
-main([args = const <String>[]]) => runIsolateTests(
+void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'pause_on_exceptions_test.dart',

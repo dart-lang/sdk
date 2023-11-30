@@ -6,9 +6,6 @@ part of repositories;
 
 class TimelineRepository extends TimelineRepositoryBase
     implements M.TimelineRepository {
-  static const _kStackFrames = 'stackFrames';
-  static const _kTraceEvents = 'traceEvents';
-
   Future<M.TimelineFlags> getFlags(M.VMRef ref) async {
     S.VM vm = ref as S.VM;
     S.ServiceMap response =

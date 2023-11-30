@@ -991,7 +991,26 @@ CommentReference
 ''');
   }
 
-  test_beforeConstructor() async {
+  test_beforeConstructor_fieldParameter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int p;
+
+  /// [p]
+  A(this.p);
+}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('p]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p
+    staticElement: self::@class::A::@constructor::new::@parameter::p
+    staticType: null
+''');
+  }
+
+  test_beforeConstructor_normalParameter() async {
     await assertNoErrorsInCode(r'''
 class A {
   /// [p]
@@ -1003,6 +1022,27 @@ CommentReference
   expression: SimpleIdentifier
     token: p
     staticElement: self::@class::A::@constructor::new::@parameter::p
+    staticType: null
+''');
+  }
+
+  test_beforeConstructor_superParameter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A(int p);
+}
+
+class B extends A {
+  /// [p]
+  B(super.p);
+}
+''');
+
+    assertResolvedNodeText(findNode.commentReference('p]'), r'''
+CommentReference
+  expression: SimpleIdentifier
+    token: p
+    staticElement: self::@class::B::@constructor::new::@parameter::p
     staticType: null
 ''');
   }

@@ -17,6 +17,37 @@ main() {
 @reflectiveTest
 class BinaryExpressionResolutionTest extends PubPackageResolutionTest
     with BinaryExpressionResolutionTestCases {
+  test_eqEq_alwaysBool() async {
+    await assertNoErrorsInCode(r'''
+extension type MyBool(bool it) implements bool {}
+
+class A {
+  MyBool operator ==(_) => MyBool(true);
+}
+
+void f(A a) {
+  a == 0;
+}
+''');
+
+    final node = findNode.binary('a == 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: self::@class::A::@method::==::@parameter::_
+    staticType: int
+  staticElement: self::@class::A::@method::==
+  staticInvokeType: MyBool Function(Object)
+  staticType: bool
+''');
+  }
+
   test_eqEq_switchExpression_left() async {
     await assertNoErrorsInCode(r'''
 void f(Object? x) {
@@ -742,7 +773,7 @@ BinaryExpression
     staticType: int
   staticElement: <null>
   staticInvokeType: null
-  staticType: InvalidType
+  staticType: bool
 ''');
   }
 

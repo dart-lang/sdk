@@ -21,7 +21,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../options.dart';
 import 'invocation_mirror_constants.dart';
-import 'transformations/modular/lowering.dart' as modularTransforms;
+import 'transformations/modular/transform.dart' as modularTransforms;
 
 const Iterable<String> _allowedDartSchemePaths = [
   'async',
@@ -41,10 +41,6 @@ List<Pattern> _allowedNativeTestPatterns = [
   RegExp(r'(?<!generated_)tests/web/internal'),
   'generated_tests/web/native/native_test',
   'generated_tests/web/internal/deferred_url_test',
-  RegExp(r'(?<!generated_)tests/web_2/native'),
-  RegExp(r'(?<!generated_)tests/web_2/internal'),
-  'generated_tests/web_2/native/native_test',
-  'generated_tests/web_2/internal/deferred_url_test',
   'pkg/front_end/testcases/dart2js/native',
 ];
 

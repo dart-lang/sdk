@@ -66,7 +66,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     TokenType operatorType = node.operator.type;
     // If the operator is ||, then only consider the RHS of the binary
     // expression if the left hand side is the false literal.
-    // TODO(jwren) Do we want to take constant expressions into account,
+    // TODO(jwren): Do we want to take constant expressions into account,
     // evaluate if(false) {} differently than if(<condition>), when <condition>
     // evaluates to a constant false value?
     if (operatorType == TokenType.BAR_BAR) {
@@ -119,7 +119,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
     var conditionExpression = node.condition;
     var thenExpression = node.thenExpression;
     var elseExpression = node.elseExpression;
-    // TODO(jwren) Do we want to take constant expressions into account,
+    // TODO(jwren): Do we want to take constant expressions into account,
     // evaluate if(false) {} differently than if(<condition>), when <condition>
     // evaluates to a constant false value?
     if (_nodeExits(conditionExpression)) {
@@ -156,7 +156,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
       if (_nodeExits(conditionExpression)) {
         return true;
       }
-      // TODO(jwren) Do we want to take all constant expressions into account?
+      // TODO(jwren): Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
         // If do {} while (true), and the body doesn't break, then return true.
         if (conditionExpression.value && !_enclosingBlockContainsBreak) {
@@ -205,7 +205,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
           return true;
         }
         bool blockReturns = _nodeExits(node.body);
-        // TODO(jwren) Do we want to take all constant expressions into account?
+        // TODO(jwren): Do we want to take all constant expressions into account?
         // If for(; true; ) (or for(;;)), and the body doesn't return or the body
         // doesn't have a break, then return true.
         bool implicitOrExplicitTrue = conditionExpression == null ||
@@ -276,7 +276,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         return true;
       }
       bool blockReturns = _nodeExits(node.body);
-      // TODO(jwren) Do we want to take all constant expressions into account?
+      // TODO(jwren): Do we want to take all constant expressions into account?
       // If for(; true; ) (or for(;;)), and the body doesn't return or the body
       // doesn't have a break, then return true.
       bool implicitOrExplicitTrue =
@@ -619,7 +619,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
         return true;
       }
       node.body.accept(this);
-      // TODO(jwren) Do we want to take all constant expressions into account?
+      // TODO(jwren): Do we want to take all constant expressions into account?
       if (conditionExpression is BooleanLiteral) {
         // If while(true), and the body doesn't have a break, then return true.
         // The body might be found to exit, but if there are any break
@@ -648,7 +648,7 @@ class ExitDetector extends GeneralizingAstVisitor<bool> {
   /// If the given [expression] has a known Boolean value, return the known
   /// value, otherwise return `null`.
   bool? _knownConditionValue(Expression conditionExpression) {
-    // TODO(jwren) Do we want to take all constant expressions into account?
+    // TODO(jwren): Do we want to take all constant expressions into account?
     if (conditionExpression is BooleanLiteral) {
       return conditionExpression.value;
     }

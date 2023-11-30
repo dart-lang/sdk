@@ -55,7 +55,7 @@ void flutterValidator(PubspecValidationContext ctx) {
           var entry = entryValue.valueOrThrow;
           if (entry is String) {
             if (entry.startsWith('packages/')) {
-              // TODO(brianwilkerson) Add validation of package references.
+              // TODO(brianwilkerson): Add validation of package references.
             } else {
               bool isDirectoryEntry = entry.endsWith("/");
               String normalizedEntry = context.joinAll(path.posix.split(entry));
@@ -83,7 +83,7 @@ void flutterValidator(PubspecValidationContext ctx) {
     }
 
     if (flutterField.length > 1) {
-      // TODO(brianwilkerson) Should we report an error if `flutter` contains
+      // TODO(brianwilkerson): Should we report an error if `flutter` contains
       // keys other than `assets`?
     }
   } else if (flutterField != null) {

@@ -734,6 +734,23 @@ DART_EXPORT int64_t SumStruct9Uint8(Struct9Uint8 s9) {
   return s9.a0 + s9.a1 + s9.a2 + s9.a3 + s9.a4 + s9.a5 + s9.a6 + s9.a7 + s9.a8;
 }
 
+DART_EXPORT int64_t
+SumReturnStruct9Uint8(Struct9Uint8 (*callback)(Struct9Uint8*),
+                      Struct9Uint8* in) {
+  std::cout << "SumReturnStruct9Uint8 in (" << in->a0 << ", " << in->a1 << ", "
+            << in->a2 << ", " << in->a3 << ", " << in->a4 << ", " << in->a5
+            << ", " << in->a6 << ", " << in->a7 << ", " << in->a8 << ")\n";
+
+  Struct9Uint8 out = callback(in);
+
+  std::cout << "SumReturnStruct9Uint8 out (" << out.a0 << ", " << out.a1 << ", "
+            << out.a2 << ", " << out.a3 << ", " << out.a4 << ", " << out.a5
+            << ", " << out.a6 << ", " << out.a7 << ", " << out.a8 << ")\n";
+
+  return out.a0 + out.a1 + out.a2 + out.a3 + out.a4 + out.a5 + out.a6 + out.a7 +
+         out.a8;
+}
+
 // Allocates a multiple of the larest page size, so the last element of the
 // array is right at a page boundary. Explicitly allocate and make inaccessible
 // the next page to avoid flaky false-successes if the next page happens to be

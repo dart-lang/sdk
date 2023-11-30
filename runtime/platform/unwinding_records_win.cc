@@ -7,7 +7,8 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 
-#if defined(DART_HOST_OS_WINDOWS) && defined(TARGET_ARCH_X64)
+#if defined(DART_HOST_OS_WINDOWS) &&                                           \
+    (defined(TARGET_ARCH_X64) || defined(TARGET_ARCH_ARM64))
 
 namespace dart {
 
@@ -17,7 +18,12 @@ static decltype(&::RtlAddGrowableFunctionTable)
 static decltype(&::RtlDeleteGrowableFunctionTable)
     delete_growable_function_table_func_ = nullptr;
 
+#if defined(TARGET_ARCH_X64)
 const intptr_t kReservedUnwindingRecordsSizeBytes = 64;
+#else
+const intptr_t kReservedUnwindingRecordsSizeBytes = 4 * KB;
+#endif
+
 intptr_t UnwindingRecordsPlatform::SizeInBytes() {
   return kReservedUnwindingRecordsSizeBytes;
 }
@@ -64,13 +70,14 @@ void UnwindingRecordsPlatform::RegisterExecutableMemory(
       reinterpret_cast<CodeRangeUnwindingRecord*>(record_ptr);
   uword start_num = reinterpret_cast<intptr_t>(start);
   uword end_num = start_num + size;
-  if (func(pp_dynamic_table,
-           /*FunctionTable=*/record->runtime_function,
-           /*EntryCount=*/record->runtime_function_count,
-           /*MaximumEntryCount=*/record->runtime_function_count,
-           /*RangeBase=*/start_num,
-           /*RangeEnd=*/end_num) != 0) {
-    FATAL("Failed to add growable function table: %d\n", GetLastError());
+  DWORD status = func(pp_dynamic_table,
+                      /*FunctionTable=*/record->runtime_function,
+                      /*EntryCount=*/record->runtime_function_count,
+                      /*MaximumEntryCount=*/record->runtime_function_count,
+                      /*RangeBase=*/start_num,
+                      /*RangeEnd=*/end_num);
+  if (status != 0) {
+    FATAL("Failed to add growable function table: 0x%x\n", status);
   }
 }
 

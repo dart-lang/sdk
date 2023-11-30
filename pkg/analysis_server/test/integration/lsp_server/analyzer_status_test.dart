@@ -19,8 +19,6 @@ class AnalyzerStatusTest extends AbstractLspAnalysisServerIntegrationTest {
     const initialContents = 'int a = 1;';
     newFile(mainFilePath, initialContents);
 
-    final initialAnalysis = waitForAnalysisComplete();
-
     await initialize();
     await initialAnalysis;
 

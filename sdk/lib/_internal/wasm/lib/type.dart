@@ -28,6 +28,15 @@ extension _IndexWasmArrayOfTypes on WasmObjectArray<_Type> {
   bool get isNotEmpty => length != 0;
 }
 
+// Direct getter to bypass the covariance check and the bounds check when
+// indexing into a Dart list. This makes the indexing more efficient and avoids
+// performing type checks while performing type checks.
+extension _BypassListIndexingChecks<T> on List<T> {
+  @pragma("wasm:prefer-inline")
+  T _getUnchecked(int index) =>
+      unsafeCast(unsafeCast<_ListBase<T>>(this)._data.read(index));
+}
+
 // TODO(joshualitt): Once we have RTI fully working, we'd like to explore
 // implementing [isSubtype] using inheritance.
 // TODO(joshualitt): We can cache the result of [_FutureOrType.asFuture].
@@ -361,15 +370,22 @@ class _FunctionType extends _Type {
     if (requiredParameterCount != other.requiredParameterCount) return false;
     if (namedParameters.length != other.namedParameters.length) return false;
     for (int i = 0; i < typeParameterBounds.length; i++) {
-      if (typeParameterBounds[i] != other.typeParameterBounds[i]) return false;
+      if (typeParameterBounds._getUnchecked(i) !=
+          other.typeParameterBounds._getUnchecked(i)) {
+        return false;
+      }
     }
     for (int i = 0; i < positionalParameters.length; i++) {
-      if (positionalParameters[i] != other.positionalParameters[i]) {
+      if (positionalParameters._getUnchecked(i) !=
+          other.positionalParameters._getUnchecked(i)) {
         return false;
       }
     }
     for (int i = 0; i < namedParameters.length; i++) {
-      if (namedParameters[i] != other.namedParameters[i]) return false;
+      if (namedParameters._getUnchecked(i) !=
+          other.namedParameters._getUnchecked(i)) {
+        return false;
+      }
     }
     return true;
   }
@@ -378,16 +394,16 @@ class _FunctionType extends _Type {
   int get hashCode {
     int hash = mix64(ClassID.cidFunctionType);
     for (int i = 0; i < typeParameterBounds.length; i++) {
-      hash = mix64(hash ^ typeParameterBounds[i].hashCode);
+      hash = mix64(hash ^ typeParameterBounds._getUnchecked(i).hashCode);
     }
     hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
     hash = mix64(hash ^ returnType.hashCode);
     for (int i = 0; i < positionalParameters.length; i++) {
-      hash = mix64(hash ^ positionalParameters[i].hashCode);
+      hash = mix64(hash ^ positionalParameters._getUnchecked(i).hashCode);
     }
     hash = mix64(hash ^ requiredParameterCount);
     for (int i = 0; i < namedParameters.length; i++) {
-      hash = mix64(hash ^ namedParameters[i].hashCode);
+      hash = mix64(hash ^ namedParameters._getUnchecked(i).hashCode);
     }
     return hash;
   }
@@ -400,7 +416,7 @@ class _FunctionType extends _Type {
       for (int i = 0; i < typeParameterBounds.length; i++) {
         if (i > 0) s.write(", ");
         s.write("X${typeParameterOffset + i}");
-        final bound = typeParameterBounds[i];
+        final bound = typeParameterBounds._getUnchecked(i);
         if (!(bound.isTop && bound.isDeclaredNullable)) {
           s.write(" extends ");
           s.write(bound);
@@ -412,7 +428,7 @@ class _FunctionType extends _Type {
     for (int i = 0; i < positionalParameters.length; i++) {
       if (i > 0) s.write(", ");
       if (i == requiredParameterCount) s.write("[");
-      s.write(positionalParameters[i]);
+      s.write(positionalParameters._getUnchecked(i));
     }
     if (requiredParameterCount < positionalParameters.length) s.write("]");
     if (namedParameters.isNotEmpty) {
@@ -420,7 +436,7 @@ class _FunctionType extends _Type {
       s.write("{");
       for (int i = 0; i < namedParameters.length; i++) {
         if (i > 0) s.write(", ");
-        s.write(namedParameters[i]);
+        s.write(namedParameters._getUnchecked(i));
       }
       s.write("}");
     }
@@ -465,7 +481,7 @@ class _RecordType extends _Type {
     final int numNames = names.length;
 
     for (int i = 0; i < numPositionals; i += 1) {
-      buffer.write(fieldTypes[i]);
+      buffer.write(fieldTypes._getUnchecked(i));
       if (i != fieldTypes.length - 1) {
         buffer.write(', ');
       }
@@ -474,8 +490,8 @@ class _RecordType extends _Type {
     if (names.isNotEmpty) {
       buffer.write('{');
       for (int i = 0; i < numNames; i += 1) {
-        final String fieldName = names[i];
-        final _Type fieldType = fieldTypes[numPositionals + i];
+        final String fieldName = names._getUnchecked(i);
+        final _Type fieldType = fieldTypes._getUnchecked(numPositionals + i);
         buffer.write(fieldType);
         buffer.write(' ');
         buffer.write(fieldName);
@@ -503,7 +519,8 @@ class _RecordType extends _Type {
     }
 
     for (int fieldIdx = 0; fieldIdx < fieldTypes.length; fieldIdx += 1) {
-      if (fieldTypes[fieldIdx] != other.fieldTypes[fieldIdx]) {
+      if (fieldTypes._getUnchecked(fieldIdx) !=
+          other.fieldTypes._getUnchecked(fieldIdx)) {
         return false;
       }
     }
@@ -562,7 +579,8 @@ class _Environment {
 
   /// Look up the bound of a type parameter in its adjusted environment.
   _Type lookupAdjusted(_FunctionTypeParameterType param) {
-    return type.typeParameterBounds[param.index - type.typeParameterOffset];
+    return type.typeParameterBounds
+        ._getUnchecked(param.index - type.typeParameterOffset);
   }
 }
 
@@ -587,7 +605,8 @@ class _TypeUniverse {
     // [type] as nullable.
     // Note: This will throw if the required nullability is impossible to
     // generate.
-    _Type substitution = substitutions[typeParameter.environmentIndex];
+    _Type substitution =
+        substitutions._getUnchecked(typeParameter.environmentIndex);
     if (typeParameter.isDeclaredNullable) return substitution.asNullable;
     return substitution;
   }
@@ -598,8 +617,8 @@ class _TypeUniverse {
       _FunctionType? rootFunction) {
     if (rootFunction != null &&
         typeParameter.index >= rootFunction.typeParameterOffset) {
-      _Type substitution =
-          substitutions[typeParameter.index - rootFunction.typeParameterOffset];
+      _Type substitution = substitutions._getUnchecked(
+          typeParameter.index - rootFunction.typeParameterOffset);
       if (typeParameter.isDeclaredNullable) return substitution.asNullable;
       return substitution;
     } else {
@@ -741,15 +760,22 @@ class _TypeUniverse {
 
     // Otherwise, check if [s] is a subtype of [t], and if it is then compare
     // [s]'s type substitutions with [t]'s type arguments.
-    List<int> sSupers = typeRulesSupers[sId];
+    List<int> sSupers = typeRulesSupers._getUnchecked(sId);
     if (sSupers.isEmpty) return false;
-    int sSuperIndexOfT = sSupers.indexOf(tId);
+    int sSuperIndexOfT = -1;
+    for (int i = 0; i < sSupers.length; i++) {
+      if (sSupers._getUnchecked(i) == tId) {
+        sSuperIndexOfT = i;
+        break;
+      }
+    }
     if (sSuperIndexOfT == -1) return false;
-    assert(sSuperIndexOfT < typeRulesSubstitutions[sId].length);
+    assert(sSuperIndexOfT < typeRulesSubstitutions._getUnchecked(sId).length);
 
     // Return early if we don't have to check type arguments.
     WasmObjectArray<_Type> sTypeArguments = s.typeArguments;
-    List<_Type> substitutions = typeRulesSubstitutions[sId][sSuperIndexOfT];
+    List<_Type> substitutions =
+        typeRulesSubstitutions._getUnchecked(sId)._getUnchecked(sSuperIndexOfT);
     if (substitutions.isEmpty && sTypeArguments.isEmpty) {
       return true;
     }
@@ -771,7 +797,7 @@ class _TypeUniverse {
         WasmObjectArray<_Type>(substitutions.length, _literal<dynamic>());
     for (int i = 0; i < substitutions.length; i++) {
       substituted[i] = substituteTypeArgument(
-          substitutions[i], typeArgumentsForSubstitution, null);
+          substitutions._getUnchecked(i), typeArgumentsForSubstitution, null);
     }
     return areTypeArgumentsSubtypes(substituted, sEnv, t.typeArguments, tEnv);
   }
@@ -788,8 +814,8 @@ class _TypeUniverse {
     int tTypeParameterCount = t.typeParameterBounds.length;
     if (sTypeParameterCount != tTypeParameterCount) return false;
     for (int i = 0; i < sTypeParameterCount; i++) {
-      if (!areEquivalent(
-          s.typeParameterBounds[i], sEnv, t.typeParameterBounds[i], tEnv)) {
+      if (!areEquivalent(s.typeParameterBounds._getUnchecked(i), sEnv,
+          t.typeParameterBounds._getUnchecked(i), tEnv)) {
         return false;
       }
     }
@@ -816,8 +842,8 @@ class _TypeUniverse {
     // Check all [t] positional arguments are subtypes of [s] positional
     // arguments.
     for (int i = 0; i < tPositionalLength; i++) {
-      _Type sParameter = sPositional[i];
-      _Type tParameter = tPositional[i];
+      _Type sParameter = sPositional._getUnchecked(i);
+      _Type tParameter = tPositional._getUnchecked(i);
       if (!isSubtype(tParameter, tEnv, sParameter, sEnv)) {
         return false;
       }
@@ -831,11 +857,11 @@ class _TypeUniverse {
     int tNamedLength = tNamed.length;
     int sIndex = 0;
     for (int tIndex = 0; tIndex < tNamedLength; tIndex++) {
-      _NamedParameter tNamedParameter = tNamed[tIndex];
+      _NamedParameter tNamedParameter = tNamed._getUnchecked(tIndex);
       String tName = tNamedParameter.name;
       while (true) {
         if (sIndex >= sNamedLength) return false;
-        _NamedParameter sNamedParameter = sNamed[sIndex];
+        _NamedParameter sNamedParameter = sNamed._getUnchecked(sIndex);
         String sName = sNamedParameter.name;
         sIndex++;
         int sNameComparedToTName = sName.compareTo(tName);
@@ -855,7 +881,7 @@ class _TypeUniverse {
       }
     }
     while (sIndex < sNamedLength) {
-      if (sNamed[sIndex].isRequired) return false;
+      if (sNamed._getUnchecked(sIndex).isRequired) return false;
       sIndex++;
     }
     return true;
@@ -871,8 +897,8 @@ class _TypeUniverse {
 
     final int numFields = s.fieldTypes.length;
     for (int fieldIdx = 0; fieldIdx < numFields; fieldIdx += 1) {
-      if (!isSubtype(
-          s.fieldTypes[fieldIdx], sEnv, t.fieldTypes[fieldIdx], tEnv)) {
+      if (!isSubtype(s.fieldTypes._getUnchecked(fieldIdx), sEnv,
+          t.fieldTypes._getUnchecked(fieldIdx), tEnv)) {
         return false;
       }
     }
@@ -994,14 +1020,43 @@ class _TypeUniverse {
 _TypeUniverse _typeUniverse = _TypeUniverse.create();
 
 @pragma("wasm:entry-point")
-bool _isSubtype(Object? s, _Type t) {
+bool _isSubtype(Object? o, _Type t) {
   return _typeUniverse.isSubtype(
-      _getActualRuntimeTypeNullable(s), null, t, null);
+      _getActualRuntimeTypeNullable(o), null, t, null);
 }
 
 @pragma("wasm:entry-point")
 bool _isTypeSubtype(_Type s, _Type t) {
   return _typeUniverse.isSubtype(s, null, t, null);
+}
+
+@pragma("wasm:entry-point")
+bool _verifyOptimizedTypeCheck(
+    bool result, Object? o, _Type t, String? location) {
+  _Type s = _getActualRuntimeTypeNullable(o);
+  bool reference = _isTypeSubtype(s, t);
+  if (result != reference) {
+    throw _TypeCheckVerificationError(s, t, result, reference, location);
+  }
+  return result;
+}
+
+class _TypeCheckVerificationError extends Error {
+  final _Type left;
+  final _Type right;
+  final bool optimized;
+  final bool reference;
+  final String? location;
+
+  _TypeCheckVerificationError(
+      this.left, this.right, this.optimized, this.reference, this.location);
+
+  String toString() {
+    String locationString = location != null ? " at $location" : "";
+    return "Type check verification error$locationString\n"
+        "Checking $left <: $right\n"
+        "Optimized result $optimized, reference result $reference\n";
+  }
 }
 
 /// Checks that argument lists have expected number of arguments for the
@@ -1034,7 +1089,8 @@ bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
   int namedParamIdx = 0;
   int namedArgIdx = 0;
   while (namedParamIdx < functionType.namedParameters.length) {
-    _NamedParameter param = functionType.namedParameters[namedParamIdx];
+    _NamedParameter param =
+        functionType.namedParameters._getUnchecked(namedParamIdx);
 
     if (namedArgIdx * 2 >= namedArguments.length) {
       if (param.isRequired) {
@@ -1044,7 +1100,8 @@ bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
       continue;
     }
 
-    String argName = _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
+    String argName = _symbolToString(
+        namedArguments._getUnchecked(namedArgIdx * 2) as Symbol);
 
     final cmp = argName.compareTo(param.name);
 
@@ -1087,9 +1144,11 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
 
   if (!typeArguments.isEmpty) {
     for (int i = 0; i < typeArguments.length; i += 1) {
-      final typeArgument = typeArguments[i];
+      final typeArgument = typeArguments._getUnchecked(i);
       final paramBound = _TypeUniverse.substituteTypeArgument(
-          functionType.typeParameterBounds[i], typeArguments, functionType);
+          functionType.typeParameterBounds._getUnchecked(i),
+          typeArguments,
+          functionType);
       if (!_typeUniverse.isSubtype(typeArgument, null, paramBound, null)) {
         final stackTrace = StackTrace.current;
         final typeError = _TypeError.fromMessageAndStackTrace(
@@ -1106,8 +1165,8 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
 
   // Check positional arguments
   for (int i = 0; i < positionalArguments.length; i += 1) {
-    final Object? arg = positionalArguments[i];
-    final _Type paramTy = functionType.positionalParameters[i];
+    final Object? arg = positionalArguments._getUnchecked(i);
+    final _Type paramTy = functionType.positionalParameters._getUnchecked(i);
     if (!_isSubtype(arg, paramTy)) {
       // TODO(50991): Positional parameter names not available in runtime
       _TypeError._throwArgumentTypeCheckError(
@@ -1120,11 +1179,13 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
   int namedParamIdx = 0;
   int namedArgIdx = 0;
   while (namedArgIdx * 2 < namedArguments.length) {
-    final String argName =
-        _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
-    if (argName == functionType.namedParameters[namedParamIdx].name) {
-      final arg = namedArguments[namedArgIdx * 2 + 1];
-      final paramTy = functionType.namedParameters[namedParamIdx].type;
+    final String argName = _symbolToString(
+        namedArguments._getUnchecked(namedArgIdx * 2) as Symbol);
+    if (argName ==
+        functionType.namedParameters._getUnchecked(namedParamIdx).name) {
+      final arg = namedArguments._getUnchecked(namedArgIdx * 2 + 1);
+      final paramTy =
+          functionType.namedParameters._getUnchecked(namedParamIdx).type;
       if (!_isSubtype(arg, paramTy)) {
         _TypeError._throwArgumentTypeCheckError(
             arg, paramTy, argName, StackTrace.current);

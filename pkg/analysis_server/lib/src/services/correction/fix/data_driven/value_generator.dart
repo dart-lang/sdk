@@ -31,7 +31,7 @@ class CodeFragment extends ValueGenerator {
     if (target is AstNode) {
       return context.utils.getRangeText(range.node(target));
     } else if (target is DartType) {
-      // TODO(brianwilkerson) If we end up needing it, figure out how to convert
+      // TODO(brianwilkerson): If we end up needing it, figure out how to convert
       //  a type into valid code.
       throw UnsupportedError('Unexpected result of ${target.runtimeType}');
     } else {
@@ -89,7 +89,7 @@ class ImportedName extends ValueGenerator {
 
   @override
   bool validate(TemplateContext context) {
-    // TODO(brianwilkerson) Validate that the import can be added.
+    // TODO(brianwilkerson): Validate that the import can be added.
     return true;
   }
 

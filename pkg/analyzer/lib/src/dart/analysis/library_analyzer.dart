@@ -7,6 +7,8 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart' as file_state;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -41,7 +43,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/generated/ffi_verifier.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
@@ -119,13 +120,14 @@ class LibraryAnalyzer {
     var parsedUnit = performance.run('parse', (performance) {
       return _parse(file);
     });
+    parsedUnit.declaredElement = unitElement;
 
     var node = NodeLocator(offset).searchWithin(parsedUnit);
 
     var errorListener = RecordingErrorListener();
 
     return performance.run('resolve', (performance) {
-      // TODO(scheglov) We don't need to do this for the whole unit.
+      // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(
         ResolutionVisitor(
           unitElement: unitElement,
@@ -140,7 +142,7 @@ class LibraryAnalyzer {
         ),
       );
 
-      // TODO(scheglov) We don't need to do this for the whole unit.
+      // TODO(scheglov): We don't need to do this for the whole unit.
       parsedUnit.accept(ScopeResolverVisitor(
           _libraryElement, file.source, _typeProvider, errorListener,
           nameScope: _libraryElement.scope));
@@ -150,9 +152,14 @@ class LibraryAnalyzer {
       _testingData?.recordFlowAnalysisDataForTesting(
           file.uri, flowAnalysisHelper.dataForTesting!);
 
+      // TODO(pq): precache options in file state and fetch them from there
+      var analysisOptions = _libraryElement.context
+          .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
+
       var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
           file.source, _typeProvider, errorListener,
           featureSet: _libraryElement.featureSet,
+          analysisOptions: analysisOptions,
           flowAnalysisHelper: flowAnalysisHelper);
 
       var nodeToResolve = node?.thisOrAncestorMatching((e) {
@@ -314,7 +321,7 @@ class LibraryAnalyzer {
     // before the list of diagnostics has been filtered.
     for (var file in _library.files) {
       final ignoreInfo = _fileToIgnoreInfo[file];
-      // TODO(scheglov) make it safer
+      // TODO(scheglov): make it safer
       if (ignoreInfo != null) {
         IgnoreValidator(
           _getErrorReporter(file),
@@ -396,8 +403,13 @@ class LibraryAnalyzer {
     //
     // Use the ErrorVerifier to compute errors.
     //
-    ErrorVerifier errorVerifier = ErrorVerifier(errorReporter, _libraryElement,
-        _typeProvider, _inheritance, _libraryVerificationContext);
+    ErrorVerifier errorVerifier = ErrorVerifier(
+        errorReporter,
+        _libraryElement,
+        _typeProvider,
+        _inheritance,
+        _libraryVerificationContext,
+        _analysisOptions);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
@@ -563,7 +575,7 @@ class LibraryAnalyzer {
     String content = file.content;
     var unit = file.parse(errorListener);
 
-    // TODO(scheglov) Store [IgnoreInfo] as unlinked data.
+    // TODO(scheglov): Store [IgnoreInfo] as unlinked data.
     _fileToLineInfo[file] = unit.lineInfo;
     _fileToIgnoreInfo[file] = IgnoreInfo.forDart(unit, content);
 
@@ -779,9 +791,15 @@ class LibraryAnalyzer {
     _testingData?.recordFlowAnalysisDataForTesting(
         file.uri, flowAnalysisHelper.dataForTesting!);
 
+    // TODO(pq): precache options in file state and fetch them from there
+    var analysisOptions = _libraryElement.context
+        .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
+
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,
-        featureSet: unit.featureSet, flowAnalysisHelper: flowAnalysisHelper));
+        analysisOptions: analysisOptions,
+        featureSet: unit.featureSet,
+        flowAnalysisHelper: flowAnalysisHelper));
   }
 
   void _resolveLibraryAugmentationDirective({

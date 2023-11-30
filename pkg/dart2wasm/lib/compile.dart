@@ -69,9 +69,7 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
   }
 
   final wasm.Mode mode;
-  if (options.translatorOptions.useStringref) {
-    mode = wasm.Mode.stringref;
-  } else if (options.translatorOptions.jsCompatibility) {
+  if (options.translatorOptions.jsCompatibility) {
     mode = wasm.Mode.jsCompatibility;
   } else {
     mode = wasm.Mode.regular;

@@ -21,10 +21,11 @@ This section documents the styles we have agreed to follow.
 
 ### Lint rules
 
-None.
-
-- prefer_single_quotes - We don't enforce this in each of our packages yet, but
+- `flutter_style_todos` - Keeps our todo format canonical.
+- `prefer_single_quotes` - We don't enforce this in each of our packages yet, but
   we aspire to.
+- `unnecessary_breaks` - All our packages require at least Dart `3.0.0`, so we
+  can do it.
 
 ### Formatting and sorting
 

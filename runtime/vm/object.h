@@ -2979,8 +2979,7 @@ class Function : public Object {
   // Can only be used on FFI trampolines.
   void SetFfiCSignature(const FunctionType& sig) const;
 
-  // Retrieves the "C signature" for an FFI trampoline.
-  // Can only be used on FFI trampolines.
+  // Retrieves the "C signature" for an FFI trampoline or FFI native.
   FunctionTypePtr FfiCSignature() const;
 
   bool FfiCSignatureContainsHandles() const;
@@ -3072,6 +3071,10 @@ class Function : public Object {
 
   StringPtr native_name() const;
   void set_native_name(const String& name) const;
+
+  InstancePtr GetNativeAnnotation() const;
+  bool is_ffi_native() const;
+  bool is_old_native() const;
 
   AbstractTypePtr result_type() const {
     return signature()->untag()->result_type();
@@ -6130,8 +6133,12 @@ class PcDescriptors : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
+    return memcmp(untag()->data(), other.untag()->data(), Length()) == 0;
   }
+
+  // Writes the contents of the PcDescriptors object to the given buffer.
+  // The base argument is added to the PC offset for each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
  private:
   static const char* KindAsStr(UntaggedPcDescriptors::Kind kind);
@@ -6176,7 +6183,7 @@ class CodeSourceMap : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(Length())) == 0;
+    return memcmp(untag()->data(), other.untag()->data(), Length()) == 0;
   }
 
   uint32_t Hash() const {
@@ -6212,7 +6219,7 @@ class CompressedStackMaps : public Object {
       return false;
     }
     NoSafepointScope no_safepoint;
-    return memcmp(untag(), other.untag(), InstanceSize(payload_size())) == 0;
+    return memcmp(data(), other.data(), payload_size()) == 0;
   }
   uword Hash() const;
 
@@ -6482,7 +6489,12 @@ class CompressedStackMaps : public Object {
 
   Iterator<CompressedStackMaps> iterator(Thread* thread) const;
 
-  void WriteToBuffer(BaseTextBuffer* buffer, const char* separator) const;
+  // Writes the contents of the CompressedStackMaps object to the given buffer.
+  // The base argument is added to the PC offset for each entry, and the
+  // separator string is inserted between each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer,
+                     uword base,
+                     const char* separator) const;
 
  private:
   static CompressedStackMapsPtr New(const void* payload,
@@ -6543,6 +6555,10 @@ class ExceptionHandlers : public Object {
 
   // We would have a VisitPointers function here to traverse the
   // exception handler table to visit objects if any in the table.
+
+  // Writes the contents of the ExceptionHandlers object to the given buffer.
+  // The base argument is added to the PC offset for each entry.
+  void WriteToBuffer(BaseTextBuffer* buffer, uword base) const;
 
  private:
   // Pick somewhat arbitrary maximum number of exception handlers
@@ -7316,6 +7332,7 @@ class Code : public Object {
   friend class CodeKeyValueTrait;  // for UncheckedEntryPointOffset
   friend class InstanceCall;       // for StorePointerUnaligned
   friend class StaticCall;         // for StorePointerUnaligned
+  friend void DumpStackFrame(intptr_t frame_index, uword pc, uword fp);
 };
 
 class Context : public Object {
@@ -9662,6 +9679,8 @@ class FunctionType : public AbstractType {
                              Heap::Space space = Heap::kOld);
 
   static FunctionTypePtr Clone(const FunctionType& orig, Heap::Space space);
+
+  bool ContainsHandles() const;
 
  private:
   static FunctionTypePtr New(Heap::Space space);

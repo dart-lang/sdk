@@ -186,7 +186,6 @@ class FfiTransformer extends Transformer {
   final Class abiSpecificIntegerClass;
   final Class abiSpecificIntegerMappingClass;
   final Class varArgsClass;
-  final Class ffiNativeClass;
   final Class nativeFieldWrapperClass1Class;
   final Class ffiStructLayoutClass;
   final Field ffiStructLayoutTypesField;
@@ -358,7 +357,6 @@ class FfiTransformer extends Transformer {
         abiSpecificIntegerMappingClass =
             index.getClass('dart:ffi', 'AbiSpecificIntegerMapping'),
         varArgsClass = index.getClass('dart:ffi', 'VarArgs'),
-        ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFieldWrapperClass1Class =
             index.getClass('dart:nativewrappers', 'NativeFieldWrapperClass1'),
         ffiStructLayoutClass = index.getClass('dart:ffi', '_FfiStructLayout'),
@@ -1160,17 +1158,29 @@ class FfiTransformer extends Transformer {
         ]))
       ..fileOffset = fileOffset;
 
-    if (dartSignature is FunctionType) {
-      final returnType = dartSignature.returnType;
-      if (returnType is InterfaceType) {
-        final clazz = returnType.classNode;
-        if (clazz.superclass == structClass || clazz.superclass == unionClass) {
-          return invokeCompoundConstructor(asFunctionInternalInvocation, clazz);
-        }
-      }
+    final possibleCompoundReturn = findCompoundReturnType(dartSignature);
+    if (possibleCompoundReturn != null) {
+      return invokeCompoundConstructor(
+          asFunctionInternalInvocation, possibleCompoundReturn);
     }
 
     return asFunctionInternalInvocation;
+  }
+
+  /// Returns the compound [Class] if a compound is returned, otherwise `null`.
+  Class? findCompoundReturnType(DartType dartSignature) {
+    if (dartSignature is! FunctionType) {
+      return null;
+    }
+    final returnType = dartSignature.returnType;
+    if (returnType is! InterfaceType) {
+      return null;
+    }
+    final clazz = returnType.classNode;
+    if (clazz.superclass == structClass || clazz.superclass == unionClass) {
+      return clazz;
+    }
+    return null;
   }
 
   /// Returns

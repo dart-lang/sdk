@@ -193,17 +193,14 @@ mixin Bar5 implements Foo {}
   }
 
   test_withinPart_language219() async {
-    var libPath = '$testPackageLibPath/a.dart';
-    var partPath = '$testPackageLibPath/b.dart';
-
-    newFile(libPath, r'''
+    final lib = newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.19
 import 'package:meta/meta.dart';
 part 'b.dart';
 @sealed class Foo {}
 ''');
 
-    newFile(partPath, r'''
+    final part = newFile('$testPackageLibPath/b.dart', r'''
 // @dart = 2.19
 part of 'a.dart';
 class Bar1 extends Foo {}
@@ -212,10 +209,10 @@ class Bar4 = Bar1 with Foo;
 mixin Bar5 implements Foo {}
 ''');
 
-    await resolveFile2(libPath);
+    await resolveFile2(lib);
     assertNoErrorsInResult();
 
-    await resolveFile2(partPath);
+    await resolveFile2(part);
     assertNoErrorsInResult();
   }
 }

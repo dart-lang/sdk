@@ -875,11 +875,11 @@ class KernelCompilationRequest : public ValueObject {
                                        ? isolate_group->asserts()
                                        : FLAG_enable_asserts;
 
-    Dart_CObject null_safety;
-    null_safety.type = Dart_CObject_kBool;
-    null_safety.value.as_bool = (isolate_group != nullptr)
-                                    ? isolate_group->null_safety()
-                                    : FLAG_sound_null_safety;
+    Dart_CObject sound_null_safety;
+    sound_null_safety.type = Dart_CObject_kBool;
+    sound_null_safety.value.as_bool = (isolate_group != nullptr)
+                                          ? isolate_group->null_safety()
+                                          : FLAG_sound_null_safety;
 
     intptr_t num_experimental_flags = experimental_flags->length();
     Dart_CObject** experimental_flags_array =
@@ -956,7 +956,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &dart_incremental,
                                    &dart_snapshot,
                                    &dart_embed_sources,
-                                   &null_safety,
+                                   &sound_null_safety,
                                    &isolate_id,
                                    &files,
                                    &enable_asserts,
@@ -992,17 +992,11 @@ class KernelCompilationRequest : public ValueObject {
  private:
   void LoadKernelFromResponse(Dart_CObject* response) {
     ASSERT((response->type == Dart_CObject_kTypedData) ||
-           (response->type == Dart_CObject_kBool) ||
            (response->type == Dart_CObject_kNull));
 
     if (response->type == Dart_CObject_kNull) {
       return;
     }
-    if (response->type == Dart_CObject_kBool) {
-      result_.null_safety = response->value.as_bool;
-      return;
-    }
-
     ASSERT(response->value.as_typed_data.type == Dart_TypedData_kUint8);
     result_.kernel_size = response->value.as_typed_data.length;
     result_.kernel = static_cast<uint8_t*>(malloc(result_.kernel_size));

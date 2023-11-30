@@ -32,7 +32,7 @@ class CreateClass extends ResolvedCorrectionProducer {
       var name = targetNode.name;
       arguments = targetNode.arguments;
       if (name.staticElement != null || arguments == null) {
-        // TODO(brianwilkerson) Consider supporting creating a class when the
+        // TODO(brianwilkerson): Consider supporting creating a class when the
         //  arguments are missing by also adding an empty argument list.
         return;
       }
@@ -138,7 +138,7 @@ class CreateClass extends ResolvedCorrectionProducer {
 
   static bool _requiresConstConstructor(AstNode node) {
     final parent = node.parent;
-    // TODO(scheglov) remove after NamedType refactoring.
+    // TODO(scheglov): remove after NamedType refactoring.
     if (node is SimpleIdentifier && parent is NamedType) {
       return _requiresConstConstructor(parent);
     }

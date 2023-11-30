@@ -100,7 +100,7 @@ class AstBuilder extends StackListener {
   ///
   /// This is being replaced by the @native(...) annotation.
   //
-  // TODO(danrubel) Move this flag to a better location
+  // TODO(danrubel): Move this flag to a better location
   // and should only be true if either:
   // * The current library is a platform library
   // * The current library has an import that uses the scheme "dart-ext".
@@ -739,9 +739,9 @@ class AstBuilder extends StackListener {
     }
   }
 
-  /// TODO(scheglov) We should not do this.
-  /// Ideally, we should not test parsing pieces of class, and instead parse
-  /// the whole unit, and extract pieces that we need to validate.
+  // TODO(scheglov): We should not do this.
+  // Ideally, we should not test parsing pieces of class, and instead parse
+  // the whole unit, and extract pieces that we need to validate.
   _ClassDeclarationBuilder createFakeClassDeclarationBuilder(String className) {
     return _classLikeBuilder = _ClassDeclarationBuilder(
       comment: null,
@@ -914,7 +914,6 @@ class AstBuilder extends StackListener {
             ),
           ),
         );
-        break;
       case Assert.Initializer:
         push(
           AssertInitializerImpl(
@@ -926,7 +925,6 @@ class AstBuilder extends StackListener {
             rightParenthesis: leftParenthesis.endGroup!,
           ),
         );
-        break;
       case Assert.Statement:
         push(
           AssertStatementImpl(
@@ -939,7 +937,6 @@ class AstBuilder extends StackListener {
             semicolon: semicolon,
           ),
         );
-        break;
     }
   }
 
@@ -1603,7 +1600,7 @@ class AstBuilder extends StackListener {
       Token beginToken,
       Token endToken) {
     if (staticToken == null) {
-      // TODO(danrubel) Decide how to handle instance field declarations
+      // TODO(danrubel): Decide how to handle instance field declarations
       // within extensions. They are invalid and the parser has already reported
       // an error at this point, but we include them in order to get navigation,
       // search, etc.
@@ -1804,7 +1801,7 @@ class AstBuilder extends StackListener {
         startToken: requiredKeyword,
       );
     }
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/53324
+    // TODO(scheglov): https://github.com/dart-lang/sdk/issues/53324
     // If the issue fixed, we can remove this from the analyzer.
     if (_classLikeBuilder is _ExtensionTypeDeclarationBuilder &&
         covariantKeyword != null) {
@@ -2838,7 +2835,6 @@ class AstBuilder extends StackListener {
             typeArguments: null,
             question: null,
           );
-          break;
       }
       if (firstFormalParameter.keyword case final keyword?) {
         if (keyword.keyword != Keyword.CONST) {
@@ -3037,7 +3033,7 @@ class AstBuilder extends StackListener {
     final expression = RethrowExpressionImpl(
       rethrowKeyword: rethrowToken,
     );
-    // TODO(scheglov) According to the specification, 'rethrow' is a statement.
+    // TODO(scheglov): According to the specification, 'rethrow' is a statement.
     push(
       ExpressionStatementImpl(
         expression: expression,
@@ -3484,7 +3480,7 @@ class AstBuilder extends StackListener {
         optional('extends', extendsOrSuper) ||
         optional('super', extendsOrSuper));
 
-    // TODO (kallentu): Implement variance behaviour for the analyzer.
+    // TODO(kallentu): Implement variance behaviour for the analyzer.
     assert(variance == null ||
         optional('in', variance) ||
         optional('out', variance) ||
@@ -3779,7 +3775,7 @@ class AstBuilder extends StackListener {
       );
     } else {
       push(NullValues.ExtendsClause);
-      // TODO(brianwilkerson) Consider (a) extending `ExtendsClause` to accept
+      // TODO(brianwilkerson): Consider (a) extending `ExtendsClause` to accept
       //  any type annotation for recovery purposes, and (b) extending the
       //  parser to parse a generic function type at this location.
       if (supertype != null) {
@@ -3929,7 +3925,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("EmptyFunctionBody");
 
-    // TODO(scheglov) Change the parser to not produce these modifiers.
+    // TODO(scheglov): Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
     push(
@@ -4817,7 +4813,7 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("NativeFunctionBody");
 
-    // TODO(danrubel) Change the parser to not produce these modifiers.
+    // TODO(danrubel): Change the parser to not produce these modifiers.
     pop(); // star
     pop(); // async
     push(
@@ -5117,7 +5113,7 @@ class AstBuilder extends StackListener {
   @override
   void handleRecoverableError(
       Message message, Token startToken, Token endToken) {
-    /// TODO(danrubel): Ignore this error until we deprecate `native` support.
+    // TODO(danrubel): Ignore this error until we deprecate `native` support.
     if (message == messageNativeClauseShouldBeAnnotation && allowNativeClause) {
       return;
     } else if (message.code == codeBuiltInIdentifierInDeclaration) {
@@ -5198,7 +5194,7 @@ class AstBuilder extends StackListener {
 
     final directive = directives.last as ImportDirectiveImpl;
 
-    // TODO(scheglov) This code would be easier if we used one object.
+    // TODO(scheglov): This code would be easier if we used one object.
     var mergedAsKeyword = directive.asKeyword;
     var mergedPrefix = directive.prefix;
     if (directive.asKeyword == null && asKeyword != null) {
@@ -5560,7 +5556,7 @@ class AstBuilder extends StackListener {
   }
 
   List<CollectionElementImpl> popCollectionElements(int count) {
-    // TODO(scheglov) Not efficient.
+    // TODO(scheglov): Not efficient.
     final elements = <CollectionElementImpl>[];
     for (int index = count - 1; index >= 0; --index) {
       var element = pop();
@@ -5583,7 +5579,7 @@ class AstBuilder extends StackListener {
     return tailList.whereNotNull().toList();
   }
 
-  /// TODO(scheglov) This is probably not optimal.
+  // TODO(scheglov): This is probably not optimal.
   List<T> popTypedList2<T>(int count) {
     var result = <T>[];
     for (var i = 0; i < count; i++) {

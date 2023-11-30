@@ -84,26 +84,27 @@ const uint8_t* Builtin::NativeSymbol(Dart_NativeFunction nf) {
 // test/debug functionality in standalone dart mode.
 void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   intptr_t length = 0;
-  uint8_t* chars = nullptr;
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
-  Dart_Handle result = Dart_StringToUTF8(str, &chars, &length);
+  Dart_Handle result = Dart_StringUTF8Length(str, &length);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
+  uint8_t* chars = Dart_ScopeAllocate(length + 1);
+  ASSERT(chars != nullptr);
+  result = Dart_CopyUTF8EncodingOfString(str, chars, length);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  chars[length] = '\n';
 
   // Uses fwrite to support printing NUL bytes.
-  intptr_t res = fwrite(chars, 1, length, stdout);
-  ASSERT(res == length);
-  fputs("\n", stdout);
+  intptr_t res = fwrite(chars, 1, length + 1, stdout);
+  ASSERT(res == (length + 1));
   fflush(stdout);
   if (ShouldCaptureStdout()) {
     // For now we report print output on the Stdout stream.
-    uint8_t newline[] = {'\n'};
     const char* res =
         Dart_ServiceSendDataEvent("Stdout", "WriteEvent", chars, length);
-    ASSERT(res == nullptr);
-    res = Dart_ServiceSendDataEvent("Stdout", "WriteEvent", newline,
-                                    sizeof(newline));
     ASSERT(res == nullptr);
   }
 }

@@ -15,9 +15,12 @@ import 'private_rpc_common.dart';
 Future<String> readResponse(HttpClientResponse response) {
   final completer = Completer<String>();
   final contents = StringBuffer();
-  response.cast<List<int>>().transform(utf8.decoder).listen((String data) {
-    contents.write(data);
-  }, onDone: () => completer.complete(contents.toString()));
+  response.cast<List<int>>().transform(utf8.decoder).listen(
+    (String data) {
+      contents.write(data);
+    },
+    onDone: () => completer.complete(contents.toString()),
+  );
   return completer.future;
 }
 
@@ -62,7 +65,7 @@ final tests = <VMTest>[
 
     // Write the file by issuing an HTTP PUT.
     result = await postToDevFS(content: [9]);
-    if (result case {'result': Map<String, dynamic> innerResult}) {
+    if (result case {'result': final Map<String, dynamic> innerResult}) {
       expectSuccess(innerResult);
     } else {
       invalidResponse(result);
@@ -70,7 +73,7 @@ final tests = <VMTest>[
 
     // Trigger an error by issuing an HTTP PUT.
     result = await postToDevFS(content: fileContents, omitDevFsUri: true);
-    if (result case {'error': {'data': {'details': String details}}}) {
+    if (result case {'error': {'data': {'details': final String details}}}) {
       expect(details.contains("expects the 'path' parameter"), true);
     } else {
       invalidResponse(result);
@@ -78,45 +81,61 @@ final tests = <VMTest>[
 
     // Write the file again but this time with the true file contents.
     result = await postToDevFS(content: fileContents);
-    if (result case {'result': Map<String, dynamic> innerResult}) {
+    if (result case {'result': final Map<String, dynamic> innerResult}) {
       expectSuccess(innerResult);
     } else {
       invalidResponse(result);
     }
 
     // Read the file back.
-    result = await callMethod(service, '_readDevFSFile', args: {
-      'fsName': fsId,
-      'uri': fileUri.toString(),
-    });
-    if (result case {'type': 'FSFile', 'fileContents': String contents}) {
+    result = await callMethod(
+      service,
+      '_readDevFSFile',
+      args: {
+        'fsName': fsId,
+        'uri': fileUri.toString(),
+      },
+    );
+    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
       expect(contents, fileContentsBase64);
     } else {
       invalidResponse(result);
     }
 
     // Write a second file via URI.
-    result = await callMethod(service, '_writeDevFSFile', args: {
-      'fsName': fsId,
-      'uri': fileUri2.toString(),
-      'fileContents': fileContentsBase64
-    });
+    result = await callMethod(
+      service,
+      '_writeDevFSFile',
+      args: {
+        'fsName': fsId,
+        'uri': fileUri2.toString(),
+        'fileContents': fileContentsBase64,
+      },
+    );
 
     // Read the second file back.
-    result = await callMethod(service, '_readDevFSFile', args: {
-      'fsName': fsId,
-      'uri': fileUri2.toString(),
-    });
-    if (result case {'type': 'FSFile', 'fileContents': String contents}) {
+    result = await callMethod(
+      service,
+      '_readDevFSFile',
+      args: {
+        'fsName': fsId,
+        'uri': fileUri2.toString(),
+      },
+    );
+    if (result case {'type': 'FSFile', 'fileContents': final String contents}) {
       expect(contents, fileContentsBase64);
     } else {
       invalidResponse(result);
     }
 
     // Delete DevFS.
-    result = await callMethod(service, '_deleteDevFS', args: {
-      'fsName': fsId,
-    });
+    result = await callMethod(
+      service,
+      '_deleteDevFS',
+      args: {
+        'fsName': fsId,
+      },
+    );
     expectSuccess(result);
   },
 ];

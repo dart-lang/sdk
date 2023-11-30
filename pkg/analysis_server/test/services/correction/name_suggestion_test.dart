@@ -150,7 +150,7 @@ void f(p) {
         getVariableNameSuggestionsForExpression(null,
             findNode.instanceCreation('new NoSuchClass.named()'), excluded),
         unorderedEquals(['noSuchClass', 'suchClass', 'class']));
-    // TODO(scheglov) This test does not work.
+    // TODO(scheglov): This test does not work.
     // In "p.NoSuchClass" the identifier "p" is not resolved to a PrefixElement.
 //    expect(
 //        getVariableNameSuggestionsForExpression(

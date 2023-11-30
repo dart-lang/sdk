@@ -103,7 +103,8 @@ base class CustomHashMap<K, V> extends InternalMap<K, V> {
           K k = JS('', '#[#]', buckets, i);
           if (equals(k, key)) {
             V value = JS('', '#.get(#)', _map, k);
-            return value == null ? null : value; // coerce undefined to null.
+            // coerce undefined to null.
+            return JS<bool>('!', '# === void 0', value) ? null : value;
           }
         }
       }
@@ -175,7 +176,8 @@ base class CustomHashMap<K, V> extends InternalMap<K, V> {
           V value = JS('', '#.get(#)', map, k);
           JS('', '#.delete(#)', map, k);
           _modifications = (_modifications + 1) & 0x3fffffff;
-          return value == null ? null : value; // coerce undefined to null.
+          // coerce undefined to null.
+          return JS<bool>('!', '# === void 0', value) ? null : value;
         }
       }
     }

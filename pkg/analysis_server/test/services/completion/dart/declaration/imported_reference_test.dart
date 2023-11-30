@@ -195,6 +195,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: function
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -213,6 +215,8 @@ suggestions
     kind: function
   b1
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -251,6 +255,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: function
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -269,6 +275,8 @@ suggestions
     kind: function
   b1
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -395,6 +403,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: function
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -413,6 +423,8 @@ suggestions
     kind: function
   b1
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -449,6 +461,8 @@ suggestions
     kind: class
   B0
     kind: constructorInvocation
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -465,6 +479,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -2749,6 +2765,9 @@ suggestions
   }
 
   Future<void> test_defaultFormalParameter_named_expression() async {
+    // TODO(brianwilkerson): This is invalid code and there's no clear answer as
+    //  to what ought to be suggested. Consider deleting the test, or making it
+    //  so that we don't suggest anything.
     allowedIdentifiers = {'String'};
     await computeSuggestions('''
 f0() {}
@@ -2757,7 +2776,8 @@ class A0 {
   a0(blat: ^) {}
 }
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -2771,11 +2791,24 @@ suggestions
     kind: constructorInvocation
   String.fromEnvironment
     kind: constructorInvocation
-  a0
-    kind: methodInvocation
   f0
     kind: functionInvocation
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  A0
+    kind: class
+  String
+    kind: class
+  String.fromCharCode
+    kind: constructorInvocation
+  String.fromCharCodes
+    kind: constructorInvocation
+  String.fromEnvironment
+    kind: constructorInvocation
+''');
+    }
   }
 
   Future<void> test_doc_class() async {
@@ -2976,8 +3009,7 @@ class C2 {
   void b0() {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -3000,29 +3032,6 @@ suggestions
   f0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  C1
-    kind: class
-  C2
-    kind: class
-  C2
-    kind: constructorInvocation
-  F0
-    kind: functionInvocation
-  F1
-    kind: typeAlias
-  b0
-    kind: methodInvocation
-  f0
-    kind: methodInvocation
-''');
-    }
   }
 
   Future<void> test_expressionStatement_name() async {
@@ -3639,7 +3648,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3672,7 +3681,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3705,7 +3714,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3737,7 +3746,7 @@ suggestions
     parameterTypes: int?,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3792,7 +3801,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -3825,7 +3834,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -4189,6 +4198,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:test/test.dart
     kind: import
 ''');
@@ -4218,6 +4229,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -5198,7 +5211,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5229,7 +5242,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5260,7 +5273,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5313,7 +5326,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5346,7 +5359,7 @@ suggestions
     parameterTypes: dynamic,int
 ''');
     } else {
-      // TODO(brianwilkerson) Figure out why we're not producing parameter types.
+      // TODO(brianwilkerson): Figure out why we're not producing parameter types.
       assertResponse(r'''
 suggestions
   m0
@@ -5811,7 +5824,7 @@ class B extends A {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) Figure out why there is no parameter information.
+      // TODO(brianwilkerson): Figure out why there is no parameter information.
       assertResponse(r'''
 suggestions
   x0

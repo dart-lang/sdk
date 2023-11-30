@@ -66,7 +66,7 @@ class RecursiveTypeVisitor extends UnifyingTypeVisitor<bool> {
 
   @override
   bool visitTypeParameterType(TypeParameterType type) {
-    // TODO(scheglov) Should we visit the bound here?
+    // TODO(scheglov): Should we visit the bound here?
     return true;
   }
 }

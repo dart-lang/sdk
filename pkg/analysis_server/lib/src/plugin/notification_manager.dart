@@ -37,7 +37,7 @@ abstract class AbstractNotificationManager {
       <server.AnalysisService, Set<String>>{};
 
   /// The collector being used to collect the analysis errors from the plugins.
-  // TODO(brianwilkerson) Consider the possibility of not passing the predicate
+  // TODO(brianwilkerson): Consider the possibility of not passing the predicate
   //  in to the collector, but instead to the testing in this class.
   late ResultCollector<List<AnalysisError>> errors =
       ResultCollector<List<AnalysisError>>(serverId, predicate: _isIncluded);
@@ -295,7 +295,7 @@ abstract class AbstractNotificationManager {
       return false;
     }
 
-    // TODO(brianwilkerson) Return false if error notifications are globally
+    // TODO(brianwilkerson): Return false if error notifications are globally
     // disabled.
     return isIncluded() && !isExcluded();
   }
@@ -360,7 +360,7 @@ class NotificationManager extends AbstractNotificationManager {
   @override
   void sendPluginErrorNotification(plugin.Notification notification) {
     var params = plugin.PluginErrorParams.fromNotification(notification);
-    // TODO(brianwilkerson) There is no indication for the client as to the
+    // TODO(brianwilkerson): There is no indication for the client as to the
     // fact that the error came from a plugin, let alone which plugin it
     // came from. We should consider whether we really want to send them to
     // the client.

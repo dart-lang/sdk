@@ -19,7 +19,7 @@ class FieldFormalContributor extends DartCompletionContributor {
     required OperationPerformanceImpl performance,
   }) async {
     var node = request.target.containingNode;
-    // TODO(brianwilkerson) We should suggest field formal parameters even if
+    // TODO(brianwilkerson): We should suggest field formal parameters even if
     //  the user hasn't already typed the `this.` prefix, by including the
     //  prefix in the completion.
     if (node is! FieldFormalParameter) {
@@ -32,7 +32,7 @@ class FieldFormalContributor extends DartCompletionContributor {
     }
 
     // Compute the list of fields already referenced in the constructor.
-    // TODO(brianwilkerson) This doesn't include fields in initializers, which
+    // TODO(brianwilkerson): This doesn't include fields in initializers, which
     //  shouldn't be suggested.
     var referencedFields = <String>[];
     for (var param in constructor.parameters.parameters) {

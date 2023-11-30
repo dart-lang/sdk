@@ -7,14 +7,14 @@ RESULT: _T {}?
 t1 = _Call direct [dart.core::Object.] (%this)
 RESULT: _T {}?
 ------------ foo ------------
-%a1 = _Parameter #0 [_T (dart.core::Object)+?]
+%a1 = _Parameter #0 [_T (dart.core::Object)+]
 %a2 = _Parameter #1 [_T (dart.core::Object)+?]
 t2* = _Call direct get [#lib::someStatic] ()
 t3* = _Call direct [#lib::A.] (_T (#lib::A)) {t2}
 a1_0 = _Join [dart.core::Object] (t3, %a1)
 t5 = _Call direct [#lib::bar] (a1_0, _T (dart.core::_Smi, 42))
 t6* = _Call direct [#lib::B.] (_T (#lib::B))
-t7* = _Call [dart.core::Object.==] (_T (dart.core::Object)+?, _T (dart.core::Object)+?)
+t7* = _Call [dart.core::Object.==] (_T (dart.core::Object)+, _T (dart.core::Object)+?)
 t8 = Not (t7)
 t9 = Move (t6) {t8}
 t10 = Not (t8)
@@ -23,8 +23,8 @@ t12 = _Join [dart.core::Object?] (t9, t11)
 t13 = _Narrow (t12 to _T (dart.core::Object)+?)
 RESULT: t13
 ------------ bar ------------
-%a1 = _Parameter #0 [_T (dart.core::Object)+?]
-%a2 = _Parameter #1 [_T (dart.core::int)+?]
+%a1 = _Parameter #0 [_T (dart.core::Object)+]
+%a2 = _Parameter #1 [_T (dart.core::int)+]
 t2 = _TypeCheck (%a1 against dart.core::int) (for v1 is dart.core::int)
 t3 = IsEmpty (t2)
 t4 = Not (t3)
@@ -35,24 +35,24 @@ t8* = _Call [dart.core::int.unary-] (_T (dart.core::_Smi, 1)) {t7}
 %result = _Join [dart.core::int] (t6, t8)
 RESULT: %result
 ------------ loop1 ------------
-%a1 = _Parameter #0 [_T (dart.core::Object)+?]
-%a2 = _Parameter #1 [_T (dart.core::Object)+?]
+%a1 = _Parameter #0 [_T (dart.core::Object)+]
+%a2 = _Parameter #1 [_T (dart.core::Object)+]
 t2 = _Call direct [#lib::loop1] (%a1, %a1)
 RESULT: %a2
 ------------ loop2 ------------
-%x = _Parameter #0 [_T (dart.core::int)+?]
+%x = _Parameter #0 [_T (dart.core::int)+]
 t1* = _Call [dart.core::num.+] (_T (dart.core::int)+, _T (dart.core::_Smi, 1))
 i_0 = _Join [dart.core::int] (_T (dart.core::_Smi, 0), t1)
 t3* = _Call [dart.core::num.<] (i_0, _T (dart.core::_Smi, 5))
-t4* = _Call [dart.core::num.+] (_T (dart.core::int)+?, _T (dart.core::_Smi, 10))
+t4* = _Call [dart.core::num.+] (_T (dart.core::int)+, _T (dart.core::_Smi, 10))
 x_0 = _Join [dart.core::int] (%x, t4)
 RESULT: x_0
 ------------ nonNullableWithoutInitializer ------------
-%cond = _Parameter #0 [_T (dart.core::bool)+?]
+%cond = _Parameter #0 [_T (dart.core::bool)+]
 x_0 = _Join [dart.core::int] (_T (dart.core::_Smi, 5), _T (dart.core::_Smi, 7))
 RESULT: x_0
 ------------ lateWithoutInitializer ------------
-%cond = _Parameter #0 [_T (dart.core::bool)+?]
+%cond = _Parameter #0 [_T (dart.core::bool)+]
 RESULT: _T (dart.core::_Smi, 5)
 ------------ main ------------
 

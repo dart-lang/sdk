@@ -498,25 +498,18 @@ class MethodUsage extends MemberUsage {
 
   final ParameterUsage parameterUsage;
 
-  MethodUsage.cloned(FunctionEntity function, this.parameterUsage,
-      EnumSet<MemberUse> pendingUse,
+  MethodUsage.cloned(super.function, this.parameterUsage, super.pendingUse,
       {required this.potentialReads,
       required this.reads,
       required this.potentialInvokes,
       required this.invokes})
-      : assert((potentialReads as dynamic) != null),
-        assert((potentialInvokes as dynamic) != null),
-        assert((reads as dynamic) != null),
-        assert((invokes as dynamic) != null),
-        super.cloned(function, pendingUse);
+      : super.cloned();
 
   MethodUsage(FunctionEntity super.function,
       {required this.potentialReads, required this.potentialInvokes})
       : reads = EnumSet(),
         invokes = EnumSet(),
         parameterUsage = ParameterUsage(function.parameterStructure),
-        assert((potentialReads as dynamic) != null),
-        assert((potentialInvokes as dynamic) != null),
         super.internal();
 
   @override

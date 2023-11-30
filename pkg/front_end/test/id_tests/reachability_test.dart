@@ -26,7 +26,7 @@ Future<void> main(List<String> args) async {
 }
 
 class ReachabilityDataComputer
-    extends DataComputer<Set<_ReachabilityAssertion>> {
+    extends CfeDataComputer<Set<_ReachabilityAssertion>> {
   const ReachabilityDataComputer();
 
   @override
@@ -37,7 +37,7 @@ class ReachabilityDataComputer
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<Set<_ReachabilityAssertion>>> actualMap,
       {bool? verbose}) {
     SourceMemberBuilder memberBuilder =

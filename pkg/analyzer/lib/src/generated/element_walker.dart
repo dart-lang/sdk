@@ -138,7 +138,7 @@ class ElementWalker {
   /// Returns the next non-synthetic child of [element] which is an accessor;
   /// throws an [IndexError] if there are no more.
   PropertyAccessorElementImpl getAccessor() {
-    // TODO(scheglov) Remove after fixing.
+    // TODO(scheglov): Remove after fixing.
     // https://github.com/dart-lang/sdk/issues/46392
     var accessors = _accessors;
     if (accessors != null && _accessorIndex >= accessors.length) {
@@ -157,7 +157,7 @@ class ElementWalker {
   /// Returns the next non-synthetic child of [element] which is a class; throws
   /// an [IndexError] if there are no more.
   ClassElementImpl getClass() {
-    // TODO(scheglov) Remove after fixing.
+    // TODO(scheglov): Remove after fixing.
     // https://github.com/dart-lang/sdk/issues/46392
     var classes = _classes;
     if (classes != null && _classIndex >= classes.length) {
@@ -217,7 +217,7 @@ class ElementWalker {
   /// variable, field, or local variable; throws an [IndexError] if there are no
   /// more.
   VariableElementImpl getVariable() {
-    // TODO(scheglov) Remove after fixing.
+    // TODO(scheglov): Remove after fixing.
     // https://github.com/dart-lang/sdk/issues/46392
     var variables = _variables;
     if (variables != null && _variableIndex >= variables.length) {

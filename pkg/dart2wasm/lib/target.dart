@@ -36,7 +36,6 @@ import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 enum Mode {
   regular,
-  stringref,
   jsCompatibility,
 }
 
@@ -104,6 +103,8 @@ class WasmTarget extends Target {
   Class? _twoByteString;
   Class? _jsString;
   Class? _closure;
+  Class? _boxedInt;
+  Class? _boxedDouble;
   Map<String, Class>? _nativeClasses;
 
   @override
@@ -120,8 +121,6 @@ class WasmTarget extends Target {
     switch (mode) {
       case Mode.regular:
         return 'wasm';
-      case Mode.stringref:
-        return 'wasm_stringref';
       case Mode.jsCompatibility:
         return 'wasm_js_compatibility';
     }
@@ -131,8 +130,6 @@ class WasmTarget extends Target {
     switch (mode) {
       case Mode.regular:
         return 'dart2wasm_platform.dill';
-      case Mode.stringref:
-        return 'dart2wasm_stringref_platform.dill';
       case Mode.jsCompatibility:
         return 'dart2wasm_js_compatibility_platform.dill';
     }
@@ -254,6 +251,8 @@ class WasmTarget extends Target {
           component, Uri.parse("dart:_js_annotations")),
       ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
           component, Uri.parse("dart:js_interop")),
+      ...?jsInteropHelper.calculateTransitiveImportsOfJsInteropIfUsed(
+          component, Uri.parse("dart:convert")),
     };
     if (transitiveImportingJSInterop.isEmpty) {
       logger?.call("Skipped JS interop transformations");
@@ -493,6 +492,14 @@ class WasmTarget extends Target {
   Class getRecordImplementationClass(CoreTypes coreTypes,
           int numPositionalFields, List<String> namedFields) =>
       recordClasses[RecordShape(numPositionalFields, namedFields)]!;
+
+  @override
+  Class concreteIntLiteralClass(CoreTypes coreTypes, int value) =>
+      _boxedInt ??= coreTypes.index.getClass("dart:core", "_BoxedInt");
+
+  @override
+  Class concreteDoubleLiteralClass(CoreTypes coreTypes, double value) =>
+      _boxedDouble ??= coreTypes.index.getClass("dart:core", "_BoxedDouble");
 }
 
 class WasmVerification extends Verification {

@@ -1459,7 +1459,7 @@ class CodeShapeMetricsComputer {
     sink.writeln('');
     sink.writeln('Child data');
 
-    // TODO(brianwilkerson) This misses all node kinds for which zero instances
+    // TODO(brianwilkerson): This misses all node kinds for which zero instances
     //  were visited.
     var nodeData = data.nodeData;
     var parentData = data.parentData;

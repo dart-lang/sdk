@@ -37,6 +37,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
       ExperimentalFeatures.nonfunction_type_aliases,
   EnableString.patterns: ExperimentalFeatures.patterns,
   EnableString.records: ExperimentalFeatures.records,
+  EnableString.resource_identifiers: ExperimentalFeatures.resource_identifiers,
   EnableString.sealed_class: ExperimentalFeatures.sealed_class,
   EnableString.set_literals: ExperimentalFeatures.set_literals,
   EnableString.spread_collections: ExperimentalFeatures.spread_collections,
@@ -103,6 +104,9 @@ class EnableString {
 
   /// String to enable the experiment "records"
   static const String records = 'records';
+
+  /// String to enable the experiment "resource-identifiers"
+  static const String resource_identifiers = 'resource-identifiers';
 
   /// String to enable the experiment "sealed-class"
   static const String sealed_class = 'sealed-class';
@@ -240,8 +244,8 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.inline_class,
     isExpired: IsExpired.inline_class,
     documentation: 'Extension Types',
-    experimentalReleaseVersion: Version.parse('3.3.0'),
-    releaseVersion: null,
+    experimentalReleaseVersion: null,
+    releaseVersion: Version.parse('3.3.0'),
   );
 
   static final macros = ExperimentalFeature(
@@ -250,7 +254,7 @@ class ExperimentalFeatures {
     isEnabledByDefault: IsEnabledByDefault.macros,
     isExpired: IsExpired.macros,
     documentation: 'Static meta-programming',
-    experimentalReleaseVersion: null,
+    experimentalReleaseVersion: Version.parse('3.3.0'),
     releaseVersion: null,
   );
 
@@ -314,8 +318,18 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('3.0.0'),
   );
 
-  static final sealed_class = ExperimentalFeature(
+  static final resource_identifiers = ExperimentalFeature(
     index: 18,
+    enableString: EnableString.resource_identifiers,
+    isEnabledByDefault: IsEnabledByDefault.resource_identifiers,
+    isExpired: IsExpired.resource_identifiers,
+    documentation: 'Output arguments used by static functions.',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final sealed_class = ExperimentalFeature(
+    index: 19,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -325,7 +339,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 19,
+    index: 20,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -335,7 +349,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 20,
+    index: 21,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -345,7 +359,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 21,
+    index: 22,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -355,7 +369,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 22,
+    index: 23,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -366,7 +380,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 23,
+    index: 24,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -376,7 +390,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 24,
+    index: 25,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -386,7 +400,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 25,
+    index: 26,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -430,7 +444,7 @@ class IsEnabledByDefault {
   static const bool inference_update_2 = true;
 
   /// Default state of the experiment "inline-class"
-  static const bool inline_class = false;
+  static const bool inline_class = true;
 
   /// Default state of the experiment "macros"
   static const bool macros = false;
@@ -452,6 +466,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "records"
   static const bool records = true;
+
+  /// Default state of the experiment "resource-identifiers"
+  static const bool resource_identifiers = false;
 
   /// Default state of the experiment "sealed-class"
   static const bool sealed_class = true;
@@ -483,7 +500,7 @@ class IsEnabledByDefault {
 /// value in [IsEnabledByDefault]).
 class IsExpired {
   /// Expiration status of the experiment "class-modifiers"
-  static const bool class_modifiers = false;
+  static const bool class_modifiers = true;
 
   /// Expiration status of the experiment "const-functions"
   static const bool const_functions = false;
@@ -531,13 +548,16 @@ class IsExpired {
   static const bool nonfunction_type_aliases = true;
 
   /// Expiration status of the experiment "patterns"
-  static const bool patterns = false;
+  static const bool patterns = true;
 
   /// Expiration status of the experiment "records"
-  static const bool records = false;
+  static const bool records = true;
+
+  /// Expiration status of the experiment "resource-identifiers"
+  static const bool resource_identifiers = false;
 
   /// Expiration status of the experiment "sealed-class"
-  static const bool sealed_class = false;
+  static const bool sealed_class = true;
 
   /// Expiration status of the experiment "set-literals"
   static const bool set_literals = true;
@@ -623,6 +643,10 @@ mixin _CurrentState {
 
   /// Current state for the flag "records"
   bool get records => isEnabled(ExperimentalFeatures.records);
+
+  /// Current state for the flag "resource-identifiers"
+  bool get resource_identifiers =>
+      isEnabled(ExperimentalFeatures.resource_identifiers);
 
   /// Current state for the flag "sealed-class"
   bool get sealed_class => isEnabled(ExperimentalFeatures.sealed_class);

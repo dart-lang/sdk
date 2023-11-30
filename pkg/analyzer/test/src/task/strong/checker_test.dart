@@ -15,8 +15,8 @@ void main() {
 
 @reflectiveTest
 class CheckerTest extends PubPackageResolutionTest with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+  // TODO(srawlins): Use null safety in test cases.
+  // https://github.com/dart-lang/sdk/issues/44666
   test_castsInConstantContexts() async {
     await assertErrorsInCode('''
 class A {

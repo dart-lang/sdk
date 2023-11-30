@@ -197,7 +197,6 @@ void checkFunctionDeclaration(FunctionDeclaration actual) {
   String name = actual.identifier.name;
   FunctionData? expected = expectedFunctionData[name];
   if (expected != null) {
-    expect(expected.isAbstract, actual.hasAbstract, '$name.isAbstract');
     expect(expected.isExternal, actual.hasExternal, '$name.isExternal');
     expect(expected.isOperator, actual.isOperator, '$name.isOperator');
     expect(expected.isGetter, actual.isGetter, '$name.isGetter');

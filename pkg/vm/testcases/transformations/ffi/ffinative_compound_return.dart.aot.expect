@@ -17,15 +17,17 @@ final class Struct1ByteInt extends ffi::Struct {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:2,getterSelectorId:3]  method toString() → core::String
     return "(${[@vm.direct-call.metadata=#lib::Struct1ByteInt.a0] this.{self::Struct1ByteInt::a0}{core::int}})";
 }
-[@vm.inferred-type.metadata=dart.core::_Closure]static final field (core::int) → self::Struct1ByteInt _returnStruct1ByteIntNative$Method$FfiNative$Ptr = block {
-  _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C9)));
-} =>[@vm.inferred-type.metadata=dart.core::_Closure] ffi::_asFunctionInternal<(core::int) → self::Struct1ByteInt, (ffi::Int8) → self::Struct1ByteInt>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_fromAddress<ffi::NativeFunction<(ffi::Int8) → self::Struct1ByteInt>*>(ffi::_ffi_resolver(#C10, #C11, #C9){(core::Object, core::Object, core::int) → core::int}), false)/*isLegacy*/;
 static method main() → void {
   final self::Struct1ByteInt result = self::returnStruct1ByteIntNative([@vm.direct-call.metadata=dart.core::_IntegerImplementation.unary-] [@vm.inferred-type.metadata=int (skip check)] 1.{core::int::unary-}(){() → core::int});
   core::print("result = ${result}");
 }
-[@vm.unboxing-info.metadata=(i)->b]static method returnStruct1ByteIntNative([@vm.inferred-arg-type.metadata=int] core::int a0) → self::Struct1ByteInt
-  return self::_returnStruct1ByteIntNative$Method$FfiNative$Ptr(a0){(core::int) → self::Struct1ByteInt};
+[@vm.unboxing-info.metadata=(i)->b]@#C10
+static method returnStruct1ByteIntNative([@vm.inferred-arg-type.metadata=int] core::int a0) → self::Struct1ByteInt
+  return block {
+    _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C11)));
+  } =>[@vm.inferred-type.metadata=#lib::Struct1ByteInt] self::_returnStruct1ByteIntNative$Method$FfiNative(a0);
+[@vm.unboxing-info.metadata=(i)->b]@#C17
+external static method _returnStruct1ByteIntNative$Method$FfiNative([@vm.inferred-arg-type.metadata=int] core::int #t0) → self::Struct1ByteInt;
 constants  {
   #C1 = "vm:ffi:struct-fields"
   #C2 = TypeLiteralConstant(ffi::Int8)
@@ -35,7 +37,13 @@ constants  {
   #C6 = core::pragma {name:#C1, options:#C5}
   #C7 = 0
   #C8 = <core::int*>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
-  #C9 = 1
-  #C10 = "#lib"
-  #C11 = "ReturnStruct1ByteInt"
+  #C9 = "vm:prefer-inline"
+  #C10 = core::pragma {name:#C9, options:#C4}
+  #C11 = 1
+  #C12 = "vm:ffi:native"
+  #C13 = "ReturnStruct1ByteInt"
+  #C14 = "#lib"
+  #C15 = false
+  #C16 = ffi::Native<(ffi::Int8) → self::Struct1ByteInt> {symbol:#C13, assetId:#C14, isLeaf:#C15}
+  #C17 = core::pragma {name:#C12, options:#C16}
 }

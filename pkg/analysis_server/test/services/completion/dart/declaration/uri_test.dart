@@ -139,6 +139,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
@@ -189,6 +191,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -225,6 +229,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -265,6 +271,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -302,6 +310,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -338,6 +348,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -378,6 +390,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -391,7 +405,7 @@ suggestions
     await computeSuggestions('''
 import "" if (dart.library.io) "d^
 ''');
-    // TODO(brianwilkerson) We should be suggesting `dart:` and `package:`. The
+    // TODO(brianwilkerson): We should be suggesting `dart:` and `package:`. The
     //  test used to include those before being converted, but no longer does.
     assertResponse(r'''
 replacement
@@ -429,6 +443,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -470,6 +486,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
 ''');
     } else {
       assertResponse(r'''
@@ -497,6 +515,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -539,6 +559,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
 ''');
     } else {
       assertResponse(r'''
@@ -567,6 +589,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -584,7 +608,7 @@ suggestions
     await computeSuggestions('''
 import "^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'other.dart' and 'foo/'.
     assertResponse(r'''
 suggestions
@@ -610,6 +634,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -626,7 +652,7 @@ suggestions
     await computeSuggestions('''
 import "..^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'other.dart' and 'foo/'.
     if (isProtocolVersion2) {
       assertResponse(r'''
@@ -661,6 +687,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -678,7 +706,7 @@ suggestions
     await computeSuggestions('''
 import "foo/^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'foo/bar.dart'.
     if (isProtocolVersion2) {
       assertResponse(r'''
@@ -712,6 +740,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -772,6 +802,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -794,7 +826,7 @@ suggestions
     await computeSuggestions('''
 import "../^" import
 ''');
-    // TODO(brianwilkerson) Before being converted this test used to produce
+    // TODO(brianwilkerson): Before being converted this test used to produce
     //  '../blat.dart' and '../aaa/'.
     if (isProtocolVersion2) {
       assertResponse(r'''
@@ -829,6 +861,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -846,7 +880,7 @@ suggestions
     await computeSuggestions('''
 import "../b^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  '../blat.dart'.
     if (isProtocolVersion2) {
       assertResponse(r'''
@@ -880,6 +914,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -933,6 +969,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -985,6 +1023,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1056,6 +1096,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1133,6 +1175,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1212,6 +1256,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1294,6 +1340,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
@@ -1363,6 +1411,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1437,6 +1487,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:bar/
@@ -1484,6 +1536,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1540,6 +1594,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -1579,6 +1635,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -1592,7 +1650,7 @@ suggestions
     await computeSuggestions('''
 import "d^
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'dart:' and 'package:'.
     assertResponse(r'''
 replacement
@@ -1632,6 +1690,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
 ''');
     } else {
       assertResponse(r'''
@@ -1659,6 +1719,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -1695,7 +1757,7 @@ suggestions
     await computeSuggestions('''
 library x; part "^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'other.dart' and 'foo/'.
     assertResponse(r'''
 suggestions
@@ -1709,7 +1771,7 @@ suggestions
     await computeSuggestions('''
 library x; part "..^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'other.dart' and 'foo/'.
     assertResponse(r'''
 replacement
@@ -1725,7 +1787,7 @@ suggestions
     await computeSuggestions('''
 library x; part "foo/^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  'foo/bar.dart'.
     assertResponse(r'''
 replacement
@@ -1741,7 +1803,7 @@ suggestions
     await computeSuggestions('''
 library x; part "../^" import
 ''');
-    // TODO(brianwilkerson) Before being converted, this test used to produce
+    // TODO(brianwilkerson): Before being converted, this test used to produce
     //  '../blat.dart'.
     assertResponse(r'''
 replacement

@@ -281,6 +281,10 @@ Future<void> testKeyOrder() async {
 }
 
 Future<void> testRuntimeErrors() async {
+  // The checks for the TypeErrors tested in here are omitted in dart2js
+  // production mode.
+  if (dart2jsProductionMode) return;
+
   // Cast variable.
   dynamic nonStream = 3;
   asyncExpectThrows<TypeError>(() async {

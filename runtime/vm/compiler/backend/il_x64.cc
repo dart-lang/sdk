@@ -264,12 +264,8 @@ void MemoryCopyInstr::EmitLoopCopy(FlowGraphCompiler* compiler,
   }
 
 #if defined(USING_MEMORY_SANITIZER)
-  RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
-                                   CallingConventions::kVolatileXmmRegisters);
-  __ PushRegisters(kVolatileRegisterSet);
   __ MulImmediate(TMP, mov_size);
   __ MsanUnpoison(dest_reg, TMP);
-  __ PopRegisters(kVolatileRegisterSet);
 #endif
 }
 
@@ -2213,11 +2209,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
 #if defined(USING_MEMORY_SANITIZER)
-  RegisterSet kVolatileRegisterSet(CallingConventions::kVolatileCpuRegisters,
-                                   CallingConventions::kVolatileXmmRegisters);
-  __ PushRegisters(kVolatileRegisterSet);
-  const Register base = CallingConventions::kArg1Reg;
-  __ leaq(base, element_address);
+  __ leaq(TMP, element_address);
   intptr_t length_in_bytes;
   if (IsTypedDataBaseClassId(class_id_)) {
     length_in_bytes = compiler::TypedDataElementSizeInBytes(class_id_);
@@ -2236,8 +2228,7 @@ void StoreIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         FATAL("Unknown cid: %" Pd, class_id_);
     }
   }
-  __ MsanUnpoison(base, length_in_bytes);
-  __ PopRegisters(kVolatileRegisterSet);
+  __ MsanUnpoison(TMP, length_in_bytes);
 #endif
 }
 

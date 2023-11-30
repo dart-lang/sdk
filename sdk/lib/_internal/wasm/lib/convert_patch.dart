@@ -35,51 +35,6 @@ class Utf8Decoder {
     // TODO(lrn): Recognize a fused decoder where the next step is JsonDecoder.
     return super.fuse<T>(next);
   }
-
-  @patch
-  static String? _convertIntercepted(
-      bool allowMalformed, List<int> codeUnits, int start, int? end) {
-    // We intercept the calls always to make sure the standard library UTF8
-    // decoder is only passed `U8List`, so that array accesses will be
-    // monomorphic and inlined.
-    if (codeUnits is U8List) {
-      return _Utf8Decoder(allowMalformed)._convertSingle(
-          unsafeCast<U8List>(codeUnits), start, end, codeUnits, start);
-    } else {
-      // TODO(omersa): Check if `codeUnits` is a JS array and call browser UTF8
-      // decoder here.
-      //
-      // If we're passed a `List<int>` other than `U8List` or a JS typed array,
-      // it means the performance is not too important. So we convert the input
-      // to `U8List` to avoid shipping another UTF8 decoder.
-      end ??= codeUnits.length;
-      final length = end - start;
-      final u8list = U8List(length);
-      final u8listData = u8list.data;
-      if (allowMalformed) {
-        int u8listIdx = 0;
-        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
-          int byte = codeUnits[codeUnitsIdx];
-          if (byte < 0 || byte > 255) {
-            byte = 0xFF;
-          }
-          u8listData.write(u8listIdx++, byte);
-        }
-      } else {
-        int u8listIdx = 0;
-        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
-          final byte = codeUnits[codeUnitsIdx];
-          if (byte < 0 || byte > 255) {
-            throw FormatException(
-                'Invalid UTF-8 byte', codeUnits, codeUnitsIdx);
-          }
-          u8listData.write(u8listIdx++, byte);
-        }
-      }
-      return _Utf8Decoder(allowMalformed)
-          ._convertSingle(u8list, 0, length, codeUnits, start);
-    }
-  }
 }
 
 class _JsonUtf8Decoder extends Converter<List<int>, Object?> {
@@ -1688,18 +1643,18 @@ class _Utf8Decoder {
     int localStart = start;
     while (end - localStart > scanChunkSize) {
       int localEnd = localStart + scanChunkSize;
-      size += _scan(bytes, localStart, localEnd, scanTable);
+      size += _scan(bytes, localStart, localEnd);
       localStart = localEnd;
     }
-    size += _scan(bytes, localStart, end, scanTable);
+    size += _scan(bytes, localStart, end);
     return size;
   }
 
-  int _scan(Uint8List bytes, int start, int end, String scanTable) {
+  int _scan(Uint8List bytes, int start, int end) {
     int size = 0;
     int flags = 0;
     for (int i = start; i < end; i++) {
-      int t = scanTable.codeUnitAt(bytes[i]);
+      int t = scanTable.oneByteStringCodeUnitAtUnchecked(bytes[i]);
       size += t & sizeMask;
       flags |= t;
     }
@@ -1713,14 +1668,47 @@ class _Utf8Decoder {
 
   @patch
   String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
-    // `Utf8Decoder._convertIntercepted` should intercept all calls to call the
-    // right decoder for the `codeUnits` type.
-    throw 'Utf8Decoder.convert was not intercepted';
-  }
+    int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
+    if (start == end) return "";
 
-  String _convertSingle(U8List bytes, int start, int? maybeEnd,
-      List<int> actualSource, int actualStart) {
-    final int end = RangeError.checkValidRange(start, maybeEnd, bytes.length);
+    final U8List bytes;
+    if (codeUnits is U8List) {
+      bytes = unsafeCast<U8List>(codeUnits);
+    } else {
+      // TODO(omersa): Check if `codeUnits` is a JS array and call browser UTF8
+      // decoder here.
+      //
+      // If we're passed a `List<int>` other than `U8List` or a JS typed array,
+      // it means the performance is not too important. Convert the input to
+      // `U8List` to avoid shipping another UTF-8 decoder.
+      final length = end - start;
+      bytes = U8List(length);
+      final u8listData = bytes.data;
+      if (allowMalformed) {
+        int u8listIdx = 0;
+        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
+          int byte = codeUnits[codeUnitsIdx];
+          if (byte < 0 || byte > 255) {
+            byte = 0xFF;
+          }
+          u8listData.write(u8listIdx++, byte);
+        }
+      } else {
+        int u8listIdx = 0;
+        for (int codeUnitsIdx = start; codeUnitsIdx < end; codeUnitsIdx += 1) {
+          final byte = codeUnits[codeUnitsIdx];
+          if (byte < 0 || byte > 255) {
+            throw FormatException(
+                'Invalid UTF-8 byte', codeUnits, codeUnitsIdx);
+          }
+          u8listData.write(u8listIdx++, byte);
+        }
+      }
+      start = 0;
+      end = length;
+    }
+
+    final actualStart = start;
 
     // Skip initial BOM.
     start = skipBomSingle(bytes, start, end);
@@ -1760,7 +1748,7 @@ class _Utf8Decoder {
         _charOrIndex = end;
       }
       final String message = errorDescription(_state);
-      throw FormatException(message, actualSource, actualStart + _charOrIndex);
+      throw FormatException(message, codeUnits, actualStart + _charOrIndex);
     }
 
     // Start over on slow path.
@@ -1963,7 +1951,6 @@ class _Utf8Decoder {
 
   String decode16(Uint8List bytes, int start, int end, int size) {
     assert(start < end);
-    final String typeTable = _Utf8Decoder.typeTable;
     final String transitionTable = _Utf8Decoder.transitionTable;
     TwoByteString result = TwoByteString.withLength(size);
     int i = start;
@@ -1974,7 +1961,9 @@ class _Utf8Decoder {
     // First byte
     assert(!isErrorState(state));
     final int byte = bytes[i++];
-    final int type = typeTable.codeUnitAt(byte) & typeMask;
+    final int type =
+        _Utf8Decoder.typeTable.oneByteStringCodeUnitAtUnchecked(byte) &
+            typeMask;
     if (state == accept) {
       char = byte & (shiftedByteMask >> type);
       state = transitionTable.codeUnitAt(type);
@@ -1985,7 +1974,9 @@ class _Utf8Decoder {
 
     while (i < end) {
       final int byte = bytes[i++];
-      final int type = typeTable.codeUnitAt(byte) & typeMask;
+      final int type =
+          _Utf8Decoder.typeTable.oneByteStringCodeUnitAtUnchecked(byte) &
+              typeMask;
       if (state == accept) {
         if (char >= 0x10000) {
           assert(char < 0x110000);

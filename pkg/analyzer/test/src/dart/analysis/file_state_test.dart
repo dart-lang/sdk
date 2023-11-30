@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -16,7 +17,8 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart'
+    show DartUriResolver, SourceFactory, UriResolver;
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -621,7 +623,7 @@ elementFactory
 ''');
   }
 
-  /// TODO(scheglov) Implement `asLibrary` testing.
+  // TODO(scheglov): Implement `asLibrary` testing.
   test_libraryCycle_part() {
 //     var a_path = convertPath('/aaa/lib/a.dart');
 //     var b_path = convertPath('/aaa/lib/b.dart');
@@ -5114,7 +5116,7 @@ library augment 'a.dart';
 
     // We will discover the target by URI.
     fileStateFor(b).refresh();
-    // TODO(scheglov) The API signature must be different.
+    // TODO(scheglov): The API signature must be different.
     assertDriverStateString(testFile, r'''
 files
   /home/test/lib/a.dart

@@ -229,7 +229,6 @@ void main() {
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'name'),
               library: Fixtures.library,
               metadata: [],
-              hasAbstract: true,
               hasBody: false,
               hasExternal: false,
               isGetter: true,
@@ -250,7 +249,6 @@ void main() {
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'zorp'),
               library: Fixtures.library,
               metadata: [],
-              hasAbstract: false,
               hasBody: true,
               hasExternal: false,
               isGetter: false,
@@ -273,12 +271,8 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'new'),
             library: Fixtures.library,
             metadata: [],
-            hasAbstract: false,
             hasBody: true,
             hasExternal: false,
-            isGetter: false,
-            isOperator: true,
-            isSetter: false,
             namedParameters: [fooNamedParam],
             positionalParameters: [barPositionalParam],
             returnType: fooType,
@@ -313,6 +307,7 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
             metadata: [],
+            hasAbstract: true,
             hasExternal: false,
             hasFinal: true,
             hasLate: false,
@@ -403,6 +398,19 @@ void main() {
               onType: Fixtures.myClassType);
           expectSerializationEquality<DeclarationImpl>(
               extension, mode, RemoteInstance.deserialize);
+        });
+
+        test('ExtensionTypeDeclaration', () {
+          var extensionType = ExtensionTypeDeclarationImpl(
+              id: RemoteInstance.uniqueId,
+              identifier: IdentifierImpl(
+                  id: RemoteInstance.uniqueId, name: 'MyExtensionType'),
+              library: Fixtures.library,
+              metadata: [],
+              typeParameters: [],
+              onType: Fixtures.myClassType);
+          expectSerializationEquality<DeclarationImpl>(
+              extensionType, mode, RemoteInstance.deserialize);
         });
 
         test('MixinDeclaration', () {
@@ -625,8 +633,16 @@ void main() {
               id: RemoteInstance.uniqueId,
               type: IdentifierImpl(
                   id: RemoteInstance.uniqueId, name: 'Singleton'),
-              constructor: IdentifierImpl(
-                  id: RemoteInstance.uniqueId, name: 'someName'));
+              constructor:
+                  IdentifierImpl(id: RemoteInstance.uniqueId, name: 'someName'),
+              positionalArguments: [
+                ExpressionCode.fromString("'foo'"),
+                ExpressionCode.fromString('12'),
+              ],
+              namedArguments: {
+                'bar': ExpressionCode.fromString("'bar'"),
+                'foobar': ExpressionCode.fromString('13'),
+              });
 
           expectSerializationEquality<ConstructorMetadataAnnotationImpl>(
               constructorMetadata, mode, RemoteInstance.deserialize);

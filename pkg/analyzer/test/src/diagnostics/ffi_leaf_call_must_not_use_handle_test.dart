@@ -53,11 +53,11 @@ import 'dart:ffi';
 base class NativeFieldWrapperClass1 {}
 
 base class A extends NativeFieldWrapperClass1 {
-  @FfiNative<Handle Function(Pointer<Void>)>('foo', isLeaf:true)
+  @Native<Handle Function(Pointer<Void>)>(symbol: 'foo', isLeaf:true)
   external Object get foo;
 }
 ''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 110, 89),
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 110, 94),
     ]);
   }
 
@@ -94,10 +94,10 @@ doThings() {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-@FfiNative<Handle Function()>('foo', isLeaf:true)
+@Native<Handle Function()>(symbol: 'foo', isLeaf:true)
 external Object get foo;
 ''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 20, 74),
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 20, 79),
     ]);
   }
 }

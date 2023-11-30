@@ -51,10 +51,9 @@ class AnalysisGetNavigationHandler extends LegacyHandler
       var allResults = <AnalysisNavigationParams>[];
       var result = await server.getResolvedUnit(file);
       if (result != null) {
-        var unit = result.unit;
         var collector = NavigationCollectorImpl();
         computeDartNavigation(
-            server.resourceProvider, collector, unit, offset, length);
+            server.resourceProvider, collector, result, offset, length);
         collector.createRegions();
         allResults.add(AnalysisNavigationParams(
             file, collector.regions, collector.targets, collector.files));

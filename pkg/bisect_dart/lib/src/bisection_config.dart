@@ -97,7 +97,7 @@ class BisectionConfig {
     start: '23f41452',
     end: '2c97bd78',
     testCommands: [
-      'python3 tools/test.py --build -n dartk-linux-debug-x64 lib_2/isolate/package_resolve_test',
+      'python3 tools/test.py --build -n dartk-linux-debug-x64 lib/isolate/package_resolve_test',
     ],
     sdkPath: Directory.current.uri,
     failureString: "Error: The argument type 'String' can't "

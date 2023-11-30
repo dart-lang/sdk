@@ -18,6 +18,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/test_support.dart';
 import '../resolution/context_collection_resolution.dart';
+import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -25,12 +26,68 @@ main() {
     defineReflectiveTests(ConstantVisitorWithoutNullSafetyTest);
     defineReflectiveTests(InstanceCreationEvaluatorTest);
     defineReflectiveTests(InstanceCreationEvaluatorWithoutNullSafetyTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class ConstantVisitorTest extends ConstantVisitorTestSupport
     with ConstantVisitorTestCases {
+  test_asExpression_fromExtensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const a = E(42);
+const x = a as int;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+int 42
+  variable: self::@variable::x
+''');
+  }
+
+  test_asExpression_fromExtensionType_nullable() async {
+    await assertNoErrorsInCode(r'''
+extension type E(int? it) {}
+
+const x = null as E;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Null null
+  variable: self::@variable::x
+''');
+  }
+
+  test_asExpression_toExtensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = 42 as E;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+int 42
+  variable: self::@variable::x
+''');
+  }
+
+  test_binaryExpression_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const a = E(2);
+const b = E(3);
+const x = (a as num) * (b as num);
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+int 6
+  variable: self::@variable::x
+''');
+  }
+
   test_declaration_staticError_notAssignable() async {
     await assertErrorsInCode('''
 const int x = 'foo';
@@ -544,6 +601,20 @@ const v = int;
     _assertHasPrimitiveEqualityTrue('v');
   }
 
+  test_identical_extensionType_types_recursive() async {
+    await assertNoErrorsInCode('''
+const c = identical(ExList<ExInt>, List<int>);
+
+extension type const ExInt(int value) implements int {}
+extension type const ExList<T>(List<T> value) implements List<T> {}
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
   test_identical_typeLiteral_explicitTypeArgs_differentTypeArgs() async {
     await assertNoErrorsInCode('''
 class C<T> {}
@@ -688,6 +759,157 @@ const b = a;
 A<int>
   t: int 0
   variable: self::@variable::b
+''');
+  }
+
+  test_instanceCreationExpression_custom_generic_extensionType_explicit() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+class C<T> {
+  const C();
+}
+
+const x = C<E>();
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+C<int>
+  variable: self::@variable::x
+''');
+  }
+
+  test_instanceCreationExpression_custom_generic_extensionType_inferred() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+class C<T> {
+  final T f;
+  const C(this.f);
+}
+
+const x = C(E(42));
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+C<int>
+  f: int 42
+  variable: self::@variable::x
+''');
+  }
+
+  test_instanceCreationExpression_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = E(42);
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+int 42
+  variable: self::@variable::x
+''');
+  }
+
+  test_isExpression_fromExtensionType_false() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const a = E(42);
+const x = a is String;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+bool false
+  variable: self::@variable::x
+''');
+  }
+
+  test_isExpression_fromExtensionType_true() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const a = E(42);
+const x = a is int;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+bool true
+  variable: self::@variable::x
+''');
+  }
+
+  test_isExpression_toExtensionType_false() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(String it) {}
+
+const x = 42 is E;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+bool false
+  variable: self::@variable::x
+''');
+  }
+
+  test_isExpression_toExtensionType_true() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = 42 is E;
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+bool true
+  variable: self::@variable::x
+''');
+  }
+
+  test_listLiteral_extensionType_explicitType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = <E>[];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+List
+  elementType: int
+  variable: self::@variable::x
+''');
+  }
+
+  test_listLiteral_extensionType_inferredType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = [E(0), E(1)];
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+List
+  elementType: int
+  elements
+    int 0
+    int 1
+  variable: self::@variable::x
+''');
+  }
+
+  test_mapLiteral_extensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type const E(int it) {}
+
+const x = {E(0): E(1)};
+''');
+    final result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Map
+  entries
+    entry
+      key: int 0
+      value: int 1
+  variable: self::@variable::x
 ''');
   }
 
@@ -1799,8 +2021,8 @@ class C<T> {
 
 const x = C<int>.();
 ''', [
-      // TODO(https://github.com/dart-lang/sdk/issues/50441): This should not be
-      // reported.
+      // TODO(kallentu): This should not be reported.
+      // https://github.com/dart-lang/sdk/issues/50441
       error(CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER,
           45, 8),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 45,
@@ -2014,6 +2236,28 @@ const x = <void Function()>[];
 List
   elementType: void Function()
   variable: self::@variable::x
+''');
+  }
+
+  test_visitListLiteral_listElement_field_final() async {
+    await assertErrorsInCode(r'''
+class A {
+  final String bar = '';
+  const A();
+  List<String> foo() => const [bar];
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT, 79, 3),
+    ]);
+  }
+
+  test_visitListLiteral_listElement_field_static() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  static const String bar = '';
+  const A();
+  List<String> foo() => const [bar];
+}
 ''');
   }
 
@@ -2685,7 +2929,7 @@ class C {}
 ''');
     final result = _topLevelVar('a');
     assertDartObjectText(result, '''
-Type C*
+Type C
   variable: self::@variable::a
 ''');
   }

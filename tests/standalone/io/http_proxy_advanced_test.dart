@@ -383,7 +383,8 @@ void testProxyFromEnvironment() {
 }
 
 int testProxyAuthenticateCount = 0;
-Future testProxyAuthenticate(bool useDigestAuthentication) {
+Future testProxyAuthenticate(
+    bool useDigestAuthentication, String username, String password) {
   testProxyAuthenticateCount = 0;
   var completer = new Completer();
 
@@ -396,9 +397,9 @@ Future testProxyAuthenticate(bool useDigestAuthentication) {
         Completer step2 = new Completer();
 
         if (useDigestAuthentication) {
-          proxyServer.useDigestAuthentication("dart", "password");
+          proxyServer.useDigestAuthentication(username, password);
         } else {
-          proxyServer.useBasicAuthentication("dart", "password");
+          proxyServer.useBasicAuthentication(username, password);
         }
 
         // Test with no authentication.
@@ -440,10 +441,10 @@ Future testProxyAuthenticate(bool useDigestAuthentication) {
             client.findProxy =
                 (Uri uri) => "PROXY localhost:${proxyServer.port}";
             client.addProxyCredentials("localhost", proxyServer.port, "test",
-                new HttpClientDigestCredentials("dart", "password"));
+                new HttpClientDigestCredentials(username, password));
           } else {
             client.findProxy = (Uri uri) {
-              return "PROXY dart:password@localhost:${proxyServer.port}";
+              return "PROXY ${username}:${password}@localhost:${proxyServer.port}";
             };
           }
 
@@ -486,7 +487,7 @@ Future testProxyAuthenticate(bool useDigestAuthentication) {
 
           client.authenticateProxy = (host, port, scheme, realm) {
             client.addProxyCredentials("localhost", proxyServer.port, "realm",
-                new HttpClientBasicCredentials("dart", "password"));
+                new HttpClientBasicCredentials(username, password));
             return new Future.value(true);
           };
 
@@ -610,12 +611,21 @@ void testRealProxyAuth() {
   });
 }
 
-main() {
+main() async {
   testProxyIPV6();
   testProxyFromEnvironment();
   // The two invocations use the same global variable for state -
   // run one after the other.
-  testProxyAuthenticate(false).then((_) => testProxyAuthenticate(true));
+  await testProxyAuthenticate(false, "dart", "password");
+  await testProxyAuthenticate(true, "dart", "password");
+  // "@" and ":" are syntactically meaningful in the proxy syntax, which looks
+  // like: <username>:<password>@<host>:<port>.
+  await testProxyAuthenticate(false, "dart@example.com", "password");
+  await testProxyAuthenticate(true, "dart@example.com", "password");
+  await testProxyAuthenticate(false, "dart", ":@51s52");
+  await testProxyAuthenticate(true, "dart", ":@51s52");
+  await testProxyAuthenticate(false, "dart@example.com", ":@51s52");
+  await testProxyAuthenticate(true, "dart@example.com", ":@51s52");
 
   // This test is not normally run. It can be used for locally testing
   // with a real proxy server (e.g. Apache).

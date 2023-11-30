@@ -127,7 +127,7 @@ class AbstractContextTest with ResourceProviderMixin {
   }
 
   /// Write an analysis options file based on the given arguments.
-  /// TODO(asashour) Use AnalysisOptionsFileConfig
+  // TODO(asashour): Use AnalysisOptionsFileConfig
   void writeTestPackageAnalysisOptionsFile({
     List<String>? lints,
   }) {
@@ -188,11 +188,6 @@ class AbstractContextTest with ResourceProviderMixin {
       sdkPath: sdkRoot.path,
     );
   }
-}
-
-mixin WithoutNullSafetyMixin on AbstractContextTest {
-  @override
-  String? get testPackageLanguageVersion => '2.9';
 }
 
 /// Wraps the given [_ElementVisitorFunction] into an instance of

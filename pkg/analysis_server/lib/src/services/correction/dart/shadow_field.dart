@@ -29,7 +29,7 @@ class ShadowField extends ResolvedCorrectionProducer {
     }
 
     if (!accessor.isGetter || accessor.enclosingElement is! InterfaceElement) {
-      // TODO(brianwilkerson) Should we also require that the getter be synthetic?
+      // TODO(brianwilkerson): Should we also require that the getter be synthetic?
       return;
     }
 
@@ -40,7 +40,7 @@ class ShadowField extends ResolvedCorrectionProducer {
 
     var enclosingBlock = statement.parent;
     if (enclosingBlock is! Block) {
-      // TODO(brianwilkerson) Support adding a block between the statement and
+      // TODO(brianwilkerson): Support adding a block between the statement and
       //  its parent (where the parent will be something like a while or if
       //  statement). Also support the case where the parent is a case clause.
       return;
@@ -65,9 +65,9 @@ class ShadowField extends ResolvedCorrectionProducer {
     //
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(offset, (builder) {
-        // TODO(brianwilkerson) Conditionally write a type annotation instead of
+        // TODO(brianwilkerson): Conditionally write a type annotation instead of
         //  'var' when we're able to discover user preferences.
-        // TODO(brianwilkerson) Consider writing `final` rather than `var`.
+        // TODO(brianwilkerson): Consider writing `final` rather than `var`.
         builder.write('var ');
         builder.write(fieldName);
         builder.write(' = this.');
@@ -75,7 +75,7 @@ class ShadowField extends ResolvedCorrectionProducer {
         builder.writeln(';');
         builder.write(prefix);
       });
-      // TODO(brianwilkerson) Consider removing unnecessary casts and null
+      // TODO(brianwilkerson): Consider removing unnecessary casts and null
       //  checks that are no longer needed because promotion works. This would
       //  be dependent on whether enhanced promotion is supported in the library
       //  being edited.

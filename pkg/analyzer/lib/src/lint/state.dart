@@ -10,6 +10,9 @@ final Version dart2_12 = Version(2, 12, 0);
 /// A version describing Dart language version 3.0.0.
 final Version dart3 = Version(3, 0, 0);
 
+/// A version describing Dart language version 3.3.0.
+final Version dart3_3 = Version(3, 3, 0);
+
 /// A state that marks a lint as deprecated.
 class DeprecatedState extends State {
   /// An optional lint name that replaces the rule with this state.

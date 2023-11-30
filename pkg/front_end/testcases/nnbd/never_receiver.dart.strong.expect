@@ -66,8 +66,8 @@ import self as self;
 import "dart:core" as core;
 
 static method foo(Never x, Never? y) → dynamic {
-  core::String local0 = y.{core::Object::toString}(){() → core::String};
-  core::int local1 = y.{core::Object::hashCode}{core::int};
+  core::String local0 = y.{core::Object::toString}{<object>}.(){() → core::String};
+  core::int local1 = y.{core::Object::hashCode}{<object>}.{core::int};
   x{Never}.foo();
   x{Never}.bar;
   x{Never}.baz = 42;

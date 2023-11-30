@@ -95,7 +95,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    // TODO(brianwilkerson) We lost `const`.
+    // TODO(brianwilkerson): We lost `const`.
     assertResponse(r'''
 suggestions
   A01

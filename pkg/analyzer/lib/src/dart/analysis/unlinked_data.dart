@@ -477,7 +477,7 @@ class UnlinkedSourceRange {
 class UnlinkedUnit {
   /// The MD5 hash signature of the API portion of this unit. It depends on all
   /// tokens that might affect APIs of declarations in the unit.
-  /// TODO(scheglov) Do we need it?
+  // TODO(scheglov): Do we need it?
   final Uint8List apiSignature;
 
   /// `import augmentation` directives.

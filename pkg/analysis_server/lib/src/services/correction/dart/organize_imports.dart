@@ -27,7 +27,7 @@ class OrganizeImports extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var organizer =
         ImportOrganizer(unitResult.content, unit, unitResult.errors);
-    // todo (pq): consider restructuring organizer to allow a passed-in change
+    // TODO(pq): consider restructuring organizer to allow a passed-in change
     //  builder
     for (var edit in organizer.organize()) {
       await builder.addDartFileEdit(file, (builder) {

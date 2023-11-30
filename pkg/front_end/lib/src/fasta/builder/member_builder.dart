@@ -7,6 +7,7 @@ library fasta.member_builder;
 import 'package:kernel/ast.dart';
 
 import '../kernel/hierarchy/class_member.dart';
+import '../kernel/hierarchy/members_builder.dart';
 import '../modifier.dart';
 import 'builder.dart';
 import 'declaration_builders.dart';
@@ -266,6 +267,28 @@ abstract class BuilderClassMember implements ClassMember {
 
   @override
   ClassMember get interfaceMember => this;
+
+  @override
+  MemberResult getMemberResult(ClassMembersBuilder membersBuilder) {
+    if (isStatic) {
+      return new StaticMemberResult(getMember(membersBuilder), memberKind,
+          isDeclaredAsField: memberBuilder.isField,
+          fullName:
+              '${declarationBuilder.name}.${memberBuilder.memberName.text}');
+    } else if (memberBuilder.isExtensionTypeMember) {
+      ExtensionTypeDeclaration extensionTypeDeclaration =
+          (declarationBuilder as ExtensionTypeDeclarationBuilder)
+              .extensionTypeDeclaration;
+      Member member = getTearOff(membersBuilder) ?? getMember(membersBuilder);
+      return new ExtensionTypeMemberResult(
+          extensionTypeDeclaration, member, memberKind, name,
+          isDeclaredAsField: memberBuilder.isField);
+    } else {
+      return new TypeDeclarationInstanceMemberResult(
+          getMember(membersBuilder), memberKind,
+          isDeclaredAsField: memberBuilder.isField);
+    }
+  }
 
   @override
   String toString() => '$runtimeType($fullName,forSetter=${forSetter})';

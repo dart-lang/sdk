@@ -4,8 +4,8 @@
 
 import 'dart:async';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 import 'common/service_test_common.dart';
@@ -68,11 +68,13 @@ Future<void> testSuccessService(
     // check requests while they arrive
     expect(params[paramKey + end], paramValue + end);
     // answer later
-    completions.add(() => responseCompleter.complete({
-          'result': {
-            resultKey + end: resultValue + end,
-          },
-        }));
+    completions.add(
+      () => responseCompleter.complete({
+        'result': {
+          resultKey + end: resultValue + end,
+        },
+      }),
+    );
   }
 
   // Shuffle and respond out of order.

@@ -1524,7 +1524,9 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
   void test_upper_bound_extension_type() {
     parseTestLibrary("extension type E1(Object? it); "
         "extension type E2(Object it);"
-        "extension type E3<X>(X it);");
+        "extension type E3<X>(X it); "
+        "extension type E4(Object it) implements Object; "
+        "extension type E5<X extends Object>(X it) implements Object;");
     checkUpperBound(type1: "E1", type2: "E1", upperBound: "E1");
     checkUpperBound(type1: "E2", type2: "E2", upperBound: "E2");
     checkUpperBound(type1: "E1", type2: "E2", upperBound: "Object?");
@@ -1532,7 +1534,8 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkUpperBound(type1: "E1", type2: "E3<num?>", upperBound: "Object?");
     checkUpperBound(type1: "E2", type2: "E3<Object?>", upperBound: "Object?");
     checkUpperBound(type1: "E2", type2: "E3<num?>", upperBound: "Object?");
-    checkUpperBound(type1: "E2", type2: "E3<Object>", upperBound: "Object");
+    checkUpperBound(type1: "E2", type2: "E3<Object>", upperBound: "Object?");
+    checkUpperBound(type1: "E4", type2: "E5<Object>", upperBound: "Object");
   }
 
   void test_upper_bound_extension_type_implements() {
@@ -1546,7 +1549,8 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
         "extension type E8(bool it); "
         "extension type E9(int it) implements E6; "
         "extension type E10(double it) implements E5; "
-        "extension type E11<X>(X it); ");
+        "extension type E11<X>(X it); "
+        "extension type E12(bool it) implements Object;");
     checkUpperBound(type1: "E1", type2: "E2", upperBound: "num");
     checkUpperBound(type1: "E1", type2: "E3<int>", upperBound: "num");
     checkUpperBound(type1: "E2", type2: "E3<double>", upperBound: "num");
@@ -1557,7 +1561,8 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     checkUpperBound(type1: "E1", type2: "E6", upperBound: "Object?");
     checkUpperBound(type1: "E2", type2: "E6", upperBound: "Object?");
     checkUpperBound(type1: "E1", type2: "E7", upperBound: "Object");
-    checkUpperBound(type1: "E1", type2: "E8", upperBound: "Object");
+    checkUpperBound(type1: "E1", type2: "E8", upperBound: "Object?");
+    checkUpperBound(type1: "E1", type2: "E12", upperBound: "Object");
     checkUpperBound(type1: "E6", type2: "E9", upperBound: "E6");
     checkUpperBound(type1: "E5", type2: "E9", upperBound: "E5");
     checkUpperBound(type1: "E5", type2: "E6", upperBound: "E5");
@@ -1580,16 +1585,19 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
         "extension type E2(num it); "
         "extension type E3(num? it) implements E1; "
         "extension type E4(num it) implements num; "
-        "extension type E5<Y extends Object>(Y it) implements A<Y>;");
+        "extension type E5<Y extends Object>(Y it) implements A<Y>; "
+        "extension type E6(num it) implements Object;");
     checkUpperBound(type1: "E1", type2: "num?", upperBound: "Object?");
     checkUpperBound(type1: "E1", type2: "num", upperBound: "Object?");
     checkUpperBound(type1: "E1", type2: "int?", upperBound: "Object?");
     checkUpperBound(type1: "E1", type2: "int", upperBound: "Object?");
 
     checkUpperBound(type1: "E2", type2: "num?", upperBound: "Object?");
-    checkUpperBound(type1: "E2", type2: "num", upperBound: "Object");
+    checkUpperBound(type1: "E2", type2: "num", upperBound: "Object?");
+    checkUpperBound(type1: "E6", type2: "num", upperBound: "Object");
     checkUpperBound(type1: "E2", type2: "int?", upperBound: "Object?");
-    checkUpperBound(type1: "E2", type2: "int", upperBound: "Object");
+    checkUpperBound(type1: "E2", type2: "int", upperBound: "Object?");
+    checkUpperBound(type1: "E6", type2: "int", upperBound: "Object");
 
     checkUpperBound(type1: "E3", type2: "num?", upperBound: "Object?");
     checkUpperBound(type1: "E3", type2: "num", upperBound: "Object?");

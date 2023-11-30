@@ -1703,7 +1703,7 @@ Expected parent: (${parent.runtimeType}) $parent
         _sink.writeIf(element.isConst, ' isConst');
         _sink.writeIf(element.isFinal, ' isFinal');
         _sink.writeIf(element.isLate, ' isLate');
-        // TODO(scheglov) This crashes.
+        // TODO(scheglov): This crashes.
         // _writeIf(element.hasInitializer, ' hasInitializer');
         _sink.writeln(' ${element.name}@${element.nameOffset}');
         _sink.withIndent(() {
@@ -2007,7 +2007,7 @@ class ResolvedNodeTextConfiguration {
   bool skipArgumentList = false;
 
   /// If `true`, linking of [EnumConstantDeclaration] will be checked
-  /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/48380
+  // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/48380
   bool withCheckingLinking = false;
 
   /// If `true`, elements of [InterfaceType] should be printed.

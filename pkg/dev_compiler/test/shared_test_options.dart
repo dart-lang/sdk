@@ -61,7 +61,9 @@ class SetupCompilerOptions {
   final bool enableAsserts;
 
   static fe.CompilerOptions _getOptions(
-      {required bool enableAsserts, required bool soundNullSafety}) {
+      {required bool enableAsserts,
+      required bool soundNullSafety,
+      required List<String> enableExperiments}) {
     var options = fe.CompilerOptions()
       ..verbose = false // set to true for debugging
       ..sdkRoot = sdkRoot
@@ -72,7 +74,10 @@ class SetupCompilerOptions {
           soundNullSafety ? _sdkSoundSummaryPath : _sdkUnsoundSummaryPath
       ..environmentDefines =
           addGeneratedVariables({}, enableAsserts: enableAsserts)
-      ..nnbdMode = soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak;
+      ..nnbdMode = soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak
+      ..explicitExperimentalFlags = fe.parseExperimentalFlags(
+          fe.parseExperimentalArguments(enableExperiments),
+          onError: (e) => throw e);
     return options;
   }
 
@@ -82,8 +87,11 @@ class SetupCompilerOptions {
     this.legacyCode = false,
     this.moduleFormat = ModuleFormat.amd,
     this.canaryFeatures = false,
+    List<String> enableExperiments = const [],
   }) : options = _getOptions(
-            soundNullSafety: soundNullSafety, enableAsserts: enableAsserts) {
+            soundNullSafety: soundNullSafety,
+            enableAsserts: enableAsserts,
+            enableExperiments: enableExperiments) {
     options.onDiagnostic = (fe.DiagnosticMessage m) {
       diagnosticMessages.addAll(m.plainTextFormatted);
       if (m.severity == fe.Severity.error ||
@@ -111,7 +119,8 @@ class SetupCompilerOptions {
     bool soundNullSafety = true,
     bool legacyCode = false,
     ModuleFormat moduleFormat = ModuleFormat.amd,
-    List<String> args = const <String>[],
+    List<String> enableExperiments = const [],
+    List<String> args = const [],
   }) {
     // Find if the test is run with arguments overriding the configuration
     late bool enableAsserts;
@@ -135,6 +144,7 @@ class SetupCompilerOptions {
       legacyCode: legacyCode,
       moduleFormat: moduleFormat,
       canaryFeatures: canaryFeatures,
+      enableExperiments: enableExperiments,
     );
   }
 

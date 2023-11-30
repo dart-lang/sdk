@@ -1192,7 +1192,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isForwardingStub, 'forwarding-stub');
     writeModifier(node.isForwardingSemiStub, 'forwarding-semi-stub');
     writeModifier(node.isExtensionMember, 'extension-member');
-    writeModifier(node.isExtensionTypeMember, 'inline-class-member');
+    writeModifier(node.isExtensionTypeMember, 'extension-type-member');
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
       case ProcedureStubKind.AbstractForwardingStub:
@@ -1590,7 +1590,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   void _writeInstanceAccessKind(InstanceAccessKind kind) {
     switch (kind) {
       case InstanceAccessKind.Instance:
+        break;
       case InstanceAccessKind.Object:
+        writeSymbol('{<object>}.');
         break;
       case InstanceAccessKind.Inapplicable:
         writeSymbol('{<inapplicable>}.');

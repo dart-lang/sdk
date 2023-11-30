@@ -204,9 +204,9 @@ void buildConstructorTearOffProcedure(
 }
 
 /// Creates the parameters and body for [tearOff] for a typedef tearoff of
-/// [declarationConstructor] in [enclosingClass] with [typeParameters] as the
-/// typedef parameters and [typeArguments] as the arguments passed to the
-/// [enclosingClass].
+/// [declarationConstructor] in [enclosingTypeDeclaration] with [typeParameters]
+/// as the typedef parameters and [typeArguments] as the arguments passed to the
+/// [enclosingTypeDeclaration].
 ///
 /// The [declarationConstructor] is the origin constructor and
 /// [implementationConstructor] is the patch constructor, if patched, otherwise
@@ -215,7 +215,7 @@ void buildTypedefTearOffProcedure(
     {required Procedure tearOff,
     required Member declarationConstructor,
     required Member implementationConstructor,
-    required Class enclosingClass,
+    required TypeDeclaration enclosingTypeDeclaration,
     required List<TypeParameter> typeParameters,
     required List<DartType> typeArguments,
     required SourceLibraryBuilder libraryBuilder}) {
@@ -240,15 +240,15 @@ void buildTypedefTearOffProcedure(
 
   int fileOffset = tearOff.fileOffset;
 
-  List<TypeParameter> classTypeParameters;
+  List<TypeParameter> declarationTypeParameters;
   if (declarationConstructor is Constructor) {
     // Generative constructors implicitly have the type parameters of the
     // enclosing class.
-    classTypeParameters = enclosingClass.typeParameters;
+    declarationTypeParameters = enclosingTypeDeclaration.typeParameters;
   } else {
     // Factory constructors explicitly copy over the type parameters of the
     // enclosing class.
-    classTypeParameters = function.typeParameters;
+    declarationTypeParameters = function.typeParameters;
   }
 
   FreshTypeParameters freshTypeParameters =
@@ -266,7 +266,7 @@ void buildTypedefTearOffProcedure(
       tearOff,
       implementationConstructor,
       function,
-      Substitution.fromPairs(classTypeParameters, typeArguments),
+      Substitution.fromPairs(declarationTypeParameters, typeArguments),
       libraryBuilder);
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, declarationConstructor, arguments);
@@ -330,20 +330,9 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
               .substituteType(typeArguments[index]));
     }
   }
-  Map<TypeParameter, DartType> substitutionMap;
-  if (typeParameters.length == typeArguments.length) {
-    substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
-        typeParameters, typeArguments);
-  } else {
-    // Error case: Substitute type parameters with `dynamic`.
-    substitutionMap = new Map<TypeParameter, DartType>.fromIterables(
-        typeParameters,
-        new List<DartType>.generate(
-            typeParameters.length, (int index) => const DynamicType()));
-  }
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
   _createTearOffBody(tearOff, target, arguments);
-  return new DelayedDefaultValueCloner(target, tearOff, substitutionMap,
+  return new DelayedDefaultValueCloner(target, tearOff,
       identicalSignatures: false, libraryBuilder: libraryBuilder);
 }
 

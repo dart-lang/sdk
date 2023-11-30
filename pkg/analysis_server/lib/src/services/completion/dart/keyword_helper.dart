@@ -104,12 +104,13 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of an element in a collection [literal].
   void addCollectionElementKeywords(
-      TypedLiteral literal, NodeList<CollectionElement> elements) {
-    // TODO(brianwilkerson) Consider determining whether there is a comma before
+      TypedLiteral literal, NodeList<CollectionElement> elements,
+      {bool mustBeStatic = false}) {
+    // TODO(brianwilkerson): Consider determining whether there is a comma before
     //  the selection and inserting the comma if there isn't one.
     addKeyword(Keyword.FOR);
     addKeyword(Keyword.IF);
-    // TODO(brianwilkerson) Consider replacing the lines above with the
+    // TODO(brianwilkerson): Consider replacing the lines above with the
     // following lines:
     // addKeywordFromText(Keyword.FOR, ' (^)');
     // addKeywordFromText(Keyword.IF, ' (^)');
@@ -127,7 +128,7 @@ class KeywordHelper {
         }
       }
     }
-    addExpressionKeywords(literal);
+    addExpressionKeywords(literal, mustBeStatic: mustBeStatic);
   }
 
   /// Add the keywords that are appropriate when the selection is after the
@@ -163,7 +164,7 @@ class KeywordHelper {
   /// beginning of a constant expression. The flag [inConstantContext] should be
   /// `true` if the expression is inside a constant context.
   void addConstantExpressionKeywords({required bool inConstantContext}) {
-    // TODO(brianwilkerson) Use this method in place of `addExpressionKeywords`
+    // TODO(brianwilkerson): Use this method in place of `addExpressionKeywords`
     //  when in a constant context in order to not suggest invalid keywords.
     addKeyword(Keyword.FALSE);
     addKeyword(Keyword.NULL);
@@ -174,28 +175,26 @@ class KeywordHelper {
   }
 
   /// Add the keywords that are appropriate when the selection is in the
-  /// initializer list of the given [node].
-  void addConstructorInitializerKeywords(ConstructorDeclaration node) {
+  /// [initializer] list of the given [constructor].
+  void addConstructorInitializerKeywords(
+      ConstructorDeclaration constructor, ConstructorInitializer? initializer) {
     addKeyword(Keyword.ASSERT);
-    var suggestSuper = node.parent is! ExtensionTypeDeclaration;
-    var initializers = node.initializers;
-    if (initializers.isNotEmpty) {
+    var initializers = constructor.initializers;
+    if (initializer == null || initializers.last == initializer) {
       var last = initializers.lastNonSynthetic;
       if (offset >= last.end &&
           last is! SuperConstructorInvocation &&
           last is! RedirectingConstructorInvocation) {
-        if (suggestSuper) {
+        if (constructor.parent is! ExtensionTypeDeclaration) {
           addKeyword(Keyword.SUPER);
         }
         addKeyword(Keyword.THIS);
       }
-    } else {
-      // if (separator.end <= offset && offset <= separator.next!.offset) {
-      if (suggestSuper) {
-        addKeyword(Keyword.SUPER);
+    } else if (initializer is ConstructorFieldInitializer) {
+      var equals = initializer.equals;
+      if (equals.end <= offset && offset <= equals.next!.offset) {
+        addKeyword(Keyword.THIS);
       }
-      addKeyword(Keyword.THIS);
-      // }
     }
   }
 
@@ -203,7 +202,7 @@ class KeywordHelper {
   /// beginning of a directive in a compilation unit. The [before] directive is
   /// the directive before the one being added.
   void addDirectiveKeywords(CompilationUnit unit, Directive? before) {
-    // TODO(brianwilkerson) If we had both the members before and after the new
+    // TODO(brianwilkerson): If we had both the members before and after the new
     //  directive, we could limit the keywords based on surrounding members.
     if (before == null && !unit.directives.any((d) => d is LibraryDirective)) {
       addKeyword(Keyword.LIBRARY);
@@ -247,7 +246,8 @@ class KeywordHelper {
   /// Add the keywords that are appropriate when the selection is at the
   /// beginning of an expression. The [node] provides context to determine which
   /// keywords to include.
-  void addExpressionKeywords(AstNode? node) {
+  void addExpressionKeywords(AstNode? node,
+      {bool mustBeConstant = false, bool mustBeStatic = false}) {
     /// Return `true` if `const` should be suggested for the given [node].
     bool constIsValid(AstNode? node) {
       if (node is CollectionElement && node is! Expression) {
@@ -297,7 +297,7 @@ class KeywordHelper {
       if (constIsValid(node)) {
         addKeyword(Keyword.CONST);
       }
-      if (node.inClassMemberBody) {
+      if (!mustBeConstant && !mustBeStatic) {
         addKeyword(Keyword.SUPER);
         addKeyword(Keyword.THIS);
       }
@@ -366,7 +366,7 @@ class KeywordHelper {
     }
     var fields = node.fields;
     if (fields.type == null) {
-      // TODO(brianwilkerson) We should probably not suggest types if `var` is
+      // TODO(brianwilkerson): We should probably not suggest types if `var` is
       //  being used.
       addKeyword(Keyword.DYNAMIC);
       addKeyword(Keyword.VOID);

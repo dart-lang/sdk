@@ -739,7 +739,6 @@ dart
 dart2js
 dart2wasm
 dart2wasm_js_compatibility
-dart2wasm_stringref
 dartdevc
 data
 date
@@ -851,6 +850,7 @@ desugar
 desugared
 desugaring
 desugars
+detached
 detail
 detailed
 details
@@ -1652,6 +1652,7 @@ invalidated
 invalidates
 invalidating
 invalidation
+invariance
 invariant
 invariantly
 inversion
@@ -2470,6 +2471,7 @@ receive
 receiver
 recent
 recently
+recognition
 recognize
 recognized
 recognizes
@@ -2928,7 +2930,6 @@ stray
 stream
 strictly
 string
-stringref
 strings
 stripped
 strong

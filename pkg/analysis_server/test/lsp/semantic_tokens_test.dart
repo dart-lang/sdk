@@ -28,7 +28,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
   @override
   AnalysisServerOptions get serverOptions => AnalysisServerOptions()
     ..enabledExperiments = [
-      EnableString.patterns,
+      EnableString.inline_class,
     ];
 
   Future<void> test_annotation() async {
@@ -555,6 +555,24 @@ extension A on String {}
     await _verifyTokens(content, expected);
   }
 
+  Future<void> test_extensionType() async {
+    final content = '''
+extension type E(int i) {}
+''';
+
+    final expected = [
+      _Token('extension', SemanticTokenTypes.keyword),
+      _Token('type', SemanticTokenTypes.keyword),
+      _Token(
+          'E', SemanticTokenTypes.class_, [SemanticTokenModifiers.declaration]),
+      _Token('int', SemanticTokenTypes.class_),
+      _Token('i', SemanticTokenTypes.property,
+          [SemanticTokenModifiers.declaration])
+    ];
+
+    await _verifyTokens(content, expected);
+  }
+
   Future<void> test_fromPlugin() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
@@ -847,6 +865,25 @@ import 'dart:async';
         _Token('import', SemanticTokenTypes.keyword),
         _Token("'dart:async'", SemanticTokenTypes.string),
       ],
+    ];
+
+    await _verifyTokens(content, expected);
+  }
+
+  Future<void> test_mixin() async {
+    final content = '''
+mixin M on C {}
+class C {}
+''';
+
+    final expected = [
+      _Token('mixin', SemanticTokenTypes.keyword),
+      _Token('M', SemanticTokenTypes.class_),
+      _Token('on', SemanticTokenTypes.keyword),
+      _Token('C', SemanticTokenTypes.class_),
+      _Token('class', SemanticTokenTypes.keyword),
+      _Token(
+          'C', SemanticTokenTypes.class_, [SemanticTokenModifiers.declaration])
     ];
 
     await _verifyTokens(content, expected);

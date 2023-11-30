@@ -17,7 +17,7 @@ extension YamlNodeExtensions on YamlNode {
       }
       for (var element in node.nodes) {
         if (element is YamlScalar && element.value == null) {
-          // TODO(brianwilkerson) Testing for a null value probably gets
+          // TODO(brianwilkerson): Testing for a null value probably gets
           //  confused when there are multiple null values.
           return element;
         }
@@ -49,7 +49,7 @@ extension YamlNodeExtensions on YamlNode {
 
   /// Return `true` if this node contains the given [offset].
   bool containsOffset(int offset) {
-    // TODO(brianwilkerson) Nodes at the end of the file contain any trailing
+    // TODO(brianwilkerson): Nodes at the end of the file contain any trailing
     //  whitespace. This needs to be accounted for, here or elsewhere.
     var nodeOffset = span.start.offset;
     var nodeEnd = nodeOffset + span.length;

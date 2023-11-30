@@ -14,6 +14,9 @@
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
+//
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
@@ -130,7 +133,7 @@ class FfiCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const FfiCode FFI_NATIVE_MUST_BE_EXTERNAL = FfiCode(
     'FFI_NATIVE_MUST_BE_EXTERNAL',
-    "FfiNative functions must be declared external.",
+    "Native functions must be declared external.",
     correctionMessage: "Add the `external` keyword to the function.",
   );
 
@@ -148,8 +151,8 @@ class FfiCode extends AnalyzerErrorCode {
   ///  1: the actual number of parameters
   static const FfiCode FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS',
-    "Unexpected number of FfiNative annotation parameters. Expected {0} but "
-        "has {1}.",
+    "Unexpected number of Native annotation parameters. Expected {0} but has "
+        "{1}.",
     correctionMessage: "Make sure parameters match the function annotated.",
   );
 
@@ -159,9 +162,9 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode
       FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER = FfiCode(
     'FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER',
-    "Unexpected number of FfiNative annotation parameters. Expected {0} but "
-        "has {1}. FfiNative instance method annotation must have receiver as "
-        "first argument.",
+    "Unexpected number of Native annotation parameters. Expected {0} but has "
+        "{1}. Native instance method annotation must have receiver as first "
+        "argument.",
     correctionMessage:
         "Make sure parameters match the function annotated, including an extra "
         "first parameter for the receiver.",

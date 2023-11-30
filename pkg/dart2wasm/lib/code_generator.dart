@@ -813,12 +813,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         // Dart body may have an implicit return null.
         b.ref_null(returnType.heapType.bottomType);
       } else {
-        // This point is unreachable, but the Wasm validator still expects the
-        // stack to contain a value matching the Wasm function return type.
-        b.block(const [], outputs);
         b.comment("Unreachable implicit return");
         b.unreachable();
-        b.end();
       }
     }
   }
@@ -1165,8 +1161,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Only emit the type test if the guard is not [Object].
       if (emitGuard) {
         b.local_get(thrownException);
-        types.emitTypeTest(
-            this, guard, translator.coreTypes.objectNonNullableRawType);
+        types.emitTypeCheck(
+            this, guard, translator.coreTypes.objectNonNullableRawType, catch_);
         b.i32_eqz();
         b.br_if(catchBlock);
       }
@@ -1223,7 +1219,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
       if (guard is InterfaceType) {
         return translator.hierarchy
-            .isSubtypeOf(translator.javaScriptErrorClass, guard.classNode);
+            .isSubInterfaceOf(translator.javaScriptErrorClass, guard.classNode);
       }
       if (guard is TypeParameterType) {
         return guardCanMatchJSException(guard.bound);
@@ -2992,7 +2988,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitIsExpression(IsExpression node, w.ValueType expectedType) {
     wrap(node.operand, translator.topInfo.nullableType);
-    types.emitTypeTest(this, node.type, dartTypeOf(node.operand));
+    types.emitTypeCheck(this, node.type, dartTypeOf(node.operand), node);
     return w.NumType.i32;
   }
 
@@ -3009,7 +3005,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     // We lower an `as` expression to a type test, throwing a [TypeError] if
     // the type test fails.
-    types.emitTypeTest(this, node.type, dartTypeOf(node.operand));
+    types.emitTypeCheck(this, node.type, dartTypeOf(node.operand), node);
     b.br_if(asCheckBlock);
     b.local_get(operand);
     types.makeType(this, node.type);
@@ -3681,7 +3677,7 @@ class SwitchInfo {
             e is NullLiteral ||
             (e is ConstantExpression &&
                 (e.constant is C || e.constant is NullConstant) &&
-                (translator.hierarchy.isSubtypeOf(
+                (translator.hierarchy.isSubInterfaceOf(
                     translator.classForType(codeGen.dartTypeOf(e)),
                     switchExprClass))));
 

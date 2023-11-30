@@ -7,7 +7,7 @@ import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
-var tests = <VMTest>[
+final tests = <VMTest>[
   (VmService service) async {
     final vm = await service.getVM();
     final result = await service.getMemoryUsage(vm.isolates!.first.id!);
@@ -22,14 +22,16 @@ var tests = <VMTest>[
       fail('Unreachable');
     } on RPCError catch (e) {
       caughtException = true;
-      expect(e.details,
-          contains("getMemoryUsage: invalid 'isolateId' parameter: badid"));
+      expect(
+        e.details,
+        contains("getMemoryUsage: invalid 'isolateId' parameter: badid"),
+      );
     }
     expect(caughtException, isTrue);
   },
 ];
 
-main([args = const <String>[]]) async => runVMTests(
+void main([args = const <String>[]]) => runVMTests(
       args,
       tests,
       'get_memory_usage_test.dart',

@@ -18,8 +18,9 @@ import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:collection/collection.dart';
-import 'package:leak_tracker/src/usage_tracking/model.dart';
+import 'package:memory_usage/memory_usage.dart';
 import 'package:meta/meta.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
@@ -147,15 +148,20 @@ class AnalyticsManager {
   /// Record that the [contexts] have been created.
   void createdAnalysisContexts(List<AnalysisContext> contexts) {
     for (var context in contexts) {
-      for (var rule in context.analysisOptions.lintRules) {
-        var name = rule.name;
-        _lintUsageCounts[name] = (_lintUsageCounts[name] ?? 0) + 1;
-      }
-      for (var processor in context.analysisOptions.errorProcessors) {
-        var severity = processor.severity?.name ?? 'ignore';
-        var severityCounts =
-            _severityAdjustments.putIfAbsent(processor.code, () => {});
-        severityCounts[severity] = (severityCounts[severity] ?? 0) + 1;
+      var allOptions =
+          (context as DriverBasedAnalysisContext).allAnalysisOptions;
+      for (var analysisOptions in allOptions) {
+        for (var rule in analysisOptions.lintRules) {
+          var name = rule.name;
+          _lintUsageCounts[name] = (_lintUsageCounts[name] ?? 0) + 1;
+        }
+
+        for (var processor in analysisOptions.errorProcessors) {
+          var severity = processor.severity?.name ?? 'ignore';
+          var severityCounts =
+              _severityAdjustments.putIfAbsent(processor.code, () => {});
+          severityCounts[severity] = (severityCounts[severity] ?? 0) + 1;
+        }
       }
     }
   }
@@ -572,7 +578,7 @@ class AnalyticsManager {
             ));
           }
         }
-        // TODO(brianwilkerson) We don't appear to have an event defined that we
+        // TODO(brianwilkerson): We don't appear to have an event defined that we
         //  can use to send analytics about how often old-style refactorings are
         //  being invoked.
         // var refactoringMap = data.additionalEnumCounts[refactoringKindEnumKey];

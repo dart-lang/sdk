@@ -46,7 +46,7 @@ class LspClientConfiguration {
   /// Returns whether or not the provided new configuration changes any values
   /// that would affect analysis results.
   bool affectsAnalysisResults(LspGlobalClientConfiguration otherConfig) {
-    // Check whether TODO settings have changed.
+    // Check whether `TODO` settings have changed.
     final oldFlag = _globalSettings.showAllTodos;
     final newFlag = otherConfig.showAllTodos;
     final oldTypes = _globalSettings.showTodoTypes;
@@ -178,11 +178,11 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get previewCommitCharacters =>
       _settings['previewCommitCharacters'] as bool? ?? false;
 
-  /// Whether diagnostics should be generated for all TODO comments.
+  // Whether diagnostics should be generated for all `TODO` comments.
   bool get showAllTodos =>
       _settings['showTodos'] is bool ? _settings['showTodos'] as bool : false;
 
-  /// A specific set of TODO comments that should generate diagnostics.
+  // A specific set of `TODO` comments that should generate diagnostics.
   ///
   /// Codes are all forced UPPERCASE regardless of what the client supplies.
   ///

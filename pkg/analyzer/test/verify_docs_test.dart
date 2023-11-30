@@ -65,12 +65,12 @@ class SnippetTester {
       String line = lines[i];
       if (line == '```dart') {
         if (inCode) {
-          // TODO(brianwilkerson) Report this.
+          // TODO(brianwilkerson): Report this.
         }
         inCode = true;
       } else if (line == '```') {
         if (!inCode) {
-          // TODO(brianwilkerson) Report this.
+          // TODO(brianwilkerson): Report this.
         }
         await verifySnippet(file, codeLines.join('\n'));
         codeLines.clear();
@@ -91,7 +91,7 @@ class SnippetTester {
             if (output.isNotEmpty) {
               fail(output.toString());
             }
-          }, timeout: Timeout.factor(4));
+          }, timeout: Timeout.factor(6));
         }
       } else if (child is Folder) {
         await verifyFolder(child);
@@ -100,7 +100,7 @@ class SnippetTester {
   }
 
   Future<void> verifySnippet(File file, String snippet) async {
-    // TODO(brianwilkerson) When the files outside of 'src' contain only public
+    // TODO(brianwilkerson): When the files outside of 'src' contain only public
     //  API, write code to compute the list of imports so that new public API
     //  will automatically be allowed.
     String imports = '''
@@ -137,7 +137,7 @@ $snippet
       if (results is ErrorsResult) {
         Iterable<AnalysisError> errors = results.errors.where((error) {
           ErrorCode errorCode = error.errorCode;
-          // TODO(brianwilkerson)
+          // TODO(brianwilkerson): .
           return errorCode != WarningCode.UNUSED_IMPORT &&
               errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
               !isAllowedLint(error);

@@ -12,6 +12,7 @@ import 'package:path/path.dart' as path;
 
 import '../analysis_server.dart';
 import '../core.dart';
+import '../experiments.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
@@ -59,6 +60,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
           'Compare the result of applying fixes to a golden file for testing.',
       hide: !verbose,
     );
+    argParser.addExperimentalFlags(verbose: verbose);
   }
 
   @override
@@ -116,6 +118,7 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
       commandName: 'fix',
       argResults: argResults,
       suppressAnalytics: suppressAnalytics,
+      enabledExperiments: args.enabledExperiments,
     );
 
     await server.start(setAnalysisRoots: false);
@@ -151,6 +154,15 @@ To use the tool, run either ['dart fix --dry-run'] for a preview of the proposed
         // TODO(brianwilkerson) Be more intelligent about detecting infinite
         //  loops so that we can increase [maxPasses].
       } while (pass < maxPasses && edits.isNotEmpty);
+      // If there are no more dart edits, check if there are any changes
+      // to pubspec
+      if (edits.isEmpty && detailsMap.isNotEmpty) {
+        var fixes = await server.requestBulkFixes(fixPath, inTestMode, [],
+            updatePubspec: true);
+        _mergeDetails(detailsMap, fixes.details);
+        edits = fixes.edits;
+        _applyEdits(server, edits);
+      }
       return _FixRequestResult(details: detailsMap);
     }
 

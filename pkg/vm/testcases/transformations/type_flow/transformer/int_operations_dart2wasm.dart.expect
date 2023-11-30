@@ -1,0 +1,17 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+
+[@vm.inferred-type.metadata=dart.core::_BoxedInt] [@vm.unboxing-info.metadata=(i)->i]static field core::int x = [@vm.inferred-type.metadata=dart.core::_BoxedInt] core::int::parse("2");
+[@vm.inferred-type.metadata=dart.core::_BoxedInt] [@vm.unboxing-info.metadata=(i)->i]static field core::int y = [@vm.inferred-type.metadata=dart.core::_BoxedInt] core::int::parse("3");
+[@vm.unboxing-info.metadata=(i,i,i)->b]static method use([@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] dynamic a, [@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] dynamic b, [@vm.inferred-arg-type.metadata=dart.core::_BoxedInt] dynamic c) → void {
+  core::print(a);
+  core::print(b);
+  core::print(c);
+  core::print([@vm.direct-call.metadata=dart.core::_BoxedInt.~/] [@vm.inferred-type.metadata=dart.core::_BoxedInt] a{dynamic}.~/(2));
+  core::print([@vm.direct-call.metadata=dart.core::_BoxedInt.~/] [@vm.inferred-type.metadata=dart.core::_BoxedInt] b{dynamic}.~/(2));
+  core::print([@vm.direct-call.metadata=dart.core::_BoxedInt.~/] [@vm.inferred-type.metadata=dart.core::_BoxedInt] c{dynamic}.~/(2));
+}
+static method main() → dynamic {
+  self::use([@vm.direct-call.metadata=dart.core::_BoxedInt.+] [@vm.inferred-type.metadata=dart.core::_BoxedInt (skip check)] [@vm.inferred-type.metadata=dart.core::_BoxedInt] self::x.{core::num::+}([@vm.inferred-type.metadata=dart.core::_BoxedInt] self::y){(core::num) → core::int}, [@vm.direct-call.metadata=dart.core::_BoxedInt.-] [@vm.inferred-type.metadata=dart.core::_BoxedInt (skip check)] [@vm.inferred-type.metadata=dart.core::_BoxedInt] self::x.{core::num::-}([@vm.inferred-type.metadata=dart.core::_BoxedInt] self::y){(core::num) → core::int}, [@vm.direct-call.metadata=dart.core::_BoxedInt.*] [@vm.inferred-type.metadata=dart.core::_BoxedInt (skip check)] [@vm.inferred-type.metadata=dart.core::_BoxedInt] self::x.{core::num::*}([@vm.inferred-type.metadata=dart.core::_BoxedInt] self::y){(core::num) → core::int});
+}

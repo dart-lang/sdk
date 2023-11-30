@@ -184,7 +184,7 @@ class VmTarget extends Target {
 
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformLibraries(libraries, coreTypes, hierarchy,
-        nullSafety: flags.soundNullSafety, productMode: productMode);
+        soundNullSafety: flags.soundNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
 
     callSiteAnnotator.transformLibraries(
@@ -201,7 +201,7 @@ class VmTarget extends Target {
       {void Function(String msg)? logger}) {
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformProcedure(procedure, coreTypes, hierarchy,
-        nullSafety: flags.soundNullSafety, productMode: productMode);
+        soundNullSafety: flags.soundNullSafety, productMode: productMode);
     logger?.call("Lowering transformations performed");
   }
 

@@ -55,7 +55,7 @@ flutter:
   }
 
   test_assetDoesNotExist_uri_noError() {
-    // TODO(brianwilkerson) Create a package named `icons` that contains the
+    // TODO(brianwilkerson): Create a package named `icons` that contains the
     // referenced file, and a `.packages` file that references that package.
     assertNoErrors('''
 name: sample

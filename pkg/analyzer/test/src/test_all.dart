@@ -22,6 +22,7 @@ import 'task/test_all.dart' as task;
 import 'test_utilities/test_all.dart' as test_utilities;
 import 'util/test_all.dart' as util;
 import 'utilities/test_all.dart' as utilities;
+import 'wolf/test_all.dart' as wolf;
 import 'workspace/test_all.dart' as workspace;
 
 main() {
@@ -44,6 +45,7 @@ main() {
     test_utilities.main();
     util.main();
     utilities.main();
+    wolf.main();
     workspace.main();
   }, name: 'src');
 }

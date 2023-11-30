@@ -2,6 +2,7 @@ extension on Object {
   int get setter => 42;
   void set getter(int value) {}
 }
+
 extension type InlineClass(int it) {
   test() {}
   int operator +(int other) => 42;

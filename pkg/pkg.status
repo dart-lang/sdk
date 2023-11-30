@@ -63,6 +63,7 @@ front_end/test/incremental_compiler_leak_test: Pass, ExtraSlow
 front_end/test/incremental_dart2js_test: Pass, Slow
 front_end/testcases/*: Skip # These are not tests but input for tests.
 front_end/tool/incremental_perf_test: Slow, Pass
+kernel/test/dart_scope_calculator_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/kernel_front_end_test: Slow, Pass
 vm/test/transformations/type_flow/transformer_test: Slow, Pass
@@ -94,7 +95,7 @@ modular_test/test/validate_suite_test: Slow, Pass
 native_assets_builder/test/*: SkipByDesign # Only meant to run on vm
 nnbd_migration/test/*: SkipByDesign # Uses mirrors
 nnbd_migration/tool/*: SkipByDesign # Only meant to run on vm
-service_extension_router/test/*: SkipByDesign # Only meant to run on vm
+dart_service_protocol_shared/test/*: SkipByDesign # Only meant to run on vm
 smith/test/*: SkipByDesign # Only meant to run on vm
 status_file/test/normalize_test: SkipByDesign # Uses dart:io
 status_file/test/parse_and_normalize_test: SkipByDesign # Uses dart:io
@@ -195,6 +196,13 @@ kernel/test/*: SkipByDesign # Uses dart:io and bigints.
 
 [ $arch == x64 && $runtime == vm && $system == windows && $checked ]
 analyzer/test/src/task/strong/inferred_type_test: Slow, Pass
+
+[ $arch != x64 && ($system == linux || $system == windows) ]
+dds/test/devtools_server/instance_reuse_test: Skip # Chrome not available
+dds/test/devtools_server/remote_control_test: Skip # Chrome not available
+dds/test/devtools_server/server_connection_api_test: Skip # Chrome not available
+dds/test/devtools_server/server_connection_vm_service_test: Skip # Chrome not available
+dds/test/sse_smoke_test: Skip # Chrome not available
 
 [ $builder_tag != dart2js_analyzer && $compiler == dart2js ]
 analysis_server/test/*: Skip # Issue 26813

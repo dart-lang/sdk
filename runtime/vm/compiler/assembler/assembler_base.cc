@@ -80,6 +80,42 @@ void AssemblerBase::StoreToSlotNoBarrier(Register src,
   return StoreIntoObjectNoBarrier(base, address, src);
 }
 
+void AssemblerBase::UnrolledMemCopy(Register dst_base,
+                                    intptr_t dst_offset,
+                                    Register src_base,
+                                    intptr_t src_offset,
+                                    intptr_t size,
+                                    Register temp) {
+  intptr_t offset = 0;
+  if (target::kWordSize >= 8) {
+    while (offset + 8 <= size) {
+      LoadFromOffset(temp, Address(src_base, src_offset + offset), kEightBytes);
+      StoreToOffset(temp, Address(dst_base, dst_offset + offset), kEightBytes);
+      offset += 8;
+    }
+  }
+  while (offset + 4 <= size) {
+    LoadFromOffset(temp, Address(src_base, src_offset + offset),
+                   kUnsignedFourBytes);
+    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
+                  kUnsignedFourBytes);
+    offset += 4;
+  }
+  while (offset + 2 <= size) {
+    LoadFromOffset(temp, Address(src_base, src_offset + offset),
+                   kUnsignedTwoBytes);
+    StoreToOffset(temp, Address(dst_base, dst_offset + offset),
+                  kUnsignedTwoBytes);
+    offset += 2;
+  }
+  while (offset + 1 <= size) {
+    LoadFromOffset(temp, Address(src_base, src_offset + offset), kUnsignedByte);
+    StoreToOffset(temp, Address(dst_base, dst_offset + offset), kUnsignedByte);
+    offset += 1;
+  }
+  ASSERT(offset == size);
+}
+
 void AssemblerBase::LoadTypeClassId(Register dst, Register src) {
   if (dst != src) {
     EnsureHasClassIdInDEBUG(kTypeCid, src, dst);
@@ -127,6 +163,35 @@ intptr_t AssemblerBase::InsertAlignedRelocation(BSS::Relocation reloc) {
   ASSERT(CodeSize() == (offset + compiler::target::kWordSize));
 
   return offset;
+}
+
+void AssemblerBase::MsanUnpoison(Register base, intptr_t length_in_bytes) {
+  LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
+                      /*preserve_registers=*/true);
+  MoveRegister(CallingConventions::ArgumentRegisters[0], base);
+  LoadImmediate(CallingConventions::ArgumentRegisters[1], length_in_bytes);
+  rt.Call(kMsanUnpoisonRuntimeEntry, /*argument_count=*/2);
+}
+
+void AssemblerBase::MsanUnpoison(Register base, Register length_in_bytes) {
+  LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
+                      /*preserve_registers=*/true);
+  const Register a0 = CallingConventions::ArgumentRegisters[0];
+  const Register a1 = CallingConventions::ArgumentRegisters[1];
+  if (length_in_bytes == a0) {
+    if (base == a1) {
+      MoveRegister(TMP, length_in_bytes);
+      MoveRegister(a0, base);
+      MoveRegister(a1, TMP);
+    } else {
+      MoveRegister(a1, length_in_bytes);
+      MoveRegister(a0, base);
+    }
+  } else {
+    MoveRegister(a0, base);
+    MoveRegister(a1, length_in_bytes);
+  }
+  rt.Call(kMsanUnpoisonRuntimeEntry, /*argument_count=*/2);
 }
 
 #if defined(DEBUG)

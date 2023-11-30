@@ -2,89 +2,90 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore: use_string_in_part_of_directives
 part of breakpoint_in_parts_class;
 
 void foo() {
-  print("lalala");
+  print('lalala');
 }
 
 class Foo1 {
-  final foo;
+  final String foo;
 
   Foo1(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 
 class Foo2 {
-  final foo;
+  final String foo;
 
   Foo2(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 
 class Foo3 {
-  final foo;
+  final String foo;
 
   Foo3(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 
 class Foo4 {
-  final foo;
+  final String foo;
 
   Foo4(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 
 class Foo5 {
-  final foo;
+  final String foo;
 
   Foo5(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 
 class Foo6 {
-  final foo;
+  final String foo;
 
   Foo6(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 
 class Foo7 {
-  final foo;
+  final String foo;
 
   Foo7(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 
 class Foo8 {
-  final foo;
+  final String foo;
 
   Foo8(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 
 class Foo9 {
-  final foo;
+  final String foo;
 
   Foo9(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 
 class Foo10 {
-  final foo;
+  final String foo;
 
   Foo10(this.foo) {
-    print("hello from foo!");
+    print('hello from foo!');
   }
 }
 

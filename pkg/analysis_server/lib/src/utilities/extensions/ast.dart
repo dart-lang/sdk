@@ -6,6 +6,7 @@ import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 

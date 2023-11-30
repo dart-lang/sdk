@@ -1,3 +1,0 @@
-analyzer:
-  exclude:
-    # Do analyze this subfolder in the tests/ even if tests/ is fully excluded.

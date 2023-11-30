@@ -106,37 +106,37 @@ import self as self;
 import "dart:core" as core;
 
 extension type E1(dynamic foo) {
-  abstract inline-class-member representation-field get foo() → dynamic;
+  abstract extension-type-member representation-field get foo() → dynamic;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
 }
 extension type E2(dynamic foo) {
-  abstract inline-class-member representation-field get foo() → dynamic;
+  abstract extension-type-member representation-field get foo() → dynamic;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
 extension type E3(core::String foo) {
-  abstract inline-class-member representation-field get foo() → core::String;
+  abstract extension-type-member representation-field get foo() → core::String;
   constructor • = self::E3|constructor#;
   constructor tearoff • = self::E3|constructor#_#new#tearOff;
 }
 extension type E4(core::num foo) {
-  abstract inline-class-member representation-field get foo() → core::num;
+  abstract extension-type-member representation-field get foo() → core::num;
   constructor • = self::E4|constructor#;
   constructor tearoff • = self::E4|constructor#_#new#tearOff;
 }
 extension type E5(core::bool foo) {
-  abstract inline-class-member representation-field get foo() → core::bool;
+  abstract extension-type-member representation-field get foo() → core::bool;
   constructor • = self::E5|constructor#;
   constructor tearoff • = self::E5|constructor#_#new#tearOff;
 }
 extension type E6(core::double foo) {
-  abstract inline-class-member representation-field get foo() → core::double;
+  abstract extension-type-member representation-field get foo() → core::double;
   constructor • = self::E6|constructor#;
   constructor tearoff • = self::E6|constructor#_#new#tearOff;
 }
 extension type E7(dynamic foo) {
-  abstract inline-class-member representation-field get foo() → dynamic;
+  abstract extension-type-member representation-field get foo() → dynamic;
   constructor • = self::E7|constructor#;
   constructor tearoff • = self::E7|constructor#_#new#tearOff;
 }
@@ -145,169 +145,169 @@ extension type E8(invalid-type #) {
   constructor tearoff • = self::E8|constructor#_#new#tearOff;
 }
 extension type E9(core::int foo) {
-  abstract inline-class-member representation-field get foo() → core::int;
-  abstract inline-class-member representation-field get bar() → core::String;
+  abstract extension-type-member representation-field get foo() → core::int;
+  abstract extension-type-member representation-field get bar() → core::String;
   constructor • = self::E9|constructor#;
   constructor tearoff • = self::E9|constructor#_#new#tearOff;
 }
 extension type E10(core::num foo) {
-  abstract inline-class-member representation-field get foo() → core::num;
-  abstract inline-class-member representation-field get bar() → core::bool;
-  abstract inline-class-member representation-field get baz() → core::double;
+  abstract extension-type-member representation-field get foo() → core::num;
+  abstract extension-type-member representation-field get bar() → core::bool;
+  abstract extension-type-member representation-field get baz() → core::double;
   constructor • = self::E10|constructor#;
   constructor tearoff • = self::E10|constructor#_#new#tearOff;
 }
 extension type E11(core::bool foo) {
-  abstract inline-class-member representation-field get foo() → core::bool;
+  abstract extension-type-member representation-field get foo() → core::bool;
   constructor • = self::E11|constructor#;
   constructor tearoff • = self::E11|constructor#_#new#tearOff;
 }
 extension type E12(core::bool foo) {
-  abstract inline-class-member representation-field get foo() → core::bool;
+  abstract extension-type-member representation-field get foo() → core::bool;
   constructor • = self::E12|constructor#;
   constructor tearoff • = self::E12|constructor#_#new#tearOff;
 }
 extension type E13(core::int? foo) {
-  abstract inline-class-member representation-field get foo() → core::int?;
+  abstract extension-type-member representation-field get foo() → core::int?;
   constructor • = self::E13|constructor#;
   constructor tearoff • = self::E13|constructor#_#new#tearOff;
 }
 extension type E14(core::String? foo) {
-  abstract inline-class-member representation-field get foo() → core::String?;
+  abstract extension-type-member representation-field get foo() → core::String?;
   constructor • = self::E14|constructor#;
   constructor tearoff • = self::E14|constructor#_#new#tearOff;
 }
 extension type E15(core::double foo) {
-  abstract inline-class-member representation-field get foo() → core::double;
+  abstract extension-type-member representation-field get foo() → core::double;
   constructor • = self::E15|constructor#;
   constructor tearoff • = self::E15|constructor#_#new#tearOff;
 }
 extension type E16(core::bool foo) {
-  abstract inline-class-member representation-field get foo() → core::bool;
-  abstract inline-class-member representation-field get bar() → dynamic;
+  abstract extension-type-member representation-field get foo() → core::bool;
+  abstract extension-type-member representation-field get bar() → dynamic;
   constructor • = self::E16|constructor#;
   constructor tearoff • = self::E16|constructor#_#new#tearOff;
 }
 extension type E17(core::Object foo) {
-  abstract inline-class-member representation-field get foo() → core::Object;
-  abstract inline-class-member representation-field get bar() → core::num?;
-  abstract inline-class-member representation-field get baz() → core::String?;
+  abstract extension-type-member representation-field get foo() → core::Object;
+  abstract extension-type-member representation-field get bar() → core::num?;
+  abstract extension-type-member representation-field get baz() → core::String?;
   constructor • = self::E17|constructor#;
   constructor tearoff • = self::E17|constructor#_#new#tearOff;
 }
 extension type E18(core::double foo) {
-  abstract inline-class-member representation-field get foo() → core::double;
-  abstract inline-class-member representation-field get bar() → core::int;
+  abstract extension-type-member representation-field get foo() → core::double;
+  abstract extension-type-member representation-field get bar() → core::int;
   constructor • = self::E18|constructor#;
   constructor tearoff • = self::E18|constructor#_#new#tearOff;
 }
-static inline-class-member method E1|constructor#(dynamic foo) → self::E1 /* = dynamic */ {
+static extension-type-member method E1|constructor#(dynamic foo) → self::E1 /* = dynamic */ {
   lowered final self::E1 /* = dynamic */ #this = foo;
   return #this;
 }
-static inline-class-member method E1|constructor#_#new#tearOff(dynamic foo) → self::E1 /* = dynamic */
+static extension-type-member method E1|constructor#_#new#tearOff(dynamic foo) → self::E1 /* = dynamic */
   return self::E1|constructor#(foo);
-static inline-class-member method E2|constructor#(final dynamic foo) → self::E2 /* = dynamic */ {
+static extension-type-member method E2|constructor#(final dynamic foo) → self::E2 /* = dynamic */ {
   lowered final self::E2 /* = dynamic */ #this = foo;
   return #this;
 }
-static inline-class-member method E2|constructor#_#new#tearOff(dynamic foo) → self::E2 /* = dynamic */
+static extension-type-member method E2|constructor#_#new#tearOff(dynamic foo) → self::E2 /* = dynamic */
   return self::E2|constructor#(foo);
-static inline-class-member method E3|constructor#(final core::String foo) → self::E3 /* = core::String */ {
+static extension-type-member method E3|constructor#(final core::String foo) → self::E3 /* = core::String */ {
   lowered final self::E3 /* = core::String */ #this = foo;
   return #this;
 }
-static inline-class-member method E3|constructor#_#new#tearOff(core::String foo) → self::E3 /* = core::String */
+static extension-type-member method E3|constructor#_#new#tearOff(core::String foo) → self::E3 /* = core::String */
   return self::E3|constructor#(foo);
-static inline-class-member method E4|constructor#(covariant-by-declaration core::num foo) → self::E4 /* = core::num */ {
+static extension-type-member method E4|constructor#(covariant-by-declaration core::num foo) → self::E4 /* = core::num */ {
   lowered final self::E4 /* = core::num */ #this = foo;
   return #this;
 }
-static inline-class-member method E4|constructor#_#new#tearOff(core::num foo) → self::E4 /* = core::num */
+static extension-type-member method E4|constructor#_#new#tearOff(core::num foo) → self::E4 /* = core::num */
   return self::E4|constructor#(foo);
-static inline-class-member method E5|constructor#(core::bool foo) → self::E5 /* = core::bool */ {
+static extension-type-member method E5|constructor#(core::bool foo) → self::E5 /* = core::bool */ {
   lowered final self::E5 /* = core::bool */ #this = foo;
   return #this;
 }
-static inline-class-member method E5|constructor#_#new#tearOff(core::bool foo) → self::E5 /* = core::bool */
+static extension-type-member method E5|constructor#_#new#tearOff(core::bool foo) → self::E5 /* = core::bool */
   return self::E5|constructor#(foo);
-static inline-class-member method E6|constructor#_#new#tearOff(core::double foo) → self::E6 /* = core::double */
+static extension-type-member method E6|constructor#_#new#tearOff(core::double foo) → self::E6 /* = core::double */
   return self::E6|constructor#(foo);
-static inline-class-member method E6|constructor#(covariant-by-declaration final core::double foo) → self::E6 /* = core::double */ {
+static extension-type-member method E6|constructor#(covariant-by-declaration final core::double foo) → self::E6 /* = core::double */ {
   lowered final self::E6 /* = core::double */ #this = foo;
   return #this;
 }
-static inline-class-member method E7|constructor#(dynamic foo) → self::E7 /* = dynamic */ {
+static extension-type-member method E7|constructor#(dynamic foo) → self::E7 /* = dynamic */ {
   lowered final self::E7 /* = dynamic */ #this = foo;
   return #this;
 }
-static inline-class-member method E7|constructor#_#new#tearOff(dynamic foo) → self::E7 /* = dynamic */
+static extension-type-member method E7|constructor#_#new#tearOff(dynamic foo) → self::E7 /* = dynamic */
   return self::E7|constructor#(foo);
-static inline-class-member method E8|constructor#() → self::E8 /* = invalid-type */ {
+static extension-type-member method E8|constructor#() → self::E8 /* = invalid-type */ {
   lowered final self::E8 /* = invalid-type */ #this;
   return #this;
 }
-static inline-class-member method E8|constructor#_#new#tearOff() → self::E8 /* = invalid-type */
+static extension-type-member method E8|constructor#_#new#tearOff() → self::E8 /* = invalid-type */
   return self::E8|constructor#();
-static inline-class-member method E9|constructor#(core::int foo, core::String bar) → self::E9 /* = core::int */ {
+static extension-type-member method E9|constructor#(core::int foo, core::String bar) → self::E9 /* = core::int */ {
   lowered final self::E9 /* = core::int */ #this = bar;
   return #this;
 }
-static inline-class-member method E9|constructor#_#new#tearOff(core::int foo, core::String bar) → self::E9 /* = core::int */
+static extension-type-member method E9|constructor#_#new#tearOff(core::int foo, core::String bar) → self::E9 /* = core::int */
   return self::E9|constructor#(foo, bar);
-static inline-class-member method E10|constructor#(core::num foo, core::bool bar, core::double baz) → self::E10 /* = core::num */ {
+static extension-type-member method E10|constructor#(core::num foo, core::bool bar, core::double baz) → self::E10 /* = core::num */ {
   lowered final self::E10 /* = core::num */ #this = baz;
   return #this;
 }
-static inline-class-member method E10|constructor#_#new#tearOff(core::num foo, core::bool bar, core::double baz) → self::E10 /* = core::num */
+static extension-type-member method E10|constructor#_#new#tearOff(core::num foo, core::bool bar, core::double baz) → self::E10 /* = core::num */
   return self::E10|constructor#(foo, bar, baz);
-static inline-class-member method E11|constructor#(core::bool foo) → self::E11 /* = core::bool */ {
+static extension-type-member method E11|constructor#(core::bool foo) → self::E11 /* = core::bool */ {
   lowered final self::E11 /* = core::bool */ #this = foo;
   return #this;
 }
-static inline-class-member method E11|constructor#_#new#tearOff(core::bool foo) → self::E11 /* = core::bool */
+static extension-type-member method E11|constructor#_#new#tearOff(core::bool foo) → self::E11 /* = core::bool */
   return self::E11|constructor#(foo);
-static inline-class-member method E12|constructor#(core::bool foo = #C1) → self::E12 /* = core::bool */ {
+static extension-type-member method E12|constructor#(core::bool foo = #C1) → self::E12 /* = core::bool */ {
   lowered final self::E12 /* = core::bool */ #this = foo;
   return #this;
 }
-static inline-class-member method E12|constructor#_#new#tearOff(has-declared-initializer core::bool foo) → self::E12 /* = core::bool */
+static extension-type-member method E12|constructor#_#new#tearOff(has-declared-initializer core::bool foo) → self::E12 /* = core::bool */
   return self::E12|constructor#(foo);
-static inline-class-member method E13|constructor#([core::int? foo = #C2]) → self::E13 /* = core::int? */ {
+static extension-type-member method E13|constructor#([core::int? foo = #C2]) → self::E13 /* = core::int? */ {
   lowered final self::E13 /* = core::int? */ #this = foo;
   return #this;
 }
-static inline-class-member method E13|constructor#_#new#tearOff([core::int? foo]) → self::E13 /* = core::int? */
+static extension-type-member method E13|constructor#_#new#tearOff([core::int? foo]) → self::E13 /* = core::int? */
   return self::E13|constructor#(foo);
-static inline-class-member method E14|constructor#({core::String? foo = #C2}) → self::E14 /* = core::String? */ {
+static extension-type-member method E14|constructor#({core::String? foo = #C2}) → self::E14 /* = core::String? */ {
   lowered final self::E14 /* = core::String? */ #this = foo;
   return #this;
 }
-static inline-class-member method E14|constructor#_#new#tearOff({core::String? foo}) → self::E14 /* = core::String? */
+static extension-type-member method E14|constructor#_#new#tearOff({core::String? foo}) → self::E14 /* = core::String? */
   return self::E14|constructor#(foo: foo);
-static inline-class-member method E15|constructor#({required core::double foo = #C2}) → self::E15 /* = core::double */ {
+static extension-type-member method E15|constructor#({required core::double foo = #C2}) → self::E15 /* = core::double */ {
   lowered final self::E15 /* = core::double */ #this = foo;
   return #this;
 }
-static inline-class-member method E15|constructor#_#new#tearOff({required core::double foo}) → self::E15 /* = core::double */
+static extension-type-member method E15|constructor#_#new#tearOff({required core::double foo}) → self::E15 /* = core::double */
   return self::E15|constructor#(foo: foo);
-static inline-class-member method E16|constructor#(core::bool foo, [dynamic bar = #C2]) → self::E16 /* = core::bool */ {
+static extension-type-member method E16|constructor#(core::bool foo, [dynamic bar = #C2]) → self::E16 /* = core::bool */ {
   lowered final self::E16 /* = core::bool */ #this = bar;
   return #this;
 }
-static inline-class-member method E16|constructor#_#new#tearOff(core::bool foo, [dynamic bar]) → self::E16 /* = core::bool */
+static extension-type-member method E16|constructor#_#new#tearOff(core::bool foo, [dynamic bar]) → self::E16 /* = core::bool */
   return self::E16|constructor#(foo, bar);
-static inline-class-member method E17|constructor#(core::Object foo, {core::num? bar = #C2, core::String? baz = #C2}) → self::E17 /* = core::Object */ {
+static extension-type-member method E17|constructor#(core::Object foo, {core::num? bar = #C2, core::String? baz = #C2}) → self::E17 /* = core::Object */ {
   lowered final self::E17 /* = core::Object */ #this = baz;
   return #this;
 }
-static inline-class-member method E17|constructor#_#new#tearOff(core::Object foo, {core::num? bar, core::String? baz}) → self::E17 /* = core::Object */
+static extension-type-member method E17|constructor#_#new#tearOff(core::Object foo, {core::num? bar, core::String? baz}) → self::E17 /* = core::Object */
   return self::E17|constructor#(foo, bar: bar, baz: baz);
-static inline-class-member method E18|constructor#(core::double foo, {required core::int bar = #C2}) → self::E18 /* = core::double */ {
+static extension-type-member method E18|constructor#(core::double foo, {required core::int bar = #C2}) → self::E18 /* = core::double */ {
   lowered final self::E18 /* = core::double */ #this = bar;
   return #this;
 }
-static inline-class-member method E18|constructor#_#new#tearOff(core::double foo, {required core::int bar}) → self::E18 /* = core::double */
+static extension-type-member method E18|constructor#_#new#tearOff(core::double foo, {required core::int bar}) → self::E18 /* = core::double */
   return self::E18|constructor#(foo, bar: bar);
 
 constants  {

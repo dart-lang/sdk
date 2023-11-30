@@ -67,11 +67,11 @@ class MakeFieldPublic extends ResolvedCorrectionProducer {
 
 extension on DartFileEditBuilder {
   void removeMember(NodeList<ClassMember> members, ClassMember member) {
-    // TODO(brianwilkerson) Consider moving this to DartFileEditBuilder.
+    // TODO(brianwilkerson): Consider moving this to DartFileEditBuilder.
     var index = members.indexOf(member);
     if (index == 0) {
       if (members.length == 1) {
-        // TODO(brianwilkerson) Remove the whitespace before and after the
+        // TODO(brianwilkerson): Remove the whitespace before and after the
         //  member.
         addDeletion(range.node(member));
       } else {

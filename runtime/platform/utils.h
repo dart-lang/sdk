@@ -551,6 +551,58 @@ class Utils {
     return ((mask >> position) & 1) != 0;
   }
 
+  template <typename T>
+  class BitsIterator {
+   public:
+    explicit BitsIterator(uint32_t bits) : bits_(bits), bit_(bits & -bits) {}
+
+    DART_FORCE_INLINE T operator*() const {
+      return static_cast<T>(BitPosition(bit_));
+    }
+
+    DART_FORCE_INLINE bool operator==(const BitsIterator& other) const {
+      return bits_ == other.bits_ && bit_ == other.bit_;
+    }
+
+    DART_FORCE_INLINE bool operator!=(const BitsIterator& other) const {
+      return !(*this == other);
+    }
+
+    DART_FORCE_INLINE BitsIterator& operator++() {
+      bits_ ^= bit_;
+      bit_ = bits_ & -bits_;
+      return *this;
+    }
+
+   private:
+    // Returns position of the given bit. Unlike CountTrailingZeroes assumes
+    // that bit is not zero without checking!
+    static DART_FORCE_INLINE intptr_t BitPosition(uint32_t bit) {
+#if defined(DART_HOST_OS_WINDOWS)
+      unsigned long position;  // NOLINT
+      BitScanForward(&position, bit);
+      return static_cast<int>(position);
+#else
+      return __builtin_ctz(bit);
+#endif
+    }
+
+    uint32_t bits_;
+    intptr_t bit_;
+  };
+
+  template <typename T>
+  class BitsRange {
+   public:
+    explicit BitsRange(uint32_t bits) : bits_(bits) {}
+
+    BitsIterator<T> begin() { return BitsIterator<T>(bits_); }
+    BitsIterator<T> end() { return BitsIterator<T>(0); }
+
+   public:
+    const uint32_t bits_;
+  };
+
   static char* StrError(int err, char* buffer, size_t bufsize);
 
   // Not all platforms support strndup.

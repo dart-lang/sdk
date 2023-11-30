@@ -678,8 +678,10 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionBody(
 
   const bool has_body = ReadTag() == kSomething;  // read first part of body.
 
-  if (dart_function.is_native()) {
+  if (dart_function.is_old_native()) {
     body += B->NativeFunctionBody(dart_function, first_parameter);
+  } else if (dart_function.is_ffi_native()) {
+    body += B->FfiNativeFunctionBody(dart_function);
   } else if (dart_function.is_external()) {
     body += ThrowNoSuchMethodError(TokenPosition::kNoSource, dart_function,
                                    /*incompatible_arguments=*/false);

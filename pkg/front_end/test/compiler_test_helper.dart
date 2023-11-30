@@ -34,7 +34,8 @@ api.CompilerOptions getOptions(
     {void Function(api.DiagnosticMessage message)? onDiagnostic,
     Uri? repoDir,
     Uri? packagesFileUri,
-    bool compileSdk = false}) {
+    bool compileSdk = false,
+    api.FileSystem? fileSystem}) {
   Uri sdkRoot = computePlatformBinariesLocation(forceBuildDir: true);
   api.CompilerOptions options = new api.CompilerOptions()
     ..sdkRoot = sdkRoot
@@ -46,28 +47,34 @@ api.CompilerOptions getOptions(
     ..onDiagnostic = onDiagnostic
     ..packagesFileUri = packagesFileUri
     ..environmentDefines = const {};
+
+  if (fileSystem != null) {
+    options.fileSystem = fileSystem;
+  }
   return options;
 }
 
-Future<void> compile(
+Future<BuildResult> compile(
     {required List<Uri> inputs,
     void Function(api.DiagnosticMessage message)? onDiagnostic,
     Uri? repoDir,
     Uri? packagesFileUri,
     bool compileSdk = false,
     KernelTargetCreator kernelTargetCreator = KernelTargetTest.new,
-    BodyBuilderCreator bodyBuilderCreator = defaultBodyBuilderCreator}) async {
+    BodyBuilderCreator bodyBuilderCreator = defaultBodyBuilderCreator,
+    api.FileSystem? fileSystem}) async {
   Ticker ticker = new Ticker(isVerbose: false);
   api.CompilerOptions compilerOptions = getOptions(
       repoDir: repoDir,
       onDiagnostic: onDiagnostic,
       packagesFileUri: packagesFileUri,
-      compileSdk: compileSdk);
+      compileSdk: compileSdk,
+      fileSystem: fileSystem);
 
   ProcessedOptions processedOptions =
       new ProcessedOptions(options: compilerOptions, inputs: inputs);
 
-  await CompilerContext.runWithOptions(processedOptions,
+  return await CompilerContext.runWithOptions(processedOptions,
       (CompilerContext c) async {
     UriTranslator uriTranslator = await c.options.getUriTranslator();
     DillTarget dillTarget =
@@ -89,6 +96,7 @@ Future<void> compile(
     buildResult = await kernelTarget.buildComponent(
         macroApplications: buildResult.macroApplications);
     buildResult.macroApplications?.close();
+    return buildResult;
   });
 }
 

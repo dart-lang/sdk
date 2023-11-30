@@ -22,7 +22,7 @@ import 'members_node.dart';
 class ClassMembersBuilder implements ClassHierarchyMembers {
   final ClassHierarchyBuilder hierarchyBuilder;
 
-  final Map<Class, ClassMembersNode> classNodes = {};
+  final Map<Class, ClassMembersNode> classNodes = new Map.identity();
 
   final Map<ExtensionTypeDeclaration, ExtensionTypeMembersNode>
       extensionTypeDeclarationNodes = {};
@@ -53,10 +53,8 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
         classBuilder, declaredMember, overriddenMembers));
   }
 
-  void registerGetterSetterCheck(
-      SourceClassBuilder classBuilder, ClassMember getter, ClassMember setter) {
-    _delayedChecks
-        .add(new DelayedGetterSetterCheck(classBuilder, getter, setter));
+  void registerGetterSetterCheck(DelayedGetterSetterCheck check) {
+    _delayedChecks.add(check);
   }
 
   void registerMemberComputation(ClassMember member) {

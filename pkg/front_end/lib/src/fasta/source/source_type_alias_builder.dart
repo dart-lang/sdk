@@ -214,12 +214,8 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       }
     }
     _tearOffDependencies?.forEach((Procedure tearOff, Member target) {
-      InterfaceType targetType = typedef.type as InterfaceType;
       delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
-          target,
-          tearOff,
-          new Map<TypeParameter, DartType>.fromIterables(
-              target.enclosingClass!.typeParameters, targetType.typeArguments),
+          target, tearOff,
           libraryBuilder: libraryBuilder));
     });
   }
@@ -248,8 +244,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       case ClassBuilder():
         if (targetType is InterfaceType &&
             typedef.typeParameters.isNotEmpty &&
-            !isProperRenameForClass(libraryBuilder.loader.typeEnvironment,
-                typedef, libraryBuilder.library)) {
+            !isProperRenameForTypeDeclaration(
+                libraryBuilder.loader.typeEnvironment,
+                typedef,
+                libraryBuilder.library)) {
           tearOffs = {};
           _tearOffDependencies = {};
           NameIterator<MemberBuilder> iterator =
@@ -292,7 +290,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                   declarationConstructor: target,
                   // TODO(johnniwinther): Handle patched constructors.
                   implementationConstructor: target,
-                  enclosingClass: declaration.cls,
+                  enclosingTypeDeclaration: declaration.cls,
                   typeParameters: typedef.typeParameters,
                   typeArguments: targetType.typeArguments,
                   libraryBuilder: libraryBuilder);
@@ -301,7 +299,59 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           }
         }
       case ExtensionTypeDeclarationBuilder():
-      // TODO(johnniwinther): Handle this case.
+        if (targetType is ExtensionType &&
+            typedef.typeParameters.isNotEmpty &&
+            !isProperRenameForTypeDeclaration(
+                libraryBuilder.loader.typeEnvironment,
+                typedef,
+                libraryBuilder.library)) {
+          tearOffs = {};
+          _tearOffDependencies = {};
+          NameIterator<MemberBuilder> iterator =
+              declaration.fullConstructorNameIterator();
+          while (iterator.moveNext()) {
+            String constructorName = iterator.name;
+            MemberBuilder builder = iterator.current;
+            Member? target = builder.invokeTarget;
+            if (target != null) {
+              if (target is Procedure && target.isRedirectingFactory) {
+                target = builder.readTarget!;
+              }
+              Name targetName =
+                  new Name(constructorName, declaration.libraryBuilder.library);
+              Reference? tearOffReference;
+              if (libraryBuilder.indexedLibrary != null) {
+                Name tearOffName = new Name(
+                    typedefTearOffName(name, constructorName),
+                    libraryBuilder.indexedLibrary!.library);
+                tearOffReference = libraryBuilder.indexedLibrary!
+                    .lookupGetterReference(tearOffName);
+              }
+
+              Procedure tearOff = tearOffs![targetName] =
+                  createTypedefTearOffProcedure(
+                      name,
+                      constructorName,
+                      libraryBuilder,
+                      target.fileUri,
+                      target.fileOffset,
+                      tearOffReference);
+              _tearOffDependencies![tearOff] = target;
+
+              buildTypedefTearOffProcedure(
+                  tearOff: tearOff,
+                  declarationConstructor: target,
+                  // TODO(johnniwinther): Handle patched constructors.
+                  implementationConstructor: target,
+                  enclosingTypeDeclaration:
+                      declaration.extensionTypeDeclaration,
+                  typeParameters: typedef.typeParameters,
+                  typeArguments: targetType.typeArguments,
+                  libraryBuilder: libraryBuilder);
+              f(tearOff);
+            }
+          }
+        }
       case TypeAliasBuilder():
       case NominalVariableBuilder():
       case StructuralVariableBuilder():

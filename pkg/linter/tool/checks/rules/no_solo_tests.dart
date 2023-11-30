@@ -53,7 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    // todo(pq): we *could* ensure we're in a reflective test too.
+    // TODO(pq): we *could* ensure we're in a reflective test too.
     if (node.name.lexeme.startsWith('solo_test_')) {
       rule.reportLintForToken(node.name);
       return;

@@ -41,9 +41,9 @@ String? _getNodeKind(Element e) {
 
 String _getPath(ResourceProvider provider, Element? e,
     {String? sdkRootPath, String? corpus}) {
-  // TODO(jwren) This method simply serves to provide the WORKSPACE relative
+  // TODO(jwren): This method simply serves to provide the WORKSPACE relative
   // path for sources in Elements, it needs to be written in a more robust way.
-  // TODO(jwren) figure out what source generates a e != null, but
+  // TODO(jwren): figure out what source generates a e != null, but
   // e.source == null to ensure that it is not a bug somewhere in the stack.
   var source = e?.source;
   if (source == null) {

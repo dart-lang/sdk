@@ -7,9 +7,9 @@ Here's a brief guide to what's in here:
 bin/               Binaries/scripts to compile, run, and manage Dart apps.
   dart             Command line Dart tool
   dartaotruntime   Minimal Dart runtime for running AOT modules
-  resources/       resource files for dartdoc and devtools
-  snapshots/       app-jit snapshots of various tools
-  utils/           tool for generating AOT snapshots
+  resources/       Resource files for dartdoc and devtools
+  snapshots/       AppAOT and AppJIT snapshots of various tools
+  utils/           Tools used by Dart compilers
 
 include/           header files that define the Dart embedding API for use by
                    - C/C++ applications that embed the Dart Virtual machine

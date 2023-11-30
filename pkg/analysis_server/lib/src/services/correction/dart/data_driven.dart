@@ -26,7 +26,7 @@ class DataDriven extends MultiCorrectionProducer {
     var importedUris = <Uri>[];
     var library = unitResult.libraryElement;
     for (var importElement in library.libraryImports) {
-      // TODO(brianwilkerson) Filter based on combinators to help avoid making
+      // TODO(brianwilkerson): Filter based on combinators to help avoid making
       //  invalid suggestions.
       var uri = importElement.uri;
       if (uri is DirectiveUriWithRelativeUri) {

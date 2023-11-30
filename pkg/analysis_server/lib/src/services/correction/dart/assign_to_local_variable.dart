@@ -19,7 +19,7 @@ class AssignToLocalVariable extends ResolvedCorrectionProducer {
   AssistKind get assistKind => DartAssistKind.ASSIGN_TO_LOCAL_VARIABLE;
 
   String get _declarationKeyword {
-    if (codeStyleOptions.makeLocalsFinal) {
+    if (getCodeStyleOptions(unitResult.file).makeLocalsFinal) {
       return 'final';
     } else {
       return 'var';

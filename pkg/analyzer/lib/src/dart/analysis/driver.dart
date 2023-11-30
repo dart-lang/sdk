@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -37,7 +38,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, AnalysisOptions, AnalysisOptionsImpl;
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/lint/registry.dart' as linter;
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -50,7 +51,6 @@ import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
-import 'package:meta/meta.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
 ///
@@ -85,10 +85,10 @@ import 'package:meta/meta.dart';
 /// results are "eventually consistent" with the file system by simply calling
 /// [changeFile] any time the contents of a file on the file system have changed.
 ///
-/// TODO(scheglov) Clean up the list of implicitly analyzed files.
+// TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 316;
+  static const int DATA_VERSION = 320;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -268,7 +268,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   bool _disposed = false;
 
   /// A map that associates files to corresponding analysis options.
-  /// todo(pq): his will replace the single [_analysisOptions] instance.
+  // TODO(pq): his will replace the single [_analysisOptions] instance.
+  // ignore: unused_field
   final AnalysisOptionsMap? _analysisOptionsMap;
 
   /// Create a new instance of [AnalysisDriver].
@@ -286,7 +287,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     this.macroSupport,
     this.ownedFiles,
     this.analysisContext,
-    // todo(pq): to replace analysis options instance
+    // TODO(pq): to replace analysis options instance
     AnalysisOptionsMap? analysisOptionsMap,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
@@ -327,13 +328,19 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Set<String> get addedFiles => _fileTracker.addedFiles;
 
   /// Return the analysis options used to control analysis.
-  //todo(pq): @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
+  // TODO(pq): @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions => _analysisOptions;
 
   /// Return the current analysis session.
   AnalysisSessionImpl get currentSession {
     return libraryContext.elementFactory.analysisSession;
   }
+
+  /// Return a list of the names of all the plugins enabled in analysis options
+  /// in this driver.
+  List<String> get enabledPluginNames =>
+      // TODO(pq): get this value from a union of all the plugins enabled in the  `_analysisOptionsMap`
+      _analysisOptions.enabledPluginNames;
 
   /// Return the stream that produces [ExceptionResult]s.
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;
@@ -668,9 +675,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     return completer.future;
   }
 
-  @experimental
-  AnalysisOptions? getAnalysisOptionsForFile(File file) =>
-      _analysisOptionsMap?.getOptions(file);
+  AnalysisOptions getAnalysisOptionsForFile(File file) =>
+      // TODO(pq): replace w/ _analysisOptionsMap?.getOptions(file)
+      _analysisOptions;
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
   /// [path]. If there is no cached result, return `null`. Usually only results
@@ -747,12 +754,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     FileState file = _fsState.getFileForPath(path);
     return FileResultImpl(
       session: currentSession,
-      path: path,
-      uri: file.uri,
-      lineInfo: file.lineInfo,
-      isAugmentation: file.kind is AugmentationFileKind,
-      isLibrary: file.kind is LibraryFileKind,
-      isPart: file.kind is PartFileKind,
+      fileState: file,
     );
   }
 
@@ -820,7 +822,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         return UnspecifiedInvalidResult();
       case UriResolutionExternalLibrary(:final source):
         final uri = source.uri;
-        // TODO(scheglov) Check if the source is not for library.
+        // TODO(scheglov): Check if the source is not for library.
         var element = libraryContext.getLibraryElement(uri);
         return LibraryElementResultImpl(element);
     }
@@ -1046,13 +1048,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     CompilationUnit unit = file.parse(listener);
     return ParsedUnitResultImpl(
       session: currentSession,
-      path: file.path,
-      uri: file.uri,
-      content: file.content,
-      lineInfo: file.lineInfo,
-      isAugmentation: file.kind is AugmentationFileKind,
-      isLibrary: file.kind is LibraryFileKind,
-      isPart: file.kind is PartFileKind,
+      fileState: file,
       unit: unit,
       errors: listener.errors,
     );
@@ -1275,16 +1271,13 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       switch (fileChange.kind) {
         case _FileChangeKind.add:
           _fileTracker.addFile(path);
-          break;
         case _FileChangeKind.change:
           _fileTracker.changeFile(path);
-          break;
         case _FileChangeKind.remove:
           _fileTracker.removeFile(path);
-          // TODO(scheglov) We have to do this because we discard files.
+          // TODO(scheglov): We have to do this because we discard files.
           // But this is not right, we need to handle removing better.
           clearLibraryContext();
-          break;
       }
     }
     _pendingFileChanges.clear();
@@ -1370,8 +1363,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           performance: OperationPerformanceImpl('<root>'),
         );
 
+        var options = libraryContext.analysisContext
+            .getAnalysisOptionsForFile(file.resource);
+
         var results = LibraryAnalyzer(
-          analysisOptions as AnalysisOptionsImpl,
+          options,
           declaredVariables,
           libraryContext.elementFactory.libraryOfUri2(library.file.uri),
           libraryContext.elementFactory.analysisSession.inheritanceManager,
@@ -1480,8 +1476,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         performance: OperationPerformanceImpl('<root>'),
       );
 
+      var analysisOptions = libraryContext.analysisContext
+          .getAnalysisOptionsForFile(library.file.resource);
+
       var unitResults = LibraryAnalyzer(
-              analysisOptions as AnalysisOptionsImpl,
+              analysisOptions,
               declaredVariables,
               libraryContext.elementFactory.libraryOfUri2(library.file.uri),
               libraryContext.elementFactory.analysisSession.inheritanceManager,
@@ -1534,12 +1533,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       var element = libraryContext.computeUnitElement(library, file);
       return UnitElementResultImpl(
         session: currentSession,
-        path: path,
-        uri: file.uri,
-        lineInfo: file.lineInfo,
-        isAugmentation: file.kind is AugmentationFileKind,
-        isLibrary: file.kind is LibraryFileKind,
-        isPart: file.kind is PartFileKind,
+        fileState: file,
         element: element,
       );
     });
@@ -1551,9 +1545,9 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }) {
     return ErrorsResultImpl(
       session: currentSession,
-      path: file.path,
-      uri: file.uri,
+      file: file.resource,
       lineInfo: file.lineInfo,
+      uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
@@ -1605,14 +1599,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }) {
     return ResolvedUnitResultImpl(
       session: currentSession,
-      path: file.path,
-      uri: file.uri,
-      exists: file.exists,
+      fileState: file,
       content: file.content,
-      lineInfo: file.lineInfo,
-      isAugmentation: file.kind is AugmentationFileKind,
-      isLibrary: file.kind is LibraryFileKind,
-      isPart: file.kind is PartFileKind,
       unit: unitResult.unit,
       errors: unitResult.errors,
     );
@@ -1717,14 +1705,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (content != null && resolvedUnit != null) {
       var resolvedUnitResult = ResolvedUnitResultImpl(
         session: currentSession,
-        path: file.path,
-        uri: file.uri,
-        exists: file.exists,
+        fileState: file,
         content: content,
-        lineInfo: file.lineInfo,
-        isAugmentation: file.kind is AugmentationFileKind,
-        isLibrary: file.kind is LibraryFileKind,
-        isPart: file.kind is PartFileKind,
         unit: resolvedUnit,
         errors: errors,
       );
@@ -1806,12 +1788,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return the empty analysis result with the error.
   AnalysisResult _newMissingDartLibraryResult(
       FileState file, String missingUri) {
-    // TODO(scheglov) Find a better way to report this.
+    // TODO(scheglov): Find a better way to report this.
     var errorsResult = ErrorsResultImpl(
       session: currentSession,
-      path: file.path,
-      uri: file.uri,
+      file: file.resource,
       lineInfo: file.lineInfo,
+      uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
       isPart: file.kind is PartFileKind,
@@ -1850,7 +1832,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     final removedKeys = <String>{};
     _libraryContext?.remove(affected, removedKeys);
 
-    // TODO(scheglov) Eventually list of `LibraryOrAugmentationFileKind`.
+    // TODO(scheglov): Eventually list of `LibraryOrAugmentationFileKind`.
     for (final file in affected) {
       final kind = file.kind;
       if (kind is LibraryFileKind) {
@@ -1939,9 +1921,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         },
       );
       var unitElement = libraryContext.computeUnitElement(library, file);
+      var analysisOptions = libraryContext.analysisContext
+          .getAnalysisOptionsForFile(file.resource);
 
       var analysisResult = LibraryAnalyzer(
-        analysisOptions as AnalysisOptionsImpl,
+        analysisOptions,
         declaredVariables,
         libraryContext.elementFactory.libraryOfUri2(library.file.uri),
         libraryContext.elementFactory.analysisSession.inheritanceManager,
@@ -2157,7 +2141,7 @@ class AnalysisDriverScheduler {
   /// Notify that there is a change to the [driver], it might need to
   /// perform some work.
   void notify(AnalysisDriverGeneric? driver) {
-    // TODO(brianwilkerson) Consider removing the parameter, given that it isn't
+    // TODO(brianwilkerson): Consider removing the parameter, given that it isn't
     //  referenced in the body.
     _hasWork.notify();
     _statusSupport.preTransitionToAnalyzing();

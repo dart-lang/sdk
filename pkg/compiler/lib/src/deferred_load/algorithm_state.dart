@@ -106,7 +106,6 @@ class AlgorithmState {
   /// [newSet].
   void _updateDependencies(
       EntityData entityData, ImportSet oldSet, ImportSet newSet) {
-    assert(directDependencies.containsKey(entityData));
     var directDependenciesList = directDependencies[entityData]!;
     for (var entity in directDependenciesList) {
       update(entity, oldSet, newSet);

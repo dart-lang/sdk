@@ -7,7 +7,8 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
@@ -34,7 +35,7 @@ const _pubspecValidators = <PubspecValidator>[
 /// The [source] argument must be the source of the file being validated.
 /// The [provider] argument must provide access to the file-system.
 List<AnalysisError> validatePubspec({
-  // TODO(brianwilkerson) This method needs to take a `YamlDocument` rather
+  // TODO(brianwilkerson): This method needs to take a `YamlDocument` rather
   //  than the contents of the document so that it can validate an empty file.
   required YamlNode contents,
   required Source source,

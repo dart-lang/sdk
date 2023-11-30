@@ -77,7 +77,7 @@ Future<void> main(List<String> args) async {
       ]));
 }
 
-class TextRepresentationConfig extends TestConfig {
+class TextRepresentationConfig extends CfeTestConfig {
   const TextRepresentationConfig(String marker, String name)
       : super(marker, name,
             explicitExperimentalFlags: const {
@@ -93,11 +93,11 @@ class TextRepresentationConfig extends TestConfig {
   }
 }
 
-class TextRepresentationDataComputer extends DataComputer<String> {
+class TextRepresentationDataComputer extends CfeDataComputer<String> {
   const TextRepresentationDataComputer();
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     new TextRepresentationDataExtractor(testResultData.compilerResult,
@@ -106,7 +106,7 @@ class TextRepresentationDataComputer extends DataComputer<String> {
   }
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     member.accept(new TextRepresentationDataExtractor(

@@ -1061,8 +1061,7 @@ class KernelTarget extends TargetImplementation {
       //..fileEndOffset = cls.fileOffset
       ..isNonNullableByDefault = cls.enclosingLibrary.isNonNullableByDefault;
     DelayedDefaultValueCloner delayedDefaultValueCloner =
-        new DelayedDefaultValueCloner(
-            superConstructor, constructor, substitutionMap,
+        new DelayedDefaultValueCloner(superConstructor, constructor,
             libraryBuilder: libraryBuilder);
 
     TypeDependency? typeDependency;
@@ -1619,7 +1618,7 @@ class KernelTarget extends TargetImplementation {
         VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
     assert(allowVerificationErrorForTesting || errors.isEmpty,
-        "Verification errors found.");
+        "Verification errors found: $errors");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {

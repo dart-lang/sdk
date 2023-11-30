@@ -136,7 +136,7 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
   final UnitResult unitResult;
   final ChangeWorkspace workspace;
 
-  /// TODO(migration) Make it non-nullable, specialize "fix" context?
+  // TODO(migration): Make it non-nullable, specialize "fix" context?
   final DartFixContext? dartFixContext;
 
   /// A flag indicating whether the correction producers will be run in the
@@ -257,7 +257,7 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
 
 abstract class CorrectionProducerWithDiagnostic
     extends ResolvedCorrectionProducer {
-  /// TODO(migration) Consider providing it via constructor.
+  // TODO(migration): Consider providing it via constructor.
   @override
   Diagnostic get diagnostic => super.diagnostic!;
 }
@@ -351,6 +351,8 @@ abstract class ResolvedCorrectionProducer
   }
 
   LinterContext getLinterContext(path.Context pathContext) {
+    var analysisOptions = sessionHelper.session.analysisContext
+        .getAnalysisOptionsForFile(unitResult.file);
     return LinterContextImpl(
       [], // unused
       LinterContextUnit(unitResult.content, unitResult.unit),
@@ -358,7 +360,7 @@ abstract class ResolvedCorrectionProducer
       typeProvider,
       typeSystem as TypeSystemImpl,
       InheritanceManager3(), // unused
-      sessionHelper.session.analysisContext.analysisOptions,
+      analysisOptions,
       null,
       pathContext,
     );
@@ -512,7 +514,7 @@ abstract class ResolvedCorrectionProducer
 /// The behavior shared by [ResolvedCorrectionProducer] and [MultiCorrectionProducer].
 abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// The context used to produce corrections.
-  /// TODO(migration) Make it not `late`, require in constructor.
+  // TODO(migration): Make it not `late`, require in constructor.
   late CorrectionProducerContext<T> _context;
 
   /// The most deeply nested node that completely covers the highlight region of
@@ -527,14 +529,11 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// Return `true` if the fixes are being built for the bulk-fix request.
   bool get applyingBulkFixes => _context.applyingBulkFixes;
 
-  CodeStyleOptions get codeStyleOptions =>
-      sessionHelper.session.analysisContext.analysisOptions.codeStyleOptions;
-
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic or if such a node does
   /// not exist.
   AstNode? get coveredNode {
-    // TODO(brianwilkerson) Consider renaming this to `coveringNode`.
+    // TODO(brianwilkerson): Consider renaming this to `coveringNode`.
     if (_coveredNode == null) {
       final diagnostic = this.diagnostic;
       if (diagnostic == null) {
@@ -599,6 +598,11 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// given [type].
   String displayStringForType(DartType type) =>
       type.getDisplayString(withNullability: _context.isNonNullableByDefault);
+
+  CodeStyleOptions getCodeStyleOptions(File file) =>
+      sessionHelper.session.analysisContext
+          .getAnalysisOptionsForFile(file)
+          .codeStyleOptions;
 
   /// Return the function body of the most deeply nested method or function that
   /// encloses the [node], or `null` if the node is not in a method or function.
@@ -715,7 +719,7 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 extension DartFileEditBuilderExtension on DartFileEditBuilder {
   /// Add edits to the [builder] to remove any parentheses enclosing the
   /// [expression].
-  // TODO(brianwilkerson) Consider moving this to DartFileEditBuilder.
+  // TODO(brianwilkerson): Consider moving this to DartFileEditBuilder.
   void removeEnclosingParentheses(Expression expression) {
     var precedence = getExpressionPrecedence(expression);
     while (expression.parent is ParenthesizedExpression) {

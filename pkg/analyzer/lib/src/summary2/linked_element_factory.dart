@@ -112,7 +112,7 @@ class LinkedElementFactory {
 
     for (var exportedReference in exportedReferences) {
       var element = elementOfReference(exportedReference.reference);
-      // TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/41212
+      // TODO(scheglov): Remove after https://github.com/dart-lang/sdk/issues/41212
       if (element == null) {
         throw StateError(
           '[No element]'
@@ -204,7 +204,7 @@ class LinkedElementFactory {
     }
   }
 
-  /// TODO(scheglov) Why would this method return `null`?
+  // TODO(scheglov): Why would this method return `null`?
   Element? elementOfReference(Reference reference) {
     if (reference.element != null) {
       return reference.element;

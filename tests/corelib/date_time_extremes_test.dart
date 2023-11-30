@@ -34,10 +34,12 @@ void testExtremes() {
   Expect.equals(0, dt.microsecond);
   // Make sure that we can build the extreme dates in local too.
   dt = new DateTime.fromMillisecondsSinceEpoch(_MAX_MILLISECONDS);
-  dt = new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
+  dt = new DateTime(
+      dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond);
   Expect.equals(_MAX_MILLISECONDS, dt.millisecondsSinceEpoch);
   dt = new DateTime.fromMillisecondsSinceEpoch(-_MAX_MILLISECONDS);
-  dt = new DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute);
+  dt = new DateTime(
+      dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second, dt.millisecond);
   Expect.equals(-_MAX_MILLISECONDS, dt.millisecondsSinceEpoch);
   Expect.throws(() => new DateTime.fromMillisecondsSinceEpoch(
       _MAX_MILLISECONDS + 1,

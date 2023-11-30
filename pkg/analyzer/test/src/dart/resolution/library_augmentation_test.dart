@@ -27,7 +27,7 @@ library augment 'a.dart';
 
     newFile('$testPackageLibPath/c.dart', '');
 
-    await resolveFile2(b.path);
+    await resolveFile2(b);
     assertNoErrorsInResult();
 
     final node = findNode.libraryAugmentation('a.dart');

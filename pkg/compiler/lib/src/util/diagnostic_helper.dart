@@ -63,6 +63,10 @@ class DiagnosticCollector implements api.CompilerDiagnostics {
     return filterMessagesByKinds([api.Diagnostic.CRASH]);
   }
 
+  Iterable<CollectedMessage> get contexts {
+    return filterMessagesByKinds([api.Diagnostic.CONTEXT]);
+  }
+
   Iterable<CollectedMessage> get verboseInfos {
     return filterMessagesByKinds([api.Diagnostic.VERBOSE_INFO]);
   }

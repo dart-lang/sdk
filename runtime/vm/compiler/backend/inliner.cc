@@ -2745,6 +2745,50 @@ static bool CanUnboxDouble() {
 #undef Z
 #define Z (flow_graph->zone())
 
+static bool InlineTypedDataIndexCheck(FlowGraph* flow_graph,
+                                      Instruction* call,
+                                      Definition* receiver,
+                                      GraphEntryInstr* graph_entry,
+                                      FunctionEntryInstr** entry,
+                                      Instruction** last,
+                                      Definition** result,
+                                      const String& symbol) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  // TODO(https://github.com/flutter/flutter/issues/138689): We only convert
+  // the index check to a GenericCheckBound instruction on 64-bit architectures,
+  // where the inputs are always unboxed. Once the regressions on 32-bit
+  // architectures has been identified and fixed, remove the #ifdef.
+  return false;
+#else
+  *entry =
+      new (Z) FunctionEntryInstr(graph_entry, flow_graph->allocate_block_id(),
+                                 call->GetBlock()->try_index(), DeoptId::kNone);
+  (*entry)->InheritDeoptTarget(Z, call);
+  Instruction* cursor = *entry;
+
+  Definition* index = call->ArgumentAt(1);
+  Definition* length = call->ArgumentAt(2);
+
+  if (CompilerState::Current().is_aot()) {
+    // Add a null-check in case the index argument is known to be compatible
+    // but possibly nullable. We don't need to do the same for length
+    // because all callers in typed_data_patch.dart retrieve the length
+    // from the typed data object.
+    auto* const null_check =
+        new (Z) CheckNullInstr(new (Z) Value(index), symbol, call->deopt_id(),
+                               call->source(), CheckNullInstr::kArgumentError);
+    cursor = flow_graph->AppendTo(cursor, null_check, call->env(),
+                                  FlowGraph::kEffect);
+  }
+  index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
+  cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
+
+  *last = cursor;
+  *result = index;
+  return true;
+#endif
+}
+
 static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
                                        Instruction* call,
                                        intptr_t array_cid,
@@ -2867,7 +2911,6 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                              Instruction* call,
                              Definition* receiver,
                              const InstructionSource& source,
-                             const Cids* value_check,
                              FlowGraphInliner::ExactnessInfo* exactness,
                              GraphEntryInstr* graph_entry,
                              FunctionEntryInstr** entry,
@@ -3005,16 +3048,6 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       array_cid == kTypedDataUint32ArrayCid ||
       array_cid == kExternalTypedDataUint8ArrayCid ||
       array_cid == kExternalTypedDataUint8ClampedArrayCid;
-
-  if (value_check != nullptr) {
-    // No store barrier needed because checked value is a smi, an unboxed mint,
-    // an unboxed double, an unboxed Float32x4, or unboxed Int32x4.
-    needs_store_barrier = kNoStoreBarrier;
-    Instruction* check = flow_graph->CreateCheckClass(
-        stored_value, *value_check, call->deopt_id(), call->source());
-    cursor =
-        flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
-  }
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
     stored_value = new (Z)
@@ -3295,110 +3328,16 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
 
-  // Prepare additional checks. In AOT Dart2, we use an explicit null check and
-  // non-speculative unboxing for most value types.
-  Cids* value_check = nullptr;
-  bool needs_null_check = false;
-  switch (view_cid) {
-    case kTypedDataInt8ArrayCid:
-    case kTypedDataUint8ArrayCid:
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-    case kTypedDataInt16ArrayCid:
-    case kTypedDataUint16ArrayCid: {
-      if (CompilerState::Current().is_aot()) {
-        needs_null_check = true;
-      } else {
-        // Check that value is always smi.
-        value_check = Cids::CreateMonomorphic(Z, kSmiCid);
-      }
-      break;
-    }
-    case kTypedDataInt32ArrayCid:
-    case kTypedDataUint32ArrayCid:
-      if (CompilerState::Current().is_aot()) {
-        needs_null_check = true;
-      } else {
-        // On 64-bit platforms assume that stored value is always a smi.
-        if (compiler::target::kSmiBits >= 32) {
-          value_check = Cids::CreateMonomorphic(Z, kSmiCid);
-        }
-      }
-      break;
-    case kTypedDataFloat32ArrayCid:
-    case kTypedDataFloat64ArrayCid: {
-      // Check that value is always double.
-      if (CompilerState::Current().is_aot()) {
-        needs_null_check = true;
-      } else {
-        value_check = Cids::CreateMonomorphic(Z, kDoubleCid);
-      }
-      break;
-    }
-    case kTypedDataInt32x4ArrayCid: {
-      // Check that value is always Int32x4.
-      value_check = Cids::CreateMonomorphic(Z, kInt32x4Cid);
-      break;
-    }
-    case kTypedDataFloat32x4ArrayCid: {
-      // Check that value is always Float32x4.
-      value_check = Cids::CreateMonomorphic(Z, kFloat32x4Cid);
-      break;
-    }
-    case kTypedDataFloat64x2ArrayCid: {
-      // Check that value is always Float64x2.
-      value_check = Cids::CreateMonomorphic(Z, kFloat64x2Cid);
-      break;
-    }
-    case kTypedDataInt64ArrayCid:
-    case kTypedDataUint64ArrayCid:
-      // StoreIndexedInstr takes unboxed int64, so value is
-      // checked when unboxing. In AOT, we use an
-      // explicit null check and non-speculative unboxing.
-      needs_null_check = CompilerState::Current().is_aot();
-      break;
-    default:
-      // Array cids are already checked in the caller.
-      UNREACHABLE();
-  }
-
   Definition* stored_value = call->ArgumentAt(2);
 
-  // Handle value check.
-  if (value_check != nullptr) {
-    Instruction* check = flow_graph->CreateCheckClass(
-        stored_value, *value_check, call->deopt_id(), call->source());
-    cursor =
-        flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
-  }
-
-  // Handle null check.
-  if (needs_null_check) {
+  // We know that the incomming type matches, but we still need to handle the
+  // null check.
+  if (!dart::Thread::Current()->isolate_group()->null_safety()) {
     String& name = String::ZoneHandle(Z, target.name());
     Instruction* check = new (Z) CheckNullInstr(
         new (Z) Value(stored_value), name, call->deopt_id(), call->source());
     cursor =
         flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
-    // With an explicit null check, a non-speculative unbox suffices.
-    switch (view_cid) {
-      case kTypedDataFloat32ArrayCid:
-      case kTypedDataFloat64ArrayCid:
-        stored_value =
-            UnboxInstr::Create(kUnboxedDouble, new (Z) Value(stored_value),
-                               call->deopt_id(), Instruction::kNotSpeculative);
-        cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                      FlowGraph::kValue);
-        break;
-      case kTypedDataInt64ArrayCid:
-      case kTypedDataUint64ArrayCid:
-        stored_value = new (Z)
-            UnboxInt64Instr(new (Z) Value(stored_value), call->deopt_id(),
-                            Instruction::kNotSpeculative);
-        cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
-                                      FlowGraph::kValue);
-        break;
-    }
   }
 
   // Handle conversions and special unboxing (to ensure unboxing instructions
@@ -3420,13 +3359,33 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
                                     FlowGraph::kValue);
       break;
     }
-    case kTypedDataFloat32ArrayCid: {
-      stored_value = new (Z)
-          DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
-      cursor = flow_graph->AppendTo(cursor, stored_value, nullptr,
+
+    case kTypedDataInt64ArrayCid:
+    case kTypedDataUint64ArrayCid: {
+      stored_value =
+          new (Z) UnboxInt64Instr(new (Z) Value(stored_value), call->deopt_id(),
+                                  Instruction::kNotSpeculative);
+      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
                                     FlowGraph::kValue);
       break;
     }
+
+    case kTypedDataFloat32ArrayCid:
+    case kTypedDataFloat64ArrayCid: {
+      stored_value =
+          UnboxInstr::Create(kUnboxedDouble, new (Z) Value(stored_value),
+                             call->deopt_id(), Instruction::kNotSpeculative);
+      cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                    FlowGraph::kValue);
+      if (view_cid == kTypedDataFloat32ArrayCid) {
+        stored_value = new (Z)
+            DoubleToFloatInstr(new (Z) Value(stored_value), call->deopt_id());
+        cursor = flow_graph->AppendTo(cursor, stored_value, call->env(),
+                                      FlowGraph::kValue);
+      }
+      break;
+    }
+
     case kTypedDataInt32ArrayCid: {
       stored_value = new (Z)
           UnboxInt32Instr(UnboxInt32Instr::kTruncate,
@@ -4564,6 +4523,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
 
   const MethodRecognizer::Kind kind = target.recognized_kind();
   switch (kind) {
+    case MethodRecognizer::kTypedDataIndexCheck:
+      return InlineTypedDataIndexCheck(flow_graph, call, receiver, graph_entry,
+                                       entry, last, result, Symbols::Index());
+    case MethodRecognizer::kByteDataByteOffsetCheck:
+      return InlineTypedDataIndexCheck(flow_graph, call, receiver, graph_entry,
+                                       entry, last, result,
+                                       Symbols::byteOffset());
     // Recognized [] operators.
     case MethodRecognizer::kObjectArrayGetIndexed:
     case MethodRecognizer::kGrowableArrayGetIndexed:
@@ -4678,72 +4644,50 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
   }
 
   switch (kind) {
+    case MethodRecognizer::kUint8ClampedArraySetIndexed:
+    case MethodRecognizer::kExternalUint8ClampedArraySetIndexed:
+      // These require clamping. Just inline normal body instead which
+      // contains necessary clamping code.
+      return false;
+
     // Recognized []= operators.
     case MethodRecognizer::kObjectArraySetIndexed:
     case MethodRecognizer::kGrowableArraySetIndexed:
     case MethodRecognizer::kObjectArraySetIndexedUnchecked:
     case MethodRecognizer::kGrowableArraySetIndexedUnchecked:
-      return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
-                              /* value_check = */ nullptr, exactness,
-                              graph_entry, entry, last, result);
     case MethodRecognizer::kInt8ArraySetIndexed:
     case MethodRecognizer::kUint8ArraySetIndexed:
-    case MethodRecognizer::kUint8ClampedArraySetIndexed:
     case MethodRecognizer::kExternalUint8ArraySetIndexed:
-    case MethodRecognizer::kExternalUint8ClampedArraySetIndexed:
     case MethodRecognizer::kInt16ArraySetIndexed:
-    case MethodRecognizer::kUint16ArraySetIndexed: {
-      // Optimistically assume Smi.
-      if (ic_data != nullptr &&
-          ic_data->HasDeoptReason(ICData::kDeoptCheckSmi)) {
-        // Optimistic assumption failed at least once.
-        return false;
-      }
-      Cids* value_check = Cids::CreateMonomorphic(Z, kSmiCid);
-      return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
-                              value_check, exactness, graph_entry, entry, last,
-                              result);
-    }
+    case MethodRecognizer::kUint16ArraySetIndexed:
     case MethodRecognizer::kInt32ArraySetIndexed:
-    case MethodRecognizer::kUint32ArraySetIndexed: {
-      // Value check not needed for Int32 and Uint32 arrays because they
-      // implicitly contain unboxing instructions which check for right type.
-      return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
-                              /* value_check = */ nullptr, exactness,
-                              graph_entry, entry, last, result);
-    }
+    case MethodRecognizer::kUint32ArraySetIndexed:
     case MethodRecognizer::kInt64ArraySetIndexed:
     case MethodRecognizer::kUint64ArraySetIndexed:
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
-                              /* value_check = */ nullptr, exactness,
-                              graph_entry, entry, last, result);
+                              exactness, graph_entry, entry, last, result);
+
     case MethodRecognizer::kFloat32ArraySetIndexed:
     case MethodRecognizer::kFloat64ArraySetIndexed: {
       if (!CanUnboxDouble()) {
         return false;
       }
-      Cids* value_check = Cids::CreateMonomorphic(Z, kDoubleCid);
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
-                              value_check, exactness, graph_entry, entry, last,
-                              result);
+                              exactness, graph_entry, entry, last, result);
     }
     case MethodRecognizer::kFloat32x4ArraySetIndexed: {
       if (!ShouldInlineSimd()) {
         return false;
       }
-      Cids* value_check = Cids::CreateMonomorphic(Z, kFloat32x4Cid);
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
-                              value_check, exactness, graph_entry, entry, last,
-                              result);
+                              exactness, graph_entry, entry, last, result);
     }
     case MethodRecognizer::kFloat64x2ArraySetIndexed: {
       if (!ShouldInlineSimd()) {
         return false;
       }
-      Cids* value_check = Cids::CreateMonomorphic(Z, kFloat64x2Cid);
       return InlineSetIndexed(flow_graph, kind, target, call, receiver, source,
-                              value_check, exactness, graph_entry, entry, last,
-                              result);
+                              exactness, graph_entry, entry, last, result);
     }
     case MethodRecognizer::kByteArrayBaseSetInt8:
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,

@@ -111,7 +111,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var id = element.displayName;
     var isSetter = element is PropertyAccessorElement && element.isSetter;
-    var result = context.resolveNameInScope(id, isSetter, node);
+    var result = context.resolveNameInScope2(id, node, setter: isSetter);
 
     // No result, definitely no shadowing.
     // The requested element is inherited, or from an extension.

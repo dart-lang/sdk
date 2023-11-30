@@ -65,8 +65,8 @@ abstract class AbstractIgnoreDiagnostic extends ResolvedCorrectionProducer {
 
   bool _isCodeUnignorable() {
     var session = sessionHelper.session as AnalysisSessionImpl;
-    var analysisOptions =
-        session.analysisContext.analysisOptions as AnalysisOptionsImpl;
+    var analysisOptions = session.analysisContext
+        .getAnalysisOptionsForFile(unitResult.file) as AnalysisOptionsImpl;
     return analysisOptions.unignorableNames.contains(error.errorCode.name);
   }
 }

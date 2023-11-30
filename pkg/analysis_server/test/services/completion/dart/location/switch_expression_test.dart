@@ -64,7 +64,8 @@ int f(Object p01) {
 
 class A1 {}
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
   A1
     kind: class
@@ -83,6 +84,25 @@ suggestions
   var
     kind: keyword
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  A1
+    kind: class
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_body_empty() async {
@@ -103,7 +123,8 @@ final v01 = 0;
 
 int f01() => 0;
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
   A1
     kind: class
@@ -128,6 +149,27 @@ suggestions
   var
     kind: keyword
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  A1
+    kind: class
+  c01
+    kind: topLevelVariable
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_body_partial() async {
@@ -151,7 +193,7 @@ int A04() => 0;
 int B04() => 0;
 ''');
     if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
+      // TODO(scheglov): This is wrong.
       assertResponse(r'''
 replacement
   left: 1
@@ -174,24 +216,24 @@ replacement
 suggestions
   A01
     kind: class
-  A01
-    kind: constructorInvocation
   A02
     kind: topLevelVariable
-  A03
-    kind: topLevelVariable
-  A04
-    kind: functionInvocation
   B01
     kind: class
-  B01
-    kind: constructorInvocation
   B02
     kind: topLevelVariable
-  B03
-    kind: topLevelVariable
-  B04
-    kind: functionInvocation
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
 ''');
     }
   }
@@ -217,7 +259,7 @@ int A04() => 0;
 int B04() => 0;
 ''');
     if (isProtocolVersion2) {
-      // TODO(scheglov) This is wrong.
+      // TODO(scheglov): This is wrong.
       assertResponse(r'''
 replacement
   left: 1
@@ -240,24 +282,24 @@ replacement
 suggestions
   A01
     kind: class
-  A01
-    kind: constructorInvocation
   A02
     kind: topLevelVariable
-  A03
-    kind: topLevelVariable
-  A04
-    kind: functionInvocation
   B01
     kind: class
-  B01
-    kind: constructorInvocation
   B02
     kind: topLevelVariable
-  B03
-    kind: topLevelVariable
-  B04
-    kind: functionInvocation
+  const
+    kind: keyword
+  false
+    kind: keyword
+  final
+    kind: keyword
+  null
+    kind: keyword
+  true
+    kind: keyword
+  var
+    kind: keyword
 ''');
     }
   }

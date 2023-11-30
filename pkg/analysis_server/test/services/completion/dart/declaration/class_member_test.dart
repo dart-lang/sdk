@@ -131,7 +131,7 @@ suggestions
 
   Future<void>
       test_afterPeriod_beforeStatement_onlyStatic_notFromSuperclass() async {
-    // TODO(brianwilkerson) Split into two tests and remove extraneous code.
+    // TODO(brianwilkerson): Split into two tests and remove extraneous code.
     await computeSuggestions('''
 class B {
   static int b0;
@@ -154,7 +154,7 @@ suggestions
   }
 
   Future<void> test_afterPeriod_onlyStatic_notFromSuperclass() async {
-    // TODO(brianwilkerson) Split into two tests and remove extraneous code.
+    // TODO(brianwilkerson): Split into two tests and remove extraneous code.
     await computeSuggestions('''
 class B {
   static int b0;
@@ -407,7 +407,11 @@ int f() {
     assertSuggestion(completion: 'A._s1');
   }
 
+  @failingTest
   Future<void> test_expression_private_sameLibrary_sameFile() async {
+    // TODO(brianwilkerson): Either remove this test or make it pass. It depends
+    //  on being able to make the inserted text different than the label used to
+    //  filter the suggestion.
     await computeSuggestions('''
 class A {
   // ignore: unused_field
@@ -419,5 +423,6 @@ int f() {
 }
 ''');
     assertSuggestion(completion: 'A._s1');
+    3 as String;
   }
 }

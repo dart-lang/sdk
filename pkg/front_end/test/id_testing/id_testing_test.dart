@@ -11,9 +11,9 @@ import 'package:front_end/src/fasta/messages.dart' show FormattedMessage;
 import 'package:front_end/src/testing/id_testing_helper.dart'
     show
         CfeDataExtractor,
-        DataComputer,
+        CfeDataComputer,
+        CfeTestResultData,
         InternalCompilerResult,
-        TestResultData,
         createUriForFileName,
         defaultCfeConfig,
         onFailure,
@@ -37,11 +37,11 @@ Future<void> main(List<String> args) async {
       runTest: runTestFor(const IdTestingDataComputer(), [defaultCfeConfig]));
 }
 
-class IdTestingDataComputer extends DataComputer<String> {
+class IdTestingDataComputer extends CfeDataComputer<String> {
   const IdTestingDataComputer();
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     member.accept(
@@ -49,7 +49,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(CfeTestResultData testResultData, Class cls,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     new IdTestingDataExtractor(testResultData.compilerResult, actualMap)
@@ -57,7 +57,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   }
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<String>> actualMap,
       {bool? verbose}) {
     new IdTestingDataExtractor(testResultData.compilerResult, actualMap)
@@ -69,7 +69,7 @@ class IdTestingDataComputer extends DataComputer<String> {
 
   @override
   String computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
     return errorsToText(errors);
   }
 

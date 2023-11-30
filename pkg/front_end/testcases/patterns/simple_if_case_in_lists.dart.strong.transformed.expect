@@ -52,11 +52,11 @@ static method main() → dynamic {
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
-    throw "Expected '${x} (${x.{core::Object::runtimeType}{core::Type}})' to be equal to '${y}' (${y.{core::Object::runtimeType}{core::Type}}).";
+    throw "Expected '${x} (${x.{core::Object::runtimeType}{<object>}.{core::Type}})' to be equal to '${y}' (${y.{core::Object::runtimeType}{<object>}.{core::Type}}).";
   }
 }
 static method listToString(core::List<dynamic> list) → dynamic {
-  return "[${list.{core::Iterable::map}<core::String>((dynamic e) → core::String => e.{core::Object::toString}(){() → core::String}){((dynamic) → core::String) → core::Iterable<core::String>}.{core::Iterable::join}(","){([core::String]) → core::String}}]";
+  return "[${list.{core::Iterable::map}<core::String>((dynamic e) → core::String => e.{core::Object::toString}{<object>}.(){() → core::String}){((dynamic) → core::String) → core::Iterable<core::String>}.{core::Iterable::join}(","){([core::String]) → core::String}}]";
 }
 
 constants  {

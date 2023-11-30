@@ -24,8 +24,13 @@ main() {
 
   Expect.equals(9007199254740991, 9007199254740991.0.ceil());
   Expect.equals(9007199254740992, 9007199254740992.0.ceil());
-  Expect.equals(9223372036854775807, double.maxFinite.ceil()); // //# int64: ok
-
+  if (webNumbers) {
+    Expect.equals(1.7976931348623157e+308, double.maxFinite.ceil());
+  } else {
+    // Split 0x7fffffffffffffff into sum of two web numbers to avoid compilation
+    // error.
+    Expect.equals(0x7ffffffffffff000 + 0xfff, double.maxFinite.ceil());
+  }
   Expect.equals(0, (-double.minPositive).ceil());
   Expect.equals(0, (2.0 * -double.minPositive).ceil());
   Expect.equals(0, (-1.18e-38).ceil());
@@ -41,8 +46,11 @@ main() {
   Expect.equals(-4503599627370499, (-4503599627370499.0).ceil());
   Expect.equals(-9007199254740991, (-9007199254740991.0).ceil());
   Expect.equals(-9007199254740992, (-9007199254740992.0).ceil());
-  Expect.equals(-9223372036854775808, (-double.maxFinite).ceil()); // //# int64: ok
-
+  if (webNumbers) {
+    Expect.equals(-1.7976931348623157e+308, (-double.maxFinite).ceil());
+  } else {
+    Expect.equals(-9223372036854775808, (-double.maxFinite).ceil());
+  }
   Expect.isTrue(0.0.ceil() is int);
   Expect.isTrue(double.minPositive.ceil() is int);
   Expect.isTrue((2.0 * double.minPositive).ceil() is int);

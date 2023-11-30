@@ -8,6 +8,7 @@ environment:
 dependencies:
   analyzer: any
   args: any
+  matcher: any
 
 dev_dependencies:
   lints: any

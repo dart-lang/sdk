@@ -4,15 +4,15 @@
 
 import 'dart:developer';
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
-import 'common/test_helper.dart';
 import 'common/service_test_common.dart';
+import 'common/test_helper.dart';
 
 String leafFunction(void Function() f) {
   f();
-  return "some constant";
+  return 'some constant';
 }
 
 void testFunction() {
@@ -55,8 +55,8 @@ final tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [],
-        'misses': [399, 443]
-      }
+        'misses': [399, 443],
+      },
     };
 
     final location = func.location!;
@@ -101,8 +101,8 @@ final tests = <IsolateTest>[
       'compiled': true,
       'coverage': {
         'hits': [399, 443],
-        'misses': []
-      }
+        'misses': [],
+      },
     };
 
     final location = func.location!;

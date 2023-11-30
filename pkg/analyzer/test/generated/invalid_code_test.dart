@@ -10,74 +10,7 @@ import '../src/dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidCodeTest);
-    defineReflectiveTests(InvalidCodeWithoutNullSafetyTest);
   });
-}
-
-@reflectiveTest
-class InvalidCodeTest extends PubPackageResolutionTest {
-  test_functionExpression_emptyBody() async {
-    await _assertCanBeAnalyzed(r'''
-var v = <T>();
-''');
-  }
-
-  test_functionExpressionInvocation_mustBeNullShortingTerminated() async {
-    // It looks like MethodInvocation, but because `8` is not SimpleIdentifier,
-    // we parse it as FunctionExpressionInvocation.
-    await _assertCanBeAnalyzed(r'''
-var v = a?.8(b);
-''');
-  }
-
-  test_inAnnotation_noFlow_labeledStatement() async {
-    await _assertCanBeAnalyzed('''
-@A(() { label: })
-typedef F = void Function();
-''');
-  }
-
-  test_inDefaultValue_noFlow_ifExpression() async {
-    await _assertCanBeAnalyzed('''
-typedef void F({a = [if (true) 0]});
-''');
-  }
-
-  test_inDefaultValue_noFlow_ifStatement() async {
-    await _assertCanBeAnalyzed('''
-typedef void F([a = () { if (true) 0; }]);
-''');
-  }
-
-  test_issue_40837() async {
-    await _assertCanBeAnalyzed('''
-class A {
-  const A(_);
-}
-
-@A(() => 0)
-class B {}
-''');
-  }
-
-  test_methodInvocation_ofGenericClass_generic_static_fromLegacy() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-class A<T> {
-  static void foo<T2>() {}
-}
-''');
-    await _assertCanBeAnalyzed('''
-// @dart = 2.9
-import 'a.dart';
-
-const bar = A.foo();
-''');
-  }
-
-  Future<void> _assertCanBeAnalyzed(String text) async {
-    await resolveTestCode(text);
-    assertHasTestErrors();
-  }
 }
 
 /// Tests for various end-to-end cases when invalid code caused exceptions
@@ -85,10 +18,9 @@ const bar = A.foo();
 /// errors generated, but we want to make sure that there is at least one,
 /// and analysis finishes without exceptions.
 @reflectiveTest
-class InvalidCodeWithoutNullSafetyTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  // TODO(https://github.com/dart-lang/sdk/issues/44666): Use null safety in
-  //  test cases.
+class InvalidCodeTest extends PubPackageResolutionTest {
+  // TODO(srawlins): Use null safety in test cases.
+  // https://github.com/dart-lang/sdk/issues/44666
   test_const_AwaitExpression() async {
     await _assertCanBeAnalyzed(r'''
 const a = await b();
@@ -198,17 +130,32 @@ void main() {
 ''');
   }
 
+  test_functionExpression_emptyBody() async {
+    await _assertCanBeAnalyzed(r'''
+var v = <T>();
+''');
+  }
+
+  test_functionExpressionInvocation_mustBeNullShortingTerminated() async {
+    // It looks like MethodInvocation, but because `8` is not SimpleIdentifier,
+    // we parse it as FunctionExpressionInvocation.
+    await _assertCanBeAnalyzed(r'''
+var v = a?.8(b);
+''');
+  }
+
   test_fuzz_01() async {
     await _assertCanBeAnalyzed(r'''
 typedef F = void Function(bool, int a(double b));
 ''');
     var alias = findElement.typeAlias('F');
     assertType(
-        alias.instantiate(
-          typeArguments: const [],
-          nullabilitySuffix: NullabilitySuffix.star,
-        ),
-        'void Function(bool, int Function(double))');
+      alias.instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+      'void Function(bool, int Function(double))',
+    );
   }
 
   test_fuzz_02() async {
@@ -273,27 +220,17 @@ typedef void F(int a, this.b);
 ''');
     var alias = findElement.typeAlias('F');
     assertType(
-        alias.instantiate(
-          typeArguments: const [],
-          nullabilitySuffix: NullabilitySuffix.star,
-        ),
-        'void Function(int, dynamic)');
+      alias.instantiate(
+        typeArguments: const [],
+        nullabilitySuffix: NullabilitySuffix.none,
+      ),
+      'void Function(int, dynamic)',
+    );
   }
 
   test_fuzz_10() async {
     await _assertCanBeAnalyzed(r'''
 void f<@A(() { Function() v; }) T>() {}
-''');
-  }
-
-  test_fuzz_11() async {
-    // Here `F` is a generic function, so it cannot be used as a bound for
-    // a type parameter. The reason it crashed was that we did not build
-    // the bound for `Y` (not `T`), because of the order in which types
-    // for `T extends F` and `typedef F` were built.
-    await _assertCanBeAnalyzed(r'''
-typedef F<X> = void Function<Y extends num>();
-class A<T extends F> {}
 ''');
   }
 
@@ -395,10 +332,40 @@ C<int Function()> c;
 ''');
   }
 
+  test_inAnnotation_noFlow_labeledStatement() async {
+    await _assertCanBeAnalyzed('''
+@A(() { label: })
+typedef F = void Function();
+''');
+  }
+
+  test_inDefaultValue_noFlow_ifExpression() async {
+    await _assertCanBeAnalyzed('''
+typedef void F({a = [if (true) 0]});
+''');
+  }
+
+  test_inDefaultValue_noFlow_ifStatement() async {
+    await _assertCanBeAnalyzed('''
+typedef void F([a = () { if (true) 0; }]);
+''');
+  }
+
   test_invalidPart_withPart() async {
     await _assertCanBeAnalyzed('''
 part of a;
 part 'test.dart';
+''');
+  }
+
+  test_issue_40837() async {
+    await _assertCanBeAnalyzed('''
+class A {
+  const A(_);
+}
+
+@A(() => 0)
+class B {}
 ''');
   }
 
@@ -471,6 +438,20 @@ void foo() {
   // ignore:unused_element
   void bar({@my this.x}) {}
 }
+''');
+  }
+
+  test_methodInvocation_ofGenericClass_generic_static_fromLegacy() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T> {
+  static void foo<T2>() {}
+}
+''');
+    await _assertCanBeAnalyzed('''
+// @dart = 2.9
+import 'a.dart';
+
+const bar = A.foo();
 ''');
   }
 

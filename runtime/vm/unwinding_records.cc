@@ -5,10 +5,15 @@
 #include "vm/unwinding_records.h"
 #include "vm/globals.h"
 
-#if !defined(DART_HOST_OS_WINDOWS) || !defined(TARGET_ARCH_X64)
+#if !defined(DART_HOST_OS_WINDOWS) ||                                          \
+    (!defined(TARGET_ARCH_X64) && !defined(TARGET_ARCH_ARM64))
 
 namespace dart {
 
+const void* UnwindingRecords::GenerateRecordsInto(intptr_t offset,
+                                                  uint8_t* target_buffer) {
+  return nullptr;
+}
 void UnwindingRecords::RegisterExecutablePage(Page* page) {}
 void UnwindingRecords::UnregisterExecutablePage(Page* page) {}
 

@@ -4,30 +4,30 @@
 
 import 'package:vm_service/vm_service.dart';
 
-import '../common/test_helper.dart';
 import '../common/service_test_common.dart';
+import '../common/test_helper.dart';
 
 const int LINE_A = 18;
 const int LINE_B = 21;
 const int LINE_C = 24;
-const String file = "breakpoint_gc_test.dart";
+const String file = 'breakpoint_gc_test.dart';
 
 int foo() => 42;
 
-testeeMain() {
+dynamic testeeMain() {
   foo(); // static call
 
-  dynamic list = [1, 2, 3];
+  final dynamic list = [1, 2, 3];
   list.clear(); // instance call
   print(list);
 
-  dynamic local = list; // debug step check = runtime call
+  final dynamic local = list; // debug step check = runtime call
   return local;
 }
 
 Future<void> forceGC(VmService service, IsolateRef isolateRef) async {
   await service.callMethod(
-    "_collectAllGarbage",
+    '_collectAllGarbage',
     isolateId: isolateRef.id!,
   );
 }
@@ -57,5 +57,5 @@ void main(List<String> args) => runIsolateTestsSynchronous(
       tests,
       file,
       testeeConcurrent: testeeMain,
-      pause_on_start: true,
+      pauseOnStart: true,
     );

@@ -189,6 +189,8 @@ void nonModedTests() {
   Expect.equals(1, list[0]?.toDouble);
   list[0] = 5.toJS;
   Expect.equals(5, list[0]?.toDouble);
+  list[0] = null;
+  Expect.equals(null, list[0]);
 
   // indexOf, lastIndexOf
   list = [0, 1, 2, 3].toJSListJSAny;
@@ -258,6 +260,8 @@ void nonModedTests() {
   Expect.equals(1, list.length);
   Expect.equals(4, list.removeLast()?.toDouble);
   Expect.equals(0, list.length);
+  list.add(null);
+  Expect.equals(null, list.removeLast());
 
   // remove
   list = [1, 2, 3, 4, 4].toJSListJSAny;
@@ -282,12 +286,14 @@ void nonModedTests() {
   Expect.listEquals([1, 0], list.toListDouble);
   list.insert(2, 2.toJS);
   Expect.listEquals([1, 0, 2], list.toListDouble);
+  list.insert(0, null);
+  Expect.listEquals([null, 1, 0, 2], list.toListDouble);
 
   // removeAt
   list.removeAt(0);
-  Expect.listEquals([0, 2], list.toListDouble);
+  Expect.listEquals([1, 0, 2], list.toListDouble);
   list.removeAt(1);
-  Expect.listEquals([0], list.toListDouble);
+  Expect.listEquals([1, 2], list.toListDouble);
 
   // reversed
   list = [1, 2, 3, 4, 5, 6].toJSListJSAny;

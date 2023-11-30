@@ -37,7 +37,7 @@ if (words.isNotEmpty) return words.join(' ');
 ''';
 
 class PreferIsEmpty extends LintRule {
-  // TODO(brianwilkerson) Both `alwaysFalse` and `alwaysTrue` should be warnings
+  // TODO(brianwilkerson): Both `alwaysFalse` and `alwaysTrue` should be warnings
   //  rather than lints because they represent a bug rather than a style
   //  preference.
   static const LintCode alwaysFalse = LintCode(
@@ -90,7 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
-    // todo(pq): not evaluating constants deliberately but we *should*.
+    // TODO(pq): not evaluating constants deliberately but we *should*.
     // see: https://github.com/dart-lang/linter/issues/2818
     var value = getIntValue(node.rightOperand, null);
     if (value != null) {
@@ -184,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  /// todo(pq): consider sharing
+  // TODO(pq): consider sharing
   T? _drillDownTo<T extends Expression>(Expression expression,
       {required bool ignoreParens, required bool ignoreAs}) {
     var search = expression;

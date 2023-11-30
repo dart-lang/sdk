@@ -167,7 +167,7 @@ class KernelToLocalsMapImpl implements KernelToLocalsMap {
     } else {
       sink.writeInt(0);
     }
-    sink.writeTreeNodes(_breaksAsContinue, allowNull: true);
+    sink.writeTreeNodesOrNull(_breaksAsContinue);
     sink.end(tag);
   }
 

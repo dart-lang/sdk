@@ -520,6 +520,12 @@ class FlowGraphCompiler : public ValueObject {
                           const compiler::ffi::NativeLocation& src,
                           TemporaryRegisterAllocator* temp);
 
+  // Helper method to move a Dart const to a native location.
+  void EmitMoveConst(const compiler::ffi::NativeLocation& dst,
+                     Location src,
+                     Representation src_type,
+                     TemporaryRegisterAllocator* temp);
+
   bool CheckAssertAssignableTypeTestingABILocations(
       const LocationSummary& locs);
 
@@ -945,6 +951,10 @@ class FlowGraphCompiler : public ValueObject {
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
                                   const compiler::ffi::NativeLocation& src);
+  void EmitNativeLoad(Register dst,
+                      Register base,
+                      intptr_t offset,
+                      compiler::ffi::PrimitiveType type);
 
   void EmitFrameEntry();
 

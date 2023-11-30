@@ -161,8 +161,8 @@ abstract class _MyMap&Object&MapMixin<K extends core::Object? = dynamic, V exten
     return result.{core::StringBuffer::toString}(){() → core::String};
   }
   static method /* from org-dartlang-sdk:///sdk/lib/collection/maps.dart */ _fillMapWithMappedIterable(core::Map<core::Object?, core::Object?> map, core::Iterable<core::Object?> iterable, (core::Object?) →? core::Object? key, (core::Object?) →? core::Object? value) → void {
-    key == null ?{(core::Object?) → core::Object?} key = #C2 : null;
-    value == null ?{(core::Object?) → core::Object?} value = #C2 : null;
+    key == null ?{(core::Object?) →? core::Object?} key = #C2 : null;
+    value == null ?{(core::Object?) →? core::Object?} value = #C2 : null;
     {
       synthesized core::Iterator<core::Object?> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<core::Object?>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {

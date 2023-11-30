@@ -1,0 +1,5 @@
+T run<T>(E<T> e) => switch (e) { E(:var t) => t };
+extension type E<T>(({T t}) it) {
+  T get t => it.t;
+}
+void main() {}

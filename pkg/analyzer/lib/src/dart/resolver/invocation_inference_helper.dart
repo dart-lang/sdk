@@ -12,7 +12,6 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
-import 'package:analyzer/src/generated/migration.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 /// Information about a constructor element to instantiate.
@@ -59,18 +58,15 @@ class InvocationInferenceHelper {
   final ResolverVisitor _resolver;
   final ErrorReporter _errorReporter;
   final TypeSystemImpl _typeSystem;
-  final MigrationResolutionHooks? _migrationResolutionHooks;
   final bool _genericMetadataIsEnabled;
 
   InvocationInferenceHelper({
     required ResolverVisitor resolver,
     required ErrorReporter errorReporter,
     required TypeSystemImpl typeSystem,
-    required MigrationResolutionHooks? migrationResolutionHooks,
   })  : _resolver = resolver,
         _errorReporter = errorReporter,
         _typeSystem = typeSystem,
-        _migrationResolutionHooks = migrationResolutionHooks,
         _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
             .isEnabled(Feature.generic_metadata);
 
@@ -147,11 +143,6 @@ class InvocationInferenceHelper {
   /// @param type the static type of the node
   void recordStaticType(ExpressionImpl expression, DartType type,
       {required DartType? contextType}) {
-    var hooks = _migrationResolutionHooks;
-    if (hooks != null) {
-      type = hooks.modifyExpressionType(expression, type, contextType);
-    }
-
     expression.staticType = type;
     if (_typeSystem.isBottom(type)) {
       _resolver.flowAnalysis.flow?.handleExit();

@@ -66,7 +66,7 @@ class RecordShape {
   factory RecordShape.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     int positionals = source.readInt();
-    List<String> names = source.readStrings()!;
+    List<String> names = source.readStrings();
     source.end(tag);
     return RecordShape(positionals, names);
   }

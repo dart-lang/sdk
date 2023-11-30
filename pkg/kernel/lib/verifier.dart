@@ -259,10 +259,15 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     variableStack.length = stackHeight;
   }
 
-  void visitChildren(TreeNode node) {
+  /// Calls [f] with [node] set up as the parent node.
+  void inTreeNode(TreeNode node, void Function() f) {
     TreeNode? oldParent = enterParent(node);
-    node.visitChildren(this);
+    f();
     exitParent(oldParent);
+  }
+
+  void visitChildren(TreeNode node) {
+    inTreeNode(node, () => node.visitChildren(this));
   }
 
   void visitWithLocalScope(TreeNode node) {
@@ -1305,10 +1310,14 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitConstantExpression(ConstantExpression node) {
     enterTreeNode(node);
-    bool oldInConstant = inConstant;
-    inConstant = true;
-    visitChildren(node);
-    inConstant = oldInConstant;
+    inTreeNode(node, () {
+      bool oldInConstant = inConstant;
+      node.type.accept(this);
+      // Only visit the [Constant] in constant context.
+      inConstant = true;
+      node.constant.accept(this);
+      inConstant = oldInConstant;
+    });
     exitTreeNode(node);
   }
 
@@ -1320,8 +1329,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (identical(node.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
       problem(node, "Unset default type on type parameter $node");
     }
-    if (inConstant) {
-      // Don't expect the type parameters to have the current parent as parent.
+    // ignore: deprecated_member_use_from_same_package
+    if (node.parent == null) {
+      // TODO(johnniwinther): Enable this check.
+      // problem(node, "Type parameter without parent: $node");
       node.visitChildren(this);
     } else {
       visitChildren(node);
@@ -1585,10 +1596,13 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void defaultDartType(DartType node) {
-    if (!KnownTypes.isKnown(node)) {
+    if (!AllowedTypes.isAllowed(node, inConstant: inConstant)) {
       final TreeNode? localContext = this.localContext;
       final TreeNode? remoteContext = this.remoteContext;
-      problem(localContext, "Unexpected appearance of the unknown type.",
+      problem(
+          localContext,
+          "Unexpected appearance of the disallowed type $node"
+          "${inConstant ? " inside a constant" : ""}.",
           origin: remoteContext);
     }
 
@@ -1844,12 +1858,16 @@ bool _isCompileTimeErrorEncoding(TreeNode? node) {
   return node is Let && node.variable.initializer is InvalidExpression;
 }
 
-class KnownTypes implements DartTypeVisitor<bool> {
-  static bool isKnown(DartType type) {
-    return type.accept(const KnownTypes());
+class AllowedTypes implements DartTypeVisitor<bool> {
+  static bool isAllowed(DartType type, {required bool inConstant}) {
+    return type.accept(inConstant
+        ? const AllowedTypes(inConstant: true)
+        : const AllowedTypes(inConstant: false));
   }
 
-  const KnownTypes();
+  final bool inConstant;
+
+  const AllowedTypes({required this.inConstant});
 
   @override
   bool visitAuxiliaryType(AuxiliaryType node) => false;
@@ -1864,7 +1882,7 @@ class KnownTypes implements DartTypeVisitor<bool> {
   bool visitFutureOrType(FutureOrType node) => true;
 
   @override
-  bool visitExtensionType(ExtensionType node) => true;
+  bool visitExtensionType(ExtensionType node) => !inConstant;
 
   @override
   bool visitInterfaceType(InterfaceType node) => true;

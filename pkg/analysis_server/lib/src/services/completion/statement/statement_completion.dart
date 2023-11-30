@@ -13,11 +13,13 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
@@ -105,9 +107,9 @@ class StatementCompletionProcessor {
   final StatementCompletionContext statementContext;
   final CorrectionUtils utils;
 
-  /// TODO(brianwilkerson) Refactor the code so that the completion is returned
-  ///  from the methods in which it's computed rather than being a field that we
-  ///  have to test.
+  // TODO(brianwilkerson): Refactor the code so that the completion is returned
+  // from the methods in which it's computed rather than being a field that we
+  // have to test.
   StatementCompletion? completion;
   SourceChange change = SourceChange('statement-completion');
   List<engine.AnalysisError> errors = [];
@@ -204,7 +206,7 @@ class StatementCompletionProcessor {
 
   void _addReplaceEdit(SourceRange range, String text) {
     var edit = SourceEdit(range.offset, range.length, text);
-    // TODO(brianwilkerson) The commented out function call has been inlined in
+    // TODO(brianwilkerson): The commented out function call has been inlined in
     //  order to work around a situation in which _complete_doStatement creates
     //  a conflicting edit that happens to work because of the order in which
     //  the edits are applied. The implementation needs to be cleaned up in
@@ -406,7 +408,7 @@ class StatementCompletionProcessor {
         } else {
           insertOffset = expr.end;
         }
-        //TODO(messick) Uncomment the following line when error location is fixed.
+        // TODO(messick): Uncomment the following line when error location is fixed.
         //insertOffset = error.offset + error.length;
         _addInsertEdit(insertOffset, ';');
         delta = 1;
@@ -895,7 +897,7 @@ class StatementCompletionProcessor {
     var error = _findError(ParserErrorCode.EXPECTED_TOKEN, partialMatch: "';'");
     if (error != null) {
       var previousInsertions = _lengthOfInsertions();
-      // TODO(messick) Fix this to find the correct place in all cases.
+      // TODO(messick): Fix this to find the correct place in all cases.
       var insertOffset = error.offset + error.length;
       _addInsertEdit(insertOffset, ';');
       var offset = _appendNewlinePlusIndent() + 1 /*';'*/ + previousInsertions;

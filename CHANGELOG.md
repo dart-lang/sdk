@@ -2,6 +2,11 @@
 
 ### Libraries
 
+#### `dart:core`
+
+- `String.fromCharCodes` now allow `start` and `end` to be after the end of
+  the `Iterable` argument, just like `skip` and `take` does on an `Iterable`.
+
 #### `dart:nativewrappers`
 
 - **Breaking Change** [#51896][]: The NativeWrapperClasses are marked `base` so
@@ -46,6 +51,26 @@
 
 [lints-3-0]: https://pub.dev/packages/lints/changelog#300
 
+#### Development JavaScript compiler (DDC)
+
+- Type arguments of `package:js` interop types are now printed as `any` instead
+  of being omitted. This is simply a change to the textual representation of
+  package js types that have type arguments. These type arguments are still
+  completely ignored by the type system at runtime.
+
+- Removed "implements <...>" text from the Chrome custom formatter display for
+  Dart classes. This information provides little value and keeping it imposes an
+  unnecessary maintenance cost.
+
+#### Linter
+
+- Removed the `iterable_contains_unrelated_type` and
+  `list_remove_unrelated_type` lints.
+  Consider migrating to the expanded
+  [`collection_methods_unrelated_type`][] lint.
+
+[`collection_methods_unrelated_type`]: https://dart.dev/lints/collection_methods_unrelated_type
+
 ## 3.2.0
 
 ### Language
@@ -61,7 +86,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   ```dart
   class Example {
     final int? _privateField;
-    Example1(this._privateField);
+    Example(this._privateField);
 
     f() {
       if (_privateField != null) {
@@ -73,7 +98,7 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
   }
 
   // Private field promotions also work from outside of the class:
-  f(Example1 x) {
+  f(Example x) {
     if (x._privateField != null) {
       int i = x._privateField; // OK
     }
@@ -118,6 +143,16 @@ constraint][language version] lower bound to 3.2 or greater (`sdk: '^3.2.0'`).
 #### `dart:async`
 
 - Added `broadcast` parameter to `Stream.empty` constructor.
+
+#### `dart:cli`
+
+- **Breaking change** [#52121][]:
+  - `waitFor` is disabled by default and slated for removal in 3.4. Attempting
+  to call this function will now throw an exception. Users that still depend
+  on `waitFor` can enable it by passing `--enable_deprecated_wait_for` flag
+  to the VM.
+
+[#52121]: https://github.com/dart-lang/sdk/issues/52121
 
 #### `dart:convert`
 

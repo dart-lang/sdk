@@ -56,7 +56,7 @@ class Linker {
 
   final Map<ElementImpl, ast.AstNode> elementNodes = Map.identity();
 
-  late InheritanceManager3 inheritance; // TODO(scheglov) cache it
+  late InheritanceManager3 inheritance; // TODO(scheglov): cache it
 
   late Uint8List resolutionBytes;
 
@@ -104,6 +104,12 @@ class Linker {
     );
 
     _writeLibraries();
+  }
+
+  void _buildClassSyntheticConstructors() {
+    for (final library in builders.values) {
+      library.buildClassSyntheticConstructors();
+    }
   }
 
   void _buildElementNameUnions() {
@@ -155,9 +161,7 @@ class Linker {
 
     _createTypeSystem();
     _resolveTypes();
-    _resolveConstructorFieldFormals();
-    _buildEnumChildren();
-    _computeFieldPromotability();
+    _setDefaultSupertypes();
 
     await performance.runAsync(
       'executeMacroDeclarationsPhase',
@@ -168,6 +172,19 @@ class Linker {
       },
     );
 
+    await performance.runAsync(
+      'executeMacroDefinitionsPhase',
+      (performance) async {
+        await _executeMacroDefinitionsPhase(
+          performance: performance,
+        );
+      },
+    );
+
+    _buildClassSyntheticConstructors();
+    _resolveConstructorFieldFormals();
+    _buildEnumChildren();
+    _computeFieldPromotability();
     SuperConstructorResolver(this).perform();
     _performTopLevelInference();
     _resolveConstructors();
@@ -224,10 +241,6 @@ class Linker {
         }
       },
     );
-
-    for (final library in builders.values) {
-      library.buildClassSyntheticConstructors();
-    }
 
     for (var library in builders.values) {
       library.buildInitialExportScope();
@@ -305,8 +318,24 @@ class Linker {
   Future<void> _executeMacroDeclarationsPhase({
     required OperationPerformanceImpl performance,
   }) async {
+    while (true) {
+      var hasProgress = false;
+      for (final library in builders.values) {
+        hasProgress |= await library.executeMacroDeclarationsPhase(
+          performance: performance,
+        );
+      }
+      if (!hasProgress) {
+        break;
+      }
+    }
+  }
+
+  Future<void> _executeMacroDefinitionsPhase({
+    required OperationPerformanceImpl performance,
+  }) async {
     for (final library in builders.values) {
-      await library.executeMacroDeclarationsPhase(
+      await library.executeMacroDefinitionsPhase(
         performance: performance,
       );
     }
@@ -363,6 +392,12 @@ class Linker {
     computeSimplyBounded(this);
     TypeAliasSelfReferenceFinder().perform(this);
     TypesBuilder(this).build(nodesToBuildType);
+  }
+
+  void _setDefaultSupertypes() {
+    for (final library in builders.values) {
+      library.setDefaultSupertypes();
+    }
   }
 
   void _writeLibraries() {

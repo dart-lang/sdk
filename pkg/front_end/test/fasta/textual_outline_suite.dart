@@ -98,26 +98,31 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
         context.suiteFolderOptions.computeFolderOptions(description);
     Map<ExperimentalFlag, bool> experimentalFlags = folderOptions
         .computeExplicitExperimentalFlags(context.forcedExperimentalFlags);
+    Map<ExperimentalFlag, bool> experimentalFlagsExplicit =
+        folderOptions.computeExplicitExperimentalFlags(const {});
 
     List<int> bytes = new File.fromUri(description.uri).readAsBytesSync();
     for (bool modelled in [false, true]) {
+      TextualOutlineInfoForTesting info = new TextualOutlineInfoForTesting();
       String? result = textualOutline(
-          bytes,
-          new ScannerConfiguration(
-            enableExtensionMethods: isExperimentEnabled(
-                ExperimentalFlag.extensionMethods,
-                explicitExperimentalFlags: experimentalFlags),
-            enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
-                explicitExperimentalFlags: experimentalFlags),
-            enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
-                explicitExperimentalFlags: experimentalFlags),
-          ),
-          throwOnUnexpected: true,
-          performModelling: modelled,
-          addMarkerForUnknownForTest: modelled,
-          returnNullOnError: false,
-          enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
-              explicitExperimentalFlags: experimentalFlags));
+        bytes,
+        new ScannerConfiguration(
+          enableExtensionMethods: isExperimentEnabled(
+              ExperimentalFlag.extensionMethods,
+              explicitExperimentalFlags: experimentalFlags),
+          enableNonNullable: isExperimentEnabled(ExperimentalFlag.nonNullable,
+              explicitExperimentalFlags: experimentalFlags),
+          enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift,
+              explicitExperimentalFlags: experimentalFlags),
+        ),
+        throwOnUnexpected: true,
+        performModelling: modelled,
+        addMarkerForUnknownForTest: modelled,
+        returnNullOnError: false,
+        enablePatterns: isExperimentEnabled(ExperimentalFlag.patterns,
+            explicitExperimentalFlags: experimentalFlags),
+        infoForTesting: info,
+      );
       if (result == null) {
         return new Result(
             null, context.expectationSet["EmptyOutput"], description.uri);
@@ -143,7 +148,15 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       if (!containsUnknownChunk) {
         // Try to format only if it doesn't contain the unknown chunk marker.
         try {
-          result = new DartFormatter().format(result);
+          List<String> experimentFlags = [];
+          for (MapEntry<ExperimentalFlag, bool> entry
+              in experimentalFlags.entries) {
+            if (entry.value) {
+              experimentFlags.add(entry.key.name);
+            }
+          }
+          result = new DartFormatter(experimentFlags: experimentFlags)
+              .format(result);
         } catch (e, st) {
           formatterException = e;
           formatterExceptionSt = st;
@@ -165,11 +178,14 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
             null, context.expectationSet["UnknownChunk"], description.uri);
       }
 
-      if (formatterException != null) {
+      if (formatterException != null && !info.hasParserErrors) {
         bool hasUnreleasedExperiment = false;
         for (MapEntry<ExperimentalFlag, bool> entry
-            in experimentalFlags.entries) {
+            in experimentalFlagsExplicit.entries) {
           if (entry.value) {
+            // Don't treat "inline-class" as disabled by default as it's about
+            // to have the flag flipped.
+            if (entry.key.name == "inline-class") continue;
             if (!entry.key.isEnabledByDefault) {
               hasUnreleasedExperiment = true;
               break;

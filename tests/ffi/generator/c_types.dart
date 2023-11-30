@@ -220,9 +220,8 @@ class Member {
 
   Member(this.type, this.name);
 
-  String dartStructField(bool nnbd) {
-    final modifier = nnbd ? "external" : "";
-    return "${type.dartStructFieldAnnotation} $modifier ${type.dartType} $name;";
+  String dartStructField() {
+    return "${type.dartStructFieldAnnotation} external ${type.dartType} $name;";
   }
 
   String get cStructField {

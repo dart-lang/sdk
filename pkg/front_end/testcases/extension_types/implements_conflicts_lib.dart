@@ -79,11 +79,13 @@ class ClassK {
   void set method4(int value) {}
 }
 
-extension type ExtensionTypeJ(int i) {
+abstract class ClassJK implements ClassJ, ClassK {}
+
+extension type ExtensionTypeJ(ClassJ i) {
   void method4() {}
 }
 
-extension type ExtensionTypeK(int i) {
+extension type ExtensionTypeK(ClassK i) {
   void set method4(int value) {}
 }
 
@@ -95,10 +97,24 @@ class ClassM {
   void set property(String value) {}
 }
 
-extension type ExtensionTypeL(int i) {
+abstract class ClassLM implements ClassL, ClassM {}
+
+extension type ExtensionTypeL(ClassL i) {
   int get property => 42;
 }
 
-extension type ExtensionTypeM(int i) {
+extension type ExtensionTypeM(ClassM i) {
   void set property(String value) {}
 }
+
+class ClassN {
+  void set property(int value) {}
+}
+
+abstract class ClassLN implements ClassL, ClassN {}
+
+extension type ExtensionTypeN(ClassN i) {
+  void set property(int value) {}
+}
+
+extension type ExtensionTypeLN(ClassLN i) implements ClassLN, ExtensionTypeN {}

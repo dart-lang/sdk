@@ -13,6 +13,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_completion.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_definition.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_color.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_highlights.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_document_link.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_document_symbols.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_execute_command.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_folding.dart';
@@ -85,6 +86,7 @@ class LspFeatures {
   final CodeActionRegistrations codeActions;
   final CompletionRegistrations completion;
   final DefinitionRegistrations definition;
+  final DocumentLinkRegistrations documentLink;
   final DocumentColorRegistrations colors;
   final DocumentHighlightsRegistrations documentHighlight;
   final DocumentSymbolsRegistrations documentSymbol;
@@ -116,6 +118,7 @@ class LspFeatures {
         colors = DocumentColorRegistrations(context),
         completion = CompletionRegistrations(context),
         definition = DefinitionRegistrations(context),
+        documentLink = DocumentLinkRegistrations(context),
         format = FormattingRegistrations(context),
         documentHighlight = DocumentHighlightsRegistrations(context),
         formatOnType = FormatOnTypeRegistrations(context),
@@ -145,6 +148,7 @@ class LspFeatures {
         codeActions,
         completion,
         definition,
+        documentLink,
         colors,
         documentHighlight,
         documentSymbol,

@@ -130,6 +130,13 @@ class LspAnalysisServer extends AnalysisServer {
   /// temporary content.
   bool suppressAnalysisResults = false;
 
+  /// Tracks files that have non-empty diagnostics on the client.
+  ///
+  /// This is an optimization to avoid sending empty diagnostics when they are
+  /// unnecessary (at startup, when a file is re-analyzed because a file it
+  /// imports was modified, etc).
+  final Set<String> filesWithClientDiagnostics = {};
+
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
   LspAnalysisServer(
@@ -159,7 +166,7 @@ class LspAnalysisServer extends AnalysisServer {
           instrumentationService,
           httpClient,
           processRunner,
-          LspNotificationManager(channel, baseResourceProvider.pathContext),
+          LspNotificationManager(baseResourceProvider.pathContext),
           enableBlazeWatcher: enableBlazeWatcher,
           dartFixPromptManager: dartFixPromptManager,
         ) {
@@ -625,6 +632,17 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
+    if (errors.isEmpty && !filesWithClientDiagnostics.contains(path)) {
+      // Don't sent empty set if client is already empty.
+      return;
+    }
+
+    if (errors.isEmpty) {
+      filesWithClientDiagnostics.remove(path);
+    } else {
+      filesWithClientDiagnostics.add(path);
+    }
+
     final params = PublishDiagnosticsParams(
         uri: pathContext.toUri(path), diagnostics: errors);
     final message = NotificationMessage(
@@ -886,7 +904,7 @@ class LspAnalysisServer extends AnalysisServer {
       List<String> addedPaths, List<String> removedPaths) async {
     // TODO(dantup): This is currently case-sensitive!
 
-    // Normalise all potential workspace folder paths as these may contain
+    // Normalize all potential workspace folder paths as these may contain
     // trailing slashes (the LSP spec does not specify whether folders
     // should/should not have them) and the analysis roots must be normalized.
     final pathContext = resourceProvider.pathContext;
@@ -1029,6 +1047,7 @@ class LspAnalysisServer extends AnalysisServer {
             // and caching the config for each one.
             : _workspaceFolders.map(
                 (root) => resourceProvider.pathContext.join(root, excludePath)))
+        .map(pathContext.normalize)
         .toSet();
 
     final completer = analysisContextRebuildCompleter = Completer();

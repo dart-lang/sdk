@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source.dart';
+import 'package:analyzer/src/generated/source.dart' show UriResolver;
 import 'package:analyzer/src/util/asserts.dart' as asserts;
 import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:path/path.dart' as pathos;
@@ -39,7 +40,7 @@ class PackageMapUriResolver extends UriResolver {
 
   @override
   Uri? pathToUri(String path) {
-    // TODO: There should be an index on this instead of trying all entries.
+    // TODO(jensj): There should be an index on this instead of trying all entries.
     // When analyzing rwf-materials (562 contexts) with a filled cache this
     // function is called 624,750 times and a combined 39,352,289 iterations
     // are done in the loop below.

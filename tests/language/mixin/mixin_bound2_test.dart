@@ -30,7 +30,7 @@ class C<T extends num> = S<Set<T>, T> with B<List<T>> implements K<T>;
 
 main() {
   var c = new C<int>();
-  Expect.equals("Map<List<int>, Set<List<int>>>", c.m().toString());
+  Expect.equals(Map<List<int>, Set<List<int>>>, c.m());
   Expect.isTrue(c is K<int>);
   Expect.isTrue(c is J<List<int>>);
   Expect.isTrue(c is I<Set<List<int>>>);

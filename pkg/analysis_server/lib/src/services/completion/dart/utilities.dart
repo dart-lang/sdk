@@ -13,6 +13,7 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol
     show Element, ElementKind;
@@ -29,7 +30,8 @@ Comparator<CompletionSuggestion> completionComparator = (a, b) {
   return b.relevance.compareTo(a.relevance);
 };
 
-String buildClosureParameters(FunctionType type) {
+String buildClosureParameters(FunctionType type,
+    {bool includeKeywords = true}) {
   var buffer = StringBuffer();
   buffer.write('(');
 
@@ -57,6 +59,10 @@ String buildClosureParameters(FunctionType type) {
         name = 'p${i}_$index';
         index++;
       }
+    }
+
+    if (includeKeywords && parameter.isRequiredNamed) {
+      buffer.write('required ');
     }
     buffer.write(name);
   }
@@ -94,7 +100,7 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
       var rangeStart = offset;
       int rangeLength;
 
-      // todo (pq): consider adding ranges for params
+      // TODO(pq): consider adding ranges for params
       // pending: https://github.com/dart-lang/sdk/issues/40207
       // (types in closure param completions make this UX awkward)
       final parametersString = buildClosureParameters(parameterType);
@@ -102,7 +108,7 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
 
       blockBuffer.write(' ');
 
-      // todo (pq): consider refactoring to share common logic w/
+      // TODO(pq): consider refactoring to share common logic w/
       //  ArgListContributor.buildClosureSuggestions
       final returnType = parameterType.returnType;
       if (returnType is VoidType) {
@@ -155,7 +161,7 @@ protocol.Element createLocalElement(
     bool isAbstract = false,
     bool isDeprecated = false}) {
   var name = id.name;
-  // TODO(danrubel) use lineInfo to determine startLine and startColumn
+  // TODO(danrubel): use lineInfo to determine startLine and startColumn
   var location = Location(source.fullName, id.offset, id.length, 0, 0,
       endLine: 0, endColumn: 0);
   var flags = protocol.Element.makeFlags(

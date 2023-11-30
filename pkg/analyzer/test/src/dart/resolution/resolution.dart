@@ -119,7 +119,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ).write(object as DartObjectImpl?);
     var actual = buffer.toString();
     if (actual != expected) {
-      print(buffer);
+      NodeTextExpectationsCollector.add(actual);
+      print(actual);
     }
     expect(actual, expected);
   }
@@ -296,22 +297,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertSimpleIdentifier(
-    Expression node, {
-    required Object? element,
-    required String? type,
-  }) {
-    if (node is! SimpleIdentifier) {
-      _failNotSimpleIdentifier(node);
-    }
-
-    var isRead = node.inGetterContext();
-    expect(isRead, isTrue);
-
-    assertElement(node.staticElement, element);
-    assertType(node, type);
-  }
-
   void assertSubstitution(
     MapSubstitution substitution,
     Map<String, String> expected,
@@ -451,11 +436,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   Future<ResolvedUnitResult> resolveFile(String path);
 
-  /// Resolve the file with the [path] into [result].
-  Future<void> resolveFile2(String path) async {
-    path = convertPath(path);
-
-    result = await resolveFile(path);
+  /// Resolve [file] into [result].
+  Future<void> resolveFile2(File file) async {
+    result = await resolveFile(file.path);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
@@ -463,8 +446,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   /// Create a new file with the [path] and [content], resolve it into [result].
   Future<void> resolveFileCode(String path, String content) {
-    newFile(path, content);
-    return resolveFile2(path);
+    final file = newFile(path, content);
+    return resolveFile2(file);
   }
 
   /// Put the [code] into the test file, and resolve it.
@@ -474,7 +457,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   Future<void> resolveTestFile() {
-    return resolveFile2(testFile.path);
+    return resolveFile2(testFile);
   }
 
   /// Choose the type display string, depending on whether the [result] is
@@ -509,10 +492,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       return wrapMatcher(elementOrMatcher);
     }
-  }
-
-  Never _failNotSimpleIdentifier(AstNode node) {
-    fail('Expected SimpleIdentifier: (${node.runtimeType}) $node');
   }
 
   String _parsedNodeText(

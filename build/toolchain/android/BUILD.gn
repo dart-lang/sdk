@@ -25,6 +25,20 @@ template("android_toolchain") {
       assembler_prefix = "$goma_dir/gomacc "
       compiler_prefix = "$goma_dir/gomacc "
       link_prefix = "$goma_dir/gomacc "
+    } else if (use_rbe) {
+      assert(!use_goma)
+      rewrapper_args = [
+        "$rbe_dir/rewrapper",
+        "--exec_root=$rbe_exec_root",
+        "--platform=$rbe_platform",
+      ]
+      assembler_args = []
+      compiler_args =
+          rewrapper_args + [ "--labels=type=compile,compiler=clang,lang=cpp " ]
+      link_args = []  # rewrapper_args + [ "--labels=type=link,tool=clang " ]
+      assembler_prefix = string_join(" ", assembler_args)
+      compiler_prefix = string_join(" ", compiler_args)
+      link_prefix = string_join(" ", link_args)
     } else if (use_ccache) {
       assembler_prefix = "ccache "
       compiler_prefix = "ccache "

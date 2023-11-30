@@ -91,6 +91,32 @@ final a = AAA(aaa: '')./*[1*/aaa/*1]*/;
     await _checkRanges(content);
   }
 
+  Future<void> test_forEachElement_blockBody() async {
+    final content = '''
+void f(List<int> values) {
+  [for (final val^ue in values) [!value!] * 2];
+}
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_forEachElement_expressionBody() async {
+    final content = '''
+Object f() => [for (final val^ue in []) [!value!] * 2];
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_forEachElement_topLevel() async {
+    final content = '''
+final a = [for (final val^ue in []) [!value!] * 2];
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_function_startOfParameterList() async {
     final content = '''
 foo^() {

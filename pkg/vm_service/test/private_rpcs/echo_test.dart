@@ -24,18 +24,24 @@ var tests = <IsolateTest>[
   },
   (VmService service, IsolateRef isolateRef) async {
     // Echo from VM target.
-    final result = await service.callMethod('_echo', args: {
-      'text': 'hello',
-    });
+    final result = await service.callMethod(
+      '_echo',
+      args: {
+        'text': 'hello',
+      },
+    );
     expect(result, isA<EchoResponse>());
     expect((result as EchoResponse).text, 'hello');
   },
   (VmService service, IsolateRef isolateRef) async {
     // Echo from Isolate target.
-    final result =
-        await service.callMethod('_echo', isolateId: isolateRef.id!, args: {
-      'text': 'hello',
-    });
+    final result = await service.callMethod(
+      '_echo',
+      isolateId: isolateRef.id!,
+      args: {
+        'text': 'hello',
+      },
+    );
     expect(result, isA<EchoResponse>());
     expect((result as EchoResponse).text, 'hello');
   },
@@ -65,7 +71,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(
+Future<void> main(args) => runIsolateTests(
       args,
       tests,
       'echo_test.dart',

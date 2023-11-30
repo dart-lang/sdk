@@ -40,6 +40,7 @@ class AugmentedClassDeclarationBuilder
     required this.declaration,
   }) {
     addFields(declaration.fields);
+    addConstructors(declaration.constructors);
     addAccessors(declaration.accessors);
     addMethods(declaration.methods);
   }
@@ -271,6 +272,10 @@ class LibraryBuilder {
       constructor.reference = reference;
 
       classElement.constructors = [constructor].toFixedList();
+
+      if (classElement.augmented case AugmentedClassElementImpl augmented) {
+        augmented.constructors = classElement.constructors;
+      }
     }
   }
 
@@ -350,7 +355,34 @@ class LibraryBuilder {
     _declaredReferences[name] = reference;
   }
 
-  Future<void> executeMacroDeclarationsPhase({
+  /// Completes with `true` if a macro application was run in this library.
+  ///
+  /// Completes with `false` if there are no macro applications to run, either
+  /// because we ran all, or those that we have not run yet have dependencies
+  /// of interfaces declared in other libraries that, and we have not run yet
+  /// declarations phase macro applications for them.
+  Future<bool> executeMacroDeclarationsPhase({
+    required OperationPerformanceImpl performance,
+  }) async {
+    final macroApplier = linker.macroApplier;
+    if (macroApplier == null) {
+      return false;
+    }
+
+    final results = await macroApplier.executeDeclarationsPhase(
+      library: element,
+    );
+
+    // No more applications to execute.
+    if (results == null) {
+      return false;
+    }
+
+    await _addMacroResults(macroApplier, results, buildTypes: true);
+    return true;
+  }
+
+  Future<void> executeMacroDefinitionsPhase({
     required OperationPerformanceImpl performance,
   }) async {
     final macroApplier = linker.macroApplier;
@@ -359,56 +391,14 @@ class LibraryBuilder {
     }
 
     while (true) {
-      final results = await macroApplier.executeDeclarationsPhase(
-        typeSystem: element.typeSystem,
-      );
+      final results = await macroApplier.executeDefinitionsPhase();
 
       // No more applications to execute.
       if (results == null) {
-        break;
+        return;
       }
 
-      // No results from the application.
-      if (results.isEmpty) {
-        continue;
-      }
-
-      _macroResults.add(results);
-
-      final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-        results,
-      );
-      if (augmentationCode == null) {
-        continue;
-      }
-
-      final importState = kind.addMacroAugmentation(
-        augmentationCode,
-        addLibraryAugmentDirective: true,
-        partialIndex: _macroResults.length,
-      );
-
-      final augmentation = _addMacroAugmentation(importState);
-
-      final macroLinkingUnit = units.last;
-      ElementBuilder(
-        libraryBuilder: this,
-        container: macroLinkingUnit.container,
-        unitReference: macroLinkingUnit.reference,
-        unitElement: macroLinkingUnit.element,
-      ).buildDeclarationElements(macroLinkingUnit.node);
-
-      final nodesToBuildType = NodesToBuildType();
-      final resolver =
-          ReferenceResolver(linker, nodesToBuildType, augmentation);
-      macroLinkingUnit.node.accept(resolver);
-      TypesBuilder(linker).build(nodesToBuildType);
-
-      // Append applications from the partial augmentation.
-      await macroApplier.add(
-        container: augmentation,
-        unit: macroLinkingUnit.node,
-      );
+      await _addMacroResults(macroApplier, results, buildTypes: true);
     }
   }
 
@@ -428,41 +418,7 @@ class LibraryBuilder {
         break;
       }
 
-      // No results from the application.
-      if (results.isEmpty) {
-        continue;
-      }
-
-      _macroResults.add(results);
-
-      final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-        results,
-      );
-      if (augmentationCode == null) {
-        continue;
-      }
-
-      final importState = kind.addMacroAugmentation(
-        augmentationCode,
-        addLibraryAugmentDirective: true,
-        partialIndex: _macroResults.length,
-      );
-
-      final augmentation = _addMacroAugmentation(importState);
-
-      final macroLinkingUnit = units.last;
-      ElementBuilder(
-        libraryBuilder: this,
-        container: macroLinkingUnit.container,
-        unitReference: macroLinkingUnit.reference,
-        unitElement: macroLinkingUnit.element,
-      ).buildDeclarationElements(macroLinkingUnit.node);
-
-      // Append applications from the partial augmentation.
-      await macroApplier.add(
-        container: augmentation,
-        unit: macroLinkingUnit.node,
-      );
+      await _addMacroResults(macroApplier, results, buildTypes: false);
     }
   }
 
@@ -470,6 +426,7 @@ class LibraryBuilder {
   Future<void> fillMacroApplier(LibraryMacroApplier macroApplier) async {
     for (final linkingUnit in units) {
       await macroApplier.add(
+        libraryElement: element,
         container: element,
         unit: linkingUnit.node,
       );
@@ -606,16 +563,16 @@ class LibraryBuilder {
   }
 
   void resolveConstructors() {
-    ConstructorInitializerResolver(linker, element).resolve();
+    ConstructorInitializerResolver(linker, this).resolve();
   }
 
   void resolveDefaultValues() {
-    DefaultValueResolver(linker, element).resolve();
+    DefaultValueResolver(linker, this).resolve();
   }
 
   void resolveMetadata() {
     for (var linkingUnit in units) {
-      var resolver = MetadataResolver(linker, element, linkingUnit.element);
+      var resolver = MetadataResolver(linker, linkingUnit.element, this);
       linkingUnit.node.accept(resolver);
     }
   }
@@ -628,6 +585,35 @@ class LibraryBuilder {
         linkingUnit.container,
       );
       linkingUnit.node.accept(resolver);
+    }
+  }
+
+  void setDefaultSupertypes() {
+    var shouldResetClassHierarchies = false;
+    final objectType = element.typeProvider.objectType;
+    for (final interface in element.topLevelElements) {
+      switch (interface) {
+        case ClassElementImpl():
+          if (interface.isAugmentation) continue;
+          if (interface.isDartCoreObject) continue;
+          if (interface.supertype == null) {
+            shouldResetClassHierarchies = true;
+            interface.supertype = objectType;
+          }
+        case MixinElementImpl():
+          if (interface.isAugmentation) continue;
+          final augmented = interface.augmented!;
+          if (augmented.superclassConstraints.isEmpty) {
+            shouldResetClassHierarchies = true;
+            interface.superclassConstraints = [objectType];
+            if (augmented is AugmentedMixinElementImpl) {
+              augmented.superclassConstraints = [objectType];
+            }
+          }
+      }
+    }
+    if (shouldResetClassHierarchies) {
+      element.session.classHierarchy.removeOfLibraries({uri});
     }
   }
 
@@ -683,6 +669,58 @@ class LibraryBuilder {
     return augmentation;
   }
 
+  /// Add results from the declarations or definitions phase.
+  Future<void> _addMacroResults(
+    LibraryMacroApplier macroApplier,
+    List<macro.MacroExecutionResult> results, {
+    required bool buildTypes,
+  }) async {
+    // No results from the application.
+    if (results.isEmpty) {
+      return;
+    }
+
+    _macroResults.add(results);
+
+    final augmentationCode = macroApplier.buildAugmentationLibraryCode(
+      results,
+    );
+    if (augmentationCode == null) {
+      return;
+    }
+
+    final importState = kind.addMacroAugmentation(
+      augmentationCode,
+      addLibraryAugmentDirective: true,
+      partialIndex: _macroResults.length,
+    );
+
+    final augmentation = _addMacroAugmentation(importState);
+
+    final macroLinkingUnit = units.last;
+    ElementBuilder(
+      libraryBuilder: this,
+      container: macroLinkingUnit.container,
+      unitReference: macroLinkingUnit.reference,
+      unitElement: macroLinkingUnit.element,
+    ).buildDeclarationElements(macroLinkingUnit.node);
+
+    if (buildTypes) {
+      final nodesToBuildType = NodesToBuildType();
+      final resolver =
+          ReferenceResolver(linker, nodesToBuildType, augmentation);
+      macroLinkingUnit.node.accept(resolver);
+      TypesBuilder(linker).build(nodesToBuildType);
+    }
+
+    // Append applications from the partial augmentation.
+    await macroApplier.add(
+      libraryElement: element,
+      container: augmentation,
+      unit: macroLinkingUnit.node,
+    );
+  }
+
   AugmentationImportElementImpl _buildAugmentationImport(
     LibraryOrAugmentationElementImpl augmentationTarget,
     AugmentationImportState state,
@@ -696,10 +734,11 @@ class LibraryBuilder {
         final unitNode = importedFile.parse();
         final unitElement = CompilationUnitElementImpl(
           source: importedFile.source,
-          // TODO(scheglov) Remove this parameter.
+          // TODO(scheglov): Remove this parameter.
           librarySource: importedFile.source,
           lineInfo: unitNode.lineInfo,
         );
+        unitNode.declaredElement = unitElement;
         unitElement.setCodeRange(0, unitNode.length);
 
         final unitReference =
@@ -772,7 +811,7 @@ class LibraryBuilder {
           ..end = unlinked.endOffset
           ..shownNames = unlinked.names;
       } else {
-        // TODO(scheglov) Why no offsets?
+        // TODO(scheglov): Why no offsets?
         return HideElementCombinatorImpl()..hiddenNames = unlinked.names;
       }
     }).toFixedList();
@@ -962,7 +1001,7 @@ class LibraryBuilder {
     required int nameOffset,
     required LibraryOrAugmentationElementImpl container,
   }) {
-    // TODO(scheglov) Make reference required.
+    // TODO(scheglov): Make reference required.
     final containerRef = container.reference!;
     final reference = containerRef.getChild('@prefix').getChild(name);
     final existing = reference.element;
@@ -1039,6 +1078,7 @@ class LibraryBuilder {
         librarySource: libraryFile.source,
         lineInfo: libraryUnitNode.lineInfo,
       );
+      libraryUnitNode.declaredElement = unitElement;
       unitElement.isSynthetic = !libraryFile.exists;
       unitElement.setCodeRange(0, libraryUnitNode.length);
 
@@ -1070,6 +1110,7 @@ class LibraryBuilder {
             librarySource: libraryFile.source,
             lineInfo: partUnitNode.lineInfo,
           );
+          partUnitNode.declaredElement = unitElement;
           unitElement.isSynthetic = !partFile.exists;
           unitElement.uri = partFile.uriStr;
           unitElement.setCodeRange(0, partUnitNode.length);

@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+typedef F<X extends core::Object? = dynamic> = self::E<X%, X%> /* = core::String */;
+extension type E<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) {
+  abstract extension-type-member representation-field get s() → core::String;
+  constructor • = self::E|constructor#;
+  constructor tearoff • = self::E|constructor#_#new#tearOff;
+}
+static extension-type-member method E|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self::E<self::E|constructor#::X%, self::E|constructor#::Y%> /* = core::String */ {
+  lowered final self::E<self::E|constructor#::X%, self::E|constructor#::Y%> /* = core::String */ #this = s;
+  return #this;
+}
+static extension-type-member method E|constructor#_#new#tearOff<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self::E<self::E|constructor#_#new#tearOff::X%, self::E|constructor#_#new#tearOff::Y%>% /* = core::String */
+  return self::E|constructor#<self::E|constructor#_#new#tearOff::X%, self::E|constructor#_#new#tearOff::Y%>(s);
+static method main() → void {
+  self::E<dynamic, dynamic>% /* = core::String */ f1 = self::E|constructor#<dynamic, dynamic>("");
+  self::E<core::int, core::int>% /* = core::String */ f2 = self::E|constructor#<core::int, core::int>("");
+  self::E<core::int, core::int>% /* = core::String */ f3 = self::E|constructor#<core::int, core::int>("");
+  self::E|constructor#<core::int, core::int>("");
+  self::E|constructor#<dynamic, dynamic>("");
+  mai::G<dynamic, dynamic>% /* = core::String */ h1 = mai::G|constructor#<dynamic, dynamic>("");
+  mai::G<core::int, core::int>% /* = core::String */ h2 = mai::G|constructor#<core::int, core::int>("");
+  mai::G<core::int, core::int>% /* = core::String */ h3 = mai::G|constructor#<core::int, core::int>("");
+  mai::G|constructor#<core::int, core::int>("");
+  mai::G|constructor#<dynamic, dynamic>("");
+}
+static method _#F#new#tearOff<X extends core::Object? = dynamic>(core::String s) → self::E<self::_#F#new#tearOff::X%, self::_#F#new#tearOff::X%>% /* = core::String */
+  return self::E|constructor#<self::_#F#new#tearOff::X%, self::_#F#new#tearOff::X%>(s);

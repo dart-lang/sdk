@@ -27,7 +27,6 @@ import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
-import 'package:analyzer/src/workspace/package_build.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
@@ -234,7 +233,10 @@ abstract class ContextResolutionTest
 
   void assertPackageBuildWorkspaceFor(File file) {
     var workspace = contextFor(file).contextRoot.workspace;
-    expect(workspace, TypeMatcher<PackageBuildWorkspace>());
+    expect(
+        workspace,
+        isA<PubWorkspace>()
+            .having((e) => e.usesPackageBuild, 'usesPackageBuild', true));
   }
 
   void assertPubWorkspaceFor(File file) {
@@ -271,7 +273,7 @@ abstract class ContextResolutionTest
 
   @override
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    final file = getFile(path); // TODO(scheglov) migrate to File
+    final file = getFile(path); // TODO(scheglov): migrate to File
     var analysisContext = contextFor(fileForContextSelection ?? file);
     var session = analysisContext.currentSession;
     return await session.getResolvedUnit(path) as ResolvedUnitResult;
@@ -317,7 +319,8 @@ abstract class ContextResolutionTest
 
 class PubPackageResolutionTest extends ContextResolutionTest {
   AnalysisOptionsImpl get analysisOptions {
-    return contextFor(testFile).analysisOptions as AnalysisOptionsImpl;
+    return contextFor(testFile).getAnalysisOptionsForFile(testFile)
+        as AnalysisOptionsImpl;
   }
 
   @override
@@ -353,12 +356,8 @@ class PubPackageResolutionTest extends ContextResolutionTest {
   }) async {
     final rootFolder = getFolder('$workspaceRootPath/foo');
 
-    final packageConfigFile = getFile(
-      '${rootFolder.path}/.dart_tool/package_config.json',
-    );
-
     writePackageConfig(
-      packageConfigFile.path,
+      rootFolder.path,
       PackageConfigFileBuilder()..add(name: 'foo', rootPath: rootFolder.path),
     );
 
@@ -399,13 +398,14 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     );
   }
 
-  void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(
-      path,
-      config.toContent(
-        toUriStr: toUriStr,
-      ),
+  void writePackageConfig(
+    String directoryPath,
+    PackageConfigFileBuilder config,
+  ) {
+    final content = config.toContent(
+      toUriStr: toUriStr,
     );
+    newPackageConfigJsonFile(directoryPath, content);
   }
 
   Future<File> writeSdkSummary() async {
@@ -488,8 +488,7 @@ class PubPackageResolutionTest extends ContextResolutionTest {
       );
     }
 
-    var path = '$testPackageRootPath/.dart_tool/package_config.json';
-    writePackageConfig(path, config);
+    writePackageConfig(testPackageRootPath, config);
   }
 
   void writeTestPackageConfigWithMeta() {
@@ -583,6 +582,7 @@ mixin WithStrictCastsMixin on PubPackageResolutionTest {
 
     writeTestPackageAnalysisOptionsFile(
       AnalysisOptionsFileConfig(
+        experiments: experiments,
         strictCasts: true,
       ),
     );

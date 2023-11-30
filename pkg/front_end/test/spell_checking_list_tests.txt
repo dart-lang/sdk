@@ -14,10 +14,16 @@ aaa
 aarhus
 abcompile
 ac
+aci
+acn
+acr
 adapter
 adaptor
 adopted
 advantages
+aei
+aen
+aer
 af
 albeit
 aligns
@@ -112,6 +118,7 @@ ca
 cafebabe
 calloc
 camel
+capacity
 capitalized
 caption
 captions
@@ -295,12 +302,14 @@ fa
 fac
 faking
 falling
+faults
 favors
 fb
 fd
 fec
 fi
 fibonacci
+filesize
 filesystem
 filler
 filters
@@ -308,6 +317,7 @@ fisk
 five
 fl
 flame
+flipped
 floor
 fluctuate
 foo'bar'baz
@@ -357,6 +367,7 @@ hardcoding
 hardly
 hb
 hc
+helpfully
 hest
 heuristics
 hi
@@ -403,6 +414,7 @@ instrument
 instrumenter
 insufficient
 intdiv
+intel
 interactions
 interactive
 interchangeable
@@ -418,6 +430,7 @@ italic
 iter
 ja
 jc
+jk
 jlcontreras
 joo
 jumped
@@ -441,6 +454,7 @@ lints
 listening
 listing
 ln
+locating
 logd
 logs
 loo
@@ -542,6 +556,7 @@ party
 pause
 paused
 pays
+pb
 pc
 periodic
 periodically
@@ -579,6 +594,7 @@ protected
 proved
 proxy
 pseudocode
+pt
 pubspec
 pv
 px
@@ -634,6 +650,8 @@ runtimes
 rv
 sanitize
 saves
+scaled
+scaling
 scans
 scenarios
 scheduler
@@ -722,6 +740,7 @@ t\u
 ta
 tails
 taskset
+te
 templates
 theoretically
 thereby

@@ -15,7 +15,7 @@ import 'package:yaml/yaml.dart';
 class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
   PubspecCodeActionsProducer(
     super.server,
-    super.path,
+    super.file,
     super.lineInfo, {
     required super.offset,
     required super.length,
@@ -54,8 +54,9 @@ class PubspecCodeActionsProducer extends AbstractCodeActionsProducer {
       contents: node,
       source: pubspecFile.createSource(),
       provider: resourceProvider,
-      analysisOptions:
-          server.contextManager.getContextFor(path)?.analysisOptions,
+      analysisOptions: server.contextManager
+          .getContextFor(path)
+          ?.getAnalysisOptionsForFile(pubspecFile),
     );
 
     final codeActions = <CodeActionWithPriority>[];

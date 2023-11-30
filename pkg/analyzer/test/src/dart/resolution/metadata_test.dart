@@ -216,7 +216,7 @@ const foo = 42;
 library augment 'test.dart';
 ''');
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
 
     _assertAtFoo42();
@@ -357,7 +357,7 @@ const foo = 42;
 part of 'test.dart';
 ''');
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
 
     _assertAtFoo42();

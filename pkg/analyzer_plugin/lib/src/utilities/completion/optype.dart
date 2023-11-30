@@ -91,7 +91,7 @@ class OpType {
 
   /// Indicates whether the completion location requires a constant expression
   /// without being a constant context.
-  // TODO(brianwilkerson) Consider using this value to control whether non-const
+  // TODO(brianwilkerson): Consider using this value to control whether non-const
   //  elements are suggested.
   bool mustBeConst = false;
 
@@ -313,7 +313,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.message)) {
       optype.completionLocation = 'AssertInitializer_message';
-      // TODO(brianwilkerson) Consider including return value suggestions and
+      // TODO(brianwilkerson): Consider including return value suggestions and
       //  type name suggestions here.
     }
   }
@@ -326,7 +326,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       optype.includeTypeNameSuggestions = true;
     } else if (identical(entity, node.message)) {
       optype.completionLocation = 'AssertStatement_message';
-      // TODO(brianwilkerson) Consider including return value suggestions and
+      // TODO(brianwilkerson): Consider including return value suggestions and
       //  type name suggestions here.
     }
   }
@@ -623,7 +623,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         type = parent.staticType;
         if (type is FunctionType) {
           if (type.returnType is VoidType) {
-            // TODO(brianwilkerson) Determine whether the return type can ever
+            // TODO(brianwilkerson): Determine whether the return type can ever
             //  be inferred as void and remove this case if it can't be.
             optype.includeVoidReturnSuggestions = true;
           } else {
@@ -1075,7 +1075,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         identical(entity, node.name) && node.returnType == null) {
       optype.completionLocation = 'MethodDeclaration_returnType';
     }
-    // TODO(brianwilkerson) In visitFunctionDeclaration, this is conditional. It
+    // TODO(brianwilkerson): In visitFunctionDeclaration, this is conditional. It
     //  seems like it should be the same in both places.
     optype.includeTypeNameSuggestions = true;
   }
@@ -1769,7 +1769,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
       } else if (parent is FunctionExpressionInvocation) {
         return 'function';
       } else if (parent is InstanceCreationExpression) {
-        // TODO(brianwilkerson) Enable this case.
+        // TODO(brianwilkerson): Enable this case.
 //        if (flutter.isWidgetType(parent.staticType)) {
 //          return 'widgetConstructor';
 //        }

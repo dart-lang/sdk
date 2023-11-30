@@ -75,21 +75,28 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     defineStringTypes();
   }
 
-  test_extensionType_nonNullableRepresentation() {
-    final element = extensionType('A', representationType: intNone);
+  test_extensionType_implementsNotNullable() {
+    final element = extensionType(
+      'A',
+      representationType: intNone,
+      interfaces: [intNone],
+    );
     final type = interfaceTypeNone(element);
 
     isSubtype(type, objectQuestion);
     isSubtype(type, objectNone);
+    isSubtype(type, intNone);
+    isSubtype(type, numNone);
     isSubtype(neverNone, type);
   }
 
-  test_extensionType_nullableRepresentation() {
-    final element = extensionType('A', representationType: intQuestion);
+  test_extensionType_noImplementedInterfaces() {
+    final element = extensionType('A', representationType: intNone);
     final type = interfaceTypeNone(element);
 
     isSubtype(type, objectQuestion);
     isNotSubtype(type, objectNone);
+    isNotSubtype(type, intNone);
   }
 
   test_extensionType_superinterfaces() {

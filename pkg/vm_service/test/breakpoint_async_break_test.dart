@@ -62,22 +62,28 @@ var tests = <IsolateTest>[
     futureBpt = await service.getObject(isolateId, futureBpt.id!) as Breakpoint;
     expect(futureBpt.resolved, isTrue);
     expect(
-        script.getLineNumberFromTokenPos(futureBpt.location!.tokenPos), LINE);
+      script.getLineNumberFromTokenPos(futureBpt.location!.tokenPos),
+      LINE,
+    );
     expect(futureBpt.location!.line, LINE);
     expect(
-        script.getColumnNumberFromTokenPos(futureBpt.location!.tokenPos), COL);
+      script.getColumnNumberFromTokenPos(futureBpt.location!.tokenPos),
+      COL,
+    );
     expect(futureBpt.location!.column, COL);
 
     // Remove the breakpoints.
-    expect((await service.removeBreakpoint(isolateId, futureBpt.id!)).type,
-        'Success');
+    expect(
+      (await service.removeBreakpoint(isolateId, futureBpt.id!)).type,
+      'Success',
+    );
   },
 ];
 
-main(args) => runIsolateTests(
+Future<void> main(args) => runIsolateTests(
       args,
       tests,
       'breakpoint_async_break_test.dart',
       testeeConcurrent: testMain,
-      pause_on_start: true,
+      pauseOnStart: true,
     );

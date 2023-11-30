@@ -79,7 +79,7 @@ bool isFixDataYaml(p.Context pathContext, String path) {
 /// Return `true` if the given [path] refers to a file that is assumed to be
 /// generated.
 bool isGenerated(String path) {
-  // TODO(brianwilkerson) Generalize this mechanism.
+  // TODO(brianwilkerson): Generalize this mechanism.
   const List<String> suffixes = <String>[
     '.g.dart',
     '.pb.dart',

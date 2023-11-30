@@ -194,8 +194,19 @@ class _EnumDescription {
         .sort((first, second) => first.indexValue.compareTo(second.indexValue));
     for (var field in fieldsToConvert) {
       // Compute the declaration of the corresponding enum constant.
+      var documentationComment = field.fieldDeclaration.documentationComment;
       if (constantsBuffer.isNotEmpty) {
-        constantsBuffer.write(',$eol$indent');
+        constantsBuffer.write(',$eol');
+        if (documentationComment != null) {
+          // If the current field has a documentation comment and
+          // it's not the first field, add an extra new line.
+          constantsBuffer.write(eol);
+        }
+        constantsBuffer.write(indent);
+      }
+      if (documentationComment != null) {
+        constantsBuffer.write(utils.getNodeText(documentationComment));
+        constantsBuffer.write('$eol$indent');
       }
       constantsBuffer.write(field.name);
       var invocation = field.instanceCreation;
@@ -614,7 +625,7 @@ class _EnumDescription {
       if (list.length == 1) {
         fieldsToConvert.add(list[0]);
       } else {
-        // TODO(brianwilkerson) We could potentially handle the case where
+        // TODO(brianwilkerson): We could potentially handle the case where
         //  there's only one non-deprecated field in the list. We'd need to
         //  change the return type for this method so that we could return two
         //  lists: the list of fields to convert and the list of fields whose

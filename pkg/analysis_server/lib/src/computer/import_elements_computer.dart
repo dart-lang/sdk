@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -45,8 +46,9 @@ class ImportElementsComputer {
 
     var builder = ChangeBuilder(session: libraryResult.session);
     await builder.addDartFileEdit(libraryResult.path, (builder) {
-      final quote = libraryResult
-          .session.analysisContext.analysisOptions.codeStyleOptions
+      final analysisOptions = libraryResult.session.analysisContext
+          .getAnalysisOptionsForFile(libraryResult.file);
+      final quote = analysisOptions.codeStyleOptions
           .preferredQuoteForUris(existingImports);
       for (var importedElements in filteredImportedElements) {
         var matchingImports =
@@ -146,7 +148,7 @@ class ImportElementsComputer {
                 }
               } else if (combinator is ShowCombinator &&
                   namesToShow.isNotEmpty) {
-                // TODO(brianwilkerson) Add the names in alphabetic order.
+                // TODO(brianwilkerson): Add the names in alphabetic order.
                 builder.addInsertion(combinator.shownNames.last.end, (builder) {
                   for (var nameToShow in namesToShow) {
                     builder.write(', ');
@@ -292,14 +294,14 @@ class ImportElementsComputer {
     if (importDirectives.isEmpty) {
       if (libraryDirective == null) {
         if (otherDirectives.isEmpty) {
-          // TODO(brianwilkerson) Insert after any non-doc comments.
+          // TODO(brianwilkerson): Insert after any non-doc comments.
           return _InsertionDescription(0, after: 2);
         }
         return _InsertionDescription(otherDirectives[0].offset, after: 2);
       }
       return _InsertionDescription(libraryDirective.end, before: 2);
     }
-    // TODO(brianwilkerson) Fix this to find the right location.
+    // TODO(brianwilkerson): Fix this to find the right location.
     // See DartFileEditBuilderImpl._addLibraryImports for inspiration.
     return _InsertionDescription(importDirectives.last.end, before: 1);
   }

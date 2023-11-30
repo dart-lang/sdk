@@ -53,7 +53,8 @@ void f(DynamicLibrary lib) {
 ''');
   }
 
-  // TODO(https://dartbug.com/44594): Should this be an error or not?
+  // TODO(dacoharkes): Should this be an error or not?
+  // https://dartbug.com/44594
   test_lookupFunction_PointerNativeFunction() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

@@ -55,14 +55,16 @@ class ClassElementFlags {
 }
 
 class ConstructorElementFlags {
-  static const int _isConst = 1 << 0;
-  static const int _isExternal = 1 << 1;
-  static const int _isFactory = 1 << 2;
-  static const int _isSynthetic = 1 << 3;
-  static const int _isTempAugmentation = 1 << 4;
+  static const int _isAugmentation = 1 << 0;
+  static const int _isConst = 1 << 1;
+  static const int _isExternal = 1 << 2;
+  static const int _isFactory = 1 << 3;
+  static const int _isSynthetic = 1 << 4;
+  static const int _isTempAugmentation = 1 << 5;
 
   static void read(SummaryDataReader reader, ConstructorElementImpl element) {
     var byte = reader.readByte();
+    element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isConst = (byte & _isConst) != 0;
     element.isExternal = (byte & _isExternal) != 0;
     element.isFactory = (byte & _isFactory) != 0;
@@ -72,6 +74,7 @@ class ConstructorElementFlags {
 
   static void write(BufferedSink sink, ConstructorElementImpl element) {
     var result = 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isConst ? _isConst : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isFactory ? _isFactory : 0;

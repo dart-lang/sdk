@@ -88,7 +88,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
 
         var duplicateValue = values[value];
-        // TODO(brianwilkeson) This would benefit from having a context message
+        // TODO(brianwilkeson): This would benefit from having a context message
         //  pointing at the `duplicateValue`.
         if (duplicateValue != null) {
           rule.reportLint(expression,

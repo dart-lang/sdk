@@ -4,6 +4,14 @@
 
 import "package:expect/expect.dart";
 
+const bool isVM = const bool.fromEnvironment('dart.isVM');
+
 main() {
-  Expect.throws(() => new bool.hasEnvironment("Anything"));
+  // On non-VM targets `new bool.hasEnvironment(...)` just throws, because it
+  // is only guaranted to work with `const`. However on VM it actually works.
+  if (!isVM) {
+    Expect.throws(() => new bool.hasEnvironment("Anything"));
+  } else {
+    Expect.isFalse(new bool.hasEnvironment("Anything"));
+  }
 }

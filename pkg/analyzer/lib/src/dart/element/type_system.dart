@@ -35,6 +35,23 @@ import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:meta/meta.dart';
 
+class ExtensionTypeErasure extends ReplacementVisitor {
+  const ExtensionTypeErasure();
+
+  DartType perform(DartType type) {
+    return type.accept(this) ?? type;
+  }
+
+  @override
+  DartType? visitInterfaceType(covariant InterfaceTypeImpl type) {
+    if (type.representationType case final representationType?) {
+      return representationType.accept(this) ?? representationType;
+    }
+
+    return super.visitInterfaceType(type);
+  }
+}
+
 /// Fresh type parameters created to unify two lists of type parameters.
 class RelatedTypeParameters {
   static final _empty = RelatedTypeParameters._(const [], const []);
@@ -140,9 +157,7 @@ class TypeSystemImpl implements TypeSystem {
   /// type that implements both [left] and [right], regardless of whether
   /// [left] is a subtype of [right], or [right] is a subtype of [left].
   bool canBeSubtypeOf(DartType left, DartType right) {
-    if (left case InterfaceTypeImpl(:final representationTypeErasure?)) {
-      left = representationTypeErasure;
-    }
+    left = left.extensionTypeErasure;
 
     // If one is `Null`, then the other must be nullable.
     final leftIsNullable = isPotentiallyNullable(left);
@@ -587,7 +602,7 @@ class TypeSystemImpl implements TypeSystem {
           boundTypeParameters.addAll(type.typeFormals);
           appendParameters(type.returnType);
           type.parameters.map((p) => p.type).forEach(appendParameters);
-          // TODO(scheglov) https://github.com/dart-lang/sdk/issues/44218
+          // TODO(scheglov): https://github.com/dart-lang/sdk/issues/44218
           type.alias?.typeArguments.forEach(appendParameters);
           boundTypeParameters.removeAll(type.typeFormals);
         } else if (type is InterfaceType) {
@@ -716,7 +731,7 @@ class TypeSystemImpl implements TypeSystem {
   /// bounds. See the issue for the algorithm description.
   ///
   /// https://github.com/dart-lang/sdk/issues/27526#issuecomment-260021397
-  // TODO(scheglov) Move this method to elements for classes, typedefs,
+  // TODO(scheglov): Move this method to elements for classes, typedefs,
   //  and generic functions; compute lazily and cache.
   DartType instantiateToBounds(DartType type,
       {List<bool>? hasError, Map<TypeParameterElement, DartType>? knownTypes}) {
@@ -756,7 +771,7 @@ class TypeSystemImpl implements TypeSystem {
     if (type is FunctionType) {
       return type.instantiate(typeArguments);
     } else if (type is InterfaceTypeImpl) {
-      // TODO(scheglov) Use `ClassElement.instantiate()`, don't use raw types.
+      // TODO(scheglov): Use `ClassElement.instantiate()`, don't use raw types.
       return type.element.instantiate(
         typeArguments: typeArguments,
         nullabilitySuffix: type.nullabilitySuffix,
@@ -953,7 +968,7 @@ class TypeSystemImpl implements TypeSystem {
 
     // If the subtype relation goes the other way, allow the implicit downcast.
     if (isSubtypeOf(toType, fromType)) {
-      // TODO(leafp,jmesserly): we emit warnings for these in
+      // TODO(leafp): we emit warnings for these in
       // `src/task/strong/checker.dart`, which is a bit inconsistent. That code
       // should be handled into places that use `isAssignableTo`, such as
       // [ErrorVerifier].
@@ -1296,8 +1311,8 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isNonNullable(type.typeArguments[0]);
       }
-      if (type.representationType case final representationType?) {
-        return isNonNullable(representationType);
+      if (type.element is ExtensionTypeElement) {
+        return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
       var bound = type.element.bound;
@@ -1392,8 +1407,8 @@ class TypeSystemImpl implements TypeSystem {
       if (type.isDartAsyncFutureOr) {
         return isStrictlyNonNullable(type.typeArguments[0]);
       }
-      if (type.representationType case final representationType?) {
-        return isStrictlyNonNullable(representationType);
+      if (type.element is ExtensionTypeElement) {
+        return type.interfaces.isNotEmpty;
       }
     } else if (type is TypeParameterType) {
       return isStrictlyNonNullable(type.bound);
@@ -1581,7 +1596,7 @@ class TypeSystemImpl implements TypeSystem {
       var srcType = substitution.substituteType(srcTypes[i]);
       var destType = destTypes[i];
       if (isNonNullableByDefault) {
-        // TODO(scheglov) waiting for the spec
+        // TODO(scheglov): waiting for the spec
         // https://github.com/dart-lang/sdk/issues/42605
       } else {
         srcType = toLegacyTypeIfOptOut(srcType);
@@ -1697,7 +1712,7 @@ class TypeSystemImpl implements TypeSystem {
   /// the arguments passed to the method are [argumentTypes], and the type
   /// produced so far by resolution is [currentType].
   ///
-  /// TODO(scheglov) I expected that [methodElement] is [MethodElement].
+  // TODO(scheglov): I expected that [methodElement] is [MethodElement].
   DartType refineNumericInvocationType(
       DartType targetType,
       Element? methodElement,
@@ -2345,7 +2360,7 @@ class TypeSystemImpl implements TypeSystem {
   }
 }
 
-/// TODO(scheglov) Ask the language team how to deal with it.
+// TODO(scheglov): Ask the language team how to deal with it.
 class _RemoveBoundsOfGenericFunctionTypeVisitor extends ReplacementVisitor {
   final DartType _bottomType;
 

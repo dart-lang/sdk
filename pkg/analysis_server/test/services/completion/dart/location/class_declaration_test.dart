@@ -126,7 +126,7 @@ suggestions
     await computeSuggestions('''
 class A e^ implements foo { }
 ''');
-    // TODO(brianwilkerson) The keyword `with` should not be suggested when
+    // TODO(brianwilkerson): The keyword `with` should not be suggested when
     //  using protocol 2 (so this these should require a conditional check).
     //  The reason it is being suggested is as follows: The `e` is ignored by
     //  the parser so it doesn't show up in the AST. As a result, the "entity"

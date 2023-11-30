@@ -254,7 +254,7 @@ enum E2 { three, four }''');
       }
       expect(element.parameters, isNull);
       expect(element.returnType, '_E1');
-      // TODO(danrubel) determine why enum constant is not marked as deprecated
+      // TODO(danrubel): determine why enum constant is not marked as deprecated
       //engine.ClassElement classElement = engineElement.enclosingElement3;
       //expect(classElement.isDeprecated, isTrue);
       expect(

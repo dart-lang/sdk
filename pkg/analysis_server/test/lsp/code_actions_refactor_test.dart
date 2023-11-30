@@ -19,8 +19,6 @@ void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtractMethodRefactorCodeActionsTest);
     defineReflectiveTests(ExtractWidgetRefactorCodeActionsTest);
-    defineReflectiveTests(
-        ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest);
     defineReflectiveTests(ExtractVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineLocalVariableRefactorCodeActionsTest);
     defineReflectiveTests(InlineMethodRefactorCodeActionsTest);
@@ -904,20 +902,6 @@ void f() {}
       title: extractWidgetTitle,
     );
   }
-}
-
-@reflectiveTest
-class ExtractWidgetRefactorCodeActionsWithoutNullSafetyTest
-    extends ExtractWidgetRefactorCodeActionsTest {
-  @override
-  String get expectedNewWidgetConstructorDeclaration => '''
-const NewWidget({
-    Key key,
-  }) : super(key: key);
-''';
-
-  @override
-  String get testPackageLanguageVersion => '2.9';
 }
 
 @reflectiveTest

@@ -432,7 +432,12 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       SourceProcedureBuilder declaredMember,
       Iterable<ClassMember> overriddenMembers) {
     assert(declaredMember.isSetter);
-    FormalParameterBuilder parameter = declaredMember.formals!.first;
+    List<FormalParameterBuilder>? formals = declaredMember.formals;
+    if (formals == null) {
+      // Erroneous case.
+      return;
+    }
+    FormalParameterBuilder parameter = formals.first;
     if (declaredMember.classBuilder == classBuilder &&
         parameter.type is InferableTypeBuilder) {
       DartType? inferredType;
@@ -1001,9 +1006,11 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
           /// `Super.property2` is _not_ a subtype of the setter
           /// `Mixin.property1`.
           _membersBuilder.registerGetterSetterCheck(
-              classBuilder as SourceClassBuilder,
-              interfaceGetable,
-              interfaceSetable);
+              new DelayedClassGetterSetterCheck(
+                  classBuilder as SourceClassBuilder,
+                  name,
+                  interfaceGetable,
+                  interfaceSetable));
         }
       }
       overrides.collectOverrides(

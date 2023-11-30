@@ -47,7 +47,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_inside_implicitThis_getter() async {
     await computeSuggestions('''
 enum E {
@@ -69,7 +68,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_inside_implicitThis_method() async {
     await computeSuggestions('''
 enum E {
@@ -364,7 +362,7 @@ suggestions
 ''');
     } else {
       _configureWithMyEnum();
-      // TODO(scheglov) This is wrong.
+      // TODO(scheglov): This is wrong.
       assertResponse(r'''
 replacement
   left: 4
@@ -443,7 +441,7 @@ suggestions
 ''');
     } else {
       _configureWithMyEnum();
-      // TODO(scheglov) This is wrong.
+      // TODO(scheglov): This is wrong.
       assertResponse(r'''
 replacement
   left: 5
@@ -474,7 +472,7 @@ void f() {
 ''');
 
     if (isProtocolVersion2) {
-      // TODO(scheglov) The kind should be a prefix.
+      // TODO(scheglov): The kind should be a prefix.
       assertResponse(r'''
 replacement
   left: 2
@@ -484,7 +482,7 @@ suggestions
 ''');
     } else {
       _configureWithMyEnum();
-      // TODO(scheglov) This is wrong.
+      // TODO(scheglov): This is wrong.
       assertResponse(r'''
 replacement
   left: 2
@@ -514,7 +512,7 @@ void f() {
 }
 ''');
 
-    // TODO(scheglov) This is wrong.
+    // TODO(scheglov): This is wrong.
     // Should include constants, as [test_nothing_imported_withPrefix] does.
     assertResponse(r'''
 suggestions
@@ -592,7 +590,7 @@ suggestions
     kind: enumConstant
 ''');
     } else {
-      // TODO(scheglov) This is wrong.
+      // TODO(scheglov): This is wrong.
       assertResponse(r'''
 suggestions
   MyEnum

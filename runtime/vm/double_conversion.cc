@@ -4,7 +4,7 @@
 
 #include "vm/double_conversion.h"
 
-#include "third_party/double-conversion/src/double-conversion.h"
+#include "../../third_party/double-conversion/src/double-conversion.h"
 
 #include "vm/exceptions.h"
 #include "vm/globals.h"

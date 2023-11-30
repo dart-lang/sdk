@@ -322,7 +322,7 @@ Try correcting the name to the name of an existing method, or defining a method 
     self::use(let final core::int #t11 = #C1 in #t11 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/static.dart:76:13: Error: Setter not found: 'staticConstant'.
     use(Foo.staticConstant ??= 87);
             ^^^^^^^^^^^^^^" : #t11);
-    self::Foo::staticField == null ?{core::int} self::Foo::staticField = 87 : null;
+    self::Foo::staticField == null ?{core::int?} self::Foo::staticField = 87 : null;
     self::use(let final core::int #t12 = self::Foo::staticField in #t12 == null ?{core::int} self::Foo::staticField = 87 : #t12);
     #C2 == null ?{invalid-type} invalid-expression "pkg/front_end/testcases/rasta/static.dart:79:9: Error: Setter not found: 'staticFunction'.
     Foo.staticFunction ??= 87;

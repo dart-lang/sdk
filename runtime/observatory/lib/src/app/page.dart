@@ -166,7 +166,7 @@ class VMPage extends MatchingPage {
                 app.events,
                 app.notifications,
                 new IsolateRepository(app.vm),
-                new IsolateGroupRepository(app.vm),
+                new IsolateGroupRepository(),
                 _scriptRepository,
                 queue: app.queue)
             .element

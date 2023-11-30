@@ -49,7 +49,7 @@ Future<void> main(List<String> args) async {
     for (Library library in c.libraries) {
       for (Class c in library.classes) {
         if (c.isAbstract) continue;
-        if (classHierarchy.isSubtypeOf(c, nodeClass)) {
+        if (classHierarchy.isSubInterfaceOf(c, nodeClass)) {
           List<Member> toStringList = classHierarchy
               .getInterfaceMembers(c)
               .where((Member m) =>
@@ -99,9 +99,10 @@ Future<void> main(List<String> args) async {
         int from = 0;
         for (Class c in classes) {
           String innerContent = "";
-          if (classHierarchy.isSubtypeOf(c, memberClass)) {
+          if (classHierarchy.isSubInterfaceOf(c, memberClass)) {
             innerContent = "\$name";
-          } else if (classHierarchy.isSubtypeOf(c, primitiveConstantClass)) {
+          } else if (classHierarchy.isSubInterfaceOf(
+              c, primitiveConstantClass)) {
             innerContent = "\$value";
           }
           int to = c.fileEndOffset;
@@ -146,9 +147,9 @@ Future<void> main(List<String> args) async {
       int from = 0;
       for (Class c in classes) {
         String innerContent = "()";
-        if (classHierarchy.isSubtypeOf(c, memberClass)) {
+        if (classHierarchy.isSubInterfaceOf(c, memberClass)) {
           innerContent = r"($name)";
-        } else if (classHierarchy.isSubtypeOf(c, primitiveConstantClass)) {
+        } else if (classHierarchy.isSubInterfaceOf(c, primitiveConstantClass)) {
           innerContent = r"($value)";
         }
 
@@ -168,9 +169,9 @@ Future<void> main(List<String> args) async {
         }
 
         innerContent = "";
-        if (classHierarchy.isSubtypeOf(c, memberClass)) {
+        if (classHierarchy.isSubInterfaceOf(c, memberClass)) {
           innerContent = "\$name";
-        } else if (classHierarchy.isSubtypeOf(c, primitiveConstantClass)) {
+        } else if (classHierarchy.isSubInterfaceOf(c, primitiveConstantClass)) {
           innerContent = "\$value";
         }
 

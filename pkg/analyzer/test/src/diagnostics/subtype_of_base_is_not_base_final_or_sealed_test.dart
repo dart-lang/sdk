@@ -64,7 +64,7 @@ import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}
 ''');
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
 
     await assertErrorsInCode(r'''
@@ -115,7 +115,7 @@ import 'dart:collection';
 abstract class A implements LinkedListEntry<Never> {}
 ''');
 
-    await resolveFile2(a.path);
+    await resolveFile2(a);
     assertNoErrorsInResult();
 
     await assertErrorsInCode(r'''

@@ -224,11 +224,11 @@ class _RequiredAnnotation {
 
 /// The annotation should be a constructor invocation.
 ///
-/// TODO(scheglov) This is not ideal.
-/// Ideally when resolving an annotation we should restructure it into
-/// specific components - an import prefix, top-level declaration, getter,
-/// constructor, etc. So that later in the analyzer, or in clients, we
-/// don't have to identify it again and again.
+// TODO(scheglov): This is not ideal.
+// Ideally when resolving an annotation we should restructure it into
+// specific components - an import prefix, top-level declaration, getter,
+// constructor, etc. So that later in the analyzer, or in clients, we
+// don't have to identify it again and again.
 extension _InstantiatedAnnotation on Annotation {
   SimpleIdentifier? get classIdentifier {
     assert(arguments != null);

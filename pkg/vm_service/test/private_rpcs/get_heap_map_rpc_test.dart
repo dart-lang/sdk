@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/src/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/src/vm_service.dart';
 
 import '../common/test_helper.dart';
 
@@ -59,11 +59,17 @@ enum GCType {
 }
 
 extension on VmService {
-  Future<HeapMap> getHeapMap(String isolateId,
-          {GCType gc = GCType.none}) async =>
-      await callMethod('_getHeapMap', isolateId: isolateId, args: {
-        if (gc != GCType.none) 'gc': gc.toString(),
-      }) as HeapMap;
+  Future<HeapMap> getHeapMap(
+    String isolateId, {
+    GCType gc = GCType.none,
+  }) async =>
+      await callMethod(
+        '_getHeapMap',
+        isolateId: isolateId,
+        args: {
+          if (gc != GCType.none) 'gc': gc.toString(),
+        },
+      ) as HeapMap;
 }
 
 final tests = <IsolateTest>[

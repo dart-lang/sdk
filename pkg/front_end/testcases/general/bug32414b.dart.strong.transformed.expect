@@ -4,6 +4,6 @@ import "dart:core" as core;
 
 static method test() → void {
   core::List<dynamic> l = core::_GrowableList::_literal2<dynamic>(1, "hello");
-  core::List<core::String> l2 = l.{core::Iterable::map}<core::String>((dynamic element) → core::String => element.{core::Object::toString}(){() → core::String}){((dynamic) → core::String) → core::Iterable<core::String>}.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::String>};
+  core::List<core::String> l2 = l.{core::Iterable::map}<core::String>((dynamic element) → core::String => element.{core::Object::toString}{<object>}.(){() → core::String}){((dynamic) → core::String) → core::Iterable<core::String>}.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::String>};
 }
 static method main() → void {}

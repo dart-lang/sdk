@@ -93,9 +93,23 @@ class LibraryContext {
     LibraryFileKind library,
     FileState unit,
   ) {
+    final kind = unit.kind;
+
+    String unitContainerName;
+    if (library == kind.library) {
+      unitContainerName = switch (unit.kind) {
+        AugmentationFileKind() => '@augmentation',
+        _ => '@unit',
+      };
+    } else {
+      // Recovery.
+      library = kind.asLibrary;
+      unitContainerName = '@unit';
+    }
+
     var reference = elementFactory.rootReference
         .getChild(library.file.uriStr)
-        .getChild('@unit')
+        .getChild(unitContainerName)
         .getChild(unit.uriStr);
     var element = elementFactory.elementOfReference(reference);
     return element as CompilationUnitElementImpl;
@@ -200,7 +214,7 @@ class LibraryContext {
         testData?.forCycle(cycle).getKeys.add(cycle.linkedKey);
         performance.getDataInt('bytesGet').add(linkedBytes.length);
         performance.getDataInt('libraryLoadCount').add(cycle.libraries.length);
-        // TODO(scheglov) Take / clear parsed units in files.
+        // TODO(scheglov): Take / clear parsed units in files.
         bytesGet += linkedBytes.length;
         librariesLoaded += cycle.libraries.length;
         final bundleReader = BundleReader(
@@ -338,7 +352,7 @@ class LibraryContext {
 class LibraryContextTestData {
   final FileSystemTestData fileSystemTestData;
 
-  /// TODO(scheglov) Use [libraryCycles] and textual dumps for the driver too.
+  // TODO(scheglov): Use [libraryCycles] and textual dumps for the driver too.
   final List<Set<String>> linkedCycles = [];
 
   /// Keys: the sorted list of library files.

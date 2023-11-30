@@ -25,7 +25,7 @@ Future<void> main(List<String> args) async {
           [cfeNonNullableOnlyConfig]));
 }
 
-class InferredVariableTypesDataComputer extends DataComputer<DartType> {
+class InferredVariableTypesDataComputer extends CfeDataComputer<DartType> {
   const InferredVariableTypesDataComputer();
 
   @override
@@ -39,7 +39,7 @@ class InferredVariableTypesDataComputer extends DataComputer<DartType> {
   ///
   /// Fills [actualMap] with the data.
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<DartType>> actualMap,
       {bool? verbose}) {
     SourceMemberBuilder memberBuilder =

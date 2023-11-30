@@ -30,6 +30,8 @@ main() {
     var cDill = await compileUnit(
         ['c2.dart'], {'c2.dart': sourceC, 'a.dill': aDill, 'b.dill': bDill},
         deps: ['a.dill', 'b.dill']);
+    var unusedDill =
+        await compileUnit(['unused0.dart'], {'unused0.dart': unusedSource});
 
     DiagnosticCollector diagnostics = DiagnosticCollector();
     OutputCollector output = OutputCollector();
@@ -38,10 +40,15 @@ main() {
         entryPoint: entryPoint,
         options: [
           '--input-dill=memory:c.dill',
-          '--dill-dependencies=memory:a.dill,memory:b.dill',
+          '--dill-dependencies=memory:a.dill,memory:b.dill,memory:unused.dill',
           '--sound-null-safety',
         ],
-        memorySourceFiles: {'a.dill': aDill, 'b.dill': bDill, 'c.dill': cDill},
+        memorySourceFiles: {
+          'a.dill': aDill,
+          'b.dill': bDill,
+          'c.dill': cDill,
+          'unused.dill': unusedDill
+        },
         diagnosticHandler: diagnostics,
         outputProvider: output);
     load_kernel.Output result = (await load_kernel.run(load_kernel.Input(
@@ -50,6 +57,9 @@ main() {
         compiler.reporter,
         compiler.initializedCompilerState,
         false)))!;
+
+    // Make sure we trim the unused library.
+    Expect.isFalse(result.libraries!.any((l) => l.path == '/unused0.dart'));
     compiler.frontendStrategy
         .registerLoadedLibraries(result.component, result.libraries!);
 
@@ -145,4 +155,8 @@ class C2 extends B1 {
 }
 
 main() => print(C2().foo.buffer.toString());
+''';
+
+const unusedSource = '''
+void unused() => throw 'Unused';
 ''';

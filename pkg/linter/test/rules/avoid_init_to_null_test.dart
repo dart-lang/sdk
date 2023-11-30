@@ -61,7 +61,7 @@ class B extends A {
 
 @reflectiveTest
 class AvoidInitToNullTest extends LintRuleTest {
-  // todo (pq): mock and add FutureOr examples
+  // TODO(pq): mock and add FutureOr examples
 
   @override
   String get lintRule => 'avoid_init_to_null';

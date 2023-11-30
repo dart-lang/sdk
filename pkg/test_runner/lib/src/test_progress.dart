@@ -136,6 +136,15 @@ class IgnoredTestMonitor extends EventListener {
 class UnexpectedCrashLogger extends EventListener {
   final archivedBinaries = <String, String>{};
 
+  List<String> ldd(String path) {
+    if (!Platform.isLinux) return <String>[];
+    final out = Process.runSync("ldd", [path]).stdout as String;
+    return out
+        .split(' ')
+        .where((String token) => token.startsWith('/'))
+        .toList();
+  }
+
   @override
   void done(TestCase test) {
     if (test.unexpectedOutput &&
@@ -147,6 +156,7 @@ class UnexpectedCrashLogger extends EventListener {
 
       var pid = "${test.lastCommandOutput.pid}";
       var lastCommand = test.lastCommandExecuted as ProcessCommand;
+      final binaries = <String>[];
 
       // We might have a coredump for the process. This coredump will be
       // archived by CoreDumpArchiver (see tools/utils.py).
@@ -159,37 +169,48 @@ class UnexpectedCrashLogger extends EventListener {
       final binName = lastCommand.executable;
       final binFile = File(binName);
       final binBaseName = Path(binName).filename;
-      if (!archivedBinaries.containsKey(binName) && binFile.existsSync()) {
+      if (binFile.existsSync()) {
         final archived = "binary.${mode}_${arch}_$binBaseName";
-        TestUtils.copyFile(Path(binName), Path(archived));
-        // On Windows also copy PDB file for the binary.
-        if (Platform.isWindows) {
-          final pdbPath = Path("$binName.pdb");
-          if (File(pdbPath.toNativePath()).existsSync()) {
-            TestUtils.copyFile(pdbPath, Path("$archived.pdb"));
+        binaries.add(archived);
+        if (!archivedBinaries.containsKey(binName)) {
+          TestUtils.copyFile(Path(binName), Path(archived));
+          archivedBinaries[binName] = archived;
+          // On Windows also copy PDB file for the binary.
+          if (Platform.isWindows) {
+            final pdbPath = Path("$binName.pdb");
+            if (File(pdbPath.toNativePath()).existsSync()) {
+              TestUtils.copyFile(pdbPath, Path("$archived.pdb"));
+            }
           }
         }
-        archivedBinaries[binName] = archived;
+      }
+      // Copy libc, etc.
+      for (final libName in ldd(binName)) {
+        final libFile = File(libName);
+        final libBaseName = Path(libName).filename;
+        if (libFile.existsSync()) {
+          final archived = "binary.${mode}_${arch}_$libBaseName";
+          binaries.add(archived);
+          if (!archivedBinaries.containsKey(libName)) {
+            TestUtils.copyFile(Path(libName), Path(archived));
+            archivedBinaries[libName] = archived;
+          }
+        }
       }
 
       final kernelServiceBaseName = 'kernel-service.dart.snapshot';
       final kernelService =
           File('${binFile.parent.path}/$kernelServiceBaseName');
-      if (!archivedBinaries.containsKey(kernelService.path) &&
-          kernelService.existsSync()) {
+      if (kernelService.existsSync()) {
         final archived = "binary.${mode}_${arch}_$kernelServiceBaseName";
-        TestUtils.copyFile(Path(kernelService.path), Path(archived));
-        archivedBinaries[kernelServiceBaseName] = archived;
+        binaries.add(archived);
+        if (!archivedBinaries.containsKey(kernelService.path)) {
+          TestUtils.copyFile(Path(kernelService.path), Path(archived));
+          archivedBinaries[kernelServiceBaseName] = archived;
+        }
       }
 
-      final binaryPath = archivedBinaries[binName];
-      if (binaryPath != null) {
-        final binaries = <String>[binaryPath];
-        final kernelServiceBinaryPath = archivedBinaries[kernelServiceBaseName];
-        if (kernelServiceBinaryPath != null) {
-          binaries.add(kernelServiceBinaryPath);
-        }
-
+      if (binaries.isNotEmpty) {
         // We have found and copied the binary.
         RandomAccessFile? unexpectedCrashesFile;
         try {

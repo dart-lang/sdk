@@ -9,6 +9,7 @@ import 'package:analyzer/dart/sdk/build_sdk_summary.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
@@ -18,7 +19,6 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/source/path_filter.dart';
@@ -173,8 +173,10 @@ class Driver implements CommandLineStarter {
     // time during the following analysis.
     SeverityProcessor defaultSeverityProcessor;
     defaultSeverityProcessor = (AnalysisError error) {
+      var filePath = error.source.fullName;
+      var file = analysisDriver!.resourceProvider.getFile(filePath);
       return determineProcessedSeverity(
-          error, options, analysisDriver!.analysisOptions);
+          error, options, analysisDriver!.getAnalysisOptionsForFile(file));
     };
 
     // We currently print out to stderr to ensure that when in batch mode we
@@ -225,7 +227,7 @@ class Driver implements CommandLineStarter {
       // Note that these files will all be analyzed in the same context.
       // This should be updated when the ContextManager re-work is complete
       // (See: https://github.com/dart-lang/sdk/issues/24133)
-      var files = _collectFiles(sourcePath, analysisDriver.analysisOptions);
+      var files = _collectFiles(sourcePath);
       if (files.isEmpty) {
         errorSink.writeln('No dart files found at: $sourcePath');
         io.exitCode = ErrorSeverity.ERROR.ordinal;
@@ -241,6 +243,7 @@ class Driver implements CommandLineStarter {
       for (var path in filesToAnalyze) {
         if (file_paths.isAnalysisOptionsYaml(pathContext, path)) {
           var file = resourceProvider.getFile(path);
+          var analysisOptions = analysisDriver.getAnalysisOptionsForFile(file);
           var content = file.readAsStringSync();
           var lineInfo = LineInfo.fromContent(content);
           var errors = analyzeAnalysisOptions(
@@ -248,12 +251,12 @@ class Driver implements CommandLineStarter {
             content,
             analysisDriver.sourceFactory,
             analysisDriver.currentSession.analysisContext.contextRoot.root.path,
-            analysisDriver.analysisOptions.sdkVersionConstraint,
+            analysisOptions.sdkVersionConstraint,
           );
           await formatter.formatErrors([
             ErrorsResultImpl(
               session: analysisDriver.currentSession,
-              path: path,
+              file: file,
               uri: pathContext.toUri(path),
               lineInfo: lineInfo,
               isAugmentation: false,
@@ -263,8 +266,8 @@ class Driver implements CommandLineStarter {
             )
           ]);
           for (var error in errors) {
-            var severity = determineProcessedSeverity(
-                error, options, analysisDriver.analysisOptions);
+            var severity =
+                determineProcessedSeverity(error, options, analysisOptions);
             if (severity != null) {
               allResult = allResult.max(severity);
             }
@@ -273,6 +276,8 @@ class Driver implements CommandLineStarter {
           var errors = <AnalysisError>[];
           try {
             var file = resourceProvider.getFile(path);
+            var analysisOptions = analysisDriver.currentSession.analysisContext
+                .getAnalysisOptionsForFile(file);
             var content = file.readAsStringSync();
             var node = loadYamlNode(content, sourceUrl: file.toUri());
 
@@ -281,21 +286,20 @@ class Driver implements CommandLineStarter {
                 contents: node,
                 source: file.createSource(),
                 provider: resourceProvider,
-                analysisOptions: analysisDriver
-                    .currentSession.analysisContext.analysisOptions,
+                analysisOptions: analysisOptions,
               ));
             }
             if (errors.isNotEmpty) {
               for (var error in errors) {
                 var severity = determineProcessedSeverity(
-                    error, options, analysisDriver.analysisOptions)!;
+                    error, options, analysisOptions)!;
                 allResult = allResult.max(severity);
               }
               var lineInfo = LineInfo.fromContent(content);
               await formatter.formatErrors([
                 ErrorsResultImpl(
                   session: analysisDriver.currentSession,
-                  path: path,
+                  file: file,
                   uri: pathContext.toUri(path),
                   lineInfo: lineInfo,
                   isAugmentation: false,
@@ -311,15 +315,17 @@ class Driver implements CommandLineStarter {
         } else if (file_paths.isAndroidManifestXml(pathContext, path)) {
           try {
             var file = resourceProvider.getFile(path);
+            var analysisOptions =
+                analysisDriver.getAnalysisOptionsForFile(file);
             var content = file.readAsStringSync();
             var validator = ManifestValidator(file.createSource());
             var lineInfo = LineInfo.fromContent(content);
             var errors = validator.validate(
-                content, analysisDriver.analysisOptions.chromeOsManifestChecks);
+                content, analysisOptions.chromeOsManifestChecks);
             await formatter.formatErrors([
               ErrorsResultImpl(
                 session: analysisDriver.currentSession,
-                path: path,
+                file: file,
                 uri: pathContext.toUri(path),
                 lineInfo: lineInfo,
                 isAugmentation: false,
@@ -329,8 +335,8 @@ class Driver implements CommandLineStarter {
               ),
             ]);
             for (var error in errors) {
-              var severity = determineProcessedSeverity(
-                  error, options, analysisDriver.analysisOptions)!;
+              var severity =
+                  determineProcessedSeverity(error, options, analysisOptions)!;
               allResult = allResult.max(severity);
             }
           } catch (exception) {
@@ -377,7 +383,7 @@ class Driver implements CommandLineStarter {
 
   /// Collect all analyzable files at [filePath], recursively if it's a
   /// directory, ignoring links.
-  Iterable<io.File> _collectFiles(String filePath, AnalysisOptions options) {
+  Iterable<io.File> _collectFiles(String filePath) {
     var files = <io.File>[];
     var file = io.File(filePath);
     if (file.existsSync()) {
@@ -411,8 +417,10 @@ class Driver implements CommandLineStarter {
       FileState file, CommandLineOptions options, ErrorFormatter formatter) {
     var startTime = currentTimeMillis;
     final analysisDriver = this.analysisDriver!;
-    var analyzer = AnalyzerImpl(analysisDriver.analysisOptions, analysisDriver,
-        file, options, stats, startTime);
+    var analysisOptions =
+        analysisDriver.getAnalysisOptionsForFile(file.resource);
+    var analyzer = AnalyzerImpl(
+        analysisOptions, analysisDriver, file, options, stats, startTime);
     return analyzer.analyze(formatter);
   }
 
@@ -500,7 +508,7 @@ class _AnalysisContextProvider {
     return _analysisContext!.driver;
   }
 
-  /// TODO(scheglov) Use analyzedFiles()
+  // TODO(scheglov): Use analyzedFiles()
   PathFilter get pathFilter {
     var contextRoot = analysisContext!.contextRoot;
     var optionsFile = contextRoot.optionsFile;
@@ -511,8 +519,12 @@ class _AnalysisContextProvider {
     }
 
     // Exclude patterns are relative to the directory with the options file.
-    return PathFilter(contextRoot.root.path, optionsFile.parent.path,
-        analysisContext!.analysisOptions.excludePatterns);
+    return PathFilter(
+        contextRoot.root.path,
+        optionsFile.parent.path,
+        analysisContext!
+            .getAnalysisOptionsForFile(optionsFile)
+            .excludePatterns);
   }
 
   void configureForPath(String path) {

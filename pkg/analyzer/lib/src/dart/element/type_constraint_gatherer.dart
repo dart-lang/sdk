@@ -432,7 +432,7 @@ class TypeConstraintGatherer {
     // And `C1` is `C02 + ... + Cn2 + C0`.
     // And `C2` is `C1` with each constraint replaced with its closure
     // with respect to `[Z0, ..., Zn]`.
-    // TODO(scheglov) do closure
+    // TODO(scheglov): do closure
 
     return true;
   }

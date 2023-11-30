@@ -14,9 +14,9 @@ const int LINE_A = 15;
 
 /* LINE_A */ void testFunction(bool flag) {
   if (flag) {
-    print("Yes");
+    print('Yes');
   } else {
-    print("No");
+    print('No');
   }
 }
 
@@ -24,7 +24,7 @@ void testMain() {
   debugger();
   testFunction(true);
   testFunction(false);
-  print("Done");
+  print('Done');
 }
 
 final tests = <IsolateTest>[

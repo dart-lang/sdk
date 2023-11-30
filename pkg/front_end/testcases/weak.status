@@ -8,11 +8,11 @@
 class_modifiers/issue52115/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
 class_modifiers/issue52316/main: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53109
 const_functions/const_functions_switch_statements: SemiFuzzFailure # https://github.com/dart-lang/sdk/issues/53111
-extension_types/representation_type: SemiFuzzCrash # https://github.com/dart-lang/sdk/issues/53270
 
 # POSSIBLY BAD ONES
 dart2js/issue51823: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
 macros/library_members_import: SemiFuzzFailure # Inequivalent nodes on recompile - https://github.com/dart-lang/sdk/issues/53119.
+generic_metadata/alias_from_opt_in: SemiFuzzCrash # https://github.com/dart-lang/sdk/issues/54068
 
 # INCREMENTAL COMPILATION ERRORS
 inline_class/annotations: SemiFuzzFailure # @methods::A| is already bound to Reference - https://github.com/dart-lang/sdk/issues/53117.
@@ -32,6 +32,7 @@ dartdevc/inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # pr
 dartdevc/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
 dartdevc/redirecting_factory_from_dill/main.no_link: semiFuzzFailureOnForceRebuildBodies # privacy.
 extension_types/inherited_representation_field: semiFuzzFailureOnForceRebuildBodies # privacy.
+extension_types/issue53446: semiFuzzFailureOnForceRebuildBodies # privacy.
 extensions/nullable_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
 general/patch_annotations/main: semiFuzzFailureOnForceRebuildBodies # 'dart:test' stuff.
 general/redirecting_factory_from_dill/main: semiFuzzFailureOnForceRebuildBodies # privacy.
@@ -170,6 +171,7 @@ extension_types/simple_operator_resolution: ExpectationFileMismatchSerialized # 
 extension_types/simple_setter_resolution: ExpectationFileMismatchSerialized # Expected.
 extension_types/simple_show_hide: ExpectationFileMismatchSerialized # Expected.
 extension_types/type_variable_in_static_context: ExpectationFileMismatchSerialized # Expected.
+extension_types/with_dependencies/issue53209_1/main: SemiFuzzFailure
 extensions/extension_setter_error: TypeCheckError
 extensions/instance_access_of_static: RuntimeError
 extensions/invalid_explicit_access: RuntimeError

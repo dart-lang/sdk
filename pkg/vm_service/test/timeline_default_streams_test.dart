@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
-main() {
+void main() {
   late VmService service;
   setUp(() async {
     ServiceProtocolInfo serviceInfo = await Service.getInfo();

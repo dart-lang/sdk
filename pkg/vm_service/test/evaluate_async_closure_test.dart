@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:vm_service/vm_service.dart';
 import 'package:test/test.dart';
+import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
 
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
-    const test = '''(){ 
+    const test = '''(){
           var k = () { return Future.value(3); };
           var w = () async { return await k(); };
           return w();

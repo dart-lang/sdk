@@ -35,7 +35,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
     for (var proposedName in names) {
       var distance = _computeDistance(currentName, proposedName);
       if (distance <= _maxDistance) {
-        // TODO(brianwilkerson) Create a way to use the distance as part of the
+        // TODO(brianwilkerson): Create a way to use the distance as part of the
         //  computation of the priority (so that closer names sort first).
         producers.add(_ChangeName(currentNameNode, proposedName));
       }

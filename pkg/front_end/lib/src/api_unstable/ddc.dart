@@ -49,6 +49,8 @@ export '../api_prototype/kernel_generator.dart' show kernelForModule;
 
 export '../api_prototype/lowering_predicates.dart';
 
+export '../fasta/hybrid_file_system.dart' show HybridFileSystem;
+
 export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
@@ -80,11 +82,13 @@ class DdcResult {
   final List<Component> additionalDills;
   final ClassHierarchy classHierarchy;
   final Set<Library>? neededDillLibraries;
+  late final Set<Library> librariesFromDill = _computeLibrariesFromDill();
+  late final Component compiledLibraries = _computeCompiledLibraries();
 
   DdcResult(this.component, this.sdkSummary, this.additionalDills,
       this.classHierarchy, this.neededDillLibraries);
 
-  Set<Library> computeLibrariesFromDill() {
+  Set<Library> _computeLibrariesFromDill() {
     Set<Library> librariesFromDill = new Set<Library>();
 
     for (Component c in additionalDills) {
@@ -99,6 +103,18 @@ class DdcResult {
     }
 
     return librariesFromDill;
+  }
+
+  Component _computeCompiledLibraries() {
+    Component compiledLibraries = new Component(
+        nameRoot: component.root, uriToSource: component.uriToSource)
+      ..setMainMethodAndMode(null, false, component.mode);
+    for (Library lib in component.libraries) {
+      if (!librariesFromDill.contains(lib)) {
+        compiledLibraries.libraries.add(lib);
+      }
+    }
+    return compiledLibraries;
   }
 }
 

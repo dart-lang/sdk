@@ -236,7 +236,7 @@ switch (n) {
 ```
 ''';
 
-// todo(pq): add a dart.dev doc link when a doc is final (https://github.com/dart-lang/linter/issues/4055)
+// TODO(pq): add a dart.dev doc link when a doc is final (https://github.com/dart-lang/linter/issues/4055)
 
 class InvalidCasePatterns extends LintRule {
   static const LintCode code = LintCode('invalid_case_patterns',
@@ -251,8 +251,8 @@ class InvalidCasePatterns extends LintRule {
             state: State.experimental(),
             group: Group.errors);
 
-  /// todo(pq): update to add specific messages w/ specific corrections
-  /// https://github.com/dart-lang/linter/issues/4172
+  // TODO(pq): update to add specific messages w/ specific corrections
+  // https://github.com/dart-lang/linter/issues/4172
   @override
   LintCode get lintCode => code;
 

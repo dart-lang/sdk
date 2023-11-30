@@ -31,20 +31,22 @@ class PositionSourceInformation extends SourceInformation {
   final List<FrameContext>? inliningContext;
 
   PositionSourceInformation(
-      this.startPosition, this.innerPosition, this.inliningContext) {
-    assert((startPosition as dynamic) != null);
-  }
+      this.startPosition, this.innerPosition, this.inliningContext);
 
   factory PositionSourceInformation.readFromDataSource(
       DataSourceReader source) {
     source.begin(tag);
-    SourceLocation startPosition = source.readCached<SourceLocation>(
+    SourceLocation startPosition = source.readIndexedNoCache<SourceLocation>(
         () => SourceLocation.readFromDataSource(source));
-    SourceLocation? innerPosition = source.readCachedOrNull<SourceLocation>(
-        () => SourceLocation.readFromDataSource(source));
+    SourceLocation? innerPosition =
+        source.readIndexedOrNullNoCache<SourceLocation>(
+            () => SourceLocation.readFromDataSource(source));
     List<FrameContext>? inliningContext =
-        source.readCachedOrNull<List<FrameContext>>(() => source.readList(() =>
-            source.readCached(() => FrameContext.readFromDataSource(source))));
+        source.readIndexedOrNullNoCache<List<FrameContext>>(() =>
+            // FrameContext must be cached since PositionSourceInformation.==
+            // requires identity comparison on the objects in inliningContext.
+            source.readList(() => source
+                .readIndexed(() => FrameContext.readFromDataSource(source))));
     source.end(tag);
     return PositionSourceInformation(
         startPosition, innerPosition, inliningContext);
@@ -52,21 +54,20 @@ class PositionSourceInformation extends SourceInformation {
 
   void writeToDataSinkInternal(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeCached(
+    sink.writeIndexed(
         startPosition,
         (SourceLocation sourceLocation) =>
             SourceLocation.writeToDataSink(sink, sourceLocation));
-    sink.writeCached(
+    sink.writeIndexed(
         innerPosition,
         (SourceLocation sourceLocation) =>
             SourceLocation.writeToDataSink(sink, sourceLocation));
-    sink.writeCached(
+    sink.writeIndexed(
         inliningContext,
-        (_) => sink.writeList(
+        (_) => sink.writeListOrNull(
             inliningContext,
-            (FrameContext context) =>
-                sink.writeCached(context, (_) => context.writeToDataSink(sink)),
-            allowNull: true));
+            (FrameContext context) => sink.writeIndexed(
+                context, (_) => context.writeToDataSink(sink))));
     sink.end(tag);
   }
 
@@ -252,7 +253,6 @@ enum SourcePositionKind {
 
 SourceLocation? getSourceLocation(SourceInformation sourceInformation,
     [SourcePositionKind sourcePositionKind = SourcePositionKind.START]) {
-  assert((sourceInformation as dynamic) != null);
   switch (sourcePositionKind) {
     case SourcePositionKind.START:
       return sourceInformation.startPosition;

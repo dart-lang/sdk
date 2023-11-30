@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../api.dart';
 import 'remote_instance.dart';
 import 'serialization.dart';
 import 'serialization_extensions.dart';
-import '../api.dart';
 
 class IdentifierImpl extends RemoteInstance implements Identifier {
   @override
@@ -288,11 +288,21 @@ class ConstructorMetadataAnnotationImpl extends MetadataAnnotationImpl
   final IdentifierImpl type;
 
   @override
+  final List<ExpressionCode> positionalArguments;
+
+  @override
+  final Map<String, ExpressionCode> namedArguments;
+
+  @override
   RemoteInstanceKind get kind =>
       RemoteInstanceKind.constructorMetadataAnnotation;
 
   ConstructorMetadataAnnotationImpl(
-      {required int id, required this.constructor, required this.type})
+      {required int id,
+      required this.constructor,
+      required this.type,
+      required this.positionalArguments,
+      required this.namedArguments})
       : super(id);
 
   @override
@@ -301,6 +311,17 @@ class ConstructorMetadataAnnotationImpl extends MetadataAnnotationImpl
 
     constructor.serialize(serializer);
     type.serialize(serializer);
+    serializer.startList();
+    for (ExpressionCode positionalArgument in positionalArguments) {
+      positionalArgument.serialize(serializer);
+    }
+    serializer.endList();
+    serializer.startList();
+    for (MapEntry<String, ExpressionCode> entry in namedArguments.entries) {
+      serializer.addString(entry.key);
+      entry.value.serialize(serializer);
+    }
+    serializer.endList();
   }
 }
 
@@ -463,9 +484,6 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
 class FunctionDeclarationImpl extends DeclarationImpl
     implements FunctionDeclaration {
   @override
-  final bool hasAbstract;
-
-  @override
   final bool hasBody;
 
   @override
@@ -500,7 +518,6 @@ class FunctionDeclarationImpl extends DeclarationImpl
     required super.identifier,
     required super.library,
     required super.metadata,
-    required this.hasAbstract,
     required this.hasBody,
     required this.hasExternal,
     required this.isGetter,
@@ -513,17 +530,19 @@ class FunctionDeclarationImpl extends DeclarationImpl
   });
 
   @override
-  void serializeUncached(Serializer serializer) {
+  void serializeUncached(Serializer serializer, {bool isConstructor = false}) {
     super.serializeUncached(serializer);
 
     serializer
-      ..addBool(hasAbstract)
       ..addBool(hasBody)
-      ..addBool(hasExternal)
-      ..addBool(isGetter)
-      ..addBool(isOperator)
-      ..addBool(isSetter)
-      ..startList();
+      ..addBool(hasExternal);
+    if (!isConstructor) {
+      serializer
+        ..addBool(isGetter)
+        ..addBool(isOperator)
+        ..addBool(isSetter);
+    }
+    serializer.startList();
     for (ParameterDeclarationImpl named in namedParameters) {
       named.serialize(serializer);
     }
@@ -561,7 +580,6 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.library,
     required super.metadata,
     // Function fields.
-    required super.hasAbstract,
     required super.hasBody,
     required super.hasExternal,
     required super.isGetter,
@@ -577,11 +595,11 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
   });
 
   @override
-  void serializeUncached(Serializer serializer) {
-    super.serializeUncached(serializer);
+  void serializeUncached(Serializer serializer, {bool isConstructor = false}) {
+    super.serializeUncached(serializer, isConstructor: isConstructor);
 
     definingType.serialize(serializer);
-    serializer.addBool(isStatic);
+    if (!isConstructor) serializer.addBool(isStatic);
   }
 }
 
@@ -600,12 +618,8 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required super.library,
     required super.metadata,
     // Function fields.
-    required super.hasAbstract,
     required super.hasBody,
     required super.hasExternal,
-    required super.isGetter,
-    required super.isOperator,
-    required super.isSetter,
     required super.namedParameters,
     required super.positionalParameters,
     required super.returnType,
@@ -615,12 +629,16 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     // Constructor fields.
     required this.isFactory,
   }) : super(
+          isGetter: false,
+          isOperator: false,
+          isSetter: false,
           isStatic: true,
         );
 
   @override
-  void serializeUncached(Serializer serializer) {
-    super.serializeUncached(serializer);
+  void serializeUncached(Serializer serializer, {bool isConstructor = true}) {
+    assert(isConstructor);
+    super.serializeUncached(serializer, isConstructor: isConstructor);
 
     serializer.addBool(isFactory);
   }
@@ -672,6 +690,9 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   final IdentifierImpl definingType;
 
   @override
+  final bool hasAbstract;
+
+  @override
   final bool isStatic;
 
   FieldDeclarationImpl({
@@ -687,6 +708,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required super.type,
     // Field fields.
     required this.definingType,
+    required this.hasAbstract,
     required this.isStatic,
   });
 
@@ -698,7 +720,9 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     super.serializeUncached(serializer);
 
     definingType.serialize(serializer);
-    serializer.addBool(isStatic);
+    serializer
+      ..addBool(hasAbstract)
+      ..addBool(isStatic);
   }
 }
 
@@ -925,6 +949,44 @@ class ExtensionDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // ParameterizedTypeDeclaration fields.
     required super.typeParameters,
     // ExtensionDeclaration fields.
+    required this.onType,
+  });
+
+  @override
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
+
+    onType.serialize(serializer);
+  }
+}
+
+mixin _IntrospectableExtensionType on ExtensionTypeDeclarationImpl
+    implements IntrospectableType, IntrospectableExtensionTypeDeclaration {
+  @override
+  RemoteInstanceKind get kind =>
+      RemoteInstanceKind.introspectableExtensionTypeDeclaration;
+}
+
+class IntrospectableExtensionTypeDeclarationImpl = ExtensionTypeDeclarationImpl
+    with _IntrospectableExtensionType;
+
+class ExtensionTypeDeclarationImpl extends ParameterizedTypeDeclarationImpl
+    implements ExtensionTypeDeclaration {
+  @override
+  final TypeAnnotationImpl onType;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.extensionTypeDeclaration;
+
+  ExtensionTypeDeclarationImpl({
+    // Declaration fields.
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    // ParameterizedTypeDeclaration fields.
+    required super.typeParameters,
+    // ExtensionTypeDeclaration fields.
     required this.onType,
   });
 

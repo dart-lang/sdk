@@ -78,7 +78,7 @@ class ContextBuilderImpl2 implements ContextBuilder {
     MacroSupport? macroSupport,
     OwnedFiles? ownedFiles,
   }) {
-    // TODO(scheglov) Remove this, and make `sdkPath` required.
+    // TODO(scheglov): Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
     if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
@@ -112,7 +112,7 @@ class ContextBuilderImpl2 implements ContextBuilder {
       sdkSummaryPath: sdkSummaryPath,
     );
 
-    // TODO(scheglov) Ensure that "librarySummaryPaths" not null only
+    // TODO(scheglov): Ensure that "librarySummaryPaths" not null only
     // when "sdkSummaryPath" is not null.
     if (sdk is SummaryBasedDartSdk) {
       summaryData?.addBundle(null, sdk.bundle);
@@ -120,7 +120,7 @@ class ContextBuilderImpl2 implements ContextBuilder {
 
     var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
 
-    // todo(pq): remove
+    // TODO(pq): remove
     var options = _getAnalysisOptions(contextRoot, sourceFactory);
     if (updateAnalysisOptions != null) {
       updateAnalysisOptions(options);
@@ -185,11 +185,8 @@ class ContextBuilderImpl2 implements ContextBuilder {
     var map = AnalysisOptionsMap();
     var provider = AnalysisOptionsProvider(sourceFactory);
     var pubspecFile = _findPubspecFile(contextRoot);
-    for (var entry in (contextRoot as ContextRootImpl).optionsFileMap.entries) {
-      var options = AnalysisOptionsImpl();
-      var optionsYaml = provider.getOptionsFromFile(entry.value);
-      options.applyOptions(optionsYaml);
 
+    void updateOptions(AnalysisOptionsImpl options) {
       if (pubspecFile != null) {
         var extractor = SdkConstraintExtractor(pubspecFile);
         var sdkVersionConstraint = extractor.constraint();
@@ -197,7 +194,6 @@ class ContextBuilderImpl2 implements ContextBuilder {
           options.sdkVersionConstraint = sdkVersionConstraint;
         }
       }
-
       if (updateAnalysisOptions != null) {
         updateAnalysisOptions(options);
       } else if (updateAnalysisOptions2 != null) {
@@ -207,8 +203,25 @@ class ContextBuilderImpl2 implements ContextBuilder {
           sdk: sdk,
         );
       }
+    }
 
-      map.add(entry.key, options);
+    var optionsMappings =
+        (contextRoot as ContextRootImpl).optionsFileMap.entries;
+
+    // If there are no options files, we still want to propagate sdk constraints
+    // and options updates to the context root.
+    if (optionsMappings.isEmpty) {
+      var options = AnalysisOptionsImpl();
+      updateOptions(options);
+      map.add(contextRoot.root, options);
+    } else {
+      for (var entry in optionsMappings) {
+        var options = AnalysisOptionsImpl();
+        var optionsYaml = provider.getOptionsFromFile(entry.value);
+        options.applyOptions(optionsYaml);
+        updateOptions(options);
+        map.add(entry.key, options);
+      }
     }
 
     return map;
@@ -216,7 +229,7 @@ class ContextBuilderImpl2 implements ContextBuilder {
 
   /// Return [Packages] to analyze the [contextRoot].
   ///
-  /// TODO(scheglov) Get [Packages] from [Workspace]?
+  // TODO(scheglov): Get [Packages] from [Workspace]?
   Packages _createPackageMap({
     required ContextRoot contextRoot,
   }) {
@@ -248,7 +261,7 @@ class ContextBuilderImpl2 implements ContextBuilder {
     );
 
     {
-      // TODO(scheglov) We already had partial SourceFactory in ContextLocatorImpl.
+      // TODO(scheglov): We already had partial SourceFactory in ContextLocatorImpl.
       var partialSourceFactory = workspace.createSourceFactory(null, null);
       var embedderYamlSource = partialSourceFactory.forUri(
         'package:sky_engine/_embedder.yaml',
@@ -274,7 +287,7 @@ class ContextBuilderImpl2 implements ContextBuilder {
   /// Return the `pubspec.yaml` file that should be used when analyzing code in
   /// the [contextRoot], possibly `null`.
   ///
-  /// TODO(scheglov) Get it from [Workspace]?
+  // TODO(scheglov): Get it from [Workspace]?
   File? _findPubspecFile(ContextRoot contextRoot) {
     for (var current in contextRoot.root.withAncestors) {
       var file = current.getChildAssumingFile(file_paths.pubspecYaml);
@@ -288,7 +301,7 @@ class ContextBuilderImpl2 implements ContextBuilder {
   /// Return the analysis options that should be used to analyze code in the
   /// [contextRoot].
   ///
-  /// TODO(scheglov) We have already loaded it once in [ContextLocatorImpl].
+  // TODO(scheglov): We have already loaded it once in [ContextLocatorImpl].
   AnalysisOptionsImpl _getAnalysisOptions(
     ContextRoot contextRoot,
     SourceFactory sourceFactory,

@@ -734,6 +734,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
   ConstantInfo? _makeInterfaceType(
       TypeLiteralConstant constant, InterfaceType type, ClassInfo info) {
+    // Don't use `_Closure` as a type. Use `Function` instead, as this is
+    // properly recognized as the abstract function type.
+    assert(type.classNode != translator.closureClass);
     InstanceConstant typeArgs = constants.makeTypeArray(type.typeArguments);
     ensureConstant(typeArgs);
     return createConstant(constant, info.nonNullableType, (function, b) {

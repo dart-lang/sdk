@@ -61,6 +61,7 @@ const Code<Null> codeAbstractExtensionField = messageAbstractExtensionField;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageAbstractExtensionField = const MessageCode(
     "AbstractExtensionField",
+    analyzerCodes: <String>["ABSTRACT_EXTENSION_FIELD"],
     problemMessage: r"""Extension fields can't be declared 'abstract'.""",
     correctionMessage: r"""Try removing the 'abstract' keyword.""");
 
@@ -4434,6 +4435,30 @@ const MessageCode messageExtensionTypeDeclarationCause = const MessageCode(
         r"""The issue arises via this extension type declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeDeclaresAbstractMember =
+    messageExtensionTypeDeclaresAbstractMember;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeDeclaresAbstractMember =
+    const MessageCode("ExtensionTypeDeclaresAbstractMember",
+        analyzerCodes: <String>["EXTENSION_TYPE_WITH_ABSTRACT_MEMBER"],
+        problemMessage: r"""Extension types can't declare abstract members.""",
+        correctionMessage:
+            r"""Try providing an implementation for the member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeDeclaresInstanceField =
+    messageExtensionTypeDeclaresInstanceField;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeDeclaresInstanceField = const MessageCode(
+    "ExtensionTypeDeclaresInstanceField",
+    analyzerCodes: <String>["EXTENSION_TYPE_DECLARES_INSTANCE_FIELD"],
+    problemMessage: r"""Extension types can't declare instance fields""",
+    correctionMessage:
+        r"""Try removing the field declaration or making it a static field""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeExtends = messageExtensionTypeExtends;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4743,7 +4768,7 @@ const MessageCode messageFastaUsageLong =
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts
@@ -5115,7 +5140,7 @@ const Code<Null> codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiNativeMustBeExternal = const MessageCode(
     "FfiNativeMustBeExternal",
-    problemMessage: r"""FfiNative functions must be marked external.""");
+    problemMessage: r"""Native functions must be marked external.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer =
@@ -5133,7 +5158,7 @@ const Template<Message Function(int count, int count2)>
     const Template<Message Function(int count, int count2)>(
         "FfiNativeUnexpectedNumberOfParameters",
         problemMessageTemplate:
-            r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2.""",
+            r"""Unexpected number of Native annotation parameters. Expected #count but has #count2.""",
         withArguments: _withArgumentsFfiNativeUnexpectedNumberOfParameters);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -5148,7 +5173,7 @@ Message _withArgumentsFfiNativeUnexpectedNumberOfParameters(
     int count, int count2) {
   return new Message(codeFfiNativeUnexpectedNumberOfParameters,
       problemMessage:
-          """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}.""",
+          """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}.""",
       arguments: {'count': count, 'count2': count2});
 }
 
@@ -5158,7 +5183,7 @@ const Template<Message Function(int count, int count2)>
     const Template<Message Function(int count, int count2)>(
         "FfiNativeUnexpectedNumberOfParametersWithReceiver",
         problemMessageTemplate:
-            r"""Unexpected number of FfiNative annotation parameters. Expected #count but has #count2. FfiNative instance method annotation must have receiver as first argument.""",
+            r"""Unexpected number of Native annotation parameters. Expected #count but has #count2. Native instance method annotation must have receiver as first argument.""",
         withArguments:
             _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver);
 
@@ -5174,7 +5199,7 @@ Message _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver(
     int count, int count2) {
   return new Message(codeFfiNativeUnexpectedNumberOfParametersWithReceiver,
       problemMessage:
-          """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}. FfiNative instance method annotation must have receiver as first argument.""",
+          """Unexpected number of Native annotation parameters. Expected ${count} but has ${count2}. Native instance method annotation must have receiver as first argument.""",
       arguments: {'count': count, 'count2': count2});
 }
 
@@ -12556,6 +12581,26 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
     problemMessage: r"""Non-optional parameters can't have a default value.""",
     correctionMessage:
         r"""Try removing the default value or making the parameter optional.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeResourceIdentifiersMultiple =
+    messageResourceIdentifiersMultiple;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageResourceIdentifiersMultiple = const MessageCode(
+    "ResourceIdentifiersMultiple",
+    problemMessage:
+        r"""Only one resource identifier pragma can be used at a time.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeResourceIdentifiersNotStatic =
+    messageResourceIdentifiersNotStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageResourceIdentifiersNotStatic = const MessageCode(
+    "ResourceIdentifiersNotStatic",
+    problemMessage:
+        r"""Resource identifier pragma can be used on a static method only.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRestPatternInMapPattern = messageRestPatternInMapPattern;

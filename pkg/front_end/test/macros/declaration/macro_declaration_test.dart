@@ -33,7 +33,7 @@ Future<void> main(List<String> args) async {
       runTest: runTestFor(const MacroDataComputer(), [new MacroTestConfig()]));
 }
 
-class MacroTestConfig extends TestConfig {
+class MacroTestConfig extends CfeTestConfig {
   MacroTestConfig()
       : super(cfeMarker, 'cfe',
             explicitExperimentalFlags: {ExperimentalFlag.macros: true},
@@ -51,25 +51,25 @@ class MacroTestConfig extends TestConfig {
   }
 }
 
-class MacroDataComputer extends DataComputer<Features> {
+class MacroDataComputer extends CfeDataComputer<Features> {
   const MacroDataComputer();
 
   @override
-  void computeMemberData(TestResultData testResultData, Member member,
+  void computeMemberData(CfeTestResultData testResultData, Member member,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     member.accept(new MacroDataExtractor(testResultData, actualMap));
   }
 
   @override
-  void computeClassData(TestResultData testResultData, Class cls,
+  void computeClassData(CfeTestResultData testResultData, Class cls,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new MacroDataExtractor(testResultData, actualMap).computeForClass(cls);
   }
 
   @override
-  void computeLibraryData(TestResultData testResultData, Library library,
+  void computeLibraryData(CfeTestResultData testResultData, Library library,
       Map<Id, ActualData<Features>> actualMap,
       {bool? verbose}) {
     new MacroDataExtractor(testResultData, actualMap)
@@ -81,7 +81,7 @@ class MacroDataComputer extends DataComputer<Features> {
 
   @override
   Features? computeErrorData(
-      TestResultData testResultData, Id id, List<FormattedMessage> errors) {
+      CfeTestResultData testResultData, Id id, List<FormattedMessage> errors) {
     Features features = new Features();
     features[Tags.error] = errorsToText(errors, useCodes: true);
     return features;
@@ -126,7 +126,7 @@ String strongComponentToString(Iterable<Uri> uris) {
 }
 
 class MacroDataExtractor extends CfeDataExtractor<Features> {
-  final TestResultData testResultData;
+  final CfeTestResultData testResultData;
 
   MacroDataExtractor(
       this.testResultData, Map<Id, ActualData<Features>> actualMap)

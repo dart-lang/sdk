@@ -172,12 +172,8 @@ class BundleWriter {
     _writeReference(element);
     ClassElementFlags.write(_sink, element);
 
-    _sink.writeList<MacroApplicationError>(
-      element.macroApplicationErrors,
-      (x) => x.write(_sink),
-    );
-
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink.writeType(element.supertype);
@@ -222,12 +218,15 @@ class BundleWriter {
     _writeReference(element);
     ConstructorElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _resolutionSink.localElements.withElements(element.parameters, () {
       _writeList(element.parameters, _writeParameterElement);
       _resolutionSink.writeElement(element.superConstructor);
       _resolutionSink.writeElement(element.redirectedConstructor);
       _resolutionSink._writeNodeList(element.constantInitializers);
+      _resolutionSink.writeElement(element.augmentation);
+      _resolutionSink.writeElement(element.augmentationTarget);
     });
   }
 
@@ -384,6 +383,7 @@ class BundleWriter {
     FieldElementFlags.write(_sink, element);
     _sink._writeTopLevelInferenceError(element.typeInferenceError);
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
     _resolutionSink.writeType(element.type);
 
     _resolutionSink.writeElement(element.augmentationTarget);
@@ -486,6 +486,7 @@ class BundleWriter {
     MethodElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
       _writeList(element.parameters, _writeParameterElement);
@@ -559,7 +560,7 @@ class BundleWriter {
     });
   }
 
-  /// TODO(scheglov) Deduplicate parameter writing implementation.
+  // TODO(scheglov): Deduplicate parameter writing implementation.
   void _writeParameterElement(ParameterElement element) {
     element as ParameterElementImpl;
     _sink._writeStringReference(element.name);
@@ -734,8 +735,8 @@ class ResolutionSink extends _SummaryDataWriter {
     required _BundleWriterReferences references,
   }) : _references = references;
 
-  /// TODO(scheglov) Triage places where we write elements.
-  /// Some of then cannot be members, e.g. type names.
+  // TODO(scheglov): Triage places where we write elements.
+  // Some of then cannot be members, e.g. type names.
   void writeElement(Element? element) {
     if (element is Member) {
       var declaration = element.declaration;
@@ -764,6 +765,10 @@ class ResolutionSink extends _SummaryDataWriter {
       writeByte(Tag.RawElement);
       _writeElement(element);
     }
+  }
+
+  void writeMacroDiagnostics(List<AnalyzerMacroDiagnostic> elements) {
+    writeList(elements, _writeMacroDiagnostic);
   }
 
   void writeMap<K, V>(
@@ -807,11 +812,11 @@ class ResolutionSink extends _SummaryDataWriter {
         } else if (nullabilitySuffix == NullabilitySuffix.star) {
           writeByte(Tag.InterfaceType_noTypeArguments_star);
         }
-        // TODO(scheglov) Write raw
+        // TODO(scheglov): Write raw
         writeElement(type.element);
       } else {
         writeByte(Tag.InterfaceType);
-        // TODO(scheglov) Write raw
+        // TODO(scheglov): Write raw
         writeElement(type.element);
         writeUInt30(typeArguments.length);
         for (var i = 0; i < typeArguments.length; ++i) {
@@ -939,6 +944,40 @@ class ResolutionSink extends _SummaryDataWriter {
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }
 
+  void _writeMacroDiagnostic(AnalyzerMacroDiagnostic diagnostic) {
+    switch (diagnostic) {
+      case ArgumentMacroDiagnostic():
+        writeByte(0x00);
+        writeUInt30(diagnostic.annotationIndex);
+        writeUInt30(diagnostic.argumentIndex);
+        writeStringUtf8(diagnostic.message);
+      case ExceptionMacroDiagnostic():
+        // TODO(scheglov): Handle this case.
+        throw UnimplementedError();
+      case MacroDiagnostic():
+        writeByte(0x02);
+        writeByte(diagnostic.severity.index);
+        _writeMacroDiagnosticMessage(diagnostic.message);
+        writeList(
+          diagnostic.contextMessages,
+          _writeMacroDiagnosticMessage,
+        );
+    }
+  }
+
+  void _writeMacroDiagnosticMessage(MacroDiagnosticMessage object) {
+    writeStringUtf8(object.message);
+    final target = object.target;
+    switch (target) {
+      case ApplicationMacroDiagnosticTarget():
+        writeByte(0x00);
+        writeUInt30(target.annotationIndex);
+      case ElementMacroDiagnosticTarget():
+        writeByte(0x01);
+        writeElement(target.element);
+    }
+  }
+
   void _writeNode(AstNode node) {
     var astWriter = AstBinaryWriter(
       sink: this,
@@ -1021,7 +1060,7 @@ class ResolutionSink extends _SummaryDataWriter {
     Element declaration,
     Map<TypeParameterElement, DartType> substitution,
   ) {
-    // TODO(scheglov) Just keep it null in class Member?
+    // TODO(scheglov): Just keep it null in class Member?
     if (substitution.isEmpty) {
       return const [];
     }

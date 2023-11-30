@@ -19,7 +19,7 @@ extension Foo on String {
 }
 
 void testFunction() {
-  print("10".parseInt(21));
+  print('10'.parseInt(21));
 }
 
 final tests = <IsolateTest>[

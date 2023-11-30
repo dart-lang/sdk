@@ -227,6 +227,7 @@ class PageSpace {
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectsNoImagePages(ObjectVisitor* visitor) const;
   void VisitObjectsImagePages(ObjectVisitor* visitor) const;
+  void VisitObjectsUnsafe(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   void VisitRememberedCards(ObjectPointerVisitor* visitor) const;
@@ -488,6 +489,7 @@ class PageSpace {
   friend class ConcurrentSweeperTask;
   friend class GCCompactor;
   friend class CompactorTask;
+  friend void DumpStackFrame(intptr_t frame_index, uword pc, uword fp);
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(PageSpace);
 };

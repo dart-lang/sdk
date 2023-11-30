@@ -62,7 +62,8 @@ double weightedAverage(
     double isNotImported = 0.0,
     double keyword = 0.0,
     double startsWithDollar = 0.0,
-    double superMatches = 0.0}) {
+    double superMatches = 0.0,
+    double localVariableDistance = 0.0}) {
   assert(contextType.between(0.0, 1.0));
   assert(elementKind.between(0.0, 1.0));
   assert(hasDeprecated.between(-1.0, 0.0));
@@ -72,6 +73,7 @@ double weightedAverage(
   assert(keyword.between(0.0, 1.0));
   assert(startsWithDollar.between(-1.0, 0.0));
   assert(superMatches.between(0.0, 1.0));
+  assert(localVariableDistance.between(0.0, 1.0));
   var average = _weightedAverage([
     contextType,
     elementKind,
@@ -82,6 +84,7 @@ double weightedAverage(
     keyword,
     startsWithDollar,
     superMatches,
+    localVariableDistance,
   ], FeatureComputer.featureWeights);
   return (average + 1.0) / 2.0;
 }
@@ -136,6 +139,7 @@ class FeatureComputer {
     'localVariableDistance',
     'startsWithDollar',
     'superMatches',
+    'localVariableDistance',
   ];
 
   /// The values of the weights used to compute an average of feature values.
@@ -153,6 +157,7 @@ class FeatureComputer {
     1.00, // keyword
     0.50, // startsWithDollar
     1.00, // superMatches
+    1.00, // localVariableDistance
   ];
 
   /// The type system used to perform operations on types.
@@ -698,7 +703,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
       var parent = node.parent;
       if (parent is MethodDeclaration) {
         var bodyContext = BodyInferenceContext.of(parent.body);
-        // TODO(scheglov) https://github.com/dart-lang/sdk/issues/45429
+        // TODO(scheglov): https://github.com/dart-lang/sdk/issues/45429
         if (bodyContext == null) {
           throw StateError('''
 Expected body context.
@@ -857,7 +862,7 @@ Class: ${parent.parent}
   DartType? visitListLiteral(ListLiteral node) {
     if (range.endStart(node.leftBracket, node.rightBracket).contains(offset)) {
       final type = node.staticType;
-      // TODO(scheglov) https://github.com/dart-lang/sdk/issues/48965
+      // TODO(scheglov): https://github.com/dart-lang/sdk/issues/48965
       if (type == null) {
         throw '''
 No type.
@@ -1219,7 +1224,7 @@ parent3: ${node.parent?.parent?.parent}
   /// `PatternAssignment` or a `PatternVariableDeclaration`, return the context
   /// type for the right-hand side.
   DartType? _requiredTypeOfPattern(DartPattern pattern) {
-    // TODO(brianwilkerson) Replace with `patternTypeSchema` (on AST) where
+    // TODO(brianwilkerson): Replace with `patternTypeSchema` (on AST) where
     //  possible.
     pattern = pattern.unParenthesized;
     Element? element;

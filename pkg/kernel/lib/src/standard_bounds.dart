@@ -1543,28 +1543,32 @@ mixin StandardBounds {
     //   otherwise UP(B1a, T2)
     //     where B1a is the greatest closure of B1 with respect to X1,
     //     as defined in [inference.md].
+
     if (isSubtypeOf(type1, type2, SubtypeCheckMode.withNullabilities)) {
-      return type2.withDeclaredNullability(
-          uniteNullabilities(type1.declaredNullability, type2.nullability));
+      return type2.withDeclaredNullability(combineNullabilitiesForSubstitution(
+          type2.nullability,
+          uniteNullabilities(type1.declaredNullability, type2.nullability)));
     }
     if (isSubtypeOf(type2, type1, SubtypeCheckMode.withNullabilities)) {
-      return type1.withDeclaredNullability(
-          uniteNullabilities(type1.declaredNullability, type2.nullability));
+      return type1.withDeclaredNullability(combineNullabilitiesForSubstitution(
+          type1.declaredNullability,
+          uniteNullabilities(type1.declaredNullability, type2.nullability)));
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
-            eliminationTargets: <StructuralParameter>{},
+            structuralEliminationTargets: {},
+            nominalEliminationTargets: {type1.parameter},
             bottomType: const NeverType.nonNullable(),
             topType: coreTypes.objectNullableRawType,
             topFunctionType: coreTypes.functionNonNullableRawType,
             unhandledTypeHandler: (type, recursor) => false);
-    return _getNullabilityAwareStandardUpperBound(
-            eliminator.eliminateToGreatest(type1.parameter.bound), type2,
-            isNonNullableByDefault: isNonNullableByDefault)
-        .withDeclaredNullability(uniteNullabilities(
-            type1.declaredNullability,
-            uniteNullabilities(
-                type1.parameter.bound.declaredNullability, type2.nullability)));
+    DartType result = _getNullabilityAwareStandardUpperBound(
+        eliminator.eliminateToGreatest(type1.parameter.bound), type2,
+        isNonNullableByDefault: isNonNullableByDefault);
+    return result.withDeclaredNullability(combineNullabilitiesForSubstitution(
+        result.declaredNullability,
+        uniteNullabilities(
+            type1.parameter.bound.declaredNullability, type2.nullability)));
   }
 
   DartType _getNullabilityAwareIntersectionStandardUpperBound(
@@ -1586,7 +1590,8 @@ mixin StandardBounds {
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(
-            eliminationTargets: <StructuralParameter>{},
+            structuralEliminationTargets: {},
+            nominalEliminationTargets: {type1.left.parameter},
             bottomType: const NeverType.nonNullable(),
             topType: coreTypes.objectNullableRawType,
             topFunctionType: coreTypes.functionNonNullableRawType,

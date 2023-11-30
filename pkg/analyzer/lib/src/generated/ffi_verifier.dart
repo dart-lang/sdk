@@ -346,7 +346,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               declarationElement is PropertyAccessorElementImpl) &&
           !declarationElement.isStatic) {
         // Instance methods must have the receiver as an extra parameter in the
-        // FfiNative annotation.
+        // Native annotation.
         if (formalParameters.length + 1 != ffiParameterTypes.length) {
           _errorReporter.reportErrorForNode(
               FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
@@ -370,7 +370,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         ffiParameterTypes = ffiParameterTypes.sublist(1);
         ffiParameters = ffiParameters.sublist(1);
       } else {
-        // Number of parameters in the FfiNative annotation must match the
+        // Number of parameters in the Native annotation must match the
         // annotated declaration.
         if (formalParameters.length != ffiParameterTypes.length) {
           _errorReporter.reportErrorForNode(
@@ -506,11 +506,14 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   /// Validates that the given [nativeType] is a valid dart:ffi native type.
-  bool _isValidFfiNativeType(DartType? nativeType,
-      {bool allowVoid = false,
-      bool allowEmptyStruct = false,
-      bool allowArray = false,
-      bool allowHandle = false}) {
+  bool _isValidFfiNativeType(
+    DartType? nativeType, {
+    bool allowVoid = false,
+    bool allowEmptyStruct = false,
+    bool allowArray = false,
+    bool allowHandle = false,
+    bool allowOpaque = false,
+  }) {
     if (nativeType is InterfaceType) {
       final primitiveType = _primitiveNativeType(nativeType);
       switch (primitiveType) {
@@ -531,20 +534,29 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       if (nativeType.isPointer) {
         final nativeArgumentType = nativeType.typeArguments.single;
-        return _isValidFfiNativeType(nativeArgumentType,
-                allowVoid: true, allowEmptyStruct: true, allowHandle: true) ||
+        return _isValidFfiNativeType(
+              nativeArgumentType,
+              allowVoid: true,
+              allowEmptyStruct: true,
+              allowHandle: true,
+              allowOpaque: true,
+            ) ||
             nativeArgumentType.isCompoundSubtype ||
             nativeArgumentType.isNativeType;
       }
       if (nativeType.isCompoundSubtype) {
         if (!allowEmptyStruct) {
           if (nativeType.element.isEmptyStruct) {
-            // TODO(dartbug.com/36780): This results in an error message not
-            // mentioning empty structs at all.
+            // TODO(dacoharkes): This results in an error message not  mentioning
+            // empty structs at all.
+            // dartbug.com/36780
             return false;
           }
         }
         return true;
+      }
+      if (nativeType.isOpaque) {
+        return allowOpaque;
       }
       if (nativeType.isOpaqueSubtype) {
         return true;
@@ -845,8 +857,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     // Validate that the return types are compatible.
     if (!_validateCompatibleNativeType(
         dartType.returnType, nativeType.returnType)) {
-      // TODO(http://dartbug.com/49518): Fix inconsistency between `FfiNative`
-      // and `asFunction`.
+      // TODO(dacoharkes): Fix inconsistency between `FfiNative` and `asFunction`.
+      // http://dartbug.com/49518
       if (!allowStricterReturn) {
         return false;
       } else if (!_validateCompatibleNativeType(
@@ -1068,7 +1080,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    // TODO(brianwilkerson) Validate that `f` is a top-level function.
+    // TODO(brianwilkerson): Validate that `f` is a top-level function.
     final DartType R = (T as FunctionType).returnType;
     if ((FT as FunctionType).returnType is VoidType ||
         R.isPointer ||
@@ -1535,6 +1547,14 @@ extension on Element? {
         element.isFfiExtension;
   }
 
+  /// Return `true` if this represents the class `Opaque`.
+  bool get isOpaque {
+    final element = this;
+    return element is ClassElement &&
+        element.name == FfiVerifier._opaqueClassName &&
+        element.isFfiClass;
+  }
+
   /// Return `true` if this represents the class `Pointer`.
   bool get isPointer {
     final element = this;
@@ -1724,15 +1744,18 @@ extension on DartType {
     return false;
   }
 
+  bool get isOpaque {
+    final self = this;
+    return self is InterfaceType && self.element.isOpaque;
+  }
+
   /// Returns `true` iff this is a opaque type, i.e. a subtype of `Opaque`.
   bool get isOpaqueSubtype {
     final self = this;
     if (self is InterfaceType) {
       final superType = self.element.supertype;
       if (superType != null) {
-        final superClassElement = superType.element;
-        return superClassElement.name == FfiVerifier._opaqueClassName &&
-            superClassElement.isFfiClass;
+        return superType.element.isOpaque;
       }
     }
     return false;

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <csignal>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
@@ -1124,7 +1125,7 @@ DART_EXPORT void SetArgumentTo42(void* token) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Functions for testing @FfiNative.
+// Functions for testing @Native.
 
 DART_EXPORT Dart_Handle GetRootLibraryUrl() {
   Dart_Handle root_lib = Dart_RootLibrary();
@@ -1360,5 +1361,103 @@ DART_EXPORT void TestDeprecatedSymbols() {
   Dart_UpdateExternalSize_DL(nullptr, 0);
   Dart_UpdateFinalizableExternalSize_DL(nullptr, Dart_Null(), 0);
 }
+
+DART_EXPORT void SemanticsUpdateBuilderUpdateNode(
+    void* this_,
+    int id,
+    int flags,
+    int actions,
+    int maxValueLength,
+    int currentValueLength,
+    int textSelectionBase,
+    int textSelectionExtent,
+    int platformViewId,
+    int scrollChildren,
+    int scrollIndex,
+    double scrollPosition,
+    double scrollExtentMax,
+    double scrollExtentMin,
+    double left,
+    double top,
+    double right,
+    double bottom,
+    double elevation,
+    double thickness,
+    Dart_Handle label,
+    Dart_Handle labelAttributes,
+    Dart_Handle value,
+    Dart_Handle valueAttributes,
+    Dart_Handle increasedValue,
+    Dart_Handle increasedValueAttributes,
+    Dart_Handle decreasedValue,
+    Dart_Handle decreasedValueAttributes,
+    Dart_Handle hint,
+    Dart_Handle hintAttributes,
+    Dart_Handle tooltip,
+    int textDirection,
+    Dart_Handle transform,
+    Dart_Handle childrenInTraversalOrder,
+    Dart_Handle childrenInHitTestOrder,
+    Dart_Handle localContextActions) {
+  if (!Dart_IsString(tooltip)) {
+    FATAL("expected Dart_IsString(tooltip)");
+  }
+  const char* cstr;
+  auto to_cstring_result = Dart_StringToCString(tooltip, &cstr);
+  if (Dart_IsError(to_cstring_result)) {
+    FATAL(Dart_GetError(to_cstring_result));
+  }
+  if (strcmp(cstr, "tooltip") != 0) {
+    printf("cstr %s\n", cstr);
+    FATAL("cstr not equal to \"tooltip\"");
+  }
+}
+
+DART_EXPORT void ManyHandles(Dart_Handle o0,
+                             Dart_Handle o1,
+                             Dart_Handle o2,
+                             Dart_Handle o3,
+                             Dart_Handle o4,
+                             Dart_Handle o5,
+                             Dart_Handle o6,
+                             Dart_Handle o7,
+                             Dart_Handle o8,
+                             Dart_Handle o9,
+                             Dart_Handle o10,
+                             Dart_Handle o11,
+                             Dart_Handle o12,
+                             Dart_Handle o13,
+                             Dart_Handle o14,
+                             Dart_Handle o15,
+                             Dart_Handle o16,
+                             Dart_Handle o17,
+                             Dart_Handle o18,
+                             Dart_Handle o19) {
+#define CHECK_STRING(o)                                                        \
+  if (!Dart_IsString(o)) {                                                     \
+    FATAL("expected Dart_IsString");                                           \
+  }
+  CHECK_STRING(o0);
+  CHECK_STRING(o1);
+  CHECK_STRING(o2);
+  CHECK_STRING(o3);
+  CHECK_STRING(o4);
+  CHECK_STRING(o5);
+  CHECK_STRING(o6);
+  CHECK_STRING(o7);
+  CHECK_STRING(o8);
+  CHECK_STRING(o9);
+  CHECK_STRING(o10);
+  CHECK_STRING(o11);
+  CHECK_STRING(o12);
+  CHECK_STRING(o13);
+  CHECK_STRING(o14);
+  CHECK_STRING(o15);
+  CHECK_STRING(o16);
+  CHECK_STRING(o17);
+  CHECK_STRING(o18);
+  CHECK_STRING(o19);
+}
+#undef CHECK_STRING
 
 }  // namespace dart

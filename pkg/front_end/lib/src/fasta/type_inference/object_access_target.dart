@@ -104,10 +104,10 @@ abstract class ObjectAccessTarget {
   /// Creates an access to the instance [member].
   factory ObjectAccessTarget.interfaceMember(
       DartType receiverType, Member member,
-      {required bool isPotentiallyNullable}) {
-    return isPotentiallyNullable
-        ? new InstanceAccessTarget.nullable(receiverType, member)
-        : new InstanceAccessTarget.nonNullable(receiverType, member);
+      {required bool hasNonObjectMemberAccess}) {
+    return hasNonObjectMemberAccess
+        ? new InstanceAccessTarget.nonNullable(receiverType, member)
+        : new InstanceAccessTarget.nullable(receiverType, member);
   }
 
   /// Creates an access to the super [member].
@@ -134,12 +134,12 @@ abstract class ObjectAccessTarget {
       Member? tearoffTarget,
       ClassMemberKind kind,
       List<DartType> extensionTypeArguments,
-      {bool isPotentiallyNullable}) = ExtensionTypeAccessTarget;
+      {bool hasNonObjectMemberAccess}) = ExtensionTypeAccessTarget;
 
   /// Creates an access to the [representationField] of the [extensionType].
   factory ObjectAccessTarget.extensionTypeRepresentation(DartType receiverType,
           ExtensionType extensionType, Procedure representationField,
-          {required bool isPotentiallyNullable}) =
+          {required bool hasNonObjectMemberAccess}) =
       ExtensionTypeRepresentationAccessTarget;
 
   /// Creates an access to a 'call' method on a function, i.e. a function
@@ -275,8 +275,8 @@ abstract class ObjectAccessTarget {
   bool get isNullableExtensionTypeRepresentation =>
       kind == ObjectAccessTargetKind.nullableExtensionTypeRepresentation;
 
-  /// Returns `true` if this is an access to an instance member on a potentially
-  /// nullable receiver.
+  /// Returns `true` if this is an *invalid* access to an instance member on a
+  /// potentially nullable receiver.
   bool get isNullable =>
       isNullableInstanceMember ||
       isNullableCallFunction ||
@@ -315,7 +315,7 @@ abstract class ObjectAccessTarget {
 
   FunctionType _getFunctionType(
       InferenceVisitorBase base, DartType calleeType) {
-    calleeType = base.resolveTypeParameter(calleeType);
+    calleeType = calleeType.nonTypeVariableBound;
     if (calleeType is FunctionType) {
       if (!base.isNonNullableByDefault) {
         calleeType = legacyErasure(calleeType);
@@ -1091,6 +1091,9 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
   final DartType receiverType;
   @override
   final Member member;
+  // TODO(johnniwinther): Normalize this. [ExtensionAccessTarget] has a tear-off
+  // target for all readable members, whereas [ExtensionTypeAccessTarget] only
+  // has a tear-off target when it differs from the [member].
   @override
   final Member? tearoffTarget;
   @override
@@ -1100,10 +1103,10 @@ class ExtensionTypeAccessTarget extends ObjectAccessTarget {
 
   ExtensionTypeAccessTarget(this.receiverType, this.member, this.tearoffTarget,
       this.declarationMethodKind, this.receiverTypeArguments,
-      {bool isPotentiallyNullable = false})
-      : super.internal(isPotentiallyNullable
-            ? ObjectAccessTargetKind.nullableExtensionTypeMember
-            : ObjectAccessTargetKind.extensionTypeMember);
+      {bool hasNonObjectMemberAccess = true})
+      : super.internal(hasNonObjectMemberAccess
+            ? ObjectAccessTargetKind.extensionTypeMember
+            : ObjectAccessTargetKind.nullableExtensionTypeMember);
 
   @override
   FunctionType getFunctionType(InferenceVisitorBase base) {
@@ -1309,10 +1312,10 @@ class ExtensionTypeRepresentationAccessTarget extends ObjectAccessTarget {
 
   ExtensionTypeRepresentationAccessTarget(
       this.receiverType, this.extensionType, this.representationField,
-      {required bool isPotentiallyNullable})
-      : super.internal(isPotentiallyNullable
-            ? ObjectAccessTargetKind.nullableExtensionTypeRepresentation
-            : ObjectAccessTargetKind.extensionTypeRepresentation);
+      {required bool hasNonObjectMemberAccess})
+      : super.internal(hasNonObjectMemberAccess
+            ? ObjectAccessTargetKind.extensionTypeRepresentation
+            : ObjectAccessTargetKind.nullableExtensionTypeRepresentation);
 
   @override
   DartType getBinaryOperandType(InferenceVisitorBase base) {

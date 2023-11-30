@@ -81,16 +81,13 @@ void f(e) {
           error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
               128, 6),
         ];
-        break;
       case _Variants.nullSafe:
         expectedErrors = [
           error(CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
               150, 10),
         ];
-        break;
       case _Variants.patterns:
         expectedErrors = [];
-        break;
     }
 
     await assertErrorsInCode(r'''

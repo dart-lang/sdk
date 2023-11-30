@@ -49,7 +49,7 @@ import self as mai2;
 import "dart:core" as core;
 
 extension type ExtensionType(core::int it) {
-  abstract inline-class-member representation-field get it() → core::int;
+  abstract extension-type-member representation-field get it() → core::int;
   static field staticField = mai2::ExtensionType|staticField;
   method instanceMethod = mai2::ExtensionType|instanceMethod;
   method tearoff instanceMethod = mai2::ExtensionType|get#instanceMethod;
@@ -71,47 +71,47 @@ extension type ExtensionType(core::int it) {
   static redirecting-factory tearoff redirectingFactory = mai2::ExtensionType|constructor#_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField = 123;
-static inline-class-member method ExtensionType|constructor#(core::int it) → mai2::ExtensionType /* = core::int */ {
+static extension-type-member method ExtensionType|constructor#(core::int it) → mai2::ExtensionType /* = core::int */ {
   lowered final mai2::ExtensionType /* = core::int */ #this = it;
   return #this;
 }
-static inline-class-member method ExtensionType|constructor#_#new#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
   return mai2::ExtensionType|constructor#(it);
-static inline-class-member method ExtensionType|constructor#named(core::int it) → mai2::ExtensionType /* = core::int */ {
+static extension-type-member method ExtensionType|constructor#named(core::int it) → mai2::ExtensionType /* = core::int */ {
   lowered final mai2::ExtensionType /* = core::int */ #this = it.{core::num::+}(1){(core::num) → core::int};
   return #this;
 }
-static inline-class-member method ExtensionType|constructor#_#named#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#named#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
   return mai2::ExtensionType|constructor#named(it);
-static inline-class-member method ExtensionType|constructor#redirectingGenerative(core::int it) → mai2::ExtensionType /* = core::int */ {
+static extension-type-member method ExtensionType|constructor#redirectingGenerative(core::int it) → mai2::ExtensionType /* = core::int */ {
   lowered final mai2::ExtensionType /* = core::int */ #this;
   #this = mai2::ExtensionType|constructor#(it.{core::num::+}(2){(core::num) → core::int});
   return #this;
 }
-static inline-class-member method ExtensionType|constructor#_#redirectingGenerative#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#redirectingGenerative#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
   return mai2::ExtensionType|constructor#redirectingGenerative(it);
-static inline-class-member method ExtensionType|constructor#fact(core::int it) → mai2::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#fact(core::int it) → mai2::ExtensionType /* = core::int */
   return mai2::ExtensionType|constructor#(it.{core::num::+}(3){(core::num) → core::int});
-static inline-class-member method ExtensionType|constructor#_#fact#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#fact#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
   return mai2::ExtensionType|constructor#fact(it);
-static inline-class-member method ExtensionType|constructor#redirectingFactory(core::int it) → mai2::ExtensionType /* = core::int */ /* redirection-target: mai2::ExtensionType|constructor# */
+static extension-type-member method ExtensionType|constructor#redirectingFactory(core::int it) → mai2::ExtensionType /* = core::int */ /* redirection-target: mai2::ExtensionType|constructor# */
   return mai2::ExtensionType|constructor#(it);
-static inline-class-member method ExtensionType|constructor#_#redirectingFactory#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#redirectingFactory#tearOff(core::int it) → mai2::ExtensionType /* = core::int */
   return mai2::ExtensionType|constructor#(it);
-static inline-class-member method ExtensionType|instanceMethod(lowered final mai2::ExtensionType /* = core::int */ #this) → core::int
+static extension-type-member method ExtensionType|instanceMethod(lowered final mai2::ExtensionType /* = core::int */ #this) → core::int
   return #this as{Unchecked} core::int;
-static inline-class-member method ExtensionType|get#instanceMethod(lowered final mai2::ExtensionType /* = core::int */ #this) → () → core::int
+static extension-type-member method ExtensionType|get#instanceMethod(lowered final mai2::ExtensionType /* = core::int */ #this) → () → core::int
   return () → core::int => mai2::ExtensionType|instanceMethod(#this);
-static inline-class-member method ExtensionType|+(lowered final mai2::ExtensionType /* = core::int */ #this, core::int i) → core::int
+static extension-type-member method ExtensionType|+(lowered final mai2::ExtensionType /* = core::int */ #this, core::int i) → core::int
   return (#this as{Unchecked} core::int).{core::num::+}(i){(core::num) → core::int};
-static inline-class-member method ExtensionType|get#instanceGetter(lowered final mai2::ExtensionType /* = core::int */ #this) → core::int
+static extension-type-member method ExtensionType|get#instanceGetter(lowered final mai2::ExtensionType /* = core::int */ #this) → core::int
   return #this as{Unchecked} core::int;
-static inline-class-member method ExtensionType|set#instanceSetter(lowered final mai2::ExtensionType /* = core::int */ #this, core::int value) → void {}
-static inline-class-member method ExtensionType|staticMethod() → core::int
+static extension-type-member method ExtensionType|set#instanceSetter(lowered final mai2::ExtensionType /* = core::int */ #this, core::int value) → void {}
+static extension-type-member method ExtensionType|staticMethod() → core::int
   return 87;
-static inline-class-member get ExtensionType|staticGetter() → core::int
+static extension-type-member get ExtensionType|staticGetter() → core::int
   return mai2::ExtensionType|staticField;
-static inline-class-member set ExtensionType|staticSetter(core::int value) → void {
+static extension-type-member set ExtensionType|staticSetter(core::int value) → void {
   mai2::ExtensionType|staticField = value;
 }
 

@@ -496,7 +496,7 @@ class InvalidAnnotationTargetTest extends PubPackageResolutionTest {
     writeTestPackageConfigWithMeta();
   }
 
-  // todo(pq): add tests for topLevelVariables:
+  // TODO(pq): add tests for topLevelVariables:
   // https://dart-review.googlesource.com/c/sdk/+/200301
   void test_classType_class() async {
     await assertNoErrorsInCode('''

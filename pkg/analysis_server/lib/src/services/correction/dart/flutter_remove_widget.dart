@@ -18,7 +18,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.FLUTTER_REMOVE_WIDGET;
 
-  /// todo(pq): find out why overlapping edits are not being applied (and enable)
+  // TODO(pq): find out why overlapping edits are not being applied (and enable)
   @override
   bool get canBeAppliedInBulk => false;
 

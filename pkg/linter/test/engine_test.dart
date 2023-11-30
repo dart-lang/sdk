@@ -2,21 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analyzer/dart/ast/ast.dart' show AstNode, AstVisitor;
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/lint/io.dart';
-import 'package:analyzer/src/lint/linter.dart' hide CamelCaseString;
+import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/string_source.dart' show StringSource;
-import 'package:linter/src/cli.dart' as cli;
 import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
 
-import 'mocks.dart';
 import 'util/test_utils.dart';
 
 void main() {
@@ -83,9 +78,10 @@ void defineLinterEngineTests() {
 
     group('lint driver', () {
       test('pubspec', () {
-        bool? visited;
-        var options = LinterOptions([MockLinter((n) => visited = true)]);
-        SourceLinter(options).lintPubspecSource(contents: 'name: foo_bar');
+        var visited = false;
+        var options =
+            LinterOptions(enabledRules: [MockLinter((n) => visited = true)]);
+        DartLinter(options).lintPubspecSource(contents: 'name: foo_bar');
         expect(visited, isTrue);
       });
       test('error collecting', () {
@@ -94,32 +90,9 @@ void defineLinterEngineTests() {
             offset: 0,
             length: 0,
             errorCode: LintCode('MockLint', 'This is a test...'));
-        var linter = SourceLinter(LinterOptions([]))..onError(error);
+        var linter = DartLinter(LinterOptions(enabledRules: []))
+          ..onError(error);
         expect(linter.errors.contains(error), isTrue);
-      });
-    });
-
-    group('main', () {
-      setUp(() {
-        exitCode = 0;
-        errorSink = MockIOSink();
-      });
-      tearDown(() {
-        exitCode = 0;
-        errorSink = stderr;
-      });
-      test('no args', () async {
-        await cli.run([]);
-        expect(exitCode, cli.unableToProcessExitCode);
-      });
-      test('help', () async {
-        await cli.run(['-h']);
-        // Help shouldn't generate an error code
-        expect(cli.isLinterErrorCode(exitCode), isFalse);
-      });
-      test('unknown arg', () async {
-        await cli.run(['-XXXXX']);
-        expect(exitCode, cli.unableToProcessExitCode);
       });
     });
 

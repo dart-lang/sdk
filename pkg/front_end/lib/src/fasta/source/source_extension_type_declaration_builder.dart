@@ -39,7 +39,10 @@ import 'source_member_builder.dart';
 
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
-    with SourceDeclarationBuilderMixin, ClassDeclarationMixin
+    with
+        SourceDeclarationBuilderMixin,
+        ClassDeclarationMixin,
+        SourceTypedDeclarationBuilderMixin
     implements
         Comparable<SourceExtensionTypeDeclarationBuilder>,
         ClassDeclaration {
@@ -47,7 +50,6 @@ class SourceExtensionTypeDeclarationBuilder
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
   final ExtensionTypeDeclaration _extensionTypeDeclaration;
-  bool _builtRepresentationTypeAndName = false;
 
   SourceExtensionTypeDeclarationBuilder? _origin;
   SourceExtensionTypeDeclarationBuilder? patchForTesting;
@@ -255,25 +257,12 @@ class SourceExtensionTypeDeclarationBuilder
       }
     }
 
-    buildRepresentationTypeAndName();
-    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
-
-    return _extensionTypeDeclaration;
-  }
-
-  @override
-  void buildRepresentationTypeAndName() {
-    // We cut the potential infinite recursion here. The cyclic dependencies
-    // should be reported elsewhere.
-    if (_builtRepresentationTypeAndName) return;
-    _builtRepresentationTypeAndName = true;
-
     DartType representationType;
     String representationName;
     if (representationFieldBuilder != null) {
       TypeBuilder typeBuilder = representationFieldBuilder!.type;
       if (typeBuilder.isExplicit) {
-        if (_checkRepresentationDependency(typeBuilder, {this}, {})) {
+        if (_checkRepresentationDependency(typeBuilder, this, {this}, {})) {
           representationType = const InvalidType();
         } else {
           representationType =
@@ -312,10 +301,15 @@ class SourceExtensionTypeDeclarationBuilder
     }
     _extensionTypeDeclaration.declaredRepresentationType = representationType;
     _extensionTypeDeclaration.representationName = representationName;
+    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
+    checkConstructorStaticConflict();
+
+    return _extensionTypeDeclaration;
   }
 
   bool _checkRepresentationDependency(
       TypeBuilder? typeBuilder,
+      ExtensionTypeDeclarationBuilder rootExtensionTypeDeclaration,
       Set<ExtensionTypeDeclarationBuilder> seenExtensionTypeDeclarations,
       Set<TypeAliasBuilder> usedTypeAliasBuilders) {
     TypeBuilder? unaliased = typeBuilder?.unalias(
@@ -329,7 +323,9 @@ class SourceExtensionTypeDeclarationBuilder
           typeArguments: List<TypeBuilder>? arguments
         ):
         if (declaration is ExtensionTypeDeclarationBuilder) {
-          if (!seenExtensionTypeDeclarations.add(declaration)) {
+          bool declarationSeenFirstTime =
+              seenExtensionTypeDeclarations.add(declaration);
+          if (declaration == rootExtensionTypeDeclaration) {
             List<LocatedMessage> context = [];
             for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
                 in seenExtensionTypeDeclarations) {
@@ -356,9 +352,10 @@ class SourceExtensionTypeDeclarationBuilder
           } else {
             TypeBuilder? representationTypeBuilder =
                 declaration.declaredRepresentationTypeBuilder;
-            if (representationTypeBuilder != null) {
+            if (declarationSeenFirstTime && representationTypeBuilder != null) {
               if (_checkRepresentationDependency(
                   representationTypeBuilder,
+                  rootExtensionTypeDeclaration,
                   seenExtensionTypeDeclarations.toSet(),
                   usedTypeAliasBuilders.toSet())) {
                 return true;
@@ -370,6 +367,7 @@ class SourceExtensionTypeDeclarationBuilder
           for (TypeBuilder typeArgument in arguments) {
             if (_checkRepresentationDependency(
                 typeArgument,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
@@ -383,6 +381,7 @@ class SourceExtensionTypeDeclarationBuilder
         ):
         if (_checkRepresentationDependency(
             returnType,
+            rootExtensionTypeDeclaration,
             seenExtensionTypeDeclarations.toSet(),
             usedTypeAliasBuilders.toSet())) {
           return true;
@@ -391,6 +390,7 @@ class SourceExtensionTypeDeclarationBuilder
           for (ParameterBuilder formal in formals) {
             if (_checkRepresentationDependency(
                 formal.type,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
@@ -402,6 +402,7 @@ class SourceExtensionTypeDeclarationBuilder
             TypeBuilder? bound = typeVariable.bound;
             if (_checkRepresentationDependency(
                 bound,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
@@ -416,6 +417,7 @@ class SourceExtensionTypeDeclarationBuilder
           for (RecordTypeFieldBuilder field in positionalFields) {
             if (_checkRepresentationDependency(
                 field.type,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
@@ -426,6 +428,7 @@ class SourceExtensionTypeDeclarationBuilder
           for (RecordTypeFieldBuilder field in namedFields) {
             if (_checkRepresentationDependency(
                 field.type,
+                rootExtensionTypeDeclaration,
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
@@ -443,6 +446,9 @@ class SourceExtensionTypeDeclarationBuilder
   void checkSupertypes(
       CoreTypes coreTypes, ClassHierarchyBuilder hierarchyBuilder) {
     if (interfaceBuilders != null) {
+      Map<TypeDeclarationBuilder, ({int count, int offset})>?
+          duplicationProblems;
+      Set<TypeDeclarationBuilder> implemented = {};
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         TypeBuilder typeBuilder = interfaceBuilders![i];
         DartType interface =
@@ -480,6 +486,41 @@ class SourceExtensionTypeDeclarationBuilder
                   typeBuilder.fileUri);
             }
           }
+        }
+
+        if (typeBuilder is NamedTypeBuilder) {
+          TypeDeclarationBuilder? typeDeclaration = typeBuilder.declaration;
+          if (typeDeclaration is TypeAliasBuilder) {
+            typeDeclaration =
+                typeDeclaration.unaliasDeclaration(typeBuilder.typeArguments);
+          }
+          if (typeDeclaration is ClassBuilder ||
+              typeDeclaration is ExtensionTypeDeclarationBuilder) {
+            if (!implemented.add(typeDeclaration!)) {
+              duplicationProblems ??= {};
+              switch (duplicationProblems[typeDeclaration]) {
+                case (:var count, :var offset):
+                  duplicationProblems[typeDeclaration] =
+                      (count: count + 1, offset: offset);
+                case null:
+                  duplicationProblems[typeDeclaration] = (
+                    count: 1,
+                    offset: typeBuilder.charOffset ?? TreeNode.noOffset
+                  );
+              }
+            }
+          }
+        }
+      }
+
+      if (duplicationProblems != null) {
+        for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
+            in duplicationProblems.entries) {
+          addProblem(
+              templateImplementsRepeated.withArguments(
+                  typeDeclaration.name, count),
+              offset,
+              noLength);
         }
       }
     }

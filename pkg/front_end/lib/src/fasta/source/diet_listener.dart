@@ -770,13 +770,20 @@ class DietListener extends StackListenerImpl {
       }
       builder = memberBuilder as SourceFunctionBuilder;
     }
-    buildFunctionBody(
-        createFunctionListener(builder),
-        beginParam,
-        metadata,
-        builder.isStatic
-            ? MemberKind.StaticMethod
-            : MemberKind.NonStaticMethod);
+    if (!(builder is SourceExtensionTypeConstructorBuilder &&
+        builder.isConst)) {
+      // TODO(johnniwinther): Ensure building of const extension type
+      //  constructor body. An error is reported by the parser but we skip
+      //  the body here to avoid overwriting the already lowering const
+      //  constructor.
+      buildFunctionBody(
+          createFunctionListener(builder),
+          beginParam,
+          metadata,
+          builder.isStatic
+              ? MemberKind.StaticMethod
+              : MemberKind.NonStaticMethod);
+    }
   }
 
   BodyBuilder createListener(BodyBuilderContext bodyBuilderContext,
@@ -1046,7 +1053,9 @@ class DietListener extends StackListenerImpl {
     }
     SourceFunctionBuilder builder =
         lookupConstructor(constructorName, charOffset) as SourceFunctionBuilder;
-    buildPrimaryConstructor(createFunctionListener(builder), formalsToken);
+    if (!builder.isConst) {
+      buildPrimaryConstructor(createFunctionListener(builder), formalsToken);
+    }
 
     // The current declaration is set in [beginClassOrMixinOrExtensionBody],
     // assuming that it is currently `null`, so we reset it here.

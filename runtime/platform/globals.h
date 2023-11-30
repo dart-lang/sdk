@@ -64,10 +64,10 @@
 #define UNICODE
 #endif
 
-#include <Rpc.h>
-#include <VersionHelpers.h>
 #include <intrin.h>
+#include <rpc.h>
 #include <shellapi.h>
+#include <versionhelpers.h>
 #include <windows.h>
 #include <winsock2.h>
 #endif  // defined(_WIN32)

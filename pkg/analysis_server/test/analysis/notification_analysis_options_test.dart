@@ -69,7 +69,7 @@ void f() {
     await waitForTasksFinished();
 
     // Verify options file.
-    // TODO(brianwilkerson) Implement options file analysis in the new driver.
+    // TODO(brianwilkerson): Implement options file analysis in the new driver.
 //    expect(optionsFileErrors, isNotNull);
 //    expect(optionsFileErrors, isEmpty);
 
@@ -94,7 +94,7 @@ void f() {
     await waitForTasksFinished();
 
     // Verify options file.
-    // TODO(brianwilkerson) Implement options file analysis in the new driver.
+    // TODO(brianwilkerson): Implement options file analysis in the new driver.
 //    expect(optionsFileErrors, isNotNull);
 //    expect(optionsFileErrors, isEmpty);
 
@@ -112,7 +112,7 @@ analyzer:
     await waitForTasksFinished();
 
     // Verify options file.
-    // TODO(brianwilkerson) Implement options file analysis in the new driver.
+    // TODO(brianwilkerson): Implement options file analysis in the new driver.
 //    expect(optionsFileErrors, isEmpty);
 
     // Verify test file.
@@ -156,7 +156,7 @@ linter:
 
     await waitForTasksFinished();
 
-    // TODO(brianwilkerson) Implement options file analysis in the new driver.
+    // TODO(brianwilkerson): Implement options file analysis in the new driver.
 //    expect(optionsFileErrors, hasLength(1));
 //    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.WARNING);
 //    expect(optionsFileErrors.first.type, AnalysisErrorType.STATIC_WARNING);
@@ -190,7 +190,7 @@ linter:
 
     await waitForTasksFinished();
 
-    // TODO(brianwilkerson) Implement options file analysis in the new driver.
+    // TODO(brianwilkerson): Implement options file analysis in the new driver.
 //    expect(optionsFileErrors, hasLength(1));
 //    expect(optionsFileErrors.first.severity, AnalysisErrorSeverity.ERROR);
 //    expect(optionsFileErrors.first.type, AnalysisErrorType.COMPILE_TIME_ERROR);

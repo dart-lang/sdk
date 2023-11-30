@@ -19,11 +19,11 @@ import self as mai;
 import "dart:core" as core;
 
 extension type ExtensionType(core::int i) {
-  abstract inline-class-member representation-field get i() → core::int;
+  abstract extension-type-member representation-field get i() → core::int;
   constructor • = mai::ExtensionType|constructor#;
   constructor tearoff • = mai::ExtensionType|constructor#_#new#tearOff;
 }
-static inline-class-member method ExtensionType|constructor#(core::int i) → mai::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#(core::int i) → mai::ExtensionType /* = core::int */
   ;
-static inline-class-member method ExtensionType|constructor#_#new#tearOff(core::int i) → mai::ExtensionType /* = core::int */
+static extension-type-member method ExtensionType|constructor#_#new#tearOff(core::int i) → mai::ExtensionType /* = core::int */
   return mai::ExtensionType|constructor#(i);

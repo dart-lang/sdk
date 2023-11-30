@@ -6446,6 +6446,57 @@ ASSEMBLER_TEST_RUN(RangeCheckWithTempReturnValue, test) {
   EXPECT_EQ(kMintCid, result);
 }
 
+// Tests that BranchLink only clobbers CODE_REG in JIT mode and does not
+// clobber any allocatable registers in AOT mode.
+ASSEMBLER_TEST_GENERATE(CallCodePreservesRegisters, assembler) {
+  const auto& do_nothing_just_return =
+      AssemblerTest::Generate("DoNothing", [](auto assembler) { __ ret(); });
+
+  EnterTestFrame(assembler);
+
+  const RegisterSet clobbered_regs(
+      kDartAvailableCpuRegs & ~(static_cast<RegList>(1) << RAX),
+      /*fpu_register_mask=*/0);
+  __ PushRegisters(clobbered_regs);
+
+  Label done;
+
+  const auto check_all_allocatable_registers_are_preserved_by_call = [&]() {
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      __ LoadImmediate(reg, static_cast<int32_t>(reg));
+    }
+    __ Call(do_nothing_just_return);
+    for (auto reg : RegisterRange(kDartAvailableCpuRegs)) {
+      // We expect CODE_REG to be clobbered in JIT mode.
+      if (!FLAG_precompiled_mode && reg == CODE_REG) continue;
+
+      Label ok;
+      __ CompareImmediate(reg, static_cast<int32_t>(reg));
+      __ j(EQUAL, &ok);
+      __ LoadImmediate(RAX, reg);
+      __ jmp(&done);
+      __ Bind(&ok);
+    }
+  };
+
+  check_all_allocatable_registers_are_preserved_by_call();
+
+  FLAG_precompiled_mode = true;
+  check_all_allocatable_registers_are_preserved_by_call();
+  FLAG_precompiled_mode = false;
+
+  __ LoadImmediate(RAX, 42);  // 42 is SUCCESS.
+  __ Bind(&done);
+  __ PopRegisters(clobbered_regs);
+  LeaveTestFrame(assembler);
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(CallCodePreservesRegisters, test) {
+  const intptr_t result = test->InvokeWithCodeAndThread<int64_t>();
+  EXPECT_EQ(42, result);
+}
+
 }  // namespace compiler
 }  // namespace dart
 

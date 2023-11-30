@@ -25,7 +25,7 @@ abstract class SimpleWorkspace extends Workspace {
 
   SimpleWorkspace(this.provider, this.packages, this.root);
 
-  /// TODO(scheglov) Finish switching to [packages].
+  // TODO(scheglov): Finish switching to [packages].
   Map<String, List<Folder>> get packageMap {
     var packageMap = <String, List<Folder>>{};
     for (var package in packages.packages) {

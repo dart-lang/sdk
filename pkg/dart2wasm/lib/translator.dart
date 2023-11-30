@@ -32,15 +32,13 @@ class TranslatorOptions {
   bool exportAll = false;
   bool importSharedMemory = false;
   bool inlining = true;
+  bool jsCompatibility = false;
   bool nameSection = true;
   bool omitTypeChecks = false;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
-  // If the default value for [useStringref] is changed, also update the
-  // `sdk/bin/dart2wasm` script.
-  bool useStringref = false;
-  bool jsCompatibility = false;
+  bool verifyTypeChecks = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int> watchPoints = [];

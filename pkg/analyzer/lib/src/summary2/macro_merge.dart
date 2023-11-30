@@ -118,7 +118,7 @@ class MacroElementsMerger {
       ...newElement.methods,
     ].toFixedList();
 
-    // TODO(scheglov) accessors, fields
+    // TODO(scheglov): accessors, fields
   }
 
   void _mergeUnitPropertyAccessors() {

@@ -452,7 +452,7 @@ class DuplicateDefinitionVerifier {
     );
 
     // Check for local static members conflicting with local instance members.
-    // TODO(scheglov) This code is duplicated for enums. But for classes it is
+    // TODO(scheglov): This code is duplicated for enums. But for classes it is
     // separated also into ErrorVerifier - where we check inherited.
     for (ClassMember member in members) {
       if (member is FieldDeclaration) {

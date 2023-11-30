@@ -93,7 +93,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
     if (redirectedConstructor != null) {
       var redirectedElement = redirectedConstructor.staticElement;
       if (redirectedElement != null) {
-        // TODO(scheglov) Only if not _isPubliclyAccessible
+        // TODO(scheglov): Only if not _isPubliclyAccessible
         _matchParameters(
           element.parameters,
           redirectedElement.parameters,
@@ -365,7 +365,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
       return;
     }
     // Ignore places where the element is not actually used.
-    // TODO(scheglov) Do we need 'parent' at all?
+    // TODO(scheglov): Do we need 'parent' at all?
     if (parent is NamedType) {
       if (element is InterfaceElement) {
         var enclosingVariableDeclaration = _enclosingVariableDeclaration;
@@ -422,7 +422,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
   /// Invokes [f] for corresponding positional and named parameters.
   /// Ignores parameters that don't have a corresponding pair.
-  /// TODO(scheglov) There might be a better place for this function.
+  // TODO(scheglov): There might be a better place for this function.
   static void _matchParameters(
     List<ParameterElement> firstList,
     List<ParameterElement> secondList,

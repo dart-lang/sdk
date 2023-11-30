@@ -1,14 +1,14 @@
 library #lib;
 import self as self;
 import "generated/foo.pb.dart" as pb;
-import "package:test_core/scaffolding.dart" as sca;
+import "package:test_core/src/scaffolding.dart" as sca;
 import "package:matcher/src/expect/expect.dart" as exp;
 import "dart:core" as core;
 
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";
 import "package:matcher/src/expect/expect.dart";
 import "package:test_api/hooks.dart";
-import "package:test_core/scaffolding.dart";
+import "package:test_core/src/scaffolding.dart";
 import "package:matcher/src/core_matchers.dart";
 import "package:matcher/src/description.dart";
 import "package:matcher/src/equals_matcher.dart";

@@ -37,20 +37,15 @@ class ServerDartFixPromptTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_trigger_afterInitialAnalysis() async {
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
     await pumpEventQueue(times: 5000);
     expect(promptManager.checksTriggered, 1);
   }
 
   Future<void> test_trigger_afterPackageConfigChange() async {
-    // Set up and let initial analysis complete.
-    await Future.wait([
-      waitForAnalysisComplete(),
-      initialize(),
-    ]);
+    await initialize();
+    await initialAnalysis;
     await pumpEventQueue(times: 5000);
     expect(promptManager.checksTriggered, 1);
 
@@ -94,9 +89,6 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     final notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
 
-    // Track diagnostics for the file to ensure we're analyzing the existing
-    // root.
-    final diagnosticsFuture = waitForDiagnostics(mainFileUri);
     newFile(mainFilePath, 'NotAClass a;');
 
     await initialize(
@@ -115,9 +107,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
       ]),
     );
 
-    final diagnostics = await diagnosticsFuture;
-    expect(diagnostics, hasLength(1));
-    expect(diagnostics!.single.code, 'undefined_class');
+    expect(diagnostics[mainFilePath]!.single.code, 'undefined_class');
   }
 
   Future<void> test_capturesLatency_afterStartup() async {

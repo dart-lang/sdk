@@ -520,6 +520,7 @@ List<DeclarationCode> _buildVariableAugmentations(
   List<DeclarationCode> augmentations = [];
   if (getter != null) {
     augmentations.add(new DeclarationCode.fromParts([
+      if (declaration is FieldDeclaration) '  ',
       'augment ',
       if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
       getter,
@@ -527,6 +528,7 @@ List<DeclarationCode> _buildVariableAugmentations(
   }
   if (setter != null) {
     augmentations.add(new DeclarationCode.fromParts([
+      if (declaration is FieldDeclaration) '  ',
       'augment ',
       if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
       setter,
@@ -535,6 +537,7 @@ List<DeclarationCode> _buildVariableAugmentations(
   if (initializer != null) {
     augmentations.add(new DeclarationCode.fromParts([
       if (initializerDocComments != null) initializerDocComments,
+      if (declaration is FieldDeclaration) '  ',
       'augment ',
       if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
       if (declaration.hasFinal) 'final ',
@@ -562,6 +565,7 @@ DeclarationCode _buildFunctionAugmentation(
 
   return new DeclarationCode.fromParts([
     if (docComments != null) docComments,
+    if (declaration is MethodDeclaration) '  ',
     'augment ',
     if (declaration is ConstructorDeclaration) ...[
       declaration.definingType.name,

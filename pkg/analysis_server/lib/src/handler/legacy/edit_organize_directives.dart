@@ -20,7 +20,7 @@ class EditOrganizeDirectivesHandler extends LegacyHandler {
 
   @override
   Future<void> handle() async {
-    // TODO(brianwilkerson) Move analytics tracking out of [handleRequest].
+    // TODO(brianwilkerson): Move analytics tracking out of [handleRequest].
     unawaited(server.options.analytics?.sendEvent(
       'edit',
       'organizeDirectives',

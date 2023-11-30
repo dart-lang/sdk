@@ -14,6 +14,9 @@
 // While transitioning `HintCodes` to `WarningCodes`, we refer to deprecated
 // codes here.
 // ignore_for_file: deprecated_member_use_from_same_package
+//
+// Generated comments don't quite align with flutter style.
+// ignore_for_file: flutter_style_todos
 
 import "package:analyzer/error/error.dart";
 import "package:analyzer/src/dart/error/hint_codes.g.dart";
@@ -255,7 +258,9 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE',
     "The 'await' expression can't be used for an expression with an extension "
         "type that is not a subtype of 'Future'.",
-    correctionMessage: "Try updating the extension type to implement 'Future'.",
+    correctionMessage:
+        "Try removing the `await`, or updating the extension type to implement "
+        "'Future'.",
   );
 
   ///  Parameters:
@@ -309,6 +314,17 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try choosing a different name for the extension.",
     hasPublishedDocs: true,
     uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME',
+  );
+
+  ///  Parameters:
+  ///  0: the built-in identifier that is being used
+  static const CompileTimeErrorCode BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME =
+      CompileTimeErrorCode(
+    'BUILT_IN_IDENTIFIER_IN_DECLARATION',
+    "The built-in identifier '{0}' can't be used as an extension type name.",
+    correctionMessage: "Try choosing a different name for the extension type.",
+    hasPublishedDocs: true,
+    uniqueName: 'BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME',
   );
 
   ///  Parameters:
@@ -1359,19 +1375,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR =
+      CompileTimeErrorCode(
+    'ENUM_CONSTANT_INVOKES_FACTORY_CONSTRUCTOR',
+    "An enum constant can't invoke a factory constructor.",
+    correctionMessage: "Try using a generative constructor.",
+  );
+
   static const CompileTimeErrorCode ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING =
       CompileTimeErrorCode(
     'ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING',
     "The name of the enum constant can't be the same as the enum's name.",
     correctionMessage: "Try renaming the constant.",
-    hasPublishedDocs: true,
-  );
-
-  static const CompileTimeErrorCode ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR =
-      CompileTimeErrorCode(
-    'ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR',
-    "The invoked constructor isn't a 'const' constructor.",
-    correctionMessage: "Try invoking a 'const' generative constructor.",
     hasPublishedDocs: true,
   );
 
@@ -1659,8 +1674,8 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode
       EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION = CompileTimeErrorCode(
     'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
-    "Extension type constructors can't include superinitializers.",
-    correctionMessage: "Try removing the superconstructor invocation.",
+    "Extension type constructors can't include super initializers.",
+    correctionMessage: "Try removing the super constructor invocation.",
   );
 
   ///  No parameters.
@@ -2661,7 +2676,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The constructor returns type '{0}' that isn't of expected type '{1}'.",
   );
 
-  ///  TODO(brianwilkerson) Remove this when we have decided on how to report
+  ///  TODO(brianwilkerson): Remove this when we have decided on how to report
   ///  errors in compile-time constants. Until then, this acts as a placeholder
   ///  for more informative errors.
   ///
@@ -2985,16 +3000,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'LIST_ELEMENT_TYPE_NOT_ASSIGNABLE',
     "The element type '{0}' can't be assigned to the list type '{1}'.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the message of the exception
-  ///  1: the stack trace
-  static const CompileTimeErrorCode MACRO_EXECUTION_EXCEPTION =
-      CompileTimeErrorCode(
-    'MACRO_EXECUTION_EXCEPTION',
-    "Exception during macro execution: {0}\n{1}",
-    correctionMessage: "Re-install the Dart or Flutter SDK.",
   );
 
   ///  No parameters.
@@ -4363,7 +4368,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
 
   ///  No parameters.
   ///
-  ///  TODO(scheglov) review this later, there are no explicit "it is a
+  ///  TODO(scheglov): review this later, there are no explicit "it is a
   ///  compile-time error" in specification. But it was added to the co19 and
   ///  there is same error for factories.
   ///
@@ -6878,32 +6883,6 @@ class WarningCode extends AnalyzerErrorCode {
         "argument '{1}'.",
     correctionMessage: "Try adding a non-null argument.",
     hasPublishedDocs: true,
-  );
-
-  ///  When the left operand of a binary expression uses '?.' operator, it can be
-  ///  `null`.
-  static const WarningCode NULL_AWARE_BEFORE_OPERATOR = WarningCode(
-    'NULL_AWARE_BEFORE_OPERATOR',
-    "The left operand uses '?.', so its value can be null.",
-  );
-
-  ///  A condition in a control flow statement could evaluate to `null` because it
-  ///  uses the null-aware '?.' operator.
-  static const WarningCode NULL_AWARE_IN_CONDITION = WarningCode(
-    'NULL_AWARE_IN_CONDITION',
-    "The value of the '?.' operator can be 'null', which isn't appropriate in "
-        "a condition.",
-    correctionMessage:
-        "Try replacing the '?.' with a '.', testing the left-hand side for "
-        "null if necessary.",
-  );
-
-  ///  A condition in operands of a logical operator could evaluate to `null`
-  ///  because it uses the null-aware '?.' operator.
-  static const WarningCode NULL_AWARE_IN_LOGICAL_OPERATOR = WarningCode(
-    'NULL_AWARE_IN_LOGICAL_OPERATOR',
-    "The value of the '?.' operator can be 'null', which isn't appropriate as "
-        "an operand of a logical operator.",
   );
 
   ///  No parameters.

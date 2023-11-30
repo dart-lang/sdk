@@ -56,10 +56,9 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
     final collector = NavigationCollectorImpl();
 
     final result = await server.getResolvedUnit(path);
-    final unit = result?.unit;
-    if (unit != null) {
+    if (result != null) {
       computeDartNavigation(
-          server.resourceProvider, collector, unit, offset, 0);
+          server.resourceProvider, collector, result, offset, 0);
       if (supportsLocationLink) {
         await _updateTargetsWithCodeLocations(collector);
       }

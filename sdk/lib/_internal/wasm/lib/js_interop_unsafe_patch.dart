@@ -28,28 +28,25 @@ extension JSObjectUnsafeUtilExtension on JSObject {
       '(o, p, v) => o[p] = v',
       toExternRef,
       property.toExternRef,
-      value?.toExternRef);
+      value.toExternRef);
 
-  // TODO(joshualitt): Consider specializing variadic functions.
   @patch
   JSAny? _callMethod(JSAny method,
           [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) =>
       _box<JSAny?>(callMethodVarArgsRaw(
           toExternRef,
           method.toExternRef,
-          arg1 == null
-              ? null
-              : [
-                  arg1,
-                  if (arg2 != null) arg2,
-                  if (arg3 != null) arg3,
-                  if (arg4 != null) arg4,
-                ].toExternRef));
+          [
+            if (arg1 != null) arg1,
+            if (arg2 != null) arg2,
+            if (arg3 != null) arg3,
+            if (arg4 != null) arg4,
+          ].toExternRef));
 
   @patch
   JSAny? _callMethodVarArgs(JSAny method, [List<JSAny?>? arguments]) =>
-      _box<JSAny?>(callMethodVarArgsRaw(
-          toExternRef, method.toExternRef, arguments?.toExternRef));
+      _box<JSAny?>(callMethodVarArgsRaw(toExternRef, method.toExternRef,
+          (arguments ?? <JSAny?>[]).toExternRef));
 
   @patch
   JSBoolean delete(JSAny property) => _box<JSBoolean>(JS<WasmExternRef?>(
@@ -63,17 +60,15 @@ extension JSFunctionUnsafeUtilExtension on JSFunction {
           [JSAny? arg1, JSAny? arg2, JSAny? arg3, JSAny? arg4]) =>
       _box<JSObject>(callConstructorVarArgsRaw(
           toExternRef,
-          arg1 == null
-              ? null
-              : [
-                  arg1,
-                  if (arg2 != null) arg2,
-                  if (arg3 != null) arg3,
-                  if (arg4 != null) arg4,
-                ].toExternRef));
+          [
+            if (arg1 != null) arg1,
+            if (arg2 != null) arg2,
+            if (arg3 != null) arg3,
+            if (arg4 != null) arg4,
+          ].toExternRef));
 
   @patch
   JSObject _callAsConstructorVarArgs([List<JSAny?>? arguments]) =>
-      _box<JSObject>(
-          callConstructorVarArgsRaw(toExternRef, arguments?.toExternRef));
+      _box<JSObject>(callConstructorVarArgsRaw(
+          toExternRef, (arguments ?? <JSAny?>[]).toExternRef));
 }

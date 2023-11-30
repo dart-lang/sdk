@@ -191,7 +191,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
       final typeSystem = request.libraryElement.typeSystem;
       final contextType = request.contextType;
       if (contextType is InterfaceType) {
-        // TODO(scheglov) This looks not ideal - we should suggest getters.
+        // TODO(scheglov): This looks not ideal - we should suggest getters.
         for (final field in element.fields) {
           if (field.isStatic &&
               field.isAccessibleIn(request.libraryElement) &&

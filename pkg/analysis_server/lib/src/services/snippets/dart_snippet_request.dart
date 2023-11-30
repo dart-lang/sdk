@@ -68,6 +68,13 @@ class DartSnippetRequest {
 
     AstNode? node = target.containingNode;
     while (node != null) {
+      // For return statements, containingNode could be the return statement
+      // and not the expression. If the target is after the end of the return
+      // keyword, assume expression.
+      if (node is ReturnStatement && target.offset > node.returnKeyword.end) {
+        return SnippetContext.inExpression;
+      }
+
       if (node is Comment) {
         return SnippetContext.inComment;
       }

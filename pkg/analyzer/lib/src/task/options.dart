@@ -5,12 +5,13 @@
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/apply_options.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
@@ -658,7 +659,7 @@ class LanguageOptionValidator extends OptionsValidator {
 }
 
 /// Validates `linter` top-level options.
-/// TODO(pq): move into `linter` package and plugin.
+// TODO(pq): move into `linter` package and plugin.
 class LinterOptionsValidator extends TopLevelOptionValidator {
   LinterOptionsValidator() : super('linter', const ['rules']);
 }
@@ -928,7 +929,7 @@ class TopLevelOptionValidator extends OptionsValidator {
                 [pluginName, k.valueOrThrow, _valueProposal]);
           }
         }
-        //TODO(pq): consider an error if the node is not a Scalar.
+        // TODO(pq): consider an error if the node is not a Scalar.
       });
     }
     // TODO(srawlins): Report non-Map with

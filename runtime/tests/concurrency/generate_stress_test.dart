@@ -10,18 +10,14 @@ import 'package:path/path.dart' as path;
 
 final thisDirectory = path.join('runtime', 'tests', 'concurrency');
 final stressTestListJson = path.join(thisDirectory, 'stress_test_list.json');
-final generatedTest = path.join(thisDirectory, 'generated_stress_test.dart');
-final generatedNnbdTest =
-    path.join(path.join(thisDirectory, 'generated_stress_test_nnbd.dart'));
+final generatedTest =
+    path.join(path.join(thisDirectory, 'generated_stress_test.dart'));
 
-final Map testMap = json.decode(File(stressTestListJson).readAsStringSync());
-final testFiles = testMap['non-nnbd'].cast<String>();
-final testFilesNnbd = testMap['nnbd'].cast<String>();
+final List<String> testFiles =
+    List<String>.from(json.decode(File(stressTestListJson).readAsStringSync()));
 final dart = 'tools/sdks/dart-sdk/bin/dart';
 
 main(List<String> args) async {
-  File(generatedNnbdTest)
-      .writeAsStringSync(await generateStressTest(testFilesNnbd));
   File(generatedTest).writeAsStringSync(await generateStressTest(testFiles));
 }
 

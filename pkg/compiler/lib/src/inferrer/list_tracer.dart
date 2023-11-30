@@ -14,7 +14,8 @@ import 'type_graph_nodes.dart';
 /// A set of selector names that [List] implements, that we know do not
 /// change the element type of the list, or let the list escape to code
 /// that might change the element type.
-Set<String> okListSelectorsSet = Set<String>.from(const <String>[
+Set<String> elementTypePreservingSelectorNames =
+    Set<String>.from(const <String>[
   // From Object.
   '==',
   'hashCode',
@@ -43,8 +44,6 @@ Set<String> okListSelectorsSet = Set<String>.from(const <String>[
   'takeWhile',
   'skip',
   'skipWhile',
-  'first',
-  'last',
   'single',
   'firstWhere',
   'lastWhere',
@@ -53,7 +52,7 @@ Set<String> okListSelectorsSet = Set<String>.from(const <String>[
 
   // From List.
   '[]',
-  'length',
+  'length', // set:length is almost safe and handled specially
   'reversed',
   'sort',
   'indexOf',
@@ -74,7 +73,7 @@ Set<String> okListSelectorsSet = Set<String>.from(const <String>[
   'checkGrowable',
 ]);
 
-Set<String> doNotChangeLengthSelectorsSet = Set<String>.from(const <String>[
+Set<String> lengthPreservingSelectorNames = Set<String>.from(const <String>[
   // From Object.
   '==',
   'hashCode',
@@ -96,7 +95,6 @@ Set<String> doNotChangeLengthSelectorsSet = Set<String>.from(const <String>[
   'any',
   'toList',
   'toSet',
-  'length',
   'isEmpty',
   'isNotEmpty',
   'take',
@@ -114,7 +112,6 @@ Set<String> doNotChangeLengthSelectorsSet = Set<String>.from(const <String>[
   // From List.
   '[]',
   '[]=',
-  'length',
   'reversed',
   'sort',
   'indexOf',
@@ -182,34 +179,40 @@ class ListTracerVisitor extends TracerVisitor {
     String selectorName = selector.name;
     final arguments = info.arguments;
     if (currentUser == info.receiver) {
-      if (!okListSelectorsSet.contains(selectorName)) {
-        if (selector.isCall) {
-          int positionalLength = arguments!.positional.length;
-          if (selectorName == 'add') {
-            if (positionalLength == 1) {
+      if (!elementTypePreservingSelectorNames.contains(selectorName)) {
+        if (selectorName == 'add' && selector.isCall) {
+          if (arguments!.positional.length == 1) {
+            inputs.add(arguments.positional[0]);
+          }
+        } else if (selectorName == 'insert' && selector.isCall) {
+          if (arguments!.positional.length == 2) {
+            inputs.add(arguments.positional[1]);
+          }
+        } else if (selectorName == 'first' || selectorName == 'last') {
+          if (selector.isSetter) {
+            if (arguments!.positional.length == 1) {
               inputs.add(arguments.positional[0]);
             }
-          } else if (selectorName == 'insert') {
-            if (positionalLength == 2) {
-              inputs.add(arguments.positional[1]);
-            }
-          } else {
-            bailout('Used in a not-ok selector');
-            return;
           }
+          // 'first' and 'last' getter are safe.
         } else if (selector.isIndexSet) {
           inputs.add(arguments!.positional[1]);
-        } else if (!selector.isIndex) {
+        } else if (selector.isIndex) {
+          // Index lookup is safe.
+        } else {
           bailout('Used in a not-ok selector');
           return;
         }
       }
-      if (!doNotChangeLengthSelectorsSet.contains(selectorName)) {
-        callsGrowableMethod = true;
-      }
-      if (selectorName == 'length' && selector.isSetter) {
-        callsGrowableMethod = true;
-        inputs.add(inferrer.types.nullType);
+      if (!lengthPreservingSelectorNames.contains(selectorName)) {
+        if (selectorName == 'length') {
+          if (selector.isSetter) {
+            callsGrowableMethod = true;
+            inputs.add(inferrer.types.nullType);
+          }
+        } else {
+          callsGrowableMethod = true;
+        }
       }
     } else if (selector.isCall &&
         (info.hasClosureCallTargets || dynamicCallTargetsNonFunction(info))) {

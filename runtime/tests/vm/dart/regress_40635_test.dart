@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // Tests that a basic test still works when instructions are deduplicated.
-// Test body comes from tests/corelib_2/apply2_test.dart, which is one of the
+// Test body comes from tests/corelib/apply2_test.dart, which is one of the
 // tests that were failing when --dedup-instructions was broken in bare payload
 // mode (precompiled + bare instructions).
 //

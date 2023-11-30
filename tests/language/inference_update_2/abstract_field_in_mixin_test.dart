@@ -5,6 +5,14 @@
 // Tests that field promotion logic properly handles promotable abstract fields
 // declared in mixins.
 
+// In this test, there is no concrete implementation of the field in
+// question. As such, it doesn't really reflect the way an abstract private
+// field would be used in real-world code, but it's useful for making sure that
+// an unimplemented abstract private field doesn't cause the analyzer or front
+// end to misbehave. For another test in which there *is* a concrete
+// implementation of the field, see
+// `abstract_field_in_mixin_implemented_test.dart`.
+
 // This test exercises both syntactic forms of creating mixin applications
 // (`class C = B with M;` and `class C extends B with M {}`), since these are
 // represented differently in the analyzer.

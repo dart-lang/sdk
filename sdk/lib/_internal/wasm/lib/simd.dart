@@ -4,13 +4,14 @@
 
 library dart._simd;
 
-import 'dart:_internal' show FixedLengthListMixin, unsafeCast;
+import 'dart:_internal'
+    show FixedLengthListMixin, unsafeCast, IterableElementError;
 
 import 'dart:collection' show ListMixin;
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-final class NaiveInt32x4List extends Object
+final class NaiveInt32x4List
     with ListMixin<Int32x4>, FixedLengthListMixin<Int32x4>
     implements Int32x4List {
   final Int32List _storage;
@@ -73,6 +74,29 @@ final class NaiveInt32x4List extends Object
     return NaiveInt32x4List.externalStorage(
         _storage.sublist(start * 4, stop * 4));
   }
+
+  void setRange(int start, int end, Iterable<Int32x4> from,
+      [int skipCount = 0]) {
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+    }
+    if (skipCount < 0) {
+      throw RangeError.range(skipCount, 0, null, "skipCount");
+    }
+
+    final count = end - start;
+    if (count == 0) return;
+
+    final List<Int32x4> fromList = from.skip(skipCount).toList(growable: false);
+
+    if (fromList.length < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    for (int i = start; i < end; i += 1) {
+      this[i] = fromList[i - start];
+    }
+  }
 }
 
 final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List
@@ -92,7 +116,7 @@ final class NaiveUnmodifiableInt32x4List extends NaiveInt32x4List
   ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
 }
 
-final class NaiveFloat32x4List extends Object
+final class NaiveFloat32x4List
     with ListMixin<Float32x4>, FixedLengthListMixin<Float32x4>
     implements Float32x4List {
   final Float32List _storage;
@@ -155,6 +179,30 @@ final class NaiveFloat32x4List extends Object
     return NaiveFloat32x4List.externalStorage(
         _storage.sublist(start * 4, stop * 4));
   }
+
+  void setRange(int start, int end, Iterable<Float32x4> from,
+      [int skipCount = 0]) {
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+    }
+    if (skipCount < 0) {
+      throw RangeError.range(skipCount, 0, null, "skipCount");
+    }
+
+    final count = end - start;
+    if (count == 0) return;
+
+    final List<Float32x4> fromList =
+        from.skip(skipCount).toList(growable: false);
+
+    if (fromList.length < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    for (int i = start; i < end; i += 1) {
+      this[i] = fromList[i - start];
+    }
+  }
 }
 
 final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List
@@ -174,7 +222,7 @@ final class NaiveUnmodifiableFloat32x4List extends NaiveFloat32x4List
   ByteBuffer get buffer => UnmodifiableByteBufferView(super.buffer);
 }
 
-final class NaiveFloat64x2List extends Object
+final class NaiveFloat64x2List
     with ListMixin<Float64x2>, FixedLengthListMixin<Float64x2>
     implements Float64x2List {
   final Float64List _storage;
@@ -230,6 +278,30 @@ final class NaiveFloat64x2List extends Object
     int stop = RangeError.checkValidRange(start, end, length);
     return NaiveFloat64x2List.externalStorage(
         _storage.sublist(start * 2, stop * 2));
+  }
+
+  void setRange(int start, int end, Iterable<Float64x2> from,
+      [int skipCount = 0]) {
+    if (0 > start || start > end || end > length) {
+      RangeError.checkValidRange(start, end, length); // Always throws.
+    }
+    if (skipCount < 0) {
+      throw RangeError.range(skipCount, 0, null, "skipCount");
+    }
+
+    final count = end - start;
+    if (count == 0) return;
+
+    final List<Float64x2> fromList =
+        from.skip(skipCount).toList(growable: false);
+
+    if (fromList.length < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    for (int i = start; i < end; i += 1) {
+      this[i] = fromList[i - start];
+    }
   }
 }
 

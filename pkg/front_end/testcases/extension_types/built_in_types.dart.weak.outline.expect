@@ -1,0 +1,75 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends core::Object implements self::A {
+  synthetic constructor •() → self::B
+    ;
+  @core::override
+  get hashCode() → self::IntET /* = core::int */
+    ;
+  @core::override
+  get runtimeType() → self::TypeET /* = core::Type */
+    ;
+  @core::override
+  operator ==(core::Object? other) → self::BoolET /* = core::bool */
+    ;
+}
+extension type ET1(self::B b) implements self::A {
+  abstract extension-type-member representation-field get b() → self::B;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+}
+extension type ET2(self::B b) implements self::ET1 /* = self::B */, self::B {
+  abstract extension-type-member representation-field get b() → self::B;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+extension type IntET(core::int i) implements core::int {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::IntET|constructor#;
+  constructor tearoff • = self::IntET|constructor#_#new#tearOff;
+}
+extension type TypeET(core::Type t) implements core::Type {
+  abstract extension-type-member representation-field get t() → core::Type;
+  constructor • = self::TypeET|constructor#;
+  constructor tearoff • = self::TypeET|constructor#_#new#tearOff;
+}
+extension type BoolET(core::bool b) implements core::bool {
+  abstract extension-type-member representation-field get b() → core::bool;
+  constructor • = self::BoolET|constructor#;
+  constructor tearoff • = self::BoolET|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(self::B b) → self::ET1 /* = self::B */
+  ;
+static extension-type-member method ET1|constructor#_#new#tearOff(self::B b) → self::ET1 /* = self::B */
+  return self::ET1|constructor#(b);
+static extension-type-member method ET2|constructor#(self::B b) → self::ET2 /* = self::B */
+  ;
+static extension-type-member method ET2|constructor#_#new#tearOff(self::B b) → self::ET2 /* = self::B */
+  return self::ET2|constructor#(b);
+static extension-type-member method IntET|constructor#(core::int i) → self::IntET /* = core::int */
+  ;
+static extension-type-member method IntET|constructor#_#new#tearOff(core::int i) → self::IntET /* = core::int */
+  return self::IntET|constructor#(i);
+static extension-type-member method TypeET|constructor#(core::Type t) → self::TypeET /* = core::Type */
+  ;
+static extension-type-member method TypeET|constructor#_#new#tearOff(core::Type t) → self::TypeET /* = core::Type */
+  return self::TypeET|constructor#(t);
+static extension-type-member method BoolET|constructor#(core::bool b) → self::BoolET /* = core::bool */
+  ;
+static extension-type-member method BoolET|constructor#_#new#tearOff(core::bool b) → self::BoolET /* = core::bool */
+  return self::BoolET|constructor#(b);
+static method test() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///built_in_types.dart:12:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///built_in_types.dart:15:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///built_in_types.dart:18:4 -> InstanceConstant(const _Override{})
+Extra constant evaluation: evaluated: 13, effectively constant: 3

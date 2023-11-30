@@ -32,7 +32,6 @@ import 'package:analysis_server/src/services/correction/dart/add_null_check.dart
 import 'package:analysis_server/src/services/correction/dart/add_override.dart';
 import 'package:analysis_server/src/services/correction/dart/add_redeclare.dart';
 import 'package:analysis_server/src/services/correction/dart/add_reopen.dart';
-import 'package:analysis_server/src/services/correction/dart/add_required.dart';
 import 'package:analysis_server/src/services/correction/dart/add_required_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_null.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
@@ -63,6 +62,7 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_cascade.
 import 'package:analysis_server/src/services/correction/dart/convert_to_constant_pattern.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_contains.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_expression_function_body.dart';
+import 'package:analysis_server/src/services/correction/dart/convert_to_flutter_style_todo.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_function_declaration.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_generic_function_syntax.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
@@ -229,7 +229,6 @@ import 'package:analysis_server/src/services/correction/dart/use_eq_eq_null.dart
 import 'package:analysis_server/src/services/correction/dart/use_is_not_empty.dart';
 import 'package:analysis_server/src/services/correction/dart/use_not_eq_null.dart';
 import 'package:analysis_server/src/services/correction/dart/use_rethrow.dart';
-import 'package:analysis_server/src/services/correction/dart/wrap_in_future.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_text.dart';
 import 'package:analysis_server/src/services/correction/dart/wrap_in_unawaited.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
@@ -373,7 +372,7 @@ class FixInFileProcessor {
         return fixState;
       }
 
-      // todo (pq): consider discarding the change if the producer's fixKind
+      // TODO(pq): consider discarding the change if the producer's fixKind
       // doesn't match a previously cached one.
       return _NotEmptyFixState(
         builder: localBuilder,
@@ -391,7 +390,7 @@ class FixInFileProcessor {
     if (errorCode is LintCode) {
       return FixProcessor.lintProducerMap[errorCode.uniqueLintName] ?? [];
     } else {
-      // todo (pq): consider support for multiGenerators
+      // TODO(pq): consider support for multiGenerators
       return FixProcessor.nonLintProducerMap[errorCode] ?? [];
     }
   }
@@ -434,9 +433,6 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.always_put_required_named_parameters_first: [
       MakeRequiredNamedParametersFirst.new,
-    ],
-    LintNames.always_require_non_null_named_parameters: [
-      AddRequired.new,
     ],
     LintNames.always_specify_types: [
       AddTypeAnnotation.bulkFixable,
@@ -490,16 +486,11 @@ class FixProcessor extends BaseProcessor {
     LintNames.avoid_return_types_on_setters: [
       RemoveTypeAnnotation.other,
     ],
-    LintNames.avoid_returning_null_for_future: [
-      // TODO(brianwilkerson) Consider applying in bulk.
-      AddAsync.new,
-      WrapInFuture.new,
-    ],
     LintNames.avoid_returning_null_for_void: [
       RemoveReturnedValue.new,
     ],
     LintNames.avoid_single_cascade_in_expression_statements: [
-      // TODO(brianwilkerson) This fix should be applied to some non-lint
+      // TODO(brianwilkerson): This fix should be applied to some non-lint
       //  diagnostics and should also be available as an assist.
       ReplaceCascadeWithDot.new,
     ],
@@ -565,6 +556,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.exhaustive_cases: [
       AddMissingEnumLikeCaseClauses.new,
+    ],
+    LintNames.flutter_style_todos: [
+      ConvertToFlutterStyleTodo.new,
     ],
     LintNames.hash_and_equals: [
       CreateMethod.equalsOrHashCode,
@@ -982,7 +976,7 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.UNDEFINED_SETTER: [
       DataDriven.new,
-      // TODO(brianwilkerson) Support ImportLibrary for non-extension members.
+      // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
       ImportLibrary.forExtensionMember,
     ],
     CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS: [
@@ -1422,14 +1416,14 @@ class FixProcessor extends BaseProcessor {
       CreateSetter.new,
     ],
     CompileTimeErrorCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER: [
-      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
+      // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
       //  method or setter. The existing _addFix methods would need to be
       //  updated so that only the appropriate subset is generated.
       QualifyReference.new,
     ],
     CompileTimeErrorCode
         .UNQUALIFIED_REFERENCE_TO_STATIC_MEMBER_OF_EXTENDED_TYPE: [
-      // TODO(brianwilkerson) Consider adding fixes to create a field, getter,
+      // TODO(brianwilkerson): Consider adding fixes to create a field, getter,
       //  method or setter. The existing producers would need to be updated so
       //  that only the appropriate subset is generated.
       QualifyReference.new,
@@ -1455,9 +1449,6 @@ class FixProcessor extends BaseProcessor {
     ],
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
       RemoveNameFromDeclarationClause.new,
-    ],
-    HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
-      ReplaceWithNullAware.inChain,
     ],
     HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
       ReplaceColonWithEquals.new,
@@ -1555,12 +1546,12 @@ class FixProcessor extends BaseProcessor {
       RemoveDeadCode.new,
     ],
     WarningCode.DEAD_CODE_CATCH_FOLLOWING_CATCH: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      // TODO(brianwilkerson): Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
       RemoveDeadCode.new,
     ],
     WarningCode.DEAD_CODE_ON_CATCH_SUBTYPE: [
-      // TODO(brianwilkerson) Add a fix to move the unreachable catch clause to
+      // TODO(brianwilkerson): Add a fix to move the unreachable catch clause to
       //  a place where it can be reached (when possible).
       RemoveDeadCode.new,
     ],

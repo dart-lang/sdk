@@ -10,8 +10,8 @@ extension type ExtensionType4(int it) {
   int get getter => it;
   void set setter(int value) {}
   int method() => it;
-  int operator[](int index) => it;
-  void operator[]=(int index, int value) {}
+  int operator [](int index) => it;
+  void operator []=(int index, int value) {}
   static int staticField = 42;
   static int get staticGetter => 42;
   static void set staticSetter(int value) {}

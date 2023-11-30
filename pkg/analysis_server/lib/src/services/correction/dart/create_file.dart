@@ -21,11 +21,11 @@ class CreateFile extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    // TODO(brianwilkerson) Generalize this to allow other valid string literals.
+    // TODO(brianwilkerson): Generalize this to allow other valid string literals.
     if (node is SimpleStringLiteral) {
       var parent = node.parent;
       if (parent is NamespaceDirective) {
-        // TODO(brianwilkerson) Support the case where the node's parent is a
+        // TODO(brianwilkerson): Support the case where the node's parent is a
         //  Configuration.
         var source = parent.referencedSource;
         if (source != null) {

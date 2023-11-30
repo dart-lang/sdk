@@ -69,6 +69,15 @@ def Main():
                 output_file.write(".const\n")
             output_file.write("public %s\n" % options.symbol_name)
             output_file.write("%s label byte\n" % options.symbol_name)
+        elif options.target_os in ["win_gnu"]:
+            # Cross compilation from Linux to Windows.
+            if options.executable:
+                output_file.write(".text\n")
+            else:
+                output_file.write(".section .rodata\n")
+            output_file.write(".global %s\n" % options.symbol_name)
+            output_file.write(".balign 32\n")
+            output_file.write("%s:\n" % options.symbol_name)
         else:
             if options.executable:
                 output_file.write(".text\n")
@@ -97,7 +106,7 @@ def Main():
                 if incbin:
                     output_file.write(".incbin \"%s\"\n" % options.input)
 
-        if options.target_os not in ["mac", "ios", "win"]:
+        if options.target_os not in ["mac", "ios", "win", "win_gnu"]:
             output_file.write(".size {0}, .-{0}\n".format(options.symbol_name))
 
         if options.size_symbol_name:

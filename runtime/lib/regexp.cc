@@ -147,6 +147,19 @@ static ObjectPtr ExecuteMatch(Zone* zone,
   GET_NON_NULL_NATIVE_ARGUMENT(String, subject, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));
 
+  // Both generated code and the interpreter are using 32-bit registers and
+  // 32-bit backtracking stack so they can't work with strings which are
+  // larger than that. Validate these assumptions before running the regexp.
+  if (!Utils::IsInt(32, subject.Length())) {
+    Exceptions::ThrowRangeError("length",
+                                Integer::Handle(Integer::New(subject.Length())),
+                                0, kMaxInt32);
+  }
+  if (!Utils::IsInt(32, start_index.Value())) {
+    Exceptions::ThrowRangeError("start_index", Integer::Cast(start_index),
+                                kMinInt32, kMaxInt32);
+  }
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   if (!FLAG_interpret_irregexp) {
     return IRRegExpMacroAssembler::Execute(regexp, subject, start_index,

@@ -508,7 +508,7 @@ class InheritanceManager3 {
       superImplemented.add(implemented);
     }
 
-    // TODO(scheglov) Handling of members for super and mixins is not
+    // TODO(scheglov): Handling of members for super and mixins is not
     // optimal. We always have just one member for each name in super,
     // multiple candidates happen only when we merge super and multiple
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
@@ -651,8 +651,8 @@ class InheritanceManager3 {
       }
     }
 
-    /// TODO(scheglov) Instead of merging conflicts we could report them on
-    /// the corresponding mixins applied in the class.
+    // TODO(scheglov): Instead of merging conflicts we could report them on
+    // the corresponding mixins applied in the class.
     for (var mixinConflicts in mixinsConflicts) {
       if (mixinConflicts.isNotEmpty) {
         conflicts.addAll(mixinConflicts);
@@ -689,6 +689,21 @@ class InheritanceManager3 {
     final declared = <Name, ExecutableElement>{};
     _addImplemented(declared, element, augmented);
 
+    // Prepare precluded names.
+    final precludedNames = <Name>{};
+    final precludedMethods = <Name>{};
+    final precludedSetters = <Name>{};
+    for (final entry in declared.entries) {
+      final name = entry.key;
+      precludedNames.add(name);
+      switch (entry.value) {
+        case MethodElement():
+          precludedSetters.add(name.forSetter);
+        case PropertyAccessorElement(isSetter: true):
+          precludedMethods.add(name.forGetter);
+      }
+    }
+
     // These declared members take precedence over "inherited" ones.
     final implemented = Map.of(declared);
 
@@ -717,8 +732,8 @@ class InheritanceManager3 {
       final candidates = entry.value;
       (redeclared[name] ??= []).addAll(candidates);
 
-      // Stop if redeclared.
-      if (implemented.containsKey(name)) {
+      // Stop if precluded.
+      if (precludedNames.contains(name)) {
         continue;
       }
 
@@ -746,16 +761,29 @@ class InheritanceManager3 {
         }
       }
 
-      if (uniqueElement != null) {
-        implemented[name] = uniqueElement;
-      } else {
+      if (uniqueElement == null) {
         conflicts.add(
           NotUniqueExtensionMemberConflict(
             name: name,
             candidates: candidates,
           ),
         );
+        continue;
       }
+
+      // Stop if precluded.
+      switch (uniqueElement) {
+        case MethodElement():
+          if (precludedMethods.contains(name)) {
+            continue;
+          }
+        case PropertyAccessorElement(isSetter: true):
+          if (precludedSetters.contains(name)) {
+            continue;
+          }
+      }
+
+      implemented[name] = uniqueElement;
     }
 
     // Add non-extension type members.
@@ -764,8 +792,8 @@ class InheritanceManager3 {
       final candidates = entry.value;
       (redeclared[name] ??= []).addAll(candidates);
 
-      // Stop if redeclared.
-      if (implemented.containsKey(name)) {
+      // Stop if precluded.
+      if (precludedNames.contains(name)) {
         continue;
       }
 
@@ -782,16 +810,29 @@ class InheritanceManager3 {
         name: name,
       );
 
-      if (combinedSignature != null) {
-        implemented[name] = combinedSignature;
-      } else {
+      if (combinedSignature == null) {
         conflicts.add(
           CandidatesConflict(
             name: name,
             candidates: candidates,
           ),
         );
+        continue;
       }
+
+      // Stop if precluded.
+      switch (combinedSignature) {
+        case MethodElement():
+          if (precludedMethods.contains(name)) {
+            continue;
+          }
+        case PropertyAccessorElement(isSetter: true):
+          if (precludedSetters.contains(name)) {
+            continue;
+          }
+      }
+
+      implemented[name] = combinedSignature;
     }
 
     // Ensure unique overridden elements.
@@ -1182,6 +1223,15 @@ class Name {
   }
 
   Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
+
+  Name get forGetter {
+    if (name.endsWith('=')) {
+      final getterName = name.substring(0, name.length - 1);
+      return Name(libraryUri, getterName);
+    } else {
+      return this;
+    }
+  }
 
   Name get forSetter {
     return Name(libraryUri, '$name=');

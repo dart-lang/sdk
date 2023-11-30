@@ -77,6 +77,9 @@ class ClientDynamicRegistrations {
       _capabilities.textDocument?.documentHighlight?.dynamicRegistration ??
       false;
 
+  bool get documentLink =>
+      _capabilities.textDocument?.documentLink?.dynamicRegistration ?? false;
+
   bool get documentSymbol =>
       _capabilities.textDocument?.documentSymbol?.dynamicRegistration ?? false;
 
@@ -170,6 +173,7 @@ class ServerCapabilitiesComputer {
       hoverProvider: features.hover.staticRegistration,
       signatureHelpProvider: features.signatureHelp.staticRegistration,
       definitionProvider: features.definition.staticRegistration,
+      documentLinkProvider: features.documentLink.staticRegistration,
       implementationProvider: features.implementation.staticRegistration,
       referencesProvider: features.references.staticRegistration,
       documentHighlightProvider: features.documentHighlight.staticRegistration,

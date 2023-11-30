@@ -202,7 +202,7 @@ class _MatchImplementation implements RegExpMatch {
   String? namedGroup(String name) {
     JSObject? groups = _match.groups;
     if (groups.isDefinedAndNotNull) {
-      Object? result = dartifyRaw(groups![name]?.toExternRef);
+      Object? result = dartifyRaw(groups![name].toExternRef);
       if (result != null ||
           hasPropertyRaw(groups.toExternRef, name.toExternRef)) {
         return result?.toString();

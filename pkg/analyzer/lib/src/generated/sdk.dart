@@ -6,7 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/source/source.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// A Dart SDK installed in a specified location.
@@ -349,7 +349,7 @@ class SdkLibraryImpl implements SdkLibrary {
   bool get isImplementation => _implementation;
 
   @override
-  bool get isInternal => category == "Internal";
+  bool get isInternal => shortName.startsWith('dart:_');
 
   @override
   bool get isShared => category == "Shared";

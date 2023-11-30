@@ -174,7 +174,7 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   bool get dumpAstOnFailures => true;
 
-  List<String> get experiments => ['inline-class', 'macros'];
+  List<String> get experiments => ['macros'];
 
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';

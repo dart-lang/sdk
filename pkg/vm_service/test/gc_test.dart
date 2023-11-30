@@ -9,20 +9,20 @@ import 'package:vm_service/vm_service.dart';
 import 'common/test_helper.dart';
 
 void script() {
-  var grow;
-  grow = (int iterations, int size, Duration duration) {
+  void grow(int iterations, int size, Duration duration) {
     if (iterations <= 0) {
       return;
     }
     List<int>.filled(size, 0);
     Timer(duration, () => grow(iterations - 1, size, duration));
-  };
-  grow(100, 1 << 24, new Duration(seconds: 1));
+  }
+
+  grow(100, 1 << 24, Duration(seconds: 1));
 }
 
 final tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
-    Completer completer = Completer();
+    final Completer completer = Completer();
     // Expect at least this many GC events.
     int gcCountdown = 3;
     late final StreamSubscription sub;

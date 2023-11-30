@@ -65,24 +65,27 @@ class JSValue {
   WasmExternRef? get toExternRef => _ref;
 }
 
-extension DoubleToJS on double {
-  WasmExternRef get toExternRef => toJSNumber(this)!;
+extension DoubleToExternRef on double? {
+  WasmExternRef? get toExternRef =>
+      this == null ? WasmExternRef.nullRef : toJSNumber(this!);
 }
 
-extension StringToJS on String {
-  WasmExternRef get toExternRef => jsStringFromDartString(this)!;
+extension StringToExternRef on String? {
+  WasmExternRef? get toExternRef =>
+      this == null ? WasmExternRef.nullRef : jsStringFromDartString(this!);
 }
 
-extension ListOfObjectToJS on List<Object?> {
-  WasmExternRef get toExternRef => jsArrayFromDartList(this)!;
+extension ListOfObjectToExternRef on List<Object?>? {
+  WasmExternRef? get toExternRef =>
+      this == null ? WasmExternRef.nullRef : jsArrayFromDartList(this!);
 }
 
-extension ObjectToJS on Object {
-  WasmExternRef get toExternRef => jsObjectFromDartObject(this);
+extension JSValueToExternRef on JSValue? {
+  WasmExternRef? get toExternRef => JSValue.unbox(this);
 }
 
-extension JSAnyToExtern on JSAny {
-  WasmExternRef? get toExternRef => (this as JSValue).toExternRef;
+extension JSAnyToExternRef on JSAny? {
+  WasmExternRef? get toExternRef => JSValue.unbox(this as JSValue?);
 }
 
 // For `dartify` and `jsify`, we match the conflation of `JSUndefined`, `JSNull`
@@ -116,7 +119,7 @@ class JSArrayIteratorAdapter<T> implements Iterator<T> {
   }
 
   @override
-  T get current => dartifyRaw(array[index.toJS]?.toExternRef) as T;
+  T get current => dartifyRaw(array[index.toJS].toExternRef) as T;
 }
 
 /// [JSArrayIterableAdapter] lazily adapts a [JSArray] to Dart's [Iterable]
@@ -358,23 +361,23 @@ WasmExternRef? jsifyRaw(Object? object) {
   } else if (object is String) {
     return jsStringFromDartString(object);
   } else if (object is js_types.JSInt8ArrayImpl) {
-    return object.toExternRef;
+    return object.toJSArrayExternRef();
   } else if (object is js_types.JSUint8ArrayImpl) {
-    return object.toExternRef;
+    return object.toJSArrayExternRef();
   } else if (object is js_types.JSUint8ClampedArrayImpl) {
-    return object.toExternRef;
+    return object.toJSArrayExternRef();
   } else if (object is js_types.JSInt16ArrayImpl) {
-    return object.toExternRef;
+    return object.toJSArrayExternRef();
   } else if (object is js_types.JSUint16ArrayImpl) {
-    return object.toExternRef;
+    return object.toJSArrayExternRef();
   } else if (object is js_types.JSInt32ArrayImpl) {
-    return object.toExternRef;
+    return object.toJSArrayExternRef();
   } else if (object is js_types.JSUint32ArrayImpl) {
-    return object.toExternRef;
+    return object.toJSArrayExternRef();
   } else if (object is js_types.JSFloat32ArrayImpl) {
-    return object.toExternRef;
+    return object.toJSArrayExternRef();
   } else if (object is js_types.JSFloat64ArrayImpl) {
-    return object.toExternRef;
+    return object.toJSArrayExternRef();
   } else if (object is Int8List) {
     return jsInt8ArrayFromDartInt8List(object);
   } else if (object is Uint8List) {
@@ -422,27 +425,27 @@ Object? dartifyRaw(WasmExternRef? ref) {
   } else if (isJSString(ref)) {
     return js_types.JSStringImpl.box(ref);
   } else if (isJSInt8Array(ref)) {
-    return js_types.JSInt8ArrayImpl(ref);
+    return js_types.JSInt8ArrayImpl.fromJSArray(ref);
   } else if (isJSUint8Array(ref)) {
-    return js_types.JSUint8ArrayImpl(ref);
+    return js_types.JSUint8ArrayImpl.fromJSArray(ref);
   } else if (isJSUint8ClampedArray(ref)) {
-    return js_types.JSUint8ClampedArrayImpl(ref);
+    return js_types.JSUint8ClampedArrayImpl.fromJSArray(ref);
   } else if (isJSInt16Array(ref)) {
-    return js_types.JSInt16ArrayImpl(ref);
+    return js_types.JSInt16ArrayImpl.fromJSArray(ref);
   } else if (isJSUint16Array(ref)) {
-    return js_types.JSUint16ArrayImpl(ref);
+    return js_types.JSUint16ArrayImpl.fromJSArray(ref);
   } else if (isJSInt32Array(ref)) {
-    return js_types.JSInt32ArrayImpl(ref);
+    return js_types.JSInt32ArrayImpl.fromJSArray(ref);
   } else if (isJSUint32Array(ref)) {
-    return js_types.JSUint32ArrayImpl(ref);
+    return js_types.JSUint32ArrayImpl.fromJSArray(ref);
   } else if (isJSFloat32Array(ref)) {
-    return js_types.JSFloat32ArrayImpl(ref);
+    return js_types.JSFloat32ArrayImpl.fromJSArray(ref);
   } else if (isJSFloat64Array(ref)) {
-    return js_types.JSFloat64ArrayImpl(ref);
+    return js_types.JSFloat64ArrayImpl.fromJSArray(ref);
   } else if (isJSArrayBuffer(ref)) {
-    return js_types.JSArrayBufferImpl(ref);
+    return js_types.JSArrayBufferImpl.fromRef(ref);
   } else if (isJSDataView(ref)) {
-    return js_types.JSDataViewImpl(ref);
+    return js_types.JSDataViewImpl.fromRef(ref);
   } else if (isJSArray(ref)) {
     return toDartList(ref);
   } else if (isJSWrappedDartFunction(ref)) {

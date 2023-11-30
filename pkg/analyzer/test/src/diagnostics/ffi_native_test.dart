@@ -24,10 +24,10 @@ import 'dart:ffi';
 base class NativeFieldWrapperClass1 {}
 
 base class Paragraph extends NativeFieldWrapperClass1 {
-  @FfiNative<Double Function(Pointer<Void>)>('Paragraph::ideographicBaseline', isLeaf: true)
+  @Native<Double Function(Pointer<Void>)>(symbol: 'Paragraph::ideographicBaseline', isLeaf: true)
   external double get ideographicBaseline;
 
-  @FfiNative<Void Function(Pointer<Void>, Double)>('Paragraph::ideographicBaseline', isLeaf: true)
+  @Native<Void Function(Pointer<Void>, Double)>(symbol: 'Paragraph::ideographicBaseline', isLeaf: true)
   external set ideographicBaseline(double d);
 }
 ''', []);
@@ -37,11 +37,11 @@ base class Paragraph extends NativeFieldWrapperClass1 {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-@FfiNative
+@Native
 external int foo();
 ''', [
-      error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 10),
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 30),
+      error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 7),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 27),
     ]);
   }
 
@@ -49,19 +49,17 @@ external int foo();
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 
-@FfiNative()
+@Native()
 external int foo();
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 32),
-      error(CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR,
-          31, 1),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 29),
     ]);
   }
 
   test_FfiNativeCanUseHandles() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<Handle Function(Handle)>('DoesntMatter')
+@Native<Handle Function(Handle)>(symbol: 'DoesntMatter')
 external Object doesntMatter(Object);
 ''', []);
   }
@@ -69,7 +67,7 @@ external Object doesntMatter(Object);
   test_FfiNativeCanUseLeaf() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<Int8 Function(Int64)>('DoesntMatter', isLeaf:true)
+@Native<Int8 Function(Int64)>(symbol: 'DoesntMatter', isLeaf:true)
 external int doesntMatter(int x);
 ''', []);
   }
@@ -78,59 +76,59 @@ external int doesntMatter(int x);
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 class K {
-  @FfiNative<Void Function(Double)>('DoesntMatter')
+  @Native<Void Function(Double)>(symbol: 'DoesntMatter')
   external void doesntMatter(double x);
 }
 ''', [
       error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER,
-          31, 89),
+          31, 94),
     ]);
   }
 
   test_FfiNativeLeafMustNotReturnHandle() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<Handle Function()>('DoesntMatter', isLeaf:true)
+@Native<Handle Function()>(symbol: 'DoesntMatter', isLeaf:true)
 external Object doesntMatter();
 ''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 19, 90),
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 19, 95),
     ]);
   }
 
   test_FfiNativeLeafMustNotTakeHandles() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<Void Function(Handle)>('DoesntMatter', isLeaf:true)
+@Native<Void Function(Handle)>(symbol: 'DoesntMatter', isLeaf:true)
 external void doesntMatter(Object o);
 ''', [
-      error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 19, 100),
+      error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 19, 105),
     ]);
   }
 
   test_FfiNativeNonFfiParameter() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<IntPtr Function(int)>('doesntmatter')
+@Native<IntPtr Function(int)>(symbol: 'doesntmatter')
 external int nonFfiParameter(int v);
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 19, 85),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 19, 90),
     ]);
   }
 
   test_FfiNativeNonFfiReturnType() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<double Function(IntPtr)>('doesntmatter')
+@Native<double Function(IntPtr)>(symbol: 'doesntmatter')
 external double nonFfiReturnType(int v);
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 19, 92),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 19, 97),
     ]);
   }
 
   test_FfiNativePointerParameter() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<Void Function(Pointer)>('free')
+@Native<Void Function(Pointer)>(symbol: 'free')
 external void posixFree(Pointer pointer);
 ''');
   }
@@ -138,50 +136,50 @@ external void posixFree(Pointer pointer);
   test_FfiNativeTooFewParameters() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<Void Function(Double)>('DoesntMatter')
+@Native<Void Function(Double)>(symbol: 'DoesntMatter')
 external void doesntMatter(double x, double y);
 ''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 19, 97),
+      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 19, 102),
     ]);
   }
 
   test_FfiNativeTooManyParameters() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<Void Function(Double, Double)>('DoesntMatter')
+@Native<Void Function(Double, Double)>(symbol: 'DoesntMatter')
 external void doesntMatter(double x);
 ''', [
-      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 19, 95),
+      error(FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS, 19, 100),
     ]);
   }
 
   test_FfiNativeVoidReturn() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<Handle Function(Uint32, Uint32, Handle)>('doesntmatter')
+@Native<Handle Function(Uint32, Uint32, Handle)>(symbol: 'doesntmatter')
 external void voidReturn(int width, int height, Object outImage);
 ''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 19, 133),
+      error(FfiCode.MUST_BE_A_SUBTYPE, 19, 138),
     ]);
   }
 
   test_FfiNativeWrongFfiParameter() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<IntPtr Function(Double)>('doesntmatter')
+@Native<IntPtr Function(Double)>(symbol: 'doesntmatter')
 external int wrongFfiParameter(int v);
 ''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 19, 90),
+      error(FfiCode.MUST_BE_A_SUBTYPE, 19, 95),
     ]);
   }
 
   test_FfiNativeWrongFfiReturnType() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
-@FfiNative<IntPtr Function(IntPtr)>('doesntmatter')
+@Native<IntPtr Function(IntPtr)>(symbol: 'doesntmatter')
 external double wrongFfiReturnType(int v);
 ''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 19, 94),
+      error(FfiCode.MUST_BE_A_SUBTYPE, 19, 99),
     ]);
   }
 }

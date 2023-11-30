@@ -800,6 +800,17 @@ main() {
 @reflectiveTest
 class ArgumentTypeNotAssignableWithStrictCastsTest
     extends PubPackageResolutionTest with WithStrictCastsMixin {
+  test_extensionTypePrimaryConstructor() async {
+    await assertErrorsWithStrictCasts('''
+extension type E(int i) {}
+
+dynamic a;
+var e = E(a);
+''', [
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 49, 1),
+    ]);
+  }
+
   test_functionCall() async {
     await assertErrorsWithStrictCasts('''
 void f(int i) {}

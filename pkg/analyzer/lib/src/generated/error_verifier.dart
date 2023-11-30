@@ -20,7 +20,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -48,7 +47,6 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
-import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
@@ -158,7 +156,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   late final InterfaceType _intType;
 
   /// The options for verification.
-  late final AnalysisOptionsImpl _options;
+  final AnalysisOptionsImpl _options;
 
   /// The object providing access to the types defined by the language.
   final TypeProvider _typeProvider;
@@ -244,7 +242,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Initialize a newly created error verifier.
   ErrorVerifier(this.errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.libraryVerificationContext)
+      this._inheritanceManager, this.libraryVerificationContext, this._options)
       : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
@@ -260,7 +258,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _isInConstructorInitializer = false;
     _intType = _typeProvider.intType;
     typeSystem = _currentLibrary.typeSystem;
-    _options = _currentLibrary.context.analysisOptions as AnalysisOptionsImpl;
     _typeArgumentsVerifier =
         TypeArgumentsVerifier(_options, _currentLibrary, errorReporter);
     _constructorFieldsVerifier = ConstructorFieldsVerifier(
@@ -471,10 +468,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
-      _reportMacroApplicationErrors(
-        annotations: node.metadata,
-        macroErrors: declarationElement.macroApplicationErrors,
-      );
+      // TODO(scheglov): Report macro diagnostics.
 
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
@@ -706,6 +700,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _enclosingClass = declarationElement;
 
+      _checkForBuiltInIdentifierAsName(node.name,
+          CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_TYPE_NAME);
+
       _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForRepeatedType(node.implementsClause?.interfaces,
           CompileTimeErrorCode.IMPLEMENTS_REPEATED);
@@ -876,6 +873,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitFunctionReference(FunctionReference node) {
     _typeArgumentsVerifier.checkFunctionReference(node);
+    super.visitFunctionReference(node);
   }
 
   @override
@@ -1050,7 +1048,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    // TODO(scheglov) Verify for all mixin errors.
+    // TODO(scheglov): Verify for all mixin errors.
     var outerClass = _enclosingClass;
     try {
       final element = node.declaredElement!;
@@ -1105,7 +1103,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitNativeClause(NativeClause node) {
-    // TODO(brianwilkerson) Figure out the right rule for when 'native' is
+    // TODO(brianwilkerson): Figure out the right rule for when 'native' is
     // allowed.
     if (!_isInSystemLibrary) {
       errorReporter.reportErrorForNode(
@@ -1708,7 +1706,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// [CompileTimeErrorCode.ASSIGNMENT_TO_FINAL], and
   /// [CompileTimeErrorCode.ASSIGNMENT_TO_METHOD].
   void _checkForAssignmentToFinal(Expression expression) {
-    // TODO(scheglov) Check SimpleIdentifier(s) as all other nodes.
+    // TODO(scheglov): Check SimpleIdentifier(s) as all other nodes.
     if (expression is! SimpleIdentifier) return;
 
     // Already handled in the assignment resolver.
@@ -2006,30 +2004,55 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (MethodElement method in enclosingClass.methods) {
       String name = method.name;
 
-      // find inherited property accessor
-      var inherited = _inheritanceManager.getInherited2(
+      // find inherited property accessors
+      final getter = _inheritanceManager.getInherited2(
           enclosingClass, Name(libraryUri, name));
-      inherited ??= _inheritanceManager.getInherited2(
+      final setter = _inheritanceManager.getInherited2(
           enclosingClass, Name(libraryUri, '$name='));
 
-      if (method.isStatic && inherited != null) {
-        errorReporter.reportErrorForElement(
-            CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, method, [
-          enclosingClass.displayName,
-          name,
-          inherited.enclosingElement.displayName,
-        ]);
-      } else if (inherited is PropertyAccessorElement) {
-        // Extension type methods redeclare getters with the same name.
-        if (enclosingClass is ExtensionTypeElement && inherited.isGetter) {
+      if (method.isStatic) {
+        void reportStaticConflict(ExecutableElement inherited) {
+          errorReporter.reportErrorForElement(
+              CompileTimeErrorCode.CONFLICTING_STATIC_AND_INSTANCE, method, [
+            enclosingClass.displayName,
+            name,
+            inherited.enclosingElement.displayName,
+          ]);
+        }
+
+        if (getter != null) {
+          reportStaticConflict(getter);
           continue;
         }
+
+        if (setter != null) {
+          reportStaticConflict(setter);
+          continue;
+        }
+      }
+
+      // Extension type methods preclude accessors.
+      if (enclosingClass is ExtensionTypeElement) {
+        continue;
+      }
+
+      void reportFieldConflict(PropertyAccessorElement inherited) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
           enclosingClass.displayName,
           name,
           inherited.enclosingElement.displayName
         ]);
+      }
+
+      if (getter is PropertyAccessorElement) {
+        reportFieldConflict(getter);
+        continue;
+      }
+
+      if (setter is PropertyAccessorElement) {
+        reportFieldConflict(setter);
+        continue;
       }
     }
 
@@ -2052,8 +2075,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         ]);
         conflictingDeclaredNames.add(name);
       } else if (inherited is MethodElement) {
-        // Extension type getters redeclare methods with the same name.
-        if (enclosingClass is ExtensionTypeElement && accessor.isGetter) {
+        // Extension type accessors preclude inherited accessors/methods.
+        if (enclosingClass is ExtensionTypeElement) {
           continue;
         }
         errorReporter.reportErrorForElement(
@@ -2645,7 +2668,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return false;
     }
 
-    // TODO(scheglov) use NullableDereferenceVerifier
+    // TODO(scheglov): use NullableDereferenceVerifier
     if (_isNonNullableByDefault) {
       if (typeSystem.isNullable(iterableType)) {
         return false;
@@ -2809,7 +2832,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     var element = node.element!;
-    // TODO(scheglov) Expose from ExportElement.
+    // TODO(scheglov): Expose from ExportElement.
     var namespace =
         NamespaceBuilder().createExportNamespaceForDirective(element);
 
@@ -2879,10 +2902,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Verify that the given [namedType] does not extend, implement or mixin
   /// classes such as 'num' or 'String'.
   ///
-  /// TODO(scheglov) Remove this method, when all inheritance / override
-  /// is concentrated. We keep it for now only because we need to know when
-  /// inheritance is completely wrong, so that we don't need to check anything
-  /// else.
+  // TODO(scheglov): Remove this method, when all inheritance / override
+  // is concentrated. We keep it for now only because we need to know when
+  // inheritance is completely wrong, so that we don't need to check anything
+  // else.
   bool _checkForExtendsOrImplementsDisallowedClass(
       NamedType namedType, ErrorCode errorCode) {
     if (namedType.isSynthetic) {
@@ -3705,7 +3728,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     List<DartType> typeArguments = (mapType as InterfaceTypeImpl).typeArguments;
     // It is possible for the number of type arguments to be inconsistent when
     // the literal is ambiguous and a non-map type was selected.
-    // TODO(brianwilkerson) Unify this and _checkForSetElementTypeNotAssignable3
+    // TODO(brianwilkerson): Unify this and _checkForSetElementTypeNotAssignable3
     //  to better handle recovery situations.
     if (typeArguments.length == 2) {
       DartType keyType = typeArguments[0];
@@ -3736,7 +3759,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    // TODO(brianwilkerson) This needs to be checked after constant values have
+    // TODO(brianwilkerson): This needs to be checked after constant values have
     // been computed.
     var expressionType = statement.expression.staticType;
 
@@ -4241,7 +4264,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return;
     }
 
-    /// TODO(srawlins): Add any tests showing this is reported.
+    // TODO(srawlins): Add any tests showing this is reported.
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
   }
@@ -4765,7 +4788,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     List<DartType> typeArguments = (setType as InterfaceTypeImpl).typeArguments;
     // It is possible for the number of type arguments to be inconsistent when
     // the literal is ambiguous and a non-set type was selected.
-    // TODO(brianwilkerson) Unify this and _checkForMapTypeNotAssignable3 to
+    // TODO(brianwilkerson): Unify this and _checkForMapTypeNotAssignable3 to
     //  better handle recovery situations.
     if (typeArguments.length == 1) {
       DartType setElementType = typeArguments[0];
@@ -4877,7 +4900,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           final boundNode = current.bound;
           if (boundNode is NamedType) {
             var boundType = boundNode.typeOrThrow;
-            boundType = boundType.representationTypeErasureOrSelf;
+            boundType = boundType.extensionTypeErasure;
             current = elementToNode[boundType.element];
           } else {
             current = null;
@@ -5227,8 +5250,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
 //        else {
-//        // TODO(jwren) Report error, constructor initializer variable is a top level element
-//        // (Either here or in ErrorVerifier.checkForAllFinalInitializedErrorCodes)
+// TODO(jwren): Report error, constructor initializer variable is a top level element
+// (Either here or in ErrorVerifier.checkForAllFinalInitializedErrorCodes)
 //        }
   }
 
@@ -5316,7 +5339,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForWrongTypeParameterVarianceInField(FieldDeclaration node) {
     if (_enclosingClass != null) {
       for (var typeParameter in _enclosingClass!.typeParameters) {
-        // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+        // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
         // variance is added to the interface.
         if (!(typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
           var fields = node.fields;
@@ -5345,7 +5368,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
 
     for (var typeParameter in _enclosingClass!.typeParameters) {
-      // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+      // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
       // variance is added to the interface.
       if ((typeParameter as TypeParameterElementImpl).isLegacyCovariant) {
         continue;
@@ -5395,7 +5418,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superInterface != null) {
         for (var typeParameter in _enclosingClass!.typeParameters) {
           var superVariance = Variance(typeParameter, superInterface);
-          // TODO (kallentu) : Clean up TypeParameterElementImpl casting once
+          // TODO(kallentu): : Clean up TypeParameterElementImpl casting once
           // variance is added to the interface.
           var typeParameterElementImpl =
               typeParameter as TypeParameterElementImpl;
@@ -5671,7 +5694,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Given an [expression] in a switch case whose value is expected to be an
   /// enum constant, return the name of the constant.
   String? _getConstantName(Expression expression) {
-    // TODO(brianwilkerson) Convert this to return the element representing the
+    // TODO(brianwilkerson): Convert this to return the element representing the
     // constant.
     if (expression is SimpleIdentifier) {
       return expression.name;
@@ -5829,30 +5852,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return parameter.parameter.name;
     }
     return null;
-  }
-
-  void _reportMacroApplicationErrors({
-    required List<Annotation> annotations,
-    required List<MacroApplicationError> macroErrors,
-  }) {
-    for (final macroError in macroErrors) {
-      if (macroError.annotationIndex < annotations.length) {
-        final applicationNode = annotations[macroError.annotationIndex];
-        if (macroError is UnknownMacroApplicationError) {
-          errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.MACRO_EXECUTION_EXCEPTION,
-            applicationNode,
-            [
-              macroError.message,
-              macroError.stackTrace,
-            ],
-          );
-        } else {
-          // TODO(scheglov) Other implementations.
-          throw UnimplementedError('(${macroError.runtimeType}) $macroError');
-        }
-      }
-    }
   }
 
   void _withEnclosingExecutable(

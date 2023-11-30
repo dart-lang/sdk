@@ -5,8 +5,6 @@
 // Verifies that compiler can propagate static types through record fields
 // and recognize int/double operations on record fields.
 
-// SharedOptions=--enable-experiment=records,patterns
-
 import 'package:vm/testing/il_matchers.dart';
 
 double d(int x) => x + double.parse('1.0');

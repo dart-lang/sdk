@@ -19,7 +19,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 /// The type builder for a [NamedType].
 class NamedTypeBuilder extends TypeBuilder {
-  /// TODO(scheglov) Replace with `DartType` in `TypeAliasElementImpl`.
+  // TODO(scheglov): Replace with `DartType` in `TypeAliasElementImpl`.
   static const _aliasedTypeKey = '_aliasedType';
   static DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
@@ -72,7 +72,7 @@ class NamedTypeBuilder extends TypeBuilder {
         node: node);
   }
 
-  /// TODO(scheglov) Only when enabled both in the element, and target?
+  // TODO(scheglov): Only when enabled both in the element, and target?
   bool get _isNonFunctionTypeAliasesEnabled {
     return element.library!.featureSet.isEnabled(
       Feature.nonfunction_type_aliases,

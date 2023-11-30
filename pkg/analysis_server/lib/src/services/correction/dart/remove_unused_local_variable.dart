@@ -272,7 +272,7 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   }
 
   SourceRange _forAssignmentExpression(AssignmentExpression node) {
-    // todo (pq): consider node.parent is! ExpressionStatement to handle
+    // TODO(pq): consider node.parent is! ExpressionStatement to handle
     // assignments in parens, etc.
     var parent = node.parent!;
     if (parent is ArgumentList) {

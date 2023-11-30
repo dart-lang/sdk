@@ -35,6 +35,9 @@ async/slow_consumer2_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_decode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_json_utf8_encode_test: SkipSlow # Times out. Issue 22050
 convert/streamed_conversion_utf8_decode_test: SkipSlow # Times out. Issue 22050
+html/canvasrendering/draw_image_video_element_test: SkipByDesign # Issue #53985: video is not played on Chrome inactive tabs
+html/request_animation_frame_test: SkipByDesign # Issue #53985: requestAnimationFrame is not executed on Chrome inactive tabs
+html/transition_event_test: SkipByDesign # Issue #53985: css transitions are not executed on Chrome inactive tabs
 
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 html/input_element_datetime_test: Slow, Pass # TODO(dart2js-team): Please triage this failure.

@@ -218,9 +218,9 @@ void _examine(
   print("Will now examine $prevRevision -> $revision.");
 
   print("Running with verbose GC.");
-  GCInfo gcPrev = _runVerboseGc(prevRevision, extraVmArguments);
-  GCInfo gcCurrent = _runVerboseGc(revision, extraVmArguments);
-  _printGcDiff(gcPrev, gcCurrent);
+  benchmarker.GCInfo gcPrev = _runVerboseGc(prevRevision, extraVmArguments);
+  benchmarker.GCInfo gcCurrent = _runVerboseGc(revision, extraVmArguments);
+  benchmarker.printGcDiff(gcPrev, gcCurrent);
 
   print("Running $iterations iterations for $prevRevision.");
   List<Map<String, num>> benchmarkDataFrom = [];
@@ -246,24 +246,6 @@ void _examine(
   }
 }
 
-void _printGcDiff(GCInfo prev, GCInfo current) {
-  Set<String> allKeys = {...prev.countWhat.keys, ...current.countWhat.keys};
-  bool printedAnything = false;
-  for (String key in allKeys) {
-    int prevValue = prev.countWhat[key] ?? 0;
-    int currentValue = current.countWhat[key] ?? 0;
-    if (prevValue == currentValue) continue;
-    printedAnything = true;
-    print("$key goes from $prevValue to $currentValue");
-  }
-  if (printedAnything) {
-    print("Notice combined GC time goes "
-        "from ${prev.combinedTime.toStringAsFixed(0)} ms "
-        "to ${current.combinedTime.toStringAsFixed(0)} ms "
-        "(notice only 1 run each).");
-  }
-}
-
 void _run(int iterations, String gitCommit, List<String> extraVmArguments,
     List<Map<String, num>> output) {
   for (int i = 0; i < iterations; i++) {
@@ -282,7 +264,8 @@ void _run(int iterations, String gitCommit, List<String> extraVmArguments,
   }
 }
 
-GCInfo _runVerboseGc(String gitCommit, List<String> extraVmArguments) {
+benchmarker.GCInfo _runVerboseGc(
+    String gitCommit, List<String> extraVmArguments) {
   ProcessResult processResult =
       Process.runSync("${sdkPath}bin/dartaotruntime", [
     "--deterministic",
@@ -300,27 +283,7 @@ GCInfo _runVerboseGc(String gitCommit, List<String> extraVmArguments) {
         "stderr:\n${processResult.stderr}\n\n";
   }
 
-  List<String> stderrLines = processResult.stderr.split("\n");
-  double combinedTime = 0;
-  Map<String, int> countWhat = {};
-  for (String line in stderrLines) {
-    if (!line.trim().startsWith("[")) continue;
-    if (line.indexOf(",") < 0) continue;
-    // Hardcoding this might not be the best solution, but works for now.
-    List<String> cells = line.split(",");
-    String spaceReason = cells[1].trim();
-    double time = double.parse(cells[4].trim());
-    combinedTime += time;
-    countWhat[spaceReason] = (countWhat[spaceReason] ?? 0) + 1;
-  }
-  return new GCInfo(combinedTime, countWhat);
-}
-
-class GCInfo {
-  final double combinedTime;
-  final Map<String, int> countWhat;
-
-  GCInfo(this.combinedTime, this.countWhat);
+  return benchmarker.parseVerboseGcOutput(processResult);
 }
 
 List<Map<String, num>> _filterToInstructions(List<Map<String, num>> input,

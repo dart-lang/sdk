@@ -10,7 +10,7 @@ import 'package:expect/expect.dart';
 
 import '../snapshot_test_helper.dart';
 import '../../../concurrency/generate_stress_test.dart'
-    show testFilesNnbd, generateStressTest;
+    show testFiles, generateStressTest;
 
 // The only purpose of the test is to ensure we can generate a isolate stress
 // test out of many normal dart tests (that are expected to be short-lived and
@@ -28,7 +28,7 @@ main() async {
     final stressTestDill = path.join(tempDir, 'stress_test.dill');
 
     // Generate stress test.
-    File(stressTest).writeAsStringSync(await generateStressTest(testFilesNnbd));
+    File(stressTest).writeAsStringSync(await generateStressTest(testFiles));
 
     final packageConfig =
         path.join(path.absolute('.'), '.dart_tool/package_config.json');

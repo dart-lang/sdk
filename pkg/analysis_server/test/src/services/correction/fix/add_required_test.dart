@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -11,66 +10,14 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AddRequiredBulkTest);
     defineReflectiveTests(AddRequiredTest);
-    defineReflectiveTests(AddRequiredWithNullSafetyTest);
   });
 }
 
 @reflectiveTest
-class AddRequiredBulkTest extends BulkFixProcessorTest {
-  @override
-  String get lintCode => LintNames.always_require_non_null_named_parameters;
-
-  @override
-  // Note that this lint does not fire w/ NNBD.
-  String? get testPackageLanguageVersion => '2.9';
-
-  Future<void> test_singleFile() async {
-    await resolveTestCode('''
-void function({String p1, int p2}) {
-  assert(p1 != null);
-  assert(p2 != null);
-}
-''');
-    await assertHasFix('''
-void function({@required String p1, @required int p2}) {
-  assert(p1 != null);
-  assert(p2 != null);
-}
-''');
-  }
-}
-
-@reflectiveTest
-class AddRequiredTest extends FixProcessorLintTest {
+class AddRequiredTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.ADD_REQUIRED;
-
-  @override
-  String get lintCode => LintNames.always_require_non_null_named_parameters;
-
-  @override
-  String? get testPackageLanguageVersion => '2.9';
-
-  Future<void> test_withAssert() async {
-    await resolveTestCode('''
-void function({String param}) {
-  assert(param != null);
-}
-''');
-    await assertHasFix('''
-void function({@required String param}) {
-  assert(param != null);
-}
-''');
-  }
-}
-
-@reflectiveTest
-class AddRequiredWithNullSafetyTest extends FixProcessorTest {
-  @override
-  FixKind get kind => DartFixKind.ADD_REQUIRED2;
 
   Future<void> test_nonNullable() async {
     await resolveTestCode('''

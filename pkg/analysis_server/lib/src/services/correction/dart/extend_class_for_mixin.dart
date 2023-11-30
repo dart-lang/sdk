@@ -26,7 +26,7 @@ class ExtendClassForMixin extends ResolvedCorrectionProducer {
 
     var declaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (declaration != null && declaration.extendsClause == null) {
-      // TODO(brianwilkerson) Find a way to pass in the name of the class
+      // TODO(brianwilkerson): Find a way to pass in the name of the class
       //  without needing to parse the message.
       var message = diagnostic.problemMessage.messageText(includeUrl: false);
       var endIndex = message.lastIndexOf("'");

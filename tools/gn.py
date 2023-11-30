@@ -178,14 +178,11 @@ def UseSysroot(args, gn_args):
     # Don't use the sysroot if we're given another sysroot.
     if TargetSysroot(args):
         return False
-    # Our Debian Jesse sysroot doesn't work with GCC 9
+    # Don't use the sysroot if we're given another toolchain.
     if not gn_args['is_clang']:
         return False
-    # Our Debian Jesse sysroot has incorrect annotations on realloc.
-    if gn_args['is_ubsan']:
-        return False
-    # Our Debian Jesse sysroot doesn't support RISCV
-    if gn_args['target_cpu'] in ['riscv32', 'riscv64']:
+    # Fuchsia's Linux sysroot doesn't support RISCV32
+    if gn_args['target_cpu'] in ['riscv32']:
         return False
     # Otherwise use the sysroot.
     return True
@@ -235,6 +232,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
             gn_args['arm_version'] = 7
             gn_args['arm_float_abi'] = floatabi
             gn_args['arm_use_neon'] = True
+    if gn_args['target_os'] == 'fuchsia':
+        gn_args['fuchsia_target_api_level'] = 15
 
     gn_args['is_debug'] = mode == 'debug'
     gn_args['is_release'] = mode == 'release'
@@ -332,6 +331,9 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         gn_args['debug_optimization_level'] = args.debug_opt_level
 
     gn_args['verify_sdk_hash'] = verify_sdk_hash
+
+    if args.codesigning_identity != '':
+        gn_args['codesigning_identity'] = args.codesigning_identity
 
     return gn_args
 
@@ -521,6 +523,10 @@ def AddCommonGnOptionArgs(parser):
                         default=False,
                         dest='use_mallinfo2',
                         action='store_true')
+    parser.add_argument('--codesigning-identity',
+                        help='Sign executables using the given identity.',
+                        default='',
+                        type=str)
 
 
 def AddCommonConfigurationArgs(parser):

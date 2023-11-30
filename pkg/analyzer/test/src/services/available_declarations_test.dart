@@ -292,7 +292,7 @@ enum E {v}
 @reflectiveTest
 class ChangeFileTest extends _Base {
   disabled_test_updated_library_parted() async {
-    // TODO(scheglov) Figure out why this fails on Windows.
+    // TODO(scheglov): Figure out why this fails on Windows.
     var a = convertPath('/home/test/lib/a.dart');
     var b = convertPath('/home/test/lib/b.dart');
 

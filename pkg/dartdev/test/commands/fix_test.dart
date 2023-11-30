@@ -105,6 +105,17 @@ ${result.stderr}
     });
   });
 
+  test('--enable-experiment is accepted', () async {
+    p = project(mainSrc: 'int get foo => 1;\n');
+
+    var result =
+        await p!.runFix(['--enable-experiment=test-experiment', '--apply']);
+
+    expect(result.stderr, isEmpty);
+    expect(result.exitCode, 0);
+    expect(result.stdout, contains('Nothing to fix!'));
+  });
+
   group('perform', () {
     test('--apply (nothing to fix)', () async {
       p = project(mainSrc: 'int get foo => 1;\n');

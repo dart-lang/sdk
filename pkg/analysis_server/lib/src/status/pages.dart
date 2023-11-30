@@ -33,7 +33,7 @@ abstract class Page {
     } else {
       buf.writeln('<div>');
     }
-    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // TODO(brianwilkerson): Determine if await is necessary, if so, change the
     // return type of [gen] to `Future<void>`.
     await (gen() as dynamic);
     buf.writeln('</div>');
@@ -59,7 +59,7 @@ abstract class Page {
 
   Future<String> generate(Map<String, String> params) async {
     buf.clear();
-    // TODO(brianwilkerson) Determine if await is necessary, if so, change the
+    // TODO(brianwilkerson): Determine if await is necessary, if so, change the
     // return type of [generatePage] to `Future<void>`.
     await (generatePage(params) as dynamic);
     return buf.toString();

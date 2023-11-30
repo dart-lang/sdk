@@ -16,8 +16,7 @@ class Dart2jsConstantEvaluator extends ir.TryConstantEvaluator {
       {Environment? environment,
       super.supportReevaluationForTesting,
       super.evaluationMode})
-      : assert((evaluationMode as dynamic) != null),
-        super(
+      : super(
           const Dart2jsDartLibrarySupport(),
           const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
           component,

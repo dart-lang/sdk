@@ -23,6 +23,7 @@ import 'diagnostic_test.dart' as diagnostic;
 import 'document_changes_test.dart' as document_changes;
 import 'document_color_test.dart' as document_color;
 import 'document_highlights_test.dart' as document_highlights;
+import 'document_link_test.dart' as document_link;
 import 'document_symbols_test.dart' as document_symbols;
 import 'file_modification_test.dart' as file_modification;
 import 'flutter_outline_test.dart' as flutter_outline;
@@ -73,6 +74,7 @@ void main() {
     document_changes.main();
     document_color.main();
     document_highlights.main();
+    document_link.main();
     document_symbols.main();
     file_modification.main();
     flutter_outline.main();

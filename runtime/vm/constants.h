@@ -103,6 +103,14 @@ static inline ScaleFactor ToScaleFactor(intptr_t index_scale,
   return static_cast<ScaleFactor>(shift);
 }
 
+// Helper for using register sets with range loops:
+//
+//   for (auto reg : RegisterRange(kDartAvailableCpuRegs)) { ... }
+//
+static inline Utils::BitsRange<Register> RegisterRange(uint32_t regs) {
+  return Utils::BitsRange<Register>(regs);
+}
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_CONSTANTS_H_

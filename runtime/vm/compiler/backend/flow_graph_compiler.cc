@@ -57,6 +57,10 @@ DEFINE_FLAG(int,
             2000,
             "The scale of invocation count, by size of the function.");
 DEFINE_FLAG(bool, source_lines, false, "Emit source line as assembly comment.");
+DEFINE_FLAG(bool,
+            force_indirect_calls,
+            false,
+            "Do not emit PC relative calls.");
 
 DECLARE_FLAG(charp, deoptimize_filter);
 DECLARE_FLAG(bool, intrinsify);
@@ -1842,6 +1846,10 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
         result_location = Location::FpuRegisterLocation(
             AllocateFreeFpuRegister(blocked_fpu_registers));
         break;
+      case Location::kRequiresStack:
+        // Only available in optimized mode.
+        ASSERT(!is_optimizing());
+        UNREACHABLE();
     }
     locs->set_out(0, result_location);
   }
@@ -3292,6 +3300,13 @@ void FlowGraphCompiler::EmitNativeMove(
   if (src_payload_type.IsInt() && dst_payload_type.IsInt() &&
       (src_payload_size != src_container_size ||
        dst_payload_size != dst_container_size)) {
+    if (source.IsStack() && src_container_size > src_payload_size) {
+      // Shrink loads since all loads are extending.
+      return EmitNativeMove(
+          destination,
+          source.WithOtherNativeType(zone_, src_payload_type, src_payload_type),
+          temp);
+    }
     if (src_payload_size <= dst_payload_size &&
         src_container_size >= dst_container_size) {
       // The upper bits of the source are already properly sign or zero
@@ -3361,32 +3376,6 @@ void FlowGraphCompiler::EmitNativeMove(
     return;
   }
 
-#if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)
-  // Arm does not support sign extending from a memory location, x86 does.
-  if (sign_or_zero_extend && source.IsStack()) {
-    ASSERT(destination.IsRegisters());
-    const auto& intermediate = destination.WithOtherNativeType(
-        zone_, src_payload_type, src_container_type);
-    EmitNativeMove(intermediate, source, temp);
-    EmitNativeMove(destination, intermediate, temp);
-    return;
-  }
-#endif
-
-  // If we're not sign extending, and we're moving 8 or 16 bits into a
-  // register, upgrade the move to take upper bits of garbage from the
-  // source location. This is the same as leaving the previous garbage in
-  // there.
-  //
-  // TODO(40210): If our assemblers would support moving 1 and 2 bytes into
-  // registers, this code can be removed.
-  if (!sign_or_zero_extend && destination.IsRegisters() &&
-      destination.container_type().SizeInBytes() <= 2) {
-    ASSERT(source.payload_type().IsInt());
-    return EmitNativeMove(destination.WidenTo4Bytes(zone_),
-                          source.WidenTo4Bytes(zone_), temp);
-  }
-
   // Do the simple architecture specific moves.
   EmitNativeMoveArchitecture(destination, source);
 }
@@ -3405,7 +3394,17 @@ void FlowGraphCompiler::EmitMoveToNative(
   } else {
     const auto& src =
         compiler::ffi::NativeLocation::FromLocation(zone_, src_loc, src_type);
-    EmitNativeMove(dst, src, temp);
+    // Deal with sign mismatch caused by lack of kUnboxedUint64 representation.
+    if (src_type == kUnboxedInt64 &&
+        dst.container_type().AsPrimitive().representation() ==
+            compiler::ffi::kUint64) {
+      EmitNativeMove(dst,
+                     src.WithOtherNativeType(zone_, dst.container_type(),
+                                             dst.container_type()),
+                     temp);
+    } else {
+      EmitNativeMove(dst, src, temp);
+    }
   }
 }
 
@@ -3421,25 +3420,97 @@ void FlowGraphCompiler::EmitMoveFromNative(
       EmitNativeMove(dest_split, src.Split(zone_, 2, i), temp);
     }
   } else {
-    const auto& dest =
+    const auto& dst =
         compiler::ffi::NativeLocation::FromLocation(zone_, dst_loc, dst_type);
-    EmitNativeMove(dest, src, temp);
+    // Deal with sign mismatch caused by lack of kUnboxedUint64 representation.
+    if (dst_type == kUnboxedInt64 &&
+        src.container_type().AsPrimitive().representation() ==
+            compiler::ffi::kUint64) {
+      EmitNativeMove(dst.WithOtherNativeType(zone_, src.container_type(),
+                                             src.container_type()),
+                     src, temp);
+    } else {
+      EmitNativeMove(dst, src, temp);
+    }
   }
 }
 
+void FlowGraphCompiler::EmitMoveConst(const compiler::ffi::NativeLocation& dst,
+                                      Location src,
+                                      Representation src_type,
+                                      TemporaryRegisterAllocator* temp) {
+  ASSERT(src.IsConstant() || src.IsPairLocation());
+  const auto& dst_type = dst.payload_type();
+  Register scratch = kNoRegister;
+  if (dst.IsExpressibleAsLocation() &&
+      dst_type.IsExpressibleAsRepresentation() &&
+      dst_type.AsRepresentationOverApprox(zone_) == src_type) {
+    // We can directly emit the const in the right place and representation.
+    const Location dst_loc = dst.AsLocation();
+    assembler()->Comment("dst.IsExpressibleAsLocation() %s",
+                         dst_loc.ToCString());
+    EmitMove(dst_loc, src, temp);
+  } else {
+    // We need an intermediate location.
+    Location intermediate;
+    if (dst_type.IsInt()) {
+      if (TMP == kNoRegister) {
+        scratch = temp->AllocateTemporary();
+        Location::RegisterLocation(scratch);
+      } else {
+        intermediate = Location::RegisterLocation(TMP);
+      }
+    } else {
+      ASSERT(dst_type.IsFloat());
+      intermediate = Location::FpuRegisterLocation(FpuTMP);
+    }
+    assembler()->Comment("constant using intermediate: %s",
+                         intermediate.ToCString());
+
+    if (src.IsPairLocation()) {
+      for (intptr_t i : {0, 1}) {
+        const Representation src_type_split =
+            compiler::ffi::NativeType::FromUnboxedRepresentation(zone_,
+                                                                 src_type)
+                .Split(zone_, i)
+                .AsRepresentation();
+        const auto& intermediate_native =
+            compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
+                                                        src_type_split);
+        EmitMove(intermediate, src.AsPairLocation()->At(i), temp);
+        EmitNativeMove(dst.Split(zone_, 2, i), intermediate_native, temp);
+      }
+    } else {
+      const auto& intermediate_native =
+          compiler::ffi::NativeLocation::FromLocation(zone_, intermediate,
+                                                      src_type);
+      EmitMove(intermediate, src, temp);
+      EmitNativeMove(dst, intermediate_native, temp);
+    }
+
+    if (scratch != kNoRegister) {
+      temp->ReleaseTemporary();
+    }
+  }
+  return;
+}
+
 bool FlowGraphCompiler::CanPcRelativeCall(const Function& target) const {
-  return FLAG_precompiled_mode && (LoadingUnit::LoadingUnitOf(function()) ==
-                                   LoadingUnit::LoadingUnitOf(target));
+  return FLAG_precompiled_mode && !FLAG_force_indirect_calls &&
+         (LoadingUnit::LoadingUnitOf(function()) ==
+          LoadingUnit::LoadingUnitOf(target));
 }
 
 bool FlowGraphCompiler::CanPcRelativeCall(const Code& target) const {
-  return FLAG_precompiled_mode && !target.InVMIsolateHeap() &&
+  return FLAG_precompiled_mode && !FLAG_force_indirect_calls &&
+         !target.InVMIsolateHeap() &&
          (LoadingUnit::LoadingUnitOf(function()) ==
           LoadingUnit::LoadingUnitOf(target));
 }
 
 bool FlowGraphCompiler::CanPcRelativeCall(const AbstractType& target) const {
-  return FLAG_precompiled_mode && !target.InVMIsolateHeap() &&
+  return FLAG_precompiled_mode && !FLAG_force_indirect_calls &&
+         !target.InVMIsolateHeap() &&
          (LoadingUnit::LoadingUnitOf(function()) ==
           LoadingUnit::LoadingUnit::kRootId);
 }

@@ -71,8 +71,8 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
   /// The lint is on the name of the class when there are no constructors.
   Future<void> _computeClassDeclaration(
       ChangeBuilder builder, ClassDeclaration node) async {
-    var targetLocation =
-        utils.prepareNewConstructorLocation(unitResult.session, node);
+    var targetLocation = utils.prepareNewConstructorLocation(
+        unitResult.session, node, unitResult.file);
     if (targetLocation == null) {
       return;
     }
@@ -183,7 +183,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
     if (constructor.factoryKeyword != null ||
         constructor.redirectedConstructor != null) {
       // Can't have a super constructor invocation.
-      // TODO(brianwilkerson) Consider extending the redirected constructor to
+      // TODO(brianwilkerson): Consider extending the redirected constructor to
       //  also take a key, or finding the constructor invocation in the body of
       //  the factory and updating it.
       return;

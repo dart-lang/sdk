@@ -13,6 +13,7 @@
 #include "vm/object_id_ring.h"
 #include "vm/os_thread.h"
 #include "vm/tagged_pointer.h"
+#include "vm/thread.h"
 
 namespace dart {
 
@@ -268,6 +269,11 @@ class Service : public AllStatic {
   static const uint8_t* dart_library_kernel_;
   static intptr_t dart_library_kernel_len_;
 };
+
+// Visible for testing.
+intptr_t ParseJSONArray(Thread* thread,
+                        const char* str,
+                        const GrowableObjectArray& elements);
 
 }  // namespace dart
 

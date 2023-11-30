@@ -120,10 +120,7 @@ class NativeType : public ZoneAllocated {
   virtual Representation AsRepresentation() const { UNREACHABLE_THIS(); }
 
   // Unboxed Representation, over approximates if needed.
-  Representation AsRepresentationOverApprox(Zone* zone_) const {
-    const auto& widened = WidenTo4Bytes(zone_);
-    return widened.AsRepresentation();
-  }
+  Representation AsRepresentationOverApprox(Zone* zone_) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME) && !defined(FFI_UNIT_TESTS)
 
   virtual bool Equals(const NativeType& other) const { UNREACHABLE_THIS(); }
@@ -175,6 +172,14 @@ enum PrimitiveType {
   kFloat,
   kDouble,
   kHalfDouble,  // When doubles are split over two 32 bit locations.
+  kInt24,
+  kUint24,
+  kInt40,
+  kUint40,
+  kInt48,
+  kUint48,
+  kInt56,
+  kUint56,
   kVoid,
   // TODO(37470): Add packed data structures.
 };

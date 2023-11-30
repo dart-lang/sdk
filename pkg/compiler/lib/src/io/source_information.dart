@@ -81,8 +81,9 @@ class FrameContext {
 
   factory FrameContext.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
-    SourceInformation callInformation = source.readCached<SourceInformation>(
-        () => SourceInformation.readFromDataSource(source));
+    SourceInformation callInformation =
+        source.readIndexedNoCache<SourceInformation>(
+            () => SourceInformation.readFromDataSource(source));
     String inlinedMethodName = source.readString();
     source.end(tag);
     return FrameContext(callInformation, inlinedMethodName);
@@ -90,7 +91,7 @@ class FrameContext {
 
   void writeToDataSink(DataSinkWriter sink) {
     sink.begin(tag);
-    sink.writeCached<SourceInformation>(
+    sink.writeIndexed<SourceInformation>(
         callInformation,
         (SourceInformation sourceInformation) =>
             SourceInformation.writeToDataSink(sink, sourceInformation));

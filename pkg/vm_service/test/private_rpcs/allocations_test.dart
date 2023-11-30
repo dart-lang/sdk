@@ -24,10 +24,12 @@ void script() {
 
 var tests = <IsolateTest>[
   (VmService service, IsolateRef isolateRef) async {
-    var profile = await service.callMethod('_getAllocationProfile',
-        isolateId: isolateRef.id!) as AllocationProfile;
+    final profile = await service.callMethod(
+      '_getAllocationProfile',
+      isolateId: isolateRef.id!,
+    ) as AllocationProfile;
     print(profile.runtimeType);
-    var classHeapStats = profile.members!.singleWhere((stats) {
+    final classHeapStats = profile.members!.singleWhere((stats) {
       return stats.classRef!.name == 'Foo';
     });
     expect(classHeapStats.instancesCurrent, 3);
@@ -35,7 +37,7 @@ var tests = <IsolateTest>[
   },
 ];
 
-main(args) => runIsolateTests(
+Future<void> main(args) => runIsolateTests(
       args,
       tests,
       'allocations_test.dart',

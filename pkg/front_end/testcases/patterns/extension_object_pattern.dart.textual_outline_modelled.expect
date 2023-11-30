@@ -1,0 +1,10 @@
+extension Extension on int {
+  num get getter => this;
+}
+
+method1(int i) => switch (i) {
+      int(:num getter) => 0,
+    };
+method2(int i) => switch (i) {
+      int(:int getter) => 0,
+    };

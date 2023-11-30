@@ -77,6 +77,10 @@ replacer(String key, value) {
   if (value is String) {
     if (value.contains('dart_sdk.js')) return '<DART_SDK>';
     if (new RegExp(r'[.](js|dart|html)').hasMatch(value)) return '<FILE>';
+    // Normalize the name of the `Event` type as it appears in this test.
+    // The new type system preserves the original name from the Dart source.
+    // TODO(48585): Remove when no longer running with the old type system.
+    value = value.replaceAll(r'Event$', 'Event');
   }
   return value;
 }

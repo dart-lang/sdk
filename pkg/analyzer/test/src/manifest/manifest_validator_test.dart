@@ -4,7 +4,7 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/manifest/manifest_validator.dart';
 import 'package:analyzer/src/manifest/manifest_values.dart';
 import 'package:analyzer/src/manifest/manifest_warning_code.dart';

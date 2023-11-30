@@ -181,7 +181,7 @@ bool isInLibDir(CompilationUnit node, WorkspacePackage? package) {
 /// directory in the given [package]'s directory tree. Public dirs are the
 /// `lib` and `bin` dirs.
 //
-//  TODO: move into WorkspacePackage
+// TODO(jakemac): move into WorkspacePackage
 bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
   var cuPath = node.declaredElement?.library.source.fullName;

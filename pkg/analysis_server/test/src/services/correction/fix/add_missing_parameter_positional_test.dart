@@ -140,7 +140,7 @@ void f() {
   test(1);
 }
 ''');
-    // TODO(brianwilkerson) The fix needs to make the parameter nullable, but
+    // TODO(brianwilkerson): The fix needs to make the parameter nullable, but
     //  I'm leaving the test as is to keep it passing.
     await assertHasFix('''
 test([int i]) {}

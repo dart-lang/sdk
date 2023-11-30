@@ -27,6 +27,32 @@ class LocalVariableTest2 extends CompletionRelevanceTest
     with LocalVariableTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+
+  Future<void> test_localVariable_vs_importedClass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class FooBarClass {}
+''');
+
+    await addTestFile('''
+import 'a.dart';
+
+int f() {
+  final fooBar = 0;
+  fBa^
+}
+''');
+
+    assertOrder([
+      suggestionWith(
+        completion: 'fooBar',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+      ),
+      suggestionWith(
+        completion: 'FooBarClass',
+        kind: CompletionSuggestionKind.IDENTIFIER,
+      ),
+    ]);
+  }
 }
 
 mixin LocalVariableTestCases on CompletionRelevanceTest {

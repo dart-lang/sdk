@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -315,7 +316,7 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
   }
 
   Future<void> test_addDeletion_adjacent_lowerOffsetFirst() async {
-    // TODO(brianwilkerson) This should also merge the deletions, but is written
+    // TODO(brianwilkerson): This should also merge the deletions, but is written
     //  to ensure that existing uses of FileEditBuilder continue to work even
     //  without that change.
     var firstOffset = 23;
@@ -337,7 +338,7 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
   }
 
   Future<void> test_addDeletion_adjacent_lowerOffsetSecond() async {
-    // TODO(brianwilkerson) This should also merge the deletions, but is written
+    // TODO(brianwilkerson): This should also merge the deletions, but is written
     //  to ensure that existing uses of FileEditBuilder continue to work even
     //  without that change.
     var firstOffset = 23;

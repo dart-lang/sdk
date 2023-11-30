@@ -6,7 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../client/completion_driver_test.dart';
 
-// TODO(brianwilkerson) The contents of this file were generated from an older
+// TODO(brianwilkerson): The contents of this file were generated from an older
 //  style of tests. They need to be cleaned up (many contain test code that
 //  isn't used in the test), renamed, and moved into the appropriate 'location'
 //  or 'declaration' test class.
@@ -1210,6 +1210,18 @@ class Q {
 replacement
   right: 1
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  true
+    kind: keyword
   x
     kind: field
 ''');
@@ -1238,6 +1250,18 @@ class Q {
 replacement
   right: 1
 suggestions
+  false
+    kind: keyword
+  null
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  true
+    kind: keyword
   x
     kind: field
 ''');
@@ -2637,6 +2661,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -3048,11 +3074,7 @@ suggestions
     kind: field
   null
     kind: keyword
-  super
-    kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -3118,11 +3140,7 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  super
-    kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -3178,11 +3196,7 @@ suggestions
     kind: methodInvocation
   null
     kind: keyword
-  super
-    kind: keyword
   switch
-    kind: keyword
-  this
     kind: keyword
   true
     kind: keyword
@@ -3860,7 +3874,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_032_1() async {
     allowedIdentifiers = {'ONE', 'UKSI'};
     await computeSuggestions('''
@@ -3892,6 +3905,10 @@ suggestions
 replacement
   left: 3
 suggestions
+  ONE
+    kind: topLevelVariable
+  UKSI
+    kind: topLevelVariable
   const
     kind: keyword
   false
@@ -3900,8 +3917,8 @@ suggestions
     kind: keyword
   null
     kind: keyword
-  ONE
-    kind: topLevelVariable
+  switch
+    kind: keyword
   true
     kind: keyword
   var
@@ -3910,7 +3927,6 @@ suggestions
     }
   }
 
-  @failingTest
   Future<void> test_032_2() async {
     allowedIdentifiers = {'EIN', 'ICHI'};
     await computeSuggestions('''
@@ -3942,15 +3958,19 @@ suggestions
 replacement
   left: 3
 suggestions
-  const
-    kind: keyword
   EIN
     kind: topLevelVariable
+  ICHI
+    kind: topLevelVariable
+  const
+    kind: keyword
   false
     kind: keyword
   final
     kind: keyword
   null
+    kind: keyword
+  switch
     kind: keyword
   true
     kind: keyword
@@ -4739,21 +4759,29 @@ suggestions
     selection: 90 38
   A
     kind: class
-  abstract
-    kind: keyword
   const
     kind: keyword
   covariant
     kind: keyword
-  external
+  dynamic
+    kind: keyword
+  factory
     kind: keyword
   final
     kind: keyword
+  get
+    kind: keyword
   late
+    kind: keyword
+  operator
+    kind: keyword
+  set
     kind: keyword
   static
     kind: keyword
   var
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -4994,14 +5022,11 @@ suggestions
     kind: class
 ''');
     } else {
-      // TODO(brianwilkerson) 'int' should not be suggested twice
       assertResponse(r'''
 replacement
   left: 2
   right: 1
 suggestions
-  int
-    kind: class
   int
     kind: class
 ''');
@@ -6090,8 +6115,6 @@ replacement
 suggestions
   List
     kind: class
-  List
-    kind: class
 ''');
     }
   }
@@ -6116,10 +6139,6 @@ replacement
 suggestions
   List
     kind: class
-  List
-    kind: class
-  String
-    kind: class
   String
     kind: class
 ''');
@@ -6143,10 +6162,6 @@ suggestions
       assertResponse(r'''
 suggestions
   DateTime
-    kind: class
-  DateTime
-    kind: class
-  String
     kind: class
   String
     kind: class
@@ -6363,13 +6378,27 @@ suggestions
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T a, T b){}final T^ f = null;}
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
   T
     kind: typeParameter
 ''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  T
+    kind: typeParameter
+  dynamic
+    kind: keyword
+  void
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_commentSnippets031_1() async {
@@ -6996,7 +7025,7 @@ suggestions
     kind: constructorInvocation
 ''');
     } else {
-      // TODO(brianwilkerson) We should not be suggesting 'JsonDecoder'.
+      // TODO(brianwilkerson): We should not be suggesting 'JsonDecoder'.
       assertResponse(r'''
 replacement
   right: 2
@@ -7064,7 +7093,7 @@ k() {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) We ought to be suggesting 'xdr.a' and 'xdr.b'.
+      // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
       assertResponse(r'''
 replacement
   left: 1
@@ -7109,7 +7138,7 @@ k() {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) We ought to be suggesting 'xdr.a' and 'xdr.b'.
+      // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
       assertResponse(r'''
 replacement
   left: 1
@@ -8873,7 +8902,7 @@ suggestions
     kind: keyword
 ''');
     } else {
-      // TODO(brianwilkerson) Don't suggest 'HashMap'.
+      // TODO(brianwilkerson): Don't suggest 'HashMap'.
       assertResponse(r'''
 replacement
   right: 3
@@ -9411,7 +9440,6 @@ suggestions
     }
   }
 
-  // resume here
   Future<void> test_completion_annotation_type_1() async {
     allowedIdentifiers = {'AAA', 'nnn'};
     await computeSuggestions('''
@@ -9424,11 +9452,13 @@ void f() {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) We should be suggesting the named constructor here.
+      // TODO(brianwilkerson): We should be suggesting the named constructor here.
       assertResponse(r'''
 replacement
   left: 3
 suggestions
+  AAA
+    kind: class
   AAA
     kind: constructorInvocation
 ''');
@@ -9437,6 +9467,8 @@ suggestions
 replacement
   left: 3
 suggestions
+  AAA
+    kind: class
   AAA
     kind: constructorInvocation
   AAA.nnn
@@ -9462,6 +9494,8 @@ replacement
   left: 1
 suggestions
   AAA
+    kind: class
+  AAA
     kind: constructorInvocation
 ''');
     } else {
@@ -9470,31 +9504,9 @@ replacement
   left: 1
 suggestions
   AAA
+    kind: class
+  AAA
     kind: constructorInvocation
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
 ''');
     }
   }
@@ -9634,6 +9646,8 @@ void f(p) {
 suggestions
   MyClass
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -9840,7 +9854,7 @@ void f() {
 }
 ''');
     if (isProtocolVersion2) {
-      // TODO(brianwilkerson) The suggestions here are correct, except for the
+      // TODO(brianwilkerson): The suggestions here are correct, except for the
       //  last line, which needs to be removed.
       assertResponse(r'''
 suggestions
@@ -10799,8 +10813,6 @@ replacement
 suggestions
   int
     kind: class
-  int
-    kind: class
 ''');
     }
   }
@@ -11369,6 +11381,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:
     kind: import
   package:test/
@@ -11393,6 +11407,8 @@ suggestions
   dart:core
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
 ''');
   }
@@ -11427,6 +11443,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import
@@ -11666,9 +11684,9 @@ suggestions
   const
     kind: keyword
   f1
-    kind: functionInvocation
+    kind: function
   f2
-    kind: functionInvocation
+    kind: function
   false
     kind: keyword
   null
@@ -12141,7 +12159,7 @@ suggestions
 
   Future<void> test_completion_libraryIdentifier_notEOF_1() async {
     allowedIdentifiers = {'parse', 'bool'};
-    // TODO(brianwilkerson) This is the same as
+    // TODO(brianwilkerson): This is the same as
     //  test_completion_libraryIdentifier_atEOF_1, probably this one needs
     //  something following the directive.
     await computeSuggestions('''
@@ -13087,10 +13105,14 @@ replacement
   left: 1
   right: 2
 suggestions
+  dynamic
+    kind: keyword
   num
     kind: class
   num
     kind: class
+  void
+    kind: keyword
 ''');
     }
   }
@@ -13129,8 +13151,6 @@ suggestions
     kind: keyword
   num
     kind: class
-  num
-    kind: class
   static
     kind: keyword
   var
@@ -13144,7 +13164,8 @@ suggestions
     await computeSuggestions('''
 class num{}class Sunflower {static final num MAX_D = 300;num xc, yc;Sun^flower() {xc = yc = MA }}
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 replacement
   left: 3
   right: 6
@@ -13152,6 +13173,17 @@ suggestions
   Sunflower
     kind: class
 ''');
+    } else {
+      // TODO(brianwilkerson): We used to suggest the class name in a constructor
+      //  declaration, but I don't think this case is useful enough to worry about
+      //  supporting.
+      assertResponse(r'''
+replacement
+  left: 3
+  right: 6
+suggestions
+''');
+    }
   }
 
   Future<void> test_completion_staticField1_X() async {
@@ -13590,13 +13622,35 @@ suggestions
     await computeSuggestions('''
 class Foo { int boo = 7; mth() { while (b^) {} }}
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 replacement
   left: 1
 suggestions
   boo
     kind: field
 ''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  boo
+    kind: field
+  false
+    kind: keyword
+  null
+    kind: keyword
+  super
+    kind: keyword
+  switch
+    kind: keyword
+  this
+    kind: keyword
+  true
+    kind: keyword
+''');
+    }
   }
 
   Future<void> test_export_ignoreIfThisLibraryExports_1() async {

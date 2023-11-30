@@ -27,7 +27,7 @@ t1 = _Call direct [#lib::Element.] (%this)
 RESULT: _T {}?
 ------------ InheritedElement.setDependencies ------------
 %this = _Parameter #0 [_T (#lib::InheritedElement)+]
-%dependent = _Parameter #1 [_T (#lib::Element)+?]
+%dependent = _Parameter #1 [_T (#lib::Element)+]
 %value = _Parameter #2 [_T (dart.core::Object)+?]
 t3* = _Call virtual get [#lib::InheritedElement._dependents] (%this)
 t4 = _Call [#lib::MockHashMap.setEntry] (t3, %dependent, %value)

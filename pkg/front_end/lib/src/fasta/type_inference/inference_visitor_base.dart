@@ -330,9 +330,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Ensures that the type of [member] has been computed.
   void ensureMemberType(Member member) {
-    if (member is Constructor) {
-      _inferConstructorParameterTypes(member);
-    }
+    _inferConstructorParameterTypes(member);
     TypeDependency? typeDependency = engine.typeDependencies.remove(member);
     if (typeDependency != null) {
       ensureMemberType(typeDependency.original);
@@ -966,8 +964,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   ObjectAccessTarget? _findExtensionTypeMember(DartType receiverType,
       ExtensionType extensionType, Name name, int fileOffset,
-      {required bool isSetter,
-      required bool isReceiverTypePotentiallyNullable}) {
+      {required bool isSetter, required bool hasNonObjectMemberAccess}) {
     ClassMember? classMember = _getExtensionTypeMember(
         extensionType.extensionTypeDeclaration, name, isSetter);
     if (classMember == null) {
@@ -978,7 +975,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         member.stubKind == ProcedureStubKind.RepresentationField) {
       return new ObjectAccessTarget.extensionTypeRepresentation(
           receiverType, extensionType, member,
-          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+          hasNonObjectMemberAccess: hasNonObjectMemberAccess);
     }
     if (member.isExtensionTypeMember) {
       ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
@@ -993,10 +990,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           kind,
           hierarchyBuilder.getTypeArgumentsAsInstanceOf(
               extensionType, extensionTypeDeclaration)!,
-          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+          hasNonObjectMemberAccess: hasNonObjectMemberAccess);
     } else {
       return new ObjectAccessTarget.interfaceMember(receiverType, member,
-          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+          hasNonObjectMemberAccess: hasNonObjectMemberAccess);
     }
   }
 
@@ -1184,12 +1181,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       bool includeExtensionMethods = false}) {
     assert(isKnown(receiverType));
 
-    DartType receiverBound = resolveTypeParameter(receiverType);
+    DartType receiverBound = receiverType.nonTypeVariableBound;
 
-    bool isReceiverTypePotentiallyNullable = isNonNullableByDefault &&
-        receiverType.isPotentiallyNullable &&
+    bool hasNonObjectMemberAccess = !isNonNullableByDefault ||
+        receiverType.hasNonObjectMemberAccess ||
         // Calls to `==` are always on a non-null receiver.
-        name != equalsName;
+        name == equalsName;
 
     Class classNode = receiverBound is InterfaceType
         ? receiverBound.classNode
@@ -1200,12 +1197,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             name: name,
             classNode: classNode,
             receiverBound: receiverBound,
-            isReceiverTypePotentiallyNullable:
-                isReceiverTypePotentiallyNullable,
+            hasNonObjectMemberAccess: hasNonObjectMemberAccess,
             isSetter: isSetter,
             fileOffset: fileOffset);
 
-    if (isReceiverTypePotentiallyNullable) {
+    if (!hasNonObjectMemberAccess) {
       Member? member =
           _getInterfaceMember(coreTypes.objectClass, name, isSetter);
       if (member != null) {
@@ -1246,7 +1242,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     if (target.isMissing && includeExtensionMethods) {
-      if (isReceiverTypePotentiallyNullable) {
+      if (!hasNonObjectMemberAccess) {
         // When the receiver type is potentially nullable we would have found
         // the extension member above, if available. Therefore we know that we
         // are in an erroneous case and instead look up the extension member on
@@ -1296,7 +1292,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
       return helper.buildProblem(
           errorTemplate.withArguments(name.text,
-              resolveTypeParameter(receiverType), isNonNullableByDefault),
+              receiverType.nonTypeVariableBound, isNonNullableByDefault),
           fileOffset,
           length);
     }
@@ -1387,7 +1383,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     TypeDeclaration enclosingTypeDeclaration =
         interfaceMember.enclosingTypeDeclaration!;
     if (enclosingTypeDeclaration.typeParameters.isNotEmpty) {
-      receiverType = resolveTypeParameter(receiverType);
+      receiverType = receiverType.nonTypeVariableBound;
       if (receiverType is TypeDeclarationType) {
         List<DartType> castedTypeArguments =
             hierarchyBuilder.getTypeArgumentsAsInstanceOf(
@@ -3481,7 +3477,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     int fileOffset = expression.fileOffset;
     ObjectAccessTarget target = thisType!.classNode.isMixinDeclaration
         ? new ObjectAccessTarget.interfaceMember(thisType!, procedure,
-            isPotentiallyNullable: false)
+            hasNonObjectMemberAccess: true)
         : new ObjectAccessTarget.superMember(thisType!, procedure);
     DartType receiverType = thisType!;
     bool isSpecialCasedBinaryOperator =
@@ -3521,7 +3517,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       Expression expression, Name name, DartType typeContext, Member member) {
     ObjectAccessTarget readTarget = thisType!.classNode.isMixinDeclaration
         ? new ObjectAccessTarget.interfaceMember(thisType!, member,
-            isPotentiallyNullable: false)
+            hasNonObjectMemberAccess: true)
         : new ObjectAccessTarget.superMember(thisType!, member);
     DartType inferredType = computeTypeFromSuperClass(
         member.enclosingClass!, readTarget.getGetterType(this));
@@ -3704,50 +3700,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     return MethodContravarianceCheckKind.none;
-  }
-
-  /// If the given [type] is a [TypeParameterType], resolve it to its bound.
-  @pragma("vm:prefer-inline")
-  DartType resolveTypeParameter(DartType type) {
-    if (type is InterfaceType || type is FunctionType) return type;
-    return _resolveTypeParameterImpl(type);
-  }
-
-  /// If the given [type] is a [TypeParameterType], resolve it to its bound.
-  DartType _resolveTypeParameterImpl(DartType type) {
-    DartType? resolveOneStep(DartType type) {
-      if (type is TypeParameterType) {
-        return type.bound;
-      } else if (type is IntersectionType) {
-        return type.right;
-      } else {
-        return null;
-      }
-    }
-
-    DartType? resolved = resolveOneStep(type);
-    if (resolved == null) return type;
-
-    // Detect circularities using the tortoise-and-hare algorithm.
-    DartType? tortoise = resolved;
-    DartType? hare = resolveOneStep(tortoise);
-    if (hare == null) return tortoise;
-    while (true) {
-      if (identical(tortoise, hare)) {
-        // We found a circularity.  Give up and return `dynamic`.
-        return const DynamicType();
-      }
-
-      // Hare takes two steps
-      DartType? step1 = resolveOneStep(hare!);
-      if (step1 == null) return hare;
-      DartType? step2 = resolveOneStep(step1);
-      if (step2 == null) return step1;
-      hare = step2;
-
-      // Tortoise takes one step
-      tortoise = resolveOneStep(tortoise!);
-    }
   }
 
   DartType wrapFutureOrType(DartType type) {
@@ -3972,14 +3924,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (wrappedExpression != null) {
       return helper.wrapInProblem(
           wrappedExpression,
-          template.withArguments(name.text, resolveTypeParameter(receiverType),
+          template.withArguments(name.text, receiverType.nonTypeVariableBound,
               isNonNullableByDefault),
           fileOffset,
           length,
           context: context);
     } else {
       return helper.buildProblem(
-          template.withArguments(name.text, resolveTypeParameter(receiverType),
+          template.withArguments(name.text, receiverType.nonTypeVariableBound,
               isNonNullableByDefault),
           fileOffset,
           length,
@@ -4208,10 +4160,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     readResult ??= new ExpressionInferenceResult(readType, read);
-    if (readTarget.isNullable &&
-        !(receiverType is ExtensionType &&
-            propertyName.text ==
-                receiverType.extensionTypeDeclaration.representationName)) {
+    if (readTarget.isNullable) {
       readResult = wrapExpressionInferenceResultInProblem(
           readResult,
           templateNullablePropertyAccessError.withArguments(
@@ -4696,7 +4645,7 @@ class _ObjectAccessDescriptor {
   final Name name;
   final DartType receiverBound;
   final Class classNode;
-  final bool isReceiverTypePotentiallyNullable;
+  final bool hasNonObjectMemberAccess;
   final bool isSetter;
   final int fileOffset;
 
@@ -4705,7 +4654,7 @@ class _ObjectAccessDescriptor {
       required this.name,
       required this.receiverBound,
       required this.classNode,
-      required this.isReceiverTypePotentiallyNullable,
+      required this.hasNonObjectMemberAccess,
       required this.isSetter,
       required this.fileOffset});
 
@@ -4722,9 +4671,9 @@ class _ObjectAccessDescriptor {
     if (receiverBound is InterfaceType) {
       // This is what happens most often: Skip the other `if`s.
     } else if (receiverBound is FunctionType && name == callName && !isSetter) {
-      return isReceiverTypePotentiallyNullable
-          ? new ObjectAccessTarget.nullableCallFunction(receiverType)
-          : new ObjectAccessTarget.callFunction(receiverType);
+      return hasNonObjectMemberAccess
+          ? new ObjectAccessTarget.callFunction(receiverType)
+          : new ObjectAccessTarget.nullableCallFunction(receiverType);
     } else if (receiverBound is NeverType) {
       switch (receiverBound.nullability) {
         case Nullability.nonNullable:
@@ -4749,17 +4698,16 @@ class _ObjectAccessDescriptor {
           text, receiverBound.positional.length);
       if (index != null) {
         DartType fieldType = receiverBound.positional[index];
-        return isReceiverTypePotentiallyNullable
-            ? new RecordIndexTarget.nullable(receiverBound, fieldType, index)
-            : new RecordIndexTarget.nonNullable(
-                receiverBound, fieldType, index);
+        return hasNonObjectMemberAccess
+            ? new RecordIndexTarget.nonNullable(receiverBound, fieldType, index)
+            : new RecordIndexTarget.nullable(receiverBound, fieldType, index);
       }
       for (NamedType field in receiverBound.named) {
         if (field.name == text) {
-          return isReceiverTypePotentiallyNullable
-              ? new RecordNameTarget.nullable(
+          return hasNonObjectMemberAccess
+              ? new RecordNameTarget.nonNullable(
                   receiverBound, field.type, field.name)
-              : new RecordNameTarget.nonNullable(
+              : new RecordNameTarget.nullable(
                   receiverBound, field.type, field.name);
         }
       }
@@ -4767,7 +4715,7 @@ class _ObjectAccessDescriptor {
       ObjectAccessTarget? target = visitor._findExtensionTypeMember(
           receiverType, receiverBound, name, fileOffset,
           isSetter: isSetter,
-          isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
+          hasNonObjectMemberAccess: hasNonObjectMemberAccess);
       if (target != null) {
         return target;
       }
@@ -4779,7 +4727,7 @@ class _ObjectAccessDescriptor {
     if (interfaceMember != null) {
       target = new ObjectAccessTarget.interfaceMember(
           receiverType, interfaceMember,
-          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+          hasNonObjectMemberAccess: hasNonObjectMemberAccess);
     } else if (receiverBound is DynamicType) {
       target = const ObjectAccessTarget.dynamic();
     } else if (receiverBound is InvalidType) {
@@ -4788,9 +4736,9 @@ class _ObjectAccessDescriptor {
         receiverBound.classNode == visitor.coreTypes.functionClass &&
         name == callName &&
         !isSetter) {
-      target = isReceiverTypePotentiallyNullable
-          ? new ObjectAccessTarget.nullableCallFunction(receiverType)
-          : new ObjectAccessTarget.callFunction(receiverType);
+      target = hasNonObjectMemberAccess
+          ? new ObjectAccessTarget.callFunction(receiverType)
+          : new ObjectAccessTarget.nullableCallFunction(receiverType);
     } else {
       target = const ObjectAccessTarget.missing();
     }

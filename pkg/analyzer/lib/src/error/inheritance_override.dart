@@ -305,10 +305,10 @@ class _ClassVerifier {
         // 2. if the class contains no member named `m`, and the class member
         //    for `noSuchMethod` is the one declared in `Object`, then it's a
         //    compile-time error.
-        // TODO(brianwilkerson) This code catches some cases not caught in
+        // TODO(brianwilkerson): This code catches some cases not caught in
         //  _checkDeclaredMember, but also duplicates the diagnostic reported
         //  there in some other cases.
-        // TODO(brianwilkerson) In the case of methods inherited via mixins, the
+        // TODO(brianwilkerson): In the case of methods inherited via mixins, the
         //  diagnostic should be reported on the name of the mixin defining the
         //  method. In other cases, it should be reported on the name of the
         //  overriding method. The classNameNode is always wrong.
@@ -363,7 +363,7 @@ class _ClassVerifier {
       }
 
       // The case when members have different kinds is reported in verifier.
-      // TODO(scheglov) Do it here?
+      // TODO(scheglov): Do it here?
       if (member.kind != superMember.kind) {
         continue;
       }

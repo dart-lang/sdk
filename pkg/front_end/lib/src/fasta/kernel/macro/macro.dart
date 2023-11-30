@@ -238,7 +238,7 @@ void checkMacroApplications(
         if (annotation is ConstantExpression) {
           Constant constant = annotation.constant;
           if (constant is InstanceConstant &&
-              hierarchy.isSubtypeOf(constant.classNode, macroClass)) {
+              hierarchy.isSubInterfaceOf(constant.classNode, macroClass)) {
             List<MacroApplication>? applications =
                 macroApplications[constant.classNode];
             if (applications != null) {
@@ -969,13 +969,9 @@ class MacroApplications {
       metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
-      hasAbstract: builder.isAbstract,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
       hasExternal: builder.isExternal,
-      isGetter: builder.isGetter,
-      isOperator: builder.isOperator,
-      isSetter: builder.isSetter,
       positionalParameters: parameters[0],
       namedParameters: parameters[1],
       // TODO(johnniwinther): Support constructor return type.
@@ -1004,13 +1000,9 @@ class MacroApplications {
       metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
-      hasAbstract: builder.isAbstract,
       // TODO(johnniwinther): Real implementation of hasBody.
       hasBody: true,
       hasExternal: builder.isExternal,
-      isGetter: builder.isGetter,
-      isOperator: builder.isOperator,
-      isSetter: builder.isSetter,
       positionalParameters: parameters[0],
       namedParameters: parameters[1],
       // TODO(johnniwinther): Support constructor return type.
@@ -1044,7 +1036,6 @@ class MacroApplications {
           // TODO: Provide metadata annotations.
           metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
-          hasAbstract: builder.isAbstract,
           // TODO(johnniwinther): Real implementation of hasBody.
           hasBody: true,
           hasExternal: builder.isExternal,
@@ -1068,7 +1059,6 @@ class MacroApplications {
           library: library,
           // TODO(johnniwinther): Provide metadata annotations.
           metadata: const [],
-          hasAbstract: builder.isAbstract,
           // TODO(johnniwinther): Real implementation of hasBody.
           hasBody: true,
           hasExternal: builder.isExternal,
@@ -1105,6 +1095,7 @@ class MacroApplications {
           // TODO: Provide metadata annotations.
           metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
+          hasAbstract: builder.isAbstract,
           hasExternal: builder.isExternal,
           hasFinal: builder.isFinal,
           hasLate: builder.isLate,

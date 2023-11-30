@@ -8358,7 +8358,7 @@ void Function::set_implicit_closure_function(const Function& value) const {
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!IsClosureFunction());
   const Object& old_data = Object::Handle(data());
-  if (is_native()) {
+  if (is_old_native()) {
     ASSERT(old_data.IsArray());
     const auto& pair = Array::Cast(old_data);
     ASSERT(pair.AtAcquire(NativeFunctionData::kTearOff) == Object::null() ||
@@ -8378,26 +8378,38 @@ void Function::SetFfiCSignature(const FunctionType& sig) const {
 }
 
 FunctionTypePtr Function::FfiCSignature() const {
-  ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(data());
-  ASSERT(!obj.IsNull());
-  return FfiTrampolineData::Cast(obj).c_signature();
+  auto* const zone = Thread::Current()->zone();
+  if (IsFfiTrampoline()) {
+    const Object& obj = Object::Handle(zone, data());
+    ASSERT(!obj.IsNull());
+    return FfiTrampolineData::Cast(obj).c_signature();
+  }
+  ASSERT(is_ffi_native());
+  auto const& native_instance = Instance::Handle(GetNativeAnnotation());
+  const auto& type_args =
+      TypeArguments::Handle(zone, native_instance.GetTypeArguments());
+  ASSERT(type_args.Length() == 1);
+  const auto& native_type =
+      FunctionType::Cast(AbstractType::ZoneHandle(zone, type_args.TypeAt(0)));
+  return native_type.ptr();
 }
 
 bool Function::FfiCSignatureContainsHandles() const {
-  ASSERT(IsFfiTrampoline());
   const FunctionType& c_signature = FunctionType::Handle(FfiCSignature());
-  const intptr_t num_params = c_signature.num_fixed_parameters();
+  return c_signature.ContainsHandles();
+}
+
+bool FunctionType::ContainsHandles() const {
+  const intptr_t num_params = num_fixed_parameters();
   for (intptr_t i = 0; i < num_params; i++) {
     const bool is_handle =
-        AbstractType::Handle(c_signature.ParameterTypeAt(i)).type_class_id() ==
+        AbstractType::Handle(ParameterTypeAt(i)).type_class_id() ==
         kFfiHandleCid;
     if (is_handle) {
       return true;
     }
   }
-  return AbstractType::Handle(c_signature.result_type()).type_class_id() ==
-         kFfiHandleCid;
+  return AbstractType::Handle(result_type()).type_class_id() == kFfiHandleCid;
 }
 
 // Keep consistent with BaseMarshaller::IsCompound.
@@ -8453,10 +8465,22 @@ void Function::AssignFfiCallbackId(int32_t callback_id) const {
 }
 
 bool Function::FfiIsLeaf() const {
-  ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
-  ASSERT(!obj.IsNull());
-  return FfiTrampolineData::Cast(obj).is_leaf();
+  if (IsFfiTrampoline()) {
+    const Object& obj = Object::Handle(untag()->data());
+    ASSERT(!obj.IsNull());
+    return FfiTrampolineData::Cast(obj).is_leaf();
+  }
+  ASSERT(is_ffi_native());
+  Zone* zone = Thread::Current()->zone();
+  auto const& native_instance = Instance::Handle(GetNativeAnnotation());
+  const auto& native_class = Class::Handle(zone, native_instance.clazz());
+  const auto& native_class_fields = Array::Handle(zone, native_class.fields());
+  ASSERT(native_class_fields.Length() == 3);
+  const auto& is_leaf_field =
+      Field::Handle(zone, Field::RawCast(native_class_fields.At(2)));
+  return Bool::Handle(zone,
+                      Bool::RawCast(native_instance.GetField(is_leaf_field)))
+      .value();
 }
 
 void Function::SetFfiIsLeaf(bool is_leaf) const {
@@ -8607,6 +8631,32 @@ void Function::set_native_name(const String& value) const {
   const auto& pair = Array::Cast(Object::Handle(data()));
   ASSERT(pair.At(0) == Object::null());
   pair.SetAt(NativeFunctionData::kNativeName, value);
+}
+
+InstancePtr Function::GetNativeAnnotation() const {
+  ASSERT(is_ffi_native());
+  Zone* zone = Thread::Current()->zone();
+  auto& pragma_value = Object::Handle(zone);
+  Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
+                      Object::Handle(zone, ptr()),
+                      String::Handle(zone, Symbols::vm_ffi_native().ptr()),
+                      /*multiple=*/false, &pragma_value);
+  auto const& native_instance = Instance::Cast(pragma_value);
+  ASSERT(!native_instance.IsNull());
+#if defined(DEBUG)
+  const auto& native_class = Class::Handle(zone, native_instance.clazz());
+  ASSERT(String::Handle(zone, native_class.UserVisibleName())
+             .Equals(Symbols::FfiNative()));
+#endif
+  return native_instance.ptr();
+}
+
+bool Function::is_old_native() const {
+  return is_native() && !is_external();
+}
+
+bool Function::is_ffi_native() const {
+  return is_native() && is_external();
 }
 
 void Function::SetSignature(const FunctionType& value) const {
@@ -8998,7 +9048,7 @@ bool Function::IsOptimizable() const {
     return true;
   }
   if (ForceOptimize()) return true;
-  if (is_native()) {
+  if (is_old_native()) {
     // Native methods don't need to be optimized.
     return false;
   }
@@ -9081,7 +9131,7 @@ static bool InVmTests(const Function& function) {
 }
 
 bool Function::ForceOptimize() const {
-  if (RecognizedKindForceOptimize() || IsFfiTrampoline() ||
+  if (RecognizedKindForceOptimize() || IsFfiTrampoline() || is_ffi_native() ||
       IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
     return true;
   }
@@ -9196,7 +9246,7 @@ bool Function::RecognizedKindForceOptimize() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::CanBeInlined() const {
   if (ForceOptimize()) {
-    if (IsFfiTrampoline()) {
+    if (IsFfiTrampoline() || is_ffi_native()) {
       // We currently don't support inlining FFI trampolines. Some of them
       // are naturally non-inlinable because they contain a try/catch block,
       // but this condition is broader than strictly necessary.
@@ -10295,7 +10345,7 @@ FunctionPtr Function::New(const FunctionType& signature,
     const FfiTrampolineData& data =
         FfiTrampolineData::Handle(FfiTrampolineData::New());
     result.set_data(data);
-  } else if (is_native) {
+  } else if (result.is_old_native()) {
     const auto& data =
         Array::Handle(Array::New(NativeFunctionData::kLength, Heap::kOld));
     result.set_data(data);
@@ -15768,19 +15818,19 @@ const char* PcDescriptors::KindAsStr(UntaggedPcDescriptors::Kind kind) {
     case UntaggedPcDescriptors::kDeopt:
       return "deopt        ";
     case UntaggedPcDescriptors::kIcCall:
-      return "ic-call      ";
+      return "ic-call";
     case UntaggedPcDescriptors::kUnoptStaticCall:
-      return "unopt-call   ";
+      return "unopt-call";
     case UntaggedPcDescriptors::kRuntimeCall:
-      return "runtime-call ";
+      return "runtime-call";
     case UntaggedPcDescriptors::kOsrEntry:
-      return "osr-entry    ";
+      return "osr-entry";
     case UntaggedPcDescriptors::kRewind:
-      return "rewind       ";
+      return "rewind";
     case UntaggedPcDescriptors::kBSSRelocation:
-      return "bss reloc    ";
+      return "bss reloc";
     case UntaggedPcDescriptors::kOther:
-      return "other        ";
+      return "other";
     case UntaggedPcDescriptors::kAnyKind:
       UNREACHABLE();
       break;
@@ -15789,48 +15839,31 @@ const char* PcDescriptors::KindAsStr(UntaggedPcDescriptors::Kind kind) {
   return "";
 }
 
-void PcDescriptors::PrintHeaderString() {
-  // 4 bits per hex digit + 2 for "0x".
-  const int addr_width = (kBitsPerWord / 4) + 2;
+void PcDescriptors::WriteToBuffer(BaseTextBuffer* buffer, uword base) const {
+  // 4 bits per hex digit.
+  const int addr_width = kBitsPerWord / 4;
   // "*" in a printf format specifier tells it to read the field width from
   // the printf argument list.
-  THR_Print("%-*s\tkind    \tdeopt-id\ttok-ix\ttry-ix\tyield-idx\n", addr_width,
-            "pc");
+  buffer->Printf(
+      "%-*s  kind           deopt-id  tok-ix        try-ix yield-idx\n",
+      addr_width, "pc");
+  Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
+  while (iter.MoveNext()) {
+    buffer->Printf("%#-*" Px "  %-13s  % 8" Pd "  %-10s  % 8" Pd "  % 8" Pd
+                   "\n",
+                   addr_width, base + iter.PcOffset(), KindAsStr(iter.Kind()),
+                   iter.DeoptId(), iter.TokenPos().ToCString(), iter.TryIndex(),
+                   iter.YieldIndex());
+  }
 }
 
 const char* PcDescriptors::ToCString() const {
-// "*" in a printf format specifier tells it to read the field width from
-// the printf argument list.
-#define FORMAT "%#-*" Px "\t%s\t%" Pd "\t\t%s\t%" Pd "\t%" Pd "\n"
   if (Length() == 0) {
-    return "empty PcDescriptors\n";
+    return "empty PcDescriptors";
   }
-  // 4 bits per hex digit.
-  const int addr_width = kBitsPerWord / 4;
-  // First compute the buffer size required.
-  intptr_t len = 1;  // Trailing '\0'.
-  {
-    Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
-    while (iter.MoveNext()) {
-      len += Utils::SNPrint(nullptr, 0, FORMAT, addr_width, iter.PcOffset(),
-                            KindAsStr(iter.Kind()), iter.DeoptId(),
-                            iter.TokenPos().ToCString(), iter.TryIndex(),
-                            iter.YieldIndex());
-    }
-  }
-  // Allocate the buffer.
-  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
-  // Layout the fields in the buffer.
-  intptr_t index = 0;
-  Iterator iter(*this, UntaggedPcDescriptors::kAnyKind);
-  while (iter.MoveNext()) {
-    index += Utils::SNPrint((buffer + index), (len - index), FORMAT, addr_width,
-                            iter.PcOffset(), KindAsStr(iter.Kind()),
-                            iter.DeoptId(), iter.TokenPos().ToCString(),
-                            iter.TryIndex(), iter.YieldIndex());
-  }
-  return buffer;
-#undef FORMAT
+  ZoneTextBuffer buffer(Thread::Current()->zone());
+  WriteToBuffer(&buffer, /*base=*/0);
+  return buffer.buffer();
 }
 
 // Verify assumptions (in debug mode only).
@@ -15910,6 +15943,7 @@ uword CompressedStackMaps::Hash() const {
 }
 
 void CompressedStackMaps::WriteToBuffer(BaseTextBuffer* buffer,
+                                        uword base,
                                         const char* separator) const {
   auto it = iterator(Thread::Current());
   bool first_entry = true;
@@ -15917,7 +15951,7 @@ void CompressedStackMaps::WriteToBuffer(BaseTextBuffer* buffer,
     if (!first_entry) {
       buffer->AddString(separator);
     }
-    buffer->Printf("0x%.8" Px32 ": ", it.pc_offset());
+    buffer->Printf("0x%.8" Px ": ", base + it.pc_offset());
     for (intptr_t i = 0, n = it.Length(); i < n; i++) {
       buffer->AddString(it.IsObject(i) ? "1" : "0");
     }
@@ -15982,7 +16016,7 @@ const char* CompressedStackMaps::ToCString() const {
   auto const t = Thread::Current();
   ZoneTextBuffer buffer(t->zone(), 100);
   buffer.AddString("CompressedStackMaps(");
-  WriteToBuffer(&buffer, ", ");
+  WriteToBuffer(&buffer, /*base=*/0, ", ");
   buffer.AddString(")");
   return buffer.buffer();
 }
@@ -16233,67 +16267,41 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
   return result.ptr();
 }
 
-const char* ExceptionHandlers::ToCString() const {
-#define FORMAT1 "%" Pd " => %#x  (%" Pd " types) (outer %d)%s%s\n"
-#define FORMAT2 "  %d. %s\n"
-#define FORMAT3 "<async handler>\n"
-  if (num_entries() == 0) {
-    return has_async_handler()
-               ? "empty ExceptionHandlers (with <async handler>)\n"
-               : "empty ExceptionHandlers\n";
-  }
+void ExceptionHandlers::WriteToBuffer(BaseTextBuffer* buffer,
+                                      uword base) const {
   auto& handled_types = Array::Handle();
   auto& type = AbstractType::Handle();
   ExceptionHandlerInfo info;
-  // First compute the buffer size required.
-  intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < num_entries(); i++) {
     GetHandlerInfo(i, &info);
     handled_types = GetHandledTypes(i);
     const intptr_t num_types =
         handled_types.IsNull() ? 0 : handled_types.Length();
-    len += Utils::SNPrint(
-        nullptr, 0, FORMAT1, i, info.handler_pc_offset, num_types,
-        info.outer_try_index,
-        ((info.needs_stacktrace != 0) ? " (needs stack trace)" : ""),
-        ((info.is_generated != 0) ? " (generated)" : ""));
+    buffer->Printf("%" Pd " => %#" Px "  (%" Pd " types) (outer %d)%s%s\n", i,
+                   base + info.handler_pc_offset, num_types,
+                   info.outer_try_index,
+                   ((info.needs_stacktrace != 0) ? " (needs stack trace)" : ""),
+                   ((info.is_generated != 0) ? " (generated)" : ""));
     for (int k = 0; k < num_types; k++) {
       type ^= handled_types.At(k);
       ASSERT(!type.IsNull());
-      len += Utils::SNPrint(nullptr, 0, FORMAT2, k, type.ToCString());
+      buffer->Printf("  %d. %s\n", k, type.ToCString());
     }
   }
   if (has_async_handler()) {
-    len += Utils::SNPrint(nullptr, 0, FORMAT3);
+    buffer->AddString("<async handler>\n");
   }
-  // Allocate the buffer.
-  char* buffer = Thread::Current()->zone()->Alloc<char>(len);
-  // Layout the fields in the buffer.
-  intptr_t num_chars = 0;
-  for (intptr_t i = 0; i < num_entries(); i++) {
-    GetHandlerInfo(i, &info);
-    handled_types = GetHandledTypes(i);
-    const intptr_t num_types =
-        handled_types.IsNull() ? 0 : handled_types.Length();
-    num_chars += Utils::SNPrint(
-        (buffer + num_chars), (len - num_chars), FORMAT1, i,
-        info.handler_pc_offset, num_types, info.outer_try_index,
-        ((info.needs_stacktrace != 0) ? " (needs stack trace)" : ""),
-        ((info.is_generated != 0) ? " (generated)" : ""));
-    for (int k = 0; k < num_types; k++) {
-      type ^= handled_types.At(k);
-      num_chars += Utils::SNPrint((buffer + num_chars), (len - num_chars),
-                                  FORMAT2, k, type.ToCString());
-    }
+}
+
+const char* ExceptionHandlers::ToCString() const {
+  if (num_entries() == 0) {
+    return has_async_handler()
+               ? "empty ExceptionHandlers (with <async handler>)"
+               : "empty ExceptionHandlers";
   }
-  if (has_async_handler()) {
-    num_chars +=
-        Utils::SNPrint((buffer + num_chars), (len - num_chars), FORMAT3);
-  }
-  return buffer;
-#undef FORMAT1
-#undef FORMAT2
-#undef FORMAT3
+  ZoneTextBuffer buffer(Thread::Current()->zone());
+  WriteToBuffer(&buffer, /*base=*/0);
+  return buffer.buffer();
 }
 
 void SingleTargetCache::set_target(const Code& value) const {
@@ -24816,7 +24824,8 @@ TwoByteStringPtr TwoByteString::New(const uint16_t* utf16_array,
   const String& result = String::Handle(TwoByteString::New(array_len, space));
   {
     NoSafepointScope no_safepoint;
-    memmove(DataStart(result), utf16_array, (array_len * 2));
+    memmove(reinterpret_cast<void*>(DataStart(result)),
+            reinterpret_cast<const void*>(utf16_array), (array_len * 2));
   }
   return TwoByteString::raw(result);
 }

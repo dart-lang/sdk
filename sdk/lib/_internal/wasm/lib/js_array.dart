@@ -24,7 +24,7 @@ class JSArrayImpl implements List<JSAny?> {
 
   @override
   void add(JSAny? value) =>
-      js.JS<void>('(a, i) => a.push(i)', toExternRef, value?.toExternRef);
+      js.JS<void>('(a, i) => a.push(i)', toExternRef, value.toExternRef);
 
   @override
   JSAny? removeAt(int index) {
@@ -37,7 +37,7 @@ class JSArrayImpl implements List<JSAny?> {
   void insert(int index, JSAny? value) {
     RangeError.checkValueInInterval(index, 0, length);
     js.JS<void>('(a, i, v) => a.splice(i, 0, v)', toExternRef,
-        index.toJS.toExternRef, value?.toExternRef);
+        index.toJS.toExternRef, value.toExternRef);
   }
 
   void _setLengthUnsafe(int newLength) => js.JS<void>(
@@ -373,8 +373,8 @@ class JSArrayImpl implements List<JSAny?> {
   Iterable<JSAny?> get reversed => ReversedListIterable<JSAny?>(this);
 
   static int _compareAny(JSAny? a, JSAny? b) => js
-      .JS<double>('(a, b) => a == b ? 0 : (a > b ? 1 : -1)', a?.toExternRef,
-          b?.toExternRef)
+      .JS<double>('(a, b) => a == b ? 0 : (a > b ? 1 : -1)', a.toExternRef,
+          b.toExternRef)
       .toInt();
 
   @override
@@ -477,7 +477,7 @@ class JSArrayImpl implements List<JSAny?> {
   void operator []=(int index, JSAny? value) {
     RangeError.checkValueInInterval(index, 0, length - 1);
     js.JS<void>('(a, i, v) => a[i] = v', toExternRef, index.toJS.toExternRef,
-        value?.toExternRef);
+        value.toExternRef);
   }
 
   @override

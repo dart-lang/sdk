@@ -43,41 +43,41 @@ class ElementDescriptor {
   /// Return `true` if the given [node] appears to be consistent with the
   /// element being described.
   bool matches(AstNode node) {
-    // TODO(brianwilkerson) Check the resolved element, if one exists, for more
+    // TODO(brianwilkerson): Check the resolved element, if one exists, for more
     //  accurate results.
     return switch (kind) {
       ElementKind.classKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.constantKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.constructorKind => _matchesConstructor(node),
       ElementKind.enumKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.extensionKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.fieldKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.functionKind => _matchesFunction(node),
       ElementKind.getterKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.methodKind => _matchesMethod(node),
       ElementKind.mixinKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.setterKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.typedefKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false,
       ElementKind.variableKind =>
-        // TODO(brianwilkerson) Handle this case.
+        // TODO(brianwilkerson): Handle this case.
         false
     };
   }
@@ -133,14 +133,14 @@ class ElementDescriptor {
       if (components[0] == node.methodName.name) {
         var target = node.realTarget;
         if (target == null) {
-          // TODO(brianwilkerson) If `node.target == null` then the invocation
+          // TODO(brianwilkerson): If `node.target == null` then the invocation
           //  should be in a subclass of the element's class.
           return true;
         } else {
           var type = target.staticType;
           if (type == null && target is SimpleIdentifier) {
             var element = target.staticElement;
-            // TODO(brianwilkerson) Handle more than `InterfaceElement`.
+            // TODO(brianwilkerson): Handle more than `InterfaceElement`.
             if (element is InterfaceElement) {
               type = element.thisType;
             }

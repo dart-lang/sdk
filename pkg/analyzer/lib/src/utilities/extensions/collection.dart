@@ -13,6 +13,14 @@ extension IterableExtension<E> on Iterable<E> {
     }
     return result;
   }
+
+  Iterable<E> whereNotType<U>() {
+    return whereNot((element) => element is U);
+  }
+}
+
+extension IterableMapEntryExtension<K, V> on Iterable<MapEntry<K, V>> {
+  Map<K, V> get mapFromEntries => Map.fromEntries(this);
 }
 
 extension ListExtension<E> on List<E> {

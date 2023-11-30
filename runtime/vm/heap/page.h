@@ -112,6 +112,7 @@ class Page {
   void AllocateForwardingPage();
 
   void VisitObjects(ObjectVisitor* visitor) const;
+  void VisitObjectsUnsafe(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   void WriteProtect(bool read_only);

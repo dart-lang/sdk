@@ -9,6 +9,8 @@ import 'dart:core' hide Type;
 
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     show StaticWeakReferences;
+import 'package:front_end/src/fasta/kernel/resource_identifier.dart'
+    as ResourceIdentifiers;
 import 'package:kernel/ast.dart' hide Statement, StatementVisitor;
 import 'package:kernel/ast.dart' as ast show Statement;
 import 'package:kernel/class_hierarchy.dart'
@@ -260,14 +262,24 @@ class CleanupAnnotations extends RecursiveVisitor {
     }
   }
 
+  /// We do not want to eliminate
+  /// * `pragma`s
+  /// * Protobuf annotations
+  /// * `ResourceIdentifier` annotations
+  ///
+  /// as we need these later in the pipeline.
   bool _keepAnnotation(Expression annotation) {
     if (annotation is ConstantExpression) {
       final constant = annotation.constant;
       if (constant is InstanceConstant) {
         final cls = constant.classNode;
-        return (cls == pragmaClass) ||
-            (protobufHandler != null &&
-                protobufHandler!.usesAnnotationClass(cls));
+        final usesProtobufAnnotation =
+            protobufHandler?.usesAnnotationClass(cls) ?? false;
+        bool usesResourceIdentifier =
+            ResourceIdentifiers.isResourceIdentifier(cls);
+        return cls == pragmaClass ||
+            usesProtobufAnnotation ||
+            usesResourceIdentifier;
       }
     }
     return false;
@@ -315,6 +327,7 @@ class AnnotateKernel extends RecursiveVisitor {
   final UnboxingInfoMetadataRepository _unboxingInfoMetadata;
   final UnboxingInfoManager _unboxingInfo;
   final Class _intClass;
+  final TFClass _intTFClass;
   late final Constant _nullConstant = NullConstant();
 
   AnnotateKernel(Component component, this._typeFlowAnalysis, this.hierarchy,
@@ -329,7 +342,9 @@ class AnnotateKernel extends RecursiveVisitor {
         _tableSelectorMetadata = TableSelectorMetadataRepository(),
         _closureIdMetadata = ClosureIdMetadataRepository(),
         _unboxingInfoMetadata = UnboxingInfoMetadataRepository(),
-        _intClass = _typeFlowAnalysis.environment.coreTypes.intClass {
+        _intClass = _typeFlowAnalysis.environment.coreTypes.intClass,
+        _intTFClass = _typeFlowAnalysis.hierarchyCache
+            .getTFClass(_typeFlowAnalysis.environment.coreTypes.intClass) {
     component.addMetadataRepository(_inferredTypeMetadata);
     component.addMetadataRepository(_inferredArgTypeMetadata);
     component.addMetadataRepository(_unreachableNodeMetadata);
@@ -365,7 +380,7 @@ class AnnotateKernel extends RecursiveVisitor {
       concreteClass = type.getConcreteClass(_typeFlowAnalysis.hierarchyCache);
 
       if (concreteClass == null) {
-        isInt = type.isSubtypeOf(_typeFlowAnalysis.hierarchyCache, _intClass);
+        isInt = type.isSubtypeOf(_intTFClass);
       }
 
       if (type is ConcreteType && !nullable) {
@@ -468,7 +483,8 @@ class AnnotateKernel extends RecursiveVisitor {
         // here), then the receiver cannot be _Smi. This heuristic covers most
         // cases, so we skip these to avoid showering the AST with annotations.
         if (interfaceTarget == null ||
-            hierarchy.isSubtypeOf(_intClass, interfaceTarget.enclosingClass!)) {
+            hierarchy.isSubInterfaceOf(
+                _intClass, interfaceTarget.enclosingClass!)) {
           markReceiverNotInt = true;
         }
       }
