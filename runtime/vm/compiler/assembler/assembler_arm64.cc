@@ -727,14 +727,18 @@ void Assembler::LoadQImmediate(VRegister vd, simd128_value_t immq) {
   LoadQFromOffset(vd, PP, offset);
 }
 
-void Assembler::Branch(const Code& target,
-                       Register pp,
-                       ObjectPoolBuilderEntry::Patchability patchable) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index, pp);
-  ldr(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  br(TMP);
+void Assembler::BranchLink(intptr_t target_code_pool_index,
+                           CodeEntryKind entry_kind) {
+  CLOBBERS_LR({
+    // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+    // We don't actually use CODE_REG in the callee and caller might
+    // be using CODE_REG for a live value (e.g. a value that is alive
+    // across invocation of a shared stub like the one we use for
+    // allocating Mint boxes).
+    const Register code_reg = FLAG_precompiled_mode ? LR : CODE_REG;
+    LoadWordFromPoolIndex(code_reg, target_code_pool_index);
+    Call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
+  });
 }
 
 void Assembler::BranchLink(
@@ -744,8 +748,7 @@ void Assembler::BranchLink(
     ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   const intptr_t index = object_pool_builder().FindObject(
       ToObject(target), patchable, snapshot_behavior);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::BranchLinkWithEquivalence(const Code& target,
@@ -753,8 +756,7 @@ void Assembler::BranchLinkWithEquivalence(const Code& target,
                                           CodeEntryKind entry_kind) {
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  BranchLink(index, entry_kind);
 }
 
 void Assembler::AddImmediate(Register dest,

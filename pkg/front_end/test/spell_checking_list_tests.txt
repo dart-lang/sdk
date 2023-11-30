@@ -414,6 +414,7 @@ instrument
 instrumenter
 insufficient
 intdiv
+intel
 interactions
 interactive
 interchangeable
@@ -453,6 +454,7 @@ lints
 listening
 listing
 ln
+locating
 logd
 logs
 loo
@@ -592,6 +594,7 @@ protected
 proved
 proxy
 pseudocode
+pt
 pubspec
 pv
 px

@@ -2181,7 +2181,7 @@ final class _Int8List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setInt8(index, _toInt8(value));
+    _setInt8(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2237,7 +2237,7 @@ final class _Uint8List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setUint8(index, _toUint8(value));
+    _setUint8(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2358,7 +2358,7 @@ final class _Int16List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt16(index, _toInt16(value));
+    _setIndexedInt16(index, value);
   }
 
   @pragma("vm:prefer-inline")
@@ -2434,7 +2434,7 @@ final class _Uint16List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint16(index, _toUint16(value));
+    _setIndexedUint16(index, value);
   }
 
   @pragma("vm:prefer-inline")
@@ -2509,7 +2509,7 @@ final class _Int32List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt32(index, _toInt32(value));
+    _setIndexedInt32(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -2572,7 +2572,7 @@ final class _Uint32List extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint32(index, _toUint32(value));
+    _setIndexedUint32(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3102,7 +3102,7 @@ final class _ExternalUint8Array extends _TypedList
   @pragma("vm:recognized", "graph-intrinsic")
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setUint8(index, _toUint8(value));
+    _setUint8(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3190,7 +3190,7 @@ final class _ExternalInt16Array extends _TypedList
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt16(index, _toInt16(value));
+    _setIndexedInt16(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3236,7 +3236,7 @@ final class _ExternalUint16Array extends _TypedList
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint16(index, _toUint16(value));
+    _setIndexedUint16(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3282,7 +3282,7 @@ final class _ExternalInt32Array extends _TypedList
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedInt32(index, _toInt32(value));
+    _setIndexedInt32(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -3328,7 +3328,7 @@ final class _ExternalUint32Array extends _TypedList
 
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
-    _setIndexedUint32(index, _toUint32(value));
+    _setIndexedUint32(index, value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -4254,7 +4254,7 @@ final class _Int8ArrayView extends _TypedListView
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
     _typedData._setInt8(
-        offsetInBytes + (index * Int8List.bytesPerElement), _toInt8(value));
+        offsetInBytes + (index * Int8List.bytesPerElement), value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -4300,7 +4300,7 @@ final class _Uint8ArrayView extends _TypedListView
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
     _typedData._setUint8(
-        offsetInBytes + (index * Uint8List.bytesPerElement), _toUint8(value));
+        offsetInBytes + (index * Uint8List.bytesPerElement), value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -4401,7 +4401,7 @@ final class _Int16ArrayView extends _TypedListView
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
     _typedData._setInt16(
-        offsetInBytes + (index * Int16List.bytesPerElement), _toInt16(value));
+        offsetInBytes + (index * Int16List.bytesPerElement), value);
   }
 
   @pragma("vm:prefer-inline")
@@ -4460,7 +4460,7 @@ final class _Uint16ArrayView extends _TypedListView
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
     _typedData._setUint16(
-        offsetInBytes + (index * Uint16List.bytesPerElement), _toUint16(value));
+        offsetInBytes + (index * Uint16List.bytesPerElement), value);
   }
 
   @pragma("vm:prefer-inline")
@@ -4519,7 +4519,7 @@ final class _Int32ArrayView extends _TypedListView
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
     _typedData._setInt32(
-        offsetInBytes + (index * Int32List.bytesPerElement), _toInt32(value));
+        offsetInBytes + (index * Int32List.bytesPerElement), value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -4565,7 +4565,7 @@ final class _Uint32ArrayView extends _TypedListView
   void operator []=(int index, int value) {
     index = _typedDataIndexCheck(this, index, length);
     _typedData._setUint32(
-        offsetInBytes + (index * Uint32List.bytesPerElement), _toUint32(value));
+        offsetInBytes + (index * Uint32List.bytesPerElement), value);
   }
 
   // Method(s) implementing the TypedData interface.
@@ -5166,49 +5166,11 @@ final _convF32 = new Float32List.view(_convU32.buffer);
 final _convF64 = new Float64List.view(_convU32.buffer);
 
 // Top level utility methods.
-@pragma("vm:prefer-inline")
-int _toInt(int value, int mask) {
-  value &= mask;
-  if (value > (mask >> 1)) value -= mask + 1;
-  return value;
-}
-
-@pragma("vm:prefer-inline")
-int _toInt8(int value) {
-  return _toInt(value, 0xFF);
-}
-
-@pragma("vm:prefer-inline")
-int _toUint8(int value) {
-  return value & 0xFF;
-}
-
-@pragma("vm:recognized", "other")
 @pragma("vm:exact-result-type", "dart:core#_Smi")
 int _toClampedUint8(int value) {
   if (value < 0) return 0;
   if (value > 0xFF) return 0xFF;
   return value;
-}
-
-@pragma("vm:prefer-inline")
-int _toInt16(int value) {
-  return _toInt(value, 0xFFFF);
-}
-
-@pragma("vm:prefer-inline")
-int _toUint16(int value) {
-  return value & 0xFFFF;
-}
-
-@pragma("vm:prefer-inline")
-int _toInt32(int value) {
-  return _toInt(value, 0xFFFFFFFF);
-}
-
-@pragma("vm:prefer-inline")
-int _toUint32(int value) {
-  return value & 0xFFFFFFFF;
 }
 
 @pragma("vm:prefer-inline")

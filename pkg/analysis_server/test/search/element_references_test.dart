@@ -1579,4 +1579,46 @@ class A<T> {
     assertHasResult(SearchResultKind.REFERENCE, 'T f;');
     assertHasResult(SearchResultKind.REFERENCE, 'T m()');
   }
+
+  Future<void> test_variable_forEachElement_block() async {
+    addTestFile('''
+void f(List<int> values) {
+  {
+    [for (final value in values) value * 2];
+  }
+}
+''');
+    await findElementReferences(search: 'value in', false);
+    expect(searchElement!.kind, ElementKind.LOCAL_VARIABLE);
+    assertHasResult(SearchResultKind.READ, 'value * 2');
+  }
+
+  Future<void> test_variable_forEachElement_expressionBody() async {
+    addTestFile('''
+Object f() => [for (final value in []) value * 2];
+''');
+    await findElementReferences(search: 'value in', false);
+    expect(searchElement!.kind, ElementKind.LOCAL_VARIABLE);
+    assertHasResult(SearchResultKind.READ, 'value * 2');
+  }
+
+  Future<void> test_variable_forEachElement_functionBody() async {
+    addTestFile('''
+void f(List<int> values) {
+  [for (final value in values) value * 2];
+}
+''');
+    await findElementReferences(search: 'value in', false);
+    expect(searchElement!.kind, ElementKind.LOCAL_VARIABLE);
+    assertHasResult(SearchResultKind.READ, 'value * 2');
+  }
+
+  Future<void> test_variable_forEachElement_topLevelVariable() async {
+    addTestFile('''
+final a = [for (final value in []) value * 2];
+''');
+    await findElementReferences(search: 'value in', false);
+    expect(searchElement!.kind, ElementKind.LOCAL_VARIABLE);
+    assertHasResult(SearchResultKind.READ, 'value * 2');
+  }
 }

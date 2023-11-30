@@ -22,6 +22,11 @@ import 'package:yaml/yaml.dart';
 
 /// The generator used to generate fixes in pubspec.yaml files.
 class PubspecFixGenerator {
+  static const List<ErrorCode> codesWithFixes = [
+    PubspecWarningCode.MISSING_DEPENDENCY,
+    PubspecWarningCode.MISSING_NAME,
+  ];
+
   /// The resource provider used to access the file system.
   final ResourceProvider resourceProvider;
 
@@ -88,6 +93,15 @@ class PubspecFixGenerator {
     }
 
     var errorCode = error.errorCode;
+    // Check whether [errorCode] is within [codeWithFixes], which is (currently)
+    // the canonical list of pubspec error codes with fixes. If we move pubspec
+    // fixes to the style of correction producers, and a map from error codes to
+    // the correction producers that can fix violations, we won't need this
+    // check.
+    if (!codesWithFixes.contains(errorCode)) {
+      return fixes;
+    }
+
     if (errorCode == PubspecWarningCode.ASSET_DOES_NOT_EXIST) {
       // Consider replacing the path with a valid path.
     } else if (errorCode == PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST) {
@@ -164,7 +178,7 @@ class PubspecFixGenerator {
     }
     if (removeDevDeps.isNotEmpty) {
       var section = node['dev_dependencies'] as YamlMap;
-      // remove the section if all entries are removed.
+      // Remove the section if all entries are to be deleted.
       if (removeDevDeps.length == section.nodes.length) {
         MapEntry<dynamic, YamlNode>? currentEntry, prevEntry;
         for (var entry in node.nodes.entries) {
@@ -175,17 +189,19 @@ class PubspecFixGenerator {
           prevEntry = entry;
         }
         if (currentEntry != null && prevEntry != null) {
-          var startOffset = (prevEntry.value as YamlMap).span.end.offset;
-          var endOffset = (currentEntry.value as YamlMap).span.end.offset;
+          var startOffset = prevEntry.value.span.end.offset;
+          var endOffset = currentEntry.value.span.end.offset;
           await builder.addGenericFileEdit(file, (builder) {
             builder
                 .addDeletion(SourceRange(startOffset, endOffset - startOffset));
           });
         }
       } else {
-        // go through entries and remove them.
+        // Keep track of the current edit.
+        _Range? edit;
+        // Go through entries and remove each one.
         for (var dep in removeDevDeps) {
-          dynamic currentEntry, nextEntry;
+          MapEntry<dynamic, YamlNode>? currentEntry, nextEntry, prevEntry;
           for (var entry in section.nodes.entries) {
             if (entry.key.value == dep) {
               currentEntry = entry;
@@ -195,10 +211,9 @@ class PubspecFixGenerator {
               nextEntry = entry;
               break;
             }
+            prevEntry = entry;
           }
           if (currentEntry != null) {
-            var startOffset =
-                (currentEntry.key as YamlScalar).span.start.offset;
             if (nextEntry == null) {
               // Removing the last entry, check to see if there are any other
               // sections after dev_dependencies.
@@ -206,6 +221,7 @@ class PubspecFixGenerator {
               for (var entry in node.nodes.entries) {
                 if (entry.key.value == 'dev_dependencies') {
                   deps = entry;
+                  continue;
                 }
                 if (deps != null) {
                   nextEntry == entry;
@@ -213,14 +229,40 @@ class PubspecFixGenerator {
                 }
               }
             }
+
+            var startOffset = prevEntry != null
+                ? prevEntry.value.span.end.offset
+                : (currentEntry.key as YamlNode).span.start.offset;
+            // If nextEntry is null, this is the last entry in the
+            // dev_dependencies section, and also dev_dependencies is the the
+            // last section in the pubspec file. So delete till the end of the
+            // section.
             var endOffset = nextEntry == null
-                ? (currentEntry.value as YamlScalar).span.end.offset
-                : (nextEntry.key as YamlScalar).span.start.offset;
-            await builder.addGenericFileEdit(file, (builder) {
-              builder.addDeletion(
-                  SourceRange(startOffset, endOffset - startOffset));
-            });
+                ? currentEntry.value.span.end.offset
+                : (nextEntry.key as YamlNode).span.start.offset;
+
+            if (edit == null) {
+              edit = _Range(startOffset, endOffset);
+            } else if (edit.endOffset > startOffset) {
+              // Conflicting ranges for edits, merge them.
+              edit = _Range(edit.startOffset, endOffset);
+            } else {
+              // Edits don't conflict, add previously computed edit to builder.
+              await builder.addGenericFileEdit(file, (builder) {
+                builder.addDeletion(SourceRange(
+                    edit!.startOffset, edit.endOffset - edit.startOffset));
+              });
+              edit = _Range(startOffset, endOffset);
+            }
           }
+        }
+        // Iterated through all the entries to be removed, add the last computed
+        // edit to builder.
+        if (edit != null) {
+          await builder.addGenericFileEdit(file, (builder) {
+            builder.addDeletion(SourceRange(
+                edit!.startOffset, edit.endOffset - edit.startOffset));
+          });
         }
       }
     }
@@ -325,4 +367,11 @@ class _NonDartChangeWorkspace implements ChangeWorkspace {
   AnalysisSession getSession(String path) {
     throw UnimplementedError('Attempt to work a Dart file.');
   }
+}
+
+class _Range {
+  int startOffset;
+  int endOffset;
+
+  _Range(this.startOffset, this.endOffset);
 }

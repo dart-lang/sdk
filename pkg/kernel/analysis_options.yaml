@@ -1,4 +1,6 @@
 analyzer:
+  errors:
+    todo: ignore
   exclude:
     - testcases/**
 

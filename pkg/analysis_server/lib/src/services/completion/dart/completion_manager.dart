@@ -315,7 +315,7 @@ class DartCompletionManager {
     if (selection == null) {
       throw AbortCompletion();
     }
-    var state = CompletionState(request.libraryElement, selection);
+    var state = CompletionState(request, selection);
     var pass = InScopeCompletionPass(state: state, collector: collector);
     pass.computeSuggestions();
     builder.suggestFromCandidates(collector.suggestions);

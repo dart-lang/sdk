@@ -119,7 +119,6 @@ namespace dart {
   V(_TypedListBase, _memMove4, TypedData_memMove4, 0xcfe37726)                 \
   V(_TypedListBase, _memMove8, TypedData_memMove8, 0xd1d8e325)                 \
   V(_TypedListBase, _memMove16, TypedData_memMove16, 0x07861cd5)               \
-  V(::, _toClampedUint8, ConvertIntToClampedUint8, 0xd0e522d0)                 \
   V(::, _typedDataIndexCheck, TypedDataIndexCheck, 0xc54f594f)                 \
   V(::, _byteDataByteOffsetCheck, ByteDataByteOffsetCheck, 0x4ae73104)         \
   V(::, copyRangeFromUint8ListToOneByteString,                                 \
@@ -393,11 +392,11 @@ namespace dart {
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
   V(_Int8List, [], Int8ArrayGetIndexed, 0x7b31eba4)                            \
-  V(_Int8List, []=, Int8ArraySetIndexed, 0x02734e41)                           \
+  V(_Int8List, []=, Int8ArraySetIndexed, 0x02f7bc29)                           \
   V(_Uint8List, [], Uint8ArrayGetIndexed, 0xe0aa6f64)                          \
-  V(_Uint8List, []=, Uint8ArraySetIndexed, 0x4f025a05)                         \
+  V(_Uint8List, []=, Uint8ArraySetIndexed, 0xc8fdea5d)                         \
   V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 0xe0aa6f64)         \
-  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 0x4f025a05)        \
+  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 0xc8fdea5d)        \
   V(_Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 0xe0aa6f64)            \
   V(_Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 0x45020fa5)           \
   V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
@@ -405,13 +404,13 @@ namespace dart {
   V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
     0x45020fa5)                                                                \
   V(_Int16List, [], Int16ArrayGetIndexed, 0x5b304b04)                          \
-  V(_Int16List, []=, Int16ArraySetIndexed, 0x92f311cc)                         \
+  V(_Int16List, []=, Int16ArraySetIndexed, 0x90aeedef)                         \
   V(_Uint16List, [], Uint16ArrayGetIndexed, 0x3f092704)                        \
-  V(_Uint16List, []=, Uint16ArraySetIndexed, 0x7b35b943)                       \
+  V(_Uint16List, []=, Uint16ArraySetIndexed, 0x03eecf75)                       \
   V(_Int32List, [], Int32ArrayGetIndexed, 0x5ccdf0a3)                          \
-  V(_Int32List, []=, Int32ArraySetIndexed, 0x71278e6b)                         \
+  V(_Int32List, []=, Int32ArraySetIndexed, 0x7fb5bb97)                         \
   V(_Uint32List, [], Uint32ArrayGetIndexed, 0xac205643)                        \
-  V(_Uint32List, []=, Uint32ArraySetIndexed, 0x5ccb02eb)                       \
+  V(_Uint32List, []=, Uint32ArraySetIndexed, 0xc8d82563)                       \
   V(_Int64List, [], Int64ArrayGetIndexed, 0x95964ae3)                          \
   V(_Int64List, []=, Int64ArraySetIndexed, 0xf550bf5d)                         \
   V(_Uint64List, [], Uint64ArrayGetIndexed, 0xd25ab063)                        \

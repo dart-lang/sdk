@@ -26,7 +26,6 @@ import 'package:dev_compiler/dev_compiler.dart'
 import 'package:front_end/src/api_unstable/ddc.dart' as ddc
     show IncrementalCompiler;
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:front_end/widget_cache.dart';
 import 'package:kernel/ast.dart' show Library, Procedure, LibraryDependency;
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/kernel.dart'
@@ -211,9 +210,6 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
       defaultsTo: 'amd')
   ..addFlag('dartdevc-canary',
       help: 'Enable canary features in dartdevc compiler', defaultsTo: false)
-  ..addFlag('flutter-widget-cache',
-      help: 'Enable the widget cache to track changes to Widget subtypes',
-      defaultsTo: false)
   ..addFlag('print-incremental-dependencies',
       help: 'Print list of sources added and removed from compilation',
       defaultsTo: true)
@@ -436,7 +432,6 @@ class FrontendCompiler implements CompilerInterface {
   /// Nullable fields
   final ProgramTransformer? transformer;
   bool? unsafePackageSerialization;
-  WidgetCache? _widgetCache;
 
   _onDiagnostic(DiagnosticMessage message) {
     switch (message.severity) {
@@ -623,9 +618,6 @@ class FrontendCompiler implements CompilerInterface {
       );
 
       incrementalSerializer = _generator.incrementalSerializer;
-      if (options['flutter-widget-cache']) {
-        _widgetCache = WidgetCache(component);
-      }
     } else {
       if (options['link-platform']) {
         // TODO(aam): Remove linkedDependencies once platform is directly embedded
@@ -964,7 +956,6 @@ class FrontendCompiler implements CompilerInterface {
       await writeDillFile(results, _kernelBinaryFilename,
           incrementalSerializer: _generator.incrementalSerializer);
     }
-    _updateWidgetCache(deltaProgram);
 
     _outputStream.writeln(boundaryKey);
     await _outputDependenciesDelta(results.compiledSources!);
@@ -1188,7 +1179,6 @@ class FrontendCompiler implements CompilerInterface {
   @override
   void acceptLastDelta() {
     _generator.accept();
-    _widgetCache?.reset();
   }
 
   @override
@@ -1202,13 +1192,11 @@ class FrontendCompiler implements CompilerInterface {
   @override
   void invalidate(Uri uri) {
     _generator.invalidate(uri);
-    _widgetCache?.invalidate(uri);
   }
 
   @override
   void resetIncrementalCompiler() {
     _generator.resetDeltaState();
-    _widgetCache?.reset();
     _kernelBinaryFilename = _kernelBinaryFilenameFull;
   }
 
@@ -1217,31 +1205,6 @@ class FrontendCompiler implements CompilerInterface {
         _compilerOptions, [_mainSource, ..._additionalSources],
         initializeFromDillUri: initializeFromDillUri,
         incrementalSerialization: incrementalSerialization);
-  }
-
-  /// If the flutter widget cache is enabled, check if a single class was modified.
-  ///
-  /// The resulting class name is written as a String to
-  /// `_kernelBinaryFilename`.widget_cache, or else the file is deleted
-  /// if it exists.
-  ///
-  /// Should not run if a full component is requested.
-  void _updateWidgetCache(Component partialComponent) {
-    if (_widgetCache == null || _generator.fullComponent) {
-      return;
-    }
-    final String? singleModifiedClassName =
-        _widgetCache!.checkSingleWidgetTypeModified(
-      _generator.lastKnownGoodResult?.component,
-      partialComponent,
-      _generator.lastKnownGoodResult?.classHierarchy,
-    );
-    final File outputFile = File('$_kernelBinaryFilename.widget_cache');
-    if (singleModifiedClassName != null) {
-      outputFile.writeAsStringSync(singleModifiedClassName);
-    } else if (outputFile.existsSync()) {
-      outputFile.deleteSync();
-    }
   }
 
   Uri _ensureFolderPath(String path) {

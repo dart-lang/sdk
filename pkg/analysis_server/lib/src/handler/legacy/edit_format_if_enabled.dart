@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -20,15 +21,14 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
   EditFormatIfEnabledHandler(
       super.server, super.request, super.cancellationToken, super.performance);
 
-  /// Format the file at the given [filePath].
+  /// Format the given [file].
   ///
   /// Throws a [FileSystemException] if the file doesn't exist or can't be read.
   /// Throws a [FormatterException] if the code could not be formatted.
-  List<SourceEdit> formatFile(String filePath) {
+  List<SourceEdit> formatFile(File file) {
     // TODO(brianwilkerson): Move this to a superclass when `edit.format` is
     //  implemented by a handler class so the code can be shared.
-    var resource = server.resourceProvider.getFile(filePath);
-    var originalContent = resource.readAsStringSync();
+    var originalContent = file.readAsStringSync();
     var code = SourceCode(originalContent, uri: null, isCompilationUnit: true);
 
     var formatter = DartFormatter();
@@ -55,23 +55,31 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
     );
     var sourceFileEdits = <SourceFileEdit>[];
     for (var context in collection.contexts) {
-      // TODO(pq): maybe experimental and could be unused (or maybe used by dart fix)
-      if (context.analysisOptions.codeStyleOptions.useFormatter) {
-        _formatInContext(context, sourceFileEdits);
-      }
+      _formatInContext(context, sourceFileEdits);
     }
     sendResult(EditFormatIfEnabledResult(sourceFileEdits));
   }
 
-  /// Format all of the files in the given [context], adding the edits to the
-  /// list of [sourceFileEdits].
+  /// Format all of the Dart files in the given [context] whose associated
+  /// `codeStyleOptions` enable formatting, adding the edits to the list of
+  /// [sourceFileEdits].
   void _formatInContext(DriverBasedAnalysisContext context,
       List<SourceFileEdit> sourceFileEdits) {
+    var pathContext = context.resourceProvider.pathContext;
     for (var filePath in context.contextRoot.analyzedFiles()) {
-      var pathContext = context.resourceProvider.pathContext;
-      if (file_paths.isDart(pathContext, filePath)) {
+      // Skip anything but .dart files.
+      if (!file_paths.isDart(pathContext, filePath)) continue;
+      // TODO(pq): consider optimizing this file (re)creation
+      // `analyzedFiles()` creates and disposes of a File object only for us
+      // to recreate it here. It would be faster if we could get the files
+      // directly from the context root.
+      var resource = context.resourceProvider.getResource(filePath);
+      if (resource is! File) continue;
+
+      var options = context.getAnalysisOptionsForFile(resource);
+      if (options.codeStyleOptions.useFormatter) {
         try {
-          var sourceEdits = formatFile(filePath);
+          var sourceEdits = formatFile(resource);
           if (sourceEdits.isNotEmpty) {
             sourceFileEdits
                 .add(SourceFileEdit(filePath, 0, edits: sourceEdits));

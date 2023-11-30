@@ -61,4 +61,15 @@ class C<T extends Function> {
       error(FfiCode.NON_CONSTANT_TYPE_ARGUMENT, 125, 1),
     ]);
   }
+
+  test_asFunction_Pointer_Opaque() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+main() {
+  DynamicLibrary.open('dontcare')
+      .lookup<NativeFunction<Void Function(Pointer<Opaque>)>>('dontcare')
+      .asFunction<void Function(Pointer<Opaque>)>(isLeaf: true);
+}
+''');
+  }
 }

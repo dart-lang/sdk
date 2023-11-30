@@ -2991,8 +2991,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.iterableType(
-                typeMatches ? elementType : const DynamicType(),
-                libraryBuilder.nullable));
+                elementType, libraryBuilder.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -3014,35 +3013,23 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.iterableType(
-                typeMatches ? elementType : const DynamicType(),
-                libraryBuilder.nullable));
+                const DynamicType(), libraryBuilder.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
 
-      VariableDeclaration variable;
-      Statement loopBody;
-      if (!typeMatches) {
-        variable =
-            _createForInVariable(element.fileOffset, const DynamicType());
-        VariableDeclaration castedVar = _createVariable(
-            _createImplicitAs(element.expression.fileOffset,
-                _createVariableGet(variable), elementType),
-            elementType);
-        loopBody = _createBlock(<Statement>[
-          castedVar,
-          _createExpressionStatement(_createAdd(_createVariableGet(result),
-              receiverType, _createVariableGet(castedVar),
-              isSet: isSet))
-        ]);
-      } else {
-        variable = _createForInVariable(element.fileOffset, elementType);
-        loopBody = _createExpressionStatement(_createAdd(
-            _createVariableGet(result),
-            receiverType,
-            _createVariableGet(variable),
-            isSet: isSet));
-      }
+      VariableDeclaration variable =
+          _createForInVariable(element.fileOffset, const DynamicType());
+      VariableDeclaration castedVar = _createVariable(
+          _createImplicitAs(element.expression.fileOffset,
+              _createVariableGet(variable), elementType),
+          elementType);
+      Statement loopBody = _createBlock(<Statement>[
+        castedVar,
+        _createExpressionStatement(_createAdd(_createVariableGet(result),
+            receiverType, _createVariableGet(castedVar),
+            isSet: isSet))
+      ]);
       Statement statement =
           _createForInStatement(element.fileOffset, variable, value, loopBody);
 
@@ -3341,9 +3328,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         temp = _createVariable(
             value,
             typeSchemaEnvironment.mapType(
-                typeMatches ? keyType : const DynamicType(),
-                typeMatches ? valueType : const DynamicType(),
-                libraryBuilder.nullable));
+                keyType, valueType, libraryBuilder.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }
@@ -3364,10 +3349,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       if (entry.isNullAware) {
         temp = _createVariable(
             value,
-            typeSchemaEnvironment.mapType(
-                typeMatches ? keyType : const DynamicType(),
-                typeMatches ? valueType : const DynamicType(),
-                libraryBuilder.nullable));
+            typeSchemaEnvironment.mapType(const DynamicType(),
+                const DynamicType(), libraryBuilder.nullable));
         body.add(temp);
         value = _createNullCheckedVariableGet(temp);
       }

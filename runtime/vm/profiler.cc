@@ -1873,22 +1873,6 @@ void Profiler::IsolateShutdown(Thread* thread) {
   ProcessCompletedBlocks(thread->isolate());
 }
 
-class SampleBlockProcessorVisitor : public IsolateVisitor {
- public:
-  SampleBlockProcessorVisitor() = default;
-  virtual ~SampleBlockProcessorVisitor() = default;
-
-  void VisitIsolate(Isolate* isolate) {
-    if (isolate->TakeHasCompletedBlocks()) {
-      const bool kBypassSafepoint = false;
-      Thread::EnterIsolateGroupAsHelper(
-          isolate->group(), Thread::kSampleBlockTask, kBypassSafepoint);
-      Profiler::ProcessCompletedBlocks(isolate);
-      Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
-    }
-  }
-};
-
 void SampleBlockProcessor::ThreadMain(uword parameters) {
   ASSERT(initialized_);
   {
@@ -1901,7 +1885,6 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
     startup_ml.Notify();
   }
 
-  SampleBlockProcessorVisitor visitor;
   MonitorLocker wait_ml(monitor_);
   // Wakeup every 100ms.
   const int64_t wakeup_interval = 1000 * 100;
@@ -1910,7 +1893,18 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
     if (shutdown_) {
       break;
     }
-    Isolate::VisitIsolates(&visitor);
+
+    IsolateGroup::ForEach([&](IsolateGroup* group) {
+      const bool kBypassSafepoint = false;
+      Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
+                                        kBypassSafepoint);
+      group->ForEachIsolate([&](Isolate* isolate) {
+        if (isolate->TakeHasCompletedBlocks()) {
+          Profiler::ProcessCompletedBlocks(isolate);
+        }
+      });
+      Thread::ExitIsolateGroupAsHelper(kBypassSafepoint);
+    });
   }
   // Signal to main thread we are exiting.
   thread_running_ = false;

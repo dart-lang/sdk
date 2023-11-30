@@ -291,6 +291,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: function
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -309,6 +311,8 @@ suggestions
     kind: function
   b1
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -347,6 +351,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: function
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -365,6 +371,8 @@ suggestions
     kind: function
   b1
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -494,6 +502,8 @@ suggestions
     kind: function
   b1
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -514,6 +524,8 @@ suggestions
     kind: functionInvocation
   b2
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -612,6 +624,8 @@ suggestions
     kind: class
   B0
     kind: constructorInvocation
+  f0
+    kind: function
   h0
     kind: function
 ''');
@@ -628,6 +642,8 @@ suggestions
     kind: constructorInvocation
   b0
     kind: functionInvocation
+  f0
+    kind: function
   h0
     kind: functionInvocation
 ''');
@@ -3259,6 +3275,9 @@ suggestions
   }
 
   Future<void> test_defaultFormalParameter_named_expression() async {
+    // TODO(brianwilkerson): This is invalid code and there's no clear answer as
+    //  to what ought to be suggested. Consider deleting the test, or making it
+    //  so that we don't suggest anything.
     await computeSuggestions('''
 f0() {}
 void bar() {}
@@ -3266,17 +3285,23 @@ class A0 {
   a0(blat: ^) {}
 }
 ''');
-    assertResponse(r'''
+    if (isProtocolVersion2) {
+      assertResponse(r'''
 suggestions
   A0
     kind: class
   A0
     kind: constructorInvocation
-  a0
-    kind: methodInvocation
   f0
     kind: functionInvocation
 ''');
+    } else {
+      assertResponse(r'''
+suggestions
+  A0
+    kind: class
+''');
+    }
   }
 
   Future<void> test_enum() async {
@@ -3642,8 +3667,7 @@ class C2 {
   void b0() {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A0
     kind: class
@@ -3666,29 +3690,6 @@ suggestions
   f0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A0
-    kind: class
-  A0
-    kind: constructorInvocation
-  C1
-    kind: class
-  C2
-    kind: class
-  C2
-    kind: constructorInvocation
-  F0
-    kind: functionInvocation
-  F1
-    kind: typeAlias
-  b0
-    kind: methodInvocation
-  f0
-    kind: methodInvocation
-''');
-    }
   }
 
   Future<void> test_expressionStatement_name() async {
@@ -3715,21 +3716,15 @@ class A0 {}
 mixin M0 {}
 class B extends ^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    // TODO(brianwilkerson): We should not be suggesting `M0` because you can't
+    //  extend a mixin.
+    assertResponse(r'''
 suggestions
   A0
     kind: class
   M0
     kind: mixin
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A0
-    kind: class
-''');
-    }
   }
 
   Future<void> test_extensionDeclaration_extendedType() async {
@@ -4248,25 +4243,13 @@ f0() {
   for (int i0 = 0; i0 < 10; ++i^)
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   i0
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  f0
-    kind: functionInvocation
-  i0
-    kind: localVariable
-''');
-    }
   }
 
   Future<void> test_function_parameters_mixed_required_and_named() async {
@@ -4509,18 +4492,18 @@ suggestions
   }
 
   Future<void> test_functionExpression_expressionBody() async {
-    // This test fails because the OpType at the completion location doesn't
-    // allow for functions that return `void`. But because the expected return
-    // type is `dynamic` we probably want to allow it.
     await computeSuggestions('''
 void f0() {
   g0(() => ^);
 }
 void g0(dynamic Function() h) {}
 ''');
-    // This should suggest both 'f0' and 'g0'.
     assertResponse(r'''
 suggestions
+  f0
+    kind: function
+  g0
+    kind: function
 ''');
   }
 
@@ -4737,6 +4720,8 @@ suggestions
     kind: import
   dart:math
     kind: import
+  dart:typed_data
+    kind: import
   package:test/test.dart
     kind: import
 ''');
@@ -4766,6 +4751,8 @@ suggestions
   dart:isolate
     kind: import
   dart:math
+    kind: import
+  dart:typed_data
     kind: import
   package:
     kind: import

@@ -2983,13 +2983,16 @@ void Assembler::CompareWords(Register reg1,
   beq(temp, TMP, &loop, Assembler::kNearJump);
 }
 
-void Assembler::Jump(const Code& target,
-                     Register pp,
-                     ObjectPoolBuilderEntry::Patchability patchable) {
-  const intptr_t index =
-      object_pool_builder().FindObject(ToObject(target), patchable);
-  LoadWordFromPoolIndex(CODE_REG, index, pp);
-  Jump(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+void Assembler::JumpAndLink(intptr_t target_code_pool_index,
+                            CodeEntryKind entry_kind) {
+  // Avoid clobbering CODE_REG when invoking code in precompiled mode.
+  // We don't actually use CODE_REG in the callee and caller might
+  // be using CODE_REG for a live value (e.g. a value that is alive
+  // across invocation of a shared stub like the one we use for
+  // allocating Mint boxes).
+  const Register code_reg = FLAG_precompiled_mode ? TMP : CODE_REG;
+  LoadWordFromPoolIndex(code_reg, target_code_pool_index);
+  Call(FieldAddress(code_reg, target::Code::entry_point_offset(entry_kind)));
 }
 
 void Assembler::JumpAndLink(
@@ -2999,8 +3002,7 @@ void Assembler::JumpAndLink(
     ObjectPoolBuilderEntry::SnapshotBehavior snapshot_behavior) {
   const intptr_t index = object_pool_builder().FindObject(
       ToObject(target), patchable, snapshot_behavior);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  JumpAndLink(index, entry_kind);
 }
 
 void Assembler::JumpAndLinkWithEquivalence(const Code& target,
@@ -3008,8 +3010,7 @@ void Assembler::JumpAndLinkWithEquivalence(const Code& target,
                                            CodeEntryKind entry_kind) {
   const intptr_t index =
       object_pool_builder().FindObject(ToObject(target), equivalence);
-  LoadWordFromPoolIndex(CODE_REG, index);
-  Call(FieldAddress(CODE_REG, target::Code::entry_point_offset(entry_kind)));
+  JumpAndLink(index, entry_kind);
 }
 
 void Assembler::Call(Address target) {

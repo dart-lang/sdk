@@ -71,9 +71,14 @@ class TextDocumentCloseHandler
       MessageInfo message, CancellationToken token) {
     final path = pathOfDoc(params.textDocument);
     return path.mapResult((path) async {
-      await server.removePriorityFile(path);
-      server.documentVersions.remove(path);
+      // It's critical overlays are processed synchronously because other
+      // requests that sneak in when we `await` rely on them being
+      // correct.
       server.onOverlayDestroyed(path);
+      server.documentVersions.remove(path);
+      // This is async because if onlyAnalyzeProjectsWithOpenFiles is true
+      // it can trigger a change of analysis roots.
+      await server.removePriorityFile(path);
 
       return success(null);
     });
@@ -103,8 +108,13 @@ class TextDocumentOpenHandler
         version: params.textDocument.version,
         uri: params.textDocument.uri,
       );
+      // It's critical overlays are processed synchronously because other
+      // requests that sneak in when we `await` rely on them being
+      // correct.
       server.onOverlayCreated(path, doc.text);
 
+      // This is async because if onlyAnalyzeProjectsWithOpenFiles is true
+      // it can trigger a change of analysis roots.
       await server.addPriorityFile(path);
 
       return success(null);

@@ -130,8 +130,7 @@ int v0 = 0;
 
 void f() {^}
 }''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   C0
     kind: class
@@ -158,32 +157,5 @@ suggestions
     docComplete: My documentation.\nShort description.\n\nLonger description.
     docSummary: My documentation.\nShort description.
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  C0
-    kind: class
-    docComplete: My documentation.\nShort description.\n\nLonger description.
-    docSummary: My documentation.\nShort description.
-  C0
-    kind: constructorInvocation
-  E0
-    kind: enum
-    docComplete: My documentation.\nShort description.\n\nLonger description.
-    docSummary: My documentation.\nShort description.
-  M0
-    kind: class
-    docComplete: My documentation.\nShort description.\n\nLonger description.
-    docSummary: My documentation.\nShort description.
-  f0
-    kind: functionInvocation
-    docComplete: My documentation.\nShort description.\n\nLonger description.
-    docSummary: My documentation.\nShort description.
-  v0
-    kind: topLevelVariable
-    docComplete: My documentation.\nShort description.\n\nLonger description.
-    docSummary: My documentation.\nShort description.
-''');
-    }
   }
 }

@@ -626,6 +626,10 @@ class AssemblerTest {
   // Disassembly of the code with relative branch/jump targets.
   char* RelativeDisassembly() { return disassembly_; }
 
+  static const Code& Generate(
+      const char* name,
+      const std::function<void(compiler::Assembler* assembler)>& generator);
+
  private:
   const char* name_;
   compiler::Assembler* assembler_;

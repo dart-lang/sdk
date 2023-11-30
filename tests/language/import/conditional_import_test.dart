@@ -5,32 +5,21 @@
 import "package:expect/expect.dart";
 import "package:async_helper/async_helper.dart";
 
-// All three libraries have an HttpRequest class.
-import "conditional_import_test.dart"
-    if (dart.library.io) "dart:io"
-    if (dart.library.html) "dart:html" deferred as d show HttpRequest;
+import "default.dart"
+    if (dart.library.io) "io.dart"
+    if (dart.library.html) "html.dart" deferred as d show value;
 
-class HttpRequest {}
-
-void main() {
+void main() async {
   asyncStart();
-  var io = const bool.fromEnvironment("dart.library.io");
-  var html = const bool.fromEnvironment("dart.library.html");
-  () async {
-    // Shouldn't fail. Shouldn't time out.
-    await d.loadLibrary().timeout(const Duration(seconds: 5));
-    if (io) {
-      print("io");
-      Expect.throws(() => new d.HttpRequest()); // Class is abstract in dart:io
-    } else if (html) {
-      print("html");
-      dynamic r = new d.HttpRequest(); // Shouldn't throw
-      var o = r.open; // Shouldn't fail, the open method is there.
-    } else {
-      print("none");
-      dynamic r = new d.HttpRequest();
-      Expect.isTrue(r is HttpRequest);
-    }
-    asyncEnd();
-  }();
+  final io = const bool.fromEnvironment("dart.library.io");
+  final html = const bool.fromEnvironment("dart.library.html");
+  await d.loadLibrary().timeout(const Duration(seconds: 5));
+  if (io) {
+    Expect.equals("io", d.value);
+  } else if (html) {
+    Expect.equals("html", d.value);
+  } else {
+    Expect.equals("default", d.value);
+  }
+  asyncEnd();
 }

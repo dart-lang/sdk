@@ -23,6 +23,11 @@ class NodeTextExpectationsCollector {
 
   static final assertMethods = [
     _AssertMethod(
+      className: 'AnalysisContextCollectionTest',
+      methodName: '_assertContextCollectionText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
       className: 'ContextResolutionTest',
       methodName: 'assertDriverStateString',
       argument: _ArgumentIndex(1),

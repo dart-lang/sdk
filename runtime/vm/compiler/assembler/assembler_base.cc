@@ -165,6 +165,35 @@ intptr_t AssemblerBase::InsertAlignedRelocation(BSS::Relocation reloc) {
   return offset;
 }
 
+void AssemblerBase::MsanUnpoison(Register base, intptr_t length_in_bytes) {
+  LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
+                      /*preserve_registers=*/true);
+  MoveRegister(CallingConventions::ArgumentRegisters[0], base);
+  LoadImmediate(CallingConventions::ArgumentRegisters[1], length_in_bytes);
+  rt.Call(kMsanUnpoisonRuntimeEntry, /*argument_count=*/2);
+}
+
+void AssemblerBase::MsanUnpoison(Register base, Register length_in_bytes) {
+  LeafRuntimeScope rt(static_cast<Assembler*>(this), /*frame_size=*/0,
+                      /*preserve_registers=*/true);
+  const Register a0 = CallingConventions::ArgumentRegisters[0];
+  const Register a1 = CallingConventions::ArgumentRegisters[1];
+  if (length_in_bytes == a0) {
+    if (base == a1) {
+      MoveRegister(TMP, length_in_bytes);
+      MoveRegister(a0, base);
+      MoveRegister(a1, TMP);
+    } else {
+      MoveRegister(a1, length_in_bytes);
+      MoveRegister(a0, base);
+    }
+  } else {
+    MoveRegister(a0, base);
+    MoveRegister(a1, length_in_bytes);
+  }
+  rt.Call(kMsanUnpoisonRuntimeEntry, /*argument_count=*/2);
+}
+
 #if defined(DEBUG)
 static void InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
 #if defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_ARM64)

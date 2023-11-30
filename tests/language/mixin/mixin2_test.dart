@@ -31,8 +31,8 @@ class G<T> extends C<T> {}
 class H<T> extends D<Map<String, T>> {}
 
 main() {
-  Expect.equals("num", new E().t().toString());
-  Expect.equals("String", new F().t().toString());
-  Expect.equals("List<bool>", new G<bool>().t().toString());
-  Expect.equals("List<Set<Map<String, int>>>", new H<int>().t().toString());
+  Expect.equals(num, new E().t());
+  Expect.equals(String, new F().t());
+  Expect.equals(List<bool>, new G<bool>().t());
+  Expect.equals(List<Set<Map<String, int>>>, new H<int>().t());
 }

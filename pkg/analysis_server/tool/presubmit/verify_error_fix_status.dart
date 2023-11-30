@@ -40,9 +40,6 @@ String? verifyErrorFixStatus() {
   }
   statusInfo!; // This is non-null when `error` is `null`.
   registerLintRules();
-  var errorCodeNames = {
-    for (var code in errorCodeValues) code.uniqueName,
-  };
   var lintRuleCodes = {
     for (var rule in Registry.ruleRegistry.rules) ...rule.lintCodes,
   };
@@ -93,6 +90,9 @@ String? verifyErrorFixStatus() {
     }
   }
 
+  var errorCodeNames = {
+    for (var code in errorCodeValues) code.uniqueName,
+  };
   for (var key in statusInfo.keys) {
     if (key is String) {
       if (!errorCodeNames.contains(key) && !lintRuleNames.contains(key)) {

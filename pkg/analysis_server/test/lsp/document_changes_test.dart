@@ -156,6 +156,47 @@ class Bar {
         equals(content));
   }
 
+  /// Verify that calling open/close repeatedly produces no errors and ends
+  /// in the closed state.
+  Future<void> test_documentOpen_documentClose_repeatedly_endClosed() async {
+    await initialize(
+      // This forces roots to be rebuilt when the files open/close which
+      // increases the workload and makes any `await` in processing open/close
+      // files more likely to trigger the failure.
+      initializationOptions: {'onlyAnalyzeProjectsWithOpenFiles': true},
+    );
+
+    await Future.wait([
+      for (var i = 0; i < 100; i++) ...[
+        openFile(mainFileUri, content),
+        closeFile(mainFileUri)
+      ]
+    ]);
+
+    expect(server.resourceProvider.hasOverlay(mainFilePath), isFalse);
+  }
+
+  /// Verify that calling open/close repeatedly produces no errors and ends
+  /// in the open state if the last entry was open.
+  Future<void> test_documentOpen_documentClose_repeatedly_endOpen() async {
+    await initialize(
+      // This forces roots to be rebuilt when the files open/close which
+      // increases the workload and makes any `await` in processing open/close
+      // files more likely to trigger the failure.
+      initializationOptions: {'onlyAnalyzeProjectsWithOpenFiles': true},
+    );
+
+    await Future.wait([
+      for (var i = 0; i < 100; i++) ...[
+        openFile(mainFileUri, content),
+        closeFile(mainFileUri)
+      ],
+      openFile(mainFileUri, content),
+    ]);
+
+    expect(server.resourceProvider.hasOverlay(mainFilePath), isTrue);
+  }
+
   /// Tests that deleting a file does not clear diagnostics while there's an
   /// overlay, and that removing the overlay later clears the diagnostics.
   ///

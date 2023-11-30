@@ -7,8 +7,6 @@
 
 AbstractClassConstructorTearOff/analyzerCode: Fail
 AbstractClassInstantiation/example: Fail
-AbstractExtensionField/analyzerCode: Fail
-AbstractExtensionField/example: Fail
 AbstractFieldConstructorInitializer/analyzerCode: Fail
 AbstractFieldInitializer/analyzerCode: Fail
 AbstractNotSync/example: Fail
@@ -320,9 +318,6 @@ ExtendsNever/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsNever/example: Fail # Feature not yet enabled by default.
 ExtendsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsVoid/example: Fail # Feature not yet enabled by default.
-ExtensionDeclaresAbstractMember/example: Fail
-ExtensionDeclaresConstructor/example: Fail
-ExtensionDeclaresInstanceField/example: Fail
 ExtensionInNullAwareReceiver/analyzerCode: Fail
 ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
 ExternalConstructorWithBody/part_wrapped_script1: Fail

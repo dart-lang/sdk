@@ -814,6 +814,8 @@ final class Packed {
 
 abstract final class DynamicLibrary {
   external factory DynamicLibrary.open(String name);
+
+  external Pointer<T> lookup<T extends NativeType>(String symbolName);
 }
 
 extension DynamicLibraryExtension on DynamicLibrary {
@@ -1352,23 +1354,48 @@ class Point<T extends num> {}
   ],
 );
 
+final MockSdkLibrary _LIB_TYPED_DATA = MockSdkLibrary(
+  'typed_data',
+  [
+    MockSdkLibraryUnit(
+      'typed_data/typed_data.dart',
+      '''
+library dart.typed_data;
+
+abstract final class Int8List {
+  external factory Int8List(int length);
+}
+
+abstract final class Float32List {
+  external factory Float32List(int length);
+}
+
+abstract final class Float64List {
+  external factory Float64List(int length);
+}
+''',
+    )
+  ],
+);
+
 final MockSdkLibrary _LIB_WASM = MockSdkLibrary('_wasm', [
   MockSdkLibraryUnit('_wasm/wasm.dart', ''),
 ]);
 
 final List<MockSdkLibrary> _LIBRARIES = [
-  _LIB_CORE,
   _LIB_ASYNC,
   _LIB_ASYNC2,
   _LIB_COLLECTION,
   _LIB_CONVERT,
+  _LIB_CORE,
   _LIB_FFI,
-  _LIB_IO,
-  _LIB_ISOLATE,
-  _LIB_MATH,
   _LIB_HTML_DART2JS,
   _LIB_INTERCEPTORS,
   _LIB_INTERNAL,
+  _LIB_IO,
+  _LIB_ISOLATE,
+  _LIB_MATH,
+  _LIB_TYPED_DATA,
   _LIB_WASM,
 ];
 

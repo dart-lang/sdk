@@ -11,7 +11,6 @@ import '../../../generated/type_system_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ResolveToBoundTest);
-    defineReflectiveTests(ResolveToBoundWithoutNullSafetyTest);
   });
 }
 
@@ -166,46 +165,6 @@ class ResolveToBoundTest extends AbstractTypeSystemTest {
         promotedBound: intStar,
       ),
       'int*',
-    );
-  }
-
-  test_void() {
-    _check(voidNone, 'void');
-  }
-
-  void _check(DartType type, String expectedStr) {
-    var result = typeSystem.resolveToBound(type);
-    var resultStr = _typeString(result);
-    expect(resultStr, expectedStr);
-  }
-
-  String _typeString(DartType type) {
-    return type.getDisplayString(withNullability: true);
-  }
-}
-
-@reflectiveTest
-class ResolveToBoundWithoutNullSafetyTest
-    extends AbstractTypeSystemWithoutNullSafetyTest {
-  test_dynamic() {
-    _check(dynamicType, 'dynamic');
-  }
-
-  test_typeParameter_bound() {
-    _check(
-      typeParameterTypeStar(
-        typeParameter('T', bound: intStar),
-      ),
-      'int*',
-    );
-  }
-
-  test_typeParameter_noBound() {
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T'),
-      ),
-      'Object*',
     );
   }
 

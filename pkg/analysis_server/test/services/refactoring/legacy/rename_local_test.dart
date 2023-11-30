@@ -391,6 +391,38 @@ void f(List<int> values) {
 ''');
   }
 
+  Future<void>
+      test_createChange_localVariable_forEach_element_expressionBody() async {
+    await indexTestUnit('''
+Object f() => [for (final value in []) value * 2];
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('value in');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+Object f() => [for (final newName in []) newName * 2];
+''');
+  }
+
+  Future<void>
+      test_createChange_localVariable_forEach_element_inTopLevel() async {
+    await indexTestUnit('''
+final a = [for (final value in []) value * 2];
+''');
+    // configure refactoring
+    createRenameRefactoringAtString('value in');
+    expect(refactoring.refactoringName, 'Rename Local Variable');
+    expect(refactoring.elementKindName, 'local variable');
+    refactoring.newName = 'newName';
+    // validate change
+    return assertSuccessfulRefactoring('''
+final a = [for (final newName in []) newName * 2];
+''');
+  }
+
   Future<void> test_createChange_localVariable_forEach_statement() async {
     await indexTestUnit('''
 void f(List<int> values) {

@@ -38,10 +38,14 @@ void f(Object o) {
 
 class A01 {}
 ''');
+    // TODO(brianwilkerson): Decide whether we should suggest a constructor
+    //  (with parens around it) or an object pattern, or both.
     assertResponse(r'''
 suggestions
   A01
     kind: class
+  A01
+    kind: constructorInvocation
   const
     kind: keyword
   false
@@ -49,6 +53,8 @@ suggestions
   final
     kind: keyword
   null
+    kind: keyword
+  switch
     kind: keyword
   true
     kind: keyword
@@ -85,6 +91,8 @@ suggestions
   final
     kind: keyword
   null
+    kind: keyword
+  switch
     kind: keyword
   true
     kind: keyword
@@ -174,6 +182,8 @@ suggestions
     kind: class
   B01
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -213,6 +223,8 @@ suggestions
     kind: class
   B01
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -237,6 +249,8 @@ suggestions
     kind: class
   B01
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 

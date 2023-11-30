@@ -16,12 +16,17 @@
 
 namespace dart {
 
+static bool IsJumpAndLinkScratch(Register reg) {
+  return reg == (FLAG_precompiled_mode ? TMP : CODE_REG);
+}
+
 CallPattern::CallPattern(uword pc, const Code& code)
     : object_pool_(ObjectPool::Handle(code.GetObjectPool())),
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
-  //          [lui,add,]lx CODE_REG, ##(pp)
-  // xxxxxxxx lx ra, ##(CODE_REG)
+  // R is either CODE_REG (JIT) or TMP (AOT)
+  //          [lui,add,]lx R, ##(pp)
+  // xxxxxxxx lx ra, ##(R)
   //     xxxx jalr ra
 
   // Last instruction: jalr ra.
@@ -29,7 +34,7 @@ CallPattern::CallPattern(uword pc, const Code& code)
   Register reg;
   InstructionPattern::DecodeLoadWordFromPool(pc - 6, &reg,
                                              &target_code_pool_index_);
-  ASSERT(reg == CODE_REG);
+  ASSERT(IsJumpAndLinkScratch(reg));
 }
 
 ICCallPattern::ICCallPattern(uword pc, const Code& code)
@@ -37,9 +42,10 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
       target_pool_index_(-1),
       data_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
+  // R is either CODE_REG (JIT) or TMP (AOT)
   //          [lui,add,]lx IC_DATA_REG, ##(pp)
-  //          [lui,add,]lx CODE_REG, ##(pp)
-  // xxxxxxxx lx ra, ##(CODE_REG)
+  //          [lui,add,]lx R, ##(pp)
+  // xxxxxxxx lx ra, ##(R)
   //     xxxx jalr ra
 
   // Last instruction: jalr ra.
@@ -48,7 +54,7 @@ ICCallPattern::ICCallPattern(uword pc, const Code& code)
   Register reg;
   uword data_load_end = InstructionPattern::DecodeLoadWordFromPool(
       pc - 6, &reg, &target_pool_index_);
-  ASSERT(reg == CODE_REG);
+  ASSERT(IsJumpAndLinkScratch(reg));
 
   InstructionPattern::DecodeLoadWordFromPool(data_load_end, &reg,
                                              &data_pool_index_);
@@ -61,9 +67,10 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
       native_function_pool_index_(-1),
       target_code_pool_index_(-1) {
   ASSERT(code.ContainsInstructionAt(pc));
+  // R is either CODE_REG (JIT) or TMP (AOT)
   //          [lui,add,]lx t5, ##(pp)
-  //          [lui,add,]lx CODE_REG, ##(pp)
-  // xxxxxxxx lx ra, ##(CODE_REG)
+  //          [lui,add,]lx R, ##(pp)
+  // xxxxxxxx lx ra, ##(R)
   //     xxxx jalr ra
 
   // Last instruction: jalr ra.
@@ -72,7 +79,7 @@ NativeCallPattern::NativeCallPattern(uword pc, const Code& code)
   Register reg;
   uword native_function_load_end = InstructionPattern::DecodeLoadWordFromPool(
       pc - 6, &reg, &target_code_pool_index_);
-  ASSERT(reg == CODE_REG);
+  ASSERT(IsJumpAndLinkScratch(reg));
   InstructionPattern::DecodeLoadWordFromPool(native_function_load_end, &reg,
                                              &native_function_pool_index_);
   ASSERT(reg == T5);

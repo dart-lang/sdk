@@ -8953,12 +8953,22 @@ class BodyBuilder extends StackListenerImpl
     Builder? builder = _context.lookupLocalMember(name);
     if (builder?.next != null) {
       // Duplicated name, already reported.
+      while (builder != null) {
+        if (builder.next == null && builder is SourceFieldBuilder) {
+          // Assume the first field has been initialized.
+          _context.registerInitializedField(builder);
+        }
+        builder = builder.next;
+      }
       return <Initializer>[
         buildInvalidInitializer(
             buildProblem(
-                fasta.templateDuplicatedDeclarationUse.withArguments(name),
-                fieldNameOffset,
-                name.length),
+              fasta.templateDuplicatedDeclarationUse.withArguments(name),
+              fieldNameOffset,
+              name.length,
+              // Avoid reporting two errors.
+              suppressMessage: true,
+            ),
             fieldNameOffset)
       ];
     } else if (builder is SourceFieldBuilder &&

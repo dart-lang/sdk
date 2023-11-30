@@ -6,6 +6,7 @@
     "analyzer_unit_tests": [
       ".dart_tool/package_config.json",
       "pkg/",
+      "third_party/devtools/",
       "third_party/pkg/",
       "tools/",
       "out/ReleaseX64/dart-sdk/",

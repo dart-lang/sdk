@@ -4313,6 +4313,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           element,
         );
         node.initializers.accept(this);
+        node.documentationComment?.accept(this);
       } finally {
         nameScope = outerScope;
       }
@@ -4323,15 +4324,10 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         nameScope,
         element.parameters,
       );
-      visitConstructorDeclarationInScope(node);
+      node.body.accept(this);
     } finally {
       nameScope = outerScope;
     }
-  }
-
-  void visitConstructorDeclarationInScope(ConstructorDeclaration node) {
-    node.documentationComment?.accept(this);
-    node.body.accept(this);
   }
 
   @override
