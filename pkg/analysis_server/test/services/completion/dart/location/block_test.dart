@@ -9,150 +9,52 @@ import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BlockInCatchClauseTest1);
-    defineReflectiveTests(BlockInCatchClauseTest2);
-    defineReflectiveTests(BlockInDoStatementTest1);
-    defineReflectiveTests(BlockInDoStatementTest2);
-    defineReflectiveTests(BlockInForStatementTest1);
-    defineReflectiveTests(BlockInForStatementTest2);
-    defineReflectiveTests(BlockInFunctionBodyTest1);
-    defineReflectiveTests(BlockInFunctionBodyTest2);
-    defineReflectiveTests(BlockInFunctionExpressionBodyTest1);
-    defineReflectiveTests(BlockInFunctionExpressionBodyTest2);
-    defineReflectiveTests(BlockInLocalFunctionBodyTest1);
-    defineReflectiveTests(BlockInLocalFunctionBodyTest2);
-    defineReflectiveTests(BlockInMethodBodyTest1);
-    defineReflectiveTests(BlockInMethodBodyTest2);
-    defineReflectiveTests(BlockInWhileStatementTest1);
-    defineReflectiveTests(BlockInWhileStatementTest2);
-    defineReflectiveTests(BlockTest1);
-    defineReflectiveTests(BlockTest2);
+    defineReflectiveTests(BlockInCatchClauseTest);
+    defineReflectiveTests(BlockInDoStatementTest);
+    defineReflectiveTests(BlockInForStatementTest);
+    defineReflectiveTests(BlockInFunctionBodyTest);
+    defineReflectiveTests(BlockInFunctionExpressionBodyTest);
+    defineReflectiveTests(BlockInLocalFunctionBodyTest);
+    defineReflectiveTests(BlockInMethodBodyTest);
+    defineReflectiveTests(BlockInWhileStatementTest);
+    defineReflectiveTests(BlockTest);
   });
 }
 
 @reflectiveTest
-class BlockInCatchClauseTest1 extends AbstractCompletionDriverTest
-    with CatchClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
+class BlockInCatchClauseTest extends AbstractCompletionDriverTest
+    with CatchClauseTestCases {}
 
 @reflectiveTest
-class BlockInCatchClauseTest2 extends AbstractCompletionDriverTest
-    with CatchClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class BlockInDoStatementTest extends AbstractCompletionDriverTest
+    with DoStatementTestCases {}
 
 @reflectiveTest
-class BlockInDoStatementTest1 extends AbstractCompletionDriverTest
-    with DoStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
+class BlockInForStatementTest extends AbstractCompletionDriverTest
+    with ForStatementTestCases {}
 
 @reflectiveTest
-class BlockInDoStatementTest2 extends AbstractCompletionDriverTest
-    with DoStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class BlockInFunctionBodyTest extends AbstractCompletionDriverTest
+    with FunctionBodyTestCases {}
 
 @reflectiveTest
-class BlockInForStatementTest1 extends AbstractCompletionDriverTest
-    with ForStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
+class BlockInFunctionExpressionBodyTest extends AbstractCompletionDriverTest
+    with FunctionExpressionBodyTestCases {}
 
 @reflectiveTest
-class BlockInForStatementTest2 extends AbstractCompletionDriverTest
-    with ForStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class BlockInLocalFunctionBodyTest extends AbstractCompletionDriverTest
+    with LocalFunctionBodyTestCases {}
 
 @reflectiveTest
-class BlockInFunctionBodyTest1 extends AbstractCompletionDriverTest
-    with FunctionBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
+class BlockInMethodBodyTest extends AbstractCompletionDriverTest
+    with MethodBodyTestCases {}
 
 @reflectiveTest
-class BlockInFunctionBodyTest2 extends AbstractCompletionDriverTest
-    with FunctionBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class BlockInWhileStatementTest extends AbstractCompletionDriverTest
+    with WhileStatementTestCases {}
 
 @reflectiveTest
-class BlockInFunctionExpressionBodyTest1 extends AbstractCompletionDriverTest
-    with FunctionExpressionBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class BlockInFunctionExpressionBodyTest2 extends AbstractCompletionDriverTest
-    with FunctionExpressionBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
-
-@reflectiveTest
-class BlockInLocalFunctionBodyTest1 extends AbstractCompletionDriverTest
-    with LocalFunctionBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class BlockInLocalFunctionBodyTest2 extends AbstractCompletionDriverTest
-    with LocalFunctionBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
-
-@reflectiveTest
-class BlockInMethodBodyTest1 extends AbstractCompletionDriverTest
-    with MethodBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class BlockInMethodBodyTest2 extends AbstractCompletionDriverTest
-    with MethodBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
-
-@reflectiveTest
-class BlockInWhileStatementTest1 extends AbstractCompletionDriverTest
-    with WhileStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class BlockInWhileStatementTest2 extends AbstractCompletionDriverTest
-    with WhileStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
-
-@reflectiveTest
-class BlockTest1 extends AbstractCompletionDriverTest with BlockTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class BlockTest2 extends AbstractCompletionDriverTest with BlockTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class BlockTest extends AbstractCompletionDriverTest with BlockTestCases {}
 
 mixin BlockTestCases on AbstractCompletionDriverTest {
   static final spaces_4 = ' ' * 4;
@@ -632,63 +534,13 @@ suggestions
     await computeSuggestions('''
 void f() async* {n^ foo}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  await
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  yield
-    kind: keyword
-  yield*
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftBrace_beforeRightBrace() async {
@@ -788,63 +640,13 @@ suggestions
     await computeSuggestions('''
 void f() async* {n^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  await
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  yield
-    kind: keyword
-  yield*
-    kind: keyword
-''');
-    }
   }
 
   Future<void>
@@ -852,63 +654,13 @@ suggestions
     await computeSuggestions('''
 void f() sync* {n^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  await
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  yield
-    kind: keyword
-  yield*
-    kind: keyword
-''');
-    }
   }
 }
 

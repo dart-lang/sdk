@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion_test.dart' as completion;
-import 'completion_test_test.dart' as completion_test;
 import 'declaration/test_all.dart' as declaration;
 import 'location/test_all.dart' as location;
 import 'relevance/test_all.dart' as relevance_tests;
@@ -15,7 +14,6 @@ import 'text_expectations.dart';
 void main() {
   defineReflectiveSuite(() {
     completion.main();
-    completion_test.main();
     declaration.main();
     location.main();
     relevance_tests.main();

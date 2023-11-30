@@ -8,28 +8,15 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ForEachPartsTest1);
-    defineReflectiveTests(ForEachPartsTest2);
-    defineReflectiveTests(ForPartsTest1);
-    defineReflectiveTests(ForPartsTest2);
-    defineReflectiveTests(ForStatementTest1);
-    defineReflectiveTests(ForStatementTest2);
+    defineReflectiveTests(ForEachPartsTest);
+    defineReflectiveTests(ForPartsTest);
+    defineReflectiveTests(ForStatementTest);
   });
 }
 
 @reflectiveTest
-class ForEachPartsTest1 extends AbstractCompletionDriverTest
-    with ForEachPartsTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ForEachPartsTest2 extends AbstractCompletionDriverTest
-    with ForEachPartsTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ForEachPartsTest extends AbstractCompletionDriverTest
+    with ForEachPartsTestCases {}
 
 /// Tests specific to a for-each statement.
 mixin ForEachPartsTestCases on AbstractCompletionDriverTest {
@@ -37,58 +24,22 @@ mixin ForEachPartsTestCases on AbstractCompletionDriverTest {
     await computeSuggestions('''
 void f() {for (int x = i^)}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterEquals_beforeRightParen_partial_in() async {
     await computeSuggestions('''
 void f() {for (int x = in^)}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterIn() async {
@@ -175,35 +126,15 @@ suggestions
 }
 
 @reflectiveTest
-class ForPartsTest1 extends AbstractCompletionDriverTest
-    with ForPartsTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ForPartsTest2 extends AbstractCompletionDriverTest
-    with ForPartsTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ForPartsTest extends AbstractCompletionDriverTest
+    with ForPartsTestCases {}
 
 /// Tests specific to a traditional for statement.
 mixin ForPartsTestCases on AbstractCompletionDriverTest {}
 
 @reflectiveTest
-class ForStatementTest1 extends AbstractCompletionDriverTest
-    with ForStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ForStatementTest2 extends AbstractCompletionDriverTest
-    with ForStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ForStatementTest extends AbstractCompletionDriverTest
+    with ForStatementTestCases {}
 
 /// Tests that apply to both traditional for statements and for-each statements.
 mixin ForStatementTestCases on AbstractCompletionDriverTest {

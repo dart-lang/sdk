@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(LibraryPrefixTest1);
-    defineReflectiveTests(LibraryPrefixTest2);
+    defineReflectiveTests(LibraryPrefixTest);
   });
 }
 
 @reflectiveTest
-class LibraryPrefixTest1 extends AbstractCompletionDriverTest
-    with LibraryPrefixTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class LibraryPrefixTest2 extends AbstractCompletionDriverTest
-    with LibraryPrefixTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class LibraryPrefixTest extends AbstractCompletionDriverTest
+    with LibraryPrefixTestCases {}
 
 mixin LibraryPrefixTestCases on AbstractCompletionDriverTest {
   @override
@@ -103,8 +92,7 @@ class X {
 }
 class Z {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   D1
     kind: functionInvocation
@@ -130,30 +118,6 @@ suggestions
   g0.G
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  D1
-    kind: functionInvocation
-    deprecated: true
-  D2
-    kind: functionInvocation
-  T1
-    kind: topLevelVariable
-  T3
-    kind: topLevelVariable
-  T5
-    kind: topLevelVariable
-  T7
-    kind: getter
-  T8
-    kind: setter
-  _T6
-    kind: topLevelVariable
-  g0
-    kind: library
-''');
-    }
   }
 
   Future<void> test_classDeclaration_afterLeftBrace_beforeRightBrace() async {
@@ -168,21 +132,13 @@ import "b.dart" as x0;
 class _B {}
 A T;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   x0
     kind: library
   x0.B
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  x0
-    kind: library
-''');
-    }
   }
 
   Future<void> test_fieldDeclaration_afterFinal_beforeConstructor() async {
@@ -198,21 +154,13 @@ class A {
 class _B {}
 A T;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   x0
     kind: library
   x0.B
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  x0
-    kind: library
-''');
-    }
   }
 
   Future<void>
@@ -229,8 +177,7 @@ class A {
 class _B {}
 A Sew;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -239,15 +186,6 @@ suggestions
   S0.B
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  S0
-    kind: library
-''');
-    }
   }
 
   Future<void> test_fieldDeclaration_afterFinal_beforeField() async {
@@ -263,21 +201,13 @@ class A {
 class _B {}
 A T;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   x0
     kind: library
   x0.B
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  x0
-    kind: library
-''');
-    }
   }
 
   Future<void> test_fieldDeclaration_afterFinal_beforeField2() async {
@@ -293,21 +223,13 @@ class A {
 class _B {}
 A T;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   x0
     kind: library
   x0.B
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  x0
-    kind: library
-''');
-    }
   }
 
   Future<void> test_fieldDeclaration_afterFinal_beforeRightBrace() async {
@@ -322,21 +244,13 @@ class A {
 class _B {}
 A T;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   x0
     kind: library
   x0.B
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  x0
-    kind: library
-''');
-    }
   }
 
   Future<void> test_instanceCreationExpression_afterNew_beforeEnd() async {
@@ -367,8 +281,7 @@ void f() {
   String x = "hello";
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   m0
     kind: library
@@ -385,15 +298,6 @@ suggestions
   t0.C.bar
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  m0
-    kind: library
-  t0
-    kind: library
-''');
-    }
   }
 
   Future<void>
@@ -436,8 +340,7 @@ void f() {
   String x = "hello";
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   m0
     kind: library
@@ -454,15 +357,6 @@ suggestions
   t0.C.bar
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  m0
-    kind: library
-  t0
-    kind: library
-''');
-    }
   }
 
   Future<void>
@@ -518,8 +412,7 @@ void f() {
   var x = new j^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -530,15 +423,6 @@ suggestions
   j0.JsonDecoder
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  j0
-    kind: library
-''');
-    }
   }
 
   Future<void> test_localVariableDeclaration_afterFinal_beforeEnd() async {

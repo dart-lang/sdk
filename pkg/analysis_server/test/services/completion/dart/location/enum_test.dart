@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(EnumDeclarationTest1);
-    defineReflectiveTests(EnumDeclarationTest2);
+    defineReflectiveTests(EnumDeclarationTest);
   });
 }
 
 @reflectiveTest
-class EnumDeclarationTest1 extends AbstractCompletionDriverTest
+class EnumDeclarationTest extends AbstractCompletionDriverTest
     with EnumDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class EnumDeclarationTest2 extends AbstractCompletionDriverTest
-    with EnumDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
   Future<void> test_afterName_w() async {
     await computeSuggestions('''
 enum E w^ {
@@ -183,22 +172,11 @@ enum E with ^ {
   v
 }
 ''');
-
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A01
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A01
-    kind: class
-  Object
-    kind: class
-''');
-    }
   }
 
   Future<void> test_afterWithClause() async {
@@ -207,7 +185,6 @@ enum E with M ^ {
   v
 }
 ''');
-
     assertResponse(r'''
 suggestions
   implements
@@ -249,8 +226,7 @@ enum E {
 }
 ''');
 
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -259,7 +235,6 @@ suggestions
   foo02
     kind: constructorInvocation
 ''');
-    }
   }
 
   Future<void> test_constantName_dot_name_x_semicolon_named() async {
@@ -271,9 +246,7 @@ enum E {
   const E.bar01();
 }
 ''');
-
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -282,7 +255,6 @@ suggestions
   foo02
     kind: constructorInvocation
 ''');
-    }
   }
 
   Future<void> test_constantName_dot_x_argumentList_named() async {

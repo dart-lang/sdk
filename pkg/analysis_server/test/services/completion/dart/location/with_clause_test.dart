@@ -9,24 +9,13 @@ import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(WithClauseTest1);
-    defineReflectiveTests(WithClauseTest2);
+    defineReflectiveTests(WithClauseTest);
   });
 }
 
 @reflectiveTest
-class WithClauseTest1 extends AbstractCompletionDriverTest
-    with WithClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class WithClauseTest2 extends AbstractCompletionDriverTest
-    with WithClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class WithClauseTest extends AbstractCompletionDriverTest
+    with WithClauseTestCases {}
 
 mixin WithClauseTestCases on AbstractCompletionDriverTest {
   @override
@@ -75,23 +64,9 @@ import 'a.dart';
 class A with ^
 ''');
 
-    if (isProtocolVersion1) {
-      assertResponse(r'''
-suggestions
-  FooBase
-    kind: class
-  FooFinal
-    kind: class
-  FooInterface
-    kind: class
-  FooSealed
-    kind: class
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    }
   }
 
   Future<void> test_mixin_base_inside() async {

@@ -11,26 +11,14 @@ import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ClassBodyTest1);
-    defineReflectiveTests(ClassBodyTest2);
-    defineReflectiveTests(ClassOverrideTest1);
-    defineReflectiveTests(ClassOverrideTest2);
+    defineReflectiveTests(ClassBodyTest);
+    defineReflectiveTests(ClassOverrideTest);
   });
 }
 
 @reflectiveTest
-class ClassBodyTest1 extends AbstractCompletionDriverTest
-    with ClassBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ClassBodyTest2 extends AbstractCompletionDriverTest
-    with ClassBodyTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ClassBodyTest extends AbstractCompletionDriverTest
+    with ClassBodyTestCases {}
 
 mixin ClassBodyTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterField_beforeEnd() async {
@@ -169,45 +157,13 @@ suggestions
     await computeSuggestions('''
 class A { d^ foo() {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   dynamic
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftBrace_beforeRightBrace() async {
@@ -299,33 +255,14 @@ ${keywords.asKeywordSuggestions}
     await _checkContainers(
       line: 'static final O^',
       validator: (context) {
-        if (isProtocolVersion2) {
-          _printKeywordsOrClass();
-          assertResponse(r'''
+        _printKeywordsOrClass();
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
   Object
     kind: class
 ''', where: context.where);
-        } else {
-          _printKeywordsOrClass();
-
-          final keywords = {
-            Keyword.DYNAMIC,
-            Keyword.EXTERNAL,
-            Keyword.VOID,
-          };
-
-          assertResponse('''
-replacement
-  left: 1
-suggestions
-  Object
-    kind: class
-${keywords.asKeywordSuggestions}
-''', where: context.where);
-        }
       },
     );
   }
@@ -359,12 +296,11 @@ ${keywords.asKeywordSuggestions}
     await _checkContainers(
       line: 'static f^',
       validator: (context) {
-        if (isProtocolVersion2) {
-          final keywords = {
-            Keyword.FINAL,
-          };
+        final keywords = {
+          Keyword.FINAL,
+        };
 
-          assertResponse('''
+        assertResponse('''
 replacement
   left: 1
 suggestions
@@ -372,25 +308,6 @@ suggestions
     kind: class
 ${keywords.asKeywordSuggestions}
 ''', where: context.where);
-        } else {
-          final keywords = {
-            Keyword.CONST,
-            Keyword.DYNAMIC,
-            Keyword.EXTERNAL,
-            Keyword.FINAL,
-            Keyword.VAR,
-            Keyword.VOID,
-          };
-
-          assertResponse('''
-replacement
-  left: 1
-suggestions
-  FutureOr
-    kind: class
-${keywords.asKeywordSuggestions}
-''', where: context.where);
-        }
       },
     );
   }
@@ -479,13 +396,12 @@ ${keywords.asKeywordSuggestions}
     await _checkContainers(
       line: 's^',
       validator: (context) {
-        if (isProtocolVersion2) {
-          final keywords = {
-            Keyword.SET,
-            Keyword.STATIC,
-          };
+        final keywords = {
+          Keyword.SET,
+          Keyword.STATIC,
+        };
 
-          assertResponse('''
+        assertResponse('''
 replacement
   left: 1
 suggestions
@@ -493,33 +409,6 @@ suggestions
     kind: class
 ${keywords.asKeywordSuggestions}
 ''', where: context.where);
-        } else {
-          final keywords = {
-            if (context.isClass || context.isMixin) Keyword.ABSTRACT,
-            Keyword.CONST,
-            if (context.isClass || context.isMixin) Keyword.COVARIANT,
-            Keyword.DYNAMIC,
-            Keyword.EXTERNAL,
-            if (context.isClass) Keyword.FACTORY,
-            Keyword.FINAL,
-            Keyword.GET,
-            if (!context.isExtension) Keyword.LATE,
-            Keyword.OPERATOR,
-            Keyword.SET,
-            Keyword.STATIC,
-            Keyword.VAR,
-            Keyword.VOID,
-          };
-
-          assertResponse('''
-replacement
-  left: 1
-suggestions
-  String
-    kind: class
-${keywords.asKeywordSuggestions}
-''', where: context.where);
-        }
       },
     );
   }
@@ -592,18 +481,8 @@ mixin M {
 }
 
 @reflectiveTest
-class ClassOverrideTest1 extends AbstractCompletionDriverTest
-    with OverrideTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ClassOverrideTest2 extends AbstractCompletionDriverTest
-    with OverrideTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ClassOverrideTest extends AbstractCompletionDriverTest
+    with OverrideTestCases {}
 
 mixin OverrideTestCases on AbstractCompletionDriverTest {
   @override

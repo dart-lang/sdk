@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionTypeDeclarationTest1);
-    defineReflectiveTests(ExtensionTypeDeclarationTest2);
+    defineReflectiveTests(ExtensionTypeDeclarationTest);
   });
 }
 
 @reflectiveTest
-class ExtensionTypeDeclarationTest1 extends AbstractCompletionDriverTest
-    with ExtensionTypeDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ExtensionTypeDeclarationTest2 extends AbstractCompletionDriverTest
-    with ExtensionTypeDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ExtensionTypeDeclarationTest extends AbstractCompletionDriverTest
+    with ExtensionTypeDeclarationTestCases {}
 
 mixin ExtensionTypeDeclarationTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterRepresentationField_beforeEof() async {
@@ -120,25 +109,13 @@ suggestions
     await computeSuggestions('''
 extension type E(StringBuffer s^) {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   stringBuffer
     kind: identifier
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  buffer
-    kind: identifier
-  stringBuffer
-    kind: identifier
-''');
-    }
   }
 
   Future<void> test_representationField_type_partial() async {

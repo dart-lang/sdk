@@ -8,49 +8,26 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MixinDeclarationTest1);
-    defineReflectiveTests(MixinDeclarationTest2);
+    defineReflectiveTests(MixinDeclarationTest);
   });
 }
 
 @reflectiveTest
-class MixinDeclarationTest1 extends AbstractCompletionDriverTest
-    with MixinDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class MixinDeclarationTest2 extends AbstractCompletionDriverTest
-    with MixinDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class MixinDeclarationTest extends AbstractCompletionDriverTest
+    with MixinDeclarationTestCases {}
 
 mixin MixinDeclarationTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterName_beforeBody_partial() async {
     await computeSuggestions('''
 mixin M o^ { }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   on
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  implements
-    kind: keyword
-  on
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterOnClause_beforeBody_partial() async {
