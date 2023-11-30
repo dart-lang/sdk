@@ -24,9 +24,12 @@ enum AlignmentStrategy {
 enum ExtensionStrategy {
   // Values can have arbitrary small size with the upper bits undefined.
   kNotExtended,
-  // Values smaller than 4 bytes are passed around zero- or signextended to
+  // Values smaller than 4 bytes are passed around zero- or sign-extended to
   // 4 bytes.
   kExtendedTo4,
+  // Values smaller than 8 bytes are passed around zero- or sign-extended to
+  // 8 bytes.
+  kExtendedTo8,
 };
 
 }  // namespace dart

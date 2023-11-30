@@ -191,6 +191,11 @@ NativeLocation& NativeLocation::WidenTo4Bytes(Zone* zone) const {
                              container_type().WidenTo4Bytes(zone));
 }
 
+NativeLocation& NativeLocation::WidenTo8Bytes(Zone* zone) const {
+  return WithOtherNativeType(zone, payload_type().WidenTo8Bytes(zone),
+                             container_type().WidenTo8Bytes(zone));
+}
+
 #if defined(TARGET_ARCH_ARM)
 const NativeLocation& NativeLocation::WidenToQFpuRegister(Zone* zone) const {
   if (!IsFpuRegisters()) {

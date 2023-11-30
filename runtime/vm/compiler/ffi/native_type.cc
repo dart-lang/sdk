@@ -1098,6 +1098,17 @@ const NativeType& NativeType::WidenTo4Bytes(Zone* zone) const {
   return *this;
 }
 
+const NativeType& NativeType::WidenTo8Bytes(Zone* zone) const {
+  if (IsInt() && SizeInBytes() <= 4) {
+    if (IsSigned()) {
+      return *new (zone) NativePrimitiveType(kInt64);
+    } else {
+      return *new (zone) NativePrimitiveType(kUint64);
+    }
+  }
+  return *this;
+}
+
 }  // namespace ffi
 
 }  // namespace compiler

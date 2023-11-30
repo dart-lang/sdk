@@ -260,10 +260,8 @@ class ArgumentAllocator : public ValueObject {
 
     // Some calling conventions require the callee to make the lowest 32 bits
     // in registers non-garbage.
-    const auto& container_type =
-        CallingConventions::kArgumentRegisterExtension == kExtendedTo4
-            ? payload_type_converted.WidenTo4Bytes(zone_)
-            : payload_type_converted;
+    const auto& container_type = payload_type_converted.Extend(
+        zone_, CallingConventions::kArgumentRegisterExtension);
 
     return AllocateInt(payload_type, container_type, is_vararg);
   }
@@ -619,9 +617,7 @@ class ArgumentAllocator : public ValueObject {
     // If the stack arguments are not packed, the 32 lowest bits should not
     // contain garbage.
     const auto& container_type =
-        CallingConventions::kArgumentStackExtension == kExtendedTo4
-            ? payload_type.WidenTo4Bytes(zone_)
-            : payload_type;
+        payload_type.Extend(zone_, CallingConventions::kArgumentStackExtension);
     const auto& result = *new (zone_) NativeStackLocation(
         payload_type, container_type, CallingConventions::kStackPointerRegister,
         stack_height_in_bytes);
@@ -962,10 +958,8 @@ static const NativeLocation& ResultLocation(Zone* zone,
                                             bool has_varargs) {
   const auto& payload_type_converted =
       ConvertIfSoftFp(zone, payload_type, has_varargs, /*is_result*/ true);
-  const auto& container_type =
-      CallingConventions::kReturnRegisterExtension == kExtendedTo4
-          ? payload_type_converted.WidenTo4Bytes(zone)
-          : payload_type_converted;
+  const auto& container_type = payload_type_converted.Extend(
+      zone, CallingConventions::kReturnRegisterExtension);
 
   if (container_type.IsFloat()) {
     return *new (zone) NativeFpuRegistersLocation(
