@@ -1530,57 +1530,7 @@ augment class A {
 
 abstract class MacroDeclarationsTest extends MacroElementsBaseTest {
   test_addClass_addMethod_addMethod() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class AddClassB implements ClassTypesMacro {
-  const AddClassB();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
-    final identifier = await builder.resolveIdentifier(
-      Uri.parse('package:test/a.dart'),
-      'AddMethodFoo',
-    );
-    builder.declareType(
-      'MyClass',
-      DeclarationCode.fromParts([
-        '@',
-        identifier,
-        '()\nclass B {}\n',
-      ]),
-    );
-  }
-}
-
-macro class AddMethodFoo implements ClassDeclarationsMacro {
-  const AddMethodFoo();
-
-  buildDeclarationsForClass(clazz, builder) async {
-    final identifier = await builder.resolveIdentifier(
-      Uri.parse('package:test/a.dart'),
-      'AddMethodBar',
-    );
-    builder.declareInType(
-      DeclarationCode.fromParts([
-        '  @',
-        identifier,
-        '()\n  void foo() {}',
-      ]),
-    );
-  }
-}
-
-macro class AddMethodBar implements MethodDeclarationsMacro {
-  const AddMethodBar();
-
-  buildDeclarationsForMethod(method, builder) async {
-    builder.declareInType(
-      DeclarationCode.fromString('  void bar() {}'),
-    );
-  }
-}
-''');
+    _addSingleMacro('addClass_addMethod_addMethod.dart');
 
     var library = await buildLibrary(r'''
 import 'a.dart';
@@ -5784,13 +5734,12 @@ class MyClass {}
     }
 
     const macroCode = r'''
-import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class MyMacro implements ClassTypesMacro {
   const MyMacro();
 
-  FutureOr<void> buildTypesForClass(clazz, builder) {
+  buildTypesForClass(clazz, builder) async {
     builder.declareType(
       'MyClass',
       DeclarationCode.fromString('class MyClass {}'),
@@ -5971,7 +5920,7 @@ import 'a.dart';
 macro class MyMacro implements ClassTypesMacro {
   const MyMacro();
 
-  FutureOr<void> buildTypesForClass(clazz, ClassTypeBuilder builder) async {
+  buildTypesForClass(clazz, ClassTypeBuilder builder) async {
     final identifier = await builder.resolveIdentifier(
       Uri.parse('package:test/a.dart'),
       'A',
@@ -6300,13 +6249,12 @@ elementFactory
     useEmptyByteStore();
 
     newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class AddClassA implements ClassTypesMacro {
   const AddClassA();
 
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
+  buildTypesForClass(clazz, builder) async {
     final identifier = await builder.resolveIdentifier(
       Uri.parse('package:test/a.dart'),
       'AddClassB',
@@ -6325,7 +6273,7 @@ macro class AddClassA implements ClassTypesMacro {
 macro class AddClassB implements ClassTypesMacro {
   const AddClassB();
 
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
+  buildTypesForClass(clazz, builder) async {
     builder.declareType(
       'B',
       DeclarationCode.fromString('class B {}\n'),
@@ -6385,7 +6333,6 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_11 dart:async
           library_3 package:macro/api.dart
           library_9 dart:core synthetic
         cycle_0
@@ -6458,7 +6405,6 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_11 dart:async
           library_3 package:macro/api.dart
           library_9 dart:core synthetic
         cycle_0
