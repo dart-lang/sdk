@@ -11,6 +11,7 @@ import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
 import 'avoid_catching_errors_test.dart' as avoid_catching_errors;
+import 'avoid_dynamic_calls_test.dart' as avoid_dynamic_calls;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
     as avoid_equals_and_hash_code_on_mutable_classes;
 import 'avoid_escaping_inner_quotes_test.dart' as avoid_escaping_inner_quotes;
@@ -260,6 +261,7 @@ void main() {
   annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
   avoid_catching_errors.main();
+  avoid_dynamic_calls.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
   avoid_final_parameters.main();

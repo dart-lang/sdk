@@ -36,6 +36,8 @@ Note that despite "Function" being a type, the semantics are close to identical
 to "dynamic", and calls to an object that is typed "Function" will also trigger
 this lint.
 
+Dynamic calls are allowed on cast expressions (`as dynamic` or `as Function`).
+
 **BAD:**
 ```dart
 void explicitDynamicType(dynamic object) {
@@ -183,11 +185,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (methodName == 'noSuchMethod' &&
           node.argumentList.arguments.length == 1 &&
           node.argumentList.arguments.first is! NamedExpression) {
-        // Special-cased; these exist on every object, even those typed "Object?".
+        // Special-cased; these exist on every object, even those typed
+        // "Object?".
         return;
       }
       if (methodName == 'toString' && node.argumentList.arguments.isEmpty) {
-        // Special-cased; these exist on every object, even those typed "Object?".
+        // Special-cased; these exist on every object, even those typed
+        // "Object?".
         return;
       }
     }
@@ -244,17 +248,24 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _lintIfDynamic(Expression? node) {
-    if (node?.staticType is DynamicType) {
-      rule.reportLint(node);
-      return true;
-    } else {
+    if (node == null || node.staticType is! DynamicType) {
       return false;
     }
+
+    if (node.unParenthesized is AsExpression) {
+      return false;
+    }
+
+    rule.reportLint(node);
+    return true;
   }
 
   void _lintIfDynamicOrFunction(Expression node, {DartType? staticType}) {
     staticType ??= node.staticType;
     if (staticType == null) {
+      return;
+    }
+    if (node.unParenthesized is AsExpression) {
       return;
     }
     if (staticType is DynamicType) {
