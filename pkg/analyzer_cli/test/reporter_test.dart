@@ -119,6 +119,7 @@ ErrorsResultImpl mockResult(ErrorType type, ErrorSeverity severity) {
     lineInfo: lineInfo,
     isAugmentation: false,
     isLibrary: true,
+    isMacroAugmentation: false,
     isPart: false,
     errors: [error],
   );

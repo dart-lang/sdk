@@ -97,7 +97,7 @@ ResolvedLibraryResult
       flags: exists isLibrary
       uri: package:test/test.dart
     /home/test/lib/test.macro.dart
-      flags: exists isAugmentation
+      flags: exists isAugmentation isMacroAugmentation
       uri: package:test/test.macro.dart
       content
 ---

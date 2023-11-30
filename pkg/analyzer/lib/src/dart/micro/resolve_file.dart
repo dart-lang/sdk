@@ -355,6 +355,7 @@ class FileResolver {
         lineInfo: file.lineInfo,
         isAugmentation: file.kind is AugmentationFileKind,
         isLibrary: file.kind is LibraryFileKind,
+        isMacroAugmentation: file.isMacroAugmentation,
         isPart: file.kind is PartFileKind,
         errors: errors,
       );

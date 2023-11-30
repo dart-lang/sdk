@@ -97,6 +97,7 @@ class ResolvedUnitResultPrinter {
         'exists': result.exists,
         'isAugmentation': result.isAugmentation,
         'isLibrary': result.isLibrary,
+        'isMacroAugmentation': result.isMacroAugmentation,
         'isPart': result.isPart,
       });
       sink.writelnWithIndent('uri: ${result.uri}');
