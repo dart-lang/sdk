@@ -33,7 +33,8 @@ class DeclarationHelper {
   final VisibilityTracker visibilityTracker = VisibilityTracker();
 
   /// A flag indicating whether suggestions should be limited to only include
-  /// valid constants.
+  /// those to which a value can be assigned: either a setter or a local
+  /// variable.
   final bool mustBeAssignable;
 
   /// A flag indicating whether suggestions should be limited to only include
