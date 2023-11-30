@@ -50,6 +50,22 @@ class ListExtensionTest {
     expect([0, 1].elementAtOrNull2(2), isNull);
   }
 
+  test_endsWith() {
+    expect([0, 1, 2].endsWith([]), isTrue);
+
+    expect([0, 1, 2].endsWith([2]), isTrue);
+    expect([0, 1, 2].endsWith([1]), isFalse);
+    expect([0, 1, 2].endsWith([0]), isFalse);
+
+    expect([0, 1, 2].endsWith([1, 2]), isTrue);
+    expect([0, 1, 2].endsWith([0, 2]), isFalse);
+
+    expect([0, 1, 2].endsWith([0, 1, 2]), isTrue);
+    expect([0, 1, 2].endsWith([0, 0, 2]), isFalse);
+
+    expect([0, 1, 2].endsWith([-1, 0, 1, 2]), isFalse);
+  }
+
   test_nextOrNull() {
     var elements = [0, 1, 2];
     expect(elements.nextOrNull(0), 1);

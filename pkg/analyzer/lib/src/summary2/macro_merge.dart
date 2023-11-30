@@ -108,15 +108,32 @@ class MacroElementsMerger {
       }
     }
 
-    final containerRef = existingRef.getChild('@method');
-    for (final element in newElement.methods) {
-      final reference = element.reference!;
-      containerRef.addChildReference(element.name, reference);
+    {
+      final containerRef = existingRef.getChild('@method');
+      for (final element in newElement.methods) {
+        final reference = element.reference!;
+        containerRef.addChildReference(element.name, reference);
+      }
+      existingElement.methods = [
+        ...existingElement.methods,
+        ...newElement.methods,
+      ].toFixedList();
     }
-    existingElement.methods = [
-      ...existingElement.methods,
-      ...newElement.methods,
-    ].toFixedList();
+
+    if (existingElement is InterfaceElementImpl &&
+        newElement is InterfaceElementImpl) {
+      for (final element in newElement.constructors) {
+        final reference = element.reference!;
+        final containerRef = element.isAugmentation
+            ? existingRef.getChild('@constructorAugmentation')
+            : existingRef.getChild('@constructor');
+        containerRef.addChildReference(element.name, reference);
+      }
+      existingElement.constructors = [
+        ...existingElement.constructors,
+        ...newElement.constructors,
+      ].toFixedList();
+    }
 
     // TODO(scheglov): accessors, fields
   }

@@ -46,6 +46,21 @@ extension ListExtension<E> on List<E> {
     }
   }
 
+  bool endsWith(List<E> expected) {
+    var thisIndex = length - expected.length;
+    if (thisIndex < 0) {
+      return false;
+    }
+
+    var expectedIndex = 0;
+    for (; expectedIndex < expected.length;) {
+      if (this[thisIndex++] != expected[expectedIndex++]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   E? nextOrNull(E element) {
     final index = indexOf(element);
     if (index >= 0 && index < length - 1) {

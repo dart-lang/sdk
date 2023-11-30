@@ -44,6 +44,8 @@ main() {
     defineReflectiveTests(MacroTypesTest_fromBytes);
     defineReflectiveTests(MacroDeclarationsTest_keepLinking);
     defineReflectiveTests(MacroDeclarationsTest_fromBytes);
+    defineReflectiveTests(MacroDefinitionTest_keepLinking);
+    defineReflectiveTests(MacroDefinitionTest_fromBytes);
     defineReflectiveTests(MacroElementsTest_keepLinking);
     defineReflectiveTests(MacroElementsTest_fromBytes);
     defineReflectiveTests(MacroApplicationOrderTest);
@@ -2169,6 +2171,84 @@ class MacroDeclarationsTest_keepLinking extends MacroDeclarationsTest {
   bool get keepLinkingLibraries => true;
 }
 
+abstract class MacroDefinitionTest extends MacroElementsBaseTest {
+  test_class_addConstructor_augmentConstructor() async {
+    _addSingleMacro('class_addConstructor_augmentConstructor.dart');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddConstructor()
+class A {}
+''');
+
+    configuration
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @42
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmented
+          constructors
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  @prefix0.AugmentConstructor()
+  A.named();
+  augment A.named() { print(42); }
+}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @86
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            constructors
+              named @126
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                periodOffset: 125
+                nameEnd: 131
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+              augment named @147
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+                periodOffset: 146
+                nameEnd: 152
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+''');
+  }
+}
+
+@reflectiveTest
+class MacroDefinitionTest_fromBytes extends MacroDefinitionTest {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class MacroDefinitionTest_keepLinking extends MacroDefinitionTest {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
 abstract class MacroElementsBaseTest extends ElementsBaseTest {
   @override
   Future<void> setUp() async {
@@ -2183,6 +2263,12 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
       '$testPackageLibPath/append.dart',
       _getMacroCode('append.dart'),
     );
+  }
+
+  /// Adds `a.dart` with the content from `single/` directory.
+  void _addSingleMacro(String fileName) {
+    final code = _getMacroCode('single/$fileName');
+    newFile('$testPackageLibPath/a.dart', code);
   }
 
   /// Verifies the code of the macro generated augmentation.

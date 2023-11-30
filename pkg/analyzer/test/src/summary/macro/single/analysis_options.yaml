@@ -1,0 +1,6 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # We use camel case file names in this directory.
+    file_names: ignore
