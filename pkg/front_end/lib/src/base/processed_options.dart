@@ -18,7 +18,6 @@ import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
         LibrariesSpecification,
         LibrariesSpecificationException,
         TargetLibrariesSpecification;
-import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
 import 'package:kernel/kernel.dart'
     show
@@ -202,15 +201,7 @@ class ProcessedOptions {
         this.environmentDefines = options?.environmentDefines,
         // TODO(sigmund, ahe): create ticker even earlier or pass in a stopwatch
         // collecting time since the start of the VM.
-        this.ticker = new Ticker(isVerbose: options?.verbose ?? false) {
-    if (globalFeatures.macros.isEnabled) {
-      enableMacros = true;
-      forceEnableMacros = true;
-    } else {
-      enableMacros = false;
-      forceEnableMacros = false;
-    }
-  }
+        this.ticker = new Ticker(isVerbose: options?.verbose ?? false);
 
   FormattedMessage format(
       LocatedMessage message, Severity severity, List<LocatedMessage>? context,

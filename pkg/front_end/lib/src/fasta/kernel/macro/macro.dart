@@ -36,14 +36,6 @@ import '../../source/source_procedure_builder.dart';
 import '../hierarchy/hierarchy_builder.dart';
 import 'identifiers.dart';
 
-bool enableMacros = false;
-
-/// Enables macros whether the Macro class actually exists in the transitive
-/// deps or not. This allows for easier experimentation.
-///
-/// TODO: Remove this once it is no longer necessary.
-bool forceEnableMacros = false;
-
 const String augmentationScheme = 'org-dartlang-augmentation';
 
 final Uri macroLibraryUri =

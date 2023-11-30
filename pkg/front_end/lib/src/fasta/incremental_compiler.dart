@@ -5,18 +5,14 @@
 library fasta.incremental_compiler;
 
 import 'dart:async' show Completer;
-
 import 'dart:convert' show JsonEncoder;
-
-import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
-    show ScannerConfiguration;
 
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macros;
-
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
 import 'package:front_end/src/fasta/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;
-
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -25,10 +21,10 @@ import 'package:kernel/binary/ast_from_binary.dart'
         InvalidKernelVersionError,
         SubComponentView,
         mergeCompilationModeOrThrow;
-
+import 'package:kernel/canonical_name.dart'
+    show CanonicalNameError, CanonicalNameSdkError;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
-
 import 'package:kernel/kernel.dart'
     show
         Class,
@@ -52,106 +48,61 @@ import 'package:kernel/kernel.dart'
         TreeNode,
         TypeParameter,
         VariableDeclaration;
-
-import 'package:kernel/canonical_name.dart'
-    show CanonicalNameError, CanonicalNameSdkError;
-
 import 'package:kernel/kernel.dart' as kernel show Combinator;
-
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
-
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
-
 import '../api_prototype/incremental_kernel_generator.dart'
     show
         IncrementalCompilerResult,
         IncrementalKernelGenerator,
         isLegalIdentifier;
-
 import '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
-
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
-
 import '../base/nnbd_mode.dart';
-
 import '../base/processed_options.dart' show ProcessedOptions;
-
 import '../kernel_generator_impl.dart' show precompileMacros;
-
 import 'builder/builder.dart' show Builder;
-
 import 'builder/declaration_builders.dart'
     show ClassBuilder, ExtensionBuilder, TypeDeclarationBuilder;
-
 import 'builder/field_builder.dart' show FieldBuilder;
-
 import 'builder/library_builder.dart' show LibraryBuilder;
-
 import 'builder/member_builder.dart' show MemberBuilder;
-
 import 'builder/name_iterator.dart' show NameIterator;
-
 import 'builder/type_builder.dart' show NamedTypeBuilder, TypeBuilder;
-
 import 'builder_graph.dart' show BuilderGraph;
-
 import 'combinator.dart' show CombinatorBuilder;
-
 import 'compiler_context.dart' show CompilerContext;
-
 import 'dill/dill_class_builder.dart' show DillClassBuilder;
-
 import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
-
 import 'dill/dill_loader.dart' show DillLoader;
 import 'dill/dill_target.dart' show DillTarget;
-
 import 'export.dart' show Export;
-
 import 'fasta_codes.dart';
-
-import 'import.dart' show Import;
-
-import 'incremental_serializer.dart' show IncrementalSerializer;
-
-import 'kernel/macro/macro.dart' show enableMacros, NeededPrecompilations;
-
-import 'scope.dart' show Scope, ScopeKind;
-
-import 'source/source_class_builder.dart' show SourceClassBuilder;
-
-import 'source/source_extension_builder.dart';
-import 'util/error_reporter_file_copier.dart' show saveAsGzip;
-
-import 'util/experiment_environment_getter.dart'
-    show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
-
-import 'util/textual_outline.dart' show textualOutline;
-
-import 'uris.dart' show dartCore;
-
 import 'hybrid_file_system.dart' show HybridFileSystem;
-
+import 'import.dart' show Import;
+import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
-
 import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
-
 import 'kernel/kernel_target.dart' show BuildResult, KernelTarget;
-
+import 'kernel/macro/macro.dart' show NeededPrecompilations;
 import 'library_graph.dart' show LibraryGraph;
-
+import 'scope.dart' show Scope, ScopeKind;
+import 'source/source_class_builder.dart' show SourceClassBuilder;
+import 'source/source_extension_builder.dart';
 import 'source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
-
 import 'source/source_loader.dart';
-
 import 'ticker.dart' show Ticker;
-
 import 'uri_translator.dart' show UriTranslator;
+import 'uris.dart' show dartCore;
+import 'util/error_reporter_file_copier.dart' show saveAsGzip;
+import 'util/experiment_environment_getter.dart'
+    show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
+import 'util/textual_outline.dart' show textualOutline;
 
 final Uri dartFfiUri = Uri.parse("dart:ffi");
 
@@ -378,7 +329,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         NeededPrecompilations? neededPrecompilations =
             await currentKernelTarget.computeNeededPrecompilations();
         _benchmarker?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
-        if (enableMacros) {
+        if (context.options.globalFeatures.macros.isEnabled) {
           Map<Uri, macros.ExecutorFactoryToken>? precompiled =
               await precompileMacros(neededPrecompilations, c.options);
           if (precompiled != null) {
@@ -1201,7 +1152,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return null;
     }
 
-    if (enableMacros) {
+    if (context.options.globalFeatures.macros.isEnabled) {
       /// TODO(johnniwinther): Add a [hasMacro] property to [LibraryBuilder].
       for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
         // TODO(johnniwinther): Should this include non-local (i.e. injected)

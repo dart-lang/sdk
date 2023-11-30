@@ -1503,8 +1503,6 @@ severity: $severity
   ///
   /// If no macros need precompilation, `null` is returned.
   NeededPrecompilations? computeMacroDeclarations() {
-    if (!enableMacros) return null;
-
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
     if (macroLibraryBuilder == null) return null;
 
@@ -1678,7 +1676,7 @@ severity: $severity
   Class? get macroClass => _macroClassBuilder?.cls;
 
   Future<MacroApplications?> computeMacroApplications() async {
-    if ((!enableMacros || _macroClassBuilder == null) && !forceEnableMacros) {
+    if (_macroClassBuilder == null) {
       return null;
     }
 
