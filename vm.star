@@ -97,7 +97,7 @@ _vm_builder(
     "vm-linux-release-simarm",
     category = "vm|jit|ra",
 )
-_nightly_builder(
+_vm_builder(
     "vm-linux-debug-simriscv64",
     category = "vm|jit|rv",
 )
