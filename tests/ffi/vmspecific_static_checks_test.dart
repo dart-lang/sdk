@@ -279,6 +279,15 @@ void testAsFunctionTypeMismatch() {
   // [cfe] Expected type 'int Function(int, int)' to be 'int Function(int)', which is the Dart type corresponding to 'NativeFunction<Int8 Function(Int8)>'.
 }
 
+void testFunctionNotFunctionType() {
+  Pointer<NativeFunction<Int8UnOp>> p = Pointer.fromAddress(1337);
+  Function f = p.asFunction();
+  //           ^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+  //             ^
+  // [cfe] Expected type 'Function' to be 'int Function(int)', which is the Dart type corresponding to 'NativeFunction<Int8 Function(Int8)>'.
+}
+
 typedef NativeDoubleUnOp = Double Function(Double);
 typedef DoubleUnOp = double Function(double);
 

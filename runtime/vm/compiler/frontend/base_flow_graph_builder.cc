@@ -1028,13 +1028,22 @@ Fragment BaseFlowGraphBuilder::Box(Representation from) {
 Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
     const TypeArguments& signatures,
     bool is_leaf) {
-  ASSERT(signatures.IsInstantiated());
   ASSERT(signatures.Length() == 2);
+  const auto& sig0 = AbstractType::Handle(signatures.TypeAt(0));
+  const auto& sig1 = AbstractType::Handle(signatures.TypeAt(1));
 
-  const auto& dart_type =
-      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(0)));
-  const auto& native_type =
-      FunctionType::Cast(AbstractType::Handle(signatures.TypeAt(1)));
+  if (!signatures.IsInstantiated() || !sig0.IsFunctionType() ||
+      !sig1.IsFunctionType()) {
+    const auto& msg = String::Handle(String::NewFormatted(
+        "Invalid type arguments passed to dart:ffi _asFunctionInternal: %s",
+        String::Handle(signatures.UserVisibleName()).ToCString()));
+    const auto& language_error =
+        Error::Handle(LanguageError::New(msg, Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+
+  const auto& dart_type = FunctionType::Cast(sig0);
+  const auto& native_type = FunctionType::Cast(sig1);
 
   // AbiSpecificTypes can have an incomplete mapping.
   const char* error = nullptr;
