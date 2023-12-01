@@ -100,7 +100,6 @@ _vm_builder(
 _nightly_builder(
     "vm-linux-debug-simriscv64",
     category = "vm|jit|rv",
-    goma = False,  # RBE gcc cross-compilation isn't supported yet
 )
 _vm_builder(
     "vm-linux-release-arm64",
@@ -208,7 +207,6 @@ _nightly_builder(
     "vm-aot-linux-debug-simriscv64",
     category = "vm|aot|rv",
     properties = [slow_shards],
-    goma = False,  # RBE gcc cross-compilation isn't supported yet
 )
 _nightly_builder(
     "vm-aot-linux-release-arm64",
