@@ -590,7 +590,7 @@ class _WasmTransformer extends Transformer {
           ReturnStatement(VariableGet(whereKeep)),
         ]),
         positionalParameters: [whereFilterArg],
-        returnType: coreTypes.objectNullableRawType));
+        returnType: coreTypes.boolNonNullableRawType));
 
     Procedure whereProc =
         coreTypes.index.getProcedure('dart:async', 'Stream', 'where');

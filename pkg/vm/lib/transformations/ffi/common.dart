@@ -1259,13 +1259,19 @@ class FfiTransformer extends Transformer {
     if (env.isSubtypeOf(correspondingDartType, dartType,
         SubtypeCheckMode.ignoringNullabilities)) {
       // If subtype, manually check the return type is not void.
-      if (dartType is! FunctionType || correspondingDartType is! FunctionType) {
-        return;
-      } else if ((dartType.returnType is VoidType) ==
-          (correspondingDartType.returnType is VoidType)) {
+      if (correspondingDartType is FunctionType) {
+        if (dartType is FunctionType) {
+          if ((dartType.returnType is VoidType) ==
+              (correspondingDartType.returnType is VoidType)) {
+            return;
+          }
+          // One of the return types is void, the other isn't, report error.
+        } else {
+          // One is a function type, the other isn't, report error.
+        }
+      } else {
         return;
       }
-      // One of the return types is void, the other isn't, report error.
     }
     diagnosticReporter.report(
         templateFfiTypeMismatch.withArguments(dartType, correspondingDartType,
