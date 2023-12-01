@@ -1858,23 +1858,6 @@ void f(int? a) {
     );
   }
 
-  test_nullSafety_notEnabled() async {
-    newFile('/workspace/dart/test/BUILD', r'''
-dart_package(null_safety = False)
-''');
-
-    await assertErrorsInCode(r'''
-void f(int? a) {}
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
-    ]);
-
-    assertType(
-      findElement.parameter('a').type,
-      'int*',
-    );
-  }
-
   test_part_notInLibrary_libraryDoesNotExist() async {
     // TODO(scheglov): Should report CompileTimeErrorCode.URI_DOES_NOT_EXIST
     await assertNoErrorsInCode(r'''

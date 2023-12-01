@@ -567,7 +567,6 @@ class BlazeWorkspacePackage extends WorkspacePackage {
   @override
   final BlazeWorkspace workspace;
 
-  bool _buildFileReady = false;
   List<String>? _enabledExperiments;
   Version? _languageVersion;
 
@@ -576,7 +575,6 @@ class BlazeWorkspacePackage extends WorkspacePackage {
 
   @override
   List<String>? get enabledExperiments {
-    _readBuildFile();
     return _enabledExperiments;
   }
 
@@ -585,7 +583,6 @@ class BlazeWorkspacePackage extends WorkspacePackage {
     if (!workspace._provideLanguageVersion) {
       return null;
     }
-    _readBuildFile();
     return _languageVersion ?? workspace._languageVersion;
   }
 
@@ -640,33 +637,5 @@ class BlazeWorkspacePackage extends WorkspacePackage {
     }
 
     return false;
-  }
-
-  void _readBuildFile() {
-    if (_buildFileReady) {
-      return;
-    }
-
-    try {
-      _buildFileReady = true;
-      var buildContent = workspace.provider
-          .getFolder(root)
-          .getChildAssumingFile('BUILD')
-          .readAsStringSync();
-      var flattenedBuildContent = buildContent
-          .split('\n')
-          .map((e) => e.trim())
-          .where((e) => !e.startsWith('#'))
-          .map((e) => e.replaceAll(' ', ''))
-          .join();
-      var hasLegacyFlag = const {
-        'dart_package(null_safety=False',
-      }.any(flattenedBuildContent.contains);
-      if (hasLegacyFlag) {
-        _languageVersion = Version.parse('2.9.0');
-      }
-    } on FileSystemException {
-      // ignored
-    }
   }
 }
