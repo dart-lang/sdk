@@ -19,10 +19,247 @@ main() {
 @reflectiveTest
 class ScopeAnalyzerTest {
   final labelToScope = <String, int>{};
+  final labelToStateVar = <String, StateVar>{};
+  final onInstruction = <void Function(int address)>[];
   late final TestIRContainer ir;
   late final Scopes scopeAnalysisResult;
 
+  /// If `true`, an extra state variable will be created for each scope, to test
+  /// that local variable indices and state variable indices are properly
+  /// distinguished.
+  bool createExtraStateVarPerScope = true;
+
+  _ScopeAnalyzerEventListener? eventListener;
+
   LiteralRef get dummyLiteral => LiteralRef(0);
+
+  /// The state variables affected by instructions in [scope].
+  ///
+  /// This is a simple wrapper around [Scopes.effectAt], [Scopes.effectCount],
+  /// and [Scopes.effectIndex] to simplify testing. Non-test code will use those
+  /// lower-level methods directly.
+  List<StateVar> affectedStateVariables(int scope) {
+    var index = scopeAnalysisResult.effectIndex(scope);
+    var count = scopeAnalysisResult.effectCount(scope);
+    return [
+      for (var i = 0; i < count; i++) scopeAnalysisResult.effectAt(index + i)
+    ];
+  }
+
+  void test_affectedStateVariables_coalescesRedundantWrites() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 4)
+      ..label('alloc')
+      ..alloc(2)
+      ..label('block')
+      ..block(3, 0)
+      ..writeLocal(0)
+      ..writeLocal(1)
+      ..writeLocal(0)
+      ..end()
+      ..release(2)
+      ..end());
+    check(affectedStateVariables(labelToScope['block']!)).unorderedEquals(
+        [labelToStateVar['alloc0']!, labelToStateVar['alloc1']!]);
+  }
+
+  void test_affectedStateVariables_coalescesRedundantWrites_inInnerBlock() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 5)
+      ..label('alloc')
+      ..alloc(3)
+      ..label('outer block')
+      ..block(4, 0)
+      ..writeLocal(0)
+      ..writeLocal(1)
+      ..label('inner block')
+      ..block(2, 0)
+      ..writeLocal(0)
+      ..writeLocal(2)
+      ..end()
+      ..end()
+      ..release(3)
+      ..end());
+    check(affectedStateVariables(labelToScope['inner block']!)).unorderedEquals(
+        [labelToStateVar['alloc0']!, labelToStateVar['alloc2']!]);
+    check(affectedStateVariables(labelToScope['outer block']!))
+        .unorderedEquals([
+      labelToStateVar['alloc0']!,
+      labelToStateVar['alloc1']!,
+      labelToStateVar['alloc2']!
+    ]);
+  }
+
+  void test_affectedStateVariables_ignoresUnusedVariables() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('alloc')
+      ..alloc(2)
+      ..label('block')
+      ..block(0, 0)
+      ..end()
+      ..release(2)
+      ..end());
+    check(affectedStateVariables(labelToScope['block']!)).isEmpty();
+  }
+
+  void test_affectedStateVariables_ignoresVariablesReleasedInsideScope() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 3)
+      ..label('block')
+      ..block(2, 0)
+      ..label('alloc')
+      ..alloc(2)
+      ..writeLocal(0)
+      ..writeLocal(1)
+      ..release(2)
+      ..end()
+      ..end());
+    check(affectedStateVariables(labelToScope['block']!)).isEmpty();
+  }
+
+  void test_affectedStateVariables_tracksLocalVariableWrites() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 3)
+      ..label('alloc')
+      ..alloc(2)
+      ..label('block')
+      ..block(2, 0)
+      ..writeLocal(0)
+      ..writeLocal(1)
+      ..end()
+      ..release(2)
+      ..end());
+    check(affectedStateVariables(labelToScope['block']!)).unorderedEquals(
+        [labelToStateVar['alloc0']!, labelToStateVar['alloc1']!]);
+  }
+
+  void
+      test_affectedStateVariables_tracksLocalVariableWrites_whenLaterWrittenInEnclosingBlock() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 3)
+      ..label('x')
+      ..alloc(1)
+      ..label('outer block')
+      ..block(2, 0)
+      ..label('inner block')
+      ..block(1, 0)
+      ..writeLocal(0)
+      ..end()
+      ..writeLocal(0)
+      ..end()
+      ..release(1)
+      ..end());
+    check(affectedStateVariables(labelToScope['inner block']!))
+        .unorderedEquals([labelToStateVar['x']!]);
+    check(affectedStateVariables(labelToScope['outer block']!))
+        .unorderedEquals([labelToStateVar['x']!]);
+  }
+
+  void
+      test_affectedStateVariables_tracksLocalVariableWrites_whenPreviouslyWrittenInEnclosingBlock() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 3)
+      ..label('x')
+      ..alloc(1)
+      ..label('outer block')
+      ..block(2, 0)
+      ..writeLocal(0)
+      ..label('inner block')
+      ..block(1, 0)
+      ..writeLocal(0)
+      ..end()
+      ..end()
+      ..release(1)
+      ..end());
+    check(affectedStateVariables(labelToScope['inner block']!))
+        .unorderedEquals([labelToStateVar['x']!]);
+    check(affectedStateVariables(labelToScope['outer block']!))
+        .unorderedEquals([labelToStateVar['x']!]);
+  }
+
+  void
+      test_affectedStateVariables_tracksReallocatedLocalsAsSeparateStateVars() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..block(0, 0)
+      ..label('x')
+      ..alloc(1)
+      ..release(1)
+      ..end()
+      ..block(0, 0)
+      ..label('y')
+      ..alloc(1)
+      ..release(1)
+      ..end()
+      ..end());
+    check(labelToStateVar['x']!).not((s) => s.equals(labelToStateVar['y']!));
+  }
+
+  void test_allocIndexToStateVar() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('x')
+      ..alloc(2)
+      ..label('y')
+      ..alloc(3)
+      ..release(3)
+      ..label('z')
+      ..alloc(2)
+      ..release(4)
+      ..end());
+    check(scopeAnalysisResult.allocIndexToStateVar(0))
+        .equals(labelToStateVar['x0']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(1))
+        .equals(labelToStateVar['x1']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(2))
+        .equals(labelToStateVar['y0']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(3))
+        .equals(labelToStateVar['y1']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(4))
+        .equals(labelToStateVar['y2']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(5))
+        .equals(labelToStateVar['z0']!);
+    check(scopeAnalysisResult.allocIndexToStateVar(6))
+        .equals(labelToStateVar['z1']!);
+  }
+
+  void test_ancestorContainingAddress() {
+    _analyze((ir) => ir
+      ..label('function')
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('block1')
+      ..block(0, 0)
+      ..label('block2')
+      ..block(0, 0)
+      ..label('block2end')
+      ..end()
+      ..label('block3')
+      ..block(0, 0)
+      ..end()
+      ..label('block1end')
+      ..end()
+      ..label('block4')
+      ..block(0, 0)
+      ..end()
+      ..end());
+    check(scopeAnalysisResult.ancestorContainingAddress(
+            scope: labelToScope['block2']!,
+            address: ir.labelToAddress('block2end')!))
+        .equals(labelToScope['block2']!);
+    check(scopeAnalysisResult.ancestorContainingAddress(
+            scope: labelToScope['block2']!,
+            address: ir.labelToAddress('block2end')! + 1))
+        .equals(labelToScope['block1']!);
+    check(scopeAnalysisResult.ancestorContainingAddress(
+            scope: labelToScope['block2']!,
+            address: ir.labelToAddress('block1end')!))
+        .equals(labelToScope['block1']!);
+    check(scopeAnalysisResult.ancestorContainingAddress(
+            scope: labelToScope['block2']!,
+            address: ir.labelToAddress('block1end')! + 1))
+        .equals(labelToScope['function']!);
+  }
 
   void test_beginAddress() {
     _analyze((ir) => ir
@@ -123,6 +360,46 @@ class ScopeAnalyzerTest {
         .equals(labelToScope['function']!);
   }
 
+  void test_onAlloc_distinguishesAllocations() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('x')
+      ..alloc(1)
+      ..label('y')
+      ..alloc(1)
+      ..release(2)
+      ..end());
+    check(labelToStateVar['x']!).not((s) => s.equals(labelToStateVar['y']!));
+  }
+
+  void test_parent() {
+    _analyze((ir) => ir
+      ..label('function')
+      ..ordinaryFunction(parameterCount: 1)
+      ..label('block1')
+      ..block(0, 0)
+      ..label('block2')
+      ..block(0, 0)
+      ..end()
+      ..label('block3')
+      ..block(0, 0)
+      ..end()
+      ..end()
+      ..label('block4')
+      ..block(0, 0)
+      ..end()
+      ..end());
+    check(scopeAnalysisResult.parent(labelToScope['function']!)).equals(-1);
+    check(scopeAnalysisResult.parent(labelToScope['block1']!))
+        .equals(labelToScope['function']!);
+    check(scopeAnalysisResult.parent(labelToScope['block2']!))
+        .equals(labelToScope['block1']!);
+    check(scopeAnalysisResult.parent(labelToScope['block3']!))
+        .equals(labelToScope['block1']!);
+    check(scopeAnalysisResult.parent(labelToScope['block4']!))
+        .equals(labelToScope['function']!);
+  }
+
   void test_scopeCount() {
     _analyze((ir) => ir
       ..ordinaryFunction(parameterCount: 1)
@@ -133,28 +410,85 @@ class ScopeAnalyzerTest {
     check(scopeAnalysisResult.scopeCount).equals(2);
   }
 
+  void test_stateVarAffected() {
+    late StateVar stateVar;
+    onInstruction.add((address) {
+      if (address == ir.labelToAddress('create')) {
+        stateVar = eventListener!.createStateVar();
+      } else if (address == ir.labelToAddress('affect')) {
+        eventListener!.stateVarAffected(stateVar);
+      }
+    });
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 4)
+      ..label('create')
+      ..drop()
+      ..label('block1')
+      ..block(1, 0)
+      ..drop()
+      ..end()
+      ..label('block2')
+      ..block(1, 0)
+      ..label('affect')
+      ..drop()
+      ..end()
+      ..end());
+    check(affectedStateVariables(labelToScope['block1']!))
+        .not((s) => s.contains(stateVar));
+    check(affectedStateVariables(labelToScope['block2']!)).contains(stateVar);
+  }
+
+  void test_stateVarCount() {
+    createExtraStateVarPerScope = false;
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 1)
+      ..alloc(2)
+      ..alloc(3)
+      ..release(3)
+      ..alloc(2)
+      ..release(4)
+      ..end());
+    check(scopeAnalysisResult.stateVarCount).equals(7);
+  }
+
   void _analyze(void Function(TestIRWriter) writeIR) {
     var writer = TestIRWriter();
     writeIR(writer);
     ir = TestIRContainer(writer);
     validate(ir);
-    scopeAnalysisResult = analyzeScopes(ir,
-        eventListener:
-            _ScopeAnalyzerEventListener(ir: ir, labelToScope: labelToScope));
+    eventListener = _ScopeAnalyzerEventListener(this);
+    scopeAnalysisResult = analyzeScopes(ir, eventListener: eventListener);
+    eventListener = null;
   }
 }
 
 final class _ScopeAnalyzerEventListener extends ScopeAnalyzerEventListener {
-  final TestIRContainer ir;
-  final Map<String, int> labelToScope;
+  final ScopeAnalyzerTest test;
 
-  _ScopeAnalyzerEventListener({required this.ir, required this.labelToScope});
+  _ScopeAnalyzerEventListener(this.test);
+
+  @override
+  void onAlloc({required int index, required StateVar stateVar}) {
+    if (test.ir.allocIndexToName(index) case var name?) {
+      test.labelToStateVar[name] = stateVar;
+    }
+  }
+
+  @override
+  void onInstruction(int address) {
+    for (var callback in test.onInstruction) {
+      callback(address);
+    }
+  }
 
   @override
   void onPushScope({required int address, required int scope}) {
     // Record the scope name.
-    if (ir.addressToLabel(address) case var name?) {
-      labelToScope[name] = scope;
+    if (test.ir.addressToLabel(address) case var name?) {
+      test.labelToScope[name] = scope;
+    }
+    if (test.createExtraStateVarPerScope) {
+      createStateVar();
     }
   }
 }

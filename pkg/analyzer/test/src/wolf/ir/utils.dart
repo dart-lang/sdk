@@ -134,15 +134,19 @@ class TestFunctionType {
 /// To construct a sequence of IR instructions, see [TestIRWriter].
 class TestIRContainer extends BaseIRContainer {
   final Map<int, String> _addressToLabel;
+  final List<String?> _allocNames;
   final List<TestFunctionType> _functionTypes;
   final Map<String, int> _labelToAddress;
 
   TestIRContainer(TestIRWriter super.writer)
       : _addressToLabel = writer._addressToLabel,
+        _allocNames = writer._allocNames,
         _functionTypes = writer._functionTypes,
         _labelToAddress = writer._labelToAddress;
 
   String? addressToLabel(int address) => _addressToLabel[address];
+
+  String? allocIndexToName(int index) => _allocNames[index];
 
   @override
   int countParameters(TypeRef type) =>
@@ -158,6 +162,7 @@ class TestIRContainer extends BaseIRContainer {
 /// than generate them from a Dart AST.
 class TestIRWriter extends RawIRWriter {
   final _addressToLabel = <int, String>{};
+  final _allocNames = <String?>[];
   final _callDescriptorTable = <String>[];
   final _callDescriptorToRef = <String, CallDescriptorRef>{};
   final _functionTypes = <TestFunctionType>[];
@@ -165,6 +170,20 @@ class TestIRWriter extends RawIRWriter {
   final _literalTable = <Object?>[];
   final _literalToRef = <Object?, LiteralRef>{};
   final _parameterCountToFunctionTypeMap = <int, TypeRef>{};
+
+  @override
+  void alloc(int count) {
+    var instructionLabel = _addressToLabel[nextInstructionAddress];
+    if (count == 1) {
+      _allocNames.add(instructionLabel);
+    } else {
+      for (var i = 0; i < count; i++) {
+        _allocNames
+            .add(instructionLabel == null ? null : '$instructionLabel$i');
+      }
+    }
+    super.alloc(count);
+  }
 
   CallDescriptorRef encodeCallDescriptor(String name) =>
       _callDescriptorToRef.putIfAbsent(name, () {
