@@ -1995,7 +1995,7 @@ FunctionTypeDefaultValue:
   analyzerCode: DEFAULT_VALUE_IN_FUNCTION_TYPE
 
 PrivateNamedParameter:
-  problemMessage: "An optional named parameter can't start with '_'."
+  problemMessage: "A named parameter can't start with an underscore ('_')."
   analyzerCode: PRIVATE_OPTIONAL_PARAMETER
 
 NoFormals:

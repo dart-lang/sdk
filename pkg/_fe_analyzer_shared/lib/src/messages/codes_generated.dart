@@ -12369,7 +12369,8 @@ const Code<Null> codePrivateNamedParameter = messagePrivateNamedParameter;
 const MessageCode messagePrivateNamedParameter = const MessageCode(
     "PrivateNamedParameter",
     analyzerCodes: <String>["PRIVATE_OPTIONAL_PARAMETER"],
-    problemMessage: r"""An optional named parameter can't start with '_'.""");
+    problemMessage:
+        r"""A named parameter can't start with an underscore ('_').""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRecordFieldsCantBePrivate =
