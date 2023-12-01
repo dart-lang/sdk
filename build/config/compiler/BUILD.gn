@@ -422,8 +422,20 @@ config("compiler") {
       toolchain_stamp_file =
           "//buildtools/mac-x64/clang/.versions/clang.cipd_version"
     }
-    cipd_version = read_file(toolchain_stamp_file, "json")
-    defines = [ "TOOLCHAIN_VERSION=${cipd_version.instance_id}" ]
+    toolchain_cipd_version = read_file(toolchain_stamp_file, "json")
+    defines = [ "TOOLCHAIN_VERSION=${toolchain_cipd_version.instance_id}" ]
+
+    if (is_linux) {
+      if (current_cpu == "riscv64") {
+        sysroot_stamp_file =
+            "//buildtools/sysroot/focal/.versions/sysroot.cipd_version"
+      } else {
+        sysroot_stamp_file =
+            "//buildtools/sysroot/linux/.versions/sysroot.cipd_version"
+      }
+      sysroot_cipd_version = read_file(sysroot_stamp_file, "json")
+      defines += [ "SYSROOT_VERSION=${sysroot_cipd_version.instance_id}" ]
+    }
   }
 
   # Assign any flags set for the C compiler to asmflags so that they are sent

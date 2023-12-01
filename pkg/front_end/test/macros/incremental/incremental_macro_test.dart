@@ -14,7 +14,6 @@ import 'package:front_end/src/compute_platform_binaries_location.dart';
 import 'package:front_end/src/fasta/compiler_context.dart';
 import 'package:front_end/src/fasta/hybrid_file_system.dart';
 import 'package:front_end/src/fasta/incremental_compiler.dart';
-import 'package:front_end/src/fasta/kernel/macro/macro.dart';
 import 'package:front_end/src/isolate_macro_serializer.dart';
 import 'package:front_end/src/macro_serializer.dart';
 import 'package:front_end/src/testing/compiler_common.dart';
@@ -82,7 +81,6 @@ Future<void> main(List<String> args) async {
 
   args = args.toList();
   bool generateExpectations = args.remove('-g');
-  enableMacros = true;
   MacroSerializer macroSerializer = new IsolateMacroSerializer();
   MemoryFileSystem memoryFileSystem = createMemoryFileSystem();
   CompilerOptions compilerOptions = new CompilerOptions()

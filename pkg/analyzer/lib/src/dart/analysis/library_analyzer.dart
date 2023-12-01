@@ -601,61 +601,61 @@ class LibraryAnalyzer {
   }
 
   void _resolveAugmentationImportDirective({
-    required AugmentationImportDirectiveImpl directive,
+    required AugmentationImportDirectiveImpl? directive,
     required AugmentationImportElementImpl element,
     required AugmentationImportState state,
     required ErrorReporter errorReporter,
     required Set<AugmentationFileKind> seenAugmentations,
     required Map<FileState, CompilationUnitImpl> units,
   }) {
-    directive.element = element;
+    directive?.element = element;
+
+    void reportOnDirective(ErrorCode errorCode, List<Object>? arguments) {
+      if (directive != null) {
+        errorReporter.reportErrorForNode(errorCode, directive.uri, arguments);
+      }
+    }
 
     final AugmentationFileKind? importedAugmentationKind;
     if (state is AugmentationImportWithFile) {
       importedAugmentationKind = state.importedAugmentation;
       if (!state.importedFile.exists) {
-        final errorCode = isGeneratedSource(state.importedSource)
-            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-        errorReporter.reportErrorForNode(
-          errorCode,
-          directive.uri,
+        reportOnDirective(
+          isGeneratedSource(state.importedSource)
+              ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+              : CompileTimeErrorCode.URI_DOES_NOT_EXIST,
           [state.importedFile.uriStr],
         );
         return;
       } else if (importedAugmentationKind == null) {
-        errorReporter.reportErrorForNode(
+        reportOnDirective(
           CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION,
-          directive.uri,
           [state.importedFile.uriStr],
         );
         return;
       } else if (!seenAugmentations.add(importedAugmentationKind)) {
-        errorReporter.reportErrorForNode(
+        reportOnDirective(
           CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT,
-          directive.uri,
           [state.importedFile.uriStr],
         );
         return;
       }
     } else if (state is AugmentationImportWithUri) {
-      errorReporter.reportErrorForNode(
+      reportOnDirective(
         CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        directive.uri,
         [state.uri.relativeUriStr],
       );
       return;
     } else if (state is AugmentationImportWithUriStr) {
-      errorReporter.reportErrorForNode(
+      reportOnDirective(
         CompileTimeErrorCode.INVALID_URI,
-        directive.uri,
         [state.uri.relativeUriStr],
       );
       return;
     } else {
-      errorReporter.reportErrorForNode(
+      reportOnDirective(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-        directive.uri,
+        null,
       );
       return;
     }
@@ -754,6 +754,23 @@ class LibraryAnalyzer {
             seenPartSources: seenPartSources,
           );
         }
+      }
+    }
+
+    // The macro augmentation does not have an explicit `import` directive.
+    // So, we look into the file augmentation imports.
+    final macroImport = containerKind.augmentationImports.lastOrNull;
+    if (macroImport is AugmentationImportWithFile) {
+      final importedFile = macroImport.importedFile;
+      if (importedFile.isMacroAugmentation) {
+        _resolveAugmentationImportDirective(
+          directive: null,
+          element: _libraryElement.augmentationImports.last,
+          state: macroImport,
+          errorReporter: containerErrorReporter,
+          seenAugmentations: seenAugmentations,
+          units: units,
+        );
       }
     }
   }

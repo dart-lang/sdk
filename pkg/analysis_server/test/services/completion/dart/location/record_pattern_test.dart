@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RecordPatternTest1);
-    defineReflectiveTests(RecordPatternTest2);
+    defineReflectiveTests(RecordPatternTest);
   });
 }
 
 @reflectiveTest
-class RecordPatternTest1 extends AbstractCompletionDriverTest
-    with RecordPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class RecordPatternTest2 extends AbstractCompletionDriverTest
-    with RecordPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class RecordPatternTest extends AbstractCompletionDriverTest
+    with RecordPatternTestCases {}
 
 mixin RecordPatternTestCases on AbstractCompletionDriverTest {
   Future<void> test_assignmentContext_namedField_name() async {
@@ -97,8 +86,7 @@ void f(({int f01, int f02, int g01}) x0) {
   var (f^: ) = x0;
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -107,19 +95,6 @@ suggestions
   f02
     kind: identifier
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  f01
-    kind: identifier
-  f02
-    kind: identifier
-  g01
-    kind: identifier
-''');
-    }
   }
 
   Future<void> test_declarationContext_namedField_withoutName_pattern() async {
@@ -221,8 +196,7 @@ void f(({int f01, int f02, int g01}) x0) {
   if (x0 case (f^: )) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -231,19 +205,6 @@ suggestions
   f02
     kind: identifier
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  f01
-    kind: identifier
-  f02
-    kind: identifier
-  g01
-    kind: identifier
-''');
-    }
   }
 
   Future<void> test_matchingContext_namedField_withoutName_pattern() async {
@@ -286,8 +247,7 @@ void f(({int f01, int f02, int g01}) x0) {
   if (x0 case (: var f^)) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -296,18 +256,5 @@ suggestions
   f02
     kind: identifier
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  f01
-    kind: identifier
-  f02
-    kind: identifier
-  g01
-    kind: identifier
-''');
-    }
   }
 }

@@ -8,28 +8,15 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ArgumentListTest1);
-    defineReflectiveTests(ArgumentListTest2);
-    defineReflectiveTests(FlutterArgumentListTest1);
-    defineReflectiveTests(FlutterArgumentListTest2);
-    defineReflectiveTests(NamedArgumentListTest1);
-    defineReflectiveTests(NamedArgumentListTest2);
+    defineReflectiveTests(ArgumentListTest);
+    defineReflectiveTests(FlutterArgumentListTest);
+    defineReflectiveTests(NamedArgumentListTest);
   });
 }
 
 @reflectiveTest
-class ArgumentListTest1 extends AbstractCompletionDriverTest
-    with ArgumentListTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ArgumentListTest2 extends AbstractCompletionDriverTest
-    with ArgumentListTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ArgumentListTest extends AbstractCompletionDriverTest
+    with ArgumentListTestCases {}
 
 mixin ArgumentListTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterColon_beforeRightParen() async {
@@ -55,31 +42,13 @@ suggestions
     await computeSuggestions('''
 void f() {foo(bar: n^);}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterInt_beforeRightParen() async {
@@ -172,52 +141,21 @@ suggestions
     await computeSuggestions('''
 void f() {foo(n^);}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 }
 
 @reflectiveTest
-class FlutterArgumentListTest1 extends AbstractCompletionDriverTest
+class FlutterArgumentListTest extends AbstractCompletionDriverTest
     with FlutterArgumentListTestCases {
   @override
   bool get includeKeywords => false;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class FlutterArgumentListTest2 extends AbstractCompletionDriverTest
-    with FlutterArgumentListTestCases {
-  @override
-  bool get includeKeywords => false;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin FlutterArgumentListTestCases on AbstractCompletionDriverTest {
@@ -307,37 +245,13 @@ build() => new Row(
     ch^: []
   );
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   children
     kind: namedArgument
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  children
-    kind: namedArgument
-  crossAxisAlignment
-    kind: namedArgument
-  key
-    kind: namedArgument
-  mainAxisAlignment
-    kind: namedArgument
-  mainAxisSize
-    kind: namedArgument
-  textBaseline
-    kind: namedArgument
-  textDirection
-    kind: namedArgument
-  verticalDirection
-    kind: namedArgument
-''');
-    }
   }
 
   Future<void>
@@ -489,23 +403,10 @@ suggestions
 }
 
 @reflectiveTest
-class NamedArgumentListTest1 extends AbstractCompletionDriverTest
+class NamedArgumentListTest extends AbstractCompletionDriverTest
     with NamedArgumentListTestCases {
   @override
   bool get includeKeywords => false;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class NamedArgumentListTest2 extends AbstractCompletionDriverTest
-    with NamedArgumentListTestCases {
-  @override
-  bool get includeKeywords => false;
-
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 }
 
 mixin NamedArgumentListTestCases on AbstractCompletionDriverTest {

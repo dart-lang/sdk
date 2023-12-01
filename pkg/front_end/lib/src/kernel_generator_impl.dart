@@ -296,7 +296,7 @@ Future<Map<Uri, ExecutorFactoryToken>?> precompileMacros(
     NeededPrecompilations? neededPrecompilations,
     ProcessedOptions options) async {
   if (neededPrecompilations != null) {
-    if (enableMacros) {
+    if (options.globalFeatures.macros.isEnabled) {
       // TODO(johnniwinther): Avoid using [rawOptionsForTesting] to compute
       // the compiler options for the precompilation.
       if (options.rawOptionsForTesting.macroTarget != null) {

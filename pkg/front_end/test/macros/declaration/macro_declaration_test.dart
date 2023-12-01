@@ -22,8 +22,6 @@ import 'package:front_end/src/testing/id_testing_utils.dart';
 import 'package:kernel/ast.dart' hide Arguments, TypeDeclaration;
 
 Future<void> main(List<String> args) async {
-  enableMacros = true;
-
   Directory dataDir =
       new Directory.fromUri(Platform.script.resolve('data/tests'));
   await runTests<Features>(dataDir,

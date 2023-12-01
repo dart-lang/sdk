@@ -123,19 +123,6 @@ class CompletionDriver with ExpectMixin {
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
-    var request = CompletionGetSuggestionsParams(
-      server.convertPath(server.testFilePath),
-      completionOffset,
-    ).toRequest('0');
-    var response = await server.handleRequest(request);
-    var result = CompletionGetSuggestionsResult.fromResponse(response);
-    completionId = result.id;
-    assertValidId(completionId);
-    await _getResultsCompleter(completionId).future;
-    return suggestions;
-  }
-
-  Future<List<CompletionSuggestion>> getSuggestions2() async {
     var request = CompletionGetSuggestions2Params(
       server.convertPath(server.testFilePath),
       completionOffset,

@@ -8,26 +8,14 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionMemberTest1);
-    defineReflectiveTests(ExtensionMemberTest2);
-    defineReflectiveTests(StaticExtensionMemberTest1);
-    defineReflectiveTests(StaticExtensionMemberTest2);
+    defineReflectiveTests(ExtensionMemberTest);
+    defineReflectiveTests(StaticExtensionMemberTest);
   });
 }
 
 @reflectiveTest
-class ExtensionMemberTest1 extends AbstractCompletionDriverTest
-    with ExtensionMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ExtensionMemberTest2 extends AbstractCompletionDriverTest
-    with ExtensionMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ExtensionMemberTest extends AbstractCompletionDriverTest
+    with ExtensionMemberTestCases {}
 
 mixin ExtensionMemberTestCases on AbstractCompletionDriverTest {
   @override
@@ -44,27 +32,13 @@ void f() {
   E('3').a0^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_extensionOverride_matches_partial() async {
@@ -78,27 +52,13 @@ void f() {
   E(2).a0^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_inExtendedClass() async {
@@ -354,27 +314,13 @@ void f(List<int> l) {
   l.a0^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_propertyAccess_afterLiteral_doesNotMatch() async {
@@ -428,27 +374,13 @@ void f() {
   2.a0^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_propertyAccess_matches_partial() async {
@@ -463,27 +395,13 @@ void f() {
 }
 int g() => 3;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   a0
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  a0
-    kind: methodInvocation
-  b0
-    kind: getter
-  c0
-    kind: setter
-''');
-    }
   }
 
   Future<void> test_staticMemberAccess_none() async {
@@ -528,18 +446,8 @@ suggestions
 }
 
 @reflectiveTest
-class StaticExtensionMemberTest1 extends AbstractCompletionDriverTest
-    with StaticExtensionMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class StaticExtensionMemberTest2 extends AbstractCompletionDriverTest
-    with StaticExtensionMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class StaticExtensionMemberTest extends AbstractCompletionDriverTest
+    with StaticExtensionMemberTestCases {}
 
 mixin StaticExtensionMemberTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterPeriod() async {

@@ -261,6 +261,7 @@ class Driver implements CommandLineStarter {
               lineInfo: lineInfo,
               isAugmentation: false,
               isLibrary: true,
+              isMacroAugmentation: false,
               isPart: false,
               errors: errors,
             )
@@ -304,6 +305,7 @@ class Driver implements CommandLineStarter {
                   lineInfo: lineInfo,
                   isAugmentation: false,
                   isLibrary: true,
+                  isMacroAugmentation: false,
                   isPart: false,
                   errors: errors,
                 ),
@@ -329,6 +331,7 @@ class Driver implements CommandLineStarter {
                 uri: pathContext.toUri(path),
                 lineInfo: lineInfo,
                 isAugmentation: false,
+                isMacroAugmentation: false,
                 isLibrary: true,
                 isPart: false,
                 errors: errors,

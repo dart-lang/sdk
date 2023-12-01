@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ClassDeclarationTest1);
-    defineReflectiveTests(ClassDeclarationTest2);
+    defineReflectiveTests(ClassDeclarationTest);
   });
 }
 
 @reflectiveTest
-class ClassDeclarationTest1 extends AbstractCompletionDriverTest
-    with ClassDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ClassDeclarationTest2 extends AbstractCompletionDriverTest
-    with ClassDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ClassDeclarationTest extends AbstractCompletionDriverTest
+    with ClassDeclarationTestCases {}
 
 mixin ClassDeclarationTestCases on AbstractCompletionDriverTest {
   Future<void> test_extends() async {
@@ -54,50 +43,26 @@ suggestions
     await computeSuggestions('''
 class A extends foo i^ { }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   implements
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  implements
-    kind: keyword
-  with
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_extends_withoutBody_partial() async {
     await computeSuggestions('''
 class A extends foo i^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   implements
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  implements
-    kind: keyword
-  with
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_implements() async {
@@ -188,81 +153,39 @@ suggestions
     await computeSuggestions('''
 class A e^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   extends
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  extends
-    kind: keyword
-  implements
-    kind: keyword
-  with
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_noBody_beforeVariable_partial() async {
     await computeSuggestions('''
 class A e^ String foo;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   extends
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  extends
-    kind: keyword
-  implements
-    kind: keyword
-  with
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_partial() async {
     await computeSuggestions('''
 class A e^ { }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   extends
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  extends
-    kind: keyword
-  implements
-    kind: keyword
-  with
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_with() async {

@@ -877,8 +877,6 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "--no-clang",
-            "--no-goma",
             "--use-qemu",
             "dart_precompiled_runtime",
             "runtime"

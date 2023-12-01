@@ -8,24 +8,13 @@ import '../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ShadowingTest1);
-    defineReflectiveTests(ShadowingTest2);
+    defineReflectiveTests(ShadowingTest);
   });
 }
 
 @reflectiveTest
-class ShadowingTest1 extends AbstractCompletionDriverTest
-    with ShadowingTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ShadowingTest2 extends AbstractCompletionDriverTest
-    with ShadowingTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ShadowingTest extends AbstractCompletionDriverTest
+    with ShadowingTestCases {}
 
 /// Test that when one declaration shadows another declaration, only the
 /// innermost declaration is suggested.

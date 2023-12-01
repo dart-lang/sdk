@@ -7,6 +7,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../summary/macros_environment.dart';
 import 'context_collection_resolution.dart';
+import 'resolution.dart';
 
 main() {
   try {
@@ -58,6 +59,60 @@ import 'a.dart';
 class A {}
 
 void f(A_Macro a) {}
+''');
+  }
+
+  test_getResolvedLibrary_macroAugmentation_hasErrors() async {
+    newFile(
+      '$testPackageLibPath/append.dart',
+      getMacroCode('append.dart'),
+    );
+
+    newFile('$testPackageLibPath/test.dart', r'''
+import 'append.dart';
+
+@DeclareInType('  NotType foo() {}')
+class A {}
+''');
+
+    final session = contextFor(testFile).currentSession;
+    final result = await session.getResolvedLibrary(testFile.path);
+
+    assertResolvedLibraryResultText(result, configure: (configuration) {
+      configuration.unitConfiguration
+        ..nodeSelector = (unitResult) {
+          if (unitResult.isAugmentation) {
+            return unitResult.findNode.namedType('NotType');
+          }
+          return null;
+        }
+        ..withContentPredicate = (unitResult) {
+          return unitResult.isAugmentation;
+        };
+    }, r'''
+ResolvedLibraryResult
+  element: package:test/test.dart
+  units
+    /home/test/lib/test.dart
+      flags: exists isLibrary
+      uri: package:test/test.dart
+    /home/test/lib/test.macro.dart
+      flags: exists isAugmentation isMacroAugmentation
+      uri: package:test/test.macro.dart
+      content
+---
+library augment 'test.dart';
+
+augment class A {
+  NotType foo() {}
+}
+---
+      errors
+        50 +7 UNDEFINED_CLASS
+      selectedNode: NamedType
+        name: NotType
+        element: <null>
+        type: InvalidType
 ''');
   }
 

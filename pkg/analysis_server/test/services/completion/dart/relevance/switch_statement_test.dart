@@ -4,29 +4,17 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../client/completion_driver_test.dart';
 import 'completion_relevance.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SwitchStatementTest1);
-    defineReflectiveTests(SwitchStatementTest2);
+    defineReflectiveTests(SwitchStatementTest);
   });
 }
 
 @reflectiveTest
-class SwitchStatementTest1 extends CompletionRelevanceTest
-    with SwitchStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class SwitchStatementTest2 extends CompletionRelevanceTest
-    with SwitchStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class SwitchStatementTest extends CompletionRelevanceTest
+    with SwitchStatementTestCases {}
 
 mixin SwitchStatementTestCases on CompletionRelevanceTest {
   Future<void> test_caseBody() async {

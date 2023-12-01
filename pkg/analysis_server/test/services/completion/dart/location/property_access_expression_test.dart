@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PropertyAccessTest1);
-    defineReflectiveTests(PropertyAccessTest2);
+    defineReflectiveTests(PropertyAccessTest);
   });
 }
 
 @reflectiveTest
-class PropertyAccessTest1 extends AbstractCompletionDriverTest
+class PropertyAccessTest extends AbstractCompletionDriverTest
     with PropertyAccessTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class PropertyAccessTest2 extends AbstractCompletionDriverTest
-    with PropertyAccessTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
   @failingTest
   Future<void> test_afterIdentifier_partial_if() async {
     await computeSuggestions('''

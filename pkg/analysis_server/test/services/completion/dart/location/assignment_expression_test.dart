@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AssignmentExpressionTest1);
-    defineReflectiveTests(AssignmentExpressionTest2);
+    defineReflectiveTests(AssignmentExpressionTest);
   });
 }
 
 @reflectiveTest
-class AssignmentExpressionTest1 extends AbstractCompletionDriverTest
-    with AssignmentExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class AssignmentExpressionTest2 extends AbstractCompletionDriverTest
-    with AssignmentExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class AssignmentExpressionTest extends AbstractCompletionDriverTest
+    with AssignmentExpressionTestCases {}
 
 mixin AssignmentExpressionTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterEqual_beforeRightBrace_async() async {
@@ -53,33 +42,13 @@ suggestions
     await computeSuggestions('''
 void f() async {var foo = n^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  await
-    kind: keyword
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterEqual_beforeRightBrace_sync() async {
@@ -105,30 +74,12 @@ suggestions
     await computeSuggestions('''
 void f() {var foo = n^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 }

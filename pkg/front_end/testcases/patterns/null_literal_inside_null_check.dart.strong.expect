@@ -1,13 +1,12 @@
 library;
 import self as self;
-import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
     {
-      if(!(#0#0 == null) ?{core::bool} #0#0 == null : false) {
+      if(!(#0#0 == null) && #0#0 == null) {
         {
           break #L1;
         }

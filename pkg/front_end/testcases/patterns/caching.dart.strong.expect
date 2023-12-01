@@ -47,7 +47,7 @@ static method ifCase(dynamic o) → core::int {
   }
   {
     final synthesized dynamic #5#0 = o;
-    if(#5#0 is ({b: core::Object?}) && (!(#5#0{({b: core::Object?})}.b{core::Object?} == null) ?{core::bool} true : false)) {
+    if(#5#0 is ({b: core::Object?}) && (!(#5#0{({b: core::Object?})}.b{core::Object?} == null) && true)) {
       return 6;
     }
   }
@@ -233,7 +233,7 @@ static method ifCaseElse(dynamic o) → core::int {
             }
             else {
               final synthesized dynamic #5#0 = o;
-              if(#5#0 is ({b: core::Object?}) && (!(#5#0{({b: core::Object?})}.b{core::Object?} == null) ?{core::bool} true : false)) {
+              if(#5#0 is ({b: core::Object?}) && (!(#5#0{({b: core::Object?})}.b{core::Object?} == null) && true)) {
                 return 6;
               }
               else {
@@ -460,7 +460,7 @@ static method switchStatement(dynamic o) → core::int {
       }
     }
     {
-      if(#0#0 is ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final dynamic #t30 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) ?{core::bool} true : false)) {
+      if(#0#0 is ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final dynamic #t30 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) && true)) {
         {
           return 6;
         }
@@ -695,7 +695,7 @@ static method switchExpression(dynamic o) → core::int {
         }
       }
       {
-        if(#0#0 is ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final dynamic #t47 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) ?{core::bool} true : false)) {
+        if(#0#0 is ({b: core::Object?}) && (!((#0#23#isSet ?{core::Object?} #0#23{core::Object?} : let final dynamic #t47 = #0#23#isSet = true in #0#23 = #0#0{({b: core::Object?})}.b{core::Object?}) == null) && true)) {
           #t41 = 6;
           break #L2;
         }

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:path/path.dart';
 
 extension FolderExtension on Folder {
@@ -42,5 +43,9 @@ extension ResourceExtension on Resource {
     } else {
       return path;
     }
+  }
+
+  bool endsWithNames(List<String> expected) {
+    return provider.pathContext.split(path).endsWith(expected);
   }
 }

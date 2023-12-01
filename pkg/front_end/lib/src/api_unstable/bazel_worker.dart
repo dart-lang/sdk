@@ -5,52 +5,37 @@
 /// API needed by `utils/front_end/summary_worker.dart`, a tool used to compute
 /// summaries in build systems like bazel, pub-build, and package-build.
 
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
+    show SerializationMode;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessageHandler;
-
 import 'package:front_end/src/api_prototype/compiler_options.dart';
-
 import 'package:kernel/kernel.dart' show Component, Library, dummyComponent;
-
 import 'package:kernel/target/targets.dart' show Target;
 
 import '../api_prototype/experimental_flags.dart' show ExperimentalFlag;
-
 import '../api_prototype/file_system.dart' show FileSystem;
-
 import '../api_prototype/front_end.dart' show CompilerResult;
-
 import '../base/nnbd_mode.dart' show NnbdMode;
-
 import '../base/processed_options.dart' show ProcessedOptions;
-
 import '../kernel_generator_impl.dart' show generateKernel;
-
 import 'compiler_state.dart' show InitializedCompilerState;
-
 import 'modular_incremental_compilation.dart' as modular
     show initializeIncrementalCompiler;
 
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage;
-
 export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 export '../api_prototype/compiler_options.dart'
     show parseExperimentalFlags, parseExperimentalArguments, Verbosity;
-
 export '../api_prototype/experimental_flags.dart'
     show ExperimentalFlag, parseExperimentalFlag;
-
 export '../api_prototype/standard_file_system.dart' show StandardFileSystem;
-
 export '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
-
 export '../base/nnbd_mode.dart' show NnbdMode;
-
 export '../fasta/kernel/utils.dart' show serializeComponent;
-
 export 'compiler_state.dart' show InitializedCompilerState;
 
 /// Initializes the compiler for a modular build.
@@ -58,21 +43,24 @@ export 'compiler_state.dart' show InitializedCompilerState;
 /// Re-uses cached components from [oldState.workerInputCache], and reloads them
 /// as necessary based on [workerInputDigests].
 Future<InitializedCompilerState> initializeIncrementalCompiler(
-    InitializedCompilerState? oldState,
-    Set<String> tags,
-    Uri? sdkSummary,
-    Uri? packagesFile,
-    Uri? librariesSpecificationUri,
-    List<Uri> additionalDills,
-    Map<Uri, List<int>> workerInputDigests,
-    Target target,
-    FileSystem fileSystem,
-    Iterable<String>? experiments,
-    bool outlineOnly,
-    Map<String, String> environmentDefines,
-    {bool trackNeededDillLibraries = false,
-    bool verbose = false,
-    NnbdMode nnbdMode = NnbdMode.Weak}) {
+  InitializedCompilerState? oldState,
+  Set<String> tags,
+  Uri? sdkSummary,
+  Uri? packagesFile,
+  Uri? librariesSpecificationUri,
+  List<Uri> additionalDills,
+  Map<Uri, List<int>> workerInputDigests,
+  Target target,
+  FileSystem fileSystem,
+  Iterable<String>? experiments,
+  bool outlineOnly,
+  Map<String, String> environmentDefines, {
+  bool trackNeededDillLibraries = false,
+  bool verbose = false,
+  NnbdMode nnbdMode = NnbdMode.Weak,
+  List<String> precompiledMacros = const [],
+  SerializationMode macroSerializationMode = SerializationMode.byteData,
+}) {
   List<Component> outputLoadedAdditionalDills =
       new List<Component>.filled(additionalDills.length, dummyComponent);
   Map<ExperimentalFlag, bool> experimentalFlags = parseExperimentalFlags(
@@ -95,7 +83,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
       trackNeededDillLibraries: trackNeededDillLibraries,
       environmentDefines: environmentDefines,
       verbose: verbose,
-      nnbdMode: nnbdMode);
+      nnbdMode: nnbdMode,
+      precompiledMacros: precompiledMacros,
+      macroSerializationMode: macroSerializationMode);
 }
 
 InitializedCompilerState initializeCompiler(
@@ -110,6 +100,8 @@ InitializedCompilerState initializeCompiler(
   Map<String, String>? environmentDefines, {
   bool verbose = false,
   NnbdMode nnbdMode = NnbdMode.Weak,
+  List<String> precompiledMacros = const [],
+  SerializationMode macroSerializationMode = SerializationMode.byteData,
 }) {
   // TODO(sigmund): use incremental compiler when it supports our use case.
   // Note: it is common for the summary worker to invoke the compiler with the
@@ -128,7 +120,9 @@ InitializedCompilerState initializeCompiler(
         parseExperimentalArguments(experiments),
         onError: (e) => throw e)
     ..verbose = verbose
-    ..nnbdMode = nnbdMode;
+    ..nnbdMode = nnbdMode
+    ..precompiledMacros = precompiledMacros
+    ..macroSerializationMode = macroSerializationMode;
 
   ProcessedOptions processedOpts = new ProcessedOptions(options: options);
 

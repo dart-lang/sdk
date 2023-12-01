@@ -94,6 +94,7 @@ class NativeLocation : public ZoneAllocated {
 #endif  // defined(TARGET_ARCH_ARM)
 
   NativeLocation& WidenTo4Bytes(Zone* zone) const;
+  NativeLocation& WidenTo8Bytes(Zone* zone) const;
 
   virtual bool IsRegisters() const { return false; }
   virtual bool IsFpuRegisters() const { return false; }

@@ -9,24 +9,13 @@ import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtendsClauseTest1);
-    defineReflectiveTests(ExtendsClauseTest2);
+    defineReflectiveTests(ExtendsClauseTest);
   });
 }
 
 @reflectiveTest
-class ExtendsClauseTest1 extends AbstractCompletionDriverTest
-    with ExtendsClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ExtendsClauseTest2 extends AbstractCompletionDriverTest
-    with ExtendsClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ExtendsClauseTest extends AbstractCompletionDriverTest
+    with ExtendsClauseTestCases {}
 
 mixin ExtendsClauseTestCases on AbstractCompletionDriverTest {
   @override
@@ -84,18 +73,9 @@ lib B;
 import 'a.dart';
 class A extends ^
 ''');
-
-    if (isProtocolVersion1) {
-      assertResponse(r'''
-suggestions
-  Foo
-    kind: class
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    }
   }
 
   Future<void> test_class_outside_interface() async {
@@ -105,18 +85,9 @@ lib B;
 import 'a.dart';
 class A extends ^
 ''');
-
-    if (isProtocolVersion1) {
-      assertResponse(r'''
-suggestions
-  Foo
-    kind: class
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    }
   }
 
   Future<void> test_class_outside_sealed() async {
@@ -126,17 +97,8 @@ lib B;
 import 'a.dart';
 class A extends ^
 ''');
-
-    if (isProtocolVersion1) {
-      assertResponse(r'''
-suggestions
-  Foo
-    kind: class
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    }
   }
 }

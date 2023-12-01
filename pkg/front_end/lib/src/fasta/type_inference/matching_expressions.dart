@@ -367,10 +367,8 @@ class MatchingExpressionVisitor
       NullCheckPattern node, CacheableExpression matchedExpression) {
     CacheableExpression nullCheckExpression = matchingCache
         .createNullCheckMatcher(matchedExpression, fileOffset: node.fileOffset);
-    return new DelayedConditionalExpression(
-        nullCheckExpression,
-        visitPattern(node.pattern, matchedExpression),
-        new BooleanExpression(false, fileOffset: node.fileOffset),
+    return new DelayedAndExpression(
+        nullCheckExpression, visitPattern(node.pattern, matchedExpression),
         fileOffset: node.fileOffset);
   }
 

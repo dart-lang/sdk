@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -23,18 +24,23 @@ class VerifyTests {
   VerifyTests(this.testDirPath, {this.excludedPaths});
 
   /// Build tests.
-  void build() {
+  void build({
+    bool Function(AnalysisContext)? analysisContextPredicate,
+  }) {
     var provider = PhysicalResourceProvider.INSTANCE;
     var collection = AnalysisContextCollection(
         resourceProvider: provider,
         includedPaths: <String>[testDirPath],
         excludedPaths: excludedPaths);
-    var contexts = collection.contexts;
-    if (contexts.length != 1) {
+    final singleAnalysisContext = collection.contexts
+        .where(analysisContextPredicate ?? (_) => true)
+        .toList()
+        .singleOrNull;
+    if (singleAnalysisContext == null) {
       fail('The test directory contains multiple analysis contexts.');
     }
 
-    _buildTestsIn(contexts[0].currentSession, testDirPath,
+    _buildTestsIn(singleAnalysisContext.currentSession, testDirPath,
         provider.getFolder(testDirPath));
   }
 

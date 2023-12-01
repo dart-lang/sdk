@@ -132,6 +132,7 @@ class EditGetFixesHandler extends LegacyHandler
           lineInfo: lineInfo,
           isAugmentation: false,
           isLibrary: true,
+          isMacroAugmentation: false,
           isPart: false,
           errors: errors,
         );
@@ -248,6 +249,7 @@ error.errorCode: ${error.errorCode}
           lineInfo: lineInfo,
           isAugmentation: false,
           isLibrary: true,
+          isMacroAugmentation: false,
           isPart: false,
           errors: errors,
         );

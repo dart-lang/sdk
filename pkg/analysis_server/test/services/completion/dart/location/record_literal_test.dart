@@ -16,9 +16,6 @@ void main() {
 @reflectiveTest
 class RecordLiteralFieldsTest extends AbstractCompletionDriverTest {
   @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
-  @override
   Future<void> setUp() async {
     await super.setUp();
 

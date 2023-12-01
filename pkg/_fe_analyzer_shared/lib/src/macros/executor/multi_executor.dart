@@ -5,8 +5,8 @@
 import 'dart:async';
 
 import '../api.dart';
-import '../executor/augmentation_library.dart';
 import '../executor.dart';
+import '../executor/augmentation_library.dart';
 
 /// A [MacroExecutor] implementation which delegates most work to other
 /// executors which are spawned through a provided callback.
@@ -81,6 +81,13 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
       token._libraries.clear();
       await token._close();
     }
+  }
+
+  /// Shuts down all executors and clears all configuration.
+  Future<void> closeAndReset() async {
+    await Future.wait(_executorFactoryTokens
+        .toList()
+        .map((token) => unregisterExecutorFactory(token)));
   }
 
   /// Shuts down all executors, but does not clear [_libraryExecutorFactories]

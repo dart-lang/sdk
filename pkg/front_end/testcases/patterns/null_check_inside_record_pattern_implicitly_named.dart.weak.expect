@@ -9,7 +9,7 @@ static method test(dynamic x) → dynamic {
     late final synthesized core::Object? #0#2 = (#0#0 as{Unchecked} (core::Object?, {n: core::Object?})).n{core::Object?};
     {
       hoisted dynamic n;
-      if(#0#0 is (core::Object?, {n: core::Object?}) && (!(#0#2 == null) ?{core::bool} let final dynamic #t1 = n = #0#2 in true : false) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, {n: core::Object?})}.$1{core::Object?}) {
+      if(#0#0 is (core::Object?, {n: core::Object?}) && (!(#0#2 == null) && (let final dynamic #t1 = n = #0#2 in true)) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{(core::Object?, {n: core::Object?})}.$1{core::Object?}) {
         {
           break #L1;
         }

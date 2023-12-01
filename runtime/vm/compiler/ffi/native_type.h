@@ -8,6 +8,7 @@
 #include "platform/assert.h"
 #include "platform/globals.h"
 #include "vm/allocation.h"
+#include "vm/constants_base.h"
 #include "vm/growable_array.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -133,6 +134,21 @@ class NativeType : public ZoneAllocated {
   // If this is a 8 or 16 bit int, returns a 32 bit container.
   // Otherwise, return original representation.
   const NativeType& WidenTo4Bytes(Zone* zone) const;
+  // If this is a 8, 16 or 32 bit int, returns a 64 bit container.
+  // Otherwise, return original representation.
+  const NativeType& WidenTo8Bytes(Zone* zone) const;
+  const NativeType& Extend(Zone* zone, ExtensionStrategy extension) const {
+    switch (extension) {
+      case kNotExtended:
+        return *this;
+      case kExtendedTo4:
+        return WidenTo4Bytes(zone);
+      case kExtendedTo8:
+        return WidenTo8Bytes(zone);
+      default:
+        UNREACHABLE();
+    }
+  }
 
   virtual void PrintTo(BaseTextBuffer* f,
                        bool multi_line = false,

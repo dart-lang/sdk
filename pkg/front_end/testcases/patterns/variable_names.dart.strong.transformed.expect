@@ -44,7 +44,7 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
     function ##0#7#initializer() → core::num
       return (#0#0 as{Unchecked} self::A).{self::A::boz}{core::num};
     late final synthesized core::num #0#7 = ##0#7#initializer(){() → core::num};
-    if(#0#0 is self::A && (let final core::int? #t1 = #0#2! in let final core::int? #t2 = foo = #0#2! in true) && (let final core::int #t3 = bar = #0#0{self::A}.{self::A::bar}{core::int} in true) && (!(#0#5 == null) ?{core::bool} let final core::int #t4 = baz = #0#5{core::int} in true : false) && (let final core::double #t5 = #0#7 as core::double in let final core::double #t6 = boz = #0#7 as core::double in true) && (let final core::int #t7 = foobar = #0#0{self::A}.{self::A::foobar}{core::int} in true)) {
+    if(#0#0 is self::A && (let final core::int? #t1 = #0#2! in let final core::int? #t2 = foo = #0#2! in true) && (let final core::int #t3 = bar = #0#0{self::A}.{self::A::bar}{core::int} in true) && (!(#0#5 == null) && (let final core::int #t4 = baz = #0#5{core::int} in true)) && (let final core::double #t5 = #0#7 as core::double in let final core::double #t6 = boz = #0#7 as core::double in true) && (let final core::int #t7 = foobar = #0#0{self::A}.{self::A::foobar}{core::int} in true)) {
       return 0;
     }
     else {
@@ -63,7 +63,7 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
       function ##1#7#initializer() → core::Object?
         return (#1#0 as{Unchecked} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})).$1{core::Object?};
       late final synthesized core::Object? #1#7 = ##1#7#initializer(){() → core::Object?};
-      if(#1#0 is (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?}) && (let final core::Object? #t8 = #1#2! in let final core::Object? #t9 = foo = #1#2! in true) && (let final core::Object? #t10 = bar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.bar{core::Object?} in true) && (!(#1#5 == null) ?{core::bool} let final core::Object? #t11 = baz = #1#5 in true : false) && (let final core::double #t12 = #1#7 as core::double in let final core::double #t13 = boz = #1#7 as core::double in true) && (let final core::Object? #t14 = foobar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foobar{core::Object?} in true)) {
+      if(#1#0 is (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?}) && (let final core::Object? #t8 = #1#2! in let final core::Object? #t9 = foo = #1#2! in true) && (let final core::Object? #t10 = bar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.bar{core::Object?} in true) && (!(#1#5 == null) && (let final core::Object? #t11 = baz = #1#5 in true)) && (let final core::double #t12 = #1#7 as core::double in let final core::double #t13 = boz = #1#7 as core::double in true) && (let final core::Object? #t14 = foobar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foobar{core::Object?} in true)) {
         return 1;
       }
       else {

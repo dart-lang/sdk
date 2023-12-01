@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CompilationUnitMemberTest1);
-    defineReflectiveTests(CompilationUnitMemberTest2);
+    defineReflectiveTests(CompilationUnitMemberTest);
   });
 }
 
 @reflectiveTest
-class CompilationUnitMemberTest1 extends AbstractCompletionDriverTest
-    with CompilationUnitTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class CompilationUnitMemberTest2 extends AbstractCompletionDriverTest
-    with CompilationUnitTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class CompilationUnitMemberTest extends AbstractCompletionDriverTest
+    with CompilationUnitTestCases {}
 
 mixin CompilationUnitTestCases on AbstractCompletionDriverTest {
   @FailingTest(reason: 'Unexpected AST structure with no suggestions.')
@@ -52,17 +41,13 @@ suggestions
     await computeSuggestions('''
 abstract b^
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   base
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_afterAbstract_beforeClass() async {
@@ -285,8 +270,7 @@ suggestions
 imp^
 import "package:foo/foo.dart";
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -294,88 +278,19 @@ suggestions
     kind: keyword
     selection: 8
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  export '';
-    kind: keyword
-    selection: 8
-  import '';
-    kind: keyword
-    selection: 8
-  library
-    kind: keyword
-  part '';
-    kind: keyword
-    selection: 6
-''');
-    }
   }
 
   Future<void> test_afterBOF_prefix() async {
     await computeSuggestions('''
 cl^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   class
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
-  extension
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
-  interface
-    kind: keyword
-  late
-    kind: keyword
-  library
-    kind: keyword
-  mixin
-    kind: keyword
-  part '';
-    kind: keyword
-    selection: 6
-  sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterBOF_suffix() async {
@@ -448,8 +363,7 @@ suggestions
 class A {}
 c^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -460,45 +374,6 @@ suggestions
   covariant
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  extension
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  interface
-    kind: keyword
-  late
-    kind: keyword
-  mixin
-    kind: keyword
-  sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterDirective_import() async {
@@ -557,8 +432,7 @@ suggestions
 import "foo";
 c^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -569,54 +443,6 @@ suggestions
   covariant
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
-  extension
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
-  interface
-    kind: keyword
-  late
-    kind: keyword
-  mixin
-    kind: keyword
-  part '';
-    kind: keyword
-    selection: 6
-  sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterFinal_beforeClass() async {
@@ -714,62 +540,13 @@ suggestions
 library a;
 cl^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   class
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
-  extension
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
-  interface
-    kind: keyword
-  late
-    kind: keyword
-  mixin
-    kind: keyword
-  part '';
-    kind: keyword
-    selection: 6
-  sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterMixin_beforeClass() async {
@@ -873,17 +650,13 @@ suggestions
     await computeSuggestions('''
 b^
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   base
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_beforeClass() async {
@@ -1036,44 +809,33 @@ suggestions
     await computeSuggestions('''
 b^ mixin M {}
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse('''
+    assertResponse('''
 replacement
   left: 1
 suggestions
   base
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_beforeMixin_prefix_final() async {
     await computeSuggestions('''
 f^ mixin M {}
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse('''
+    assertResponse('''
 replacement
   left: 1
 suggestions
   final
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_beforeMixin_prefix_interface() async {
     await computeSuggestions('''
 i^ mixin M {}
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse('''
+    assertResponse('''
 replacement
   left: 1
 suggestions
@@ -1083,24 +845,19 @@ suggestions
   interface
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_beforeMixin_prefix_sealed() async {
     await computeSuggestions('''
 s^ mixin M {}
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse('''
+    assertResponse('''
 replacement
   left: 1
 suggestions
   sealed
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_betweenImports_prefix() async {
@@ -1110,8 +867,7 @@ import "zoo.dart";
 imp^
 import "package:foo/foo.dart";
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -1119,22 +875,6 @@ suggestions
     kind: keyword
     selection: 8
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  export '';
-    kind: keyword
-    selection: 8
-  import '';
-    kind: keyword
-    selection: 8
-  part '';
-    kind: keyword
-    selection: 6
-''');
-    }
   }
 
   Future<void> test_betweenLibraryAndImport_prefix() async {
@@ -1143,9 +883,7 @@ library libA;
 imp^
 import "package:foo/foo.dart";
 ''');
-    // TODO(brianwilkerson): Should not suggest `export` or `part` directives.
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -1153,22 +891,6 @@ suggestions
     kind: keyword
     selection: 8
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  export '';
-    kind: keyword
-    selection: 8
-  import '';
-    kind: keyword
-    selection: 8
-  part '';
-    kind: keyword
-    selection: 6
-''');
-    }
   }
 
   Future<void> test_empty() async {
@@ -1227,27 +949,20 @@ suggestions
     await computeSuggestions('''
 f^
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   final
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_interface_prefix() async {
     await computeSuggestions('''
 i^
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -1257,90 +972,30 @@ suggestions
   interface
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_mixin_prefix() async {
     await computeSuggestions('''
 m^
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   mixin
     kind: keyword
 ''');
-    }
   }
 
   Future<void> test_sealed_prefix() async {
     await computeSuggestions('''
 s^
 ''');
-    if (isProtocolVersion1) {
-      _assertProtocol1SuggestionsWithPrefix();
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  sealed
-    kind: keyword
-''');
-    }
-  }
-
-  void _assertProtocol1SuggestionsWithPrefix() {
     assertResponse(r'''
 replacement
   left: 1
 suggestions
-  abstract
-    kind: keyword
-  base
-    kind: keyword
-  class
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  export '';
-    kind: keyword
-    selection: 8
-  extension
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  import '';
-    kind: keyword
-    selection: 8
-  interface
-    kind: keyword
-  late
-    kind: keyword
-  library
-    kind: keyword
-  mixin
-    kind: keyword
-  part '';
-    kind: keyword
-    selection: 6
   sealed
-    kind: keyword
-  typedef
-    kind: keyword
-  var
-    kind: keyword
-  void
     kind: keyword
 ''');
   }

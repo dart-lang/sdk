@@ -454,14 +454,15 @@ class TypesBuilder {
         toDeclaration.mapInterfaceTypes(element.interfaces),
       );
 
-      augmented.constructors.addAll(
-        element.constructors.notAugmented.map((element) {
+      augmented.constructors = [
+        ...augmented.constructors.notAugmented,
+        ...element.constructors.notAugmented.map((element) {
           if (toDeclaration.map.isEmpty) {
             return element;
           }
           return ConstructorMember(typeProvider, element, toDeclaration, false);
         }),
-      );
+      ];
     }
 
     if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {

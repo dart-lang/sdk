@@ -3,21 +3,22 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io' show exitCode;
-
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
+import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
+    as isolated_executor;
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
-
+import 'package:_fe_analyzer_shared/src/macros/executor/process_executor.dart'
+    as process_executor;
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
+    show SerializationMode;
+import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show
         LibrariesSpecification,
         LibrariesSpecificationException,
         TargetLibrariesSpecification;
-
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-
 import 'package:kernel/kernel.dart'
     show
         CanonicalName,
@@ -25,27 +26,19 @@ import 'package:kernel/kernel.dart'
         Location,
         NonNullableByDefaultCompiledMode,
         Version;
-
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
-
 import 'package:package_config/package_config.dart';
 
 import '../api_prototype/compiler_options.dart'
     show CompilerOptions, InvocationMode, Verbosity, DiagnosticMessage;
-
 import '../api_prototype/experimental_flags.dart' as flags;
-
 import '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
-
 import '../api_prototype/terminal_color_support.dart'
     show printDiagnosticMessage;
-
 import '../fasta/command_line_reporting.dart' as command_line_reporting;
-
 import '../fasta/compiler_context.dart' show CompilerContext;
-
 import '../fasta/fasta_codes.dart'
     show
         FormattedMessage,
@@ -68,15 +61,10 @@ import '../fasta/fasta_codes.dart'
         templateSdkRootNotFound,
         templateSdkSpecificationNotFound,
         templateSdkSummaryNotFound;
-
 import '../fasta/messages.dart' show getLocation;
-
 import '../fasta/problems.dart' show DebugAbort, unimplemented;
-
 import '../fasta/ticker.dart' show Ticker;
-
 import '../fasta/uri_translator.dart' show UriTranslator;
-
 import 'nnbd_mode.dart';
 
 /// All options needed for the front end implementation.
@@ -803,10 +791,57 @@ class ProcessedOptions {
     }
   }
 
-  MultiMacroExecutor get macroExecutor =>
-      _raw.macroExecutor ??= new MultiMacroExecutor();
+  MultiMacroExecutor get macroExecutor {
+    if (_raw.macroExecutor != null) return _raw.macroExecutor!;
+
+    MultiMacroExecutor executor = _raw.macroExecutor = new MultiMacroExecutor();
+    // Either set up or reset the state for macros based on experiment status.
+    List<ExecutorFactoryToken> registeredMacroExecutors =
+        <ExecutorFactoryToken>[];
+    if (globalFeatures.macros.isEnabled && _raw.precompiledMacros != null) {
+      // TODO: Handle multiple macro libraries compiled to a single precompiled
+      // kernel file.
+      for (List<String> parts
+          in _raw.precompiledMacros!.map((arg) => arg.split(';'))) {
+        Set<Uri> libraries = parts
+            .skip(1)
+            .map(Uri.parse)
+            .where((library) => !executor.libraryIsRegistered(library))
+            .toSet();
+        if (libraries.isEmpty) {
+          continue;
+        }
+        Uri programUri = Uri.base.resolve(parts[0]);
+        if (parts[0].endsWith('.dill')) {
+          // It's kernel, run as an isolate.
+          registeredMacroExecutors.add(executor.registerExecutorFactory(
+              () => isolated_executor.start(macroSerializationMode, programUri),
+              libraries));
+        } else {
+          // Otherwise, run as an executable.
+          registeredMacroExecutors.add(executor.registerExecutorFactory(
+              () => process_executor.start(
+                  macroSerializationMode,
+                  process_executor.CommunicationChannel.socket,
+                  programUri.toFilePath()),
+              libraries));
+          break;
+        }
+      }
+    }
+
+    return executor;
+  }
+
+  SerializationMode get macroSerializationMode =>
+      _raw.macroSerializationMode ??= SerializationMode.byteData;
 
   CompilerOptions get rawOptionsForTesting => _raw;
+
+  /// Disposes macro executor if one is configured.
+  Future<void> dispose() async {
+    await _raw.macroExecutor?.closeAndReset();
+  }
 }
 
 /// A [FileSystem] that only allows access to files that have been explicitly

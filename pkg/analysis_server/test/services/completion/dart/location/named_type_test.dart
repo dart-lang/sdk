@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NamedTypeTest1);
-    defineReflectiveTests(NamedTypeTest2);
+    defineReflectiveTests(NamedTypeTest);
   });
 }
 
 @reflectiveTest
-class NamedTypeTest1 extends AbstractCompletionDriverTest
-    with NamedTypeTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class NamedTypeTest2 extends AbstractCompletionDriverTest
-    with NamedTypeTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class NamedTypeTest extends AbstractCompletionDriverTest
+    with NamedTypeTestCases {}
 
 mixin NamedTypeTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterComment_beforeFunctionName_partial() async {
@@ -33,88 +22,26 @@ mixin NamedTypeTestCases on AbstractCompletionDriverTest {
 /// comment
  d^ foo() {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   dynamic
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftBrace_beforeIdentifier_syncStar_partial() async {
     await computeSuggestions('''
 void f() sync* {n^ foo}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  await
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  yield
-    kind: keyword
-  yield*
-    kind: keyword
-''');
-    }
   }
 
   Future<void>
@@ -122,61 +49,25 @@ suggestions
     await computeSuggestions('''
 class A { A(v^ Function(){}) {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  super
-    kind: keyword
-  this
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftParen_beforeFunction_inMethod_partial() async {
     await computeSuggestions('''
 class A { foo(v^ Function(){}) {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 }

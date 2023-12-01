@@ -9,24 +9,13 @@ import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ImplementsClauseTest1);
-    defineReflectiveTests(ImplementsClauseTest2);
+    defineReflectiveTests(ImplementsClauseTest);
   });
 }
 
 @reflectiveTest
-class ImplementsClauseTest1 extends AbstractCompletionDriverTest
-    with ImplementsClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ImplementsClauseTest2 extends AbstractCompletionDriverTest
-    with ImplementsClauseTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ImplementsClauseTest extends AbstractCompletionDriverTest
+    with ImplementsClauseTestCases {}
 
 mixin ImplementsClauseTestCases on AbstractCompletionDriverTest {
   @override
@@ -69,18 +58,9 @@ suggestions
 import 'a.dart';
 class A implements ^
 ''');
-
-    if (isProtocolVersion1) {
-      assertResponse(r'''
-suggestions
-  Foo
-    kind: class
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    }
   }
 
   Future<void> test_class_outside_final() async {
@@ -90,18 +70,9 @@ lib B;
 import 'a.dart';
 class A implements ^
 ''');
-
-    if (isProtocolVersion1) {
-      assertResponse(r'''
-suggestions
-  Foo
-    kind: class
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    }
   }
 
   Future<void> test_class_outside_interface() async {
@@ -126,18 +97,9 @@ lib B;
 import 'a.dart';
 class A implements ^
 ''');
-
-    if (isProtocolVersion1) {
-      assertResponse(r'''
-suggestions
-  Foo
-    kind: class
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    }
   }
 
   Future<void> test_mixin_inside() async {
@@ -159,17 +121,8 @@ suggestions
 import 'a.dart';
 class A implements ^
 ''');
-
-    if (isProtocolVersion1) {
-      assertResponse(r'''
-suggestions
-  Foo
-    kind: mixin
-''');
-    } else {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
 ''');
-    }
   }
 }

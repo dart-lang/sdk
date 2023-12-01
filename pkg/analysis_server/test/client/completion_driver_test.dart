@@ -14,10 +14,8 @@ import 'impl/completion_driver.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BasicCompletionTest1);
-    defineReflectiveTests(BasicCompletionTest2);
-    defineReflectiveTests(CompletionWithSuggestionsTest1);
-    defineReflectiveTests(CompletionWithSuggestionsTest2);
+    defineReflectiveTests(BasicCompletionTest);
+    defineReflectiveTests(CompletionWithSuggestionsTest);
   });
 }
 
@@ -62,17 +60,6 @@ abstract class AbstractCompletionDriverTest
 
   /// Return `true` if keywords should be included in the text to be compared.
   bool get includeKeywords => true;
-
-  bool get isProtocolVersion1 {
-    return protocol == TestingCompletionProtocol.version1;
-  }
-
-  // ignore:unreachable_from_main
-  bool get isProtocolVersion2 {
-    return protocol == TestingCompletionProtocol.version2;
-  }
-
-  TestingCompletionProtocol get protocol;
 
   @override
   Future<List<CompletionSuggestion>> addTestFile(String content,
@@ -176,17 +163,7 @@ $actual
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('dart:core');
-      await waitForSetWithUri('dart:async');
-    }
-
-    switch (protocol) {
-      case TestingCompletionProtocol.version1:
-        suggestions = await driver.getSuggestions();
-      case TestingCompletionProtocol.version2:
-        suggestions = await driver.getSuggestions2();
-    }
+    suggestions = await driver.getSuggestions();
     return suggestions;
   }
 
@@ -199,7 +176,7 @@ name: test
 ''');
 
     driver = CompletionDriver(
-      supportsAvailableSuggestions: isProtocolVersion1,
+      supportsAvailableSuggestions: false,
       server: this,
     );
     await driver.createProject();
@@ -252,11 +229,7 @@ name: test
         if (file != null && s.element?.location?.file != convertPath(file)) {
           return false;
         }
-        // Library URIs are not available in protocol v1 so skip the check to
-        // allow the same test to verify for v2.
-        if (!isProtocolVersion1 &&
-            libraryUri != null &&
-            s.libraryUri != libraryUri) {
+        if (libraryUri != null && s.libraryUri != libraryUri) {
           return false;
         }
         return true;
@@ -293,10 +266,6 @@ name: test
     return matches.first;
   }
 
-  Future<void> waitForSetWithUri(String uri) {
-    return driver.waitForSetWithUri(uri);
-  }
-
   void _assertNoErrorsInProjectFiles() {
     var errors = <AnalysisError>[];
     driver.filesErrors.forEach((file, fileErrors) {
@@ -311,18 +280,8 @@ name: test
 }
 
 @reflectiveTest
-class BasicCompletionTest1 extends AbstractCompletionDriverTest
-    with BasicCompletionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class BasicCompletionTest2 extends AbstractCompletionDriverTest
-    with BasicCompletionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class BasicCompletionTest extends AbstractCompletionDriverTest
+    with BasicCompletionTestCases {}
 
 mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
   /// Duplicates (and potentially replaces) [DeprecatedMemberRelevanceTest].
@@ -355,32 +314,8 @@ void f() {
 }
 
 @reflectiveTest
-class CompletionWithSuggestionsTest1 extends AbstractCompletionDriverTest
-    with CompletionWithSuggestionsTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-
-  @FailingTest(reason: 'This test fails with available suggestions')
-  @override
-  Future<void> test_project_lib_multipleExports() async {
-    return super.test_project_lib_multipleExports();
-  }
-
-  @FailingTest(
-      reason:
-          'This test fails with available suggestions because it checks libraryUri')
-  @override
-  Future<void> test_project_lib_multipleExports_filteredByLocal() async {
-    return super.test_project_lib_multipleExports_filteredByLocal();
-  }
-}
-
-@reflectiveTest
-class CompletionWithSuggestionsTest2 extends AbstractCompletionDriverTest
-    with CompletionWithSuggestionsTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class CompletionWithSuggestionsTest extends AbstractCompletionDriverTest
+    with CompletionWithSuggestionsTestCases {}
 
 mixin CompletionWithSuggestionsTestCases on AbstractCompletionDriverTest {
   Future<void> test_project_filterImports_defaultConstructor() async {
@@ -391,11 +326,6 @@ class A {}
     newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-      await waitForSetWithUri('package:test/b.dart');
-    }
 
     await addTestFile('''
 import 'a.dart';
@@ -422,11 +352,6 @@ enum E {
 export 'a.dart';
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-      await waitForSetWithUri('package:test/b.dart');
-    }
-
     await addTestFile('''
 import 'a.dart';
 void f() {
@@ -451,11 +376,6 @@ class A {
 export 'a.dart';
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-      await waitForSetWithUri('package:test/b.dart');
-    }
-
     await addTestFile('''
 import 'a.dart';
 void f() {
@@ -477,11 +397,6 @@ class A {}
     newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-      await waitForSetWithUri('package:test/b.dart');
-    }
 
     await addTestFile('''
 import 'a.dart';
@@ -509,10 +424,6 @@ typedef T = Function(Object);
 typedef T2 = double;
 var v = 0;
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await addTestFile('''
 void f() {
@@ -561,10 +472,6 @@ class A {
 }
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
     await addTestFile('''
 void m() {
   ^
@@ -581,10 +488,6 @@ class A {
 }
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
     await addTestFile('''
 void f() {
   ^
@@ -599,10 +502,6 @@ void f() {
     newFile('$testPackageLibPath/a.dart', r'''
 int get g => 0;
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await addTestFile('''
 void f() {
@@ -623,10 +522,6 @@ class A {
 }
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
     await addTestFile('''
 void f() {
   ^
@@ -642,10 +537,6 @@ class A {
   static void foo() => 0;
 }
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await addTestFile('''
 void f() {
@@ -664,11 +555,6 @@ class A {}
     newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart';
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-      await waitForSetWithUri('package:test/b.dart');
-    }
 
     await addTestFile('''
 void f() {
@@ -698,11 +584,6 @@ class A {}
 export 'a.dart';
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-      await waitForSetWithUri('package:test/b.dart');
-    }
-
     await addTestFile('''
 import 'b.dart';
 void f() {
@@ -722,10 +603,6 @@ void f() {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await addTestFile('''
 class A {}
@@ -750,10 +627,6 @@ class A {
 }
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
     await addTestFile('''
 void f() {
   ^
@@ -770,10 +643,6 @@ class A {
 }
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
     await addTestFile('''
 void f() {
   ^
@@ -788,10 +657,6 @@ void f() {
     newFile('$testPackageLibPath/a.dart', r'''
 set s(int s) {}
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await addTestFile('''
 void f() {
@@ -820,11 +685,6 @@ class A {
 class O { }
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-      await waitForSetWithUri('package:test/b.dart');
-    }
-
     await addTestFile('''
 import 'a.dart';
 
@@ -850,10 +710,6 @@ void f(List<String> args) {
     newFile('$testPackageLibPath/a.dart', r'''
 class A { }
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await addTestFile('''
 import 'a.dart';
@@ -883,10 +739,6 @@ void f(List<String> args) {
 mixin M { }
 mixin class A { }
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await addTestFile('''
 class C extends Object with ^
@@ -970,5 +822,3 @@ void f() {
     // (No typedefs, enums, extensions defined in the Mock SDK.)
   }
 }
-
-enum TestingCompletionProtocol { version1, version2 }

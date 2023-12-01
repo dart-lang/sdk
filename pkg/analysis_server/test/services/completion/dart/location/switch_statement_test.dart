@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SwitchStatementTest1);
-    defineReflectiveTests(SwitchStatementTest2);
+    defineReflectiveTests(SwitchStatementTest);
   });
 }
 
 @reflectiveTest
-class SwitchStatementTest1 extends AbstractCompletionDriverTest
-    with SwitchStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class SwitchStatementTest2 extends AbstractCompletionDriverTest
-    with SwitchStatementTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class SwitchStatementTest extends AbstractCompletionDriverTest
+    with SwitchStatementTestCases {}
 
 mixin SwitchStatementTestCases on AbstractCompletionDriverTest {
   @FailingTest(reason: 'Not suggesting the local variable `length`')
@@ -41,55 +30,13 @@ void f(Object? x) {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
   length:
     kind: identifier
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  assert
-    kind: keyword
-  break
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  length:
-    kind: identifier
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftBrace_beforeCase() async {
@@ -153,50 +100,26 @@ suggestions
     await computeSuggestions('''
 void f() {switch(1) {c^}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   case
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  case
-    kind: keyword
-  default:
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftBrace_beforeEnd_withWhitespace_partial() async {
     await computeSuggestions('''
 void f() {switch(1) { c^ }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   case
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  case
-    kind: keyword
-  default:
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftBrace_beforeRightBrace() async {
@@ -216,31 +139,13 @@ suggestions
     await computeSuggestions('''
 void f() {switch(n^) {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void>
@@ -248,31 +153,13 @@ suggestions
     await computeSuggestions('''
 void f() {switch(n^)}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_afterLeftParen_beforeRightParen() async {
