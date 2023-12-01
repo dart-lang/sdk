@@ -34,6 +34,14 @@ const String fixDataYaml = 'fix_data.yaml';
 /// The name of the data folder used to specify data-driven fixes.
 const String fixDataYamlFolder = 'fix_data';
 
+/// The name of the subdirectory in [dotDartTool] that distinguishes
+/// projects built with package:build.
+const String packageBuild = 'build';
+
+/// The name of the subdirectory for generated files for projects built with
+/// package:build.
+const String packageBuildGenerated = 'generated';
+
 /// The name of the package config files.
 const String packageConfigJson = 'package_config.json';
 
