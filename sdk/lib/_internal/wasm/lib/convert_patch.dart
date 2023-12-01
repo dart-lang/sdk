@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show patch, POWERS_OF_TEN, unsafeCast;
+import "dart:_js_string_convert";
+import "dart:_js_types";
 import "dart:_string";
 import "dart:_typed_data";
 import "dart:typed_data" show Uint8List, Uint16List;
@@ -1671,16 +1673,19 @@ class _Utf8Decoder {
     int end = RangeError.checkValidRange(start, maybeEnd, codeUnits.length);
     if (start == end) return "";
 
+    if (codeUnits is JSUint8ArrayImpl) {
+      JSStringImpl? decoded =
+          decodeUtf8JS(codeUnits, start, end, allowMalformed);
+      if (decoded != null) return decoded;
+    }
+
     final U8List bytes;
     if (codeUnits is U8List) {
       bytes = unsafeCast<U8List>(codeUnits);
     } else {
-      // TODO(omersa): Check if `codeUnits` is a JS array and call browser UTF8
-      // decoder here.
-      //
       // If we're passed a `List<int>` other than `U8List` or a JS typed array,
       // it means the performance is not too important. Convert the input to
-      // `U8List` to avoid shipping another UTF-8 decoder.
+      // `U8List` to avoid shipping another UTF-8 decoder for `List<int>`.
       final length = end - start;
       bytes = U8List(length);
       final u8listData = bytes.data;

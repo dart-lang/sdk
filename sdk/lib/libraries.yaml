@@ -212,6 +212,8 @@ wasm_common:
       uri: js/_js_annotations.dart
     _js_helper:
       uri: _internal/wasm/lib/js_helper.dart
+    _js_string_convert:
+      uri: _internal/wasm/lib/js_string_convert.dart
     _js_types:
       uri: _internal/wasm/lib/js_types.dart
     _object_helper:

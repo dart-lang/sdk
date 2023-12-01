@@ -34,6 +34,7 @@ JSMethods _performJSInteropTransformations(
           InterfaceType(jsValueClass, staticInteropType.declaredNullability),
       additionalCoreLibraries: {
         '_js_helper',
+        '_js_string_convert',
         '_js_types',
         'convert',
         'js_interop',

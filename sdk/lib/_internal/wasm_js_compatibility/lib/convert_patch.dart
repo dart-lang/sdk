@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show ClassID, patch, POWERS_OF_TEN, unsafeCast;
+import "dart:_js_string_convert";
 import "dart:_js_types";
-import 'dart:_wasm';
 import 'dart:_js_helper' as js;
+import 'dart:_wasm';
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
@@ -1480,32 +1481,16 @@ class _Utf8Decoder {
   @patch
   _Utf8Decoder(this.allowMalformed) : _state = beforeBom;
 
-  // Always fall back to the Dart implementation for strings shorter than this
-  // threshold, as there is a large, constant overhead for using TextDecoder.
-  // TODO(omersa): This is copied from dart2js runtime, make sure the value is
-  // right for dart2wasm.
-  static const int _shortInputThreshold = 15;
-
   @patch
   String convertSingle(List<int> codeUnits, int start, int? maybeEnd) {
     final codeUnitsLength = codeUnits.length;
     final end = RangeError.checkValidRange(start, maybeEnd, codeUnitsLength);
     if (start == end) return "";
 
-    final length = end - start;
-
     if (codeUnits is JSUint8ArrayImpl) {
-      if (length >= _shortInputThreshold) {
-        final JSAny? decoder = allowMalformed ? _decoderNonFatal : _decoder;
-        if (decoder != null) {
-          final arrayRef = codeUnits.toJSArrayExternRef(start, length);
-          final textDecoderResult =
-              _useTextDecoder(externRefForJSAny(decoder), arrayRef);
-          if (textDecoderResult != null) {
-            return textDecoderResult;
-          }
-        }
-      }
+      JSStringImpl? decoded =
+          decodeUtf8JS(codeUnits, start, end, allowMalformed);
+      if (decoded != null) return decoded;
     }
 
     return convertGeneral(codeUnits, start, maybeEnd, true);
@@ -1515,43 +1500,6 @@ class _Utf8Decoder {
   String convertChunked(List<int> codeUnits, int start, int? maybeEnd) {
     return convertGeneral(codeUnits, start, maybeEnd, false);
   }
-
-  static String? _useTextDecoder(
-      WasmExternRef? decoder, WasmExternRef? codeUnits) {
-    // If the input is malformed, catch the exception and return `null` to fall
-    // back on unintercepted decoder. The fallback will either succeed in
-    // decoding, or report the problem better than TextDecoder.
-    try {
-      return JSStringImpl(js.JS<WasmExternRef?>(
-          '(decoder, codeUnits) => decoder.decode(codeUnits)',
-          decoder,
-          codeUnits));
-    } catch (e) {}
-    return null;
-  }
-
-  // TextDecoder is not defined on some browsers and on the stand-alone d8 and
-  // jsshell engines. Use a lazy initializer to do feature detection once.
-  //
-  // Globls need to return boxed Dart values, so these return `JSAny?` instead
-  // of `WasmExternRef?`.
-  static final JSAny? _decoder = () {
-    try {
-      return js
-          .JS<WasmExternRef>('() => new TextDecoder("utf-8", {fatal: true})')
-          .toJS;
-    } catch (e) {}
-    return null;
-  }();
-
-  static final JSAny? _decoderNonFatal = () {
-    try {
-      return js
-          .JS<WasmExternRef>('() => new TextDecoder("utf-8", {fatal: false})')
-          .toJS;
-    } catch (e) {}
-    return null;
-  }();
 }
 
 double _parseDouble(String source, int start, int end) =>
