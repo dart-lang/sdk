@@ -178,6 +178,11 @@ Future<run_process.RunProcessResult> runDart({
     logger: logger,
   );
   if (expectExitCodeZero) {
+    if (result.exitCode != 0) {
+      print(result.stdout);
+      print(result.stderr);
+      print(result.exitCode);
+    }
     expect(result.exitCode, 0);
   }
   return result;

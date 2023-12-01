@@ -74,4 +74,21 @@ void main(List<String> args) async {
       expect(result.stderr, contains('native_add'));
     });
   });
+
+  test('dart run some_dev_dep', timeout: longTimeout, () async {
+    await nativeAssetsTest('native_add', (packageUri) async {
+      final result = await runDart(
+        arguments: [
+          '--enable-experiment=native-assets',
+          'run',
+          '-v',
+          'some_dev_dep',
+        ],
+        workingDirectory: packageUri,
+        logger: logger,
+      );
+      // It should not build native_add for running ffigen.
+      expect(result.stdout, isNot(contains('build.dart')));
+    });
+  });
 }
