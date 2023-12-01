@@ -145,11 +145,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     );
 
     newFile('/workspace/${file_paths.blazeWorkspaceMarker}', '');
-    newFile('/workspace/dart/test/BUILD', r'''
-dart_package(
-  null_safety = True,
-)
-''');
+    newFile('/workspace/dart/test/BUILD', '');
     createFileResolver();
   }
 
