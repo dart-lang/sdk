@@ -44,12 +44,12 @@ base class ValidationEventListener {
 
   ValueCount get valueStackDepth => _validator!.valueStackDepth;
 
-  /// Called for every iteration in the validation loop, just before visiting an
-  /// instruction.
-  ///
-  /// Also called at the end of the validation loop (with [address] equal to the
-  /// instruction count).
-  void onAddress(int address) {}
+  /// Called when the validator has completely finished analyzing the
+  /// instruction stream.
+  void onFinished() {}
+
+  /// Called prior to visiting each instruction.
+  void onInstruction(int address) {}
 }
 
 /// A count of value entries.
@@ -191,7 +191,7 @@ class _Validator {
   void run() {
     check(ir.endAddress > 0, 'No instructions');
     for (address = 0; address < ir.endAddress; address++) {
-      eventListener.onAddress(address);
+      eventListener.onInstruction(address);
       var opcode = ir.opcodeAt(address);
       check(address != 0 || opcode == Opcode.function,
           'First instruction must be function');
@@ -317,7 +317,7 @@ class _Validator {
           fail('Unexpected opcode ${opcode.describe()}');
       }
     }
-    eventListener.onAddress(address);
+    eventListener.onFinished();
     check(controlFlowStack.isEmpty, 'Missing end');
   }
 }
