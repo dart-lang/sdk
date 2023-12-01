@@ -4,13 +4,38 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/*macro*/ class ReportAtFirstMethod implements ClassDeclarationsMacro {
+  const ReportAtFirstMethod();
+
+  Severity get _severity => Severity.warning;
+
+  @override
+  buildDeclarationsForClass(declaration, builder) async {
+    final methods = await builder.methodsOf(declaration);
+    if (methods case [final method, ...]) {
+      builder.report(
+        Diagnostic(
+          DiagnosticMessage(
+            'Reported message',
+            target: method.asDiagnosticTarget,
+          ),
+          _severity,
+        ),
+      );
+    }
+  }
+}
+
 /*macro*/ class ReportAtTargetDeclaration
     implements
         ClassTypesMacro,
         ConstructorTypesMacro,
         FieldTypesMacro,
-        MethodTypesMacro {
+        MethodTypesMacro,
+        MixinTypesMacro {
   const ReportAtTargetDeclaration();
+
+  Severity get _severity => Severity.warning;
 
   @override
   buildTypesForClass(declaration, builder) {
@@ -32,6 +57,11 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     _report(declaration, builder);
   }
 
+  @override
+  buildTypesForMixin(declaration, builder) {
+    _report(declaration, builder);
+  }
+
   void _report(Declaration declaration, Builder builder) {
     builder.report(
       Diagnostic(
@@ -39,23 +69,54 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
           'Reported message',
           target: declaration.asDiagnosticTarget,
         ),
-        Severity.warning,
+        _severity,
       ),
     );
   }
 }
 
+/*macro*/ class ReportErrorAtTargetDeclaration
+    extends ReportAtTargetDeclaration {
+  const ReportErrorAtTargetDeclaration();
+
+  @override
+  Severity get _severity => Severity.error;
+}
+
+/*macro*/ class ReportInfoAtTargetDeclaration
+    extends ReportAtTargetDeclaration {
+  const ReportInfoAtTargetDeclaration();
+
+  @override
+  Severity get _severity => Severity.info;
+}
+
 /*macro*/ class ReportWithContextMessages implements ClassDeclarationsMacro {
-  const ReportWithContextMessages();
+  final bool forSuperClass;
+  final bool withDeclarationTarget;
+
+  const ReportWithContextMessages({
+    this.forSuperClass = false,
+    this.withDeclarationTarget = true,
+  });
 
   @override
   buildDeclarationsForClass(declaration, builder) async {
-    final methods = await builder.methodsOf(declaration);
+    final List<MethodDeclaration> methods;
+    if (forSuperClass) {
+      final superIdentifier = declaration.superclass!.identifier;
+      final superType = await builder.typeDeclarationOf(superIdentifier);
+      superType as IntrospectableClassDeclaration;
+      methods = await builder.methodsOf(superType);
+    } else {
+      methods = await builder.methodsOf(declaration);
+    }
+
     builder.report(
       Diagnostic(
         DiagnosticMessage(
           'Reported message',
-          target: declaration.asDiagnosticTarget,
+          target: withDeclarationTarget ? declaration.asDiagnosticTarget : null,
         ),
         Severity.warning,
         contextMessages: methods.map((method) {

@@ -118,6 +118,13 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the message
+  static const HintCode MACRO_INFO = HintCode(
+    'MACRO_INFO',
+    "{0}",
+  );
+
   ///  No parameters.
   @Deprecated("Use 'WarningCode.UNNECESSARY_CAST' instead.")
   static const HintCode UNNECESSARY_CAST = HintCode(

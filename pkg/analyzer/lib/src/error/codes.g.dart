@@ -3002,6 +3002,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the message
+  static const CompileTimeErrorCode MACRO_ERROR = CompileTimeErrorCode(
+    'MACRO_ERROR',
+    "{0}",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode MAIN_FIRST_POSITIONAL_PARAMETER_TYPE =
       CompileTimeErrorCode(
@@ -6726,6 +6733,13 @@ class WarningCode extends AnalyzerErrorCode {
         "of a class, enum, or mixin that is annotated with "
         "'visibleForTemplate'.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the message
+  static const WarningCode MACRO_WARNING = WarningCode(
+    'MACRO_WARNING',
+    "{0}",
   );
 
   ///  Parameters:

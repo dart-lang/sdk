@@ -1851,6 +1851,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: element.enclosingElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();

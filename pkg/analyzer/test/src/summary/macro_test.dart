@@ -2457,6 +2457,79 @@ library
 ''');
   }
 
+  test_macroDiagnostics_report_atDeclaration_mixin() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtTargetDeclaration()
+mixin A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    mixins
+      mixin A @62
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementMacroDiagnosticTarget
+                element: self::@mixin::A
+            severity: warning
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_macroDiagnostics_report_atTarget_method() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtFirstMethod()
+class A {
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @56
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementMacroDiagnosticTarget
+                element: self::@class::A::@method::foo
+            severity: warning
+        methods
+          foo @67
+            returnType: void
+''');
+  }
+
   test_macroDiagnostics_report_contextMessages() async {
     newFile(
       '$testPackageLibPath/diagnostic.dart',
