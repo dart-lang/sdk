@@ -11,13 +11,16 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'analysis_server_base.dart';
 import 'mocks.dart';
+import 'utils/tree_string_sink.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -42,9 +45,9 @@ class AnalysisDomainBlazeTest extends _AnalysisDomainTest {
   }
 
   Future<void> test_fileSystem_changeFile_buildFile_legacy() async {
-    // This BUILD file disables null safety.
+    // Make it a Blaze package.
     newBlazeBuildFile(myPackageRootPath, r'''
-dart_package(null_safety = False)
+# foo
 ''');
 
     newFile(myPackageTestFilePath, '''
@@ -54,17 +57,29 @@ void f(int? a) {}
     await setRoots(included: [myPackageRootPath], excluded: []);
     await server.onAnalysisComplete;
 
-    // Cannot use `int?` without null safety.
-    assertHasErrors(myPackageTestFilePath);
+    // No errors after initial analysis.
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/dart/my/lib/test.dart
+  errors: empty
+''');
 
-    // Stop disabling null safety.
-    newBlazeBuildFile(myPackageRootPath, '');
+    // Change BUILD file, nothing interesting.
+    newBlazeBuildFile(myPackageRootPath, r'''
+# bar
+''');
 
     await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
-    // We have null safety enabled, so no errors.
-    assertNoErrors(myPackageTestFilePath);
+    // BUILD file change caused rebuilding analysis contexts.
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/dart/my/lib/test.dart
+AnalysisErrors
+  file: /home/dart/my/lib/test.dart
+  errors: empty
+''');
   }
 }
 
@@ -72,19 +87,24 @@ void f(int? a) {}
 class AnalysisDomainPubTest extends _AnalysisDomainTest {
   Future<void> test_fileSystem_addFile_analysisOptions() async {
     deleteTestPackageAnalysisOptionsFile();
-    var a_path = '$testPackageLibPath/a.dart';
-    var b_path = '$testPackageLibPath/b.dart';
 
-    _createFilesWithErrors([a_path, b_path]);
+    _createFilesWithErrors([
+      '$testPackageLibPath/a.dart',
+      '$testPackageLibPath/b.dart',
+    ]);
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
     // Both a.dart and b.dart are analyzed.
-    _assertAnalyzedFiles(
-      hasErrors: [a_path, b_path],
-      notAnalyzed: [],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
 
     // Write the options file that excludes b.dart
     newAnalysisOptionsYamlFile(testPackageRootPath, r'''
@@ -93,15 +113,21 @@ analyzer:
     - lib/b.dart
 ''');
 
-    await pumpEventQueue();
+    await pumpEventQueue(times: 5000);
     await server.onAnalysisComplete;
 
-    // Errors for all files were flushed, and only a.dart is reported again.
-    _assertFlushedResults([a_path, b_path]);
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [b_path],
-    );
+    // Errors for all files were flushed, b.dart is not reported.
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/lib/a.dart
+  /home/test/lib/b.dart
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_addFile_analysisOptions_analysis() async {
@@ -1681,6 +1707,8 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
   /// The files for which `analysis.flushResults` was received.
   final List<String> flushResults = [];
 
+  final List<(String, Object)> notifications = [];
+
   void assertHasErrors(String path) {
     path = convertPath(path);
     expect(filesErrors[path], isNotEmpty, reason: path);
@@ -1696,6 +1724,30 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
     expect(filesErrors[path], isNull, reason: path);
   }
 
+  void assertNotificationsText(
+    String expected, {
+    void Function(_NotificationPrinterConfiguration)? configure,
+  }) {
+    final configuration = _NotificationPrinterConfiguration();
+    configure?.call(configuration);
+
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(sink: buffer, indent: '');
+    _NotificationPrinter(
+      configuration: configuration,
+      resourceProvider: resourceProvider,
+      sink: sink,
+    ).writeNotifications(notifications);
+    notifications.clear();
+
+    final actual = buffer.toString();
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+    }
+    expect(actual, expected);
+  }
+
   void forgetReceivedErrors() {
     filesErrors.clear();
   }
@@ -1704,11 +1756,13 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
       var decoded = AnalysisFlushResultsParams.fromNotification(notification);
+      notifications.add((notification.event, decoded));
       flushResults.addAll(decoded.files);
       decoded.files.forEach(filesErrors.remove);
     }
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
+      notifications.add((notification.event, decoded));
       analysisErrorsNotifications.add(decoded);
       filesErrors[decoded.file] = decoded.errors;
     }
@@ -1747,4 +1801,58 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
       newFile(path, 'error');
     }
   }
+}
+
+class _NotificationPrinter {
+  final _NotificationPrinterConfiguration configuration;
+  final ResourceProvider resourceProvider;
+  final TreeStringSink sink;
+
+  _NotificationPrinter({
+    required this.configuration,
+    required this.resourceProvider,
+    required this.sink,
+  });
+
+  void writeNotifications(List<(String, Object)> notifications) {
+    for (final entry in notifications) {
+      _writeNotification(entry.$1, entry.$2);
+    }
+  }
+
+  void _writelnFile(String path, {String? name}) {
+    sink.writeIndentedLine(() {
+      if (name != null) {
+        sink.write('$name: ');
+      }
+      final file = resourceProvider.getFile(path);
+      sink.write(file.posixPath);
+    });
+  }
+
+  void _writeNotification(String event, Object notification) {
+    switch (notification) {
+      case AnalysisFlushResultsParams():
+        final files = notification.files.sorted();
+        sink.writeElements('AnalysisFlush', files, _writelnFile);
+      case AnalysisErrorsParams():
+        sink.writelnWithIndent('AnalysisErrors');
+        sink.withIndent(() {
+          _writelnFile(name: 'file', notification.file);
+          if (configuration.withAnalysisErrorDetails) {
+            throw UnimplementedError();
+          } else if (notification.errors.isNotEmpty) {
+            sink.writelnWithIndent('errors: notEmpty');
+          } else {
+            sink.writelnWithIndent('errors: empty');
+          }
+        });
+      default:
+        throw UnimplementedError('${notification.runtimeType}');
+    }
+  }
+}
+
+class _NotificationPrinterConfiguration {
+  bool withAnalysisErrorDetails = false;
 }
