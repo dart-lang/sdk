@@ -104,7 +104,7 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
     if(!#isEven)
       value.{asy::Completer::complete}(#C2){([FutureOr<core::bool>?]) → void};
     return value;
-  }){((core::Object?) → FutureOr<core::Object?>) → asy::Stream<core::Object?>}.{asy::Stream::where}((synthesized core::Object? value) → core::Object? {
+  }){((core::Object?) → FutureOr<core::Object?>) → asy::Stream<core::Object?>}.{asy::Stream::where}((synthesized core::Object? value) → core::bool {
     if(#isFirst) {
       #isFirst = #C1;
       return #C1;
