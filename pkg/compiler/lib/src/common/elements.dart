@@ -1056,6 +1056,12 @@ abstract class CommonElements {
       member.library == internalLibrary &&
       _isTopLevelFunctionNamed('isSentinel', member);
 
+  /// Returns `true` if [member] is the `allowInterop` function defined in
+  /// dart:js_util.
+  bool isAllowInterop(MemberEntity member) =>
+      member.library == dartJsUtilLibrary &&
+      _isTopLevelFunctionNamed('allowInterop', member);
+
   ClassEntity getDefaultSuperclass(
       ClassEntity cls, NativeBasicData nativeBasicData) {
     if (nativeBasicData.isJsInteropClass(cls)) {
