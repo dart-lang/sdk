@@ -1029,6 +1029,8 @@ CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
     Remove `final`.
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
+CompileTimeErrorCode.MACRO_ERROR:
+  status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
   notes: |-
@@ -1827,6 +1829,8 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
+HintCode.MACRO_INFO:
+  status: noFix
 HintCode.UNNECESSARY_CAST:
   status: hasFix
 HintCode.UNNECESSARY_IMPORT:
@@ -3639,6 +3643,8 @@ WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
   status: hasFix
 WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
   status: needsEvaluation
+WarningCode.MACRO_WARNING:
+  status: noFix
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
   status: hasFix
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:

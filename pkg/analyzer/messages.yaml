@@ -9449,6 +9449,11 @@ CompileTimeErrorCode:
       ```dart
       List<num> x = [1, 2.5, 3];
       ```
+  MACRO_ERROR:
+    problemMessage: "{0}"
+    comment: |-
+      Parameters:
+      0: the message
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.
@@ -20378,6 +20383,11 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
+  MACRO_INFO:
+    problemMessage: "{0}"
+    comment: |-
+      Parameters:
+      0: the message
   UNNECESSARY_CAST:
     problemMessage: Unnecessary cast.
     correctionMessage: Try removing the cast.
@@ -24057,6 +24067,11 @@ WarningCode:
         void m() {}
       }
       ```
+  MACRO_WARNING:
+    problemMessage: "{0}"
+    comment: |-
+      Parameters:
+      0: the message
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
     problemMessage: "Missing concrete implementation of '{0}'."

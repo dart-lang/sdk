@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../summary/macros_environment.dart';
@@ -32,34 +32,259 @@ class MacroResolutionTest extends PubPackageResolutionTest {
       PackageConfigFileBuilder(),
       macrosEnvironment: MacrosEnvironment.instance,
     );
+
+    newFile(
+      '$testPackageLibPath/append.dart',
+      getMacroCode('append.dart'),
+    );
+
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      getMacroCode('diagnostic.dart'),
+    );
   }
 
-  test_0() async {
+  test_declareType_class() async {
+    await assertNoErrorsInCode(r'''
+import 'append.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+
+void f(B b) {}
+''');
+  }
+
+  test_diagnostic_compilesWithError() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
-macro class EmptyMacro implements ClassTypesMacro {
-  const EmptyMacro();
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
 
-  FutureOr<void> buildTypesForClass(clazz, builder) {
-    var targetName = clazz.identifier.name;
-    builder.declareType(
-      '${targetName}_Macro',
-      DeclarationCode.fromString('class ${targetName}_Macro {}'),
-    );
+  buildTypesForClass(clazz, builder) {
+    unresolved;
   }
 }
 ''');
 
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 import 'a.dart';
 
-@EmptyMacro()
+@MyMacro()
 class A {}
+''', [
+      error(
+        CompileTimeErrorCode.MACRO_ERROR,
+        18,
+        10,
+        messageContains: [
+          'Unhandled error',
+          'package:test/a.dart',
+          'unresolved',
+          'MyMacro',
+        ],
+      ),
+    ]);
+  }
 
-void f(A_Macro a) {}
+  test_diagnostic_notSupportedArgument() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTargetDeclaration()
+  void foo() {}
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 75, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atDeclaration_class_error() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportErrorAtTargetDeclaration()
+class A {}
+''', [
+      error(CompileTimeErrorCode.MACRO_ERROR, 67, 1),
+    ]);
+  }
+
+  test_diagnostic_report_atDeclaration_class_info() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportInfoAtTargetDeclaration()
+class A {}
+''', [
+      error(HintCode.MACRO_INFO, 66, 1),
+    ]);
+  }
+
+  test_diagnostic_report_atDeclaration_class_warning() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTargetDeclaration()
+class A {}
+''', [
+      error(WarningCode.MACRO_WARNING, 62, 1),
+    ]);
+  }
+
+  test_diagnostic_report_atDeclaration_constructor() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTargetDeclaration()
+  A.named();
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 72, 5),
+    ]);
+  }
+
+  test_diagnostic_report_atDeclaration_field() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTargetDeclaration()
+  final foo = 0;
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 76, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atDeclaration_method() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+class A {
+  @ReportAtTargetDeclaration()
+  void foo() {}
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 75, 3),
+    ]);
+  }
+
+  test_diagnostic_report_atDeclaration_mixin() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtTargetDeclaration()
+mixin A {}
+''', [
+      error(WarningCode.MACRO_WARNING, 62, 1),
+    ]);
+  }
+
+  test_diagnostic_report_atTarget_method() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportAtFirstMethod()
+class A {
+  void foo() {}
+  void bar() {}
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 67, 3),
+    ]);
+  }
+
+  test_diagnostic_report_contextMessages_superClassMethods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void foo() {}
+  void bar() {}
+}
 ''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+import 'diagnostic.dart';
+
+@ReportWithContextMessages(forSuperClass: true)
+class B extends A {}
+''', [
+      error(WarningCode.MACRO_WARNING, 98, 1, contextMessages: [
+        message('/home/test/lib/a.dart', 17, 3),
+        message('/home/test/lib/a.dart', 33, 3)
+      ]),
+    ]);
+  }
+
+  test_diagnostic_report_contextMessages_thisClassMethods() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportWithContextMessages()
+class A {
+  void foo() {}
+  void bar() {}
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 62, 1, contextMessages: [
+        message('/home/test/lib/test.dart', 73, 3),
+        message('/home/test/lib/test.dart', 89, 3)
+      ]),
+    ]);
+  }
+
+  test_diagnostic_report_contextMessages_thisClassMethods_noTarget() async {
+    await assertErrorsInCode('''
+import 'diagnostic.dart';
+
+@ReportWithContextMessages(withDeclarationTarget: false)
+class A {
+  void foo() {}
+  void bar() {}
+}
+''', [
+      error(WarningCode.MACRO_WARNING, 27, 56, contextMessages: [
+        message('/home/test/lib/test.dart', 101, 3),
+        message('/home/test/lib/test.dart', 117, 3)
+      ]),
+    ]);
+  }
+
+  test_diagnostic_throwsException() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'package:_fe_analyzer_shared/src/macros/api.dart';
+
+macro class MyMacro implements ClassTypesMacro {
+  const MyMacro();
+
+  buildTypesForClass(clazz, builder) {
+    throw 12345;
+  }
+}
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart';
+
+@MyMacro()
+class A {}
+''', [
+      error(
+        CompileTimeErrorCode.MACRO_ERROR,
+        18,
+        10,
+        messageContains: [
+          'Unhandled error',
+          'package:test/a.dart',
+          '12345',
+          'MyMacro',
+        ],
+      ),
+    ]);
   }
 
   test_getResolvedLibrary_macroAugmentation_hasErrors() async {
@@ -78,10 +303,12 @@ class A {}
     final session = contextFor(testFile).currentSession;
     final result = await session.getResolvedLibrary(testFile.path);
 
+    // 1. Has the macro augmentation unit.
+    // 2. It has an error reported.
     assertResolvedLibraryResultText(result, configure: (configuration) {
       configuration.unitConfiguration
         ..nodeSelector = (unitResult) {
-          if (unitResult.isAugmentation) {
+          if (unitResult.isMacroAugmentation) {
             return unitResult.findNode.namedType('NotType');
           }
           return null;
@@ -114,53 +341,5 @@ augment class A {
         element: <null>
         type: InvalidType
 ''');
-  }
-
-  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
-  test_macroExecutionException_compileTimeError() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  buildTypesForClass(clazz, builder) {
-    unresolved;
-  }
-}
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-@MyMacro()
-class A {}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
-    ]);
-  }
-
-  @FailingTest(reason: 'Fails because exceptions are reported as diagnostics')
-  test_macroExecutionException_throwsException() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  buildTypesForClass(clazz, builder) {
-    throw 42;
-  }
-}
-''');
-
-    await assertErrorsInCode('''
-import 'a.dart';
-
-@MyMacro()
-class A {}
-''', [
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 41, 1),
-    ]);
   }
 }

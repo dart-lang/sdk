@@ -503,6 +503,7 @@ class BundleWriter {
     _writeReference(element);
     MixinElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink._writeTypeList(element.superclassConstraints);
