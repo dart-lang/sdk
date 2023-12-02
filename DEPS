@@ -163,7 +163,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "8ebf9463a7a230213cee0adc3c019dad78d364ac",
   "mockito_rev": "fb8a2b5731553f5ed22107e1a0f7af8918d28442",
-  "native_rev": "b5827f3b05d437a5bfc3d9675c6c35be2360476a",
+  "native_rev": "5aeab2915167fd24ccb1241c07516b388fda2b9b",
   "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
   "path_rev": "18ec71f7dde21d8518702d77215fb0b2fa45e970",
   "pool_rev": "3c1bd422da311d95b65a04a5f28de2c0e8193692",
@@ -185,7 +185,7 @@ vars = {
   "test_descriptor_rev": "59ce97fae49709fa1f479efa808c031a576e617e",
   "test_process_rev": "d68de5bc53bf33a12334d06748af9db4844d66f0",
   "test_reflective_loader_rev": "17d40bb06f55f727a79c0f0016d7510294f5db03",
-  "tools_rev": "2e36b8d326e95ed256a74ee2ebdcfff5be502c57", # b/311742925
+  "tools_rev": "c63dcb5e93d4a222da0c52960bb6688030ddabc3",
   "typed_data_rev": "0b16bd26c90bc9ac08e8b4b259aa3d7bead34feb",
   "usage_rev": "e99690ae6d5fa9ec24ac5218bcd3621e8e3ae8a9",
   "vector_math_rev": "cca3cf191628bce5354a5989ae61261837ceabfc",

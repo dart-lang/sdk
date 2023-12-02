@@ -292,7 +292,7 @@ class PubWorkspace extends SimpleWorkspace {
     }
 
     PubWorkspacePackage? result;
-    int resultPathLength = 1 << 20;
+    int resultPathLength = 0;
     for (var package in containedPackages.entries) {
       if (pathContext.isWithin(package.key.path, filePath)) {
         var packagePathLength = package.key.path.length;

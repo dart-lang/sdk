@@ -22,6 +22,7 @@ import '../universe/world_impact.dart'
 import 'backend_impact.dart';
 import 'backend_usage.dart';
 import 'custom_elements_analysis.dart';
+import 'native_data.dart' show NativeData;
 import 'records_codegen.dart';
 import 'runtime_types_resolution.dart';
 
@@ -38,6 +39,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
   final RecordsCodegen _recordsCodegen;
 
+  final NativeData _nativeData;
   final NativeCodegenEnqueuer _nativeEnqueuer;
 
   bool _isNoSuchMethodUsed = false;
@@ -53,6 +55,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._recordData,
       this._customElementsAnalysis,
       this._recordsCodegen,
+      this._nativeData,
       this._nativeEnqueuer);
 
   @override
@@ -143,6 +146,11 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       }
       enqueuer.applyImpact(newRtiImpact);
       _isNewRtiUsed = true;
+    }
+
+    if (_nativeData.isAllowInteropUsed) {
+      enqueuer
+          .applyImpact(_impacts.allowInterop.createImpact(_elementEnvironment));
     }
 
     if (!enqueuer.queueIsEmpty) return false;

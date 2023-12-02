@@ -275,6 +275,7 @@ class JsBackendStrategy {
             closedWorld.recordData,
             customElementsCodegenAnalysis,
             recordsCodegen,
+            closedWorld.nativeData,
             nativeCodegenEnqueuer),
         closedWorld.annotationsData);
   }
