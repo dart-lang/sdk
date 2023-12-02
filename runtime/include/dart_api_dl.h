@@ -20,6 +20,8 @@
  *
  * Link `dart_api_dl.c` file into your library and invoke
  * `Dart_InitializeApiDL` with `NativeApi.initializeApiDLData`.
+ *
+ * Returns 0 on success.
  */
 
 DART_EXPORT intptr_t Dart_InitializeApiDL(void* data);
