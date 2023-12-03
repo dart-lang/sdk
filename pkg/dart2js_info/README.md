@@ -56,12 +56,12 @@ together your own tool.
 
 [AllInfo][AllInfo] exposes a Dart representation of all of the collected
 information. There are deserialization libraries in this package to decode any
-info file produced by the `dart2js` `--dump-info` option. See
-`lib/binary_serialization.dart` and `lib/json_info_codec.dart` to find the
-binary and JSON decoders respectively. For convenience,
-`package:dart2js_info/src/io.dart` also exposes a helper method that can choose,
-depending on the extension of the info file, whether to deserialize it using the
-binary or JSON decoder.  For example:
+info file produced by the `dart compile js` (before Dart 2.18, `dart2js`)
+`--dump-info` option. See `lib/binary_serialization.dart` and
+`lib/json_info_codec.dart` to find the binary and JSON decoders respectively.
+For convenience, `package:dart2js_info/src/io.dart` also exposes a helper
+method that can choose, depending on the extension of the info file, whether to
+deserialize it using the binary or JSON decoder.  For example:
 
 ```dart
 import 'dart:convert';
@@ -102,7 +102,7 @@ The following tools are a available today:
   * [`deferred_check`][deferred_check]: a tool that verifies that code
     was split into deferred parts as expected. This tool takes a specification
     of the expected layout of code into deferred parts, and checks that the
-    output from `dart2js` meets the specification.
+    output from `dart compile js` meets the specification.
 
   * [`deferred_size`][deferred_size]: a tool that gives a breakdown of
     the sizes of the deferred parts of the program. This can show how much of
@@ -501,7 +501,7 @@ steps are as follows:
     `--experiment-call-instrumentation`
 
 ```console
-$ dart2js --dump-info --experiment-call-instrumentation main.dart
+$ dart compile js --dump-info --experiment-call-instrumentation main.dart
 ```
 
   The flag only works dart2js version 2.2.0 or newer.
@@ -536,14 +536,14 @@ Runtime code analysis requires both an info file and a runtime data file.
 The info file is emitted by compiling a dart2js app with `--dump-info`:
 
 ```console
-$ dart2js --dump-info main.dart
+$ dart compile js --dump-info main.dart
 ```
 
 Enable the collection of runtime data by compiling a dart2js app with an
 experimental flag:
 
 ```console
-$ dart2js --experimental-track-allocations main.dart
+$ dart compile js --experimental-track-allocations main.dart
 ```
 
 After using your app (manually or via integration tests), dump the top-level
