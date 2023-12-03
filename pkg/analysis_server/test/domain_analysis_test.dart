@@ -132,22 +132,22 @@ AnalysisErrors
 
   Future<void> test_fileSystem_addFile_analysisOptions_analysis() async {
     deleteTestPackageAnalysisOptionsFile();
-    var a_path = '$testPackageLibPath/a.dart';
-    var options_path = '$testPackageRootPath/analysis_options.yaml';
-
-    newFile(a_path, 'error');
+    _createFilesWithErrors([
+      '$testPackageLibPath/a.dart',
+    ]);
 
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
     // a.dart was analyzed
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [options_path],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
     // Add 'analysis_options.yaml' that has an error.
-    newFile(options_path, '''
+    newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   error:
 ''');
@@ -155,36 +155,55 @@ analyzer:
     await server.onAnalysisComplete;
 
     // Both files were analyzed.
-    _assertAnalyzedFiles(
-      hasErrors: [a_path, options_path],
-      notAnalyzed: [],
-    );
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/lib/a.dart
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_addFile_androidManifestXml() async {
-    var path = '$testPackageRootPath/AndroidManifest.xml';
-
-    newFile('$testPackageLibPath/a.dart', '');
-
     newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
   optional-checks:
     chrome-os-manifest-checks: true
 ''');
 
-    await setRoots(included: [workspaceRootPath], excluded: []);
+    newFile('$testPackageLibPath/a.dart', '');
 
-    newFile(path, '<manifest/>');
+    await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+''');
+
+    newFile('$testPackageRootPath/AndroidManifest.xml', '<manifest/>');
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
     // No touch-screen.
-    assertHasErrors(path);
+    // TODO(scheglov): Why duplicate analysis?
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/AndroidManifest.xml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/AndroidManifest.xml
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_addFile_dart() async {
-    var a_path = '$testPackageLibPath/a.dart';
-
     // We have to create the folder, otherwise there is nothing to watch.
     newFolder(testPackageLibPath);
 
@@ -192,14 +211,24 @@ analyzer:
     await server.onAnalysisComplete;
 
     // We don't have a.dart yet.
-    assertNoErrorsNotification(a_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+''');
 
-    _createFilesWithErrors([a_path]);
+    _createFilesWithErrors([
+      '$testPackageLibPath/a.dart',
+    ]);
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
     // We created a.dart, so it should be analyzed.
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_addFile_dart_dotFolder() async {
@@ -215,7 +244,14 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // We don't have a.dart, so the import cannot be resolved.
-    assertHasErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
 
     newFile(a_path, r'''
 class A {}
@@ -224,10 +260,12 @@ class A {}
     await server.onAnalysisComplete;
 
     // 'a.dart' is in a dot-folder, so excluded from analysis.
-    assertNoErrorsNotification(a_path);
-
     // We added a.dart with `A`, so no errors.
-    assertNoErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: empty
+''');
   }
 
   Future<void> test_fileSystem_addFile_dart_excluded() async {
@@ -249,7 +287,14 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // We don't have a.dart, so the import cannot be resolved.
-    assertHasErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
 
     newFile(a_path, r'''
 class A {}
@@ -258,10 +303,12 @@ class A {}
     await server.onAnalysisComplete;
 
     // We excluded 'a.dart' from analysis, no errors notification for it.
-    assertNoErrorsNotification(a_path);
-
     // We added a.dart with `A`, so no errors.
-    assertNoErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: empty
+''');
   }
 
   Future<void> test_fileSystem_addFile_fixDataFolderYaml() async {
@@ -270,9 +317,17 @@ class A {}
     newFile('$testPackageLibPath/a.dart', '');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
 
     // No `fix_data.yaml` to analyze yet.
-    assertNoErrorsNotification(path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+''');
 
     // Create it, will be analyzed.
     newFile(path, '0: 1');
@@ -280,10 +335,16 @@ class A {}
     await server.onAnalysisComplete;
 
     // And it has errors.
-    assertHasErrors(path);
-
     // We don't recreate analysis contexts.
-    _assertFlushedResults([]);
+    // TODO(scheglov): Why duplicate analysis?
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/fix_data/foo.yaml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/fix_data/foo.yaml
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_addFile_fixDataYaml() async {
@@ -292,9 +353,17 @@ class A {}
     newFile('$testPackageLibPath/a.dart', '');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
 
     // No `fix_data.yaml` to analyze yet.
-    assertNoErrorsNotification(path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+''');
 
     // Create it, will be analyzed.
     newFile(path, '0: 1');
@@ -302,10 +371,16 @@ class A {}
     await server.onAnalysisComplete;
 
     // And it has errors.
-    assertHasErrors(path);
-
     // We don't recreate analysis contexts.
-    _assertFlushedResults([]);
+    // TODO(scheglov): Why duplicate analysis?
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/fix_data.yaml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/fix_data.yaml
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_addFile_packageConfigJsonFile() async {
@@ -325,7 +400,14 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // We cannot resolve `package:aaa/a.dart`
-    assertHasErrors(testFilePath);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: notEmpty
+''');
 
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
@@ -336,11 +418,20 @@ void f(A a) {}
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
+    // We rebuilt analysis contexts.
     // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
+    // Errors are not reported for packages.
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/analysis_options.yaml
+  /home/test/lib/test.dart
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: empty
+''');
   }
 
   Future<void> test_fileSystem_addFile_pubspec_analysis() async {
@@ -357,10 +448,14 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // a.dart was analyzed
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [pubspec_path],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
     // Add a non-Dart file that we know how to analyze.
     newFile(pubspec_path, '''
@@ -370,11 +465,22 @@ dependencies: true
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
-    // Both files were analyzed.
-    _assertAnalyzedFiles(
-      hasErrors: [a_path, pubspec_path],
-      notAnalyzed: [],
-    );
+    // We rebuilt analysis contexts.
+    // All files were analyzed.
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/analysis_options.yaml
+  /home/test/lib/a.dart
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/pubspec.yaml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_addFile_unrelated() async {
@@ -387,10 +493,14 @@ dependencies: true
     await server.onAnalysisComplete;
 
     // a.dart was analyzed
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [unrelated_path],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
     // Add an unrelated file, no analysis.
     newFile(unrelated_path, 'anything');
@@ -398,8 +508,8 @@ dependencies: true
     await server.onAnalysisComplete;
 
     // No analysis.
-    _assertFlushedResults([]);
-    _assertAnalyzedFiles(hasErrors: [], notAnalyzed: [a_path]);
+    assertNotificationsText(r'''
+''');
   }
 
   Future<void> test_fileSystem_changeFile_analysisOptions() async {
@@ -420,11 +530,18 @@ analyzer:
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
-    // Only a.dart is analyzed, because b.dart is excluded.
-    _assertAnalyzedFiles(
-      hasErrors: [a_path, c_path],
-      notAnalyzed: [b_path],
-    );
+    // Only a.dart and c.dart are analyzed, because b.dart is excluded.
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/c.dart
+  errors: notEmpty
+''');
 
     // Exclude c.dart from analysis.
     newFile(options_path, r'''
@@ -436,13 +553,23 @@ analyzer:
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
-    // Errors for all files were flushed, a.dart and b.dart analyzed.
-    _assertFlushedResults([options_path, a_path, c_path]);
-    _assertAnalyzedFiles(
-      hasErrors: [a_path, b_path],
-      noErrors: [options_path],
-      notAnalyzed: [c_path],
-    );
+    // Analysis contexts were rebuilt.
+    // Only a.dart and b.dart analyzed.
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/analysis_options.yaml
+  /home/test/lib/a.dart
+  /home/test/lib/c.dart
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_changeFile_androidManifestXml() async {
@@ -460,10 +587,19 @@ analyzer:
 ''');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
 
-    // Forget and check that we did.
-    forgetReceivedErrors();
-    assertNoErrorsNotification(path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/AndroidManifest.xml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+''');
 
     // Update the file, so analyze it.
     newFile(path, '<manifest/>');
@@ -471,7 +607,15 @@ analyzer:
     await server.onAnalysisComplete;
 
     // An error was reported.
-    assertHasErrors(path);
+    // TODO(scheglov): Why duplicate analysis?
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/AndroidManifest.xml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/AndroidManifest.xml
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_changeFile_dart() async {
@@ -490,9 +634,17 @@ void f(A a) {}
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
-    assertNoErrors(a_path);
-    assertHasErrors(b_path);
-    forgetReceivedErrors();
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
 
     // Update a.dart so that b.dart has no error.
     newFile(a_path, 'class A {}');
@@ -500,8 +652,14 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // The update of a.dart fixed the error in b.dart
-    assertNoErrors(a_path);
-    assertNoErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: empty
+''');
   }
 
   Future<void> test_fileSystem_changeFile_dart_dotFolder() async {
@@ -522,10 +680,15 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // 'a.dart' is in a dot-folder, so excluded from analysis.
-    assertNoErrorsNotification(a_path);
-
     // We have `B`, not `A`, in a.dart, so has errors.
-    assertHasErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
 
     newFile(a_path, r'''
 class A {}
@@ -534,10 +697,12 @@ class A {}
     await server.onAnalysisComplete;
 
     // 'a.dart' is in a dot-folder, so excluded from analysis.
-    assertNoErrorsNotification(a_path);
-
     // We changed a.dart, to have `A`, so no errors.
-    assertNoErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: empty
+''');
   }
 
   Future<void> test_fileSystem_changeFile_dart_excluded() async {
@@ -564,10 +729,15 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // We excluded 'a.dart' from analysis, no errors notification for it.
-    assertNoErrorsNotification(a_path);
-
     // We have `B`, not `A`, in a.dart, so has errors.
-    assertHasErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
 
     newFile(a_path, r'''
 class A {}
@@ -576,7 +746,11 @@ class A {}
     await server.onAnalysisComplete;
 
     // We changed a.dart, to have `A`, so no errors.
-    assertNoErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: empty
+''');
   }
 
   Future<void> test_fileSystem_changeFile_fixDataFolderYaml() async {
@@ -588,9 +762,20 @@ class A {}
     newFile(path, '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
 
     // The file was analyzed.
-    assertHasErrors(path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/fix_data/foo.yaml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+''');
 
     // Replace with the content that does not have errors.
     newFile(path, r'''
@@ -600,11 +785,17 @@ transforms: []
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
-    // And it has errors.
-    assertNoErrors(path);
-
+    // No errors in `foo.yaml` anymore.
     // We don't recreate analysis contexts.
-    _assertFlushedResults([]);
+    // TODO(scheglov): Why duplicate analysis?
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/fix_data/foo.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/fix_data/foo.yaml
+  errors: empty
+''');
   }
 
   Future<void> test_fileSystem_changeFile_fixDataYaml() async {
@@ -616,9 +807,20 @@ transforms: []
     newFile(path, '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
 
     // The file was analyzed.
-    assertHasErrors(path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/fix_data.yaml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+''');
 
     // Replace with the content that does not have errors.
     newFile(path, r'''
@@ -628,11 +830,17 @@ transforms: []
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
-    // And it has errors.
-    assertNoErrors(path);
-
+    // No errors in `fix_data.yaml` anymore.
     // We don't recreate analysis contexts.
-    _assertFlushedResults([]);
+    // TODO(scheglov): Why duplicate analysis?
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/fix_data.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/fix_data.yaml
+  errors: empty
+''');
   }
 
   Future<void> test_fileSystem_changeFile_hasOverlay_removeOverlay() async {
@@ -649,21 +857,22 @@ transforms: []
 
     // The test file (overlay) is analyzed, no errors.
     await _waitAnalysisComplete();
-    _assertAnalyzedFiles(
-      hasErrors: [],
-      noErrors: [testFile.path],
-      notAnalyzed: [],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: empty
+''');
 
     // Change the file, has errors.
     newFile(testFilePath, 'error');
 
     // But the overlay is still present, so the file is not analyzed.
     await _waitAnalysisComplete();
-    _assertAnalyzedFiles(
-      hasErrors: [],
-      notAnalyzed: [testFile.path],
-    );
+    assertNotificationsText(r'''
+''');
 
     // Remove the overlay, now the file will be read.
     await handleSuccessfulRequest(
@@ -674,11 +883,11 @@ transforms: []
 
     // The file has errors.
     await _waitAnalysisComplete();
-    _assertAnalyzedFiles(
-      hasErrors: [testFile.path],
-      noErrors: [],
-      notAnalyzed: [],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_changeFile_packageConfigJsonFile() async {
@@ -699,7 +908,14 @@ void f(A a) {}
 
     // The default `package_config.json` is without `package:aaa`.
     // We cannot resolve `package:aaa/a.dart`
-    assertHasErrors(testFilePath);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: notEmpty
+''');
 
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
@@ -711,10 +927,18 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
+    // Errors are not reported for packages.
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/analysis_options.yaml
+  /home/test/lib/test.dart
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: empty
+''');
   }
 
   Future<void> test_fileSystem_deleteFile_analysisOptions() async {
@@ -735,10 +959,14 @@ analyzer:
     await server.onAnalysisComplete;
 
     // Only a.dart is analyzed, because b.dart is excluded.
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [b_path],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
     // Delete the options file.
     deleteFile(options_path);
@@ -747,11 +975,17 @@ analyzer:
     await server.onAnalysisComplete;
 
     // Errors for a.dart were flushed, a.dart and b.dart analyzed.
-    _assertFlushedResults([options_path, a_path]);
-    _assertAnalyzedFiles(
-      hasErrors: [a_path, b_path],
-      notAnalyzed: [options_path],
-    );
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/analysis_options.yaml
+  /home/test/lib/a.dart
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_deleteFile_androidManifestXml() async {
@@ -769,16 +1003,30 @@ analyzer:
 ''');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
 
     // An error was reported.
-    _assertAnalyzedFiles(hasErrors: [path], notAnalyzed: []);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/AndroidManifest.xml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+''');
 
     // Delete the file.
     deleteFile(path);
     await pumpEventQueue();
 
     // We received a flush notification.
-    _assertAnalyzedFiles(hasErrors: [], notAnalyzed: [path]);
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/AndroidManifest.xml
+''');
   }
 
   /// Tests that deleting and re-creating a file while an overlay is active
@@ -795,31 +1043,45 @@ analyzer:
     await server.onAnalysisComplete;
 
     // Initial file has errors.
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
-    // Overlay still has errors.
+    // Set the overlay, with a different content.
+    // We get another notification with errors.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        a_path: AddContentOverlay('error'),
+        a_path: AddContentOverlay('error2'),
       }).toRequest('0'),
     );
     await pumpEventQueue();
     await server.onAnalysisComplete;
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
-    // After deleting the file, still has errors.
+    // Delete the file, we have the overlay, so no notifications.
     deleteFile(a_path);
     await pumpEventQueue();
     await server.onAnalysisComplete;
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+''');
 
-    // After re-creating the file, still has errors.
+    // Re-creating the file, we have the overlay, so no notifications.
     _createFilesWithErrors([a_path]);
     await pumpEventQueue();
     await server.onAnalysisComplete;
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+''');
 
-    // After removing the overlay, still has errors.
+    // Remove the overlay, the file has different content, so notification.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         a_path: RemoveContentOverlay(),
@@ -827,13 +1089,20 @@ analyzer:
     );
     await pumpEventQueue();
     await server.onAnalysisComplete;
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
-    // After deleting the file again, errors are now gone.
+    // Delete the file, errors are now gone.
     deleteFile(a_path);
     await pumpEventQueue();
     await server.onAnalysisComplete;
-    assertNoErrorsNotification(a_path);
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/lib/a.dart
+''');
   }
 
   Future<void> test_fileSystem_deleteFile_dart() async {
@@ -845,15 +1114,24 @@ analyzer:
     await server.onAnalysisComplete;
 
     // a.dart was analyzed
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
     deleteFile(a_path);
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
     // We deleted a.dart, its errors should be flushed.
-    _assertFlushedResults([a_path]);
-    assertNoErrorsNotification(a_path);
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/lib/a.dart
+''');
   }
 
   Future<void> test_fileSystem_deleteFile_dart_excluded() async {
@@ -880,17 +1158,27 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // We excluded 'a.dart' from analysis, no errors notification for it.
-    assertNoErrorsNotification(a_path);
-
     // We have `A` in a.dart, so no errors.
-    assertNoErrors(b_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: empty
+''');
 
     deleteFile(a_path);
     await pumpEventQueue();
     await server.onAnalysisComplete;
 
     // We deleted a.dart, so `A` cannot be resolved.
-    assertHasErrors(b_path);
+    // TODO(scheglov): Should we get flush for a.dart also?
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_fileSystem_deleteFile_fixDataYaml() async {
@@ -902,16 +1190,30 @@ void f(A a) {}
     newFile(path, '0: 1');
 
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
 
     // The file was analyzed.
-    _assertAnalyzedFiles(hasErrors: [path], notAnalyzed: []);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/fix_data.yaml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+''');
 
     // Delete the file.
     deleteFile(path);
     await pumpEventQueue();
 
     // We received a flush notification.
-    _assertAnalyzedFiles(hasErrors: [], notAnalyzed: [path]);
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/lib/fix_data.yaml
+''');
   }
 
   Future<void> test_fileSystem_deleteFile_packageConfigJsonFile() async {
@@ -937,7 +1239,14 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: empty
+''');
 
     // Delete `package_config.json`, recreate analysis contexts.
     deleteFile(
@@ -948,10 +1257,18 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // We cannot resolve 'package:aaa/a.dart', so errors.
-    assertHasErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
+    // Errors are not reported for packages.
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/analysis_options.yaml
+  /home/test/lib/test.dart
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: notEmpty
+''');
   }
 
   /// Tests that deleting a file does not clear diagnostics if there's still
@@ -967,25 +1284,38 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // Initial file has errors.
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
-    // Overlay still has errors.
+    // Set overlay with different content, with errors.
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
-        a_path: AddContentOverlay('error'),
+        a_path: AddContentOverlay('error2'),
       }).toRequest('0'),
     );
     await pumpEventQueue();
     await server.onAnalysisComplete;
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
-    // After deleting the file, still has errors.
+    // Delete file, has the overlay, no notifications.
     deleteFile(a_path);
     await pumpEventQueue();
     await server.onAnalysisComplete;
-    assertHasErrors(a_path);
+    assertNotificationsText(r'''
+''');
 
     // After removing the overlay, errors are gone.
+    // TODO(scheglov): why not flush?
     await handleSuccessfulRequest(
       AnalysisUpdateContentParams({
         a_path: RemoveContentOverlay(),
@@ -993,7 +1323,11 @@ void f(A a) {}
     );
     await pumpEventQueue();
     await server.onAnalysisComplete;
-    assertNoErrors(a_path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: empty
+''');
   }
 
   Future<void> test_setPriorityFiles() async {
@@ -1014,18 +1348,27 @@ void f(A a) {}
     );
 
     await setRoots(included: [workspaceRootPath], excluded: []);
+    await server.onAnalysisComplete;
 
-    var hasPath = <String>{};
-    for (var notification in analysisErrorsNotifications) {
-      var path = notification.file;
-      if (!hasPath.add(path)) {
-        fail('Duplicate: $path');
-      } else if (path == a.path || path == c.path) {
-        if (hasPath.contains(b.path) || hasPath.contains(d.path)) {
-          fail('Priority after non-priority');
-        }
-      }
-    }
+    // a.dart and c.dart are priority files.
+    // So, they are analyzed before b.dart and d.dart
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/foo/lib/a.dart
+  errors: empty
+AnalysisErrors
+  file: /home/bar/lib/c.dart
+  errors: empty
+AnalysisErrors
+  file: /home/foo/lib/b.dart
+  errors: empty
+AnalysisErrors
+  file: /home/bar/lib/d.dart
+  errors: empty
+''');
   }
 
   Future<void> test_setPriorityFiles_notAbsolute() async {
@@ -1134,10 +1477,11 @@ void f(A a) {}
 
     // Only a.dart is included, so b.dart is not analyzed.
     await server.onAnalysisComplete;
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [b_path],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_setRoots_includedFile_setRoots() async {
@@ -1151,20 +1495,30 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // So, only a.dart is analyzed, and b.dart is not.
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [b_path],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
 
     // Include the folder that contains both a.dart and b.dart
     await setRoots(included: [testPackageRootPath], excluded: []);
     await server.onAnalysisComplete;
 
     // So, both a.dart and b.dart are analyzed.
-    _assertAnalyzedFiles(
-      hasErrors: [a_path, b_path],
-      notAnalyzed: [],
-    );
+    assertNotificationsText(r'''
+AnalysisFlush
+  /home/test/lib/a.dart
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/b.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_setRoots_includedFileFolder() async {
@@ -1186,13 +1540,17 @@ void f(A a) {}
 
     // We can combine a file, and a folder as included paths.
     // And the file that is not in there is not analyzed.
-    _assertAnalyzedFiles(hasErrors: [
-      includedFile,
-      includedFolderFile1,
-      includedFolderFile2,
-    ], notAnalyzed: [
-      notIncludedFile,
-    ]);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/foo/1.dart
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/foo/2.dart
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_setRoots_includedFolder_analysisOptions_exclude() async {
@@ -1211,10 +1569,14 @@ analyzer:
 
     // b.dart is excluded using the options file.
     await server.onAnalysisComplete;
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [b_path],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   @FailingTest(reason: 'Not implemented in ContextLocator')
@@ -1230,10 +1592,7 @@ analyzer:
     );
     await server.onAnalysisComplete;
 
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [excluded_path],
-    );
+    fail('Not implemented');
   }
 
   Future<void> test_setRoots_includedFolder_excludedFolder() async {
@@ -1249,17 +1608,20 @@ analyzer:
     await server.onAnalysisComplete;
 
     // a.dart is analyzed, but b.dart is in the excluded folder.
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [excluded_path],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_setRoots_includedFolder_notExisting() async {
     var existingFolder_path = '$testPackageLibPath/exiting';
     var notExistingFolder_path = '$testPackageLibPath/notExisting';
     var existingFile_path = '$existingFolder_path/1.dart';
-    var notExistingFile_path = '$notExistingFolder_path/1.dart';
 
     _createFilesWithErrors([
       existingFile_path,
@@ -1272,11 +1634,11 @@ analyzer:
     await server.onAnalysisComplete;
 
     // The not existing root does not prevent analysis of the existing one.
-    _assertAnalyzedFiles(hasErrors: [
-      existingFile_path,
-    ], notAnalyzed: [
-      notExistingFile_path,
-    ]);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/exiting/1.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_setRoots_notDartFile_analysisOptions_excluded() async {
@@ -1297,10 +1659,11 @@ analyzer:
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [options_path],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_setRoots_notDartFile_androidManifestXml() async {
@@ -1319,7 +1682,14 @@ analyzer:
     await setRoots(included: [workspaceRootPath], excluded: []);
 
     // No touch-screen.
-    assertHasErrors(path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/AndroidManifest.xml
+  errors: notEmpty
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+''');
   }
 
   Future<void> test_setRoots_notDartFile_fixDataYaml() async {
@@ -1330,7 +1700,14 @@ analyzer:
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
-    assertHasErrors(path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/fix_data.yaml
+  errors: notEmpty
+''');
   }
 
   Future<void> test_setRoots_notDartFile_fixDataYaml_empty() async {
@@ -1339,7 +1716,14 @@ analyzer:
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
-    assertNoErrors(path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/fix_data.yaml
+  errors: empty
+''');
   }
 
   Future<void> test_setRoots_notDartFile_fixDataYaml_onlyComments() async {
@@ -1348,13 +1732,19 @@ analyzer:
 
     await setRoots(included: [workspaceRootPath], excluded: []);
 
-    assertNoErrors(path);
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/fix_data.yaml
+  errors: empty
+''');
   }
 
   Future<void> test_setRoots_notDartFile_pubspec_excluded() async {
     deleteTestPackageAnalysisOptionsFile();
     var a_path = '$testPackageLibPath/a.dart';
-    var pubspec_path = '$testPackageRootPath/pubspec.yaml';
     var options_path = '$testPackageRootPath/analysis_options.yaml';
 
     newFile(a_path, 'error');
@@ -1374,10 +1764,15 @@ analyzer:
     await setRoots(included: [workspaceRootPath], excluded: []);
     await server.onAnalysisComplete;
 
-    _assertAnalyzedFiles(
-      hasErrors: [a_path],
-      notAnalyzed: [pubspec_path],
-    );
+    // No pubspec.yaml
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/a.dart
+  errors: notEmpty
+''');
   }
 
   Future<void> test_setRoots_packageConfigJsonFile() async {
@@ -1403,10 +1798,15 @@ void f(A a) {}
     await server.onAnalysisComplete;
 
     // We have `A` in 'package:aaa/a.dart', so no errors.
-    assertNoErrors(testFilePath);
-
-    // errors are not reported for packages
-    assertNoErrorsNotification(a_path);
+    // Errors are not reported for packages.
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: empty
+''');
   }
 
   Future<void> test_updateContent_addOverlay() async {
@@ -1416,11 +1816,14 @@ void f(A a) {}
 
     // The file in the file system has errors.
     await server.onAnalysisComplete;
-    _assertAnalyzedFiles(
-      hasErrors: [testFile.path],
-      noErrors: [],
-      notAnalyzed: [],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: notEmpty
+''');
 
     // Add an overlay without errors.
     await handleSuccessfulRequest(
@@ -1431,11 +1834,11 @@ void f(A a) {}
 
     // A new errors notification was received, no errors.
     await server.onAnalysisComplete;
-    _assertAnalyzedFiles(
-      hasErrors: [],
-      noErrors: [testFile.path],
-      notAnalyzed: [],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: empty
+''');
   }
 
   Future<void> test_updateContent_changeOverlay() async {
@@ -1452,11 +1855,14 @@ void f(A a) {}
 
     // The overlay has an error.
     await server.onAnalysisComplete;
-    _assertAnalyzedFiles(
-      hasErrors: [testFile.path],
-      noErrors: [],
-      notAnalyzed: [],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/analysis_options.yaml
+  errors: empty
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: notEmpty
+''');
 
     // Add the missing `;`.
     await handleSuccessfulRequest(
@@ -1469,11 +1875,11 @@ void f(A a) {}
 
     // A new errors notification was received, no errors.
     await server.onAnalysisComplete;
-    _assertAnalyzedFiles(
-      hasErrors: [],
-      noErrors: [testFile.path],
-      notAnalyzed: [],
-    );
+    assertNotificationsText(r'''
+AnalysisErrors
+  file: /home/test/lib/test.dart
+  errors: empty
+''');
   }
 
   Future<void> test_updateContent_notAbsolute() async {
@@ -1701,36 +2107,10 @@ class A {}
 }
 
 class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
-  final List<AnalysisErrorsParams> analysisErrorsNotifications = [];
-  final Map<String, List<AnalysisError>> filesErrors = {};
-
-  /// The files for which `analysis.flushResults` was received.
-  final List<String> flushResults = [];
-
+  final configuration = _NotificationPrinterConfiguration();
   final List<(String, Object)> notifications = [];
 
-  void assertHasErrors(String path) {
-    path = convertPath(path);
-    expect(filesErrors[path], isNotEmpty, reason: path);
-  }
-
-  void assertNoErrors(String path) {
-    path = convertPath(path);
-    expect(filesErrors[path], isEmpty, reason: path);
-  }
-
-  void assertNoErrorsNotification(String path) {
-    path = convertPath(path);
-    expect(filesErrors[path], isNull, reason: path);
-  }
-
-  void assertNotificationsText(
-    String expected, {
-    void Function(_NotificationPrinterConfiguration)? configure,
-  }) {
-    final configuration = _NotificationPrinterConfiguration();
-    configure?.call(configuration);
-
+  void assertNotificationsText(String expected) {
     final buffer = StringBuffer();
     final sink = TreeStringSink(sink: buffer, indent: '');
     _NotificationPrinter(
@@ -1748,54 +2128,19 @@ class _AnalysisDomainTest extends PubPackageAnalysisServerTest {
     expect(actual, expected);
   }
 
-  void forgetReceivedErrors() {
-    filesErrors.clear();
-  }
-
   @override
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_NOTIFICATION_FLUSH_RESULTS) {
       var decoded = AnalysisFlushResultsParams.fromNotification(notification);
       notifications.add((notification.event, decoded));
-      flushResults.addAll(decoded.files);
-      decoded.files.forEach(filesErrors.remove);
     }
     if (notification.event == ANALYSIS_NOTIFICATION_ERRORS) {
       var decoded = AnalysisErrorsParams.fromNotification(notification);
       notifications.add((notification.event, decoded));
-      analysisErrorsNotifications.add(decoded);
-      filesErrors[decoded.file] = decoded.errors;
     }
-  }
-
-  void _assertAnalyzedFiles({
-    required List<String> hasErrors,
-    List<String> noErrors = const [],
-    required List<String> notAnalyzed,
-  }) {
-    for (var path in hasErrors) {
-      assertHasErrors(path);
-    }
-
-    for (var path in noErrors) {
-      assertNoErrors(path);
-    }
-
-    for (var path in notAnalyzed) {
-      assertNoErrorsNotification(path);
-    }
-
-    filesErrors.clear();
-  }
-
-  void _assertFlushedResults(List<String> paths) {
-    var convertedPaths = paths.map(convertPath).toList();
-    expect(flushResults, unorderedEquals(convertedPaths));
-    flushResults.clear();
   }
 
   /// Create files with a content that has a compile time error.
-  /// So, when analyzed, these files will satisfy [assertHasErrors].
   void _createFilesWithErrors(List<String> paths) {
     for (var path in paths) {
       newFile(path, 'error');
