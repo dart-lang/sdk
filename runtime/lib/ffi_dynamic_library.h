@@ -5,7 +5,6 @@
 #ifndef RUNTIME_LIB_FFI_DYNAMIC_LIBRARY_H_
 #define RUNTIME_LIB_FFI_DYNAMIC_LIBRARY_H_
 
-#include "platform/globals.h"
 #include "vm/object.h"
 
 namespace dart {
