@@ -1,4 +1,4 @@
-// Copyright (c) 2017, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,30 +9,31 @@ import '../pubspec_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AssetNotStringTest);
+    defineReflectiveTests(AssetNotStringOrMapTest);
   });
 }
 
 @reflectiveTest
-class AssetNotStringTest extends PubspecDiagnosticTest {
+class AssetNotStringOrMapTest extends PubspecDiagnosticTest {
   test_assetNotString_error_int() {
     assertErrors('''
 name: sample
 flutter:
   assets:
     - 23
-''', [PubspecWarningCode.ASSET_NOT_STRING]);
+''', [PubspecWarningCode.ASSET_NOT_STRING_OR_MAP]);
   }
 
   test_assetNotString_error_map() {
-    assertErrors('''
+    newFile('/sample/assets/my_icon.png', '');
+    assertNoErrors('''
 name: sample
 flutter:
   assets:
-    - my_icon:
-      default: assets/my_icon.png
-      large: assets/large/my_icon.png
-''', [PubspecWarningCode.ASSET_NOT_STRING]);
+    - path: assets/my_icon.png
+      flavors:
+        - premium
+''');
   }
 
   test_assetNotString_noError() {

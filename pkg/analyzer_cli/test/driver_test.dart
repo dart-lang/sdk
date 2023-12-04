@@ -330,7 +330,7 @@ flutter:
       expect(
           bulletToDash(outSink),
           contains(
-              "warning - The value of the 'asset' field is expected to be a list of relative file paths"));
+              "warning - The value of the 'assets' field is expected to be a list of relative file paths"));
       expect(exitCode, 0);
     });
   }

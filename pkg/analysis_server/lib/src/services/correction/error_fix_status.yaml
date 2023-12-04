@@ -3350,9 +3350,16 @@ PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST:
 PubspecWarningCode.ASSET_FIELD_NOT_LIST:
   status: noFix
   since: ~2.15
+PubspecWarningCode.ASSET_MISSING_PATH:
+  status: needsFix
+  notes: We could add a path field with a blank value.
 PubspecWarningCode.ASSET_NOT_STRING:
   status: noFix
   since: ~2.15
+PubspecWarningCode.ASSET_NOT_STRING_OR_MAP:
+  status: noFix
+PubspecWarningCode.ASSET_PATH_NOT_STRING:
+  status: noFix
 PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP:
   status: noFix
   since: ~2.15

@@ -8,7 +8,9 @@ import 'asset_directory_does_not_exist_test.dart'
     as asset_directory_does_not_exist;
 import 'asset_does_not_exist_test.dart' as asset_does_not_exist;
 import 'asset_field_not_list_test.dart' as asset_field_not_list;
-import 'asset_not_string_test.dart' as asset_not_string;
+import 'asset_missing_path_test.dart' as asset_missing_path;
+import 'asset_not_string_or_map_test.dart' as asset_not_string_or_map;
+import 'asset_path_not_string_test.dart' as asset_path_not_string;
 import 'dependencies_field_not_map_test.dart' as dependencies_field_not_map;
 import 'deprecated_field_test.dart' as deprecated_field;
 import 'flutter_field_not_map_test.dart' as flutter_field_not_map;
@@ -30,7 +32,9 @@ main() {
     asset_directory_does_not_exist.main();
     asset_does_not_exist.main();
     asset_field_not_list.main();
-    asset_not_string.main();
+    asset_missing_path.main();
+    asset_not_string_or_map.main();
+    asset_path_not_string.main();
     dependencies_field_not_map.main();
     deprecated_field.main();
     flutter_field_not_map.main();

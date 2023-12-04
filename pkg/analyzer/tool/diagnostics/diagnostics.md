@@ -989,18 +989,18 @@ file containing the asset.
 
 ### asset_field_not_list
 
-_The value of the 'asset' field is expected to be a list of relative file
+_The value of the 'assets' field is expected to be a list of relative file
 paths._
 
 #### Description
 
-The analyzer produces this diagnostic when the value of the `asset` key
+The analyzer produces this diagnostic when the value of the `assets` key
 isn't a list.
 
 #### Example
 
-The following code produces this diagnostic because the value of the assets
-key is a string when a list is expected:
+The following code produces this diagnostic because the value of the
+`assets` key is a string when a list is expected:
 
 {% prettify yaml tag=pre+code %}
 name: example
@@ -1019,19 +1019,55 @@ flutter:
     - assets/
 {% endprettify %}
 
+### asset_missing_path
+
+_Asset map entry must contain a 'path' field._
+
+#### Description
+
+The analyzer produces this diagnostic when an asset map is missing a
+`path` value.
+
+#### Example
+
+The following code produces this diagnostic because the asset map
+is missing a `path` value:
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - flavors:
+      - premium
+{% endprettify %}
+
+#### Common fixes
+
+Change the asset map so that it contains a `path` field with a string
+value (a valid POSIX-style file path):
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - path: assets/image.gif
+      flavors:
+      - premium
+{% endprettify %}
+
 ### asset_not_string
 
 _Assets are required to be file paths (strings)._
 
 #### Description
 
-The analyzer produces this diagnostic when an asset list contains a value
-that isn't a string.
+The analyzer produces this diagnostic when an `assets` list contains a
+value that isn't a string.
 
 #### Example
 
-The following code produces this diagnostic because the asset list contains
-a map:
+The following code produces this diagnostic because the `assets` list
+contains a map:
 
 {% prettify yaml tag=pre+code %}
 name: example
@@ -1042,14 +1078,96 @@ flutter:
 
 #### Common fixes
 
-Change the asset list so that it only contains valid POSIX-style file
+Change the `assets` list so that it only contains valid POSIX-style file
 paths:
 
 {% prettify yaml tag=pre+code %}
 name: example
 flutter:
   assets:
-    - image.gif
+    - assets/image.gif
+{% endprettify %}
+
+### asset_not_string_or_map
+
+_An asset value is required to be a file path (string) or map._
+
+#### Description
+
+The analyzer produces this diagnostic when an asset value isn't a string
+or a map.
+
+#### Example
+
+The following code produces this diagnostic because the asset value
+is a list:
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - [![one, two, three]!]
+{% endprettify %}
+
+#### Common fixes
+
+If you need to specify more than just the path to the asset, then replace
+the value with a map with a `path` key (a valid POSIX-style file path):
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - path: assets/image.gif
+      flavors:
+      - premium
+{% endprettify %}
+
+If you only need to specify the path, then replace the value with the path
+to the asset (a valid POSIX-style file path):
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - assets/image.gif
+{% endprettify %}
+
+### asset_path_not_string
+
+_Asset paths are required to be file paths (strings)._
+
+#### Description
+
+The analyzer produces this diagnostic when an asset map contains a
+`path` value that isn't a string.
+
+#### Example
+
+The following code produces this diagnostic because the asset map
+contains a `path` value which is a list:
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - path: [![one, two, three]!]
+      flavors:
+      - premium
+{% endprettify %}
+
+#### Common fixes
+
+Change the `asset` map so that it contains a `path` value which is a
+string (a valid POSIX-style file path):
+
+{% prettify yaml tag=pre+code %}
+name: example
+flutter:
+  assets:
+    - path: image.gif
+      flavors:
+      - premium
 {% endprettify %}
 
 ### assignment_of_do_not_store
