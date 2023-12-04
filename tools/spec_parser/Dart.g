@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // CHANGES:
+// v0.38 Highlight locations where whitespace is significant.
 //
 // v0.37 Correct `libraryExport` to use `configurableUri`, not `uri`.
 //
@@ -515,8 +516,8 @@ operatorSignature
 operator
     :    '~'
     |    binaryOperator
-    |    '[' ']'
-    |    '[' ']' '='
+    |    '[' NO_SKIP ']'
+    |    '[' NO_SKIP ']' NO_SKIP '='
     ;
 
 binaryOperator
@@ -616,9 +617,9 @@ metadata
     ;
 
 metadatum
-    :    constructorDesignation arguments
-    |    identifier
-    |    qualifiedName
+    :    constructorDesignation NO_SKIP arguments
+    |    identifier YES_SKIP
+    |    qualifiedName YES_SKIP
     ;
 
 expression
@@ -856,8 +857,8 @@ compoundAssignmentOperator
     |    '+='
     |    '-='
     |    '<<='
-    |    '>' '>' '>' '='
-    |    '>' '>' '='
+    |    '>' NO_SKIP '>' NO_SKIP '>' NO_SKIP '='
+    |    '>' NO_SKIP '>' NO_SKIP '='
     |    '&='
     |    '^='
     |    '|='
@@ -898,7 +899,7 @@ relationalExpression
     ;
 
 relationalOperator
-    :    '>' '='
+    :    '>' NO_SKIP '='
     |    '>'
     |    '<='
     |    '<'
@@ -932,8 +933,8 @@ shiftExpression
 
 shiftOperator
     :    '<<'
-    |    '>' '>' '>'
-    |    '>' '>'
+    |    '>' NO_SKIP '>' NO_SKIP '>'
+    |    '>' NO_SKIP '>'
     ;
 
 additiveExpression
@@ -2186,14 +2187,24 @@ IDENTIFIER
     :    IDENTIFIER_START IDENTIFIER_PART*
     ;
 
+SKIPPABLE
+    :    (SINGLE_LINE_COMMENT | MULTI_LINE_COMMENT | WS) { skip(); }
+    ;
+
+NO_SKIP
+    :    { /* TODO: accept if first(SKIPPABLE) can't be recognized */ }
+    ;
+
+YES_SKIP
+    :    { /* TODO: accept if first(SKIPPABLE) can be recognized */ }
+    ;
+
 SINGLE_LINE_COMMENT
     :    '//' (~('\r' | '\n'))* NEWLINE?
-         { skip(); }
     ;
 
 MULTI_LINE_COMMENT
     :    '/*' (MULTI_LINE_COMMENT | .)*? '*/'
-         { skip(); }
     ;
 
 fragment
@@ -2207,5 +2218,4 @@ FEFF
 
 WS
     :    (' ' | '\t' | '\r' | '\n')+
-         { skip(); }
     ;
