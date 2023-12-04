@@ -2113,7 +2113,10 @@ class MacroDeclarationsTest_keepLinking extends MacroDeclarationsTest {
 
 abstract class MacroDefinitionTest extends MacroElementsBaseTest {
   test_class_addConstructor_augmentConstructor() async {
-    _addSingleMacro('addDeclaration_augmentDeclaration.dart');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      _getMacroCode('add_augment_declaration.dart'),
+    );
 
     var library = await buildLibrary(r'''
 import 'a.dart';
@@ -2177,7 +2180,10 @@ augment class A {
   }
 
   test_class_addMethod_augmentMethod() async {
-    _addSingleMacro('addDeclaration_augmentDeclaration.dart');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      _getMacroCode('add_augment_declaration.dart'),
+    );
 
     var library = await buildLibrary(r'''
 import 'a.dart';
