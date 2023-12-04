@@ -131,7 +131,6 @@ void main() {
           '--source=file:${applyTestMacroFile.path}',
           '--packages-file=file:${packageConfig.path}',
           '--enable-experiment=macros',
-          '--precompiled-macro-format=kernel',
           '--precompiled-macro',
           'file:${bootstrapDillFile.path};$testMacroUri',
           '--macro-serialization-mode=bytedata',

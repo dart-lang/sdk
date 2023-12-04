@@ -210,13 +210,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     if (member is Constructor) {
+      translator.membersBeingGenerated.add(member);
       if (reference.isConstructorBodyReference) {
-        return generateConstructorBody(reference);
+        generateConstructorBody(reference);
       } else if (reference.isInitializerReference) {
-        return generateInitializerList(reference);
+        generateInitializerList(reference);
+      } else {
+        generateConstructorAllocator(member);
       }
-
-      return generateConstructorAllocator(member);
+      translator.membersBeingGenerated.remove(member);
+      return;
     }
 
     if (member is Field) {
