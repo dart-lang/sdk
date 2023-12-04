@@ -109,16 +109,11 @@ final summaryArgsParser = ArgParser()
       allowedHelp: fe.Verbosity.allowedValuesHelp)
   ..addMultiOption('precompiled-macro',
       help: 'Configuration for precompiled macro binaries or kernel files.\n'
-          'Must be used in combination with --precompiled-macro-format.\n'
           'The expected format of this option is as follows: '
           '<absolute-path-to-binary>;<macro-library-uri>\nFor example: '
           '--precompiled-macro="/path/to/compiled/macro;'
           'package:some_macro/some_macro.dart". Multiple library uris may be '
           'passed as well (separated by semicolons).')
-  ..addOption('precompiled-macro-format',
-      help: 'The format for precompiled macros.',
-      allowed: ['aot', 'kernel'],
-      defaultsTo: 'aot')
   ..addOption('macro-serialization-mode',
       help: 'The serialization mode for communicating with macros.',
       allowed: ['bytedata', 'json'],
