@@ -9771,8 +9771,8 @@ class Parser {
         if (!isBareIdentifier) {
           reportRecoverableError(
               token,
-              codes.templatePatternAssignmentDeclaresVariable
-                  .withArguments(variableName));
+              codes.templatePatternAssignmentDeclaresVariable.withArguments(
+                  variableName.isEmpty ? '(unnamed)' : variableName));
         }
         break;
     }
