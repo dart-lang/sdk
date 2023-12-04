@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -75,6 +76,30 @@ String? longMethodName(
   String? Function(String?, String?, String?) bbb,
   String? ccc,
 ])''');
+  }
+
+  void test_property_getter() {
+    final getterA = PropertyAccessorElementImpl.forVariable(
+        TopLevelVariableElementImpl('a', 0))
+      ..isGetter = true
+      ..returnType = stringNone;
+
+    expect(getterA.getDisplayString(withNullability: true), 'String get a');
+  }
+
+  void test_property_setter() {
+    final setterA = PropertyAccessorElementImpl.forVariable(
+        TopLevelVariableElementImpl('a', 0))
+      ..isSetter = true
+      ..returnType = voidNone
+      ..parameters = [
+        requiredParameter(name: 'value', type: stringNone),
+      ];
+
+    expect(
+      setterA.getDisplayString(withNullability: true),
+      'set a(String value)',
+    );
   }
 
   void test_shortMethod() {

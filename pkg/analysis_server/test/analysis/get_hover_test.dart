@@ -661,7 +661,7 @@ void f(A a) {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'void set fff(String value)');
+    expect(hover.elementDescription, 'set fff(String value)');
     expect(hover.elementKind, 'setter');
     // types
     expect(hover.staticType, 'String');
@@ -685,7 +685,7 @@ void f(A<String> a) {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'void set fff(T value)');
+    expect(hover.elementDescription, 'set fff(T value)');
     expect(hover.elementKind, 'setter');
     // types
     expect(hover.staticType, 'String');
@@ -706,7 +706,7 @@ void f(A a) {
     var hover = await prepareHover('foo = 1');
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''setting''');
-    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementDescription, 'set foo(int x)');
     expect(hover.elementKind, 'setter');
   }
 
@@ -724,7 +724,7 @@ void f(A a) {
     var hover = await prepareHover('foo = 1');
     expect(hover.containingClassDescription, 'A');
     expect(hover.dartdoc, '''getting''');
-    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementDescription, 'set foo(int x)');
     expect(hover.elementKind, 'setter');
   }
 
@@ -748,7 +748,7 @@ void f(B b) {
     var hover = await prepareHover('foo = ');
     expect(hover.containingClassDescription, 'B');
     expect(hover.dartdoc, '''psetting\n\nCopied from `A`.''');
-    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementDescription, 'set foo(int x)');
     expect(hover.elementKind, 'setter');
   }
 
@@ -770,7 +770,7 @@ void f(B b) {
     var hover = await prepareHover('foo = ');
     expect(hover.containingClassDescription, 'B');
     expect(hover.dartdoc, '''pgetting\n\nCopied from `A`.''');
-    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementDescription, 'set foo(int x)');
     expect(hover.elementKind, 'setter');
   }
 
@@ -791,7 +791,7 @@ void f(B b) {
     var hover = await prepareHover('foo = ');
     expect(hover.containingClassDescription, 'B');
     expect(hover.dartdoc, '''pgetting''');
-    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementDescription, 'set foo(int x)');
     expect(hover.elementKind, 'setter');
   }
 
@@ -1036,7 +1036,7 @@ void f(E e) {
     var hover = await prepareHover('foo = ');
     expect(hover.containingClassDescription, 'E');
     expect(hover.dartdoc, '''setting''');
-    expect(hover.elementDescription, 'void set foo(int x)');
+    expect(hover.elementDescription, 'set foo(int x)');
     expect(hover.elementKind, 'setter');
   }
 
@@ -1571,7 +1571,7 @@ void f(A a) {
     expect(hover.containingLibraryPath, testFile.path);
     expect(hover.containingClassDescription, isNull);
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
-    expect(hover.elementDescription, 'void set fff(String value)');
+    expect(hover.elementDescription, 'set fff(String value)');
     expect(hover.elementKind, 'setter');
     // types
     expect(hover.staticType, 'String');
