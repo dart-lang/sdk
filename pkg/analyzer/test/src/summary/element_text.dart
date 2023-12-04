@@ -213,6 +213,9 @@ class _ElementWriter {
     }
 
     void writeConstructors() {
+      if (!configuration.withConstructors) {
+        return;
+      }
       if (augmented is AugmentedInterfaceElementImpl) {
         final sorted = augmented.constructors.sortedBy((e) => e.name);
         expect(sorted, isNotEmpty);

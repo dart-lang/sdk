@@ -4,3 +4,7 @@ analyzer:
   errors:
     # We use camel case file names in this directory.
     file_names: ignore
+
+linter:
+  rules:
+    - unawaited_futures
