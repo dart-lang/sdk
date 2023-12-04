@@ -186,7 +186,7 @@ class DartdevRunner extends CommandRunner<int> {
     if (topLevelResults['disable-analytics']) {
       // Disable sending data via the unified analytics package.
       await unifiedAnalytics.setTelemetry(false);
-      unifiedAnalytics.close();
+      await unifiedAnalytics.close();
 
       // Alert the user that analytics has been disabled.
       print(analyticsDisabledNoticeMessage);
@@ -194,7 +194,7 @@ class DartdevRunner extends CommandRunner<int> {
     } else if (topLevelResults['enable-analytics']) {
       // Enable sending data via the unified analytics package.
       await unifiedAnalytics.setTelemetry(true);
-      unifiedAnalytics.close();
+      await unifiedAnalytics.close();
 
       // Alert the user again that data will be collected.
       if (!analyticsMessagePrinted) {
@@ -259,7 +259,7 @@ class DartdevRunner extends CommandRunner<int> {
 
       // Set the exitCode, if it wasn't set in the catch block above.
       exitCode ??= 0;
-      unifiedAnalytics.close();
+      await unifiedAnalytics.close();
     }
 
     return exitCode;
