@@ -570,7 +570,7 @@ class Translator with KernelNodes {
     }
     if (type is TypeParameterType) {
       return translateStorageType(nullable
-          ? type.bound.withDeclaredNullability(type.nullability)
+          ? type.bound.withDeclaredNullability(Nullability.nullable)
           : type.bound);
     }
     if (type is IntersectionType) {
