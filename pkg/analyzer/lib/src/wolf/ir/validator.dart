@@ -226,6 +226,11 @@ class _Validator {
           var argumentNames = Opcode.call.decodeArgumentNames(ir, address);
           popValues(ir.decodeArgumentNames(argumentNames).length);
           pushValues(1);
+        case Opcode.concat:
+          var count = Opcode.concat.decodeCount(ir, address);
+          check(count >= 0, 'Negative concat count');
+          popValues(count);
+          pushValues(1);
         case Opcode.drop:
           popValues(1);
         case Opcode.dup:

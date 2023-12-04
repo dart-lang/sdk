@@ -88,6 +88,7 @@ class _Instructions {
     _addInstruction('identical', []);
     _addInstruction('eq', []);
     _addInstruction('not', []);
+    _addInstruction('concat', [uint('count')]);
     _addInstruction('is_', [type('type')]);
     // Stack manipulation
     _addInstruction('drop', []);
