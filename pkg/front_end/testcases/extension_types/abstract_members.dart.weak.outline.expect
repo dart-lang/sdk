@@ -133,7 +133,7 @@ static extension-type-member method ET1|constructor#(core::int id) → self::ET1
 static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1 /* = core::int */
   return self::ET1|constructor#(id);
 static abstract extension-type-member get ET1|m() → core::int;
-static abstract extension-type-member set ET1|m(core::int #externalFieldValue) → void;
+static abstract extension-type-member set ET1|m(synthesized core::int #externalFieldValue) → void;
 static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% id) → self::ET2<self::ET2|constructor#::T%> /* = self::ET2|constructor#::T% */
   ;
 static extension-type-member method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% id) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* = self::ET2|constructor#_#new#tearOff::T% */
@@ -168,7 +168,7 @@ static extension-type-member method ET6|get#method(lowered final self::ET6 /* = 
 static abstract extension-type-member method ET6|get#getter(lowered final self::ET6 /* = self::A */ #this) → core::int;
 static abstract extension-type-member method ET6|set#setter(lowered final self::ET6 /* = self::A */ #this, core::int v) → void;
 static abstract extension-member get E|m() → core::int;
-static abstract extension-member set E|m(core::int #externalFieldValue) → void;
+static abstract extension-member set E|m(synthesized core::int #externalFieldValue) → void;
 static abstract extension-member method E|method(lowered final self::A #this) → core::int;
 static extension-member method E|get#method(lowered final self::A #this) → () → core::int
   return () → core::int => self::E|method(#this);

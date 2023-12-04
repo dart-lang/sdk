@@ -34,7 +34,7 @@ library from "org-dartlang-test:///structs.dart" as str {
         synthesized dart.core::Object #typedDataBase = this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object};
         synthesized dart.core::int #offset = #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};
       } =>#typedDataBase is{ForLegacy} dart.ffi::Pointer<dart.ffi::NativeType> ?{dart.core::Object} dart.ffi::_fromAddress<str::Y>(#typedDataBase.{dart.ffi::Pointer::address}{dart.core::int}.{dart.core::num::+}(#offset){(dart.core::num) → dart.core::num}) : let synthesized dart.typed_data::TypedData #typedData = dart._internal::unsafeCast<dart.typed_data::TypedData>(#typedDataBase) in #typedData.{dart.typed_data::TypedData::buffer}{dart.typed_data::ByteBuffer}.{dart.typed_data::ByteBuffer::asUint8List}(#typedData.{dart.typed_data::TypedData::offsetInBytes}{dart.core::int}.{dart.core::num::+}(#offset){(dart.core::num) → dart.core::num}, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}){([dart.core::int, dart.core::int?]) → dart.typed_data::Uint8List});
-    set yy(str::Y #externalFieldValue) → void
+    set yy(synthesized str::Y #externalFieldValue) → void
       return dart.ffi::_memCopy(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C7, #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
     @#C10
     static get #sizeOf() → dart.core::int*
@@ -48,7 +48,7 @@ library from "org-dartlang-test:///structs.dart" as str {
       : super dart.ffi::Struct::_fromTypedDataBase(#typedDataBase)
       ;
     external get zz() → invalid-type;
-    external set zz(invalid-type #externalFieldValue) → void;
+    external set zz(synthesized invalid-type #externalFieldValue) → void;
     @#C10
     static get #sizeOf() → dart.core::int*
       return #C8.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*};

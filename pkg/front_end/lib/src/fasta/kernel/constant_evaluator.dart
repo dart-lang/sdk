@@ -1312,7 +1312,7 @@ class ConstantsTransformer extends RemovingTransformer {
               .createExpression(typeEnvironment, inCacheInitializer: false);
           if (guard != null) {
             headCondition = createAndExpression(headCondition, guard,
-                fileOffset: guard.fileOffset);
+                fileOffset: TreeNode.noOffset);
           }
 
           for (VariableDeclaration declaredVariable
@@ -1657,7 +1657,7 @@ class ConstantsTransformer extends RemovingTransformer {
     Expression? guard = node.patternGuard.guard;
     if (guard != null) {
       condition =
-          createAndExpression(condition, guard, fileOffset: guard.fileOffset);
+          createAndExpression(condition, guard, fileOffset: TreeNode.noOffset);
     }
     List<Statement> replacementStatements = [
       ...node.patternGuard.pattern.declaredVariables,
@@ -2044,7 +2044,7 @@ class ConstantsTransformer extends RemovingTransformer {
             .createExpression(typeEnvironment, inCacheInitializer: false);
         if (guard != null) {
           caseCondition = createAndExpression(caseCondition, guard,
-              fileOffset: guard.fileOffset);
+              fileOffset: TreeNode.noOffset);
         }
 
         cases.add(createBlock([

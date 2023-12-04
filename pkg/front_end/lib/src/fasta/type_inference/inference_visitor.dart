@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(jensj): Probably all `_createVariableGet(result)` needs their offset
+// "nulled out".
+
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -2836,7 +2839,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       VariableDeclaration result, List<Statement> body,
       {required bool isSet}) {
     body.add(_createExpressionStatement(_createAdd(
-        _createVariableGet(result), receiverType, element,
+        // Don't make a mess of jumping around (and make scope building
+        // impossible).
+        _createVariableGet(result)..fileOffset = TreeNode.noOffset,
+        receiverType,
+        element,
         isSet: isSet)));
   }
 
@@ -2997,7 +3004,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
 
       Statement statement = _createExpressionStatement(_createAddAll(
-          _createVariableGet(result), receiverType, value, isSet));
+          // Don't make a mess of jumping around (and make scope building
+          // impossible).
+          _createVariableGet(result)..fileOffset = TreeNode.noOffset,
+          receiverType,
+          value,
+          isSet));
 
       if (element.isNullAware) {
         statement = _createIf(
@@ -3026,8 +3038,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           elementType);
       Statement loopBody = _createBlock(<Statement>[
         castedVar,
-        _createExpressionStatement(_createAdd(_createVariableGet(result),
-            receiverType, _createVariableGet(castedVar),
+        _createExpressionStatement(_createAdd(
+            // Don't make a mess of jumping around (and make scope building
+            // impossible).
+            _createVariableGet(result)..fileOffset = TreeNode.noOffset,
+            receiverType,
+            _createVariableGet(castedVar),
             isSet: isSet))
       ]);
       Statement statement =
@@ -3170,8 +3186,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   void _addNormalEntry(MapLiteralEntry entry, InterfaceType receiverType,
       VariableDeclaration result, List<Statement> body) {
-    body.add(_createExpressionStatement(_createIndexSet(entry.fileOffset,
-        _createVariableGet(result), receiverType, entry.key, entry.value)));
+    body.add(_createExpressionStatement(_createIndexSet(
+        entry.fileOffset,
+        _createVariableGet(result)..fileOffset = TreeNode.noOffset,
+        receiverType,
+        entry.key,
+        entry.value)));
   }
 
   void _translateIfEntry(
@@ -3333,8 +3353,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         value = _createNullCheckedVariableGet(temp);
       }
 
-      Statement statement = _createExpressionStatement(
-          _createMapAddAll(_createVariableGet(result), receiverType, value));
+      Statement statement = _createExpressionStatement(_createMapAddAll(
+          // Don't make a mess of jumping around (and make scope building
+          // impossible).
+          _createVariableGet(result)..fileOffset = TreeNode.noOffset,
+          receiverType,
+          value));
 
       if (entry.isNullAware) {
         statement = _createIf(
@@ -9569,7 +9593,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         caseIndex < node.cases.length - 1) {
       LabeledStatement switchLabel = node.parent as LabeledStatement;
       BreakStatement syntheticBreak = new BreakStatement(switchLabel)
-        ..fileOffset = node.fileOffset;
+        ..fileOffset = TreeNode.noOffset;
       if (body is Block) {
         body.statements.add(syntheticBreak);
         syntheticBreak.parent = body;

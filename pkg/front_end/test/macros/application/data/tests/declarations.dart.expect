@@ -49,7 +49,7 @@ abstract class Class2 extends core::Object {
   @#C3
   abstract get instanceField1() → core::int?;
   @#C3
-  abstract set instanceField1(core::int? #externalFieldValue) → void;
+  abstract set instanceField1(synthesized core::int? #externalFieldValue) → void;
 }
 @#C6
 static field core::int? topLevelField1;
@@ -64,7 +64,7 @@ external static method topLevelFunction2() → void;
 @#C6
 external static get topLevelField2() → core::int?;
 @#C6
-external static set topLevelField2(core::int? #externalFieldValue) → void;
+external static set topLevelField2(synthesized core::int? #externalFieldValue) → void;
 @#C7
 static get topLevelGetter1() → core::int?
   return null;

@@ -548,3 +548,24 @@ class AstPrinter {
   /// Returns the text written to this printer.
   String getText() => _sb.toString();
 }
+
+class MarkingAstPrinter extends AstPrinter {
+  Set<TreeNode> markThis;
+  MarkingAstPrinter(super.strategy, this.markThis);
+
+  @override
+  void writeStatement(Statement node) {
+    bool mark = markThis.contains(node);
+    if (mark) write("***");
+    super.writeStatement(node);
+    if (mark) write("***");
+  }
+
+  @override
+  void writeExpression(Expression node, {int? minimumPrecedence}) {
+    bool mark = markThis.contains(node);
+    if (mark) write("***");
+    super.writeExpression(node, minimumPrecedence: minimumPrecedence);
+    if (mark) write("***");
+  }
+}

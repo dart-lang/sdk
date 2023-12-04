@@ -413,4 +413,10 @@ void testNonExistingFunction() {
     doesnotexist92304(2, 3);
   });
   Expect.contains(doesNotExistName, argumentError2.message);
+  Expect.contains('No asset with id', argumentError2.message);
+  Expect.contains('Available native assets: ', argumentError2.message);
+  Expect.contains(
+    'Attempted to fallback to process lookup.',
+    argumentError2.message,
+  );
 }

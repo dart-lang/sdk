@@ -80,11 +80,11 @@ class ConcreteSuper extends core::Object {
   synthetic constructor •() → self::ConcreteSuper
     ;
   abstract get extendedAbstractField() → core::int;
-  abstract set extendedAbstractField(core::int #externalFieldValue) → void;
+  abstract set extendedAbstractField(synthesized core::int #externalFieldValue) → void;
   abstract get declaredConcreteExtendsAbstractField() → core::int;
-  abstract set declaredConcreteExtendsAbstractField(core::int #externalFieldValue) → void;
+  abstract set declaredConcreteExtendsAbstractField(synthesized core::int #externalFieldValue) → void;
   abstract get declaredAbstractExtendsAbstractField() → core::int;
-  abstract set declaredAbstractExtendsAbstractField(core::int #externalFieldValue) → void;
+  abstract set declaredAbstractExtendsAbstractField(synthesized core::int #externalFieldValue) → void;
 }
 class ConcreteClass extends self::ConcreteSuper {
   field core::int declaredConcreteField;
@@ -93,11 +93,11 @@ class ConcreteClass extends self::ConcreteSuper {
   synthetic constructor •() → self::ConcreteClass
     ;
   abstract get declaredAbstractField() → core::int;
-  abstract set declaredAbstractField(core::int #externalFieldValue) → void;
+  abstract set declaredAbstractField(synthesized core::int #externalFieldValue) → void;
   abstract get declaredAbstractExtendsConcreteField() → core::int;
-  abstract set declaredAbstractExtendsConcreteField(core::int #externalFieldValue) → void;
+  abstract set declaredAbstractExtendsConcreteField(synthesized core::int #externalFieldValue) → void;
   abstract get declaredAbstractExtendsAbstractField() → core::int;
-  abstract set declaredAbstractExtendsAbstractField(core::int #externalFieldValue) → void;
+  abstract set declaredAbstractExtendsAbstractField(synthesized core::int #externalFieldValue) → void;
 }
 static method main() → dynamic
   ;

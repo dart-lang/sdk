@@ -1236,10 +1236,14 @@ class Cache {
           }
         }
         if (_matchingCache.useLowering && _isLate) {
-          result = createLocalFunctionInvocation(_getVariable!,
-              fileOffset: _fileOffset);
+          LocalFunctionInvocation localFunctionInvocation =
+              createLocalFunctionInvocation(_getVariable!,
+                  fileOffset: _fileOffset)
+                ..fileOffset = TreeNode.noOffset;
+          localFunctionInvocation.arguments.fileOffset = TreeNode.noOffset;
+          result = localFunctionInvocation;
         } else {
-          result = createVariableGet(variable);
+          result = createVariableGet(variable)..fileOffset = TreeNode.noOffset;
         }
       } else {
         assert(_isLate, "Unexpected non-late cache ${cacheKey.name}");

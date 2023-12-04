@@ -19,7 +19,7 @@ final class Struct1ByteInt extends ffi::Struct {
   get a0() → core::int
     return ffi::_loadInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
   @#C7
-  set a0(core::int #externalFieldValue) → void
+  set a0(synthesized core::int #externalFieldValue) → void
     return ffi::_storeInt8(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C9.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
   method toString() → core::String
     return "(${this.{self::Struct1ByteInt::a0}{core::int}})";

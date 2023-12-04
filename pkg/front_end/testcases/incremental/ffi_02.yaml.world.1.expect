@@ -12,17 +12,17 @@ library from "org-dartlang-test:///lib.dart" as lib {
     get x() → dart.core::double
       return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C10.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
     @#C8
-    set x(dart.core::double #externalFieldValue) → void
+    set x(synthesized dart.core::double #externalFieldValue) → void
       return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C10.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue);
     @#C8
     get y() → dart.core::double
       return dart.ffi::_loadDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*});
     @#C8
-    set y(dart.core::double #externalFieldValue) → void
+    set y(synthesized dart.core::double #externalFieldValue) → void
       return dart.ffi::_storeDouble(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C12.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue);
     get next() → dart.ffi::Pointer<lib::Coordinate>
       return dart.ffi::_fromAddress<lib::Coordinate>(dart.ffi::_loadAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}));
-    set next(dart.ffi::Pointer<lib::Coordinate> #externalFieldValue) → void
+    set next(synthesized dart.ffi::Pointer<lib::Coordinate> #externalFieldValue) → void
       return dart.ffi::_storeAbiSpecificInt<dart.ffi::IntPtr>(this.{dart.ffi::_Compound::_typedDataBase}{dart.core::Object}, #C14.{dart.core::List::[]}(dart.ffi::_abi()){(dart.core::int) → dart.core::int*}, #externalFieldValue.{dart.ffi::Pointer::address}{dart.core::int});
     static factory allocate(dart.core::double x, dart.core::double y, dart.ffi::Pointer<lib::Coordinate>? next) → lib::Coordinate {
       throw "";

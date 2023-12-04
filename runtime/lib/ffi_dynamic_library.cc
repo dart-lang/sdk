@@ -17,12 +17,10 @@
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
 #include "vm/ffi/native_assets.h"
-#include "vm/globals.h"
-#include "vm/hash_table.h"
 #include "vm/native_entry.h"
-#include "vm/object_store.h"
 #include "vm/symbols.h"
 #include "vm/uri.h"
+#include "vm/zone_text_buffer.h"
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
@@ -348,6 +346,36 @@ static ArrayPtr GetAssetLocation(Thread* const thread, const String& asset) {
   return result.ptr();
 }
 
+// String is zone allocated.
+static char* AvailableAssetsToCString(Thread* const thread) {
+  Zone* const zone = thread->zone();
+
+  const auto& native_assets_map =
+      Array::Handle(zone, GetNativeAssetsMap(thread));
+  ZoneTextBuffer buffer(zone, 1024);
+
+  if (native_assets_map.IsNull()) {
+    buffer.Printf("No available native assets.");
+  } else {
+    bool first = true;
+    buffer.Printf("Available native assets: ");
+    NativeAssetsMap map(native_assets_map.ptr());
+    NativeAssetsMap::Iterator it(&map);
+    auto& asset_id = String::Handle(zone);
+    while (it.MoveNext()) {
+      if (!first) {
+        buffer.Printf(" ,");
+      }
+      auto entry = it.Current();
+      asset_id ^= map.GetKey(entry);
+      buffer.Printf("%s", asset_id.ToCString());
+    }
+    buffer.Printf(".");
+    map.Release();
+  }
+  return buffer.buffer();
+}
+
 // If an error occurs populates |error| with an error message
 // (caller must free this message when it is no longer needed).
 //
@@ -470,6 +498,19 @@ intptr_t FfiResolveInternal(const String& asset,
 #else
   void* const result = LookupSymbolInProcess(symbol.ToCString(), error);
 #endif
+
+  if (*error != nullptr) {
+    // Process lookup failed, but the user might have tried to use native
+    // asset lookup. So augment the error message to include native assets info.
+    char* process_lookup_error = *error;
+    *error = OS::SCreate(/*use malloc*/ nullptr,
+                         "No asset with id '%s' found. %s "
+                         "Attempted to fallback to process lookup. %s",
+                         asset.ToCString(), AvailableAssetsToCString(thread),
+                         process_lookup_error);
+    free(process_lookup_error);
+  }
+
   return reinterpret_cast<intptr_t>(result);
 }
 

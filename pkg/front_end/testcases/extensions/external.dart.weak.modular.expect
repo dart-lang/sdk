@@ -26,9 +26,9 @@ extension Extension<T extends core::num> on core::List<T> {
   static set staticFieldSetter = set self::Extension|staticFieldSetter;
 }
 external static extension-member method Extension|get#field<T extends core::num>(lowered core::List<self::Extension|get#field::T> #this) → self::Extension|get#field::T;
-external static extension-member method Extension|set#field<T extends core::num>(lowered core::List<self::Extension|set#field::T> #this, self::Extension|set#field::T #externalFieldValue) → void;
+external static extension-member method Extension|set#field<T extends core::num>(lowered core::List<self::Extension|set#field::T> #this, synthesized self::Extension|set#field::T #externalFieldValue) → void;
 external static extension-member get Extension|staticField() → core::int;
-external static extension-member set Extension|staticField(core::int #externalFieldValue) → void;
+external static extension-member set Extension|staticField(synthesized core::int #externalFieldValue) → void;
 external static extension-member method Extension|get#finalField<T extends core::num>(lowered core::List<self::Extension|get#finalField::T> #this) → self::Extension|get#finalField::T;
 external static extension-member get Extension|staticFinalField() → core::int;
 external static extension-member method Extension|method<T extends core::num>(lowered final core::List<self::Extension|method::T> #this) → self::Extension|method::T;

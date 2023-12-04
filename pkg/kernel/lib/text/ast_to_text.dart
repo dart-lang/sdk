@@ -169,7 +169,8 @@ String debugVariableDeclarationName(VariableDeclaration node) {
 
 String debugNodeToString(Node node) {
   StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: globalDebuggingNames).writeNode(node);
+  new Printer(buffer, showOffsets: true, syntheticNames: globalDebuggingNames)
+      .writeNode(node);
   return '$buffer';
 }
 
