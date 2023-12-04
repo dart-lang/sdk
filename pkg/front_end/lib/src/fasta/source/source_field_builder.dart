@@ -1768,7 +1768,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .attachMember(_getter);
       if (!isFinal) {
         VariableDeclaration parameter =
-            new VariableDeclaration("#externalFieldValue")
+            new VariableDeclaration("#externalFieldValue", isSynthesized: true)
               ..isCovariantByDeclaration = isCovariantByDeclaration
               ..fileOffset = charOffset;
         _setter = new Procedure(
@@ -1808,7 +1808,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .attachMember(_getter);
       if (!isFinal) {
         VariableDeclaration parameter =
-            new VariableDeclaration("#externalFieldValue")
+            new VariableDeclaration("#externalFieldValue", isSynthesized: true)
               ..isCovariantByDeclaration = isCovariantByDeclaration
               ..fileOffset = charOffset;
         _setter = new Procedure(

@@ -499,7 +499,7 @@ class DelayedAssignment extends DelayedExpression {
                   effects: effects, inCacheInitializer: inCacheInitializer),
               allowFinalAssignment: true,
               fileOffset: fileOffset),
-          result: createBoolLiteral(true, fileOffset: fileOffset));
+          result: createBoolLiteral(true, fileOffset: TreeNode.noOffset));
     }
   }
 
