@@ -2192,11 +2192,11 @@ SKIPPABLE
     ;
 
 NO_SKIP
-    :    { /* TODO: accept if first(SKIPPABLE) can't be recognized */ }
+    :    { true; /* TODO: accept if first(SKIPPABLE) can't be recognized */ }
     ;
 
 YES_SKIP
-    :    { /* TODO: accept if first(SKIPPABLE) can be recognized */ }
+    :    { true; /* TODO: accept if first(SKIPPABLE) can be recognized */ }
     ;
 
 SINGLE_LINE_COMMENT
