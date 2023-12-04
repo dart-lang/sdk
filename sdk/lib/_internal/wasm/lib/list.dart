@@ -23,7 +23,9 @@ abstract class _ListBase<E> extends ListBase<E> {
   _ListBase._withData(this._length, this._data);
 
   E operator [](int index) {
-    IndexError.check(index, _length, indexable: this, name: "[]");
+    if (WasmI64.fromInt(_length).leU(WasmI64.fromInt(index))) {
+      throw IndexError.withLength(index, length, name: "[]");
+    }
     return unsafeCast(_data.read(index));
   }
 
@@ -58,7 +60,9 @@ abstract class _ModifiableList<E> extends _ListBase<E> {
       : super._withData(length, data);
 
   void operator []=(int index, E value) {
-    IndexError.check(index, _length, indexable: this, name: "[]=");
+    if (WasmI64.fromInt(_length).leU(WasmI64.fromInt(index))) {
+      throw IndexError.withLength(index, length, name: "[]=");
+    }
     _data.write(index, value);
   }
 
