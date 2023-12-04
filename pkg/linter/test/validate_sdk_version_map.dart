@@ -5,14 +5,19 @@
 import 'dart:io';
 
 import 'package:analyzer/src/lint/state.dart';
+import 'package:analyzer_utilities/package_root.dart' as pkg_root;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 void main() {
   group('check to ensure all lints have versions in `sdk.yaml`', () {
-    var sinceFile = File('tool/since/sdk.yaml').readAsStringSync();
+    var linterPkgPath =
+        path.normalize(path.join(pkg_root.packageRoot, 'linter'));
+    var sinceFile = File(path.join(linterPkgPath, 'tool', 'since', 'sdk.yaml'))
+        .readAsStringSync();
     var versionMap = loadYamlNode(sinceFile) as YamlMap;
     registerLintRules();
     var publicRules =
