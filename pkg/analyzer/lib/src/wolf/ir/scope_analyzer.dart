@@ -49,6 +49,10 @@ base class ScopeAnalyzerEventListener {
   /// track the value of the variable.
   void onAlloc({required int index, required StateVar stateVar}) {}
 
+  /// Called when the scope analyzer has completely finished analyzing the
+  /// instruction stream.
+  void onFinished() {}
+
   /// Called prior to visiting each instruction.
   ///
   /// This call back is invoked before more specific callbacks like [onAlloc].
@@ -496,6 +500,7 @@ base class _ScopeAnalyzer {
     assert(scopeStart == 0);
     assert(outerScopeStarts.isEmpty);
     assert(localToStateVar.isEmpty);
+    eventListener.onFinished();
   }
 
   void stateVarAffected(StateVar stateVar) {

@@ -18,9 +18,10 @@ main() {
 
 @reflectiveTest
 class ScopeAnalyzerTest {
+  final _addressToOnAnalyzeCallbacks =
+      <int, List<void Function(ScopeAnalyzerEventListener)>>{};
   final labelToScope = <String, int>{};
   final labelToStateVar = <String, StateVar>{};
-  final onInstruction = <void Function(int address)>[];
   late final TestIRContainer ir;
   late final Scopes scopeAnalysisResult;
 
@@ -28,8 +29,6 @@ class ScopeAnalyzerTest {
   /// that local variable indices and state variable indices are properly
   /// distinguished.
   bool createExtraStateVarPerScope = true;
-
-  _ScopeAnalyzerEventListener? eventListener;
 
   LiteralRef get dummyLiteral => LiteralRef(0);
 
@@ -412,16 +411,9 @@ class ScopeAnalyzerTest {
 
   void test_stateVarAffected() {
     late StateVar stateVar;
-    onInstruction.add((address) {
-      if (address == ir.labelToAddress('create')) {
-        stateVar = eventListener!.createStateVar();
-      } else if (address == ir.labelToAddress('affect')) {
-        eventListener!.stateVarAffected(stateVar);
-      }
-    });
     _analyze((ir) => ir
       ..ordinaryFunction(parameterCount: 4)
-      ..label('create')
+      ..onAnalyze((eventListener) => stateVar = eventListener.createStateVar())
       ..drop()
       ..label('block1')
       ..block(1, 0)
@@ -429,7 +421,7 @@ class ScopeAnalyzerTest {
       ..end()
       ..label('block2')
       ..block(1, 0)
-      ..label('affect')
+      ..onAnalyze((eventListener) => eventListener.stateVarAffected(stateVar))
       ..drop()
       ..end()
       ..end());
@@ -451,14 +443,17 @@ class ScopeAnalyzerTest {
     check(scopeAnalysisResult.stateVarCount).equals(7);
   }
 
-  void _analyze(void Function(TestIRWriter) writeIR) {
-    var writer = TestIRWriter();
+  void _analyze(void Function(_ScopeAnalyzerTestIRWriter) writeIR) {
+    var writer = _ScopeAnalyzerTestIRWriter(_addressToOnAnalyzeCallbacks);
     writeIR(writer);
     ir = TestIRContainer(writer);
     validate(ir);
-    eventListener = _ScopeAnalyzerEventListener(this);
+    var eventListener = _ScopeAnalyzerEventListener(this);
     scopeAnalysisResult = analyzeScopes(ir, eventListener: eventListener);
-    eventListener = null;
+    check(
+            because: 'make sure all callbacks got invoked',
+            _addressToOnAnalyzeCallbacks)
+        .isEmpty();
   }
 }
 
@@ -475,11 +470,10 @@ final class _ScopeAnalyzerEventListener extends ScopeAnalyzerEventListener {
   }
 
   @override
-  void onInstruction(int address) {
-    for (var callback in test.onInstruction) {
-      callback(address);
-    }
-  }
+  void onFinished() => _onAddress(test.ir.endAddress);
+
+  @override
+  void onInstruction(int address) => _onAddress(address);
 
   @override
   void onPushScope({required int address, required int scope}) {
@@ -490,5 +484,30 @@ final class _ScopeAnalyzerEventListener extends ScopeAnalyzerEventListener {
     if (test.createExtraStateVarPerScope) {
       createStateVar();
     }
+  }
+
+  void _onAddress(int address) {
+    if (test._addressToOnAnalyzeCallbacks.remove(address) case var callbacks?) {
+      for (var callback in callbacks) {
+        callback(this);
+      }
+    }
+  }
+}
+
+/// IR writer that can record callbacks to be executed during scope analysis.
+///
+/// These callbacks will have access to the [ScopeAnalyzerEventListener] so they
+/// can query and modify scope analysis state.
+class _ScopeAnalyzerTestIRWriter extends TestIRWriter {
+  final Map<int, List<void Function(ScopeAnalyzerEventListener)>>
+      _addressToOnAnalyzeCallbacks;
+
+  _ScopeAnalyzerTestIRWriter(this._addressToOnAnalyzeCallbacks);
+
+  void onAnalyze(void Function(ScopeAnalyzerEventListener) callback) {
+    _addressToOnAnalyzeCallbacks
+        .putIfAbsent(nextInstructionAddress, () => [])
+        .add(callback);
   }
 }
