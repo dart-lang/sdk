@@ -722,7 +722,7 @@ class LibraryInfo {
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
-                augment void myVariable(String value, ) {
+                augment void set myVariable(String value, ) {
                   print('isExternal: false');
                   print('isGetter: false');
                   print('isSetter: true');
