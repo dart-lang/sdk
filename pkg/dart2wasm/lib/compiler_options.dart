@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:dart2wasm/translator.dart';
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
-class CompilerOptions {
+class WasmCompilerOptions {
   final TranslatorOptions translatorOptions = TranslatorOptions();
 
   Uri sdkPath = Platform.script.resolve("../../../sdk");
@@ -26,10 +26,10 @@ class CompilerOptions {
   String? dumpKernelBeforeTfa;
   String? dumpKernelAfterTfa;
 
-  factory CompilerOptions.defaultOptions() =>
-      CompilerOptions(mainUri: Uri(), outputFile: '');
+  factory WasmCompilerOptions.defaultOptions() =>
+      WasmCompilerOptions(mainUri: Uri(), outputFile: '');
 
-  CompilerOptions({required this.mainUri, required this.outputFile});
+  WasmCompilerOptions({required this.mainUri, required this.outputFile});
 
   void validate() {
     if (translatorOptions.importSharedMemory &&
