@@ -1895,6 +1895,8 @@ void SampleBlockProcessor::ThreadMain(uword parameters) {
     }
 
     IsolateGroup::ForEach([&](IsolateGroup* group) {
+      if (group == Dart::vm_isolate_group()) return;
+
       const bool kBypassSafepoint = false;
       Thread::EnterIsolateGroupAsHelper(group, Thread::kSampleBlockTask,
                                         kBypassSafepoint);
