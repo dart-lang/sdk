@@ -91,6 +91,7 @@ interface class FileStat {
   final int mode;
 
   /// The size of the file system object.
+  /// If the file is not found, it returns -1.
   final int size;
 
   FileStat._internal(this.changed, this.modified, this.accessed, this.type,
