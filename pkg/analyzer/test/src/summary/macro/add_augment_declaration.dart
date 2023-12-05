@@ -17,6 +17,32 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 }
 
+/*macro*/ class AddField extends _AddMacroClass {
+  const AddField();
+
+  @override
+  buildDeclarationsForClass(clazz, builder) async {
+    await _declareInType(
+      builder: builder,
+      augmentMacroName: 'AugmentField',
+      code: '  int foo;',
+    );
+  }
+}
+
+/*macro*/ class AddGetter extends _AddMacroClass {
+  const AddGetter();
+
+  @override
+  buildDeclarationsForClass(clazz, builder) async {
+    await _declareInType(
+      builder: builder,
+      augmentMacroName: 'AugmentGetter',
+      code: '  external int get foo;',
+    );
+  }
+}
+
 /*macro*/ class AddMethod extends _AddMacroClass {
   const AddMethod();
 
@@ -26,6 +52,19 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
       builder: builder,
       augmentMacroName: 'AugmentMethod',
       code: '  external int foo();',
+    );
+  }
+}
+
+/*macro*/ class AddSetter extends _AddMacroClass {
+  const AddSetter();
+
+  @override
+  buildDeclarationsForClass(clazz, builder) async {
+    await _declareInType(
+      builder: builder,
+      augmentMacroName: 'AugmentSetter',
+      code: '  external void set foo(int value);',
     );
   }
 }
@@ -41,6 +80,28 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 }
 
+/*macro*/ class AugmentField implements FieldDefinitionMacro {
+  const AugmentField();
+
+  @override
+  buildDefinitionForField(constructor, builder) {
+    builder.augment(
+      initializer: ExpressionCode.fromString('42'),
+    );
+  }
+}
+
+/*macro*/ class AugmentGetter implements MethodDefinitionMacro {
+  const AugmentGetter();
+
+  @override
+  buildDefinitionForMethod(constructor, builder) {
+    builder.augment(
+      FunctionBodyCode.fromString('=> 42;'),
+    );
+  }
+}
+
 /*macro*/ class AugmentMethod implements MethodDefinitionMacro {
   const AugmentMethod();
 
@@ -48,6 +109,17 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   buildDefinitionForMethod(constructor, builder) {
     builder.augment(
       FunctionBodyCode.fromString('=> 42;'),
+    );
+  }
+}
+
+/*macro*/ class AugmentSetter implements MethodDefinitionMacro {
+  const AugmentSetter();
+
+  @override
+  buildDefinitionForMethod(constructor, builder) {
+    builder.augment(
+      FunctionBodyCode.fromString('{ print(42); }'),
     );
   }
 }

@@ -73,6 +73,15 @@ class DeclarationBuilder {
   }
 
   macro.ResolvedIdentifier resolveIdentifier(macro.Identifier identifier) {
+    if (identifier is _VoidIdentifierImpl) {
+      return macro.ResolvedIdentifier(
+        kind: macro.IdentifierKind.topLevelMember,
+        name: 'void',
+        uri: null,
+        staticScope: null,
+      );
+    }
+
     identifier as IdentifierImpl;
     final element = identifier.element;
     switch (element) {
@@ -88,7 +97,7 @@ class DeclarationBuilder {
           return macro.ResolvedIdentifier(
             kind: macro.IdentifierKind.instanceMember,
             name: element.name,
-            uri: element.source!.uri,
+            uri: null,
             staticScope: null,
           );
         }
@@ -349,10 +358,7 @@ class DeclarationBuilderFromElement {
       case VoidType():
         return macro.NamedTypeAnnotationImpl(
           id: macro.RemoteInstance.uniqueId,
-          identifier: macro.IdentifierImpl(
-            id: macro.RemoteInstance.uniqueId,
-            name: 'void',
-          ),
+          identifier: _VoidIdentifierImpl(),
           isNullable: false,
           typeArguments: const [],
         );
@@ -826,6 +832,10 @@ class DeclarationBuilderFromNode {
   }
 
   macro.IdentifierImpl _namedTypeIdentifier(ast.NamedType node) {
+    if (node.importPrefix == null && node.name2.lexeme == 'void') {
+      return _namedTypeMap[node] ??= _VoidIdentifierImpl();
+    }
+
     return _namedTypeMap[node] ??= _NamedTypeIdentifierImpl(
       id: macro.RemoteInstance.uniqueId,
       name: node.name2.lexeme,
@@ -1092,6 +1102,17 @@ class _NamedTypeIdentifierImpl extends IdentifierImpl {
 
   @override
   Element? get element => node.element;
+}
+
+class _VoidIdentifierImpl extends IdentifierImpl {
+  _VoidIdentifierImpl()
+      : super(
+          id: macro.RemoteInstance.uniqueId,
+          name: 'void',
+        );
+
+  @override
+  Element? get element => null;
 }
 
 extension<T> on T? {

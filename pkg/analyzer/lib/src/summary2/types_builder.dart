@@ -471,24 +471,26 @@ class TypesBuilder {
       );
     }
 
-    augmented.fields.addAll(
-      element.fields.notAugmented.map((element) {
+    augmented.fields = [
+      ...augmented.fields.notAugmented,
+      ...element.fields.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
         return FieldMember(typeProvider, element, toDeclaration, false);
       }),
-    );
+    ];
 
-    augmented.accessors.addAll(
-      element.accessors.notAugmented.map((element) {
+    augmented.accessors = [
+      ...augmented.accessors.notAugmented,
+      ...element.accessors.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
         return PropertyAccessorMember(
             typeProvider, element, toDeclaration, false);
       }),
-    );
+    ];
 
     augmented.methods = [
       ...augmented.methods.notAugmented,
