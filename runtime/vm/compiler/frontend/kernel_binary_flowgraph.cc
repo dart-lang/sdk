@@ -3353,6 +3353,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiNativeCallbackFunction:
       return BuildFfiNativeCallbackFunction(
           FfiFunctionKind::kIsolateLocalStaticCallback);
+    case MethodRecognizer::kFfiNativeAddressOf:
+      return BuildFfiNativeAddressOf();
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
       return BuildFfiNativeCallbackFunction(
           FfiFunctionKind::kIsolateLocalClosureCallback);
@@ -6388,6 +6390,42 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
                                                exceptional_return, kind));
   code += Constant(result);
 
+  return code;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFfiNativeAddressOf() {
+  const intptr_t argc = ReadUInt();
+  ASSERT(argc == 1);
+  const intptr_t types_length = ReadListLength();
+  ASSERT(types_length == 1);
+  T.BuildTypeArguments(types_length);
+  const intptr_t positional_count = ReadListLength();
+  ASSERT(positional_count == 1);
+
+  Fragment frag = BuildExpression();
+  ASSERT(frag.entry->IsConstant());
+  const auto& native_annotation =
+      Instance::Cast(frag.entry->AsConstant()->value());
+  Drop();
+
+  const auto& pointer_class =
+      Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
+  const auto& type_arguments =
+      TypeArguments::ZoneHandle(Z, IG->object_store()->type_argument_never());
+  Fragment code = Constant(type_arguments);
+  code += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
+  code += LoadLocal(MakeTemporary());  // Duplicate Pointer.
+  // FfiNativeLookupAddress pushes an unboxed value, which is safe even in
+  // unoptimized mode because then there is no reordering and we're consuming
+  // the value directly.
+  code += flow_graph_builder_->FfiNativeLookupAddress(native_annotation);
+  code += flow_graph_builder_->ConvertUnboxedToUntagged(kUnboxedFfiIntPtr);
+  code += flow_graph_builder_->StoreNativeField(
+      Slot::PointerBase_data(), InnerPointerAccess::kCannotBeInnerPointer,
+      StoreFieldInstr::Kind::kInitializing);
+
+  const intptr_t named_arg_count = ReadListLength();
+  ASSERT(named_arg_count == 0);
   return code;
 }
 

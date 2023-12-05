@@ -17,6 +17,9 @@ external int returnIntPtr(int x);
 @Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr', isLeaf: true)
 external int returnIntPtrLeaf(int x);
 
+@Native<IntPtr Function(IntPtr)>(isLeaf: true)
+external int returnNativeIntPtrLeaf(int x);
+
 class Classy {
   @Native<IntPtr Function(IntPtr)>(symbol: 'ReturnIntPtr')
   external static int returnIntPtrStatic(int x);
@@ -65,4 +68,6 @@ void main() {
   NativeClassy().blah();
   final b = NativeClassy().myField;
   NativeClassy().myField = !b;
+
+  Native.addressOf<NativeFunction<IntPtr Function(IntPtr)>>(returnIntPtr);
 }

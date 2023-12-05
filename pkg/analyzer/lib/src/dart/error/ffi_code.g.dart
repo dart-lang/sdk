@@ -83,6 +83,13 @@ class FfiCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters
+  static const FfiCode ARGUMENT_MUST_BE_NATIVE = FfiCode(
+    'ARGUMENT_MUST_BE_NATIVE',
+    "Argument to 'Native.addressOf' must be annotated with @Native",
+    correctionMessage: "Try passing a static function annotated with '@Native'",
+  );
+
   ///  Parameters:
   ///  0: the name of the struct or union class
   static const FfiCode COMPOUND_IMPLEMENTS_FINALIZABLE = FfiCode(
@@ -128,6 +135,20 @@ class FfiCode extends AnalyzerErrorCode {
     "'Array's must have exactly one 'Array' annotation.",
     correctionMessage: "Try removing the extra annotation.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters
+  static const FfiCode FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET = FfiCode(
+    'FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET',
+    "There may be at most one @DefaultAsset annotation on a library.",
+    correctionMessage: "Try removing the extra annotation.",
+  );
+
+  ///  No parameters
+  static const FfiCode FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS = FfiCode(
+    'FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS',
+    "Native functions must have exactly one `@Native` annotation.",
+    correctionMessage: "Try removing the extra annotation.",
   );
 
   ///  No parameters.

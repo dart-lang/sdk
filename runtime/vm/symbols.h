@@ -121,6 +121,7 @@ class ObjectPointerVisitor;
   V(FfiNativeType, "NativeType")                                               \
   V(FfiNativeTypes, "nativeTypes")                                             \
   V(FfiPointer, "Pointer")                                                     \
+  V(FfiFromAddress, "_fromAddress")                                            \
   V(FfiStructLayout, "_FfiStructLayout")                                       \
   V(FfiStructLayoutArray, "_FfiInlineArray")                                   \
   V(FfiTrampolineData, "FfiTrampolineData")                                    \

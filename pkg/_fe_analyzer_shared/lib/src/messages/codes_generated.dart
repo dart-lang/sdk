@@ -4855,6 +4855,16 @@ const MessageCode messageFfiAbiSpecificIntegerMappingInvalid = const MessageCode
         r"""Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAddressOfMustBeNative = messageFfiAddressOfMustBeNative;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
+    "FfiAddressOfMustBeNative",
+    analyzerCodes: <String>["ARGUMENT_MUST_BE_NATIVE"],
+    problemMessage:
+        r"""Argument to 'Native.addressOf' must be annotated with @Native.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String name)>
     templateFfiCompoundImplementsFinalizable =
     const Template<Message Function(String string, String name)>(
@@ -4893,6 +4903,16 @@ const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
     "FfiCreateOfStructOrUnion",
     problemMessage:
         r"""Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDefaultAssetDuplicate = messageFfiDefaultAssetDuplicate;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDefaultAssetDuplicate = const MessageCode(
+    "FfiDefaultAssetDuplicate",
+    analyzerCodes: <String>["FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET"],
+    problemMessage:
+        r"""There may be at most one @DefaultAsset annotation on a library.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5133,6 +5153,17 @@ const Code<Null> codeFfiLeafCallMustNotTakeHandle =
 const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
     "FfiLeafCallMustNotTakeHandle",
     problemMessage: r"""FFI leaf call must not have Handle argument types.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeDuplicateAnnotations =
+    messageFfiNativeDuplicateAnnotations;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeDuplicateAnnotations = const MessageCode(
+    "FfiNativeDuplicateAnnotations",
+    analyzerCodes: <String>["FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS"],
+    problemMessage:
+        r"""Native functions must not have more than @Native annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;

@@ -63,10 +63,20 @@ Future<void> runTests() async {
   testNonExistingFunction();
 }
 
-@Native<Bool Function(Int64 port, Int64 message)>()
+typedef _PostInteger = Bool Function(Int64 port, Int64 message);
+
+@Native<_PostInteger>()
 external bool Dart_PostInteger(int port, int message);
 
 Future<void> testExecutable() async {
+  await _testWith(Dart_PostInteger);
+
+  final viaAddressOf =
+      Native.addressOf<NativeFunction<_PostInteger>>(Dart_PostInteger);
+  await _testWith(viaAddressOf.asFunction());
+}
+
+Future<void> _testWith(bool Function(int, int) postInteger) async {
   const int message = 1337 * 42;
 
   final completer = Completer();
@@ -74,8 +84,7 @@ Future<void> testExecutable() async {
   final receivePort = ReceivePort()
     ..listen((receivedMessage) => completer.complete(receivedMessage));
 
-  final bool success =
-      Dart_PostInteger(receivePort.sendPort.nativePort, message);
+  final bool success = postInteger(receivePort.sendPort.nativePort, message);
   Expect.isTrue(success);
 
   final postedMessage = await completer.future;

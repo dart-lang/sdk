@@ -18656,6 +18656,10 @@ FfiCode:
         return p.asFunction(isLeaf: true);
       }
       ```
+  ARGUMENT_MUST_BE_NATIVE:
+    problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native"
+    correctionMessage: "Try passing a static function annotated with '@Native'"
+    comment: No parameters
   COMPOUND_IMPLEMENTS_FINALIZABLE:
     problemMessage: "The class '{0}' can't implement Finalizable."
     correctionMessage: "Try removing the implements clause from '{0}'."
@@ -18906,6 +18910,14 @@ FfiCode:
       Parameters:
       0: the expected number of parameters
       1: the actual number of parameters
+  FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
+    problemMessage: "There may be at most one @DefaultAsset annotation on a library."
+    correctionMessage: "Try removing the extra annotation."
+    comment: No parameters
+  FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
+    problemMessage: "Native functions must have exactly one `@Native` annotation."
+    correctionMessage: "Try removing the extra annotation."
+    comment: No parameters
   FIELD_INITIALIZER_IN_STRUCT:
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.

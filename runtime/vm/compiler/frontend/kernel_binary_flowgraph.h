@@ -395,6 +395,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   // Kernel buffer and pushes the resulting Function object.
   Fragment BuildFfiNativeCallbackFunction(FfiFunctionKind kind);
 
+  Fragment BuildFfiNativeAddressOf();
+
   Fragment BuildArgumentsCachableIdempotentCall(intptr_t* argument_count);
   Fragment BuildCachableIdempotentCall(TokenPosition position,
                                        const Function& target);

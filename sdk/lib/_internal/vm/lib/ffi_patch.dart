@@ -1358,4 +1358,31 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
 
 @patch
 @pragma("vm:entry-point")
-class Native<T> {}
+class Native<T> {
+  @patch
+  static Pointer<T> addressOf<T extends NativeType>(
+      @DartRepresentationOf('T') Object native) {
+    throw 'UNREACHABLE: This case should have been rewritten in the CFE.';
+  }
+
+  @pragma('vm:recognized', 'other')
+  external static Pointer<T> _addressOf<T extends NativeType>(
+      Native<T> annotation);
+
+  // Bootstrapping native for getting the FFI native C function pointer to look
+  // up the FFI resolver.
+  @pragma('vm:external-name', 'Ffi_GetFfiNativeResolver')
+  external static Pointer<
+          NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>
+      _get_ffi_native_resolver<T extends NativeFunction>();
+
+  // Resolver for FFI Native C function pointers.
+  @pragma('vm:entry-point')
+  static final _ffi_resolver = _get_ffi_native_resolver<
+          NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>()
+      .asFunction<int Function(Object, Object, int)>();
+
+  @pragma('vm:entry-point')
+  static int _ffi_resolver_function(Object a, Object s, int n) =>
+      _ffi_resolver(a, s, n);
+}

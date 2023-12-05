@@ -20,13 +20,15 @@ final class Struct1ByteInt extends ffi::Struct {
 static method main() → void {
   final self::Struct1ByteInt result = self::returnStruct1ByteIntNative([@vm.direct-call.metadata=dart.core::_IntegerImplementation.unary-] [@vm.inferred-type.metadata=int (skip check)] 1.{core::int::unary-}(){() → core::int});
   core::print("result = ${result}");
+  ffi::Native::_addressOf<ffi::NativeFunction<(ffi::Int8) → self::Struct1ByteInt>>(#C12);
 }
-[@vm.unboxing-info.metadata=(i)->b]@#C10
+[@vm.unboxing-info.metadata=(i)->b]@#C14
+@#C16
 static method returnStruct1ByteIntNative([@vm.inferred-arg-type.metadata=int] core::int a0) → self::Struct1ByteInt
   return block {
-    _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C11)));
+    _in::_nativeEffect(new self::Struct1ByteInt::#fromTypedDataBase([@vm.inferred-type.metadata=dart.typed_data::_Uint8List] typ::Uint8List::•(#C17)));
   } =>[@vm.inferred-type.metadata=#lib::Struct1ByteInt] self::_returnStruct1ByteIntNative$Method$FfiNative(a0);
-[@vm.unboxing-info.metadata=(i)->b]@#C17
+[@vm.unboxing-info.metadata=(i)->b]@#C19
 external static method _returnStruct1ByteIntNative$Method$FfiNative([@vm.inferred-arg-type.metadata=int] core::int #t0) → self::Struct1ByteInt;
 constants  {
   #C1 = "vm:ffi:struct-fields"
@@ -37,13 +39,15 @@ constants  {
   #C6 = core::pragma {name:#C1, options:#C5}
   #C7 = 0
   #C8 = <core::int*>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
-  #C9 = "vm:prefer-inline"
-  #C10 = core::pragma {name:#C9, options:#C4}
-  #C11 = 1
-  #C12 = "vm:ffi:native"
-  #C13 = "ReturnStruct1ByteInt"
-  #C14 = "#lib"
-  #C15 = false
-  #C16 = ffi::Native<(ffi::Int8) → self::Struct1ByteInt> {symbol:#C13, assetId:#C14, isLeaf:#C15}
-  #C17 = core::pragma {name:#C12, options:#C16}
+  #C9 = "ReturnStruct1ByteInt"
+  #C10 = "#lib"
+  #C11 = false
+  #C12 = ffi::Native<(ffi::Int8) → self::Struct1ByteInt> {symbol:#C9, assetId:#C10, isLeaf:#C11}
+  #C13 = "cfe:ffi:native-marker"
+  #C14 = core::pragma {name:#C13, options:#C12}
+  #C15 = "vm:prefer-inline"
+  #C16 = core::pragma {name:#C15, options:#C4}
+  #C17 = 1
+  #C18 = "vm:ffi:native"
+  #C19 = core::pragma {name:#C18, options:#C12}
 }
