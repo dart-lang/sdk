@@ -1,3 +1,13 @@
+## 3.2.2 -
+
+This is a patch release that:
+- Fixes new AOT snapshots in the SDK failing with SIGILL in ARM
+  environments that don't support the integer division
+  instructions or x86-64 environments that don't support
+  SSE4.1  (issue [#54215][]).
+
+[#54215]: https://github.com/dart-lang/sdk/issues/54215
+
 ## 3.2.2 - 2023-11-29
 
 This is a patch release that:
