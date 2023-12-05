@@ -31,6 +31,7 @@ class AstToIRTest extends AstToIRTestBase {
     'hook': binaryFunction<Object?, String>(hook<Object?>),
     'int.isEven': unaryFunction<int>((i) => i.isEven),
     'int.parse': unaryFunction<String>((s) => int.parse(s)),
+    'int.toString': unaryFunction<int>((i) => i.toString()),
     'Iterable.first': unaryFunction<ListInstance>((list) => list.values.first),
     'Iterable.length':
         unaryFunction<ListInstance>((list) => list.values.length),
@@ -133,6 +134,18 @@ test(List<C> list, int other) => list.first $op= other;
       callDispatcher: _CallDispatcher(this),
       typeProvider: typeProvider,
       typeSystem: typeSystem);
+
+  test_adjacentStrings() async {
+    await assertNoErrorsInCode('''
+test() => 'foo' " " 'bar';
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.adjacentStrings('foo')]
+      ..containsSubrange(astNodes[findNode.stringLiteral('foo')]!)
+      ..containsSubrange(astNodes[findNode.stringLiteral('" "')]!)
+      ..containsSubrange(astNodes[findNode.stringLiteral('bar')]!);
+    check(runInterpreter([])).equals('foo bar');
+  }
 
   test_assignmentExpression_binaryAndEq() => checkBinaryOpEq('&');
 
@@ -1600,6 +1613,28 @@ test(int i) => i;
     analyze(findNode.singleFunctionDeclaration);
     check(astNodes).containsNode(findNode.simple('i;'));
     check(runInterpreter([123])).equals(123);
+  }
+
+  test_stringInterpolation_withBraces() async {
+    await assertNoErrorsInCode(r'''
+test(int x) => 'x = ${x}';
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.stringInterpolation('x =')]
+      ..containsSubrange(astNodes[findNode.interpolationString('x =')]!)
+      ..containsSubrange(astNodes[findNode.interpolationExpression(r'${x}')]!);
+    check(runInterpreter([123])).equals('x = 123');
+  }
+
+  test_stringInterpolation_withoutBraces() async {
+    await assertNoErrorsInCode(r'''
+test(int x) => 'x = $x';
+''');
+    analyze(findNode.singleFunctionDeclaration);
+    check(astNodes)[findNode.stringInterpolation('x =')]
+      ..containsSubrange(astNodes[findNode.interpolationString('x =')]!)
+      ..containsSubrange(astNodes[findNode.interpolationExpression(r'$x')]!);
+    check(runInterpreter([123])).equals('x = 123');
   }
 
   test_stringLiteral() async {
