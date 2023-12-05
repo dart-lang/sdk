@@ -46,7 +46,7 @@ void defineCompileTests() {
           path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
       final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-      var result = await p.run(
+      final result = await p.run(
         [
           'compile',
           'exe',
@@ -172,7 +172,7 @@ void defineCompileTests() {
 
   test('Implicit --help', () async {
     final p = project();
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
       ],
@@ -309,7 +309,7 @@ void defineCompileTests() {
     final p = project(mainSrc: 'void main() { print("I love executables"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'exe',
@@ -326,7 +326,7 @@ void defineCompileTests() {
     final p = project(mainSrc: 'void main() { print("I love executables"); }');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -418,7 +418,7 @@ void defineCompileTests() {
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
     final targetOS = Platform.isLinux ? 'macos' : 'linux';
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'exe',
@@ -611,7 +611,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'exe',
@@ -641,7 +641,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'exe',
@@ -663,7 +663,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'exe',
@@ -687,7 +687,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'exe',
@@ -743,7 +743,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'exe',
@@ -773,7 +773,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myexe'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'exe',
@@ -791,12 +791,68 @@ void main() {
     expect(result.exitCode, 0);
   }, skip: isRunningOnIA32);
 
+  test('Compile wasm with error', () async {
+    final p = project(mainSrc: '''
+void main() {
+  int? i;
+  i.isEven;
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mywasm'));
+
+    final result = await p.run(
+      [
+        'compile',
+        'wasm',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stdout, contains('Compilation to WasmGC is experimental'));
+    expect(result.stderr, contains('Error: '));
+    // The CFE doesn't print to stderr, so all output is piped to stderr, even
+    // including info-only output:
+    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
+    expect(result.exitCode, compileErrorExitCode);
+    expect(File(outFile).existsSync(), false,
+        reason: 'File not found: $outFile');
+  }, skip: isRunningOnIA32);
+
+  test('Compile wasm with warnings', () async {
+    final p = project(mainSrc: '''
+void main() {
+  int i = 0;
+  i?.isEven;
+}
+''');
+    final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
+    final outFile = path.canonicalize(path.join(p.dirPath, 'mywasm.wasm'));
+
+    final result = await p.run(
+      [
+        'compile',
+        'wasm',
+        '-o',
+        outFile,
+        inFile,
+      ],
+    );
+
+    expect(result.stderr, contains('Warning: '));
+    expect(result.exitCode, 0);
+    expect(File(outFile).existsSync(), true,
+        reason: 'File not found: $outFile');
+  }, skip: isRunningOnIA32);
+
   test('Compile JS with sound null safety', () async {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'js',
@@ -821,7 +877,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'js',
@@ -844,7 +900,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'js',
@@ -872,7 +928,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjs'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'js',
@@ -893,7 +949,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -917,7 +973,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -941,7 +997,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -971,7 +1027,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -999,7 +1055,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myaot'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'aot-snapshot',
@@ -1022,7 +1078,7 @@ void main() {
     final p = project(mainSrc: '''void main() {}''');
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'kernel',
@@ -1046,7 +1102,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'kernel',
@@ -1075,7 +1131,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'kernel',
@@ -1100,7 +1156,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'kernel',
@@ -1125,7 +1181,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'kernel',
@@ -1149,7 +1205,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'kernel',
@@ -1172,7 +1228,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'kernel',
@@ -1199,7 +1255,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'kernel',
@@ -1224,7 +1280,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'kernel',
@@ -1245,7 +1301,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -1268,7 +1324,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -1291,7 +1347,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -1315,7 +1371,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'mydill'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -1338,7 +1394,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -1366,7 +1422,7 @@ void main() {}
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -1392,7 +1448,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'jit-snapshot',
@@ -1417,7 +1473,7 @@ void main() {
     final inFile = path.canonicalize(path.join(p.dirPath, p.relativeFilePath));
     final outFile = path.canonicalize(path.join(p.dirPath, 'myjit'));
 
-    var result = await p.run(
+    final result = await p.run(
       [
         'compile',
         'jit-snapshot',

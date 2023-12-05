@@ -167,7 +167,7 @@ vars = {
   "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
   "path_rev": "18ec71f7dde21d8518702d77215fb0b2fa45e970",
   "pool_rev": "3c1bd422da311d95b65a04a5f28de2c0e8193692",
-  "protobuf_rev": "dcec2eda9db4e6728e900928aa2e46944ba4fa6f",
+  "protobuf_rev": "bb1977478458d070abbb4802ae73a1560233864d",
   "pub_rev": "1779628b386819675130f14326f1e8812901c48f", # disable rev_sdk_deps.dart
   "pub_semver_rev": "45721813dea1591a7689f93762afa358cbf260c7",
   "shelf_rev": "b3adc7c5264b448a77427c6aacd67eedfb16dce2",

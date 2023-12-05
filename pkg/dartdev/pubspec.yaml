@@ -15,6 +15,7 @@ dependencies:
   cli_util: any
   collection: any
   dart2native: any
+  dart2wasm: any
   dart_style: any
   dartdoc: any
   dds: any

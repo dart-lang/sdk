@@ -7,8 +7,10 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dart2native/generate.dart';
+import 'package:dart2wasm/generate_wasm.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
+import 'package:front_end/src/api_unstable/vm.dart' as fe;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart'; // For possible --target-os values.
 
@@ -384,6 +386,200 @@ Remove debugging information from the output and save it separately to the speci
   }
 }
 
+class CompileWasmCommand extends CompileSubcommandCommand {
+  static const String commandName = 'wasm';
+  static const String format = 'wasm';
+  static const String help =
+      'Compile Dart to a WebAssembly/WasmGC module (EXPERIMENTAL).';
+
+  final String optimizer = path.join(binDir.path, 'utils', 'wasm-opt');
+  String optimizerFlags(bool outputNames) =>
+      '-all --closed-world -tnh --type-unfinalizing -O3 --type-ssa'
+      ' --gufa -O3 --type-merging -O1 --type-finalizing'
+      '${outputNames ? ' -g' : ''}';
+  static const String unoptExtension = '.unopt';
+
+  CompileWasmCommand({bool verbose = false})
+      : super(commandName, help, verbose, hidden: !verbose) {
+    argParser
+      ..addOption(
+        outputFileOption.flag,
+        help: outputFileOption.help,
+        abbr: outputFileOption.abbr,
+      )
+      ..addFlag(
+        'optimize',
+        defaultsTo: true,
+        negatable: true,
+        help: 'Optimize wasm output using Binaryen wasm-opt.',
+      )
+      ..addFlag(
+        'omit-type-checks',
+        defaultsTo: false,
+        negatable: false,
+        help: 'Omit runtime type checks, such as covariance and downcasts.',
+        hide: !verbose,
+      )
+      ..addFlag(
+        'name-section',
+        defaultsTo: false,
+        negatable: false,
+        help: 'Include a name section with printable function names.',
+        hide: !verbose,
+      )
+      ..addFlag(
+        'print-wasm',
+        help: 'Print human-readable wasm debug output',
+        hide: !verbose,
+        negatable: false,
+      )
+      ..addFlag(
+        'print-kernel',
+        help: 'Print human-readable Dart kernel debug output',
+        hide: !verbose,
+        negatable: false,
+      )
+      ..addFlag(
+        'verbose',
+        abbr: 'v',
+        help: 'Print debug output during compilation',
+        negatable: false,
+      )
+      ..addFlag(
+        'enable-asserts',
+        help: 'Enable assert statements.',
+        negatable: false,
+      )
+      ..addOption(
+        'shared-memory',
+        help: 'Import a shared memory buffer.'
+            ' The max number of pages must be passed.',
+        valueHelp: 'page count',
+        hide: !verbose,
+      )
+      ..addOption(
+        packagesOption.flag,
+        abbr: packagesOption.abbr,
+        valueHelp: packagesOption.valueHelp,
+        help: packagesOption.help,
+        hide: !verbose,
+      );
+// TODO(): Defines are currently not supported by dart2wasm.
+//      ..addMultiOption(
+//        defineOption.flag,
+//        help: defineOption.help,
+//        abbr: defineOption.abbr,
+//        valueHelp: defineOption.valueHelp,
+//      )
+  }
+
+  @override
+  String get invocation => '${super.invocation} <dart entry point>';
+
+  @override
+  FutureOr<int> run() async {
+    log.stdout('*NOTE*: Compilation to WasmGC is experimental.');
+    log.stdout(
+        'The support may change, or be removed, with no advance notice.\n');
+
+    final libraries = path.absolute(sdk.sdkPath, 'lib', 'libraries.json');
+    if (!Sdk.checkArtifactExists(libraries)) {
+      return 255;
+    }
+    final args = argResults!;
+    bool verbose = this.verbose || args['verbose'];
+    if (args['optimize'] && !Sdk.checkArtifactExists(optimizer)) {
+      return 255;
+    }
+
+    // We expect a single rest argument; the dart entry point.
+    if (args.rest.length != 1) {
+      // This throws.
+      usageException('Missing Dart entry point.');
+    }
+    final String sourcePath = args.rest[0];
+    if (!checkFile(sourcePath)) {
+      return -1;
+    }
+
+    // Determine output file name.
+    String? outputFile = args[outputFileOption.flag];
+    if (outputFile == null) {
+      final inputWithoutDart = sourcePath.endsWith('.dart')
+          ? sourcePath.substring(0, sourcePath.length - 5)
+          : sourcePath;
+      outputFile = '$inputWithoutDart.wasm';
+    }
+
+    final options = WasmCompilerOptions(
+      mainUri: Uri.file(path.absolute(sourcePath)),
+      outputFile: outputFile,
+    );
+    options.librariesSpecPath =
+        Uri.file(path.absolute(sdk.sdkPath, 'lib', 'libraries.json'));
+    options.sdkPath = Uri.file(path.absolute(sdk.sdkPath));
+    options.packagesPath = args[packagesOption.flag];
+    options.translatorOptions.enableAsserts = args['enable-asserts'];
+    options.translatorOptions.printWasm = args['print-wasm'];
+    options.translatorOptions.printKernel = args['print-kernel'];
+    options.translatorOptions.omitTypeChecks = args['omit-type-checks'];
+    options.translatorOptions.nameSection = args['name-section'];
+    if (args['shared-memory'] != null) {
+      int? maxPages = int.tryParse(args['shared-memory']);
+      if (maxPages == null) {
+        usageException(
+            'Error: The --shared-memory flag must specify a number!');
+      }
+      options.translatorOptions.importSharedMemory = true;
+      options.translatorOptions.sharedMemoryMaxPages = maxPages;
+    }
+    // Enable inline classes.
+    // TODO: Remove this when inline classe ship.
+    options.feExperimentalFlags = {fe.ExperimentalFlag.inlineClass: true};
+
+    int result;
+    try {
+      result = await generateWasm(
+        options,
+        verbose: verbose,
+        errorPrinter: (error) => log.stderr(error),
+      );
+      if (result != 0) return compileErrorExitCode;
+    } catch (e, st) {
+      log.stderr('Error: Wasm compilation failed');
+      log.stderr(e.toString());
+      if (verbose) {
+        log.stderr(st.toString());
+      }
+      return compileErrorExitCode;
+    }
+
+    if (args['optimize']) {
+      final unoptFile = outputFile + unoptExtension;
+      final flags = optimizerFlags(args['name-section']);
+      File(outputFile).renameSync(unoptFile);
+      if (verbose) {
+        log.stdout('Optimizing output with: $optimizer $flags');
+      }
+      final processResult = Process.runSync(
+        optimizer,
+        [...flags.split(' '), '-o', outputFile, unoptFile],
+      );
+      if (processResult.exitCode != 0) {
+        log.stderr('Error: Wasm compilation failed while optimizing output');
+        log.stderr(processResult.stderr);
+        return compileErrorExitCode;
+      }
+    }
+
+    final mjsFile =
+        '${options.outputFile.substring(0, options.outputFile.lastIndexOf('.'))}.mjs';
+    log.stdout(
+        "Generated wasm module '$outputFile', and JS init file '$mjsFile'.");
+    return result;
+  }
+}
+
 abstract class CompileSubcommandCommand extends DartdevCommand {
   final outputFileOption = Option(
     flag: 'output',
@@ -487,5 +683,6 @@ class CompileCommand extends DartdevCommand {
       verbose: verbose,
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
     ));
+    addSubcommand(CompileWasmCommand(verbose: verbose));
   }
 }
