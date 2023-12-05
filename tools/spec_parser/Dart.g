@@ -1441,7 +1441,7 @@ typeNotFunction
 
 typeNotVoidNotFunction
     :    typeName typeArguments?
-    |    FUNCTION
+    |    (typeIdentifier '.')? FUNCTION
     ;
 
 typeName
