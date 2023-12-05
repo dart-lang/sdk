@@ -5310,8 +5310,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               inferred: pendingBoundsCheck.inferred, allowSuperBounded: true);
           break;
         case TypeUse.typedefAlias:
-        case TypeUse.superType:
-        case TypeUse.mixedInType:
+        case TypeUse.classExtendsType:
+        case TypeUse.classImplementsType:
+        // TODO(johnniwinther): Is this a correct handling wrt well-boundedness
+        //  for mixin on clause?
+        case TypeUse.mixinOnType:
+        case TypeUse.extensionTypeImplementsType:
+        case TypeUse.classWithType:
           checkBoundsInType(pendingBoundsCheck.type, typeEnvironment,
               pendingBoundsCheck.fileUri, pendingBoundsCheck.charOffset,
               inferred: pendingBoundsCheck.inferred, allowSuperBounded: false);

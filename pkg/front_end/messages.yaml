@@ -7457,3 +7457,58 @@ OptionalParametersInExtensionTypeDeclaration:
   experiments: inline-class
   script: |
     extension type E(int foo, [dynamic bar]) {}
+
+ClassImplementsDeferredClass:
+  problemMessage: "Classes and mixins can't implement deferred classes."
+  correctionMessage: Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.
+  analyzerCode: IMPLEMENTS_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      class B implements d.A {}
+    lib.dart: |
+      class A {}
+
+MixinDeferredMixin:
+  problemMessage: "Classes can't mix in deferred mixins."
+  correctionMessage: Try changing the import to not be deferred.
+  analyzerCode: MIXIN_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      class B with d.A {}
+    lib.dart: |
+      mixin A {}
+
+MixinSuperClassConstraintDeferredClass:
+  problemMessage: "Deferred classes can't be used as superclass constraints."
+  correctionMessage: Try changing the import to not be deferred.
+  analyzerCode: MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      mixin B on d.A {}
+    lib.dart: |
+      class A {}
+
+ExtendsDeferredClass:
+  problemMessage: "Classes can't extend deferred classes."
+  correctionMessage: Try specifying a different superclass, or removing the extends clause.
+  analyzerCode: EXTENDS_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      class B extends d.A {}
+    lib.dart: |
+      class A {}
+
+ExtensionTypeImplementsDeferred:
+  problemMessage: "Extension types can't implement deferred types."
+  correctionMessage: Try specifying a different type, removing the type from the list, or changing the import to not be deferred.
+  analyzerCode: IMPLEMENTS_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      extension type ET(d.A id) implements d.A {}
+    lib.dart: |
+      class A {}

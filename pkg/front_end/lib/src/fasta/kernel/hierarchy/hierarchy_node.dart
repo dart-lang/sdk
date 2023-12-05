@@ -158,8 +158,8 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
 
       superclasses = new List<Supertype>.filled(
           supernode.superclasses.length + 1, dummySupertype);
-      Supertype? supertype = _classBuilder.supertypeBuilder!
-          .buildSupertype(_classBuilder.libraryBuilder);
+      Supertype? supertype = _classBuilder.supertypeBuilder!.buildSupertype(
+          _classBuilder.libraryBuilder, TypeUse.classExtendsType);
       if (supertype == null) {
         // If the superclass is not an interface type we use Object instead.
         // A similar normalization is performed on [supernode] above.
@@ -206,7 +206,11 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
 
         for (int i = 0; i < directInterfaceBuilders.length; i++) {
           Supertype? directInterface = directInterfaceBuilders[i]
-              .buildSupertype(_classBuilder.libraryBuilder);
+              .buildSupertype(
+                  _classBuilder.libraryBuilder,
+                  _classBuilder.isMixinApplication
+                      ? TypeUse.classWithType
+                      : TypeUse.classImplementsType);
           if (directInterface != null) {
             _addInterface(interfaces, superclasses, directInterface);
             ClassHierarchyNode interfaceNode =
@@ -435,8 +439,9 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
         _ignoreFunction(_extensionTypeBuilder.interfaceBuilders);
     if (directInterfaceBuilders != null) {
       for (int i = 0; i < directInterfaceBuilders.length; i++) {
-        DartType directInterface = directInterfaceBuilders[i]
-            .build(_extensionTypeBuilder.libraryBuilder, TypeUse.superType);
+        DartType directInterface = directInterfaceBuilders[i].build(
+            _extensionTypeBuilder.libraryBuilder,
+            TypeUse.extensionTypeImplementsType);
         if (directInterface is InterfaceType) {
           Supertype supertype = new Supertype.byReference(
               directInterface.classReference, directInterface.typeArguments);

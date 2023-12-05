@@ -45,7 +45,7 @@ class InvalidTypeBuilderImpl extends InvalidTypeBuilder {
   }
 
   @override
-  Supertype? buildSupertype(LibraryBuilder library) {
+  Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     return null;
   }
 

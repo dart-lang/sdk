@@ -1141,6 +1141,18 @@ const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
         r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeClassImplementsDeferredClass =
+    messageClassImplementsDeferredClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageClassImplementsDeferredClass = const MessageCode(
+    "ClassImplementsDeferredClass",
+    analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
+    problemMessage: r"""Classes and mixins can't implement deferred classes.""",
+    correctionMessage:
+        r"""Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeClassInClass = messageClassInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4270,6 +4282,17 @@ Message _withArgumentsExtendingRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtendsDeferredClass = messageExtendsDeferredClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtendsDeferredClass = const MessageCode(
+    "ExtendsDeferredClass",
+    analyzerCodes: <String>["EXTENDS_DEFERRED_CLASS"],
+    problemMessage: r"""Classes can't extend deferred classes.""",
+    correctionMessage:
+        r"""Try specifying a different superclass, or removing the extends clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtendsFutureOr = messageExtendsFutureOr;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4469,6 +4492,18 @@ const MessageCode messageExtensionTypeExtends = const MessageCode(
         r"""An extension type declaration can't have an 'extends' clause.""",
     correctionMessage:
         r"""Try removing the 'extends' clause or replacing the 'extends' with 'implements'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeImplementsDeferred =
+    messageExtensionTypeImplementsDeferred;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeImplementsDeferred = const MessageCode(
+    "ExtensionTypeImplementsDeferred",
+    analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
+    problemMessage: r"""Extension types can't implement deferred types.""",
+    correctionMessage:
+        r"""Try specifying a different type, removing the type from the list, or changing the import to not be deferred.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeMemberContext =
@@ -10101,6 +10136,16 @@ const MessageCode messageMixinDeclaresConstructor = const MessageCode(
     problemMessage: r"""Mixins can't declare constructors.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinDeferredMixin = messageMixinDeferredMixin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinDeferredMixin = const MessageCode(
+    "MixinDeferredMixin",
+    analyzerCodes: <String>["MIXIN_DEFERRED_CLASS"],
+    problemMessage: r"""Classes can't mix in deferred mixins.""",
+    correctionMessage: r"""Try changing the import to not be deferred.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -10190,6 +10235,19 @@ Message _withArgumentsMixinSubtypeOfFinalIsNotBase(String name, String name2) {
       correctionMessage: """Try adding 'base' to the mixin.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinSuperClassConstraintDeferredClass =
+    messageMixinSuperClassConstraintDeferredClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinSuperClassConstraintDeferredClass =
+    const MessageCode(
+        "MixinSuperClassConstraintDeferredClass",
+        analyzerCodes: <String>["MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS"],
+        problemMessage:
+            r"""Deferred classes can't be used as superclass constraints.""",
+        correctionMessage: r"""Try changing the import to not be deferred.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMixinWithClause = messageMixinWithClause;

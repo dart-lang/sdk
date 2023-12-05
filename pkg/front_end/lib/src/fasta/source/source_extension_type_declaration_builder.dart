@@ -139,8 +139,8 @@ class SourceExtensionTypeDeclarationBuilder
             typeBuilder.declaration is TypeAliasBuilder
                 ? typeBuilder.declaration as TypeAliasBuilder
                 : null;
-        DartType interface =
-            typeBuilder.build(libraryBuilder, TypeUse.superType);
+        DartType interface = typeBuilder.build(
+            libraryBuilder, TypeUse.extensionTypeImplementsType);
         Message? errorMessage;
         List<LocatedMessage>? errorContext;
 
@@ -451,8 +451,8 @@ class SourceExtensionTypeDeclarationBuilder
       Set<TypeDeclarationBuilder> implemented = {};
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         TypeBuilder typeBuilder = interfaceBuilders![i];
-        DartType interface =
-            typeBuilder.build(libraryBuilder, TypeUse.superType);
+        DartType interface = typeBuilder.build(
+            libraryBuilder, TypeUse.extensionTypeImplementsType);
         if (interface is InterfaceType) {
           if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
               interface, SubtypeCheckMode.withNullabilities)) {
