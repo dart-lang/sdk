@@ -75,7 +75,7 @@ vars = {
   "jsshell_tag": "version:120.0",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:b44399296a7fa4323ab32739df6dbcfc6068af8f",
+  "clang_version": "git_revision:b3a9e8f7c0afb00147ab6c6a6ad426de149420dd",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
   "gn_version": "git_revision:e4702d7409069c4f12d45ea7b7f0890717ca3f4b",
