@@ -278,6 +278,8 @@ class FfiTransformer extends Transformer {
   final Constructor nativeCallablePrivateListenerConstructor;
   final Field nativeCallablePortField;
   final Field nativeCallablePointerField;
+  final Procedure nativeAddressOf;
+  final Procedure nativePrivateAddressOf;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
@@ -544,7 +546,11 @@ class FfiTransformer extends Transformer {
         nativeCallablePortField =
             index.getField('dart:ffi', '_NativeCallableListener', '_port'),
         nativeCallablePointerField =
-            index.getField('dart:ffi', '_NativeCallableBase', '_pointer') {
+            index.getField('dart:ffi', '_NativeCallableBase', '_pointer'),
+        nativeAddressOf =
+            index.getMember('dart:ffi', 'Native', 'addressOf') as Procedure,
+        nativePrivateAddressOf =
+            index.getMember('dart:ffi', 'Native', '_addressOf') as Procedure {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!

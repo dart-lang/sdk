@@ -65,6 +65,7 @@ Future<void> selfInvokes() async {
 
 Future<void> runTests() async {
   testProcessOrSystem();
+  testProcessOrSystemViaAddressOf();
   testNonExistingFunction();
 }
 
@@ -107,5 +108,31 @@ void testProcessOrSystem() {
     final pointer2 = malloc(8);
     Expect.notEquals(nullptr, pointer2);
     free(pointer2);
+  }
+}
+
+void testProcessOrSystemViaAddressOf() {
+  if (Platform.isWindows) {
+    final memAlloc = Native.addressOf<NativeFunction<Pointer Function(Size)>>(
+            winCoTaskMemAlloc)
+        .asFunction<Pointer Function(int)>();
+    final memFree =
+        Native.addressOf<NativeFunction<Void Function(Pointer)>>(CoTaskMemFree)
+            .asFunction<void Function(Pointer)>();
+
+    final pointer = memAlloc(8);
+    Expect.notEquals(nullptr, pointer);
+    memFree(pointer);
+  } else {
+    final mallocViaAddrOf =
+        Native.addressOf<NativeFunction<Pointer Function(IntPtr)>>(malloc)
+            .asFunction<Pointer Function(int)>();
+    final freeViaAddrOf =
+        Native.addressOf<NativeFunction<Void Function(Pointer)>>(free)
+            .asFunction<void Function(Pointer)>();
+
+    final pointer = mallocViaAddrOf(8);
+    Expect.notEquals(nullptr, pointer);
+    freeViaAddrOf(pointer);
   }
 }

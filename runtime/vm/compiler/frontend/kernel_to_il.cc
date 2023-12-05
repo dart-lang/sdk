@@ -5037,26 +5037,24 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
   return nullptr;
 }
 
-Fragment FlowGraphBuilder::FfiNativeLookupAddress(const Function& function) {
-  ASSERT(function.is_ffi_native());
-  ASSERT(!IsRecognizedMethodForFlowGraph(function));
-  auto const& native_instance =
-      Instance::Handle(function.GetNativeAnnotation());
-  const auto& native_class = Class::Handle(Z, native_instance.clazz());
+Fragment FlowGraphBuilder::FfiNativeLookupAddress(
+    const dart::Instance& native) {
+  const auto& native_class = Class::Handle(Z, native.clazz());
   ASSERT(String::Handle(Z, native_class.UserVisibleName())
              .Equals(Symbols::FfiNative()));
   const auto& native_class_fields = Array::Handle(Z, native_class.fields());
-  ASSERT(native_class_fields.Length() == 3);
+  ASSERT(native_class_fields.Length() == 4);
   const auto& symbol_field =
-      Field::Handle(Z, Field::RawCast(native_class_fields.At(0)));
-  const auto& asset_id_field =
       Field::Handle(Z, Field::RawCast(native_class_fields.At(1)));
-  const auto& symbol = String::ZoneHandle(
-      Z, String::RawCast(native_instance.GetField(symbol_field)));
-  const auto& asset_id = String::ZoneHandle(
-      Z, String::RawCast(native_instance.GetField(asset_id_field)));
-  const auto& type_args =
-      TypeArguments::Handle(Z, native_instance.GetTypeArguments());
+  ASSERT(!symbol_field.is_static());
+  const auto& asset_id_field =
+      Field::Handle(Z, Field::RawCast(native_class_fields.At(2)));
+  ASSERT(!asset_id_field.is_static());
+  const auto& symbol =
+      String::ZoneHandle(Z, String::RawCast(native.GetField(symbol_field)));
+  const auto& asset_id =
+      String::ZoneHandle(Z, String::RawCast(native.GetField(asset_id_field)));
+  const auto& type_args = TypeArguments::Handle(Z, native.GetTypeArguments());
   ASSERT(type_args.Length() == 1);
   const auto& native_type =
       FunctionType::Cast(AbstractType::ZoneHandle(Z, type_args.TypeAt(0)));
@@ -5076,7 +5074,7 @@ Fragment FlowGraphBuilder::FfiNativeLookupAddress(const Function& function) {
                                  /*argument_names=*/Array::null_array(),
                                  /*type_args_count=*/0);
   return body;
-#else
+#else  // !defined(TARGET_ARCH_IA32)
   // IA32 only has JIT and no pool. This function will only be compiled if
   // immediately run afterwards, so do the lookup here.
   char* error = nullptr;
@@ -5106,7 +5104,16 @@ Fragment FlowGraphBuilder::FfiNativeLookupAddress(const Function& function) {
     body += UnboxTruncate(kUnboxedFfiIntPtr);
     return body;
   }
-#endif
+#endif  // !defined(TARGET_ARCH_IA32)
+}
+
+Fragment FlowGraphBuilder::FfiNativeLookupAddress(const Function& function) {
+  ASSERT(function.is_ffi_native());
+  ASSERT(!IsRecognizedMethodForFlowGraph(function));
+  ASSERT(optimizing_);
+  auto const& native_instance =
+      Instance::Handle(function.GetNativeAnnotation());
+  return FfiNativeLookupAddress(native_instance);
 }
 
 Fragment FlowGraphBuilder::FfiCallLookupAddress(const Function& function) {

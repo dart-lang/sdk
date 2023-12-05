@@ -17,16 +17,19 @@ class Foo2 extends D {}
 class A extends lib.Foo {}
 //              ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DEFERRED_CLASS
+// [cfe] Classes can't extend deferred classes.
 
 class B implements lib.Foo {}
 //                 ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DEFERRED_CLASS
+// [cfe] Classes and mixins can't implement deferred classes.
 
 class C1 {}
 
 class C = C1 with lib.Foo;
 //                ^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_DEFERRED_CLASS
+// [cfe] Classes can't mix in deferred mixins.
 
 class D {
   D();

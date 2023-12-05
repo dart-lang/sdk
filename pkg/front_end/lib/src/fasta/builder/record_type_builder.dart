@@ -262,7 +262,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
   }
 
   @override
-  Supertype? buildSupertype(LibraryBuilder library) {
+  Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     library.addProblem(
         messageSupertypeIsFunction, charOffset, noLength, fileUri);
     return null;
@@ -270,7 +270,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
 
   @override
   Supertype? buildMixedInType(LibraryBuilder library) {
-    return buildSupertype(library);
+    return buildSupertype(library, TypeUse.classWithType);
   }
 
   @override

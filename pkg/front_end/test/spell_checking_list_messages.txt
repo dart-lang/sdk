@@ -43,6 +43,7 @@ dart:html
 dart:js_interop
 dart_runner
 dartbug.com
+defaultasset
 dname
 e.g
 enclose
@@ -78,6 +79,7 @@ name.#name
 name.stack
 name3.#name
 nameokempty
+native.addressof
 native('native
 nativecallable
 nativecallable.listener

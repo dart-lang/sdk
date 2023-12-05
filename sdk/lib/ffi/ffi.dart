@@ -1243,6 +1243,28 @@ final class Native<T> {
     this.isLeaf = false,
     this.symbol,
   });
+
+  /// The native address of [native].
+  ///
+  /// [native] must be a reference to a method annotated with `@Native` and [T]
+  /// must be a [NativeFunction] compatible to the signature of [native].
+  ///
+  /// Example:
+  /// ```dart
+  /// import 'dart:ffi';
+  ///
+  /// typedef NativeAdd = Int64 Function(Int64, Int64);
+  ///
+  /// @Native<NativeAdd>()
+  /// external int sum(int a, int b);
+  ///
+  /// void main() {
+  ///   final address = Native.addressOf<NativeFunction<NativeAdd>>(sum);
+  /// }
+  /// ```
+  @Since('3.3')
+  external static Pointer<T> addressOf<T extends NativeType>(
+      @DartRepresentationOf('T') Object native);
 }
 
 /// Annotation specifying the default asset ID for the current library.
@@ -1296,18 +1318,3 @@ final class DefaultAsset {
     this.id,
   );
 }
-
-// Bootstrapping native for getting the FFI native C function pointer to look
-// up the FFI resolver.
-@pragma('vm:external-name', 'Ffi_GetFfiNativeResolver')
-external Pointer<NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>
-    _get_ffi_native_resolver<T extends NativeFunction>();
-
-// Resolver for FFI Native C function pointers.
-@pragma('vm:entry-point')
-final _ffi_resolver = _get_ffi_native_resolver<
-        NativeFunction<IntPtr Function(Handle, Handle, IntPtr)>>()
-    .asFunction<int Function(Object, Object, int)>();
-
-@pragma('vm:entry-point')
-int _ffi_resolver_function(Object a, Object s, int n) => _ffi_resolver(a, s, n);

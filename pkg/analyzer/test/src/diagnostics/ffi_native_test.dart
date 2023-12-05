@@ -10,9 +10,149 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AddressOfTest);
+    defineReflectiveTests(DefaultAssetTest);
     defineReflectiveTests(FfiNativeTest);
     defineReflectiveTests(NativeTest);
   });
+}
+
+@reflectiveTest
+class AddressOfTest extends PubPackageResolutionTest {
+  test_invalid_Lambda() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+void main() => print(Native.addressOf(() => 3));
+''', [
+      error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 58, 7),
+    ]);
+  }
+
+  test_invalid_MismatchingType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<Void Function()>()
+external void foo();
+
+void main() {
+  print(Native.addressOf<NativeFunction<Int8 Function()>>(foo));
+}
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 91, 54),
+    ]);
+  }
+
+  test_invalid_MissingType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<Void Function()>()
+external void foo();
+
+void main() {
+  print(Native.addressOf(foo));
+}
+''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 91, 21),
+    ]);
+  }
+
+  test_invalid_NotAConstant() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<Void Function()>()
+external void foo();
+@Native<Void Function()>()
+external void bar();
+
+void entry(bool condition) {
+  print(Native.addressOf(condition ? foo : bar));
+}
+''', [
+      error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 171, 21),
+    ]);
+  }
+
+  test_invalid_String() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+void main() => print(Native.addressOf('malloc'));
+''', [
+      error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 58, 8),
+    ]);
+  }
+
+  test_valid() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<Void Function()>()
+external void foo();
+
+void main() {
+  print(Native.addressOf<NativeFunction<Void Function()>>(foo));
+}
+''');
+  }
+}
+
+@reflectiveTest
+class DefaultAssetTest extends PubPackageResolutionTest {
+  test_invalid_duplicate() async {
+    await assertErrorsInCode(r'''
+@DefaultAsset('foo')
+@DefaultAsset('bar')
+library;
+
+import 'dart:ffi';
+''', [
+      error(FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET, 22, 12),
+    ]);
+  }
+
+  test_invalid_duplicateFromConst() async {
+    await assertErrorsInCode(r'''
+@DefaultAsset('bar')
+@defaults
+library;
+
+import 'dart:ffi';
+
+const defaults = DefaultAsset('foo');
+''', [
+      error(FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET, 22, 8),
+    ]);
+  }
+
+  test_valid() async {
+    await assertNoErrorsInCode(r'''
+@DefaultAsset('bar')
+library;
+
+import 'dart:ffi';
+
+@Native<Void Function()>()
+external void foo();
+''');
+  }
+
+  test_validFromConst() async {
+    await assertNoErrorsInCode(r'''
+@defaults
+library;
+
+import 'dart:ffi';
+
+const defaults = DefaultAsset('foo');
+
+@Native<Void Function()>()
+external void foo();
+''');
+  }
 }
 
 @reflectiveTest
@@ -41,7 +181,6 @@ import 'dart:ffi';
 external int foo();
 ''', [
       error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 7),
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 27),
     ]);
   }
 
@@ -186,6 +325,30 @@ external double wrongFfiReturnType(int v);
 
 @reflectiveTest
 class NativeTest extends PubPackageResolutionTest {
+  test_annotation_MissingType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external int foo();
+''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 29),
+    ]);
+  }
+
+  test_annotation_MissingTypeConst() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+const a = Native();
+
+@a
+external int foo();
+''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 41, 22),
+    ]);
+  }
+
   test_annotation_Native_getters() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
@@ -210,7 +373,6 @@ import 'dart:ffi';
 external int foo();
 ''', [
       error(CompileTimeErrorCode.NO_ANNOTATION_CONSTRUCTOR_ARGUMENTS, 20, 7),
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 27),
     ]);
   }
 
@@ -228,6 +390,42 @@ import 'dart:ffi';
 @Native<Int8 Function(Int64)>(isLeaf:true)
 external int doesntMatter(int x);
 ''', []);
+  }
+
+  test_NativeDuplicateAnnotation() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@Native<Int32 Function(Int32)>()
+@Native<Int32 Function(Int32)>(isLeaf: true)
+external int foo(int v);
+''', [
+      error(FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS, 53, 6),
+    ]);
+  }
+
+  test_NativeDuplicateAnnotationConst() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+const duplicate = Native<Int32 Function(Int32)>(isLeaf: true);
+
+@Native<Int32 Function(Int32)>()
+@duplicate
+external int foo(int v);
+''', [
+      error(FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS, 118, 9),
+    ]);
+  }
+
+  test_NativeFromConst() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+const annotation = Native<Int32 Function(Int32)>();
+
+@annotation
+external int wrongFfiReturnType(int v);
+''');
   }
 
   test_NativeInstanceMethodsMustHaveReceiver() async {
@@ -253,6 +451,18 @@ external Object doesntMatter();
     ]);
   }
 
+  test_NativeLeafMustNotReturnHandleConst() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+const annotation = Native<Handle Function()>(isLeaf:true);
+
+@annotation
+external Object doesntMatter();
+''', [
+      error(FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, 79, 43),
+    ]);
+  }
+
   test_NativeLeafMustNotTakeHandles() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -260,6 +470,18 @@ import 'dart:ffi';
 external void doesntMatter(Object o);
 ''', [
       error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 19, 105),
+    ]);
+  }
+
+  test_NativeLeafMustNotTakeHandlesConst() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+const annotation = Native<Void Function(Handle)>(symbol: 'DoesntMatter', isLeaf:true);
+
+@annotation
+external void doesntMatter(Object o);
+''', [
+      error(FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, 107, 49),
     ]);
   }
 

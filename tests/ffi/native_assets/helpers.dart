@@ -419,4 +419,16 @@ void testNonExistingFunction() {
     'Attempted to fallback to process lookup.',
     argumentError2.message,
   );
+
+  final addressOfError = Expect.throws<ArgumentError>(() {
+    Native.addressOf<NativeFunction<Int32 Function(Int32, Int32)>>(
+        doesnotexist92304);
+  });
+  Expect.contains(doesNotExistName, addressOfError.message);
+  Expect.contains('No asset with id', addressOfError.message);
+  Expect.contains('Available native assets: ', addressOfError.message);
+  Expect.contains(
+    'Attempted to fallback to process lookup.',
+    addressOfError.message,
+  );
 }

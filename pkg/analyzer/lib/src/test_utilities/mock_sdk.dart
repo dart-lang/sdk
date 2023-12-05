@@ -878,6 +878,14 @@ final class Native<T> {
     this.isLeaf: false,
     this.symbol,
   });
+
+  external static Pointer<T> addressOf<T extends NativeType>(
+      @DartRepresentationOf('T') Object object);
+}
+
+final class DefaultAsset {
+  final String id;
+  const DefaultAsset(this.id);
 }
 
 final class Asset {

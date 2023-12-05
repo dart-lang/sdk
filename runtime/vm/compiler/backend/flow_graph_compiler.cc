@@ -3044,14 +3044,6 @@ void FlowGraphCompiler::FrameStatePush(Definition* defn) {
   }
   ASSERT((rep == kTagged) || (rep == kUntagged) ||
          RepresentationUtils::IsUnboxedInteger(rep));
-  ASSERT(rep != kUntagged || flow_graph_.IsIrregexpFunction());
-  const auto& function = flow_graph_.parsed_function().function();
-  // Currently, we only allow unboxed integers on the stack in unoptimized code
-  // when building a dynamic closure call dispatcher, where any unboxed values
-  // on the stack are consumed before possible FrameStateIsSafeToCall() checks.
-  // See FlowGraphBuilder::BuildDynamicCallVarsInit().
-  ASSERT(!RepresentationUtils::IsUnboxedInteger(rep) ||
-         function.IsDynamicClosureCallDispatcher(thread()));
   frame_state_.Add(rep);
 }
 

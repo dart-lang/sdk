@@ -8475,9 +8475,10 @@ bool Function::FfiIsLeaf() const {
   auto const& native_instance = Instance::Handle(GetNativeAnnotation());
   const auto& native_class = Class::Handle(zone, native_instance.clazz());
   const auto& native_class_fields = Array::Handle(zone, native_class.fields());
-  ASSERT(native_class_fields.Length() == 3);
+  ASSERT(native_class_fields.Length() == 4);
   const auto& is_leaf_field =
-      Field::Handle(zone, Field::RawCast(native_class_fields.At(2)));
+      Field::Handle(zone, Field::RawCast(native_class_fields.At(3)));
+  ASSERT(!is_leaf_field.is_static());
   return Bool::Handle(zone,
                       Bool::RawCast(native_instance.GetField(is_leaf_field)))
       .value();

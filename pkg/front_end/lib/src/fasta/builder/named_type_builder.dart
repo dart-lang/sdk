@@ -16,6 +16,11 @@ import '../fasta_codes.dart'
         Message,
         Severity,
         Template,
+        messageClassImplementsDeferredClass,
+        messageExtendsDeferredClass,
+        messageExtensionTypeImplementsDeferred,
+        messageMixinDeferredMixin,
+        messageMixinSuperClassConstraintDeferredClass,
         messageNotATypeContext,
         messageTypeVariableInStaticContext,
         messageTypedefCause,
@@ -110,6 +115,9 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
 
   final bool hasExplicitTypeArguments;
 
+  /// Set to `true` if the type was resolved through a deferred import prefix.
+  bool _isDeferred = false;
+
   factory NamedTypeBuilderImpl(
       TypeName name, NullabilityBuilder nullabilityBuilder,
       {List<TypeBuilder>? arguments,
@@ -194,6 +202,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     if (qualifier != null) {
       Builder? prefix = scope.lookup(qualifier, charOffset, fileUri);
       if (prefix is PrefixBuilder) {
+        _isDeferred = prefix.deferred;
         member = prefix.lookup(typeName.name, typeName.nameOffset, fileUri);
       }
     } else {
@@ -359,22 +368,86 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     return null;
   }
 
-  DartType _buildInternal(
-      LibraryBuilder library, TypeUse typeUse, ClassHierarchyBase? hierarchy) {
-    DartType aliasedType = _buildAliasedInternal(library, typeUse, hierarchy);
+  void _checkDeferred(SourceLibraryBuilder libraryBuilder, TypeUse typeUse) {
+    if (_isDeferred) {
+      switch (typeUse) {
+        case TypeUse.classExtendsType:
+          libraryBuilder.addProblem(
+              messageExtendsDeferredClass,
+              typeName.fullNameOffset,
+              typeName.fullNameLength,
+              fileUri ?? libraryBuilder.fileUri);
+        case TypeUse.classImplementsType:
+          libraryBuilder.addProblem(
+              messageClassImplementsDeferredClass,
+              typeName.fullNameOffset,
+              typeName.fullNameLength,
+              fileUri ?? libraryBuilder.fileUri);
+        case TypeUse.mixinOnType:
+          libraryBuilder.addProblem(
+              messageMixinSuperClassConstraintDeferredClass,
+              typeName.fullNameOffset,
+              typeName.fullNameLength,
+              fileUri ?? libraryBuilder.fileUri);
+        case TypeUse.extensionTypeImplementsType:
+          libraryBuilder.addProblem(
+              messageExtensionTypeImplementsDeferred,
+              typeName.fullNameOffset,
+              typeName.fullNameLength,
+              fileUri ?? libraryBuilder.fileUri);
+        case TypeUse.classWithType:
+          libraryBuilder.addProblem(
+              messageMixinDeferredMixin,
+              typeName.fullNameOffset,
+              typeName.fullNameLength,
+              fileUri ?? libraryBuilder.fileUri);
+        case TypeUse.literalTypeArgument:
+        case TypeUse.variableType:
+        case TypeUse.typeParameterBound:
+        case TypeUse.parameterType:
+        case TypeUse.recordEntryType:
+        case TypeUse.fieldType:
+        case TypeUse.returnType:
+        case TypeUse.isType:
+        case TypeUse.asType:
+        case TypeUse.objectPatternType:
+        case TypeUse.catchType:
+        case TypeUse.constructorTypeArgument:
+        case TypeUse.redirectionTypeArgument:
+        case TypeUse.tearOffTypeArgument:
+        case TypeUse.invocationTypeArgument:
+        case TypeUse.typeLiteral:
+        case TypeUse.extensionOnType:
+        case TypeUse.typeArgument:
+        case TypeUse.typedefAlias:
+        case TypeUse.instantiation:
+        case TypeUse.enumSelfType:
+        case TypeUse.macroTypeArgument:
+        case TypeUse.typeParameterDefaultType:
+        case TypeUse.defaultTypeAsTypeArgument:
+        case TypeUse.deferredTypeError:
+      }
+    }
+  }
 
-    if (library is SourceLibraryBuilder &&
-        !isRecordAccessAllowed(library) &&
-        isDartCoreRecord(aliasedType)) {
-      library.reportFeatureNotEnabled(
-          library.libraryFeatures.records,
-          fileUri ?? library.fileUri,
-          typeName.fullNameOffset,
-          typeName.fullNameLength);
+  DartType _buildInternal(LibraryBuilder libraryBuilder, TypeUse typeUse,
+      ClassHierarchyBase? hierarchy) {
+    DartType aliasedType =
+        _buildAliasedInternal(libraryBuilder, typeUse, hierarchy);
+    if (libraryBuilder is SourceLibraryBuilder) {
+      _checkDeferred(libraryBuilder, typeUse);
+      if (!isRecordAccessAllowed(libraryBuilder) &&
+          isDartCoreRecord(aliasedType)) {
+        libraryBuilder.reportFeatureNotEnabled(
+            libraryBuilder.libraryFeatures.records,
+            fileUri ?? libraryBuilder.fileUri,
+            typeName.fullNameOffset,
+            typeName.fullNameLength);
+      }
     }
     return unaliasing.unalias(aliasedType,
-        legacyEraseAliases:
-            !_performTypeCanonicalization && !library.isNonNullableByDefault);
+        legacyEraseAliases: !_performTypeCanonicalization &&
+            !libraryBuilder.isNonNullableByDefault);
   }
 
   @override
@@ -425,7 +498,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  Supertype? buildSupertype(LibraryBuilder library) {
+  Supertype? buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     TypeDeclarationBuilder declaration = this.declaration!;
     switch (declaration) {
       case ClassBuilder():
@@ -438,7 +511,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
                 fileUri);
           }
         }
-        DartType type = build(library, TypeUse.superType);
+        DartType type = build(library, typeUse);
         if (type is InterfaceType) {
           if (!library.isNonNullableByDefault) {
             // This "normalizes" type argument `Never*` to `Null`.
@@ -452,7 +525,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         }
       case TypeAliasBuilder():
         TypeAliasBuilder aliasBuilder = declaration;
-        DartType type = build(library, TypeUse.superType);
+        DartType type = build(library, typeUse);
         if (type is InterfaceType && type.nullability != Nullability.nullable) {
           return new Supertype(type.classNode, type.typeArguments);
         } else if (type is NullType) {
@@ -519,20 +592,24 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
   }
 
   @override
-  Supertype? buildMixedInType(LibraryBuilder library) {
+  Supertype? buildMixedInType(LibraryBuilder libraryBuilder) {
     TypeDeclarationBuilder declaration = this.declaration!;
     switch (declaration) {
       case ClassBuilder():
-        return declaration.buildMixedInType(library, typeArguments);
+        if (libraryBuilder is SourceLibraryBuilder) {
+          _checkDeferred(libraryBuilder, TypeUse.classWithType);
+        }
+        return declaration.buildMixedInType(libraryBuilder, typeArguments);
       case TypeAliasBuilder():
         TypeAliasBuilder aliasBuilder = declaration;
-        DartType type = build(library, TypeUse.mixedInType);
+        DartType type = build(libraryBuilder, TypeUse.classWithType);
         if (type is InterfaceType && type.nullability != Nullability.nullable) {
           return new Supertype(type.classNode, type.typeArguments);
         }
-        return _handleInvalidAliasedSupertype(library, aliasBuilder, type);
+        return _handleInvalidAliasedSupertype(
+            libraryBuilder, aliasBuilder, type);
       case InvalidTypeDeclarationBuilder():
-        library.addProblem(
+        libraryBuilder.addProblem(
             declaration.message.messageObject,
             declaration.message.charOffset,
             declaration.message.length,
@@ -547,7 +624,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
       // TODO(johnniwinther): How should we handle this case?
       case OmittedTypeDeclarationBuilder():
     }
-    return _handleInvalidSupertype(library);
+    return _handleInvalidSupertype(libraryBuilder);
   }
 
   @override

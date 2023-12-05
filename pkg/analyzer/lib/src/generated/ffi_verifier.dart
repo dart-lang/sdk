@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -30,6 +31,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _dartFfiLibraryName = 'dart.ffi';
   static const _finalizableClassName = 'Finalizable';
   static const _isLeafParamName = 'isLeaf';
+  static const _nativeAddressOf = 'Native.addressOf';
   static const _nativeCallable = 'NativeCallable';
   static const _opaqueClassName = 'Opaque';
 
@@ -185,7 +187,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _checkFfiNative(
       errorNode: node,
-      annotations: node.metadata,
+      annotations: node.declaredElement!.metadata,
       declarationElement: node.declaredElement!,
       formalParameterList: node.functionExpression.parameters,
     );
@@ -236,10 +238,33 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLibraryDirective(LibraryDirective node) {
+    // Ensure there is at most one @DefaultAsset annotation per library
+    var hasDefaultAsset = false;
+
+    if (node.element case LibraryElement library) {
+      for (var metadata in library.metadata) {
+        var annotationValue = metadata.computeConstantValue();
+        if (annotationValue != null && annotationValue.isDefaultAsset) {
+          if (hasDefaultAsset) {
+            var name = (metadata as ElementAnnotationImpl).annotationAst.name;
+            _errorReporter.reportErrorForNode(
+                FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET, name, []);
+          }
+
+          hasDefaultAsset = true;
+        }
+      }
+    }
+
+    super.visitLibraryDirective(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     _checkFfiNative(
         errorNode: node,
-        annotations: node.metadata,
+        annotations: node.declaredElement!.metadata,
         declarationElement: node.declaredElement!,
         formalParameterList: node.parameters);
     super.visitMethodDeclaration(node);
@@ -255,6 +280,10 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           _validateFromFunction(node, element);
         } else if (element.name == 'elementAt') {
           _validateElementAt(node);
+        }
+      } else if (enclosingElement.isNative) {
+        if (element.name == 'addressOf') {
+          _validateNativeAddressOf(node);
         }
       } else if (enclosingElement.isNativeFunctionPointerExtension) {
         if (element.name == 'asFunction') {
@@ -308,30 +337,45 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   void _checkFfiNative({
     required Declaration errorNode,
-    required List<Annotation> annotations,
+    required List<ElementAnnotation> annotations,
     required ExecutableElement declarationElement,
     required FormalParameterList? formalParameterList,
   }) {
     final formalParameters =
         formalParameterList?.parameters ?? <FormalParameter>[];
+    var hadNativeAnnotation = false;
 
-    for (Annotation annotation in annotations) {
-      if (!annotation.isFfiNative) {
+    for (var annotation in annotations) {
+      var annotationValue = annotation.computeConstantValue();
+      var annotationType = annotationValue?.type; // Native<T>
+
+      if (annotationValue == null ||
+          annotationType is! InterfaceType ||
+          !annotationValue.isNative) {
         continue;
       }
 
-      final typeArguments = annotation.typeArguments?.arguments;
-      final arguments = annotation.arguments?.arguments;
-      if (typeArguments == null) {
+      if (hadNativeAnnotation) {
+        var name = (annotation as ElementAnnotationImpl).annotationAst.name;
+        _errorReporter.reportErrorForNode(
+            FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS, name, []);
+      }
+
+      hadNativeAnnotation = true;
+
+      var ffiSignature = annotationType.typeArguments[0]; // The T in @Native<T>
+
+      if (ffiSignature is! FunctionType) {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, errorNode, ['T', 'Native']);
         return;
       }
 
-      final ffiSignature = typeArguments[0].type! as FunctionType;
-
       // Leaf call FFI Natives can't use Handles.
-      _validateFfiLeafCallUsesNoHandles(arguments, ffiSignature, errorNode);
+      var isLeaf = annotationValue.getField(_isLeafParamName)?.toBoolValue();
+      if (isLeaf == true) {
+        _validateFfiLeafCallUsesNoHandles(ffiSignature, errorNode);
+      }
 
       if (!declarationElement.isExternal) {
         _errorReporter.reportErrorForNode(
@@ -813,7 +857,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
-      _validateFfiLeafCallUsesNoHandles(
+      _validateFfiCallUsesNoHandlesIfLeaf(
           node.argumentList.arguments, TPrime, node);
     }
     _validateIsLeafIsConst(node);
@@ -944,7 +988,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _validateFfiLeafCallUsesNoHandles(
+  void _validateFfiCallUsesNoHandlesIfLeaf(
       NodeList<Expression>? args, DartType nativeType, AstNode errorNode) {
     if (args == null || args.isEmpty) {
       return;
@@ -968,6 +1012,23 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
                   FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, errorNode);
             }
           }
+        }
+      }
+    }
+  }
+
+  void _validateFfiLeafCallUsesNoHandles(
+      DartType nativeType, AstNode errorNode) {
+    if (nativeType is FunctionType) {
+      if (_primitiveNativeType(nativeType.returnType) ==
+          _PrimitiveDartType.handle) {
+        _errorReporter.reportErrorForNode(
+            FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, errorNode);
+      }
+      for (final param in nativeType.normalParameterTypes) {
+        if (_primitiveNativeType(param) == _PrimitiveDartType.handle) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, errorNode);
         }
       }
     }
@@ -1152,8 +1213,71 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
     _validateIsLeafIsConst(node);
-    _validateFfiLeafCallUsesNoHandles(
+    _validateFfiCallUsesNoHandlesIfLeaf(
         node.argumentList.arguments, S, typeArguments[0]);
+  }
+
+  /// Validate the invocation of `Native.addressOf`.
+  void _validateNativeAddressOf(MethodInvocation node) {
+    var typeArguments = node.typeArgumentTypes;
+    var arguments = node.argumentList.arguments;
+    if (typeArguments == null ||
+        typeArguments.length != 1 ||
+        arguments.length != 1) {
+      // There are other diagnostics reported against the invocation and the
+      // diagnostics generated below might be inaccurate, so don't report them.
+      return;
+    }
+
+    var argument = arguments[0];
+    var targetType = typeArguments[0];
+    var validTarget = false;
+
+    var referencedElement = switch (argument) {
+      Identifier() => argument.staticElement,
+      _ => null,
+    };
+
+    if (referencedElement != null) {
+      for (final annotation in referencedElement.metadata) {
+        var value = annotation.computeConstantValue();
+        var annotationType = value?.type;
+
+        if (annotationType is InterfaceType &&
+            annotationType.element.isNative) {
+          var functionType = annotationType.typeArguments[0];
+
+          // When referencing a function, the target type must be a
+          // `NativeFunction<T>` so that `T` matches the type from the
+          // annotation.
+          if (!targetType.isNativeFunction) {
+            _errorReporter.reportErrorForNode(
+              FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+              node,
+              [targetType, _nativeAddressOf],
+            );
+          } else {
+            var targetFunctionType =
+                (targetType as InterfaceType).typeArguments[0];
+            if (!typeSystem.isAssignableTo(functionType, targetFunctionType)) {
+              _errorReporter.reportErrorForNode(
+                FfiCode.MUST_BE_A_SUBTYPE,
+                node,
+                [functionType, targetFunctionType, _nativeAddressOf],
+              );
+            }
+          }
+
+          validTarget = true;
+          break;
+        }
+      }
+    }
+
+    if (!validTarget) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.ARGUMENT_MUST_BE_NATIVE, argument);
+    }
   }
 
   /// Validate the invocation of the constructor `NativeCallable.listener(f)`
@@ -1399,14 +1523,6 @@ extension on Annotation {
         element.enclosingElement.name == 'Array';
   }
 
-  bool get isFfiNative {
-    final element = this.element;
-    return element is ConstructorElement &&
-        element.ffiClass != null &&
-        (element.enclosingElement.name == 'Native' ||
-            element.enclosingElement.name == 'FfiNative');
-  }
-
   bool get isPacked {
     final element = this.element;
     return element is ConstructorElement &&
@@ -1474,6 +1590,22 @@ extension on ElementAnnotation {
   }
 }
 
+extension on DartObject {
+  bool get isDefaultAsset {
+    return switch (type) {
+      InterfaceType(:var element) => element.isDefaultAsset,
+      _ => false,
+    };
+  }
+
+  bool get isNative {
+    return switch (type) {
+      InterfaceType(:var element) => element.isNative,
+      _ => false,
+    };
+  }
+}
+
 extension on Element? {
   /// If this is a class element from `dart:ffi`, return it.
   ClassElement? get ffiClass {
@@ -1510,12 +1642,28 @@ extension on Element? {
         element.isFfiExtension;
   }
 
+  /// Return `true` if this represents the class `DefaultAsset`.
+  bool get isDefaultAsset {
+    final element = this;
+    return element is ClassElement &&
+        element.name == 'DefaultAsset' &&
+        element.isFfiClass;
+  }
+
   /// Return `true` if this represents the extension `DynamicLibraryExtension`.
   bool get isDynamicLibraryExtension {
     final element = this;
     return element is ExtensionElement &&
         element.name == 'DynamicLibraryExtension' &&
         element.isFfiExtension;
+  }
+
+  /// Return `true` if this represents the class `Native`.
+  bool get isNative {
+    final element = this;
+    return element is ClassElement &&
+        element.name == 'Native' &&
+        element.isFfiClass;
   }
 
   /// Return `true` if this represents the class `NativeCallable`.

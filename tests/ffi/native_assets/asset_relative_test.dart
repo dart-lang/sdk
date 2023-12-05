@@ -128,4 +128,10 @@ external int SumPlus42(int a, int b);
 void testFfiTestfunctionsDll() {
   final result2 = SumPlus42(2, 3);
   Expect.equals(2 + 3 + 42, result2);
+
+  final viaAddressOf =
+      Native.addressOf<NativeFunction<Int32 Function(Int32, Int32)>>(SumPlus42)
+          .asFunction<int Function(int, int)>();
+
+  Expect.equals(2 + 3 + 42, viaAddressOf(2, 3));
 }

@@ -1141,6 +1141,18 @@ const MessageCode messageCatchSyntaxExtraParameters = const MessageCode(
         r"""No types are needed, the first is given by 'on', the second is always 'StackTrace'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeClassImplementsDeferredClass =
+    messageClassImplementsDeferredClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageClassImplementsDeferredClass = const MessageCode(
+    "ClassImplementsDeferredClass",
+    analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
+    problemMessage: r"""Classes and mixins can't implement deferred classes.""",
+    correctionMessage:
+        r"""Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeClassInClass = messageClassInClass;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4270,6 +4282,17 @@ Message _withArgumentsExtendingRestricted(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtendsDeferredClass = messageExtendsDeferredClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtendsDeferredClass = const MessageCode(
+    "ExtendsDeferredClass",
+    analyzerCodes: <String>["EXTENDS_DEFERRED_CLASS"],
+    problemMessage: r"""Classes can't extend deferred classes.""",
+    correctionMessage:
+        r"""Try specifying a different superclass, or removing the extends clause.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtendsFutureOr = messageExtendsFutureOr;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -4469,6 +4492,18 @@ const MessageCode messageExtensionTypeExtends = const MessageCode(
         r"""An extension type declaration can't have an 'extends' clause.""",
     correctionMessage:
         r"""Try removing the 'extends' clause or replacing the 'extends' with 'implements'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeImplementsDeferred =
+    messageExtensionTypeImplementsDeferred;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeImplementsDeferred = const MessageCode(
+    "ExtensionTypeImplementsDeferred",
+    analyzerCodes: <String>["IMPLEMENTS_DEFERRED_CLASS"],
+    problemMessage: r"""Extension types can't implement deferred types.""",
+    correctionMessage:
+        r"""Try specifying a different type, removing the type from the list, or changing the import to not be deferred.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeMemberContext =
@@ -4855,6 +4890,16 @@ const MessageCode messageFfiAbiSpecificIntegerMappingInvalid = const MessageCode
         r"""Classes extending 'AbiSpecificInteger' must have exactly one 'AbiSpecificIntegerMapping' annotation specifying the mapping from ABI to a NativeType integer with a fixed size.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiAddressOfMustBeNative = messageFfiAddressOfMustBeNative;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiAddressOfMustBeNative = const MessageCode(
+    "FfiAddressOfMustBeNative",
+    analyzerCodes: <String>["ARGUMENT_MUST_BE_NATIVE"],
+    problemMessage:
+        r"""Argument to 'Native.addressOf' must be annotated with @Native.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string, String name)>
     templateFfiCompoundImplementsFinalizable =
     const Template<Message Function(String string, String name)>(
@@ -4893,6 +4938,16 @@ const MessageCode messageFfiCreateOfStructOrUnion = const MessageCode(
     "FfiCreateOfStructOrUnion",
     problemMessage:
         r"""Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiDefaultAssetDuplicate = messageFfiDefaultAssetDuplicate;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiDefaultAssetDuplicate = const MessageCode(
+    "FfiDefaultAssetDuplicate",
+    analyzerCodes: <String>["FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET"],
+    problemMessage:
+        r"""There may be at most one @DefaultAsset annotation on a library.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
@@ -5133,6 +5188,17 @@ const Code<Null> codeFfiLeafCallMustNotTakeHandle =
 const MessageCode messageFfiLeafCallMustNotTakeHandle = const MessageCode(
     "FfiLeafCallMustNotTakeHandle",
     problemMessage: r"""FFI leaf call must not have Handle argument types.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeDuplicateAnnotations =
+    messageFfiNativeDuplicateAnnotations;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeDuplicateAnnotations = const MessageCode(
+    "FfiNativeDuplicateAnnotations",
+    analyzerCodes: <String>["FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS"],
+    problemMessage:
+        r"""Native functions must not have more than @Native annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
@@ -10070,6 +10136,16 @@ const MessageCode messageMixinDeclaresConstructor = const MessageCode(
     problemMessage: r"""Mixins can't declare constructors.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinDeferredMixin = messageMixinDeferredMixin;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinDeferredMixin = const MessageCode(
+    "MixinDeferredMixin",
+    analyzerCodes: <String>["MIXIN_DEFERRED_CLASS"],
+    problemMessage: r"""Classes can't mix in deferred mixins.""",
+    correctionMessage: r"""Try changing the import to not be deferred.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String
@@ -10159,6 +10235,19 @@ Message _withArgumentsMixinSubtypeOfFinalIsNotBase(String name, String name2) {
       correctionMessage: """Try adding 'base' to the mixin.""",
       arguments: {'name': name, 'name2': name2});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMixinSuperClassConstraintDeferredClass =
+    messageMixinSuperClassConstraintDeferredClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMixinSuperClassConstraintDeferredClass =
+    const MessageCode(
+        "MixinSuperClassConstraintDeferredClass",
+        analyzerCodes: <String>["MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS"],
+        problemMessage:
+            r"""Deferred classes can't be used as superclass constraints.""",
+        correctionMessage: r"""Try changing the import to not be deferred.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMixinWithClause = messageMixinWithClause;

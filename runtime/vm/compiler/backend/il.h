@@ -5684,6 +5684,10 @@ class StaticCallInstr : public TemplateDartCall<0> {
 // on IA32.
 class CachableIdempotentCallInstr : public TemplateDartCall<0> {
  public:
+  // Instead of inputs to this IL instruction we should pass a
+  // `GrowableArray<const Object&>` and only push & pop them in the slow path.
+  // (Right now the inputs are eagerly pushed and therefore have to be also
+  // poped on the fast path.)
   CachableIdempotentCallInstr(const InstructionSource& source,
                               const Function& function,
                               intptr_t type_args_len,

@@ -138,8 +138,15 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraphOfSyncFfiCallback(const Function& function);
   FlowGraph* BuildGraphOfAsyncFfiCallback(const Function& function);
   FlowGraph* BuildGraphOfFfiCall(const Function& function);
-
   Fragment FfiCallLookupAddress(const Function& function);
+
+  // Resolves the address of a native symbol from the constant data of a
+  // vm:ffi:native pragma.
+  // Because it's used in optimized mode (as part of the implementation of
+  // @Native functions), it pushes the value as an unboxed value. This is safe
+  // to use in unoptimized mode too as long as the unboxed value is consumed
+  // immediately.
+  Fragment FfiNativeLookupAddress(const Instance& native);
   Fragment FfiNativeLookupAddress(const Function& function);
   // Expects target address on stack.
   Fragment FfiCallFunctionBody(const Function& function,

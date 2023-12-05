@@ -4,6 +4,8 @@
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
+        messageFfiDefaultAssetDuplicate,
+        messageFfiNativeDuplicateAnnotations,
         messageFfiNativeMustBeExternal,
         messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
         templateCantHaveNamedParameters,
@@ -77,14 +79,14 @@ class FfiNativeTransformer extends FfiTransformer {
         nativeSymbolField = index.getField('dart:ffi', 'Native', 'symbol'),
         nativeAssetField = index.getField('dart:ffi', 'Native', 'assetId'),
         nativeIsLeafField = index.getField('dart:ffi', 'Native', 'isLeaf'),
-        resolverField = index.getTopLevelField('dart:ffi', '_ffi_resolver'),
+        resolverField = index.getField('dart:ffi', 'Native', '_ffi_resolver'),
         super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex);
 
   @override
   TreeNode visitLibrary(Library node) {
     assert(currentAsset == null);
-    final annotation = tryGetAssetAnnotation(node);
+    final annotation = tryGetAssetAnnotationOrWarnOnDuplicates(node);
     if (annotation != null) {
       currentAsset = (annotation.constant as InstanceConstant)
           .fieldValues[assetAssetField.fieldReference] as StringConstant;
@@ -94,8 +96,10 @@ class FfiNativeTransformer extends FfiTransformer {
     return result;
   }
 
-  ConstantExpression? tryGetAnnotation(
-      Annotatable node, List<Class> instanceOf) {
+  List<ConstantExpression> tryGetAnnotation(
+      Annotatable node, Class instanceOf) {
+    final annotations = <ConstantExpression>[];
+
     for (final Expression annotation in node.annotations) {
       if (annotation is! ConstantExpression) {
         continue;
@@ -104,18 +108,47 @@ class FfiNativeTransformer extends FfiTransformer {
       if (annotationConstant is! InstanceConstant) {
         continue;
       }
-      if (instanceOf.contains(annotationConstant.classNode)) {
-        return annotation;
+      if (annotationConstant.classNode == instanceOf) {
+        annotations.add(annotation);
       }
     }
-    return null;
+
+    return annotations;
   }
 
-  ConstantExpression? tryGetAssetAnnotation(Library node) =>
-      tryGetAnnotation(node, [assetClass]);
+  ConstantExpression? tryGetAssetAnnotationOrWarnOnDuplicates(Library node) {
+    ConstantExpression? assetAnnotation;
 
-  ConstantExpression? tryGetNativeAnnotation(Member node) =>
-      tryGetAnnotation(node, [nativeClass]);
+    for (final annotation in tryGetAnnotation(node, assetClass)) {
+      if (assetAnnotation != null) {
+        // Duplicate @DefaultAsset annotations are forbidden.
+        diagnosticReporter.report(messageFfiDefaultAssetDuplicate,
+            annotation.fileOffset, 1, annotation.location?.file);
+        return null;
+      } else {
+        assetAnnotation = annotation;
+      }
+    }
+
+    return assetAnnotation;
+  }
+
+  ConstantExpression? tryGetNativeAnnotationOrWarnOnDuplicates(Member node) {
+    ConstantExpression? nativeAnnotation;
+
+    for (final annotation in tryGetAnnotation(node, nativeClass)) {
+      if (nativeAnnotation != null) {
+        // Duplicate @Native annotations are forbidden.
+        diagnosticReporter.report(messageFfiNativeDuplicateAnnotations,
+            node.fileOffset, 1, node.location?.file);
+        return null;
+      } else {
+        nativeAnnotation = annotation;
+      }
+    }
+
+    return nativeAnnotation;
+  }
 
   bool _extendsNativeFieldWrapperClass1(DartType type) {
     if (type is InterfaceType) {
@@ -401,7 +434,12 @@ class FfiNativeTransformer extends FfiTransformer {
     return validSignature;
   }
 
-  static const vmFfiNative = 'vm:ffi:native';
+  static const _vmFfiNative = 'vm:ffi:native';
+
+  /// A pragma annotation added to methods previously annotated with `@Native`
+  /// during the transformation so that the use site transformer can find valid
+  /// targets.
+  static const nativeMarker = 'cfe:ffi:native-marker';
 
   Procedure _transformProcedure(
     Procedure node,
@@ -424,19 +462,20 @@ class FfiNativeTransformer extends FfiTransformer {
       return node;
     }
 
+    final resolvedNative = InstanceConstant(
+      nativeClass.reference,
+      [ffiFunctionType],
+      {
+        nativeSymbolField.fieldReference: nativeFunctionName,
+        nativeAssetField.fieldReference:
+            assetName ?? StringConstant(currentLibrary.importUri.toString()),
+        nativeIsLeafField.fieldReference: BoolConstant(isLeaf),
+      },
+    );
     final pragmaConstant = ConstantExpression(
       InstanceConstant(pragmaClass.reference, [], {
-        pragmaName.fieldReference: StringConstant(vmFfiNative),
-        pragmaOptions.fieldReference: InstanceConstant(
-          nativeClass.reference,
-          [ffiFunctionType],
-          {
-            nativeSymbolField.fieldReference: nativeFunctionName,
-            nativeAssetField.fieldReference: assetName ??
-                StringConstant(currentLibrary.importUri.toString()),
-            nativeIsLeafField.fieldReference: BoolConstant(isLeaf),
-          },
-        )
+        pragmaName.fieldReference: StringConstant(_vmFfiNative),
+        pragmaOptions.fieldReference: resolvedNative,
       }),
       InterfaceType(
         pragmaClass,
@@ -444,6 +483,21 @@ class FfiNativeTransformer extends FfiTransformer {
         [],
       ),
     );
+
+    // The marker annotation is always added to the original method so that the
+    // use-sites transformer can find it when a tear-off is passed to e.g.
+    // Native.addressOf.
+    node.addAnnotation(ConstantExpression(
+      InstanceConstant(pragmaClass.reference, [], {
+        pragmaName.fieldReference: StringConstant(nativeMarker),
+        pragmaOptions.fieldReference: resolvedNative,
+      }),
+      InterfaceType(
+        pragmaClass,
+        Nullability.nonNullable,
+        [],
+      ),
+    ));
 
     final possibleCompoundReturn = findCompoundReturnType(dartFunctionType);
     if (dartFunctionType == wrappedDartFunctionType &&
@@ -640,7 +694,7 @@ class FfiNativeTransformer extends FfiTransformer {
     // Only transform functions that are external and have Native annotation:
     //   @Native<Double Function(Double)>(symbol: 'Math_sqrt')
     //   external double _square_root(double x);
-    final ffiNativeAnnotation = tryGetNativeAnnotation(node);
+    final ffiNativeAnnotation = tryGetNativeAnnotationOrWarnOnDuplicates(node);
     if (ffiNativeAnnotation == null) {
       return node;
     }

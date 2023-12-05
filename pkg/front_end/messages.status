@@ -71,6 +71,7 @@ CantUsePrefixAsExpression/part_wrapped_script: Fail # Importing file in the (now
 CantUsePrefixWithNullAware/part_wrapped_script: Fail # Importing file in the (now) part.
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
+ClassImplementsDeferredClass/part_wrapped_script: Fail # Uses imports
 ClassInNullAwareReceiver/analyzerCode: Fail
 ColonInPlaceOfIn/example: Fail
 CompilingWithSoundNullSafety/analyzerCode: Fail
@@ -308,6 +309,7 @@ ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
+ExtendsDeferredClass/part_wrapped_script: Fail # Uses imports
 ExtendsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsDynamic/example: Fail # Feature not yet enabled by default.
 ExtendsFunctionType/analyzerCode: Fail # Feature not yet in analyzer.
@@ -320,6 +322,8 @@ ExtendsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsVoid/example: Fail # Feature not yet enabled by default.
 ExtensionInNullAwareReceiver/analyzerCode: Fail
 ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
+ExtensionTypeImplementsDeferred/part_wrapped_script: Fail # Uses imports
+ExtensionTypeImplementsDeferred/script: Fail # Uses imports
 ExternalConstructorWithBody/part_wrapped_script1: Fail
 ExternalConstructorWithBody/script1: Fail
 ExternalConstructorWithFieldInitializers/example: Fail
@@ -726,7 +730,9 @@ MissingMain/example: Fail
 MissingPartOf/part_wrapped_script: Fail # Using 'part' in the (now) part.
 MissingPrefixInDeferredImport/example: Fail
 MixinDeclaresConstructor/example: Fail
+MixinDeferredMixin/part_wrapped_script: Fail # Uses imports
 MixinInferenceNoMatchingClass/example: Fail
+MixinSuperClassConstraintDeferredClass/part_wrapped_script: Fail # Uses imports
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
 MultipleImplements/part_wrapped_script: Fail
@@ -926,6 +932,10 @@ RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
+ResourceIdentifiersMultiple/analyzerCode: Fail
+ResourceIdentifiersMultiple/example: Fail
+ResourceIdentifiersNotStatic/analyzerCode: Fail
+ResourceIdentifiersNotStatic/example: Fail
 RestPatternInMapPattern/analyzerCode: Fail
 RestPatternMoreThanOne/analyzerCode: Fail
 RethrowNotCatch/example: Fail
@@ -1086,10 +1096,6 @@ WeakReferenceNotOneArgument/analyzerCode: Fail
 WeakReferenceNotOneArgument/example: Fail
 WeakReferenceNotStatic/analyzerCode: Fail
 WeakReferenceNotStatic/example: Fail
-ResourceIdentifiersNotStatic/analyzerCode: Fail
-ResourceIdentifiersNotStatic/example: Fail
-ResourceIdentifiersMultiple/analyzerCode: Fail
-ResourceIdentifiersMultiple/example: Fail
 WeakReferenceReturnTypeNotNullable/analyzerCode: Fail
 WeakReferenceReturnTypeNotNullable/example: Fail
 WeakReferenceTargetHasParameters/analyzerCode: Fail
