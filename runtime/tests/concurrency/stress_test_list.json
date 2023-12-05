@@ -3830,7 +3830,6 @@
   "../../../tests/standalone/io/issue_26954_test.dart",
   "../../../tests/standalone/io/issue_30687_test.dart",
   "../../../tests/standalone/io/issue_31492_test.dart",
-  "../../../tests/standalone/io/issue_32052_test.dart",
   "../../../tests/standalone/io/issue_35112_test.dart",
   "../../../tests/standalone/io/locale_name_test.dart",
   "../../../tests/standalone/io/many_directory_operations_test.dart",

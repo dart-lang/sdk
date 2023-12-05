@@ -490,14 +490,15 @@ class TypesBuilder {
       }),
     );
 
-    augmented.methods.addAll(
-      element.methods.notAugmented.map((element) {
+    augmented.methods = [
+      ...augmented.methods.notAugmented,
+      ...element.methods.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
         return MethodMember(typeProvider, element, toDeclaration, false);
       }),
-    );
+    ];
   }
 
   /// The [FunctionType] to use when a function type is expected for a type

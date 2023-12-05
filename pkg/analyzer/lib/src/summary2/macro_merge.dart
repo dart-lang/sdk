@@ -98,30 +98,29 @@ class MacroElementsMerger {
     InstanceElementImpl existingElement,
     InstanceElementImpl newElement,
   ) {
+    for (final element in newElement.methods) {
+      final reference = element.reference!;
+      final containerRef = element.isAugmentation
+          ? existingRef.getChild('@methodAugmentation')
+          : existingRef.getChild('@method');
+      containerRef.addChildReference(element.name, reference);
+    }
+    existingElement.methods = [
+      ...existingElement.methods,
+      ...newElement.methods,
+    ].toFixedList();
+
+    // TODO(scheglov): accessors, fields
+
     if (existingElement is InterfaceElementImpl &&
         newElement is InterfaceElementImpl) {
       if (newElement.interfaces.isNotEmpty) {
         existingElement.interfaces = [
           ...existingElement.interfaces,
-          ...newElement.interfaces
+          ...newElement.interfaces,
         ].toFixedList();
       }
-    }
 
-    {
-      final containerRef = existingRef.getChild('@method');
-      for (final element in newElement.methods) {
-        final reference = element.reference!;
-        containerRef.addChildReference(element.name, reference);
-      }
-      existingElement.methods = [
-        ...existingElement.methods,
-        ...newElement.methods,
-      ].toFixedList();
-    }
-
-    if (existingElement is InterfaceElementImpl &&
-        newElement is InterfaceElementImpl) {
       for (final element in newElement.constructors) {
         final reference = element.reference!;
         final containerRef = element.isAugmentation
@@ -134,8 +133,6 @@ class MacroElementsMerger {
         ...newElement.constructors,
       ].toFixedList();
     }
-
-    // TODO(scheglov): accessors, fields
   }
 
   void _mergeUnitPropertyAccessors() {

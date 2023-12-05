@@ -92,12 +92,11 @@ class MemoryMappable : public Mappable {
       auto* memory = VirtualMemory::Allocate(
           map_size, type == File::kReadExecute, "dart-compiled-image");
       if (memory == nullptr) return nullptr;
-      result = new MappedMemory(memory->address(), memory->size());
+      result = new MappedMemory(memory->address(), length);
       memory->release();
       delete memory;
     } else {
-      result = new MappedMemory(start, map_size,
-                                /*should_unmap=*/false);
+      result = new MappedMemory(start, length, /*should_unmap=*/false);
     }
 
     size_t remainder = 0;

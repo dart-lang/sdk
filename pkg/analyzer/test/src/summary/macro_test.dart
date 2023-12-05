@@ -1609,8 +1609,6 @@ augment class B {
                 element: <null>
             augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
             augmented
-              constructors
-                self::@augmentation::package:test/test.macro.dart::@class::B::@constructor::new
               methods
                 self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
                 self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
@@ -1844,8 +1842,6 @@ library
         augmented
           fields
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-          constructors
-            self::@class::A::@constructor::new
           accessors
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
@@ -1910,8 +1906,6 @@ library
         augmented
           fields
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-          constructors
-            self::@class::A::@constructor::new
           accessors
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
   augmentationImports
@@ -1966,8 +1960,6 @@ library
         reference: self::@class::A
         augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
-          constructors
-            self::@class::A::@constructor::new
           methods
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
   augmentationImports
@@ -2023,8 +2015,6 @@ library
         augmented
           fields
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-          constructors
-            self::@class::A::@constructor::new
           accessors
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   augmentationImports
@@ -2123,7 +2113,10 @@ class MacroDeclarationsTest_keepLinking extends MacroDeclarationsTest {
 
 abstract class MacroDefinitionTest extends MacroElementsBaseTest {
   test_class_addConstructor_augmentConstructor() async {
-    _addSingleMacro('class_addConstructor_augmentConstructor.dart');
+    newFile(
+      '$testPackageLibPath/a.dart',
+      _getMacroCode('add_augment_declaration.dart'),
+    );
 
     var library = await buildLibrary(r'''
 import 'a.dart';
@@ -2183,6 +2176,74 @@ augment class A {
                 periodOffset: 146
                 nameEnd: 152
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+''');
+  }
+
+  test_class_addMethod_augmentMethod() async {
+    newFile(
+      '$testPackageLibPath/a.dart',
+      _getMacroCode('add_augment_declaration.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddMethod()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @37
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmented
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+import 'dart:core' as prefix1;
+
+augment class A {
+  @prefix0.AugmentMethod()
+  external int foo();
+  augment prefix1.int foo() => 42;
+}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+        dart:core as prefix1 @93
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @117
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            methods
+              external foo @163
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+                returnType: int
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+              augment foo @192
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+                returnType: int
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
 ''');
   }
 }
