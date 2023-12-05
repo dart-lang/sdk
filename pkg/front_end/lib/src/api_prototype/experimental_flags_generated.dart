@@ -139,6 +139,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 2),
       experimentReleasedVersion: const Version(3, 2));
 
+  static const ExperimentalFlag inferenceUpdate3 = const ExperimentalFlag(
+      name: 'inference-update-3',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: defaultLanguageVersion,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion);
+
   static const ExperimentalFlag inlineClass = const ExperimentalFlag(
       name: 'inline-class',
       isEnabledByDefault: true,
@@ -366,6 +374,10 @@ class GlobalFeatures {
   GlobalFeature get inferenceUpdate2 => _inferenceUpdate2 ??=
       _computeGlobalFeature(ExperimentalFlag.inferenceUpdate2);
 
+  GlobalFeature? _inferenceUpdate3;
+  GlobalFeature get inferenceUpdate3 => _inferenceUpdate3 ??=
+      _computeGlobalFeature(ExperimentalFlag.inferenceUpdate3);
+
   GlobalFeature? _inlineClass;
   GlobalFeature get inlineClass =>
       _inlineClass ??= _computeGlobalFeature(ExperimentalFlag.inlineClass);
@@ -504,6 +516,11 @@ class LibraryFeatures {
       _inferenceUpdate2 ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.inferenceUpdate2, canonicalUri, libraryVersion);
 
+  LibraryFeature? _inferenceUpdate3;
+  LibraryFeature get inferenceUpdate3 =>
+      _inferenceUpdate3 ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.inferenceUpdate3, canonicalUri, libraryVersion);
+
   LibraryFeature? _inlineClass;
   LibraryFeature get inlineClass =>
       _inlineClass ??= globalFeatures._computeLibraryFeature(
@@ -617,6 +634,8 @@ class LibraryFeatures {
         return inferenceUpdate1;
       case shared.ExperimentalFlag.inferenceUpdate2:
         return inferenceUpdate2;
+      case shared.ExperimentalFlag.inferenceUpdate3:
+        return inferenceUpdate3;
       case shared.ExperimentalFlag.inlineClass:
         return inlineClass;
       case shared.ExperimentalFlag.macros:
@@ -682,6 +701,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.inferenceUpdate1;
     case "inference-update-2":
       return ExperimentalFlag.inferenceUpdate2;
+    case "inference-update-3":
+      return ExperimentalFlag.inferenceUpdate3;
     case "inline-class":
       return ExperimentalFlag.inlineClass;
     case "macros":
@@ -743,6 +764,8 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.inferenceUpdate1.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate2:
       ExperimentalFlag.inferenceUpdate2.isEnabledByDefault,
+  ExperimentalFlag.inferenceUpdate3:
+      ExperimentalFlag.inferenceUpdate3.isEnabledByDefault,
   ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass.isEnabledByDefault,
   ExperimentalFlag.macros: ExperimentalFlag.macros.isEnabledByDefault,
   ExperimentalFlag.namedArgumentsAnywhere:
@@ -796,6 +819,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
   shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
+  shared.ExperimentalFlag.inferenceUpdate3: ExperimentalFlag.inferenceUpdate3,
   shared.ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass,
   shared.ExperimentalFlag.macros: ExperimentalFlag.macros,
   shared.ExperimentalFlag.namedArgumentsAnywhere:
