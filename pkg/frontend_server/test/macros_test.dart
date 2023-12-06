@@ -7,25 +7,21 @@ import 'dart:io';
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:frontend_server/compute_kernel.dart';
-import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 void main() async {
   group('basic macro', () {
-    late String productPlatformDill;
+    late File productPlatformDill;
     late Directory tempDir;
     late Uri testMacroUri;
     late File packageConfig;
     late File bootstrapDillFile;
 
     setUp(() async {
-      var binDir = File(Platform.resolvedExecutable).parent;
-      productPlatformDill = path.join(binDir.parent.path, 'lib', '_internal',
-          'vm_platform_strong_product.dill');
+      productPlatformDill = File('${Platform.resolvedExecutable}/../../'
+          'lib/_internal/vm_platform_strong_product.dill');
       var systemTempDir = Directory.systemTemp;
       tempDir = systemTempDir.createTempSync('frontendServerTest');
-      Directory(path.join(tempDir.path, '.dart_tool')).createSync();
-
       testMacroUri = Uri.parse('package:test_macro/test_macro.dart');
       var bootstrapContent = bootstrapMacroIsolate(
         {
@@ -35,12 +31,11 @@ void main() async {
         },
         SerializationMode.byteData,
       );
-      var bootstrapFile = File(path.join(tempDir.path, 'bootstrap.dart'))
+      var bootstrapFile = File('${tempDir.path}/bootstrap.dart')
         ..writeAsStringSync(bootstrapContent);
-      packageConfig =
-          File(path.join(tempDir.path, '.dart_tool', 'package_config.json'))
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
   {
     "configVersion": 2,
     "packages": [
@@ -62,10 +57,9 @@ void main() async {
     ]
   }
   ''');
-      var testMacroFile =
-          File(path.join(tempDir.path, 'lib', 'test_macro.dart'))
-            ..createSync(recursive: true)
-            ..writeAsStringSync('''
+      var testMacroFile = File('${tempDir.path}/lib/test_macro.dart')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class TestMacro implements ClassDeclarationsMacro {
@@ -79,17 +73,17 @@ macro class TestMacro implements ClassDeclarationsMacro {
 }
 ''');
 
-      bootstrapDillFile = File(path.join(tempDir.path, 'bootstrap.dart.dill'));
+      bootstrapDillFile = File('${tempDir.path}/bootstrap.dart.dill');
       var bootstrapResult = await computeKernel([
         '--enable-experiment=macros',
         '--no-summary',
         '--no-summary-only',
         '--target=vm',
-        '--dart-sdk-summary=file:$productPlatformDill',
+        '--dart-sdk-summary=${productPlatformDill.uri}',
         '--output=${bootstrapDillFile.path}',
-        '--source=file:${bootstrapFile.path}',
-        '--source=file:${testMacroFile.path}',
-        '--packages-file=file:${packageConfig.path}',
+        '--source=${bootstrapFile.uri}',
+        '--source=${testMacroFile.uri}',
+        '--packages-file=${packageConfig.uri}',
       ]);
       expect(bootstrapResult.succeeded, true);
     });
@@ -119,20 +113,20 @@ void main() {
 }
 ''');
         var applyTestMacroDill =
-            File(path.join(tempDir.path, 'apply_test_macro.dart.dill'));
+            File('${tempDir.path}/apply_test_macro.dart.dill');
         var applyTestMacroResult = await computeKernel([
           if (useIncrementalCompiler) '--use-incremental-compiler',
           '--enable-experiment=macros',
           '--no-summary',
           '--no-summary-only',
           '--target=vm',
-          '--dart-sdk-summary=file:$productPlatformDill',
+          '--dart-sdk-summary=${productPlatformDill.uri}',
           '--output=${applyTestMacroDill.path}',
-          '--source=file:${applyTestMacroFile.path}',
-          '--packages-file=file:${packageConfig.path}',
+          '--source=${applyTestMacroFile.uri}',
+          '--packages-file=${packageConfig.uri}',
           '--enable-experiment=macros',
           '--precompiled-macro',
-          'file:${bootstrapDillFile.path};$testMacroUri',
+          '${bootstrapDillFile.uri};$testMacroUri',
           '--macro-serialization-mode=bytedata',
         ]);
         expect(applyTestMacroResult.succeeded, true);
