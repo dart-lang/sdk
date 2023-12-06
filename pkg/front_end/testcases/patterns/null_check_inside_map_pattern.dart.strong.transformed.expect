@@ -6,11 +6,10 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
-    function ##0#4#initializer() → dynamic
-      return (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
-    late final synthesized dynamic #0#4 = ##0#4#initializer(){() → dynamic};
+    synthesized dynamic #0#4;
+    synthesized core::bool #0#4#isSet = false;
     {
-      if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (!(#0#4 == null) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#4)) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#4#isSet ?{dynamic} #0#4{dynamic} : let final core::bool* #t1 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (!((#0#4#isSet ?{dynamic} #0#4{dynamic} : let final core::bool* #t2 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#4#isSet ?{dynamic} #0#4{dynamic} : let final core::bool* #t3 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}))) {
         {
           break #L1;
         }
@@ -26,4 +25,4 @@ constants  {
 
 Extra constant evaluation status:
 Evaluated: IsExpression @ org-dartlang-testcase:///null_check_inside_map_pattern.dart:7:14 -> BoolConstant(true)
-Extra constant evaluation: evaluated: 23, effectively constant: 1
+Extra constant evaluation: evaluated: 40, effectively constant: 1

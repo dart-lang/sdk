@@ -12,10 +12,11 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
-    late final synthesized core::int? #0#2 = (#0#0 as{Unchecked} self::C).{self::C::f}{core::int?};
+    synthesized core::int? #0#2;
+    synthesized core::bool #0#2#isSet = false;
     {
       hoisted core::int f;
-      if(#0#0 is self::C && (!(#0#2 == null) && (let final dynamic #t1 = f = #0#2{core::int} in true))) {
+      if(#0#0 is self::C && (!((#0#2#isSet ?{core::int?} #0#2{core::int?} : let final dynamic #t1 = #0#2#isSet = true in #0#2 = #0#0{self::C}.{self::C::f}{core::int?}) == null) && (let final dynamic #t2 = f = (#0#2#isSet ?{core::int?} #0#2{core::int?} : let final dynamic #t3 = #0#2#isSet = true in #0#2 = #0#0{self::C}.{self::C::f}{core::int?}) as{Unchecked} core::int in true))) {
         {
           break #L1;
         }

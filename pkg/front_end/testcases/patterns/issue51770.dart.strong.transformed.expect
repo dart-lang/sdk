@@ -63,12 +63,11 @@ static method method1(core::List<dynamic> o) → dynamic {
   #L6:
   {
     final synthesized core::List<dynamic> #5#0 = o;
-    function ##5#1#initializer() → core::int
-      return #5#0.{core::List::length}{core::int};
-    late final synthesized core::int #5#1 = ##5#1#initializer(){() → core::int};
+    synthesized core::int #5#1;
+    synthesized core::bool #5#1#isSet = false;
     {
       hoisted core::List<dynamic> a;
-      if(#5#1.{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t3 = a = #5#0.{core::List::sublist}(0, #5#1.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if((#5#1#isSet ?{core::int} #5#1{core::int} : let final core::bool* #t3 = #5#1#isSet = true in #5#1 = #5#0.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t4 = a = #5#0.{core::List::sublist}(0, (#5#1#isSet ?{core::int} #5#1{core::int} : let final core::bool* #t5 = #5#1#isSet = true in #5#1 = #5#0.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(a);
         }
@@ -115,7 +114,7 @@ static method method2(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted core::List<dynamic> a;
-      if(#3#0 is core::List<dynamic> && (let final core::List<dynamic> #t4 = a = #3#0{core::List<dynamic>}.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if(#3#0 is core::List<dynamic> && (let final core::List<dynamic> #t6 = a = #3#0{core::List<dynamic>}.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(a);
         }
@@ -127,7 +126,7 @@ static method method2(dynamic o) → dynamic {
     final synthesized dynamic #4#0 = o;
     {
       hoisted core::List<dynamic> a;
-      if(#4#0 is core::List<dynamic> && #4#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t5 = a = #4#0{core::List<dynamic>}.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if(#4#0 is core::List<dynamic> && #4#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t7 = a = #4#0{core::List<dynamic>}.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(a);
         }
@@ -137,12 +136,11 @@ static method method2(dynamic o) → dynamic {
   #L12:
   {
     final synthesized dynamic #5#0 = o;
-    function ##5#2#initializer() → core::int
-      return (#5#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
-    late final synthesized core::int #5#2 = ##5#2#initializer(){() → core::int};
+    synthesized core::int #5#2;
+    synthesized core::bool #5#2#isSet = false;
     {
       hoisted core::List<dynamic> a;
-      if(#5#0 is core::List<dynamic> && #5#2.{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t6 = a = #5#0{core::List<dynamic>}.{core::List::sublist}(0, #5#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if(#5#0 is core::List<dynamic> && (#5#2#isSet ?{core::int} #5#2{core::int} : let final core::bool* #t8 = #5#2#isSet = true in #5#2 = #5#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::>=}(#C1){(core::num) → core::bool} && (let final core::List<dynamic> #t9 = a = #5#0{core::List<dynamic>}.{core::List::sublist}(0, (#5#2#isSet ?{core::int} #5#2{core::int} : let final core::bool* #t10 = #5#2#isSet = true in #5#2 = #5#0{core::List<dynamic>}.{core::List::length}{core::int}).{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(a);
         }

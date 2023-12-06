@@ -1047,12 +1047,6 @@ class Cache {
   /// Otherwise [_isSetVariable] is unused.
   VariableDeclaration? _isSetVariable;
 
-  /// If cached using late lowering, this will be the variable for the local
-  /// function that initializes or reads [_variable].
-  ///
-  /// Otherwise [_getVariable] is unused.
-  VariableDeclaration? _getVariable;
-
   /// The name used to name [_variable], [_isSetVariable] and [_getVariable].
   final String _name;
 
@@ -1128,123 +1122,27 @@ class Cache {
           .createExpression(typeEnvironment, inCacheInitializer: false);
     } else {
       CacheExpression cacheableExpression = _accesses[accessKey]!;
-      if (_accesses.length == 1) {
+      if (!_isLate) {
+        // To avoid closurizing initializers we always inline the initializer
+        // unless it is not a late variable.
         VariableDeclaration? variable = _variable;
-        VariableDeclaration? isSetVariable = _isSetVariable;
         if (variable == null) {
-          DartType type = cacheableExpression.getType(typeEnvironment);
-          if (_matchingCache.useLowering && _isLate) {
-            variable = _variable =
-                createUninitializedVariable(type, fileOffset: _fileOffset)
-                  ..name = _name;
-            _matchingCache.registerDeclaration(variable);
-            isSetVariable = _isSetVariable = createInitializedVariable(
-                createBoolLiteral(false, fileOffset: _fileOffset),
-                typeEnvironment.coreTypes.boolNonNullableRawType,
-                fileOffset: _fileOffset)
-              ..name = '$_name#isSet';
-            _matchingCache.registerDeclaration(isSetVariable);
-            VariableDeclaration getVariable =
-                _getVariable = createUninitializedVariable(
-                    new FunctionType([], type, Nullability.nonNullable),
-                    fileOffset: _fileOffset)
-                  ..name = '$_name#func'
-                  ..isFinal = true;
-
-            Statement body;
-            if (_matchingCache.useVerboseEncodingForDebugging) {
-              body = createBlock([
-                createIfStatement(
-                    createNot(createVariableGet(isSetVariable)),
-                    createBlock([
-                      createExpressionStatement(createStaticInvocation(
-                          typeEnvironment.coreTypes.printProcedure,
-                          createArguments([
-                            createStringConcatenation([
-                              createStringLiteral('compute $_name',
-                                  fileOffset: _fileOffset),
-                            ], fileOffset: _fileOffset)
-                          ], fileOffset: _fileOffset),
-                          fileOffset: _fileOffset)),
-                      createExpressionStatement(createVariableSet(isSetVariable,
-                          createBoolLiteral(true, fileOffset: _fileOffset),
-                          fileOffset: _fileOffset)),
-                      createExpressionStatement(createVariableSet(
-                          variable,
-                          cacheableExpression.expression.createExpression(
-                              typeEnvironment,
-                              inCacheInitializer: true),
-                          fileOffset: _fileOffset)),
-                    ], fileOffset: _fileOffset),
-                    fileOffset: _fileOffset),
-                createExpressionStatement(createStaticInvocation(
-                    typeEnvironment.coreTypes.printProcedure,
-                    createArguments([
-                      createStringConcatenation([
-                        createStringLiteral('$_name = ',
-                            fileOffset: _fileOffset),
-                        createVariableGet(variable)
-                      ], fileOffset: _fileOffset)
-                    ], fileOffset: _fileOffset),
-                    fileOffset: _fileOffset)),
-                createReturnStatement(createVariableGet(variable),
-                    fileOffset: _fileOffset),
-              ], fileOffset: _fileOffset)
-                ..fileOffset = _fileOffset;
-            } else {
-              body = createReturnStatement(
-                  createConditionalExpression(
-                      createVariableGet(isSetVariable),
-                      createVariableGet(variable),
-                      createLetEffect(
-                          effect: createVariableSet(isSetVariable,
-                              createBoolLiteral(true, fileOffset: _fileOffset),
-                              fileOffset: _fileOffset),
-                          result: createVariableSet(
-                              variable,
-                              cacheableExpression.expression.createExpression(
-                                  typeEnvironment,
-                                  inCacheInitializer: true),
-                              fileOffset: _fileOffset)),
-                      staticType: type,
-                      fileOffset: _fileOffset),
-                  fileOffset: _fileOffset);
-            }
-            FunctionDeclaration functionDeclaration = new FunctionDeclaration(
-                    getVariable, new FunctionNode(body, returnType: type))
-                // TODO(johnniwinther): Reinsert the file offset when the vm
-                //  doesn't use it for function declaration identity.
-                /*..fileOffset = fileOffset*/;
-            getVariable.type = functionDeclaration.function
-                .computeFunctionType(Nullability.nonNullable);
-            _matchingCache.registerDeclaration(functionDeclaration);
-          } else {
-            variable = _variable = createVariableCache(
-                cacheableExpression.expression.createExpression(typeEnvironment,
-                    inCacheInitializer: true),
-                cacheableExpression.getType(typeEnvironment))
-              ..isConst = _isConst
-              ..isLate = _isLate
-              ..name = _name;
-            if (_isLate) {
-              // Avoid step debugging on the declaration of caching variables.
-              // TODO(johnniwinther): Find a more systematic way of omitting
-              // offsets for better step debugging.
-              variable.fileOffset = TreeNode.noOffset;
-            }
-            _matchingCache.registerDeclaration(variable);
+          variable = _variable = createVariableCache(
+              cacheableExpression.expression
+                  .createExpression(typeEnvironment, inCacheInitializer: true),
+              cacheableExpression.getType(typeEnvironment))
+            ..isConst = _isConst
+            ..isLate = _isLate
+            ..name = _name;
+          if (_isLate) {
+            // Avoid step debugging on the declaration of caching variables.
+            // TODO(johnniwinther): Find a more systematic way of omitting
+            // offsets for better step debugging.
+            variable.fileOffset = TreeNode.noOffset;
           }
+          _matchingCache.registerDeclaration(variable);
         }
-        if (_matchingCache.useLowering && _isLate) {
-          LocalFunctionInvocation localFunctionInvocation =
-              createLocalFunctionInvocation(_getVariable!,
-                  fileOffset: _fileOffset)
-                ..fileOffset = TreeNode.noOffset;
-          localFunctionInvocation.arguments.fileOffset = TreeNode.noOffset;
-          result = localFunctionInvocation;
-        } else {
-          result = createVariableGet(variable)..fileOffset = TreeNode.noOffset;
-        }
+        result = createVariableGet(variable)..fileOffset = TreeNode.noOffset;
       } else {
         assert(_isLate, "Unexpected non-late cache ${cacheKey.name}");
 

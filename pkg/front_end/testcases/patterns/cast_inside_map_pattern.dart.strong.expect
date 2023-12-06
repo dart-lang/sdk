@@ -6,9 +6,10 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#4 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    synthesized dynamic #0#4;
+    synthesized core::bool #0#4#isSet = false;
     {
-      if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t1 = #0#4 as core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#4 as core::int)) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t1 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final dynamic #t2 = (#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t3 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) as core::int in #C2 =={core::num::==}{(core::Object) → core::bool} (#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t4 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C1){(core::Object?) → dynamic}) as core::int)) {
         {
           break #L1;
         }

@@ -6,10 +6,11 @@ static method test1(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#6 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    synthesized dynamic #0#6;
+    synthesized core::bool #0#6#isSet = false;
     {
       hoisted core::int a;
-      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is core::int && (let final dynamic #t1 = a = #0#6{core::int} in true)) && a.{core::num::>}(0){(core::num) → core::bool}) {
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t1 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final dynamic #t2 = a = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t3 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && a.{core::num::>}(0){(core::num) → core::bool}) {
         {
           return a;
         }
@@ -28,15 +29,18 @@ static method test2(dynamic x) → dynamic {
   #L2:
   {
     final synthesized dynamic #0#0 = x;
-    late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final synthesized dynamic #0#6 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#7 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
-    dynamic #t2;
+    synthesized core::bool #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized dynamic #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    synthesized dynamic #0#7;
+    synthesized core::bool #0#7#isSet = false;
+    dynamic #t4;
     {
       lowered hoisted core::num a#case#0;
       lowered hoisted core::num a#case#1;
-      if(#0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::num && (let final dynamic #t3 = a#case#0 = #0#6{core::num} in true)) && (a#case#0 is core::int && a#case#0{core::int}.{core::int::isEven}{core::bool}) && (let final dynamic #t4 = #t2 = a#case#0 in true) || #0#0 is core::List<dynamic> && #0#4 && (#0#7 is core::num && (let final dynamic #t5 = a#case#1 = #0#7{core::num} in true)) && (a#case#1 is core::double && a#case#1{core::double}.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool}) && (let final dynamic #t6 = #t2 = a#case#1 in true)) {
-        core::num a = #t2{core::num};
+      if(#0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t5 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2) && ((#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t6 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::num && (let final dynamic #t7 = a#case#0 = (#0#6#isSet ?{dynamic} #0#6{dynamic} : let final dynamic #t8 = #0#6#isSet = true in #0#6 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::num in true)) && (a#case#0 is core::int && a#case#0{core::int}.{core::int::isEven}{core::bool}) && (let final dynamic #t9 = #t4 = a#case#0 in true) || #0#0 is core::List<dynamic> && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final dynamic #t10 = #0#4#isSet = true in #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2) && ((#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t11 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) is core::num && (let final dynamic #t12 = a#case#1 = (#0#7#isSet ?{dynamic} #0#7{dynamic} : let final dynamic #t13 = #0#7#isSet = true in #0#7 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) as{Unchecked} core::num in true)) && (a#case#1 is core::double && a#case#1{core::double}.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool}) && (let final dynamic #t14 = #t4 = a#case#1 in true)) {
+        core::num a = #t4{core::num};
         {
           return a;
         }
