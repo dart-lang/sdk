@@ -125,17 +125,22 @@ const finalizerCode = <Abi, List<int>>{
 
 // We need to attach the finalizer which calls close() and munmap().
 final finalizerAddress = () {
+  // UBSAN will dereference callback-8 to get typeinfo to check for matching
+  // types at the call site for the finalizer callback. Make that slot
+  // addressable and leave it initialized to NULL.
+  final offset = 8;
+
   final Pointer<Uint8> finalizerStub = mmap(nullptr, kPageSize,
       kProtRead | kProtWrite, kMapPrivate | kMapAnon, -1, 0);
   finalizerStub
       .cast<Uint8>()
       .asTypedList(kPageSize)
-      .setAll(0, finalizerCode[Abi.current()]!);
+      .setAll(offset, finalizerCode[Abi.current()]!);
   if (mprotect(finalizerStub, kPageSize, kProtRead | kProtExec) != 0) {
     throw 'Failed to write executable code to the memory.';
   }
 
-  return finalizerStub.cast<Void>();
+  return finalizerStub.elementAt(offset).cast<Void>();
 }();
 
 base class PeerData extends Struct {
