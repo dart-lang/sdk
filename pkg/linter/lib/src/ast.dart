@@ -70,7 +70,7 @@ SyntacticEntity getNodeToAnnotate(Declaration node) {
     return node.name;
   }
   if (node is ConstructorDeclaration) {
-    return node.name ?? node;
+    return node.name ?? node.returnType;
   }
   if (node is EnumConstantDeclaration) {
     return node.name;
