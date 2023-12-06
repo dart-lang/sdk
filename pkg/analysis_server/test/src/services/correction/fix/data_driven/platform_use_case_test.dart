@@ -6,16 +6,17 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../fix_processor.dart';
 import 'data_driven_test_support.dart';
+import 'sdk_fix_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PlatformUseCaseTest);
+    defineReflectiveTests(SdkFixIoTest);
   });
 }
 
 @reflectiveTest
 class PlatformUseCaseTest extends DataDrivenFixProcessorTest {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/54103')
   Future<void> test_package_os_detect_platform_deprecated() async {
     newFile('$workspaceRootPath/p/lib/os.dart', '''
   @deprecated
@@ -41,7 +42,7 @@ transforms:
     date: 2023-11-09
     element:
       uris: [  'package:p/os.dart' ]
-      function: 'isAndroid'
+      getter: 'isAndroid'
     changes:
     - kind: 'replacedBy'
       replaceTarget: true
@@ -54,6 +55,7 @@ transforms:
 
     await resolveTestCode('''
 import 'package:p/os.dart' as Platform;
+
 main() {
   bool onAndroid = Platform.isAndroid;
   print(onAndroid);
@@ -65,7 +67,7 @@ import 'package:p2/host.dart';
 
 main() {
   bool onAndroid = HostPlatform.current.isAndroid;
-  print(hostname);
+  print(onAndroid);
 }
 ''');
   }
@@ -180,6 +182,116 @@ import 'package:p/native.dart';
 main() {
   var hostname =  NativePlatform.current.localHostname;
   print(hostname);
+}
+''');
+  }
+}
+
+@reflectiveTest
+class SdkFixIoTest extends AbstractSdkFixTest {
+  @override
+  String importUri = 'dart:io';
+
+  Future<void> test_platform_dartIo_localHostname_deprecated() async {
+    newFile('$workspaceRootPath/p/lib/native.dart', '''
+class NativePlatform {
+  static NativePlatform get current => NativePlatform();
+  String get localHostname => 'hostname';
+}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+    );
+
+    addSdkDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by NativePlatform'
+    date: 2023-11-09
+    element:
+      uris: [  '$importUri' ]
+      getter: 'localHostname'
+      inClass: Platform
+    changes:
+    - kind: 'replacedBy'
+      replaceTarget: true
+      newElement:
+        uris: [  'package:p/native.dart' ]
+        getter: current.localHostname
+        inClass: NativePlatform
+        static: true
+''');
+
+    await resolveTestCode('''
+import '$importUri';
+
+main() {
+  var hostname =  Platform.localHostname;
+  print(hostname);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+import 'package:p/native.dart';
+
+main() {
+  var hostname =  NativePlatform.current.localHostname;
+  print(hostname);
+}
+''');
+  }
+
+  Future<void> test_platform_dartIo_onAndroid_deprecated() async {
+    newFile('$workspaceRootPath/p/lib/host.dart', '''
+class HostPlatform {
+  static HostPlatform get current => HostPlatform();
+  bool get isAndroid => true;
+}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+    );
+
+    addSdkDataFile('''
+version: 1
+transforms:
+  - title: 'Replace by HostPlatform'
+    date: 2023-11-09
+    element:
+      uris: [  '$importUri' ]
+      getter: 'isAndroid'
+      inClass: Platform
+    changes:
+    - kind: 'replacedBy'
+      replaceTarget: true
+      newElement:
+        uris: [  'package:p/host.dart' ]
+        getter: current.isAndroid
+        inClass: HostPlatform
+        static: true
+''');
+
+    await resolveTestCode('''
+import '$importUri';
+
+main() {
+  bool onAndroid = Platform.isAndroid;
+  print(onAndroid);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+import 'package:p/host.dart';
+
+main() {
+  bool onAndroid = HostPlatform.current.isAndroid;
+  print(onAndroid);
 }
 ''');
   }
