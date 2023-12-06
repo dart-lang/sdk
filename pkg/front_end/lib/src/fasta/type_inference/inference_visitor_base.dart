@@ -4677,7 +4677,31 @@ class _ObjectAccessDescriptor {
     } else if (receiverBound is NeverType) {
       switch (receiverBound.nullability) {
         case Nullability.nonNullable:
-          return const ObjectAccessTarget.never();
+          Member? interfaceMember =
+              visitor._getInterfaceMember(classNode, name, isSetter);
+          FunctionType? functionType;
+          if (interfaceMember is Procedure) {
+            // The member exists on `Object` but has a special function type
+            // that we compute here.
+            FunctionNode function = interfaceMember.function;
+            assert(
+                function.namedParameters.isEmpty,
+                "Unexpected named parameters on $classNode member "
+                "$interfaceMember.");
+            assert(
+                function.typeParameters.isEmpty,
+                "Unexpected type parameters on $classNode member "
+                "$interfaceMember.");
+            functionType = new FunctionType(
+                new List<DartType>.filled(
+                    function.positionalParameters.length, const DynamicType()),
+                const NeverType.nonNullable(),
+                Nullability.nonNullable);
+          }
+          return new ObjectAccessTarget.never(
+            member: interfaceMember,
+            functionType: functionType,
+          );
         case Nullability.nullable:
         case Nullability.legacy:
           // Never? and Never* are equivalent to Null.

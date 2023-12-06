@@ -6083,30 +6083,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             templateArgumentTypeNotAssignableNullabilityNullType);
     right = rightResult.expression;
 
-    if (equalsTarget.isInstanceMember || equalsTarget.isObjectMember) {
-      FunctionType functionType = equalsTarget.getFunctionType(this);
-      equals = new EqualsCall(left, right,
-          functionType: functionType,
-          interfaceTarget: equalsTarget.classMember as Procedure)
-        ..fileOffset = fileOffset;
-      if (isNot) {
-        equals = new Not(equals)..fileOffset = fileOffset;
-      }
-    } else {
-      assert(equalsTarget.isNever);
-      FunctionType functionType = new FunctionType([const DynamicType()],
-          const NeverType.nonNullable(), libraryBuilder.nonNullable);
-      // Ensure operator == member even for `Never`.
-      ObjectAccessTarget target = findInterfaceMember(
-          const DynamicType(), equalsName, -1,
-          instrumented: false, isSetter: false);
-      equals = new EqualsCall(left, right,
-          functionType: functionType,
-          interfaceTarget: target.classMember as Procedure)
-        ..fileOffset = fileOffset;
-      if (isNot) {
-        equals = new Not(equals)..fileOffset = fileOffset;
-      }
+    FunctionType functionType = equalsTarget.getFunctionType(this);
+    equals = new EqualsCall(left, right,
+        functionType: functionType,
+        interfaceTarget: equalsTarget.classMember as Procedure)
+      ..fileOffset = fileOffset;
+    if (isNot) {
+      equals = new Not(equals)..fileOffset = fileOffset;
     }
 
     flowAnalysis.equalityOperation_end(equals, equalityInfo,
@@ -10633,16 +10616,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         node.functionType = invokeTarget.getFunctionType(this);
         node.accessKind = RelationalAccessKind.Instance;
-        Procedure? target = invokeTarget.classMember as Procedure?;
-        if (target == null) {
-          target = findInterfaceMember(
-                  const DynamicType(), equalsName, node.fileOffset,
-                  instrumented: false, isSetter: false)
-              .classMember as Procedure;
-          node.functionType = new FunctionType([const DynamicType()],
-              const NeverType.nonNullable(), libraryBuilder.nonNullable);
-        }
-        node.target = target;
+        node.target = invokeTarget.classMember as Procedure;
         break;
       case RelationalPatternKind.lessThan:
       case RelationalPatternKind.lessThanEqual:
