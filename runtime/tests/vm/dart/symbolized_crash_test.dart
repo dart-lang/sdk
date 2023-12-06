@@ -11,9 +11,13 @@ main() {
   if (Platform.isWindows) return; // posix exit codes
   if (Platform.isAndroid) return; // run_vm_tests not available on test device
 
-  var run_vm_tests =
-      path.join(path.dirname(Platform.resolvedExecutable), "run_vm_tests");
-  var result = Process.runSync(run_vm_tests, ["Fatal"]);
+  // Run such that "cwd/argv[0].sym" does not exist to check .sym properly
+  // resolves against the executable.
+  var dir = path.dirname(Platform.resolvedExecutable);
+  var result = Process.runSync(
+    "/bin/sh",
+    ["-c", "PATH=$dir run_vm_tests Fatal"],
+  );
   print(result.exitCode);
   print(result.stdout);
   print(result.stderr);

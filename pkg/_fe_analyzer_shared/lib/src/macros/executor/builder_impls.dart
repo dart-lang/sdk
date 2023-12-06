@@ -543,7 +543,7 @@ List<DeclarationCode> _buildVariableAugmentations(
       if (declaration.hasFinal) 'final ',
       declaration.type.code,
       ' ',
-      declaration.identifier,
+      declaration.identifier.name,
       ' = ',
       initializer,
       ';',
@@ -577,6 +577,7 @@ DeclarationCode _buildFunctionAugmentation(
       if (declaration.isOperator) 'operator ',
     ],
     if (declaration.isGetter) 'get ',
+    if (declaration.isSetter) 'set ',
     declaration.identifier.name,
     if (!declaration.isGetter) ...[
       if (declaration.typeParameters.isNotEmpty) ...[

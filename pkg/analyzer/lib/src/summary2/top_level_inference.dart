@@ -15,6 +15,7 @@ import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/linking_node_scope.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
 /// Resolver for typed constant top-level variables and fields initializers.
@@ -252,8 +253,10 @@ class _PropertyInducingElementTypeInference
     _status = _InferenceStatus.beingInferred;
 
     final enclosingElement = _element.enclosingElement;
-    final enclosingClassElement =
-        enclosingElement is InterfaceElement ? enclosingElement : null;
+    final enclosingInterfaceElement = enclosingElement
+        .ifTypeOrNull<InterfaceElement>()
+        ?.augmented
+        ?.declaration;
 
     var file = _libraryBuilder.kind.file.resource;
     // TODO(pq): precache options in file state and fetch them from there
@@ -262,7 +265,7 @@ class _PropertyInducingElementTypeInference
 
     var astResolver = AstResolver(
         _linker, _unitElement, _scope, analysisOptions,
-        enclosingClassElement: enclosingClassElement);
+        enclosingClassElement: enclosingInterfaceElement);
     astResolver.resolveExpression(() => _node.initializer!);
 
     // Pop self from the stack.

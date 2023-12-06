@@ -98,6 +98,34 @@ class MacroElementsMerger {
     InstanceElementImpl existingElement,
     InstanceElementImpl newElement,
   ) {
+    for (final element in newElement.fields) {
+      final reference = element.reference!;
+      final containerRef = element.isAugmentation
+          ? existingRef.getChild('@fieldAugmentation')
+          : existingRef.getChild('@field');
+      containerRef.addChildReference(element.name, reference);
+    }
+    existingElement.fields = [
+      ...existingElement.fields,
+      ...newElement.fields,
+    ].toFixedList();
+
+    for (final element in newElement.accessors) {
+      final reference = element.reference!;
+      final containerRef = element.isGetter
+          ? element.isAugmentation
+              ? existingRef.getChild('@getterAugmentation')
+              : existingRef.getChild('@getter')
+          : element.isAugmentation
+              ? existingRef.getChild('@setterAugmentation')
+              : existingRef.getChild('@setter');
+      containerRef.addChildReference(element.name, reference);
+    }
+    existingElement.accessors = [
+      ...existingElement.accessors,
+      ...newElement.accessors,
+    ].toFixedList();
+
     for (final element in newElement.methods) {
       final reference = element.reference!;
       final containerRef = element.isAugmentation
@@ -109,8 +137,6 @@ class MacroElementsMerger {
       ...existingElement.methods,
       ...newElement.methods,
     ].toFixedList();
-
-    // TODO(scheglov): accessors, fields
 
     if (existingElement is InterfaceElementImpl &&
         newElement is InterfaceElementImpl) {
