@@ -61,6 +61,8 @@ class DeclarationBuilder {
         return fromNode.classDeclaration(node);
       case ast.ConstructorDeclarationImpl():
         return fromNode.constructorDeclaration(node);
+      case ast.ExtensionDeclarationImpl():
+        return fromNode.extensionDeclaration(node);
       case ast.MethodDeclarationImpl():
         return fromNode.methodDeclaration(node);
       case ast.MixinDeclarationImpl():
@@ -542,6 +544,12 @@ class DeclarationBuilderFromNode {
     );
   }
 
+  macro.ExtensionDeclarationImpl extensionDeclaration(
+    ast.ExtensionDeclarationImpl node,
+  ) {
+    return _introspectableExtensionDeclaration(node);
+  }
+
   macro.LibraryImpl library(Element element) {
     final library = element.library!;
 
@@ -645,6 +653,10 @@ class DeclarationBuilderFromNode {
         final parentElement = parentNode.declaredElement!;
         final typeElement = parentElement.augmentationTarget ?? parentElement;
         return _declaredIdentifier(parentNode.name, typeElement);
+      case ast.ExtensionDeclaration():
+        final parentElement = parentNode.declaredElement!;
+        final typeElement = parentElement.augmentationTarget ?? parentElement;
+        return _declaredIdentifier2(parentNode.name?.lexeme ?? '', typeElement);
       case ast.MixinDeclaration():
         final parentElement = parentNode.declaredElement!;
         final typeElement = parentElement.augmentationTarget ?? parentElement;
@@ -744,6 +756,22 @@ class DeclarationBuilderFromNode {
       hasSealed: node.sealedKeyword != null,
       mixins: _namedTypes(mixinNodes),
       superclass: node.extendsClause?.superclass.mapOrNull(_namedType),
+      element: element,
+    );
+  }
+
+  IntrospectableExtensionDeclarationImpl _introspectableExtensionDeclaration(
+    ast.ExtensionDeclarationImpl node,
+  ) {
+    final element = node.declaredElement!;
+
+    return IntrospectableExtensionDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier2(node.name?.lexeme ?? '', element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: _typeParameters(node.typeParameters),
+      onType: _typeAnnotation(node.extendedType),
       element: element,
     );
   }
@@ -1009,6 +1037,22 @@ class IntrospectableClassDeclarationImpl
     required super.hasSealed,
     required super.mixins,
     required super.superclass,
+    required this.element,
+  });
+}
+
+class IntrospectableExtensionDeclarationImpl
+    extends macro.IntrospectableExtensionDeclarationImpl implements HasElement {
+  @override
+  final ExtensionElementImpl element;
+
+  IntrospectableExtensionDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.typeParameters,
+    required super.onType,
     required this.element,
   });
 }

@@ -1384,7 +1384,9 @@ class A {}
         ..withMetadata = false;
       checkElementText(library, expected);
     } else {
-      library.assertNoMacroErrors();
+      if (library.macroDiagnostics.isNotEmpty) {
+        failWithLibraryText(library);
+      }
 
       final x = library.topLevelElements
           .whereType<ConstTopLevelVariableElementImpl>()
@@ -2518,6 +2520,17 @@ class MacroDefinitionTest_keepLinking extends MacroDefinitionTest {
 }
 
 abstract class MacroElementsBaseTest extends ElementsBaseTest {
+  /// We decided that we want to fail, and want to print the library.
+  void failWithLibraryText(LibraryElementImpl library) {
+    final text = getLibraryText(
+      library: library,
+      configuration: configuration,
+    );
+    print('------------------------');
+    print('$text------------------------');
+    fail('The library text above should have details.');
+  }
+
   @override
   Future<void> setUp() async {
     super.setUp();
@@ -2566,7 +2579,9 @@ import 'introspect.dart';
 $code
 ''');
 
-    library.assertNoMacroErrors();
+    if (library.macroDiagnostics.isNotEmpty) {
+      failWithLibraryText(library);
+    }
 
     return library.topLevelElements
         .whereType<ConstTopLevelVariableElementImpl>()
@@ -5668,6 +5683,94 @@ class A
 ''');
   }
 
+  test_extension_getter() async {
+    await _assertIntrospectText(r'''
+extension A on int {
+  @Introspect()
+  int get foo => 0;
+}
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_extension_getters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension A on int {
+  int get foo => 0;
+}
+''', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extension_metadata_identifier() async {
+    await _assertIntrospectText(r'''
+const a = 0;
+
+@Introspect(withMetadata: true)
+@a
+extension A on int {}
+''', r'''
+extension A
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a
+  onType: int
+''');
+  }
+
+  test_extension_method() async {
+    await _assertIntrospectText(r'''
+extension A on int {
+  @Introspect()
+  void foo() {}
+}
+''', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_extension_methods() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension A on int {
+  void foo() {}
+}
+''', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extension_typeParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension A<T> on int {}
+''', r'''
+extension A
+  typeParameters
+    T
+  onType: int
+''');
+  }
+
   test_functionTypeAnnotation_formalParameters_namedOptional_simpleFormalParameter() async {
     await _assertIntrospectText(r'''
 @Introspect()
@@ -5946,7 +6049,8 @@ class A
     var actual = await _getIntrospectText(code);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      print(actual);
+      print('-------- Actual --------');
+      print('$actual------------------------');
     }
     expect(actual, expected);
   }
@@ -6894,10 +6998,6 @@ extension on LibraryElement {
     final collector = _MacroDiagnosticsCollector();
     accept(collector);
     return collector.diagnostics;
-  }
-
-  void assertNoMacroErrors() {
-    expect(macroDiagnostics, isEmpty);
   }
 }
 

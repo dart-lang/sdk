@@ -124,6 +124,21 @@ class LibraryMacroApplier {
             declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
+        case ast.ExtensionDeclaration():
+          final element = declaration.declaredElement;
+          element as ExtensionElementImpl;
+          final declarationElement = element.augmented?.declaration ?? element;
+          declarationElement as ExtensionElementImpl;
+          await _addClassLike(
+            libraryElement: libraryElement,
+            container: container,
+            targetElement: declarationElement,
+            classNode: declaration,
+            classDeclarationKind: macro.DeclarationKind.extension,
+            classAnnotations: declaration.metadata,
+            declarationsPhaseInterface: null,
+            members: declaration.members,
+          );
         case ast.MixinDeclaration():
           final element = declaration.declaredElement;
           element as MixinElementImpl;
@@ -774,7 +789,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
           .map(declarationBuilder.fromElement.constructorElement)
           .toList();
     }
-    throw StateError('Unexpected: ${type.runtimeType}');
+    return [];
   }
 
   @override
@@ -789,6 +804,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
           .map(declarationBuilder.fromElement.fieldElement)
           .toList();
     }
+    // TODO(scheglov): can we test this?
     throw StateError('Unexpected: ${type.runtimeType}');
   }
 
@@ -806,6 +822,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
           .map(declarationBuilder.fromElement.methodElement)
           .toList();
     }
+    // TODO(scheglov): can we test this?
     throw StateError('Unexpected: ${type.runtimeType}');
   }
 

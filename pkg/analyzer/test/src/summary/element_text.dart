@@ -480,6 +480,7 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeType('extendedType', e.extendedType);
+      _writeMacroDiagnostics(e);
     });
 
     _sink.withIndent(() {
@@ -789,8 +790,18 @@ class _ElementWriter {
                 _sink.writelnWithIndent('message: ${diagnostic.message}');
               });
             case ExceptionMacroDiagnostic():
-              // TODO(scheglov): Handle this case.
-              throw UnimplementedError();
+              _sink.writelnWithIndent('ExceptionMacroDiagnostic');
+              _sink.withIndent(() {
+                _sink.writelnWithIndent(
+                  'annotationIndex: ${diagnostic.annotationIndex}',
+                );
+                _sink.writelnWithIndent(
+                  'message: ${diagnostic.message}',
+                );
+                _sink.writelnWithIndent(
+                  'stackTrace:\n${diagnostic.stackTrace}',
+                );
+              });
             case MacroDiagnostic():
               _sink.writelnWithIndent('MacroDiagnostic');
               _sink.withIndent(() {
@@ -1056,6 +1067,7 @@ class _ElementWriter {
       _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
       writeLinking();
+      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
