@@ -2224,7 +2224,7 @@ import 'dart:core' as prefix1;
 
 augment class A {
   @prefix0.AugmentField()
-  int foo;
+  prefix1.int foo;
   augment prefix1.int foo = 42;
 }
 ---
@@ -2238,14 +2238,14 @@ augment class A {
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             fields
-              foo @153
+              foo @161
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
                 type: int
                 id: field_0
                 getter: getter_0
                 setter: setter_0
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
-              augment foo @180
+              augment foo @188
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
                 type: int
                 shouldUseTypeForInitializerInference: true
@@ -2314,7 +2314,7 @@ import 'dart:core' as prefix1;
 
 augment class A {
   @prefix0.AugmentGetter()
-  external int get foo;
+  external prefix1.int get foo;
   augment prefix1.int get foo => 42;
 }
 ---
@@ -2334,13 +2334,13 @@ augment class A {
                 id: field_0
                 getter: getter_0
             accessors
-              external get foo @167
+              external get foo @175
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
                 returnType: int
                 id: getter_0
                 variable: field_0
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
-              augment get foo @198
+              augment get foo @206
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
                 returnType: int
                 id: getter_1
@@ -2392,7 +2392,7 @@ import 'dart:core' as prefix1;
 
 augment class A {
   @prefix0.AugmentMethod()
-  external int foo();
+  external prefix1.int foo();
   augment prefix1.int foo() => 42;
 }
 ---
@@ -2406,11 +2406,11 @@ augment class A {
             reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
             augmentationTarget: self::@class::A
             methods
-              external foo @163
+              external foo @171
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
                 returnType: int
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
-              augment foo @192
+              augment foo @200
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
                 returnType: int
                 augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
@@ -2463,7 +2463,7 @@ import 'dart:core' as prefix1;
 
 augment class A {
   @prefix0.AugmentSetter()
-  external void set foo(int value);
+  external void set foo(prefix1.int value);
   augment void set foo(prefix1.int value, ) { print(42); }
 }
 ---
@@ -2486,16 +2486,16 @@ augment class A {
               external set foo= @168
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
                 parameters
-                  requiredPositional value @176
+                  requiredPositional value @184
                     type: int
                 returnType: void
                 id: setter_0
                 variable: field_0
                 augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
-              augment set foo= @203
+              augment set foo= @211
                 reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
                 parameters
-                  requiredPositional value @219
+                  requiredPositional value @227
                     type: int
                 returnType: void
                 id: setter_1

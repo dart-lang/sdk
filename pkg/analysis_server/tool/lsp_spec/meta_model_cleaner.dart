@@ -22,7 +22,7 @@ class LspMetaModelCleaner {
   /// wrapping and not formatting. This allows us to rewrap based on our indent
   /// level/line length without potentially introducing very short lines.
   final _sourceCommentWrappingNewlinesPattern =
-      RegExp(r'[\w`\]\).]\n[\w`\[\(]');
+      RegExp(r'\w[`\]\)\}.]*\n[`\[\{\(]*\w');
 
   /// A pattern matching the spec's older HTML links that we can extract type
   /// references from.
@@ -48,22 +48,27 @@ class LspMetaModelCleaner {
   final _sourceCommentThenablePromisePattern =
       RegExp(r'\b(?:Thenable|Promise)\b');
 
+  /// Whether to include proposed types and fields in generated code.
+  ///
+  /// The LSP meta model is often regenerated from the latest code and includes
+  /// unreleased/proposed APIs that we usually don't want to pollute the
+  /// generated code with until they are finalized.
+  final includeProposed = false;
+
   /// Cleans an entire [LspMetaModel].
   LspMetaModel cleanModel(LspMetaModel model) {
     final types = cleanTypes(model.types);
-    return LspMetaModel(types: types, methods: model.methods);
+    return LspMetaModel(
+      types: types,
+      methods: model.methods.where(_includeEntityInOutput).toList(),
+    );
   }
 
   /// Cleans a List of types.
   List<LspEntity> cleanTypes(List<LspEntity> types) {
     types = _mergeTypes(types);
-    types = types
-        .where((type) => _includeTypeInOutput(type.name))
-        .map(_clean)
-        .toList();
-    types = _renameTypes(types)
-        .where((type) => _includeTypeInOutput(type.name))
-        .toList();
+    types = types.where(_includeEntityInOutput).map(_clean).toList();
+    types = _renameTypes(types).where(_includeEntityInOutput).toList();
     return types;
   }
 
@@ -154,10 +159,12 @@ class LspMetaModelCleaner {
     return Interface(
       name: interface.name,
       comment: _cleanComment(interface.comment),
+      isProposed: interface.isProposed,
       baseTypes: interface.baseTypes
           .where((type) => _includeTypeInOutput(type.name))
           .toList(),
       members: interface.members
+          .where(_includeEntityInOutput)
           .map((member) => _cleanMember(interface.name, member))
           .toList(),
     );
@@ -177,8 +184,10 @@ class LspMetaModelCleaner {
     return LspEnum(
       name: namespace.name,
       comment: _cleanComment(namespace.comment),
+      isProposed: namespace.isProposed,
       typeOfValues: namespace.typeOfValues,
       members: namespace.members
+          .where(_includeEntityInOutput)
           .map((member) => _cleanMember(namespace.name, member))
           .toList(),
     );
@@ -312,7 +321,25 @@ class LspMetaModelCleaner {
     }
   }
 
-  /// Removes types that are in the spec that we don't want to emit.
+  /// Returns whether an entity should be included in the generated code.
+  bool _includeEntityInOutput(LspEntity entity) {
+    if (!includeProposed && entity.isProposed) {
+      return false;
+    }
+
+    if (entity is Interface || entity is LspEnum || entity is TypeAlias) {
+      if (!_includeTypeInOutput(entity.name)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /// Returns whether the type with [name] should be included in generated code.
+  ///
+  /// For [LspEntity]s, [_includeEntityInOutput] should be used instead which
+  /// includes this check and others.
   bool _includeTypeInOutput(String name) {
     const ignoredTypes = {
       // InitializeError is not used for v3.0 (Feb 2017) and by dropping it we
@@ -350,17 +377,20 @@ class LspMetaModelCleaner {
     if (source.runtimeType != dest.runtimeType) {
       throw 'Cannot merge ${source.runtimeType} into ${dest.runtimeType}';
     }
+    final comment = dest.comment ?? source.comment;
     if (source is LspEnum && dest is LspEnum) {
       return LspEnum(
         name: dest.name,
-        comment: dest.comment ?? source.comment,
+        comment: comment,
+        isProposed: dest.isProposed,
         typeOfValues: dest.typeOfValues,
         members: [...dest.members, ...source.members],
       );
     } else if (source is Interface && dest is Interface) {
       return Interface(
         name: dest.name,
-        comment: dest.comment ?? source.comment,
+        comment: comment,
+        isProposed: dest.isProposed,
         baseTypes: [...dest.baseTypes, ...source.baseTypes],
         members: [...dest.members, ...source.members],
       );
@@ -417,6 +447,7 @@ class LspMetaModelCleaner {
       yield TypeAlias(
         name: type.name,
         comment: type.comment,
+        isProposed: type.isProposed,
         baseType: TypeReference(newName),
         isRename: true,
       );
@@ -426,6 +457,7 @@ class LspMetaModelCleaner {
         yield Interface(
           name: newName,
           comment: type.comment,
+          isProposed: type.isProposed,
           baseTypes: type.baseTypes,
           members: type.members,
         );
@@ -433,6 +465,7 @@ class LspMetaModelCleaner {
         yield TypeAlias(
           name: newName,
           comment: type.comment,
+          isProposed: type.isProposed,
           baseType: type.baseType,
           isRename: type.isRename,
         );

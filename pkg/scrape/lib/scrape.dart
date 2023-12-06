@@ -98,8 +98,12 @@ class Scrape {
   }
 
   /// Add an occurrence of [item] to [histogram].
+  ///
+  /// Creates the histogram as needed if not already defined.
   void record(String histogram, Object item) {
-    _histograms[histogram]!.add(item);
+    _histograms
+        .putIfAbsent(histogram, () => Histogram(order: SortOrder.descending))
+        .add(item);
   }
 
   /// Run the scrape using the given set of command line arguments.

@@ -7645,13 +7645,13 @@ typedef TextDocumentCodeLensResult = List<CodeLens>?;
 
 /// Result for request to request completion at a given text document position.
 /// The request's parameter is of type [TextDocumentPosition] the response is of
-/// type [CompletionItem] or [CompletionList]
-/// or a [Future] that resolves to such.
+/// type [CompletionItem] or [CompletionList] or a [Future] that resolves to
+/// such.
 ///
-/// The request can delay the computation of the [CompletionItem.detail]
-/// and [CompletionItem.documentation] properties to the
-/// `completionItem/resolve` request. However, properties that are needed for
-/// the initial sorting and filtering, like `sortText`,
+/// The request can delay the computation of the [CompletionItem.detail] and
+/// [CompletionItem.documentation] properties to the `completionItem/resolve`
+/// request. However, properties that are needed for the initial sorting and
+/// filtering, like `sortText`,
 /// `filterText`, `insertText`, and `textEdit`, must not be changed during
 /// resolve.
 typedef TextDocumentCompletionResult
@@ -7664,22 +7664,23 @@ typedef TextDocumentContentChangeEvent
 
 /// Result for a request to resolve the type definition locations of a symbol at
 /// a given text document position. The request's parameter is of type
-/// [TextDocumentPositionParams] the response is of type [Declaration]
-/// or a typed array of [DeclarationLink] or a [Future] that resolves to such.
+/// [TextDocumentPositionParams] the response is of type [Declaration] or a
+/// typed array of [DeclarationLink] or a [Future] that resolves to such.
 typedef TextDocumentDeclarationResult
     = Either2<Declaration, List<DeclarationLink>>?;
 
 /// Result for a request to resolve the definition location of a symbol at a
 /// given text document position. The request's parameter is of type
-/// [TextDocumentPosition] the response is of either type [Definition]
-/// or a typed array of [DefinitionLink] or a [Future] that resolves to such.
+/// [TextDocumentPosition] the response is of either type [Definition] or a
+/// typed array of
+/// [DefinitionLink] or a [Future] that resolves to such.
 typedef TextDocumentDefinitionResult
     = Either2<Definition, List<DefinitionLink>>?;
 
 /// Result for request to resolve a [DocumentHighlight] for a given text
 /// document position. The request's parameter is of type [TextDocumentPosition]
-/// the request response is of type [DocumentHighlight] or a [Future] that
-/// resolves to such.
+/// the request response is an array of type [DocumentHighlight] or a [Future]
+/// that resolves to such.
 typedef TextDocumentDocumentHighlightResult = List<DocumentHighlight>?;
 
 /// Result for a request to provide document links
@@ -7866,6 +7867,10 @@ typedef WorkspaceSymbolResult
 /// Result for the will create files request is sent from the client to the
 /// server before files are actually created as long as the creation is
 /// triggered from within the client.
+///
+/// The request can return a `WorkspaceEdit` which will be applied to workspace
+/// before the files are created. Hence the `WorkspaceEdit` can not manipulate
+/// the content of the file to be created.
 ///
 /// @since 3.16.0
 typedef WorkspaceWillCreateFilesResult = WorkspaceEdit?;
@@ -8707,8 +8712,8 @@ class CallHierarchyOutgoingCall implements ToJsonable {
 
   /// The range at which this item is called. This is the range relative to the
   /// caller, e.g the item passed to
-  /// [CallHierarchyItemProvider.provideCallHierarchyOutgoingCalls]
-  /// and not [CallHierarchyOutgoingCall.to].
+  /// [CallHierarchyItemProvider.provideCallHierarchyOutgoingCalls] and not
+  /// [CallHierarchyOutgoingCall.to].
   final List<Range> fromRanges;
 
   /// The item that is called.
@@ -11222,8 +11227,8 @@ class ColorPresentation implements ToJsonable {
   final String label;
 
   /// An [TextEdit] which is applied to a document when selecting this
-  /// presentation for the color.  When `falsy` the [ColorPresentation.label]
-  /// is used.
+  /// presentation for the color.  When `falsy` the [ColorPresentation.label] is
+  /// used.
   final TextEdit? textEdit;
   ColorPresentation({
     this.additionalTextEdits,
@@ -12149,13 +12154,11 @@ class CompletionItem implements ToJsonable {
   final Either2<MarkupContent, String>? documentation;
 
   /// A string that should be used when filtering a set of completion items.
-  /// When `falsy` the [CompletionItem.label]
-  /// is used.
+  /// When `falsy` the [CompletionItem.label] is used.
   final String? filterText;
 
   /// A string that should be inserted into a document when selecting this
-  /// completion. When `falsy` the [CompletionItem.label]
-  /// is used.
+  /// completion. When `falsy` the [CompletionItem.label] is used.
   ///
   /// The `insertText` is subject to interpretation by the client side. Some
   /// tools might not take the string literally. For example VS Code when code
@@ -12206,8 +12209,7 @@ class CompletionItem implements ToJsonable {
   final bool? preselect;
 
   /// A string that should be used when comparing this item with other items.
-  /// When `falsy` the [CompletionItem.label]
-  /// is used.
+  /// When `falsy` the [CompletionItem.label] is used.
   final String? sortText;
 
   /// Tags for this completion item.
@@ -13733,7 +13735,7 @@ class ConfigurationItem implements ToJsonable {
   );
 
   /// The scope to get the configuration section for.
-  final String? scopeUri;
+  final LSPUri? scopeUri;
 
   /// The configuration section asked for.
   final String? section;
@@ -13760,7 +13762,7 @@ class ConfigurationItem implements ToJsonable {
   Map<String, Object?> toJson() {
     var result = <String, Object?>{};
     if (scopeUri != null) {
-      result['scopeUri'] = scopeUri;
+      result['scopeUri'] = scopeUri?.toString();
     }
     if (section != null) {
       result['section'] = section;
@@ -13773,7 +13775,7 @@ class ConfigurationItem implements ToJsonable {
 
   static bool canParse(Object? obj, LspJsonReporter reporter) {
     if (obj is Map<String, Object?>) {
-      if (!_canParseString(obj, reporter, 'scopeUri',
+      if (!_canParseUri(obj, reporter, 'scopeUri',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -13787,7 +13789,8 @@ class ConfigurationItem implements ToJsonable {
 
   static ConfigurationItem fromJson(Map<String, Object?> json) {
     final scopeUriJson = json['scopeUri'];
-    final scopeUri = scopeUriJson as String?;
+    final scopeUri =
+        scopeUriJson != null ? Uri.parse(scopeUriJson as String) : null;
     final sectionJson = json['section'];
     final section = sectionJson as String?;
     return ConfigurationItem(
@@ -16085,8 +16088,7 @@ class DidChangeWatchedFilesClientCapabilities implements ToJsonable {
   /// for file changes from the server side.
   final bool? dynamicRegistration;
 
-  /// Whether the client has support for [RelativePattern]
-  /// or not.
+  /// Whether the client has support for [RelativePattern] or not.
   ///
   /// @since 3.17.0
   final bool? relativePatternSupport;
@@ -17954,7 +17956,7 @@ class DocumentLink implements ToJsonable {
   final Range range;
 
   /// The uri this link points to. If missing a resolve request is sent later.
-  final String? target;
+  final LSPUri? target;
 
   /// The tooltip text when you hover over this link.
   ///
@@ -17997,7 +17999,7 @@ class DocumentLink implements ToJsonable {
     }
     result['range'] = range.toJson();
     if (target != null) {
-      result['target'] = target;
+      result['target'] = target?.toString();
     }
     if (tooltip != null) {
       result['tooltip'] = tooltip;
@@ -18014,7 +18016,7 @@ class DocumentLink implements ToJsonable {
           allowsUndefined: false, allowsNull: false)) {
         return false;
       }
-      if (!_canParseString(obj, reporter, 'target',
+      if (!_canParseUri(obj, reporter, 'target',
           allowsUndefined: true, allowsNull: false)) {
         return false;
       }
@@ -18032,7 +18034,7 @@ class DocumentLink implements ToJsonable {
     final rangeJson = json['range'];
     final range = Range.fromJson(rangeJson as Map<String, Object?>);
     final targetJson = json['target'];
-    final target = targetJson as String?;
+    final target = targetJson != null ? Uri.parse(targetJson as String) : null;
     final tooltipJson = json['tooltip'];
     final tooltip = tooltipJson as String?;
     return DocumentLink(
@@ -21209,8 +21211,8 @@ class FoldingRange implements ToJsonable {
 
   /// Describes the kind of the folding range such as 'comment' or 'region'. The
   /// kind is used to categorize folding ranges and used by commands like 'Fold
-  /// all comments'. See [FoldingRangeKind] for an enumeration of standardized
-  /// kinds.
+  /// all comments'.
+  /// See [FoldingRangeKind] for an enumeration of standardized kinds.
   final FoldingRangeKind? kind;
 
   /// The zero-based character offset from where the folded range starts. If not
@@ -26134,6 +26136,11 @@ class MessageActionItem implements ToJsonable {
 
 /// The message type
 class MessageType implements ToJsonable {
+  /// A debug message.
+  ///
+  /// @since 3.18.0
+  static const Debug = MessageType(5);
+
   /// An error message.
   static const Error = MessageType(1);
 
@@ -28975,20 +28982,22 @@ class PlaceholderAndRange implements ToJsonable {
 /// offset of b is 3 since `𐐀` is represented using two code units in UTF-16.
 /// Since 3.17 clients and servers can agree on a different string encoding
 /// representation (e.g. UTF-8). The client announces it's supported encoding
-/// via the client capability [general.positionEncodings]. The value is an array
-/// of position encodings the client supports, with decreasing preference (e.g.
-/// the encoding at index `0` is the most preferred one). To stay backwards
-/// compatible the only mandatory encoding is UTF-16 represented via the string
-/// `utf-16`. The server can pick one of the encodings offered by the client and
-/// signals that encoding back to the client via the initialize result's
-/// property [capabilities.positionEncoding]. If the string value `utf-16` is
-/// missing from the client's capability `general.positionEncodings` servers can
-/// safely assume that the client supports UTF-16. If the server omits the
-/// position encoding in its initialize result the encoding defaults to the
-/// string value `utf-16`. Implementation considerations: since the conversion
-/// from one encoding into another requires the content of the file / line the
-/// conversion is best done where the file is read which is usually on the
-/// server side.
+/// via the client capability
+/// [`general.positionEncodings`](https://microsoft.github.io/language-server-protocol/specifications/specification-current/#clientCapabilities).
+/// The value is an array of position encodings the client supports, with
+/// decreasing preference (e.g. the encoding at index `0` is the most preferred
+/// one). To stay backwards compatible the only mandatory encoding is UTF-16
+/// represented via the string `utf-16`. The server can pick one of the
+/// encodings offered by the client and signals that encoding back to the client
+/// via the initialize result's property
+/// [`capabilities.positionEncoding`](https://microsoft.github.io/language-server-protocol/specifications/specification-current/#serverCapabilities).
+/// If the string value `utf-16` is missing from the client's capability
+/// `general.positionEncodings` servers can safely assume that the client
+/// supports UTF-16. If the server omits the position encoding in its initialize
+/// result the encoding defaults to the string value `utf-16`. Implementation
+/// considerations: since the conversion from one encoding into another requires
+/// the content of the file / line the conversion is best done where the file is
+/// read which is usually on the server side.
 ///
 /// Positions are line end character agnostic. So you can not specify a position
 /// that denotes `\r|\n` or `\n|` where `|` represents the character offset.
@@ -29082,12 +29091,12 @@ class PositionEncodingKind implements ToJsonable {
 
   /// Character offsets count UTF-32 code units.
   ///
-  /// Implementation note: these are the same as Unicode code points,
+  /// Implementation note: these are the same as Unicode codepoints,
   /// so this `PositionEncodingKind` may also be used for an encoding-agnostic
   /// representation of character offsets.
   static const UTF32 = PositionEncodingKind('utf-32');
 
-  /// Character offsets count UTF-8 code units.
+  /// Character offsets count UTF-8 code units (e.g. bytes).
   static const UTF8 = PositionEncodingKind('utf-8');
 
   final String _value;
@@ -34440,7 +34449,7 @@ class ShowDocumentClientCapabilities implements ToJsonable {
   }
 }
 
-/// Params to show a document.
+/// Params to show a resource in the UI.
 ///
 /// @since 3.16.0
 class ShowDocumentParams implements ToJsonable {
@@ -34449,9 +34458,9 @@ class ShowDocumentParams implements ToJsonable {
     ShowDocumentParams.fromJson,
   );
 
-  /// Indicates to show the resource in an external program. To show for example
-  /// `https://code.visualstudio.com/` in the default WEB browser set `external`
-  /// to `true`.
+  /// Indicates to show the resource in an external program. To show, for
+  /// example, `https://code.visualstudio.com/`
+  /// in the default WEB browser set `external` to `true`.
   final bool? external;
 
   /// An optional selection range if the document is a text document. Clients
@@ -34464,7 +34473,7 @@ class ShowDocumentParams implements ToJsonable {
   /// external program is started.
   final bool? takeFocus;
 
-  /// The document uri to show.
+  /// The uri to show.
   final LSPUri uri;
   ShowDocumentParams({
     this.external,
@@ -37124,7 +37133,7 @@ class TextDocumentFilter1 implements ToJsonable {
   /// A language id, like `typescript`.
   final String language;
 
-  /// A glob pattern, like `*.{ts,js}`.
+  /// A glob pattern, like **​/*.{ts,js}. See TextDocumentFilter for examples.
   final String? pattern;
 
   /// A Uri [Uri.scheme], like `file` or `untitled`.
@@ -37208,7 +37217,7 @@ class TextDocumentFilter3 implements ToJsonable {
   /// A language id, like `typescript`.
   final String? language;
 
-  /// A glob pattern, like `*.{ts,js}`.
+  /// A glob pattern, like **​/*.{ts,js}. See TextDocumentFilter for examples.
   final String pattern;
 
   /// A Uri [Uri.scheme], like `file` or `untitled`.
@@ -37292,7 +37301,7 @@ class TextDocumentFilterWithScheme implements ToJsonable {
   /// A language id, like `typescript`.
   final String? language;
 
-  /// A glob pattern, like `*.{ts,js}`.
+  /// A glob pattern, like **​/*.{ts,js}. See TextDocumentFilter for examples.
   final String? pattern;
 
   /// A Uri [Uri.scheme], like `file` or `untitled`.
@@ -39917,12 +39926,12 @@ class WorkDoneProgressBegin implements ToJsonable {
   /// Optional, more detailed associated progress message. Contains
   /// complementary information to the `title`.
   ///
-  /// Examples: "3/25 files", "project/src/module2", "node_modules/some_dep". If
-  /// unset, the previous progress message (if any) is still valid.
+  /// Examples: "3/25 files", "project/src/module2", "node_modules/some_dep".
+  /// If unset, the previous progress message (if any) is still valid.
   final String? message;
 
-  /// Optional progress percentage to display (value 100 is considered 100%). If
-  /// not provided infinite progress is assumed and clients are allowed to
+  /// Optional progress percentage to display (value 100 is considered 100%).
+  /// If not provided infinite progress is assumed and clients are allowed to
   /// ignore the `percentage` value in subsequent in report notifications.
   ///
   /// The value should be steadily rising. Clients are free to ignore values
@@ -40538,12 +40547,12 @@ class WorkDoneProgressReport implements ToJsonable {
   /// Optional, more detailed associated progress message. Contains
   /// complementary information to the `title`.
   ///
-  /// Examples: "3/25 files", "project/src/module2", "node_modules/some_dep". If
-  /// unset, the previous progress message (if any) is still valid.
+  /// Examples: "3/25 files", "project/src/module2", "node_modules/some_dep".
+  /// If unset, the previous progress message (if any) is still valid.
   final String? message;
 
-  /// Optional progress percentage to display (value 100 is considered 100%). If
-  /// not provided infinite progress is assumed and clients are allowed to
+  /// Optional progress percentage to display (value 100 is considered 100%).
+  /// If not provided infinite progress is assumed and clients are allowed to
   /// ignore the `percentage` value in subsequent in report notifications.
   ///
   /// The value should be steadily rising. Clients are free to ignore values

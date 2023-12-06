@@ -306,7 +306,7 @@ class LspAnalysisServer extends AnalysisServer {
             // Dart settings for each workspace folder.
             for (final folder in folders)
               ConfigurationItem(
-                scopeUri: pathContext.toUri(folder).toString(),
+                scopeUri: pathContext.toUri(folder),
                 section: 'dart',
               ),
             // Global Dart settings. This comes last to simplify matching up the

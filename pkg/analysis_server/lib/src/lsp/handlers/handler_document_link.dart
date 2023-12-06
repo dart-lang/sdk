@@ -48,7 +48,7 @@ class DocumentLinkHandler
   DocumentLink _convert(DartDocumentLink link, LineInfo lineInfo) {
     return DocumentLink(
       range: toRange(lineInfo, link.offset, link.length),
-      target: Uri.file(link.targetPath).toString(),
+      target: Uri.file(link.targetPath),
     );
   }
 }

@@ -522,6 +522,7 @@ class AbstractGetter extends Member {
   AbstractGetter({
     required super.name,
     super.comment,
+    super.isProposed,
     required this.type,
   });
 }
