@@ -633,30 +633,30 @@ class Types {
   void emitTypeCheck(CodeGenerator codeGen, DartType type, DartType operandType,
       [TreeNode? node]) {
     final b = codeGen.b;
+    b.comment("Type check against $type");
     w.Local? operandTemp;
     if (translator.options.verifyTypeChecks) {
       operandTemp = codeGen.addLocal(translator.topInfo.nullableType);
       b.local_tee(operandTemp);
     }
-    if (_emitOptimizedTypeCheck(codeGen, type, operandType)) {
-      if (translator.options.verifyTypeChecks) {
-        b.local_get(operandTemp!);
-        makeType(codeGen, type);
-        if (node != null && node.location != null) {
-          w.FunctionType verifyFunctionType = translator.functions
-              .getFunctionType(translator.verifyOptimizedTypeCheck.reference);
-          String location = node.location.toString();
-          translator.constants.instantiateConstant(codeGen.function, b,
-              StringConstant(location), verifyFunctionType.inputs.last);
-        } else {
-          b.ref_null(w.HeapType.none);
-        }
-        codeGen.call(translator.verifyOptimizedTypeCheck.reference);
-      }
-    } else {
+    if (!_emitOptimizedTypeCheck(codeGen, type, operandType)) {
       // General fallback path
       makeType(codeGen, type);
       codeGen.call(translator.isSubtype.reference);
+    }
+    if (translator.options.verifyTypeChecks) {
+      b.local_get(operandTemp!);
+      makeType(codeGen, type);
+      if (node != null && node.location != null) {
+        w.FunctionType verifyFunctionType = translator.functions
+            .getFunctionType(translator.verifyOptimizedTypeCheck.reference);
+        String location = node.location.toString();
+        translator.constants.instantiateConstant(codeGen.function, b,
+            StringConstant(location), verifyFunctionType.inputs.last);
+      } else {
+        b.ref_null(w.HeapType.none);
+      }
+      codeGen.call(translator.verifyOptimizedTypeCheck.reference);
     }
   }
 

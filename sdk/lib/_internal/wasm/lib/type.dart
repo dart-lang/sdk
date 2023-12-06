@@ -37,8 +37,6 @@ extension _BypassListIndexingChecks<T> on List<T> {
       unsafeCast(unsafeCast<_ListBase<T>>(this)._data.read(index));
 }
 
-// TODO(joshualitt): Once we have RTI fully working, we'd like to explore
-// implementing [isSubtype] using inheritance.
 // TODO(joshualitt): We can cache the result of [_FutureOrType.asFuture].
 abstract class _Type implements Type {
   final bool isDeclaredNullable;
@@ -68,6 +66,9 @@ abstract class _Type implements Type {
   _Type get asNullable => isDeclaredNullable ? this : _asNullable;
 
   _Type get _asNullable;
+
+  /// Check whether the given object is of this type.
+  bool _checkInstance(Object o);
 }
 
 @pragma("wasm:entry-point")
@@ -78,6 +79,9 @@ class _BottomType extends _Type {
 
   @override
   _Type get _asNullable => _literal<Null>();
+
+  @override
+  bool _checkInstance(Object o) => false;
 
   @override
   String toString() => isDeclaredNullable ? 'Null' : 'Never';
@@ -100,6 +104,9 @@ class _TopType extends _Type {
   // Only called if Object
   @override
   _Type get _asNullable => _literal<Object?>();
+
+  @override
+  bool _checkInstance(Object o) => true;
 
   @override
   String toString() {
@@ -133,6 +140,10 @@ class _InterfaceTypeParameterType extends _Type {
       throw 'Type parameter should have been substituted already.';
 
   @override
+  bool _checkInstance(Object o) =>
+      throw 'Type parameter should have been substituted already.';
+
+  @override
   String toString() => 'T$environmentIndex';
 }
 
@@ -148,6 +159,10 @@ class _FunctionTypeParameterType extends _Type {
 
   @override
   _Type get _asNullable => _FunctionTypeParameterType(true, index);
+
+  @override
+  bool _checkInstance(Object o) =>
+      throw 'Instance check should not reach function type parameter.';
 
   @override
   bool operator ==(Object o) {
@@ -185,6 +200,11 @@ class _FutureOrType extends _Type {
   @override
   _Type get _asNullable =>
       _TypeUniverse.createNormalizedFutureOrType(true, typeArgument);
+
+  @override
+  bool _checkInstance(Object o) {
+    return typeArgument._checkInstance(o) || asFuture._checkInstance(o);
+  }
 
   @override
   bool operator ==(Object o) {
@@ -226,6 +246,15 @@ class _InterfaceType extends _Type {
 
   @override
   _Type get _asNullable => _InterfaceType(classId, true, typeArguments);
+
+  @override
+  bool _checkInstance(Object o) {
+    // We don't need to check whether the object is of interface type, since
+    // non-interface class IDs ([Object], closures, records) will be rejected by
+    // the interface type subtype check.
+    return _typeUniverse.isInterfaceSubtypeInner(
+        ClassID.getID(o), Object._getTypeArguments(o), null, this, null);
+  }
 
   @override
   bool operator ==(Object o) {
@@ -314,6 +343,9 @@ class _AbstractFunctionType extends _Type {
   _Type get _asNullable => _literal<Function?>();
 
   @override
+  bool _checkInstance(Object o) => ClassID.getID(o) == ClassID.cid_Closure;
+
+  @override
   String toString() {
     return isDeclaredNullable ? 'Function?' : 'Function';
   }
@@ -355,6 +387,13 @@ class _FunctionType extends _Type {
       requiredParameterCount,
       namedParameters,
       true);
+
+  @override
+  bool _checkInstance(Object o) {
+    if (ClassID.getID(o) != ClassID.cid_Closure) return false;
+    return _typeUniverse.isFunctionSubtype(
+        _getFunctionRuntimeType(unsafeCast(o)), null, this, null);
+  }
 
   bool operator ==(Object o) {
     if (ClassID.getID(o) != ClassID.cidFunctionType) return false;
@@ -457,6 +496,11 @@ class _AbstractRecordType extends _Type {
   _Type get _asNullable => _literal<Record?>();
 
   @override
+  bool _checkInstance(Object o) {
+    return _isRecordInstance(o);
+  }
+
+  @override
   String toString() {
     return isDeclaredNullable ? 'Record?' : 'Record';
   }
@@ -472,6 +516,11 @@ class _RecordType extends _Type {
 
   @override
   _Type get _asNullable => _RecordType(names, fieldTypes, true);
+
+  @override
+  bool _checkInstance(Object o) {
+    return _typeUniverse.isSubtype(_getActualRuntimeType(o), null, this, null);
+  }
 
   @override
   String toString() {
@@ -749,13 +798,17 @@ class _TypeUniverse {
 
   bool isInterfaceSubtype(_InterfaceType s, _Environment? sEnv,
       _InterfaceType t, _Environment? tEnv) {
-    int sId = s.classId;
+    return isInterfaceSubtypeInner(s.classId, s.typeArguments, sEnv, t, tEnv);
+  }
+
+  bool isInterfaceSubtypeInner(int sId, WasmObjectArray<_Type> sTypeArguments,
+      _Environment? sEnv, _InterfaceType t, _Environment? tEnv) {
     int tId = t.classId;
 
     // If we have the same class, simply compare type arguments.
     if (sId == tId) {
       return areTypeArgumentsSubtypes(
-          s.typeArguments, sEnv, t.typeArguments, tEnv);
+          sTypeArguments, sEnv, t.typeArguments, tEnv);
     }
 
     // Otherwise, check if [s] is a subtype of [t], and if it is then compare
@@ -773,7 +826,6 @@ class _TypeUniverse {
     assert(sSuperIndexOfT < typeRulesSubstitutions._getUnchecked(sId).length);
 
     // Return early if we don't have to check type arguments.
-    WasmObjectArray<_Type> sTypeArguments = s.typeArguments;
     List<_Type> substitutions =
         typeRulesSubstitutions._getUnchecked(sId)._getUnchecked(sSuperIndexOfT);
     if (substitutions.isEmpty && sTypeArguments.isEmpty) {
@@ -1020,12 +1072,21 @@ class _TypeUniverse {
 _TypeUniverse _typeUniverse = _TypeUniverse.create();
 
 @pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
 bool _isSubtype(Object? o, _Type t) {
-  return _typeUniverse.isSubtype(
-      _getActualRuntimeTypeNullable(o), null, t, null);
+  // With this function being inlined, Binaryen is often able to optimize parts
+  // of it away, for instance:
+  // - Omit the null check when the operand is known to be non-null.
+  // - Substitute a constant result for the null check when the nullability of
+  //   the type is known.
+  // - Devirtualize the [_checkInstance] call when the category of the type is
+  //   known.
+  if (o == null) return t.isDeclaredNullable;
+  return t._checkInstance(o);
 }
 
 @pragma("wasm:entry-point")
+@pragma("wasm:prefer-inline")
 bool _isTypeSubtype(_Type s, _Type t) {
   return _typeUniverse.isSubtype(s, null, t, null);
 }
@@ -1211,3 +1272,7 @@ external _Type _getMasqueradedRuntimeType(Object object);
 @pragma("wasm:prefer-inline")
 _Type _getMasqueradedRuntimeTypeNullable(Object? object) =>
     object == null ? _literal<Null>() : _getMasqueradedRuntimeType(object);
+
+external _FunctionType _getFunctionRuntimeType(Function f);
+
+external bool _isRecordInstance(Object o);
