@@ -6,6 +6,7 @@ import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/dynamic_forwarders.dart';
 import 'package:dart2wasm/translator.dart';
+import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 
@@ -602,6 +603,27 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSubstitutions(b);
         case "_getTypeNames":
           return translator.types.makeTypeNames(b);
+        case "_getFunctionRuntimeType":
+          Expression f = node.arguments.positional.single;
+          final w.StructType closureBaseStruct =
+              translator.closureLayouter.closureBaseStruct;
+          final w.RefType closureBaseStructRef =
+              w.RefType.def(closureBaseStruct, nullable: false);
+          codeGen.wrap(f, closureBaseStructRef);
+          b.struct_get(closureBaseStruct, FieldIndex.closureRuntimeType);
+          return closureBaseStruct
+              .fields[FieldIndex.closureRuntimeType].type.unpacked;
+        case "_isRecordInstance":
+          Expression o = node.arguments.positional.single;
+          b.global_get(translator.types.typeCategoryTable);
+          codeGen.wrap(o, translator.topInfo.nonNullableType);
+          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+          b.array_get_u(
+              (translator.types.typeCategoryTable.type.type as w.RefType)
+                  .heapType as w.ArrayType);
+          b.i32_const(TypeCategory.record);
+          b.i32_eq();
+          return w.NumType.i32;
       }
     }
 
