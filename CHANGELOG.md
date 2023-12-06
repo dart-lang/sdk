@@ -62,6 +62,15 @@
   Dart classes. This information provides little value and keeping it imposes an
   unnecessary maintenance cost.
 
+#### Production JavaScript compiler (dart2js)
+
+- **Breaking Change** [#54201][]:
+  The `Invocation` that is passed to `noSuchMethod` will no longer have a
+  minified `memberName`, even when dart2js is invoked with `--minify`.
+  See [#54201][] for more details.
+
+[#54201]: https://github.com/dart-lang/sdk/issues/54201
+
 #### Linter
 
 - Removed the `iterable_contains_unrelated_type` and

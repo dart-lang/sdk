@@ -185,8 +185,7 @@ class ClassStubGenerator {
       'noSuchMethodName': _namer.noSuchMethodName,
       'createInvocationMirror':
           _emitter.staticFunctionAccess(_commonElements.createInvocationMirror),
-      'methodName':
-          js.quoteName(enableMinification ? internalName : methodName),
+      'methodName': js.quoteName(methodName),
       'internalName': js.quoteName(internalName),
       'type': js.number(type),
       'arguments': jsAst.ArrayInitializer(
