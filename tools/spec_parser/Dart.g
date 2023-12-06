@@ -1185,7 +1185,7 @@ patternField
     ;
 
 objectPattern
-    :    typeName typeArguments? '(' patternFields? ')'
+    :    (typeName typeArguments? | typeNamedFunction) '(' patternFields? ')'
     ;
 
 patternVariableDeclaration
@@ -1439,9 +1439,13 @@ typeNotFunction
     |    VOID
     ;
 
+typeNamedFunction
+    :    (typeIdentifier '.')? FUNCTION
+    ;
+
 typeNotVoidNotFunction
     :    typeName typeArguments?
-    |    (typeIdentifier '.')? FUNCTION
+    |    typeNamedFunction
     ;
 
 typeName

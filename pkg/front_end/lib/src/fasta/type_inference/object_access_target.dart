@@ -156,7 +156,8 @@ abstract class ObjectAccessTarget {
   const factory ObjectAccessTarget.dynamic() = DynamicAccessTarget.dynamic;
 
   /// Creates an access on a receiver of type Never with no known target.
-  const factory ObjectAccessTarget.never() = DynamicAccessTarget.never;
+  factory ObjectAccessTarget.never(
+      {Member? member, FunctionType? functionType}) = NeverAccessTarget;
 
   /// Creates an access with no target due to an invalid receiver type.
   ///
@@ -626,10 +627,6 @@ class DynamicAccessTarget extends ObjectAccessTarget {
   const DynamicAccessTarget.dynamic()
       : super.internal(ObjectAccessTargetKind.dynamic);
 
-  /// Creates an access on a receiver of type Never with no known target.
-  const DynamicAccessTarget.never()
-      : super.internal(ObjectAccessTargetKind.never);
-
   /// Creates an access with no target due to an invalid receiver type.
   ///
   /// This is not in itself an error but a consequence of another error.
@@ -655,9 +652,7 @@ class DynamicAccessTarget extends ObjectAccessTarget {
 
   @override
   DartType getGetterType(InferenceVisitorBase base) {
-    return isInvalid
-        ? const InvalidType()
-        : (isNever ? const NeverType.nonNullable() : const DynamicType());
+    return isInvalid ? const InvalidType() : const DynamicType();
   }
 
   @override
@@ -677,14 +672,63 @@ class DynamicAccessTarget extends ObjectAccessTarget {
 
   @override
   DartType getReturnType(InferenceVisitorBase base) {
-    return isInvalid
-        ? const InvalidType()
-        : (isNever ? const NeverType.nonNullable() : const DynamicType());
+    return isInvalid ? const InvalidType() : const DynamicType();
   }
 
   @override
   DartType getBinaryOperandType(InferenceVisitorBase base) {
     return isInvalid ? const InvalidType() : const DynamicType();
+  }
+}
+
+class NeverAccessTarget extends ObjectAccessTarget {
+  @override
+  final Member? member;
+
+  final FunctionType? functionType;
+
+  /// Creates an access on a receiver of type Never. If the target is known,
+  /// being from `Object`, it is provided as [member] together with its
+  /// function type.
+  NeverAccessTarget({this.member, this.functionType})
+      : super.internal(ObjectAccessTargetKind.never);
+
+  @override
+  DartType? get receiverType => null;
+
+  @override
+  FunctionType getFunctionType(InferenceVisitorBase base) {
+    return functionType ?? base.unknownFunction;
+  }
+
+  @override
+  DartType getGetterType(InferenceVisitorBase base) {
+    return const NeverType.nonNullable();
+  }
+
+  @override
+  DartType getSetterType(InferenceVisitorBase base) {
+    return const DynamicType();
+  }
+
+  @override
+  DartType getIndexKeyType(InferenceVisitorBase base) {
+    return const DynamicType();
+  }
+
+  @override
+  DartType getIndexSetValueType(InferenceVisitorBase base) {
+    return const DynamicType();
+  }
+
+  @override
+  DartType getReturnType(InferenceVisitorBase base) {
+    return const NeverType.nonNullable();
+  }
+
+  @override
+  DartType getBinaryOperandType(InferenceVisitorBase base) {
+    return const DynamicType();
   }
 }
 

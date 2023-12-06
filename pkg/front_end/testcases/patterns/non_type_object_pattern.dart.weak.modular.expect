@@ -287,20 +287,21 @@ static method testUnresolved(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t1 = field = #0#2 in true))))
+    synthesized invalid-type #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t1 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final dynamic #t2 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t3 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final dynamic #t2 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t4 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final dynamic #t3 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t5 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L1:
@@ -308,7 +309,7 @@ static method testUnresolved(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final dynamic #t4 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t6 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L1;
         }
@@ -316,45 +317,46 @@ static method testUnresolved(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t5;
+    core::String #t7;
     final synthesized dynamic #4#0 = o;
     #L2:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final dynamic #t6 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t5 = "matched";
+        if(#4#0 is invalid-type && (let final dynamic #t8 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+          #t7 = "matched";
           break #L2;
         }
       }
       {
         if(true) {
-          #t5 = "";
+          #t7 = "";
           break #L2;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t5;
+  } =>#t7;
 }
 static method testNonType(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t7 = field = #0#2 in true))))
+    synthesized invalid-type #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t9 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final dynamic #t10 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t11 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final dynamic #t8 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t12 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final dynamic #t9 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t13 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L3:
@@ -362,7 +364,7 @@ static method testNonType(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final dynamic #t10 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t14 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L3;
         }
@@ -370,87 +372,34 @@ static method testNonType(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t11;
+    core::String #t15;
     final synthesized dynamic #4#0 = o;
     #L4:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final dynamic #t12 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t11 = "matched";
+        if(#4#0 is invalid-type && (let final dynamic #t16 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+          #t15 = "matched";
           break #L4;
         }
       }
       {
         if(true) {
-          #t11 = "";
+          #t15 = "";
           break #L4;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t11;
+  } =>#t15;
 }
 static method testExtension(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t13 = field = #0#2 in true))))
-      throw new core::StateError::•("Pattern matching error");
-  }
-  final hoisted has-declared-initializer invalid-type o;
-  {
-    final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final dynamic #t14 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new core::StateError::•("Pattern matching error");
-  }
-  {
-    hoisted invalid-type field;
-    final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final dynamic #t15 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
-    }
-  }
-  #L5:
-  {
-    final synthesized dynamic #3#0 = o;
-    {
-      hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final dynamic #t16 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
-        {
-          break #L5;
-        }
-      }
-    }
-  }
-  o = block {
-    core::String #t17;
-    final synthesized dynamic #4#0 = o;
-    #L6:
-    {
-      {
-        hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final dynamic #t18 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t17 = "matched";
-          break #L6;
-        }
-      }
-      {
-        if(true) {
-          #t17 = "";
-          break #L6;
-        }
-      }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
-    }
-  } =>#t17;
-}
-static method testPrefixedUnresolved(dynamic o) → dynamic {
-  hoisted has-declared-initializer core::int field;
-  {
-    final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t19 = field = #0#2 in true))))
+    synthesized invalid-type #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t17 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final dynamic #t18 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t19 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
@@ -465,14 +414,14 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
     if(#2#0 is invalid-type && (let final dynamic #t21 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
-  #L7:
+  #L5:
   {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
       if(#3#0 is invalid-type && (let final dynamic #t22 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
-          break #L7;
+          break #L5;
         }
       }
     }
@@ -480,43 +429,99 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
   o = block {
     core::String #t23;
     final synthesized dynamic #4#0 = o;
-    #L8:
+    #L6:
     {
       {
         hoisted invalid-type field;
         if(#4#0 is invalid-type && (let final dynamic #t24 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t23 = "matched";
-          break #L8;
+          break #L6;
         }
       }
       {
         if(true) {
           #t23 = "";
-          break #L8;
+          break #L6;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t23;
 }
-static method testPrefixedNonType(dynamic o) → dynamic {
+static method testPrefixedUnresolved(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t25 = field = #0#2 in true))))
+    synthesized invalid-type #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t25 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final dynamic #t26 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t27 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final dynamic #t26 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t28 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final dynamic #t27 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t29 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    }
+  }
+  #L7:
+  {
+    final synthesized dynamic #3#0 = o;
+    {
+      hoisted invalid-type field;
+      if(#3#0 is invalid-type && (let final dynamic #t30 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+        {
+          break #L7;
+        }
+      }
+    }
+  }
+  o = block {
+    core::String #t31;
+    final synthesized dynamic #4#0 = o;
+    #L8:
+    {
+      {
+        hoisted invalid-type field;
+        if(#4#0 is invalid-type && (let final dynamic #t32 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+          #t31 = "matched";
+          break #L8;
+        }
+      }
+      {
+        if(true) {
+          #t31 = "";
+          break #L8;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t31;
+}
+static method testPrefixedNonType(dynamic o) → dynamic {
+  hoisted has-declared-initializer core::int field;
+  {
+    final synthesized dynamic #0#0 = o;
+    synthesized invalid-type #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t33 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final dynamic #t34 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t35 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  final hoisted has-declared-initializer invalid-type o;
+  {
+    final synthesized dynamic #1#0 = o;
+    if(!(#1#0 is invalid-type && (let final dynamic #t36 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  {
+    hoisted invalid-type field;
+    final synthesized dynamic #2#0 = o;
+    if(#2#0 is invalid-type && (let final dynamic #t37 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L9:
@@ -524,7 +529,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final dynamic #t28 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t38 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L9;
         }
@@ -532,141 +537,34 @@ static method testPrefixedNonType(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t29;
+    core::String #t39;
     final synthesized dynamic #4#0 = o;
     #L10:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final dynamic #t30 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t29 = "matched";
+        if(#4#0 is invalid-type && (let final dynamic #t40 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+          #t39 = "matched";
           break #L10;
         }
       }
       {
         if(true) {
-          #t29 = "";
+          #t39 = "";
           break #L10;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t29;
+  } =>#t39;
 }
 static method testPrefixedExtension(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t31 = field = #0#2 in true))))
-      throw new core::StateError::•("Pattern matching error");
-  }
-  final hoisted has-declared-initializer invalid-type o;
-  {
-    final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final dynamic #t32 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new core::StateError::•("Pattern matching error");
-  }
-  {
-    hoisted invalid-type field;
-    final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final dynamic #t33 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
-    }
-  }
-  #L11:
-  {
-    final synthesized dynamic #3#0 = o;
-    {
-      hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final dynamic #t34 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
-        {
-          break #L11;
-        }
-      }
-    }
-  }
-  o = block {
-    core::String #t35;
-    final synthesized dynamic #4#0 = o;
-    #L12:
-    {
-      {
-        hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final dynamic #t36 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t35 = "matched";
-          break #L12;
-        }
-      }
-      {
-        if(true) {
-          #t35 = "";
-          break #L12;
-        }
-      }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
-    }
-  } =>#t35;
-}
-static method testUnresolvedPrefix(dynamic o) → dynamic {
-  hoisted has-declared-initializer core::int field;
-  {
-    final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t37 = field = #0#2 in true))))
-      throw new core::StateError::•("Pattern matching error");
-  }
-  final hoisted has-declared-initializer invalid-type o;
-  {
-    final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final dynamic #t38 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new core::StateError::•("Pattern matching error");
-  }
-  {
-    hoisted invalid-type field;
-    final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final dynamic #t39 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
-    }
-  }
-  #L13:
-  {
-    final synthesized dynamic #3#0 = o;
-    {
-      hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final dynamic #t40 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
-        {
-          break #L13;
-        }
-      }
-    }
-  }
-  o = block {
-    core::String #t41;
-    final synthesized dynamic #4#0 = o;
-    #L14:
-    {
-      {
-        hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final dynamic #t42 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t41 = "matched";
-          break #L14;
-        }
-      }
-      {
-        if(true) {
-          #t41 = "";
-          break #L14;
-        }
-      }
-      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
-    }
-  } =>#t41;
-}
-static method testMemberAccess(dynamic o) → dynamic {
-  hoisted has-declared-initializer core::int field;
-  {
-    final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t43 = field = #0#2 in true))))
+    synthesized invalid-type #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t41 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final dynamic #t42 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t43 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
@@ -681,14 +579,14 @@ static method testMemberAccess(dynamic o) → dynamic {
     if(#2#0 is invalid-type && (let final dynamic #t45 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
-  #L15:
+  #L11:
   {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
       if(#3#0 is invalid-type && (let final dynamic #t46 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
-          break #L15;
+          break #L11;
         }
       }
     }
@@ -696,22 +594,132 @@ static method testMemberAccess(dynamic o) → dynamic {
   o = block {
     core::String #t47;
     final synthesized dynamic #4#0 = o;
-    #L16:
+    #L12:
     {
       {
         hoisted invalid-type field;
         if(#4#0 is invalid-type && (let final dynamic #t48 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t47 = "matched";
-          break #L16;
+          break #L12;
         }
       }
       {
         if(true) {
           #t47 = "";
-          break #L16;
+          break #L12;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
   } =>#t47;
+}
+static method testUnresolvedPrefix(dynamic o) → dynamic {
+  hoisted has-declared-initializer core::int field;
+  {
+    final synthesized dynamic #0#0 = o;
+    synthesized invalid-type #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t49 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final dynamic #t50 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t51 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  final hoisted has-declared-initializer invalid-type o;
+  {
+    final synthesized dynamic #1#0 = o;
+    if(!(#1#0 is invalid-type && (let final dynamic #t52 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  {
+    hoisted invalid-type field;
+    final synthesized dynamic #2#0 = o;
+    if(#2#0 is invalid-type && (let final dynamic #t53 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    }
+  }
+  #L13:
+  {
+    final synthesized dynamic #3#0 = o;
+    {
+      hoisted invalid-type field;
+      if(#3#0 is invalid-type && (let final dynamic #t54 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+        {
+          break #L13;
+        }
+      }
+    }
+  }
+  o = block {
+    core::String #t55;
+    final synthesized dynamic #4#0 = o;
+    #L14:
+    {
+      {
+        hoisted invalid-type field;
+        if(#4#0 is invalid-type && (let final dynamic #t56 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+          #t55 = "matched";
+          break #L14;
+        }
+      }
+      {
+        if(true) {
+          #t55 = "";
+          break #L14;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t55;
+}
+static method testMemberAccess(dynamic o) → dynamic {
+  hoisted has-declared-initializer core::int field;
+  {
+    final synthesized dynamic #0#0 = o;
+    synthesized invalid-type #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t57 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final dynamic #t58 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final dynamic #t59 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  final hoisted has-declared-initializer invalid-type o;
+  {
+    final synthesized dynamic #1#0 = o;
+    if(!(#1#0 is invalid-type && (let final dynamic #t60 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  {
+    hoisted invalid-type field;
+    final synthesized dynamic #2#0 = o;
+    if(#2#0 is invalid-type && (let final dynamic #t61 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    }
+  }
+  #L15:
+  {
+    final synthesized dynamic #3#0 = o;
+    {
+      hoisted invalid-type field;
+      if(#3#0 is invalid-type && (let final dynamic #t62 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+        {
+          break #L15;
+        }
+      }
+    }
+  }
+  o = block {
+    core::String #t63;
+    final synthesized dynamic #4#0 = o;
+    #L16:
+    {
+      {
+        hoisted invalid-type field;
+        if(#4#0 is invalid-type && (let final dynamic #t64 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+          #t63 = "matched";
+          break #L16;
+        }
+      }
+      {
+        if(true) {
+          #t63 = "";
+          break #L16;
+        }
+      }
+      throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t63;
 }

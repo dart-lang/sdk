@@ -247,6 +247,7 @@ cli
 client's
 clil
 clock
+closurizing
 cls
 cm
 cmdline

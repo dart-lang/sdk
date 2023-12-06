@@ -19,12 +19,16 @@ static method test(dynamic o) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::int #0#2 = (#0#0 as{Unchecked} self::Class).{self::Class::field}{core::int};
-    late final synthesized core::bool #0#10 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    late final synthesized dynamic #0#12 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#13 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    synthesized core::bool #0#10;
+    synthesized core::bool #0#10#isSet = false;
+    synthesized dynamic #0#12;
+    synthesized core::bool #0#12#isSet = false;
+    synthesized dynamic #0#13;
+    synthesized core::bool #0#13#isSet = false;
     {
-      if(#0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 || #0#0 is self::Class && #C3 =={core::num::==}{(core::Object) → core::bool} #0#2) {
+      if(#0#0 is self::Class && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t1 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int}) || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t2 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int})) {
         {
           core::print("Class");
           break #L1;
@@ -33,7 +37,7 @@ static method test(dynamic o) → dynamic {
     }
     {
       hoisted core::int a;
-      if(#0#0 is core::List<dynamic> && #0#10 && (#0#12 is core::int && (let final dynamic #t1 = a = #0#12{core::int} in true)) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#13 || #0#0 is core::List<dynamic> && #0#10 && (#0#12 is core::int && (let final dynamic #t2 = a = #0#12{core::int} in true)) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#13) {
+      if(#0#0 is core::List<dynamic> && (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final dynamic #t3 = #0#10#isSet = true in #0#10 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3) && ((#0#12#isSet ?{dynamic} #0#12{dynamic} : let final dynamic #t4 = #0#12#isSet = true in #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final dynamic #t5 = a = (#0#12#isSet ?{dynamic} #0#12{dynamic} : let final dynamic #t6 = #0#12#isSet = true in #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t7 = #0#13#isSet = true in #0#13 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) || #0#0 is core::List<dynamic> && (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final dynamic #t8 = #0#10#isSet = true in #0#10 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3) && ((#0#12#isSet ?{dynamic} #0#12{dynamic} : let final dynamic #t9 = #0#12#isSet = true in #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final dynamic #t10 = a = (#0#12#isSet ?{dynamic} #0#12{dynamic} : let final dynamic #t11 = #0#12#isSet = true in #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#13#isSet ?{dynamic} #0#13{dynamic} : let final dynamic #t12 = #0#13#isSet = true in #0#13 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic})) {
         {
           core::print("List");
         }
@@ -169,13 +173,13 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> =
     return super.{col::ListBase::removeRange}(start, end);
   mixin-super-stub method fillRange(core::int start, core::int end, [covariant-by-class cac::_CustomList&Object&ListMixin::E? fill = #C4]) → void
     return super.{col::ListBase::fillRange}(start, end, fill);
-  mixin-super-stub method setRange(core::int start, core::int end, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable, [core::int skipCount = #C2]) → void
+  mixin-super-stub method setRange(core::int start, core::int end, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable, [core::int skipCount = #C1]) → void
     return super.{col::ListBase::setRange}(start, end, iterable, skipCount);
   mixin-super-stub method replaceRange(core::int start, core::int end, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> newContents) → void
     return super.{col::ListBase::replaceRange}(start, end, newContents);
-  mixin-super-stub method indexOf(covariant-by-class core::Object? element, [core::int start = #C2]) → core::int
+  mixin-super-stub method indexOf(covariant-by-class core::Object? element, [core::int start = #C1]) → core::int
     return super.{col::ListBase::indexOf}(element, start);
-  mixin-super-stub method indexWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, [core::int start = #C2]) → core::int
+  mixin-super-stub method indexWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, [core::int start = #C1]) → core::int
     return super.{col::ListBase::indexWhere}(test, start);
   mixin-super-stub method lastIndexOf(covariant-by-class core::Object? element, [core::int? start = #C4]) → core::int
     return super.{col::ListBase::lastIndexOf}(element, start);
@@ -214,9 +218,9 @@ class CustomList<E extends core::Object? = dynamic> extends cac::_CustomList&Obj
 }
 
 constants  {
-  #C1 = 2
-  #C2 = 0
-  #C3 = 1
+  #C1 = 0
+  #C2 = 1
+  #C3 = 2
   #C4 = null
   #C5 = ""
   #C6 = true

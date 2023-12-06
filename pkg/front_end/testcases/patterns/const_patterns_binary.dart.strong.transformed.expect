@@ -256,39 +256,28 @@ static method method<T extends core::Object? = dynamic>(dynamic o) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = o;
-    function ##0#2#initializer() → core::bool
-      return #C2 =={core::num::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#2 = ##0#2#initializer(){() → core::bool};
-    function ##0#4#initializer() → core::bool
-      return #C1 =={core::num::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
-    function ##0#6#initializer() → core::bool
-      return #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as self::method::T%;
-    late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
-    function ##0#10#initializer() → core::bool
-      return #C3 =={core::num::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#10 = ##0#10#initializer(){() → core::bool};
-    function ##0#12#initializer() → core::bool
-      return #C4 =={core::num::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#12 = ##0#12#initializer(){() → core::bool};
-    function ##0#14#initializer() → core::bool
-      return #C5 =={core::num::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#14 = ##0#14#initializer(){() → core::bool};
-    function ##0#16#initializer() → core::bool
-      return #C6 =={core::num::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#16 = ##0#16#initializer(){() → core::bool};
-    function ##0#18#initializer() → core::bool
-      return #C7 =={core::Object::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#18 = ##0#18#initializer(){() → core::bool};
-    function ##0#20#initializer() → core::bool
-      return #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#20 = ##0#20#initializer(){() → core::bool};
-    function ##0#22#initializer() → core::bool
-      return #C9 =={core::num::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#22 = ##0#22#initializer(){() → core::bool};
-    function ##0#24#initializer() → core::bool
-      return #C10 =={core::num::==}{(core::Object) → core::bool} #0#0;
-    late final synthesized core::bool #0#24 = ##0#24#initializer(){() → core::bool};
+    synthesized core::bool #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    synthesized core::bool #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized core::bool #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    synthesized core::bool #0#10;
+    synthesized core::bool #0#10#isSet = false;
+    synthesized core::bool #0#12;
+    synthesized core::bool #0#12#isSet = false;
+    synthesized core::bool #0#14;
+    synthesized core::bool #0#14#isSet = false;
+    synthesized core::bool #0#16;
+    synthesized core::bool #0#16#isSet = false;
+    synthesized core::bool #0#18;
+    synthesized core::bool #0#18#isSet = false;
+    synthesized core::bool #0#20;
+    synthesized core::bool #0#20#isSet = false;
+    synthesized core::bool #0#22;
+    synthesized core::bool #0#22#isSet = false;
+    synthesized core::bool #0#24;
+    synthesized core::bool #0#24#isSet = false;
     final const synthesized invalid-type #0#31 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:82:10: Error: Not a constant expression.
     case o++: // Error
          ^";
@@ -302,11 +291,11 @@ static method method<T extends core::Object? = dynamic>(dynamic o) → dynamic {
     case --o: // Error
            ^";
     {
-      if(#0#2 || #0#4 || #0#2 && #0#4 || (let final self::method::T% #t1 = #0#0 as self::method::T% in #0#6) || #C11 =={core::Object::==}{(core::Object) → core::bool} #0#0 || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || (let final self::method::T% #t2 = #0#0 as self::method::T% in #0#6) || (let final self::method::T% #t3 = #0#0 as self::method::T% in #C1 =={core::num::==}{(core::Object) → core::bool} #0#0 as self::method::T%) || (let final core::int #t4 = #0#0 as core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as core::int) || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || #0#18 || (let final core::List<self::method::T%> #t5 = #0#0 as core::List<self::method::T%> in #C12 =={core::List::==}{(core::Object) → core::bool} #0#0 as core::List<self::method::T%>) || #0#10 || #0#12 || #0#4 || #0#14 || #0#16 || #0#2 || #0#18 || #0#20 || #0#10 || #0#16 || #0#10 || #0#20 || #0#20 || #0#18 || #0#18 || #0#22 || #0#16 || #0#16 || #0#24 || #0#2) {
+      if((#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t1 = #0#2#isSet = true in #0#2 = #C2 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t2 = #0#4#isSet = true in #0#4 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t3 = #0#2#isSet = true in #0#2 = #C2 =={core::num::==}{(core::Object) → core::bool} #0#0) && (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t4 = #0#4#isSet = true in #0#4 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0) || (let final self::method::T% #t5 = #0#0 as self::method::T% in #0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool* #t6 = #0#6#isSet = true in #0#6 = #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as self::method::T%) || #C3 =={core::Object::==}{(core::Object) → core::bool} #0#0 || (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t7 = #0#10#isSet = true in #0#10 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#12#isSet ?{core::bool} #0#12{core::bool} : let final core::bool* #t8 = #0#12#isSet = true in #0#12 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t9 = #0#4#isSet = true in #0#4 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#14#isSet ?{core::bool} #0#14{core::bool} : let final core::bool* #t10 = #0#14#isSet = true in #0#14 = #C6 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t11 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t12 = #0#2#isSet = true in #0#2 = #C2 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t13 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20{core::bool} : let final core::bool* #t14 = #0#20#isSet = true in #0#20 = #C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t15 = #0#10#isSet = true in #0#10 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t16 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t17 = #0#10#isSet = true in #0#10 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20{core::bool} : let final core::bool* #t18 = #0#20#isSet = true in #0#20 = #C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20{core::bool} : let final core::bool* #t19 = #0#20#isSet = true in #0#20 = #C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t20 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t21 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#22#isSet ?{core::bool} #0#22{core::bool} : let final core::bool* #t22 = #0#22#isSet = true in #0#22 = #C10 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t23 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t24 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#24#isSet ?{core::bool} #0#24{core::bool} : let final core::bool* #t25 = #0#24#isSet = true in #0#24 = #C11 =={core::num::==}{(core::Object) → core::bool} #0#0) || (let final self::method::T% #t26 = #0#0 as self::method::T% in #0#6#isSet ?{core::bool} #0#6{core::bool} : let final core::bool* #t27 = #0#6#isSet = true in #0#6 = #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as self::method::T%) || (let final self::method::T% #t28 = #0#0 as self::method::T% in #C1 =={core::num::==}{(core::Object) → core::bool} #0#0 as self::method::T%) || (let final core::int #t29 = #0#0 as core::int in #C2 =={core::num::==}{(core::Object) → core::bool} #0#0 as core::int) || (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t30 = #0#10#isSet = true in #0#10 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#12#isSet ?{core::bool} #0#12{core::bool} : let final core::bool* #t31 = #0#12#isSet = true in #0#12 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t32 = #0#4#isSet = true in #0#4 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#14#isSet ?{core::bool} #0#14{core::bool} : let final core::bool* #t33 = #0#14#isSet = true in #0#14 = #C6 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t34 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t35 = #0#2#isSet = true in #0#2 = #C2 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t36 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20{core::bool} : let final core::bool* #t37 = #0#20#isSet = true in #0#20 = #C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t38 = #0#10#isSet = true in #0#10 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t39 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t40 = #0#10#isSet = true in #0#10 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20{core::bool} : let final core::bool* #t41 = #0#20#isSet = true in #0#20 = #C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20{core::bool} : let final core::bool* #t42 = #0#20#isSet = true in #0#20 = #C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t43 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t44 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#22#isSet ?{core::bool} #0#22{core::bool} : let final core::bool* #t45 = #0#22#isSet = true in #0#22 = #C10 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t46 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t47 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#24#isSet ?{core::bool} #0#24{core::bool} : let final core::bool* #t48 = #0#24#isSet = true in #0#24 = #C11 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t49 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (let final core::List<self::method::T%> #t50 = #0#0 as core::List<self::method::T%> in #C12 =={core::List::==}{(core::Object) → core::bool} #0#0 as core::List<self::method::T%>) || (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t51 = #0#10#isSet = true in #0#10 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#12#isSet ?{core::bool} #0#12{core::bool} : let final core::bool* #t52 = #0#12#isSet = true in #0#12 = #C5 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#4#isSet ?{core::bool} #0#4{core::bool} : let final core::bool* #t53 = #0#4#isSet = true in #0#4 = #C1 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#14#isSet ?{core::bool} #0#14{core::bool} : let final core::bool* #t54 = #0#14#isSet = true in #0#14 = #C6 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t55 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t56 = #0#2#isSet = true in #0#2 = #C2 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t57 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20{core::bool} : let final core::bool* #t58 = #0#20#isSet = true in #0#20 = #C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t59 = #0#10#isSet = true in #0#10 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t60 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t61 = #0#10#isSet = true in #0#10 = #C4 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20{core::bool} : let final core::bool* #t62 = #0#20#isSet = true in #0#20 = #C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#20#isSet ?{core::bool} #0#20{core::bool} : let final core::bool* #t63 = #0#20#isSet = true in #0#20 = #C9 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t64 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#18#isSet ?{core::bool} #0#18{core::bool} : let final core::bool* #t65 = #0#18#isSet = true in #0#18 = #C8 =={core::Object::==}{(core::Object) → core::bool} #0#0) || (#0#22#isSet ?{core::bool} #0#22{core::bool} : let final core::bool* #t66 = #0#22#isSet = true in #0#22 = #C10 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t67 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#16#isSet ?{core::bool} #0#16{core::bool} : let final core::bool* #t68 = #0#16#isSet = true in #0#16 = #C7 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#24#isSet ?{core::bool} #0#24{core::bool} : let final core::bool* #t69 = #0#24#isSet = true in #0#24 = #C11 =={core::num::==}{(core::Object) → core::bool} #0#0) || (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final core::bool* #t70 = #0#2#isSet = true in #0#2 = #C2 =={core::num::==}{(core::Object) → core::bool} #0#0)) {
         {
-          let final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:81:12: Error: This couldn't be parsed.
+          let final invalid-type #t71 = invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:81:12: Error: This couldn't be parsed.
     case 1 ?? 2: // Error
-           ^" in #t6 == null ?{invalid-type} 2 : #t6;
+           ^" in #t71 == null ?{invalid-type} 2 : #t71;
           invalid-expression "pkg/front_end/testcases/patterns/const_patterns_binary.dart:81:16: Error: This couldn't be parsed.
     case 1 ?? 2: // Error
                ^";
@@ -332,15 +321,15 @@ static method method<T extends core::Object? = dynamic>(dynamic o) → dynamic {
 constants  {
   #C1 = 2
   #C2 = 1
-  #C3 = 3
-  #C4 = -1
-  #C5 = 0.5
-  #C6 = 0
-  #C7 = false
-  #C8 = true
-  #C9 = 4
-  #C10 = 6
-  #C11 = core::Object {}
+  #C3 = core::Object {}
+  #C4 = 3
+  #C5 = -1
+  #C6 = 0.5
+  #C7 = 0
+  #C8 = false
+  #C9 = true
+  #C10 = 4
+  #C11 = 6
   #C12 = <core::int>[]
 }
 

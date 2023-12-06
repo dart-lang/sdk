@@ -151,23 +151,24 @@ static method switchList(core::List<core::int> list) → core::int
   return block {
     core::int #t1;
     final synthesized core::List<core::int> #0#0 = list;
-    late final synthesized core::int #0#1 = #0#0.{core::List::length}{core::int};
+    synthesized core::int #0#1;
+    synthesized core::bool #0#1#isSet = false;
     #L1:
     {
       {
-        if(#0#1.{core::num::>=}(#C5){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t2 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C5){(core::num) → core::bool}) {
           #t1 = 2;
           break #L1;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C6) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t3 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C6) {
           #t1 = 1;
           break #L1;
         }
       }
       {
-        if(#0#1.{core::num::<=}(#C4){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final dynamic #t4 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C4){(core::num) → core::bool}) {
           #t1 = 0;
           break #L1;
         }
