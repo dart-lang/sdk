@@ -21,7 +21,7 @@ import 'src/devtools/utils.dart';
 import 'src/utils/console.dart';
 
 class DevToolsServer {
-  static const protocolVersion = '1.1.0';
+  static const protocolVersion = '1.2.0';
   static const defaultTryPorts = 10;
   static const commandDescription =
       'Open DevTools (optionally connecting to an existing application).';
