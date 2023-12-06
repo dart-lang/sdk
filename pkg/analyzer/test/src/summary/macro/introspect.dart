@@ -10,6 +10,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     implements
         ClassDeclarationsMacro,
         ConstructorDeclarationsMacro,
+        ExtensionDeclarationsMacro,
         FieldDeclarationsMacro,
         MethodDeclarationsMacro,
         MixinDeclarationsMacro {
@@ -37,6 +38,16 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   Future<void> buildDeclarationsForConstructor(declaration, builder) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeConstructorDeclaration(declaration);
+    });
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForExtension(
+    IntrospectableExtensionDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeExtensionDeclaration(declaration);
     });
   }
 
@@ -253,6 +264,22 @@ class _Printer {
       await _writePositionalFormalParameters(e.positionalParameters);
       await _writeNamedTypeAnnotation('returnType', e.returnType);
       await _writeTypeParameters(e.typeParameters);
+    });
+  }
+
+  Future<void> writeExtensionDeclaration(ExtensionDeclaration e) async {
+    if (!shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    sink.writelnWithIndent('extension ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+
+      await _writeTypeParameters(e.typeParameters);
+      await _writeNamedTypeAnnotation('onType', e.onType);
+      await _writeTypeDeclarationMembers(e);
     });
   }
 

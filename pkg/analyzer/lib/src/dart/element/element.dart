@@ -141,7 +141,12 @@ class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
     implements AugmentedEnumElement {}
 
 class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
-    implements AugmentedExtensionElement {}
+    implements AugmentedExtensionElement {
+  @override
+  final ExtensionElementImpl declaration;
+
+  AugmentedExtensionElementImpl(this.declaration);
+}
 
 class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
     implements AugmentedExtensionTypeElement {}
@@ -2912,6 +2917,9 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 class ExtensionElementImpl extends InstanceElementImpl
     with AugmentableElement<ExtensionElementImpl>
     implements ExtensionElement {
+  late AugmentedExtensionElement augmentedInternal =
+      NotAugmentedExtensionElementImpl(this);
+
   /// The type being extended.
   DartType? _extendedType;
 
@@ -2922,8 +2930,12 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   AugmentedExtensionElement? get augmented {
-    // TODO(scheglov): implement
-    throw UnimplementedError();
+    if (isAugmentation) {
+      return augmentationTarget?.augmented;
+    } else {
+      linkedData?.read(this);
+      return augmentedInternal;
+    }
   }
 
   @override
@@ -5565,11 +5577,15 @@ class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
   EnumElementImpl get declaration => element;
 }
 
-class NotAugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
+class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
     implements AugmentedExtensionElement {
+  @override
   final ExtensionElementImpl element;
 
   NotAugmentedExtensionElementImpl(this.element);
+
+  @override
+  ExtensionElementImpl get declaration => element;
 }
 
 class NotAugmentedExtensionTypeElementImpl
