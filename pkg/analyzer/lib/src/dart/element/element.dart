@@ -130,7 +130,7 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
 }
 
 class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedClassElement {
+    with MaybeAugmentedClassElementMixin {
   @override
   final ClassElementImpl declaration;
 
@@ -138,10 +138,15 @@ class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
 }
 
 class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedEnumElement {}
+    with MaybeAugmentedEnumElementMixin {
+  @override
+  final EnumElementImpl declaration;
+
+  AugmentedEnumElementImpl(this.declaration);
+}
 
 class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
-    implements AugmentedExtensionElement {
+    with MaybeAugmentedExtensionElementMixin {
   @override
   final ExtensionElementImpl declaration;
 
@@ -149,10 +154,15 @@ class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
 }
 
 class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedExtensionTypeElement {}
+    with MaybeAugmentedExtensionTypeElementMixin {
+  @override
+  final ExtensionTypeElementImpl declaration;
+
+  AugmentedExtensionTypeElementImpl(this.declaration);
+}
 
 abstract class AugmentedInstanceElementImpl
-    implements AugmentedInstanceElement {
+    with MaybeAugmentedInstanceElementMixin {
   @override
   List<FieldElement> fields = [];
 
@@ -163,70 +173,13 @@ abstract class AugmentedInstanceElementImpl
   List<MethodElement> methods = [];
 
   @override
-  // TODO(scheglov): implement declaration
-  InstanceElement get declaration => throw UnimplementedError();
-
-  @override
   // TODO(scheglov): implement metadata
   List<ElementAnnotation> get metadata => throw UnimplementedError();
-
-  @override
-  FieldElement? getField(String name) {
-    final length = fields.length;
-    for (var i = 0; i < length; i++) {
-      final field = fields[i];
-      if (field.name == name) {
-        return field;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getGetter(String name) {
-    final length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
-      if (accessor.isGetter && accessor.name == name) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  @override
-  MethodElement? getMethod(String name) {
-    final length = methods.length;
-    for (var i = 0; i < length; i++) {
-      final method = methods[i];
-      if (method.name == name) {
-        return method;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getSetter(String name) {
-    final nameLength = name.length;
-    final length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
-      if (accessor.isSetter) {
-        final accessorName = accessor.name;
-        if (accessorName.length == nameLength + 1) {
-          if (accessorName.startsWith(name)) {
-            return accessor;
-          }
-        }
-      }
-    }
-    return null;
-  }
 }
 
 abstract class AugmentedInterfaceElementImpl
-    extends AugmentedInstanceElementImpl implements AugmentedInterfaceElement {
+    extends AugmentedInstanceElementImpl
+    with MaybeAugmentedInterfaceElementMixin {
   @override
   List<InterfaceType> interfaces = [];
 
@@ -235,24 +188,10 @@ abstract class AugmentedInterfaceElementImpl
 
   @override
   List<ConstructorElement> constructors = [];
-
-  @override
-  // TODO(scheglov): implement declaration
-  InterfaceElementImpl get declaration => throw UnimplementedError();
-
-  @override
-  // TODO(scheglov): implement unnamedConstructor
-  ConstructorElement? get unnamedConstructor => throw UnimplementedError();
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) {
-    // TODO(scheglov): implement getNamedConstructor
-    throw UnimplementedError();
-  }
 }
 
 class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedMixinElement {
+    with MaybeAugmentedMixinElementMixin {
   @override
   final MixinElementImpl declaration;
 
@@ -277,7 +216,7 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
 class ClassElementImpl extends ClassOrMixinElementImpl
     with AugmentableElement<ClassElementImpl>
     implements ClassElement {
-  late AugmentedClassElement augmentedInternal =
+  late MaybeAugmentedClassElementMixin augmentedInternal =
       NotAugmentedClassElementImpl(this);
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -342,7 +281,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  AugmentedClassElement? get augmented {
+  MaybeAugmentedClassElementMixin? get augmented {
     if (isAugmentation) {
       return augmentationTarget?.augmented;
     } else {
@@ -2686,7 +2625,7 @@ class ElementLocationImpl implements ElementLocation {
 class EnumElementImpl extends InterfaceElementImpl
     with AugmentableElement<EnumElementImpl>
     implements EnumElement {
-  late AugmentedEnumElement augmentedInternal =
+  late MaybeAugmentedEnumElementMixin augmentedInternal =
       NotAugmentedEnumElementImpl(this);
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -2694,9 +2633,13 @@ class EnumElementImpl extends InterfaceElementImpl
   EnumElementImpl(super.name, super.offset);
 
   @override
-  AugmentedEnumElement? get augmented {
-    linkedData?.read(this);
-    return augmentedInternal;
+  MaybeAugmentedEnumElementMixin? get augmented {
+    if (isAugmentation) {
+      return augmentationTarget?.augmented;
+    } else {
+      linkedData?.read(this);
+      return augmentedInternal;
+    }
   }
 
   List<FieldElementImpl> get constants {
@@ -2917,7 +2860,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 class ExtensionElementImpl extends InstanceElementImpl
     with AugmentableElement<ExtensionElementImpl>
     implements ExtensionElement {
-  late AugmentedExtensionElement augmentedInternal =
+  late MaybeAugmentedExtensionElementMixin augmentedInternal =
       NotAugmentedExtensionElementImpl(this);
 
   /// The type being extended.
@@ -2929,7 +2872,7 @@ class ExtensionElementImpl extends InstanceElementImpl
   ExtensionElementImpl(super.name, super.nameOffset);
 
   @override
-  AugmentedExtensionElement? get augmented {
+  MaybeAugmentedExtensionElementMixin? get augmented {
     if (isAugmentation) {
       return augmentationTarget?.augmented;
     } else {
@@ -3036,7 +2979,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     with AugmentableElement<ExtensionTypeElementImpl>
     implements ExtensionTypeElement {
-  late AugmentedExtensionTypeElement augmentedInternal =
+  late MaybeAugmentedExtensionTypeElementMixin augmentedInternal =
       NotAugmentedExtensionTypeElementImpl(this);
 
   @override
@@ -3053,7 +2996,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ExtensionTypeElementImpl(super.name, super.nameOffset);
 
   @override
-  AugmentedExtensionTypeElement? get augmented {
+  MaybeAugmentedExtensionTypeElementMixin? get augmented {
     if (isAugmentation) {
       return augmentationTarget?.augmented;
     } else {
@@ -4922,6 +4865,122 @@ mixin MacroTargetElement on ElementImpl {
   }
 }
 
+mixin MaybeAugmentedClassElementMixin on MaybeAugmentedInterfaceElementMixin
+    implements AugmentedClassElement {
+  @override
+  ClassElementImpl get declaration;
+}
+
+mixin MaybeAugmentedEnumElementMixin on MaybeAugmentedInterfaceElementMixin
+    implements AugmentedEnumElement {
+  @override
+  EnumElementImpl get declaration;
+}
+
+mixin MaybeAugmentedExtensionElementMixin on MaybeAugmentedInstanceElementMixin
+    implements AugmentedExtensionElement {
+  @override
+  ExtensionElementImpl get declaration;
+}
+
+mixin MaybeAugmentedExtensionTypeElementMixin
+    on MaybeAugmentedInterfaceElementMixin
+    implements AugmentedExtensionTypeElement {
+  @override
+  ExtensionTypeElementImpl get declaration;
+}
+
+mixin MaybeAugmentedInstanceElementMixin implements AugmentedInstanceElement {
+  @override
+  List<PropertyAccessorElement> get accessors;
+
+  @override
+  InstanceElementImpl get declaration;
+
+  @override
+  List<FieldElement> get fields;
+
+  @override
+  List<MethodElement> get methods;
+
+  @override
+  FieldElement? getField(String name) {
+    final length = fields.length;
+    for (var i = 0; i < length; i++) {
+      final field = fields[i];
+      if (field.name == name) {
+        return field;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? getGetter(String name) {
+    final length = accessors.length;
+    for (var i = 0; i < length; i++) {
+      final accessor = accessors[i];
+      if (accessor.isGetter && accessor.name == name) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement? getMethod(String name) {
+    final length = methods.length;
+    for (var i = 0; i < length; i++) {
+      final method = methods[i];
+      if (method.name == name) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? getSetter(String name) {
+    final nameLength = name.length;
+    final length = accessors.length;
+    for (var i = 0; i < length; i++) {
+      final accessor = accessors[i];
+      if (accessor.isSetter) {
+        final accessorName = accessor.name;
+        if (accessorName.length == nameLength + 1) {
+          if (accessorName.startsWith(name)) {
+            return accessor;
+          }
+        }
+      }
+    }
+    return null;
+  }
+}
+
+mixin MaybeAugmentedInterfaceElementMixin on MaybeAugmentedInstanceElementMixin
+    implements AugmentedInterfaceElement {
+  @override
+  InterfaceElementImpl get declaration;
+
+  @override
+  ConstructorElement? get unnamedConstructor {
+    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
+  }
+
+  @override
+  ConstructorElement? getNamedConstructor(String name) {
+    name = name.ifEqualThen('new', '');
+    return constructors.firstWhereOrNull((element) => element.name == name);
+  }
+}
+
+mixin MaybeAugmentedMixinElementMixin on MaybeAugmentedInterfaceElementMixin
+    implements AugmentedMixinElement {
+  @override
+  MixinElementImpl get declaration;
+}
+
 /// A concrete implementation of a [MethodElement].
 class MethodElementImpl extends ExecutableElementImpl
     with AugmentableElement<MethodElementImpl>
@@ -5009,7 +5068,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   /// The list will be empty if this class is not a mixin declaration.
   late List<String> superInvokedNames;
 
-  late AugmentedMixinElement augmentedInternal =
+  late MaybeAugmentedMixinElementMixin augmentedInternal =
       NotAugmentedMixinElementImpl(this);
 
   /// Initialize a newly created class element to have the given [name] at the
@@ -5017,7 +5076,7 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   MixinElementImpl(super.name, super.offset);
 
   @override
-  AugmentedMixinElement? get augmented {
+  MaybeAugmentedMixinElementMixin? get augmented {
     if (isAugmentation) {
       return augmentationTarget?.augmented;
     } else {
@@ -5556,7 +5615,7 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
 }
 
 class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
-    implements AugmentedClassElement {
+    with MaybeAugmentedClassElementMixin {
   @override
   final ClassElementImpl element;
 
@@ -5567,7 +5626,7 @@ class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
 }
 
 class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
-    implements AugmentedEnumElement {
+    with MaybeAugmentedEnumElementMixin {
   @override
   final EnumElementImpl element;
 
@@ -5578,7 +5637,7 @@ class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
 }
 
 class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
-    implements AugmentedExtensionElement {
+    with MaybeAugmentedExtensionElementMixin {
   @override
   final ExtensionElementImpl element;
 
@@ -5590,7 +5649,7 @@ class NotAugmentedExtensionElementImpl extends NotAugmentedInstanceElementImpl
 
 class NotAugmentedExtensionTypeElementImpl
     extends NotAugmentedInterfaceElementImpl
-    implements AugmentedExtensionTypeElement {
+    with MaybeAugmentedExtensionTypeElementMixin {
   @override
   final ExtensionTypeElementImpl element;
 
@@ -5601,7 +5660,7 @@ class NotAugmentedExtensionTypeElementImpl
 }
 
 abstract class NotAugmentedInstanceElementImpl
-    implements AugmentedInstanceElement {
+    with MaybeAugmentedInstanceElementMixin {
   @override
   List<PropertyAccessorElement> get accessors {
     return element.accessors;
@@ -5623,69 +5682,18 @@ abstract class NotAugmentedInstanceElementImpl
   List<MethodElement> get methods {
     return element.methods;
   }
-
-  @override
-  FieldElement? getField(String name) {
-    final length = fields.length;
-    for (var i = 0; i < length; i++) {
-      final field = fields[i];
-      if (field.name == name) {
-        return field;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getGetter(String name) {
-    final length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
-      if (accessor.isGetter && accessor.name == name) {
-        return accessor;
-      }
-    }
-    return null;
-  }
-
-  @override
-  MethodElement? getMethod(String name) {
-    final length = methods.length;
-    for (var i = 0; i < length; i++) {
-      final method = methods[i];
-      if (method.name == name) {
-        return method;
-      }
-    }
-    return null;
-  }
-
-  @override
-  PropertyAccessorElement? getSetter(String name) {
-    final nameLength = name.length;
-    final length = accessors.length;
-    for (var i = 0; i < length; i++) {
-      final accessor = accessors[i];
-      if (accessor.isSetter) {
-        final accessorName = accessor.name;
-        if (accessorName.length == nameLength + 1) {
-          if (accessorName.startsWith(name)) {
-            return accessor;
-          }
-        }
-      }
-    }
-    return null;
-  }
 }
 
 abstract class NotAugmentedInterfaceElementImpl
     extends NotAugmentedInstanceElementImpl
-    implements AugmentedInterfaceElement {
+    with MaybeAugmentedInterfaceElementMixin {
   @override
   List<ConstructorElement> get constructors {
     return element.constructors;
   }
+
+  @override
+  InterfaceElementImpl get declaration;
 
   @override
   InterfaceElementImpl get element;
@@ -5712,7 +5720,7 @@ abstract class NotAugmentedInterfaceElementImpl
 }
 
 class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
-    implements AugmentedMixinElement {
+    with MaybeAugmentedMixinElementMixin {
   @override
   final MixinElementImpl element;
 
