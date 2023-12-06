@@ -30,7 +30,6 @@ import '../fasta_codes.dart'
         templateBoundIssueViaCycleNonSimplicity,
         templateBoundIssueViaLoopNonSimplicity,
         templateBoundIssueViaRawTypeWithNonSimpleBounds,
-        templateCyclicTypedef,
         templateNonSimpleBoundViaReference,
         templateNonSimpleBoundViaVariable;
 
@@ -93,11 +92,8 @@ int computeTypeVariableBuilderVariance(NominalVariableBuilder variable,
                 assert(!declaration.fromDill);
                 NominalVariableBuilder declarationTypeVariable =
                     declaration.typeVariables![i];
-                libraryBuilder.addProblem(
-                    templateCyclicTypedef.withArguments(declaration.name),
-                    declaration.charOffset,
-                    declaration.name.length,
-                    declaration.fileUri);
+                // Cyclic type alias. The error is reported elsewhere.
+
                 // Use [Variance.unrelated] for recovery.  The type with the
                 // cyclic dependency will be replaced with an [InvalidType]
                 // elsewhere.
@@ -1263,7 +1259,7 @@ List<NonSimplicityIssue> convertRawTypeCyclesIntoIssues(
     if (cycle.length == 1) {
       // Loop.
       issues.add(new NonSimplicityIssue(
-          cycle.single.typeVariable! as NominalVariableBuilder,
+          cycle.single.typeVariable!,
           templateBoundIssueViaLoopNonSimplicity
               .withArguments(cycle.single.type.declaration!.name),
           null));

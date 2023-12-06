@@ -255,9 +255,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
       List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables) {
     if (this == rootBuilder) {
-      // Cyclic type alias.
-      libraryBuilder.addProblem(templateCyclicTypedef.withArguments(this.name),
-          charOffset, noLength, fileUri);
+      // Cyclic type alias. The error is reported elsewhere.
       return null;
     }
     if (!currentBuilders.add(this)) {
@@ -333,14 +331,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         return _cachedUnaliasedDeclaration = this;
       }
       if (current == this) {
-        //if (builders.contains(current)) {
-        // Cyclic type alias.
-        currentAliasBuilder.libraryBuilder.addProblem(
-            templateCyclicTypedef.withArguments(this.name),
-            charOffset,
-            noLength,
-            fileUri);
-        // Ensure that it is not reported again.
+        // Cyclic type alias. The error is reported elsewhere.
         thisType = const InvalidType();
         return _cachedUnaliasedDeclaration = this;
       } else if (!builders.add(current)) {

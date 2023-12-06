@@ -4,7 +4,7 @@ library;
 //
 // pkg/front_end/testcases/rasta/malformed_function_type.dart:5:16: Error: The typedef 'Handle' has a reference to itself.
 // typedef Handle Handle(String command);
-//                ^
+//                ^^^^^^
 //
 import self as self;
 

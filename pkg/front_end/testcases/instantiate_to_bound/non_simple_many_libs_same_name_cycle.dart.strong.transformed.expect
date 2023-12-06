@@ -31,6 +31,13 @@ class A<TypeX extends core::Object? = dynamic> extends core::Object {
 static method main() → dynamic {}
 
 library non_simple_many_libs_same_name_cycle_lib;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/instantiate_to_bound/non_simple_many_libs_same_name_cycle_lib.dart:18:9: Error: The typedef 'C' has a reference to itself.
+// typedef C<TypeY extends lib.C> = int;
+//         ^
+//
 import self as self2;
 import "dart:core" as core;
 import "non_simple_many_libs_same_name_cycle.dart" as self;

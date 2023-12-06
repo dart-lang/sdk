@@ -175,7 +175,7 @@ library;
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:60:9: Error: The typedef 'Alias20' has a reference to itself.
 // typedef Alias20 = Alias20; /* Error */
-//         ^
+//         ^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/cyclic_representation_type.dart:71:20: Error: An extension type can't depend on itself through its representation type.
 // extension type E23(Alias23 it) /* Error */ {}
