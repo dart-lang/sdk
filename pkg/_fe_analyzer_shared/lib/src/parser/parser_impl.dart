@@ -10318,11 +10318,7 @@ class Parser {
     while (true) {
       if (token.isEof || identical(token, limit)) return null;
       if (optional(',', token) || optional(';', token)) return token;
-      if (token is BeginToken) {
-        token = token.endGroup!;
-      } else {
-        token = token.next!;
-      }
+      token = token.endGroup ?? token.next!;
     }
   }
 }

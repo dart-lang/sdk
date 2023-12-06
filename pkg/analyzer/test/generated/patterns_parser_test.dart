@@ -11120,6 +11120,21 @@ SwitchExpression
 ''');
   }
 
+  test_switchExpression_recovery_unmatchedLessThanInTokensToBeSkipped() {
+    // Test case from https://github.com/dart-lang/sdk/issues/54236.
+    _parse('''
+f(x) => switch (x) {
+    1 => 2
+    > 1 => 1
+    < 1 => 0
+};
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 40, 2),
+    ]);
+    // No assertion on the parsed node text; all we are concerned with is that
+    // the parser doesn't crash.
+  }
+
   test_switchExpression_twoPatterns() {
     _parse('''
 f(x) => switch(x) {
