@@ -6,7 +6,6 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
@@ -145,8 +144,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
 
   final Diagnostic? diagnostic;
 
-  final TransformOverrideSet? overrideSet;
-
   final AstNode node;
 
   final Token token;
@@ -160,7 +157,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
     this.diagnostic,
     required this.node,
     required this.token,
-    this.overrideSet,
     this.selectionOffset = -1,
     this.selectionLength = 0,
   })  : file = unitResult.path,
@@ -181,7 +177,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
     bool applyingBulkFixes = false,
     DartFixContext? dartFixContext,
     Diagnostic? diagnostic,
-    TransformOverrideSet? overrideSet,
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
@@ -202,7 +197,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
       applyingBulkFixes: applyingBulkFixes,
       dartFixContext: dartFixContext,
       diagnostic: diagnostic,
-      overrideSet: overrideSet,
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
     );
@@ -214,7 +208,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
     bool applyingBulkFixes = false,
     DartFixContext? dartFixContext,
     Diagnostic? diagnostic,
-    TransformOverrideSet? overrideSet,
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
@@ -233,7 +226,6 @@ class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
       applyingBulkFixes: applyingBulkFixes,
       dartFixContext: dartFixContext,
       diagnostic: diagnostic,
-      overrideSet: overrideSet,
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
     );
@@ -565,10 +557,6 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   }
 
   AstNode get node => _context.node;
-
-  /// Return the set of overrides to be applied to the transform set when
-  /// running tests, or `null` if there are no overrides to apply.
-  TransformOverrideSet? get overrideSet => _context.overrideSet;
 
   /// Return the resource provider used to access the file system.
   ResourceProvider get resourceProvider => unitResult.session.resourceProvider;

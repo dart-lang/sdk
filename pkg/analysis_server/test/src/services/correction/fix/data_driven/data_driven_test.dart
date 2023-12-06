@@ -29,7 +29,6 @@ void main() {
     defineReflectiveTests(UndefinedIdentifierTest);
     defineReflectiveTests(UndefinedMethodTest);
     defineReflectiveTests(UndefinedSetterTest);
-    defineReflectiveTests(WithConfigFileTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsConstructorTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsExtensionTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsMethodTest);
@@ -1147,69 +1146,6 @@ import '$importUri';
 void f(C a, C b) {
   a.new = b.new = 1;
 }
-''');
-  }
-}
-
-@reflectiveTest
-class WithConfigFileTest extends _DataDrivenTest {
-  @override
-  bool get useConfigFiles => true;
-
-  Future<void> test_bulkApply_withConfig() async {
-    setPackageContent('''
-class New {}
-''');
-    addPackageDataFile('''
-version: 1
-transforms:
-- title: 'Rename to New'
-  date: 2021-21-01
-  bulkApply: false
-  element:
-    uris: ['$importUri']
-    class: 'Old'
-  changes:
-    - kind: 'rename'
-      newName: 'New'
-''');
-    newFile('$testPackageLibPath/test.config', '''
-'Rename to New':
-  bulkApply: true
-''');
-    await resolveTestCode('''
-import '$importUri';
-void f(Old p) {}
-''');
-    await assertHasFix('''
-import '$importUri';
-void f(New p) {}
-''');
-  }
-
-  Future<void> test_bulkApply_withoutConfig() async {
-    setPackageContent('''
-class New {}
-''');
-    addPackageDataFile('''
-version: 1
-transforms:
-- title: 'Rename to New'
-  date: 2021-21-01
-  bulkApply: false
-  element:
-    uris: ['$importUri']
-    class: 'Old'
-  changes:
-    - kind: 'rename'
-      newName: 'New'
-''');
-    await resolveTestCode('''
-import '$importUri';
-void f(Old p) {}
-''');
-    await assertHasFix('''
-void f(Old p) {}
 ''');
   }
 }

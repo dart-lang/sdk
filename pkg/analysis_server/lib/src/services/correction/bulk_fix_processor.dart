@@ -14,8 +14,6 @@ import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set_parser.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
@@ -202,10 +200,6 @@ class BulkFixProcessor {
   /// will be produced.
   final DartChangeWorkspace workspace;
 
-  /// A flag indicating whether configuration files should be used to override
-  /// the transforms.
-  final bool useConfigFiles;
-
   /// An optional list of diagnostic codes to fix.
   final List<String>? codes;
 
@@ -226,7 +220,6 @@ class BulkFixProcessor {
   BulkFixProcessor(
     this.instrumentationService,
     this.workspace, {
-    this.useConfigFiles = false,
     List<String>? codes,
     this.cancellationToken,
   })  : builder = ChangeBuilder(workspace: workspace),
@@ -599,13 +592,11 @@ class BulkFixProcessor {
 
     CorrectionProducerContext<ResolvedUnitResult>? correctionContext(
         AnalysisError diagnostic) {
-      var overrideSet = _readOverrideSet(unit);
       var context = fixContext(diagnostic, autoTriggered: autoTriggered);
       return CorrectionProducerContext.createResolved(
         applyingBulkFixes: true,
         dartFixContext: context,
         diagnostic: diagnostic,
-        overrideSet: overrideSet,
         resolvedResult: unit,
         selectionOffset: diagnostic.offset,
         selectionLength: diagnostic.length,
@@ -616,10 +607,9 @@ class BulkFixProcessor {
     //
     // Attempt to apply the fixes that aren't related to directives.
     //
-    var overrideSet = _readOverrideSet(unit);
     for (var error in _filterErrors(analysisOptions, unit.errors)) {
       var context = fixContext(error, autoTriggered: autoTriggered);
-      await _fixSingleError(context, unit, error, overrideSet);
+      await _fixSingleError(context, unit, error);
       if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
         return;
       }
@@ -680,9 +670,8 @@ class BulkFixProcessor {
     for (var unitResult in result.units) {
       var analysisOptions = result.session.analysisContext
           .getAnalysisOptionsForFile(unitResult.file);
-      var overrideSet = _readOverrideSet(unitResult);
       for (var error in _filterErrors(analysisOptions, errors)) {
-        await _fixSingleParseError(unitResult, error, overrideSet);
+        await _fixSingleParseError(unitResult, error);
         if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
           return;
         }
@@ -690,19 +679,18 @@ class BulkFixProcessor {
     }
   }
 
-  /// Use the change [builder] and the [fixContext] to create a fix for the
+  /// Uses the change [builder] and the [fixContext] to create a fix for the
   /// given [diagnostic] in the compilation unit associated with the analysis
   /// [result].
   Future<void> _fixSingleError(
-      DartFixContext fixContext,
-      ResolvedUnitResult result,
-      AnalysisError diagnostic,
-      TransformOverrideSet? overrideSet) async {
+    DartFixContext fixContext,
+    ResolvedUnitResult result,
+    AnalysisError diagnostic,
+  ) async {
     var context = CorrectionProducerContext.createResolved(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
-      overrideSet: overrideSet,
       resolvedResult: result,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
@@ -757,15 +745,15 @@ class BulkFixProcessor {
     }
   }
 
-  /// Use the change [builder] and the [fixContext] to create a fix for the
-  /// given [diagnostic] in the compilation unit associated with the analysis
-  /// [result].
-  Future<void> _fixSingleParseError(ParsedUnitResult result,
-      AnalysisError diagnostic, TransformOverrideSet? overrideSet) async {
+  /// Uses the change [builder] to create a fix for the given [diagnostic] in
+  /// the compilation unit associated with the analysis [result].
+  Future<void> _fixSingleParseError(
+    ParsedUnitResult result,
+    AnalysisError diagnostic,
+  ) async {
     var context = CorrectionProducerContext.createParsed(
       applyingBulkFixes: true,
       diagnostic: diagnostic,
-      overrideSet: overrideSet,
       resolvedResult: result,
       selectionOffset: diagnostic.offset,
       selectionLength: diagnostic.length,
@@ -903,33 +891,6 @@ class BulkFixProcessor {
       }
     }
     return BulkFixRequestResult(builder);
-  }
-
-  /// Return the override set corresponding to the given [result], or `null` if
-  /// there is no corresponding configuration file or the file content isn't a
-  /// valid override set.
-  TransformOverrideSet? _readOverrideSet(ParsedUnitResult result) {
-    if (useConfigFiles) {
-      var provider = result.session.resourceProvider;
-      var context = provider.pathContext;
-      var dartFileName = result.path;
-      var configFileName = '${context.withoutExtension(dartFileName)}.config';
-      var configFile = provider.getFile(configFileName);
-      try {
-        var content = configFile.readAsStringSync();
-        var parser = TransformOverrideSetParser(
-          ErrorReporter(
-            AnalysisErrorListener.NULL_LISTENER,
-            configFile.createSource(),
-            isNonNullableByDefault: false,
-          ),
-        );
-        return parser.parse(content);
-      } on FileSystemException {
-        // Fall through to return null.
-      }
-    }
-    return null;
   }
 
   Future<List<Fix>> _runPubspecValidatorAndFixGenerator(
