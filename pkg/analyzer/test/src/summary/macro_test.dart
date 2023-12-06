@@ -5771,6 +5771,110 @@ extension A
 ''');
   }
 
+  test_extensionType_getter() async {
+    await _assertIntrospectText(r'''
+extension type A(int it) {
+  @Introspect()
+  int get foo => 0;
+}
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_extensionType_getters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension type A(int it) {
+  int get foo => 0;
+}
+''', r'''
+extension type A
+  onType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extensionType_metadata_identifier() async {
+    await _assertIntrospectText(r'''
+const a = 0;
+
+@Introspect(withMetadata: true)
+@a
+extension type A(int it) {}
+''', r'''
+extension type A
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a
+  onType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_extensionType_method() async {
+    await _assertIntrospectText(r'''
+extension type A(int it) {
+  @Introspect()
+  void foo() {}
+}
+''', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_extensionType_methods() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension type A(int it) {
+  void foo() {}
+}
+''', r'''
+extension type A
+  onType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extensionType_typeParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension type A<T>(int it) {}
+''', r'''
+extension type A
+  typeParameters
+    T
+  onType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+''');
+  }
+
   test_functionTypeAnnotation_formalParameters_namedOptional_simpleFormalParameter() async {
     await _assertIntrospectText(r'''
 @Introspect()

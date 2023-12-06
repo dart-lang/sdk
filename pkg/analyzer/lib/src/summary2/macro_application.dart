@@ -124,6 +124,12 @@ class LibraryMacroApplier {
             declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
+        case ast.ClassTypeAlias():
+          // TODO(scheglov): implement it
+          break;
+        case ast.EnumDeclaration():
+          // TODO(scheglov): implement it
+          break;
         case ast.ExtensionDeclaration():
           final element = declaration.declaredElement;
           element as ExtensionElementImpl;
@@ -139,6 +145,30 @@ class LibraryMacroApplier {
             declarationsPhaseInterface: null,
             members: declaration.members,
           );
+        case ast.ExtensionTypeDeclaration():
+          final element = declaration.declaredElement;
+          element as ExtensionTypeElementImpl;
+          final declarationElement = element.augmented?.declaration ?? element;
+          declarationElement as ExtensionTypeElementImpl;
+          await _addClassLike(
+            libraryElement: libraryElement,
+            container: container,
+            targetElement: declarationElement,
+            classNode: declaration,
+            classDeclarationKind: macro.DeclarationKind.extension,
+            classAnnotations: declaration.metadata,
+            declarationsPhaseInterface: declarationElement,
+            members: declaration.members,
+          );
+        case ast.FunctionDeclaration():
+          // TODO(scheglov): implement it
+          break;
+        case ast.FunctionTypeAlias():
+          // TODO(scheglov): implement it
+          break;
+        case ast.GenericTypeAlias():
+          // TODO(scheglov): implement it
+          break;
         case ast.MixinDeclaration():
           final element = declaration.declaredElement;
           element as MixinElementImpl;
@@ -154,6 +184,11 @@ class LibraryMacroApplier {
             declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
+        case ast.TopLevelVariableDeclaration():
+          // TODO(scheglov): implement it
+          break;
+        default:
+          throw UnimplementedError('${declaration.runtimeType}');
       }
     }
   }
