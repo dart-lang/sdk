@@ -719,7 +719,7 @@ class _HttpParser extends Stream<_HttpIncoming> {
                     (isUpgrade && isResponse && isUpgradeCode)) {
                   _connectionUpgrade = true;
                 }
-                headers._add(headerField, tokens[i]);
+                headers._addConnection(headerField, tokens[i]);
               }
             } else {
               headers._add(headerField, headerValue);
