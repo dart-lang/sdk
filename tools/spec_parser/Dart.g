@@ -1185,7 +1185,7 @@ patternField
     ;
 
 objectPattern
-    :    typeName typeArguments? '(' patternFields? ')'
+    :    (typeName typeArguments? | FUNCTION) '(' patternFields? ')'
     ;
 
 patternVariableDeclaration
