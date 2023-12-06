@@ -25,6 +25,8 @@ import 'package:kernel/canonical_name.dart'
     show CanonicalNameError, CanonicalNameSdkError;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
+import 'package:kernel/dart_scope_calculator.dart'
+    show DartScope, DartScopeBuilder2;
 import 'package:kernel/kernel.dart'
     show
         Class,
@@ -32,12 +34,14 @@ import 'package:kernel/kernel.dart'
         DartType,
         Expression,
         Extension,
+        ExtensionType,
         FunctionNode,
         Library,
         LibraryDependency,
         LibraryPart,
         Name,
         NamedNode,
+        Node,
         NonNullableByDefaultCompiledMode,
         Procedure,
         ProcedureKind,
@@ -47,7 +51,9 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter,
-        VariableDeclaration;
+        VariableDeclaration,
+        VisitorDefault,
+        VisitorVoidMixin;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
@@ -1789,22 +1795,52 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<Procedure?> compileExpression(
     String expression,
-    Map<String, DartType> definitions,
+    Map<String, DartType> inputDefinitions,
     List<TypeParameter> typeDefinitions,
     String syntheticProcedureName,
     Uri libraryUri, {
     String? className,
     String? methodName,
-    int offset = -1,
+    int offset = TreeNode.noOffset,
     String? scriptUri,
     bool isStatic = false,
   }) async {
     IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
     assert(_dillLoadedData != null && lastGoodKernelTarget != null);
+    Map<String, DartType> usedDefinitions =
+        new Map<String, DartType>.of(inputDefinitions);
 
     return await context.runInContext((_) async {
       LibraryBuilder libraryBuilder =
           lastGoodKernelTarget!.loader.readAsEntryPoint(libraryUri);
+
+      if (scriptUri != null && offset != TreeNode.noOffset) {
+        Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
+        if (scriptUriAsUri != null) {
+          Library library = libraryBuilder.library;
+          Class? cls;
+          if (className != null) {
+            for (Class c in library.classes) {
+              if (c.name == className) {
+                cls = c;
+                break;
+              }
+            }
+          }
+          DartScope foundScope = DartScopeBuilder2.findScopeFromOffsetAndClass(
+              library, scriptUriAsUri, cls, offset);
+          // For now, if any definition is (or contains) an Extension Type,
+          // we'll overwrite the given (runtime?) definitions so we know about
+          // the extension type.
+          for (MapEntry<String, DartType> def
+              in foundScope.definitions.entries) {
+            if (_ExtensionTypeFinder.isOrContainsExtensionType(def.value)) {
+              usedDefinitions[def.key] = def.value;
+            }
+          }
+        }
+      }
+
       _ticker.logMs("Loaded library $libraryUri");
 
       Class? cls;
@@ -1854,7 +1890,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
       int index = 0;
-      for (String name in definitions.keys) {
+      for (String name in usedDefinitions.keys) {
         index++;
         if (!(isLegalIdentifier(name) ||
             (extension != null &&
@@ -1961,9 +1997,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // https://github.com/dart-lang/sdk/issues/44158
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
-          positionalParameters: definitions.keys
-              .map<VariableDeclaration>((name) =>
-                  new VariableDeclarationImpl(name, type: definitions[name])
+          positionalParameters: usedDefinitions.entries
+              .map<VariableDeclaration>((MapEntry<String, DartType> def) =>
+                  new VariableDeclarationImpl(def.key, type: def.value)
                     ..fileOffset = cls?.fileOffset ??
                         extension?.fileOffset ??
                         libraryBuilder.library.fileOffset)
@@ -2217,6 +2253,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void setModulesToLoadOnNextComputeDelta(List<Component> components) {
     _modulesToLoad = components.toList();
   }
+}
+
+class _ExtensionTypeFinder extends VisitorDefault<void> with VisitorVoidMixin {
+  static bool isOrContainsExtensionType(DartType type) {
+    if (type is ExtensionType) return true;
+    _ExtensionTypeFinder finder = new _ExtensionTypeFinder();
+    type.accept(finder);
+    return finder._foundExtensionType;
+  }
+
+  @override
+  void visitExtensionType(ExtensionType node) {
+    _foundExtensionType = true;
+  }
+
+  @override
+  void defaultNode(Node node) {
+    if (_foundExtensionType) return;
+    node.visitChildren(this);
+  }
+
+  bool _foundExtensionType = false;
 }
 
 /// Translate a parts "partUri" to an actual uri with handling of invalid uris.

@@ -1,0 +1,31 @@
+# Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+sources: |
+  //@dart=3.3
+
+  void main() {
+    Foo f = new Foo(42);
+    List<Foo> foos = [f];
+    foos.first.printValue();
+  }
+
+  extension type Foo(int value) {
+    void printValue() {
+      print("This foos value is '$value'");
+    }
+  }
+
+definitions: ["f", "foos"]
+# int, List<int>
+definition_types: ["dart:core", "int", "1", "0", "dart:core", "List", "1", "1", "dart:core", "int", "1", "0"]
+type_definitions: []
+type_bounds: []
+type_defaults: []
+method: "main"
+static: true
+offset: 76 # at the start of the 'foos.first.printValue();' line.
+scriptUri: main.dart
+expression: |
+  foos.first.value
