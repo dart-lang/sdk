@@ -14,8 +14,8 @@ fix_data_tests/*: SkipByDesign
 html/*: SkipByDesign # dart:html not supported on dart2wasm
 isolate/*: SkipByDesign
 js/(?!export|static_interop_test)*: SkipByDesign
+js/static_interop_test/extension_type/non_interop_extension_type_static_test: SkipByDesign # Some external checks are not run on dart2wasm.
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Tests @trustTypes, which is unsupported on dart2wasm.
-js/static_interop_test/inline_class/non_interop_inline_class_static_test: SkipByDesign # Some external checks are not run on dart2wasm.
 js/static_interop_test/static_external_extension_members_static_test: SkipByDesign # dart:html not supported on dart2wasm.
 js/static_interop_test/top_level_member_annotation_static_test: SkipByDesign # Some external checks are not run on dart2wasm.
 mirrors/*: SkipByDesign
@@ -72,14 +72,14 @@ js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows inj
 js/method_call_on_object_test: SkipByDesign # Issue 42085.
 js/mock_test/*: SkipByDesign # Issue 42085.
 js/parameters_test: SkipByDesign # Issue 42085.
+js/static_interop_test/extension_type/external_extension_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/extension_type/external_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/extension_type/external_static_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/static_interop_test/extension_type/external_static_member_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_extension_members_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_trusttypes_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/external_static_member_lowerings_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
-js/static_interop_test/inline_class/external_extension_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
-js/static_interop_test/inline_class/external_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
-js/static_interop_test/inline_class/external_static_member_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
-js/static_interop_test/inline_class/external_static_member_with_namespaces_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_array_proxy_or_ref_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_array_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_function_conversions_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code

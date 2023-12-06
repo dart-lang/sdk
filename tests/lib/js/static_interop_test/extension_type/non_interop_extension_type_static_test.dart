@@ -79,6 +79,7 @@ extension type EExtensionType(EJSObject _) {}
 
 @JS()
 extension type EExtensionType2(EExtensionType _) {}
+
 @JS()
 extension type ENonInterop._(EObject _) {
 //             ^

@@ -28,8 +28,8 @@ class ExportCreator extends Transformer {
   final Procedure _functionToJS;
   final Procedure _getProperty;
   final Procedure _globalContext;
-  final Class _jsAny;
-  final Class _jsObject;
+  final ExtensionTypeDeclaration _jsAny;
+  final ExtensionTypeDeclaration _jsObject;
   final Procedure _setProperty;
   final Procedure _stringToJS;
   final StaticInteropMockValidator _staticInteropMockValidator;
@@ -51,9 +51,9 @@ class ExportCreator extends Transformer {
         _globalContext = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_interop', 'get:globalContext'),
         _jsAny = _typeEnvironment.coreTypes.index
-            .getClass('dart:_js_types', 'JSAny'),
+            .getExtensionType('dart:js_interop', 'JSAny'),
         _jsObject = _typeEnvironment.coreTypes.index
-            .getClass('dart:_js_types', 'JSObject'),
+            .getExtensionType('dart:js_interop', 'JSObject'),
         _setProperty = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
             'dart:js_interop_unsafe', 'JSObjectUnsafeUtilExtension|[]='),
         _stringToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
@@ -175,7 +175,7 @@ class ExportCreator extends Transformer {
     Expression asJSObject(Expression object, [bool nullable = false]) =>
         AsExpression(
             object,
-            InterfaceType(_jsObject,
+            ExtensionType(_jsObject,
                 nullable ? Nullability.nullable : Nullability.nonNullable))
           ..fileOffset = node.fileOffset;
 
@@ -192,7 +192,7 @@ class ExportCreator extends Transformer {
             jsObject,
             toJSString(methodName),
             ListLiteral(args,
-                typeArgument: InterfaceType(_jsAny, Nullability.nullable))
+                typeArgument: ExtensionType(_jsAny, Nullability.nullable))
           ], types: [
             returnType
           ]))
@@ -211,7 +211,7 @@ class ExportCreator extends Transformer {
           getObjectProperty(),
           'create',
           [asJSObject(proto ?? NullLiteral(), true)],
-          InterfaceType(_jsObject, Nullability.nonNullable));
+          ExtensionType(_jsObject, Nullability.nonNullable));
     }
 
     var exportMap =
@@ -230,7 +230,7 @@ class ExportCreator extends Transformer {
 
     var jsExporter = VariableDeclaration('#jsExporter',
         initializer: getLiteral(proto),
-        type: InterfaceType(_jsObject, Nullability.nonNullable),
+        type: ExtensionType(_jsObject, Nullability.nonNullable),
         isSynthesized: true)
       ..fileOffset = node.fileOffset
       ..parent = node.parent;
@@ -295,7 +295,7 @@ class ExportCreator extends Transformer {
         // statements for each export name.
         var getSetMap = VariableDeclaration('#${exportName}Mapping',
             initializer: getLiteral(),
-            type: InterfaceType(_jsObject, Nullability.nonNullable),
+            type: ExtensionType(_jsObject, Nullability.nonNullable),
             isSynthesized: true)
           ..fileOffset = node.fileOffset
           ..parent = node.parent;

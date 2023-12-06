@@ -18,6 +18,10 @@ import 'dart:typed_data';
 /// TODO(joshualitt): Find a way to get rid of the explicit casts.
 T _box<T>(WasmExternRef? ref) => JSValue(ref) as T;
 
+@patch
+js_types.JSObjectRepType _createObjectLiteral() =>
+    _box<js_types.JSObjectRepType>(js_helper.newObjectRaw());
+
 // This should match the global context we use in our static interop lowerings.
 @patch
 JSObject get globalContext => js_util.globalThis as JSObject;

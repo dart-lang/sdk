@@ -31,7 +31,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropNonStaticWithStaticInteropSupertype,
         templateJsInteropStaticInteropNoJSAnnotation,
         templateJsInteropStaticInteropWithInstanceMembers,
-        templateJsInteropStaticInteropWithInvalidJsTypesSupertype,
         templateJsInteropStaticInteropWithNonStaticSupertype,
         templateJsInteropObjectLiteralConstructorPositionalParameters,
         templateJsInteropNativeClassInAnnotation,
@@ -227,13 +226,17 @@ class JsInteropChecks extends RecursiveVisitor {
         report(templateJsInteropStaticInteropNoJSAnnotation
             .withArguments(node.name));
       }
-      if (superclass != null) {
-        _checkSuperclassOfStaticInteropClass(node, superclass);
+      if (superclass != null && !hasStaticInteropAnnotation(superclass)) {
+        report(templateJsInteropStaticInteropWithNonStaticSupertype
+            .withArguments(node.name, superclass.name));
       }
       // Validate that superinterfaces are all valid supertypes as well. Note
       // that mixins are already disallowed and therefore are not checked here.
       for (final supertype in node.implementedTypes) {
-        _checkSuperclassOfStaticInteropClass(node, supertype.classNode);
+        if (!hasStaticInteropAnnotation(supertype.classNode)) {
+          report(templateJsInteropStaticInteropWithNonStaticSupertype
+              .withArguments(node.name, supertype.classNode.name));
+        }
       }
     } else {
       // For classes, `dart:js_interop`'s `@JS` can only be used with
@@ -819,39 +822,6 @@ class JsInteropChecks extends RecursiveVisitor {
     }
   }
 
-  /// Reports an error if @staticInterop classes extends or implements a
-  /// non-@staticInterop type or an invalid dart:_js_types type.
-  void _checkSuperclassOfStaticInteropClass(Class node, Class superclass) {
-    void report(Message message) => _reporter.report(
-        message, node.fileOffset, node.name.length, node.fileUri);
-    if (!hasStaticInteropAnnotation(superclass)) {
-      report(templateJsInteropStaticInteropWithNonStaticSupertype.withArguments(
-          node.name, superclass.name));
-    } else {
-      // dart:_js_types @staticInterop types are special. They are custom-erased
-      // to different types at runtime. User @staticInterop types are always
-      // erased to JavaScriptObject. As such, this means that we should only
-      // allow users to subtype dart:_js_types types that erase to a
-      // T >: JavaScriptObject. Currently, this is only JSObject and JSAny.
-      // TODO(srujzs): This error should be temporary. In the future, once we
-      // have extension types that can implement concrete classes, we can move
-      // all the dart:_js_types that aren't JSObject and JSAny to extension
-      // types. Then, this error becomes redundant. This would also allow us to
-      // idiomatically add type parameters to JSArray and JSPromise.
-      final superclassUri = superclass.enclosingLibrary.importUri;
-      // Make an exception for some internal libraries.
-      final allowList = {'_js_types', '_js_helper'};
-      if (superclassUri.isScheme('dart') &&
-          superclassUri.path == '_js_types' &&
-          !allowList.contains(node.enclosingLibrary.importUri.path) &&
-          superclass.name != 'JSAny' &&
-          superclass.name != 'JSObject') {
-        report(templateJsInteropStaticInteropWithInvalidJsTypesSupertype
-            .withArguments(node.name, superclass.name));
-      }
-    }
-  }
-
   /// If [procedure] is a generated procedure that represents a relevant
   /// tear-off, return the torn-off member.
   ///
@@ -944,9 +914,6 @@ class JsInteropChecks extends RecursiveVisitor {
           .isInteropExtensionType(type.extensionTypeDeclaration)) {
         return true;
       }
-      // Extension types where the representation type is allowed are okay.
-      // TODO(srujzs): Once the CFE pre-computes the concrete type, don't
-      // recurse.
       return _isAllowedExternalType(type.extensionTypeErasure);
     }
     return false;

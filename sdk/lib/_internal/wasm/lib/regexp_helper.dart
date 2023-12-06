@@ -21,9 +21,15 @@ String quoteStringForRegExp(String string) =>
       return stringToDartString(jsString);
     }""", string);
 
+// TODO(srujzs): Add this to `JSObject`.
+@js.JS('Object.keys')
+external JSArray objectKeys(JSObject o);
+
+// TODO(srujzs): Convert these to extension types and have `JSNativeMatch`
+// subtype `JSArray`.
 @js.JS()
 @js.staticInterop
-class JSNativeMatch extends JSArray {
+class JSNativeMatch {
   // This constructor exists just to avoid the `no unnamed constructor` error.
   external factory JSNativeMatch();
 }
@@ -33,6 +39,8 @@ extension JSNativeMatchExtension on JSNativeMatch {
   external JSNumber get index;
   external JSObject? get groups;
   external JSNumber get length;
+  external JSAny? pop();
+  external JSAny? operator [](JSNumber index);
 }
 
 @js.JS()
@@ -115,8 +123,7 @@ class JSSyntaxRegExp implements RegExp {
 
   RegExpMatch? firstMatch(String string) {
     JSNativeMatch? m = _nativeRegExp.exec(string.toJS);
-    if (m.isUndefinedOrNull) return null;
-    return new _MatchImplementation(this, m!);
+    return m == null ? null : new _MatchImplementation(this, m);
   }
 
   bool hasMatch(String string) {
@@ -140,18 +147,17 @@ class JSSyntaxRegExp implements RegExp {
     JSNativeRegExp regexp = _nativeGlobalVersion;
     regexp.lastIndex = start.toJS;
     JSNativeMatch? match = regexp.exec(string.toJS);
-    if (match.isUndefinedOrNull) return null;
-    return new _MatchImplementation(this, match!);
+    return match == null ? null : new _MatchImplementation(this, match);
   }
 
   RegExpMatch? _execAnchored(String string, int start) {
     JSNativeRegExp regexp = _nativeAnchoredVersion;
     regexp.lastIndex = start.toJS;
     JSNativeMatch? match = regexp.exec(string.toJS);
-    if (match.isUndefinedOrNull) return null;
+    if (match == null) return null;
     // If the last capture group participated, the original regexp did not
     // match at the start position.
-    if (match!.pop() != null) return null;
+    if (match.pop() != null) return null;
     return new _MatchImplementation(this, match);
   }
 
@@ -201,8 +207,8 @@ class _MatchImplementation implements RegExpMatch {
 
   String? namedGroup(String name) {
     JSObject? groups = _match.groups;
-    if (groups.isDefinedAndNotNull) {
-      Object? result = dartifyRaw(groups![name].toExternRef);
+    if (groups != null) {
+      Object? result = dartifyRaw(groups[name].toExternRef);
       if (result != null ||
           hasPropertyRaw(groups.toExternRef, name.toExternRef)) {
         return result?.toString();
@@ -213,8 +219,8 @@ class _MatchImplementation implements RegExpMatch {
 
   Iterable<String> get groupNames {
     JSObject? groups = _match.groups;
-    if (groups.isDefinedAndNotNull) {
-      return JSArrayIterableAdapter<String>(JSObject.keys(groups!));
+    if (groups != null) {
+      return JSArrayIterableAdapter<String>(objectKeys(groups));
     }
     return Iterable.empty();
   }
