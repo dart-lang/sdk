@@ -39,7 +39,7 @@ class DartFixPromptTest with ResourceProviderMixin {
 
     // First trigger should work.
     promptManager.currentContextSdkConstraints = {
-      'dummy-path': '>=2.19.0',
+      'dummy-path': ['>=2.19.0'],
     };
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
@@ -47,7 +47,7 @@ class DartFixPromptTest with ResourceProviderMixin {
 
     // Second trigger should also work because we changed the version constraint.
     promptManager.currentContextSdkConstraints = {
-      'dummy-path': '>=3.0.0',
+      'dummy-path': ['>=3.0.0'],
     };
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
@@ -65,7 +65,7 @@ class DartFixPromptTest with ResourceProviderMixin {
 
     // Second trigger should also work because we changed the context roots.
     promptManager.currentContextSdkConstraints = {
-      'dummy-path': '>=2.19.0',
+      'dummy-path': ['>=2.19.0'],
     };
     promptManager.triggerCheck();
     await pumpEventQueue(times: 5000);
@@ -189,7 +189,7 @@ class TestDartFixPromptManager extends DartFixPromptManager {
   int promptsShown = 0;
 
   @override
-  Map<String, String?> currentContextSdkConstraints = {};
+  Map<String, List<String?>> currentContextSdkConstraints = {};
 
   Future<bool> bulkFixesAvailableOverride = Future.value(true);
 

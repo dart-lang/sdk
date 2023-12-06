@@ -274,6 +274,40 @@ workspaces
 ''');
   }
 
+  // TODO(pq): update to using the golden format when packages are enumerated.
+  // See: https://dart-review.googlesource.com/c/sdk/+/339781
+  test_pubWorkspace_sdkConstraint() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testFilePath = '$testPackageRootPath/a.dart';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+environment:
+  sdk: ^3.0.0
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile(testFilePath, '');
+
+    final contextCollection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        getFolder(workspaceRootPath).path,
+      ],
+    );
+
+    final context = contextCollection.contextFor(testFilePath);
+    final package = context.contextRoot.workspace.findPackageFor(testFilePath)
+        as PubWorkspacePackage;
+    expect(package.sdkVersionConstraint.toString(), '^3.0.0');
+  }
+
   test_pubWorkspace_singleAnalysisOptions() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';

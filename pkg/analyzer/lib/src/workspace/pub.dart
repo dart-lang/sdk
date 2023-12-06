@@ -17,6 +17,7 @@ import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Check if the given list of path components contains a package build
 /// generated directory, it would have the following path segments,
@@ -426,6 +427,11 @@ class PubWorkspacePackage extends WorkspacePackage {
   /// A flag to indicate if we've tried to parse the pubspec.
   bool _parsedPubspec = false;
 
+  VersionConstraint? _sdkVersionConstraint;
+
+  /// A flag to indicate if we've tried to parse the sdk constraint.
+  bool _parsedSdkConstraint = false;
+
   @override
   final PubWorkspace workspace;
 
@@ -449,6 +455,24 @@ class PubWorkspacePackage extends WorkspacePackage {
       }
     }
     return _pubspec;
+  }
+
+  /// The version range for the SDK specified for this package , or `null` if
+  /// it is ill-formatted or not set.
+  VersionConstraint? get sdkVersionConstraint {
+    if (!_parsedSdkConstraint) {
+      _parsedSdkConstraint = true;
+
+      var sdkValue = pubspec?.environment?.sdk?.value.text;
+      if (sdkValue != null) {
+        try {
+          _sdkVersionConstraint = VersionConstraint.parse(sdkValue);
+        } catch (_) {
+          // Ill-formatted constraints, default to a `null` value.
+        }
+      }
+    }
+    return _sdkVersionConstraint;
   }
 
   @override
