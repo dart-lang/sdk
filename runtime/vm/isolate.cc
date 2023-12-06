@@ -503,7 +503,8 @@ void IsolateGroup::Shutdown() {
   // pool can trigger idle notification, which can start new GC tasks).
   //
   // (The vm-isolate doesn't have a thread pool.)
-  if (!Dart::VmIsolateNameEquals(source()->name)) {
+  const bool is_vm_isolate = Dart::VmIsolateNameEquals(source()->name);
+  if (!is_vm_isolate) {
     ASSERT(thread_pool_ != nullptr);
     thread_pool_->Shutdown();
     thread_pool_.reset();
@@ -528,7 +529,7 @@ void IsolateGroup::Shutdown() {
   // If the creation of the isolate group (or the first isolate within the
   // isolate group) failed, we do not invoke the cleanup callback (the
   // embedder is responsible for handling the creation error).
-  if (initial_spawn_successful_) {
+  if (initial_spawn_successful_ && !is_vm_isolate) {
     auto group_shutdown_callback = Isolate::GroupCleanupCallback();
     if (group_shutdown_callback != nullptr) {
       group_shutdown_callback(embedder_data());
