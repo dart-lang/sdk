@@ -117,11 +117,11 @@ class StepTraceListener extends TraceListener
   }
 
   @override
-  void pushBranch(BranchKind kind, [value]) {
+  void pushBranch(BranchKind kind, [int? value]) {
     var branch;
     switch (kind) {
       case BranchKind.CONDITION:
-        branch = value ? 't' : 'f';
+        branch = value == 1 ? 't' : 'f';
         break;
       case BranchKind.LOOP:
         branch = 'l';

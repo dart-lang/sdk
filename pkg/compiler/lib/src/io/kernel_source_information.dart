@@ -14,8 +14,8 @@ import '../universe/call_structure.dart';
 import 'source_information.dart';
 import 'position_information.dart';
 
-class KernelSourceInformationStrategy
-    extends AbstractPositionSourceInformationStrategy {
+class OnlineKernelSourceInformationStrategy
+    extends OnlinePositionSourceInformationStrategy {
   late JsToElementMap _elementMap;
 
   @override

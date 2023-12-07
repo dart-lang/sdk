@@ -19,7 +19,7 @@ import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/kernel_source_information.dart'
-    show KernelSourceInformationStrategy;
+    show OnlineKernelSourceInformationStrategy;
 import '../io/source_information.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../inferrer/types.dart';
@@ -109,7 +109,7 @@ class JsBackendStrategy {
     if (!generateSourceMap) {
       sourceInformationStrategy = const JavaScriptSourceInformationStrategy();
     } else {
-      sourceInformationStrategy = KernelSourceInformationStrategy();
+      sourceInformationStrategy = OnlineKernelSourceInformationStrategy();
     }
     _emitterTask = CodeEmitterTask(_compiler, generateSourceMap);
     _functionCompiler = SsaFunctionCompiler(
