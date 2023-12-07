@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -43,27 +43,22 @@ class ConvertToNullAware extends ResolvedCorrectionProducer {
       return;
     }
     var condition = targetNode.condition.unParenthesized;
-    SimpleIdentifier identifier;
+    String conditionText;
     Expression nullExpression;
     Expression nonNullExpression;
-    int periodOffset;
 
     if (condition is BinaryExpression) {
       //
       // Identify the variable being compared to `null`, or return if the
-      // condition isn't a simple comparison of `null` to a variable's value.
+      // condition isn't a simple comparison of `null` to another expression.
       //
       var leftOperand = condition.leftOperand;
       var rightOperand = condition.rightOperand;
-      if (leftOperand is NullLiteral && rightOperand is SimpleIdentifier) {
-        identifier = rightOperand;
-      } else if (rightOperand is NullLiteral &&
-          leftOperand is SimpleIdentifier) {
-        identifier = leftOperand;
+      if (leftOperand is NullLiteral && rightOperand is! NullLiteral) {
+        conditionText = rightOperand.toString();
+      } else if (rightOperand is NullLiteral && leftOperand is! NullLiteral) {
+        conditionText = leftOperand.toString();
       } else {
-        return;
-      }
-      if (identifier.staticElement is! LocalElement) {
         return;
       }
       //
@@ -84,30 +79,51 @@ class ConvertToNullAware extends ResolvedCorrectionProducer {
       if (nullExpression.unParenthesized is! NullLiteral) {
         return;
       }
-      var unwrappedExpression = nonNullExpression.unParenthesized;
-      Expression? target;
+      Expression? resultExpression = nonNullExpression.unParenthesized;
       Token? operator;
-      if (unwrappedExpression is MethodInvocation) {
-        target = unwrappedExpression.target;
-        operator = unwrappedExpression.operator;
-      } else if (unwrappedExpression is PrefixedIdentifier) {
-        target = unwrappedExpression.prefix;
-        operator = unwrappedExpression.period;
+      while (true) {
+        switch (resultExpression) {
+          case PrefixedIdentifier():
+            operator = resultExpression.period;
+            resultExpression = resultExpression.prefix;
+          case MethodInvocation():
+            operator = resultExpression.operator;
+            resultExpression = resultExpression.target;
+          case PostfixExpression()
+              when resultExpression.operator.type == TokenType.BANG:
+            // (Operator remains unaffected.)
+            resultExpression = resultExpression.operand;
+          case PropertyAccess():
+            operator = resultExpression.operator;
+            resultExpression = resultExpression.target;
+          default:
+            return;
+        }
+        if (resultExpression.toString() == conditionText) {
+          break;
+        }
+      }
+      if (resultExpression == null) {
+        return;
+      }
+
+      SourceRange operatorRange;
+      var optionalQuestionMark = '';
+      if (operator != null) {
+        if (operator.type == TokenType.PERIOD) {
+          optionalQuestionMark = '?';
+        }
+        operatorRange = range.endStart(resultExpression, operator);
+      } else if (resultExpression.parent is PostfixExpression) {
+        // The case where the expression is just `foo!`.
+        operatorRange =
+            range.endEnd(resultExpression, resultExpression.parent!);
       } else {
         return;
       }
-      if (operator == null || operator.type != TokenType.PERIOD) {
-        return;
-      }
-      if (!(target is SimpleIdentifier &&
-          target.staticElement == identifier.staticElement)) {
-        return;
-      }
-      periodOffset = operator.offset;
-
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(targetNode, nonNullExpression));
-        builder.addSimpleInsertion(periodOffset, '?');
+        builder.addSimpleReplacement(operatorRange, optionalQuestionMark);
         builder.addDeletion(range.endEnd(nonNullExpression, targetNode));
       });
     }
