@@ -285,10 +285,10 @@ class Scrape {
         featureSet: featureSet, lineInfo: lineInfo);
 
     if (_printFiles) {
-      var line =
-          '[$_scrapedFileCount files, $_scrapedLineCount lines] ' '$shortPath';
       if (Platform.isWindows) {
         // No ANSI escape codes on Windows.
+        var line = '[$_scrapedFileCount files, $_scrapedLineCount lines] '
+            '$shortPath';
         print(line);
       } else {
         // Overwrite the same line.
