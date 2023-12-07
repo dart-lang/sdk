@@ -5596,6 +5596,30 @@ CompileTimeErrorCode:
     problemMessage: "The representation type can't be a bottom type."
     correctionMessage: Try specifying a different type.
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the representation type of an
+      extension type is the [bottom type][] `Never`. The type `Never` can't be
+      the representation type of an extension type because there are no values
+      that can be extended.
+
+      #### Example
+
+      The following code produces this diagnostic because the representation
+      type of the extension type `E` is `Never`:
+
+      ```dart
+      extension type E([!Never!] n) {}
+      ```
+
+      #### Common fixes
+
+      Replace the extension type with a different type:
+
+      ```dart
+      extension type E(String s) {}
+      ```
   EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
     problemMessage: "'{0}' must have a method body because '{1}' is an extension type."
     correctionMessage: "Try adding a body to '{0}'."
@@ -5603,6 +5627,41 @@ CompileTimeErrorCode:
       Parameters:
       0: the name of the abstract method
       1: the name of the enclosing extension type
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an extension type declares an
+      abstract member. Because extension type member references are resolved
+      statically, an abstract member in an extension type could never be
+      executed.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `m` in the
+      extension type `E` is abstract:
+
+      ```dart
+      extension type E(String s) {
+        [!void m();!]
+      }
+      ```
+
+      #### Common fixes
+
+      If the member is intended to be executable, then provide an implementation
+      of the member:
+
+      ```dart
+      extension type E(String s) {
+        void m() {}
+      }
+      ```
+
+      If the member isn't intended to be executable, then remove it:
+
+      ```dart
+      extension type E(String s) {}
+      ```
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External fields can't have initializers.
@@ -15693,6 +15752,36 @@ CompileTimeErrorCode:
   SUPER_IN_EXTENSION_TYPE:
     problemMessage: "The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass."
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `super` is used in an instance
+      member of an extension type. Extension types don't have superclasses, so
+      there's no inherited member that could be invoked.
+
+      #### Example
+
+      The following code produces this diagnostic because :
+
+      ```dart
+      extension type E(String s) {
+        void m() {
+          [!super!].m();
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Replace or remove the `super` invocation:
+
+      ```dart
+      extension type E(String s) {
+        void m() {
+          s.toLowerCase();
+        }
+      }
+      ```
   SUPER_IN_INVALID_CONTEXT:
     problemMessage: "Invalid context for 'super' invocation."
     hasPublishedDocs: true

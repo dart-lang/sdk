@@ -28,6 +28,7 @@ The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
 
+[bottom type]: https://dart.dev/null-safety/understanding-null-safety#top-and-bottom
 [ffi]: https://dart.dev/guides/libraries/c-interop
 [IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [irrefutable pattern]: https://dart.dev/resources/glossary#irrefutable-pattern
@@ -6707,6 +6708,73 @@ least one of the types in the cycle:
 
 {% prettify dart tag=pre+code %}
 extension type A(String s) {}
+{% endprettify %}
+
+### extension_type_representation_type_bottom
+
+_The representation type can't be a bottom type._
+
+#### Description
+
+The analyzer produces this diagnostic when the representation type of an
+extension type is the [bottom type][] `Never`. The type `Never` can't be
+the representation type of an extension type because there are no values
+that can be extended.
+
+#### Example
+
+The following code produces this diagnostic because the representation
+type of the extension type `E` is `Never`:
+
+{% prettify dart tag=pre+code %}
+extension type E([!Never!] n) {}
+{% endprettify %}
+
+#### Common fixes
+
+Replace the extension type with a different type:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {}
+{% endprettify %}
+
+### extension_type_with_abstract_member
+
+_'{0}' must have a method body because '{1}' is an extension type._
+
+#### Description
+
+The analyzer produces this diagnostic when an extension type declares an
+abstract member. Because extension type member references are resolved
+statically, an abstract member in an extension type could never be
+executed.
+
+#### Example
+
+The following code produces this diagnostic because the method `m` in the
+extension type `E` is abstract:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {
+  [!void m();!]
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the member is intended to be executable, then provide an implementation
+of the member:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {
+  void m() {}
+}
+{% endprettify %}
+
+If the member isn't intended to be executable, then remove it:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {}
 {% endprettify %}
 
 ### external_with_initializer
@@ -20006,6 +20074,41 @@ Remove the `super` keyword :
 {% prettify dart tag=pre+code %}
 extension E on Object {
   String get displayString => toString();
+}
+{% endprettify %}
+
+### super_in_extension_type
+
+_The 'super' keyword can't be used in an extension type because an extension
+type doesn't have a superclass._
+
+#### Description
+
+The analyzer produces this diagnostic when `super` is used in an instance
+member of an extension type. Extension types don't have superclasses, so
+there's no inherited member that could be invoked.
+
+#### Example
+
+The following code produces this diagnostic because :
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {
+  void m() {
+    [!super!].m();
+  }
+}
+{% endprettify %}
+
+#### Common fixes
+
+Replace or remove the `super` invocation:
+
+{% prettify dart tag=pre+code %}
+extension type E(String s) {
+  void m() {
+    s.toLowerCase();
+  }
 }
 {% endprettify %}
 
