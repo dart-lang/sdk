@@ -144,14 +144,16 @@ abstract class JSArrayBase implements TypedData {
   /// `externref` of a JS `DataView`.
   final WasmExternRef? _ref;
 
-  JSArrayBase(this._ref);
+  /// List length
+  final int length;
+
+  JSArrayBase(this._ref, int elementSizeShift)
+      : length = _dataViewByteLength(_ref) >>> elementSizeShift;
 
   @pragma("wasm:prefer-inline")
   WasmExternRef? get toExternRef => _ref;
 
   WasmExternRef? toJSArrayExternRef([int start = 0, int? length]);
-
-  int get length;
 
   @override
   JSArrayBufferImpl get buffer =>
@@ -211,9 +213,11 @@ final class JSDataViewImpl implements ByteData {
   /// `externref` of a JS `DataView`.
   final WasmExternRef? _ref;
 
-  JSDataViewImpl(int length) : _ref = _newDataView(length);
+  final int lengthInBytes;
 
-  JSDataViewImpl.fromRef(this._ref);
+  JSDataViewImpl(this.lengthInBytes) : _ref = _newDataView(lengthInBytes);
+
+  JSDataViewImpl.fromRef(this._ref) : lengthInBytes = _dataViewByteLength(_ref);
 
   factory JSDataViewImpl.view(
           JSArrayBufferImpl buffer, int offsetInBytes, int? length) =>
@@ -226,10 +230,6 @@ final class JSDataViewImpl implements ByteData {
   @override
   JSArrayBufferImpl get buffer =>
       JSArrayBufferImpl.fromRef(_dataViewBuffer(toExternRef));
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get lengthInBytes => _dataViewByteLength(toExternRef);
 
   @override
   @pragma("wasm:prefer-inline")
@@ -668,7 +668,7 @@ mixin _UnmodifiableIntListMixin {
 final class JSUint8ArrayImpl extends JSArrayBase
     with _IntListMixin
     implements Uint8List {
-  JSUint8ArrayImpl._(super._ref);
+  JSUint8ArrayImpl._(WasmExternRef? _ref) : super(_ref, 0);
 
   factory JSUint8ArrayImpl(int length) =>
       JSUint8ArrayImpl._(_newDataView(length));
@@ -683,10 +683,6 @@ final class JSUint8ArrayImpl extends JSArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int get elementSizeInBytes => 1;
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes;
 
   @override
   WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) => js.JS<
@@ -756,7 +752,7 @@ final class UnmodifiableJSUint8Array extends JSUint8ArrayImpl
 final class JSInt8ArrayImpl extends JSArrayBase
     with _IntListMixin
     implements Int8List {
-  JSInt8ArrayImpl._(super._ref);
+  JSInt8ArrayImpl._(WasmExternRef? _ref) : super(_ref, 0);
 
   factory JSInt8ArrayImpl(int length) =>
       JSInt8ArrayImpl._(_newDataView(length));
@@ -771,10 +767,6 @@ final class JSInt8ArrayImpl extends JSArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int get elementSizeInBytes => 1;
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes;
 
   @override
   WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) => js.JS<
@@ -844,7 +836,7 @@ final class UnmodifiableJSInt8Array extends JSInt8ArrayImpl
 final class JSUint8ClampedArrayImpl extends JSArrayBase
     with _IntListMixin
     implements Uint8ClampedList {
-  JSUint8ClampedArrayImpl._(super._ref);
+  JSUint8ClampedArrayImpl._(WasmExternRef? _ref) : super(_ref, 0);
 
   factory JSUint8ClampedArrayImpl(int length) =>
       JSUint8ClampedArrayImpl._(_newDataView(length));
@@ -859,10 +851,6 @@ final class JSUint8ClampedArrayImpl extends JSArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int get elementSizeInBytes => 1;
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes;
 
   @override
   WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) => js.JS<
@@ -919,7 +907,7 @@ final class UnmodifiableJSUint8ClampedArray extends JSUint8ClampedArrayImpl
 final class JSUint16ArrayImpl extends JSArrayBase
     with _IntListMixin
     implements Uint16List {
-  JSUint16ArrayImpl._(super._ref);
+  JSUint16ArrayImpl._(WasmExternRef? _ref) : super(_ref, 1);
 
   factory JSUint16ArrayImpl(int length) =>
       JSUint16ArrayImpl._(_newDataView(length * 2));
@@ -939,10 +927,6 @@ final class JSUint16ArrayImpl extends JSArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int get elementSizeInBytes => 2;
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes >>> 1;
 
   @override
   WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) => js.JS<
@@ -1014,7 +998,7 @@ final class UnmodifiableJSUint16Array extends JSUint16ArrayImpl
 final class JSInt16ArrayImpl extends JSArrayBase
     with _IntListMixin
     implements Int16List {
-  JSInt16ArrayImpl._(super._ref);
+  JSInt16ArrayImpl._(WasmExternRef? _ref) : super(_ref, 1);
 
   factory JSInt16ArrayImpl(int length) =>
       JSInt16ArrayImpl._(_newDataView(length * 2));
@@ -1034,10 +1018,6 @@ final class JSInt16ArrayImpl extends JSArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int get elementSizeInBytes => 2;
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes >>> 1;
 
   @override
   WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) => js.JS<
@@ -1109,7 +1089,7 @@ final class UnmodifiableJSInt16Array extends JSInt16ArrayImpl
 final class JSUint32ArrayImpl extends JSArrayBase
     with _IntListMixin
     implements Uint32List {
-  JSUint32ArrayImpl._(super._ref);
+  JSUint32ArrayImpl._(WasmExternRef? _ref) : super(_ref, 2);
 
   factory JSUint32ArrayImpl(int length) =>
       JSUint32ArrayImpl._(_newDataView(length * 4));
@@ -1129,10 +1109,6 @@ final class JSUint32ArrayImpl extends JSArrayBase
   @override
   @pragma("wasm:prefer-inline")
   int get elementSizeInBytes => 4;
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes >>> 2;
 
   @override
   WasmExternRef? toJSArrayExternRef([int start = 0, int? length]) => js.JS<
@@ -1204,7 +1180,7 @@ final class UnmodifiableJSUint32Array extends JSUint32ArrayImpl
 final class JSInt32ArrayImpl extends JSArrayBase
     with _IntListMixin
     implements Int32List {
-  JSInt32ArrayImpl._(super._ref);
+  JSInt32ArrayImpl._(WasmExternRef? _ref) : super(_ref, 2);
 
   factory JSInt32ArrayImpl(int length) =>
       JSInt32ArrayImpl._(_newDataView(length * 4));
@@ -1220,10 +1196,6 @@ final class JSInt32ArrayImpl extends JSArrayBase
         : length * 4);
     return JSInt32ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
   }
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes >>> 2;
 
   @override
   @pragma("wasm:prefer-inline")
@@ -1385,7 +1357,7 @@ final class JSInt32x4ArrayImpl
 final class JSBigUint64ArrayImpl extends JSArrayBase
     with _IntListMixin
     implements Uint64List {
-  JSBigUint64ArrayImpl._(super._ref);
+  JSBigUint64ArrayImpl._(WasmExternRef? _ref) : super(_ref, 3);
 
   factory JSBigUint64ArrayImpl(int length) =>
       JSBigUint64ArrayImpl._(_newDataView(length * 8));
@@ -1401,10 +1373,6 @@ final class JSBigUint64ArrayImpl extends JSArrayBase
         : length * 8);
     return JSBigUint64ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
   }
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes >>> 3;
 
   @override
   @pragma("wasm:prefer-inline")
@@ -1480,7 +1448,7 @@ final class UnmodifiableJSBigUint64Array extends JSBigUint64ArrayImpl
 final class JSBigInt64ArrayImpl extends JSArrayBase
     with _IntListMixin
     implements Int64List {
-  JSBigInt64ArrayImpl._(super._ref);
+  JSBigInt64ArrayImpl._(WasmExternRef? _ref) : super(_ref, 3);
 
   factory JSBigInt64ArrayImpl(int length) =>
       JSBigInt64ArrayImpl._(_newDataView(length * 8));
@@ -1496,10 +1464,6 @@ final class JSBigInt64ArrayImpl extends JSArrayBase
         : length * 8);
     return JSBigInt64ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
   }
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes >>> 3;
 
   @override
   @pragma("wasm:prefer-inline")
@@ -1917,7 +1881,7 @@ mixin _UnmodifiableDoubleListMixin {
 final class JSFloat32ArrayImpl extends JSArrayBase
     with _DoubleListMixin
     implements Float32List {
-  JSFloat32ArrayImpl._(super._ref);
+  JSFloat32ArrayImpl._(WasmExternRef? _ref) : super(_ref, 2);
 
   factory JSFloat32ArrayImpl(int length) =>
       JSFloat32ArrayImpl._(_newDataView(length * 4));
@@ -1933,10 +1897,6 @@ final class JSFloat32ArrayImpl extends JSArrayBase
         : length * 4);
     return JSFloat32ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
   }
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes >>> 2;
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2012,7 +1972,7 @@ final class UnmodifiableJSFloat32Array extends JSFloat32ArrayImpl
 final class JSFloat64ArrayImpl extends JSArrayBase
     with _DoubleListMixin
     implements Float64List {
-  JSFloat64ArrayImpl._(super._ref);
+  JSFloat64ArrayImpl._(WasmExternRef? _ref) : super(_ref, 3);
 
   factory JSFloat64ArrayImpl(int length) =>
       JSFloat64ArrayImpl._(_newDataView(length * 8));
@@ -2028,10 +1988,6 @@ final class JSFloat64ArrayImpl extends JSArrayBase
         : length * 8);
     return JSFloat64ArrayImpl._(buffer.view(offsetInBytes, lengthInBytes));
   }
-
-  @override
-  @pragma("wasm:prefer-inline")
-  int get length => lengthInBytes >>> 3;
 
   @override
   @pragma("wasm:prefer-inline")
