@@ -14,7 +14,7 @@ Object? context<T>(T x) => x;
 /// ```dart
 /// int x = contextType(1 /* valid value */)..expectStaticType<Exactly<int>>;
 /// ```
-T contextType<T>(Object result) => result as T;
+T contextType<T>(Object? result) => result as T;
 
 extension StaticType<T> on T {
   /// Check the static type.
