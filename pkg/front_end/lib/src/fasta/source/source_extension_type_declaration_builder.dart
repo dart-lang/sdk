@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/builder/record_type_builder.dart';
-import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -20,10 +18,16 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../dill/dill_class_builder.dart';
+import '../dill/dill_extension_type_declaration_builder.dart';
+import '../dill/dill_type_alias_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
+import '../kernel/type_builder_computer.dart';
 import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
@@ -371,6 +375,65 @@ class SourceExtensionTypeDeclarationBuilder
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
+            }
+          }
+        } else if (declaration != null && declaration.typeVariablesCount > 0) {
+          List<TypeVariableBuilderBase>? typeParameters;
+          List<TypeParameter>? typeParametersFromKernel;
+          bool isFromKernel = false;
+          switch (declaration) {
+            case ClassBuilder():
+              typeParameters = declaration.typeVariables;
+              if (declaration is DillClassBuilder) {
+                isFromKernel = true;
+                typeParametersFromKernel = declaration.cls.typeParameters;
+              }
+            case TypeAliasBuilder():
+              typeParameters = declaration.typeVariables;
+              if (declaration is DillTypeAliasBuilder) {
+                isFromKernel = true;
+                typeParametersFromKernel = declaration.typedef.typeParameters;
+              }
+            case ExtensionTypeDeclarationBuilder():
+              typeParameters = declaration.typeParameters;
+              if (declaration is DillExtensionTypeDeclarationBuilder) {
+                isFromKernel = true;
+                typeParametersFromKernel =
+                    declaration.extensionTypeDeclaration.typeParameters;
+              }
+            case BuiltinTypeDeclarationBuilder():
+            case InvalidTypeDeclarationBuilder():
+            case OmittedTypeDeclarationBuilder():
+            case ExtensionBuilder():
+            case TypeVariableBuilderBase():
+          }
+          if (typeParameters != null) {
+            TypeBuilderComputer? typeBuilderComputer;
+            for (int i = 0; i < typeParameters.length; i++) {
+              TypeVariableBuilderBase typeParameter = typeParameters[i];
+              if (!isFromKernel) {
+                if (_checkRepresentationDependency(
+                    typeParameter.defaultType!,
+                    rootExtensionTypeDeclaration,
+                    seenExtensionTypeDeclarations.toSet(),
+                    usedTypeAliasBuilders.toSet())) {
+                  return true;
+                }
+              } else if (typeParametersFromKernel != null) {
+                assert(
+                    typeParameters.length == typeParametersFromKernel.length);
+                typeBuilderComputer ??=
+                    new TypeBuilderComputer(libraryBuilder.loader);
+                if (_checkRepresentationDependency(
+                    typeParametersFromKernel[i]
+                        .defaultType
+                        .accept(typeBuilderComputer),
+                    rootExtensionTypeDeclaration,
+                    seenExtensionTypeDeclarations.toSet(),
+                    usedTypeAliasBuilders.toSet())) {
+                  return true;
+                }
+              }
             }
           }
         }
