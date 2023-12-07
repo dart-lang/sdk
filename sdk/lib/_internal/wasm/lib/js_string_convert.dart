@@ -5,9 +5,10 @@
 /// `dart:convert` UTF-8 decoding functions when the input is a JS typed array.
 library dart._js_string_convert;
 
-import "dart:_js_types";
 import 'dart:_js_helper' as js;
+import 'dart:_js_types';
 import 'dart:_wasm';
+import 'dart:js_interop';
 
 /// Implements `_Utf8Decoder.convertSingle` hook for JS array inputs. Does not
 /// do bounds checking.

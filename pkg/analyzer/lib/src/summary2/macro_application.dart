@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart' as macro;
-import 'package:analyzer/dart/ast/ast.dart' as ast;
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -109,11 +108,9 @@ class LibraryMacroApplier {
   }) async {
     for (final declaration in unit.declarations.reversed) {
       switch (declaration) {
-        case ast.ClassDeclaration():
-          final element = declaration.declaredElement;
-          element as ClassElementImpl;
+        case ast.ClassDeclarationImpl():
+          final element = declaration.declaredElement!;
           final declarationElement = element.augmented?.declaration ?? element;
-          declarationElement as ClassElementImpl;
           await _addClassLike(
             libraryElement: libraryElement,
             container: container,
@@ -124,11 +121,15 @@ class LibraryMacroApplier {
             declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
-        case ast.ExtensionDeclaration():
-          final element = declaration.declaredElement;
-          element as ExtensionElementImpl;
+        case ast.ClassTypeAliasImpl():
+          // TODO(scheglov): implement it
+          break;
+        case ast.EnumDeclarationImpl():
+          // TODO(scheglov): implement it
+          break;
+        case ast.ExtensionDeclarationImpl():
+          final element = declaration.declaredElement!;
           final declarationElement = element.augmented?.declaration ?? element;
-          declarationElement as ExtensionElementImpl;
           await _addClassLike(
             libraryElement: libraryElement,
             container: container,
@@ -139,11 +140,31 @@ class LibraryMacroApplier {
             declarationsPhaseInterface: null,
             members: declaration.members,
           );
-        case ast.MixinDeclaration():
-          final element = declaration.declaredElement;
-          element as MixinElementImpl;
+        case ast.ExtensionTypeDeclarationImpl():
+          final element = declaration.declaredElement!;
           final declarationElement = element.augmented?.declaration ?? element;
-          declarationElement as MixinElementImpl;
+          await _addClassLike(
+            libraryElement: libraryElement,
+            container: container,
+            targetElement: declarationElement,
+            classNode: declaration,
+            classDeclarationKind: macro.DeclarationKind.extension,
+            classAnnotations: declaration.metadata,
+            declarationsPhaseInterface: declarationElement,
+            members: declaration.members,
+          );
+        case ast.FunctionDeclarationImpl():
+          // TODO(scheglov): implement it
+          break;
+        case ast.FunctionTypeAliasImpl():
+          // TODO(scheglov): implement it
+          break;
+        case ast.GenericTypeAliasImpl():
+          // TODO(scheglov): implement it
+          break;
+        case ast.MixinDeclarationImpl():
+          final element = declaration.declaredElement!;
+          final declarationElement = element.augmented?.declaration ?? element;
           await _addClassLike(
             libraryElement: libraryElement,
             container: container,
@@ -154,6 +175,11 @@ class LibraryMacroApplier {
             declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
+        case ast.TopLevelVariableDeclarationImpl():
+          // TODO(scheglov): implement it
+          break;
+        default:
+          throw UnimplementedError('${declaration.runtimeType}');
       }
     }
   }

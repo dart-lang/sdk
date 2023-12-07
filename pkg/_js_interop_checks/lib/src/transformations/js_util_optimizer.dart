@@ -786,23 +786,27 @@ class ExtensionIndex {
   ///
   /// This currently allows the interface type to be:
   /// - all package:js classes
-  /// - dart:js_types types
+  /// - dart:js_interop types
   /// - @Native types that implement JavaScriptObject
+  /// - extension types that wrap any of the above
   bool isInteropExtensionType(ExtensionTypeDeclaration extensionType) {
     final reference = extensionType.reference;
     if (_interopExtensionTypeIndex.containsKey(reference)) {
       return _interopExtensionTypeIndex[reference]!;
     }
-    DartType repType = extensionType.declaredRepresentationType;
-    if (repType is ExtensionType) {
-      repType = repType.extensionTypeErasure;
+    // Check if this is an dart:js_interop JS type or recursively an extension
+    // type on one.
+    DartType repType = ExtensionType(extensionType, Nullability.nonNullable);
+    while (repType is ExtensionType) {
+      final declaration = repType.extensionTypeDeclaration;
+      if (declaration.enclosingLibrary.importUri.toString() ==
+          'dart:js_interop') {
+        return true;
+      }
+      repType = declaration.declaredRepresentationType;
     }
     if (repType is InterfaceType) {
       final cls = repType.classNode;
-      // TODO(srujzs): Note that dart:_js_types types currently use a custom
-      // lowering of @staticInterop. Once
-      // https://github.com/dart-lang/sdk/issues/52687 is handled, we should
-      // modify this if-check to handle the new representation.
       final javaScriptObject = _coreTypes.index
           .tryGetClass('dart:_interceptors', 'JavaScriptObject');
       if (hasStaticInteropAnnotation(cls) ||

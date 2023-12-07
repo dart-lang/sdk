@@ -260,18 +260,122 @@ contexts
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
+        workspacePackage: workspace_0_package_0
   /home/test/lib/nested
     optionsFile: /home/test/lib/nested/analysis_options.yaml
     packagesFile: /home/test/.dart_tool/package_config.json
     workspace: workspace_1
     analyzedFiles
       /home/test/lib/nested/b.dart
+        workspacePackage: workspace_1_package_0
 workspaces
   workspace_0: PubWorkspace
     root: /home/test
+    packages
+      package_0: PubWorkspacePackage
+        root: /home/test
   workspace_1: PubWorkspace
     root: /home/test
+    packages
+      package_0: PubWorkspacePackage
+        root: /home/test
 ''');
+  }
+
+  test_pubWorkspace_multiplePackageConfigs() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testPackageLibPath = '$testPackageRootPath/lib';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile('$testPackageLibPath/a.dart', '');
+
+    final nestedPath = '$testPackageRootPath/nested';
+    newFile('$nestedPath/b.dart', '');
+    newSinglePackageConfigJsonFile(
+      packagePath: nestedPath,
+      name: 'nested',
+    );
+    newPubspecYamlFile(nestedPath, r'''
+name: nested
+''');
+
+    final contextCollection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        getFolder(workspaceRootPath).path,
+      ],
+    );
+
+    _assertContextCollectionText(contextCollection, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage: workspace_0_package_0
+  /home/test/nested
+    packagesFile: /home/test/nested/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/test/nested/b.dart
+        workspacePackage: workspace_1_package_0
+workspaces
+  workspace_0: PubWorkspace
+    root: /home/test
+    packages
+      package_0: PubWorkspacePackage
+        root: /home/test
+  workspace_1: PubWorkspace
+    root: /home/test/nested
+    packages
+      package_0: PubWorkspacePackage
+        root: /home/test/nested
+''');
+  }
+
+  // TODO(pq): update to using the golden format when packages are enumerated.
+  // See: https://dart-review.googlesource.com/c/sdk/+/339781
+  test_pubWorkspace_sdkConstraint() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+    final testFilePath = '$testPackageRootPath/a.dart';
+
+    newPubspecYamlFile(testPackageRootPath, r'''
+name: test
+environment:
+  sdk: ^3.0.0
+''');
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile(testFilePath, '');
+
+    final contextCollection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        getFolder(workspaceRootPath).path,
+      ],
+    );
+
+    final context = contextCollection.contextFor(testFilePath);
+    final package = context.contextRoot.workspace.findPackageFor(testFilePath)
+        as PubWorkspacePackage;
+    expect(package.sdkVersionConstraint.toString(), '^3.0.0');
   }
 
   test_pubWorkspace_singleAnalysisOptions() async {
@@ -308,9 +412,13 @@ contexts
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
+        workspacePackage: workspace_0_package_0
 workspaces
   workspace_0: PubWorkspace
     root: /home/test
+    packages
+      package_0: PubWorkspacePackage
+        root: /home/test
 ''');
   }
 
@@ -346,6 +454,8 @@ class _AnalysisContextCollectionPrinter {
   final TreeStringSink sink;
 
   final Map<Workspace, String> _workspaces = Map.identity();
+  final Map<Workspace, Map<WorkspacePackage, String>> workspacePackages =
+      Map.identity();
 
   _AnalysisContextCollectionPrinter({
     required this.configuration,
@@ -365,6 +475,11 @@ class _AnalysisContextCollectionPrinter {
       _workspaces.keys.toList(),
       _writeWorkspace,
     );
+  }
+
+  String _idOfPackage(WorkspacePackage package) {
+    final packages = workspacePackages[package.workspace] ??= Map.identity();
+    return packages[package] ??= 'package_${packages.length}';
   }
 
   String _idOfWorkspace(Workspace workspace) {
@@ -392,8 +507,16 @@ class _AnalysisContextCollectionPrinter {
       );
       sink.writeElements('analyzedFiles', analyzedFiles, (path) {
         final file = resourceProvider.getFile(path);
+        final workspace = contextRoot.workspace;
         if (_isDartFile(file)) {
           sink.writelnWithIndent(file.posixPath);
+          sink.withIndent(() {
+            final package = workspace.findPackageFor(path);
+            if (package != null) {
+              sink.writelnWithIndent(
+                  'workspacePackage: ${_idOfWorkspace(workspace)}_${_idOfPackage(package)}');
+            }
+          });
         }
       });
     });
@@ -402,6 +525,26 @@ class _AnalysisContextCollectionPrinter {
   void _writeNamedFile(String name, File? file) {
     if (file != null) {
       sink.writelnWithIndent('$name: ${file.posixPath}');
+    }
+  }
+
+  void _writePackage(WorkspacePackage package) {
+    final id = _idOfPackage(package);
+    switch (package) {
+      case BasicWorkspacePackage():
+        sink.writelnWithIndent('$id: BasicWorkspacePackage');
+        sink.withIndent(() {
+          final root = resourceProvider.getFolder(package.root);
+          sink.writelnWithIndent('root: ${root.posixPath}');
+        });
+      case PubWorkspacePackage():
+        sink.writelnWithIndent('$id: PubWorkspacePackage');
+        sink.withIndent(() {
+          final root = resourceProvider.getFolder(package.root);
+          sink.writelnWithIndent('root: ${root.posixPath}');
+        });
+      default:
+        throw UnimplementedError('${package.runtimeType}');
     }
   }
 
@@ -419,7 +562,13 @@ class _AnalysisContextCollectionPrinter {
         sink.withIndent(() {
           final root = resourceProvider.getFolder(workspace.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
+          sink.writeElements(
+            'packages',
+            workspace.pubPackages.toList(),
+            _writePackage,
+          );
         });
+
       default:
         throw UnimplementedError('${workspace.runtimeType}');
     }

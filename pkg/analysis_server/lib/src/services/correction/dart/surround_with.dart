@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
@@ -240,7 +241,7 @@ class _SurroundWithSetState extends _SurroundWith {
     var classDeclaration =
         node.parent?.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration != null &&
-        flutter.isState(classDeclaration.declaredElement)) {
+        Flutter.isState(classDeclaration.declaredElement)) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(statementsRange, (builder) {
           builder.write(indentOld);

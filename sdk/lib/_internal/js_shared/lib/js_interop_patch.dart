@@ -5,10 +5,15 @@
 import 'dart:_foreign_helper' as foreign_helper;
 import 'dart:_interceptors' show JavaScriptObject;
 import 'dart:_internal' show patch;
-import 'dart:_js_helper' show staticInteropGlobalContext;
+import 'dart:_js_helper' show createObjectLiteral, staticInteropGlobalContext;
 import 'dart:_js_types';
+import 'dart:js_interop';
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
+
+@patch
+JSObjectRepType _createObjectLiteral() =>
+    createObjectLiteral<JSObjectRepType>();
 
 @patch
 @pragma('dart2js:prefer-inline')

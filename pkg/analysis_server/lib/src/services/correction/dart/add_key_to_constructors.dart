@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -165,7 +166,7 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
 
   /// Return the type for the class `Key`.
   Future<DartType?> _getKeyType() async {
-    var keyClass = await sessionHelper.getClass(flutter.widgetsUri, 'Key');
+    var keyClass = await sessionHelper.getClass(Flutter.widgetsUri, 'Key');
     if (keyClass == null) {
       return null;
     }

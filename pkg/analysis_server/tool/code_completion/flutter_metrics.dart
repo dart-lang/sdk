@@ -124,9 +124,6 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
   /// The data being collected.
   final FlutterData data;
 
-  /// The object used to determine Flutter-specific features.
-  final Flutter flutter = Flutter.instance;
-
   /// The name of the most deeply widget class whose constructor invocation we
   /// are within.
   String? parentWidget;
@@ -138,7 +135,7 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var previousParentWidget = parentWidget;
-    if (flutter.isWidgetCreation(node)) {
+    if (Flutter.isWidgetCreation(node)) {
       var element = node.constructorName.staticElement;
       if (element == null) {
         throw StateError(

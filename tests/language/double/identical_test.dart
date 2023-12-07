@@ -9,6 +9,14 @@ main() {
   Expect.isTrue(identical(-0.0, -0.0));
   Expect.isTrue(identical(0.0, 0.0));
   Expect.isTrue(identical(1.234E9, 1.234E9));
-  Expect.isFalse(identical(0.0, -0.0));
-  Expect.isTrue(identical(double.nan, double.nan));
+  if (!webNumbers) {
+    Expect.isFalse(identical(0.0, -0.0));
+    Expect.isTrue(identical(double.nan, double.nan));
+  } else {
+    // Web numbers have different behavior for identical for zeros and NaNs.
+    // See: https://dart.dev/guides/language/numbers
+    // TODO(https://dartbug.com/42224): Reconsider this different behavior.
+    Expect.isTrue(identical(0.0, -0.0));
+    Expect.isFalse(identical(double.nan, double.nan));
+  }
 }

@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart' show GenericState;
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -21,7 +20,6 @@ class ColorComputer {
   final ResolvedUnitResult resolvedUnit;
   final LinterContext _linterContext;
   final List<ColorReference> _colors = [];
-  final Flutter _flutter = Flutter.instance;
 
   ColorComputer(this.resolvedUnit, path.Context pathContext)
       : _linterContext = LinterContextImpl(
@@ -57,7 +55,7 @@ class ColorComputer {
     String? memberName,
     int? index,
   }) {
-    if (!_isColor(expression.staticType)) return false;
+    if (!Flutter.isColor(expression.staticType)) return false;
 
     target ??= expression;
 
@@ -82,7 +80,7 @@ class ColorComputer {
   /// because they are not const) but are simple well-known dart:ui/Flutter
   /// color constructors that we can manually parse.
   bool tryAddKnownColorConstructor(InstanceCreationExpression expression) {
-    if (!_isColor(expression.staticType)) return false;
+    if (!Flutter.isColor(expression.staticType)) return false;
 
     final constructor = expression.constructorName;
     final staticElement = constructor.staticElement;
@@ -231,9 +229,6 @@ class ColorComputer {
 
     return swatch[key];
   }
-
-  /// Checks whether [type] is - or extends - the dart:ui Color class.
-  bool _isColor(DartType? type) => type != null && _flutter.isColor(type);
 
   /// Checks whether this elements library is dart:ui.
   bool _isDartUi(Element? element) => element?.library?.name == 'dart.ui';

@@ -98,6 +98,8 @@ class DevToolsServerDriver {
 class DevToolsServerTestController {
   static const defaultDelay = Duration(milliseconds: 500);
 
+  late Uri emptyDartAppRoot;
+  late Uri packageWithExtensionsRoot;
   late CliAppFixture appFixture;
 
   late DevToolsServerDriver server;
@@ -127,7 +129,7 @@ class DevToolsServerTestController {
 
   late StreamSubscription<Map<String, dynamic>?> stdoutSub;
 
-  Future<void> setUp() async {
+  Future<void> setUp({bool runPubGet = false}) async {
     serverStartedEvent = Completer<Map<String, dynamic>>();
     eventController = StreamController<Map<String, dynamic>>.broadcast();
 
@@ -152,7 +154,7 @@ class DevToolsServerTestController {
     });
 
     await serverStartedEvent.future;
-    await startApp();
+    await startApp(runPubGet: runPubGet);
   }
 
   Future<void> tearDown() async {
@@ -200,9 +202,25 @@ class DevToolsServerTestController {
     return response['params'];
   }
 
-  Future<void> startApp() async {
-    final appUri =
-        Platform.script.resolveUri(Uri.parse('fixtures/empty_dart_app.dart'));
+  Future<void> startApp({bool runPubGet = false}) async {
+    emptyDartAppRoot =
+        Platform.script.resolveUri(Uri.parse('fixtures/empty_dart_app/'));
+    packageWithExtensionsRoot = Platform.script
+        .resolveUri(Uri.parse('fixtures/package_with_extensions/'));
+
+    if (runPubGet) {
+      final pubResult = await Process.run(
+          Platform.resolvedExecutable, ['pub', 'get'],
+          workingDirectory: emptyDartAppRoot.toFilePath());
+      if (pubResult.exitCode != 0) {
+        throw 'Failed to run "dart pub get" in test fixture:\n'
+                '${utf8.decode(pubResult.stdout)}\n'
+                '${utf8.decode(pubResult.stderr)}'
+            .trim();
+      }
+    }
+
+    final appUri = emptyDartAppRoot.resolveUri(Uri.parse('bin/main.dart'));
     appFixture = await CliAppFixture.create(appUri.toFilePath());
 
     // Track services method names as they're registered.

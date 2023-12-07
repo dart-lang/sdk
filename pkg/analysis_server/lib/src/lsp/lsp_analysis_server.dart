@@ -1013,7 +1013,7 @@ class LspAnalysisServer extends AnalysisServer {
           .getDriverFor(file)
           ?.currentSession
           .uriConverter
-          .uriToPath(Uri.parse(Flutter.instance.widgetsUri)) !=
+          .uriToPath(Uri.parse(Flutter.widgetsUri)) !=
       null;
 
   void _notifyPluginsOverlayChanged(

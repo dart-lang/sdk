@@ -16,6 +16,20 @@
 
 [#51896]: https://github.com/dart-lang/sdk/issues/51896
 
+#### `dart:js_interop`
+
+- **Breaking Change in the representation of JS types** [#52687][]: JS types
+  like `JSAny` were previously represented using a custom erasure of
+  `@staticInterop` types that were compiler-specific. They are now represented
+  as extension types where their representation types are compiler-specific.
+  This means that user-defined `@staticInterop` types that implemented `JSAny`
+  or `JSObject` can no longer do so and need to use
+  `JSObject.fromInteropObject`. Going forward, it's recommended to use extension
+  types to define interop APIs. Those extension types can still implement JS
+  types.
+
+[#52687]: https://github.com/dart-lang/sdk/issues/52687
+
 #### `dart:typed_data`
 
 - **BREAKING CHANGE** (https://github.com/dart-lang/sdk/issues/53218) The
@@ -61,6 +75,15 @@
 - Removed "implements <...>" text from the Chrome custom formatter display for
   Dart classes. This information provides little value and keeping it imposes an
   unnecessary maintenance cost.
+
+#### Production JavaScript compiler (dart2js)
+
+- **Breaking Change** [#54201][]:
+  The `Invocation` that is passed to `noSuchMethod` will no longer have a
+  minified `memberName`, even when dart2js is invoked with `--minify`.
+  See [#54201][] for more details.
+
+[#54201]: https://github.com/dart-lang/sdk/issues/54201
 
 #### Linter
 

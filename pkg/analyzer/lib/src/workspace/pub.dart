@@ -17,6 +17,7 @@ import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// Check if the given list of path components contains a package build
 /// generated directory, it would have the following path segments,
@@ -164,7 +165,7 @@ class PubWorkspace extends SimpleWorkspace {
 
   /// A map of paths to packages defined in a [PubWorkspace]. This map is
   /// populated when there are multiple packages in a workspace.
-  final Map<Folder, PubWorkspacePackage> containedPackages = {};
+  final Map<Folder, PubWorkspacePackage> _containedPackages = {};
 
   /// The associated pubspec file.
   final File _pubspecFile;
@@ -193,6 +194,12 @@ class PubWorkspace extends SimpleWorkspace {
     return PackageBuildPackageUriResolver(
         this, PackageMapUriResolver(provider, packageMap));
   }
+
+  @visibleForTesting
+  Set<PubWorkspacePackage> get pubPackages => {
+        ..._containedPackages.values,
+        ...[_rootPackage]
+      };
 
   /// For some package file, which may or may not be a package source (it could
   /// be in `bin/`, `web/`, etc), find where its built counterpart will exist if
@@ -293,7 +300,7 @@ class PubWorkspace extends SimpleWorkspace {
 
     PubWorkspacePackage? result;
     int resultPathLength = 0;
-    for (var package in containedPackages.entries) {
+    for (var package in _containedPackages.entries) {
       if (pathContext.isWithin(package.key.path, filePath)) {
         var packagePathLength = package.key.path.length;
         if (result == null || resultPathLength < packagePathLength) {
@@ -315,7 +322,7 @@ class PubWorkspace extends SimpleWorkspace {
       var pubspec = current.getChildAssumingFile(file_paths.pubspecYaml);
       if (pubspec.exists) {
         var package = PubWorkspacePackage(current.path, this, pubspec);
-        containedPackages[current] = package;
+        _containedPackages[current] = package;
         return package;
       }
     }
@@ -426,6 +433,11 @@ class PubWorkspacePackage extends WorkspacePackage {
   /// A flag to indicate if we've tried to parse the pubspec.
   bool _parsedPubspec = false;
 
+  VersionConstraint? _sdkVersionConstraint;
+
+  /// A flag to indicate if we've tried to parse the sdk constraint.
+  bool _parsedSdkConstraint = false;
+
   @override
   final PubWorkspace workspace;
 
@@ -449,6 +461,24 @@ class PubWorkspacePackage extends WorkspacePackage {
       }
     }
     return _pubspec;
+  }
+
+  /// The version range for the SDK specified for this package , or `null` if
+  /// it is ill-formatted or not set.
+  VersionConstraint? get sdkVersionConstraint {
+    if (!_parsedSdkConstraint) {
+      _parsedSdkConstraint = true;
+
+      var sdkValue = pubspec?.environment?.sdk?.value.text;
+      if (sdkValue != null) {
+        try {
+          _sdkVersionConstraint = VersionConstraint.parse(sdkValue);
+        } catch (_) {
+          // Ill-formatted constraints, default to a `null` value.
+        }
+      }
+    }
+    return _sdkVersionConstraint;
   }
 
   @override

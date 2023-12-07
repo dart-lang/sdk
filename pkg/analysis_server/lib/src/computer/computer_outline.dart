@@ -447,8 +447,6 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   _FunctionBodyOutlinesVisitor(this.outlineComputer, this.contents);
 
-  Flutter get _flutter => Flutter.instance;
-
   /// Return `true` if the given [element] is the method 'group' defined in the
   /// test package.
   bool isGroup(engine.ExecutableElement? element) {
@@ -478,14 +476,14 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (outlineComputer.withBasicFlutter && _flutter.isWidgetCreation(node)) {
+    if (outlineComputer.withBasicFlutter && Flutter.isWidgetCreation(node)) {
       var children = <Outline>[];
       node.argumentList
           .accept(_FunctionBodyOutlinesVisitor(outlineComputer, children));
 
       // The method `getWidgetPresentationText` should not return `null` when
       // `isWidgetCreation` returns `true`.
-      var text = _flutter.getWidgetPresentationText(node) ?? '<unknown>';
+      var text = Flutter.getWidgetPresentationText(node) ?? '<unknown>';
       var element = Element(ElementKind.CONSTRUCTOR_INVOCATION, text, 0,
           location: outlineComputer._getLocationOffsetLength(node.offset, 0));
 

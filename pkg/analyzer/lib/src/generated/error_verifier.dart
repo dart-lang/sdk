@@ -435,10 +435,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return;
       }
 
-      final declarationElement = augmented.declaration;
-      declarationElement as ClassElementImpl;
-
       _isInNativeClass = node.nativeClause != null;
+
+      final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
@@ -701,8 +700,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       final declarationElement = augmented.declaration;
-      declarationElement as ExtensionTypeElementImpl;
-
       _enclosingClass = declarationElement;
 
       _checkForBuiltInIdentifierAsName(node.name,
@@ -1072,8 +1069,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       final declarationElement = augmented.declaration;
-      declarationElement as MixinElementImpl;
-
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;

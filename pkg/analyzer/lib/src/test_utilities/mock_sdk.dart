@@ -1264,6 +1264,14 @@ class IOSink implements Sink<List<int>> {
   Future<dynamic> close() {}
 }
 
+class Platform {
+  @deprecated
+  static final bool isAndroid = (operatingSystem == "android");
+
+  @deprecated
+  static final String localHostname = 'hostname';
+}
+
 class ProcessStartMode {
   static const normal = const ProcessStartMode._internal(0);
   const ProcessStartMode._internal(int mode);

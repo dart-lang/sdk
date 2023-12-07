@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import "dart:_internal" show ClassID, patch, POWERS_OF_TEN, unsafeCast;
-import "dart:_js_string_convert";
-import "dart:_js_types";
+import 'dart:_internal' show ClassID, patch, POWERS_OF_TEN, unsafeCast;
 import 'dart:_js_helper' as js;
+import 'dart:_js_string_convert';
+import 'dart:_js_types';
 import 'dart:_wasm';
-
-import "dart:typed_data" show Uint8List, Uint16List;
+import 'dart:js_interop';
+import 'dart:typed_data' show Uint8List, Uint16List;
 
 @patch
 dynamic _parseJson(

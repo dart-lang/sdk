@@ -137,8 +137,7 @@ class DocumentColorPresentationHandler extends SharedMessageHandler<
         SourceRange(editStart.result, editEnd.result - editStart.result);
 
     final sessionHelper = AnalysisSessionHelper(unit.session);
-    final flutter = Flutter.instance;
-    final colorType = await sessionHelper.getClass(flutter.widgetsUri, 'Color');
+    final colorType = await sessionHelper.getClass(Flutter.widgetsUri, 'Color');
     if (colorType == null) {
       // If we can't find the class (perhaps because this isn't a Flutter
       // project) we will not include any results. In theory the client should

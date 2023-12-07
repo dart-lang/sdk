@@ -221,9 +221,6 @@ class SuggestionBuilder {
     targetPrefixLower = request.targetPrefix.toLowerCase();
   }
 
-  /// Return an object that can answer questions about Flutter code.
-  Flutter get flutter => Flutter.instance;
-
   /// Return an iterable that can be used to access the completion suggestions
   /// that have been built.
   Iterable<CompletionSuggestionBuilder> get suggestions =>
@@ -757,7 +754,7 @@ class SuggestionBuilder {
     var enclosingElement = method.enclosingElement;
     if (method.name == 'setState' &&
         enclosingElement is ClassElement &&
-        flutter.isExactState(enclosingElement)) {
+        Flutter.isExactState(enclosingElement)) {
       // TODO(brianwilkerson): Make this more efficient by creating the correct
       //  suggestion in the first place.
       // Find the line indentation.
@@ -830,8 +827,7 @@ class SuggestionBuilder {
     var element = parameter.enclosingElement;
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.instance
-          .isWidget(element.enclosingElement.augmented?.declaration)) {
+      if (Flutter.isWidget(element.enclosingElement.augmented?.declaration)) {
         var analysisOptions = request.analysisSession.analysisContext
             .getAnalysisOptionsForFile(
                 request.resourceProvider.getFile(request.path));

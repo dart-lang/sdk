@@ -59,11 +59,6 @@ class DataDriven extends MultiCorrectionProducer {
       return setsForTests;
     }
     var transformSets = TransformSetManager.instance.forLibrary(library);
-    final overrideSet = this.overrideSet;
-    if (overrideSet != null) {
-      transformSets =
-          transformSets.map((set) => set.applyOverrides(overrideSet)).toList();
-    }
     return transformSets;
   }
 }

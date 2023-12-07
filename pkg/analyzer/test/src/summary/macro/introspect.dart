@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
         ClassDeclarationsMacro,
         ConstructorDeclarationsMacro,
         ExtensionDeclarationsMacro,
+        ExtensionTypeDeclarationsMacro,
         FieldDeclarationsMacro,
         MethodDeclarationsMacro,
         MixinDeclarationsMacro {
@@ -48,6 +49,16 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeExtensionDeclaration(declaration);
+    });
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForExtensionType(
+    IntrospectableExtensionTypeDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeExtensionTypeDeclaration(declaration);
     });
   }
 
@@ -273,6 +284,22 @@ class _Printer {
     }
 
     sink.writelnWithIndent('extension ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+
+      await _writeTypeParameters(e.typeParameters);
+      await _writeNamedTypeAnnotation('onType', e.onType);
+      await _writeTypeDeclarationMembers(e);
+    });
+  }
+
+  Future<void> writeExtensionTypeDeclaration(ExtensionTypeDeclaration e) async {
+    if (!shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    sink.writelnWithIndent('extension type ${e.identifier.name}');
 
     await sink.withIndent(() async {
       await _writeMetadata(e);
