@@ -12,7 +12,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
   @override
   FutureOr<void> buildDefinitionForClass(
-    IntrospectableClassDeclaration clazz,
+    ClassDeclaration clazz,
     TypeDefinitionBuilder builder,
   ) async {
     final methods = await builder.methodsOf(clazz);

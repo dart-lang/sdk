@@ -25,10 +25,10 @@ class TestTypePhaseIntrospector implements TypePhaseIntrospector {
 
 class TestDeclarationPhaseIntrospector extends TestTypePhaseIntrospector
     implements DeclarationPhaseIntrospector {
-  final Map<IntrospectableType, List<ConstructorDeclaration>> constructors;
-  final Map<IntrospectableEnum, List<EnumValueDeclaration>> enumValues;
-  final Map<IntrospectableType, List<FieldDeclaration>> fields;
-  final Map<IntrospectableType, List<MethodDeclaration>> methods;
+  final Map<TypeDeclaration, List<ConstructorDeclaration>> constructors;
+  final Map<EnumDeclaration, List<EnumValueDeclaration>> enumValues;
+  final Map<TypeDeclaration, List<FieldDeclaration>> fields;
+  final Map<TypeDeclaration, List<MethodDeclaration>> methods;
   final Map<Library, List<TypeDeclaration>> libraryTypes;
   final Map<Identifier, StaticType> staticTypes;
   final Map<Identifier, Declaration> identifierDeclarations;
@@ -58,22 +58,22 @@ class TestDeclarationPhaseIntrospector extends TestTypePhaseIntrospector
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
-          covariant IntrospectableType type) async =>
+          covariant TypeDeclaration type) async =>
       constructors[type]!;
 
   @override
   Future<List<EnumValueDeclaration>> valuesOf(
-          covariant IntrospectableEnum enuum) async =>
+          covariant EnumDeclaration enuum) async =>
       enumValues[enuum]!;
 
   @override
   Future<List<FieldDeclaration>> fieldsOf(
-          covariant IntrospectableType clazz) async =>
+          covariant TypeDeclaration clazz) async =>
       fields[clazz]!;
 
   @override
   Future<List<MethodDeclaration>> methodsOf(
-          covariant IntrospectableType clazz) async =>
+          covariant TypeDeclaration clazz) async =>
       methods[clazz]!;
 
   @override
@@ -131,8 +131,8 @@ class TestDefinitionsPhaseIntrospector extends TestDeclarationPhaseIntrospector
       libraryDeclarations[library]!;
 
   @override
-  Future<IntrospectableType> typeDeclarationOf(Identifier identifier) async =>
-      (await super.typeDeclarationOf(identifier)) as IntrospectableType;
+  Future<TypeDeclaration> typeDeclarationOf(Identifier identifier) async =>
+      await super.typeDeclarationOf(identifier);
 }
 
 /// Knows its inferred type ahead of time.
@@ -479,7 +479,7 @@ class Fixtures {
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyClass'),
       isNullable: false,
       typeArguments: const []);
-  static final myClass = IntrospectableClassDeclarationImpl(
+  static final myClass = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myClassType.identifier,
       library: Fixtures.library,
@@ -531,7 +531,7 @@ class Fixtures {
       type: stringType,
       definingType: myClassType.identifier,
       isStatic: false);
-  static final myInterface = IntrospectableClassDeclarationImpl(
+  static final myInterface = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myInterfaceType.identifier,
       library: Fixtures.library,
@@ -563,7 +563,7 @@ class Fixtures {
       typeParameters: [],
       definingType: myClassType.identifier,
       isStatic: false);
-  static final mySuperclass = IntrospectableClassDeclarationImpl(
+  static final mySuperclass = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: mySuperclassType.identifier,
       library: Fixtures.library,
@@ -588,7 +588,7 @@ class Fixtures {
       isNullable: false,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
       typeArguments: []);
-  static final myEnum = IntrospectableEnumDeclarationImpl(
+  static final myEnum = EnumDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myEnumType.identifier,
       library: Fixtures.library,
@@ -630,7 +630,7 @@ class Fixtures {
       definingType: myEnum.identifier,
       isFactory: false);
 
-  static final myMixin = IntrospectableMixinDeclarationImpl(
+  static final myMixin = MixinDeclarationImpl(
     id: RemoteInstance.uniqueId,
     identifier: myMixinType.identifier,
     library: Fixtures.library,
@@ -658,7 +658,7 @@ class Fixtures {
       definingType: myMixinType.identifier,
       isStatic: false);
 
-  static final myExtension = IntrospectableExtensionDeclarationImpl(
+  static final myExtension = ExtensionDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyExtension'),
@@ -667,7 +667,7 @@ class Fixtures {
       typeParameters: [],
       onType: myClassType);
 
-  static final myExtensionType = IntrospectableExtensionTypeDeclarationImpl(
+  static final myExtensionType = ExtensionTypeDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyExtensionType'),

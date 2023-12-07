@@ -159,7 +159,7 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
             '$name.interfaces[$i]');
       }
     }
-    if (introspector != null && declaration is IntrospectableClassDeclaration) {
+    if (introspector != null) {
       List<FieldDeclaration> fieldsOf =
           await introspector.fieldsOf(declaration);
       expect(

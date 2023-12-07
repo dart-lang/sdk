@@ -6,8 +6,8 @@ import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 
-import '../executor.dart';
 import '../api.dart';
+import '../executor.dart';
 import 'response_impls.dart';
 
 abstract class TypeBuilderBase implements TypePhaseIntrospector, Builder {
@@ -155,21 +155,20 @@ abstract class DeclarationBuilderBase extends TypeBuilderBase
       introspector.typeDeclarationOf(identifier);
 
   @override
-  Future<List<ConstructorDeclaration>> constructorsOf(
-          IntrospectableType type) =>
+  Future<List<ConstructorDeclaration>> constructorsOf(TypeDeclaration type) =>
       introspector.constructorsOf(type);
 
   @override
   Future<List<EnumValueDeclaration>> valuesOf(
-          covariant IntrospectableEnumDeclaration enuum) =>
+          covariant EnumDeclaration enuum) =>
       introspector.valuesOf(enuum);
 
   @override
-  Future<List<FieldDeclaration>> fieldsOf(IntrospectableType type) =>
+  Future<List<FieldDeclaration>> fieldsOf(TypeDeclaration type) =>
       introspector.fieldsOf(type);
 
   @override
-  Future<List<MethodDeclaration>> methodsOf(IntrospectableType type) =>
+  Future<List<MethodDeclaration>> methodsOf(TypeDeclaration type) =>
       introspector.methodsOf(type);
 
   @override
@@ -253,14 +252,14 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
       introspector.topLevelDeclarationsOf(library);
 
   @override
-  Future<IntrospectableType> typeDeclarationOf(Identifier identifier) =>
+  Future<TypeDeclaration> typeDeclarationOf(Identifier identifier) =>
       introspector.typeDeclarationOf(identifier);
 }
 
 class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
     implements TypeDefinitionBuilder {
   /// The declaration this is a builder for.
-  final IntrospectableType declaration;
+  final TypeDeclaration declaration;
 
   TypeDefinitionBuilderImpl(
     this.declaration,
@@ -307,11 +306,10 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
 class EnumDefinitionBuilderImpl extends TypeDefinitionBuilderImpl
     implements EnumDefinitionBuilder {
   @override
-  IntrospectableEnumDeclaration get declaration =>
-      super.declaration as IntrospectableEnumDeclaration;
+  EnumDeclaration get declaration => super.declaration as EnumDeclaration;
 
   EnumDefinitionBuilderImpl(
-    IntrospectableEnumDeclaration super.declaration,
+    EnumDeclaration super.declaration,
     super.introspector, {
     super.parentEnumValueAugmentations,
     super.parentInterfaceAugmentations,
@@ -484,10 +482,9 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
 
   @override
   Future<TypeDefinitionBuilder> buildType(Identifier identifier) async {
-    IntrospectableType type = (await introspector
-                .topLevelDeclarationsOf(library))
+    TypeDeclaration type = (await introspector.topLevelDeclarationsOf(library))
             .firstWhere((declaration) => declaration.identifier == identifier)
-        as IntrospectableType;
+        as TypeDeclaration;
     return new TypeDefinitionBuilderImpl(type, introspector,
         parentTypeAugmentations: _typeAugmentations,
         parentLibraryAugmentations: _libraryAugmentations);

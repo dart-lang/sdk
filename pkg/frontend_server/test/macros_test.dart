@@ -67,7 +67,7 @@ macro class TestMacro implements ClassDeclarationsMacro {
 
   @override
   Future<void> buildDeclarationsForClass(
-      IntrospectableClassDeclaration clazz, MemberDeclarationBuilder builder) async {
+      ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
     builder.declareInType(DeclarationCode.fromString('int get x => 0;'));
   }
 }

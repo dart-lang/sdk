@@ -8,10 +8,10 @@ import 'dart:isolate';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 
 import '../api.dart';
+import '../executor.dart';
 import '../executor/introspection_impls.dart';
 import '../executor/protocol.dart';
 import '../executor/serialization.dart';
-import '../executor.dart';
 
 /// Base implementation for macro executors which communicate with some external
 /// process to run macros.
@@ -152,8 +152,8 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                 requestId = request.id;
                 DeclarationPhaseIntrospector introspector = request
                     .introspector.instance as DeclarationPhaseIntrospector;
-                result = new DeclarationList((await introspector.constructorsOf(
-                        request.declaration as IntrospectableType))
+                result = new DeclarationList((await introspector
+                        .constructorsOf(request.declaration as TypeDeclaration))
                     // TODO: Consider refactoring to avoid the need for this.
                     .cast<ConstructorDeclarationImpl>());
                 resultType = MessageType.declarationList;
@@ -177,7 +177,7 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                 DeclarationPhaseIntrospector introspector = request
                     .introspector.instance as DeclarationPhaseIntrospector;
                 result = new DeclarationList((await introspector
-                        .fieldsOf(request.declaration as IntrospectableType))
+                        .fieldsOf(request.declaration as TypeDeclaration))
                     // TODO: Consider refactoring to avoid the need for this.
                     .cast<FieldDeclarationImpl>());
                 resultType = MessageType.declarationList;
@@ -189,7 +189,7 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                 DeclarationPhaseIntrospector introspector = request
                     .introspector.instance as DeclarationPhaseIntrospector;
                 result = new DeclarationList((await introspector
-                        .methodsOf(request.declaration as IntrospectableType))
+                        .methodsOf(request.declaration as TypeDeclaration))
                     // TODO: Consider refactoring to avoid the need for this.
                     .cast<MethodDeclarationImpl>());
                 resultType = MessageType.declarationList;
@@ -213,7 +213,7 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                 DeclarationPhaseIntrospector introspector = request
                     .introspector.instance as DeclarationPhaseIntrospector;
                 result = new DeclarationList((await introspector
-                        .valuesOf(request.declaration as IntrospectableEnum))
+                        .valuesOf(request.declaration as EnumDeclaration))
                     // TODO: Consider refactoring to avoid the need for this.
                     .cast<EnumValueDeclarationImpl>());
                 resultType = MessageType.declarationList;

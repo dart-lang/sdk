@@ -106,7 +106,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     if (forSuperClass) {
       final superIdentifier = declaration.superclass!.identifier;
       final superType = await builder.typeDeclarationOf(superIdentifier);
-      superType as IntrospectableClassDeclaration;
+      superType as ClassDeclaration;
       methods = await builder.methodsOf(superType);
     } else {
       methods = await builder.methodsOf(declaration);
