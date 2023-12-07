@@ -1171,6 +1171,7 @@ CompileTimeErrorCode:
   AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE:
     problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
     correctionMessage: Try removing the `await`, or updating the extension type to implement 'Future'.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5182,6 +5183,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
     problemMessage: "Extension type constructors can't declare super formal parameters."
     correctionMessage: Try removing the super formal parameter declaration.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5222,6 +5224,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
     problemMessage: Extension type constructors can't include super initializers.
     correctionMessage: Try removing the super constructor invocation.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5254,6 +5257,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
     problemMessage: "Extension types can't declare instance fields."
     correctionMessage: Try replacing the field with a getter.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5297,6 +5301,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
     problemMessage: "Extension types can't declare members with the same name as a member declared by 'Object'."
     correctionMessage: Try specifying a different name for the member.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5336,6 +5341,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
     problemMessage: "Extension types can't implement '{0}'."
     correctionMessage: Try specifying a different type, or remove the type from the list.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the display string of the disallowed type
@@ -5364,6 +5370,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_IMPLEMENTS_ITSELF:
     problemMessage: "The extension type can't implement itself."
     correctionMessage: Try removing the superinterface that references this extension type.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5402,6 +5409,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
     problemMessage: "'{0}' is not a supertype of '{1}', the representation type."
     correctionMessage: Try specifying a different type, or remove the type from the list.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the implemented not extension type
@@ -5440,6 +5448,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
     problemMessage: "'{0}', the representation type of '{1}', is not a supertype of '{2}', the representation type of '{3}'."
     correctionMessage: Try specifying a different type, or remove the type from the list.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the representation type of the implemented extension type
@@ -5488,6 +5497,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
     problemMessage: "The extension type '{0}' has more than one distinct member named '{1}' from implemented types."
     correctionMessage: Try redeclaring the corresponding member in this extension type.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the extension type
@@ -5551,6 +5561,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
     problemMessage: "The extension type representation can't depend on itself."
     correctionMessage: Try specifying a different type.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5595,6 +5606,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM:
     problemMessage: "The representation type can't be a bottom type."
     correctionMessage: Try specifying a different type.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5623,6 +5635,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
     problemMessage: "'{0}' must have a method body because '{1}' is an extension type."
     correctionMessage: "Try adding a body to '{0}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the abstract method
@@ -11568,6 +11581,7 @@ CompileTimeErrorCode:
   NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
     problemMessage: "An extension type parameter can't be used in a non-covariant position of its representation type."
     correctionMessage: "Try removing the type parameters from function parameter types and type parameter bounds."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -15751,6 +15765,7 @@ CompileTimeErrorCode:
       ```
   SUPER_IN_EXTENSION_TYPE:
     problemMessage: "The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -21181,7 +21196,7 @@ PubspecWarningCode:
   ASSET_MISSING_PATH:
     problemMessage: "Asset map entry must contain a 'path' field."
     correctionMessage: "Try adding a 'path' field."
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -21260,7 +21275,7 @@ PubspecWarningCode:
   ASSET_NOT_STRING_OR_MAP:
     problemMessage: An asset value is required to be a file path (string) or map.
     correctionMessage: Try converting the value to be a string or map.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -21309,7 +21324,7 @@ PubspecWarningCode:
   ASSET_PATH_NOT_STRING:
     problemMessage: Asset paths are required to be file paths (strings).
     correctionMessage: Try converting the value to be a string.
-    hasPublishedDocs: false
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -24905,6 +24920,7 @@ WarningCode:
   REDECLARE_ON_NON_REDECLARING_MEMBER:
     problemMessage: "The {0} doesn't redeclare a {0} declared in a superinterface."
     correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.
+    hasPublishedDocs: true
     comment: |-
       An error code indicating the use of a redeclare annotation on a member that does not redeclare.
 
