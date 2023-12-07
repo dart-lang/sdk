@@ -392,7 +392,8 @@ class CompileWasmCommand extends CompileSubcommandCommand {
   static const String help =
       'Compile Dart to a WebAssembly/WasmGC module (EXPERIMENTAL).';
 
-  final String optimizer = path.join(binDir.path, 'utils', 'wasm-opt');
+  final String optimizer = path.join(
+      binDir.path, 'utils', Platform.isWindows ? 'wasm-opt.exe' : 'wasm-opt');
   String optimizerFlags(bool outputNames) =>
       '-all --closed-world -tnh --type-unfinalizing -O3 --type-ssa'
       ' --gufa -O3 --type-merging -O1 --type-finalizing'
