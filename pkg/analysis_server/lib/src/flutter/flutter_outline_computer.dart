@@ -19,8 +19,6 @@ class FlutterOutlineComputer {
 
   FlutterOutlineComputer(this.resolvedUnit);
 
-  Flutter get _flutter => Flutter.instance;
-
   protocol.FlutterOutline compute() {
     var dartOutline = DartUnitOutlineComputer(
       resolvedUnit,
@@ -132,7 +130,7 @@ class FlutterOutlineComputer {
   /// a widget reference outline item.
   protocol.FlutterOutline? _createOutline(Expression node, bool withGeneric) {
     var type = node.staticType;
-    if (type is! InterfaceType || !_flutter.isWidgetType(type)) {
+    if (type is! InterfaceType || !Flutter.isWidgetType(type)) {
       return null;
     }
     var className = type.element.displayName;
@@ -142,9 +140,9 @@ class FlutterOutlineComputer {
       var children = <protocol.FlutterOutline>[];
       for (var argument in node.argumentList.arguments) {
         var argumentType = argument.staticType;
-        var isWidgetArgument = _flutter.isWidgetType(argumentType);
+        var isWidgetArgument = Flutter.isWidgetType(argumentType);
         var isWidgetListArgument =
-            argumentType != null && _flutter.isListOfWidgetsType(argumentType);
+            argumentType != null && Flutter.isListOfWidgetsType(argumentType);
 
         String? parentAssociationLabel;
         Expression childrenExpression;

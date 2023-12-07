@@ -7,7 +7,6 @@ import 'dart:math' as math;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -548,8 +547,6 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   String get eol => utils.endOfLine;
 
   String get file => _context.file;
-
-  Flutter get flutter => Flutter.instance;
 
   /// See [CompilationUnitImpl.invalidNodes]
   List<AstNode> get invalidNodes {

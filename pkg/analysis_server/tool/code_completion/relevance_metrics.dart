@@ -305,7 +305,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var context = _argumentListContext(node);
     var parent = node.parent;
     var inWidgetConstructor = parent is InstanceCreationExpression &&
-        Flutter.instance.isWidgetType(parent.staticType);
+        Flutter.isWidgetType(parent.staticType);
     for (var argument in node.arguments) {
       var realArgument = argument;
       var argumentKind = 'unnamed';

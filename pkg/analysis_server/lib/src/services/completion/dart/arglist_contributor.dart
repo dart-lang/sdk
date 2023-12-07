@@ -212,11 +212,10 @@ class ArgListContributor extends DartCompletionContributor {
   }
 
   bool _isInFlutterCreation() {
-    var flutter = Flutter.instance;
     var containingNode = request.target.containingNode;
     var parent = containingNode.parent;
-    var newExpr = parent != null ? flutter.identifyNewExpression(parent) : null;
-    return newExpr != null && flutter.isWidgetCreation(newExpr);
+    var newExpr = parent != null ? Flutter.identifyNewExpression(parent) : null;
+    return newExpr != null && Flutter.isWidgetCreation(newExpr);
   }
 
   /// Return `true` if the completion target is in the middle or beginning of

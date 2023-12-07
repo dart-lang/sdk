@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -85,9 +86,9 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
         hasTrailingComma = lastArgument.endToken.next!.type == TokenType.COMMA;
 
         if (lastArgument is NamedExpression &&
-            flutter.isWidgetExpression(creation)) {
-          if (flutter.isChildArgument(lastArgument) ||
-              flutter.isChildrenArgument(lastArgument)) {
+            Flutter.isWidgetExpression(creation)) {
+          if (Flutter.isChildArgument(lastArgument) ||
+              Flutter.isChildrenArgument(lastArgument)) {
             offset = lastArgument.offset;
             hasTrailingComma = true;
             insertBetweenParams = true;
@@ -124,7 +125,7 @@ class AddMissingRequiredArgument extends ResolvedCorrectionProducer {
             builder.addSimpleLinkedEdit('VALUE', 'null');
           }
 
-          if (flutter.isWidgetExpression(creation)) {
+          if (Flutter.isWidgetExpression(creation)) {
             // Insert a trailing comma after Flutter instance creation params.
             if (!hasTrailingComma) {
               builder.write(',');

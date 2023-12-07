@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/abstract_producer.d
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -92,8 +93,8 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
       variableLists: variableLists,
     );
 
-    if (flutter.isExactlyStatelessWidgetType(superType) ||
-        flutter.isExactlyStatefulWidgetType(superType)) {
+    if (Flutter.isExactlyStatelessWidgetType(superType) ||
+        Flutter.isExactlyStatefulWidgetType(superType)) {
       await _forFlutterClass(fixContext);
     } else {
       await _notFlutter(
@@ -173,7 +174,7 @@ class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   Future<void> _forFlutterWithoutSuperParameters(
     _FixContext fixContext,
   ) async {
-    final keyClass = await sessionHelper.getClass(flutter.widgetsUri, 'Key');
+    final keyClass = await sessionHelper.getClass(Flutter.widgetsUri, 'Key');
     if (keyClass == null) {
       return;
     }
