@@ -330,7 +330,17 @@ void OS::PrintErr(const char* format, ...) {
   va_end(args);
 }
 
-void OS::Init() {}
+void OS::Init() {
+  // Before Android 8 (Oreo), `localtime_r` did not set the timezone name,
+  // UTC offset, or whether or not it is daylight savings time.
+  //
+  // Call `tzset` to set those values.
+  //
+  // N.B. Users running Android 7 or earlier will not see timezone updates
+  // (e.g. through `OS::GetTimeZoneName`) made while the application is
+  // running.
+  tzset();
+}
 
 void OS::Cleanup() {}
 
