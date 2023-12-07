@@ -510,6 +510,7 @@ class TypeSystemOperations
   @override
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
       covariant ExecutableElement property) {
+    if (property.isPublic) return PropertyNonPromotabilityReason.isNotPrivate;
     if (property is! PropertyAccessorElement) {
       return PropertyNonPromotabilityReason.isNotField;
     }
@@ -523,7 +524,6 @@ class TypeSystemOperations
       return PropertyNonPromotabilityReason.isNotField;
     }
     if (field.isPromotable) return null;
-    if (field.isPublic) return PropertyNonPromotabilityReason.isNotPrivate;
     if (field.isExternal) return PropertyNonPromotabilityReason.isExternal;
     if (!field.isFinal) return PropertyNonPromotabilityReason.isNotFinal;
     // Non-promotion reason must be due to a conflict with some other

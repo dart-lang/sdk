@@ -54,8 +54,8 @@ void testPublicField(C c) {
 void testPrivateAbstractGetter(C c) {
   if (c._privateAbstractGetter != null) {
     var x = c._privateAbstractGetter;
-    // `x` has type `int?` so this is ok
-    x = null;
+    // `x` has type `int` so this is ok
+    acceptsInt(x);
   }
 }
 

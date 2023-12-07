@@ -5704,14 +5704,17 @@ Message _withArgumentsFieldNotPromotedBecauseNotFinal(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name, String string)>
-    templateFieldNotPromotedBecauseNotPrivate =
-    const Template<Message Function(String name, String string)>(
-        "FieldNotPromotedBecauseNotPrivate",
-        problemMessageTemplate:
-            r"""'#name' refers to a public field so it couldn't be promoted.""",
-        correctionMessageTemplate: r"""See #string""",
-        withArguments: _withArgumentsFieldNotPromotedBecauseNotPrivate);
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateFieldNotPromotedBecauseNotPrivate = const Template<
+        Message Function(String name, String string)>(
+    "FieldNotPromotedBecauseNotPrivate",
+    problemMessageTemplate:
+        r"""'#name' refers to a public property so it couldn't be promoted.""",
+    correctionMessageTemplate: r"""See #string""",
+    withArguments: _withArgumentsFieldNotPromotedBecauseNotPrivate);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name, String string)>
@@ -5728,7 +5731,7 @@ Message _withArgumentsFieldNotPromotedBecauseNotPrivate(
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeFieldNotPromotedBecauseNotPrivate,
       problemMessage:
-          """'${name}' refers to a public field so it couldn't be promoted.""",
+          """'${name}' refers to a public property so it couldn't be promoted.""",
       correctionMessage: """See ${string}""",
       arguments: {'name': name, 'string': string});
 }

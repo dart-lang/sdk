@@ -222,16 +222,16 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
   ///
   /// [isAbstract] indicates whether the getter is abstract.
   ///
-  /// Note that unlike [addField], this method does not return a
-  /// [PropertyNonPromotabilityReason]. The caller may safely assume that the
-  /// reason that getters are not promotable is
-  /// [PropertyNonPromotabilityReason.isNotField].
-  void addGetter(ClassInfo<Class> classInfo, Getter getter, String name,
+  /// A return value of `null` indicates that this getter *might* wind up being
+  /// promotable; any other return value indicates the reason why it
+  /// *definitely* isn't promotable.
+  PropertyNonPromotabilityReason? addGetter(
+      ClassInfo<Class> classInfo, Getter getter, String name,
       {required bool isAbstract}) {
     // Public fields are never promotable, so we may safely ignore getters with
     // public names.
     if (!name.startsWith('_')) {
-      return;
+      return PropertyNonPromotabilityReason.isNotPrivate;
     }
 
     // Record the getter name for later use in computation of `noSuchMethod`
@@ -242,6 +242,10 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
 
       // The getter is concrete, so no fields with the same name are promotable.
       _fieldNonPromoInfo(name).conflictingGetters.add(getter);
+
+      return PropertyNonPromotabilityReason.isNotField;
+    } else {
+      return null;
     }
   }
 

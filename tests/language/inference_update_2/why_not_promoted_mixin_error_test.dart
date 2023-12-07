@@ -34,14 +34,14 @@ mixin M {
   // [context 43] '_notField' refers to a getter so it couldn't be promoted.
   final int? notPrivate = 0;
   //         ^^^^^^^^^^
-  // [context 2] 'notPrivate' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 8] 'notPrivate' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 14] 'notPrivate' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 20] 'notPrivate' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 26] 'notPrivate' refers to a public field so it couldn't be promoted.
-  // [context 32] 'notPrivate' refers to a public field so it couldn't be promoted.
-  // [context 38] 'notPrivate' refers to a public field so it couldn't be promoted.
-  // [context 44] 'notPrivate' refers to a public field so it couldn't be promoted.
+  // [context 2] 'notPrivate' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 8] 'notPrivate' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 14] 'notPrivate' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 20] 'notPrivate' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 26] 'notPrivate' refers to a public property so it couldn't be promoted.
+  // [context 32] 'notPrivate' refers to a public property so it couldn't be promoted.
+  // [context 38] 'notPrivate' refers to a public property so it couldn't be promoted.
+  // [context 44] 'notPrivate' refers to a public property so it couldn't be promoted.
   int? _notFinal = 0;
   //   ^^^^^^^^^
   // [context 3] '_notFinal' refers to a non-final field so it couldn't be promoted.  See http://dart.dev/go/non-promo-non-final-field

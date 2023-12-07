@@ -533,10 +533,6 @@ class OperationsCfe
         // We don't promote methods.
         return false;
       }
-      if (property.isAbstract && !property.isAbstractFieldAccessor) {
-        // We don't promote direct references to abstract getter declarations.
-        return false;
-      }
     }
     String name = property.name.text;
     if (!name.startsWith('_')) return false;

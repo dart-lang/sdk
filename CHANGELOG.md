@@ -1,5 +1,49 @@
 ## 3.3.0
 
+### Language
+
+- **Breaking Change** [#54056][]: The rules for private field promotion have
+  been changed so that an abstract getter is considered promotable if there are
+  no conflicting declarations (i.e., there are no non-final fields, external
+  fields, concrete getters, or `noSuchMethod` forwarding getters with the same
+  name in the same library). This makes the implementation more consistent and
+  allows type promotion in a few rare scenarios where it wasn't prevoiusly
+  allowed. It is unlikely, but this change could in principle cause a breakage
+  by changing an inferred type in a way that breaks later code. For example:
+
+  ```dart
+  class A {
+    int? get _field;
+  }
+  class B extends A {
+    final int? _field;
+    B(this._field);
+  }
+  test(A a) {
+    if (a._field != null) {
+      var x = a._field; // Previously had type `int?`; now has type `int`
+      ...
+      x = null; // Previously allowed; now causes a compile-time error.
+    }
+  }
+  ```
+
+  Affected code can be fixed by adding an explicit type annotation (e.g., in the
+  above example `var x` can be changed to `int? x`).
+
+  It's also possible that some continuous integration configurations might fail
+  if they have been configured to treat warnings as errors, because the expanded
+  type promotion could lead to one of the following warnings:
+
+  - unnecessary_non_null_assertion
+  - unnecessary_cast
+  - invalid_null_aware_operator
+
+  These warnings can be addressed in the usual way, by removing the unnecessary
+  operation in the first two cases, or changing `?.` to `.` in the second case.
+
+[#54056]: https://github.com/dart-lang/sdk/issues/54056
+
 ### Libraries
 
 #### `dart:core`

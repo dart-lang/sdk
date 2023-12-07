@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Tests that field promotion logic does not try to promote abstract getters.
+// Tests that field promotion logic allows promotion of abstract getters.
+//
+// See https://github.com/dart-lang/language/issues/3328 for the rationale for
+// allowing this.
 
 // SharedOptions=--enable-experiment=inference-update-2
 
@@ -21,8 +24,8 @@ void acceptsInt(int x) {}
 void testBaseClass(C c) {
   if (c._f != null) {
     var x = c._f;
-    // `x` has type `int?` so this is ok
-    x = null;
+    // `x` has type `int` so this is ok
+    acceptsInt(x);
   }
 }
 

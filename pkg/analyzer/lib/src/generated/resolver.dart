@@ -5279,7 +5279,7 @@ class _WhyNotPromotedVisitor
         PropertyNonPromotabilityReason.isNotField =>
           "'$propertyName' refers to a getter so it couldn't be promoted.",
         PropertyNonPromotabilityReason.isNotPrivate =>
-          "'$propertyName' refers to a public field so it couldn't be "
+          "'$propertyName' refers to a public property so it couldn't be "
               "promoted.",
         PropertyNonPromotabilityReason.isExternal =>
           "'$propertyName' refers to an external field so it couldn't be "
