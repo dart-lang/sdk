@@ -1259,7 +1259,7 @@ List<NonSimplicityIssue> convertRawTypeCyclesIntoIssues(
     if (cycle.length == 1) {
       // Loop.
       issues.add(new NonSimplicityIssue(
-          cycle.single.typeVariable!,
+          declaration,
           templateBoundIssueViaLoopNonSimplicity
               .withArguments(cycle.single.type.declaration!.name),
           null));
