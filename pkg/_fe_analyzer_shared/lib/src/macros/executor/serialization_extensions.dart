@@ -344,7 +344,7 @@ extension DeserializerExtensions on Deserializer {
         library: RemoteInstance.deserialize(this),
         metadata: (this..moveNext())._expectRemoteInstanceList(),
         typeParameters: (this..moveNext())._expectRemoteInstanceList(),
-        onType: RemoteInstance.deserialize(this),
+        representationType: RemoteInstance.deserialize(this),
       );
 
   TypeAliasDeclarationImpl _expectTypeAliasDeclaration(int id) =>

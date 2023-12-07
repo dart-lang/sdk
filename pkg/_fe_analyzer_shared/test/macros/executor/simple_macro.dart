@@ -670,8 +670,10 @@ class LibraryInfo {
   @override
   FutureOr<void> buildTypesForExtensionType(
       ExtensionTypeDeclaration extensionType, TypeBuilder builder) {
-    final onType = extensionType.onType as NamedTypeAnnotation;
-    final name = '${extensionType.identifier.name}On${onType.identifier.name}';
+    final representationType =
+        extensionType.representationType as NamedTypeAnnotation;
+    final name = '${extensionType.identifier.name}On'
+        '${representationType.identifier.name}';
     builder.declareType(name, DeclarationCode.fromString('class $name {}'));
   }
 
@@ -703,9 +705,9 @@ class LibraryInfo {
         .singleWhere((m) => m.identifier.name == 'onTypeFieldNames')
         .identifier);
 
-    // Introspect on our `on` type.
+    // Introspect on our "representation" type.
     final onType = (await builder.typeDeclarationOf(
-        (extensionType.onType as NamedTypeAnnotation).identifier));
+        (extensionType.representationType as NamedTypeAnnotation).identifier));
     final onTypeFields = await builder.fieldsOf(onType);
 
     getterBuilder.augment(FunctionBodyCode.fromParts([
