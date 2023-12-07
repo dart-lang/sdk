@@ -1,10 +1,5 @@
 include: package:lints/recommended.yaml
 
-analyzer:
-  errors:
-    # TODO: We need to address two instances in lib/src/vm_service.dart (#53601).
-    use_super_parameters: ignore
-
 linter:
   rules:
     # still 5 errors in lib/src/vm_service.dart

@@ -7227,7 +7227,7 @@ class Response {
 
   Response();
 
-  Response._fromJson(this.json);
+  Response._fromJson(Map<String, dynamic> this.json);
 
   String get type => 'Response';
 
@@ -7852,7 +7852,7 @@ class Success extends Response {
 
   Success();
 
-  Success._fromJson(Map<String, dynamic> json) : super._fromJson(json);
+  Success._fromJson(super.json) : super._fromJson();
 
   @override
   String get type => 'Success';
@@ -7930,7 +7930,7 @@ class TimelineEvent {
 
   TimelineEvent();
 
-  TimelineEvent._fromJson(this.json);
+  TimelineEvent._fromJson(Map<String, dynamic> this.json);
 
   Map<String, dynamic> toJson() {
     final localJson = json;
@@ -8134,8 +8134,7 @@ class TypeParametersRef extends ObjRef {
           id: id,
         );
 
-  TypeParametersRef._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json);
+  TypeParametersRef._fromJson(super.json) : super._fromJson();
 
   @override
   String get type => '@TypeParameters';
