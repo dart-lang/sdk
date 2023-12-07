@@ -1203,6 +1203,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
       positionalFields: positionalFields,
       namedFields: namedFields,
       nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
     );
   }
 
