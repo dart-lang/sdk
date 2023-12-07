@@ -806,7 +806,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
-    covariant macro.IntrospectableType type,
+    covariant macro.TypeDeclaration type,
   ) async {
     final element = (type as HasElement).element;
     if (element case InterfaceElement(:final augmented?)) {
@@ -820,7 +820,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.FieldDeclaration>> fieldsOf(
-    macro.IntrospectableType type,
+    macro.TypeDeclaration type,
   ) async {
     final element = (type as HasElement).element;
     if (element case InstanceElement(:final augmented?)) {
@@ -836,7 +836,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.MethodDeclaration>> methodsOf(
-    macro.IntrospectableType type,
+    macro.TypeDeclaration type,
   ) async {
     final element = (type as HasElement).element;
     if (element case InstanceElement(:final augmented?)) {
@@ -873,7 +873,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.EnumValueDeclaration>> valuesOf(
-      covariant macro.IntrospectableEnum type) {
+      covariant macro.EnumDeclaration type) {
     // TODO(jakemac): implement valuesOf
     throw UnimplementedError();
   }
@@ -934,12 +934,10 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   }
 
   @override
-  Future<macro.IntrospectableType> typeDeclarationOf(
+  Future<macro.TypeDeclaration> typeDeclarationOf(
     macro.Identifier identifier,
   ) async {
-    final result = await super.typeDeclarationOf(identifier);
-    result as macro.IntrospectableType;
-    return result;
+    return await super.typeDeclarationOf(identifier);
   }
 }
 

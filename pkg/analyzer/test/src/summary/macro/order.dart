@@ -74,7 +74,6 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
       clazz.interfaces.map(
         (interface) async {
           final type = await builder.typeDeclarationOf(interface.identifier);
-          type as IntrospectableType;
           return await builder.methodsOf(type);
         },
       ),

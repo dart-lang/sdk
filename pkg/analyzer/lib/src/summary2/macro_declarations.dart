@@ -18,6 +18,31 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
 
+class ClassDeclarationImpl extends macro.ClassDeclarationImpl
+    implements HasElement {
+  @override
+  final ClassElementImpl element;
+
+  ClassDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.typeParameters,
+    required super.interfaces,
+    required super.hasAbstract,
+    required super.hasBase,
+    required super.hasFinal,
+    required super.hasExternal,
+    required super.hasInterface,
+    required super.hasMixin,
+    required super.hasSealed,
+    required super.mixins,
+    required super.superclass,
+    required this.element,
+  });
+}
+
 class ConstructorDeclarationImpl extends macro.ConstructorDeclarationImpl
     implements HasElement {
   @override
@@ -231,11 +256,9 @@ class DeclarationBuilderFromElement {
 
   final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
-  final Map<ClassElement, IntrospectableClassDeclarationImpl> _classMap =
-      Map.identity();
+  final Map<ClassElement, ClassDeclarationImpl> _classMap = Map.identity();
 
-  final Map<MixinElement, IntrospectableMixinDeclarationImpl> _mixinMap =
-      Map.identity();
+  final Map<MixinElement, MixinDeclarationImpl> _mixinMap = Map.identity();
 
   final Map<ConstructorElement, ConstructorDeclarationImpl> _constructorMap =
       Map.identity();
@@ -250,10 +273,10 @@ class DeclarationBuilderFromElement {
 
   DeclarationBuilderFromElement(this.declarationBuilder);
 
-  macro.IntrospectableClassDeclarationImpl classElement(
+  macro.ClassDeclarationImpl classElement(
     ClassElementImpl element,
   ) {
-    return _classMap[element] ??= _introspectableClassElement(element);
+    return _classMap[element] ??= _classElement(element);
   }
 
   ConstructorDeclarationImpl constructorElement(
@@ -300,10 +323,10 @@ class DeclarationBuilderFromElement {
     return _methodMap[element] ??= _methodElement(element);
   }
 
-  macro.IntrospectableMixinDeclarationImpl mixinElement(
+  macro.MixinDeclarationImpl mixinElement(
     MixinElementImpl element,
   ) {
-    return _mixinMap[element] ??= _introspectableMixinElement(element);
+    return _mixinMap[element] ??= _mixinElement(element);
   }
 
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
@@ -325,6 +348,29 @@ class DeclarationBuilderFromElement {
 
   List<macro.MetadataAnnotationImpl> _buildMetadata(Element element) {
     return declarationBuilder._buildMetadata(element);
+  }
+
+  ClassDeclarationImpl _classElement(
+    ClassElementImpl element,
+  ) {
+    return ClassDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      interfaces: element.interfaces.map(_interfaceType).toList(),
+      hasAbstract: element.isAbstract,
+      hasBase: element.isBase,
+      hasExternal: false,
+      hasFinal: element.isFinal,
+      hasInterface: element.isInterface,
+      hasMixin: element.isMixinClass,
+      hasSealed: element.isSealed,
+      mixins: element.mixins.map(_interfaceType).toList(),
+      superclass: element.supertype.mapOrNull(_interfaceType),
+      element: element,
+    );
   }
 
   ConstructorDeclarationImpl _constructorElement(
@@ -410,46 +456,6 @@ class DeclarationBuilderFromElement {
     );
   }
 
-  IntrospectableClassDeclarationImpl _introspectableClassElement(
-    ClassElementImpl element,
-  ) {
-    return IntrospectableClassDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: identifier(element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
-      interfaces: element.interfaces.map(_interfaceType).toList(),
-      hasAbstract: element.isAbstract,
-      hasBase: element.isBase,
-      hasExternal: false,
-      hasFinal: element.isFinal,
-      hasInterface: element.isInterface,
-      hasMixin: element.isMixinClass,
-      hasSealed: element.isSealed,
-      mixins: element.mixins.map(_interfaceType).toList(),
-      superclass: element.supertype.mapOrNull(_interfaceType),
-      element: element,
-    );
-  }
-
-  IntrospectableMixinDeclarationImpl _introspectableMixinElement(
-    MixinElementImpl element,
-  ) {
-    return IntrospectableMixinDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: identifier(element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
-      hasBase: element.isBase,
-      interfaces: element.interfaces.map(_interfaceType).toList(),
-      superclassConstraints:
-          element.superclassConstraints.map(_interfaceType).toList(),
-      element: element,
-    );
-  }
-
   MethodDeclarationImpl _methodElement(ExecutableElementImpl element) {
     final enclosing = element.enclosingInstanceElement;
     return MethodDeclarationImpl._(
@@ -469,6 +475,23 @@ class DeclarationBuilderFromElement {
       returnType: _dartType(element.returnType),
       typeParameters: element.typeParameters.map(_typeParameter).toList(),
       definingType: identifier(enclosing),
+    );
+  }
+
+  MixinDeclarationImpl _mixinElement(
+    MixinElementImpl element,
+  ) {
+    return MixinDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      hasBase: element.isBase,
+      interfaces: element.interfaces.map(_interfaceType).toList(),
+      superclassConstraints:
+          element.superclassConstraints.map(_interfaceType).toList(),
+      element: element,
     );
   }
 
@@ -512,10 +535,46 @@ class DeclarationBuilderFromNode {
 
   DeclarationBuilderFromNode(this.declarationBuilder);
 
-  macro.ClassDeclarationImpl classDeclaration(
+  ClassDeclarationImpl classDeclaration(
     ast.ClassDeclarationImpl node,
   ) {
-    return _introspectableClassDeclaration(node);
+    final element = node.declaredElement!;
+
+    final interfaceNodes = <ast.NamedType>[];
+    final mixinNodes = <ast.NamedType>[];
+    for (var current = node;;) {
+      if (current.implementsClause case final clause?) {
+        interfaceNodes.addAll(clause.interfaces);
+      }
+      if (current.withClause case final clause?) {
+        mixinNodes.addAll(clause.mixinTypes);
+      }
+      final nextElement = current.declaredElement?.augmentation;
+      final nextNode = declarationBuilder.nodeOfElement(nextElement);
+      if (nextNode is! ast.ClassDeclarationImpl) {
+        break;
+      }
+      current = nextNode;
+    }
+
+    return ClassDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: _typeParameters(node.typeParameters),
+      interfaces: _namedTypes(interfaceNodes),
+      hasAbstract: node.abstractKeyword != null,
+      hasBase: node.baseKeyword != null,
+      hasExternal: false,
+      hasFinal: node.finalKeyword != null,
+      hasInterface: node.interfaceKeyword != null,
+      hasMixin: node.mixinKeyword != null,
+      hasSealed: node.sealedKeyword != null,
+      mixins: _namedTypes(mixinNodes),
+      superclass: node.extendsClause?.superclass.mapOrNull(_namedType),
+      element: element,
+    );
   }
 
   macro.ConstructorDeclarationImpl constructorDeclaration(
@@ -546,16 +605,36 @@ class DeclarationBuilderFromNode {
     );
   }
 
-  macro.ExtensionDeclarationImpl extensionDeclaration(
+  ExtensionDeclarationImpl extensionDeclaration(
     ast.ExtensionDeclarationImpl node,
   ) {
-    return _introspectableExtensionDeclaration(node);
+    final element = node.declaredElement!;
+
+    return ExtensionDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier2(node.name?.lexeme ?? '', element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: _typeParameters(node.typeParameters),
+      onType: _typeAnnotation(node.extendedType),
+      element: element,
+    );
   }
 
-  macro.ExtensionTypeDeclarationImpl extensionTypeDeclaration(
+  ExtensionTypeDeclarationImpl extensionTypeDeclaration(
     ast.ExtensionTypeDeclarationImpl node,
   ) {
-    return _introspectableExtensionTypeDeclaration(node);
+    final element = node.declaredElement!;
+
+    return ExtensionTypeDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier2(node.name.lexeme, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: _typeParameters(node.typeParameters),
+      onType: _typeAnnotation(node.representation.fieldType),
+      element: element,
+    );
   }
 
   macro.LibraryImpl library(Element element) {
@@ -586,10 +665,39 @@ class DeclarationBuilderFromNode {
     return _methodDeclaration(node);
   }
 
-  macro.MixinDeclarationImpl mixinDeclaration(
+  MixinDeclarationImpl mixinDeclaration(
     ast.MixinDeclarationImpl node,
   ) {
-    return _introspectableMixinDeclaration(node);
+    final element = node.declaredElement!;
+
+    final onNodes = <ast.NamedType>[];
+    final interfaceNodes = <ast.NamedType>[];
+    for (var current = node;;) {
+      if (current.onClause case final clause?) {
+        onNodes.addAll(clause.superclassConstraints);
+      }
+      if (current.implementsClause case final clause?) {
+        interfaceNodes.addAll(clause.interfaces);
+      }
+      final nextElement = current.declaredElement?.augmentation;
+      final nextNode = declarationBuilder.nodeOfElement(nextElement);
+      if (nextNode is! ast.MixinDeclarationImpl) {
+        break;
+      }
+      current = nextNode;
+    }
+
+    return MixinDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: _typeParameters(node.typeParameters),
+      hasBase: node.baseKeyword != null,
+      interfaces: _namedTypes(interfaceNodes),
+      superclassConstraints: _namedTypes(onNodes),
+      element: element,
+    );
   }
 
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
@@ -727,116 +835,6 @@ class DeclarationBuilderFromNode {
       metadata: _buildMetadata(element),
       name: node.name?.lexeme,
       type: typeAnnotation,
-    );
-  }
-
-  IntrospectableClassDeclarationImpl _introspectableClassDeclaration(
-    ast.ClassDeclarationImpl node,
-  ) {
-    final element = node.declaredElement!;
-
-    final interfaceNodes = <ast.NamedType>[];
-    final mixinNodes = <ast.NamedType>[];
-    for (var current = node;;) {
-      if (current.implementsClause case final clause?) {
-        interfaceNodes.addAll(clause.interfaces);
-      }
-      if (current.withClause case final clause?) {
-        mixinNodes.addAll(clause.mixinTypes);
-      }
-      final nextElement = current.declaredElement?.augmentation;
-      final nextNode = declarationBuilder.nodeOfElement(nextElement);
-      if (nextNode is! ast.ClassDeclarationImpl) {
-        break;
-      }
-      current = nextNode;
-    }
-
-    return IntrospectableClassDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: _declaredIdentifier(node.name, element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
-      interfaces: _namedTypes(interfaceNodes),
-      hasAbstract: node.abstractKeyword != null,
-      hasBase: node.baseKeyword != null,
-      hasExternal: false,
-      hasFinal: node.finalKeyword != null,
-      hasInterface: node.interfaceKeyword != null,
-      hasMixin: node.mixinKeyword != null,
-      hasSealed: node.sealedKeyword != null,
-      mixins: _namedTypes(mixinNodes),
-      superclass: node.extendsClause?.superclass.mapOrNull(_namedType),
-      element: element,
-    );
-  }
-
-  IntrospectableExtensionDeclarationImpl _introspectableExtensionDeclaration(
-    ast.ExtensionDeclarationImpl node,
-  ) {
-    final element = node.declaredElement!;
-
-    return IntrospectableExtensionDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: _declaredIdentifier2(node.name?.lexeme ?? '', element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
-      onType: _typeAnnotation(node.extendedType),
-      element: element,
-    );
-  }
-
-  IntrospectableExtensionTypeDeclarationImpl
-      _introspectableExtensionTypeDeclaration(
-    ast.ExtensionTypeDeclarationImpl node,
-  ) {
-    final element = node.declaredElement!;
-
-    return IntrospectableExtensionTypeDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: _declaredIdentifier2(node.name.lexeme, element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
-      onType: _typeAnnotation(node.representation.fieldType),
-      element: element,
-    );
-  }
-
-  IntrospectableMixinDeclarationImpl _introspectableMixinDeclaration(
-    ast.MixinDeclarationImpl node,
-  ) {
-    final element = node.declaredElement!;
-
-    final onNodes = <ast.NamedType>[];
-    final interfaceNodes = <ast.NamedType>[];
-    for (var current = node;;) {
-      if (current.onClause case final clause?) {
-        onNodes.addAll(clause.superclassConstraints);
-      }
-      if (current.implementsClause case final clause?) {
-        interfaceNodes.addAll(clause.interfaces);
-      }
-      final nextElement = current.declaredElement?.augmentation;
-      final nextNode = declarationBuilder.nodeOfElement(nextElement);
-      if (nextNode is! ast.MixinDeclarationImpl) {
-        break;
-      }
-      current = nextNode;
-    }
-
-    return IntrospectableMixinDeclarationImpl._(
-      id: macro.RemoteInstance.uniqueId,
-      identifier: _declaredIdentifier(node.name, element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      typeParameters: _typeParameters(node.typeParameters),
-      hasBase: node.baseKeyword != null,
-      interfaces: _namedTypes(interfaceNodes),
-      superclassConstraints: _namedTypes(onNodes),
-      element: element,
     );
   }
 
@@ -986,6 +984,38 @@ class DeclarationBuilderFromNode {
   }
 }
 
+class ExtensionDeclarationImpl extends macro.ExtensionDeclarationImpl
+    implements HasElement {
+  @override
+  final ExtensionElementImpl element;
+
+  ExtensionDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.typeParameters,
+    required super.onType,
+    required this.element,
+  });
+}
+
+class ExtensionTypeDeclarationImpl extends macro.ExtensionTypeDeclarationImpl
+    implements HasElement {
+  @override
+  final ExtensionTypeElementImpl element;
+
+  ExtensionTypeDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.typeParameters,
+    required super.onType,
+    required this.element,
+  });
+}
+
 class FieldDeclarationImpl extends macro.FieldDeclarationImpl
     implements HasElement {
   @override
@@ -1045,81 +1075,6 @@ class IdentifierImplFromNode extends IdentifierImpl {
   Element? get element => getElement();
 }
 
-class IntrospectableClassDeclarationImpl
-    extends macro.IntrospectableClassDeclarationImpl implements HasElement {
-  @override
-  final ClassElementImpl element;
-
-  IntrospectableClassDeclarationImpl._({
-    required super.id,
-    required super.identifier,
-    required super.library,
-    required super.metadata,
-    required super.typeParameters,
-    required super.interfaces,
-    required super.hasAbstract,
-    required super.hasBase,
-    required super.hasFinal,
-    required super.hasExternal,
-    required super.hasInterface,
-    required super.hasMixin,
-    required super.hasSealed,
-    required super.mixins,
-    required super.superclass,
-    required this.element,
-  });
-}
-
-class IntrospectableExtensionDeclarationImpl
-    extends macro.IntrospectableExtensionDeclarationImpl implements HasElement {
-  @override
-  final ExtensionElementImpl element;
-
-  IntrospectableExtensionDeclarationImpl._({
-    required super.id,
-    required super.identifier,
-    required super.library,
-    required super.metadata,
-    required super.typeParameters,
-    required super.onType,
-    required this.element,
-  });
-}
-
-class IntrospectableExtensionTypeDeclarationImpl extends macro
-    .IntrospectableExtensionTypeDeclarationImpl implements HasElement {
-  @override
-  final ExtensionTypeElementImpl element;
-
-  IntrospectableExtensionTypeDeclarationImpl._({
-    required super.id,
-    required super.identifier,
-    required super.library,
-    required super.metadata,
-    required super.typeParameters,
-    required super.onType,
-    required this.element,
-  });
-}
-
-class IntrospectableMixinDeclarationImpl
-    extends macro.IntrospectableMixinDeclarationImpl implements HasElement {
-  @override
-  final MixinElementImpl element;
-
-  IntrospectableMixinDeclarationImpl._({
-    required super.id,
-    required super.identifier,
-    required super.library,
-    required super.metadata,
-    required super.typeParameters,
-    required super.hasBase,
-    required super.interfaces,
-    required super.superclassConstraints,
-    required this.element,
-  });
-}
-
 abstract class LibraryImpl extends macro.LibraryImpl {
   LibraryImpl({
     required super.id,
@@ -1165,6 +1120,24 @@ class MethodDeclarationImpl extends macro.MethodDeclarationImpl
     required super.returnType,
     required super.typeParameters,
     required super.definingType,
+    required this.element,
+  });
+}
+
+class MixinDeclarationImpl extends macro.MixinDeclarationImpl
+    implements HasElement {
+  @override
+  final MixinElementImpl element;
+
+  MixinDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.typeParameters,
+    required super.hasBase,
+    required super.interfaces,
+    required super.superclassConstraints,
     required this.element,
   });
 }

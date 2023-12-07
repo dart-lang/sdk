@@ -59,6 +59,11 @@ static constexpr int32_t kMsPerSec = 1000;
 
 // The data directory containing ICU timezone data files.
 static constexpr char kICUTZDataDir[] = "/config/data/tzdata/icu/44/le";
+// An updated location for ICU timezone data files.
+// See:
+// https://fuchsia.dev/fuchsia-src/development/internationalization/icu_data#timezone_configuration_data
+// https://fuchsia.dev/fuchsia-src/concepts/process/namespaces
+static constexpr char kICUTZDataDir2[] = "/config/tzdata/icu/44/le";
 
 // This is the general OK status.
 static constexpr int32_t kOk = 0;
@@ -311,13 +316,20 @@ bool InitializeTZData() {
   // Try opening the path to check if present.  No need to verify that it is a
   // directory since ICU loading will return an error if the TZ data path is
   // wrong.
-  int fd = openat(AT_FDCWD, kICUTZDataDir, O_RDONLY);
+  //
+  // Try the new dir first, sub with the old fallback.
+  char* tz_dirname = kICUTZDataDir2;
+  int fd = openat(AT_FDCWD, tz_dirname, O_RDONLY);
+  if (fd < 0) {
+    tz_dirname = kICUTZDataDir;
+    fd = openat(AT_FDCWD, tz_dirname, O_RDONLY);
+  }
   if (fd < 0) {
     metrics->SetInitTzData(TZDataStatus::COULD_NOT_OPEN, fd);
     return false;
   }
   // 0 == Not overwriting the env var if already set.
-  setenv("ICU_TIMEZONE_FILES_DIR", kICUTZDataDir, 0);
+  setenv("ICU_TIMEZONE_FILES_DIR", tz_dirname, 0);
   int32_t close_status = close(fd);
   if (close_status != 0) {
     metrics->SetInitTzData(TZDataStatus::COULD_NOT_CLOSE, close_status);

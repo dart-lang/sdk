@@ -754,16 +754,6 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
   }
 }
 
-mixin _IntrospectableClass on ClassDeclarationImpl
-    implements IntrospectableClassDeclaration {
-  @override
-  RemoteInstanceKind get kind =>
-      RemoteInstanceKind.introspectableClassDeclaration;
-}
-
-class IntrospectableClassDeclarationImpl = ClassDeclarationImpl
-    with _IntrospectableClass;
-
 class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements ClassDeclaration {
   @override
@@ -846,16 +836,6 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   }
 }
 
-mixin _IntrospectableEnum on EnumDeclarationImpl
-    implements IntrospectableEnumDeclaration {
-  @override
-  RemoteInstanceKind get kind =>
-      RemoteInstanceKind.introspectableEnumDeclaration;
-}
-
-class IntrospectableEnumDeclarationImpl = EnumDeclarationImpl
-    with _IntrospectableEnum;
-
 class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements EnumDeclaration {
   @override
@@ -922,16 +902,6 @@ class EnumValueDeclarationImpl extends DeclarationImpl
   }
 }
 
-mixin _IntrospectableExtension on ExtensionDeclarationImpl
-    implements IntrospectableType, IntrospectableExtensionDeclaration {
-  @override
-  RemoteInstanceKind get kind =>
-      RemoteInstanceKind.introspectableExtensionDeclaration;
-}
-
-class IntrospectableExtensionDeclarationImpl = ExtensionDeclarationImpl
-    with _IntrospectableExtension;
-
 class ExtensionDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements ExtensionDeclaration {
   @override
@@ -959,16 +929,6 @@ class ExtensionDeclarationImpl extends ParameterizedTypeDeclarationImpl
     onType.serialize(serializer);
   }
 }
-
-mixin _IntrospectableExtensionType on ExtensionTypeDeclarationImpl
-    implements IntrospectableType, IntrospectableExtensionTypeDeclaration {
-  @override
-  RemoteInstanceKind get kind =>
-      RemoteInstanceKind.introspectableExtensionTypeDeclaration;
-}
-
-class IntrospectableExtensionTypeDeclarationImpl = ExtensionTypeDeclarationImpl
-    with _IntrospectableExtensionType;
 
 class ExtensionTypeDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements ExtensionTypeDeclaration {
@@ -998,16 +958,6 @@ class ExtensionTypeDeclarationImpl extends ParameterizedTypeDeclarationImpl
   }
 }
 
-mixin _IntrospectableMixin on MixinDeclarationImpl
-    implements IntrospectableMixinDeclaration {
-  @override
-  RemoteInstanceKind get kind =>
-      RemoteInstanceKind.introspectableMixinDeclaration;
-}
-
-class IntrospectableMixinDeclarationImpl = MixinDeclarationImpl
-    with _IntrospectableMixin;
-
 class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements MixinDeclaration {
   @override
@@ -1020,9 +970,7 @@ class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl
   final List<NamedTypeAnnotationImpl> superclassConstraints;
 
   @override
-  RemoteInstanceKind get kind => this is IntrospectableMixinDeclaration
-      ? RemoteInstanceKind.introspectableMixinDeclaration
-      : RemoteInstanceKind.mixinDeclaration;
+  RemoteInstanceKind get kind => RemoteInstanceKind.mixinDeclaration;
 
   MixinDeclarationImpl({
     // Declaration fields.

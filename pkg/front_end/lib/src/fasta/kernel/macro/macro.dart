@@ -831,10 +831,7 @@ class MacroApplications {
     final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
 
     macro.ParameterizedTypeDeclaration declaration = builder.isMixinDeclaration
-        // TODO: These shouldn't always be introspectable. In the declarations
-        // phase we need to limit the introspectable declarations to those that
-        // are part of the super chain of the directly macro annotated class.
-        ? new macro.IntrospectableMixinDeclarationImpl(
+        ? new macro.MixinDeclarationImpl(
                 id: macro.RemoteInstance.uniqueId,
                 identifier: identifier,
                 library: library,
@@ -848,7 +845,7 @@ class MacroApplications {
             // This cast is not necessary but LUB doesn't give the desired type
             // without it.
             as macro.ParameterizedTypeDeclaration
-        : new macro.IntrospectableClassDeclarationImpl(
+        : new macro.ClassDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
@@ -1270,11 +1267,12 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
-      macro.IntrospectableType type) {
-    if (type is! macro.IntrospectableClassDeclaration) {
+      macro.TypeDeclaration type) {
+    if (type is! macro.ClassDeclaration) {
       throw new UnsupportedError('Only introspection on classes is supported');
     }
-    ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
+    ClassBuilder classBuilder = macroApplications
+        ._getClassBuilder(type as macro.ParameterizedTypeDeclaration);
     List<macro.ConstructorDeclaration> result = [];
     Iterator<MemberBuilder> iterator = classBuilder.fullConstructorIterator();
     while (iterator.moveNext()) {
@@ -1293,14 +1291,14 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.EnumValueDeclaration>> valuesOf(
-      covariant macro.IntrospectableEnum enumType) {
+      covariant macro.EnumDeclaration enumType) {
     // TODO: implement valuesOf
     throw new UnimplementedError();
   }
 
   @override
-  Future<List<macro.FieldDeclaration>> fieldsOf(macro.IntrospectableType type) {
-    if (type is! macro.IntrospectableClassDeclaration) {
+  Future<List<macro.FieldDeclaration>> fieldsOf(macro.TypeDeclaration type) {
+    if (type is! macro.ClassDeclaration) {
       throw new UnsupportedError('Only introspection on classes is supported');
     }
     ClassBuilder classBuilder = macroApplications._getClassBuilder(type);
@@ -1315,10 +1313,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   }
 
   @override
-  Future<List<macro.MethodDeclaration>> methodsOf(
-      macro.IntrospectableType type) {
-    if (type is! macro.IntrospectableClassDeclaration &&
-        type is! macro.IntrospectableMixinDeclaration) {
+  Future<List<macro.MethodDeclaration>> methodsOf(macro.TypeDeclaration type) {
+    if (type is! macro.ClassDeclaration && type is! macro.MixinDeclaration) {
       throw new UnsupportedError(
           'Only introspection on classes and mixins is supported');
     }
@@ -1353,9 +1349,9 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
       super.macroApplications, super.classHierarchy, super.sourceLoader);
 
   @override
-  Future<macro.IntrospectableType> typeDeclarationOf(
+  Future<macro.TypeDeclaration> typeDeclarationOf(
           macro.Identifier identifier) async =>
-      (await super.typeDeclarationOf(identifier)) as macro.IntrospectableType;
+      (await super.typeDeclarationOf(identifier));
 
   @override
   Future<macro.TypeAnnotation> inferType(

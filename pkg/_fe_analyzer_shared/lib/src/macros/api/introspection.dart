@@ -138,15 +138,6 @@ abstract interface class ParameterizedTypeDeclaration
   Iterable<TypeParameterDeclaration> get typeParameters;
 }
 
-/// A marker interface for the type declarations which are introspectable.
-///
-/// All type declarations which can have members will have a variant which
-/// implements this type.
-abstract interface class IntrospectableType implements TypeDeclaration {}
-
-/// A marker interface for the enum declarations which are introspectable.
-abstract interface class IntrospectableEnum implements IntrospectableType {}
-
 /// Class introspection information.
 ///
 /// Information about fields, methods, and constructors must be retrieved from
@@ -184,10 +175,6 @@ abstract interface class ClassDeclaration
   Iterable<NamedTypeAnnotation> get mixins;
 }
 
-/// An introspectable class declaration.
-abstract interface class IntrospectableClassDeclaration
-    implements ClassDeclaration, IntrospectableType {}
-
 /// Enum introspection information.
 ///
 /// Information about values, fields, methods, and constructors must be
@@ -212,10 +199,6 @@ abstract interface class EnumValueDeclaration implements Declaration {
   Identifier get definingEnum;
 }
 
-/// An introspectable enum declaration.
-abstract interface class IntrospectableEnumDeclaration
-    implements EnumDeclaration, IntrospectableEnum {}
-
 /// The class for introspecting on an extension.
 ///
 /// Note that extensions do not actually introduce a new type, but we model them
@@ -227,20 +210,12 @@ abstract interface class ExtensionDeclaration
   TypeAnnotation get onType;
 }
 
-/// An introspectable extension declaration.
-abstract interface class IntrospectableExtensionDeclaration
-    implements ExtensionDeclaration, IntrospectableType {}
-
 /// The class for introspecting on an extension type.
 abstract interface class ExtensionTypeDeclaration
     implements ParameterizedTypeDeclaration, Declaration {
   /// The type that appears on the `on` clause of this extension type.
   TypeAnnotation get onType;
 }
-
-/// An introspectable extension type declaration.
-abstract interface class IntrospectableExtensionTypeDeclaration
-    implements ExtensionTypeDeclaration, IntrospectableType {}
 
 /// Mixin introspection information.
 ///
@@ -257,10 +232,6 @@ abstract interface class MixinDeclaration
   /// All the `on` clause type annotations.
   Iterable<NamedTypeAnnotation> get superclassConstraints;
 }
-
-/// An introspectable mixin declaration.
-abstract interface class IntrospectableMixinDeclaration
-    implements MixinDeclaration, IntrospectableType {}
 
 /// Type alias introspection information.
 abstract interface class TypeAliasDeclaration
