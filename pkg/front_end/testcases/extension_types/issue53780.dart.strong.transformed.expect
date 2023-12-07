@@ -24,7 +24,8 @@ static method run<T extends core::Object? = dynamic>(self::E<self::run::T%> /* =
     {
       {
         hoisted self::run::T% t;
-        if(let final self::run::T% #t2 = t = self::E|get#t<self::run::T%>(#0#0) in true) {
+        if(true) {
+          t = self::E|get#t<self::run::T%>(#0#0);
           #t1 = t;
           break #L1;
         }

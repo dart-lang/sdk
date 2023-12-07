@@ -4126,6 +4126,7 @@ class Function : public Object {
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)                                    \
+  V(IsExtensionTypeMember, is_extension_type_member)                           \
   V(IsRedirectingFactory, is_redirecting_factory)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
@@ -4404,6 +4405,9 @@ class Field : public Object {
   bool is_late() const { return IsLateBit::decode(kind_bits()); }
   bool is_extension_member() const {
     return IsExtensionMemberBit::decode(kind_bits());
+  }
+  bool is_extension_type_member() const {
+    return IsExtensionTypeMemberBit::decode(kind_bits());
   }
   bool needs_load_guard() const {
     return NeedsLoadGuardBit::decode(kind_bits());
@@ -4690,6 +4694,10 @@ class Field : public Object {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(IsExtensionMemberBit::update(value, untag()->kind_bits_));
   }
+  void set_is_extension_type_member(bool value) const {
+    // TODO(36097): Once concurrent access is possible ensure updates are safe.
+    set_kind_bits(IsExtensionTypeMemberBit::update(value, untag()->kind_bits_));
+  }
   void set_needs_load_guard(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
     set_kind_bits(NeedsLoadGuardBit::update(value, untag()->kind_bits_));
@@ -4808,6 +4816,7 @@ class Field : public Object {
     kGenericCovariantImplBit,
     kIsLateBit,
     kIsExtensionMemberBit,
+    kIsExtensionTypeMemberBit,
     kNeedsLoadGuardBit,
     kHasInitializerBit,
   };
@@ -4830,6 +4839,8 @@ class Field : public Object {
   class IsLateBit : public BitField<uint16_t, bool, kIsLateBit, 1> {};
   class IsExtensionMemberBit
       : public BitField<uint16_t, bool, kIsExtensionMemberBit, 1> {};
+  class IsExtensionTypeMemberBit
+      : public BitField<uint16_t, bool, kIsExtensionTypeMemberBit, 1> {};
   class NeedsLoadGuardBit
       : public BitField<uint16_t, bool, kNeedsLoadGuardBit, 1> {};
   class HasInitializerBit

@@ -58,7 +58,8 @@ static method exhaustiveWithField(Null n) → dynamic
     {
       {
         hoisted core::int hashCode;
-        if(let final core::int #t4 = hashCode = #0#0.{core::Object::hashCode}{<object>}.{core::int} in true) {
+        if(true) {
+          hashCode = #0#0.{core::Object::hashCode}{<object>}.{core::int};
           #t3 = hashCode;
           break #L4;
         }
@@ -67,66 +68,66 @@ static method exhaustiveWithField(Null n) → dynamic
   } =>#t3;
 static method nonExhaustiveRestrictedField(Null n) → dynamic
   return block {
-    core::int #t5;
+    core::int #t4;
     final synthesized Null #0#0 = n;
     #L5:
     {
       {
         if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{<object>}.{core::int}) {
-          #t5 = 0;
+          #t4 = 0;
           break #L5;
         }
       }
     }
-  } =>#t5;
+  } =>#t4;
 static method exhaustiveNullable(core::Object? o) → dynamic
   return block {
-    core::int #t6;
+    core::int #t5;
     final synthesized core::Object? #0#0 = o;
     #L6:
     {
       {
         if(#0#0 is core::Object) {
-          #t6 = 0;
+          #t5 = 0;
           break #L6;
         }
       }
       {
         if(true) {
-          #t6 = 1;
+          #t5 = 1;
           break #L6;
         }
       }
     }
-  } =>#t6;
+  } =>#t5;
 static method nonExhaustiveNullable(core::Object? o) → dynamic
   return block {
-    core::int #t7;
+    core::int #t6;
     final synthesized core::Object? #0#0 = o;
     #L7:
     {
       {
         if(#0#0 is core::Object) {
-          #t7 = 1;
+          #t6 = 1;
           break #L7;
         }
       }
     }
-  } =>#t7;
+  } =>#t6;
 static method nonExhaustiveNullableRestricted(core::Object? o) → dynamic
   return block {
-    core::int #t8;
+    core::int #t7;
     final synthesized core::Object? #0#0 = o;
     #L8:
     {
       {
         if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0.{core::Object::hashCode}{<object>}.{core::int}) {
-          #t8 = 1;
+          #t7 = 1;
           break #L8;
         }
       }
     }
-  } =>#t8;
+  } =>#t7;
 
 constants  {
   #C1 = null

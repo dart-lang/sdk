@@ -11,7 +11,8 @@ static method f(core::List<core::int> list) → () → void {
     {
       {
         final hoisted core::int item;
-        if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t2 = item = #0#0.{core::List::[]}(0){(core::int) → core::int} in true)) {
+        if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
+          item = #0#0.{core::List::[]}(0){(core::int) → core::int};
           #t1 = () → void {
             self::use(item);
           };

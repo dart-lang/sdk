@@ -2,10 +2,10 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/cyclic_typedef.dart:8:28: Error: Generic type 'F2' can't be used without type arguments in the bounds of its own type variables.
+// pkg/front_end/testcases/general/cyclic_typedef.dart:8:9: Error: Generic type 'F2' can't be used without type arguments in the bounds of its own type variables.
 // Try providing type arguments to 'F2' here.
 // typedef F2 = void Function<X extends F2>();
-//                            ^
+//         ^^
 //
 // pkg/front_end/testcases/general/cyclic_typedef.dart:5:9: Error: The typedef 'F1' has a reference to itself.
 // typedef F1<X> = List<G1<X>>;

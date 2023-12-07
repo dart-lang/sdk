@@ -1051,6 +1051,7 @@ void KernelLoader::FinishTopLevelClassLoading(
            !field_helper.IsGenericCovariantImpl());
     const bool is_late = field_helper.IsLate();
     const bool is_extension_member = field_helper.IsExtensionMember();
+    const bool is_extension_type_member = field_helper.IsExtensionTypeMember();
     const Field& field = Field::Handle(
         Z, Field::NewTopLevel(name, is_final, field_helper.IsConst(), is_late,
                               script_class, field_helper.position_,
@@ -1058,6 +1059,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     field.set_kernel_offset(field_offset);
     field.set_has_pragma(HasPragma::decode(pragma_bits));
     field.set_is_extension_member(is_extension_member);
+    field.set_is_extension_type_member(is_extension_type_member);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
     ReadInferredType(field, field_offset + library_kernel_offset_);
@@ -1447,6 +1449,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       const bool is_final = field_helper.IsConst() || field_helper.IsFinal();
       const bool is_late = field_helper.IsLate();
       const bool is_extension_member = field_helper.IsExtensionMember();
+      const bool is_extension_type_member =
+          field_helper.IsExtensionTypeMember();
       Field& field = Field::Handle(
           Z, Field::New(name, field_helper.IsStatic(), is_final,
                         field_helper.IsConst(), is_reflectable, is_late,
@@ -1458,6 +1462,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field.set_is_generic_covariant_impl(
           field_helper.IsGenericCovariantImpl());
       field.set_is_extension_member(is_extension_member);
+      field.set_is_extension_type_member(is_extension_type_member);
       ReadInferredType(field, field_offset + library_kernel_offset_);
       CheckForInitializer(field);
       // In NNBD libraries, static fields with initializers are
@@ -1785,6 +1790,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_abstract = procedure_helper.IsAbstract();
   bool is_external = procedure_helper.IsExternal();
   bool is_extension_member = procedure_helper.IsExtensionMember();
+  bool is_extension_type_member = procedure_helper.IsExtensionTypeMember();
   bool is_synthetic = procedure_helper.IsSynthetic();
   String& native_name = String::Handle(Z);
   uint32_t pragma_bits = 0;
@@ -1823,6 +1829,7 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
   function.set_kernel_offset(procedure_offset);
   function.set_is_extension_member(is_extension_member);
+  function.set_is_extension_type_member(is_extension_type_member);
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.ptr() == Library::InternalLibrary()))) {
@@ -2034,6 +2041,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     getter.set_is_debuggable(false);
     getter.set_accessor_field(field);
     getter.set_is_extension_member(field.is_extension_member());
+    getter.set_is_extension_type_member(field.is_extension_type_member());
     H.SetupFieldAccessorFunction(klass, getter, field_type);
     T.SetupUnboxingInfoMetadataForFieldAccessors(getter,
                                                  library_kernel_offset_);
@@ -2062,6 +2070,7 @@ void KernelLoader::GenerateFieldAccessors(const Class& klass,
     setter.set_is_debuggable(false);
     setter.set_accessor_field(field);
     setter.set_is_extension_member(field.is_extension_member());
+    setter.set_is_extension_type_member(field.is_extension_type_member());
     H.SetupFieldAccessorFunction(klass, setter, field_type);
     T.SetupUnboxingInfoMetadataForFieldAccessors(setter,
                                                  library_kernel_offset_);
@@ -2230,6 +2239,8 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   initializer_fun.set_accessor_field(field);
   initializer_fun.InheritKernelOffsetFrom(field);
   initializer_fun.set_is_extension_member(field.is_extension_member());
+  initializer_fun.set_is_extension_type_member(
+      field.is_extension_type_member());
 
   signature ^= ClassFinalizer::FinalizeType(signature);
   initializer_fun.SetSignature(signature);

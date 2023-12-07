@@ -21,8 +21,11 @@ static method test1(dynamic x) → dynamic {
   {
     hoisted core::int foo;
     final synthesized dynamic #0#0 = x;
-    if(#0#0 is self::A && (let final core::int #t1 = foo = #0#0{self::A}.{self::A::foo}{core::int} in true)) {
-      return foo;
+    if(#0#0 is self::A) {
+      foo = #0#0{self::A}.{self::A::foo}{core::int};
+      {
+        return foo;
+      }
     }
     else {
       return null;
@@ -33,8 +36,11 @@ static method test2(dynamic x) → dynamic {
   {
     hoisted core::String x;
     final synthesized dynamic #0#0 = x;
-    if(#0#0 is self::C<core::String, core::String> && (let final core::String #t2 = x = #0#0{self::C<core::String, core::String>}.{self::C::x}{core::String} in true)) {
-      return x;
+    if(#0#0 is self::C<core::String, core::String>) {
+      x = #0#0{self::C<core::String, core::String>}.{self::C::x}{core::String};
+      {
+        return x;
+      }
     }
     else {
       return null;
