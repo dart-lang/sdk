@@ -318,7 +318,7 @@ bool InitializeTZData() {
   // wrong.
   //
   // Try the new dir first, sub with the old fallback.
-  char* tz_dirname = kICUTZDataDir2;
+  const char* tz_dirname = kICUTZDataDir2;
   int fd = openat(AT_FDCWD, tz_dirname, O_RDONLY);
   if (fd < 0) {
     tz_dirname = kICUTZDataDir;
