@@ -31,7 +31,8 @@ static method method(self::A a) → dynamic
     {
       {
         hoisted core::int member;
-        if(let final core::int #t2 = member = self::_extension#1|get#member(#0#0) in true) {
+        if(true) {
+          member = self::_extension#1|get#member(#0#0);
           #t1 = member;
           break #L1;
         }

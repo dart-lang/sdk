@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    ;
+  abstract get a() → core::int;
+  abstract get b() → core::num;
+  abstract get c() → core::num;
+}
+static method method1(dynamic o) → dynamic
+  ;
+static method method2(dynamic o) → dynamic
+  ;
+static method method3(dynamic o) → dynamic
+  ;

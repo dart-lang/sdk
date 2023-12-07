@@ -526,14 +526,16 @@ static method switchExpression(dynamic o) → dynamic {
     {
       {
         hoisted dynamic a;
-        if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t48 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
+        if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) {
+          a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
           #t47 = a;
           break #L39;
         }
       }
       {
         hoisted dynamic a;
-        if(#0#0 is core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && (let final dynamic #t49 = a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+        if(#0#0 is core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) {
+          a = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
           #t47 = a;
           break #L39;
         }
@@ -550,116 +552,116 @@ static method switchExpression(dynamic o) → dynamic {
 }
 static method switchExpressionEnum(self::E o) → dynamic {
   return block {
-    core::int #t50;
+    core::int #t48;
     #L40:
     switch(o) /* isExplicitlyExhaustive, self::E */ {
       #L41:
       case #C3:
         {
-          #t50 = 0;
+          #t48 = 0;
           break #L40;
         }
       #L42:
       case #C6:
         {
-          #t50 = 1;
+          #t48 = 1;
           break #L40;
         }
       #L43:
       case #C9:
         {
-          #t50 = 2;
+          #t48 = 2;
           break #L40;
         }
       #L44:
       default:
         throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t50;
+  } =>#t48;
 }
 static method switchExpressionEnumWithGuard(self::E o) → dynamic {
   return block {
-    core::int #t51;
+    core::int #t49;
     final synthesized self::E #0#0 = o;
     #L45:
     {
       {
         if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0 && true) {
-          #t51 = 0;
+          #t49 = 0;
           break #L45;
         }
       }
       {
         if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          #t51 = 1;
+          #t49 = 1;
           break #L45;
         }
       }
       {
         if(true) {
-          #t51 = 2;
+          #t49 = 2;
           break #L45;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t51;
+  } =>#t49;
 }
 static method switchExpressionPrimitiveEquals(dynamic o) → dynamic {
   return block {
-    core::int #t52;
+    core::int #t50;
     final synthesized dynamic #0#0 = o;
     #L46:
     {
       {
         if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          #t52 = 0;
+          #t50 = 0;
           break #L46;
         }
       }
       {
         if(#C12 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          #t52 = 1;
+          #t50 = 1;
           break #L46;
         }
       }
       {
         if(true) {
-          #t52 = 2;
+          #t50 = 2;
           break #L46;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t52;
+  } =>#t50;
 }
 static method switchExpressionNonPrimitiveEquals(dynamic o) → dynamic {
   return block {
-    core::int #t53;
+    core::int #t51;
     final synthesized dynamic #0#0 = o;
     #L47:
     {
       {
         if(#C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
-          #t53 = 0;
+          #t51 = 0;
           break #L47;
         }
       }
       {
         if(#C14 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
-          #t53 = 1;
+          #t51 = 1;
           break #L47;
         }
       }
       {
         if(true) {
-          #t53 = 2;
+          #t51 = 2;
           break #L47;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t53;
+  } =>#t51;
 }
 static method switchStatementSymbol(core::Symbol s) → dynamic {
   #L48:
@@ -690,31 +692,31 @@ static method switchStatementSymbol(core::Symbol s) → dynamic {
 }
 static method switchExpressionSymbol(core::Symbol s) → dynamic {
   return block {
-    core::int #t54;
+    core::int #t52;
     final synthesized core::Symbol #0#0 = s;
     #L49:
     {
       {
         if(#C15 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
-          #t54 = 0;
+          #t52 = 0;
           break #L49;
         }
       }
       {
         if(#C16 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
-          #t54 = 1;
+          #t52 = 1;
           break #L49;
         }
       }
       {
         if(true) {
-          #t54 = 2;
+          #t52 = 2;
           break #L49;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t54;
+  } =>#t52;
 }
 
 constants  {
@@ -741,7 +743,7 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:50
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:70:3 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:75:7 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///switch_encoding.dart:103:7 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 577, effectively constant: 4
+Extra constant evaluation: evaluated: 573, effectively constant: 4
 
 
 Constructor coverage from constants:

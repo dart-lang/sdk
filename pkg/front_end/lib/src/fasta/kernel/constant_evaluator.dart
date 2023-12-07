@@ -1308,6 +1308,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
           DelayedExpression matchingExpression =
               matchingExpressions[caseIndex][headIndex];
+          // TODO(johnniwinther): Support irrefutable tail optimization here?
           Expression headCondition = matchingExpression
               .createExpression(typeEnvironment, inCacheInitializer: false);
           if (guard != null) {
@@ -1652,18 +1653,57 @@ class ConstantsTransformer extends RemovingTransformer {
     matchedExpression.createExpression(typeEnvironment,
         inCacheInitializer: false);
 
-    Expression condition = matchingExpression.createExpression(typeEnvironment,
-        inCacheInitializer: false);
+    Expression condition;
     Expression? guard = node.patternGuard.guard;
-    if (guard != null) {
-      condition =
-          createAndExpression(condition, guard, fileOffset: TreeNode.noOffset);
+    Statement then = node.then;
+    if (guard == null && matchingExpression.hasIrrefutableTail) {
+      // TODO(johnniwinther): Support irrefutable tails with guards.
+      List<Statement> statements = [];
+      List<Expression> expressionEffects = [];
+      List<Statement> statementEffects = [];
+      condition = matchingExpression.createExpressionAndStatements(
+              typeEnvironment, statements,
+              expressionEffects: expressionEffects,
+              statementEffects: statementEffects) ??
+          // We emit the full if statement even when the expression is known to
+          // match to ensure that for instance code coverage still works as
+          // normal for the else statement.
+          //
+          // For instance:
+          //
+          //    bool b1 = ...
+          //    if (b1 case var b2) {
+          //      print(b2);
+          //    } else {
+          //      print(b1); // This is dead code.
+          //    }
+          //
+          // If we inlined the then-statement, code coverage wouldn't show that
+          // the else-statement is not covered.
+          createBoolLiteral(true, fileOffset: node.fileOffset);
+      if (statements.isNotEmpty ||
+          expressionEffects.isNotEmpty ||
+          statementEffects.isNotEmpty) {
+        then = createBlock([
+          ...statements,
+          ...expressionEffects.map(createExpressionStatement),
+          ...statementEffects,
+          then,
+        ], fileOffset: node.fileOffset);
+      }
+    } else {
+      condition = matchingExpression.createExpression(typeEnvironment,
+          inCacheInitializer: false);
+      if (guard != null) {
+        condition = createAndExpression(condition, guard,
+            fileOffset: TreeNode.noOffset);
+      }
     }
     List<Statement> replacementStatements = [
       ...node.patternGuard.pattern.declaredVariables,
       ...matchingCache.declarations,
     ];
-    replacementStatements.add(createIfStatement(condition, node.then,
+    replacementStatements.add(createIfStatement(condition, then,
         otherwise: node.otherwise, fileOffset: node.fileOffset));
 
     Statement result;
@@ -2039,12 +2079,37 @@ class ConstantsTransformer extends RemovingTransformer {
         Pattern pattern = patternGuard.pattern;
         Expression? guard = patternGuard.guard;
 
+        Expression caseCondition;
         DelayedExpression matchingExpression = matchingExpressions[caseIndex];
-        Expression caseCondition = matchingExpression
-            .createExpression(typeEnvironment, inCacheInitializer: false);
-        if (guard != null) {
-          caseCondition = createAndExpression(caseCondition, guard,
-              fileOffset: TreeNode.noOffset);
+        List<Statement>? tailStatements;
+        if (guard == null && matchingExpression.hasIrrefutableTail) {
+          // TODO(johnniwinther): Support irrefutable tails with guards.
+          List<Statement> statements = [];
+          List<Expression> expressionEffects = [];
+          List<Statement> statementEffects = [];
+          caseCondition = matchingExpression.createExpressionAndStatements(
+                  typeEnvironment, statements,
+                  expressionEffects: expressionEffects,
+                  statementEffects: statementEffects) ??
+              // TODO(johnniwinther): Avoid generating the if-statement in this
+              // case.
+              createBoolLiteral(true, fileOffset: node.fileOffset);
+          if (statements.isNotEmpty ||
+              expressionEffects.isNotEmpty ||
+              statementEffects.isNotEmpty) {
+            tailStatements = [
+              ...statements,
+              ...expressionEffects.map(createExpressionStatement),
+              ...statementEffects,
+            ];
+          }
+        } else {
+          caseCondition = matchingExpression.createExpression(typeEnvironment,
+              inCacheInitializer: false);
+          if (guard != null) {
+            caseCondition = createAndExpression(caseCondition, guard,
+                fileOffset: TreeNode.noOffset);
+          }
         }
 
         cases.add(createBlock([
@@ -2052,6 +2117,7 @@ class ConstantsTransformer extends RemovingTransformer {
           createIfStatement(
               caseCondition,
               createBlock([
+                ...?tailStatements,
                 createExpressionStatement(createVariableSet(valueVariable, body,
                     // Avoid step debugging on the assignment to the value
                     // variable.

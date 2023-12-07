@@ -42,7 +42,9 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
   {
     hoisted core::int c;
     final synthesized self::MyList<core::int> /* = core::List<core::int> */ #2#0 = list;
-    if(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t6 = c = #2#0.{core::List::[]}(0){(core::int) → core::int} in true)) {
+    if(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
+      c = #2#0.{core::List::[]}(0){(core::int) → core::int};
+      {}
     }
   }
   {
@@ -50,7 +52,9 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
     final synthesized self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ #3#0 = map;
     synthesized core::bool? #3#3;
     synthesized core::bool #3#3#isSet = false;
-    if((!((#3#3#isSet ?{core::bool?} #3#3{core::bool?} : let final core::bool* #t7 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?}) == null) || null is core::bool && #3#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) && (let final core::bool #t8 = d = let core::bool? #t9 = #3#3#isSet ?{core::bool?} #3#3{core::bool?} : let final core::bool* #t10 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?} in #t9 == null ?{core::bool} #t9 as{Unchecked} core::bool : #t9{core::bool} in true)) {
+    if(!((#3#3#isSet ?{core::bool?} #3#3{core::bool?} : let final core::bool* #t6 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?}) == null) || null is core::bool && #3#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) {
+      d = let core::bool? #t7 = #3#3#isSet ?{core::bool?} #3#3{core::bool?} : let final core::bool* #t8 = #3#3#isSet = true in #3#3 = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?} in #t7 == null ?{core::bool} #t7 as{Unchecked} core::bool : #t7{core::bool};
+      {}
     }
   }
   #L1:
@@ -58,12 +62,12 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
     final synthesized self::MyList<core::int> /* = core::List<core::int> */ #4#0 = list;
     synthesized core::int #4#1;
     synthesized core::bool #4#1#isSet = false;
-    dynamic #t11;
+    dynamic #t9;
     {
       lowered hoisted core::int e#case#0;
       lowered hoisted core::int e#case#1;
-      if((#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool* #t12 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t13 = e#case#0 = #4#0.{core::List::[]}(0){(core::int) → core::int} in true) && e#case#0.{core::num::>}(5){(core::num) → core::bool} && (let final core::int #t14 = #t11 = e#case#0 in true) || (#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool* #t15 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C3 && (let final core::int #t16 = e#case#1 = #4#0.{core::List::[]}(1){(core::int) → core::int} in true) && e#case#1.{core::num::<}(5){(core::num) → core::bool} && (let final core::int #t17 = #t11 = e#case#1 in true)) {
-        core::int e = #t11{core::int};
+      if((#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool* #t10 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t11 = e#case#0 = #4#0.{core::List::[]}(0){(core::int) → core::int} in true) && e#case#0.{core::num::>}(5){(core::num) → core::bool} && (let final core::int #t12 = #t9 = e#case#0 in true) || (#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool* #t13 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C3 && (let final core::int #t14 = e#case#1 = #4#0.{core::List::[]}(1){(core::int) → core::int} in true) && e#case#1.{core::num::<}(5){(core::num) → core::bool} && (let final core::int #t15 = #t9 = e#case#1 in true)) {
+        core::int e = #t9{core::int};
         {
           core::print(e);
         }
@@ -77,7 +81,7 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
     synthesized core::bool #5#3#isSet = false;
     {
       hoisted core::bool e;
-      if((!((#5#3#isSet ?{core::bool?} #5#3{core::bool?} : let final core::bool* #t18 = #5#3#isSet = true in #5#3 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?}) == null) || null is core::bool && #5#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final core::bool #t19 = e = let core::bool? #t20 = #5#3#isSet ?{core::bool?} #5#3{core::bool?} : let final core::bool* #t21 = #5#3#isSet = true in #5#3 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?} in #t20 == null ?{core::bool} #t20 as{Unchecked} core::bool : #t20{core::bool} in true)) {
+      if((!((#5#3#isSet ?{core::bool?} #5#3{core::bool?} : let final core::bool* #t16 = #5#3#isSet = true in #5#3 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?}) == null) || null is core::bool && #5#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final core::bool #t17 = e = let core::bool? #t18 = #5#3#isSet ?{core::bool?} #5#3{core::bool?} : let final core::bool* #t19 = #5#3#isSet = true in #5#3 = #5#0.{core::Map::[]}(#C1){(core::Object?) → core::bool?} in #t18 == null ?{core::bool} #t18 as{Unchecked} core::bool : #t18{core::bool} in true)) {
         {
           core::print(e);
         }
@@ -96,4 +100,4 @@ Extra constant evaluation status:
 Evaluated: LogicalExpression @ org-dartlang-testcase:///pattern.dart:11:13 -> BoolConstant(false)
 Evaluated: LogicalExpression @ org-dartlang-testcase:///pattern.dart:13:22 -> BoolConstant(false)
 Evaluated: LogicalExpression @ org-dartlang-testcase:///pattern.dart:20:12 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 174, effectively constant: 3
+Extra constant evaluation: evaluated: 170, effectively constant: 3

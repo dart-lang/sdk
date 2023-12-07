@@ -48,14 +48,16 @@ static method exhaustiveInferred(self::A<core::num> a) → dynamic
     {
       {
         hoisted (core::int) → void member;
-        if(#0#0 is self::A<core::int> && (let final (core::int) → void #t2 = member = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>}) in true)) {
+        if(#0#0 is self::A<core::int>) {
+          member = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>});
           #t1 = 0;
           break #L1;
         }
       }
       {
         hoisted (core::num) → void member;
-        if(let final (core::num) → void #t3 = member = self::_extension#1|get#member<core::num>(#0#0) in true) {
+        if(true) {
+          member = self::_extension#1|get#member<core::num>(#0#0);
           #t1 = 1;
           break #L1;
         }
@@ -65,7 +67,7 @@ static method exhaustiveInferred(self::A<core::num> a) → dynamic
   } =>#t1;
 static method exhaustiveTyped(self::A<core::num> a) → dynamic
   return block {
-    core::int #t4;
+    core::int #t2;
     final synthesized self::A<core::num> #0#0 = a;
     synthesized (core::int) → void #0#2;
     synthesized core::bool #0#2#isSet = false;
@@ -75,47 +77,51 @@ static method exhaustiveTyped(self::A<core::num> a) → dynamic
     {
       {
         hoisted (core::int) → void member;
-        if(#0#0 is self::A<core::int> && ((#0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool* #t5 = #0#2#isSet = true in #0#2 = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>})) is (core::int) → void && (let final (core::int) → void #t6 = member = #0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool* #t7 = #0#2#isSet = true in #0#2 = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>}) in true))) {
-          #t4 = 0;
+        if(#0#0 is self::A<core::int> && (#0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool* #t3 = #0#2#isSet = true in #0#2 = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>})) is (core::int) → void) {
+          member = #0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool* #t4 = #0#2#isSet = true in #0#2 = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>});
+          #t2 = 0;
           break #L2;
         }
       }
       {
         hoisted (core::num) → void member;
-        if((#0#3#isSet ?{(core::num) → void} #0#3{(core::num) → void} : let final core::bool* #t8 = #0#3#isSet = true in #0#3 = self::_extension#1|get#member<core::num>(#0#0)) is (core::num) → void && (let final (core::num) → void #t9 = member = #0#3#isSet ?{(core::num) → void} #0#3{(core::num) → void} : let final core::bool* #t10 = #0#3#isSet = true in #0#3 = self::_extension#1|get#member<core::num>(#0#0) in true)) {
-          #t4 = 1;
+        if((#0#3#isSet ?{(core::num) → void} #0#3{(core::num) → void} : let final core::bool* #t5 = #0#3#isSet = true in #0#3 = self::_extension#1|get#member<core::num>(#0#0)) is (core::num) → void) {
+          member = #0#3#isSet ?{(core::num) → void} #0#3{(core::num) → void} : let final core::bool* #t6 = #0#3#isSet = true in #0#3 = self::_extension#1|get#member<core::num>(#0#0);
+          #t2 = 1;
           break #L2;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t4;
+  } =>#t2;
 static method unreachable(self::A<core::num> a) → dynamic
   return block {
-    core::int #t11;
+    core::int #t7;
     final synthesized self::A<core::num> #0#0 = a;
     #L3:
     {
       {
         hoisted (core::num) → void member;
-        if(let final (core::num) → void #t12 = member = self::_extension#1|get#member<core::num>(#0#0) in true) {
-          #t11 = 1;
+        if(true) {
+          member = self::_extension#1|get#member<core::num>(#0#0);
+          #t7 = 1;
           break #L3;
         }
       }
       {
         hoisted (core::int) → void member;
-        if(#0#0 is self::A<core::int> && (let final (core::int) → void #t13 = member = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>}) in true)) {
-          #t11 = 0;
+        if(#0#0 is self::A<core::int>) {
+          member = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>});
+          #t7 = 0;
           break #L3;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t11;
+  } =>#t7;
 static method nonExhaustiveRestricted(self::A<core::num> a) → dynamic
   return block {
-    core::int #t14;
+    core::int #t8;
     final synthesized self::A<core::num> #0#0 = a;
     synthesized (core::num) → void #0#1;
     synthesized core::bool #0#1#isSet = false;
@@ -123,21 +129,23 @@ static method nonExhaustiveRestricted(self::A<core::num> a) → dynamic
     {
       {
         hoisted (core::num) → void member;
-        if((#0#1#isSet ?{(core::num) → void} #0#1{(core::num) → void} : let final core::bool* #t15 = #0#1#isSet = true in #0#1 = self::_extension#1|get#member<core::num>(#0#0)) is (core::num) → void && (let final (core::num) → void #t16 = member = #0#1#isSet ?{(core::num) → void} #0#1{(core::num) → void} : let final core::bool* #t17 = #0#1#isSet = true in #0#1 = self::_extension#1|get#member<core::num>(#0#0) in true)) {
-          #t14 = 1;
+        if((#0#1#isSet ?{(core::num) → void} #0#1{(core::num) → void} : let final core::bool* #t9 = #0#1#isSet = true in #0#1 = self::_extension#1|get#member<core::num>(#0#0)) is (core::num) → void) {
+          member = #0#1#isSet ?{(core::num) → void} #0#1{(core::num) → void} : let final core::bool* #t10 = #0#1#isSet = true in #0#1 = self::_extension#1|get#member<core::num>(#0#0);
+          #t8 = 1;
           break #L4;
         }
       }
       {
         hoisted (core::int) → void member;
-        if(#0#0 is self::A<core::int> && (let final (core::int) → void #t18 = member = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>}) in true)) {
-          #t14 = 0;
+        if(#0#0 is self::A<core::int>) {
+          member = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>});
+          #t8 = 0;
           break #L4;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t14;
+  } =>#t8;
 static method intersection(dynamic o) → dynamic {
   #L5:
   {
@@ -149,14 +157,14 @@ static method intersection(dynamic o) → dynamic {
       lowered hoisted (core::double) → void member2#case#0;
       lowered hoisted (core::int) → void member1#case#1;
       lowered hoisted (core::num) → void member2#case#1;
-      if(#0#0 is self::A<core::int> && (let final (core::int) → void #t19 = member1#case#0 = #0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool* #t20 = #0#2#isSet = true in #0#2 = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>}) in true) && (#0#0{self::A<core::int>} is self::A<core::double> && (let final (core::double) → void #t21 = member2#case#0 = self::_extension#1|get#member<core::double>(#0#0{self::A<core::double>}) in true)) || #0#0 is self::A<core::int> && (let final (core::int) → void #t22 = member1#case#1 = #0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool* #t23 = #0#2#isSet = true in #0#2 = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>}) in true) && (let final (core::num) → void #t24 = member2#case#1 = self::_extension#1|get#member<core::num>(#0#0{self::A<core::int>}) in true)) {
+      if(#0#0 is self::A<core::int> && (let final (core::int) → void #t11 = member1#case#0 = #0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool* #t12 = #0#2#isSet = true in #0#2 = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>}) in true) && (#0#0{self::A<core::int>} is self::A<core::double> && (let final (core::double) → void #t13 = member2#case#0 = self::_extension#1|get#member<core::double>(#0#0{self::A<core::double>}) in true)) || #0#0 is self::A<core::int> && (let final (core::int) → void #t14 = member1#case#1 = #0#2#isSet ?{(core::int) → void} #0#2{(core::int) → void} : let final core::bool* #t15 = #0#2#isSet = true in #0#2 = self::_extension#1|get#member<core::int>(#0#0{self::A<core::int>}) in true) && (let final (core::num) → void #t16 = member2#case#1 = self::_extension#1|get#member<core::num>(#0#0{self::A<core::int>}) in true)) {
       }
     }
   }
 }
 static method exhaustiveMixed(self::I<core::num> i) → core::num
   return block {
-    core::num #t25;
+    core::num #t17;
     final synthesized self::I<core::num> #0#0 = i;
     synthesized core::num #0#1;
     synthesized core::bool #0#1#isSet = false;
@@ -164,21 +172,23 @@ static method exhaustiveMixed(self::I<core::num> i) → core::num
     {
       {
         hoisted core::int member;
-        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t26 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) is core::int && (let final core::int #t27 = member = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t28 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) as{Unchecked} core::int in true)) {
-          #t25 = member;
+        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t18 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) is core::int) {
+          member = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t19 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0)) as{Unchecked} core::int;
+          #t17 = member;
           break #L6;
         }
       }
       {
         hoisted core::double member;
-        if(#0#0 is self::J<core::num> && ((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t29 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0{self::J<core::num>})) is core::double && (let final core::double #t30 = member = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t31 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0{self::J<core::num>})) as{Unchecked} core::double in true))) {
-          #t25 = member;
+        if(#0#0 is self::J<core::num> && (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t20 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0{self::J<core::num>})) is core::double) {
+          member = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t21 = #0#1#isSet = true in #0#1 = self::_extension#0|get#member<core::num>(#0#0{self::J<core::num>})) as{Unchecked} core::double;
+          #t17 = member;
           break #L6;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t25;
+  } =>#t17;
 
 constants  {
   #C1 = TypeLiteralConstant(core::int*)

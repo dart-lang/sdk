@@ -300,7 +300,9 @@ static method testUnresolved(dynamic o) → dynamic {
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final invalid-type #t5 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type) {
+      field = #2#0{invalid-type}{<invalid>}.field;
+      {}
     }
   }
   #L1:
@@ -308,7 +310,7 @@ static method testUnresolved(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final invalid-type #t6 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final invalid-type #t5 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L1;
         }
@@ -316,25 +318,26 @@ static method testUnresolved(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t7;
+    core::String #t6;
     final synthesized dynamic #4#0 = o;
     #L2:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final invalid-type #t8 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t7 = "matched";
+        if(#4#0 is invalid-type) {
+          field = #4#0{invalid-type}{<invalid>}.field;
+          #t6 = "matched";
           break #L2;
         }
       }
       {
         if(true) {
-          #t7 = "";
+          #t6 = "";
           break #L2;
         }
       }
     }
-  } =>#t7;
+  } =>#t6;
 }
 static method testNonType(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
@@ -342,19 +345,21 @@ static method testNonType(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized invalid-type #0#2;
     synthesized core::bool #0#2#isSet = false;
-    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t9 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t10 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t11 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t7 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t8 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t9 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final invalid-type #t12 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final invalid-type #t10 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final invalid-type #t13 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type) {
+      field = #2#0{invalid-type}{<invalid>}.field;
+      {}
     }
   }
   #L3:
@@ -362,7 +367,7 @@ static method testNonType(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final invalid-type #t14 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final invalid-type #t11 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L3;
         }
@@ -370,25 +375,26 @@ static method testNonType(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t15;
+    core::String #t12;
     final synthesized dynamic #4#0 = o;
     #L4:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final invalid-type #t16 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t15 = "matched";
+        if(#4#0 is invalid-type) {
+          field = #4#0{invalid-type}{<invalid>}.field;
+          #t12 = "matched";
           break #L4;
         }
       }
       {
         if(true) {
-          #t15 = "";
+          #t12 = "";
           break #L4;
         }
       }
     }
-  } =>#t15;
+  } =>#t12;
 }
 static method testExtension(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
@@ -396,19 +402,21 @@ static method testExtension(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized invalid-type #0#2;
     synthesized core::bool #0#2#isSet = false;
-    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t17 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t18 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t19 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t13 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t14 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t15 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final invalid-type #t20 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final invalid-type #t16 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final invalid-type #t21 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type) {
+      field = #2#0{invalid-type}{<invalid>}.field;
+      {}
     }
   }
   #L5:
@@ -416,7 +424,7 @@ static method testExtension(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final invalid-type #t22 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final invalid-type #t17 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L5;
         }
@@ -424,27 +432,85 @@ static method testExtension(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t23;
+    core::String #t18;
     final synthesized dynamic #4#0 = o;
     #L6:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final invalid-type #t24 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t23 = "matched";
+        if(#4#0 is invalid-type) {
+          field = #4#0{invalid-type}{<invalid>}.field;
+          #t18 = "matched";
           break #L6;
         }
       }
       {
         if(true) {
-          #t23 = "";
+          #t18 = "";
           break #L6;
         }
       }
     }
-  } =>#t23;
+  } =>#t18;
 }
 static method testPrefixedUnresolved(dynamic o) → dynamic {
+  hoisted has-declared-initializer core::int field;
+  {
+    final synthesized dynamic #0#0 = o;
+    synthesized invalid-type #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t19 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t20 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t21 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  final hoisted has-declared-initializer invalid-type o;
+  {
+    final synthesized dynamic #1#0 = o;
+    if(!(#1#0 is invalid-type && (let final invalid-type #t22 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+      throw new core::StateError::•("Pattern matching error");
+  }
+  {
+    hoisted invalid-type field;
+    final synthesized dynamic #2#0 = o;
+    if(#2#0 is invalid-type) {
+      field = #2#0{invalid-type}{<invalid>}.field;
+      {}
+    }
+  }
+  #L7:
+  {
+    final synthesized dynamic #3#0 = o;
+    {
+      hoisted invalid-type field;
+      if(#3#0 is invalid-type && (let final invalid-type #t23 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+        {
+          break #L7;
+        }
+      }
+    }
+  }
+  o = block {
+    core::String #t24;
+    final synthesized dynamic #4#0 = o;
+    #L8:
+    {
+      {
+        hoisted invalid-type field;
+        if(#4#0 is invalid-type) {
+          field = #4#0{invalid-type}{<invalid>}.field;
+          #t24 = "matched";
+          break #L8;
+        }
+      }
+      {
+        if(true) {
+          #t24 = "";
+          break #L8;
+        }
+      }
+    }
+  } =>#t24;
+}
+static method testPrefixedNonType(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
@@ -462,61 +528,9 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final invalid-type #t29 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
-    }
-  }
-  #L7:
-  {
-    final synthesized dynamic #3#0 = o;
-    {
-      hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final invalid-type #t30 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
-        {
-          break #L7;
-        }
-      }
-    }
-  }
-  o = block {
-    core::String #t31;
-    final synthesized dynamic #4#0 = o;
-    #L8:
-    {
-      {
-        hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final invalid-type #t32 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t31 = "matched";
-          break #L8;
-        }
-      }
-      {
-        if(true) {
-          #t31 = "";
-          break #L8;
-        }
-      }
-    }
-  } =>#t31;
-}
-static method testPrefixedNonType(dynamic o) → dynamic {
-  hoisted has-declared-initializer core::int field;
-  {
-    final synthesized dynamic #0#0 = o;
-    synthesized invalid-type #0#2;
-    synthesized core::bool #0#2#isSet = false;
-    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t33 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t34 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t35 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
-      throw new core::StateError::•("Pattern matching error");
-  }
-  final hoisted has-declared-initializer invalid-type o;
-  {
-    final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final invalid-type #t36 = o = #1#0{invalid-type}{<invalid>}.o in true)))
-      throw new core::StateError::•("Pattern matching error");
-  }
-  {
-    hoisted invalid-type field;
-    final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final invalid-type #t37 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type) {
+      field = #2#0{invalid-type}{<invalid>}.field;
+      {}
     }
   }
   #L9:
@@ -524,7 +538,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final invalid-type #t38 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final invalid-type #t29 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L9;
         }
@@ -532,25 +546,26 @@ static method testPrefixedNonType(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t39;
+    core::String #t30;
     final synthesized dynamic #4#0 = o;
     #L10:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final invalid-type #t40 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t39 = "matched";
+        if(#4#0 is invalid-type) {
+          field = #4#0{invalid-type}{<invalid>}.field;
+          #t30 = "matched";
           break #L10;
         }
       }
       {
         if(true) {
-          #t39 = "";
+          #t30 = "";
           break #L10;
         }
       }
     }
-  } =>#t39;
+  } =>#t30;
 }
 static method testPrefixedExtension(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
@@ -558,19 +573,21 @@ static method testPrefixedExtension(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized invalid-type #0#2;
     synthesized core::bool #0#2#isSet = false;
-    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t41 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t42 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t43 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t31 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t32 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t33 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final invalid-type #t44 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final invalid-type #t34 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final invalid-type #t45 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type) {
+      field = #2#0{invalid-type}{<invalid>}.field;
+      {}
     }
   }
   #L11:
@@ -578,7 +595,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final invalid-type #t46 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final invalid-type #t35 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L11;
         }
@@ -586,25 +603,26 @@ static method testPrefixedExtension(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t47;
+    core::String #t36;
     final synthesized dynamic #4#0 = o;
     #L12:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final invalid-type #t48 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t47 = "matched";
+        if(#4#0 is invalid-type) {
+          field = #4#0{invalid-type}{<invalid>}.field;
+          #t36 = "matched";
           break #L12;
         }
       }
       {
         if(true) {
-          #t47 = "";
+          #t36 = "";
           break #L12;
         }
       }
     }
-  } =>#t47;
+  } =>#t36;
 }
 static method testUnresolvedPrefix(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
@@ -612,19 +630,21 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized invalid-type #0#2;
     synthesized core::bool #0#2#isSet = false;
-    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t49 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t50 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t51 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t37 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t38 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t39 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final invalid-type #t52 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final invalid-type #t40 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final invalid-type #t53 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type) {
+      field = #2#0{invalid-type}{<invalid>}.field;
+      {}
     }
   }
   #L13:
@@ -632,7 +652,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final invalid-type #t54 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final invalid-type #t41 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L13;
         }
@@ -640,25 +660,26 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t55;
+    core::String #t42;
     final synthesized dynamic #4#0 = o;
     #L14:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final invalid-type #t56 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t55 = "matched";
+        if(#4#0 is invalid-type) {
+          field = #4#0{invalid-type}{<invalid>}.field;
+          #t42 = "matched";
           break #L14;
         }
       }
       {
         if(true) {
-          #t55 = "";
+          #t42 = "";
           break #L14;
         }
       }
     }
-  } =>#t55;
+  } =>#t42;
 }
 static method testMemberAccess(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
@@ -666,19 +687,21 @@ static method testMemberAccess(dynamic o) → dynamic {
     final synthesized dynamic #0#0 = o;
     synthesized invalid-type #0#2;
     synthesized core::bool #0#2#isSet = false;
-    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t57 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t58 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t59 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
+    if(!(#0#0 is invalid-type && ((#0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t43 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field) is core::int && (let final invalid-type #t44 = field = #0#2#isSet ?{invalid-type} #0#2{invalid-type} : let final core::bool* #t45 = #0#2#isSet = true in #0#2 = #0#0{invalid-type}{<invalid>}.field in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer invalid-type o;
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is invalid-type && (let final invalid-type #t60 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final invalid-type #t46 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is invalid-type && (let final invalid-type #t61 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type) {
+      field = #2#0{invalid-type}{<invalid>}.field;
+      {}
     }
   }
   #L15:
@@ -686,7 +709,7 @@ static method testMemberAccess(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is invalid-type && (let final invalid-type #t62 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final invalid-type #t47 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L15;
         }
@@ -694,23 +717,24 @@ static method testMemberAccess(dynamic o) → dynamic {
     }
   }
   o = block {
-    core::String #t63;
+    core::String #t48;
     final synthesized dynamic #4#0 = o;
     #L16:
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is invalid-type && (let final invalid-type #t64 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
-          #t63 = "matched";
+        if(#4#0 is invalid-type) {
+          field = #4#0{invalid-type}{<invalid>}.field;
+          #t48 = "matched";
           break #L16;
         }
       }
       {
         if(true) {
-          #t63 = "";
+          #t48 = "";
           break #L16;
         }
       }
     }
-  } =>#t63;
+  } =>#t48;
 }

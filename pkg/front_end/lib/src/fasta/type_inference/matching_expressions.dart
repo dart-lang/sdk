@@ -677,6 +677,7 @@ class MatchingExpressionVisitor
     }
     VariableDeclaration target =
         matchingCache.getUnaliasedVariable(node.variable);
+    // TODO(johnniwinther): Avoid hoisting variables for irrefutable tails.
     target.isHoisted = true;
     CacheableExpression valueExpression =
         new PromotedCacheableExpression(matchedExpression, target.type);

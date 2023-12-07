@@ -20,8 +20,10 @@ class C extends core::Object {
     {
       hoisted core::int x;
       final synthesized core::int? #0#0 = this.{self::C::_x}{core::int?};
-      if(!(#0#0 == null) && (let final core::int #t1 = x = #0#0{core::int} in true))
+      if(!(#0#0 == null)) {
+        x = #0#0{core::int};
         core::print(x);
+      }
       else
         core::print("null");
     }

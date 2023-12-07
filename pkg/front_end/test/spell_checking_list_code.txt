@@ -1658,6 +1658,7 @@ tagger
 tagging
 tags
 tailor
+tails
 taking
 talk
 talks
@@ -1928,6 +1929,7 @@ wrt
 wtf
 www
 x
+x$y
 xb
 xbb
 xbf

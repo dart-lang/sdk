@@ -525,14 +525,16 @@ import "dart:core" as core;
 [3440]    {
 [3465]      {
 [3462]        [3462] hoisted dynamic a;
-[3465]        if([3457] [3457] [3457] [3457] [3457] [3457] [-1] [-1] #0#0 is core::List<dynamic> && [3457] [3457] [3457] [3457] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4 && [3462]([3462] let [3462] final dynamic #t60 = [3462] [3462] a = [3457] [3457] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[3457]([3457] 0){(core::int) → dynamic} in [-1] [-1] true)) {
+[3465]        if([3457] [3457] [3457] [3457] [-1] [-1] #0#0 is core::List<dynamic> && [3457] [3457] [3457] [3457] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [-1] [-1] #C4) {
+[3462]          [3462] [3462] a = [3457] [3457] [-1] [-1] #0#0{core::List<dynamic>}.{core::List::[]}[3457]([3457] 0){(core::int) → dynamic};
 [-1]          [-1] [-1] #t59 = [3468] [3468] a;
 [3465]          break #L36;
         }
       }
 [3486]      {
 [3483]        [3483] hoisted dynamic a;
-[3486]        if([3475] [3475] [3477] [3477] [3475] [3475] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [3477]([3477] [3477] [3477]![3477]([3477] [3477]([3477] [-1] [-1] #0#9#isSet ?{dynamic} [-1] [-1] #0#9{dynamic} : [3477] [3477] let [3477] final dynamic #t61 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic}) == null) || [3477] [3477] [3477] [3477] [3477] [3477] null is dynamic && [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[3477]([-1] #C4){(core::Object?) → core::bool}) && [3483]([3483] let [3483] final dynamic #t62 = [3483] [3483] a = [3477] [3477] [-1] [-1] #0#9#isSet ?{dynamic} [-1] [-1] #0#9{dynamic} : [3477] [3477] let [3477] final dynamic #t63 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic} in [-1] [-1] true)) {
+[3486]        if([3477] [3477] [3475] [3475] [-1] [-1] #0#0 is core::Map<dynamic, dynamic> && [3477]([3477] [3477] [3477]![3477]([3477] [3477]([3477] [-1] [-1] #0#9#isSet ?{dynamic} [-1] [-1] #0#9{dynamic} : [3477] [3477] let [3477] final dynamic #t60 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic}) == null) || [3477] [3477] [3477] [3477] [3477] [3477] null is dynamic && [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}[3477]([-1] #C4){(core::Object?) → core::bool})) {
+[3483]          [3483] [3483] a = [3477] [3477] [-1] [-1] #0#9#isSet ?{dynamic} [-1] [-1] #0#9{dynamic} : [3477] [3477] let [3477] final dynamic #t61 = [3477] [3477] #0#9#isSet = [3477] [3477] true in [3477] [3477] #0#9 = [3477] [3477] [-1] [-1] #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}[3477]([-1] #C4){(core::Object?) → dynamic};
 [-1]          [-1] [-1] #t59 = [3489] [3489] a;
 [3486]          break #L36;
         }
@@ -548,110 +550,110 @@ import "dart:core" as core;
 }
 [3515]static method switchExpressionEnum([3538] self::E o) → dynamic {
 [3545]  return [3552] [3552] block {
-[-1]    [-1] core::int #t64;
+[-1]    [-1] core::int #t62;
 [3552]    #L37:
 [3552]    switch([3560] [3560] o) /* isExplicitlyExhaustive, self::E */ {
 [3573]      #L38:
       case [3571] [3571] #C3:
 [3573]        {
-[3576]          [3576] [3576] #t64 = [3576] [3576] 0;
+[3576]          [3576] [3576] #t62 = [3576] [3576] 0;
 [3576]          break #L37;
         }
 [3587]      #L39:
       case [3585] [3585] #C6:
 [3587]        {
-[3590]          [3590] [3590] #t64 = [3590] [3590] 1;
+[3590]          [3590] [3590] #t62 = [3590] [3590] 1;
 [3590]          break #L37;
         }
 [3601]      #L40:
       case [3599] [3599] #C9:
 [3601]        {
-[3604]          [3604] [3604] #t64 = [3604] [3604] 2;
+[3604]          [3604] [3604] #t62 = [3604] [3604] 2;
 [3604]          break #L37;
         }
     }
-  } =>[-1] [-1] #t64;
+  } =>[-1] [-1] #t62;
 }
 [3615]static method switchExpressionEnumWithGuard([3647] self::E o) → dynamic {
 [3654]  return [3661] [3661] block {
-[-1]    [-1] core::int #t65;
+[-1]    [-1] core::int #t63;
 [3669]    [3669] final synthesized self::E #0#0 = [3669] [3669] o;
 [3661]    #L41:
 [3661]    {
 [3692]      {
 [3692]        if([-1] [-1] [3680] [3680] [-1] [-1] #C3 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0 && [3687] [3687] true) {
-[-1]          [-1] [-1] #t65 = [3695] [3695] 0;
+[-1]          [-1] [-1] #t63 = [3695] [3695] 0;
 [3692]          break #L41;
         }
       }
 [3706]      {
 [3706]        if([3704] [3704] [-1] [-1] #C6 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
-[-1]          [-1] [-1] #t65 = [3709] [3709] 1;
+[-1]          [-1] [-1] #t63 = [3709] [3709] 1;
 [3706]          break #L41;
         }
       }
 [3718]      {
 [3718]        if([3716] [3716] true) {
-[-1]          [-1] [-1] #t65 = [3721] [3721] 2;
+[-1]          [-1] [-1] #t63 = [3721] [3721] 2;
 [3718]          break #L41;
         }
       }
     }
-  } =>[-1] [-1] #t65;
+  } =>[-1] [-1] #t63;
 }
 [3732]static method switchExpressionPrimitiveEquals([3764] dynamic o) → dynamic {
 [3771]  return [3778] [3778] block {
-[-1]    [-1] core::int #t66;
+[-1]    [-1] core::int #t64;
 [3786]    [3786] final synthesized dynamic #0#0 = [3786] [3786] o;
 [3778]    #L42:
 [3778]    {
 [3820]      {
 [3820]        if([3801] [3801] [-1] [-1] #C11 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
-[-1]          [-1] [-1] #t66 = [3823] [3823] 0;
+[-1]          [-1] [-1] #t64 = [3823] [3823] 0;
 [3820]          break #L42;
         }
       }
 [3855]      {
 [3855]        if([3836] [3836] [-1] [-1] #C12 =={core::Object::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
-[-1]          [-1] [-1] #t66 = [3858] [3858] 1;
+[-1]          [-1] [-1] #t64 = [3858] [3858] 1;
 [3855]          break #L42;
         }
       }
 [3867]      {
 [3867]        if([3865] [3865] true) {
-[-1]          [-1] [-1] #t66 = [3870] [3870] 2;
+[-1]          [-1] [-1] #t64 = [3870] [3870] 2;
 [3867]          break #L42;
         }
       }
     }
-  } =>[-1] [-1] #t66;
+  } =>[-1] [-1] #t64;
 }
 [3881]static method switchExpressionNonPrimitiveEquals([3916] dynamic o) → dynamic {
 [3923]  return [3930] [3930] block {
-[-1]    [-1] core::int #t67;
+[-1]    [-1] core::int #t65;
 [3938]    [3938] final synthesized dynamic #0#0 = [3938] [3938] o;
 [3930]    #L43:
 [3930]    {
 [3975]      {
 [3975]        if([3953] [3953] [-1] [-1] #C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
-[-1]          [-1] [-1] #t67 = [3978] [3978] 0;
+[-1]          [-1] [-1] #t65 = [3978] [3978] 0;
 [3975]          break #L43;
         }
       }
 [4013]      {
 [4013]        if([3991] [3991] [-1] [-1] #C14 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
-[-1]          [-1] [-1] #t67 = [4016] [4016] 1;
+[-1]          [-1] [-1] #t65 = [4016] [4016] 1;
 [4013]          break #L43;
         }
       }
 [4025]      {
 [4025]        if([4023] [4023] true) {
-[-1]          [-1] [-1] #t67 = [4028] [4028] 2;
+[-1]          [-1] [-1] #t65 = [4028] [4028] 2;
 [4025]          break #L43;
         }
       }
     }
-  } =>[-1] [-1] #t67;
+  } =>[-1] [-1] #t65;
 }
 [4039]static method switchStatementSymbol([4068] core::Symbol s) → dynamic {
 [4075]  #L44:
@@ -682,30 +684,30 @@ import "dart:core" as core;
 }
 [4197]static method switchExpressionSymbol([4227] core::Symbol s) → dynamic {
 [4234]  return [4241] [4241] block {
-[-1]    [-1] core::int #t68;
+[-1]    [-1] core::int #t66;
 [4249]    [4249] final synthesized core::Symbol #0#0 = [4249] [4249] s;
 [4241]    #L45:
 [4241]    {
 [4261]      {
 [4261]        if([4258] [4258] [-1] [-1] #C15 =={core::Symbol::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
-[-1]          [-1] [-1] #t68 = [4264] [4264] 0;
+[-1]          [-1] [-1] #t66 = [4264] [4264] 0;
 [4261]          break #L45;
         }
       }
 [4289]      {
 [4289]        if([4277] [4277] [-1] [-1] #C16 =={core::Symbol::==}{(core::Object) → core::bool} [-1] [-1] #0#0) {
-[-1]          [-1] [-1] #t68 = [4292] [4292] 1;
+[-1]          [-1] [-1] #t66 = [4292] [4292] 1;
 [4289]          break #L45;
         }
       }
 [4301]      {
 [4301]        if([4299] [4299] true) {
-[-1]          [-1] [-1] #t68 = [4304] [4304] 2;
+[-1]          [-1] [-1] #t66 = [4304] [4304] 2;
 [4301]          break #L45;
         }
       }
     }
-  } =>[-1] [-1] #t68;
+  } =>[-1] [-1] #t66;
 }
 
 constants  {

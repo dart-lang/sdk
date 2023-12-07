@@ -525,14 +525,16 @@ static method switchExpression(dynamic o) → dynamic {
     {
       {
         hoisted dynamic a;
-        if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t60 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
+        if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4) {
+          a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
           #t59 = a;
           break #L36;
         }
       }
       {
         hoisted dynamic a;
-        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#9#isSet ?{dynamic} #0#9{dynamic} : let final dynamic #t61 = #0#9#isSet = true in #0#9 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t62 = a = #0#9#isSet ?{dynamic} #0#9{dynamic} : let final dynamic #t63 = #0#9#isSet = true in #0#9 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic} in true)) {
+        if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#9#isSet ?{dynamic} #0#9{dynamic} : let final dynamic #t60 = #0#9#isSet = true in #0#9 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool})) {
+          a = #0#9#isSet ?{dynamic} #0#9{dynamic} : let final dynamic #t61 = #0#9#isSet = true in #0#9 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic};
           #t59 = a;
           break #L36;
         }
@@ -548,110 +550,110 @@ static method switchExpression(dynamic o) → dynamic {
 }
 static method switchExpressionEnum(self::E o) → dynamic {
   return block {
-    core::int #t64;
+    core::int #t62;
     #L37:
     switch(o) /* isExplicitlyExhaustive, self::E */ {
       #L38:
       case #C3:
         {
-          #t64 = 0;
+          #t62 = 0;
           break #L37;
         }
       #L39:
       case #C6:
         {
-          #t64 = 1;
+          #t62 = 1;
           break #L37;
         }
       #L40:
       case #C9:
         {
-          #t64 = 2;
+          #t62 = 2;
           break #L37;
         }
     }
-  } =>#t64;
+  } =>#t62;
 }
 static method switchExpressionEnumWithGuard(self::E o) → dynamic {
   return block {
-    core::int #t65;
+    core::int #t63;
     final synthesized self::E #0#0 = o;
     #L41:
     {
       {
         if(#C3 =={core::Object::==}{(core::Object) → core::bool} #0#0 && true) {
-          #t65 = 0;
+          #t63 = 0;
           break #L41;
         }
       }
       {
         if(#C6 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          #t65 = 1;
+          #t63 = 1;
           break #L41;
         }
       }
       {
         if(true) {
-          #t65 = 2;
+          #t63 = 2;
           break #L41;
         }
       }
     }
-  } =>#t65;
+  } =>#t63;
 }
 static method switchExpressionPrimitiveEquals(dynamic o) → dynamic {
   return block {
-    core::int #t66;
+    core::int #t64;
     final synthesized dynamic #0#0 = o;
     #L42:
     {
       {
         if(#C11 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          #t66 = 0;
+          #t64 = 0;
           break #L42;
         }
       }
       {
         if(#C12 =={core::Object::==}{(core::Object) → core::bool} #0#0) {
-          #t66 = 1;
+          #t64 = 1;
           break #L42;
         }
       }
       {
         if(true) {
-          #t66 = 2;
+          #t64 = 2;
           break #L42;
         }
       }
     }
-  } =>#t66;
+  } =>#t64;
 }
 static method switchExpressionNonPrimitiveEquals(dynamic o) → dynamic {
   return block {
-    core::int #t67;
+    core::int #t65;
     final synthesized dynamic #0#0 = o;
     #L43:
     {
       {
         if(#C13 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
-          #t67 = 0;
+          #t65 = 0;
           break #L43;
         }
       }
       {
         if(#C14 =={self::NonPrimitiveEquals::==}{(core::Object) → core::bool} #0#0) {
-          #t67 = 1;
+          #t65 = 1;
           break #L43;
         }
       }
       {
         if(true) {
-          #t67 = 2;
+          #t65 = 2;
           break #L43;
         }
       }
     }
-  } =>#t67;
+  } =>#t65;
 }
 static method switchStatementSymbol(core::Symbol s) → dynamic {
   #L44:
@@ -682,30 +684,30 @@ static method switchStatementSymbol(core::Symbol s) → dynamic {
 }
 static method switchExpressionSymbol(core::Symbol s) → dynamic {
   return block {
-    core::int #t68;
+    core::int #t66;
     final synthesized core::Symbol #0#0 = s;
     #L45:
     {
       {
         if(#C15 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
-          #t68 = 0;
+          #t66 = 0;
           break #L45;
         }
       }
       {
         if(#C16 =={core::Symbol::==}{(core::Object) → core::bool} #0#0) {
-          #t68 = 1;
+          #t66 = 1;
           break #L45;
         }
       }
       {
         if(true) {
-          #t68 = 2;
+          #t66 = 2;
           break #L45;
         }
       }
     }
-  } =>#t68;
+  } =>#t66;
 }
 
 constants  {

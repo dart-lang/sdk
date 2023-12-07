@@ -20,7 +20,9 @@ static method main() → void {
   {
     hoisted core::int value;
     final synthesized self::Ext /* = core::Object? */ #0#0 = self::Ext|constructor#("");
-    if(let final core::int #t1 = value = self::Ext|get#value(#0#0) in true)
+    if(true) {
+      value = self::Ext|get#value(#0#0);
       core::print(value);
+    }
   }
 }
