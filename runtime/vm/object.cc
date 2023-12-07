@@ -11043,7 +11043,9 @@ const char* Function::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
     return String::Handle(name()).ToCString();
   }
-  return String::ScrubName(String::Handle(name()), is_extension_member());
+  is_extension_type_member();
+  return String::ScrubName(String::Handle(name()),
+                           is_extension_member() || is_extension_type_member());
 }
 
 StringPtr Function::UserVisibleName() const {
@@ -11052,7 +11054,8 @@ StringPtr Function::UserVisibleName() const {
   }
   return Symbols::New(
       Thread::Current(),
-      String::ScrubName(String::Handle(name()), is_extension_member()));
+      String::ScrubName(String::Handle(name()),
+                        is_extension_member() || is_extension_type_member()));
 }
 
 StringPtr Function::QualifiedScrubbedName() const {
@@ -12135,7 +12138,8 @@ const char* Field::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
     return String::Handle(name()).ToCString();
   }
-  return String::ScrubName(String::Handle(name()), is_extension_member());
+  return String::ScrubName(String::Handle(name()),
+                           is_extension_member() || is_extension_type_member());
 }
 
 StringPtr Field::UserVisibleName() const {
@@ -12144,7 +12148,8 @@ StringPtr Field::UserVisibleName() const {
   }
   return Symbols::New(
       Thread::Current(),
-      String::ScrubName(String::Handle(name()), is_extension_member()));
+      String::ScrubName(String::Handle(name()),
+                        is_extension_member() || is_extension_type_member()));
 }
 
 intptr_t Field::guarded_list_length() const {

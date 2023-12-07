@@ -35,6 +35,7 @@ import 'package:kernel/kernel.dart'
         Expression,
         Extension,
         ExtensionType,
+        ExtensionTypeDeclaration,
         FunctionNode,
         Library,
         LibraryDependency,
@@ -73,7 +74,11 @@ import '../base/processed_options.dart' show ProcessedOptions;
 import '../kernel_generator_impl.dart' show precompileMacros;
 import 'builder/builder.dart' show Builder;
 import 'builder/declaration_builders.dart'
-    show ClassBuilder, ExtensionBuilder, TypeDeclarationBuilder;
+    show
+        ClassBuilder,
+        ExtensionBuilder,
+        ExtensionTypeDeclarationBuilder,
+        TypeDeclarationBuilder;
 import 'builder/field_builder.dart' show FieldBuilder;
 import 'builder/library_builder.dart' show LibraryBuilder;
 import 'builder/member_builder.dart' show MemberBuilder;
@@ -1813,7 +1818,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     return await context.runInContext((_) async {
       LibraryBuilder libraryBuilder =
           lastGoodKernelTarget!.loader.readAsEntryPoint(libraryUri);
-
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
@@ -1854,6 +1858,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
       Extension? extension;
+      ExtensionTypeDeclaration? extensionType;
       String? extensionName;
       if (methodName != null) {
         int indexOfDot = methodName.indexOf(".");
@@ -1869,6 +1874,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 builder.lookupLocalMember(afterDot, setter: false);
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
+                isStatic = false;
+              }
+            }
+          } else if (builder is ExtensionTypeDeclarationBuilder) {
+            extensionType = builder.extensionTypeDeclaration;
+            Builder? subBuilder =
+                builder.lookupLocalMember(afterDot, setter: false);
+            if (subBuilder is MemberBuilder) {
+              if (subBuilder.isExtensionTypeInstanceMember) {
                 isStatic = false;
               }
             }
@@ -1893,7 +1907,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       for (String name in usedDefinitions.keys) {
         index++;
         if (!(isLegalIdentifier(name) ||
-            (extension != null &&
+            ((extension != null || extensionType != null) &&
                 !isStatic &&
                 index == 1 &&
                 isExtensionThisName(name)))) {
@@ -2002,11 +2016,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                   new VariableDeclarationImpl(def.key, type: def.value)
                     ..fileOffset = cls?.fileOffset ??
                         extension?.fileOffset ??
+                        extensionType?.fileOffset ??
                         libraryBuilder.library.fileOffset)
               .toList());
 
       VariableDeclaration? extensionThis;
-      if (extension != null &&
+      if ((extension != null || extensionType != null) &&
           !isStatic &&
           parameters.positionalParameters.isNotEmpty) {
         // We expect the first parameter to be called #this and be special.
