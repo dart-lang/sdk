@@ -148,6 +148,11 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
         id: ErrorMessageType.general,
         format: '{message}\n{stack}',
         variables: {'message': messageText, 'stack': '$s'},
+        // DAP specification did not specify how to handle the case where
+        // showUser does not exist. VSCode defaults to true, but some other
+        // systems might default it to false.
+        // Always pass true to be consistent.
+        showUser: true,
       );
       final response = Response(
         success: false,
