@@ -933,7 +933,7 @@ class ExtensionDeclarationImpl extends ParameterizedTypeDeclarationImpl
 class ExtensionTypeDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements ExtensionTypeDeclaration {
   @override
-  final TypeAnnotationImpl onType;
+  final TypeAnnotationImpl representationType;
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.extensionTypeDeclaration;
@@ -947,14 +947,14 @@ class ExtensionTypeDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // ParameterizedTypeDeclaration fields.
     required super.typeParameters,
     // ExtensionTypeDeclaration fields.
-    required this.onType,
+    required this.representationType,
   });
 
   @override
   void serializeUncached(Serializer serializer) {
     super.serializeUncached(serializer);
 
-    onType.serialize(serializer);
+    representationType.serialize(serializer);
   }
 }
 

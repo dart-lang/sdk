@@ -213,8 +213,8 @@ abstract interface class ExtensionDeclaration
 /// The class for introspecting on an extension type.
 abstract interface class ExtensionTypeDeclaration
     implements ParameterizedTypeDeclaration, Declaration {
-  /// The type that appears on the `on` clause of this extension type.
-  TypeAnnotation get onType;
+  /// The representation type of this extension type.
+  TypeAnnotation get representationType;
 }
 
 /// Mixin introspection information.

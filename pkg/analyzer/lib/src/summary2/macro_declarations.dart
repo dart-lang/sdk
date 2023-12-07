@@ -632,7 +632,7 @@ class DeclarationBuilderFromNode {
       library: library(element),
       metadata: _buildMetadata(element),
       typeParameters: _typeParameters(node.typeParameters),
-      onType: _typeAnnotation(node.representation.fieldType),
+      representationType: _typeAnnotation(node.representation.fieldType),
       element: element,
     );
   }
@@ -1011,7 +1011,7 @@ class ExtensionTypeDeclarationImpl extends macro.ExtensionTypeDeclarationImpl
     required super.library,
     required super.metadata,
     required super.typeParameters,
-    required super.onType,
+    required super.representationType,
     required this.element,
   });
 }

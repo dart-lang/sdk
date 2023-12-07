@@ -674,7 +674,7 @@ class Fixtures {
       library: Fixtures.library,
       metadata: [],
       typeParameters: [],
-      onType: myClassType);
+      representationType: myClassType);
 
   static final myGeneratedExtensionMethod = MethodDeclarationImpl(
       id: RemoteInstance.uniqueId,
