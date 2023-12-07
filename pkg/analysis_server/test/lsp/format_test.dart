@@ -49,6 +49,30 @@ void f() {
     expect(formatEdits, isNull);
   }
 
+  /// Formatting a file with '\r\n' and then a file with '\n' should not result
+  /// in '\r' being added to the second file.
+  Future<void> test_changedLineEndings() async {
+    await provideConfig(
+      initialize,
+      // The bug only occurred with an explicit line length because reuse
+      // of the formatter accidentally required lineLength match the formatters
+      // (non-null)  line length.
+      {'lineLength': 80},
+    );
+
+    // First format the doc with '\r\n'.
+    await openFile(mainFileUri, 'int? a;\r\n');
+    await formatDocument(mainFileUri);
+
+    // Now replace and format with '\n'.
+    await replaceFile(2, mainFileUri, 'int? a;\n');
+    final formatEdits = await formatDocument(mainFileUri);
+
+    // Expect no edits because this document was already formatted.
+    // When the bug occurs, we'd see edits to add a '\r'.
+    expect(formatEdits, isNull);
+  }
+
   Future<void> test_complex() async {
     const contents = '''
 ErrorOr<Pair<A, List<B>>> c(
