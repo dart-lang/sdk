@@ -148,7 +148,7 @@ class LibraryMacroApplier {
             container: container,
             targetElement: declarationElement,
             classNode: declaration,
-            classDeclarationKind: macro.DeclarationKind.extension,
+            classDeclarationKind: macro.DeclarationKind.extensionType,
             classAnnotations: declaration.metadata,
             declarationsPhaseInterface: declarationElement,
             members: declaration.members,

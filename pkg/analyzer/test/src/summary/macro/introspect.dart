@@ -305,7 +305,10 @@ class _Printer {
       await _writeMetadata(e);
 
       await _writeTypeParameters(e.typeParameters);
-      await _writeNamedTypeAnnotation('onType', e.representationType);
+      await _writeNamedTypeAnnotation(
+        'representationType',
+        e.representationType,
+      );
       await _writeTypeDeclarationMembers(e);
     });
   }

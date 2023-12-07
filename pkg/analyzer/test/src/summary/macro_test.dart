@@ -5792,7 +5792,7 @@ extension type A(int it) {
 }
 ''', r'''
 extension type A
-  onType: int
+  representationType: int
   fields
     it
       flags: hasFinal
@@ -5818,7 +5818,7 @@ extension type A
       type: Introspect
     IdentifierMetadataAnnotation
       identifier: a
-  onType: int
+  representationType: int
   fields
     it
       flags: hasFinal
@@ -5847,7 +5847,7 @@ extension type A(int it) {
 }
 ''', r'''
 extension type A
-  onType: int
+  representationType: int
   fields
     it
       flags: hasFinal
@@ -5867,7 +5867,7 @@ extension type A<T>(int it) {}
 extension type A
   typeParameters
     T
-  onType: int
+  representationType: int
   fields
     it
       flags: hasFinal
