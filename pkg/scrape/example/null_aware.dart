@@ -1,6 +1,11 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// The literal bool comparisons in this file are useful
+// for understanding the implementation and behavior of the example.
+// ignore_for_file: no_literal_bool_comparisons
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:scrape/scrape.dart';
@@ -11,10 +16,10 @@ void main(List<String> arguments) {
     ..addHistogram('Null-aware chain lengths')
     // Boolean contexts where null-aware operators are used.
     ..addHistogram('Boolean contexts')
-    // Expressions used to convert a null-aware expression to a Boolean for use in
-    // a Boolean context.
+    // Expressions used to convert a null-aware expression to a
+    // Boolean for use in Boolean context.
     ..addHistogram('Boolean conversions')
-    ..addVisitor(() => NullVisitor())
+    ..addVisitor(NullVisitor.new)
     ..runCommandLine(arguments);
 }
 

@@ -1,6 +1,7 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -97,8 +98,8 @@ class ScrapeVisitor extends RecursiveAstVisitor<void> {
     return rangeToString(node.offset, node.end);
   }
 
-  /// Generate a nice string representation of [node] include file path and
-  /// line information.
+  /// Generate a string with the file path and lines of source code
+  /// that contain the source character offsets from [start] to [end].
   String rangeToString(int start, int end) {
     var startLine = lineInfo.getLocation(start).lineNumber;
     var endLine = lineInfo.getLocation(end).lineNumber;

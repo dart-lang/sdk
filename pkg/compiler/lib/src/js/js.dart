@@ -56,16 +56,16 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
   Dart2JSJavaScriptPrintingContext context = Dart2JSJavaScriptPrintingContext(
       monitor, outBuffer, sourceInformationProcessor, annotationMonitor);
 
-  /// We defer deserialization of function bodies but maintain maps using
-  /// nodes as keys for source map generation. In order to ensure the map's
-  /// references are the same between printing and source map generation we
-  /// cache the contents of the deferred blocks during these two operations.
+  /// We defer deserialization of function bodies but deserialize bodies twice
+  /// while printing. Once to collect variable declarations for hoisting and
+  /// then again to print the function body. Cache the body so we don't
+  /// immediately deserialize the body twice.
   final deferredBlockCollector = _CollectDeferredBlocksAndSetCaches();
   deferredBlockCollector.setCache(node);
   Printer printer = Printer(options, context);
   printer.visit(node);
-  sourceInformationProcessor.process(node, outBuffer);
   deferredBlockCollector.clearCache();
+  sourceInformationProcessor.process(node, outBuffer);
   return outBuffer;
 }
 
@@ -299,10 +299,7 @@ class DeferredExpressionData {
 /// Each time [statements] is invoked, the enclosed [Statement] list will be
 /// deserialized so care should be taken to limit this.
 class DeferredBlock extends Statement implements Block {
-  bool hit = false;
-  List<Statement> getLoaded() {
-    return _statements.loaded();
-  }
+  List<Statement> getLoaded() => _statements.loaded();
 
   List<Statement>? _cached;
 

@@ -8,6 +8,7 @@ import "package:expect/expect.dart";
 typedef FListInt(List<int> l);
 
 main() {
+  if (dart2jsProductionMode) return; // Checks are omitted in production mode.
   Expect.throwsTypeError(() {
     // Static result type of f(), i.e. FList, is a subtype of FListInt.
     // However, run time type of returned function is not a subtype of FListInt.

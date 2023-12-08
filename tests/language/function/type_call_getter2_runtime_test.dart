@@ -1,6 +1,3 @@
-// TODO(multitest): This was automatically migrated from a multitest and may
-// contain strange or dead code.
-
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26,51 +23,29 @@ main() {
   B b = new B();
   C c = new C();
 
-  final
+  if (!dart2jsProductionMode) {
+    Expect.throwsTypeError(() {
+      Function a1 = a as dynamic;
+    });
 
-      a2 = a;
+    Expect.throwsTypeError(() {
+      F a2 = a as dynamic;
+    });
 
-  final
+    Expect.throwsTypeError(() {
+      Function b1 = b as dynamic;
+    });
 
-      a3 = a;
+    Expect.throwsTypeError(() {
+      F b2 = b as dynamic;
+    });
 
-  final
+    Expect.throwsTypeError(() {
+      Function c1 = c as dynamic;
+    });
 
-      b2 = b;
-
-  final
-
-      b3 = b;
-
-  final
-
-      c2 = c;
-
-  final
-
-      c3 = c;
-
-  Expect.throwsTypeError(() {
-    Function a4 = a as dynamic;
-  });
-
-  Expect.throwsTypeError(() {
-    F a5 = a as dynamic;
-  });
-
-  Expect.throwsTypeError(() {
-    Function b4 = b as dynamic;
-  });
-
-  Expect.throwsTypeError(() {
-    F b5 = b as dynamic;
-  });
-
-  Expect.throwsTypeError(() {
-    Function c4 = c as dynamic;
-  });
-
-  Expect.throwsTypeError(() {
-    F c5 = c as dynamic;
-  });
+    Expect.throwsTypeError(() {
+      F c2 = c as dynamic;
+    });
+  }
 }

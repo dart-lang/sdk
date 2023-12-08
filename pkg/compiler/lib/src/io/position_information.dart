@@ -13,7 +13,6 @@ import '../js/js_debug.dart';
 import '../js/js_source_mapping.dart';
 import '../serialization/serialization.dart';
 import '../util/util.dart';
-import 'code_output.dart' show BufferedCodeOutput;
 import 'source_information.dart';
 
 /// [SourceInformation] that consists of an offset position into the source
@@ -130,14 +129,14 @@ class PositionSourceInformation extends SourceInformation {
   }
 }
 
-abstract class AbstractPositionSourceInformationStrategy
+abstract class OnlinePositionSourceInformationStrategy
     implements JavaScriptSourceInformationStrategy {
-  const AbstractPositionSourceInformationStrategy();
+  const OnlinePositionSourceInformationStrategy();
 
   @override
   SourceInformationProcessor createProcessor(
       SourceMapperProvider provider, SourceInformationReader reader) {
-    return PositionSourceInformationProcessor(provider, reader);
+    return OnlineSourceInformationProcessor(provider, reader);
   }
 
   @override
@@ -292,12 +291,15 @@ enum CodePositionKind {
   ///                                  ^       // the function end position
   ///                                ^         // the return end position
   ///
-  END,
+  END;
+
+  int? select({required int start, required int end, required int? closing}) =>
+      switch (this) { START => start, END => end, CLOSING => closing };
 }
 
 /// Processor that associates [SourceLocation]s from [SourceInformation] on
 /// [js.Node]s with the target offsets in a [SourceMapper].
-class PositionSourceInformationProcessor extends SourceInformationProcessor {
+class OnlineSourceInformationProcessor extends SourceInformationProcessor {
   /// The id for this source information engine.
   ///
   /// The id is added to the source map file in an extra "engine" property and
@@ -308,38 +310,31 @@ class PositionSourceInformationProcessor extends SourceInformationProcessor {
   ///   v2: The initial version with an id.
   static const String id = 'v2';
 
-  final CodePositionRecorder codePositionRecorder = CodePositionRecorder();
+  late final OnlineJavaScriptTracer tracer =
+      OnlineJavaScriptTracer(reader, traceListeners, onComplete: () {
+    inliningListener.finish();
+  });
   final SourceInformationReader reader;
-  late final CodePositionMap codePositionMap;
   late final List<TraceListener> traceListeners;
   late final InliningTraceListener inliningListener;
 
-  PositionSourceInformationProcessor(SourceMapperProvider provider, this.reader,
-      [Coverage? coverage]) {
-    codePositionMap = coverage != null
-        ? CodePositionCoverage(codePositionRecorder, coverage)
-        : codePositionRecorder;
+  OnlineSourceInformationProcessor(SourceMapperProvider provider, this.reader) {
     var sourceMapper = provider.createSourceMapper(id);
     traceListeners = [
       PositionTraceListener(sourceMapper, reader),
       inliningListener = InliningTraceListener(sourceMapper, reader),
     ];
-    if (coverage != null) {
-      traceListeners.add(CoverageListener(coverage, reader));
-    }
   }
 
   @override
-  void process(js.Node node, BufferedCodeOutput code) {
-    JavaScriptTracer(codePositionMap, reader, traceListeners).apply(node);
-    inliningListener.finish();
+  void onStartPosition(js.Node node, int startPosition) {
+    tracer.onStartPosition(node, startPosition);
   }
 
   @override
   void onPositions(
       js.Node node, int startPosition, int endPosition, int? closingPosition) {
-    codePositionRecorder.registerPositions(
-        node, startPosition, endPosition, closingPosition);
+    tracer.onPositions(node, startPosition, endPosition, closingPosition);
   }
 }
 
@@ -798,17 +793,16 @@ class Offset {
   /// Here, `baz()` is executed before `foo()` so we need to use 'f' as its best
   /// position under the restriction.
   ///
-  final int? leftToRightOffset;
+  // TODO: This isn't being used, determine if it has any future value.
+  // final int? leftToRightOffset;
 
-  Offset(
-      this.statementOffset, this.leftToRightOffset, this.subexpressionOffset);
+  Offset(this.statementOffset, this.subexpressionOffset);
 
   int? get value => subexpressionOffset;
 
   @override
   String toString() {
     return 'Offset[statementOffset=$statementOffset,'
-        'leftToRightOffset=$leftToRightOffset,'
         'subexpressionOffset=$subexpressionOffset]';
   }
 }
@@ -853,7 +847,7 @@ abstract class TraceListener {
   /// Called when a branch of the given [kind] is started. [value] is provided
   /// to distinguish true/false branches of [BranchKind.CONDITION] and cases of
   /// [Branch.CASE].
-  void pushBranch(BranchKind kind, [value]) {}
+  void pushBranch(BranchKind kind, [int? value]) {}
 
   /// Called when the current branch ends.
   void popBranch() {}
@@ -895,7 +889,7 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
     listeners.forEach((listener) => listener.onEnd(node));
   }
 
-  void notifyPushBranch(BranchKind kind, [value]) {
+  void notifyPushBranch(BranchKind kind, [int? value]) {
     if (active) {
       listeners.forEach((listener) => listener.pushBranch(kind, value));
     }
@@ -930,7 +924,7 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
     node.visitChildren(this);
   }
 
-  visit(js.Node? node, [BranchKind? branch, value]) {
+  visit(js.Node? node, [BranchKind? branch, int? value]) {
     if (node != null) {
       if (branch != null) {
         notifyPushBranch(branch, value);
@@ -1123,8 +1117,8 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
     visitSubexpression(
         node, node.condition, statementOffset, StepKind.IF_CONDITION);
     statementOffset = null;
-    visit(node.then, BranchKind.CONDITION, true);
-    visit(node.otherwise, BranchKind.CONDITION, false);
+    visit(node.then, BranchKind.CONDITION, 1);
+    visit(node.otherwise, BranchKind.CONDITION, 0);
   }
 
   @override
@@ -1246,8 +1240,8 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
   @override
   visitConditional(js.Conditional node) {
     visit(node.condition);
-    visit(node.then, BranchKind.CONDITION, true);
-    visit(node.otherwise, BranchKind.CONDITION, false);
+    visit(node.then, BranchKind.CONDITION, 1);
+    visit(node.otherwise, BranchKind.CONDITION, 0);
   }
 
   @override
@@ -1332,7 +1326,717 @@ class JavaScriptTracer extends js.BaseVisitorVoid {
     if (leftToRightOffset == null) {
       leftToRightOffset = statementOffset;
     }
-    return Offset(statementOffset, leftToRightOffset, codeOffset);
+    return Offset(statementOffset, codeOffset);
+  }
+}
+
+/// Flags indicating how [_PositionInfoNode.offsetPosition] should evolve as the
+/// associated node starts and ends.
+enum OffsetPositionMode {
+  // Pass the offset along normally no special action required. By default the
+  // offset gets passed to the next sibling when a node ends or the parent if
+  // there is no next sibling.
+  none,
+  // Reset the offset during own start event.
+  resetBefore,
+  // Reset the offset during own end event.
+  resetAfter,
+  // Set offset to parent's start offset during start event. Clear offset if no
+  // steps taken during end event.
+  subexpressionParentOffset,
+  // Set offset to own start offset during start event. Clear offset if no
+  // steps taken during end event.
+  subexpressionSelfOffset,
+  // Update [_PositionInfoNode.offsetPositionForInvocation] during end event.
+  // Only set on `target` subexpression of [js.New] and [js.Call].
+  invocationTarget,
+}
+
+enum _BranchNotificationMode {
+  // Emit a push notification when the node is started and a pop when the node
+  // ends.
+  both,
+  // Only emit a pop notification when the node ends and nothing when the node
+  // is started.
+  skipPush,
+  // Only emit a push notification when the node is started and nothing when the
+  // node ends.
+  skipPop
+}
+
+class _BranchData {
+  /// The type of branch this node represents in its parent.
+  final BranchKind branchKind;
+
+  /// The token that identifies this branch in its parent (e.g. the index of a
+  /// switch case).
+  final int? branchToken;
+
+  /// Controls when the associated node will emit a branch notification.
+  final _BranchNotificationMode branchNotificationMode;
+
+  _BranchData(this.branchKind, this.branchNotificationMode, this.branchToken);
+}
+
+class _PositionInfoNode {
+  /// The JS node this info is for.
+  final js.Node astNode;
+
+  /// The parent of the node in the traversal. Since the AST is a DAG the JS
+  /// node itself might have multiple parents.
+  _PositionInfoNode? parent;
+
+  /// Start pointer of the children linked list.
+  _PositionInfoNode? first;
+
+  /// End pointer of the children linked list.
+  _PositionInfoNode? last;
+
+  /// Next pointer of the children linked list (i.e. this node's sibling).
+  _PositionInfoNode? next;
+
+  /// The start position for [astNode].
+  late int startPosition;
+
+  /// The offset of the current statement.
+  final int? statementOffset;
+
+  /// List of steps emitted for a statements subexpression. Used to determine
+  /// if any subexpressions have already been emitted. The same List is shared
+  /// between nodes until we enter a new statement subexpression scope.
+  final List<js.Node> steps;
+
+  /// Whether or not [astNode] is in user code (i.e. it has a source location).
+  bool active;
+
+  /// Used only for [js.Call] and [js.New], tracks the offset position as
+  /// determined by the target subexpression.
+  int? offsetPositionForInvocation;
+
+  /// The offset of the surrounding statement, used for the first subexpression.
+  /// This is the only state that moves laterally through the tree.
+  /// [offsetPositionMode] determines how the value evolves.
+  int? offsetPosition;
+
+  /// Flag to determine how this node's offset position should evolve on start
+  /// and end events.
+  final OffsetPositionMode offsetPositionMode;
+
+  /// Steps associated with this node. Each might lead to an emitted step
+  /// notification when this node's end event is triggered.
+  List<StepKind>? notifySteps;
+
+  /// A node with a non-null [branchData] will trigger push and/or pop
+  /// notifications based on [_BranchData.branchNotificationMode].
+  final _BranchData? branchData;
+
+  _PositionInfoNode(this.astNode, this.parent,
+      {required this.active,
+      required this.steps,
+      this.offsetPositionMode = OffsetPositionMode.none,
+      this.branchData,
+      this.statementOffset}) {
+    final localParent = parent;
+    // Add this node to the parent's children linked list.
+    if (localParent != null) {
+      if (localParent.last == null) {
+        localParent.first = this;
+        localParent.last = this;
+      } else {
+        localParent.last!.next = this;
+        localParent.last = this;
+      }
+    }
+  }
+
+  void clearPointers() {
+    // Clear all pointers held by this node to allow other nodes to be GCed.
+    parent = null;
+    first = null;
+    last = null;
+    next = null;
+  }
+
+  void addNotifyStep(StepKind kind) {
+    (notifySteps ??= []).add(kind);
+  }
+}
+
+/// Tracer that uses hooks provided by the JS AST [js.Printer] to generate
+/// source map info while the AST is being printed.
+///
+/// Maintains a shadow tree of [_PositionInfoNode] that get created at the
+/// printer triggers start events for nodes in the JS AST. For relevant nodes
+/// we will prepopulate metadata about their children that will help us trigger
+/// step and branch notifications with the proper offsets.
+///
+/// The shadow tree is created lazily so its size is tightly coupled to the
+/// depth of the tree. Since we prepopulate a single extra layer sometimes, we
+/// do have siblings of the nodes that constitute the current spine of the tree.
+/// But none of those siblings' children will be populated.
+class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
+    implements CodePositionListener {
+  final SourceInformationReader reader;
+  final List<TraceListener> listeners;
+
+  /// The root of the position info shadow tree.
+  _PositionInfoNode? _rootNode;
+
+  /// The current node being worked on in the position info shadow tree.
+  late _PositionInfoNode _currentNode;
+
+  /// Contains nodes whose positions are needed by an active Call node. This
+  /// will have at most one entry per Call currently on the stack.
+  /// Only calls that don't use their own position are included here but most
+  /// calls use their own position.
+  /// A node may be needed multiple times to we track the number of uses
+  /// so we can clear it from the map when they have all been processed.
+  final Map<js.Node, ({CodePositionKind kind, int counter, int? position})>
+      _needsCallPosition = {};
+
+  void Function()? onComplete;
+
+  OnlineJavaScriptTracer(this.reader, this.listeners, {this.onComplete});
+
+  void notifyStart(js.Node node) {
+    listeners.forEach((listener) => listener.onStart(node));
+  }
+
+  void notifyEnd(js.Node node) {
+    listeners.forEach((listener) => listener.onEnd(node));
+  }
+
+  void notifyPushBranch(BranchKind kind, [int? value]) {
+    if (_currentNode.active) {
+      listeners.forEach((listener) => listener.pushBranch(kind, value));
+    }
+  }
+
+  void notifyPopBranch() {
+    if (_currentNode.active) {
+      listeners.forEach((listener) => listener.popBranch());
+    }
+  }
+
+  void notifyStep(js.Node node, Offset offset, StepKind kind,
+      {bool force = false}) {
+    if (_currentNode.active || force) {
+      listeners.forEach((listener) => listener.onStep(node, offset, kind));
+    }
+  }
+
+  _PositionInfoNode? visit(js.Node? node,
+      {BranchKind? branchKind,
+      int? branchToken,
+      _BranchNotificationMode branchNotificationMode =
+          _BranchNotificationMode.both,
+      int? statementOffset,
+      OffsetPositionMode offsetPositionMode = OffsetPositionMode.none,
+      bool resetSteps = false}) {
+    if (node == null) return null;
+
+    final newNode = _PositionInfoNode(node, _currentNode,
+        active: _currentNode.active,
+        branchData: branchKind == null
+            ? null
+            : _BranchData(branchKind, branchNotificationMode, branchToken),
+        statementOffset: statementOffset ?? _currentNode.statementOffset,
+        offsetPositionMode: offsetPositionMode,
+        steps: resetSteps ? [] : _currentNode.steps);
+    return newNode;
+  }
+
+  @override
+  visitNode(js.Node node, _) {}
+
+  void _handleFunction(js.Node node, js.Node body, int start) {
+    _currentNode.active =
+        _currentNode.active || reader.getSourceInformation(node) != null;
+    Offset entryOffset = getOffsetForNode(_currentNode.statementOffset, start);
+    notifyStep(node, entryOffset, StepKind.FUN_ENTRY);
+
+    visit(body, statementOffset: start);
+
+    _currentNode.addNotifyStep(StepKind.FUN_EXIT);
+  }
+
+  _handleFunctionExpression(js.FunctionExpression node, int start) {
+    final parentNode = _currentNode.parent!.astNode;
+    js.NamedFunction? namedParent;
+    js.Expression? declaration;
+    if (parentNode is js.NamedFunction) {
+      namedParent = parentNode;
+      declaration = parentNode.name;
+    } else if (parentNode is js.FunctionDeclaration) {
+      declaration = parentNode.name;
+    }
+
+    visit(declaration);
+    for (final param in node.params) {
+      visit(param);
+    }
+    // For named functions we treat the named parent as the main node.
+    _handleFunction(namedParent ?? node, node.body, start);
+  }
+
+  @override
+  visitFunctionDeclaration(js.FunctionDeclaration node, int start) {
+    visit(node.function);
+  }
+
+  @override
+  visitNamedFunction(js.NamedFunction node, int start) {
+    visit(node.function);
+  }
+
+  @override
+  visitFun(js.Fun node, int start) {
+    _handleFunctionExpression(node, start);
+  }
+
+  @override
+  visitArrowFunction(js.ArrowFunction node, int start) {
+    _handleFunctionExpression(node, start);
+  }
+
+  visitSubexpression(js.Node parent, js.Expression child, StepKind kind,
+      {required int statementOffset,
+      required OffsetPositionMode offsetPositionMode,
+      BranchKind? branchKind,
+      _BranchNotificationMode branchNotificationMode =
+          _BranchNotificationMode.both}) {
+    final childNode = visit(child,
+        statementOffset: statementOffset,
+        resetSteps: true,
+        branchKind: branchKind,
+        branchNotificationMode: branchNotificationMode,
+        // The [offsetPosition] should only be used by the first subexpression.
+        offsetPositionMode: offsetPositionMode);
+    childNode!.addNotifyStep(kind);
+  }
+
+  @override
+  visitExpressionStatement(js.ExpressionStatement node, int start) {
+    visitSubexpression(node, node.expression, StepKind.EXPRESSION_STATEMENT,
+        statementOffset: start,
+        offsetPositionMode: OffsetPositionMode.subexpressionParentOffset);
+  }
+
+  @override
+  visitCall(js.Call node, _) {
+    visit(node.target, offsetPositionMode: OffsetPositionMode.invocationTarget);
+    for (js.Node argument in node.arguments) {
+      visit(argument, offsetPositionMode: OffsetPositionMode.resetBefore);
+    }
+    CallPosition callPosition = CallPosition.getSemanticPositionForCall(node);
+    js.Node positionNode = callPosition.node;
+    if (positionNode != node) {
+      _needsCallPosition.update(
+          positionNode,
+          (value) => (
+                kind: value.kind,
+                counter: value.counter + 1,
+                position: value.position
+              ),
+          ifAbsent: () => (
+                kind: callPosition.codePositionKind,
+                counter: 1,
+                position: null
+              ));
+    }
+    _currentNode.addNotifyStep(StepKind.CALL);
+  }
+
+  @override
+  visitNew(js.New node, _) {
+    visit(node.target, offsetPositionMode: OffsetPositionMode.invocationTarget);
+    for (js.Node node in node.arguments) {
+      visit(node, offsetPositionMode: OffsetPositionMode.resetBefore);
+    }
+
+    _currentNode.addNotifyStep(StepKind.NEW);
+  }
+
+  @override
+  visitAccess(js.PropertyAccess node, _) {
+    final receiverNode = visit(node.receiver);
+    // Technically we'd like to use the offset of the `.` in the property
+    // access, but the js_ast doesn't expose it. Since this is only used to
+    // search backwards for inlined frames, we use the receiver's END offset
+    // instead as an approximation. Note that the END offset points one
+    // character after the end of the node, so it is likely always the
+    // offset we want.
+    receiverNode!.addNotifyStep(StepKind.ACCESS);
+    visit(node.selector);
+  }
+
+  @override
+  visitIf(js.If node, int start) {
+    visitSubexpression(node, node.condition, StepKind.IF_CONDITION,
+        statementOffset: start,
+        offsetPositionMode: OffsetPositionMode.subexpressionParentOffset);
+    visit(node.then,
+        statementOffset: null,
+        branchKind: BranchKind.CONDITION,
+        branchToken: 1);
+    if (node.hasElse) {
+      visit(node.otherwise,
+          statementOffset: null,
+          branchKind: BranchKind.CONDITION,
+          branchToken: 0);
+    }
+  }
+
+  @override
+  visitFor(js.For node, int start) {
+    final init = node.init;
+    if (init != null) {
+      visitSubexpression(node, init, StepKind.FOR_INITIALIZER,
+          statementOffset: start,
+          offsetPositionMode: OffsetPositionMode.subexpressionParentOffset);
+    }
+
+    final condition = node.condition;
+    if (condition != null) {
+      visitSubexpression(node, condition, StepKind.FOR_CONDITION,
+          statementOffset: start,
+          offsetPositionMode: OffsetPositionMode.subexpressionSelfOffset);
+    }
+
+    final update = node.update;
+
+    if (update != null) {
+      visitSubexpression(node, update, StepKind.FOR_UPDATE,
+          offsetPositionMode: OffsetPositionMode.subexpressionSelfOffset,
+          branchKind: BranchKind.LOOP,
+          statementOffset: start,
+          branchNotificationMode: _BranchNotificationMode.skipPop);
+    }
+
+    visit(node.body,
+        statementOffset: start,
+        branchKind: update == null ? BranchKind.LOOP : null,
+        branchNotificationMode: _BranchNotificationMode.skipPush);
+  }
+
+  @override
+  visitWhile(js.While node, int start) {
+    visitSubexpression(node, node.condition, StepKind.WHILE_CONDITION,
+        statementOffset: start,
+        offsetPositionMode: OffsetPositionMode.subexpressionParentOffset);
+
+    visit(node.body, branchKind: BranchKind.LOOP);
+  }
+
+  @override
+  visitDo(js.Do node, int start) {
+    visit(node.body, statementOffset: start);
+    final condition = node.condition;
+    visitSubexpression(node, condition, StepKind.DO_CONDITION,
+        offsetPositionMode: OffsetPositionMode.subexpressionSelfOffset,
+        statementOffset: start);
+  }
+
+  @override
+  visitReturn(js.Return node, int start) {
+    visit(node.value, statementOffset: start);
+    _currentNode.addNotifyStep(StepKind.RETURN);
+  }
+
+  @override
+  visitThrow(js.Throw node, int start) {
+    // Do not use [offsetPosition] for the subexpression.
+    visit(node.expression,
+        statementOffset: start,
+        offsetPositionMode: OffsetPositionMode.resetBefore);
+    _currentNode.addNotifyStep(StepKind.THROW);
+  }
+
+  @override
+  visitContinue(js.Continue node, _) {
+    _currentNode.addNotifyStep(StepKind.CONTINUE);
+  }
+
+  @override
+  visitBreak(js.Break node, _) {
+    _currentNode.addNotifyStep(StepKind.BREAK);
+  }
+
+  @override
+  visitTry(js.Try node, _) {
+    visit(node.body);
+    visit(node.catchPart, branchKind: BranchKind.CATCH);
+    visit(node.finallyPart, branchKind: BranchKind.FINALLY);
+  }
+
+  @override
+  visitConditional(js.Conditional node, _) {
+    visit(node.condition);
+    visit(node.then, branchKind: BranchKind.CONDITION, branchToken: 1);
+    visit(node.otherwise, branchKind: BranchKind.CONDITION, branchToken: 0);
+  }
+
+  @override
+  visitSwitch(js.Switch node, int start) {
+    visitSubexpression(node, node.key, StepKind.SWITCH_EXPRESSION,
+        statementOffset: start,
+        offsetPositionMode: OffsetPositionMode.subexpressionParentOffset);
+    for (int i = 0; i < node.cases.length; i++) {
+      visit(node.cases[i], branchKind: BranchKind.CASE, branchToken: i);
+    }
+  }
+
+  @override
+  visitLabeledStatement(js.LabeledStatement node, int start) {
+    visit(node.body, statementOffset: start);
+  }
+
+  @override
+  visitDeferredExpression(js.DeferredExpression node, _) {
+    visit(node.value);
+  }
+
+  void _beginTracing(js.Node node, int startPosition) {
+    notifyStart(node);
+
+    // Create empty node as root of tree.
+    _rootNode =
+        _currentNode = _PositionInfoNode(node, null, active: false, steps: []);
+
+    Offset startOffset = getOffsetForNode(null, startPosition);
+    notifyStep(node, startOffset, StepKind.NO_INFO, force: true);
+  }
+
+  void _endTracing(js.Node node) {
+    notifyEnd(node);
+    if (onComplete != null) {
+      onComplete!();
+    }
+  }
+
+  @override
+  void onStartPosition(js.Node node, int start) {
+    if (node is js.Comment) return;
+    if (_rootNode == null) {
+      _beginTracing(node, start);
+    } else if (_currentNode.first != null) {
+      // If the last node that ended was a sibling it should have updated
+      // [_currentNode] back to the parent in its end event.
+      _currentNode = _currentNode.first!;
+    } else {
+      // If the old current node doesn't have children then we didn't explicitly
+      // visit it and so there's no relevant info for this node. We make a
+      // placeholder node here instead since the new node may be visited.
+      _currentNode = _PositionInfoNode(node, _currentNode,
+          active: _currentNode.active,
+          steps: _currentNode.steps,
+          statementOffset: _currentNode.statementOffset);
+    }
+
+    _updateStartState(start);
+    _handleBranchPush();
+
+    node.accept1(this, start);
+  }
+
+  @override
+  void onPositions(js.Node node, int start, int end, int? closing) {
+    if (node is js.Comment) return;
+    if (node == _rootNode!.astNode) {
+      _endTracing(node);
+      return;
+    }
+
+    _handleNotifySteps(node, _currentNode.notifySteps,
+        start: start, end: end, closing: closing);
+    _handleBranchPop();
+
+    _updateEndState(node, start: start, end: end, closing: closing);
+
+    // Move the [_currentNode] pointer to the parent and remove self from
+    // parent's children list. Parent will either end next or the sibling will
+    // start and move the pointer to themselves.
+    final parentNode = _currentNode.parent!;
+    parentNode.offsetPosition = _currentNode.offsetPosition;
+    parentNode.first = _currentNode.next;
+    _currentNode.clearPointers();
+    _currentNode = parentNode;
+  }
+
+  void _updateStartState(int start) {
+    _currentNode.startPosition = start;
+
+    if (_currentNode.offsetPositionMode ==
+        OffsetPositionMode.subexpressionSelfOffset) {
+      _currentNode.offsetPosition = _currentNode.startPosition;
+    } else if (_currentNode.offsetPositionMode ==
+        OffsetPositionMode.subexpressionParentOffset) {
+      _currentNode.offsetPosition = _currentNode.parent!.startPosition;
+    } else if (_currentNode.offsetPositionMode ==
+        OffsetPositionMode.resetBefore) {
+      _currentNode.offsetPosition = null;
+    } else {
+      _currentNode.offsetPosition = _currentNode.parent?.offsetPosition;
+    }
+  }
+
+  void _updateEndState(js.Node node,
+      {required int start, required int end, required int? closing}) {
+    final callPosition = _needsCallPosition[node];
+    if (callPosition != null) {
+      int? offset =
+          callPosition.kind.select(start: start, end: end, closing: closing);
+      _needsCallPosition[node] = (
+        kind: callPosition.kind,
+        counter: callPosition.counter,
+        position: offset
+      );
+    }
+
+    switch (_currentNode.offsetPositionMode) {
+      case OffsetPositionMode.resetAfter:
+        _currentNode.offsetPosition = null;
+        break;
+      case OffsetPositionMode.invocationTarget:
+        _currentNode.parent!.offsetPositionForInvocation =
+            _currentNode.offsetPosition;
+        _currentNode.offsetPosition = null;
+        break;
+      case OffsetPositionMode.subexpressionParentOffset:
+      case OffsetPositionMode.subexpressionSelfOffset:
+        if (_currentNode.steps.isEmpty) {
+          _currentNode.offsetPosition = null;
+        }
+        break;
+      case OffsetPositionMode.none:
+      case OffsetPositionMode.resetBefore:
+        break;
+    }
+  }
+
+  void _handleBranchPush() {
+    final branchData = _currentNode.branchData;
+    if (branchData != null &&
+        branchData.branchNotificationMode != _BranchNotificationMode.skipPush) {
+      notifyPushBranch(branchData.branchKind, branchData.branchToken);
+    }
+  }
+
+  void _handleBranchPop() {
+    final branchData = _currentNode.branchData;
+    if (branchData != null &&
+        branchData.branchNotificationMode != _BranchNotificationMode.skipPop) {
+      notifyPopBranch();
+    }
+  }
+
+  void _handleNotifySteps(js.Node node, List<StepKind>? stepKinds,
+      {required int start, required int end, required int? closing}) {
+    if (stepKinds == null) return;
+
+    for (final stepKind in stepKinds) {
+      _PositionInfoNode target;
+      int? offset;
+      bool addStep = false;
+      StepKind? secondaryKind;
+      int? secondaryOffset;
+
+      switch (stepKind) {
+        case StepKind.CALL:
+          target = _currentNode;
+          final callPosition =
+              CallPosition.getSemanticPositionForCall(node as js.Call);
+          if (callPosition.node == node) {
+            // Use the syntax offset if this is not the first subexpression.
+            offset = _currentNode.offsetPositionForInvocation ??
+                callPosition.codePositionKind
+                    .select(start: start, end: end, closing: closing);
+          } else {
+            final positionInfo = _needsCallPosition.remove(callPosition.node)!;
+            if (positionInfo.counter > 1) {
+              _needsCallPosition[callPosition.node] = (
+                kind: positionInfo.kind,
+                counter: positionInfo.counter - 1,
+                position: positionInfo.position
+              );
+            }
+            offset = positionInfo.position;
+          }
+          addStep = true;
+          break;
+        case StepKind.NEW:
+          target = _currentNode;
+          // Use the syntax offset if this is not the first subexpression.
+          offset = _currentNode.offsetPositionForInvocation ?? start;
+          addStep = true;
+          break;
+        case StepKind.ACCESS:
+          target = _currentNode.parent!;
+          offset = end;
+          addStep = true;
+          break;
+        case StepKind.NO_INFO:
+          target = _currentNode;
+          offset = end;
+          break;
+        case StepKind.FUN_EXIT:
+          target = _currentNode;
+          offset = closing ?? start;
+          // We also emit a step for the closing brace.
+          if (_currentNode.active && !_currentNode.parent!.active) {
+            secondaryKind = StepKind.NO_INFO;
+            secondaryOffset = end;
+          }
+          break;
+        case StepKind.RETURN:
+          target = _currentNode;
+          offset = start;
+          // We also emit a step for the enclosing function exiting.
+          secondaryKind = StepKind.FUN_EXIT;
+          secondaryOffset = closing;
+          break;
+        case StepKind.FUN_ENTRY:
+        case StepKind.THROW:
+        case StepKind.CONTINUE:
+        case StepKind.BREAK:
+          target = _currentNode;
+          offset = start;
+          break;
+        // The remaining kinds are all subexpressions of statements.
+        case StepKind.EXPRESSION_STATEMENT:
+        case StepKind.IF_CONDITION:
+        case StepKind.FOR_INITIALIZER:
+        case StepKind.WHILE_CONDITION:
+        case StepKind.SWITCH_EXPRESSION:
+          if (_currentNode.steps.isNotEmpty) continue;
+          target = _currentNode.parent!;
+          offset = _currentNode.parent!.startPosition;
+          break;
+        case StepKind.FOR_CONDITION:
+        case StepKind.FOR_UPDATE:
+        case StepKind.DO_CONDITION:
+          if (_currentNode.steps.isNotEmpty) continue;
+          target = _currentNode.parent!;
+          offset = _currentNode.startPosition;
+          break;
+      }
+
+      notifyStep(target.astNode,
+          getOffsetForNode(target.statementOffset, offset), stepKind);
+      if (secondaryKind != null) {
+        notifyStep(
+            target.astNode,
+            getOffsetForNode(target.statementOffset, secondaryOffset),
+            secondaryKind);
+      }
+      if (addStep) {
+        _currentNode.steps.add(node);
+      }
+    }
+  }
+
+  Offset getOffsetForNode(int? statementOffset, int? codeOffset) {
+    return Offset(statementOffset, codeOffset);
   }
 }
 

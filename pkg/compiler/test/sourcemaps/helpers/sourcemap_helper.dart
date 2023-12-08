@@ -173,6 +173,11 @@ class RecordingSourceInformationProcessor extends SourceInformationProcessor {
       this.codePositions, this.nodeToSourceLocationsMap);
 
   @override
+  void onStartPosition(js.Node node, int startPosition) {
+    processor.onStartPosition(node, startPosition);
+  }
+
+  @override
   void onPositions(
       js.Node node, int startPosition, int endPosition, int? closingPosition) {
     codePositions.registerPositions(
