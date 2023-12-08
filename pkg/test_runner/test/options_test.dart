@@ -118,7 +118,6 @@ void testSelectors() {
       'vm',
       'utils',
       'lib',
-      'service',
       'kernel',
       'ffi',
     }, configuration.selectors.keys, "suites for $arguments");

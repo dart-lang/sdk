@@ -942,22 +942,81 @@
     },
     {
       "builders": [
+        "vm-linux-debug-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM JIT builders. Includes VM service testing in addtion to legacy Observatory service tests.",
+        "__comment__": "This configuration should be merged with the other VM JIT builders config once Observatory is removed."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/",
+            "service"
+          ],
+          "fileset": "vm",
+          "shards": 16
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-linux-debug-ia32",
-        "vm-linux-debug-simriscv64",
-        "vm-linux-debug-x64",
-        "vm-linux-debug-x64c",
         "vm-linux-release-ia32",
-        "vm-linux-release-simarm",
-        "vm-linux-release-simarm64",
         "vm-linux-release-x64",
         "vm-mac-debug-arm64",
-        "vm-mac-debug-x64",
         "vm-mac-release-arm64",
-        "vm-mac-release-x64",
         "vm-win-debug-x64",
-        "vm-win-debug-x64c",
         "vm-win-release-ia32",
         "vm-win-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM JIT builders. Includes VM service testing.",
+        "__comment__": "vm-linux-debug-x64 should be added back into this configuration once Observatory is removed."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 16
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-linux-debug-simriscv64",
+        "vm-linux-debug-x64c",
+        "vm-linux-release-simarm",
+        "vm-linux-release-simarm64",
+        "vm-mac-debug-x64",
+        "vm-mac-release-x64",
+        "vm-win-debug-x64c"
       ],
       "meta": {
         "description": "This configuration is used by the VM JIT builders."
@@ -985,15 +1044,76 @@
     },
     {
       "builders": [
+        "vm-aot-linux-debug-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM AOT builders. Includes VM service testing in addition to legacy Observatory service tests.",
+        "__comment__": "This configuration should be merged with the other VM AOT builders config below once Observatory is removed."
+
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/",
+            "service"
+          ],
+          "fileset": "vm",
+          "shards": 20
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-linux-release-x64",
+        "vm-aot-win-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM AOT builders. Includes VM service testing.",
+        "__comment__": "vm-aot-linux-debug-x64 should be added back into this configuration once Observatory is removed."
+
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}",
+            "--default-suites",
+            "co19",
+            "pkg/pkg/vm_service/"
+          ],
+          "fileset": "vm",
+          "shards": 20
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-aot-linux-debug-simriscv64",
-        "vm-aot-linux-debug-x64",
         "vm-aot-linux-debug-x64c",
         "vm-aot-linux-product-x64",
         "vm-aot-linux-release-simarm64",
-        "vm-aot-linux-release-x64",
         "vm-aot-win-debug-x64c",
-        "vm-aot-win-product-x64",
-        "vm-aot-win-release-x64"
+        "vm-aot-win-product-x64"
       ],
       "meta": {
         "description": "This configuration is used by the VM AOT builders."
@@ -1056,9 +1176,35 @@
     },
     {
       "builders": [
-        "vm-aot-mac-product-arm64",
         "vm-aot-mac-release-arm64",
         "vm-aot-mac-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM AOT builders. Without shards because shards are missing XCode. Includes VM service testing."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--codesigning-identity=-",
+            "runtime",
+            "dart_precompiled_runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${system}-${mode}-${arch}",
+            "--default-suites",
+            "pkg/pkg/vm_service/"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-mac-product-arm64"
       ],
       "meta": {
         "description": "This configuration is used by the VM AOT builders. Without shards because shards are missing XCode."
@@ -2827,7 +2973,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration|dartdev/test/native_assets)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ],
           "shards": 3,
           "fileset": "vm"
@@ -2947,7 +3093,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration|dartdev/test/native_assets)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ]
         }
       ]

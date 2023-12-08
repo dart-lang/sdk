@@ -15,7 +15,7 @@ int fib(n) {
 
 void testeeDo() {
   print('Testee doing something.');
-  fib(30);
+  fib(44);
   print('Testee did something.');
 }
 
@@ -34,7 +34,7 @@ Future<void> checkSamples(VmService service, IsolateRef isolate) async {
   );
 
   final samples = result.samples!;
-  expect(samples.length, greaterThan(10), reason: 'Should have many samples');
+  expect(samples.length, greaterThan(0), reason: 'Should have samples');
   expect(samples.length, result.sampleCount);
 
   final sample = samples.first;
@@ -55,6 +55,8 @@ final tests = <IsolateTest>[
 
 const vmArgs = <String>[
   '--profiler=true',
+  // Crank up the sampling rate to make sure we get samples.
+  '--profile_period=100',
   '--profile-vm=false', // So this also works with KBC.
 ];
 

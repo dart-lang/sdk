@@ -8,7 +8,9 @@ import 'package:vm_service/vm_service.dart';
 import 'common/test_helper.dart';
 
 class Foo {
+  @pragma('vm:entry-point')
   dynamic left;
+  @pragma('vm:entry-point')
   dynamic right;
 }
 

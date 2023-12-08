@@ -35,6 +35,10 @@ Uri _getTestUri(String script) {
     // If running from pub we can assume that we're in the root of the package
     // directory.
     return Uri.parse('test/$script');
+  } else if (io.Platform.script.toFilePath().endsWith('out.aotsnapshot')) {
+    // We're running an AOT test. In this case, we need to use the exact URI we
+    // launched with.
+    return io.Platform.script;
   } else {
     // Resolve the script to ensure that test will fail if the provided script
     // name doesn't match the actual script.
@@ -167,7 +171,7 @@ class _ServiceTesteeLauncher {
 
   Future<io.Process> _spawnCommon(
     String executable,
-    List<String> /*!*/ arguments,
+    List<String> arguments,
     Map<String, String> dartEnvironment,
   ) {
     final environment = _TESTEE_SPAWN_ENV;
