@@ -120,6 +120,8 @@ class Translator with KernelNodes {
   late final ClassInfo closureInfo = classInfo[closureClass]!;
   late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
   late final ClassInfo recordInfo = classInfo[coreTypes.recordClass]!;
+  late final w.ArrayType typeArrayType =
+      arrayTypeForDartType(InterfaceType(typeClass, Nullability.nonNullable));
   late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
           .struct
           .fields[FieldIndex.listArray]
@@ -977,19 +979,30 @@ class Translator with KernelNodes {
     final ClassInfo info = classInfo[cls]!;
     functions.allocateClass(info.classId);
     final w.ArrayType arrayType = listArrayType;
-    final w.ValueType elementType = arrayType.elementType.type.unpacked;
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     generateType(b);
     b.i64_const(length);
+    makeArray(function, arrayType, length, generateItem);
+    b.struct_new(info.struct);
+
+    return info.nonNullableType;
+  }
+
+  w.ValueType makeArray(w.FunctionBuilder function, w.ArrayType arrayType,
+      int length, void Function(w.ValueType, int) generateItem) {
+    final b = function.body;
+
+    final w.ValueType elementType = arrayType.elementType.type.unpacked;
+    final arrayTypeRef = w.RefType.def(arrayType, nullable: false);
+
     if (length > maxArrayNewFixedLength) {
       // Too long for `array.new_fixed`. Set elements individually.
       b.i32_const(length);
       b.array_new_default(arrayType);
       if (length > 0) {
-        final w.Local arrayLocal =
-            function.addLocal(w.RefType.def(arrayType, nullable: false));
+        final w.Local arrayLocal = function.addLocal(arrayTypeRef);
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);
@@ -1005,9 +1018,7 @@ class Translator with KernelNodes {
       }
       b.array_new_fixed(arrayType, length);
     }
-    b.struct_new(info.struct);
-
-    return info.nonNullableType;
+    return arrayTypeRef;
   }
 
   /// Indexes a Dart `List` on the stack.

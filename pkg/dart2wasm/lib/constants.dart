@@ -60,37 +60,38 @@ class Constants {
 
   /// Makes a type list [ListConstant].
   ListConstant makeTypeList(Iterable<DartType> types) => ListConstant(
-      InterfaceType(translator.typeClass, Nullability.nonNullable),
-      types.map((t) => TypeLiteralConstant(t)).toList());
+      translator.typeType, types.map((t) => TypeLiteralConstant(t)).toList());
 
-  InstanceConstant makeTypeArray(Iterable<DartType> types) =>
-      InstanceConstant(translator.wasmObjectArrayClass.reference, [
-        InterfaceType(translator.typeClass, Nullability.nonNullable)
-      ], {
-        translator.wasmObjectArrayValueField.fieldReference: makeTypeList(types)
-      });
+  /// Makes a `WasmObjectArray<_Type>` [InstanceConstant].
+  InstanceConstant makeTypeArray(Iterable<DartType> types) => makeArrayOf(
+      translator.typeType, types.map((t) => TypeLiteralConstant(t)).toList());
 
   /// Makes a `_NamedParameter` [InstanceConstant].
-  InstanceConstant makeNamedParameterConstant(NamedType n) {
-    Class namedParameter = translator.namedParameterClass;
-    assert(namedParameter.fields[0].name.text == 'name' &&
-        namedParameter.fields[1].name.text == 'type' &&
-        namedParameter.fields[2].name.text == 'isRequired');
-    Reference namedParameterName = namedParameter.fields[0].fieldReference;
-    Reference namedParameterType = namedParameter.fields[1].fieldReference;
-    Reference namedParameterIsRequired =
-        namedParameter.fields[2].fieldReference;
-    return InstanceConstant(namedParameter.reference, [], {
-      namedParameterName: StringConstant(n.name),
-      namedParameterType: TypeLiteralConstant(n.type),
-      namedParameterIsRequired: BoolConstant(n.isRequired)
-    });
-  }
+  InstanceConstant makeNamedParameterConstant(NamedType n) =>
+      InstanceConstant(translator.namedParameterClass.reference, const [], {
+        translator.namedParameterNameField.fieldReference:
+            StringConstant(n.name),
+        translator.namedParameterTypeField.fieldReference:
+            TypeLiteralConstant(n.type),
+        translator.namedParameterIsRequiredField.fieldReference:
+            BoolConstant(n.isRequired),
+      });
 
-  /// Makes a [ListConstant] of `_NamedParameters` to initialize a [FunctionType].
-  ListConstant makeNamedParametersList(FunctionType type) => ListConstant(
-      translator.types.namedParameterType,
-      type.namedParameters.map(makeNamedParameterConstant).toList());
+  /// Creates a `WasmObjectArray<_NamedParameter>` to be used as field of
+  /// `_FunctionType`.
+  InstanceConstant makeNamedParametersArray(FunctionType type) => makeArrayOf(
+      translator.namedParameterType,
+      [for (final n in type.namedParameters) makeNamedParameterConstant(n)]);
+
+  /// Creates a `WasmObjectArray<T>` with the given [Constant]s
+  InstanceConstant makeArrayOf(
+          InterfaceType elementType, List<Constant> entries) =>
+      InstanceConstant(translator.wasmObjectArrayClass.reference, [
+        elementType,
+      ], {
+        translator.wasmObjectArrayValueField.fieldReference:
+            ListConstant(elementType, entries),
+      });
 
   /// Ensure that the constant has a Wasm global assigned.
   ///
@@ -771,18 +772,18 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? _makeFunctionType(
       TypeLiteralConstant constant, FunctionType type, ClassInfo info) {
     int typeParameterOffset = types.computeFunctionTypeParameterOffset(type);
-    ListConstant typeParameterBoundsConstant =
-        constants.makeTypeList(type.typeParameters.map((p) => p.bound));
-    ListConstant typeParameterDefaultsConstant =
-        constants.makeTypeList(type.typeParameters.map((p) => p.defaultType));
+    InstanceConstant typeParameterBoundsConstant =
+        constants.makeTypeArray(type.typeParameters.map((p) => p.bound));
+    InstanceConstant typeParameterDefaultsConstant =
+        constants.makeTypeArray(type.typeParameters.map((p) => p.defaultType));
     TypeLiteralConstant returnTypeConstant =
         TypeLiteralConstant(type.returnType);
-    ListConstant positionalParametersConstant =
-        constants.makeTypeList(type.positionalParameters);
+    InstanceConstant positionalParametersConstant =
+        constants.makeTypeArray(type.positionalParameters);
     IntConstant requiredParameterCountConstant =
         IntConstant(type.requiredParameterCount);
-    ListConstant namedParametersConstant =
-        constants.makeNamedParametersList(type);
+    InstanceConstant namedParametersConstant =
+        constants.makeNamedParametersArray(type);
     ensureConstant(typeParameterBoundsConstant);
     ensureConstant(typeParameterDefaultsConstant);
     ensureConstant(returnTypeConstant);
@@ -794,14 +795,14 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       b.i32_const(initialIdentityHash);
       b.i32_const(types.encodedNullability(type));
       b.i64_const(typeParameterOffset);
-      constants.instantiateConstant(
-          function, b, typeParameterBoundsConstant, types.typeListExpectedType);
+      constants.instantiateConstant(function, b, typeParameterBoundsConstant,
+          types.typeArrayExpectedType);
       constants.instantiateConstant(function, b, typeParameterDefaultsConstant,
-          types.typeListExpectedType);
+          types.typeArrayExpectedType);
       constants.instantiateConstant(
           function, b, returnTypeConstant, types.nonNullableTypeType);
       constants.instantiateConstant(function, b, positionalParametersConstant,
-          types.typeListExpectedType);
+          types.typeArrayExpectedType);
       constants.instantiateConstant(
           function, b, requiredParameterCountConstant, w.NumType.i64);
       constants.instantiateConstant(function, b, namedParametersConstant,

@@ -2930,6 +2930,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           (w.ValueType elementType, int i) => wrap(expressions[i], elementType),
           isGrowable: isGrowable);
 
+  w.ValueType makeArrayFromExpressions(
+      List<Expression> expressions, InterfaceType elementType) {
+    return translator.makeArray(
+        function,
+        translator.arrayTypeForDartType(elementType),
+        expressions.length, (w.ValueType elementType, int i) {
+      wrap(expressions[i], elementType);
+    });
+  }
+
   @override
   w.ValueType visitMapLiteral(MapLiteral node, w.ValueType expectedType) {
     types.makeType(this, node.keyType);
