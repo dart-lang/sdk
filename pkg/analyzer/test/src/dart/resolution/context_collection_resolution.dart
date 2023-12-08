@@ -337,9 +337,6 @@ class PubPackageResolutionTest extends ContextResolutionTest {
         EnableString.macros,
       ];
 
-  @override
-  bool get isNullSafetyEnabled => true;
-
   /// The path that is not in [workspaceRootPath], contains external packages.
   String get packagesRootPath => '/packages';
 
