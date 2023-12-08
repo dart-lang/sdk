@@ -938,4 +938,36 @@ extension DateTimeCopyWith on DateTime {
       microsecond ?? this.microsecond,
     );
   }
+
+  /// Creates a new [DateTime] from this one by only keep year, month and day.
+  ///
+  /// Example:
+  /// ```dart
+  /// final today = DateTime.now().toDay();
+  /// ```
+  DateTime toDay() {
+    return DateTime(this.year, this.month, this.day);
+  }
+
+  /// Creates a new [DateTime] from this one by only keep year, month and
+  /// add 1 day duration to day.
+  ///
+  /// Example:
+  /// ```dart
+  /// final tomorrow = DateTime.now().toNextDay();
+  /// ```
+  DateTime toNextDay() {
+    return toDay().add(Duration(days: 1));
+  }
+
+  /// Creates a new [DateTime] from this one by only keep year, month and
+  /// substract 1 day duration to day.
+  ///
+  /// Example:
+  /// ```dart
+  /// final yesterday = DateTime.now().toPrevDay();
+  /// ```
+  DateTime toPrevDay() {
+    return toDay().add(Duration(days: -1));
+  }
 }
