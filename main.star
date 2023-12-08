@@ -230,13 +230,16 @@ dart.try_builder(
 
 dart.try_builder(
     "docker",
-    recipe = "release/merge",
+    recipe = "release/docker",
     # Use a fake stable version since it's only used to detect the channel.
     properties = {"version": "1.2.3"},
+    cq_branches = [],
 )
 
 dart.try_builder(
     "homebrew",
-    recipe = "release/merge",
+    recipe = "release/homebrew",
+    cq_branches = [],
 )
+
 exec("//monorepo.star")
