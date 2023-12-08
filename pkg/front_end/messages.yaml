@@ -5547,7 +5547,7 @@ FieldNotPromotedBecauseNotField:
     }
 
 FieldNotPromotedBecauseNotPrivate:
-  problemMessage: "'#name' refers to a public field so it couldn't be promoted."
+  problemMessage: "'#name' refers to a public property so it couldn't be promoted."
   correctionMessage: "See #string"
   script: >
     class C {

@@ -261,6 +261,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the `await`, or updating the extension type to implement "
         "'Future'.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1668,6 +1669,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER',
     "Extension type constructors can't declare super formal parameters.",
     correctionMessage: "Try removing the super formal parameter declaration.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1676,6 +1678,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION',
     "Extension type constructors can't include super initializers.",
     correctionMessage: "Try removing the super constructor invocation.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1684,6 +1687,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
     "Extension types can't declare instance fields.",
     correctionMessage: "Try replacing the field with a getter.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1693,6 +1697,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Extension types can't declare members with the same name as a member "
         "declared by 'Object'.",
     correctionMessage: "Try specifying a different name for the member.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1703,6 +1708,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Extension types can't implement '{0}'.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1712,6 +1718,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "The extension type can't implement itself.",
     correctionMessage:
         "Try removing the superinterface that references this extension type.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1723,6 +1730,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "'{0}' is not a supertype of '{1}', the representation type.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1738,6 +1746,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "representation type of '{3}'.",
     correctionMessage:
         "Try specifying a different type, or remove the type from the list.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1750,6 +1759,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "from implemented types.",
     correctionMessage:
         "Try redeclaring the corresponding member in this extension type.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1758,6 +1768,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF',
     "The extension type representation can't depend on itself.",
     correctionMessage: "Try specifying a different type.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -1766,6 +1777,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM',
     "The representation type can't be a bottom type.",
     correctionMessage: "Try specifying a different type.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -1776,6 +1788,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'EXTENSION_TYPE_WITH_ABSTRACT_MEMBER',
     "'{0}' must have a method body because '{1}' is an extension type.",
     correctionMessage: "Try adding a body to '{0}'.",
+    hasPublishedDocs: true,
   );
 
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
@@ -3740,6 +3753,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing the type parameters from function parameter types and "
         "type parameter bounds.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:
@@ -4886,6 +4900,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'SUPER_IN_EXTENSION_TYPE',
     "The 'super' keyword can't be used in an extension type because an "
         "extension type doesn't have a superclass.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -7006,6 +7021,7 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try updating this member to match a declaration in a superinterface, "
         "or removing the redeclare annotation.",
+    hasPublishedDocs: true,
   );
 
   ///  An error code indicating use of a removed lint rule.

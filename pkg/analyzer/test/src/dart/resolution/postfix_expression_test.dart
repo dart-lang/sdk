@@ -412,6 +412,30 @@ PostfixExpression
 ''');
   }
 
+  test_nullCheck_interfaceType_viaAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef A = String;
+
+void f(A? x) {
+  x!;
+}
+''');
+
+    final node = findNode.postfix('x!');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: String?
+      alias: self::@typeAlias::A
+  operator: !
+  staticElement: <null>
+  staticType: String
+    alias: self::@typeAlias::A
+''');
+  }
+
   test_nullCheck_null() async {
     await assertErrorsInCode('''
 void f(Null x) {

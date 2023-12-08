@@ -9,18 +9,18 @@
 class C {
   int? i;
   //   ^
-  // [context 3] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 4] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 5] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 6] 'i' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 10] 'i' refers to a public field so it couldn't be promoted.
-  // [context 11] 'i' refers to a public field so it couldn't be promoted.
-  // [context 12] 'i' refers to a public field so it couldn't be promoted.
-  // [context 13] 'i' refers to a public field so it couldn't be promoted.
+  // [context 3] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 4] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 5] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 6] 'i' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 10] 'i' refers to a public property so it couldn't be promoted.
+  // [context 11] 'i' refers to a public property so it couldn't be promoted.
+  // [context 12] 'i' refers to a public property so it couldn't be promoted.
+  // [context 13] 'i' refers to a public property so it couldn't be promoted.
   void Function()? f;
   //               ^
-  // [context 7] 'f' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
-  // [context 14] 'f' refers to a public field so it couldn't be promoted.
+  // [context 7] 'f' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 14] 'f' refers to a public property so it couldn't be promoted.
 }
 
 extension on int {

@@ -292,6 +292,9 @@ dart/spawn_shutdown_test: SkipSlow
 [ $compiler == dartkp && ($sanitizer == tsan || $simulator) ]
 dart/regress_45898_test: Pass, Slow
 
+[ $mode == debug && $runtime == dart_precompiled && $system == windows ]
+in_memory_elf_test: Skip # dartbug.com/54275 - the test causes purple aot bots
+
 [ $mode == debug && $system == windows ]
 dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.
 

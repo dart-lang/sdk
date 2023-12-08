@@ -88,6 +88,8 @@ main() {
       check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
       check(nonPromotabilityInfo['_f']!.conflictingGetters)
           .unorderedEquals([getter]);
+      check(getter.nonPromotabilityReason)
+          .equals(PropertyNonPromotabilityReason.isNotField);
     });
 
     test('in an abstract class', () {
@@ -98,16 +100,20 @@ main() {
       check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
       check(nonPromotabilityInfo['_f']!.conflictingGetters)
           .unorderedEquals([getter]);
+      check(getter.nonPromotabilityReason)
+          .equals(PropertyNonPromotabilityReason.isNotField);
     });
   });
 
   test('abstract getter does not render a private field non-promotable', () {
     var f = Field('_f', isFinal: true);
     var c = Class(fields: [f]);
-    var d = Class(isAbstract: true, getters: [Getter('_f', isAbstract: true)]);
+    var getter = Getter('_f', isAbstract: true);
+    var d = Class(isAbstract: true, getters: [getter]);
     var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
     check(nonPromotabilityInfo).isEmpty();
     check(f.nonPromotabilityReason).equals(null);
+    check(getter.nonPromotabilityReason).equals(null);
   });
 
   test('public concrete getter is ignored', () {
@@ -115,11 +121,14 @@ main() {
     // algorithm to keep track of public concrete getters.
     var f = Field('f', isFinal: true);
     var c = Class(fields: [f]);
-    var d = Class(getters: [Getter('f')]);
+    var getter = Getter('f');
+    var d = Class(getters: [getter]);
     // Therefore the map returned by `_TestFieldPromotability.run` is empty.
     var nonPromotabilityInfo = _TestFieldPromotability().run([c, d]);
     check(nonPromotabilityInfo).isEmpty();
     check(f.nonPromotabilityReason)
+        .equals(PropertyNonPromotabilityReason.isNotPrivate);
+    check(getter.nonPromotabilityReason)
         .equals(PropertyNonPromotabilityReason.isNotPrivate);
   });
 
@@ -127,13 +136,14 @@ main() {
     test('induced by getter', () {
       var f = Field('_f', isFinal: true);
       var c = Class(fields: [f]);
-      var d =
-          Class(isAbstract: true, getters: [Getter('_f', isAbstract: true)]);
+      var getter = Getter('_f', isAbstract: true);
+      var d = Class(isAbstract: true, getters: [getter]);
       var e = Class(implements: [d]);
       var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
       check(nonPromotabilityInfo.keys).unorderedEquals({'_f'});
       check(nonPromotabilityInfo['_f']!.conflictingNsmClasses)
           .unorderedEquals([e]);
+      check(getter.nonPromotabilityReason).equals(null);
     });
 
     test('induced by field', () {
@@ -151,11 +161,13 @@ main() {
   test('unimplemented getter in an abstract class is ok', () {
     var f = Field('_f', isFinal: true);
     var c = Class(fields: [f]);
-    var d = Class(isAbstract: true, getters: [Getter('_f', isAbstract: true)]);
+    var getter = Getter('_f', isAbstract: true);
+    var d = Class(isAbstract: true, getters: [getter]);
     var e = Class(isAbstract: true, implements: [d]);
     var nonPromotabilityInfo = _TestFieldPromotability().run([c, d, e]);
     check(nonPromotabilityInfo).isEmpty();
     check(f.nonPromotabilityReason).equals(null);
+    check(getter.nonPromotabilityReason).equals(null);
   });
 
   test('unimplemented abstract field renders a field non-promotable:', () {
@@ -237,6 +249,7 @@ class Field {
 class Getter {
   final String name;
   final bool isAbstract;
+  late final PropertyNonPromotabilityReason? nonPromotabilityReason;
 
   Getter(this.name, {this.isAbstract = false});
 }
@@ -265,7 +278,8 @@ class _TestFieldPromotability extends FieldPromotability<Class, Field, Getter> {
             isExternal: field.isExternal);
       }
       for (var getter in class_.getters) {
-        addGetter(classInfo, getter, getter.name,
+        getter.nonPromotabilityReason = addGetter(
+            classInfo, getter, getter.name,
             isAbstract: getter.isAbstract);
       }
     }

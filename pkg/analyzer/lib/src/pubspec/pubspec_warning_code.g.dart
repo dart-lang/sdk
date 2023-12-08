@@ -56,6 +56,7 @@ class PubspecWarningCode extends ErrorCode {
     'ASSET_MISSING_PATH',
     "Asset map entry must contain a 'path' field.",
     correctionMessage: "Try adding a 'path' field.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -74,6 +75,7 @@ class PubspecWarningCode extends ErrorCode {
     'ASSET_NOT_STRING_OR_MAP',
     "An asset value is required to be a file path (string) or map.",
     correctionMessage: "Try converting the value to be a string or map.",
+    hasPublishedDocs: true,
   );
 
   ///  No parameters.
@@ -81,6 +83,7 @@ class PubspecWarningCode extends ErrorCode {
     'ASSET_PATH_NOT_STRING',
     "Asset paths are required to be file paths (strings).",
     correctionMessage: "Try converting the value to be a string.",
+    hasPublishedDocs: true,
   );
 
   ///  Parameters:

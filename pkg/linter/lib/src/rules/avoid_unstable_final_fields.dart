@@ -120,7 +120,8 @@ class AvoidUnstableFinalFields extends LintRule {
             name: 'avoid_unstable_final_fields',
             description: _desc,
             details: _details,
-            group: Group.errors);
+            group: Group.errors,
+            state: State.deprecated());
 
   @override
   void registerNodeProcessors(

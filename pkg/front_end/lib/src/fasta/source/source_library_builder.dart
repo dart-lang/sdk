@@ -1654,10 +1654,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           }
         } else if (member is SourceProcedureBuilder && member.isGetter) {
           if (member.isSynthetic) continue;
-          fieldPromotability.addGetter(classInfo, member, member.name,
+          PropertyNonPromotabilityReason? reason = fieldPromotability.addGetter(
+              classInfo, member, member.name,
               isAbstract: member.isAbstract);
-          individualPropertyReasons[member.procedure] =
-              PropertyNonPromotabilityReason.isNotField;
+          if (reason != null) {
+            individualPropertyReasons[member.procedure] = reason;
+          }
         }
       }
     }
@@ -1673,7 +1675,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             !member.isStatic &&
             member.isGetter) {
           individualPropertyReasons[member.procedure] =
-              PropertyNonPromotabilityReason.isNotField;
+              member.memberName.isPrivate
+                  ? PropertyNonPromotabilityReason.isNotField
+                  : PropertyNonPromotabilityReason.isNotPrivate;
         }
       }
     }
@@ -1694,7 +1698,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             !member.isStatic &&
             member.isGetter) {
           individualPropertyReasons[member.procedure] =
-              PropertyNonPromotabilityReason.isNotField;
+              member.memberName.isPrivate
+                  ? PropertyNonPromotabilityReason.isNotField
+                  : PropertyNonPromotabilityReason.isNotPrivate;
         }
       }
     }

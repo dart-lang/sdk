@@ -903,6 +903,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       element: element,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
     );
   }
 

@@ -58,12 +58,12 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
-      className: 'MacroDeclarationsIntrospectTest',
+      className: 'MacroIntrospectElementTest',
       methodName: '_assertIntrospectText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
-      className: 'MacroTypesIntrospectTest',
+      className: 'MacroIntrospectNodeTest',
       methodName: '_assertIntrospectText',
       argument: _ArgumentIndex(1),
     ),

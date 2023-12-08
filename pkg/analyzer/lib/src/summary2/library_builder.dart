@@ -1301,8 +1301,11 @@ class _FieldPromotability extends FieldPromotability<InterfaceElement,
         continue;
       }
 
-      addGetter(classInfo, accessor, accessor.name,
+      var nonPromotabilityReason = addGetter(classInfo, accessor, accessor.name,
           isAbstract: accessor.isAbstract);
+      if (enabled && nonPromotabilityReason == null) {
+        _potentiallyPromotableFields.add(accessor.variable as FieldElementImpl);
+      }
     }
   }
 }

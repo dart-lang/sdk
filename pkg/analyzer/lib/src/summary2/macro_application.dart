@@ -104,7 +104,7 @@ class LibraryMacroApplier {
   Future<void> add({
     required LibraryElementImpl libraryElement,
     required LibraryOrAugmentationElementImpl container,
-    required ast.CompilationUnit unit,
+    required ast.CompilationUnitImpl unit,
   }) async {
     for (final declaration in unit.declarations.reversed) {
       switch (declaration) {
@@ -148,7 +148,7 @@ class LibraryMacroApplier {
             container: container,
             targetElement: declarationElement,
             classNode: declaration,
-            classDeclarationKind: macro.DeclarationKind.extension,
+            classDeclarationKind: macro.DeclarationKind.extensionType,
             classAnnotations: declaration.metadata,
             declarationsPhaseInterface: declarationElement,
             members: declaration.members,
@@ -178,8 +178,6 @@ class LibraryMacroApplier {
         case ast.TopLevelVariableDeclarationImpl():
           // TODO(scheglov): implement it
           break;
-        default:
-          throw UnimplementedError('${declaration.runtimeType}');
       }
     }
   }

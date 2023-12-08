@@ -1075,6 +1075,11 @@ abstract class MethodMirror implements DeclarationMirror {
   bool get isExtensionMember;
 
   /**
+   * Is the reflectee an extension type method?
+   */
+  bool get isExtensionTypeMember;
+
+  /**
    * Whether this mirror is equal to [other].
    *
    * The equality holds if and only if
@@ -1119,6 +1124,11 @@ abstract class VariableMirror implements DeclarationMirror {
    * Is the reflectee an extension member?
    */
   bool get isExtensionMember;
+
+  /**
+   * Is the reflectee an extension type member?
+   */
+  bool get isExtensionTypeMember;
 
   /**
    * Whether this mirror is equal to [other].
