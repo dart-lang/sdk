@@ -379,7 +379,7 @@ defaultFormalParameter
     ;
 
 defaultNamedParameter
-    :    REQUIRED? normalFormalParameter ('=' expression)?
+    :    metadata REQUIRED? normalFormalParameterNoMetadata ('=' expression)?
     ;
 
 typeWithParameters
