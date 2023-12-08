@@ -35,9 +35,12 @@ class PlatformWin {
     // hitting an assertion failure.
     // See: https://msdn.microsoft.com/en-us/library/a9yf33zb.aspx
     _set_invalid_parameter_handler(InvalidParameterHandler);
-    // Disable the message box for assertions in the CRT in Debug builds.
+    // Disable the message box for assertions, errors and warnings in the CRT
+    // in Debug builds.
     // See: https://msdn.microsoft.com/en-us/library/1y71x448.aspx
     _CrtSetReportMode(_CRT_ASSERT, 0);
+    _CrtSetReportMode(_CRT_ERROR, 0);
+    _CrtSetReportMode(_CRT_WARN, 0);
 
     // Disable dialog boxes for "critical" errors or when OpenFile cannot find
     // the requested file. However only disable error boxes for general
