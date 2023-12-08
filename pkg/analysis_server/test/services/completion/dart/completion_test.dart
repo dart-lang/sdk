@@ -592,7 +592,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_010_3() async {
     await computeSuggestions('''
 class test <t  ^extends String, List, > {}
@@ -4521,8 +4520,40 @@ class x {}^
 ''');
     assertResponse(r'''
 suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  external
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
   num
     kind: class
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
 ''');
   }
 
@@ -4974,6 +5005,8 @@ replacement
 suggestions
   List
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -5002,6 +5035,8 @@ suggestions
     kind: class
   String
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -5016,6 +5051,8 @@ replacement
 suggestions
   DateTime
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -5449,18 +5486,6 @@ suggestions
     kind: class
   List
     kind: constructorInvocation
-  List.empty
-    kind: constructorInvocation
-  List.filled
-    kind: constructorInvocation
-  List.from
-    kind: constructorInvocation
-  List.generate
-    kind: constructorInvocation
-  List.of
-    kind: constructorInvocation
-  List.unmodifiable
-    kind: constructorInvocation
   XXX
     kind: class
   XXX.fisk
@@ -5527,7 +5552,7 @@ suggestions
   }
 
   Future<void> test_commentSnippets048_1() async {
-    allowedIdentifiers = {'json'};
+    allowedIdentifiers = {'json', 'JsonCodec', 'JsonDecoder'};
     await computeSuggestions('''
 import 'dart:convert' as json;f() {var x=new js^}
 ''');
@@ -5545,7 +5570,7 @@ suggestions
   }
 
   Future<void> test_commentSnippets049_1() async {
-    allowedIdentifiers = {'json', 'jxx'};
+    allowedIdentifiers = {'json', 'jxx', 'JsonCodec', 'JsonDecoder'};
     await computeSuggestions('''
 import 'dart:convert' as json;
 import 'dart:convert' as jxx;
@@ -5600,7 +5625,7 @@ suggestions
   }
 
   Future<void> test_commentSnippets049_3() async {
-    allowedIdentifiers = {'json', 'jxx'};
+    allowedIdentifiers = {'json', 'jxx', 'JsonCodec', 'JsonDecoder'};
     await computeSuggestions('''
 import 'dart:convert' as json;
 import 'dart:convert' as jxx;
@@ -7598,8 +7623,6 @@ replacement
   left: 3
 suggestions
   AAA
-    kind: class
-  AAA
     kind: constructorInvocation
 ''');
   }
@@ -7619,8 +7642,6 @@ class C {
 replacement
   left: 1
 suggestions
-  AAA
-    kind: class
   AAA
     kind: constructorInvocation
 ''');

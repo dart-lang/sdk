@@ -150,11 +150,9 @@ suggestions
   B0
     kind: constructorInvocation
   b0
-    kind: function
-  f0
-    kind: function
+    kind: functionInvocation
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -188,11 +186,9 @@ suggestions
   B0
     kind: constructorInvocation
   b0
-    kind: function
-  f0
-    kind: function
+    kind: functionInvocation
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -274,19 +270,17 @@ void f0() {
     assertResponse(r'''
 suggestions
   A0
-    kind: constructorInvocation
-  A0
     kind: class
+  A0
+    kind: constructorInvocation
   B0
     kind: class
   B0
     kind: constructorInvocation
   b0
-    kind: function
-  f0
-    kind: function
+    kind: functionInvocation
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -312,17 +306,15 @@ void f0() {
     assertResponse(r'''
 suggestions
   A0
-    kind: constructorInvocation
+    kind: class
   A0
-    kind: class
+    kind: constructorInvocation
   B0
     kind: class
   B0
     kind: constructorInvocation
-  f0
-    kind: function
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -2252,12 +2244,6 @@ suggestions
   A0
     kind: class
   A0
-    kind: constructorInvocation
-  String
-    kind: class
-  String.fromCharCode
-    kind: constructorInvocation
-  String.fromCharCodes
     kind: constructorInvocation
   String.fromEnvironment
     kind: constructorInvocation
@@ -4936,8 +4922,13 @@ suggestions
     await computeSuggestions('''
 m(i0 ^) {}
 ''');
+    // TODO(brianwilkerson): We're suggesting `int` because we're treating this
+    //  as if there were a comma before the completion point. We ought to either
+    //  require the comma or include the comma in the suggestion.
     assertResponse(r'''
 suggestions
+  int
+    kind: class
 ''');
   }
 

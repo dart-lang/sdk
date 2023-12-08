@@ -438,7 +438,6 @@ void f() {
   useMyEnum(^);
 }
 ''');
-
     assertResponse(r'''
 suggestions
   p0.MyEnum
