@@ -36,6 +36,6 @@ if [[ $D8_OPTIONS ]]; then
 fi
 
 # Find the JS runtime based on the input wasm file.
-exec "$D8_EXEC" --turboshaft-wasm \
+exec "$D8_EXEC" --turboshaft-wasm --experimental-wasm-imported-strings \
   "${EXTRA_D8_OPTIONS[@]}" \
   "$SDK_DIR/pkg/dart2wasm/bin/run_wasm.js" -- "$(realpath -- "${1%.*}.mjs")" "$@"

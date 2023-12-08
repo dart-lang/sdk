@@ -156,6 +156,9 @@ class WasmI64 extends _WasmInt {
 
   /// `i64.le_u`.
   external bool leU(WasmI64 other);
+
+  /// `i64.lt_u`.
+  external bool ltU(WasmI64 other);
 }
 
 /// The Wasm `f32` type.

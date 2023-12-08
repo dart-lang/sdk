@@ -13,6 +13,7 @@
 /// change in the future.
 library dart._js_types;
 
+import 'dart:_error_utils';
 import 'dart:_internal';
 import 'dart:_js_helper' as js;
 import 'dart:_string_helper';

@@ -239,6 +239,9 @@
           "_internal/wasm/lib/int_common_patch.dart"
         ]
       },
+      "_error_utils": {
+        "uri": "_internal/wasm/lib/error_utils.dart"
+      },
       "_http": {
         "uri": "_http/http.dart"
       },

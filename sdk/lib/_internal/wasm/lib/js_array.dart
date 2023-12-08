@@ -466,18 +466,30 @@ class JSArrayImpl implements List<JSAny?> {
         '(a, l) => a.length = l', toExternRef, newLength.toJS.toExternRef);
   }
 
-  @override
-  JSAny? operator [](int index) {
-    RangeError.checkValueInInterval(index, 0, length - 1);
-    return js.JSValue.boxT<JSAny?>(js.JS<WasmExternRef?>(
-        '(a, i) => a[i]', toExternRef, index.toJS.toExternRef));
-  }
+  @pragma("wasm:prefer-inline")
+  JSAny? _getUnchecked(int index) =>
+      js.JSValue.boxT<JSAny?>(js.JS<WasmExternRef?>(
+          '(a, i) => a[i]', toExternRef, index.toJS.toExternRef));
 
   @override
+  @pragma("wasm:prefer-inline")
+  JSAny? operator [](int index) {
+    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    return _getUnchecked(index);
+  }
+
+  @pragma("wasm:prefer-inline")
+  void _setUnchecked(int index, JSAny? value) => js.JS<void>(
+      '(a, i, v) => a[i] = v',
+      toExternRef,
+      index.toJS.toExternRef,
+      value.toExternRef);
+
+  @override
+  @pragma("wasm:prefer-inline")
   void operator []=(int index, JSAny? value) {
-    RangeError.checkValueInInterval(index, 0, length - 1);
-    js.JS<void>('(a, i, v) => a[i] = v', toExternRef, index.toJS.toExternRef,
-        value.toExternRef);
+    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    _setUnchecked(index, value);
   }
 
   @override
