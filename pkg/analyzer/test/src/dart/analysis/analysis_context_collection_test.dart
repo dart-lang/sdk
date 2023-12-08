@@ -344,15 +344,11 @@ workspaces
 ''');
   }
 
-  // TODO(pq): update to using the golden format when packages are enumerated.
-  // See: https://dart-review.googlesource.com/c/sdk/+/339781
-  test_pubWorkspace_sdkConstraint() async {
+  test_pubWorkspace_sdkVersionConstraint() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
-    final testFilePath = '$testPackageRootPath/a.dart';
 
     newPubspecYamlFile(testPackageRootPath, r'''
-name: test
 environment:
   sdk: ^3.0.0
 ''');
@@ -362,7 +358,7 @@ environment:
       name: 'test',
     );
 
-    newFile(testFilePath, '');
+    newFile('$testPackageRootPath/lib/a.dart', '');
 
     final contextCollection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
@@ -372,10 +368,22 @@ environment:
       ],
     );
 
-    final context = contextCollection.contextFor(testFilePath);
-    final package = context.contextRoot.workspace.findPackageFor(testFilePath)
-        as PubWorkspacePackage;
-    expect(package.sdkVersionConstraint.toString(), '^3.0.0');
+    _assertContextCollectionText(contextCollection, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: PubWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: PubWorkspacePackage
+        root: /home/test
+        sdkVersionConstraint: ^3.0.0
+''');
   }
 
   test_pubWorkspace_singleAnalysisOptions() async {
@@ -585,6 +593,11 @@ class _AnalysisContextCollectionPrinter {
         sink.withIndent(() {
           final root = resourceProvider.getFolder(package.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
+          final sdkVersionConstraint = package.sdkVersionConstraint;
+          if (sdkVersionConstraint != null) {
+            sink.writelnWithIndent(
+                'sdkVersionConstraint: $sdkVersionConstraint');
+          }
         });
       default:
         throw UnimplementedError('${package.runtimeType}');
