@@ -22,7 +22,6 @@ const _defaultTestSelectors = [
   'language',
   'lib',
   'samples',
-  'service',
   'standalone',
   'utils',
   'vm',

@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.38 Broaden `initializerExpression` to match implemented behavior.
+//
 // v0.37 Correct `libraryExport` to use `configurableUri`, not `uri`.
 //
 // v0.36 Update syntax from `inline class` to `extension type`, including
@@ -570,7 +572,9 @@ fieldInitializer
     ;
 
 initializerExpression
-    :    conditionalExpression
+    :    throwExpression
+    |    assignableExpression assignmentOperator expression
+    |    conditionalExpression
     |    cascade
     ;
 

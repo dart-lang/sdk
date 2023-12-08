@@ -5,6 +5,7 @@
 library service_test_common;
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:typed_data';
 
 import 'package:path/path.dart';
@@ -515,6 +516,18 @@ List<String> removeAdjacentDuplicates(List<String> fromList) {
     result.add(s);
   }
   return result;
+}
+
+/// Waits for ServiceProtocolInfo.serverUri to be populated.
+Future<ServiceProtocolInfo> waitForServiceInfo() async {
+  print('Waiting for the VM service URI to become available...');
+  var info = await Service.getInfo();
+  while (info.serverUri == null) {
+    await Future.delayed(const Duration(milliseconds: 100));
+    info = await Service.getInfo();
+  }
+  print('VM service URI has become available: ${info.serverUri}');
+  return info;
 }
 
 typedef ServiceExtensionHandler = Future<Map<String, dynamic>> Function(
