@@ -789,6 +789,28 @@ class _ElementWriter {
                 );
                 _sink.writelnWithIndent('message: ${diagnostic.message}');
               });
+            case DeclarationsIntrospectionCycleDiagnostic():
+              _sink.writelnWithIndent(
+                'DeclarationsIntrospectionCycleDiagnostic',
+              );
+              _sink.writeElements(
+                'components',
+                diagnostic.components,
+                (component) {
+                  _sink.writelnWithIndent(
+                    'DeclarationsIntrospectionCycleComponent',
+                  );
+                  _sink.withIndent(() {
+                    _elementPrinter.writeNamedElement(
+                      'element',
+                      component.element,
+                    );
+                    _sink.writelnWithIndent(
+                      'annotationIndex: ${component.annotationIndex}',
+                    );
+                  });
+                },
+              );
             case ExceptionMacroDiagnostic():
               _sink.writelnWithIndent('ExceptionMacroDiagnostic');
               _sink.withIndent(() {

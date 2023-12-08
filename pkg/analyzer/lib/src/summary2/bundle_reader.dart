@@ -2310,7 +2310,16 @@ class ResolutionReader {
           argumentIndex: readUInt30(),
           message: _reader.readStringUtf8(),
         );
-      case 0x02:
+      case 0x01:
+        return DeclarationsIntrospectionCycleDiagnostic(
+          components: readTypedList(() {
+            return DeclarationsIntrospectionCycleComponent(
+              element: readElement() as ElementImpl,
+              annotationIndex: readUInt30(),
+            );
+          }),
+        );
+      case 0x03:
         return MacroDiagnostic(
           severity: macro.Severity.values[readByte()],
           message: _readMacroDiagnosticMessage(),

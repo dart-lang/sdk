@@ -62,29 +62,60 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 }
 
-/*macro*/ class AddHierarchyMethod implements ClassDeclarationsMacro {
+/*macro*/ class AddMethod
+    implements
+        ClassDeclarationsMacro,
+        MethodDeclarationsMacro,
+        MixinDeclarationsMacro {
   final String name;
 
-  const AddHierarchyMethod(this.name);
+  const AddMethod(this.name);
 
   @override
   buildDeclarationsForClass(clazz, builder) async {
-    // builder.typeDeclarationOf(identifier);
-    final methods = (await Future.wait(
-      clazz.interfaces.map(
-        (interface) async {
-          final type = await builder.typeDeclarationOf(interface.identifier);
-          return await builder.methodsOf(type);
-        },
-      ),
-    ))
-        .expand((element) => element)
-        .toList();
-    final methodsStr = methods.map((e) => e.identifier.name).join('_');
+    _add(builder);
+  }
 
-    final compoundName = methodsStr.isEmpty ? name : '${methodsStr}_$name';
-    final code = '  void $compoundName() {}';
+  @override
+  buildDeclarationsForMethod(method, builder) {
+    _add(builder);
+  }
+
+  @override
+  buildDeclarationsForMixin(method, builder) {
+    _add(builder);
+  }
+
+  void _add(MemberDeclarationBuilder builder) {
+    final code = '  void $name() {}';
     final declaration = DeclarationCode.fromString(code);
     builder.declareInType(declaration);
+  }
+}
+
+/*macro*/ class DeclarationsIntrospectMethods
+    implements ClassDeclarationsMacro {
+  final String targetName;
+
+  const DeclarationsIntrospectMethods(this.targetName);
+
+  @override
+  Future<void> buildDeclarationsForClass(declaration, builder) async {
+    // ignore: deprecated_member_use
+    final identifier = await builder.resolveIdentifier(
+      declaration.library.uri,
+      targetName,
+    );
+    final type = await builder.typeDeclarationOf(identifier);
+    final methods = await builder.methodsOf(type);
+    for (final method in methods) {
+      builder.declareInType(
+        DeclarationCode.fromString(
+          '  void introspected_'
+          '${type.identifier.name}_'
+          '${method.identifier.name}();',
+        ),
+      );
+    }
   }
 }

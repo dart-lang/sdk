@@ -136,6 +136,7 @@ class Linker {
       macroExecutor: macroExecutor,
       isLibraryBeingLinked: (uri) => builders.containsKey(uri),
       declarationBuilder: macroDeclarationBuilder,
+      runDeclarationsPhase: _executeMacroDeclarationsPhase,
     );
 
     for (final library in builders.values) {
@@ -167,7 +168,7 @@ class Linker {
       'executeMacroDeclarationsPhase',
       (performance) async {
         await _executeMacroDeclarationsPhase(
-          performance: performance,
+          targetElement: null,
         );
       },
     );
@@ -316,13 +317,13 @@ class Linker {
   }
 
   Future<void> _executeMacroDeclarationsPhase({
-    required OperationPerformanceImpl performance,
+    required Element? targetElement,
   }) async {
     while (true) {
       var hasProgress = false;
       for (final library in builders.values) {
         hasProgress |= await library.executeMacroDeclarationsPhase(
-          performance: performance,
+          targetElement: targetElement,
         );
       }
       if (!hasProgress) {
