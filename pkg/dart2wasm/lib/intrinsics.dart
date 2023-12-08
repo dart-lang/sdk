@@ -370,6 +370,11 @@ class Intrinsifier {
               codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
               b.i64_le_u();
               return boolType;
+            case "ltU":
+              codeGen.wrap(receiver, w.NumType.i64);
+              codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
+              b.i64_lt_u();
+              return boolType;
             default:
               throw 'Unknown WasmI64 member $name';
           }

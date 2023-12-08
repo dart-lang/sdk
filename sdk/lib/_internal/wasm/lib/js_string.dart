@@ -4,60 +4,71 @@
 
 part of dart._js_types;
 
-String _matchString(Match match) => match[0]!;
-String _stringIdentity(String string) => string;
-
-/// The box class for JS' `string` object. [JSStringImpl] is heavily based off
-/// of `sdk/lib/_internal/js_runtime/lib/js_string.dart`.  TODO(joshualitt): Add
-/// `JSString` fastpaths for cases where `String` arguments are really
-/// `JSString`.
 final class JSStringImpl implements String {
   final WasmExternRef? _ref;
 
   JSStringImpl(this._ref);
 
+  @pragma("wasm:prefer-inline")
   static String? box(WasmExternRef? ref) =>
       js.isDartNull(ref) ? null : JSStringImpl(ref);
 
+  @pragma("wasm:prefer-inline")
   WasmExternRef? get toExternRef => _ref;
+
+  @override
+  @pragma("wasm:prefer-inline")
+  int get length => _jsLength(toExternRef);
+
+  @override
+  @pragma("wasm:prefer-inline")
+  bool get isEmpty => length == 0;
+
+  @override
+  @pragma("wasm:prefer-inline")
+  bool get isNotEmpty => !isEmpty;
 
   @pragma("wasm:entry-point")
   static String interpolate(List<Object?> values) {
-    final array = JSArrayImpl.fromLength(values.length);
-    for (int i = 0; i < values.length; i++) {
+    final valuesLength = values.length;
+    final array = JSArrayImpl.fromLength(valuesLength);
+    for (int i = 0; i < valuesLength; i++) {
       final o = values[i];
       final s = o.toString();
       final jsString =
           s is JSStringImpl ? js.JSValue.boxT<JSAny?>(s.toExternRef) : s.toJS;
-      array[i] = jsString;
+      array._setUnchecked(i, jsString);
     }
     return JSStringImpl(
         js.JS<WasmExternRef?>("a => a.join('')", array.toExternRef));
   }
 
   @override
+  @pragma("wasm:prefer-inline")
   int codeUnitAt(int index) {
-    RangeError.checkValueInInterval(index, 0, length - 1);
-    return js
-        .JS<double>('(s, i) => s.charCodeAt(i)', toExternRef,
-            index.toDouble().toExternRef)
-        .toInt();
+    final length = this.length;
+    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    return _codeUnitAtUnchecked(index);
+  }
+
+  @pragma("wasm:prefer-inline")
+  int _codeUnitAtUnchecked(int index) {
+    return _jsCharCodeAt(toExternRef, index);
   }
 
   @override
   Iterable<Match> allMatches(String string, [int start = 0]) {
-    if (0 > start || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
-    }
+    final stringLength = string.length;
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, stringLength);
     return StringAllMatchesIterable(string, this, start);
   }
 
   @override
   Match? matchAsPrefix(String string, [int start = 0]) {
-    if (start < 0 || start > string.length) {
-      throw new RangeError.range(start, 0, string.length);
-    }
-    if (start + length > string.length) return null;
+    final stringLength = string.length;
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, stringLength);
+    final length = this.length;
+    if (start + length > stringLength) return null;
     // TODO(lrn): See if this can be optimized.
     for (int i = 0; i < length; i++) {
       if (string.codeUnitAt(start + i) != codeUnitAt(i)) {
@@ -70,8 +81,7 @@ final class JSStringImpl implements String {
   @override
   String operator +(String other) {
     if (other is JSStringImpl) {
-      return JSStringImpl(js.JS<WasmExternRef?>(
-          '(a, b) => a + b', toExternRef, other.toExternRef));
+      return JSStringImpl(_jsConcat(toExternRef, other.toExternRef));
     }
 
     // TODO(joshualitt): Refactor `string_patch.dart` so we can directly
@@ -81,7 +91,8 @@ final class JSStringImpl implements String {
 
   @override
   bool endsWith(String other) {
-    int otherLength = other.length;
+    final otherLength = other.length;
+    final length = this.length;
     if (otherLength > length) return false;
     return other == substring(length - otherLength);
   }
@@ -102,6 +113,7 @@ final class JSStringImpl implements String {
         } else {
           StringBuffer result = StringBuffer();
           result.write(to);
+          final length = this.length;
           for (int i = 0; i < length; i++) {
             result.write(this[i]);
             result.write(to);
@@ -143,12 +155,13 @@ final class JSStringImpl implements String {
     if (onMatch == null) onMatch = _matchString;
     if (onNonMatch == null) onNonMatch = _stringIdentity;
     if (from is String) {
-      int patternLength = from.length;
+      final patternLength = from.length;
       if (patternLength == 0) {
         // Pattern is the empty string.
         StringBuffer buffer = StringBuffer();
         int i = 0;
         buffer.write(onNonMatch(""));
+        final length = this.length;
         while (i < length) {
           buffer.write(onMatch(StringMatch(i, this, "")));
           // Special case to avoid splitting a surrogate pair.
@@ -172,6 +185,7 @@ final class JSStringImpl implements String {
       }
       StringBuffer buffer = StringBuffer();
       int startIndex = 0;
+      final length = this.length;
       while (startIndex < length) {
         int position = indexOf(from, startIndex);
         if (position == -1) {
@@ -212,7 +226,7 @@ final class JSStringImpl implements String {
 
   @override
   String replaceFirst(Pattern from, String to, [int startIndex = 0]) {
-    RangeError.checkValueInInterval(startIndex, 0, length, "startIndex");
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(startIndex, length);
     if (from is String) {
       int index = indexOf(from, startIndex);
       if (index < 0) return this;
@@ -233,7 +247,7 @@ final class JSStringImpl implements String {
   @override
   String replaceFirstMapped(Pattern from, String replace(Match match),
       [int startIndex = 0]) {
-    RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(startIndex, length);
     Iterator<Match> matches = from.allMatches(this, startIndex).iterator;
     if (!matches.moveNext()) return this;
     Match match = matches.current;
@@ -292,15 +306,14 @@ final class JSStringImpl implements String {
 
   @override
   String replaceRange(int start, int? end, String replacement) {
-    final e = RangeError.checkValidRange(start, end, length);
-    return _replaceRange(start, e, replacement);
+    end ??= length;
+    RangeErrorUtils.checkValidRangePositiveLength(start, end, length);
+    return _replaceRange(start, end, replacement);
   }
 
   @override
   bool startsWith(Pattern pattern, [int index = 0]) {
-    if (index < 0 || index > length) {
-      throw RangeError.range(index, 0, length);
-    }
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
     if (pattern is String) {
       final patternLength = pattern.length;
       final endIndex = index + patternLength;
@@ -312,9 +325,9 @@ final class JSStringImpl implements String {
 
   @override
   String substring(int start, [int? end]) {
-    end = RangeError.checkValidRange(start, end, this.length);
-    return JSStringImpl(js.JS<WasmExternRef?>('(o, s, i) => o.substring(s, i)',
-        toExternRef, start.toDouble(), end.toDouble()));
+    end ??= length;
+    RangeErrorUtils.checkValidRangePositiveLength(start, end, length);
+    return JSStringImpl(_jsSubstring(toExternRef, start, end));
   }
 
   @override
@@ -398,9 +411,10 @@ final class JSStringImpl implements String {
 
   /// Finds the index of the first non-whitespace character, or the
   /// end of the string. Start looking at position [index].
-  static int _skipLeadingWhitespace(String string, int index) {
-    while (index < string.length) {
-      int codeUnit = string.codeUnitAt(index);
+  static int _skipLeadingWhitespace(JSStringImpl string, int index) {
+    final stringLength = string.length;
+    while (index < stringLength) {
+      int codeUnit = string._codeUnitAtUnchecked(index);
       if (codeUnit != spaceCodeUnit &&
           codeUnit != carriageReturnCodeUnit &&
           !_isWhitespace(codeUnit)) {
@@ -413,9 +427,9 @@ final class JSStringImpl implements String {
 
   /// Finds the index after the last non-whitespace character, or 0.
   /// Start looking at position [index - 1].
-  static int _skipTrailingWhitespace(String string, int index) {
+  static int _skipTrailingWhitespace(JSStringImpl string, int index) {
     while (index > 0) {
-      int codeUnit = string.codeUnitAt(index - 1);
+      int codeUnit = string._codeUnitAtUnchecked(index - 1);
       if (codeUnit != spaceCodeUnit &&
           codeUnit != carriageReturnCodeUnit &&
           !_isWhitespace(codeUnit)) {
@@ -426,7 +440,7 @@ final class JSStringImpl implements String {
     return index;
   }
 
-  // Dart2Wasm can't use JavaScript trim directly,
+  // dart2wasm can't use JavaScript trim directly,
   // because JavaScript does not trim
   // the NEXT LINE (NEL) character (0x85).
   @override
@@ -435,26 +449,27 @@ final class JSStringImpl implements String {
     // either end of the string.
     final result =
         JSStringImpl(js.JS<WasmExternRef?>('s => s.trim()', toExternRef));
-    if (result.length == 0) return result;
-    int firstCode = result.codeUnitAt(0);
+    final resultLength = result.length;
+    if (resultLength == 0) return result;
+    int firstCode = result._codeUnitAtUnchecked(0);
     int startIndex = 0;
     if (firstCode == nelCodeUnit) {
       startIndex = _skipLeadingWhitespace(result, 1);
-      if (startIndex == result.length) return "";
+      if (startIndex == resultLength) return "";
     }
 
-    int endIndex = result.length;
+    int endIndex = resultLength;
     // We know that there is at least one character that is non-whitespace.
     // Therefore we don't need to verify that endIndex > startIndex.
     int lastCode = result.codeUnitAt(endIndex - 1);
     if (lastCode == nelCodeUnit) {
       endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
-    if (startIndex == 0 && endIndex == result.length) return result;
+    if (startIndex == 0 && endIndex == resultLength) return result;
     return substring(startIndex, endIndex);
   }
 
-  // Dart2Wasm can't use JavaScript trimLeft directly because it does not trim
+  // dart2wasm can't use JavaScript trimLeft directly because it does not trim
   // the NEXT LINE character (0x85).
   @override
   String trimLeft() {
@@ -463,17 +478,18 @@ final class JSStringImpl implements String {
     int startIndex = 0;
     final result =
         JSStringImpl(js.JS<WasmExternRef?>('s => s.trimLeft()', toExternRef));
-    if (result.length == 0) return result;
-    int firstCode = result.codeUnitAt(0);
+    final resultLength = result.length;
+    if (resultLength == 0) return result;
+    int firstCode = result._codeUnitAtUnchecked(0);
     if (firstCode == nelCodeUnit) {
       startIndex = _skipLeadingWhitespace(result, 1);
     }
     if (startIndex == 0) return result;
-    if (startIndex == result.length) return "";
+    if (startIndex == resultLength) return "";
     return result.substring(startIndex);
   }
 
-  // Dart2Wasm can't use JavaScript trimRight directly because it does not trim
+  // dart2wasm can't use JavaScript trimRight directly because it does not trim
   // the NEXT LINE character (0x85).
   @override
   String trimRight() {
@@ -481,14 +497,15 @@ final class JSStringImpl implements String {
     // string.
     final result =
         JSStringImpl(js.JS<WasmExternRef?>('s => s.trimRight()', toExternRef));
-    int endIndex = result.length;
+    final resultLength = result.length;
+    int endIndex = resultLength;
     if (endIndex == 0) return result;
     int lastCode = result.codeUnitAt(endIndex - 1);
     if (lastCode == nelCodeUnit) {
       endIndex = _skipTrailingWhitespace(result, endIndex - 1);
     }
 
-    if (endIndex == result.length) return result;
+    if (endIndex == resultLength) return result;
     if (endIndex == 0) return "";
     return result.substring(0, endIndex);
   }
@@ -503,16 +520,16 @@ final class JSStringImpl implements String {
 
   @override
   String padLeft(int width, [String padding = ' ']) {
-    int delta = width - this.length;
+    int delta = width - length;
     if (delta <= 0) return this;
-    return padding * delta + this;
+    return (padding * delta) + this;
   }
 
   @override
   String padRight(int width, [String padding = ' ']) {
-    int delta = width - this.length;
+    int delta = width - length;
     if (delta <= 0) return this;
-    return this + padding * delta;
+    return this + (padding * delta);
   }
 
   @override
@@ -528,9 +545,8 @@ final class JSStringImpl implements String {
 
   @override
   int indexOf(Pattern pattern, [int start = 0]) {
-    if (start < 0 || start > this.length) {
-      throw RangeError.range(start, 0, this.length);
-    }
+    final length = this.length;
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, length);
     if (pattern is JSStringImpl) {
       return _jsIndexOf(pattern.toExternRef, start);
     } else if (pattern is String) {
@@ -539,7 +555,7 @@ final class JSStringImpl implements String {
       Match? match = js.firstMatchAfter(pattern, this, start);
       return (match == null) ? -1 : match.start;
     } else {
-      for (int i = start; i <= this.length; i++) {
+      for (int i = start; i <= length; i++) {
         if (pattern.matchAsPrefix(this, i) != null) return i;
       }
       return -1;
@@ -553,10 +569,11 @@ final class JSStringImpl implements String {
 
   @override
   int lastIndexOf(Pattern pattern, [int? start]) {
+    final length = this.length;
     if (start == null) {
       start = length;
-    } else if (start < 0 || start > this.length) {
-      throw RangeError.range(start, 0, this.length);
+    } else {
+      RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(start, length);
     }
     if (pattern is JSStringImpl) {
       if (start + pattern.length > length) {
@@ -577,9 +594,8 @@ final class JSStringImpl implements String {
 
   @override
   bool contains(Pattern other, [int startIndex = 0]) {
-    if (startIndex < 0 || startIndex > this.length) {
-      throw RangeError.range(startIndex, 0, this.length);
-    }
+    final length = this.length;
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(startIndex, length);
     if (other is String) {
       return indexOf(other, startIndex) >= 0;
     } else if (other is js.JSSyntaxRegExp) {
@@ -589,31 +605,24 @@ final class JSStringImpl implements String {
     }
   }
 
-  @override
-  bool get isEmpty => length == 0;
-
-  @override
-  bool get isNotEmpty => !isEmpty;
-
   /// This must be kept in sync with `StringBase.hashCode` in string_patch.dart.
   /// TODO(joshualitt): Find some way to cache the hash code.
   @override
   int get hashCode {
     int hash = 0;
+    final length = this.length;
     for (int i = 0; i < length; i++) {
-      hash = stringCombineHashes(hash, codeUnitAt(i));
+      hash = stringCombineHashes(hash, _codeUnitAtUnchecked(i));
     }
     return stringFinalizeHash(hash);
   }
 
   @override
-  int get length => js.JS<double>('s => s.length', toExternRef).toInt();
-
-  @override
+  @pragma("wasm:prefer-inline")
   String operator [](int index) {
-    RangeError.checkValueInInterval(index, 0, length - 1);
-    return JSStringImpl(js.JS<WasmExternRef?>(
-        '(s, i) => s[i]', toExternRef, index.toDouble().toExternRef));
+    final length = this.length;
+    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    return JSStringImpl(_jsFromCharCode(_codeUnitAtUnchecked(index)));
   }
 
   @override
@@ -621,25 +630,34 @@ final class JSStringImpl implements String {
     if (identical(this, other)) {
       return true;
     }
-    if (other is JSStringImpl && length == other.length) {
-      return js.areEqualInJS(toExternRef, other.toExternRef);
-    } else if (other is String && length == other.length) {
+
+    if (other is JSStringImpl) {
+      return _jsEquals(toExternRef, other.toExternRef);
+    }
+
+    final length = this.length;
+    if (other is String && length == other.length) {
       for (int i = 0; i < length; i++) {
-        if (codeUnitAt(i) != other.codeUnitAt(i)) {
+        if (_codeUnitAtUnchecked(i) != other.codeUnitAt(i)) {
           return false;
         }
       }
       return true;
     }
+
     return false;
   }
 
   @override
   int compareTo(String other) {
-    int otherLength = other.length;
-    int len = (length < otherLength) ? length : otherLength;
+    if (other is JSStringImpl) {
+      return _jsCompare(toExternRef, other.toExternRef);
+    }
+    final otherLength = other.length;
+    final length = this.length;
+    final len = (length < otherLength) ? length : otherLength;
     for (int i = 0; i < len; i++) {
-      int thisCodeUnit = this.codeUnitAt(i);
+      int thisCodeUnit = _codeUnitAtUnchecked(i);
       int otherCodeUnit = other.codeUnitAt(i);
       if (thisCodeUnit < otherCodeUnit) {
         return -1;
@@ -657,10 +675,10 @@ final class JSStringImpl implements String {
   String toString() => js.stringify(toExternRef);
 
   int firstNonWhitespace() {
-    final len = this.length;
+    final length = this.length;
     int first = 0;
-    for (; first < len; first++) {
-      if (!_isWhitespace(this.codeUnitAt(first))) {
+    for (; first < length; first++) {
+      if (!_isWhitespace(_codeUnitAtUnchecked(first))) {
         break;
       }
     }
@@ -668,15 +686,19 @@ final class JSStringImpl implements String {
   }
 
   int lastNonWhitespace() {
-    int last = this.length - 1;
+    int last = length - 1;
     for (; last >= 0; last--) {
-      if (!_isWhitespace(this.codeUnitAt(last))) {
+      if (!_isWhitespace(_codeUnitAtUnchecked(last))) {
         break;
       }
     }
     return last;
   }
 }
+
+String _matchString(Match match) => match[0]!;
+
+String _stringIdentity(String string) => string;
 
 @pragma("wasm:export", "\$jsStringToJSStringImpl")
 JSStringImpl _jsStringToJSStringImpl(WasmExternRef? string) =>
@@ -688,3 +710,34 @@ WasmExternRef? _jsStringFromJSStringImpl(JSStringImpl string) =>
 
 bool _jsIdentical(WasmExternRef? ref1, WasmExternRef? ref2) =>
     js.JS<bool>('Object.is', ref1, ref2);
+
+@pragma("wasm:prefer-inline")
+int _jsCharCodeAt(WasmExternRef? stringRef, int index) => js
+    .JS<WasmI32>(
+        'WebAssembly.String.charCodeAt', stringRef, WasmI32.fromInt(index))
+    .toIntUnsigned();
+
+WasmExternRef _jsConcat(WasmExternRef? s1, WasmExternRef? s2) =>
+    js.JS<WasmExternRef>('WebAssembly.String.concat', s1, s2);
+
+@pragma("wasm:prefer-inline")
+WasmExternRef _jsSubstring(
+        WasmExternRef? stringRef, int startIndex, int endIndex) =>
+    js.JS<WasmExternRef>('WebAssembly.String.substring', stringRef,
+        WasmI32.fromInt(startIndex), WasmI32.fromInt(endIndex));
+
+@pragma("wasm:prefer-inline")
+int _jsLength(WasmExternRef? stringRef) =>
+    js.JS<WasmI32>('WebAssembly.String.length', stringRef).toIntUnsigned();
+
+@pragma("wasm:prefer-inline")
+bool _jsEquals(WasmExternRef? s1, WasmExternRef? s2) =>
+    js.JS<WasmI32>('WebAssembly.String.equals', s1, s2).toBool();
+
+@pragma("wasm:prefer-inline")
+int _jsCompare(WasmExternRef? s1, WasmExternRef? s2) =>
+    js.JS<WasmI32>('WebAssembly.String.compare', s1, s2).toIntSigned();
+
+@pragma("wasm:prefer-inline")
+WasmExternRef _jsFromCharCode(int charCode) => js.JS<WasmExternRef>(
+    'WebAssembly.String.fromCharCode', WasmI32.fromInt(charCode));
