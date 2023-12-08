@@ -209,7 +209,6 @@ luci.list_view_entry(
 
 dart.try_builder(
     "dev",
-    experiments = {"luci.non_production": 100},
     recipe = "release/merge",
     execution_timeout = 15 * time.minute,
     properties = {"from_ref": "refs/heads/lkgr", "to_ref": "refs/heads/dev"},
@@ -217,7 +216,6 @@ dart.try_builder(
 
 dart.try_builder(
     "beta",
-    experiments = {"luci.non_production": 100},
     recipe = "release/merge",
     execution_timeout = 15 * time.minute,
     properties = {"from_ref": "refs/heads/dev", "to_ref": "refs/heads/beta"},
@@ -225,10 +223,20 @@ dart.try_builder(
 
 dart.try_builder(
     "stable",
-    experiments = {"luci.non_production": 100},
     recipe = "release/merge",
     execution_timeout = 15 * time.minute,
     properties = {"from_ref": "refs/heads/beta", "to_ref": "refs/heads/stable"},
 )
 
+dart.try_builder(
+    "docker",
+    recipe = "release/merge",
+    # Use a fake stable version since it's only used to detect the channel.
+    properties = {"version": "1.2.3"},
+)
+
+dart.try_builder(
+    "homebrew",
+    recipe = "release/merge",
+)
 exec("//monorepo.star")

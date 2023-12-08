@@ -48,20 +48,28 @@ luci.cq_group(
     verifiers = default_verifiers(),
 )
 
-def basic_cq(repository):
+def basic_cq(repository, extra_verifies = []):
     luci.cq_group(
         name = repository,
         watch = cq.refset(DART_GERRIT + repository, refs = ["refs/heads/main"]),
         allow_submit_with_open_deps = True,
         tree_status_host = "dart-status.appspot.com",
         retry_config = cq.RETRY_NONE,
-        verifiers = default_verifiers(),
+        verifiers = default_verifiers() + extra_verifies,
     )
 
 basic_cq("dart_ci")
-basic_cq("dart-docker")
+basic_cq("dart-docker", [
+    luci.cq_tryjob_verifier(
+        builder = "docker-try",
+    ),
+])
 basic_cq("flute")
-basic_cq("homebrew-dart")
+basic_cq("homebrew-dart", [
+    luci.cq_tryjob_verifier(
+        builder = "homebrew-try",
+    ),
+])
 basic_cq("recipes")
 
 def empty_cq(repository):
