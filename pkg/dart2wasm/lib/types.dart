@@ -209,8 +209,12 @@ class Types {
     // class ID. If we ever change that logic, we will need to change this code.
     List<String> typeNames = [];
     for (ClassInfo classInfo in translator.classes) {
-      String className = classInfo.cls?.name ?? '';
-      typeNames.add(className);
+      Class? cls = classInfo.cls;
+      if (cls == null || cls.isAnonymousMixin) {
+        typeNames.add("");
+      } else {
+        typeNames.add(cls.name);
+      }
     }
     return typeNames;
   }
