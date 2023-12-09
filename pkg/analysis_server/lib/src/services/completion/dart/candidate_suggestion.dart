@@ -29,7 +29,7 @@ final class ClassSuggestion extends ImportableSuggestion {
   final ClassElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ClassSuggestion(super.prefix, this.element);
+  ClassSuggestion(super.importData, this.element);
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -41,7 +41,7 @@ final class ConstructorSuggestion extends ImportableSuggestion {
   final ConstructorElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ConstructorSuggestion(super.prefix, this.element);
+  ConstructorSuggestion(super.importData, this.element);
 
   @override
   String get completion => '$completionPrefix${element.displayName}';
@@ -55,7 +55,7 @@ final class EnumConstantSuggestion extends ImportableSuggestion {
   final FieldElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  EnumConstantSuggestion(super.prefix, this.element);
+  EnumConstantSuggestion(super.importData, this.element);
 
   @override
   String get completion {
@@ -70,7 +70,7 @@ final class EnumSuggestion extends ImportableSuggestion {
   final EnumElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  EnumSuggestion(super.prefix, this.element);
+  EnumSuggestion(super.importData, this.element);
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -97,7 +97,7 @@ final class ExtensionSuggestion extends ImportableSuggestion {
   final ExtensionElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ExtensionSuggestion(super.prefix, this.element);
+  ExtensionSuggestion(super.importData, this.element);
 
   @override
   String get completion => '$completionPrefix${element.name!}';
@@ -109,7 +109,7 @@ final class ExtensionTypeSuggestion extends ImportableSuggestion {
   final ExtensionTypeElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ExtensionTypeSuggestion(super.prefix, this.element);
+  ExtensionTypeSuggestion(super.importData, this.element);
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -160,12 +160,32 @@ final class IdentifierSuggestion extends CandidateSuggestion {
 /// The information about a candidate suggestion based on a declaration that can
 /// be imported, or a static member of such a declaration.
 sealed class ImportableSuggestion extends CandidateSuggestion {
-  /// The prefix to be used in order to access the element.
-  final String? prefix;
+  /// Information about the import used to make this suggestion visible.
+  final ImportData? importData;
 
-  ImportableSuggestion(this.prefix);
+  ImportableSuggestion(this.importData);
 
   String get completionPrefix => prefix == null ? '' : '$prefix.';
+
+  /// The URI of the library from which the suggested element would be imported.
+  String? get libraryUriStr => importData?.libraryUriStr;
+
+  /// The prefix to be used in order to access the element.
+  String? get prefix => importData?.prefix;
+}
+
+/// Data representing an import of a library.
+final class ImportData {
+  /// The URI of the library from which the suggested element would be imported.
+  final String libraryUriStr;
+
+  /// The prefix to be used in order to access the element, or `null` if no
+  /// prefix is required.
+  final String? prefix;
+
+  /// Initialize data representing an import of a library, using the
+  /// [libraryUriStr], with the [prefix].
+  ImportData({required this.libraryUriStr, required this.prefix});
 }
 
 /// The information about a candidate suggestion based on a keyword.
@@ -287,10 +307,22 @@ final class MixinSuggestion extends ImportableSuggestion {
   final MixinElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  MixinSuggestion(super.prefix, this.element);
+  MixinSuggestion(super.importData, this.element);
 
   @override
   String get completion => '$completionPrefix${element.name}';
+}
+
+/// The information about a candidate suggestion based on a getter or setter.
+final class NameSuggestion extends CandidateSuggestion {
+  /// The name being suggested.
+  final String name;
+
+  /// Initialize a newly created candidate suggestion to suggest the [name].
+  NameSuggestion(this.name);
+
+  @override
+  String get completion => name;
 }
 
 /// The information about a candidate suggestion based on a getter or setter.
@@ -315,7 +347,7 @@ final class StaticFieldSuggestion extends ImportableSuggestion {
   final FieldElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  StaticFieldSuggestion(super.prefix, this.element);
+  StaticFieldSuggestion(super.importData, this.element);
 
   @override
   String get completion {
@@ -336,7 +368,7 @@ final class TopLevelFunctionSuggestion extends ImportableSuggestion {
   final CompletionSuggestionKind kind;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TopLevelFunctionSuggestion(super.prefix, this.element, this.kind)
+  TopLevelFunctionSuggestion(super.importData, this.element, this.kind)
       : assert(kind == CompletionSuggestionKind.IDENTIFIER ||
             kind == CompletionSuggestionKind.INVOCATION);
 
@@ -351,7 +383,7 @@ final class TopLevelPropertyAccessSuggestion extends ImportableSuggestion {
   final PropertyAccessorElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TopLevelPropertyAccessSuggestion(super.prefix, this.element);
+  TopLevelPropertyAccessSuggestion(super.importData, this.element);
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -363,7 +395,7 @@ final class TopLevelVariableSuggestion extends ImportableSuggestion {
   final TopLevelVariableElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TopLevelVariableSuggestion(super.prefix, this.element);
+  TopLevelVariableSuggestion(super.importData, this.element);
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -375,7 +407,7 @@ final class TypeAliasSuggestion extends ImportableSuggestion {
   final TypeAliasElement element;
 
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  TypeAliasSuggestion(super.prefix, this.element);
+  TypeAliasSuggestion(super.importData, this.element);
 
   @override
   String get completion => '$completionPrefix${element.name}';
@@ -401,17 +433,29 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
   void suggestFromCandidate(CandidateSuggestion suggestion) {
     switch (suggestion) {
       case ClassSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case ConstructorSuggestion():
-        suggestConstructor(suggestion.element);
+        libraryUriStr = suggestion.libraryUriStr;
+        suggestConstructor(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case EnumSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case EnumConstantSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestEnumConstant(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case ExtensionSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestExtension(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case ExtensionTypeSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case FieldSuggestion():
         var fieldElement = suggestion.element;
         if (fieldElement.isEnumConstant) {
@@ -451,7 +495,11 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
               suggestion.referencingClass, suggestion.element.enclosingElement),
         );
       case MixinSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
+      case NameSuggestion():
+        suggestName(suggestion.name);
       case PropertyAccessSuggestion():
         var inheritanceDistance = 0.0;
         var referencingClass = suggestion.referencingClass;
@@ -465,17 +513,27 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
           inheritanceDistance: inheritanceDistance,
         );
       case StaticFieldSuggestion():
-        suggestStaticField(suggestion.element);
+        libraryUriStr = suggestion.libraryUriStr;
+        suggestStaticField(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case TopLevelFunctionSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelFunction(suggestion.element,
             kind: suggestion.kind, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case TopLevelPropertyAccessSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelPropertyAccessor(suggestion.element,
             prefix: suggestion.prefix);
+        libraryUriStr = null;
       case TopLevelVariableSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelVariable(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case TypeAliasSuggestion():
+        libraryUriStr = suggestion.libraryUriStr;
         suggestTypeAlias(suggestion.element, prefix: suggestion.prefix);
+        libraryUriStr = null;
       case TypeParameterSuggestion():
         suggestTypeParameter(suggestion.element);
     }

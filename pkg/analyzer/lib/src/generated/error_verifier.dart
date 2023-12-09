@@ -5897,6 +5897,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         case ArgumentMacroDiagnostic():
           // TODO(scheglov): implement
           throw UnimplementedError();
+        case DeclarationsIntrospectionCycleDiagnostic():
+          // TODO(scheglov): implement
+          throw UnimplementedError();
         case ExceptionMacroDiagnostic():
           // TODO(scheglov): implement
           throw UnimplementedError();

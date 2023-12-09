@@ -27618,20 +27618,20 @@ RecordTypePtr RecordType::ToNullability(Nullability value,
     return ptr();
   }
   // Clone record type and set new nullability.
-  RecordType& type = RecordType::Handle();
   // Always cloning in old space and removing space parameter would not satisfy
   // currently existing requests for type instantiation in new space.
-  type ^= Object::Clone(*this, space);
-  type.set_nullability(value);
-  type.SetHash(0);
-  type.InitializeTypeTestingStubNonAtomic(
-      Code::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
-  if (IsCanonical()) {
-    // Object::Clone does not clone canonical bit.
-    ASSERT(!type.IsCanonical());
-    type ^= type.Canonicalize(Thread::Current());
+  Thread* T = Thread::Current();
+  Zone* Z = T->zone();
+  AbstractType& type = RecordType::Handle(
+      Z,
+      RecordType::New(shape(), Array::Handle(Z, field_types()), value, space));
+  if (IsFinalized()) {
+    type.SetIsFinalized();
+    if (IsCanonical()) {
+      type ^= type.Canonicalize(T);
+    }
   }
-  return type.ptr();
+  return RecordType::Cast(type).ptr();
 }
 
 bool RecordType::IsEquivalent(

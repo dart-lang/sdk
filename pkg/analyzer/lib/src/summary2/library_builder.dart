@@ -362,7 +362,7 @@ class LibraryBuilder {
   /// of interfaces declared in other libraries that, and we have not run yet
   /// declarations phase macro applications for them.
   Future<bool> executeMacroDeclarationsPhase({
-    required OperationPerformanceImpl performance,
+    required Element? targetElement,
   }) async {
     final macroApplier = linker.macroApplier;
     if (macroApplier == null) {
@@ -371,6 +371,7 @@ class LibraryBuilder {
 
     final results = await macroApplier.executeDeclarationsPhase(
       library: element,
+      targetElement: targetElement,
     );
 
     // No more applications to execute.

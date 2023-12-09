@@ -68,7 +68,7 @@ class Types {
   late final w.ValueType typeArrayExpectedType =
       w.RefType.def(typeArrayArrayType, nullable: false);
 
-  /// Wasm value type of `List<_NamedParameter>`
+  /// Wasm value type of `WasmObjectArray<_NamedParameter>`
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
       translator.functionTypeClass, FieldIndex.functionTypeNamedParameters);
 
@@ -501,27 +501,27 @@ class Types {
     b.i32_const(encodedNullability(type));
     b.i64_const(typeParameterOffset);
 
-    // List<_Type> typeParameterBounds
-    _makeTypeList(codeGen, type.typeParameters.map((p) => p.bound));
+    // WasmObjectArray<_Type> typeParameterBounds
+    _makeTypeArray(codeGen, type.typeParameters.map((p) => p.bound));
 
-    // List<_Type> typeParameterDefaults
-    _makeTypeList(codeGen, type.typeParameters.map((p) => p.defaultType));
+    // WasmObjectArray<_Type> typeParameterDefaults
+    _makeTypeArray(codeGen, type.typeParameters.map((p) => p.defaultType));
 
     // _Type returnType
     makeType(codeGen, type.returnType);
 
-    // List<_Type> positionalParameters
-    _makeTypeList(codeGen, type.positionalParameters);
+    // WasmObjectArray<_Type> positionalParameters
+    _makeTypeArray(codeGen, type.positionalParameters);
 
     // int requiredParameterCount
     b.i64_const(type.requiredParameterCount);
 
-    // List<_NamedParameter> namedParameters
+    // WasmObjectArray<_NamedParameter> namedParameters
     if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
       translator.constants.instantiateConstant(
           codeGen.function,
           b,
-          translator.constants.makeNamedParametersList(type),
+          translator.constants.makeNamedParametersArray(type),
           namedParametersExpectedType);
     } else {
       Class namedParameterClass = translator.namedParameterClass;
@@ -542,7 +542,7 @@ class Types {
                 ])));
       }
       w.ValueType namedParametersListType =
-          codeGen.makeListFromExpressions(expressions, namedParameterType);
+          codeGen.makeArrayFromExpressions(expressions, namedParameterType);
       translator.convertType(codeGen.function, namedParametersListType,
           namedParametersExpectedType);
     }

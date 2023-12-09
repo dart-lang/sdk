@@ -824,9 +824,6 @@ byteStore
 
 @reflectiveTest
 class FileResolverTest extends FileResolutionTest {
-  @override
-  bool get isNullSafetyEnabled => true;
-
   test_analysisOptions_default_fromPackageUri() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', r'''
 analyzer:

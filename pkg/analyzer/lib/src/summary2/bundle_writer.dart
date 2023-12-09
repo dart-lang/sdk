@@ -952,11 +952,17 @@ class ResolutionSink extends _SummaryDataWriter {
         writeUInt30(diagnostic.annotationIndex);
         writeUInt30(diagnostic.argumentIndex);
         writeStringUtf8(diagnostic.message);
+      case DeclarationsIntrospectionCycleDiagnostic():
+        writeByte(0x01);
+        writeList(diagnostic.components, (component) {
+          writeElement(component.element);
+          writeUInt30(component.annotationIndex);
+        });
       case ExceptionMacroDiagnostic():
         // TODO(scheglov): Handle this case.
         throw UnimplementedError();
       case MacroDiagnostic():
-        writeByte(0x02);
+        writeByte(0x03);
         writeByte(diagnostic.severity.index);
         _writeMacroDiagnosticMessage(diagnostic.message);
         writeList(

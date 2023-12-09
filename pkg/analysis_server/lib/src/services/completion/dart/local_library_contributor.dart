@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/protocol_server.dart'
     show CompletionSuggestionKind;
-import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show SuggestionBuilder;
@@ -12,7 +11,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
-import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_plugin/src/utilities/completion/optype.dart';
 
 /// A visitor for building suggestions based upon the elements defined by
@@ -199,29 +197,6 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
             builder.suggestStaticField(field, prefix: prefix);
           }
         }
-      }
-    }
-  }
-}
-
-/// A contributor that produces suggestions based on the top level members in
-/// the library in which the completion is requested but outside the file in
-/// which the completion is requested.
-class LocalLibraryContributor extends DartCompletionContributor {
-  LocalLibraryContributor(super.request, super.builder);
-
-  @override
-  Future<void> computeSuggestions({
-    required OperationPerformanceImpl performance,
-  }) async {
-    if (!request.includeIdentifiers) {
-      return;
-    }
-
-    var visitor = LibraryElementSuggestionBuilder(request, builder);
-    for (var unit in request.libraryElement.units) {
-      if (unit.source != request.source) {
-        unit.accept(visitor);
       }
     }
   }

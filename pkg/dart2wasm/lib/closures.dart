@@ -664,21 +664,11 @@ class ClosureLayouter extends RecursiveVisitor {
     b.local_get(preciseClosure);
     b.struct_get(genericClosureStruct, FieldIndex.closureRuntimeType);
 
-    // Put type arguments into a `List<_Type>`.
-    ClassInfo listInfo = translator.classInfo[translator.fixedLengthListClass]!;
-    translator.functions.allocateClass(listInfo.classId);
-    Constant typeConstant = TypeLiteralConstant(
-        InterfaceType(translator.typeClass, Nullability.nonNullable));
-    b.i32_const(listInfo.classId);
-    b.i32_const(initialIdentityHash);
-    translator.constants
-        .instantiateConstant(instantiationFunction, b, typeConstant, typeType);
-    b.i64_const(typeCount);
+    // Put type arguments into a `WasmObjectArray<_Type>`.
     for (int i = 0; i < typeCount; i++) {
       b.local_get(typeParam(i));
     }
-    b.array_new_fixed(translator.listArrayType, typeCount);
-    b.struct_new(listInfo.struct);
+    b.array_new_fixed(translator.typeArrayType, typeCount);
 
     // Call [_TypeUniverse.substituteFunctionTypeArgument].
     b.call(translator.functions

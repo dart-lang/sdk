@@ -146,9 +146,13 @@ void f(Object x) {
 ''');
     assertResponse(r'''
 suggestions
+  dynamic
+    kind: keyword
   final
     kind: keyword
   var
+    kind: keyword
+  void
     kind: keyword
 ''');
   }
@@ -161,9 +165,13 @@ void f(Object x) {
 ''');
     assertResponse(r'''
 suggestions
+  dynamic
+    kind: keyword
   final
     kind: keyword
   var
+    kind: keyword
+  void
     kind: keyword
 ''');
   }

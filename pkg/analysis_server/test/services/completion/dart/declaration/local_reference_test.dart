@@ -222,11 +222,9 @@ suggestions
   B0
     kind: constructorInvocation
   b0
-    kind: function
-  f0
-    kind: function
+    kind: functionInvocation
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -260,11 +258,9 @@ suggestions
   B0
     kind: constructorInvocation
   b0
-    kind: function
-  f0
-    kind: function
+    kind: functionInvocation
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -347,21 +343,19 @@ void f0() {
     assertResponse(r'''
 suggestions
   A0
-    kind: constructorInvocation
-  A0
     kind: class
+  A0
+    kind: constructorInvocation
   B0
     kind: class
   B0
     kind: constructorInvocation
   b0
-    kind: function
+    kind: functionInvocation
   b1
     kind: functionInvocation
-  f0
-    kind: function
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -387,21 +381,19 @@ void f() {
     assertResponse(r'''
 suggestions
   A0
-    kind: constructorInvocation
-  A0
     kind: class
+  A0
+    kind: constructorInvocation
   B0
     kind: class
   B0
     kind: constructorInvocation
   b0
-    kind: function
+    kind: functionInvocation
   b1
     kind: functionInvocation
-  b2
-    kind: function
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -427,17 +419,15 @@ void f0() {
     assertResponse(r'''
 suggestions
   A0
-    kind: constructorInvocation
+    kind: class
   A0
-    kind: class
+    kind: constructorInvocation
   B0
     kind: class
   B0
     kind: constructorInvocation
-  f0
-    kind: function
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -1002,7 +992,7 @@ suggestions
   T0
     kind: topLevelVariable
   T1
-    kind: topLevelVariable
+    kind: getter
   T2
     kind: setter
   T3
@@ -3894,9 +3884,9 @@ void g0(dynamic Function() h) {}
     assertResponse(r'''
 suggestions
   f0
-    kind: function
+    kind: functionInvocation
   g0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 

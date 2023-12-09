@@ -185,11 +185,9 @@ suggestions
   B0
     kind: constructorInvocation
   b0
-    kind: function
-  f0
-    kind: function
+    kind: functionInvocation
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -223,11 +221,9 @@ suggestions
   B0
     kind: constructorInvocation
   b0
-    kind: function
-  f0
-    kind: function
+    kind: functionInvocation
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -309,19 +305,17 @@ void f0() {
     assertResponse(r'''
 suggestions
   A0
-    kind: constructorInvocation
-  A0
     kind: class
+  A0
+    kind: constructorInvocation
   B0
     kind: class
   B0
     kind: constructorInvocation
   b0
-    kind: function
-  f0
-    kind: function
+    kind: functionInvocation
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 
@@ -347,17 +341,15 @@ void f0() {
     assertResponse(r'''
 suggestions
   A0
-    kind: constructorInvocation
+    kind: class
   A0
-    kind: class
+    kind: constructorInvocation
   B0
     kind: class
   B0
     kind: constructorInvocation
-  f0
-    kind: function
   h0
-    kind: function
+    kind: functionInvocation
 ''');
   }
 

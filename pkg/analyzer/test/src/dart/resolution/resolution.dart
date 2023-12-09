@@ -70,7 +70,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return !result.libraryElement.isNonNullableByDefault;
   }
 
-  bool get isNullSafetyEnabled => false;
+  bool get isNullSafetyEnabled => true;
 
   ClassElement get listElement => typeProvider.listElement;
 
