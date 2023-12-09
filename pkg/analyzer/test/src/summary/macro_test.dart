@@ -67,11 +67,195 @@ abstract class MacroApplicationOrderTest extends MacroElementsBaseTest {
     );
   }
 
-  test_declarations_class_methodsOf_alreadyDone() async {
+  test_declarations_class_constructorsOf_alreadyDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclareInType('  A1.named12();')
+class A1 {
+  A1.named11();
+}
+
+@DeclarationsIntrospectConstructors('A1')
+class A2 {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A1 {
+  A1.named12();
+}
+augment class A2 {
+  void introspected_A1_named11();
+  void introspected_A1_named12();
+}
+''');
+  }
+
+  test_declarations_class_constructorsOf_cycle2() async {
     var library = await buildLibrary(r'''
 import 'order.dart';
 
-@AddMethod('f12')
+@DeclarationsIntrospectConstructors('A2')
+class A1 {}
+
+@DeclarationsIntrospectConstructors('A1')
+class A2 {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/order.dart
+  definingUnit
+    classes
+      class A1 @70
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+          components
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A1
+              annotationIndex: 0
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A2
+              annotationIndex: 0
+      class A2 @125
+''');
+  }
+
+  test_declarations_class_constructorsOf_notYetDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclarationsIntrospectConstructors('A2')
+class A1 {
+}
+
+@DeclareInType('  A2.named23();')
+class A2 {
+  @DeclareInType('  A2.named22();')
+  A2.named21();
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A2 {
+  A2.named22();
+  A2.named23();
+}
+augment class A1 {
+  void introspected_A2_named21();
+  void introspected_A2_named22();
+  void introspected_A2_named23();
+}
+''');
+  }
+
+  test_declarations_class_fieldsOf_alreadyDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclareInType('  int f12 = 0;')
+class A1 {
+  int f11 = 0;
+}
+
+@DeclarationsIntrospectFields('A1')
+class A2 {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A1 {
+  int f12 = 0;
+}
+augment class A2 {
+  void introspected_A1_f11();
+  void introspected_A1_f12();
+}
+''');
+  }
+
+  test_declarations_class_fieldsOf_cycle2() async {
+    var library = await buildLibrary(r'''
+import 'order.dart';
+
+@DeclarationsIntrospectFields('A2')
+class A1 {}
+
+@DeclarationsIntrospectFields('A1')
+class A2 {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/order.dart
+  definingUnit
+    classes
+      class A1 @64
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+          components
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A1
+              annotationIndex: 0
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A2
+              annotationIndex: 0
+      class A2 @113
+''');
+  }
+
+  test_declarations_class_fieldsOf_notYetDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclarationsIntrospectFields('A2')
+class A1 {}
+
+@DeclareInType('  int f23 = 0;')
+class A2 {
+  @DeclareInType('  int f22 = 0;')
+  int f21 = 0;
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A2 {
+  int f22 = 0;
+  int f23 = 0;
+}
+augment class A1 {
+  void introspected_A2_f21();
+  void introspected_A2_f22();
+  void introspected_A2_f23();
+}
+''');
+  }
+
+  test_declarations_class_methodsOf_alreadyDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclareInType('  void f12() {}')
 class A1 {
   void f11() {}
 }
@@ -80,7 +264,6 @@ class A1 {
 class A2 {}
 ''');
 
-    configuration.forOrder();
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
@@ -168,19 +351,19 @@ library
 
   test_declarations_class_methodsOf_notYetDone() async {
     var library = await buildLibrary(r'''
+import 'append.dart';
 import 'order.dart';
 
 @DeclarationsIntrospectMethods('A2')
 class A1 {}
 
-@AddMethod('f23')
+@DeclareInType('  void f23() {}')
 class A2 {
-  @AddMethod('f22')
+  @DeclareInType('  void f22() {}')
   void f21() {}
 }
 ''');
 
-    configuration.forOrder();
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
@@ -192,6 +375,25 @@ augment class A1 {
   void introspected_A2_f21();
   void introspected_A2_f22();
   void introspected_A2_f23();
+}
+''');
+  }
+
+  test_declarations_class_methodsOf_self() async {
+    var library = await buildLibrary(r'''
+import 'order.dart';
+
+@DeclarationsIntrospectMethods('A')
+class A {
+  void foo() {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A {
+  void introspected_A_foo();
 }
 ''');
   }

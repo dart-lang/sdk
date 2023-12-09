@@ -58,13 +58,37 @@ class A {}
   }
 }
 
-/*macro*/ class DeclareInType implements ClassDeclarationsMacro {
+/*macro*/ class DeclareInType
+    implements
+        ClassDeclarationsMacro,
+        ConstructorDeclarationsMacro,
+        FieldDeclarationsMacro,
+        MethodDeclarationsMacro {
   final String code;
 
   const DeclareInType(this.code);
 
   @override
   buildDeclarationsForClass(clazz, builder) async {
+    _declare(builder);
+  }
+
+  @override
+  buildDeclarationsForConstructor(constructor, builder) async {
+    _declare(builder);
+  }
+
+  @override
+  buildDeclarationsForField(field, builder) async {
+    _declare(builder);
+  }
+
+  @override
+  buildDeclarationsForMethod(method, builder) async {
+    _declare(builder);
+  }
+
+  void _declare(MemberDeclarationBuilder builder) {
     builder.declareInType(
       DeclarationCode.fromString(code),
     );

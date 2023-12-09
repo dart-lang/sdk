@@ -827,6 +827,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     covariant macro.TypeDeclaration type,
   ) async {
     final element = (type as HasElement).element;
+    await _runDeclarationsPhase(element);
+
     if (element case InterfaceElement(:final augmented?)) {
       return augmented.constructors
           .map((e) => e.declaration as ConstructorElementImpl)
@@ -841,6 +843,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     macro.TypeDeclaration type,
   ) async {
     final element = (type as HasElement).element;
+    await _runDeclarationsPhase(element);
+
     if (element case InstanceElement(:final augmented?)) {
       return augmented.fields
           .whereNot((e) => e.isSynthetic)
@@ -857,14 +861,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     macro.TypeDeclaration type,
   ) async {
     final element = (type as HasElement).element;
-
-    // TODO(scheglov): test it?
-    if (element !=
-        applier._declarationsPhaseRunning.lastOrNull?.target.element) {
-      await applier.runDeclarationsPhase(
-        targetElement: element,
-      );
-    }
+    await _runDeclarationsPhase(element);
 
     if (element case InstanceElement(:final augmented?)) {
       return [
@@ -925,6 +922,18 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
       // TODO(scheglov): Implement other types.
       throw UnimplementedError('(${type.runtimeType}) $type');
     }
+  }
+
+  Future<void> _runDeclarationsPhase(ElementImpl element) async {
+    // Don't run for the current element.
+    final current = applier._declarationsPhaseRunning.lastOrNull;
+    if (current?.target.element == element) {
+      return;
+    }
+
+    await applier.runDeclarationsPhase(
+      targetElement: element,
+    );
   }
 }
 

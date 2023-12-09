@@ -45,7 +45,7 @@ num Function() testFunction() {
 
 void testMain() {
   final f = testFunction();
-  Expect.equals(f, 11);
+  Expect.equals(f(), 11);
 }
 
 final tests = <IsolateTest>[
