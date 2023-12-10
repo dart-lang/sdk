@@ -19,7 +19,7 @@
         '^pkg/analyzer_plugin|'
         '^pkg/analyzer_utilities|'
         '^pkg/linter|'
-        '^pkg/meta|'
+        '^pkg/meta'
       )
     },
     'build': {
