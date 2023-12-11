@@ -93,6 +93,16 @@ class Constants {
             ListConstant(elementType, entries),
       });
 
+  /// Creates a `WasmIntArray<T>` with the given [Constant]s
+  InstanceConstant makeIntArrayOf(
+          InterfaceType elementType, List<IntConstant> entries) =>
+      InstanceConstant(translator.wasmIntArrayClass.reference, [
+        elementType,
+      ], {
+        translator.wasmIntArrayValueField.fieldReference:
+            ListConstant(elementType, entries),
+      });
+
   /// Ensure that the constant has a Wasm global assigned.
   ///
   /// Sub-constants must have Wasm globals assigned before the global for the
@@ -186,6 +196,10 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType>
   @override
   w.ValueType visitIntConstant(IntConstant constant) {
     if (expectedType is w.RefType) return defaultConstant(constant);
+    if (expectedType == w.NumType.i32) {
+      b.i32_const(constant.value);
+      return w.NumType.i32;
+    }
     b.i64_const(constant.value);
     return w.NumType.i64;
   }
@@ -380,6 +394,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   ConstantInfo? visitInstanceConstant(InstanceConstant constant) {
     Class cls = constant.classNode;
     if (cls == translator.wasmObjectArrayClass) {
+      return _makeWasmArrayLiteral(constant);
+    }
+    if (cls == translator.wasmIntArrayClass) {
       return _makeWasmArrayLiteral(constant);
     }
 

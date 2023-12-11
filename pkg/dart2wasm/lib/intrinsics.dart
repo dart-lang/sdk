@@ -973,6 +973,7 @@ class Intrinsifier {
     b.local_set(receiverLocal);
 
     ClassInfo newInfo = translator.classInfo[newClass]!;
+    translator.functions.allocateClass(newInfo.classId);
     b.i32_const(newInfo.classId);
     b.i32_const(initialIdentityHash);
     b.local_get(receiverLocal);
@@ -993,8 +994,10 @@ class Intrinsifier {
   w.ValueType? generateConstructorIntrinsic(ConstructorInvocation node) {
     String name = node.name.text;
 
-    // WasmObjectArray.literal
-    if (node.target.enclosingClass == translator.wasmObjectArrayClass &&
+    // WasmObjectArray.literal & WasmIntArray.literal
+    final klass = node.target.enclosingClass;
+    if ((klass == translator.wasmObjectArrayClass ||
+            klass == translator.wasmIntArrayClass) &&
         name == "literal") {
       w.ArrayType arrayType =
           translator.arrayTypeForDartType(node.arguments.types.single);

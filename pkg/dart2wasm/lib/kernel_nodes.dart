@@ -153,6 +153,10 @@ mixin KernelNodes {
       index.getClass("dart:_wasm", "WasmObjectArray");
   late final Field wasmObjectArrayValueField =
       index.getField("dart:_wasm", "WasmObjectArray", "_value");
+  late final Class wasmIntArrayClass =
+      index.getClass("dart:_wasm", "WasmIntArray");
+  late final Field wasmIntArrayValueField =
+      index.getField("dart:_wasm", "WasmIntArray", "_value");
 
   // dart:_internal procedures
   late final Procedure loadLibrary =
