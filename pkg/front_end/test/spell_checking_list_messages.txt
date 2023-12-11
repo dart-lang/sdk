@@ -123,6 +123,7 @@ team
 tearoff
 this.namedconstructor
 this.x
+tojs
 trusttypes
 type3.#name
 u

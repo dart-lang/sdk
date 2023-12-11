@@ -4082,7 +4082,7 @@ const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
             Message Function(DartType _type, bool isNonNullableByDefault)>(
         "JsInteropFunctionToJSRequiresStaticType",
         problemMessageTemplate:
-            r"""`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`.""",
+            r"""`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`.""",
         correctionMessageTemplate:
             r"""Insert an explicit cast to the expected function type.""",
         withArguments: _withArgumentsJsInteropFunctionToJSRequiresStaticType);
@@ -4102,7 +4102,7 @@ Message _withArgumentsJsInteropFunctionToJSRequiresStaticType(
   String type = typeParts.join();
   return new Message(codeJsInteropFunctionToJSRequiresStaticType,
       problemMessage:
-          """`Function.toJS` requires a statically known function type, but Type '${type}' is not a function type, e.g., `void Function()`.""" +
+          """`Function.toJS` requires a statically known function type, but Type '${type}' is not a precise function type, e.g., `void Function()`.""" +
               labeler.originMessages,
       correctionMessage: """Insert an explicit cast to the expected function type.""",
       arguments: {'type': _type});
@@ -4114,7 +4114,7 @@ const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
             Message Function(DartType _type, bool isNonNullableByDefault)>(
         "JsInteropStaticInteropExternalTypeViolation",
         problemMessageTemplate:
-            r"""Type '#type' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.""",
+            r"""Type '#type' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.""",
         correctionMessageTemplate: r"""Use one of the valid types instead.""",
         withArguments:
             _withArgumentsJsInteropStaticInteropExternalTypeViolation);
@@ -4134,7 +4134,7 @@ Message _withArgumentsJsInteropStaticInteropExternalTypeViolation(
   String type = typeParts.join();
   return new Message(codeJsInteropStaticInteropExternalTypeViolation,
       problemMessage:
-          """Type '${type}' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types.""" +
+          """Type '${type}' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type.""" +
               labeler.originMessages,
       correctionMessage: """Use one of the valid types instead.""",
       arguments: {'type': _type});
