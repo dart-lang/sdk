@@ -13,6 +13,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
         ExtensionDeclarationsMacro,
         ExtensionTypeDeclarationsMacro,
         FieldDeclarationsMacro,
+        FunctionDeclarationsMacro,
         MethodDeclarationsMacro,
         MixinDeclarationsMacro {
   final Set<Object?> withDetailsFor;
@@ -69,6 +70,13 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeField(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForFunction(declaration, builder) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeFunctionDeclaration(declaration);
     });
   }
 
@@ -327,6 +335,25 @@ class _Printer {
       });
       await _writeMetadata(e);
       await _writeNamedTypeAnnotation('type', e.type);
+    });
+  }
+
+  Future<void> writeFunctionDeclaration(FunctionDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasBody': e.hasBody,
+        'hasExternal': e.hasExternal,
+        'isGetter': e.isGetter,
+        'isOperator': e.isOperator,
+        'isSetter': e.isSetter,
+      });
+      await _writeMetadata(e);
+      await _writeNamedFormalParameters(e.namedParameters);
+      await _writePositionalFormalParameters(e.positionalParameters);
+      await _writeNamedTypeAnnotation('returnType', e.returnType);
+      await _writeTypeParameters(e.typeParameters);
     });
   }
 

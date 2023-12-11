@@ -5751,6 +5751,112 @@ class A
 ''');
   }
 
+  test_unit_function() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+void foo() {}
+''', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_unit_function_flags_hasExternal() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+external void foo();
+''', r'''
+foo
+  flags: hasExternal
+  returnType: void
+''');
+  }
+
+  test_unit_function_metadata() async {
+    await _assertIntrospectText(r'''
+@Introspect(withMetadata: true)
+@a1
+@a2
+void foo() {}
+
+const a1 = 0;
+const a2 = 0;
+''', r'''
+foo
+  flags: hasBody
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  returnType: void
+''');
+  }
+
+  test_unit_function_namedParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+void foo({required int a, String? b}) {}
+''', r'''
+foo
+  flags: hasBody
+  namedParameters
+    a
+      flags: isNamed isRequired
+      type: int
+    b
+      flags: isNamed
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_function_positionalParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+void foo(int a, [String? b]) {}
+''', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    a
+      flags: isRequired
+      type: int
+    b
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_getter() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+int get foo => 0;
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_unit_setter() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+set foo(int value) {}
+''', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: int
+  returnType: OmittedType
+''');
+  }
+
   /// Assert that the textual dump of the introspection information produced
   /// by `IntrospectTypesPhaseMacro` in [code], is the [expected].
   Future<void> _assertIntrospectText(

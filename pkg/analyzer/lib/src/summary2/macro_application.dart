@@ -173,8 +173,14 @@ class LibraryMacroApplier {
             members: declaration.members,
           );
         case ast.FunctionDeclarationImpl():
-          // TODO(scheglov): implement it
-          break;
+          await _addAnnotations(
+            libraryElement: libraryElement,
+            container: container,
+            declarationsPhaseElement: null,
+            targetNode: declaration,
+            targetDeclarationKind: macro.DeclarationKind.function,
+            annotations: declaration.metadata,
+          );
         case ast.FunctionTypeAliasImpl():
           // TODO(scheglov): implement it
           break;
