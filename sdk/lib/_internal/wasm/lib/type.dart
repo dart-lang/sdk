@@ -65,6 +65,26 @@ extension on WasmObjectArray<_NamedParameter> {
   }
 }
 
+extension on WasmObjectArray<String> {
+  @pragma("wasm:prefer-inline")
+  String operator [](int index) => read(index);
+}
+
+extension on WasmObjectArray<WasmIntArray<WasmI32>> {
+  @pragma("wasm:prefer-inline")
+  WasmIntArray<WasmI32> operator [](int index) => read(index);
+}
+
+extension on WasmObjectArray<WasmObjectArray<_Type>> {
+  @pragma("wasm:prefer-inline")
+  WasmObjectArray<_Type> operator [](int index) => read(index);
+}
+
+extension on WasmObjectArray<WasmObjectArray<WasmObjectArray<_Type>>> {
+  @pragma("wasm:prefer-inline")
+  WasmObjectArray<WasmObjectArray<_Type>> operator [](int index) => read(index);
+}
+
 // TODO: Remove any occurence of `List`s in this file.
 extension on List<_Type> {
   @pragma("wasm:prefer-inline")
@@ -630,9 +650,10 @@ class _RecordType extends _Type {
       identical(names, other.names);
 }
 
-external List<List<int>> _getTypeRulesSupers();
-external List<List<List<_Type>>> _getTypeRulesSubstitutions();
-external List<String> _getTypeNames();
+external WasmObjectArray<WasmIntArray<WasmI32>> _getTypeRulesSupers();
+external WasmObjectArray<WasmObjectArray<WasmObjectArray<_Type>>>
+    _getTypeRulesSubstitutions();
+external WasmObjectArray<String> _getTypeNames();
 
 /// Type parameter environment used while comparing function types.
 ///
@@ -681,11 +702,12 @@ class _Environment {
 
 class _TypeUniverse {
   /// 'Map' of classId to the transitive set of super classes it implements.
-  final List<List<int>> typeRulesSupers;
+  final WasmObjectArray<WasmIntArray<WasmI32>> typeRulesSupers;
 
   /// 'Map' of classId, and super offset(from [typeRulesSupers]) to a list of
   /// type substitutions.
-  final List<List<List<_Type>>> typeRulesSubstitutions;
+  final WasmObjectArray<WasmObjectArray<WasmObjectArray<_Type>>>
+      typeRulesSubstitutions;
 
   const _TypeUniverse._(this.typeRulesSupers, this.typeRulesSubstitutions);
 
@@ -870,21 +892,21 @@ class _TypeUniverse {
 
     // Otherwise, check if [s] is a subtype of [t], and if it is then compare
     // [s]'s type substitutions with [t]'s type arguments.
-    List<int> sSupers = typeRulesSupers._getUnchecked(sId);
-    if (sSupers.isEmpty) return false;
+    final WasmIntArray<WasmI32> sSupers = typeRulesSupers[sId];
+    if (sSupers.length == 0) return false;
     int sSuperIndexOfT = -1;
     for (int i = 0; i < sSupers.length; i++) {
-      if (sSupers._getUnchecked(i) == tId) {
+      if (sSupers.readUnsigned(i) == tId) {
         sSuperIndexOfT = i;
         break;
       }
     }
     if (sSuperIndexOfT == -1) return false;
-    assert(sSuperIndexOfT < typeRulesSubstitutions._getUnchecked(sId).length);
+    assert(sSuperIndexOfT < typeRulesSubstitutions[sId].length);
 
     // Return early if we don't have to check type arguments.
-    List<_Type> substitutions =
-        typeRulesSubstitutions._getUnchecked(sId)._getUnchecked(sSuperIndexOfT);
+    WasmObjectArray<_Type> substitutions =
+        typeRulesSubstitutions[sId][sSuperIndexOfT];
     if (substitutions.isEmpty && sTypeArguments.isEmpty) {
       return true;
     }
@@ -904,7 +926,7 @@ class _TypeUniverse {
         WasmObjectArray<_Type>(substitutions.length, _literal<dynamic>());
     for (int i = 0; i < substitutions.length; i++) {
       substituted[i] = substituteTypeArgument(
-          substitutions._getUnchecked(i), typeArgumentsForSubstitution, null);
+          substitutions[i], typeArgumentsForSubstitution, null);
     }
     return areTypeArgumentsSubtypes(substituted, sEnv, t.typeArguments, tEnv);
   }

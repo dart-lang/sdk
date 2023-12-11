@@ -247,6 +247,11 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   DartType get nullableObjectType => _typeSystem.objectQuestion;
 
   @override
+  DartType getExtensionTypeErasure(DartType type) {
+    return type.extensionTypeErasure;
+  }
+
+  @override
   Map<Key, DartType> getFieldTypes(DartType type) {
     if (type is InterfaceType) {
       return _getInterfaceFieldTypes(type);
@@ -534,10 +539,12 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         Element? element = field.element;
         DartType? extensionPropertyType;
         if (element is PropertyAccessorElement &&
-            element.enclosingElement is ExtensionElement) {
+            (element.enclosingElement is ExtensionElement ||
+                element.enclosingElement is ExtensionTypeElement)) {
           extensionPropertyType = element.returnType;
         } else if (element is ExecutableElement &&
-            element.enclosingElement is ExtensionElement) {
+            (element.enclosingElement is ExtensionElement ||
+                element.enclosingElement is ExtensionTypeElement)) {
           extensionPropertyType = element.type;
         }
         if (extensionPropertyType != null) {

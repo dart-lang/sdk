@@ -781,23 +781,41 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.return_();
     b.end(); // masterLoop
 
-    b.catch_(translator.exceptionTag);
-
     final stackTraceLocal =
         addLocal(translator.stackTraceInfo.repr.nonNullableType);
-    b.local_set(stackTraceLocal);
 
     final exceptionLocal = addLocal(translator.topInfo.nonNullableType);
+
+    void callCompleteError() {
+      b.local_get(suspendStateLocal);
+      b.struct_get(
+          asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
+      b.ref_as_non_null();
+      b.local_get(exceptionLocal);
+      b.local_get(stackTraceLocal);
+      call(translator.completerCompleteError.reference);
+      b.return_();
+    }
+
+    // Handle Dart exceptions.
+    b.catch_(translator.exceptionTag);
+    b.local_set(stackTraceLocal);
+    b.local_set(exceptionLocal);
+    callCompleteError();
+
+    // Handle JS exceptions.
+    b.catch_all();
+
+    // Create a generic JavaScript error.
+    call(translator.javaScriptErrorFactory.reference);
     b.local_set(exceptionLocal);
 
-    b.local_get(suspendStateLocal);
-    b.struct_get(
-        asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-    b.ref_as_non_null();
-    b.local_get(exceptionLocal);
-    b.local_get(stackTraceLocal);
-    call(translator.completerCompleteError.reference);
-    b.return_();
+    // JS exceptions won't have a Dart stack trace, so we attach the current
+    // Dart stack trace.
+    call(translator.stackTraceCurrent.reference);
+    b.local_set(stackTraceLocal);
+
+    callCompleteError();
 
     b.end(); // end try
 

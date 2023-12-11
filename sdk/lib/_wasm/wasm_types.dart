@@ -194,7 +194,13 @@ class WasmF64 extends _WasmFloat {
 /// A Wasm array with integer element type.
 @pragma("wasm:entry-point")
 class WasmIntArray<T extends _WasmInt> extends WasmArrayRef {
+  /// Dummy value field to contain the value for constant instances.
+  @pragma("wasm:entry-point")
+  final List<int> _value;
+
   external factory WasmIntArray(int length);
+
+  const WasmIntArray.literal(this._value) : super._();
 
   external int readSigned(int index);
   external int readUnsigned(int index);

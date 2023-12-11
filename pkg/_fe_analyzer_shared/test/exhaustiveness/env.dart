@@ -430,6 +430,12 @@ class _TypeOperations implements TypeOperations<_Type> {
     // TODO(johnniwinther): Support type variable bounds in testing.
     return null;
   }
+
+  @override
+  _Type getExtensionTypeErasure(_Type type) {
+    // TODO(johnniwinther): Support extension types in testing.
+    return type;
+  }
 }
 
 class _EnumOperations

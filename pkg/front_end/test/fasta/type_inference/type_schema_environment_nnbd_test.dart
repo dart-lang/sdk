@@ -1349,7 +1349,9 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
         typeParameters: "T extends Object?");
 
     // These cases are observed through `a ?? b`. Here the resulting type
-    // is `UP(NonNull(a),b)`, if `b` is `null`, is `NonNull(a)?`.
+    // is `UP(NonNull(a), b)`, where `NonNull(a)` is an intersection type
+    // `T & S`. In this case `b` is `null`. We have neither `Null <: T`
+    // nor `T <: Null`, so the result is `Up(S, Null)`.
 
     // We have
     //
@@ -1357,12 +1359,12 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //
     // resulting in
     //
-    //     (T & Object)? = T? & Object?
+    //     Up(Object, Null) = Object?
     //
     checkUpperBound(
         type1: "T",
         type2: "Null",
-        upperBound: "T? & Object?",
+        upperBound: "Object?",
         typeParameters: "T extends Object?",
         nonNull1: true);
 
@@ -1372,12 +1374,12 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //
     // resulting in
     //
-    //     (T & bool)? = T? & bool?
+    //     Up(bool, Null) = bool?
     //
     checkUpperBound(
         type1: "T",
         type2: "Null",
-        upperBound: "T? & bool?",
+        upperBound: "bool?",
         typeParameters: "T extends bool?",
         nonNull1: true);
 
@@ -1387,7 +1389,7 @@ class TypeSchemaEnvironmentTest extends TypeSchemaEnvironmentTestBase {
     //
     // resulting in
     //
-    //     (T)? = T?
+    //     Up(T, Null) = T?
     //
     checkUpperBound(
         type1: "T",

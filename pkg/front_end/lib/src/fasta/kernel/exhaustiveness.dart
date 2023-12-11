@@ -306,6 +306,11 @@ class CfeTypeOperations implements TypeOperations<DartType> {
     }
     return null;
   }
+
+  @override
+  DartType getExtensionTypeErasure(DartType type) {
+    return type.extensionTypeErasure;
+  }
 }
 
 class EnumValue {
@@ -525,8 +530,20 @@ class PatternConverter with SpaceCreator<Pattern, DartType> {
       Map<String, DartType> extensionPropertyTypes = {};
       for (NamedPattern field in pattern.fields) {
         properties[field.name] = field.pattern;
-        if (field.accessKind == ObjectAccessKind.Extension) {
-          extensionPropertyTypes[field.name] = field.resultType!;
+        switch (field.accessKind) {
+          case ObjectAccessKind.Extension:
+          case ObjectAccessKind.ExtensionType:
+          case ObjectAccessKind.Direct:
+            extensionPropertyTypes[field.name] = field.resultType!;
+          case ObjectAccessKind.Object:
+          case ObjectAccessKind.Instance:
+          case ObjectAccessKind.RecordNamed:
+          case ObjectAccessKind.RecordIndexed:
+          case ObjectAccessKind.Dynamic:
+          case ObjectAccessKind.Never:
+          case ObjectAccessKind.Invalid:
+          case ObjectAccessKind.FunctionTearOff:
+          case ObjectAccessKind.Error:
         }
       }
       return createObjectSpace(path, contextType, pattern.requiredType,

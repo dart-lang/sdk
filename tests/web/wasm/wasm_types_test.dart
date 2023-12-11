@@ -144,6 +144,15 @@ test() {
   Expect.notIdentical(arrayAlit3.read(0), arrayAlit3.read(1));
   Expect.identical(arrayAlit3.read(0), arrayAlit3.read(2));
 
+  final int32Array = WasmIntArray<WasmI32>.literal([0, 1, 2, 3]);
+  final int32ArrayC = const WasmIntArray<WasmI32>.literal([0, 10, 20, 30]);
+  for (int i = 0; i < 4; ++i) {
+    Expect.equals(int32Array.readSigned(i), i);
+  }
+  for (int i = 0; i < 4; ++i) {
+    Expect.equals(int32ArrayC.readSigned(i), i * 10);
+  }
+
   Expect.isFalse(arrayA == arrayAlit1);
   Expect.isFalse(arrayAlit2 == arrayAlit3);
   Expect.isTrue(arrayAlit3 == arrayAlit4);
