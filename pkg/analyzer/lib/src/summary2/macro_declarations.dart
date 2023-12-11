@@ -413,6 +413,7 @@ class DeclarationBuilderFromElement {
           typeArguments: const [],
         );
       default:
+        // TODO(scheglov): implement other types
         throw UnimplementedError('(${type.runtimeType}) $type');
     }
   }

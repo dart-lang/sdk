@@ -12,6 +12,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
@@ -878,7 +879,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) async {
-    var dartType = _resolve(type);
+    final dartType = _resolve(type);
     return _StaticTypeImpl(typeSystem, dartType);
   }
 
@@ -902,25 +903,40 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     throw UnimplementedError();
   }
 
-  DartType _resolve(macro.TypeAnnotationCode type) {
-    // TODO(scheglov): write tests
-    if (type is macro.NamedTypeAnnotationCode) {
-      final identifier = type.name as IdentifierImpl;
-      final element = identifier.element;
-      if (element is ClassElementImpl) {
-        return element.instantiate(
-          typeArguments: type.typeArguments.map(_resolve).toList(),
-          nullabilitySuffix: type.isNullable
-              ? NullabilitySuffix.question
-              : NullabilitySuffix.none,
-        );
-      } else {
-        // TODO(scheglov): Implement other elements.
-        throw UnimplementedError('(${element.runtimeType}) $element');
-      }
-    } else {
-      // TODO(scheglov): Implement other types.
-      throw UnimplementedError('(${type.runtimeType}) $type');
+  DartType _resolve(macro.TypeAnnotationCode typeCode) {
+    switch (typeCode) {
+      case macro.NullableTypeAnnotationCode():
+        final type = _resolve(typeCode.underlyingType);
+        type as TypeImpl;
+        return type.withNullability(NullabilitySuffix.question);
+      case macro.NamedTypeAnnotationCode():
+        final identifier = typeCode.name as IdentifierImpl;
+        final element = identifier.element;
+        if (element is ClassElementImpl) {
+          return element.instantiate(
+            typeArguments: typeCode.typeArguments.map(_resolve).toList(),
+            nullabilitySuffix: typeCode.isNullable
+                ? NullabilitySuffix.question
+                : NullabilitySuffix.none,
+          );
+        } else if (element is DynamicElementImpl) {
+          return DynamicTypeImpl.instance;
+        } else {
+          // TODO(scheglov): Implement other elements.
+          throw UnimplementedError('(${element.runtimeType}) $element');
+        }
+      case macro.FunctionTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+      case macro.RecordTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+      case macro.OmittedTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+      case macro.RawTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
     }
   }
 
@@ -1024,8 +1040,8 @@ class _StaticTypeImpl implements macro.StaticType {
 
   @override
   Future<bool> isExactly(_StaticTypeImpl other) {
-    // TODO(scheglov): implement isExactly
-    throw UnimplementedError();
+    final result = type == other.type;
+    return Future.value(result);
   }
 
   @override
