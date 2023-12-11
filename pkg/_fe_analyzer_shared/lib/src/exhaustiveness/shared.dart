@@ -83,6 +83,12 @@ abstract class TypeOperations<Type extends Object> {
   /// otherwise.
   Type? getListType(Type type);
 
+  /// Returns the extension type erasure of [type].
+  ///
+  /// This is [type] in which all occurrences of extension types have been
+  /// replaced with their representation type.
+  Type getExtensionTypeErasure(Type type);
+
   /// Returns a human-readable representation of the [type].
   String typeToString(Type type);
 
@@ -163,6 +169,7 @@ class ExhaustivenessCache<
 
   /// Returns the [StaticType] for [type].
   StaticType getStaticType(Type type) {
+    type = typeOperations.getExtensionTypeErasure(type);
     if (typeOperations.isNeverType(type)) {
       return StaticType.neverType;
     } else if (typeOperations.isNullType(type)) {

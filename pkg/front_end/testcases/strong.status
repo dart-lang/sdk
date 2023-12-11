@@ -55,6 +55,7 @@ inference_update_2/field_promotion_and_no_such_method: semiFuzzFailureOnForceReb
 inference_update_2/field_promotion_name_conflicts: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/issue52452: semiFuzzFailureOnForceRebuildBodies # privacy.
 macros/macro_class: SemiFuzzFailure # Declares macros.
+patterns/exhaustiveness/extension_types: semiFuzzFailureOnForceRebuildBodies # uses sealed
 patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/exhaustiveness/issue52041: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
 patterns/exhaustiveness/issue52048: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
