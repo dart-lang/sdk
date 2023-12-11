@@ -157,7 +157,6 @@ import 'package:analysis_server/src/services/correction/dart/remove_print.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_question_mark.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_required.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_returned_value.dart';
-import 'package:analysis_server/src/services/correction/dart/remove_set_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_this_expression.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
@@ -1048,7 +1047,7 @@ class FixProcessor extends BaseProcessor {
       CreateMixin.new,
     ],
     CompileTimeErrorCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER: [
-      ConvertIntoBlockBody.new,
+      ConvertIntoBlockBody.missingBody,
       CreateNoSuchMethod.new,
       MakeClassAbstract.new,
     ],
@@ -1078,7 +1077,7 @@ class FixProcessor extends BaseProcessor {
       ReplaceEmptyMapPattern.empty,
     ],
     CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [
-      ConvertIntoBlockBody.new,
+      ConvertIntoBlockBody.missingBody,
     ],
     CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS: [
       RemoveNameFromDeclarationClause.new,
@@ -1494,7 +1493,7 @@ class FixProcessor extends BaseProcessor {
       AddTypeAnnotation.new,
     ],
     ParserErrorCode.MISSING_FUNCTION_BODY: [
-      ConvertIntoBlockBody.new,
+      ConvertIntoBlockBody.missingBody,
     ],
     ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR: [
       RemoveConstructor.new,
@@ -1695,7 +1694,7 @@ class FixProcessor extends BaseProcessor {
       RemoveQuestionMark.new,
     ],
     WarningCode.UNNECESSARY_SET_LITERAL: [
-      RemoveSetLiteral.new,
+      ConvertIntoBlockBody.setLiteral,
     ],
     WarningCode.UNNECESSARY_TYPE_CHECK_FALSE: [
       RemoveComparison.typeCheck,

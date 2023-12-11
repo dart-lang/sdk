@@ -402,6 +402,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Convert to block body',
   );
+  static const CONVERT_INTO_BLOCK_BODY_MULTI = FixKind(
+    'dart.fix.convert.bodyToBlock.multi',
+    DartFixKindPriority.IN_FILE,
+    'Convert to block body everywhere in file',
+  );
   static const CONVERT_FOR_EACH_TO_FOR_LOOP = FixKind(
     'dart.fix.convert.toForLoop',
     DartFixKindPriority.DEFAULT,
@@ -1277,16 +1282,6 @@ class DartFixKind {
     'dart.fix.remove.returnedValue.multi',
     DartFixKindPriority.IN_FILE,
     'Remove invalid returned values in file',
-  );
-  static const REMOVE_SET_LITERAL = FixKind(
-    'dart.fix.remove.setLiteral',
-    DartFixKindPriority.DEFAULT,
-    'Remove set literal',
-  );
-  static const REMOVE_SET_LITERAL_MULTI = FixKind(
-    'dart.fix.remove.setLiteral.multi',
-    DartFixKindPriority.IN_FILE,
-    'Remove set literal everywhere in file',
   );
   static const REMOVE_THIS_EXPRESSION = FixKind(
     'dart.fix.remove.thisExpression',
