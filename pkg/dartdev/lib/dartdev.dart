@@ -149,8 +149,9 @@ class DartdevRunner extends CommandRunner<int> {
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     final stopwatch = Stopwatch()..start();
-    bool suppressAnalytics =
-        !topLevelResults['analytics'] || topLevelResults['suppress-analytics'];
+    bool suppressAnalytics = !topLevelResults['analytics'] ||
+        topLevelResults['suppress-analytics'] ||
+        isBot();
     if (topLevelResults.wasParsed('analytics')) {
       io.stderr.writeln(
           '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
