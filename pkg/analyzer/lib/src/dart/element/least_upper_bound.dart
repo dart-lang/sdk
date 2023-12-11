@@ -394,6 +394,40 @@ class LeastUpperBoundHelper {
       return T1;
     }
 
+    // UP(X1 & B1, T2)
+    if (T1 case TypeParameterTypeImpl(promotedBound: final B1?)) {
+      final X1 = T1.withoutPromotedBound;
+      // T2 if X1 <: T2
+      if (_typeSystem.isSubtypeOf(X1, T2)) {
+        return T2;
+      }
+      // otherwise X1 if T2 <: X1
+      if (_typeSystem.isSubtypeOf(T2, X1)) {
+        return X1;
+      }
+      // otherwise UP(B1a, T2)
+      //   where B1a is the greatest closure of B1 with respect to X1
+      final B1a = _typeSystem.greatestClosure(B1, [X1.element]);
+      return getLeastUpperBound(B1a, T2);
+    }
+
+    // UP(T1, X2 & B2)
+    if (T2 case TypeParameterTypeImpl(promotedBound: final B2?)) {
+      final X2 = T2.withoutPromotedBound;
+      // X2 if T1 <: X2
+      if (_typeSystem.isSubtypeOf(T1, X2)) {
+        return X2;
+      }
+      // otherwise T1 if X2 <: T1
+      if (_typeSystem.isSubtypeOf(X2, T1)) {
+        return T1;
+      }
+      // otherwise UP(T1, B2a)
+      //   where B2a is the greatest closure of B2 with respect to X2
+      final B2a = _typeSystem.greatestClosure(B2, [X2.element]);
+      return getLeastUpperBound(T1, B2a);
+    }
+
     var T1_isNull = _typeSystem.isNull(T1);
     var T2_isNull = _typeSystem.isNull(T2);
 
@@ -508,7 +542,6 @@ class LeastUpperBoundHelper {
     assert(T2_nullability == NullabilitySuffix.none);
 
     // UP(X1 extends B1, T2)
-    // UP(X1 & B1, T2)
     if (T1 is TypeParameterTypeImpl) {
       // T2 if X1 <: T2
       if (_typeSystem.isSubtypeOf(T1, T2)) {
@@ -526,7 +559,6 @@ class LeastUpperBoundHelper {
     }
 
     // UP(T1, X2 extends B2)
-    // UP(T1, X2 & B2)
     if (T2 is TypeParameterTypeImpl) {
       // X2 if T1 <: X2
       if (_typeSystem.isSubtypeOf(T1, T2)) {

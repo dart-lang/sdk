@@ -3549,6 +3549,86 @@ class UpperBoundTest extends _BoundsTestBase {
     );
   }
 
+  void test_typeParameter_intersection_basic() {
+    // `X extends num?`, `Y extends X`, `X & num`.
+    var X = typeParameter('X', bound: numQuestion);
+    var X_none = typeParameterTypeNone(X);
+    var Y = typeParameter('Y', bound: X_none);
+    var Y_none = typeParameterTypeNone(Y);
+    var X_none_promoted = typeParameterTypeNone(X, promotedBound: numNone);
+
+    // `UP(X & num, Y) == X`, because `Y <: X`.
+    _checkLeastUpperBound(
+      X_none_promoted,
+      Y_none,
+      X_none,
+    );
+
+    // `UP(X & num, num?) == num?`, because `X <: num?`.
+    _checkLeastUpperBound(
+      X_none_promoted,
+      numQuestion,
+      numQuestion,
+    );
+
+    // `UP(X & num, String) == Object`.
+    _checkLeastUpperBound(
+      X_none_promoted,
+      stringNone,
+      objectNone,
+    );
+  }
+
+  void test_typeParameter_intersection_fbounded() {
+    // `X`, `class C<X> {}`, `Y extends C<Y>?`, `Y & C<Y>`.
+    var X = typeParameter('X');
+    var C = class_(name: 'C', typeParameters: [X]);
+    var Y = typeParameter('Y');
+    var Y_none = typeParameterTypeNone(Y);
+    Y.bound = interfaceTypeQuestion(C, typeArguments: [Y_none]);
+    var C_Y_none = interfaceTypeNone(C, typeArguments: [Y_none]);
+    var Y_none_promoted = typeParameterTypeNone(
+      Y,
+      promotedBound: C_Y_none,
+    );
+    var C_Never_none = interfaceTypeNone(C, typeArguments: [neverNone]);
+    var C_ObjectQuestion_none =
+        interfaceTypeNone(C, typeArguments: [objectQuestion]);
+
+    // `UP(Y & C<Y>, C<Never>) == C<Object?>`.
+    _checkLeastUpperBound(
+      Y_none_promoted,
+      C_Never_none,
+      C_ObjectQuestion_none,
+    );
+  }
+
+  void test_typeParameter_intersection_null() {
+    var X = typeParameter('X');
+    var X_none_promoted_nullable = typeParameterTypeNone(
+      X,
+      promotedBound: numQuestion,
+    );
+    var X_none_promoted_nonnullable = typeParameterTypeNone(
+      X,
+      promotedBound: numNone,
+    );
+
+    // UP(X & num?, Null) == num?
+    _checkLeastUpperBound(
+      X_none_promoted_nullable,
+      nullNone,
+      numQuestion,
+    );
+
+    // UP(X & num, Null) == num?
+    _checkLeastUpperBound(
+      X_none_promoted_nonnullable,
+      nullNone,
+      numQuestion,
+    );
+  }
+
   void test_typeParameters_contravariant_different() {
     // class A<in T>
     var T = typeParameter('T', variance: Variance.contravariant);

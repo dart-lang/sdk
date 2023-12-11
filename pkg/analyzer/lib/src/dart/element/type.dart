@@ -1451,6 +1451,13 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @override
   String get name => element.name;
 
+  TypeParameterTypeImpl get withoutPromotedBound {
+    return TypeParameterTypeImpl(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
   @override
   bool operator ==(Object other) {
     if (identical(other, this)) {

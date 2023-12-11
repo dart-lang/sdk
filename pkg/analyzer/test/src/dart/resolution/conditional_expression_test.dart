@@ -134,7 +134,7 @@ ConditionalExpression
   elseExpression: NullLiteral
     literal: null
     staticType: Null
-  staticType: (T & int)?
+  staticType: int?
 ''');
   }
 
