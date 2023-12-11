@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
@@ -861,9 +860,9 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   }
 
   @override
-  Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) async {
-    final dartType = _resolve(type);
-    return _StaticTypeImpl(typeSystem, dartType);
+  Future<macro.StaticType> resolve(macro.TypeAnnotationCode typeCode) async {
+    final type = declarationBuilder.resolveType(typeCode);
+    return _StaticTypeImpl(typeSystem, type);
   }
 
   @override
@@ -884,43 +883,6 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
       covariant macro.EnumDeclaration type) {
     // TODO(jakemac): implement valuesOf
     throw UnimplementedError();
-  }
-
-  DartType _resolve(macro.TypeAnnotationCode typeCode) {
-    switch (typeCode) {
-      case macro.NullableTypeAnnotationCode():
-        final type = _resolve(typeCode.underlyingType);
-        type as TypeImpl;
-        return type.withNullability(NullabilitySuffix.question);
-      case macro.NamedTypeAnnotationCode():
-        final identifier = typeCode.name as IdentifierImpl;
-        final element = identifier.element;
-        if (element is ClassElementImpl) {
-          return element.instantiate(
-            typeArguments: typeCode.typeArguments.map(_resolve).toList(),
-            nullabilitySuffix: typeCode.isNullable
-                ? NullabilitySuffix.question
-                : NullabilitySuffix.none,
-          );
-        } else if (element is DynamicElementImpl) {
-          return DynamicTypeImpl.instance;
-        } else {
-          // TODO(scheglov): Implement other elements.
-          throw UnimplementedError('(${element.runtimeType}) $element');
-        }
-      case macro.FunctionTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
-      case macro.RecordTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
-      case macro.OmittedTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
-      case macro.RawTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
-    }
   }
 
   Future<void> _runDeclarationsPhase(ElementImpl element) async {

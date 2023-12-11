@@ -14,6 +14,8 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
@@ -152,6 +154,28 @@ class DeclarationBuilder {
     }
   }
 
+  DartType resolveType(macro.TypeAnnotationCode typeCode) {
+    switch (typeCode) {
+      case macro.NullableTypeAnnotationCode():
+        final type = resolveType(typeCode.underlyingType);
+        type as TypeImpl;
+        return type.withNullability(NullabilitySuffix.question);
+      case macro.FunctionTypeAnnotationCode():
+        return _resolveTypeCodeFunction(typeCode);
+      case macro.NamedTypeAnnotationCode():
+        return _resolveTypeCodeNamed(typeCode);
+      case macro.OmittedTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+      case macro.RawTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+      case macro.RecordTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+    }
+  }
+
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(macro.Identifier identifier) {
     if (identifier is! IdentifierImpl) {
@@ -245,6 +269,71 @@ class DeclarationBuilder {
         id: macro.RemoteInstance.uniqueId,
         identifier: identifierMacro,
       );
+    }
+  }
+
+  FunctionTypeImpl _resolveTypeCodeFunction(
+    macro.FunctionTypeAnnotationCode typeCode,
+  ) {
+    ParameterElementImpl buildFormalParameter(
+      macro.ParameterCode e,
+      ParameterKind Function(macro.ParameterCode) getKind,
+    ) {
+      final element = ParameterElementImpl(
+        name: e.name,
+        nameOffset: -1,
+        parameterKind: getKind(e),
+      );
+      element.type = switch (e.type) {
+        final type? => resolveType(type),
+        _ => DynamicTypeImpl.instance,
+      };
+      return element;
+    }
+
+    return FunctionTypeImpl(
+      typeFormals: typeCode.typeParameters
+          .map((e) => TypeParameterElementImpl(e.name, -1))
+          .toList(),
+      parameters: [
+        ...typeCode.positionalParameters.map((e) {
+          return buildFormalParameter(e, (_) => ParameterKind.REQUIRED);
+          // TODO(scheglov): do we know if it is required?
+        }),
+        ...typeCode.namedParameters.map((e) {
+          // TODO(scheglov): do we know if it is required?
+          return buildFormalParameter(e, (_) => ParameterKind.NAMED);
+        }),
+      ],
+      returnType: switch (typeCode.returnType) {
+        final returnType? => resolveType(returnType),
+        _ => DynamicTypeImpl.instance,
+      },
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  DartType _resolveTypeCodeNamed(macro.NamedTypeAnnotationCode typeCode) {
+    final identifier = typeCode.name as IdentifierImpl;
+    if (identifier is _VoidIdentifierImpl) {
+      return VoidTypeImpl.instance;
+    }
+
+    final element = identifier.element;
+    switch (element) {
+      case DynamicElementImpl():
+        return DynamicTypeImpl.instance;
+      case InterfaceElementImpl():
+        return element.instantiate(
+          typeArguments: typeCode.typeArguments.map(resolveType).toList(),
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      case TypeParameterElementImpl():
+        return element.instantiate(
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      default:
+        throw UnimplementedError('(${element.runtimeType}) $element');
     }
   }
 
