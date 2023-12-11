@@ -985,13 +985,9 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ],
       if (_isAndroid && (_isArm || _isArmX64)) ...[
         '--no-sim-use-hardfp',
-        '--no-use-integer-division',
       ],
       if (_configuration.isMinified) '--obfuscate',
       ..._nnbdModeArgument(_configuration),
-      // The SIMARM precompiler assumes support for integer division, but the
-      // Qemu arm cpus do not support integer division.
-      if (_configuration.useQemu) '--no-use-integer-division',
       if (arguments.contains('--print-flow-graph-optimized'))
         '--redirect-isolate-log-to=$tempDir/out.il',
       if (arguments.contains('--print-flow-graph-optimized') &&
