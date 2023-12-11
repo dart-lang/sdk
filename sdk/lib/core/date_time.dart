@@ -956,9 +956,7 @@ extension DateTimeCopyWith on DateTime {
   /// ```dart
   /// final tomorrow = DateTime.now().toNextDay();
   /// ```
-  DateTime toNextDay() {
-    return toDay().add(Duration(days: 1));
-  }
+  DateTime toNextDay() => DateTime(this.year, this.month, this.day + 1);
 
   /// Creates a new [DateTime] from this one by only keep year, month and
   /// substract 1 day duration to day.
@@ -967,7 +965,5 @@ extension DateTimeCopyWith on DateTime {
   /// ```dart
   /// final yesterday = DateTime.now().toPrevDay();
   /// ```
-  DateTime toPrevDay() {
-    return toDay().add(Duration(days: -1));
-  }
+  DateTime toPreviousDay() => DateTime(this.year, this.month, this.day - 1);
 }
