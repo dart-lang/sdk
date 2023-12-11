@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -260,6 +261,7 @@ contexts
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
+        uri: package:test/a.dart
         workspacePackage_0_0
   /home/test/lib/nested
     optionsFile: /home/test/lib/nested/analysis_options.yaml
@@ -267,6 +269,7 @@ contexts
     workspace: workspace_1
     analyzedFiles
       /home/test/lib/nested/b.dart
+        uri: package:test/nested/b.dart
         workspacePackage_1_0
 workspaces
   workspace_0: PubWorkspace
@@ -323,12 +326,14 @@ contexts
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
+        uri: package:test/a.dart
         workspacePackage_0_0
   /home/test/nested
     packagesFile: /home/test/nested/.dart_tool/package_config.json
     workspace: workspace_1
     analyzedFiles
       /home/test/nested/lib/b.dart
+        uri: package:nested/b.dart
         workspacePackage_1_0
 workspaces
   workspace_0: PubWorkspace
@@ -375,6 +380,7 @@ contexts
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
+        uri: package:test/a.dart
         workspacePackage_0_0
 workspaces
   workspace_0: PubWorkspace
@@ -420,6 +426,7 @@ contexts
     workspace: workspace_0
     analyzedFiles
       /home/test/lib/a.dart
+        uri: package:test/a.dart
         workspacePackage_0_0
 workspaces
   workspace_0: PubWorkspace
@@ -515,9 +522,9 @@ class _AnalysisContextCollectionPrinter {
     return file_paths.isDart(resourceProvider.pathContext, file.path);
   }
 
-  void _writeAnalysisContext(AnalysisContext analysisContext) {
+  void _writeAnalysisContext(DriverBasedAnalysisContext analysisContext) {
     final contextRoot = analysisContext.contextRoot;
-    final workspace = contextRoot.workspace;
+    final fsState = analysisContext.driver.fsState;
 
     final analyzedFiles = contextRoot.analyzedFiles().toList();
     if (!configuration.withEmptyContextRoots && analyzedFiles.isEmpty) {
@@ -534,16 +541,23 @@ class _AnalysisContextCollectionPrinter {
       sink.writeElements('analyzedFiles', analyzedFiles, (path) {
         final file = resourceProvider.getFile(path);
         if (_isDartFile(file)) {
-          sink.writelnWithIndent(file.posixPath);
-          sink.withIndent(() {
-            final workspacePackage = workspace.findPackageFor(path);
-            if (workspacePackage != null) {
-              final id = _idOfWorkspacePackage(workspacePackage);
-              sink.writelnWithIndent(id);
-            }
-          });
+          _writeDartFile(fsState, file);
         }
       });
+    });
+  }
+
+  void _writeDartFile(FileSystemState fsState, File file) {
+    sink.writelnWithIndent(file.posixPath);
+    sink.withIndent(() {
+      final fileState = fsState.getFileForPath(file.path);
+      sink.writelnWithIndent('uri: ${fileState.uri}');
+
+      final workspacePackage = fileState.workspacePackage;
+      if (workspacePackage != null) {
+        final id = _idOfWorkspacePackage(workspacePackage);
+        sink.writelnWithIndent(id);
+      }
     });
   }
 
