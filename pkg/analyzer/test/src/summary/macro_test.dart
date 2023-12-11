@@ -51,6 +51,7 @@ main() {
     defineReflectiveTests(MacroApplicationOrderTest_keepLinking);
     defineReflectiveTests(MacroApplicationOrderTest_fromBytes);
     defineReflectiveTests(MacroCodeGenerationTest);
+    defineReflectiveTests(MacroStaticTypeTest);
     defineReflectiveTests(MacroExampleTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -2152,7 +2153,7 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
 
   /// Verifies the code of the macro generated augmentation.
   void _assertMacroCode(LibraryElementImpl library, String expected) {
-    final actual = library.augmentations.single.macroGenerated!.code;
+    final actual = _getMacroGeneratedCode(library);
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
@@ -2193,6 +2194,14 @@ $code
         .getChildAssumingFile('test/src/summary/macro/$relativePath')
         .readAsStringSync();
     return code.replaceAll('/*macro*/', 'macro');
+  }
+
+  String _getMacroGeneratedCode(LibraryElementImpl library) {
+    if (library.macroDiagnostics.isNotEmpty) {
+      failWithLibraryText(library);
+    }
+
+    return library.augmentations.single.macroGenerated!.code;
   }
 }
 
@@ -5755,6 +5764,69 @@ class A
       print('$actual------------------------');
     }
     expect(actual, expected);
+  }
+}
+
+@reflectiveTest
+class MacroStaticTypeTest extends MacroElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    newFile(
+      '$testPackageLibPath/static_type.dart',
+      _getMacroCode('static_type.dart'),
+    );
+  }
+
+  test_isExactly() async {
+    const testCases = {
+      ('double', 'double', true),
+      ('double', 'int', false),
+      ('int', 'double', false),
+      ('int', 'int', true),
+      ('Object?', 'Object?', true),
+      ('Object?', 'Object', false),
+      ('Object?', 'dynamic', false),
+      ('List<int>', 'List<double>', false),
+      ('List<int>', 'List<int>', true),
+    };
+
+    for (final testCase in testCases) {
+      await disposeAnalysisContextCollection();
+      await _assertIsExactly(
+        firstTypeCode: testCase.$1,
+        secondTypeCode: testCase.$2,
+        isExactly: testCase.$3,
+      );
+    }
+  }
+
+  Future<void> _assertIsExactly({
+    required String firstTypeCode,
+    required String secondTypeCode,
+    required bool isExactly,
+  }) async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+class A {
+  @IsExactly()
+  void foo($firstTypeCode a, $secondTypeCode b) {}
+}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    final expected = 'void isExactly_$isExactly() {}';
+    if (!generated.contains(expected)) {
+      fail(
+        '`$firstTypeCode` isExactly `$secondTypeCode`'
+        ' expected to be `$isExactly`, but is not.\n',
+      );
+    }
   }
 }
 
