@@ -19859,7 +19859,7 @@ FfiCode:
       import 'dart:typed_data';
 
       void f(Pointer<NativeFunction<Void Function(Pointer<Uint8>)>> p) {
-        [!p.asFunction<void Function(Uint8List)>()!];
+        p.asFunction<[!void Function(Uint8List)!]>();
       }
       ```
 
@@ -19905,7 +19905,7 @@ FfiCode:
       import 'dart:typed_data';
 
       void f(Pointer<NativeFunction<Pointer<Uint8> Function()>> p) {
-        [!p.asFunction<Uint8List Function()>()!];
+        p.asFunction<[!Uint8List Function()!]>();
       }
       ```
 
@@ -19915,7 +19915,6 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
-      import 'dart:typed_data';
 
       void f(Pointer<NativeFunction<Pointer<Uint8> Function()>> p) {
         p.asFunction<Pointer<Uint8> Function()>();
@@ -19949,7 +19948,7 @@ FfiCode:
       void f(Uint8List i) {}
 
       void g() {
-        Pointer.fromFunction<Void Function(Pointer<Uint8>)>(f);
+        Pointer.fromFunction<Void Function(Pointer<Uint8>)>([!f!]);
       }
       ```
 
@@ -19959,7 +19958,6 @@ FfiCode:
 
       ```dart
       import 'dart:ffi';
-      import 'dart:typed_data';
 
       void f(Pointer<Uint8> i) {}
 

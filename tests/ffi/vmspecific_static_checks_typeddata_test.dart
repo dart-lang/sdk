@@ -90,4 +90,12 @@ void g2() {
   // [analyzer] COMPILE_TIME_ERROR.CALLBACK_MUST_NOT_USE_TYPED_DATA
 }
 
+void foo1(Pointer<NativeFunction<Pointer<Uint8> Function()>> p) {
+  p.asFunction<Uint8List Function()>(isLeaf: true);
+  //^
+  // [cfe] FFI calls can't return typed data.
+  //           ^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CALL_MUST_NOT_RETURN_TYPED_DATA
+}
+
 // TODO(https://dartbug.com/54181): Write negative tests for @Natives.

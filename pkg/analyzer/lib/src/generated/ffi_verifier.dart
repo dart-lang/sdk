@@ -910,7 +910,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
       _validateFfiTypedDataUnwrapping(
         F,
-        T,
+        TPrime,
         errorNode,
         isLeaf: isLeaf,
         isCall: true,
@@ -1086,6 +1086,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       int i = 0;
       final nativeParamTypes = nativeType.normalParameterTypes.flattenVarArgs();
       for (final dartParam in dartType.normalParameterTypes) {
+        if (i >= nativeParamTypes.length) {
+          // Cascading error as not the same amount of arguments.
+          // Already results in an error earlier.
+          return;
+        }
         final nativeParam = nativeParamTypes[i];
         i++;
         if (dartParam.isTypedData && nativeParam.isPointer) {
