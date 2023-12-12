@@ -543,9 +543,9 @@ class BlazeWorkspace extends Workspace
       return null;
     }
 
-    final pattern = RegExp(r'_version_null_safety\s*=\s*"(\d+\.\d+)"');
+    final pattern = RegExp(r'(^|\s+)_version\s*=\s*"(\d+\.\d+)"');
     for (var match in pattern.allMatches(content)) {
-      return Version.parse('${match.group(1)}.0');
+      return Version.parse('${match.group(2)}.0');
     }
 
     return null;
