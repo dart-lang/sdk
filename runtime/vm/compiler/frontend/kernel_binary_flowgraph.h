@@ -392,7 +392,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   // Build FG for '_nativeCallbackFunction'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting Function object.
-  Fragment BuildFfiNativeCallbackFunction(FfiFunctionKind kind);
+  Fragment BuildFfiNativeCallbackFunction(FfiCallbackKind kind);
 
   Fragment BuildFfiNativeAddressOf();
 

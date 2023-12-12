@@ -8336,7 +8336,8 @@ FunctionPtr Function::GetOutermostFunction() const {
 
 FunctionPtr Function::implicit_closure_function() const {
   if (IsClosureFunction() || IsDispatcherOrImplicitAccessor() ||
-      IsFieldInitializer() || IsFfiTrampoline() || IsMethodExtractor()) {
+      IsFieldInitializer() || IsFfiCallbackTrampoline() ||
+      IsMethodExtractor()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(data());
@@ -8371,7 +8372,7 @@ void Function::set_implicit_closure_function(const Function& value) const {
 }
 
 void Function::SetFfiCSignature(const FunctionType& sig) const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_c_signature(sig);
@@ -8379,7 +8380,7 @@ void Function::SetFfiCSignature(const FunctionType& sig) const {
 
 FunctionTypePtr Function::FfiCSignature() const {
   auto* const zone = Thread::Current()->zone();
-  if (IsFfiTrampoline()) {
+  if (IsFfiCallbackTrampoline()) {
     const Object& obj = Object::Handle(zone, data());
     ASSERT(!obj.IsNull());
     return FfiTrampolineData::Cast(obj).c_signature();
@@ -8420,7 +8421,7 @@ bool FunctionType::ContainsHandles() const {
 
 // Keep consistent with BaseMarshaller::IsCompound.
 bool Function::FfiCSignatureReturnsStruct() const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   Zone* zone = Thread::Current()->zone();
   const auto& c_signature = FunctionType::Handle(zone, FfiCSignature());
   const auto& type = AbstractType::Handle(zone, c_signature.result_type());
@@ -8446,8 +8447,7 @@ bool Function::FfiCSignatureReturnsStruct() const {
 }
 
 int32_t Function::FfiCallbackId() const {
-  ASSERT(IsFfiTrampoline());
-  ASSERT(GetFfiFunctionKind() != FfiFunctionKind::kCall);
+  ASSERT(IsFfiCallbackTrampoline());
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8459,8 +8459,7 @@ int32_t Function::FfiCallbackId() const {
 }
 
 void Function::AssignFfiCallbackId(int32_t callback_id) const {
-  ASSERT(IsFfiTrampoline());
-  ASSERT(GetFfiFunctionKind() != FfiFunctionKind::kCall);
+  ASSERT(IsFfiCallbackTrampoline());
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8472,11 +8471,6 @@ void Function::AssignFfiCallbackId(int32_t callback_id) const {
 
 bool Function::FfiIsLeaf() const {
   Zone* zone = Thread::Current()->zone();
-  if (IsFfiTrampoline()) {
-    const Object& obj = Object::Handle(untag()->data());
-    ASSERT(!obj.IsNull());
-    return FfiTrampolineData::Cast(obj).is_leaf();
-  }
   auto& pragma_value = Instance::Handle(zone);
   if (is_ffi_native()) {
     pragma_value = GetNativeAnnotation();
@@ -8497,50 +8491,43 @@ bool Function::FfiIsLeaf() const {
       .value();
 }
 
-void Function::SetFfiIsLeaf(bool is_leaf) const {
-  ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
-  ASSERT(!obj.IsNull());
-  FfiTrampolineData::Cast(obj).set_is_leaf(is_leaf);
-}
-
 FunctionPtr Function::FfiCallbackTarget() const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_target();
 }
 
 void Function::SetFfiCallbackTarget(const Function& target) const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_target(target);
 }
 
 InstancePtr Function::FfiCallbackExceptionalReturn() const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_exceptional_return();
 }
 
 void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
 
-FfiFunctionKind Function::GetFfiFunctionKind() const {
-  ASSERT(IsFfiTrampoline());
+FfiCallbackKind Function::GetFfiCallbackKind() const {
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).ffi_function_kind();
 }
 
-void Function::SetFfiFunctionKind(FfiFunctionKind value) const {
-  ASSERT(IsFfiTrampoline());
+void Function::SetFfiCallbackKind(FfiCallbackKind value) const {
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_ffi_function_kind(value);
@@ -9146,8 +9133,8 @@ static bool InVmTests(const Function& function) {
 
 bool Function::ForceOptimize() const {
   if (RecognizedKindForceOptimize() || IsFfiCallClosure() ||
-      IsFfiTrampoline() || is_ffi_native() || IsTypedDataViewFactory() ||
-      IsUnmodifiableTypedDataViewFactory()) {
+      IsFfiCallbackTrampoline() || is_ffi_native() ||
+      IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
     return true;
   }
 
@@ -9280,7 +9267,7 @@ bool Function::RecognizedKindForceOptimize() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::CanBeInlined() const {
   if (ForceOptimize()) {
-    if (IsFfiCallClosure() || IsFfiTrampoline() || is_ffi_native()) {
+    if (IsFfiCallClosure() || IsFfiCallbackTrampoline() || is_ffi_native()) {
       // We currently don't support inlining FFI trampolines. Some of them
       // are naturally non-inlinable because they contain a try/catch block,
       // but this condition is broader than strictly necessary.
@@ -11032,7 +11019,7 @@ intptr_t Function::KernelLibraryOffset() const {
 
 intptr_t Function::KernelLibraryIndex() const {
   if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher() ||
-      IsFfiTrampoline()) {
+      IsFfiCallbackTrampoline()) {
     return -1;
   }
   if (is_eval_function()) {
@@ -11795,16 +11782,12 @@ void FfiTrampolineData::set_callback_id(int32_t callback_id) const {
   StoreNonPointer(&untag()->callback_id_, callback_id);
 }
 
-void FfiTrampolineData::set_is_leaf(bool is_leaf) const {
-  StoreNonPointer(&untag()->is_leaf_, is_leaf);
-}
-
 void FfiTrampolineData::set_callback_exceptional_return(
     const Instance& value) const {
   untag()->set_callback_exceptional_return(value.ptr());
 }
 
-void FfiTrampolineData::set_ffi_function_kind(FfiFunctionKind kind) const {
+void FfiTrampolineData::set_ffi_function_kind(FfiCallbackKind kind) const {
   StoreNonPointer(&untag()->ffi_function_kind_, static_cast<uint8_t>(kind));
 }
 

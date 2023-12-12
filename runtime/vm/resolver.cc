@@ -129,7 +129,7 @@ static FunctionPtr ResolveDynamicForReceiverClassWithCustomLookup(
     // FfiTrampolines are the only functions that can still be called
     // dynamically without going through a dynamic invocation forwarder.
     RELEASE_ASSERT(!Function::IsDynamicInvocationForwarderName(function_name) &&
-                   !function.IsFfiTrampoline());
+                   !function.IsFfiCallbackTrampoline());
     // The signature for this function was dropped in the precompiler, which
     // means it is not a possible target for a dynamic call in the program.
     // That means we're resolving an UnlinkedCall for an InstanceCall to

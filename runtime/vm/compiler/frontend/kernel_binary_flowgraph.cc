@@ -3352,14 +3352,14 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
       return BuildFfiCall();
     case MethodRecognizer::kFfiNativeCallbackFunction:
       return BuildFfiNativeCallbackFunction(
-          FfiFunctionKind::kIsolateLocalStaticCallback);
+          FfiCallbackKind::kIsolateLocalStaticCallback);
     case MethodRecognizer::kFfiNativeAddressOf:
       return BuildFfiNativeAddressOf();
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
       return BuildFfiNativeCallbackFunction(
-          FfiFunctionKind::kIsolateLocalClosureCallback);
+          FfiCallbackKind::kIsolateLocalClosureCallback);
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
-      return BuildFfiNativeCallbackFunction(FfiFunctionKind::kAsyncCallback);
+      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsyncCallback);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
       return BuildLoadAbiSpecificInt(/*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
@@ -6325,23 +6325,23 @@ Fragment StreamingFlowGraphBuilder::BuildCachableIdempotentCall(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
-    FfiFunctionKind kind) {
+    FfiCallbackKind kind) {
   // The call-site must look like this (guaranteed by the FE which inserts it):
   //
-  // FfiFunctionKind::kIsolateLocalStaticCallback:
+  // FfiCallbackKind::kIsolateLocalStaticCallback:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
-  // FfiFunctionKind::kAsyncCallback:
+  // FfiCallbackKind::kAsyncCallback:
   //   _nativeAsyncCallbackFunction<NativeSignatureType>()
   //
-  // FfiFunctionKind::kIsolateLocalClosureCallback:
+  // FfiCallbackKind::kIsolateLocalClosureCallback:
   //   _nativeIsolateLocalCallbackFunction<NativeSignatureType>(
   //       exceptionalReturn)
   //
   // The FE also guarantees that the arguments are constants.
 
-  const bool has_target = kind == FfiFunctionKind::kIsolateLocalStaticCallback;
-  const bool has_exceptional_return = kind != FfiFunctionKind::kAsyncCallback;
+  const bool has_target = kind == FfiCallbackKind::kIsolateLocalStaticCallback;
+  const bool has_exceptional_return = kind != FfiCallbackKind::kAsyncCallback;
   const intptr_t expected_argc =
       static_cast<int>(has_target) + static_cast<int>(has_exceptional_return);
 

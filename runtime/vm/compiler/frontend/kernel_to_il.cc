@@ -5031,15 +5031,12 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
-  switch (function.GetFfiFunctionKind()) {
-    case FfiFunctionKind::kIsolateLocalStaticCallback:
-    case FfiFunctionKind::kIsolateLocalClosureCallback:
+  switch (function.GetFfiCallbackKind()) {
+    case FfiCallbackKind::kIsolateLocalStaticCallback:
+    case FfiCallbackKind::kIsolateLocalClosureCallback:
       return BuildGraphOfSyncFfiCallback(function);
-    case FfiFunctionKind::kAsyncCallback:
+    case FfiCallbackKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
-    case FfiFunctionKind::kCall:
-      UNREACHABLE();
-      return nullptr;
   }
   UNREACHABLE();
   return nullptr;
@@ -5330,8 +5327,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;
-  const bool is_closure = function.GetFfiFunctionKind() ==
-                          FfiFunctionKind::kIsolateLocalClosureCallback;
+  const bool is_closure = function.GetFfiCallbackKind() ==
+                          FfiCallbackKind::kIsolateLocalClosureCallback;
 
   graph_entry_ =
       new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);

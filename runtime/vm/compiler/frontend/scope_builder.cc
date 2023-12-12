@@ -407,17 +407,14 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     }
     case UntaggedFunction::kFfiTrampoline: {
       needs_expr_temp_ = true;
-      // Callbacks and calls with handles need try/catch variables.
-      if ((function.GetFfiFunctionKind() != FfiFunctionKind::kCall ||
-           function.FfiCSignatureContainsHandles())) {
-        ++depth_.try_;
-        AddTryVariables();
-        --depth_.try_;
-        ++depth_.catch_;
-        AddCatchVariables();
-        FinalizeCatchVariables();
-        --depth_.catch_;
-      }
+      // Callbacks need try/catch variables.
+      ++depth_.try_;
+      AddTryVariables();
+      --depth_.try_;
+      ++depth_.catch_;
+      AddCatchVariables();
+      FinalizeCatchVariables();
+      --depth_.catch_;
       FALL_THROUGH;
     }
     case UntaggedFunction::kInvokeFieldDispatcher: {
@@ -438,7 +435,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         LocalVariable* variable = MakeVariable(
             TokenPosition::kNoSource, TokenPosition::kNoSource,
             String::ZoneHandle(Z, function.ParameterNameAt(i)),
-            AbstractType::ZoneHandle(Z, function.IsFfiTrampoline()
+            AbstractType::ZoneHandle(Z, function.IsFfiCallbackTrampoline()
                                             ? function.ParameterTypeAt(i)
                                             : Object::dynamic_type().ptr()));
         bool added = scope_->InsertParameterAt(i, variable);
