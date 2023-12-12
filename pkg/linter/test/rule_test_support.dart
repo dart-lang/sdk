@@ -609,7 +609,11 @@ abstract class StatefulWidget extends Widget {
   State<StatefulWidget> createState();
 }
 
-class State<T extends StatefulWidget> {}
+abstract class State<T extends StatefulWidget> {
+  BuildContext get context;
+
+  bool get mounted;
+}
 
 abstract class Widget {
   final Key? key;
