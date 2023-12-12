@@ -69,7 +69,7 @@ final class Pointer<T extends NativeType> extends NativeType {
   /// On 32-bit systems, the upper 32-bits of the result are 0.
   external int get address;
 
-  /// Cast Pointer<T> to a Pointer<V>.
+  /// Cast Pointer<T> to a Pointer<U>.
   external Pointer<U> cast<U extends NativeType>();
 
   /// Equality for Pointers only depends on their address.
@@ -1157,6 +1157,10 @@ abstract final class NativeApi {
 /// NOTE: This is an experimental feature and may change in the future.
 @Since('2.19')
 final class Native<T> {
+  // Implementation note: VM hardcodes the layout of this class (number and
+  // order of its fields), so adding/removing/changing fields requires
+  // updating the VM code (see Function::GetNativeAnnotation()).
+
   /// The native symbol to be resolved, if not using the default.
   ///
   /// If not specified, the default symbol used for native function lookup

@@ -28,11 +28,6 @@
 
 namespace dart {
 
-// Static invocations to this method are translated directly in streaming FGB.
-DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
-  UNREACHABLE();
-}
-
 DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableListener, 1, 2) {
   const auto& send_function =
       Function::CheckedHandle(zone, arguments->NativeArg0());

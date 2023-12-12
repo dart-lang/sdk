@@ -8384,10 +8384,16 @@ FunctionTypePtr Function::FfiCSignature() const {
     ASSERT(!obj.IsNull());
     return FfiTrampolineData::Cast(obj).c_signature();
   }
-  ASSERT(is_ffi_native());
-  auto const& native_instance = Instance::Handle(GetNativeAnnotation());
+  auto& pragma_value = Instance::Handle(zone);
+  if (is_ffi_native()) {
+    pragma_value = GetNativeAnnotation();
+  } else if (IsFfiCallClosure()) {
+    pragma_value = GetFfiCallClosurePragmaValue();
+  } else {
+    UNREACHABLE();
+  }
   const auto& type_args =
-      TypeArguments::Handle(zone, native_instance.GetTypeArguments());
+      TypeArguments::Handle(zone, pragma_value.GetTypeArguments());
   ASSERT(type_args.Length() == 1);
   const auto& native_type =
       FunctionType::Cast(AbstractType::ZoneHandle(zone, type_args.TypeAt(0)));
@@ -8465,22 +8471,29 @@ void Function::AssignFfiCallbackId(int32_t callback_id) const {
 }
 
 bool Function::FfiIsLeaf() const {
+  Zone* zone = Thread::Current()->zone();
   if (IsFfiTrampoline()) {
     const Object& obj = Object::Handle(untag()->data());
     ASSERT(!obj.IsNull());
     return FfiTrampolineData::Cast(obj).is_leaf();
   }
-  ASSERT(is_ffi_native());
-  Zone* zone = Thread::Current()->zone();
-  auto const& native_instance = Instance::Handle(GetNativeAnnotation());
-  const auto& native_class = Class::Handle(zone, native_instance.clazz());
-  const auto& native_class_fields = Array::Handle(zone, native_class.fields());
-  ASSERT(native_class_fields.Length() == 4);
-  const auto& is_leaf_field =
-      Field::Handle(zone, Field::RawCast(native_class_fields.At(3)));
-  ASSERT(!is_leaf_field.is_static());
-  return Bool::Handle(zone,
-                      Bool::RawCast(native_instance.GetField(is_leaf_field)))
+  auto& pragma_value = Instance::Handle(zone);
+  if (is_ffi_native()) {
+    pragma_value = GetNativeAnnotation();
+  } else if (IsFfiCallClosure()) {
+    pragma_value = GetFfiCallClosurePragmaValue();
+  } else {
+    UNREACHABLE();
+  }
+  const auto& pragma_value_class = Class::Handle(zone, pragma_value.clazz());
+  const auto& pragma_value_fields =
+      Array::Handle(zone, pragma_value_class.fields());
+  ASSERT(pragma_value_fields.Length() >= 1);
+  const auto& is_leaf_field = Field::Handle(
+      zone,
+      Field::RawCast(pragma_value_fields.At(pragma_value_fields.Length() - 1)));
+  ASSERT(is_leaf_field.name() == Symbols::isLeaf().ptr());
+  return Bool::Handle(zone, Bool::RawCast(pragma_value.GetField(is_leaf_field)))
       .value();
 }
 
@@ -9132,8 +9145,9 @@ static bool InVmTests(const Function& function) {
 }
 
 bool Function::ForceOptimize() const {
-  if (RecognizedKindForceOptimize() || IsFfiTrampoline() || is_ffi_native() ||
-      IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
+  if (RecognizedKindForceOptimize() || IsFfiCallClosure() ||
+      IsFfiTrampoline() || is_ffi_native() || IsTypedDataViewFactory() ||
+      IsUnmodifiableTypedDataViewFactory()) {
     return true;
   }
 
@@ -9171,6 +9185,25 @@ bool Function::IsCachableIdempotent() const {
 
   // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions.
   return InVmTests(*this);
+}
+
+bool Function::IsFfiCallClosure() const {
+  if (!IsNonImplicitClosureFunction()) return false;
+  if (!has_pragma()) return false;
+  return Library::FindPragma(Thread::Current(), /*only_core=*/false, *this,
+                             Symbols::vm_ffi_call_closure());
+}
+
+InstancePtr Function::GetFfiCallClosurePragmaValue() const {
+  ASSERT(IsFfiCallClosure());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  auto& pragma_value = Object::Handle(zone);
+  Library::FindPragma(thread, /*only_core=*/false, *this,
+                      Symbols::vm_ffi_call_closure(),
+                      /*multiple=*/false, &pragma_value);
+  ASSERT(!pragma_value.IsNull());
+  return Instance::Cast(pragma_value).ptr();
 }
 
 bool Function::RecognizedKindForceOptimize() const {
@@ -9247,7 +9280,7 @@ bool Function::RecognizedKindForceOptimize() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::CanBeInlined() const {
   if (ForceOptimize()) {
-    if (IsFfiTrampoline() || is_ffi_native()) {
+    if (IsFfiCallClosure() || IsFfiTrampoline() || is_ffi_native()) {
       // We currently don't support inlining FFI trampolines. Some of them
       // are naturally non-inlinable because they contain a try/catch block,
       // but this condition is broader than strictly necessary.

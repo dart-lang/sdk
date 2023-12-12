@@ -154,8 +154,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           FunctionNodeHelper::kPositionalParameters);
       // NOTE: FunctionNode is read further below the if.
 
-      intptr_t pos = 0;
-      if (function.is_ffi_native()) {
+      if (function.is_ffi_native() || function.IsFfiCallClosure()) {
         needs_expr_temp_ = true;
         // Calls with handles need try/catch variables.
         if (function.FfiCSignatureContainsHandles()) {
@@ -167,7 +166,9 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           FinalizeCatchVariables();
           --depth_.catch_;
         }
-      } else if (function.IsClosureFunction()) {
+      }
+      intptr_t pos = 0;
+      if (function.IsClosureFunction()) {
         LocalVariable* closure_parameter = MakeVariable(
             TokenPosition::kNoSource, TokenPosition::kNoSource,
             Symbols::ClosureParameter(), AbstractType::dynamic_type());
