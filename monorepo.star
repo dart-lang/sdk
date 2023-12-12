@@ -162,9 +162,21 @@ def monorepo_builder(name, short_name, console):
         cq_branches = [],
     )
 
-monorepo_builder("flutter-linux-android_debug", "android-debug", "flutter-engine")
-monorepo_builder("flutter-linux-android_profile", "android-profile", "flutter-engine")
-monorepo_builder("flutter-linux-android_release", "android-release", "flutter-engine")
+monorepo_builder(
+    "flutter-linux-android_debug",
+    "android-debug",
+    "flutter-engine",
+)
+monorepo_builder(
+    "flutter-linux-android_profile",
+    "android-profile",
+    "flutter-engine",
+)
+monorepo_builder(
+    "flutter-linux-android_release",
+    "android-release",
+    "flutter-engine",
+)
 monorepo_builder(
     "flutter-linux-android_debug_arm64",
     "android-debug-arm64",
@@ -243,6 +255,7 @@ monorepo_tester("flutter-linux-flutter-plugins", "plugins", "flutter-engine")
 monorepo_tester("flutter-linux-framework-coverage", "coverage", "flutter-engine")
 monorepo_tester("flutter-linux-framework-tests", "tests", "flutter-engine")
 monorepo_tester("flutter-linux-tool-tests", "tool", "flutter-engine")
+monorepo_tester("flutter-linux-customer-testing", "customer_testing", "flutter-engine")
 monorepo_tester("flutter-linux-web-tests-0", "wt0", "flutter-web")
 monorepo_tester("flutter-linux-web-tests-1", "wt1", "flutter-web")
 monorepo_tester("flutter-linux-web-tests-2", "wt2", "flutter-web")
