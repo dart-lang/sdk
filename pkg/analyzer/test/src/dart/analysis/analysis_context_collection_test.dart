@@ -247,6 +247,7 @@ contexts
 workspaces
   workspace_0: BasicWorkspace
     root: /home/test
+    workspacePackage_0_0
 ''');
   }
 
@@ -586,6 +587,9 @@ class _AnalysisContextCollectionPrinter {
         sink.withIndent(() {
           final root = resourceProvider.getFolder(workspace.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
+          sink.writelnWithIndent(
+            _idOfWorkspacePackage(workspace.theOnlyPackage),
+          );
         });
       case PubWorkspace():
         sink.writelnWithIndent('$id: PubWorkspace');
