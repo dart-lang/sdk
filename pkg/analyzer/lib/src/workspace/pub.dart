@@ -264,7 +264,6 @@ class PubWorkspace extends SimpleWorkspace {
     return PackageMapUriResolver(provider, packageMap);
   }
 
-  @visibleForTesting
   List<PubWorkspacePackage> get pubPackages => [_theOnlyPackage];
 
   /// For some package file, which may or may not be a package source (it could

@@ -88,28 +88,6 @@ class ContextBuilderImplTest2 with ResourceProviderMixin {
     );
   }
 
-  void test_analysisOptions_sdkVersionConstraint_hasPubspec_hasSdk() {
-    var projectPath = convertPath('/home/test');
-    var pubspec = newPubspecYamlFile(projectPath, '''
-environment:
-  sdk: ^2.1.0
-''');
-
-    var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions =
-        analysisContext.getAnalysisOptionsImplForFile(pubspec);
-    expect(analysisOptions.sdkVersionConstraint.toString(), '^2.1.0');
-  }
-
-  void test_analysisOptions_sdkVersionConstraint_noPubspec() {
-    var projectPath = convertPath('/home/test');
-    var file = newFile('$projectPath/lib/a.dart', '');
-
-    var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.getAnalysisOptionsForFile(file);
-    expect(analysisOptions.sdkVersionConstraint, isNull);
-  }
-
   test_createContext_declaredVariables() {
     DeclaredVariables declaredVariables =
         DeclaredVariables.fromMap({'foo': 'true'});

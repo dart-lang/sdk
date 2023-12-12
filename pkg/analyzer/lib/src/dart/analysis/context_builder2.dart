@@ -191,6 +191,8 @@ class ContextBuilderImpl2 implements ContextBuilder {
         var extractor = SdkConstraintExtractor(pubspecFile);
         var sdkVersionConstraint = extractor.constraint();
         if (sdkVersionConstraint != null) {
+          // TODO(pq): remove
+          // ignore: deprecated_member_use_from_same_package
           options.sdkVersionConstraint = sdkVersionConstraint;
         }
       }
@@ -324,6 +326,8 @@ class ContextBuilderImpl2 implements ContextBuilder {
       var extractor = SdkConstraintExtractor(pubspecFile);
       var sdkVersionConstraint = extractor.constraint();
       if (sdkVersionConstraint != null) {
+        // TODO(pq): remove
+        // ignore: deprecated_member_use_from_same_package
         options.sdkVersionConstraint = sdkVersionConstraint;
       }
     }

@@ -224,6 +224,40 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
     registerLintRules();
   }
 
+  test_basicWorkspace() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile('$testPackageRootPath/lib/a.dart', '');
+
+    final contextCollection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        getFolder(workspaceRootPath).path,
+      ],
+    );
+
+    _assertContextCollectionText(contextCollection, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home/test
+''');
+  }
+
   test_pubWorkspace_multipleAnalysisOptions() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';

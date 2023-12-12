@@ -49,7 +49,7 @@ abstract class AnalysisOptions {
 
   /// The version range for the SDK specified in `pubspec.yaml`, or `null` if
   /// there is no `pubspec.yaml` or if it does not contain an SDK range.
-  // TODO(pq): @Deprecated('Use `PubWorkspacePackage.sdkVersionConstraint` instead')
+  @Deprecated('Use `PubWorkspacePackage.sdkVersionConstraint` instead')
   VersionConstraint? get sdkVersionConstraint;
 
   /// Return `true` if analysis is to generate warning results (e.g. best

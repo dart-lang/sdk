@@ -51,6 +51,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
@@ -495,7 +496,9 @@ class LibraryAnalyzer {
     // Find code that uses features from an SDK version that does not satisfy
     // the SDK constraints specified in analysis options.
     //
-    var sdkVersionConstraint = _analysisOptions.sdkVersionConstraint;
+    var package = file.workspacePackage;
+    var sdkVersionConstraint =
+        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
     if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
         errorReporter,
