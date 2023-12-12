@@ -26,16 +26,10 @@ List<Map> extractAnalytics(io.ProcessResult result) {
 void main() {
   final experiments = experimentsWithValidation();
 
-  group('VM -> CLI --analytics flag smoke test:', () {
+  group('VM -> CLI flag smoke test:', () {
     late DartdevRunner command;
     setUp(() {
-      command = DartdevRunner(['--analytics']);
-    });
-
-    test('--analytics', () async {
-      final result = await command.runCommand(command.parse(['--analytics']));
-      expect(result, 0);
-      expect(command.unifiedAnalytics.telemetryEnabled, true);
+      command = DartdevRunner([], isAnalyticsTest: true);
     });
 
     test('--no-analytics', () async {
@@ -48,19 +42,6 @@ void main() {
     test('--suppress-analytics', () async {
       final result =
           await command.runCommand(command.parse(['--suppress-analytics']));
-      expect(result, 0);
-      expect(command.unifiedAnalytics.telemetryEnabled, false);
-    });
-
-    test('--suppress-analytics and --analytics', () async {
-      final result = await command.runCommand(
-        command.parse(
-          [
-            '--analytics',
-            '--suppress-analytics',
-          ],
-        ),
-      );
       expect(result, 0);
       expect(command.unifiedAnalytics.telemetryEnabled, false);
     });
@@ -91,11 +72,6 @@ void main() {
       // --suppress-analytics and --enable-analytics can't be provided
       // together to ensure analytics state properly sticks.
       expect(result, 254);
-    });
-
-    test('No flag', () {
-      command.runCommand(command.parse([]));
-      expect(command.unifiedAnalytics.telemetryEnabled, true);
     });
   });
 

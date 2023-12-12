@@ -88,16 +88,19 @@ class DartdevRunner extends CommandRunner<int> {
   final List<String> vmEnabledExperiments;
 
   Analytics? _unifiedAnalytics;
+  final bool _isAnalyticsTest;
 
   DartdevRunner(
     List<String> args, {
     Analytics? analyticsOverride,
+    bool isAnalyticsTest = false,
     List<String> vmArgs = const [],
   })  : verbose = args.contains('-v') || args.contains('--verbose'),
         argParser = globalDartdevOptionsParser(
             verbose: args.contains('-v') || args.contains('--verbose')),
         vmEnabledExperiments = parseVmEnabledExperiments(vmArgs),
         _unifiedAnalytics = analyticsOverride,
+        _isAnalyticsTest = isAnalyticsTest,
         super('dart', '$dartdevDescription.') {
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CompilationServerCommand(verbose: verbose));
@@ -151,7 +154,8 @@ class DartdevRunner extends CommandRunner<int> {
     final stopwatch = Stopwatch()..start();
     bool suppressAnalytics = !topLevelResults['analytics'] ||
         topLevelResults['suppress-analytics'] ||
-        isBot();
+        (isBot() && !_isAnalyticsTest);
+
     if (topLevelResults.wasParsed('analytics')) {
       io.stderr.writeln(
           '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
@@ -184,7 +188,7 @@ class DartdevRunner extends CommandRunner<int> {
 
     // When `--disable-analytics` or `--enable-analytics` are called we perform
     // the respective intention and print any notices to standard out and exit.
-    if (topLevelResults['disable-analytics']) {
+    if (disableAnalytics) {
       // Disable sending data via the unified analytics package.
       await unifiedAnalytics.setTelemetry(false);
       await unifiedAnalytics.close();
@@ -192,7 +196,7 @@ class DartdevRunner extends CommandRunner<int> {
       // Alert the user that analytics has been disabled.
       print(analyticsDisabledNoticeMessage);
       return 0;
-    } else if (topLevelResults['enable-analytics']) {
+    } else if (enableAnalytics) {
       // Enable sending data via the unified analytics package.
       await unifiedAnalytics.setTelemetry(true);
       await unifiedAnalytics.close();
