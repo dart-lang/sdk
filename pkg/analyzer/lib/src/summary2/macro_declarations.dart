@@ -108,19 +108,8 @@ class DeclarationBuilder {
   macro.TypeAnnotation inferOmittedType(
     macro.OmittedTypeAnnotation omittedType,
   ) {
-    switch (omittedType) {
-      case _OmittedTypeAnnotationDynamic():
-        final type = DynamicTypeImpl.instance;
-        return fromElement._dartType(type);
-      case _OmittedTypeAnnotationMethodReturnType():
-        final type = omittedType.element.returnType;
-        return fromElement._dartType(type);
-      case _OmittedTypeAnnotationVariable():
-        final type = omittedType.element.type;
-        return fromElement._dartType(type);
-      default:
-        throw UnimplementedError('${omittedType.runtimeType}');
-    }
+    final type = resolveType(omittedType.code);
+    return fromElement._dartType(type);
   }
 
   macro.ResolvedIdentifier resolveIdentifier(macro.Identifier identifier) {
@@ -173,6 +162,13 @@ class DeclarationBuilder {
           uri: element.source.uri,
           staticScope: null,
         );
+      case TypeParameterElement():
+        return macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.local,
+          name: element.name,
+          uri: null,
+          staticScope: null,
+        );
       default:
         // TODO(scheglov): other elements
         throw UnimplementedError('${element.runtimeType}');
@@ -190,8 +186,7 @@ class DeclarationBuilder {
       case macro.NamedTypeAnnotationCode():
         return _resolveTypeCodeNamed(typeCode);
       case macro.OmittedTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+        return _resolveTypeCodeOmitted(typeCode);
       case macro.RawTypeAnnotationCode():
         // TODO(scheglov): implement
         throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
@@ -366,6 +361,20 @@ class DeclarationBuilder {
         );
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
+    }
+  }
+
+  DartType _resolveTypeCodeOmitted(macro.OmittedTypeAnnotationCode typeCode) {
+    final omittedType = typeCode.typeAnnotation;
+    switch (omittedType) {
+      case _OmittedTypeAnnotationDynamic():
+        return DynamicTypeImpl.instance;
+      case _OmittedTypeAnnotationMethodReturnType():
+        return omittedType.element.returnType;
+      case _OmittedTypeAnnotationVariable():
+        return omittedType.element.type;
+      default:
+        throw UnimplementedError('${omittedType.runtimeType}');
     }
   }
 
