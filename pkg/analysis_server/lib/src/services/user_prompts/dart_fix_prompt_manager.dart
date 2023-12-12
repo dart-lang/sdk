@@ -72,8 +72,8 @@ class DartFixPromptManager {
   Map<String, List<String?>> get currentContextSdkConstraints {
     final constraintMap = <String, List<String?>>{};
     for (final context in server.contextManager.analysisContexts) {
-      var workspace = context.contextRoot.workspace;
-      var sdkConstraints = workspace is PubWorkspace
+      final workspace = context.contextRoot.workspace;
+      final sdkConstraints = workspace is PubWorkspace
           ? workspace.pubPackages
               .map((p) => p.sdkVersionConstraint?.toString())
               .toList()
