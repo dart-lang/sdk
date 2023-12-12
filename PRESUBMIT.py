@@ -9,7 +9,8 @@ for more details about the presubmit API built into gcl.
 """
 
 import datetime
-import imp
+import importlib.util
+import importlib.machinery
 import os
 import os.path
 from typing import Callable
@@ -70,10 +71,22 @@ def _CheckFormat(input_api,
     return unformatted_files
 
 
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname,
+                                                  filename,
+                                                  loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    # The module is always executed and not cached in sys.modules.
+    # Uncomment the following line to cache the module.
+    # sys.modules[module.__name__] = module
+    loader.exec_module(module)
+    return module
+
+
 def _CheckDartFormat(input_api, output_api):
     local_root = input_api.change.RepositoryRoot()
-    utils = imp.load_source('utils',
-                            os.path.join(local_root, 'tools', 'utils.py'))
+    utils = load_source('utils', os.path.join(local_root, 'tools', 'utils.py'))
 
     dart = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
 
@@ -155,8 +168,7 @@ def _CheckDartFormat(input_api, output_api):
 
 def _CheckStatusFiles(input_api, output_api):
     local_root = input_api.change.RepositoryRoot()
-    utils = imp.load_source('utils',
-                            os.path.join(local_root, 'tools', 'utils.py'))
+    utils = load_source('utils', os.path.join(local_root, 'tools', 'utils.py'))
 
     dart = os.path.join(utils.CheckedInSdkPath(), 'bin', 'dart')
     lint = os.path.join(local_root, 'pkg', 'status_file', 'bin', 'lint.dart')
@@ -231,12 +243,12 @@ def _CheckLayering(input_api, output_api):
         return []
 
     local_root = input_api.change.RepositoryRoot()
-    compiler_layering_check = imp.load_source(
+    compiler_layering_check = load_source(
         'compiler_layering_check',
         os.path.join(local_root, 'runtime', 'tools',
                      'compiler_layering_check.py'))
     errors = compiler_layering_check.DoCheck(local_root)
-    embedder_layering_check = imp.load_source(
+    embedder_layering_check = load_source(
         'embedder_layering_check',
         os.path.join(local_root, 'runtime', 'tools',
                      'embedder_layering_check.py'))
