@@ -5793,6 +5793,14 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
+JsInteropFunctionToJSRequiresStaticType:
+  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`."
+  correctionMessage: "Insert an explicit cast to the expected function type."
+
+JsInteropFunctionToJSTypeParameters:
+  problemMessage: "Functions converted via `toJS` cannot declare type parameters."
+  correctionMessage: "Remove the declared type parameters from the function."
+
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
@@ -5832,12 +5840,8 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
-JsInteropStaticInteropExternalMemberWithInvalidTypeParameters:
-  problemMessage: "External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types."
-  correctionMessage: "Try adding a valid bound to the type parameters used in this member."
-
 JsInteropStaticInteropExternalTypeViolation:
-  problemMessage: "Type '#type' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types."
+  problemMessage: "Type '#type' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type."
   correctionMessage: "Use one of the valid types instead."
 
 JsInteropStaticInteropGenerativeConstructor:
@@ -5896,10 +5900,6 @@ JsInteropStaticInteropWithNonStaticSupertype:
 JsInteropStrictModeForbiddenLibrary:
   problemMessage: "Library '#name' is forbidden when strict mode is enabled."
   correctionMessage: "Remove the import of a forbidden library."
-
-JsInteropFunctionToJSRequiresStaticType:
-  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`."
-  correctionMessage: "Insert an explicit cast to the expected function type."
 
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."

@@ -11,14 +11,14 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveSetLiteralBulkTest);
-    defineReflectiveTests(RemoveSetLiteralMultiTest);
-    defineReflectiveTests(RemoveSetLiteralTest);
+    defineReflectiveTests(ConvertToBlockFunctionBodyBulkTest);
+    defineReflectiveTests(ConvertToBlockFunctionBodyMultiTest);
+    defineReflectiveTests(ConvertToBlockFunctionBodyTest);
   });
 }
 
 @reflectiveTest
-class RemoveSetLiteralBulkTest extends BulkFixProcessorTest {
+class ConvertToBlockFunctionBodyBulkTest extends BulkFixProcessorTest {
   Future<void> test_file() async {
     await resolveTestCode('''
 void g(void Function() fun) {}
@@ -31,16 +31,16 @@ void f() {
 void g(void Function() fun) {}
 
 void f() {
-  g(() => g(() => 1));
+  g(() {g(() {1;});});
 }
 ''');
   }
 }
 
 @reflectiveTest
-class RemoveSetLiteralMultiTest extends FixProcessorTest {
+class ConvertToBlockFunctionBodyMultiTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_SET_LITERAL_MULTI;
+  FixKind get kind => DartFixKind.CONVERT_INTO_BLOCK_BODY_MULTI;
 
   Future<void> test_multi() async {
     await resolveTestCode('''
@@ -54,16 +54,16 @@ void f() {
 void g(void Function() fun) {}
 
 void f() {
-  g(() => g(() => 1));
+  g(() {g(() {1;});});
 }
 ''');
   }
 }
 
 @reflectiveTest
-class RemoveSetLiteralTest extends FixProcessorTest {
+class ConvertToBlockFunctionBodyTest extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_SET_LITERAL;
+  FixKind get kind => DartFixKind.CONVERT_INTO_BLOCK_BODY;
 
   Future<void> test_expressionFunctionBody() async {
     await resolveTestCode('''
@@ -75,7 +75,7 @@ void f() {
     await assertHasFix('''
 void g(void Function() fun) {}
 void f() {
-  g(() => 1);
+  g(() {1;});
 }
 ''');
   }
@@ -90,7 +90,7 @@ void f() {
     await assertHasFix('''
 void g(void Function() fun) {}
 void f() {
-  g(() => 1,);
+  g(() {1;},);
 }
 ''');
   }
@@ -105,7 +105,7 @@ void f() {
     await assertHasFix('''
 void g(void Function() fun) {}
 void f() {
-  g(() => 1 ,);
+  g(() { 1 ; } , );
 }
 ''');
   }
@@ -120,7 +120,7 @@ void f() {
     await assertHasFix('''
 void g(void Function() fun) {}
 void f() {
-  g(() => 1,);
+  g(() {1;});
 }
 ''');
   }
@@ -135,7 +135,37 @@ void f() {
     await assertHasFix('''
 void g(void Function() fun) {}
 void f() {
-  g(() => 1,);
+  g(() {1;},);
+}
+''');
+  }
+
+  Future<void> test_expressionFunctionBody_comment() async {
+    await resolveTestCode('''
+void g(void Function() fun) {}
+void f() {
+  g(() => /* hi */ {1});
+}
+''');
+    await assertHasFix('''
+void g(void Function() fun) {}
+void f() {
+  g(() /* hi */ {1;});
+}
+''');
+  }
+
+  Future<void> test_expressionFunctionBody_multiple() async {
+    await resolveTestCode('''
+void g(void Function() fun) {}
+void f(bool b) {
+  g(() => {1, if (b) 2, if (b) 3 else 4, for(;;) 5});
+}
+''');
+    await assertHasFix('''
+void g(void Function() fun) {}
+void f(bool b) {
+  g(() {1; if (b) 2; if (b) 3; else 4; for(;;) 5;});
 }
 ''');
   }
@@ -145,7 +175,7 @@ void f() {
 void f() => {1};
 ''');
     await assertHasFix('''
-void f() => 1;
+void f() {1;}
 ''');
   }
 
@@ -154,7 +184,7 @@ void f() => 1;
 void f() => {1,};
 ''');
     await assertHasFix('''
-void f() => 1;
+void f() {1;}
 ''');
   }
 
@@ -163,7 +193,25 @@ void f() => 1;
 void f() => { 1 , } ;
 ''');
     await assertHasFix('''
-void f() => 1;
+void f() { 1 ; }
+''');
+  }
+
+  Future<void> test_functionDeclaration_comments() async {
+    await resolveTestCode('''
+void f() => /* first */ {1} /* second */ /* third */ ;
+''');
+    await assertHasFix('''
+void f() /* first */ {1;} /* second */ /* third */
+''');
+  }
+
+  Future<void> test_functionDeclaration_multiple() async {
+    await resolveTestCode('''
+void f(bool b) => {for (;b;) 1, if (b) 2 else 3, if (b) 4,};
+''');
+    await assertHasFix('''
+void f(bool b) {for (;b;) 1; if (b) 2; else 3; if (b) 4;}
 ''');
   }
 }

@@ -8632,6 +8632,18 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropFunctionToJSTypeParameters =
+    messageJsInteropFunctionToJSTypeParameters;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropFunctionToJSTypeParameters = const MessageCode(
+    "JsInteropFunctionToJSTypeParameters",
+    problemMessage:
+        r"""Functions converted via `toJS` cannot declare type parameters.""",
+    correctionMessage:
+        r"""Remove the declared type parameters from the function.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInvalidStaticClassMemberName =
     messageJsInteropInvalidStaticClassMemberName;
 
@@ -8834,21 +8846,6 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     problemMessage:
         r"""JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.""",
     correctionMessage: r"""Try replacing this with a normal method.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null>
-    codeJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
-    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
-    const MessageCode(
-        "JsInteropStaticInteropExternalMemberWithInvalidTypeParameters",
-        problemMessage:
-            r"""External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.""",
-        correctionMessage:
-            r"""Try adding a valid bound to the type parameters used in this member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =

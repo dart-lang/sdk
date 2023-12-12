@@ -143,8 +143,9 @@ class MetricsVisitor extends RecursiveVisitor {
         var parentMethods = classInfo[parentName]!.methods.map((m) => m.name);
         var classMethods = classInfo[className]!.methods.map((m) => m.name);
 
-        parentMethods.forEach((method) =>
-            {if (!classMethods.contains(method)) notOverridden.add(method)});
+        parentMethods.forEach((method) {
+          if (!classMethods.contains(method)) notOverridden.add(method);
+        });
 
         // Update Method Info.
         classInfo[className]!.notOverriddenMethods = notOverridden;

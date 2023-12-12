@@ -295,7 +295,8 @@ void f(List<int> list) {
   list.forEach((x) => {print(''), print('')});
 }
 ''');
-    await assertNoFix();
+    await assertNoFix(
+        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
   }
 
   Future<void> test_setLiteral_statement() async {
@@ -304,7 +305,8 @@ void f(List<int> list, bool b) {
   list.forEach((x) => {if (b) print('')});
 }
 ''');
-    await assertNoFix();
+    await assertNoFix(
+        errorFilter: (error) => error.errorCode.type == ErrorType.LINT);
   }
 
   Future<void> test_setLiteral_typeArguments() async {

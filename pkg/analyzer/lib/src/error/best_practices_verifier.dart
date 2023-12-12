@@ -1383,11 +1383,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (isReturnVoid) {
         var expression = body.expression;
         if (expression is SetOrMapLiteralImpl && expression.isSet) {
-          var elements = expression.elements;
-          if (elements.length == 1 && elements.first is Expression) {
-            _errorReporter.reportErrorForNode(
-                WarningCode.UNNECESSARY_SET_LITERAL, expression);
-          }
+          _errorReporter.reportErrorForNode(
+              WarningCode.UNNECESSARY_SET_LITERAL, expression);
         }
       }
     }
