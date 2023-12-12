@@ -957,7 +957,7 @@ class ExtensionIndex {
     } else if (type is ExtensionType) {
       return isInteropExtensionType(type.extensionTypeDeclaration);
     } else if (type is TypeParameterType) {
-      return isStaticInteropType(type.bound);
+      return isStaticInteropType(type.nonTypeVariableBound);
     }
     return false;
   }
