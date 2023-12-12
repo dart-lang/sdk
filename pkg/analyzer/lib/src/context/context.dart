@@ -31,6 +31,7 @@ class AnalysisContextImpl implements AnalysisContext {
     required this.sourceFactory,
   }) : _analysisOptions = analysisOptions;
 
+  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   @override
   AnalysisOptionsImpl get analysisOptions {
     return _analysisOptions;
@@ -94,14 +95,22 @@ class AnalysisContextImpl implements AnalysisContext {
 
     _typeSystemLegacy = TypeSystemImpl(
       isNonNullableByDefault: false,
+      // TODO(pq): move type system options to accommodate multiple options per context
+      // https://github.com/dart-lang/sdk/issues/53873
+      // ignore: deprecated_member_use_from_same_package
       strictCasts: analysisOptions.strictCasts,
+      // ignore: deprecated_member_use_from_same_package
       strictInference: analysisOptions.strictInference,
       typeProvider: legacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       isNonNullableByDefault: true,
+      // TODO(pq): move type system options to accommodate multiple options per context
+      // https://github.com/dart-lang/sdk/issues/53873
+      // ignore: deprecated_member_use_from_same_package
       strictCasts: analysisOptions.strictCasts,
+      // ignore: deprecated_member_use_from_same_package
       strictInference: analysisOptions.strictInference,
       typeProvider: nonNullableByDefault,
     );

@@ -352,7 +352,11 @@ class CollectReportPage extends DiagnosticPage {
       uniqueKnownFiles.addAll(data.knownFiles);
 
       contextData['lints'] =
+          // TODO(pq): migrate to *all* analysis options
+          // ignore: deprecated_member_use
           data.analysisOptions.lintRules.map((e) => e.name).toList();
+      // TODO(pq): migrate to *all* analysis options
+      // ignore: deprecated_member_use
       contextData['plugins'] = data.analysisOptions.enabledPluginNames.toList();
     }
     collectedData['uniqueKnownFiles'] = uniqueKnownFiles.length;
@@ -739,6 +743,8 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="column one-half">');
     h3('Analysis options');
+    // TODO(pq): migrate to *all* analysis options
+    // ignore: deprecated_member_use
     p(describe(driver.analysisOptions as AnalysisOptionsImpl), raw: true);
 
     h3('Pub files');
@@ -758,16 +764,22 @@ class ContextsPage extends DiagnosticPageWithNav {
     buf.writeln('</div>');
 
     h3('Lints');
+    // TODO(pq): migrate to *all* analysis options
+    // ignore: deprecated_member_use
     var lints = driver.analysisOptions.lintRules.map((l) => l.name).toList()
       ..sort();
     ul(lints, (String lint) => buf.write(lint), classes: 'scroll-table');
 
     h3('Error processors');
+    // TODO(pq): migrate to *all* analysis options
+    // ignore: deprecated_member_use
     p(driver.analysisOptions.errorProcessors
         .map((e) => e.description)
         .join(', '));
 
     h3('Plugins');
+    // TODO(pq): migrate to *all* analysis options
+    // ignore: deprecated_member_use
     p(driver.analysisOptions.enabledPluginNames.join(', '));
 
     var priorityFiles = driver.priorityFiles;
