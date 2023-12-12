@@ -322,12 +322,19 @@ class DeclarationBuilder {
           .toList(),
       parameters: [
         ...typeCode.positionalParameters.map((e) {
-          return buildFormalParameter(e, (_) => ParameterKind.REQUIRED);
-          // TODO(scheglov): do we know if it is required?
+          return buildFormalParameter(e, (e) {
+            // TODO(scheglov): this code does not actually work.
+            return e.keywords.contains('required')
+                ? ParameterKind.REQUIRED
+                : ParameterKind.POSITIONAL;
+          });
         }),
         ...typeCode.namedParameters.map((e) {
-          // TODO(scheglov): do we know if it is required?
-          return buildFormalParameter(e, (_) => ParameterKind.NAMED);
+          return buildFormalParameter(e, (e) {
+            return e.keywords.contains('required')
+                ? ParameterKind.NAMED_REQUIRED
+                : ParameterKind.NAMED;
+          });
         }),
       ],
       returnType: switch (typeCode.returnType) {

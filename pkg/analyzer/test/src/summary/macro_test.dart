@@ -6198,9 +6198,18 @@ class MacroStaticTypeTest extends MacroElementsBaseTest {
       //   positionalParameters
       ('void Function(int a)', 'void Function(int a)', true),
       ('void Function(int a)', 'void Function(double a)', false),
+      ('void Function([int a])', 'void Function([int a])', true),
+      // TODO(scheglov): enable when we can distinguish
+      // ('void Function([int a])', 'void Function(int a)', false),
       //   namedParameters
       ('void Function({int a})', 'void Function({int a})', true),
       ('void Function({int a})', 'void Function({double a})', false),
+      (
+        'void Function({required int a})',
+        'void Function({required int a})',
+        true,
+      ),
+      ('void Function({int a})', 'void Function({required int a})', false),
     };
 
     for (final testCase in testCases) {
