@@ -366,7 +366,7 @@ class AnnotationVerifier {
 
   /// Reports a warning at [node] if it is not a valid target for a
   /// visibility (`visibleForTemplate`, `visibleOutsideTemplate`,
-  /// `visibileForTesting`, `visibleForOverride`) annotation.
+  /// `visibleForTesting`, `visibleForOverride`) annotation.
   void _checkVisibility(Annotation node, ElementAnnotation element) {
     var parent = node.parent;
     if (parent is Declaration) {
