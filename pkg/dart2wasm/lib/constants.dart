@@ -62,7 +62,7 @@ class Constants {
   ListConstant makeTypeList(Iterable<DartType> types) => ListConstant(
       translator.typeType, types.map((t) => TypeLiteralConstant(t)).toList());
 
-  /// Makes a `WasmObjectArray<_Type>` [InstanceConstant].
+  /// Makes a `WasmArray<_Type>` [InstanceConstant].
   InstanceConstant makeTypeArray(Iterable<DartType> types) => makeArrayOf(
       translator.typeType, types.map((t) => TypeLiteralConstant(t)).toList());
 
@@ -77,29 +77,19 @@ class Constants {
             BoolConstant(n.isRequired),
       });
 
-  /// Creates a `WasmObjectArray<_NamedParameter>` to be used as field of
+  /// Creates a `WasmArray<_NamedParameter>` to be used as field of
   /// `_FunctionType`.
   InstanceConstant makeNamedParametersArray(FunctionType type) => makeArrayOf(
       translator.namedParameterType,
       [for (final n in type.namedParameters) makeNamedParameterConstant(n)]);
 
-  /// Creates a `WasmObjectArray<T>` with the given [Constant]s
+  /// Creates a `WasmArray<T>` with the given [Constant]s
   InstanceConstant makeArrayOf(
           InterfaceType elementType, List<Constant> entries) =>
-      InstanceConstant(translator.wasmObjectArrayClass.reference, [
+      InstanceConstant(translator.wasmArrayClass.reference, [
         elementType,
       ], {
-        translator.wasmObjectArrayValueField.fieldReference:
-            ListConstant(elementType, entries),
-      });
-
-  /// Creates a `WasmIntArray<T>` with the given [Constant]s
-  InstanceConstant makeIntArrayOf(
-          InterfaceType elementType, List<IntConstant> entries) =>
-      InstanceConstant(translator.wasmIntArrayClass.reference, [
-        elementType,
-      ], {
-        translator.wasmIntArrayValueField.fieldReference:
+        translator.wasmArrayValueField.fieldReference:
             ListConstant(elementType, entries),
       });
 
@@ -393,10 +383,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   @override
   ConstantInfo? visitInstanceConstant(InstanceConstant constant) {
     Class cls = constant.classNode;
-    if (cls == translator.wasmObjectArrayClass) {
-      return _makeWasmArrayLiteral(constant);
-    }
-    if (cls == translator.wasmIntArrayClass) {
+    if (cls == translator.wasmArrayClass) {
       return _makeWasmArrayLiteral(constant);
     }
 

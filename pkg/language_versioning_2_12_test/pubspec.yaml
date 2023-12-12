@@ -1,4 +1,4 @@
-name: language_versioning_2_7_test
+name: language_versioning_2_12_test
 version: 1.0.0
 description: >
   Tests of language versioning. Stored as a package in order to have its own
@@ -8,7 +8,7 @@ description: >
 publish_to: none
 
 environment:
-  sdk: '>=2.7.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 
 dev_dependencies:
   lints: any

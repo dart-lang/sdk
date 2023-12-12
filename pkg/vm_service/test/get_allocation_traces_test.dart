@@ -53,6 +53,9 @@ Future<Class?> getClassFromRootLib(
   return null;
 }
 
+late Class fooClass;
+late Class barClass;
+
 final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(27),
@@ -60,7 +63,7 @@ final tests = <IsolateTest>[
   // Initial.
   (VmService service, IsolateRef isolate) async {
     // Verify initial state of 'Foo'.
-    Class fooClass = (await getClassFromRootLib(service, isolate, 'Foo'))!;
+    fooClass = (await getClassFromRootLib(service, isolate, 'Foo'))!;
     expect(fooClass.name, equals('Foo'));
     expect(fooClass.traceAllocations, false);
     await service.setTraceClassAllocation(isolate.id!, fooClass.id!, true);
@@ -75,7 +78,7 @@ final tests = <IsolateTest>[
 
   // Allocation profile.
   (VmService service, IsolateRef isolate) async {
-    Class fooClass = (await getClassFromRootLib(service, isolate, 'Foo'))!;
+    fooClass = (await getClassFromRootLib(service, isolate, 'Foo'))!;
     expect(fooClass.traceAllocations, true);
 
     final profileResponse = await service.getAllocationTraces(isolate.id!);
@@ -103,11 +106,12 @@ final tests = <IsolateTest>[
     expect(fooClass.traceAllocations, false);
 
     // Trace Bar.
-    Class barClass = (await getClassFromRootLib(service, isolate, 'Bar'))!;
+    barClass = (await getClassFromRootLib(service, isolate, 'Bar'))!;
     expect(barClass.traceAllocations, false);
     await service.setTraceClassAllocation(isolate.id!, barClass.id!, true);
     barClass = (await getClassFromRootLib(service, isolate, 'Bar'))!;
     expect(barClass.traceAllocations, true);
+    print('Allocation tracing enabled for Bar');
   },
 
   resumeIsolate,
@@ -117,6 +121,20 @@ final tests = <IsolateTest>[
   (VmService service, IsolateRef isolate) async {
     // Ensure the allocation of `Bar()` was recorded.
     final profileResponse = await service.getAllocationTraces(isolate.id!);
+    final samples = profileResponse.samples!;
+    if (samples.length != 2) {
+      print('Foo ID: ${fooClass.id}');
+      print('Bar ID: ${barClass.id}');
+      final functions = profileResponse.functions!;
+      for (final sample in samples) {
+        print('Sample for CID: ${sample.classId}');
+        for (int i = 0; i < sample.stack!.length; ++i) {
+          final frame = sample.stack![i];
+          final location = (functions[frame].function as FuncRef).location!;
+          print('$i: ${location.script!.uri}:${location.line}');
+        }
+      }
+    }
     expect(profileResponse.samples!.length, 2);
   },
 ];

@@ -329,6 +329,24 @@ abstract class AbstractSourceConstructorBuilder
     }
   }
 
+  Procedure? get _constructorTearOff;
+
+  @override
+  VariableDeclaration? getTearOffParameter(int index) {
+    Procedure? constructorTearOff = _constructorTearOff;
+    if (constructorTearOff != null) {
+      if (index < constructorTearOff.function.positionalParameters.length) {
+        return constructorTearOff.function.positionalParameters[index];
+      } else {
+        index -= constructorTearOff.function.positionalParameters.length;
+        if (index < constructorTearOff.function.namedParameters.length) {
+          return constructorTearOff.function.namedParameters[index];
+        }
+      }
+    }
+    return null;
+  }
+
   @override
   void checkVariance(
       SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
@@ -351,6 +369,8 @@ abstract class AbstractSourceConstructorBuilder
 class DeclaredSourceConstructorBuilder
     extends AbstractSourceConstructorBuilder {
   late final Constructor _constructor;
+
+  @override
   late final Procedure? _constructorTearOff;
 
   Set<SourceFieldBuilder>? _initializedFields;
@@ -837,21 +857,6 @@ class DeclaredSourceConstructorBuilder
   @override
   Member get member => constructor;
 
-  @override
-  VariableDeclaration? getTearOffParameter(int index) {
-    if (_constructorTearOff != null) {
-      if (index < _constructorTearOff.function.positionalParameters.length) {
-        return _constructorTearOff.function.positionalParameters[index];
-      } else {
-        index -= _constructorTearOff.function.positionalParameters.length;
-        if (index < _constructorTearOff.function.namedParameters.length) {
-          return _constructorTearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
-  }
-
   void _finishPatch() {
     finishConstructorPatch(origin.constructor, _constructor);
 
@@ -1088,6 +1093,8 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
 class SourceExtensionTypeConstructorBuilder
     extends AbstractSourceConstructorBuilder {
   late final Procedure _constructor;
+
+  @override
   late final Procedure? _constructorTearOff;
 
   Set<SourceFieldBuilder>? _initializedFields;

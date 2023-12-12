@@ -35,7 +35,7 @@ static extension-type-member method V1|constructor#n1([core::int x = #C1]) → s
   }
   return #this;
 }
-static extension-type-member method V1|constructor#_#n1#tearOff([has-declared-initializer core::int x]) → self::V1 /* = core::int */
+static extension-type-member method V1|constructor#_#n1#tearOff([core::int x = #C1]) → self::V1 /* = core::int */
   return self::V1|constructor#n1(x);
 static extension-type-member method V1|constructor#n2(core::int id) → self::V1 /* = core::int */ {
   lowered final self::V1 /* = core::int */ #this;

@@ -126,32 +126,42 @@ test() {
   Expect.equals(3, funCount);
 
   // Instantiate some Wasm arrays
-  final arrayAN = WasmObjectArray<A?>(3, null);
-  final arrayA = WasmObjectArray<A>(3, A());
+  final arrayAN = WasmArray<A?>(3);
+  final arrayA = WasmArray<A>.filled(3, A());
   Expect.equals(3, arrayAN.length);
   Expect.equals(3, arrayA.length);
-  Expect.equals(null, arrayAN.read(0));
-  Expect.identical(arrayA.read(0), arrayA.read(2));
+  Expect.equals(null, arrayAN[0]);
+  Expect.identical(arrayA[0], arrayA[2]);
 
   // Instantiate some Wasm arrays as literals
-  final arrayAlit1 = WasmObjectArray<A>.literal([A(), A(), A()]);
-  final arrayAlit2 = WasmObjectArray<A>.literal([A(), B(), A()]);
-  final arrayAlit3 = const WasmObjectArray<A>.literal([A(), B(), A()]);
-  final arrayAlit4 = const WasmObjectArray<A>.literal([A(), B(), A()]);
-  Expect.notIdentical(arrayAlit1.read(0), arrayAlit1.read(2));
-  Expect.notIdentical(arrayAlit2.read(0), arrayAlit2.read(1));
-  Expect.notIdentical(arrayAlit2.read(0), arrayAlit2.read(2));
-  Expect.notIdentical(arrayAlit3.read(0), arrayAlit3.read(1));
-  Expect.identical(arrayAlit3.read(0), arrayAlit3.read(2));
+  final arrayAlit1 = WasmArray<A>.literal([A(), A(), A()]);
+  final arrayAlit2 = WasmArray<A>.literal([A(), B(), A()]);
+  final arrayAlit3 = const WasmArray<A>.literal([A(), B(), A()]);
+  final arrayAlit4 = const WasmArray<A>.literal([A(), B(), A()]);
+  Expect.notIdentical(arrayAlit1[0], arrayAlit1[2]);
+  Expect.notIdentical(arrayAlit2[0], arrayAlit2[1]);
+  Expect.notIdentical(arrayAlit2[0], arrayAlit2[2]);
+  Expect.notIdentical(arrayAlit3[0], arrayAlit3[1]);
+  Expect.identical(arrayAlit3[0], arrayAlit3[2]);
 
-  final int32Array = WasmIntArray<WasmI32>.literal([0, 1, 2, 3]);
-  final int32ArrayC = const WasmIntArray<WasmI32>.literal([0, 10, 20, 30]);
+  final int32Array = WasmArray<WasmI32>.literal([0, 1, 2, 3]);
+  final int32ArrayC = const WasmArray<WasmI32>.literal([0, 10, 20, 30]);
   for (int i = 0; i < 4; ++i) {
     Expect.equals(int32Array.readSigned(i), i);
   }
   for (int i = 0; i < 4; ++i) {
     Expect.equals(int32ArrayC.readSigned(i), i * 10);
   }
+
+  // Ensure we can obtain WasmI8 from arrays, use locals of WasmI8 type and
+  // store into arrays.
+  final i8Array = WasmArray<WasmI8>.literal([1, 0xff]);
+  final WasmI8 tmp = i8Array[0];
+  i8Array[0] = i8Array[1];
+  i8Array[1] = tmp;
+  Expect.equals(i8Array.readSigned(1), 1);
+  Expect.equals(i8Array.readSigned(0), -1);
+  Expect.equals(i8Array.readUnsigned(0), 0xff);
 
   Expect.isFalse(arrayA == arrayAlit1);
   Expect.isFalse(arrayAlit2 == arrayAlit3);

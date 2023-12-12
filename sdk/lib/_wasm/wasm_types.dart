@@ -22,14 +22,6 @@ abstract class _WasmBase {
   const _WasmBase();
 }
 
-abstract class _WasmInt extends _WasmBase {
-  const _WasmInt();
-}
-
-abstract class _WasmFloat extends _WasmBase {
-  const _WasmFloat();
-}
-
 /// The Wasm `anyref` type.
 @pragma("wasm:entry-point")
 class WasmAnyRef extends _WasmBase {
@@ -115,15 +107,15 @@ class WasmArrayRef extends WasmEqRef {
 
 /// The Wasm `i8` storage type.
 @pragma("wasm:entry-point")
-class WasmI8 extends _WasmInt {}
+class WasmI8 extends _WasmBase {}
 
 /// The Wasm `i16` storage type.
 @pragma("wasm:entry-point")
-class WasmI16 extends _WasmInt {}
+class WasmI16 extends _WasmBase {}
 
 /// The Wasm `i32` type.
 @pragma("wasm:entry-point")
-class WasmI32 extends _WasmInt {
+class WasmI32 extends _WasmBase {
   /// Dummy value field to contain the value for constant instances.
   final int _value;
 
@@ -143,7 +135,7 @@ class WasmI32 extends _WasmInt {
 
 /// The Wasm `i64` type.
 @pragma("wasm:entry-point")
-class WasmI64 extends _WasmInt {
+class WasmI64 extends _WasmBase {
   /// Dummy value field to contain the value for constant instances.
   final int _value;
 
@@ -163,7 +155,7 @@ class WasmI64 extends _WasmInt {
 
 /// The Wasm `f32` type.
 @pragma("wasm:entry-point")
-class WasmF32 extends _WasmFloat {
+class WasmF32 extends _WasmBase {
   /// Dummy value field to contain the value for constant instances.
   final double _value;
 
@@ -176,7 +168,7 @@ class WasmF32 extends _WasmFloat {
 
 /// The Wasm `f64` type.
 @pragma("wasm:entry-point")
-class WasmF64 extends _WasmFloat {
+class WasmF64 extends _WasmBase {
   /// Dummy value field to contain the value for constant instances.
   final double _value;
 
@@ -191,53 +183,58 @@ class WasmF64 extends _WasmFloat {
   external WasmI64 truncSatS();
 }
 
-/// A Wasm array with integer element type.
+/// A Wasm array.
 @pragma("wasm:entry-point")
-class WasmIntArray<T extends _WasmInt> extends WasmArrayRef {
+class WasmArray<T> extends WasmArrayRef {
   /// Dummy value field to contain the value for constant instances.
   @pragma("wasm:entry-point")
-  final List<int> _value;
+  final List<Object?> _value;
 
-  external factory WasmIntArray(int length);
+  external factory WasmArray(int length);
+  external factory WasmArray.filled(int length, T value);
 
-  const WasmIntArray.literal(this._value) : super._();
+  const WasmArray.literal(this._value) : super._();
+}
 
+extension WasmArrayExt<T> on WasmArray<T> {
+  external T operator [](int index);
+  external void operator []=(int index, T value);
+  external void copy(
+      int offset, WasmArray<T> source, int sourceOffset, int size);
+  external void fill(int offset, T value, int size);
+}
+
+extension I8ArrayExt on WasmArray<WasmI8> {
   external int readSigned(int index);
   external int readUnsigned(int index);
   external void write(int index, int value);
-  external void copy(
-      int offset, WasmIntArray<T> source, int sourceOffset, int size);
-  external void fill(int offset, int value, int size);
 }
 
-/// A Wasm array with float element type.
-@pragma("wasm:entry-point")
-class WasmFloatArray<T extends _WasmFloat> extends WasmArrayRef {
-  external factory WasmFloatArray(int length);
+extension I16ArrayExt on WasmArray<WasmI16> {
+  external int readSigned(int index);
+  external int readUnsigned(int index);
+  external void write(int index, int value);
+}
 
+extension I32ArrayExt on WasmArray<WasmI32> {
+  external int readSigned(int index);
+  external int readUnsigned(int index);
+  external void write(int index, int value);
+}
+
+extension I64ArrayExt on WasmArray<WasmI64> {
+  external int read(int index);
+  external void write(int index, int value);
+}
+
+extension F32ArrayExt on WasmArray<WasmF32> {
   external double read(int index);
   external void write(int index, double value);
-  external void copy(
-      int offset, WasmFloatArray<T> source, int sourceOffset, int size);
-  external void fill(int offset, double value, int size);
 }
 
-/// A Wasm array with reference element type, containing Dart objects.
-@pragma("wasm:entry-point")
-class WasmObjectArray<T extends Object?> extends WasmArrayRef {
-  /// Dummy value field to contain the value for constant instances.
-  @pragma("wasm:entry-point")
-  final List<T> _value;
-
-  external factory WasmObjectArray(int length, T initialValue);
-
-  const WasmObjectArray.literal(this._value) : super._();
-
-  external T read(int index);
-  external void write(int index, T value);
-  external void copy(
-      int offset, WasmObjectArray<T> source, int sourceOffset, int size);
-  external void fill(int offset, T value, int size);
+extension F64ArrayExt on WasmArray<WasmF64> {
+  external double read(int index);
+  external void write(int index, double value);
 }
 
 /// Wasm typed function reference.

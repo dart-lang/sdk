@@ -664,7 +664,7 @@ class ClosureLayouter extends RecursiveVisitor {
     b.local_get(preciseClosure);
     b.struct_get(genericClosureStruct, FieldIndex.closureRuntimeType);
 
-    // Put type arguments into a `WasmObjectArray<_Type>`.
+    // Put type arguments into a `WasmArray<_Type>`.
     for (int i = 0; i < typeCount; i++) {
       b.local_get(typeParam(i));
     }

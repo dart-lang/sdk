@@ -85,7 +85,7 @@ static extension-type-member method E3|constructor#named(core::int foo, [has-dec
   lowered final self::E3 /* = core::int */ #this = foo;
   return #this;
 }
-static extension-type-member method E3|constructor#_#named#tearOff(core::int foo, [has-declared-initializer invalid-type bar]) → self::E3 /* = core::int */
+static extension-type-member method E3|constructor#_#named#tearOff(core::int foo, [has-declared-initializer invalid-type bar = #C1]) → self::E3 /* = core::int */
   return self::E3|constructor#named(foo, bar);
 static extension-type-member method E4|constructor#(dynamic foo) → self::E4 /* = dynamic */ {
   lowered final self::E4 /* = dynamic */ #this = foo;

@@ -12,13 +12,12 @@ abstract class _ListBase<E> extends ListBase<E> {
   int _length;
 
   @pragma("wasm:entry-point")
-  WasmObjectArray<Object?> _data;
+  WasmArray<Object?> _data;
 
   _ListBase(int length, int capacity)
       : _length = length,
-        _data = WasmObjectArray<Object?>(
-            RangeError.checkValueInInterval(capacity, 0, _maxWasmArrayLength),
-            null);
+        _data = WasmArray<Object?>(
+            RangeError.checkValueInInterval(capacity, 0, _maxWasmArrayLength));
 
   _ListBase._withData(this._length, this._data);
 
@@ -26,7 +25,7 @@ abstract class _ListBase<E> extends ListBase<E> {
     if (WasmI64.fromInt(_length).leU(WasmI64.fromInt(index))) {
       throw IndexError.withLength(index, length, name: "[]");
     }
-    return unsafeCast(_data.read(index));
+    return unsafeCast(_data[index]);
   }
 
   int get length => _length;
@@ -42,7 +41,7 @@ abstract class _ListBase<E> extends ListBase<E> {
   void forEach(f(E element)) {
     final initialLength = length;
     for (int i = 0; i < initialLength; i++) {
-      f(unsafeCast<E>(_data.read(i)));
+      f(unsafeCast<E>(_data[i]));
       if (length != initialLength) throw ConcurrentModificationError(this);
     }
   }
@@ -56,14 +55,14 @@ abstract class _ListBase<E> extends ListBase<E> {
 abstract class _ModifiableList<E> extends _ListBase<E> {
   _ModifiableList(int length, int capacity) : super(length, capacity);
 
-  _ModifiableList._withData(int length, WasmObjectArray<Object?> data)
+  _ModifiableList._withData(int length, WasmArray<Object?> data)
       : super._withData(length, data);
 
   void operator []=(int index, E value) {
     if (WasmI64.fromInt(_length).leU(WasmI64.fromInt(index))) {
       throw IndexError.withLength(index, length, name: "[]=");
     }
-    _data.write(index, value);
+    _data[index] = value;
   }
 
   // List interface.
@@ -84,7 +83,7 @@ abstract class _ModifiableList<E> extends _ListBase<E> {
       }
       for (int i = start; i < end; i++) {
         if (!it.moveNext()) return;
-        _data.write(i, it.current);
+        _data[i] = it.current;
       }
     }
   }
@@ -137,7 +136,7 @@ class _List<E> extends _ModifiableList<E> with FixedLengthListMixin<E> {
   factory _List.generate(int length, E generator(int index)) {
     final result = _List<E>(length);
     for (int i = 0; i < result.length; ++i) {
-      result._data.write(i, generator(i));
+      result._data[i] = generator(i);
     }
     return result;
   }
@@ -201,7 +200,7 @@ class _ImmutableList<E> extends _ListBase<E> with UnmodifiableListMixin<E> {
 
 // Iterator for lists with fixed size.
 class _FixedSizeListIterator<E> implements Iterator<E> {
-  final WasmObjectArray<Object?> _data;
+  final WasmArray<Object?> _data;
   final int _length; // Cache list length for faster access.
   int _index;
   E? _current;
@@ -220,7 +219,7 @@ class _FixedSizeListIterator<E> implements Iterator<E> {
       _current = null;
       return false;
     }
-    _current = unsafeCast(_data.read(_index));
+    _current = unsafeCast(_data[_index]);
     _index++;
     return true;
   }
