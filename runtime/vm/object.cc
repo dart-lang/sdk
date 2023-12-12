@@ -13770,6 +13770,65 @@ ObjectPtr Library::GetMetadata(const Object& declaration) const {
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static bool HasPragma(const Object& declaration) {
+  return (declaration.IsClass() && Class::Cast(declaration).has_pragma()) ||
+         (declaration.IsFunction() &&
+          Function::Cast(declaration).has_pragma()) ||
+         (declaration.IsField() && Field::Cast(declaration).has_pragma());
+}
+
+void Library::EvaluatePragmas() {
+  Object& declaration = Object::Handle();
+  const GrowableObjectArray& declarations =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  {
+    auto thread = Thread::Current();
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+    MetadataMap map(metadata());
+    MetadataMap::Iterator it(&map);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      ASSERT(entry != -1);
+      declaration = map.GetKey(entry);
+      if (HasPragma(declaration)) {
+        declarations.Add(declaration);
+      }
+    }
+    set_metadata(map.Release());
+  }
+  for (intptr_t i = 0; i < declarations.Length(); ++i) {
+    declaration = declarations.At(i);
+    GetMetadata(declaration);
+  }
+}
+
+void Library::CopyPragmas(const Library& old_lib) {
+  auto thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  MetadataMap new_map(metadata());
+  MetadataMap old_map(old_lib.metadata());
+  Object& declaration = Object::Handle();
+  Object& value = Object::Handle();
+  MetadataMap::Iterator it(&old_map);
+  while (it.MoveNext()) {
+    const intptr_t entry = it.Current();
+    ASSERT(entry != -1);
+    declaration = old_map.GetKey(entry);
+    if (HasPragma(declaration)) {
+      value = old_map.GetPayload(entry, 0);
+      ASSERT(!value.IsNull());
+      // Pragmas should be evaluated during hot reload phase 1
+      // (when checkpointing libraries).
+      ASSERT(!value.IsSmi());
+      new_map.UpdateOrInsert(declaration, value);
+    }
+  }
+  old_lib.set_metadata(old_map.Release());
+  set_metadata(new_map.Release());
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
 static bool ShouldBePrivate(const String& name) {
   return (name.Length() >= 1 && name.CharAt(0) == '_') ||
          (name.Length() >= 5 &&

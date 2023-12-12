@@ -1565,6 +1565,8 @@ void ProgramReloadContext::CheckpointLibraries() {
     // Add old library to old libraries set.
     bool already_present = old_libraries_set.Insert(lib);
     ASSERT(!already_present);
+
+    lib.EvaluatePragmas();
   }
   old_libraries_set_storage_ = old_libraries_set.Release().ptr();
 
@@ -1667,6 +1669,7 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
         new_lib.set_native_entry_symbol_resolver(
             lib.native_entry_symbol_resolver());
         new_lib.set_ffi_native_resolver(lib.ffi_native_resolver());
+        new_lib.CopyPragmas(lib);
       }
     }
 
