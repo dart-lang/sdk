@@ -2,8 +2,8 @@
 // file for details. All rights reserved. Use of this source code is
 // governed by a BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.8
+// Implicit language version 2.12 from configuration.
 
-part of "../lib_ex2.8_test.dart";
+part of "../lib_ex2.13_test.dart";
 
-var x28x28 = 0;
+var x213i212 = 0;
