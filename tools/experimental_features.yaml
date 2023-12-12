@@ -128,7 +128,7 @@ features:
   resource-identifiers:
     help: "Output arguments used by static functions."
 
-  inference-update-3:
+  inference-update-3: # See https://github.com/dart-lang/language/issues/3471
     help: "Better handling of coercions, conditional expressions, and switch expressions."
 
 # Experiment flag only used for testing.
