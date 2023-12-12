@@ -88,7 +88,9 @@ extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
 @patch
 extension FunctionToJSExportedDartFunction on Function {
   @patch
-  JSExportedDartFunction get toJS => throw UnimplementedError();
+  JSExportedDartFunction get toJS => throw UnimplementedError(
+      'This should never be called. Calls to toJS should have been transformed '
+      'by the interop transformer.');
 }
 
 /// [JSBoxedDartObject] <-> [Object]
@@ -109,14 +111,23 @@ extension ObjectToJSBoxedDartObject on Object {
   }
 }
 
-/// [JSPromise] -> [Future<JSAny?>].
+/// [JSPromise] -> [Future].
 @patch
-extension JSPromiseToFuture on JSPromise {
+extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
   @patch
-  Future<JSAny?> get toDart {
-    final completer = Completer<JSAny?>();
+  Future<T> get toDart {
+    final completer = Completer<T>();
     final success = (JSAny? r) {
-      return completer.complete(r);
+      // Note that we explicitly type the parameter as `JSAny?` instead of `T`.
+      // This is because if there's a `TypeError` with the cast, we want to
+      // bubble that up through the completer, so we end up doing a try-catch
+      // here to do so.
+      try {
+        final value = r as T;
+        completer.complete(value);
+      } catch (e) {
+        completer.completeError(e);
+      }
     }.toJS;
     final error = (JSAny? e) {
       // TODO(joshualitt): Investigate reifying `JSNull` and `JSUndefined` on
@@ -127,9 +138,10 @@ extension JSPromiseToFuture on JSPromise {
       if (e == null) {
         // Note that we pass false as a default. It's not currently possible to
         // be able to differentiate between null and undefined.
-        return completer.completeError(js_util.NullRejectionException(false));
+        completer.completeError(js_util.NullRejectionException(false));
+        return;
       }
-      return completer.completeError(e);
+      completer.completeError(e);
     }.toJS;
     promiseThen(toExternRef, success.toExternRef, error.toExternRef);
     return completer.future;
@@ -341,25 +353,27 @@ extension Float64ListToJSFloat64Array on Float64List {
 
 /// [JSArray] <-> [List]
 @patch
-extension JSArrayToList on JSArray {
+extension JSArrayToList<T extends JSAny?> on JSArray<T> {
   @patch
-  List<JSAny?> get toDart => js_types.JSArrayImpl(toExternRef);
+  List<T> get toDart => js_types.JSArrayImpl<T>(toExternRef);
 }
 
 @patch
-extension ListToJSArray on List<JSAny?> {
-  JSArray? get _underlyingArray {
+extension ListToJSArray<T extends JSAny?> on List<T> {
+  JSArray<T>? get _underlyingArray {
     final t = this;
     return t is js_types.JSArrayImpl
-        ? JSValue.boxT<JSArray>(t.toExternRef)
+        // Explicit cast to avoid using the extension method.
+        ? JSValue.boxT<JSArray<T>>((t as js_types.JSArrayImpl).toExternRef)
         : null;
   }
 
   @patch
-  JSArray get toJS => _underlyingArray ?? toJSArray(this);
+  JSArray<T> get toJS => _underlyingArray ?? toJSArray<T>(this);
 
   @patch
-  JSArray get toJSProxyOrRef => _underlyingArray ?? _createJSProxyOfList(this);
+  JSArray<T> get toJSProxyOrRef =>
+      _underlyingArray ?? _createJSProxyOfList<T>(this);
 }
 
 /// [JSNumber] -> [double] or [int].
@@ -481,7 +495,7 @@ class _ListBackedJSArray {
   }
 }
 
-JSArray _createJSProxyOfList(List<JSAny?> list) {
+JSArray<T> _createJSProxyOfList<T extends JSAny?>(List<T> list) {
   final wrapper = _ListBackedJSArray(list);
   final jsExportWrapper =
       js_util.createStaticInteropMock<__ListBackedJSArray, _ListBackedJSArray>(
@@ -497,7 +511,7 @@ JSArray _createJSProxyOfList(List<JSAny?> list) {
   final hasIndex = jsExportWrapper['_hasIndex']!.toExternRef;
   final deleteIndex = jsExportWrapper['_deleteIndex']!.toExternRef;
 
-  final proxy = _box<JSArray>(js_helper.JS<WasmExternRef?>('''
+  final proxy = _box<JSArray<T>>(js_helper.JS<WasmExternRef?>('''
     (wrapper, getIndex, setIndex, hasIndex, deleteIndex) => new Proxy(wrapper, {
       'get': function (target, prop, receiver) {
         if (typeof prop == 'string') {

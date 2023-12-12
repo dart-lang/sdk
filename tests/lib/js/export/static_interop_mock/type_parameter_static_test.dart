@@ -59,8 +59,8 @@ class InvalidCovariant {
 void main() {
   createStaticInteropMock<
 //^
-// [web] Type argument 'Params<JSArray, Params<JSObject, Supertype<JSObject>>>' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.
-// [web] Type argument 'ParamsImpl<JSArray, JSArray, Params<JSObject, Supertype<JSObject>>>' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.
+// [web] Type argument 'Params<JSArray<JSAny?>, Params<JSObject, Supertype<JSObject>>>' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.
+// [web] Type argument 'ParamsImpl<JSArray<JSAny?>, JSArray<JSAny?>, Params<JSObject, Supertype<JSObject>>>' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.
           Params<JSArray, Params>,
           ParamsImpl<JSArray, JSArray, Params>>(
       ParamsImpl<JSArray, JSArray, Params>());

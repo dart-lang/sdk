@@ -10,12 +10,12 @@ import 'dart:js_interop';
 import 'package:expect/expect.dart';
 
 // We run many tests in three configurations:
-// 1) Test should ensure receivers
-//    for all [List] operations will be `JSArrayImpl`.
+// 1) Test should ensure receivers for all [List] operations will be
+// `JSArrayImpl`.
 // 2) Test should ensure arguments to all [List] operations will be
-//    `JSArrayImpl`.
-// 3) Test should ensure both receivers and arguments for all [List]
-//    operations will be `JSArrayImpl`.
+// `JSArrayImpl`.
+// 3) Test should ensure both receivers and arguments for all [List] operations
+// will be `JSArrayImpl`.
 enum TestMode {
   jsReceiver,
   jsArgument,
@@ -35,13 +35,11 @@ bool useJSType(Position pos, TestMode mode) =>
         (mode == TestMode.jsArgument ||
             mode == TestMode.jsReceiverAndArguments));
 
-late bool testProxiedArray;
-
 // We test two types of round-trips from Dart to JS to Dart:
 // - A copy that `toJS` creates that then gets wrapped by JSArrayImpl
 // - A proxy that `toJSProxyOrRef` creates that then gets wrapped by JSArrayImpl
-List<JSAny?> jsList(List<JSAny?> l) {
-  final arr = testProxiedArray ? l.toJS : l.toJSProxyOrRef;
+List<T> jsList<T extends JSAny?>(List<T> l, bool testProxy) {
+  final arr = testProxy ? l.toJS : l.toJSProxyOrRef;
   return arr.toDart;
 }
 
@@ -53,13 +51,11 @@ extension ListJSAnyExtension on List<JSAny?> {
 }
 
 extension ListNumExtension on List<num?> {
-  List<JSAny?> get toListJSAny => this.map((n) => n?.toJS).toList();
-  List<JSAny?> get toJSListJSAny => jsList(this.map((n) => n?.toJS).toList());
-}
+  List<T> toListT<T extends JSAny?>() =>
+      this.map<T>((n) => n?.toJS as T).toList();
 
-extension ListStringExtension on List<String?> {
-  List<JSAny?> get toListJSAny => this.map((n) => n?.toJS).toList();
-  List<JSAny?> get toJSListJSAny => jsList(this.map((n) => n?.toJS).toList());
+  List<T> toJSListT<T extends JSAny?>(bool testProxy) =>
+      jsList<T>(this.toListT<T>(), testProxy);
 }
 
 extension NullableJSAnyExtension on JSAny? {
@@ -70,12 +66,19 @@ extension JSAnyExtension on JSAny {
   double get toDouble => (this as JSNumber).toDartDouble;
 }
 
-void modedTests(TestMode mode) {
-  List<JSAny?> rListDouble(List<double> l) =>
-      useJSType(Position.jsReceiver, mode) ? l.toJSListJSAny : l.toListJSAny;
+// Test the list methods that need to take in a list using the `mode` to
+// indicate whether the receiver or the argument or both are `JSArrayImpl` on
+// dart2wasm. `T` here is the type of the list to use (either `JSAny?` or
+// `JSArray?`) and `testProxy` determines whether we do a round trip conversion
+// using a potentially proxied list or the default `toJS` conversion.
+void modedTests<T extends JSAny?>(TestMode mode, {required bool testProxy}) {
+  List<T> rListDouble(List<double> l) => useJSType(Position.jsReceiver, mode)
+      ? l.toJSListT<T>(testProxy)
+      : l.toListT<T>();
 
-  List<JSAny?> aListDouble(List<double> l) =>
-      useJSType(Position.jsArgument, mode) ? l.toJSListJSAny : l.toListJSAny;
+  List<T> aListDouble(List<double> l) => useJSType(Position.jsArgument, mode)
+      ? l.toJSListT<T>(testProxy)
+      : l.toListT<T>();
 
   var rlist = rListDouble([1, 2, 3, 4]);
 
@@ -153,18 +156,25 @@ void modedTests(TestMode mode) {
   Expect.listEquals([1, 2], (rlist + alist).toListDouble);
 }
 
-void nonModedTests() {
-  var list = [1, 2, 3, 4].toJSListJSAny;
+// Test the list methods that don't need to take in a list, and therefore the
+// mode does not matter. `T` here is the type of the list to use (either
+// `JSAny?` or `JSArray?`) and `testProxy` determines whether we do a
+// round trip conversion using a potentially proxied list or the default
+// `toJS` conversion.
+void nonModedTests<T extends JSAny?>({required bool testProxy}) {
+  List<T> toJSList(List<num?> l) => l.toJSListT<T>(testProxy);
+
+  var list = toJSList([1, 2, 3, 4]);
 
   // iteration
   var count = 0;
-  for (var _ in <num>[].toJSListJSAny) {
+  for (var _ in toJSList(<num>[])) {
     Expect.equals(true, false);
     count++;
   }
   Expect.equals(0, count);
 
-  for (var i in [1].toJSListJSAny) {
+  for (var i in toJSList([1])) {
     Expect.equals(1, i?.toDouble);
     count++;
   }
@@ -187,54 +197,54 @@ void nonModedTests() {
 
   // operators [], []=
   Expect.equals(1, list[0]?.toDouble);
-  list[0] = 5.toJS;
+  list[0] = 5.toJS as T;
   Expect.equals(5, list[0]?.toDouble);
-  list[0] = null;
+  list[0] = null as T;
   Expect.equals(null, list[0]);
 
   // indexOf, lastIndexOf
-  list = [0, 1, 2, 3].toJSListJSAny;
+  list = toJSList([0, 1, 2, 3]);
   for (var i = 0; i < 4; i++) {
     Expect.equals(i, list[i]?.toDouble);
-    Expect.equals(i, list.indexOf(i.toJS));
-    Expect.equals(i, list.lastIndexOf(i.toJS));
+    Expect.equals(i, list.indexOf(i.toJS as T));
+    Expect.equals(i, list.lastIndexOf(i.toJS as T));
   }
 
   // fillRange
-  list = [3, 3, 3, 1].toJSListJSAny;
+  list = toJSList([3, 3, 3, 1]);
   list.fillRange(1, 3);
   Expect.listEquals([3, null, null, 1], list.toListDouble);
 
-  list.fillRange(1, 3, 7.toJS);
+  list.fillRange(1, 3, 7.toJS as T);
   Expect.listEquals([3, 7, 7, 1], list.toListDouble);
 
-  list.fillRange(0, 0, 9.toJS);
+  list.fillRange(0, 0, 9.toJS as T);
   Expect.listEquals([3, 7, 7, 1], list.toListDouble);
 
-  list.fillRange(4, 4, 9.toJS);
+  list.fillRange(4, 4, 9.toJS as T);
   Expect.listEquals([3, 7, 7, 1], list.toListDouble);
 
-  list.fillRange(0, 4, 9.toJS);
+  list.fillRange(0, 4, 9.toJS as T);
   Expect.listEquals([9, 9, 9, 9], list.toListDouble);
 
   // sort
-  list.setRange(0, 4, [3, 2, 1, 0].toJSListJSAny);
+  list.setRange(0, 4, toJSList([3, 2, 1, 0]));
   list.sort();
   Expect.listEquals([0, 1, 2, 3], list.toListDouble);
 
   // Iterable methods
-  list = [0, 1, 2, 3].toJSListJSAny;
+  list = toJSList([0, 1, 2, 3]);
   Expect.listEquals([0, 2, 4, 6], list.map((v) => v!.toDouble * 2).toList());
 
-  bool matchAll(JSAny? _) => true;
-  bool matchNone(JSAny? _) => false;
-  bool matchSome(JSAny? v) {
+  bool matchAll(T _) => true;
+  bool matchNone(T _) => false;
+  bool matchSome(T v) {
     double d = v!.toDouble;
     return d == 1 || d == 2;
   }
 
-  bool matchFirst(JSAny? v) => v!.toDouble == 0;
-  bool matchLast(JSAny? v) => v!.toDouble == 3;
+  bool matchFirst(T v) => v!.toDouble == 0;
+  bool matchLast(T v) => v!.toDouble == 3;
 
   // where
   Expect.listEquals([1, 2], list.where(matchSome).toList().toListDouble);
@@ -255,38 +265,38 @@ void nonModedTests() {
   list.clear();
   Expect.equals(0, list.length);
   Expect.isTrue(list.isEmpty);
-  list.add(4.toJS);
+  list.add(4.toJS as T);
   Expect.isTrue(list.isNotEmpty);
   Expect.equals(1, list.length);
   Expect.equals(4, list.removeLast()?.toDouble);
   Expect.equals(0, list.length);
-  list.add(null);
+  list.add(null as T);
   Expect.equals(null, list.removeLast());
 
   // remove
-  list = [1, 2, 3, 4, 4].toJSListJSAny;
+  list = toJSList([1, 2, 3, 4, 4]);
   Expect.isTrue(list.remove(4.toJS));
   Expect.listEquals([1, 2, 3, 4], list.toListDouble);
 
   // removeWhere
-  list = [1, 2, 3, 4].toJSListJSAny;
-  list.removeWhere((JSAny? v) => v!.toDouble % 2 == 0);
+  list = toJSList([1, 2, 3, 4]);
+  list.removeWhere((T v) => v!.toDouble % 2 == 0);
   Expect.listEquals([1, 3], list.toListDouble);
 
   // retainWhere
-  list = [1, 2, 3, 4].toJSListJSAny;
-  list.retainWhere((JSAny? v) => v!.toDouble % 2 == 0);
+  list = toJSList([1, 2, 3, 4]);
+  list.retainWhere((T v) => v!.toDouble % 2 == 0);
   Expect.listEquals([2, 4], list.toListDouble);
 
   // insert
   list.clear();
-  list.insert(0, 0.toJS);
+  list.insert(0, 0.toJS as T);
   Expect.listEquals([0], list.toListDouble);
-  list.insert(0, 1.toJS);
+  list.insert(0, 1.toJS as T);
   Expect.listEquals([1, 0], list.toListDouble);
-  list.insert(2, 2.toJS);
+  list.insert(2, 2.toJS as T);
   Expect.listEquals([1, 0, 2], list.toListDouble);
-  list.insert(0, null);
+  list.insert(0, null as T);
   Expect.listEquals([null, 1, 0, 2], list.toListDouble);
 
   // removeAt
@@ -296,11 +306,11 @@ void nonModedTests() {
   Expect.listEquals([1, 2], list.toListDouble);
 
   // reversed
-  list = [1, 2, 3, 4, 5, 6].toJSListJSAny;
+  list = toJSList([1, 2, 3, 4, 5, 6]);
   Expect.listEquals([6, 5, 4, 3, 2, 1], list.reversed.toList().toListDouble);
 
   // forEach
-  list = [1, 2, 3].toJSListJSAny;
+  list = toJSList([1, 2, 3]);
   index = 0;
   list.forEach((v) {
     index++;
@@ -309,18 +319,18 @@ void nonModedTests() {
   Expect.equals(index, list.length);
 
   // join
-  list = ['a', 'b', 'c'].toJSListJSAny;
-  Expect.equals('a,b,c', list.join(','));
-  Expect.equals('a,b,c', list.join(jsString(',')));
+  list = toJSList([0, 1, 2]);
+  Expect.equals('0,1,2', list.join(','));
+  Expect.equals('0,1,2', list.join(jsString(',')));
 
-  Expect.equals('abc', list.join());
+  Expect.equals('012', list.join());
 
-  list = <String>[].toJSListJSAny;
+  list = toJSList(<int>[]);
   Expect.equals('', list.join(','));
   Expect.equals('', list.join(jsString(',')));
 
   // take
-  list = [1, 2, 3].toJSListJSAny;
+  list = toJSList([1, 2, 3]);
   Expect.listEquals([], list.take(0).toList().toListDouble);
   Expect.listEquals([1], list.take(1).toList().toListDouble);
 
@@ -357,8 +367,8 @@ void nonModedTests() {
   Expect.equals(
       6,
       (list.reduce((a, b) =>
-                  ((a as JSNumber).toDouble + (b as JSNumber).toDouble).toJS)
-              as JSNumber)
+              ((a as JSNumber).toDouble + (b as JSNumber).toDouble).toJS
+                  as T) as JSNumber)
           .toDartDouble);
 
   // fold
@@ -372,18 +382,18 @@ void nonModedTests() {
       45,
       list
           .firstWhere((a) => (a as JSNumber).toDartDouble == 4,
-              orElse: () => 45.toJS)
+              orElse: () => 45.toJS as T)
           .toDouble);
 
   // lastWhere
-  list = [1, 2, 3, 4].toJSListJSAny;
+  list = toJSList([1, 2, 3, 4]);
   Expect.equals(
       4, list.lastWhere((a) => (a as JSNumber).toDartDouble % 2 == 0).toDouble);
   Expect.equals(
       45,
       list
           .lastWhere((a) => (a as JSNumber).toDartDouble == 5,
-              orElse: () => 45.toJS)
+              orElse: () => 45.toJS as T)
           .toDouble);
 
   // singleWhere
@@ -395,7 +405,7 @@ void nonModedTests() {
       45,
       list
           .singleWhere((a) => (a as JSNumber).toDartDouble == 5,
-              orElse: () => 45.toJS)
+              orElse: () => 45.toJS as T)
           .toDouble);
 
   // sublist
@@ -415,24 +425,24 @@ void nonModedTests() {
   list.removeRange(0, 4);
   Expect.listEquals([], list.toListDouble);
 
-  list = [1, 2, 3, 4].toJSListJSAny;
+  list = toJSList([1, 2, 3, 4]);
   list.removeRange(1, 4);
   Expect.listEquals([1], list.toListDouble);
 
-  list = [1, 2, 3, 4].toJSListJSAny;
+  list = toJSList([1, 2, 3, 4]);
   list.removeRange(1, 3);
   Expect.listEquals([1, 4], list.toListDouble);
 
-  list = [1, 2, 3, 4].toJSListJSAny;
+  list = toJSList([1, 2, 3, 4]);
   list.removeRange(0, 3);
   Expect.listEquals([4], list.toListDouble);
 
   // shuffle
-  list = [1, 2, 3, 4].toJSListJSAny;
+  list = toJSList([1, 2, 3, 4]);
   list.shuffle(MockRandom(4));
   Expect.listEquals([4, 2, 3, 1], list.toListDouble);
 
-  list = [1, 2, 3, 4].toJSListJSAny;
+  list = toJSList([1, 2, 3, 4]);
   list.shuffle();
   Expect.equals(4, list.length);
   Expect.isTrue(list.contains(1.toJS));
@@ -447,15 +457,18 @@ void runAllTests() {
     TestMode.jsArgument,
     TestMode.jsReceiverAndArguments
   ]) {
-    modedTests(mode);
+    modedTests<JSAny?>(mode, testProxy: true);
+    modedTests<JSAny?>(mode, testProxy: false);
+    modedTests<JSNumber?>(mode, testProxy: true);
+    modedTests<JSNumber?>(mode, testProxy: false);
   }
-  nonModedTests();
+  nonModedTests<JSAny?>(testProxy: true);
+  nonModedTests<JSAny?>(testProxy: false);
+  nonModedTests<JSNumber?>(testProxy: true);
+  nonModedTests<JSNumber?>(testProxy: false);
 }
 
 void main() {
-  testProxiedArray = false;
-  runAllTests();
-  testProxiedArray = true;
   runAllTests();
 }
 

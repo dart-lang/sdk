@@ -100,17 +100,43 @@ extension type JSExportedDartFunction._(
         JSExportedDartFunctionRepType _jsExportedDartFunction)
     implements JSFunction {}
 
-/// The type of JS promises and promise-like objects.
-@JS('Promise')
-extension type JSPromise._(JSPromiseRepType _jsPromise) implements JSObject {
-  external JSPromise(JSFunction executor);
-}
-
 /// The type of all JS arrays.
+///
+/// Because [JSArray] is an extension type, [T] is only a static guarantee and
+/// the array does not necessarily only contain [T] elements. For example:
+///
+/// ```
+/// @JS()
+/// external JSArray<JSNumber> get array;
+/// ```
+///
+/// We do not check that `array` actually has [JSNumber]s when calling this
+/// member. The only check is that `array` is a [JSArrayRepType].
+///
+/// [T] may introduce additional checking elsewhere, however. When accessing
+/// elements of [JSArray] with type [T], there is a check to ensure the element
+/// is a [T] to ensure soundness. Similarly, when converting to a [List<T>],
+/// casts may be introduced to ensure that it is indeed a [List<T>].
 @JS('Array')
-extension type JSArray._(JSArrayRepType _jsArray) implements JSObject {
+extension type JSArray<T extends JSAny?>._(JSArrayRepType _jsArray)
+    implements JSObject {
   external JSArray();
   external JSArray.withLength(int length);
+}
+
+/// The type of JS promises and promise-like objects.
+///
+/// Because [JSPromise] is an extension type, [T] is only a static guarantee and
+/// the [JSPromise] may not actually resolve to a [T]. Like with [JSArray], we
+/// only check that this is a [JSPromiseRepType].
+///
+/// Also like with [JSArray], [T] may introduce additional checking elsewhere.
+/// When converted to a [Future<T>], there is a cast to ensure that the [Future]
+/// actually resolves to a [T] to ensure soundness.
+@JS('Promise')
+extension type JSPromise<T extends JSAny?>._(JSPromiseRepType _jsPromise)
+    implements JSObject {
+  external JSPromise(JSFunction executor);
 }
 
 /// The type of the boxed Dart object that can be passed to JS safely. There is
@@ -291,14 +317,14 @@ extension ObjectToJSBoxedDartObject on Object {
   external JSBoxedDartObject get toJSBox;
 }
 
-/// [JSPromise] -> [Future<JSAny?>].
-extension JSPromiseToFuture on JSPromise {
-  external Future<JSAny?> get toDart;
+/// [JSPromise] -> [Future].
+extension JSPromiseToFuture<T extends JSAny?> on JSPromise<T> {
+  external Future<T> get toDart;
 }
 
-extension FutureOfJSAnyToJSPromise on Future<JSAny?> {
-  JSPromise get toJS {
-    return JSPromise((JSFunction resolve, JSFunction reject) {
+extension FutureOfJSAnyToJSPromise<T extends JSAny?> on Future<T> {
+  JSPromise<T> get toJS {
+    return JSPromise<T>((JSFunction resolve, JSFunction reject) {
       this.then((JSAny? value) {
         resolve.callAsFunction(resolve, value);
         return value;
@@ -454,20 +480,20 @@ extension Float64ListToJSFloat64Array on Float64List {
 }
 
 /// [JSArray] <-> [List]
-extension JSArrayToList on JSArray {
+extension JSArrayToList<T extends JSAny?> on JSArray<T> {
   /// Returns a list wrapper of the JS array.
   ///
   /// Modifying the JS array will modify the returned list and vice versa.
-  external List<JSAny?> get toDart;
+  external List<T> get toDart;
 }
 
-extension ListToJSArray on List<JSAny?> {
+extension ListToJSArray<T extends JSAny?> on List<T> {
   /// Compiler-specific conversion from list to JS array.
   ///
   /// This is either a pass-by-reference, unwrap, or copy depending on the
   /// implementation of the given list, and users shouldn't rely on
   /// modifications to the list to affect the array or vice versa.
-  external JSArray get toJS;
+  external JSArray<T> get toJS;
 
   /// Either passes by reference, unwraps, or creates a heavyweight proxy that
   /// wraps the list.
@@ -477,7 +503,7 @@ extension ListToJSArray on List<JSAny?> {
   /// by reference and dart2wasm will add a proxy or unwrap for most lists.
   ///
   /// **WARNING**: Do not rely on this to be performant.
-  external JSArray get toJSProxyOrRef;
+  external JSArray<T> get toJSProxyOrRef;
 }
 
 /// [JSNumber] -> [double] or [int].
