@@ -175,10 +175,7 @@ $actual
 name: test
 ''');
 
-    driver = CompletionDriver(
-      supportsAvailableSuggestions: false,
-      server: this,
-    );
+    driver = CompletionDriver(server: this);
     await driver.createProject();
 
     // TODO(pq): add logic (possibly to driver) that waits for SDK suggestions

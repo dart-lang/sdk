@@ -94,14 +94,11 @@ class CiderCompletionComputer {
           var result = await _logger.runAsync('Compute suggestions', () async {
             var includedElementKinds = <ElementKind>{};
             var includedElementNames = <String>{};
-            var includedSuggestionRelevanceTags =
-                <IncludedSuggestionRelevanceTag>[];
 
             var manager = DartCompletionManager(
               budget: CompletionBudget(CompletionBudget.defaultDuration),
               includedElementKinds: includedElementKinds,
               includedElementNames: includedElementNames,
-              includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
             );
 
             return await manager.computeSuggestions(

@@ -34,11 +34,8 @@ import 'package:analysis_server/src/handler/legacy/analytics_enable.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_is_enabled.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_event.dart';
 import 'package:analysis_server/src/handler/legacy/analytics_send_timing.dart';
-import 'package:analysis_server/src/handler/legacy/completion_get_suggestion_details.dart';
 import 'package:analysis_server/src/handler/legacy/completion_get_suggestion_details2.dart';
-import 'package:analysis_server/src/handler/legacy/completion_get_suggestions.dart';
 import 'package:analysis_server/src/handler/legacy/completion_get_suggestions2.dart';
-import 'package:analysis_server/src/handler/legacy/completion_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_diagnostics.dart';
 import 'package:analysis_server/src/handler/legacy/diagnostic_get_server_port.dart';
 import 'package:analysis_server/src/handler/legacy/edit_bulk_fixes.dart';
@@ -198,13 +195,9 @@ class LegacyAnalysisServer extends AnalysisServer {
     ANALYTICS_REQUEST_SEND_EVENT: AnalyticsSendEventHandler.new,
     ANALYTICS_REQUEST_SEND_TIMING: AnalyticsSendTimingHandler.new,
     //
-    COMPLETION_REQUEST_GET_SUGGESTION_DETAILS:
-        CompletionGetSuggestionDetailsHandler.new,
     COMPLETION_REQUEST_GET_SUGGESTION_DETAILS2:
         CompletionGetSuggestionDetails2Handler.new,
-    COMPLETION_REQUEST_GET_SUGGESTIONS: CompletionGetSuggestionsHandler.new,
     COMPLETION_REQUEST_GET_SUGGESTIONS2: CompletionGetSuggestions2Handler.new,
-    COMPLETION_REQUEST_SET_SUBSCRIPTIONS: CompletionSetSubscriptionsHandler.new,
     //
     DIAGNOSTIC_REQUEST_GET_DIAGNOSTICS: DiagnosticGetDiagnosticsHandler.new,
     DIAGNOSTIC_REQUEST_GET_SERVER_PORT: DiagnosticGetServerPortHandler.new,

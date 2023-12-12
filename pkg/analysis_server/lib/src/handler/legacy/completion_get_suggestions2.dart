@@ -45,7 +45,6 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
     required DartCompletionRequest request,
     Set<ElementKind>? includedElementKinds,
     Set<String>? includedElementNames,
-    List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
     NotImportedSuggestions? notImportedSuggestions,
     required bool useFilter,
   }) async {
@@ -65,7 +64,6 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
         budget: budget,
         includedElementKinds: includedElementKinds,
         includedElementNames: includedElementNames,
-        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
         notImportedSuggestions: notImportedSuggestions,
       );
 
@@ -255,32 +253,6 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
           ));
         });
       },
-    );
-  }
-
-  /// Send completion notification results.
-  void sendCompletionNotification(
-    String completionId,
-    int replacementOffset,
-    int replacementLength,
-    List<CompletionSuggestion> results,
-    String? libraryFile,
-    List<IncludedSuggestionSet>? includedSuggestionSets,
-    List<ElementKind>? includedElementKinds,
-    List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags,
-  ) {
-    server.sendNotification(
-      CompletionResultsParams(
-        completionId,
-        replacementOffset,
-        replacementLength,
-        results,
-        true,
-        libraryFile: libraryFile,
-        includedSuggestionSets: includedSuggestionSets,
-        includedElementKinds: includedElementKinds,
-        includedSuggestionRelevanceTags: includedSuggestionRelevanceTags,
-      ).toNotification(),
     );
   }
 

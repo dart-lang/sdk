@@ -7,7 +7,7 @@
 <body>
 <h1>Analysis Server API Specification</h1>
 <h1 style="color:#999999">Version
-  <version>1.34.0</version>
+  <version>1.35.0</version>
 </h1>
 <p>
   This document contains a specification of the API provided by the
@@ -142,6 +142,16 @@
   ignoring the item or treating it with some default/fallback handling.
 </p>
 <h3>Changelog</h3>
+<h4>1.35.0</h4>
+<ul>
+  <li>
+    Removed the requests <tt>completion.getSuggestions</tt>,
+    <tt>completion.setSubscriptions</tt>, and
+    <tt>completion.getSuggestionDetails</tt>. These requests are no longer
+    supported and the server will return an error if they are invoked. The
+    associated object structures and notifications have also been removed.
+  </li>
+</ul>
 <h4>1.34.0</h4>
 <ul>
   <li>
@@ -1592,37 +1602,6 @@
     The code completion domain contains commands related to
     getting code completion suggestions.
   </p>
-  <request method="getSuggestions">
-    <p>
-      Request that completion suggestions for the given offset in
-      the given file be returned.
-    </p>
-    <params>
-      <field name="file">
-        <ref>FilePath</ref>
-        <p>
-          The file containing the point at which suggestions are
-          to be made.
-        </p>
-      </field>
-      <field name="offset">
-        <ref>int</ref>
-        <p>
-          The offset within the file at which suggestions are to
-          be made.
-        </p>
-      </field>
-    </params>
-    <result>
-      <field name="id">
-        <ref>CompletionId</ref>
-        <p>
-          The identifier used to associate results with this
-          completion request.
-        </p>
-      </field>
-    </result>
-  </request>
   <request method="getSuggestions2">
     <p>
       Request that completion suggestions for the given offset in the given
@@ -1732,25 +1711,6 @@
       </field>
     </result>
   </request>
-  <request method="setSubscriptions">
-    <p>
-      Subscribe for completion services. All previous subscriptions are
-      replaced by the given set of services.
-    </p>
-    <p>
-      It is an error if any of the elements in the list are not valid
-      services. If there is an error, then the current subscriptions will
-      remain unchanged.
-    </p>
-    <params>
-      <field name="subscriptions">
-        <list>
-          <ref>CompletionService</ref>
-        </list>
-        <p>A list of the services being subscribed to.</p>
-      </field>
-    </params>
-  </request>
   <request method="registerLibraryPaths" deprecated="true">
     <p>
       The client can make this request to express interest in certain
@@ -1773,60 +1733,6 @@
         </p>
       </field>
     </params>
-  </request>
-  <request method="getSuggestionDetails">
-    <p>
-      Clients must make this request when the user has selected a completion
-      suggestion from an <tt>AvailableSuggestionSet</tt>. Analysis server will respond with
-      the text to insert as well as any <tt>SourceChange</tt> that needs to be applied
-      in case the completion requires an additional import to be added. It is an error
-      if the id is no longer valid, for instance if the library has been removed after
-      the completion suggestion is accepted.
-    </p>
-    <params>
-      <field name="file">
-        <ref>FilePath</ref>
-        <p>
-          The path of the file into which this completion is being inserted.
-        </p>
-      </field>
-      <field name="id">
-        <ref>int</ref>
-        <p>
-          The identifier of the <tt>AvailableSuggestionSet</tt> containing
-          the selected label.
-        </p>
-      </field>
-      <field name="label">
-        <ref>String</ref>
-        <p>
-          The label from the <tt>AvailableSuggestionSet</tt> with the `id`
-          for which insertion information is requested.
-        </p>
-      </field>
-      <field name="offset">
-        <ref>int</ref>
-        <p>
-          The offset in the file where the completion will be inserted.
-        </p>
-      </field>
-    </params>
-    <result>
-      <field name="completion">
-        <ref>String</ref>
-        <p>
-          The full text to insert, including any optional import prefix.
-        </p>
-      </field>
-      <field name="change" optional="true">
-        <ref>SourceChange</ref>
-        <p>
-          A change for the client to apply in case the library containing
-          the accepted completion suggestion needs to be imported. The field
-          will be omitted if there are no additional changes that need to be made.
-        </p>
-      </field>
-    </result>
   </request>
   <request method="getSuggestionDetails2">
     <p>
@@ -1888,141 +1794,6 @@
       </field>
     </result>
   </request>
-  <notification event="results">
-    <p>
-      Reports the completion suggestions that should be presented
-      to the user. The set of suggestions included in the
-      notification is always a complete list that supersedes any
-      previously reported suggestions.
-    </p>
-    <params>
-      <field name="id">
-        <ref>CompletionId</ref>
-        <p>
-          The id associated with the completion.
-        </p>
-      </field>
-      <field name="replacementOffset">
-        <ref>int</ref>
-        <p>
-          The offset of the start of the text to be
-          replaced. This will be different than the offset used
-          to request the completion suggestions if there was a
-          portion of an identifier before the original
-          offset. In particular, the replacementOffset will be
-          the offset of the beginning of said identifier.
-        </p>
-      </field>
-      <field name="replacementLength">
-        <ref>int</ref>
-        <p>
-          The length of the text to be replaced if the remainder
-          of the identifier containing the cursor is to be
-          replaced when the suggestion is applied (that is, the
-          number of characters in the existing identifier).
-        </p>
-      </field>
-      <field name="results">
-        <list>
-          <ref>CompletionSuggestion</ref>
-        </list>
-        <p>
-          The completion suggestions being reported. The
-          notification contains all possible completions at the
-          requested cursor position, even those that do not match
-          the characters the user has already typed. This allows
-          the client to respond to further keystrokes from the
-          user without having to make additional requests.
-        </p>
-      </field>
-      <field name="isLast">
-        <ref>bool</ref>
-        <p>
-          True if this is that last set of results that will be
-          returned for the indicated completion.
-        </p>
-      </field>
-      <field name="libraryFile" optional="true">
-        <ref>FilePath</ref>
-        <p>
-          The library file that contains the file where completion was
-          requested. The client might use it for example together with the
-          <tt>existingImports</tt> notification to filter out available
-          suggestions. If there were changes to existing imports in the library,
-          the corresponding <tt>existingImports</tt> notification will be sent
-          before the completion notification.
-        </p>
-      </field>
-      <field name="includedSuggestionSets" optional="true">
-        <list>
-          <ref>IncludedSuggestionSet</ref>
-        </list>
-        <p>
-          References to <tt>AvailableSuggestionSet</tt> objects previously sent
-          to the client. The client can include applicable names from the
-          referenced library in code completion suggestions.
-        </p>
-      </field>
-      <field name="includedElementKinds" optional="true">
-        <list>
-          <ref>ElementKind</ref>
-        </list>
-        <p>
-          The client is expected to check this list against the
-          <tt>ElementKind</tt> sent in <tt>IncludedSuggestionSet</tt> to decide
-          whether or not these symbols should be presented to the user.
-        </p>
-      </field>
-      <field name="includedSuggestionRelevanceTags" optional="true">
-        <list>
-          <ref>IncludedSuggestionRelevanceTag</ref>
-        </list>
-        <p>
-          The client is expected to check this list against the values of the
-          field <tt>relevanceTags</tt> of <tt>AvailableSuggestion</tt> to
-          decide if the suggestion should be given a different relevance than
-          the <tt>IncludedSuggestionSet</tt> that contains it. This might be
-          used for example to give higher relevance to suggestions of matching
-          types.
-        </p>
-        <p>
-          If an <tt>AvailableSuggestion</tt> has relevance tags that match more
-          than one <tt>IncludedSuggestionRelevanceTag</tt>, the maximum
-          relevance boost is used.
-        </p>
-      </field>
-    </params>
-  </notification>
-  <notification event="availableSuggestions">
-    <p>
-      Reports the pre-computed, candidate completions from symbols defined
-      in a corresponding library. This notification may be sent multiple times.
-      When a notification is processed, clients should replace any previous
-      information about the libraries in the list of changedLibraries, discard
-      any information about the libraries in the list of removedLibraries, and
-      preserve any previously received information about any libraries that are
-      not included in either list.
-    </p>
-    <params>
-      <field name="changedLibraries" optional="true">
-        <list>
-          <ref>AvailableSuggestionSet</ref>
-        </list>
-        <p>
-          A list of pre-computed, potential completions coming from
-          this set of completion suggestions.
-        </p>
-      </field>
-      <field name="removedLibraries" optional="true">
-        <list>
-          <ref>int</ref>
-        </list>
-        <p>
-          A list of library ids that no longer apply.
-        </p>
-      </field>
-    </params>
-  </notification>
   <notification event="existingImports">
     <p>
       Reports existing imports in a library. This notification may be sent
@@ -3850,13 +3621,6 @@
       </field>
     </object>
   </type>
-  <type name="CompletionId">
-    <ref>String</ref>
-    <p>
-      An identifier used to associate completion results with a
-      completion request.
-    </p>
-  </type>
   <type name="ContextData">
     <p>
       Information about an analysis context.
@@ -4014,116 +3778,6 @@
       The identifier for a execution context.
     </p>
   </type>
-  <type name="AvailableSuggestion">
-    <p>
-      A partial completion suggestion that can be used in combination with
-      info from <tt>completion.results</tt> to build completion suggestions
-      for not yet imported library tokens.
-    </p>
-    <object>
-      <field name="label">
-        <ref>String</ref>
-        <p>
-          The identifier to present to the user for code completion.
-        </p>
-      </field>
-      <field name="declaringLibraryUri">
-        <ref>String</ref>
-        <p>
-          The URI of the library that declares the element being suggested,
-          not the URI of the library associated with the enclosing
-          <tt>AvailableSuggestionSet</tt>.
-        </p>
-      </field>
-      <field name="element">
-        <ref>Element</ref>
-        <p>
-          Information about the element reference being suggested.
-        </p>
-      </field>
-      <field name="defaultArgumentListString" optional="true">
-        <ref>String</ref>
-        <p>
-          A default String for use in generating argument list source contents
-          on the client side.
-        </p>
-      </field>
-      <field name="defaultArgumentListTextRanges" optional="true">
-        <list>
-          <ref>int</ref>
-        </list>
-        <p>
-          Pairs of offsets and lengths describing 'defaultArgumentListString'
-          text ranges suitable for use by clients to set up linked edits of
-          default argument source contents. For example, given an argument list
-          string 'x, y', the corresponding text range [0, 1, 3, 1], indicates
-          two text ranges of length 1, starting at offsets 0 and 3. Clients can
-          use these ranges to treat the 'x' and 'y' values specially for linked
-          edits.
-        </p>
-      </field>
-      <field name="parameterNames" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          If the element is an executable, the names of the formal parameters of
-          all kinds - required, optional positional, and optional named. The
-          names of positional parameters are empty strings. Omitted if the element
-          is not an executable.
-        </p>
-      </field>
-      <field name="parameterTypes" optional="true">
-        <list>
-          <ref>String</ref>
-        </list>
-        <p>
-          If the element is an executable, the declared types of the formal parameters
-          of all kinds - required, optional positional, and optional named.
-          Omitted if the element is not an executable.
-        </p>
-      </field>
-      <field name="relevanceTags" optional="true">
-        <list>
-          <ref>AvailableSuggestionRelevanceTag</ref>
-        </list>
-        <p>
-          This field is set if the relevance of this suggestion might be
-          changed depending on where completion is requested.
-        </p>
-      </field>
-      <field name="requiredParameterCount" optional="true">
-        <ref>int</ref>
-      </field>
-    </object>
-  </type>
-  <type name="AvailableSuggestionRelevanceTag">
-    <ref>String</ref>
-    <p>
-      The opaque tag value.
-    </p>
-  </type>
-  <type name="AvailableSuggestionSet">
-    <object>
-      <field name="id">
-        <ref>int</ref>
-        <p>
-          The id associated with the library.
-        </p>
-      </field>
-      <field name="uri">
-        <ref>String</ref>
-        <p>
-          The URI of the library.
-        </p>
-      </field>
-      <field name="items">
-        <list>
-          <ref>AvailableSuggestion</ref>
-        </list>
-      </field>
-    </object>
-  </type>
   <type name="ExistingImport">
     <p>
       Information about an existing import, with elements that it provides.
@@ -4203,86 +3857,6 @@
         </p>
       </field>
     </object>
-  </type>
-  <type name="IncludedSuggestionSet">
-    <p>
-      A reference to an <tt>AvailableSuggestionSet</tt> noting
-      that the library's members which match the kind of this ref
-      should be presented to the user.
-    </p>
-    <object>
-      <field name="id">
-        <ref>int</ref>
-        <p>
-          Clients should use it to access the set of precomputed completions
-          to be displayed to the user.
-        </p>
-      </field>
-      <field name="relevance">
-        <ref>int</ref>
-        <p>
-          The relevance of completion suggestions from this
-          library where a higher number indicates a higher relevance.
-        </p>
-      </field>
-      <field name="displayUri" optional="true">
-        <ref>String</ref>
-        <p>
-          The optional string that should be displayed instead of the
-          <tt>uri</tt> of the referenced <tt>AvailableSuggestionSet</tt>.
-        </p>
-        <p>
-          For example libraries in the "test" directory of a package have only
-          "file://" URIs, so are usually long, and don't look nice, but actual
-          import directives will use relative URIs, which are short, so we
-          probably want to display such relative URIs to the user.
-        </p>
-      </field>
-    </object>
-  </type>
-  <type name="IncludedSuggestionRelevanceTag">
-    <p>
-      Each <tt>AvailableSuggestion</tt> can specify zero or more tags in the
-      field <tt>relevanceTags</tt>, so that when the included tag is equal to
-      one of the <tt>relevanceTags</tt>, the suggestion is given higher
-      relevance than the whole <tt>IncludedSuggestionSet</tt>.
-    </p>
-    <object>
-      <field name="tag">
-        <ref>AvailableSuggestionRelevanceTag</ref>
-        <p>
-          The opaque value of the tag.
-        </p>
-      </field>
-      <field name="relevanceBoost">
-        <ref>int</ref>
-        <p>
-          The boost to the relevance of the completion suggestions that match
-          this tag, which is added to the relevance of the containing
-          <tt>IncludedSuggestionSet</tt>.
-        </p>
-      </field>
-    </object>
-  </type>
-  <type name="CompletionService">
-    <p>
-      An enumeration of the completion services to which a client can subscribe.
-    </p>
-    <enum>
-      <value>
-        <code>AVAILABLE_SUGGESTION_SETS</code>
-        <p>
-          The client will receive <tt>availableSuggestions</tt> notifications
-          once subscribed with completion suggestion sets from the libraries of
-          interest. The client should keep an up-to-date record of these in
-          memory so that it will be able to union these candidates with other
-          completion suggestions when applicable at completion time.
-        </p>
-        <p>
-          The client will also receive <tt>existingImports</tt> notifications.
-        </p>
-      </value>
-    </enum>
   </type>
   <type name="LibraryPathSet">
     <p>

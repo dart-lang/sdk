@@ -137,8 +137,6 @@ abstract class AnalysisServer {
 
   DeclarationsTracker? declarationsTracker;
 
-  DeclarationsTrackerData? declarationsTrackerData;
-
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
   /// server.
@@ -281,9 +279,12 @@ abstract class AnalysisServer {
         driverWatcher: pluginWatcher);
 
     if (options.featureSet.completion) {
+      // TODO(brianwilkerson): The DeclarationsTracker is used to find Dartdoc
+      //  templates for substitution in doc comments, and probably shouldn't be
+      //  gated on completion support being enabled, especially given that it
+      //  will no longer used for available suggestions.
       var tracker = declarationsTracker =
           DeclarationsTracker(byteStore, resourceProvider);
-      declarationsTrackerData = DeclarationsTrackerData(tracker);
       analysisDriverScheduler.outOfBandWorker =
           CompletionLibrariesWorker(tracker);
     }

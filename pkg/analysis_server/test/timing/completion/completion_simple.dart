@@ -37,10 +37,6 @@ class SimpleTest extends TimingTest {
   /// The offset of the cursor when requesting code completion.
   late int cursorOffset;
 
-  /// A completer that will be completed when code completion results have been
-  /// received from the server.
-  late Completer<void> completionReceived;
-
   /// Initialize a newly created test.
   SimpleTest();
 
@@ -69,19 +65,11 @@ f(C c) {
     sendAnalysisUpdateContent({
       mainFilePath: ChangeContentOverlay([SourceEdit(cursorOffset, 0, '.')])
     });
-    sendCompletionGetSuggestions(mainFilePath, cursorOffset + 1);
-    return completionReceived.future;
+    return sendCompletionGetSuggestions2(mainFilePath, cursorOffset + 1, 1000);
   }
 
   @override
   Future<void> setUp() {
-    completionReceived = Completer();
-    onCompletionResults.listen((_) {
-      // We only care about the time to the first response.
-      if (!completionReceived.isCompleted) {
-        completionReceived.complete();
-      }
-    });
     sendAnalysisSetAnalysisRoots([dirname(mainFilePath)], []);
     sendAnalysisUpdateContent(
         {mainFilePath: AddContentOverlay(originalContent)});
