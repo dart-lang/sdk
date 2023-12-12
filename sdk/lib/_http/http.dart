@@ -1125,13 +1125,23 @@ abstract interface class HttpResponse implements IOSink {
 
 /// An HTTP client for communicating with an HTTP server.
 ///
+/// > **Note:** You should avoid directly using `HttpClient` to make HTTP
+/// > requests. You can use `HttpClient` indirectly through the
+/// > [`IOClient`](https://pub.dev/documentation/http/latest/io_client/IOClient-class.html)
+/// > adapter in [`package:http`](https://pub.dev/packages/http).
+/// >
+/// > Using a higher-level library,
+/// > like [`package:http`](https://pub.dev/packages/http), allows you to
+/// > switch implementations with minimal changes to your code. For example,
+/// > `package:http`
+/// > [`Client`](https://pub.dev/documentation/http/latest/http/Client-class.html)
+/// > has implementations for the browser and implementations that use
+/// > platform native HTTP clients on Android and iOS. Unlike `HttpClient`,
+/// > these native implementations work with the proxies, VPNs, etc.
+///
 /// Sends HTTP requests to an HTTP server and receives responses.
 /// Maintains state, including session cookies and other cookies,
 /// between multiple requests to the same server.
-///
-/// Note: [HttpClient] provides low-level HTTP functionality.
-/// We recommend users start with more developer-friendly and composable APIs
-/// found in [`package:http`](https://pub.dev/packages/http).
 ///
 /// HttpClient contains a number of methods to send an [HttpClientRequest]
 /// to an Http server and receive an [HttpClientResponse] back.
