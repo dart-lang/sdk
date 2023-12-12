@@ -6050,7 +6050,7 @@ class FfiCallInstr : public VariadicDefinition {
                const compiler::ffi::CallMarshaller& marshaller,
                bool is_leaf)
       : VariadicDefinition(marshaller.NumDefinitions() + 1 +
-                               (marshaller.PassTypedData() ? 1 : 0),
+                               (marshaller.ReturnsCompound() ? 1 : 0),
                            deopt_id),
         marshaller_(marshaller),
         is_leaf_(is_leaf) {}
@@ -6061,8 +6061,8 @@ class FfiCallInstr : public VariadicDefinition {
   intptr_t TargetAddressIndex() const { return marshaller_.NumDefinitions(); }
 
   // Input index of the typed data to populate if return value is struct.
-  intptr_t TypedDataIndex() const {
-    ASSERT(marshaller_.PassTypedData());
+  intptr_t CompoundReturnTypedDataIndex() const {
+    ASSERT(marshaller_.ReturnsCompound());
     return marshaller_.NumDefinitions() + 1;
   }
 

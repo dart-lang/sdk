@@ -4971,6 +4971,10 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
   if (marshaller.IsPointer(arg_index)) {
     body += Box(kUnboxedFfiIntPtr);
     body += FfiPointerFromAddress();
+  } else if (marshaller.IsTypedData(arg_index)) {
+    // Only FFI call arguments can be TypedData, so only reachable in
+    // `FfiConvertPrimitiveToNative`.
+    UNREACHABLE();
   } else if (marshaller.IsHandle(arg_index)) {
     body += UnwrapHandle();
   } else if (marshaller.IsVoid(arg_index)) {
@@ -5003,6 +5007,8 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
     body += LoadNativeField(Slot::PointerBase_data(),
                             InnerPointerAccess::kCannotBeInnerPointer);
     body += ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+  } else if (marshaller.IsTypedData(arg_index)) {
+    // Nothing to do yet. Unwrap in `FfiCallInstr::EmitNativeCode`.
   } else if (marshaller.IsHandle(arg_index)) {
     body += WrapHandle();
   } else {
@@ -5164,7 +5170,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
 
   const char* error = nullptr;
   const auto marshaller_ptr = compiler::ffi::CallMarshaller::FromFunction(
-      Z, function, c_signature, &error);
+      Z, function, first_argument_parameter_offset, c_signature, &error);
   // AbiSpecific integers can be incomplete causing us to not know the calling
   // convention. However, this is caught in asFunction in both JIT/AOT.
   RELEASE_ASSERT(error == nullptr);
@@ -5213,12 +5219,12 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
   }
 
   // Allocate typed data before FfiCall and pass it in to ffi call if needed.
-  LocalVariable* typed_data = nullptr;
-  if (marshaller.PassTypedData()) {
-    body += IntConstant(marshaller.TypedDataSizeInBytes());
+  LocalVariable* return_compound_typed_data = nullptr;
+  if (marshaller.ReturnsCompound()) {
+    body += IntConstant(marshaller.CompoundReturnSizeInBytes());
     body +=
         AllocateTypedData(TokenPosition::kNoSource, kTypedDataUint8ArrayCid);
-    typed_data = MakeTemporary();
+    return_compound_typed_data = MakeTemporary();
   }
 
   // Unbox and push the arguments.
@@ -5242,8 +5248,8 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
 
   body += LoadLocal(address);
 
-  if (marshaller.PassTypedData()) {
-    body += LoadLocal(typed_data);
+  if (marshaller.ReturnsCompound()) {
+    body += LoadLocal(return_compound_typed_data);
   }
 
   body += FfiCall(marshaller);
@@ -5262,7 +5268,7 @@ Fragment FlowGraphBuilder::FfiCallFunctionBody(
   LocalVariable* def = MakeTemporary("ffi call result");
   defs->Add(def);
 
-  if (marshaller.PassTypedData()) {
+  if (marshaller.ReturnsCompound()) {
     // Drop call result, typed data with contents is already on the stack.
     body += DropTemporary(&def);
   }

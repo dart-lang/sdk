@@ -767,9 +767,25 @@ class FfiNativeTransformer extends FfiTransformer {
 
     try {
       ensureNativeTypeValid(nativeType, node);
-      ensureNativeTypeToDartType(nativeType, wrappedDartFunctionType, node,
-          allowHandle: true);
-      ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
+      ensureNativeTypeToDartType(
+        nativeType,
+        wrappedDartFunctionType,
+        node,
+        allowHandle: true, // Handle-specific errors emitted below.
+        allowTypedData: true, // TypedData-specific errors emitted below.
+      );
+      ensureLeafCallDoesNotUseHandles(
+        nativeType,
+        isLeaf,
+        reportErrorOn: node,
+      );
+      ensureOnlyLeafCallsUseTypedData(
+        ffiFunctionType,
+        dartFunctionType,
+        isLeaf: isLeaf,
+        isCall: true,
+        reportErrorOn: node,
+      );
     } on FfiStaticTypeError {
       // It's OK to swallow the exception because the diagnostics issued will
       // cause compilation to fail. By continuing, we can report more

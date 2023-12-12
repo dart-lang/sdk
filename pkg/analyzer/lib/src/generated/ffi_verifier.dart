@@ -24,11 +24,12 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _abiSpecificIntegerClassName = 'AbiSpecificInteger';
   static const _abiSpecificIntegerMappingClassName =
       'AbiSpecificIntegerMapping';
-  static const _allocatorClassName = 'Allocator';
   static const _allocateExtensionMethodName = 'call';
+  static const _allocatorClassName = 'Allocator';
   static const _allocatorExtensionName = 'AllocatorAlloc';
   static const _arrayClassName = 'Array';
   static const _dartFfiLibraryName = 'dart.ffi';
+  static const _dartTypedDataLibraryName = 'dart.typed_data';
   static const _finalizableClassName = 'Finalizable';
   static const _isLeafParamName = 'isLeaf';
   static const _nativeAddressOf = 'Native.addressOf';
@@ -372,8 +373,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
 
       // Leaf call FFI Natives can't use Handles.
-      var isLeaf = annotationValue.getField(_isLeafParamName)?.toBoolValue();
-      if (isLeaf == true) {
+      var isLeaf =
+          annotationValue.getField(_isLeafParamName)?.toBoolValue() ?? false;
+      if (isLeaf) {
         _validateFfiLeafCallUsesNoHandles(ffiSignature, errorNode);
       }
 
@@ -429,9 +431,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       // Pointer or NativeFieldWrapperClass1.
       for (var i = 0; i < formalParameters.length; i++) {
         if (ffiParameterTypes[i].isPointer) {
-          final type =
-              formalParameters[i].declaredElement!.type as InterfaceType;
-          if (!type.isPointer && !_extendsNativeFieldWrapperClass1(type)) {
+          final type = formalParameters[i].declaredElement!.type;
+          if (type is! InterfaceType ||
+              (!type.isPointer &&
+                  !_extendsNativeFieldWrapperClass1(type) &&
+                  !type.isTypedData)) {
             _errorReporter.reportErrorForNode(
                 FfiCode
                     .FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER,
@@ -454,12 +458,23 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             [nativeType, 'Native']);
         return;
       }
-      if (!_validateCompatibleFunctionTypes(dartType, nativeType,
-          nativeFieldWrappersAsPointer: true, allowStricterReturn: true)) {
+      if (!_validateCompatibleFunctionTypes(
+        dartType,
+        nativeType,
+        nativeFieldWrappersAsPointer: true,
+        allowStricterReturn: true,
+      )) {
         _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_SUBTYPE, errorNode,
             [nativeType, dartType, 'Native']);
         return;
       }
+      _validateFfiTypedDataUnwrapping(
+        dartType,
+        nativeType,
+        errorNode,
+        isLeaf: isLeaf,
+        isCall: true,
+      );
     }
   }
 
@@ -489,6 +504,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           return true;
         }
       }
+    }
+    return false;
+  }
+
+  bool _isLeaf(NodeList<Expression>? args) {
+    if (args == null) {
+      return false;
+    }
+    for (final arg in args) {
+      if (arg is! NamedExpression || arg.element?.name != _isLeafParamName) {
+        continue;
+      }
+      return _maybeGetBoolConstValue(arg.expression) ?? false;
     }
     return false;
   }
@@ -614,6 +642,26 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     } else if (nativeType is FunctionType) {
       return _isValidFfiNativeFunctionType(nativeType);
+    }
+    return false;
+  }
+
+  bool _isValidTypedData(InterfaceType nativeType, InterfaceType dartType) {
+    if (nativeType.isPointer) {
+      final elementType = nativeType.typeArguments.single;
+      final elementName = elementType.element?.name;
+      if (dartType.element.isTypedDataClass) {
+        if (elementName == 'Float' && dartType.element.name == 'Float32List') {
+          return true;
+        }
+        if (elementName == 'Double' && dartType.element.name == 'Float64List') {
+          return true;
+        }
+        if (_primitiveIntegerNativeTypesFixedSize.contains(elementName) &&
+            dartType.element.name == '${elementName}List') {
+          return true;
+        }
+      }
     }
     return false;
   }
@@ -823,6 +871,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// `Pointer<T>.asFunction<F>()`.
   void _validateAsFunction(MethodInvocation node, MethodElement element) {
     var typeArguments = node.typeArguments?.arguments;
+    final AstNode errorNode = typeArguments != null ? typeArguments[0] : node;
     if (typeArguments != null && typeArguments.length == 1) {
       if (_validateTypeArgument(typeArguments[0], 'asFunction')) {
         return;
@@ -842,8 +891,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         return;
       }
       if (!_isValidFfiNativeFunctionType(pointerTypeArg)) {
-        final AstNode errorNode =
-            typeArguments != null ? typeArguments[0] : node;
         _errorReporter.reportErrorForNode(
             FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER,
             errorNode,
@@ -853,12 +900,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
       final DartType TPrime = T.typeArguments[0];
       final DartType F = node.typeArgumentTypes![0];
+      final isLeaf = _isLeaf(node.argumentList.arguments);
       if (!_validateCompatibleFunctionTypes(F, TPrime)) {
         _errorReporter.reportErrorForNode(
             FfiCode.MUST_BE_A_SUBTYPE, node, [TPrime, F, 'asFunction']);
       }
-      _validateFfiCallUsesNoHandlesIfLeaf(
-          node.argumentList.arguments, TPrime, node);
+      if (isLeaf) {
+        _validateFfiLeafCallUsesNoHandles(TPrime, node);
+      }
+      _validateFfiTypedDataUnwrapping(
+        F,
+        T,
+        errorNode,
+        isLeaf: isLeaf,
+        isCall: true,
+      );
     }
     _validateIsLeafIsConst(node);
   }
@@ -965,6 +1021,11 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             _primitiveNativeType(nativeType.typeArguments.single) ==
                 _PrimitiveDartType.void_;
       }
+      // Always allow typed data here, error on nonLeaf or return value in
+      // `_validateFfiNonLeafCallUsesNoTypedData`.
+      if (_isValidTypedData(nativeType, dartType)) {
+        return true;
+      }
       return checkCovariance
           ? typeSystem.isSubtypeOf(dartType, nativeType)
           : typeSystem.isSubtypeOf(nativeType, dartType);
@@ -988,35 +1049,6 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  void _validateFfiCallUsesNoHandlesIfLeaf(
-      NodeList<Expression>? args, DartType nativeType, AstNode errorNode) {
-    if (args == null || args.isEmpty) {
-      return;
-    }
-    for (final arg in args) {
-      if (arg is! NamedExpression || arg.element?.name != _isLeafParamName) {
-        continue;
-      }
-      // Handles are ok for regular (non-leaf) calls. Check `isLeaf:true`.
-      final bool? isLeaf = _maybeGetBoolConstValue(arg.expression);
-      if (isLeaf != null && isLeaf) {
-        if (nativeType is FunctionType) {
-          if (_primitiveNativeType(nativeType.returnType) ==
-              _PrimitiveDartType.handle) {
-            _errorReporter.reportErrorForNode(
-                FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE, errorNode);
-          }
-          for (final param in nativeType.normalParameterTypes) {
-            if (_primitiveNativeType(param) == _PrimitiveDartType.handle) {
-              _errorReporter.reportErrorForNode(
-                  FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, errorNode);
-            }
-          }
-        }
-      }
-    }
-  }
-
   void _validateFfiLeafCallUsesNoHandles(
       DartType nativeType, AstNode errorNode) {
     if (nativeType is FunctionType) {
@@ -1029,6 +1061,41 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         if (_primitiveNativeType(param) == _PrimitiveDartType.handle) {
           _errorReporter.reportErrorForNode(
               FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE, errorNode);
+        }
+      }
+    }
+  }
+
+  void _validateFfiTypedDataUnwrapping(
+    DartType dartType,
+    DartType nativeType,
+    AstNode errorNode, {
+    required bool isLeaf,
+    required bool isCall,
+  }) {
+    if (dartType is FunctionType && nativeType is FunctionType) {
+      if (dartType.returnType.isTypedData && nativeType.returnType.isPointer) {
+        if (!isCall) {
+          _errorReporter.reportErrorForNode(
+              FfiCode.CALLBACK_MUST_NOT_USE_TYPED_DATA, errorNode);
+        } else {
+          _errorReporter.reportErrorForNode(
+              FfiCode.CALL_MUST_NOT_RETURN_TYPED_DATA, errorNode);
+        }
+      }
+      int i = 0;
+      final nativeParamTypes = nativeType.normalParameterTypes.flattenVarArgs();
+      for (final dartParam in dartType.normalParameterTypes) {
+        final nativeParam = nativeParamTypes[i];
+        i++;
+        if (dartParam.isTypedData && nativeParam.isPointer) {
+          if (!isCall) {
+            _errorReporter.reportErrorForNode(
+                FfiCode.CALLBACK_MUST_NOT_USE_TYPED_DATA, errorNode);
+          } else if (!isLeaf) {
+            _errorReporter.reportErrorForNode(
+                FfiCode.NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA, errorNode);
+          }
         }
       }
     }
@@ -1166,6 +1233,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, e, ['exceptionalReturn']);
       }
     }
+    _validateFfiTypedDataUnwrapping(FT, T, f, isLeaf: false, isCall: false);
   }
 
   /// Ensure `isLeaf` is const as we need the value at compile time to know
@@ -1207,14 +1275,19 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           errorNode, [S, 'lookupFunction']);
       return;
     }
+    final isLeaf = _isLeaf(node.argumentList.arguments);
     if (!_validateCompatibleFunctionTypes(F, S)) {
       final AstNode errorNode = typeArguments[1];
       _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [S, F, 'lookupFunction']);
     }
     _validateIsLeafIsConst(node);
-    _validateFfiCallUsesNoHandlesIfLeaf(
-        node.argumentList.arguments, S, typeArguments[0]);
+    if (isLeaf) {
+      _validateFfiLeafCallUsesNoHandles(S, typeArguments[0]);
+    }
+    final AstNode errorNode = typeArguments[1];
+    _validateFfiTypedDataUnwrapping(F, S, errorNode,
+        isLeaf: isLeaf, isCall: true);
   }
 
   /// Validate the invocation of `Native.addressOf`.
@@ -1331,6 +1404,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           _errorReporter.reportErrorForNode(
               FfiCode.MUST_BE_A_SUBTYPE, e, [eType, natRetType, name]);
         }
+        _validateFfiTypedDataUnwrapping(
+          funcType,
+          typeArg,
+          e,
+          isLeaf: false,
+          isCall: false,
+        );
         if (!_isConst(e)) {
           _errorReporter.reportErrorForNode(
               FfiCode.ARGUMENT_MUST_BE_A_CONSTANT, e, ['exceptionalReturn']);
@@ -1764,6 +1844,10 @@ extension on InterfaceElement {
   bool get isFfiClass {
     return library.name == FfiVerifier._dartFfiLibraryName;
   }
+
+  bool get isTypedDataClass {
+    return library.name == FfiVerifier._dartTypedDataLibraryName;
+  }
 }
 
 extension on ExtensionElement {
@@ -1912,6 +1996,27 @@ extension on DartType {
   bool get isPointer {
     final self = this;
     return self is InterfaceType && self.element.isPointer;
+  }
+
+  /// Only the subset of typed data classes that correspond to a Pointer.
+  bool get isTypedData {
+    final self = this;
+    if (self is! InterfaceType) {
+      return false;
+    }
+    if (!self.element.isTypedDataClass) {
+      return false;
+    }
+    final elementName = self.element.name;
+    if (!elementName.endsWith('List')) {
+      return false;
+    }
+    if (elementName == 'Float32List' || elementName == 'Float64List') {
+      return true;
+    }
+    final fixedIntegerTypeName = elementName.replaceAll('List', '');
+    return FfiVerifier._primitiveIntegerNativeTypesFixedSize
+        .contains(fixedIntegerTypeName);
   }
 
   /// Returns `true` iff this is a `ffi.VarArgs` type.
