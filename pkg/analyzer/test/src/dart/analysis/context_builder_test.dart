@@ -14,6 +14,7 @@ import 'package:analyzer/src/dart/analysis/context_root.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -84,27 +85,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       analysisOptions,
       AnalysisOptionsImpl()..strictRawTypes = true,
     );
-  }
-
-  void test_analysisOptions_sdkVersionConstraint_hasPubspec_hasSdk() {
-    var projectPath = convertPath('/home/test');
-    newPubspecYamlFile(projectPath, '''
-environment:
-  sdk: ^2.1.0
-''');
-
-    var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.analysisOptionsImpl;
-    expect(analysisOptions.sdkVersionConstraint.toString(), '^2.1.0');
-  }
-
-  void test_analysisOptions_sdkVersionConstraint_noPubspec() {
-    var projectPath = convertPath('/home/test');
-    newFile('$projectPath/lib/a.dart', '');
-
-    var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.driver.analysisOptions;
-    expect(analysisOptions.sdkVersionConstraint, isNull);
   }
 
   test_createContext_declaredVariables() {
@@ -197,9 +177,8 @@ environment:
       analysisContext.uriResolvers,
       unorderedEquals([
         isA<DartUriResolver>(),
-        isA<PackageBuildPackageUriResolver>(),
+        isA<PackageMapUriResolver>(),
         isA<ResourceUriResolver>(),
-        isA<PackageBuildFileUriResolver>(),
       ]),
     );
   }

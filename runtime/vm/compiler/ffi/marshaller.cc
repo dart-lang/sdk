@@ -87,6 +87,7 @@ const NativeFunctionType* NativeFunctionTypeFromFunctionType(
 
 CallMarshaller* CallMarshaller::FromFunction(Zone* zone,
                                              const Function& function,
+                                             intptr_t function_params_start_at,
                                              const FunctionType& c_signature,
                                              const char** error) {
   DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
@@ -98,8 +99,8 @@ CallMarshaller* CallMarshaller::FromFunction(Zone* zone,
   }
   const auto& native_calling_convention =
       NativeCallingConvention::FromSignature(zone, *native_function_signature);
-  return new (zone)
-      CallMarshaller(zone, function, c_signature, native_calling_convention);
+  return new (zone) CallMarshaller(zone, function, function_params_start_at,
+                                   c_signature, native_calling_convention);
 }
 
 AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
@@ -140,6 +141,56 @@ AbstractTypePtr BaseMarshaller::CType(intptr_t arg_index) const {
   ASSERT(!AbstractType::Handle(c_signature_.ParameterTypeAt(real_arg_index))
               .IsNull());
   return c_signature_.ParameterTypeAt(real_arg_index);
+}
+
+AbstractTypePtr BaseMarshaller::DartType(intptr_t arg_index) const {
+  if (arg_index == kResultIndex) {
+    return dart_signature_.result_type();
+  }
+  const intptr_t real_arg_index = arg_index + dart_signature_params_start_at_;
+  ASSERT(!Array::Handle(dart_signature_.parameter_types()).IsNull());
+  ASSERT(real_arg_index <
+         Array::Handle(dart_signature_.parameter_types()).Length());
+  ASSERT(!AbstractType::Handle(dart_signature_.ParameterTypeAt(real_arg_index))
+              .IsNull());
+  return dart_signature_.ParameterTypeAt(real_arg_index);
+}
+
+bool BaseMarshaller::IsTypedData(intptr_t arg_index) const {
+  if (IsHandle(arg_index)) {
+    return false;
+  }
+
+  if (Array::Handle(zone_, dart_signature_.parameter_types()).IsNull()) {
+    // TODO(https://dartbug.com/54173): BuildGraphOfSyncFfiCallback provides a
+    // function object with its type arguments not initialized. Change this
+    // to an assert when addressing that issue.
+    return false;
+  }
+
+  const auto& type = AbstractType::Handle(zone_, DartType(arg_index));
+  // The classes here are not the recognized classes, but the interface types.
+  // Consequently, the class ids are not predefined.
+  const auto& klass = Class::Handle(zone_, type.type_class());
+  if (klass.library() != Library::TypedDataLibrary()) {
+    return false;
+  }
+#define CHECK_SYMBOL(symbol)                                                   \
+  if (klass.UserVisibleName() == Symbols::symbol().ptr()) {                    \
+    return true;                                                               \
+  }
+  CHECK_SYMBOL(Int8List)
+  CHECK_SYMBOL(Int16List)
+  CHECK_SYMBOL(Int32List)
+  CHECK_SYMBOL(Int64List)
+  CHECK_SYMBOL(Uint8List)
+  CHECK_SYMBOL(Uint16List)
+  CHECK_SYMBOL(Uint32List)
+  CHECK_SYMBOL(Uint64List)
+  CHECK_SYMBOL(Float32List)
+  CHECK_SYMBOL(Float64List)
+#undef CHECK_SYMBOL
+  return false;
 }
 
 // Keep consistent with Function::FfiCSignatureReturnsStruct.
@@ -338,6 +389,9 @@ Representation BaseMarshaller::RepInFfiCall(intptr_t def_index_global) const {
 
 Representation CallMarshaller::RepInFfiCall(intptr_t def_index_global) const {
   intptr_t arg_index = ArgumentIndex(def_index_global);
+  if (IsTypedData(arg_index)) {
+    return kTagged;
+  }
   const auto& location = Location(arg_index);
   if (location.IsPointerToMemory()) {
     if (ArgumentIndexIsReturn(arg_index)) {
@@ -494,12 +548,12 @@ Location CallMarshaller::LocInFfiCall(intptr_t def_index_global) const {
   return loc.AsLocation();
 }
 
-bool CallMarshaller::PassTypedData() const {
+bool CallMarshaller::ReturnsCompound() const {
   return IsCompound(compiler::ffi::kResultIndex);
 }
 
-intptr_t CallMarshaller::TypedDataSizeInBytes() const {
-  ASSERT(PassTypedData());
+intptr_t CallMarshaller::CompoundReturnSizeInBytes() const {
+  ASSERT(ReturnsCompound());
   return Utils::RoundUp(
       Location(compiler::ffi::kResultIndex).payload_type().SizeInBytes(),
       compiler::target::kWordSize);

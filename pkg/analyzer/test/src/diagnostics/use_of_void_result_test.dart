@@ -239,6 +239,26 @@ void f(void x) {
     ]);
   }
 
+  test_recordLiteral_namedField() async {
+    await assertErrorsInCode('''
+void f(void x) {
+  (one: x,);
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 20, 6),
+    ]);
+  }
+
+  test_recordLiteral_positionalField() async {
+    await assertErrorsInCode('''
+void f(void x) {
+  (x,);
+}
+''', [
+      error(CompileTimeErrorCode.USE_OF_VOID_RESULT, 20, 1),
+    ]);
+  }
+
   test_switchStatement_expression() async {
     await assertErrorsInCode('''
 void f(void x) {

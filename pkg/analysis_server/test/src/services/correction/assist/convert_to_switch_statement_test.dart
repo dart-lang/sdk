@@ -267,6 +267,42 @@ void f(Object? x) {
 ''');
   }
 
+  Future<void> test_single_expression_isType_functionType() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x is void Function()) {
+    0;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case void Function() _:
+      0;
+  }
+}
+''');
+  }
+
+  Future<void> test_single_expression_isType_recordType() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x is (int, String)) {
+    0;
+  }
+}
+''');
+    await assertHasAssistAt('if', '''
+void f(Object? x) {
+  switch (x) {
+    case (int, String) _:
+      0;
+  }
+}
+''');
+  }
+
   Future<void> test_single_expression_notEqNull() async {
     await resolveTestCode('''
 void f(Object? x) {

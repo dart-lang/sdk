@@ -310,12 +310,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   SerializationMode macroSerializationMode =
-      switch (parsedArgs['macro-serialization-mode']) {
-    'json' => SerializationMode.json,
-    'bytedata' => SerializationMode.byteData,
-    _ => throw ArgumentError('Unrecognized macro serialization mode '
-        '${parsedArgs['macro-serialization-mode']}'),
-  };
+      SerializationMode.fromOption(parsedArgs['macro-serialization-mode']);
   if (usingIncrementalCompiler) {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with

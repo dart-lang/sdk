@@ -18,17 +18,4 @@ class CompletionResponseForTesting {
     required this.isIncomplete,
     required this.suggestions,
   });
-
-  factory CompletionResponseForTesting.legacy(
-    int requestOffset,
-    CompletionResultsParams parameters,
-  ) {
-    return CompletionResponseForTesting(
-      requestOffset: requestOffset,
-      replacementOffset: parameters.replacementOffset,
-      replacementLength: parameters.replacementLength,
-      isIncomplete: false,
-      suggestions: parameters.results,
-    );
-  }
 }

@@ -90,6 +90,22 @@ class FfiCode extends AnalyzerErrorCode {
     correctionMessage: "Try passing a static function annotated with '@Native'",
   );
 
+  ///  No parameters.
+  static const FfiCode CALLBACK_MUST_NOT_USE_TYPED_DATA = FfiCode(
+    'CALLBACK_MUST_NOT_USE_TYPED_DATA',
+    "FFI callbacks can't take typed data arguments or return value.",
+    correctionMessage: "Try changing using `Pointer`s.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const FfiCode CALL_MUST_NOT_RETURN_TYPED_DATA = FfiCode(
+    'CALL_MUST_NOT_RETURN_TYPED_DATA',
+    "FFI calls can't return typed data.",
+    correctionMessage: "Try changing using `Pointer`s.",
+    hasPublishedDocs: true,
+  );
+
   ///  Parameters:
   ///  0: the name of the struct or union class
   static const FfiCode COMPOUND_IMPLEMENTS_FINALIZABLE = FfiCode(
@@ -359,6 +375,14 @@ class FfiCode extends AnalyzerErrorCode {
     "The type arguments to '{0}' must be known at compile time, so they can't "
         "be type parameters.",
     correctionMessage: "Try changing the type argument to be a constant type.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const FfiCode NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA = FfiCode(
+    'NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA',
+    "FFI non-leaf calls can't take typed data arguments.",
+    correctionMessage: "Try changing the call to a leaf call.",
     hasPublishedDocs: true,
   );
 

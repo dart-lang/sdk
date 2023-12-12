@@ -5136,6 +5136,11 @@ class Library : public Object {
   void AddMetadata(const Object& declaration, intptr_t kernel_offset) const;
   ObjectPtr GetMetadata(const Object& declaration) const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  void EvaluatePragmas();
+  void CopyPragmas(const Library& old_lib);
+#endif
+
   // Tries to finds a @pragma annotation on [object].
   //
   // If successful returns `true`. If an error happens during constant

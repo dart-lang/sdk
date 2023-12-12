@@ -23,7 +23,6 @@ import 'package:analysis_server/src/services/completion/dart/not_imported_contri
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/redirecting_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/relevance_tables.g.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
@@ -90,11 +89,6 @@ class DartCompletionManager {
   /// included suggestion sets.
   final Set<String>? includedElementNames;
 
-  /// If [includedElementKinds] is not null, must be also not `null`, and
-  /// will be filled with tags for suggestions that should be given higher
-  /// relevance than other included suggestions.
-  final List<IncludedSuggestionRelevanceTag>? includedSuggestionRelevanceTags;
-
   /// The listener to be notified at certain points in the process of building
   /// suggestions, or `null` if no notification should occur.
   final SuggestionListener? listener;
@@ -113,15 +107,10 @@ class DartCompletionManager {
     required this.budget,
     this.includedElementKinds,
     this.includedElementNames,
-    this.includedSuggestionRelevanceTags,
     this.listener,
     this.notImportedSuggestions,
-  }) : assert((includedElementKinds != null &&
-                includedElementNames != null &&
-                includedSuggestionRelevanceTags != null) ||
-            (includedElementKinds == null &&
-                includedElementNames == null &&
-                includedSuggestionRelevanceTags == null));
+  }) : assert((includedElementKinds != null && includedElementNames != null) ||
+            (includedElementKinds == null && includedElementNames == null));
 
   Future<List<CompletionSuggestionBuilder>> computeSuggestions(
     DartCompletionRequest request,
@@ -170,7 +159,6 @@ class DartCompletionManager {
 
     if (includedElementKinds != null) {
       _addIncludedElementKinds(request);
-      _addIncludedSuggestionRelevanceTags(request);
     }
 
     final notImportedSuggestions = this.notImportedSuggestions;
@@ -246,55 +234,6 @@ class DartCompletionManager {
         // Top-level properties.
         kinds.add(protocol.ElementKind.GETTER);
         kinds.add(protocol.ElementKind.TOP_LEVEL_VARIABLE);
-      }
-    }
-  }
-
-  void _addIncludedSuggestionRelevanceTags(DartCompletionRequest request) {
-    final includedSuggestionRelevanceTags =
-        this.includedSuggestionRelevanceTags!;
-    var location = request.opType.completionLocation;
-    if (location != null) {
-      var locationTable = elementKindRelevance[location];
-      if (locationTable != null) {
-        var inConstantContext = request.inConstantContext;
-        for (var entry in locationTable.entries) {
-          var kind = entry.key.toString();
-          var elementBoost = (entry.value.upper * 100).floor();
-          includedSuggestionRelevanceTags
-              .add(IncludedSuggestionRelevanceTag(kind, elementBoost));
-          if (inConstantContext) {
-            includedSuggestionRelevanceTags.add(IncludedSuggestionRelevanceTag(
-                '$kind+const', elementBoost + 100));
-          }
-        }
-      }
-    }
-
-    var type = request.contextType;
-    if (type is InterfaceType) {
-      var element = type.element;
-      var tag = '${element.librarySource.uri}::${element.name}';
-      if (element is EnumElement) {
-        includedSuggestionRelevanceTags.add(
-          IncludedSuggestionRelevanceTag(
-            tag,
-            RelevanceBoost.availableEnumConstant,
-          ),
-        );
-      } else {
-        // TODO(brianwilkerson): This was previously used to boost exact type
-        //  matches. For example, if the context type was `Foo`, then the class
-        //  `Foo` and it's constructors would be given this boost. Now this
-        //  boost will almost always be ignored because the element boost will
-        //  be bigger. Find a way to use this boost without negating the element
-        //  boost, which is how we get constructors to come before classes.
-        includedSuggestionRelevanceTags.add(
-          IncludedSuggestionRelevanceTag(
-            tag,
-            RelevanceBoost.availableDeclaration,
-          ),
-        );
       }
     }
   }

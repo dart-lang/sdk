@@ -235,13 +235,8 @@ abstract class ContextResolutionTest
     var workspace = contextFor(file).contextRoot.workspace;
     expect(
         workspace,
-        isA<PubWorkspace>().having(
-            (e) => e.provider
-                .getFolder(e.root)
-                .getChild('.dart_tool/build/generated')
-                .exists,
-            'usesPackageBuild',
-            true));
+        isA<PubWorkspace>()
+            .having((e) => e.usesPackageBuild, 'usesPackageBuild', true));
   }
 
   void assertPubWorkspaceFor(File file) {

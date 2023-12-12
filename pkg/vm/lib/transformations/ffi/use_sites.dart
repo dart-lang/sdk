@@ -296,25 +296,57 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             currentLibrary.nonNullable, [node.arguments.types[0]]);
         final DartType dartType = node.arguments.types[1];
 
-        ensureNativeTypeValid(nativeType, node);
-        ensureNativeTypeToDartType(nativeType, dartType, node);
         _ensureIsLeafIsConst(node);
         final isLeaf = getIsLeafBoolean(node) ?? false;
-        ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
-
+        ensureNativeTypeValid(nativeType, node);
+        ensureNativeTypeToDartType(
+          nativeType,
+          dartType,
+          node,
+          allowHandle: true, // Handle-specific errors emitted below.
+          allowTypedData: true, // TypedData-specific errors emitted below.
+        );
+        ensureLeafCallDoesNotUseHandles(
+          nativeType,
+          isLeaf,
+          reportErrorOn: node,
+        );
+        ensureOnlyLeafCallsUseTypedData(
+          node.arguments.types[0],
+          dartType,
+          isLeaf: isLeaf,
+          isCall: true,
+          reportErrorOn: node,
+        );
         return _replaceLookupFunction(node);
       } else if (target == asFunctionMethod) {
         final dartType = node.arguments.types[1];
         final InterfaceType nativeType = InterfaceType(nativeFunctionClass,
             Nullability.nonNullable, [node.arguments.types[0]]);
 
-        ensureNativeTypeValid(nativeType, node);
-        ensureNativeTypeToDartType(nativeType, dartType, node);
         _ensureIsLeafIsConst(node);
-
         final isLeaf = getIsLeafBoolean(node) ?? false;
-        ensureLeafCallDoesNotUseHandles(nativeType, isLeaf, node);
 
+        ensureNativeTypeValid(nativeType, node);
+        ensureNativeTypeToDartType(
+          nativeType,
+          dartType,
+          node,
+          allowHandle: true, // Handle-specific errors emitted below.
+          allowTypedData: true, // TypedData-specific errors emitted below.
+        );
+        ensureLeafCallDoesNotUseHandles(
+          nativeType,
+          isLeaf,
+          reportErrorOn: node,
+        );
+        ensureOnlyLeafCallsUseTypedData(
+          node.arguments.types[0],
+          dartType,
+          isLeaf: isLeaf,
+          isCall: true,
+          reportErrorOn: node,
+        );
         final DartType nativeSignature = nativeType.typeArguments[0];
 
         return buildAsFunctionInternal(
@@ -663,7 +695,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
 
     ensureNativeTypeValid(nativeType, node);
-    ensureNativeTypeToDartType(nativeType, dartType, node);
+    ensureNativeTypeToDartType(
+      nativeType,
+      dartType,
+      node,
+      allowTypedData: true, // TypedData-specific errors emitted below.
+    );
+    ensureOnlyLeafCallsUseTypedData(
+      node.arguments.types[0],
+      dartType,
+      isLeaf: false,
+      isCall: false,
+      reportErrorOn: node,
+    );
 
     final funcType = dartType as FunctionType;
 

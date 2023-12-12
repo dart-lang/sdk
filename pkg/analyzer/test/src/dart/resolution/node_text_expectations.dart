@@ -24,7 +24,7 @@ class NodeTextExpectationsCollector {
   static final assertMethods = [
     _AssertMethod(
       className: 'AnalysisContextCollectionTest',
-      methodName: '_assertContextCollectionText',
+      methodName: '_assertWorkspaceCollectionText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(

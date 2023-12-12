@@ -181,6 +181,48 @@ final a = 1;
     expect(hintsAfterChange, isNotEmpty);
   }
 
+  Future<void> test_forElement() async {
+    final content = '''
+void f() {
+  [for (var i in [1, 2]) i];
+}
+''';
+    final expected = '''
+void f() {
+  (Type:<int>)[for (var (Type:int) i in (Type:<int>)[1, 2]) i];
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_forInLoop() async {
+    final content = '''
+void f() {
+  for (var i in [1, 2]) {}
+}
+''';
+    final expected = '''
+void f() {
+  for (var (Type:int) i in (Type:<int>)[1, 2]) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_forLoop() async {
+    final content = '''
+void f() {
+  for (var i = 0; i < 1; i++) {}
+}
+''';
+    final expected = '''
+void f() {
+  for (var (Type:int) i = 0; i < 1; i++) {}
+}
+''';
+    await _expectHints(content, expected);
+  }
+
   Future<void> test_function_typeArguments() async {
     final content = '''
 void f1<T1, T2>(T1 a, T2 b) {}

@@ -1068,32 +1068,6 @@ abstract class IntegrationTest {
       StreamController<AnalysisOverridesParams>(sync: true);
 
   /// Request that completion suggestions for the given offset in the given
-  /// file be returned.
-  ///
-  /// Parameters
-  ///
-  /// file: FilePath
-  ///
-  ///   The file containing the point at which suggestions are to be made.
-  ///
-  /// offset: int
-  ///
-  ///   The offset within the file at which suggestions are to be made.
-  ///
-  /// Returns
-  ///
-  /// id: CompletionId
-  ///
-  ///   The identifier used to associate results with this completion request.
-  Future<CompletionGetSuggestionsResult> sendCompletionGetSuggestions(
-      String file, int offset) async {
-    var params = CompletionGetSuggestionsParams(file, offset).toJson();
-    var result = await server.send('completion.getSuggestions', params);
-    var decoder = ResponseDecoder(null);
-    return CompletionGetSuggestionsResult.fromJson(decoder, 'result', result);
-  }
-
-  /// Request that completion suggestions for the given offset in the given
   /// file be returned. The suggestions will be filtered using fuzzy matching
   /// with the already existing prefix.
   ///
@@ -1169,25 +1143,6 @@ abstract class IntegrationTest {
     return CompletionGetSuggestions2Result.fromJson(decoder, 'result', result);
   }
 
-  /// Subscribe for completion services. All previous subscriptions are
-  /// replaced by the given set of services.
-  ///
-  /// It is an error if any of the elements in the list are not valid services.
-  /// If there is an error, then the current subscriptions will remain
-  /// unchanged.
-  ///
-  /// Parameters
-  ///
-  /// subscriptions: List<CompletionService>
-  ///
-  ///   A list of the services being subscribed to.
-  Future<void> sendCompletionSetSubscriptions(
-      List<CompletionService> subscriptions) async {
-    var params = CompletionSetSubscriptionsParams(subscriptions).toJson();
-    var result = await server.send('completion.setSubscriptions', params);
-    outOfTestExpect(result, isNull);
-  }
-
   /// The client can make this request to express interest in certain libraries
   /// to receive completion suggestions from based on the client path. If this
   /// request is received before the client has used
@@ -1212,55 +1167,6 @@ abstract class IntegrationTest {
     var params = CompletionRegisterLibraryPathsParams(paths).toJson();
     var result = await server.send('completion.registerLibraryPaths', params);
     outOfTestExpect(result, isNull);
-  }
-
-  /// Clients must make this request when the user has selected a completion
-  /// suggestion from an AvailableSuggestionSet. Analysis server will respond
-  /// with the text to insert as well as any SourceChange that needs to be
-  /// applied in case the completion requires an additional import to be added.
-  /// It is an error if the id is no longer valid, for instance if the library
-  /// has been removed after the completion suggestion is accepted.
-  ///
-  /// Parameters
-  ///
-  /// file: FilePath
-  ///
-  ///   The path of the file into which this completion is being inserted.
-  ///
-  /// id: int
-  ///
-  ///   The identifier of the AvailableSuggestionSet containing the selected
-  ///   label.
-  ///
-  /// label: String
-  ///
-  ///   The label from the AvailableSuggestionSet with the `id` for which
-  ///   insertion information is requested.
-  ///
-  /// offset: int
-  ///
-  ///   The offset in the file where the completion will be inserted.
-  ///
-  /// Returns
-  ///
-  /// completion: String
-  ///
-  ///   The full text to insert, including any optional import prefix.
-  ///
-  /// change: SourceChange (optional)
-  ///
-  ///   A change for the client to apply in case the library containing the
-  ///   accepted completion suggestion needs to be imported. The field will be
-  ///   omitted if there are no additional changes that need to be made.
-  Future<CompletionGetSuggestionDetailsResult>
-      sendCompletionGetSuggestionDetails(
-          String file, int id, String label, int offset) async {
-    var params =
-        CompletionGetSuggestionDetailsParams(file, id, label, offset).toJson();
-    var result = await server.send('completion.getSuggestionDetails', params);
-    var decoder = ResponseDecoder(null);
-    return CompletionGetSuggestionDetailsResult.fromJson(
-        decoder, 'result', result);
   }
 
   /// Clients must make this request when the user has selected a completion
@@ -1317,108 +1223,6 @@ abstract class IntegrationTest {
     return CompletionGetSuggestionDetails2Result.fromJson(
         decoder, 'result', result);
   }
-
-  /// Reports the completion suggestions that should be presented to the user.
-  /// The set of suggestions included in the notification is always a complete
-  /// list that supersedes any previously reported suggestions.
-  ///
-  /// Parameters
-  ///
-  /// id: CompletionId
-  ///
-  ///   The id associated with the completion.
-  ///
-  /// replacementOffset: int
-  ///
-  ///   The offset of the start of the text to be replaced. This will be
-  ///   different than the offset used to request the completion suggestions if
-  ///   there was a portion of an identifier before the original offset. In
-  ///   particular, the replacementOffset will be the offset of the beginning
-  ///   of said identifier.
-  ///
-  /// replacementLength: int
-  ///
-  ///   The length of the text to be replaced if the remainder of the
-  ///   identifier containing the cursor is to be replaced when the suggestion
-  ///   is applied (that is, the number of characters in the existing
-  ///   identifier).
-  ///
-  /// results: List<CompletionSuggestion>
-  ///
-  ///   The completion suggestions being reported. The notification contains
-  ///   all possible completions at the requested cursor position, even those
-  ///   that do not match the characters the user has already typed. This
-  ///   allows the client to respond to further keystrokes from the user
-  ///   without having to make additional requests.
-  ///
-  /// isLast: bool
-  ///
-  ///   True if this is that last set of results that will be returned for the
-  ///   indicated completion.
-  ///
-  /// libraryFile: FilePath (optional)
-  ///
-  ///   The library file that contains the file where completion was requested.
-  ///   The client might use it for example together with the existingImports
-  ///   notification to filter out available suggestions. If there were changes
-  ///   to existing imports in the library, the corresponding existingImports
-  ///   notification will be sent before the completion notification.
-  ///
-  /// includedSuggestionSets: List<IncludedSuggestionSet> (optional)
-  ///
-  ///   References to AvailableSuggestionSet objects previously sent to the
-  ///   client. The client can include applicable names from the referenced
-  ///   library in code completion suggestions.
-  ///
-  /// includedElementKinds: List<ElementKind> (optional)
-  ///
-  ///   The client is expected to check this list against the ElementKind sent
-  ///   in IncludedSuggestionSet to decide whether or not these symbols should
-  ///   be presented to the user.
-  ///
-  /// includedSuggestionRelevanceTags: List<IncludedSuggestionRelevanceTag>
-  /// (optional)
-  ///
-  ///   The client is expected to check this list against the values of the
-  ///   field relevanceTags of AvailableSuggestion to decide if the suggestion
-  ///   should be given a different relevance than the IncludedSuggestionSet
-  ///   that contains it. This might be used for example to give higher
-  ///   relevance to suggestions of matching types.
-  ///
-  ///   If an AvailableSuggestion has relevance tags that match more than one
-  ///   IncludedSuggestionRelevanceTag, the maximum relevance boost is used.
-  late final Stream<CompletionResultsParams> onCompletionResults =
-      _onCompletionResults.stream.asBroadcastStream();
-
-  /// Stream controller for [onCompletionResults].
-  final _onCompletionResults =
-      StreamController<CompletionResultsParams>(sync: true);
-
-  /// Reports the pre-computed, candidate completions from symbols defined in a
-  /// corresponding library. This notification may be sent multiple times. When
-  /// a notification is processed, clients should replace any previous
-  /// information about the libraries in the list of changedLibraries, discard
-  /// any information about the libraries in the list of removedLibraries, and
-  /// preserve any previously received information about any libraries that are
-  /// not included in either list.
-  ///
-  /// Parameters
-  ///
-  /// changedLibraries: List<AvailableSuggestionSet> (optional)
-  ///
-  ///   A list of pre-computed, potential completions coming from this set of
-  ///   completion suggestions.
-  ///
-  /// removedLibraries: List<int> (optional)
-  ///
-  ///   A list of library ids that no longer apply.
-  late final Stream<CompletionAvailableSuggestionsParams>
-      onCompletionAvailableSuggestions =
-      _onCompletionAvailableSuggestions.stream.asBroadcastStream();
-
-  /// Stream controller for [onCompletionAvailableSuggestions].
-  final _onCompletionAvailableSuggestions =
-      StreamController<CompletionAvailableSuggestionsParams>(sync: true);
 
   /// Reports existing imports in a library. This notification may be sent
   /// multiple times for a library. When a notification is processed, clients
@@ -2829,15 +2633,6 @@ abstract class IntegrationTest {
         outOfTestExpect(params, isAnalysisOverridesParams);
         _onAnalysisOverrides
             .add(AnalysisOverridesParams.fromJson(decoder, 'params', params));
-      case 'completion.results':
-        outOfTestExpect(params, isCompletionResultsParams);
-        _onCompletionResults
-            .add(CompletionResultsParams.fromJson(decoder, 'params', params));
-      case 'completion.availableSuggestions':
-        outOfTestExpect(params, isCompletionAvailableSuggestionsParams);
-        _onCompletionAvailableSuggestions.add(
-            CompletionAvailableSuggestionsParams.fromJson(
-                decoder, 'params', params));
       case 'completion.existingImports':
         outOfTestExpect(params, isCompletionExistingImportsParams);
         _onCompletionExistingImports.add(

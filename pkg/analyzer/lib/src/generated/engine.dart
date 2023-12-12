@@ -166,6 +166,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   Uint32List? _signatureForElements;
 
   @override
+  @Deprecated('Use `PubWorkspacePackage.sdkVersionConstraint` instead')
   VersionConstraint? sdkVersionConstraint;
 
   /// The constraint on the language version for every Dart file.
@@ -265,6 +266,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       strictInference = options.strictInference;
       strictRawTypes = options.strictRawTypes;
     }
+    // ignore: deprecated_member_use_from_same_package
     sdkVersionConstraint = options.sdkVersionConstraint;
   }
 
@@ -319,7 +321,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       ApiSignature buffer = ApiSignature();
 
       // Append environment.
+      // TODO(pq): remove
+      // ignore: deprecated_member_use_from_same_package
       if (sdkVersionConstraint != null) {
+        // ignore: deprecated_member_use_from_same_package
         buffer.addString(sdkVersionConstraint.toString());
       }
 

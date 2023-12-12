@@ -101,6 +101,15 @@ class SharedCompilerOptions {
   /// runtime types in the compiled application.
   final bool printLegacyStars = false;
 
+  /// Raw precompiled macro options, each of the format
+  /// `<program-uri>;<macro-library-uri>`.
+  ///
+  /// Multiple library URIs may be provided separated by additional semicolons.
+  final List<String> precompiledMacros;
+
+  /// The serialization mode to use for macro communication.
+  final String? macroSerializationMode;
+
   SharedCompilerOptions(
       {this.sourceMap = true,
       this.inlineSourceMap = false,
@@ -117,7 +126,9 @@ class SharedCompilerOptions {
       this.multiRootOutputPath,
       this.experiments = const {},
       this.soundNullSafety = true,
-      this.canaryFeatures = false})
+      this.canaryFeatures = false,
+      this.precompiledMacros = const [],
+      this.macroSerializationMode})
       : // Current canary features.
         newRuntimeTypes = canaryFeatures;
 
@@ -141,7 +152,10 @@ class SharedCompilerOptions {
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
             soundNullSafety: args['sound-null-safety'] as bool,
-            canaryFeatures: args['canary'] as bool);
+            canaryFeatures: args['canary'] as bool,
+            precompiledMacros: args['precompiled-macro'] as List<String>,
+            macroSerializationMode:
+                args['macro-serialization-mode'] as String?);
 
   SharedCompilerOptions.fromSdkRequiredArguments(ArgResults args)
       : this(
@@ -197,7 +211,20 @@ class SharedCompilerOptions {
               'Output a full kernel file for currently compiled module next to '
               'the .js output.',
           defaultsTo: false,
-          hide: true);
+          hide: true)
+      ..addMultiOption('precompiled-macro',
+          help:
+              'Configuration for precompiled macro binaries or kernel files.\n'
+              'The expected format of this option is as follows: '
+              '<absolute-path-to-binary>;<macro-library-uri>\nFor example: '
+              '--precompiled-macro="/path/to/compiled/macro;'
+              'package:some_macro/some_macro.dart". Multiple library uris may be '
+              'passed as well (separated by semicolons).',
+          hide: true)
+      ..addOption('macro-serialization-mode',
+          help: 'The serialization mode for communicating with macros.',
+          allowed: ['bytedata', 'json'],
+          defaultsTo: 'bytedata');
   }
 
   /// Adds only the arguments used to compile the SDK from a full dill file.

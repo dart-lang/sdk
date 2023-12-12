@@ -173,15 +173,6 @@ class Linker {
       },
     );
 
-    await performance.runAsync(
-      'executeMacroDefinitionsPhase',
-      (performance) async {
-        await _executeMacroDefinitionsPhase(
-          performance: performance,
-        );
-      },
-    );
-
     _buildClassSyntheticConstructors();
     _resolveConstructorFieldFormals();
     _buildEnumChildren();
@@ -192,6 +183,17 @@ class Linker {
     _resolveConstantInitializers();
     _resolveDefaultValues();
     _resolveMetadata();
+
+    // TODO(scheglov): verify if any resolutions should happen after
+    await performance.runAsync(
+      'executeMacroDefinitionsPhase',
+      (performance) async {
+        await _executeMacroDefinitionsPhase(
+          performance: performance,
+        );
+      },
+    );
+
     _collectMixinSuperInvokedNames();
     _buildElementNameUnions();
     _detachNodes();

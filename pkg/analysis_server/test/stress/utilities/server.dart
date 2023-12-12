@@ -390,11 +390,6 @@ class Server {
     _send('analysis.updateOptions', params);
   }
 
-  void sendCompletionGetSuggestions(String file, int offset) {
-    var params = CompletionGetSuggestionsParams(file, offset).toJson();
-    _send('completion.getSuggestions', params);
-  }
-
   RequestData sendDiagnosticGetDiagnostics() {
     return _send('diagnostic.getDiagnostics', null);
   }

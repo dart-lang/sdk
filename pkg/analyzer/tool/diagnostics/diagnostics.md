@@ -1918,6 +1918,90 @@ extension [!mixin!] on int {}
 
 Choose a different name for the declaration.
 
+### callback_must_not_use_typed_data
+
+_FFI callbacks can't take typed data arguments or return value._
+
+#### Description
+
+The analyzer produces this diagnostic when an invocation of
+`Pointer.fromFunction`, one of`NativeCallable`'s constructors has a
+typed data argument or return value."
+
+Typed data unwrapping is only supported on arguments for leaf FFI calls.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Example
+
+The following code produces this diagnostic because the parameter type
+of `g` is a typed data.
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+import 'dart:typed_data';
+
+void f(Uint8List i) {}
+
+void g() {
+  Pointer.fromFunction<Void Function(Pointer<Uint8>)>([!f!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use the `Pointer` type instead:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+void f(Pointer<Uint8> i) {}
+
+void g() {
+  Pointer.fromFunction<Void Function(Pointer<Uint8>)>(f);
+}
+{% endprettify %}
+
+### call_must_not_return_typed_data
+
+_FFI calls can't return typed data._
+
+#### Description
+
+The analyzer produces this diagnostic when the return type of
+`Pointer.asFunction`, `DynamicLibrary.lookupFunction`, or
+`@Native` is a typed data.
+
+Typed data unwrapping is only supported on arguments for leaf FFI calls.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Example
+
+The following code produces this diagnostic because the dart function
+signature contains a typed data, but the `isLeaf` argument is `false`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+import 'dart:typed_data';
+
+void f(Pointer<NativeFunction<Pointer<Uint8> Function()>> p) {
+  p.asFunction<[!Uint8List Function()!]>();
+}
+{% endprettify %}
+
+#### Common fixes
+
+Use the `Pointer` type instead:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+void f(Pointer<NativeFunction<Pointer<Uint8> Function()>> p) {
+  p.asFunction<Pointer<Uint8> Function()>();
+}
+{% endprettify %}
+
 ### case_block_not_terminated
 
 _The last statement of the 'case' should be 'break', 'continue', 'rethrow',
@@ -15166,6 +15250,52 @@ class A {
 
 class B implements A {}
 {% endprettify %}
+
+### non_leaf_call_must_not_take_typed_data
+
+_FFI non-leaf calls can't take typed data arguments._
+
+#### Description
+
+The analyzer produces this diagnostic when the value of the `isLeaf`
+argument of `Pointer.asFunction`, `DynamicLibrary.lookupFunction`, or
+`@Native` is `false` and the Dart function signature contains a typed
+data parameter.
+
+Typed data unwrapping is only supported on arguments for leaf FFI calls.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Example
+
+The following code produces this diagnostic because the dart function
+signature contains a typed data, but the `isLeaf` argument is `false`:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+import 'dart:typed_data';
+
+void f(Pointer<NativeFunction<Void Function(Pointer<Uint8>)>> p) {
+  p.asFunction<[!void Function(Uint8List)!]>();
+}
+{% endprettify %}
+
+#### Common fixes
+
+If the function has at least one typed data parameter, then add
+the `isLeaf` argument:
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+import 'dart:typed_data';
+
+void f(Pointer<NativeFunction<Void Function(Pointer<Uint8>)>> p) {
+  p.asFunction<void Function(Uint8List)>(isLeaf: true);
+}
+{% endprettify %}
+
+If the function also uses `Handle`s, then it must be non-leaf. In That
+case use `Pointer`s instead of typed data.
 
 ### non_native_function_type_argument_to_pointer
 

@@ -14,6 +14,8 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:collection/collection.dart';
@@ -103,6 +105,24 @@ class DeclarationBuilder {
     throw UnimplementedError('${node.runtimeType}');
   }
 
+  macro.TypeAnnotation inferOmittedType(
+    macro.OmittedTypeAnnotation omittedType,
+  ) {
+    switch (omittedType) {
+      case _OmittedTypeAnnotationDynamic():
+        final type = DynamicTypeImpl.instance;
+        return fromElement._dartType(type);
+      case _OmittedTypeAnnotationMethodReturnType():
+        final type = omittedType.element.returnType;
+        return fromElement._dartType(type);
+      case _OmittedTypeAnnotationVariable():
+        final type = omittedType.element.type;
+        return fromElement._dartType(type);
+      default:
+        throw UnimplementedError('${omittedType.runtimeType}');
+    }
+  }
+
   macro.ResolvedIdentifier resolveIdentifier(macro.Identifier identifier) {
     if (identifier is _VoidIdentifierImpl) {
       return macro.ResolvedIdentifier(
@@ -116,6 +136,13 @@ class DeclarationBuilder {
     identifier as IdentifierImpl;
     final element = identifier.element;
     switch (element) {
+      case DynamicElementImpl():
+        return macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.topLevelMember,
+          name: 'dynamic',
+          uri: Uri.parse('dart:core'),
+          staticScope: null,
+        );
       case FieldElement():
         if (element.isStatic) {
           return macro.ResolvedIdentifier(
@@ -149,6 +176,28 @@ class DeclarationBuilder {
       default:
         // TODO(scheglov): other elements
         throw UnimplementedError('${element.runtimeType}');
+    }
+  }
+
+  DartType resolveType(macro.TypeAnnotationCode typeCode) {
+    switch (typeCode) {
+      case macro.NullableTypeAnnotationCode():
+        final type = resolveType(typeCode.underlyingType);
+        type as TypeImpl;
+        return type.withNullability(NullabilitySuffix.question);
+      case macro.FunctionTypeAnnotationCode():
+        return _resolveTypeCodeFunction(typeCode);
+      case macro.NamedTypeAnnotationCode():
+        return _resolveTypeCodeNamed(typeCode);
+      case macro.OmittedTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+      case macro.RawTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+      case macro.RecordTypeAnnotationCode():
+        // TODO(scheglov): implement
+        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
     }
   }
 
@@ -245,6 +294,78 @@ class DeclarationBuilder {
         id: macro.RemoteInstance.uniqueId,
         identifier: identifierMacro,
       );
+    }
+  }
+
+  FunctionTypeImpl _resolveTypeCodeFunction(
+    macro.FunctionTypeAnnotationCode typeCode,
+  ) {
+    ParameterElementImpl buildFormalParameter(
+      macro.ParameterCode e,
+      ParameterKind Function(macro.ParameterCode) getKind,
+    ) {
+      final element = ParameterElementImpl(
+        name: e.name,
+        nameOffset: -1,
+        parameterKind: getKind(e),
+      );
+      element.type = switch (e.type) {
+        final type? => resolveType(type),
+        _ => DynamicTypeImpl.instance,
+      };
+      return element;
+    }
+
+    return FunctionTypeImpl(
+      typeFormals: typeCode.typeParameters
+          .map((e) => TypeParameterElementImpl(e.name, -1))
+          .toList(),
+      parameters: [
+        ...typeCode.positionalParameters.map((e) {
+          return buildFormalParameter(e, (e) {
+            // TODO(scheglov): this code does not actually work.
+            return e.keywords.contains('required')
+                ? ParameterKind.REQUIRED
+                : ParameterKind.POSITIONAL;
+          });
+        }),
+        ...typeCode.namedParameters.map((e) {
+          return buildFormalParameter(e, (e) {
+            return e.keywords.contains('required')
+                ? ParameterKind.NAMED_REQUIRED
+                : ParameterKind.NAMED;
+          });
+        }),
+      ],
+      returnType: switch (typeCode.returnType) {
+        final returnType? => resolveType(returnType),
+        _ => DynamicTypeImpl.instance,
+      },
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  DartType _resolveTypeCodeNamed(macro.NamedTypeAnnotationCode typeCode) {
+    final identifier = typeCode.name as IdentifierImpl;
+    if (identifier is _VoidIdentifierImpl) {
+      return VoidTypeImpl.instance;
+    }
+
+    final element = identifier.element;
+    switch (element) {
+      case DynamicElementImpl():
+        return DynamicTypeImpl.instance;
+      case InterfaceElementImpl():
+        return element.instantiate(
+          typeArguments: typeCode.typeArguments.map(resolveType).toList(),
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      case TypeParameterElementImpl():
+        return element.instantiate(
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      default:
+        throw UnimplementedError('(${element.runtimeType}) $element');
     }
   }
 
@@ -398,6 +519,13 @@ class DeclarationBuilderFromElement {
 
   macro.TypeAnnotationImpl _dartType(DartType type) {
     switch (type) {
+      case DynamicType():
+        return macro.NamedTypeAnnotationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          isNullable: false,
+          identifier: identifier(DynamicElementImpl.instance),
+          typeArguments: const [],
+        );
       case InterfaceType():
         return _interfaceType(type);
       case TypeParameterType():
@@ -659,7 +787,7 @@ class DeclarationBuilderFromNode {
       isSetter: node.isSetter,
       namedParameters: _namedFormalParameters(function.parameters),
       positionalParameters: _positionalFormalParameters(function.parameters),
-      returnType: _typeAnnotation(node.returnType),
+      returnType: _typeAnnotationOrDynamic(node.returnType),
       typeParameters: _typeParameters(function.typeParameters),
     );
   }
@@ -756,7 +884,7 @@ class DeclarationBuilderFromNode {
           hasExternal: variablesDeclaration.externalKeyword != null,
           hasFinal: element.isFinal,
           hasLate: element.isLate,
-          type: _typeAnnotation(variableList.type),
+          type: _typeAnnotationVariable(variableList.type, element),
           definingType: _definingType(variablesDeclaration),
           isStatic: element.isStatic,
           element: element,
@@ -819,14 +947,14 @@ class DeclarationBuilderFromNode {
       node = node.parameter;
     }
 
+    final element = node.declaredElement!;
+
     final macro.TypeAnnotationImpl typeAnnotation;
     if (node is ast.SimpleFormalParameter) {
-      typeAnnotation = _typeAnnotation(node.type);
+      typeAnnotation = _typeAnnotationVariable(node.type, element);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
-
-    final element = node.declaredElement!;
 
     return macro.ParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
@@ -850,7 +978,7 @@ class DeclarationBuilderFromNode {
 
     final macro.TypeAnnotationImpl typeAnnotation;
     if (node is ast.SimpleFormalParameter) {
-      typeAnnotation = _typeAnnotation(node.type);
+      typeAnnotation = _typeAnnotationOrDynamic(node.type);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');
     }
@@ -886,7 +1014,7 @@ class DeclarationBuilderFromNode {
       isStatic: node.isStatic,
       namedParameters: _namedFormalParameters(node.parameters),
       positionalParameters: _positionalFormalParameters(node.parameters),
-      returnType: _typeAnnotation(node.returnType),
+      returnType: _typeAnnotationMethodReturnType(node),
       typeParameters: _typeParameters(node.typeParameters),
     );
   }
@@ -948,12 +1076,8 @@ class DeclarationBuilderFromNode {
     }
   }
 
-  macro.TypeAnnotationImpl _typeAnnotation(ast.TypeAnnotation? node) {
+  macro.TypeAnnotationImpl _typeAnnotation(ast.TypeAnnotation node) {
     switch (node) {
-      case null:
-        return macro.OmittedTypeAnnotationImpl(
-          id: macro.RemoteInstance.uniqueId,
-        );
       case ast.GenericFunctionType():
         return macro.FunctionTypeAnnotationImpl(
           id: macro.RemoteInstance.uniqueId,
@@ -966,7 +1090,7 @@ class DeclarationBuilderFromNode {
               .where((e) => e.isPositional)
               .map(_functionTypeFormalParameter)
               .toList(),
-          returnType: _typeAnnotation(node.returnType),
+          returnType: _typeAnnotationOrDynamic(node.returnType),
           typeParameters: _typeParameters(node.typeParameters),
         );
       case ast.NamedType():
@@ -974,6 +1098,24 @@ class DeclarationBuilderFromNode {
       default:
         throw UnimplementedError('(${node.runtimeType}) $node');
     }
+  }
+
+  macro.TypeAnnotationImpl _typeAnnotationMethodReturnType(
+    ast.MethodDeclaration node,
+  ) {
+    final returnType = node.returnType;
+    if (returnType == null) {
+      final element = node.declaredElement!;
+      return _OmittedTypeAnnotationMethodReturnType(element);
+    }
+    return _typeAnnotation(returnType);
+  }
+
+  macro.TypeAnnotationImpl _typeAnnotationOrDynamic(ast.TypeAnnotation? node) {
+    if (node == null) {
+      return _OmittedTypeAnnotationDynamic();
+    }
+    return _typeAnnotation(node);
   }
 
   List<macro.TypeAnnotationImpl> _typeAnnotations(
@@ -985,6 +1127,16 @@ class DeclarationBuilderFromNode {
     } else {
       return const [];
     }
+  }
+
+  macro.TypeAnnotationImpl _typeAnnotationVariable(
+    ast.TypeAnnotation? type,
+    VariableElement element,
+  ) {
+    if (type == null) {
+      return _OmittedTypeAnnotationVariable(element);
+    }
+    return _typeAnnotation(type);
   }
 
   macro.TypeParameterDeclarationImpl _typeParameter(
@@ -1214,6 +1366,29 @@ class _NamedTypeIdentifierImpl extends IdentifierImpl {
 
   @override
   Element? get element => node.element;
+}
+
+sealed class _OmittedTypeAnnotation extends macro.OmittedTypeAnnotationImpl {
+  _OmittedTypeAnnotation()
+      : super(
+          id: macro.RemoteInstance.uniqueId,
+        );
+}
+
+class _OmittedTypeAnnotationDynamic extends _OmittedTypeAnnotation {
+  _OmittedTypeAnnotationDynamic();
+}
+
+class _OmittedTypeAnnotationMethodReturnType extends _OmittedTypeAnnotation {
+  final ExecutableElement element;
+
+  _OmittedTypeAnnotationMethodReturnType(this.element);
+}
+
+class _OmittedTypeAnnotationVariable extends _OmittedTypeAnnotation {
+  final VariableElement element;
+
+  _OmittedTypeAnnotationVariable(this.element);
 }
 
 class _VoidIdentifierImpl extends IdentifierImpl {

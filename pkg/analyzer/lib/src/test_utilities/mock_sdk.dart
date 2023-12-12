@@ -1378,6 +1378,10 @@ final MockSdkLibrary _LIB_TYPED_DATA = MockSdkLibrary(
       '''
 library dart.typed_data;
 
+abstract final class Uint8List {
+  external factory Uint8List(int length);
+}
+
 abstract final class Int8List {
   external factory Int8List(int length);
 }

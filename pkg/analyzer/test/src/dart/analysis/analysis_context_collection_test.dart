@@ -224,6 +224,33 @@ class AnalysisContextCollectionTest with ResourceProviderMixin {
     registerLintRules();
   }
 
+  test_basicWorkspace() async {
+    final workspaceRootPath = '/home';
+    final testPackageRootPath = '$workspaceRootPath/test';
+
+    newSinglePackageConfigJsonFile(
+      packagePath: testPackageRootPath,
+      name: 'test',
+    );
+
+    newFile('$testPackageRootPath/lib/a.dart', '');
+
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        uri: package:test/a.dart
+        workspacePackage_0_0
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home/test
+    workspacePackage_0_0
+''');
+  }
+
   test_pubWorkspace_multipleAnalysisOptions() async {
     final workspaceRootPath = '/home';
     final testPackageRootPath = '$workspaceRootPath/test';
@@ -245,15 +272,7 @@ name: test
     newAnalysisOptionsYamlFile(nestedPath, '');
     newFile('$nestedPath/b.dart', '');
 
-    final contextCollection = AnalysisContextCollectionImpl(
-      resourceProvider: resourceProvider,
-      sdkPath: sdkRoot.path,
-      includedPaths: [
-        getFolder(workspaceRootPath).path,
-      ],
-    );
-
-    _assertContextCollectionText(contextCollection, r'''
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
   /home/test
     optionsFile: /home/test/analysis_options.yaml
@@ -311,15 +330,7 @@ name: nested
     );
     newFile('$nestedPackageRootPath/lib/b.dart', '');
 
-    final contextCollection = AnalysisContextCollectionImpl(
-      resourceProvider: resourceProvider,
-      sdkPath: sdkRoot.path,
-      includedPaths: [
-        getFolder(workspaceRootPath).path,
-      ],
-    );
-
-    _assertContextCollectionText(contextCollection, r'''
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
   /home/test
     packagesFile: /home/test/.dart_tool/package_config.json
@@ -365,15 +376,7 @@ environment:
 
     newFile('$testPackageRootPath/lib/a.dart', '');
 
-    final contextCollection = AnalysisContextCollectionImpl(
-      resourceProvider: resourceProvider,
-      sdkPath: sdkRoot.path,
-      includedPaths: [
-        getFolder(workspaceRootPath).path,
-      ],
-    );
-
-    _assertContextCollectionText(contextCollection, r'''
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
   /home/test
     packagesFile: /home/test/.dart_tool/package_config.json
@@ -410,15 +413,7 @@ name: test
 
     newFile('$testPackageLibPath/a.dart', '');
 
-    final contextCollection = AnalysisContextCollectionImpl(
-      resourceProvider: resourceProvider,
-      sdkPath: sdkRoot.path,
-      includedPaths: [
-        getFolder(workspaceRootPath).path,
-      ],
-    );
-
-    _assertContextCollectionText(contextCollection, r'''
+    _assertWorkspaceCollectionText(workspaceRootPath, r'''
 contexts
   /home/test
     optionsFile: /home/test/analysis_options.yaml
@@ -437,17 +432,34 @@ workspaces
 ''');
   }
 
-  void _assertContextCollectionText(
-    AnalysisContextCollectionImpl contextCollection,
+  void _assertCollectionText(
+    AnalysisContextCollectionImpl collection,
     String expected,
   ) {
-    final actual = _getContextCollectionText(contextCollection);
+    final actual = _getContextCollectionText(collection);
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
+  }
+
+  /// Asserts the text of a context collection created for a single included
+  /// workspace path, without any excludes.
+  void _assertWorkspaceCollectionText(
+    String workspaceRootPath,
+    String expected,
+  ) {
+    final collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        getFolder(workspaceRootPath).path,
+      ],
+    );
+
+    _assertCollectionText(collection, expected);
   }
 
   String _getContextCollectionText(
@@ -575,6 +587,9 @@ class _AnalysisContextCollectionPrinter {
         sink.withIndent(() {
           final root = resourceProvider.getFolder(workspace.root);
           sink.writelnWithIndent('root: ${root.posixPath}');
+          sink.writelnWithIndent(
+            _idOfWorkspacePackage(workspace.theOnlyPackage),
+          );
         });
       case PubWorkspace():
         sink.writelnWithIndent('$id: PubWorkspace');

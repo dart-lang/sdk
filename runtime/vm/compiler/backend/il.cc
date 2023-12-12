@@ -6290,7 +6290,6 @@ void DoubleToIntegerSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Jump(exit_label());
 }
 
-
 void UnboxInstr::EmitLoadFromBoxWithDeopt(FlowGraphCompiler* compiler) {
   const intptr_t box_cid = BoxCid();
   ASSERT(box_cid != kSmiCid);  // Should never reach here with Smi-able ints.
@@ -7298,7 +7297,7 @@ Representation FfiCallInstr::RequiredInputRepresentation(intptr_t idx) const {
   } else if (idx == TargetAddressIndex()) {
     return kUnboxedFfiIntPtr;
   } else {
-    ASSERT(idx == TypedDataIndex());
+    ASSERT(idx == CompoundReturnTypedDataIndex());
     return kTagged;
   }
 }
@@ -7342,8 +7341,8 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
     summary->set_in(i, marshaller_.LocInFfiCall(i));
   }
 
-  if (marshaller_.PassTypedData()) {
-    summary->set_in(TypedDataIndex(), Location::Any());
+  if (marshaller_.ReturnsCompound()) {
+    summary->set_in(CompoundReturnTypedDataIndex(), Location::Any());
     // We don't care about return location, but we need to pass a register.
     summary->set_out(
         0, Location::RegisterLocation(CallingConventions::kReturnReg));
@@ -7398,7 +7397,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
     // FfiCall to the right native location based on calling convention.
     for (intptr_t i = 0; i < num_defs; i++) {
       __ Comment("  def_index %" Pd, def_index);
-      const Location origin = rebase.Rebase(locs()->in(def_index));
+      Location origin = rebase.Rebase(locs()->in(def_index));
       const Representation origin_rep =
           RequiredInputRepresentation(def_index) == kTagged
               ? kUnboxedFfiIntPtr  // When arg_target.IsPointerToMemory().
@@ -7417,18 +7416,18 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
         __ Comment("origin.IsConstant()");
-        if (marshaller_.IsHandle(arg_index)) {
-          UNIMPLEMENTED();
-        } else {
-          compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
-        }
+        ASSERT(!marshaller_.IsHandle(arg_index));
+        ASSERT(!marshaller_.IsTypedData(arg_index));
+        compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
       } else if (origin.IsPairLocation() &&
                  (origin.AsPairLocation()->At(0).IsConstant() ||
                   origin.AsPairLocation()->At(1).IsConstant())) {
+        ASSERT(!marshaller_.IsTypedData(arg_index));
         // Note: half of the pair can be constant.
         __ Comment("origin.IsPairLocation() and constant");
         compiler->EmitMoveConst(def_target, origin, origin_rep, &temp_alloc);
       } else if (marshaller_.IsHandle(arg_index)) {
+        ASSERT(!marshaller_.IsTypedData(arg_index));
         __ Comment("marshaller_.IsHandle(arg_index)");
         // Handles are passed into FfiCalls as Tagged values on the stack, and
         // then we pass pointers to these handles to the native function here.
@@ -7467,6 +7466,20 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                  marshaller_.RequiredStackSpaceInBytes());
         }
 #endif
+        if (marshaller_.IsTypedData(arg_index)) {
+          // Unwrap typed data before move to native location.
+          __ Comment("marshaller_.IsTypedData(arg_index)");
+          if (origin.IsStackSlot()) {
+            compiler->EmitMove(Location::RegisterLocation(temp0), origin,
+                               &temp_alloc);
+            origin = Location::RegisterLocation(temp0);
+          }
+          ASSERT(origin.IsRegister());
+          __ LoadField(
+              origin.reg(),
+              compiler::FieldAddress(
+                  origin.reg(), compiler::target::PointerBase::data_offset()));
+        }
         compiler->EmitMoveToNative(def_target, origin, origin_rep, &temp_alloc);
       }
       def_index++;
@@ -7533,10 +7546,10 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
   } else if (returnLocation.IsPointerToMemory() ||
              returnLocation.IsMultiple()) {
     ASSERT(returnLocation.payload_type().IsCompound());
-    ASSERT(marshaller_.PassTypedData());
+    ASSERT(marshaller_.ReturnsCompound());
 
     // Get the typed data pointer which we have pinned to a stack slot.
-    const Location typed_data_loc = locs()->in(TypedDataIndex());
+    const Location typed_data_loc = locs()->in(CompoundReturnTypedDataIndex());
     if (typed_data_loc.IsStackSlot()) {
       ASSERT(typed_data_loc.base_reg() == FPREG);
       // If this is a leaf call there is no extra call frame to step through.
@@ -7561,7 +7574,7 @@ void FfiCallInstr::EmitReturnMoves(FlowGraphCompiler* compiler,
       // TypedData in IL.
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(compiler::ffi::kResultIndex);
-      for (intptr_t i = 0; i < marshaller_.TypedDataSizeInBytes();
+      for (intptr_t i = 0; i < marshaller_.CompoundReturnSizeInBytes();
            i += compiler::target::kWordSize) {
         __ LoadMemoryValue(temp1, SPREG, i + sp_offset);
         __ StoreMemoryValue(temp1, temp0, i);
@@ -7906,7 +7919,7 @@ void RecordCoverageInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #undef Z
 
 Representation FfiCallInstr::representation() const {
-  if (marshaller_.PassTypedData()) {
+  if (marshaller_.ReturnsCompound()) {
     // Don't care, we're discarding the value.
     return kTagged;
   }

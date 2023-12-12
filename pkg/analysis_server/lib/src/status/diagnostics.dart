@@ -1544,16 +1544,6 @@ class SubscriptionsPage extends DiagnosticPageWithNav {
         buf.write('$item');
       });
     }
-
-    // completion domain
-    h3('Completion domain subscriptions');
-    ul(CompletionService.VALUES, (service) {
-      if (server.completionState.subscriptions.contains(service)) {
-        buf.write('$service (has subscriptions)');
-      } else {
-        buf.write('$service (no subscriptions)');
-      }
-    });
   }
 }
 

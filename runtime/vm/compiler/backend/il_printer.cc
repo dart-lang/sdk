@@ -1380,9 +1380,9 @@ void NativeEntryInstr::PrintTo(BaseTextBuffer* f) const {
 void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString(" pointer=");
   InputAt(TargetAddressIndex())->PrintTo(f);
-  if (marshaller_.PassTypedData()) {
-    f->AddString(", typed_data=");
-    InputAt(TypedDataIndex())->PrintTo(f);
+  if (marshaller_.ReturnsCompound()) {
+    f->AddString(", compound_return_typed_data=");
+    InputAt(CompoundReturnTypedDataIndex())->PrintTo(f);
   }
   intptr_t def_index = 0;
   for (intptr_t arg_index = 0; arg_index < marshaller_.num_args();

@@ -14,7 +14,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -72,10 +72,12 @@ class DartFixPromptManager {
   Map<String, List<String?>> get currentContextSdkConstraints {
     final constraintMap = <String, List<String?>>{};
     for (final context in server.contextManager.analysisContexts) {
-      var sdkConstraints = (context as DriverBasedAnalysisContext)
-          .allAnalysisOptions
-          .map((o) => o.sdkVersionConstraint?.toString())
-          .toList();
+      final workspace = context.contextRoot.workspace;
+      final sdkConstraints = workspace is PubWorkspace
+          ? workspace.pubPackages
+              .map((p) => p.sdkVersionConstraint?.toString())
+              .toList()
+          : <String>[];
       constraintMap[context.contextRoot.root.path] = sdkConstraints;
     }
     return constraintMap;

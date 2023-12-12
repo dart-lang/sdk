@@ -71,6 +71,10 @@
   `JSObject.fromInteropObject`. Going forward, it's recommended to use extension
   types to define interop APIs. Those extension types can still implement JS
   types.
+- **JSArray and JSPromise generics**: `JSArray` and `JSPromise` are now generic
+  types whose type parameter is a subtype of `JSAny?`. Conversions to and from
+  these types are changed to account for the type parameters of the Dart or JS
+  type, respectively.
 
 [#52687]: https://github.com/dart-lang/sdk/issues/52687
 

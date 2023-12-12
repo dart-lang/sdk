@@ -43,6 +43,9 @@ external JSExportedDartFunction edf;
 @JS()
 external JSArray arr;
 
+@JS('arr')
+external JSArray<JSNumber> arrN;
+
 @JS()
 external JSBoxedDartObject edo;
 
@@ -179,12 +182,45 @@ void syncTests() {
   Expect.throws(() => edo.toJSBox);
 
   // [JSArray] <-> [List<JSAny?>]
-  arr = [1.0.toJS, 'foo'.toJS].toJS;
+  final list = <JSAny?>[1.0.toJS, 'foo'.toJS];
+  arr = list.toJS;
   expect(arr is JSArray, true);
   expect(confuse(arr) is JSArray, true);
   List<JSAny?> dartArr = arr.toDart;
   expect((dartArr[0] as JSNumber).toDartDouble, 1.0);
   expect((dartArr[1] as JSString).toDart, 'foo');
+
+  List<JSNumber> dartArrN = arrN.toDart;
+  if (isJSBackend) {
+    // Since lists on the JS backends are passed by ref, we only create a
+    // cast-list if there's a downcast needed.
+    expect(dartArr, list);
+    Expect.notEquals(dartArrN, list);
+    Expect.throwsTypeError(() => dartArrN[1]);
+  } else {
+    // On dart2wasm, we always create a new list using JSArrayImpl.
+    Expect.notEquals(dartArr, list);
+    Expect.notEquals(dartArrN, list);
+    dartArrN[1];
+  }
+
+  // [JSArray<T>] <-> [List<T>]
+  final listN = <JSNumber>[1.0.toJS, 2.0.toJS];
+  arrN = listN.toJS;
+  expect(arrN is JSArray<JSNumber>, true);
+  expect(confuse(arrN) is JSArray<JSNumber>, true);
+
+  dartArr = arr.toDart;
+  dartArrN = arrN.toDart;
+  if (isJSBackend) {
+    // A cast-list should not be introduced if the the array is already the
+    // right list type.
+    expect(dartArr, listN);
+    expect(dartArrN, listN);
+  } else {
+    Expect.notEquals(dartArr, list);
+    Expect.notEquals(dartArrN, list);
+  }
 
   // [ArrayBuffer] <-> [ByteBuffer]
   buf = Uint8List.fromList([0, 255, 0, 255]).buffer.toJS;
@@ -329,16 +365,18 @@ void syncTests() {
 }
 
 @JS()
-external JSPromise getResolvedPromise();
+external JSPromise<T> getResolvedPromise<T extends JSAny?>();
 
 @JS()
-external JSPromise getRejectedPromise();
+external JSPromise<T> getRejectedPromise<T extends JSAny?>();
 
 @JS()
-external JSPromise resolvePromiseWithNullOrUndefined(bool resolveWithNull);
+external JSPromise<T> resolvePromiseWithNullOrUndefined<T extends JSAny?>(
+    bool resolveWithNull);
 
 @JS()
-external JSPromise rejectPromiseWithNullOrUndefined(bool resolveWithNull);
+external JSPromise<T> rejectPromiseWithNullOrUndefined<T extends JSAny?>(
+    bool resolveWithNull);
 
 Future<void> asyncTests() async {
   eval(r'''
@@ -359,9 +397,31 @@ Future<void> asyncTests() async {
   // [JSPromise] -> [Future].
   // Test resolution.
   {
-    Future<JSAny?> f = getResolvedPromise().toDart;
+    final f = getResolvedPromise().toDart;
     expect(((await f) as JSString).toDart, 'resolved');
   }
+
+  // Test resolution with generics.
+  {
+    final f = getResolvedPromise<JSString>().toDart;
+    expect((await f).toDart, 'resolved');
+  }
+
+  // Test resolution with incorrect type.
+  // TODO(54214): This type error is not caught in the JS compilers correctly.
+  // {
+  //   try {
+  //     final f = getResolvedPromise<JSNumber>().toDart;
+  //     final jsNum = await f;
+  //     // TODO(54179): This should be a `jsNum.toDart` call, but currently we try
+  //     // to coerce all extern refs into primitive types in this conversion
+  //     // method. Change this once that bug is fixed.
+  //     if (!jsNum.typeofEquals('number')) throw TypeError();
+  //     fail('Expected resolution or use of type to throw.');
+  //   } catch (e) {
+  //     expect(e is TypeError, true);
+  //   }
+  // }
 
   // Test rejection.
   {
@@ -374,10 +434,21 @@ Future<void> asyncTests() async {
     }
   }
 
+  // Test rejection with generics.
+  {
+    try {
+      await getRejectedPromise<JSString>().toDart;
+      fail('Expected rejected promise to throw.');
+    } catch (e) {
+      final jsError = e as JSObject;
+      expect(jsError.toString(), 'Error: rejected');
+    }
+  }
+
   // Test resolution Promise chaining.
   {
     bool didThen = false;
-    Future<JSAny?> f = getResolvedPromise().toDart.then((resolved) {
+    final f = getResolvedPromise().toDart.then((resolved) {
       expect((resolved as JSString).toDart, 'resolved');
       didThen = true;
       return null;
@@ -388,7 +459,7 @@ Future<void> asyncTests() async {
 
   // Test rejection Promise chaining.
   {
-    Future<JSAny?> f = getRejectedPromise().toDart.then((_) {
+    final f = getRejectedPromise().toDart.then((_) {
       fail('Expected rejected promise to throw.');
       return null;
     }, onError: (e) {
@@ -398,20 +469,24 @@ Future<void> asyncTests() async {
     await f;
   }
 
-  // Test resolving promise with null and undefined.
-  Future<void> testResolveWithNullOrUndefined(bool resolveWithNull) async {
-    Future<JSAny?> f =
-        resolvePromiseWithNullOrUndefined(resolveWithNull).toDart;
-    expect(((await f) as JSAny?), null);
+  // Test resolving generic promise with null and undefined.
+  Future<void> testResolveWithNullOrUndefined<T extends JSAny?>(
+      bool resolveWithNull) async {
+    final f = resolvePromiseWithNullOrUndefined<T>(resolveWithNull).toDart;
+    expect(await f, null);
   }
 
   await testResolveWithNullOrUndefined(true);
   await testResolveWithNullOrUndefined(false);
+  await testResolveWithNullOrUndefined<JSNumber?>(true);
+  await testResolveWithNullOrUndefined<JSNumber?>(false);
 
-  // Test rejecting promise with null and undefined should trigger an exception.
-  Future<void> testRejectionWithNullOrUndefined(bool rejectWithNull) async {
+  // Test rejecting generic promise with null and undefined should trigger an
+  // exception.
+  Future<void> testRejectionWithNullOrUndefined<T extends JSAny?>(
+      bool rejectWithNull) async {
     try {
-      await rejectPromiseWithNullOrUndefined(rejectWithNull).toDart;
+      await rejectPromiseWithNullOrUndefined<T>(rejectWithNull).toDart;
       fail('Expected rejected promise to throw.');
     } catch (e) {
       expect(e is NullRejectionException, true);
@@ -420,13 +495,52 @@ Future<void> asyncTests() async {
 
   await testRejectionWithNullOrUndefined(true);
   await testRejectionWithNullOrUndefined(false);
+  await testRejectionWithNullOrUndefined<JSNumber?>(true);
+  await testRejectionWithNullOrUndefined<JSNumber?>(false);
 
-  // [Future<JSAny?>] -> [JSPromise].
+  // [Future] -> [JSPromise].
   // Test resolution.
   {
     final f = Future<JSAny?>(() => 'resolved'.toJS).toJS.toDart;
     expect(((await f) as JSString).toDart, 'resolved');
   }
+
+  // Test resolution with generics.
+  {
+    final f = Future<JSString>(() => 'resolved'.toJS).toJS.toDart;
+    expect((await f).toDart, 'resolved');
+  }
+
+  // Test resolution with incorrect types. Depending on the backend and the type
+  // test, the promise may throw when its resolved or when the resolved value is
+  // internalized.
+  // TODO(54214): These type errors are not caught in the JS compilers
+  // correctly.
+  // {
+  //   try {
+  //     final f =
+  //         (Future<JSString>(() => 'resolved'.toJS).toJS as JSPromise<JSBoolean>)
+  //             .toDart;
+  //     final jsBool = await f;
+  //     // TODO(54179): This should be a `jsBool.toDart` call, but currently we
+  //     // try to coerce all extern refs into primitive types in this conversion
+  //     // method. Change this once that bug is fixed.
+  //     if (!jsBool.typeofEquals('boolean')) throw TypeError();
+  //     fail('Expected resolution or use of type to throw.');
+  //   } catch (e) {
+  //     expect(e is TypeError, true);
+  //   }
+
+  //   // Incorrect nullability.
+  //   try {
+  //     final f =
+  //         (Future<JSString?>(() => null).toJS as JSPromise<JSString>).toDart;
+  //     await f;
+  //     fail('Expected incorrect nullability to throw.');
+  //   } catch (e) {
+  //     expect(e is TypeError, true);
+  //   }
+  // }
 
   // Test rejection.
   {
@@ -456,7 +570,9 @@ Future<void> asyncTests() async {
   // Test rejection.
   {
     try {
-      await Future<void>(() => throw Exception()).toJS.toDart as Future<void>;
+      final f =
+          Future<void>(() => throw Exception()).toJS.toDart as Future<void>;
+      await f;
       fail('Expected future to throw.');
     } catch (e) {
       expect(e is JSObject, true);

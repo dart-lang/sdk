@@ -23,57 +23,6 @@ class RecordLiteralResolver {
 
   ErrorReporter get errorReporter => _resolver.errorReporter;
 
-  /// Report any named fields in the record literal [node] that use a previously
-  /// defined name.
-  void reportDuplicateFieldDefinitions(RecordLiteralImpl node) {
-    var usedNames = <String, NamedExpression>{};
-    for (var field in node.fields) {
-      if (field is NamedExpressionImpl) {
-        var name = field.name.label.name;
-        var previousField = usedNames[name];
-        if (previousField != null) {
-          errorReporter.reportError(DiagnosticFactory()
-              .duplicateFieldDefinitionInLiteral(
-                  errorReporter.source, field, previousField));
-        } else {
-          usedNames[name] = field;
-        }
-      }
-    }
-  }
-
-  /// Report any fields in the record literal [node] that use an invalid name.
-  void reportInvalidFieldNames(RecordLiteralImpl node) {
-    var fields = node.fields;
-    var positionalCount = 0;
-    for (var field in fields) {
-      if (field is! NamedExpression) {
-        positionalCount++;
-      }
-    }
-    for (var field in fields) {
-      if (field is NamedExpressionImpl) {
-        var nameNode = field.name.label;
-        var name = nameNode.name;
-        if (name.startsWith('_')) {
-          errorReporter.reportErrorForNode(
-              CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, nameNode);
-        } else {
-          final index = RecordTypeExtension.positionalFieldIndex(name);
-          if (index != null) {
-            if (index < positionalCount) {
-              errorReporter.reportErrorForNode(
-                  CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameNode);
-            }
-          } else if (isForbiddenNameForRecordField(name)) {
-            errorReporter.reportErrorForNode(
-                CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, nameNode);
-          }
-        }
-      }
-    }
-  }
-
   void resolve(
     RecordLiteralImpl node, {
     required DartType? contextType,
@@ -81,8 +30,8 @@ class RecordLiteralResolver {
     _resolveFields(node, contextType);
     _buildType(node, contextType);
 
-    reportDuplicateFieldDefinitions(node);
-    reportInvalidFieldNames(node);
+    _reportDuplicateFieldDefinitions(node);
+    _reportInvalidFieldNames(node);
   }
 
   void _buildType(RecordLiteralImpl node, DartType? contextType) {
@@ -117,6 +66,57 @@ class RecordLiteralResolver {
     );
   }
 
+  /// Report any named fields in the record literal [node] that use a previously
+  /// defined name.
+  void _reportDuplicateFieldDefinitions(RecordLiteralImpl node) {
+    var usedNames = <String, NamedExpression>{};
+    for (var field in node.fields) {
+      if (field is NamedExpressionImpl) {
+        var name = field.name.label.name;
+        var previousField = usedNames[name];
+        if (previousField != null) {
+          errorReporter.reportError(DiagnosticFactory()
+              .duplicateFieldDefinitionInLiteral(
+                  errorReporter.source, field, previousField));
+        } else {
+          usedNames[name] = field;
+        }
+      }
+    }
+  }
+
+  /// Report any fields in the record literal [node] that use an invalid name.
+  void _reportInvalidFieldNames(RecordLiteralImpl node) {
+    var fields = node.fields;
+    var positionalCount = 0;
+    for (var field in fields) {
+      if (field is! NamedExpression) {
+        positionalCount++;
+      }
+    }
+    for (var field in fields) {
+      if (field is NamedExpressionImpl) {
+        var nameNode = field.name.label;
+        var name = nameNode.name;
+        if (name.startsWith('_')) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, nameNode);
+        } else {
+          final index = RecordTypeExtension.positionalFieldIndex(name);
+          if (index != null) {
+            if (index < positionalCount) {
+              errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, nameNode);
+            }
+          } else if (isForbiddenNameForRecordField(name)) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, nameNode);
+          }
+        }
+      }
+    }
+  }
+
   void _resolveField(ExpressionImpl field, DartType? contextType) {
     _resolver.analyzeExpression(field, contextType);
     field = _resolver.popRewrite()!;
@@ -127,6 +127,11 @@ class RecordLiteralResolver {
       if (field is NamedExpressionImpl) {
         field.expression.staticType = contextType;
       }
+    }
+
+    if (field.typeOrThrow is VoidType) {
+      errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.USE_OF_VOID_RESULT, field);
     }
   }
 

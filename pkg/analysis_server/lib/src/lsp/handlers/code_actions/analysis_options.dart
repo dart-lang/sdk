@@ -11,6 +11,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:yaml/yaml.dart';
 
 /// Produces [CodeAction]s from analysis options fixes.
@@ -57,15 +58,17 @@ class AnalysisOptionsCodeActionsProducer extends AbstractCodeActionsProducer {
       return [];
     }
 
-    final analysisContext = session.analysisContext;
-    final analysisOptions =
-        analysisContext.getAnalysisOptionsForFile(optionsFile);
+    final contextRoot = session.analysisContext.contextRoot;
+    final package = contextRoot.workspace.findPackageFor(optionsFile.path);
+    final sdkVersionConstraint =
+        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
+
     final errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
       sourceFactory,
-      analysisContext.contextRoot.root.path,
-      analysisOptions.sdkVersionConstraint,
+      contextRoot.root.path,
+      sdkVersionConstraint,
     );
 
     final codeActions = <CodeActionWithPriority>[];

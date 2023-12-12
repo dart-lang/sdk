@@ -29,6 +29,8 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/blaze_watcher.dart';
+import 'package:analyzer/src/workspace/pub.dart';
+import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:path/path.dart' as path;
@@ -351,19 +353,23 @@ class ContextManagerImpl implements ContextManager {
 
   /// Use the given analysis [driver] to analyze the content of the analysis
   /// options file at the given [path].
-  void _analyzeAnalysisOptionsYaml(AnalysisDriver driver, String path) {
+  void _analyzeAnalysisOptionsYaml(
+      AnalysisDriver driver, WorkspacePackage? package, String path) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
       var analysisOptions = driver.getAnalysisOptionsForFile(file);
       var content = file.readAsStringSync();
       var lineInfo = LineInfo.fromContent(content);
+      var sdkVersionConstraint = (package is PubWorkspacePackage)
+          ? package.sdkVersionConstraint
+          : null;
       var errors = analyzeAnalysisOptions(
         file.createSource(),
         content,
         driver.sourceFactory,
         driver.currentSession.analysisContext.contextRoot.root.path,
-        analysisOptions.sdkVersionConstraint,
+        sdkVersionConstraint,
       );
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,
@@ -589,7 +595,9 @@ class ContextManagerImpl implements ContextManager {
 
           if (optionsFile != null &&
               analysisContext.contextRoot.isAnalyzed(optionsFile.path)) {
-            _analyzeAnalysisOptionsYaml(driver, optionsFile.path);
+            var package = analysisContext.contextRoot.workspace
+                .findPackageFor(optionsFile.path);
+            _analyzeAnalysisOptionsYaml(driver, package, optionsFile.path);
           }
 
           var packageName = rootFolder.shortName;

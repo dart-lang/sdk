@@ -435,8 +435,8 @@ CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
   status: hasFix
-CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
-  status: needsFix
+? CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
+: status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.CONST_INSTANCE_FIELD:
@@ -1234,8 +1234,8 @@ CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
     Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: noFix
-CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
-  status: noFix
+? CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE
+: status: noFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
   status: hasFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT:
@@ -1337,8 +1337,8 @@ CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
   notes: |-
     We do not have enough information to figure out the user's intent with the
     use of the variable in the pattern.
-CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE:
-  status: needsFix
+? CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE
+: status: needsFix
   notes: |-
     Make all of the types / finalities the same.
 CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL:
@@ -1410,8 +1410,8 @@ CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
   status: noFix
 CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
-  status: noFix
+? CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL
+: status: noFix
 CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN:
   status: needsFix
   issue: https://github.com/dart-lang/sdk/issues/51892
@@ -1740,8 +1740,8 @@ FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL:
   since: ~2.15
   notes: |-
     The fix is to add the `external` keyword.
-FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
-  status: noFix
+? FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER
+: status: noFix
   since: ~2.15
 FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
   status: noFix
@@ -1775,6 +1775,12 @@ FfiCode.INVALID_FIELD_TYPE_IN_STRUCT:
 FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE:
   status: noFix
 FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE:
+  status: noFix
+FfiCode.CALLBACK_MUST_NOT_USE_TYPED_DATA:
+  status: noFix
+FfiCode.CALL_MUST_NOT_RETURN_TYPED_DATA:
+  status: noFix
+FfiCode.NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA:
   status: noFix
 FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD:
   status: noFix
@@ -1856,7 +1862,7 @@ LintCode.always_put_required_named_parameters_first:
 LintCode.always_require_non_null_named_parameters:
   status: noFix
   notes: |-
-      Removed.
+    Removed.
 LintCode.always_specify_types:
   status: hasFix
 LintCode.always_use_package_imports:
@@ -1951,7 +1957,7 @@ LintCode.avoid_returning_null:
 LintCode.avoid_returning_null_for_future:
   status: noFix
   notes: |-
-      Removed.
+    Removed.
 LintCode.avoid_returning_null_for_void:
   status: hasFix
 LintCode.avoid_returning_this:
@@ -2417,8 +2423,13 @@ LintCode.unsafe_html_method:
   status: noFix
 LintCode.unsafe_html_constructor:
   status: noFix
-LintCode.use_build_context_synchronously:
+LintCode.use_build_context_synchronously_async_use:
   status: noFix
+LintCode.use_build_context_synchronously_wrong_mounted:
+  status: needsFix
+  notes: |-
+    We could have a fix that would replace a mounted check on the wrong element
+    to a mounted check on the right element.
 LintCode.use_colored_box:
   status: needsFix
 LintCode.use_decorated_box:

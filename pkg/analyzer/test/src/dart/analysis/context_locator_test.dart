@@ -1746,6 +1746,7 @@ ${getFolder(outPath).path}
     expect(package1Root.packagesFile, packagesFile);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/53874')
   void test_multiple_packages_monorepo() {
     var rootPath = convertPath('/test/outer');
     Folder rootFolder = newFolder(rootPath);

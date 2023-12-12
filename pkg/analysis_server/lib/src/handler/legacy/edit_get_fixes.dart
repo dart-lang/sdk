@@ -25,6 +25,7 @@ import 'package:analyzer/src/generated/source.dart' show SourceFactory;
 import 'package:analyzer/src/pubspec/pubspec_validator.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
 import 'package:yaml/yaml.dart';
 
@@ -105,14 +106,16 @@ class EditGetFixesHandler extends LegacyHandler
     var session = driver.currentSession;
     var sourceFactory = driver.sourceFactory;
     var analysisContext = session.analysisContext;
-    var analysisOptions =
-        analysisContext.getAnalysisOptionsForFile(optionsFile);
+    var package =
+        analysisContext.contextRoot.workspace.findPackageFor(optionsFile.path);
+    var sdkVersionConstraint =
+        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
     var errors = analyzeAnalysisOptions(
       optionsFile.createSource(),
       content,
       sourceFactory,
       analysisContext.contextRoot.root.path,
-      analysisOptions.sdkVersionConstraint,
+      sdkVersionConstraint,
     );
     var options = _getOptions(sourceFactory, content);
     if (options == null) {

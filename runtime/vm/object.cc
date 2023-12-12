@@ -1635,8 +1635,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
           UntaggedObject::ClassIdTag::update(kTypedDataInt8ArrayCid, 0);
       new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
       const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::OldBit::update(is_old, new_tags);
-      new_tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, new_tags);
+      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
+      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
       new_tags =
           UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
       new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
@@ -1658,8 +1658,8 @@ void Object::MakeUnusedSpaceTraversable(const Object& obj,
       uword new_tags = UntaggedObject::ClassIdTag::update(kInstanceCid, 0);
       new_tags = UntaggedObject::SizeTag::update(leftover_size, new_tags);
       const bool is_old = obj.ptr()->IsOldObject();
-      new_tags = UntaggedObject::OldBit::update(is_old, new_tags);
-      new_tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, new_tags);
+      new_tags = UntaggedObject::AlwaysSetBit::update(true, new_tags);
+      new_tags = UntaggedObject::NotMarkedBit::update(true, new_tags);
       new_tags =
           UntaggedObject::OldAndNotRememberedBit::update(is_old, new_tags);
       new_tags = UntaggedObject::NewBit::update(!is_old, new_tags);
@@ -2799,8 +2799,8 @@ void Object::InitializeObject(uword address,
   tags = UntaggedObject::SizeTag::update(size, tags);
   const bool is_old =
       (address & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  tags = UntaggedObject::OldBit::update(is_old, tags);
-  tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, tags);
+  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
+  tags = UntaggedObject::NotMarkedBit::update(true, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewBit::update(!is_old, tags);
   tags = UntaggedObject::ImmutableBit::update(
@@ -13769,6 +13769,65 @@ ObjectPtr Library::GetMetadata(const Object& declaration) const {
   return evaluated_value.ptr();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static bool HasPragma(const Object& declaration) {
+  return (declaration.IsClass() && Class::Cast(declaration).has_pragma()) ||
+         (declaration.IsFunction() &&
+          Function::Cast(declaration).has_pragma()) ||
+         (declaration.IsField() && Field::Cast(declaration).has_pragma());
+}
+
+void Library::EvaluatePragmas() {
+  Object& declaration = Object::Handle();
+  const GrowableObjectArray& declarations =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  {
+    auto thread = Thread::Current();
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+    MetadataMap map(metadata());
+    MetadataMap::Iterator it(&map);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      ASSERT(entry != -1);
+      declaration = map.GetKey(entry);
+      if (HasPragma(declaration)) {
+        declarations.Add(declaration);
+      }
+    }
+    set_metadata(map.Release());
+  }
+  for (intptr_t i = 0; i < declarations.Length(); ++i) {
+    declaration = declarations.At(i);
+    GetMetadata(declaration);
+  }
+}
+
+void Library::CopyPragmas(const Library& old_lib) {
+  auto thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  MetadataMap new_map(metadata());
+  MetadataMap old_map(old_lib.metadata());
+  Object& declaration = Object::Handle();
+  Object& value = Object::Handle();
+  MetadataMap::Iterator it(&old_map);
+  while (it.MoveNext()) {
+    const intptr_t entry = it.Current();
+    ASSERT(entry != -1);
+    declaration = old_map.GetKey(entry);
+    if (HasPragma(declaration)) {
+      value = old_map.GetPayload(entry, 0);
+      ASSERT(!value.IsNull());
+      // Pragmas should be evaluated during hot reload phase 1
+      // (when checkpointing libraries).
+      ASSERT(!value.IsSmi());
+      new_map.UpdateOrInsert(declaration, value);
+    }
+  }
+  old_lib.set_metadata(old_map.Release());
+  set_metadata(new_map.Release());
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 static bool ShouldBePrivate(const String& name) {
   return (name.Length() >= 1 && name.CharAt(0) == '_') ||
@@ -26743,12 +26802,10 @@ SuspendStatePtr SuspendState::Clone(Thread* thread,
     dst.set_pc(src.pc());
     // Trigger write barrier if needed.
     if (dst.ptr()->IsOldObject()) {
-      if (!dst.untag()->IsRemembered()) {
-        dst.untag()->EnsureInRememberedSet(thread);
-      }
-      if (thread->is_marking()) {
-        thread->DeferredMarkingStackAddObject(dst.ptr());
-      }
+      dst.untag()->EnsureInRememberedSet(thread);
+    }
+    if (thread->is_marking()) {
+      thread->DeferredMarkingStackAddObject(dst.ptr());
     }
   }
   return dst.ptr();
