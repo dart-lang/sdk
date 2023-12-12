@@ -60,15 +60,15 @@ class Types {
   late final w.ValueType typeListExpectedType =
       translator.classInfo[translator.listBaseClass]!.nonNullableType;
 
-  /// Wasm array type of `WasmObjectArray<_Type>`
+  /// Wasm array type of `WasmArray<_Type>`
   late final w.ArrayType typeArrayArrayType =
       translator.arrayTypeForDartType(typeType);
 
-  /// Wasm value type of `WasmObjectArray<_Type>`
+  /// Wasm value type of `WasmArray<_Type>`
   late final w.ValueType typeArrayExpectedType =
       w.RefType.def(typeArrayArrayType, nullable: false);
 
-  /// Wasm value type of `WasmObjectArray<_NamedParameter>`
+  /// Wasm value type of `WasmArray<_NamedParameter>`
   late final w.ValueType namedParametersExpectedType = classAndFieldToType(
       translator.functionTypeClass, FieldIndex.functionTypeNamedParameters);
 
@@ -229,19 +229,17 @@ class Types {
 
     final supersOfClasses = <Constant>[];
     for (List<int> supers in typeRulesSupers) {
-      supersOfClasses.add(translator.constants.makeIntArrayOf(
+      supersOfClasses.add(translator.constants.makeArrayOf(
           wasmI32Type, [for (final cid in supers) IntConstant(cid)]));
     }
 
     final arrayOfWasmI32Type = InterfaceType(
-        translator.wasmIntArrayClass, Nullability.nonNullable, [wasmI32Type]);
+        translator.wasmArrayClass, Nullability.nonNullable, [wasmI32Type]);
     final typeRuleSupers =
         translator.constants.makeArrayOf(arrayOfWasmI32Type, supersOfClasses);
 
-    final arrayOfArrayOfWasmI32Type = InterfaceType(
-        translator.wasmObjectArrayClass,
-        Nullability.nonNullable,
-        [arrayOfWasmI32Type]);
+    final arrayOfArrayOfWasmI32Type = InterfaceType(translator.wasmArrayClass,
+        Nullability.nonNullable, [arrayOfWasmI32Type]);
 
     final typeRulesSupersType =
         translator.translateStorageType(arrayOfArrayOfWasmI32Type).unpacked;
@@ -257,13 +255,11 @@ class Types {
     final typeType =
         InterfaceType(translator.typeClass, Nullability.nonNullable);
     final arrayOfType = InterfaceType(
-        translator.wasmObjectArrayClass, Nullability.nonNullable, [typeType]);
-    final arrayOfArrayOfType = InterfaceType(translator.wasmObjectArrayClass,
-        Nullability.nonNullable, [arrayOfType]);
-    final arrayOfArrayOfArrayOfType = InterfaceType(
-        translator.wasmObjectArrayClass,
-        Nullability.nonNullable,
-        [arrayOfArrayOfType]);
+        translator.wasmArrayClass, Nullability.nonNullable, [typeType]);
+    final arrayOfArrayOfType = InterfaceType(
+        translator.wasmArrayClass, Nullability.nonNullable, [arrayOfType]);
+    final arrayOfArrayOfArrayOfType = InterfaceType(translator.wasmArrayClass,
+        Nullability.nonNullable, [arrayOfArrayOfType]);
 
     final substitutionsConstantL0 = <Constant>[];
     for (List<List<DartType>> substitutionsL1 in typeRulesSubstitutions) {
@@ -292,7 +288,7 @@ class Types {
     final stringType =
         translator.coreTypes.stringRawType(Nullability.nonNullable);
     final arrayOfStringType = InterfaceType(
-        translator.wasmObjectArrayClass, Nullability.nonNullable, [stringType]);
+        translator.wasmArrayClass, Nullability.nonNullable, [stringType]);
 
     final arrayOfStrings = translator.constants.makeArrayOf(
         stringType, [for (final name in typeNames) StringConstant(name)]);
@@ -433,7 +429,7 @@ class Types {
     }
   }
 
-  /// Allocates a `WasmObjectArray<_Type>` from [types] and pushes it to the
+  /// Allocates a `WasmArray<_Type>` from [types] and pushes it to the
   /// stack.
   void _makeTypeArray(CodeGenerator codeGen, Iterable<DartType> types) {
     if (types.every(_isTypeConstant)) {
@@ -520,22 +516,22 @@ class Types {
     b.i32_const(encodedNullability(type));
     b.i64_const(typeParameterOffset);
 
-    // WasmObjectArray<_Type> typeParameterBounds
+    // WasmArray<_Type> typeParameterBounds
     _makeTypeArray(codeGen, type.typeParameters.map((p) => p.bound));
 
-    // WasmObjectArray<_Type> typeParameterDefaults
+    // WasmArray<_Type> typeParameterDefaults
     _makeTypeArray(codeGen, type.typeParameters.map((p) => p.defaultType));
 
     // _Type returnType
     makeType(codeGen, type.returnType);
 
-    // WasmObjectArray<_Type> positionalParameters
+    // WasmArray<_Type> positionalParameters
     _makeTypeArray(codeGen, type.positionalParameters);
 
     // int requiredParameterCount
     b.i64_const(type.requiredParameterCount);
 
-    // WasmObjectArray<_NamedParameter> namedParameters
+    // WasmArray<_NamedParameter> namedParameters
     if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
       translator.constants.instantiateConstant(
           codeGen.function,

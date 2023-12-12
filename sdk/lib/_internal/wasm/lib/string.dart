@@ -40,7 +40,7 @@ void writeIntoTwoByteString(TwoByteString s, int index, int codePoint) =>
 
 /// Static function for `OneByteString._array` to avoid making `_array` public.
 @pragma('wasm:prefer-inline')
-WasmIntArray<WasmI8> oneByteStringArray(OneByteString s) => s._array;
+WasmArray<WasmI8> oneByteStringArray(OneByteString s) => s._array;
 
 /// The [fromStart] and [toStart] indices together with the [length] must
 /// specify ranges within the bounds of the list / string.
@@ -1035,14 +1035,14 @@ abstract final class StringBase implements String {
 @pragma("wasm:entry-point")
 final class OneByteString extends StringBase {
   @pragma("wasm:entry-point")
-  WasmIntArray<WasmI8> _array;
+  WasmArray<WasmI8> _array;
 
-  OneByteString.withLength(int length) : _array = WasmIntArray<WasmI8>(length);
+  OneByteString.withLength(int length) : _array = WasmArray<WasmI8>(length);
 
   // Same hash as VM
   @override
   int _computeHashCode() {
-    WasmIntArray<WasmI8> array = _array;
+    WasmArray<WasmI8> array = _array;
     int length = array.length;
     int hash = 0;
     for (int i = 0; i < length; i++) {
@@ -1167,7 +1167,7 @@ final class OneByteString extends StringBase {
     final int length = this.length;
     if (length == 0) return this; // Don't clone empty string.
     final OneByteString result = OneByteString.withLength(length * times);
-    final WasmIntArray<WasmI8> array = result._array;
+    final WasmArray<WasmI8> array = result._array;
     for (int i = 0; i < times; i++) {
       array.copy(i * length, _array, 0, length);
     }
@@ -1359,14 +1359,14 @@ final class OneByteString extends StringBase {
 @pragma("wasm:entry-point")
 final class TwoByteString extends StringBase {
   @pragma("wasm:entry-point")
-  WasmIntArray<WasmI16> _array;
+  WasmArray<WasmI16> _array;
 
-  TwoByteString.withLength(int length) : _array = WasmIntArray<WasmI16>(length);
+  TwoByteString.withLength(int length) : _array = WasmArray<WasmI16>(length);
 
   // Same hash as VM
   @override
   int _computeHashCode() {
-    WasmIntArray<WasmI16> array = _array;
+    WasmArray<WasmI16> array = _array;
     int length = array.length;
     int hash = 0;
     for (int i = 0; i < length; i++) {

@@ -7,6 +7,7 @@ import "dart:_js_string_convert";
 import "dart:_js_types";
 import "dart:_string";
 import "dart:_typed_data";
+import "dart:_wasm";
 import "dart:typed_data" show Uint8List, Uint16List;
 
 /// This patch library has no additional parts.

@@ -14,13 +14,7 @@ part of 'core_patch.dart';
 @pragma("wasm:prefer-inline")
 _Type _literal<T>() => unsafeCast(T);
 
-extension on WasmObjectArray<_Type> {
-  @pragma("wasm:prefer-inline")
-  _Type operator [](int index) => read(index);
-
-  @pragma("wasm:prefer-inline")
-  void operator []=(int index, _Type value) => write(index, value);
-
+extension on WasmArray<_Type> {
   @pragma("wasm:prefer-inline")
   bool get isEmpty => length == 0;
 
@@ -28,9 +22,9 @@ extension on WasmObjectArray<_Type> {
   bool get isNotEmpty => length != 0;
 
   @pragma("wasm:prefer-inline")
-  WasmObjectArray<_Type> map(_Type Function(_Type) fun) {
-    if (isEmpty) return const WasmObjectArray<_Type>.literal(<_Type>[]);
-    final mapped = WasmObjectArray<_Type>(length, fun(this[0]));
+  WasmArray<_Type> map(_Type Function(_Type) fun) {
+    if (isEmpty) return const WasmArray<_Type>.literal(<_Type>[]);
+    final mapped = WasmArray<_Type>.filled(length, fun(this[0]));
     for (int i = 1; i < length; ++i) {
       mapped[i] = fun(this[i]);
     }
@@ -38,13 +32,7 @@ extension on WasmObjectArray<_Type> {
   }
 }
 
-extension on WasmObjectArray<_NamedParameter> {
-  @pragma("wasm:prefer-inline")
-  _NamedParameter operator [](int index) => read(index);
-
-  @pragma("wasm:prefer-inline")
-  void operator []=(int index, _NamedParameter value) => write(index, value);
-
+extension on WasmArray<_NamedParameter> {
   @pragma("wasm:prefer-inline")
   bool get isEmpty => length == 0;
 
@@ -52,45 +40,24 @@ extension on WasmObjectArray<_NamedParameter> {
   bool get isNotEmpty => length != 0;
 
   @pragma("wasm:prefer-inline")
-  WasmObjectArray<_NamedParameter> map(
+  WasmArray<_NamedParameter> map(
       _NamedParameter Function(_NamedParameter) fun) {
     if (isEmpty)
-      return const WasmObjectArray<_NamedParameter>.literal(
-          <_NamedParameter>[]);
-    final mapped = WasmObjectArray<_NamedParameter>(length, this[0]);
-    for (int i = 0; i < length; ++i) {
+      return const WasmArray<_NamedParameter>.literal(<_NamedParameter>[]);
+    final mapped = WasmArray<_NamedParameter>.filled(length, fun(this[0]));
+    for (int i = 1; i < length; ++i) {
       mapped[i] = fun(this[i]);
     }
     return mapped;
   }
 }
 
-extension on WasmObjectArray<String> {
-  @pragma("wasm:prefer-inline")
-  String operator [](int index) => read(index);
-}
-
-extension on WasmObjectArray<WasmIntArray<WasmI32>> {
-  @pragma("wasm:prefer-inline")
-  WasmIntArray<WasmI32> operator [](int index) => read(index);
-}
-
-extension on WasmObjectArray<WasmObjectArray<_Type>> {
-  @pragma("wasm:prefer-inline")
-  WasmObjectArray<_Type> operator [](int index) => read(index);
-}
-
-extension on WasmObjectArray<WasmObjectArray<WasmObjectArray<_Type>>> {
-  @pragma("wasm:prefer-inline")
-  WasmObjectArray<WasmObjectArray<_Type>> operator [](int index) => read(index);
-}
-
 // TODO: Remove any occurence of `List`s in this file.
 extension on List<_Type> {
   @pragma("wasm:prefer-inline")
-  WasmObjectArray<_Type> toWasmArray() {
-    if (isEmpty) return const WasmObjectArray<_Type>.literal(<_Type>[]);
-    final result = WasmObjectArray<_Type>(length, this[0]);
+  WasmArray<_Type> toWasmArray() {
+    if (isEmpty) return const WasmArray<_Type>.literal(<_Type>[]);
+    final result = WasmArray<_Type>.filled(length, this[0]);
     for (int i = 1; i < length; ++i) {
       result[i] = this[i];
     }
@@ -104,7 +71,7 @@ extension on List<_Type> {
 extension _BypassListIndexingChecks<T> on List<T> {
   @pragma("wasm:prefer-inline")
   T _getUnchecked(int index) =>
-      unsafeCast(unsafeCast<_ListBase<T>>(this)._data.read(index));
+      unsafeCast(unsafeCast<_ListBase<T>>(this)._data[index]);
 }
 
 // TODO(joshualitt): We can cache the result of [_FutureOrType.asFuture].
@@ -265,7 +232,7 @@ class _FutureOrType extends _Type {
   const _FutureOrType(super.isDeclaredNullable, this.typeArgument);
 
   _InterfaceType get asFuture => _InterfaceType(ClassID.cidFuture,
-      isDeclaredNullable, WasmObjectArray<_Type>.literal([typeArgument]));
+      isDeclaredNullable, WasmArray<_Type>.literal([typeArgument]));
 
   @override
   _Type get _asNullable =>
@@ -308,11 +275,11 @@ class _FutureOrType extends _Type {
 @pragma("wasm:entry-point")
 class _InterfaceType extends _Type {
   final int classId;
-  final WasmObjectArray<_Type> typeArguments;
+  final WasmArray<_Type> typeArguments;
 
   @pragma("wasm:entry-point")
   const _InterfaceType(this.classId, super.isDeclaredNullable,
-      [this.typeArguments = const WasmObjectArray<_Type>.literal([])]);
+      [this.typeArguments = const WasmArray<_Type>.literal([])]);
 
   @override
   _Type get _asNullable => _InterfaceType(classId, true, typeArguments);
@@ -429,12 +396,12 @@ class _FunctionType extends _Type {
   // an `i64` in every function type object for this. Consider alternative
   // representations that don't have this overhead in the common case.
   final int typeParameterOffset;
-  final WasmObjectArray<_Type> typeParameterBounds;
-  final WasmObjectArray<_Type> typeParameterDefaults;
+  final WasmArray<_Type> typeParameterBounds;
+  final WasmArray<_Type> typeParameterDefaults;
   final _Type returnType;
-  final WasmObjectArray<_Type> positionalParameters;
+  final WasmArray<_Type> positionalParameters;
   final int requiredParameterCount;
-  final WasmObjectArray<_NamedParameter> namedParameters;
+  final WasmArray<_NamedParameter> namedParameters;
 
   @pragma("wasm:entry-point")
   const _FunctionType(
@@ -650,10 +617,9 @@ class _RecordType extends _Type {
       identical(names, other.names);
 }
 
-external WasmObjectArray<WasmIntArray<WasmI32>> _getTypeRulesSupers();
-external WasmObjectArray<WasmObjectArray<WasmObjectArray<_Type>>>
-    _getTypeRulesSubstitutions();
-external WasmObjectArray<String> _getTypeNames();
+external WasmArray<WasmArray<WasmI32>> _getTypeRulesSupers();
+external WasmArray<WasmArray<WasmArray<_Type>>> _getTypeRulesSubstitutions();
+external WasmArray<String> _getTypeNames();
 
 /// Type parameter environment used while comparing function types.
 ///
@@ -702,12 +668,11 @@ class _Environment {
 
 class _TypeUniverse {
   /// 'Map' of classId to the transitive set of super classes it implements.
-  final WasmObjectArray<WasmIntArray<WasmI32>> typeRulesSupers;
+  final WasmArray<WasmArray<WasmI32>> typeRulesSupers;
 
   /// 'Map' of classId, and super offset(from [typeRulesSupers]) to a list of
   /// type substitutions.
-  final WasmObjectArray<WasmObjectArray<WasmObjectArray<_Type>>>
-      typeRulesSubstitutions;
+  final WasmArray<WasmArray<WasmArray<_Type>>> typeRulesSubstitutions;
 
   const _TypeUniverse._(this.typeRulesSupers, this.typeRulesSubstitutions);
 
@@ -717,7 +682,7 @@ class _TypeUniverse {
 
   static _Type substituteInterfaceTypeParameter(
       _InterfaceTypeParameterType typeParameter,
-      WasmObjectArray<_Type> substitutions) {
+      WasmArray<_Type> substitutions) {
     // If the type parameter is non-nullable, or the substitution type is
     // nullable, then just return the substitution type. Otherwise, we return
     // [type] as nullable.
@@ -730,7 +695,7 @@ class _TypeUniverse {
 
   static _Type substituteFunctionTypeParameter(
       _FunctionTypeParameterType typeParameter,
-      WasmObjectArray<_Type> substitutions,
+      WasmArray<_Type> substitutions,
       _FunctionType? rootFunction) {
     if (rootFunction != null &&
         typeParameter.index >= rootFunction.typeParameterOffset) {
@@ -745,7 +710,7 @@ class _TypeUniverse {
 
   @pragma("wasm:entry-point")
   static _FunctionType substituteFunctionTypeArgument(
-      _FunctionType functionType, WasmObjectArray<_Type> substitutions) {
+      _FunctionType functionType, WasmArray<_Type> substitutions) {
     return substituteTypeArgument(functionType, substitutions, functionType)
         .as<_FunctionType>();
   }
@@ -758,8 +723,8 @@ class _TypeUniverse {
   /// are being substituted, or `null` when inside a nested function type that
   /// is guaranteed not to contain any type parameter types that are to be
   /// substituted.
-  static _Type substituteTypeArgument(_Type type,
-      WasmObjectArray<_Type> substitutions, _FunctionType? rootFunction) {
+  static _Type substituteTypeArgument(
+      _Type type, WasmArray<_Type> substitutions, _FunctionType? rootFunction) {
     if (type.isBottom || type.isTop) {
       return type;
     } else if (type.isFutureOr) {
@@ -769,7 +734,7 @@ class _TypeUniverse {
               substitutions, rootFunction));
     } else if (type.isInterface) {
       _InterfaceType interfaceType = type.as<_InterfaceType>();
-      WasmObjectArray<_Type> typeArguments = WasmObjectArray<_Type>(
+      final typeArguments = WasmArray<_Type>.filled(
           interfaceType.typeArguments.length, _literal<dynamic>());
       for (int i = 0; i < typeArguments.length; i++) {
         typeArguments[i] = substituteTypeArgument(
@@ -797,29 +762,28 @@ class _TypeUniverse {
         rootFunction = null;
       }
 
-      final WasmObjectArray<_Type> bounds;
+      final WasmArray<_Type> bounds;
       if (isRoot) {
-        bounds = const WasmObjectArray<_Type>.literal(<_Type>[]);
+        bounds = const WasmArray<_Type>.literal(<_Type>[]);
       } else {
         bounds = functionType.typeParameterBounds.map((_Type type) =>
             substituteTypeArgument(type, substitutions, rootFunction));
       }
 
-      final WasmObjectArray<_Type> defaults;
+      final WasmArray<_Type> defaults;
       if (isRoot) {
-        defaults = const WasmObjectArray<_Type>.literal(<_Type>[]);
+        defaults = const WasmArray<_Type>.literal(<_Type>[]);
       } else {
         defaults = functionType.typeParameterDefaults.map((_Type type) =>
             substituteTypeArgument(type, substitutions, rootFunction));
       }
 
-      final WasmObjectArray<_Type> positionals =
-          functionType.positionalParameters.map((_Type type) =>
+      final WasmArray<_Type> positionals = functionType.positionalParameters
+          .map((_Type type) =>
               substituteTypeArgument(type, substitutions, rootFunction));
 
-      final WasmObjectArray<_NamedParameter> named = functionType
-          .namedParameters
-          .map((_NamedParameter named) => _NamedParameter(
+      final WasmArray<_NamedParameter> named = functionType.namedParameters.map(
+          (_NamedParameter named) => _NamedParameter(
               named.name,
               substituteTypeArgument(named.type, substitutions, rootFunction),
               named.isRequired));
@@ -852,7 +816,7 @@ class _TypeUniverse {
       return _InterfaceType(
           ClassID.cidFuture,
           isDeclaredNullable || typeArgument.isDeclaredNullable,
-          WasmObjectArray<_Type>.literal([typeArgument]));
+          WasmArray<_Type>.literal([typeArgument]));
     }
 
     // Note: We diverge from the spec here and normalize the type to nullable if
@@ -864,8 +828,8 @@ class _TypeUniverse {
     return _FutureOrType(declaredNullability, typeArgument);
   }
 
-  bool areTypeArgumentsSubtypes(WasmObjectArray<_Type> sArgs,
-      _Environment? sEnv, WasmObjectArray<_Type> tArgs, _Environment? tEnv) {
+  bool areTypeArgumentsSubtypes(WasmArray<_Type> sArgs, _Environment? sEnv,
+      WasmArray<_Type> tArgs, _Environment? tEnv) {
     assert(sArgs.length == tArgs.length);
     for (int i = 0; i < sArgs.length; i++) {
       if (!isSubtype(sArgs[i], sEnv, tArgs[i], tEnv)) {
@@ -880,7 +844,7 @@ class _TypeUniverse {
     return isInterfaceSubtypeInner(s.classId, s.typeArguments, sEnv, t, tEnv);
   }
 
-  bool isInterfaceSubtypeInner(int sId, WasmObjectArray<_Type> sTypeArguments,
+  bool isInterfaceSubtypeInner(int sId, WasmArray<_Type> sTypeArguments,
       _Environment? sEnv, _InterfaceType t, _Environment? tEnv) {
     int tId = t.classId;
 
@@ -892,7 +856,7 @@ class _TypeUniverse {
 
     // Otherwise, check if [s] is a subtype of [t], and if it is then compare
     // [s]'s type substitutions with [t]'s type arguments.
-    final WasmIntArray<WasmI32> sSupers = typeRulesSupers[sId];
+    final WasmArray<WasmI32> sSupers = typeRulesSupers[sId];
     if (sSupers.length == 0) return false;
     int sSuperIndexOfT = -1;
     for (int i = 0; i < sSupers.length; i++) {
@@ -905,7 +869,7 @@ class _TypeUniverse {
     assert(sSuperIndexOfT < typeRulesSubstitutions[sId].length);
 
     // Return early if we don't have to check type arguments.
-    WasmObjectArray<_Type> substitutions =
+    WasmArray<_Type> substitutions =
         typeRulesSubstitutions[sId][sSuperIndexOfT];
     if (substitutions.isEmpty && sTypeArguments.isEmpty) {
       return true;
@@ -913,17 +877,17 @@ class _TypeUniverse {
 
     // If we have empty type arguments then create a list of dynamic type
     // arguments.
-    WasmObjectArray<_Type> typeArgumentsForSubstitution =
+    WasmArray<_Type> typeArgumentsForSubstitution =
         substitutions.isNotEmpty && sTypeArguments.isEmpty
-            ? WasmObjectArray<_Type>(substitutions.length, _literal<dynamic>())
+            ? WasmArray<_Type>.filled(substitutions.length, _literal<dynamic>())
             : sTypeArguments;
 
     // Finally substitute arguments. We must do this upfront so we can normalize
     // the type.
     // TODO(joshualitt): This process is expensive so we should cache the
     // result.
-    WasmObjectArray<_Type> substituted =
-        WasmObjectArray<_Type>(substitutions.length, _literal<dynamic>());
+    final substituted =
+        WasmArray<_Type>.filled(substitutions.length, _literal<dynamic>());
     for (int i = 0; i < substitutions.length; i++) {
       substituted[i] = substituteTypeArgument(
           substitutions[i], typeArgumentsForSubstitution, null);
@@ -960,8 +924,8 @@ class _TypeUniverse {
 
     // Check [s] has enough required and optional positional arguments to
     // potentially be a valid subtype of [t].
-    WasmObjectArray<_Type> sPositional = s.positionalParameters;
-    WasmObjectArray<_Type> tPositional = t.positionalParameters;
+    WasmArray<_Type> sPositional = s.positionalParameters;
+    WasmArray<_Type> tPositional = t.positionalParameters;
     int sPositionalLength = sPositional.length;
     int tPositionalLength = tPositional.length;
     if (sPositionalLength < tPositionalLength) {
@@ -980,8 +944,8 @@ class _TypeUniverse {
 
     // Check that [t]'s named arguments are subtypes of [s]'s named arguments.
     // This logic assumes the named arguments are stored in sorted order.
-    WasmObjectArray<_NamedParameter> sNamed = s.namedParameters;
-    WasmObjectArray<_NamedParameter> tNamed = t.namedParameters;
+    WasmArray<_NamedParameter> sNamed = s.namedParameters;
+    WasmArray<_NamedParameter> tNamed = t.namedParameters;
     int sNamedLength = sNamed.length;
     int tNamedLength = tNamed.length;
     int sIndex = 0;

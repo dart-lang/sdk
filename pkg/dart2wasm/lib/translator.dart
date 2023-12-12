@@ -481,7 +481,13 @@ class Translator with KernelNodes {
   w.ValueType translateType(DartType type) {
     w.StorageType wasmType = translateStorageType(type);
     if (wasmType is w.ValueType) return wasmType;
-    throw "Packed types are only allowed in arrays and fields";
+
+    // We represent the packed i8/i16 types as zero-extended i32 type.
+    // Dart code can currently only obtain them via loading from packed arrays
+    // and only use them for storing into packed arrays (there are no
+    // conversion or other operations on WasmI8/WasmI16).
+    if (wasmType is w.PackedType) return w.NumType.i32;
+    throw "Cannot translate $type to wasm type.";
   }
 
   bool _hasSuperclass(Class cls, Class superclass) {
