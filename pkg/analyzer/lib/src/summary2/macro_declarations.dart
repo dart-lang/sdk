@@ -90,6 +90,8 @@ class DeclarationBuilder {
         return fromNode.extensionDeclaration(node);
       case ast.ExtensionTypeDeclarationImpl():
         return fromNode.extensionTypeDeclaration(node);
+      case ast.FunctionDeclarationImpl():
+        return fromNode.functionDeclaration(node);
       case ast.MethodDeclarationImpl():
         return fromNode.methodDeclaration(node);
       case ast.MixinDeclarationImpl():
@@ -638,6 +640,30 @@ class DeclarationBuilderFromNode {
     );
   }
 
+  macro.FunctionDeclarationImpl functionDeclaration(
+    ast.FunctionDeclarationImpl node,
+  ) {
+    final element = node.declaredElement!;
+    final function = node.functionExpression;
+
+    return FunctionDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      element: element,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      hasBody: function.body is! ast.EmptyFunctionBody,
+      hasExternal: node.externalKeyword != null,
+      isGetter: node.isGetter,
+      isOperator: false,
+      isSetter: node.isSetter,
+      namedParameters: _namedFormalParameters(function.parameters),
+      positionalParameters: _positionalFormalParameters(function.parameters),
+      returnType: _typeAnnotation(node.returnType),
+      typeParameters: _typeParameters(function.typeParameters),
+    );
+  }
+
   macro.LibraryImpl library(Element element) {
     final library = element.library!;
 
@@ -1034,6 +1060,29 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl
     required super.type,
     required super.definingType,
     required super.isStatic,
+    required this.element,
+  });
+}
+
+class FunctionDeclarationImpl extends macro.FunctionDeclarationImpl
+    implements HasElement {
+  @override
+  final ExecutableElementImpl element;
+
+  FunctionDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.hasBody,
+    required super.hasExternal,
+    required super.isGetter,
+    required super.isOperator,
+    required super.isSetter,
+    required super.namedParameters,
+    required super.positionalParameters,
+    required super.returnType,
+    required super.typeParameters,
     required this.element,
   });
 }

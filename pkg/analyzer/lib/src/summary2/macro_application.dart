@@ -103,12 +103,6 @@ class LibraryMacroApplier {
   final Map<String, List<_MacroApplication>>
       _declarationsPhaseCycleApplications = {};
 
-  /// The map from [InstanceElement] to the applications associated with it.
-  /// This includes applications on the class itself, and on the methods of
-  /// the class.
-  final Map<InstanceElement, List<_MacroApplication>> _interfaceApplications =
-      {};
-
   late final macro.TypePhaseIntrospector _typesPhaseIntrospector =
       _TypePhaseIntrospector(elementFactory, declarationBuilder);
 
@@ -137,7 +131,6 @@ class LibraryMacroApplier {
             classNode: declaration,
             classDeclarationKind: macro.DeclarationKind.classType,
             classAnnotations: declaration.metadata,
-            declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
         case ast.ClassTypeAliasImpl():
@@ -156,7 +149,6 @@ class LibraryMacroApplier {
             classNode: declaration,
             classDeclarationKind: macro.DeclarationKind.extension,
             classAnnotations: declaration.metadata,
-            declarationsPhaseInterface: null,
             members: declaration.members,
           );
         case ast.ExtensionTypeDeclarationImpl():
@@ -169,12 +161,16 @@ class LibraryMacroApplier {
             classNode: declaration,
             classDeclarationKind: macro.DeclarationKind.extensionType,
             classAnnotations: declaration.metadata,
-            declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
         case ast.FunctionDeclarationImpl():
-          // TODO(scheglov): implement it
-          break;
+          await _addAnnotations(
+            libraryElement: libraryElement,
+            container: container,
+            targetNode: declaration,
+            targetDeclarationKind: macro.DeclarationKind.function,
+            annotations: declaration.metadata,
+          );
         case ast.FunctionTypeAliasImpl():
           // TODO(scheglov): implement it
           break;
@@ -191,7 +187,6 @@ class LibraryMacroApplier {
             classNode: declaration,
             classDeclarationKind: macro.DeclarationKind.mixinType,
             classAnnotations: declaration.metadata,
-            declarationsPhaseInterface: declarationElement,
             members: declaration.members,
           );
         case ast.TopLevelVariableDeclarationImpl():
@@ -346,7 +341,6 @@ class LibraryMacroApplier {
   Future<void> _addAnnotations({
     required LibraryElementImpl libraryElement,
     required LibraryOrAugmentationElementImpl container,
-    required InstanceElement? declarationsPhaseElement,
     required ast.Declaration targetNode,
     required macro.DeclarationKind targetDeclarationKind,
     required List<ast.Annotation> annotations,
@@ -356,7 +350,6 @@ class LibraryMacroApplier {
         await _addAnnotations(
           libraryElement: libraryElement,
           container: container,
-          declarationsPhaseElement: declarationsPhaseElement,
           targetNode: field,
           targetDeclarationKind: macro.DeclarationKind.field,
           annotations: annotations,
@@ -373,7 +366,6 @@ class LibraryMacroApplier {
 
     final macroTarget = _MacroTarget(
       library: libraryElement,
-      declarationsPhaseElement: declarationsPhaseElement,
       node: targetNode,
       element: targetElement,
     );
@@ -421,12 +413,6 @@ class LibraryMacroApplier {
       );
 
       _applications.add(application);
-
-      // Record mapping for declarations phase dependencies.
-      if (declarationsPhaseElement != null) {
-        (_interfaceApplications[declarationsPhaseElement] ??= [])
-            .add(application);
-      }
     }
   }
 
@@ -437,7 +423,6 @@ class LibraryMacroApplier {
     required ast.Declaration classNode,
     required macro.DeclarationKind classDeclarationKind,
     required List<ast.Annotation> classAnnotations,
-    required InterfaceElement? declarationsPhaseInterface,
     required List<ast.ClassMember> members,
   }) async {
     await _addAnnotations(
@@ -445,7 +430,6 @@ class LibraryMacroApplier {
       container: container,
       targetNode: classNode,
       targetDeclarationKind: classDeclarationKind,
-      declarationsPhaseElement: declarationsPhaseInterface,
       annotations: classAnnotations,
     );
 
@@ -461,7 +445,6 @@ class LibraryMacroApplier {
         container: container,
         targetNode: member,
         targetDeclarationKind: memberDeclarationKind,
-        declarationsPhaseElement: declarationsPhaseInterface,
         annotations: member.metadata,
       );
     }
@@ -1020,13 +1003,11 @@ class _MacroApplication {
 
 class _MacroTarget {
   final LibraryElementImpl library;
-  final InstanceElement? declarationsPhaseElement;
   final ast.Declaration node;
   final MacroTargetElement element;
 
   _MacroTarget({
     required this.library,
-    required this.declarationsPhaseElement,
     required this.node,
     required this.element,
   });
