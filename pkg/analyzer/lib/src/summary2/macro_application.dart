@@ -208,7 +208,7 @@ class LibraryMacroApplier {
           results,
           declarationBuilder.typeDeclarationOf,
           declarationBuilder.resolveIdentifier,
-          _inferOmittedType,
+          declarationBuilder.inferOmittedType,
         )
         .trim();
   }
@@ -598,12 +598,6 @@ class LibraryMacroApplier {
       }
     }
     return null;
-  }
-
-  macro.TypeAnnotation _inferOmittedType(
-    macro.OmittedTypeAnnotation omittedType,
-  ) {
-    throw UnimplementedError();
   }
 
   _MacroApplication? _nextForDeclarationsPhase({

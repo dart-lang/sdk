@@ -6,6 +6,27 @@ import 'dart:async';
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/// Does not do anything useful, just augments the target in the definitions
+/// phase, so that any omitted types are written into the augmentation.
+/*macro*/ class AugmentForOmittedTypes
+    implements FieldDefinitionMacro, FunctionDefinitionMacro {
+  const AugmentForOmittedTypes();
+
+  @override
+  FutureOr<void> buildDefinitionForField(declaration, builder) async {
+    builder.augment(
+      initializer: ExpressionCode.fromString('0'),
+    );
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForFunction(declaration, builder) async {
+    builder.augment(
+      FunctionBodyCode.fromString('{}'),
+    );
+  }
+}
+
 /*macro*/ class DefineToStringAsTypeName
     implements ClassDefinitionMacro, MethodDefinitionMacro {
   const DefineToStringAsTypeName();

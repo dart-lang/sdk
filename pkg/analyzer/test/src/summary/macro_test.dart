@@ -1017,6 +1017,291 @@ class MacroCodeGenerationTest extends MacroElementsBaseTest {
     );
   }
 
+  test_inferOmittedType_fieldInstance_type() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  num? foo = 42;
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  var foo;
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class B {
+  augment prefix0.num? foo = 0;
+}
+''');
+  }
+
+  test_inferOmittedType_fieldStatic_type() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  static var foo;
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment static prefix0.dynamic foo = 0;
+}
+''');
+  }
+
+  test_inferOmittedType_function_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@AugmentForOmittedTypes()
+foo() {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment prefix0.dynamic foo() {}
+''');
+  }
+
+  test_inferOmittedType_functionType_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@AugmentForOmittedTypes()
+void foo(Function() a) {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment void foo(prefix0.dynamic Function() a, ) {}
+''');
+  }
+
+  test_inferOmittedType_getterInstance_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  get foo => 0;
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class B {
+  augment prefix0.int get foo {}
+}
+''');
+  }
+
+  test_inferOmittedType_methodInstance_formalParameter() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  void foo(int a) {}
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  void foo(a) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class B {
+  augment void foo(prefix0.int a, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_methodInstance_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  foo() {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class B {
+  augment prefix0.int foo() {}
+}
+''');
+  }
+
+  test_inferOmittedType_methodStatic_formalParameter() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  static void foo(a) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment static void foo(prefix0.dynamic a, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_methodStatic_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  static foo() {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment static prefix0.dynamic foo() {}
+}
+''');
+  }
+
+  test_inferOmittedType_setterInstance_formalParameter() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  void set foo(int a) {}
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  void set foo(a) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class B {
+  augment void set foo(prefix0.int a, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_setterInstance_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  set foo(int _) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment void set foo(prefix0.int _, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_setterStatic_formalParameter() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  static void set foo(a) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment static void set foo(prefix0.dynamic a, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_setterStatic_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  static set foo(int _) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment static void set foo(prefix0.int _, ) {}
+}
+''');
+  }
+
   test_resolveIdentifier_class_field_instance() async {
     final library = await buildLibrary(r'''
 import 'code_generation.dart';
