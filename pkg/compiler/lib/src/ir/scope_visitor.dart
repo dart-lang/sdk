@@ -431,6 +431,14 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     }
     enterNewScope(node, () {
       visitNode(node.variable);
+      if (node.isAsync) {
+        // If this is async then the type is explicitly used to instantiate
+        // the underlying StreamIterator.
+        visitInContext(
+            node.variable.type,
+            VariableUse.constructorTypeArgument(
+                _coreTypes.streamIteratorDefaultConstructor));
+      }
       visitInVariableScope(node, () {
         visitNode(node.iterable);
         visitNode(node.body);
