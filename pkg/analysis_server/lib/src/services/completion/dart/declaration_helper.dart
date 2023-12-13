@@ -169,7 +169,9 @@ class DeclarationHelper {
     } else if (parent is CompilationUnit) {
       parent = containingMember;
     }
+    CompilationUnitMember? topLevelMember;
     if (parent is CompilationUnitMember) {
+      topLevelMember = parent;
       _addMembersOf(parent, containingMember);
       parent = parent.parent;
     }
@@ -181,6 +183,9 @@ class DeclarationHelper {
           _addImportedDeclarations(library);
         }
       }
+    }
+    if (topLevelMember != null && !mustBeStatic && !mustBeType) {
+      _addInheritedMembers(topLevelMember);
     }
   }
 
@@ -315,6 +320,33 @@ class DeclarationHelper {
         if (importedLibrary.isDartCore && mustBeType) {
           collector.addSuggestion(NameSuggestion('Never'));
         }
+      }
+    }
+  }
+
+  /// Add suggestions for any instance members inherited by the
+  /// [containingMember].
+  void _addInheritedMembers(CompilationUnitMember containingMember) {
+    var element = switch (containingMember) {
+      ClassDeclaration() => containingMember.declaredElement,
+      EnumDeclaration() => containingMember.declaredElement,
+      ExtensionDeclaration() => containingMember.declaredElement,
+      ExtensionTypeDeclaration() => containingMember.declaredElement,
+      MixinDeclaration() => containingMember.declaredElement,
+      ClassTypeAlias() => containingMember.declaredElement,
+      GenericTypeAlias() => containingMember.declaredElement,
+      _ => null,
+    };
+    if (element is! InterfaceElement) {
+      return;
+    }
+    var members = request.inheritanceManager.getInheritedMap2(element);
+    for (var member in members.values) {
+      switch (member) {
+        case MethodElement():
+          _suggestMethod(member, element);
+        case PropertyAccessorElement():
+          _suggestProperty(member, element);
       }
     }
   }
