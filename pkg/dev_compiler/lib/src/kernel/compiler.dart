@@ -395,11 +395,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   @override
   InterfaceType get privateSymbolType =>
-      _coreTypes.legacyRawType(_privateSymbolClass);
+      _coreTypes.nonNullableRawType(_privateSymbolClass);
 
   @override
   InterfaceType get internalSymbolType =>
-      _coreTypes.legacyRawType(_coreTypes.internalSymbolClass);
+      _coreTypes.nonNullableRawType(_coreTypes.internalSymbolClass);
 
   final FutureOrNormalizer _futureOrNormalizer;
 
@@ -2677,7 +2677,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   void _registerExtensionType(
       Class c, String jsPeerName, List<js_ast.Statement> body) {
     var className = _emitTopLevelName(c);
-    if (_typeRep.isPrimitive(_coreTypes.legacyRawType(c))) {
+    if (_typeRep.isPrimitive(_coreTypes.nonNullableRawType(c))) {
       body.add(runtimeStatement(
           'definePrimitiveHashCode(#.prototype)', [className]));
     }
@@ -2948,7 +2948,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (c == null) {
       return _isObjectMember(name);
     }
-    c = _typeRep.getImplementationClass(_coreTypes.legacyRawType(c)) ?? c;
+    c = _typeRep.getImplementationClass(_coreTypes.nonNullableRawType(c)) ?? c;
     if (_extensionTypes.isNativeClass(c)) {
       var member = _lookupForwardedMember(c, name);
 
@@ -5843,7 +5843,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       Expression expr, Member? target, InvocationExpression node) {
     var op = node.name.text;
     if (target != null) {
-      var dispatchType = _coreTypes.legacyRawType(target.enclosingClass!);
+      var dispatchType = _coreTypes.nonNullableRawType(target.enclosingClass!);
       if (_typeRep.unaryOperationIsPrimitive(dispatchType)) {
         if (op == '~') {
           if (_typeRep.isNumber(dispatchType)) {
@@ -6026,11 +6026,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // https://github.com/dart-lang/sdk/issues/33293
     if (target != null) {
       var targetClass = target.enclosingClass!;
-      var leftType = _coreTypes.legacyRawType(targetClass);
+      var leftType = _coreTypes.nonNullableRawType(targetClass);
       var rightType = right.getStaticType(_staticTypeContext);
 
       if (_typeRep.binaryOperationIsPrimitive(leftType, rightType) ||
-          leftType == _types.coreTypes.stringLegacyRawType && op == '+') {
+          targetClass == _coreTypes.stringClass && op == '+') {
         // Inline operations on primitive types where possible.
         // TODO(jmesserly): inline these from dart:core instead of hardcoding
         // the implementation details here.
@@ -7063,7 +7063,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var ctorClass = ctor.enclosingClass!;
     if (isJSAnonymousType(ctorClass)) return _emitObjectLiteral(args, ctor);
     return js_ast.New(
-        _emitConstructorName(_coreTypes.legacyRawType(ctorClass), ctor),
+        _emitConstructorName(_coreTypes.nonNullableRawType(ctorClass), ctor),
         _emitArgumentList(args, types: false, target: ctor));
   }
 
