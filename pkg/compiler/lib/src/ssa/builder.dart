@@ -1367,7 +1367,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
 
     // Add the type parameter for the generator's element type.
     DartType elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
-        function.asyncMarker, _returnType!);
+        function, _returnType!);
 
     // TODO(sra): [elementType] can contain free type variables that are erased
     // due to no rtiNeed. We will get getter code if these type variables are
@@ -1454,7 +1454,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
     // Call `_makeSyncStarIterable<T>(body)`. This usually gets inlined.
 
     final elementType = _elementEnvironment.getAsyncOrSyncStarElementType(
-        function.asyncMarker, _returnType!);
+        function, _returnType!);
     FunctionEntity method = _commonElements.syncStarIterableFactory;
     List<HInstruction> arguments = [pop()];
     List<DartType> typeArguments = const [];

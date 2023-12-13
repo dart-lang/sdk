@@ -235,12 +235,18 @@ ir.FunctionNode? getFunctionNode(
     case MemberKind.constructorBody:
       ir.Member node = definition.node as ir.Member;
       return node.function;
+    case MemberKind.generatorBody:
+      final node = definition.node;
+      if (node is ir.LocalFunction) return node.function;
+      return (node as ir.Member).function;
     case MemberKind.closureCall:
       ir.LocalFunction node = definition.node as ir.LocalFunction;
       return node.function;
-    default:
+    case MemberKind.closureField:
+    case MemberKind.signature:
+    case MemberKind.recordGetter:
+      return null;
   }
-  return null;
 }
 
 /// Returns the initializer for [field].

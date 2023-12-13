@@ -2221,13 +2221,14 @@ class JsElementEnvironment extends ElementEnvironment
   DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
     // TODO(sra): Should be getting the DartType from the node.
     DartType returnType = getFunctionType(function).returnType;
-    return getAsyncOrSyncStarElementType(function.asyncMarker, returnType);
+    return getAsyncOrSyncStarElementType(function, returnType);
   }
 
   @override
   DartType getAsyncOrSyncStarElementType(
-      AsyncMarker asyncMarker, DartType returnType) {
-    var returnTypeWithoutNullability = returnType.withoutNullability;
+      FunctionEntity function, DartType returnType) {
+    final asyncMarker = function.asyncMarker;
+    final returnTypeWithoutNullability = returnType.withoutNullability;
     switch (asyncMarker) {
       case AsyncMarker.SYNC:
         return returnType;
@@ -2240,16 +2241,8 @@ class JsElementEnvironment extends ElementEnvironment
         }
         return dynamicType;
       case AsyncMarker.ASYNC:
-        if (returnTypeWithoutNullability is FutureOrType) {
-          return returnTypeWithoutNullability.typeArgument;
-        }
-        if (returnTypeWithoutNullability is InterfaceType) {
-          if (returnTypeWithoutNullability.element ==
-              elementMap.commonElements.futureClass) {
-            return returnTypeWithoutNullability.typeArguments.first;
-          }
-        }
-        return dynamicType;
+        return elementMap.getDartType(
+            getFunctionNode(elementMap, function)!.futureValueType!);
       case AsyncMarker.ASYNC_STAR:
         if (returnTypeWithoutNullability is InterfaceType) {
           if (returnTypeWithoutNullability.element ==
