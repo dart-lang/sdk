@@ -8,6 +8,19 @@ part of $LIBRARYNAME;
   * A client-side XHR request for getting data from a URL,
   * formally known as XMLHttpRequest.
   *
+  * **Note:** You should avoid directly using `HttpRequest` to make HTTP
+  * requests. You can use `HttpRequest` indirectly through the
+  * [`BrowserClient`](https://pub.dev/documentation/http/latest/browser_client/BrowserClient-class.html)
+  * adapter in [`package:http`](https://pub.dev/packages/http).
+  *
+  * Using a higher-level library, like
+  * [`package:http`](https://pub.dev/packages/http), allows you to switch
+  * implementations with minimal changes to your code. For example,
+  * `package:http`
+  * [`Client`](https://pub.dev/documentation/http/latest/http/Client-class.html)
+  * has implementations for the browser and implementations that use
+  * platform native HTTP clients on Android and iOS.
+  *
   * HttpRequest can be used to obtain data from HTTP and FTP protocols,
   * and is useful for AJAX-style page updates.
   *

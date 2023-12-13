@@ -163,7 +163,7 @@ vars = {
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "mime_rev": "56359b0c72e1a9a2e2b20ee5a34bacc18e113897",
   "mockito_rev": "57a7c820ffae61e3df0dbc279ad98b92751175f0",
-  "native_rev": "5aeab2915167fd24ccb1241c07516b388fda2b9b", # https://github.com/dart-lang/native/issues/855
+  "native_rev": "b668ca94f551fcebdeb3ce9f822170facced55ae",
   "package_config_rev": "33dd24659147bd7ed2fa87aeacc52d199be766b4",
   "path_rev": "115ea2a4084881e7c76089a37abc01a067dfa6e3",
   "pool_rev": "3c1bd422da311d95b65a04a5f28de2c0e8193692",

@@ -110,7 +110,8 @@ class Translator with KernelNodes {
   final Map<RecordShape, Class> recordClasses;
 
   // Caches for when identical source constructs need a common representation.
-  final Map<w.StorageType, w.ArrayType> arrayTypeCache = {};
+  final Map<w.StorageType, w.ArrayType> immutableArrayTypeCache = {};
+  final Map<w.StorageType, w.ArrayType> mutableArrayTypeCache = {};
   final Map<w.BaseFunction, w.Global> functionRefCache = {};
   final Map<Procedure, ClosureImplementation> tearOffFunctionCache = {};
 
@@ -618,7 +619,8 @@ class Translator with KernelNodes {
 
   w.ArrayType wasmArrayType(w.StorageType type, String name,
       {bool mutable = true}) {
-    return arrayTypeCache.putIfAbsent(
+    final cache = mutable ? mutableArrayTypeCache : immutableArrayTypeCache;
+    return cache.putIfAbsent(
         type,
         () => m.types.defineArray("Array<$name>",
             elementType: w.FieldType(type, mutable: mutable)));
