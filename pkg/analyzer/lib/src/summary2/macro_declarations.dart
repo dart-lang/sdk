@@ -1106,8 +1106,9 @@ class DeclarationBuilderFromNode {
   }
 
   macro.TypeAnnotationImpl _typeAnnotation(ast.TypeAnnotation node) {
+    node as ast.TypeAnnotationImpl;
     switch (node) {
-      case ast.GenericFunctionType():
+      case ast.GenericFunctionTypeImpl():
         return macro.FunctionTypeAnnotationImpl(
           id: macro.RemoteInstance.uniqueId,
           isNullable: node.question != null,
@@ -1122,12 +1123,10 @@ class DeclarationBuilderFromNode {
           returnType: _typeAnnotationOrDynamic(node.returnType),
           typeParameters: _typeParameters(node.typeParameters),
         );
-      case ast.NamedType():
+      case ast.NamedTypeImpl():
         return _namedType(node);
-      case ast.RecordTypeAnnotation():
+      case ast.RecordTypeAnnotationImpl():
         return _typeAnnotationRecord(node);
-      default:
-        throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 
