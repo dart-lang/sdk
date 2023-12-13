@@ -395,15 +395,14 @@ class _DebuggingSession {
         fullSdk ? sdk.devToolsBinaries : absolute(sdkDir, 'devtools');
     String snapshotName = fullSdk
         ? sdk.ddsAotSnapshot
-        : absolute(sdkDir, 'gen', 'dds_aot.dart.snapshot');
+        : absolute(sdkDir, 'dds_aot.dart.snapshot');
     String execName = sdk.dartAotRuntime;
     if (!Sdk.checkArtifactExists(snapshotName)) {
       // An AOT snapshot of dds is not available, we could
       // be running on the ia32 platform so check for a regular
       // kernel file being present.
-      snapshotName = fullSdk
-          ? sdk.ddsSnapshot
-          : absolute(sdkDir, 'gen', 'dds.dart.snapshot');
+      snapshotName =
+          fullSdk ? sdk.ddsSnapshot : absolute(sdkDir, 'dds.dart.snapshot');
       if (!Sdk.checkArtifactExists(snapshotName)) {
         return false;
       }
