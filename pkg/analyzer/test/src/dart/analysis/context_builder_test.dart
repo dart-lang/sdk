@@ -63,16 +63,17 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 
   void test_analysisOptions_invalid() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile(projectPath, ';');
+    var optionsFile = newAnalysisOptionsYamlFile(projectPath, ';');
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.analysisOptionsImpl;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsImplForFile(optionsFile);
     _expectEqualOptions(analysisOptions, AnalysisOptionsImpl());
   }
 
   void test_analysisOptions_languageOptions() {
     var projectPath = convertPath('/home/test');
-    newAnalysisOptionsYamlFile(
+    var optionsFile = newAnalysisOptionsYamlFile(
       projectPath,
       AnalysisOptionsFileConfig(
         strictRawTypes: true,
@@ -80,7 +81,8 @@ class ContextBuilderImplTest with ResourceProviderMixin {
     );
 
     var analysisContext = _createSingleAnalysisContext(projectPath);
-    var analysisOptions = analysisContext.analysisOptionsImpl;
+    var analysisOptions =
+        analysisContext.getAnalysisOptionsImplForFile(optionsFile);
     _expectEqualOptions(
       analysisOptions,
       AnalysisOptionsImpl()..strictRawTypes = true,
@@ -95,7 +97,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       declaredVariables: declaredVariables,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
   }
@@ -108,7 +109,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       declaredVariables: declaredVariables,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     assertEquals(context.driver.declaredVariables, declaredVariables);
     expect(
@@ -122,7 +122,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       contextRoot: contextRoot,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
   }
 
@@ -131,7 +130,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
       contextRoot: contextRoot,
       sdkPath: sdkRoot.path,
     );
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     expect(
       context.driver.sourceFactory.dartSdk!.mapDartUri('dart:core')!.fullName,
@@ -142,7 +140,6 @@ class ContextBuilderImplTest with ResourceProviderMixin {
   test_createContext_sdkRoot() {
     var context = contextBuilder.createContext(
         contextRoot: contextRoot, sdkPath: sdkRoot.path);
-    expect(context.analysisOptions, isNotNull);
     expect(context.contextRoot, contextRoot);
     expect(context.sdkRoot, sdkRoot);
   }
@@ -217,11 +214,10 @@ class ContextBuilderImplTest with ResourceProviderMixin {
 }
 
 extension on DriverBasedAnalysisContext {
-  AnalysisOptionsImpl get analysisOptionsImpl {
-    return driver.analysisOptions as AnalysisOptionsImpl;
-  }
-
   List<UriResolver> get uriResolvers {
     return (driver.sourceFactory as SourceFactoryImpl).resolvers;
   }
+
+  AnalysisOptionsImpl getAnalysisOptionsImplForFile(File file) =>
+      driver.getAnalysisOptionsForFile(file) as AnalysisOptionsImpl;
 }

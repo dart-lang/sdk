@@ -73,6 +73,7 @@ typedef AnalyzeFunctionBodiesPredicate = bool Function(Source source);
 abstract class AnalysisContext {
   /// Return the set of analysis options controlling the behavior of this
   /// context. Clients should not modify the returned set of options.
+  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions;
 
   /// Return the set of declared variables used when computing constant values.

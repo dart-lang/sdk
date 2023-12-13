@@ -6210,6 +6210,13 @@ class MacroStaticTypeTest extends MacroElementsBaseTest {
         true,
       ),
       ('void Function({int a})', 'void Function({required int a})', false),
+      // RecordType
+      ('(int,)', '(int,)', true),
+      ('(int,)', '(double,)', false),
+      ('({int a,})', '({int a,})', true),
+      ('({int a,})', '({int b,})', false),
+      ('({int a,})', '({double a,})', false),
+      ('({int a,})', '({int a, int b})', false),
     };
 
     for (final testCase in testCases) {
@@ -6291,32 +6298,64 @@ mixin A {}
     );
   }
 
-  test_isExactly_typeParameter_notSame() async {
+  test_isExactly_omittedType_notSame() async {
     final library = await buildLibrary('''
 import 'static_type.dart';
 
 class A {
+  void foo(int a, double b) {}
+}
+
+class B extends A {
   @IsExactly()
-  void foo<T, U>(T a, U b) {}
+  void foo(a, b) {}
 }
 ''');
 
     final generated = _getMacroGeneratedCode(library);
-    expect(generated, contains('void isExactly_false() {}'));
+    _assertIsExactlyValue(generated, false);
+  }
+
+  test_isExactly_omittedType_same() async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+class A {
+  void foo(int a, int b) {}
+}
+
+class B extends A {
+  @IsExactly()
+  void foo(a, b) {}
+}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    _assertIsExactlyValue(generated, true);
+  }
+
+  test_isExactly_typeParameter_notSame() async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+@IsExactly()
+void foo<T, U>(T a, U b) {}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    _assertIsExactlyValue(generated, false);
   }
 
   test_isExactly_typeParameter_same() async {
     final library = await buildLibrary('''
 import 'static_type.dart';
 
-class A {
-  @IsExactly()
-  void foo<T>(T a, T b) {}
-}
+@IsExactly()
+void foo<T>(T a, T b) {}
 ''');
 
     final generated = _getMacroGeneratedCode(library);
-    expect(generated, contains('void isExactly_true() {}'));
+    _assertIsExactlyValue(generated, true);
   }
 
   Future<void> _assertIsExactly({
@@ -6337,13 +6376,22 @@ class A {
 ''');
 
     final generated = _getMacroGeneratedCode(library);
-    final expected = 'void isExactly_$isExactly() {}';
+    final expected = _isExactlyExpected(isExactly);
     if (!generated.contains(expected)) {
       fail(
         '`$firstTypeCode` isExactly `$secondTypeCode`'
         ' expected to be `$isExactly`, but is not.\n',
       );
     }
+  }
+
+  void _assertIsExactlyValue(String generated, bool isExactly) {
+    final expected = _isExactlyExpected(isExactly);
+    expect(generated, contains(expected));
+  }
+
+  String _isExactlyExpected(bool isExactly) {
+    return '=> $isExactly; // isExactly';
   }
 }
 

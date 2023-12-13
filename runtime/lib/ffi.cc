@@ -20,7 +20,6 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/ffi/call.h"
 #include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/jit/compiler.h"

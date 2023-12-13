@@ -88,7 +88,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 324;
+  static const int DATA_VERSION = 325;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -328,7 +328,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Set<String> get addedFiles => _fileTracker.addedFiles;
 
   /// Return the analysis options used to control analysis.
-  // TODO(pq): @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
+  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions => _analysisOptions;
 
   /// Return the current analysis session.

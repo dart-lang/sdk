@@ -18,13 +18,13 @@ namespace ffi {
 const String& NativeCallbackFunctionName(Thread* thread,
                                          Zone* zone,
                                          const Function& dart_target,
-                                         FfiFunctionKind kind) {
+                                         FfiCallbackKind kind) {
   switch (kind) {
-    case FfiFunctionKind::kAsyncCallback:
+    case FfiCallbackKind::kAsyncCallback:
       return Symbols::FfiAsyncCallback();
-    case FfiFunctionKind::kIsolateLocalClosureCallback:
+    case FfiCallbackKind::kIsolateLocalClosureCallback:
       return Symbols::FfiIsolateLocalCallback();
-    case FfiFunctionKind::kIsolateLocalStaticCallback:
+    case FfiCallbackKind::kIsolateLocalStaticCallback:
       return String::Handle(
           zone, Symbols::FromConcat(thread, Symbols::FfiCallback(),
                                     String::Handle(zone, dart_target.name())));
@@ -36,7 +36,7 @@ const String& NativeCallbackFunctionName(Thread* thread,
 FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
                                    const Instance& exceptional_return,
-                                   FfiFunctionKind kind) {
+                                   FfiCallbackKind kind) {
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   Function& function = Function::Handle(zone);
@@ -64,7 +64,7 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   // the body.
   function.SetFfiCSignature(c_signature);
   function.SetFfiCallbackTarget(dart_target);
-  function.SetFfiFunctionKind(kind);
+  function.SetFfiCallbackKind(kind);
 
   // We need to load the exceptional return value as a constant in the generated
   // function. Even though the FE ensures that it is a constant, it could still

@@ -108,19 +108,8 @@ class DeclarationBuilder {
   macro.TypeAnnotation inferOmittedType(
     macro.OmittedTypeAnnotation omittedType,
   ) {
-    switch (omittedType) {
-      case _OmittedTypeAnnotationDynamic():
-        final type = DynamicTypeImpl.instance;
-        return fromElement._dartType(type);
-      case _OmittedTypeAnnotationMethodReturnType():
-        final type = omittedType.element.returnType;
-        return fromElement._dartType(type);
-      case _OmittedTypeAnnotationVariable():
-        final type = omittedType.element.type;
-        return fromElement._dartType(type);
-      default:
-        throw UnimplementedError('${omittedType.runtimeType}');
-    }
+    final type = resolveType(omittedType.code);
+    return fromElement._dartType(type);
   }
 
   macro.ResolvedIdentifier resolveIdentifier(macro.Identifier identifier) {
@@ -173,6 +162,13 @@ class DeclarationBuilder {
           uri: element.source.uri,
           staticScope: null,
         );
+      case TypeParameterElement():
+        return macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.local,
+          name: element.name,
+          uri: null,
+          staticScope: null,
+        );
       default:
         // TODO(scheglov): other elements
         throw UnimplementedError('${element.runtimeType}');
@@ -190,14 +186,12 @@ class DeclarationBuilder {
       case macro.NamedTypeAnnotationCode():
         return _resolveTypeCodeNamed(typeCode);
       case macro.OmittedTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+        return _resolveTypeCodeOmitted(typeCode);
       case macro.RawTypeAnnotationCode():
         // TODO(scheglov): implement
         throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
       case macro.RecordTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+        return _resolveTypeCodeRecord(typeCode);
     }
   }
 
@@ -367,6 +361,39 @@ class DeclarationBuilder {
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
+  }
+
+  DartType _resolveTypeCodeOmitted(macro.OmittedTypeAnnotationCode typeCode) {
+    final omittedType = typeCode.typeAnnotation;
+    switch (omittedType) {
+      case _OmittedTypeAnnotationDynamic():
+        return DynamicTypeImpl.instance;
+      case _OmittedTypeAnnotationMethodReturnType():
+        return omittedType.element.returnType;
+      case _OmittedTypeAnnotationVariable():
+        return omittedType.element.type;
+      default:
+        throw UnimplementedError('${omittedType.runtimeType}');
+    }
+  }
+
+  RecordTypeImpl _resolveTypeCodeRecord(
+    macro.RecordTypeAnnotationCode typeCode,
+  ) {
+    return RecordTypeImpl(
+      positionalFields: typeCode.positionalFields.map((e) {
+        return RecordTypePositionalFieldImpl(
+          type: resolveType(e.type),
+        );
+      }).toList(),
+      namedFields: typeCode.namedFields.map((e) {
+        return RecordTypeNamedFieldImpl(
+          name: e.name!,
+          type: resolveType(e.type),
+        );
+      }).toList(),
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   static macro.ExpressionCode _expressionCode(ast.Expression node) {
@@ -1095,6 +1122,8 @@ class DeclarationBuilderFromNode {
         );
       case ast.NamedType():
         return _namedType(node);
+      case ast.RecordTypeAnnotation():
+        return _typeAnnotationRecord(node);
       default:
         throw UnimplementedError('(${node.runtimeType}) $node');
     }
@@ -1116,6 +1145,39 @@ class DeclarationBuilderFromNode {
       return _OmittedTypeAnnotationDynamic();
     }
     return _typeAnnotation(node);
+  }
+
+  macro.RecordTypeAnnotationImpl _typeAnnotationRecord(
+    ast.RecordTypeAnnotation node,
+  ) {
+    final unitNode = node.thisOrAncestorOfType<ast.CompilationUnit>()!;
+    final unitElement = unitNode.declaredElement!;
+    final macroLibrary = library(unitElement);
+
+    macro.RecordFieldDeclarationImpl buildField(
+      ast.RecordTypeAnnotationField field,
+    ) {
+      final name = field.name?.lexeme ?? '';
+      return macro.RecordFieldDeclarationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        identifier: IdentifierImplFromNode(
+          id: macro.RemoteInstance.uniqueId,
+          name: name,
+          getElement: () => null,
+        ),
+        library: macroLibrary,
+        metadata: const [],
+        name: name,
+        type: _typeAnnotationOrDynamic(field.type),
+      );
+    }
+
+    return macro.RecordTypeAnnotationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      positionalFields: node.positionalFields.map(buildField).toList(),
+      namedFields: node.namedFields?.fields.map(buildField).toList() ?? [],
+      isNullable: node.question != null,
+    );
   }
 
   List<macro.TypeAnnotationImpl> _typeAnnotations(

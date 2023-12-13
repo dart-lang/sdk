@@ -4,12 +4,12 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
-/*macro*/ class IsExactly implements MethodDeclarationsMacro {
+/*macro*/ class IsExactly implements FunctionDefinitionMacro {
   const IsExactly();
 
   @override
-  buildDeclarationsForMethod(method, builder) async {
-    final positional = method.positionalParameters.toList();
+  buildDefinitionForFunction(declaration, builder) async {
+    final positional = declaration.positionalParameters.toList();
     final first = positional[0];
     final second = positional[1];
 
@@ -20,9 +20,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     final secondStaticType = await builder.resolve(secondTypeCode);
 
     final result = await firstStaticType.isExactly(secondStaticType);
-    final code = '  void isExactly_$result() {}';
-    builder.declareInType(
-      DeclarationCode.fromString(code),
+    builder.augment(
+      FunctionBodyCode.fromString('=> $result; // isExactly'),
     );
   }
 }

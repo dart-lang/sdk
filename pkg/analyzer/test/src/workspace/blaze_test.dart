@@ -9,10 +9,12 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:async/async.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
+import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -20,6 +22,7 @@ main() {
     defineReflectiveTests(BlazePackageUriResolverTest);
     defineReflectiveTests(BlazeWorkspaceTest);
     defineReflectiveTests(BlazeWorkspacePackageTest);
+    defineReflectiveTests(BlazeLanguageVersionTest);
   });
 }
 
@@ -181,6 +184,36 @@ class BlazeFileUriResolverTest with ResourceProviderMixin {
 
     restoredUriStr ??= uriStr;
     expect(resolver.pathToUri(path), Uri.parse(restoredUriStr));
+  }
+}
+
+@reflectiveTest
+class BlazeLanguageVersionTest extends BlazeWorkspaceResolutionTest {
+  void test_buildFile_nonNullable_languageVersion_fromWorkspace() async {
+    newFile('$workspaceRootPath/dart/build_defs/bzl/language.bzl', r'''
+_version = "3.1"
+_version_for_analyzer = _version
+
+language = struct(
+    version = _version,
+    version_for_analyzer = _version_for_analyzer,
+)
+''');
+
+    await resolveFileCode('$myPackageRootPath/lib/a.dart', '');
+    _assertLanguageVersion(
+      package: Version.parse('3.1.0'),
+      override: null,
+    );
+  }
+
+  void _assertLanguageVersion({
+    required Version package,
+    required Version? override,
+  }) async {
+    var element = result.libraryElement;
+    expect(element.languageVersion.package, package);
+    expect(element.languageVersion.override, override);
   }
 }
 
