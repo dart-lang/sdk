@@ -2319,6 +2319,12 @@ class ResolutionReader {
             );
           }),
         );
+      case 0x02:
+        return ExceptionMacroDiagnostic(
+          annotationIndex: readUInt30(),
+          message: _reader.readStringUtf8(),
+          stackTrace: _reader.readStringUtf8(),
+        );
       case 0x03:
         return MacroDiagnostic(
           severity: macro.Severity.values[readByte()],

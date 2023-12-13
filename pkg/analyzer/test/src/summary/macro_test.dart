@@ -6210,6 +6210,13 @@ class MacroStaticTypeTest extends MacroElementsBaseTest {
         true,
       ),
       ('void Function({int a})', 'void Function({required int a})', false),
+      // RecordType
+      ('(int,)', '(int,)', true),
+      ('(int,)', '(double,)', false),
+      ('({int a,})', '({int a,})', true),
+      ('({int a,})', '({int b,})', false),
+      ('({int a,})', '({double a,})', false),
+      ('({int a,})', '({int a, int b})', false),
     };
 
     for (final testCase in testCases) {

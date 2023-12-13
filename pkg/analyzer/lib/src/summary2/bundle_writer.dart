@@ -959,8 +959,10 @@ class ResolutionSink extends _SummaryDataWriter {
           writeUInt30(component.annotationIndex);
         });
       case ExceptionMacroDiagnostic():
-        // TODO(scheglov): Handle this case.
-        throw UnimplementedError();
+        writeByte(0x02);
+        writeUInt30(diagnostic.annotationIndex);
+        writeStringUtf8(diagnostic.message);
+        writeStringUtf8(diagnostic.stackTrace);
       case MacroDiagnostic():
         writeByte(0x03);
         writeByte(diagnostic.severity.index);

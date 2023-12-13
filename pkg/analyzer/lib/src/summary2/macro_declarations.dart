@@ -191,8 +191,7 @@ class DeclarationBuilder {
         // TODO(scheglov): implement
         throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
       case macro.RecordTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+        return _resolveTypeCodeRecord(typeCode);
     }
   }
 
@@ -376,6 +375,25 @@ class DeclarationBuilder {
       default:
         throw UnimplementedError('${omittedType.runtimeType}');
     }
+  }
+
+  RecordTypeImpl _resolveTypeCodeRecord(
+    macro.RecordTypeAnnotationCode typeCode,
+  ) {
+    return RecordTypeImpl(
+      positionalFields: typeCode.positionalFields.map((e) {
+        return RecordTypePositionalFieldImpl(
+          type: resolveType(e.type),
+        );
+      }).toList(),
+      namedFields: typeCode.namedFields.map((e) {
+        return RecordTypeNamedFieldImpl(
+          name: e.name!,
+          type: resolveType(e.type),
+        );
+      }).toList(),
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 
   static macro.ExpressionCode _expressionCode(ast.Expression node) {
@@ -1104,6 +1122,8 @@ class DeclarationBuilderFromNode {
         );
       case ast.NamedType():
         return _namedType(node);
+      case ast.RecordTypeAnnotation():
+        return _typeAnnotationRecord(node);
       default:
         throw UnimplementedError('(${node.runtimeType}) $node');
     }
@@ -1125,6 +1145,39 @@ class DeclarationBuilderFromNode {
       return _OmittedTypeAnnotationDynamic();
     }
     return _typeAnnotation(node);
+  }
+
+  macro.RecordTypeAnnotationImpl _typeAnnotationRecord(
+    ast.RecordTypeAnnotation node,
+  ) {
+    final unitNode = node.thisOrAncestorOfType<ast.CompilationUnit>()!;
+    final unitElement = unitNode.declaredElement!;
+    final macroLibrary = library(unitElement);
+
+    macro.RecordFieldDeclarationImpl buildField(
+      ast.RecordTypeAnnotationField field,
+    ) {
+      final name = field.name?.lexeme ?? '';
+      return macro.RecordFieldDeclarationImpl(
+        id: macro.RemoteInstance.uniqueId,
+        identifier: IdentifierImplFromNode(
+          id: macro.RemoteInstance.uniqueId,
+          name: name,
+          getElement: () => null,
+        ),
+        library: macroLibrary,
+        metadata: const [],
+        name: name,
+        type: _typeAnnotationOrDynamic(field.type),
+      );
+    }
+
+    return macro.RecordTypeAnnotationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      positionalFields: node.positionalFields.map(buildField).toList(),
+      namedFields: node.namedFields?.fields.map(buildField).toList() ?? [],
+      isNullable: node.question != null,
+    );
   }
 
   List<macro.TypeAnnotationImpl> _typeAnnotations(
