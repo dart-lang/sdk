@@ -184,7 +184,11 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
       ],
       positionalParameters: [
         for (FunctionTypeParameter positional in positionalParameters)
-          positional.code,
+          if (positional.isRequired) positional.code,
+      ],
+      optionalPositionalParameters: [
+        for (FunctionTypeParameter positional in positionalParameters)
+          if (!positional.isRequired) positional.code,
       ],
       namedParameters: [
         for (FunctionTypeParameter named in namedParameters) named.code,

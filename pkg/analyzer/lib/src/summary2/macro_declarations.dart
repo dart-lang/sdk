@@ -317,10 +317,12 @@ class DeclarationBuilder {
       parameters: [
         ...typeCode.positionalParameters.map((e) {
           return buildFormalParameter(e, (e) {
-            // TODO(scheglov): this code does not actually work.
-            return e.keywords.contains('required')
-                ? ParameterKind.REQUIRED
-                : ParameterKind.POSITIONAL;
+            return ParameterKind.REQUIRED;
+          });
+        }),
+        ...typeCode.optionalPositionalParameters.map((e) {
+          return buildFormalParameter(e, (e) {
+            return ParameterKind.POSITIONAL;
           });
         }),
         ...typeCode.namedParameters.map((e) {
