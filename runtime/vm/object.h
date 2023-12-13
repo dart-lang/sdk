@@ -3911,6 +3911,13 @@ class Function : public Object {
            UntaggedFunction::kFfiTrampoline;
   }
 
+  // Returns true if this function is a closure function
+  // used to represent ffi call.
+  bool IsFfiCallClosure() const;
+
+  // Returns value of vm:ffi:call-closure pragma.
+  InstancePtr GetFfiCallClosurePragmaValue() const;
+
   // Returns true for functions which execution can be suspended
   // using Suspend/Resume stubs. Such functions have an artificial
   // :suspend_state local variable at the fixed location of the frame.

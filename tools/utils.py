@@ -11,7 +11,8 @@ import contextlib
 import datetime
 from functools import total_ordering
 import glob
-import imp
+import importlib.util
+import importlib.machinery
 import json
 import os
 import platform
@@ -111,16 +112,29 @@ def GetBaseDir():
     return BASE_DIR
 
 
+def load_source(modname, filename):
+    loader = importlib.machinery.SourceFileLoader(modname, filename)
+    spec = importlib.util.spec_from_file_location(modname,
+                                                  filename,
+                                                  loader=loader)
+    module = importlib.util.module_from_spec(spec)
+    # The module is always executed and not cached in sys.modules.
+    # Uncomment the following line to cache the module.
+    # sys.modules[module.__name__] = module
+    loader.exec_module(module)
+    return module
+
+
 def GetBotUtils(repo_path=DART_DIR):
     '''Dynamically load the tools/bots/bot_utils.py python module.'''
-    return imp.load_source(
-        'bot_utils', os.path.join(repo_path, 'tools', 'bots', 'bot_utils.py'))
+    return load_source('bot_utils',
+                       os.path.join(repo_path, 'tools', 'bots', 'bot_utils.py'))
 
 
 def GetMinidumpUtils(repo_path=DART_DIR):
     '''Dynamically load the tools/minidump.py python module.'''
-    return imp.load_source('minidump',
-                           os.path.join(repo_path, 'tools', 'minidump.py'))
+    return load_source('minidump',
+                       os.path.join(repo_path, 'tools', 'minidump.py'))
 
 
 @total_ordering

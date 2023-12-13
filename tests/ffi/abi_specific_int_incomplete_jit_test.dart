@@ -116,21 +116,27 @@ void testAsFunction() {
   Expect.throws(() {
     nullptr
         .cast<NativeFunction<Int32 Function(Incomplete)>>()
-        .asFunction<int Function(int)>();
+        .asFunction<int Function(int)>()
+        .call(42);
   });
   Expect.throws(() {
     nullptr
         .cast<NativeFunction<Incomplete Function(Int32)>>()
-        .asFunction<int Function(int)>();
+        .asFunction<int Function(int)>()
+        .call(42);
   });
+  final p = calloc<Int64>(100).cast<IncompleteArrayStruct>();
   Expect.throws(() {
     nullptr
         .cast<NativeFunction<Int32 Function(IncompleteArrayStruct)>>()
-        .asFunction<int Function(IncompleteArrayStruct)>();
+        .asFunction<int Function(IncompleteArrayStruct)>()
+        .call(p.ref);
   });
+  calloc.free(p);
   Expect.throws(() {
     nullptr
         .cast<NativeFunction<IncompleteArrayStruct Function()>>()
-        .asFunction<IncompleteArrayStruct Function()>();
+        .asFunction<IncompleteArrayStruct Function()>()
+        .call();
   });
 }

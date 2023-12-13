@@ -501,6 +501,7 @@ class ObjectPointerVisitor;
   V(from, "from")                                                              \
   V(get, "get")                                                                \
   V(index_temp, ":index_temp")                                                 \
+  V(isLeaf, "isLeaf")                                                          \
   V(isPaused, "isPaused")                                                      \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \
@@ -529,6 +530,7 @@ class ObjectPointerVisitor;
   V(vm_exact_result_type, "vm:exact-result-type")                              \
   V(vm_external_name, "vm:external-name")                                      \
   V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
+  V(vm_ffi_call_closure, "vm:ffi:call-closure")                                \
   V(vm_ffi_native, "vm:ffi:native")                                            \
   V(vm_ffi_native_assets, "vm:ffi:native-assets")                              \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \

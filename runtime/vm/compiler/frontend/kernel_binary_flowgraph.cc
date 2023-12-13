@@ -3348,8 +3348,8 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
       return BuildNativeEffect();
     case MethodRecognizer::kReachabilityFence:
       return BuildReachabilityFence();
-    case MethodRecognizer::kFfiAsFunctionInternal:
-      return BuildFfiAsFunctionInternal();
+    case MethodRecognizer::kFfiCall:
+      return BuildFfiCall();
     case MethodRecognizer::kFfiNativeCallbackFunction:
       return BuildFfiNativeCallbackFunction(
           FfiFunctionKind::kIsolateLocalStaticCallback);
@@ -6221,34 +6221,46 @@ Fragment StreamingFlowGraphBuilder::BuildStoreAbiSpecificInt(bool at_index) {
   return code;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
+Fragment StreamingFlowGraphBuilder::BuildFfiCall() {
   const intptr_t argc = ReadUInt();               // Read argument count.
-  ASSERT(argc == 2);                              // Pointer, isLeaf.
+  ASSERT(argc == 1);                              // Target pointer.
   const intptr_t list_length = ReadListLength();  // Read types list length.
-  ASSERT(list_length == 2);  // Dart signature, then native signature
-  // Read types.
-  const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
-  Fragment code;
+  T.BuildTypeArguments(list_length);              // Read types.
   // Read positional argument count.
   const intptr_t positional_count = ReadListLength();
-  ASSERT(positional_count == 2);
-  code += BuildExpression();  // Build first positional argument (pointer).
+  ASSERT(positional_count == argc);
 
-  // The second argument, `isLeaf`, is only used internally and dictates whether
-  // we can do a lightweight leaf function call.
-  bool is_leaf = false;
-  Fragment frag = BuildExpression();
-  ASSERT(frag.entry->IsConstant());
-  if (frag.entry->AsConstant()->value().ptr() == Object::bool_true().ptr()) {
-    is_leaf = true;
-  }
-  Pop();
+  Fragment code;
+  // Push the target function pointer passed as Pointer object.
+  code += BuildExpression();
+  // This can only be Pointer, so it is always safe to LoadUntagged.
+  code += B->LoadUntagged(compiler::target::PointerBase::data_offset());
+  code += B->ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
 
   // Skip (empty) named arguments list.
   const intptr_t named_args_len = ReadListLength();
   ASSERT(named_args_len == 0);
 
-  code += B->BuildFfiAsFunctionInternalCall(type_arguments, is_leaf);
+  const auto& native_type = FunctionType::ZoneHandle(
+      Z, parsed_function()->function().FfiCSignature());
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  compiler::ffi::NativeFunctionTypeFromFunctionType(Z, native_type, &error);
+  if (error != nullptr) {
+    const auto& language_error = Error::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+
+  code += B->FfiCallFunctionBody(parsed_function()->function(), native_type,
+                                 /*first_argument_parameter_offset=*/1);
+
+  ASSERT(code.is_closed());
+
+  NullConstant();  // Maintain stack balance.
+
   return code;
 }
 

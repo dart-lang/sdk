@@ -113,9 +113,14 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   // callback.
   int callbackCount = 0;
 
+  // Used to create private top-level trampoline methods with unique names
+  // for each call.
+  int callCount = 0;
+
   @override
   TreeNode visitLibrary(Library node) {
     callbackCount = 0;
+    callCount = 0;
     return super.visitLibrary(node);
   }
 
@@ -349,10 +354,12 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         );
         final DartType nativeSignature = nativeType.typeArguments[0];
 
-        return buildAsFunctionInternal(
+        return _replaceAsFunction(
           functionPointer: node.arguments.positional[0],
+          pointerType: InterfaceType(
+              pointerClass, Nullability.nonNullable, [nativeType]),
           nativeSignature: nativeSignature,
-          dartSignature: dartType,
+          dartSignature: dartType as FunctionType,
           isLeaf: isLeaf,
           fileOffset: node.fileOffset,
         );
@@ -428,6 +435,84 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return node;
   }
 
+  /// Create Dart function which calls native code.
+  ///
+  /// Adds a native effect invoking a compound constructors if this is used
+  /// as return type.
+  Expression _replaceAsFunction({
+    required Expression functionPointer,
+    required DartType pointerType,
+    required DartType nativeSignature,
+    required FunctionType dartSignature,
+    required bool isLeaf,
+    required int fileOffset,
+  }) {
+    assert(dartSignature.namedParameters.isEmpty);
+    final functionPointerVarName = '#ffiTarget$callCount';
+    final closureName = '#ffiClosure$callCount';
+    ++callCount;
+
+    final pointerVar = VariableDeclaration(functionPointerVarName,
+        initializer: functionPointer, type: pointerType, isSynthesized: true);
+
+    final positionalParameters = [
+      for (int i = 0; i < dartSignature.positionalParameters.length; ++i)
+        VariableDeclaration(
+          'arg${i + 1}',
+          type: dartSignature.positionalParameters[i],
+        )
+    ];
+
+    final closure = FunctionDeclaration(
+        VariableDeclaration(closureName,
+            type: dartSignature, isSynthesized: true)
+          ..addAnnotation(ConstantExpression(
+              InstanceConstant(coreTypes.pragmaClass.reference, [], {
+            coreTypes.pragmaName.fieldReference:
+                StringConstant('vm:ffi:call-closure'),
+            coreTypes.pragmaOptions.fieldReference: InstanceConstant(
+              ffiCallClass.reference,
+              [nativeSignature],
+              {
+                ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf),
+              },
+            ),
+          }))),
+        FunctionNode(
+            Block([
+              for (final param in positionalParameters)
+                ExpressionStatement(StaticInvocation(
+                    nativeEffectMethod, Arguments([VariableGet(param)]))),
+              ReturnStatement(StaticInvocation(
+                  ffiCallMethod,
+                  Arguments([
+                    VariableGet(pointerVar),
+                  ], types: [
+                    dartSignature.returnType,
+                  ]))
+                ..fileOffset = fileOffset),
+            ]),
+            positionalParameters: positionalParameters,
+            requiredParameterCount: dartSignature.requiredParameterCount,
+            returnType: dartSignature.returnType)
+          ..fileOffset = fileOffset)
+      ..fileOffset = fileOffset;
+
+    final result = BlockExpression(
+        Block([
+          pointerVar,
+          closure,
+        ]),
+        VariableGet(closure.variable));
+
+    final possibleCompoundReturn = findCompoundReturnType(dartSignature);
+    if (possibleCompoundReturn != null) {
+      return invokeCompoundConstructor(result, possibleCompoundReturn);
+    }
+
+    return result;
+  }
+
   Expression invokeCompoundConstructors(
           Expression nestedExpression, List<Class> compoundClasses) =>
       compoundClasses
@@ -462,10 +547,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   // 'lookupFunction' are constants, so by inlining the call to 'asFunction' at
   // the call-site, we ensure that there are no generic calls to 'asFunction'.
   Expression _replaceLookupFunction(StaticInvocation node) {
-    // The generated code looks like:
-    //
-    // _asFunctionInternal<DS, NS>(lookup<NativeFunction<NS>>(symbolName),
-    //     isLeaf)
     final DartType nativeSignature = node.arguments.types[0];
     final DartType dartSignature = node.arguments.types[1];
 
@@ -478,21 +559,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final FunctionType lookupFunctionType =
         libraryLookupMethod.getterType as FunctionType;
 
-    final Expression lookupResult = InstanceInvocation(
-        InstanceAccessKind.Instance,
-        node.arguments.positional[0],
-        libraryLookupMethod.name,
-        lookupArgs,
+    final lookupResult = InstanceInvocation(InstanceAccessKind.Instance,
+        node.arguments.positional[0], libraryLookupMethod.name, lookupArgs,
         interfaceTarget: libraryLookupMethod,
         functionType: FunctionTypeInstantiator.instantiate(
             lookupFunctionType, lookupTypeArgs));
 
     final isLeaf = getIsLeafBoolean(node) ?? false;
 
-    return buildAsFunctionInternal(
+    return _replaceAsFunction(
       functionPointer: lookupResult,
+      pointerType: lookupResult.functionType.returnType,
       nativeSignature: nativeSignature,
-      dartSignature: dartSignature,
+      dartSignature: dartSignature as FunctionType,
       isLeaf: isLeaf,
       fileOffset: node.fileOffset,
     );
