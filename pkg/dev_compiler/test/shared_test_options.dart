@@ -46,12 +46,6 @@ class SetupCompilerOptions {
       buildRoot.resolve('ddc_outline_unsound.dill');
   static final _sdkSoundSummaryPath = buildRoot.resolve('ddc_outline.dill');
 
-  static final _dartUnsoundComment = '// @dart = 2.9';
-  static final _dartSoundComment = '//';
-  String get dartLangComment =>
-      soundNullSafety ? _dartSoundComment : _dartUnsoundComment;
-
-  final bool legacyCode;
   final List<String> errors = [];
   final List<String> diagnosticMessages = [];
   final ModuleFormat moduleFormat;
@@ -84,7 +78,6 @@ class SetupCompilerOptions {
   SetupCompilerOptions._({
     this.enableAsserts = true,
     this.soundNullSafety = true,
-    this.legacyCode = false,
     this.moduleFormat = ModuleFormat.amd,
     this.canaryFeatures = false,
     List<String> enableExperiments = const [],
@@ -117,7 +110,6 @@ class SetupCompilerOptions {
   /// `dart test/expression_compiler/assertions_enabled_test.dart --canary --enable-asserts`
   factory SetupCompilerOptions({
     bool soundNullSafety = true,
-    bool legacyCode = false,
     ModuleFormat moduleFormat = ModuleFormat.amd,
     List<String> enableExperiments = const [],
     List<String> args = const [],
@@ -141,7 +133,6 @@ class SetupCompilerOptions {
     return SetupCompilerOptions._(
       enableAsserts: enableAsserts,
       soundNullSafety: soundNullSafety,
-      legacyCode: legacyCode,
       moduleFormat: moduleFormat,
       canaryFeatures: canaryFeatures,
       enableExperiments: enableExperiments,

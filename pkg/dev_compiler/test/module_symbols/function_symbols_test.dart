@@ -20,8 +20,6 @@ void main() async {
         late final FunctionSymbol functionSymbol;
         late final LibrarySymbol librarySymbol;
         final source = '''
-          ${options.dartLangComment}
-
           void topLevelFunction() {
             return;
           }
@@ -81,8 +79,6 @@ void main() async {
         late final FunctionSymbol functionSymbol;
         late final LibrarySymbol librarySymbol;
         final source = '''
-          ${options.dartLangComment}
-
           void _topLevelFunction() {
             return;
           }
@@ -110,8 +106,6 @@ void main() async {
         late final FunctionSymbol functionSymbol;
         late final LibrarySymbol librarySymbol;
         final source = '''
-          ${options.dartLangComment}
-
           String get topLevelGetter => 'Cello';
           ''';
         setUpAll(() async {
@@ -140,8 +134,6 @@ void main() async {
         late final FunctionSymbol functionSymbol;
         late final LibrarySymbol librarySymbol;
         final source = '''
-          ${options.dartLangComment}
-
           String get _topLevelGetter => 'Cello';
           ''';
         setUpAll(() async {
@@ -170,7 +162,6 @@ void main() async {
         late final FunctionSymbol functionSymbol;
         late final LibrarySymbol librarySymbol;
         final source = '''
-          ${options.dartLangComment}
           var _value;
           set topLevelSetter(String v) => _value = v;
           ''';
@@ -200,8 +191,6 @@ void main() async {
         late final FunctionSymbol functionSymbol;
         late final LibrarySymbol librarySymbol;
         final source = '''
-          ${options.dartLangComment}
-
           var _value;
           set _topLevelSetter(String v) => _value = v;
           ''';
@@ -235,8 +224,6 @@ void main() async {
         late final VariableSymbol ySymbol;
         late final VariableSymbol zSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           class A {
             const A();
           }
@@ -294,8 +281,6 @@ void main() async {
         late final FunctionSymbol functionSymbol;
         late final VariableSymbol variableSymbol;
         final source = '''
-          ${options.dartLangComment}
-
           int topLevelFunction() {
             int i = 42;
             return i;
