@@ -1886,6 +1886,13 @@ void IsolateGroup::SetupImagePage(const uint8_t* image_buffer,
                          is_executable);
 }
 
+void IsolateGroup::ScheduleInterrupts(uword interrupt_bits) {
+  SafepointReadRwLocker ml(Thread::Current(), isolates_lock_.get());
+  for (Isolate* isolate : isolates_) {
+    isolate->ScheduleInterrupts(interrupt_bits);
+  }
+}
+
 void Isolate::ScheduleInterrupts(uword interrupt_bits) {
   // We take the threads lock here to ensure that the mutator thread does not
   // exit the isolate while we are trying to schedule interrupts on it.
