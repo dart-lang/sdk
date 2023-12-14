@@ -2460,6 +2460,10 @@ class MacroDefinitionTest_keepLinking extends MacroDefinitionTest {
 abstract class MacroElementsBaseTest extends ElementsBaseTest {
   /// We decided that we want to fail, and want to print the library.
   void failWithLibraryText(LibraryElementImpl library) {
+    // While developing, we hit unimplemented branches.
+    // It is useful to see where, so include stack traces.
+    configuration.withMacroStackTraces = true;
+
     final text = getLibraryText(
       library: library,
       configuration: configuration,
@@ -4089,6 +4093,171 @@ class A
 ''');
   }
 
+  test_extension_getters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extension_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+@a
+extension A on int {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a
+  onType: int
+''');
+  }
+
+  test_extension_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extension_setters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {
+  set foo(int value) {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
+''');
+  }
+
+  test_extension_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A<T> on Map<int, T> {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  typeParameters
+    T
+  onType: Map<int, T>
+''');
+  }
+
+  test_extensionType_getters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extensionType_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+@a
+extension type A(int it) {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_extensionType_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A(int it) {
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extensionType_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A<T>(int it) {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  typeParameters
+    T
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+''');
+  }
+
   test_mixin_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 mixin A {
@@ -4271,6 +4440,105 @@ void foo() {}
     await _assertIntrospectText('foo', r'''
 foo
   flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_unit_function_flags_hasExternal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+external void foo() {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody hasExternal
+  returnType: void
+''');
+  }
+
+  test_unit_function_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@a1
+@a2
+void foo() {}
+
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  returnType: void
+''');
+  }
+
+  test_unit_function_namedParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo({required int a, String? b}) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  namedParameters
+    a
+      flags: isNamed isRequired
+      type: int
+    b
+      flags: isNamed
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_function_positionalParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(int a, [String? b]) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    a
+      flags: isRequired
+      type: int
+    b
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+int get foo => 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_unit_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+set foo(int value) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: int
   returnType: void
 ''');
   }

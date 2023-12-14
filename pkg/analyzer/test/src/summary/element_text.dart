@@ -53,6 +53,7 @@ class ElementTextConfiguration {
   bool withFunctionTypeParameters = false;
   bool withImports = true;
   bool withLibraryAugmentations = false;
+  bool withMacroStackTraces = false;
   bool withMetadata = true;
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
@@ -750,7 +751,11 @@ class _ElementWriter {
         if (stackTraceIndex >= 0) {
           final end = stackTraceIndex + stackTraceText.length;
           final withoutStackTrace = message.substring(0, end);
-          _sink.writelnWithIndent('message:\n$withoutStackTrace <cut>');
+          if (configuration.withMacroStackTraces) {
+            _sink.writelnWithIndent('message:\n$message');
+          } else {
+            _sink.writelnWithIndent('message:\n$withoutStackTrace <cut>');
+          }
         } else {
           _sink.writelnWithIndent('message: $message');
         }

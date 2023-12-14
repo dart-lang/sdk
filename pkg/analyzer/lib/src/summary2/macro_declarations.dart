@@ -430,6 +430,15 @@ class DeclarationBuilderFromElement {
 
   final Map<ClassElement, ClassDeclarationImpl> _classMap = Map.identity();
 
+  final Map<ExtensionElement, ExtensionDeclarationImpl> _extensionMap =
+      Map.identity();
+
+  final Map<ExtensionTypeElement, ExtensionTypeDeclarationImpl>
+      _extensionTypeMap = Map.identity();
+
+  final Map<ExecutableElement, FunctionDeclarationImpl> _functionMap =
+      Map.identity();
+
   final Map<MixinElement, MixinDeclarationImpl> _mixinMap = Map.identity();
 
   final Map<ConstructorElement, ConstructorDeclarationImpl> _constructorMap =
@@ -460,12 +469,34 @@ class DeclarationBuilderFromElement {
   /// See [macro.DefinitionPhaseIntrospector.declarationOf].
   macro.DeclarationImpl declarationOf(Element element) {
     switch (element) {
+      case ExtensionElementImpl():
+        return extensionElement(element);
+      case ExtensionTypeElementImpl():
+        return extensionTypeElement(element);
       case FunctionElementImpl():
         return functionElement(element);
+      case PropertyAccessorElementImpl():
+        if (element.enclosingElement is CompilationUnitElement) {
+          return functionElement(element);
+        } else {
+          return methodElement(element);
+        }
       default:
         // TODO(scheglov): other elements
         return typeDeclarationOf(element);
     }
+  }
+
+  ExtensionDeclarationImpl extensionElement(
+    ExtensionElementImpl element,
+  ) {
+    return _extensionMap[element] ??= _extensionElement(element);
+  }
+
+  ExtensionTypeDeclarationImpl extensionTypeElement(
+    ExtensionTypeElementImpl element,
+  ) {
+    return _extensionTypeMap[element] ??= _extensionTypeElement(element);
   }
 
   macro.FieldDeclarationImpl fieldElement(FieldElementImpl element) {
@@ -473,22 +504,7 @@ class DeclarationBuilderFromElement {
   }
 
   FunctionDeclarationImpl functionElement(ExecutableElementImpl element) {
-    return FunctionDeclarationImpl._(
-      element: element,
-      id: macro.RemoteInstance.uniqueId,
-      identifier: identifier(element),
-      library: library(element),
-      metadata: _buildMetadata(element),
-      hasBody: !element.isAbstract,
-      hasExternal: element.isExternal,
-      isGetter: element is PropertyAccessorElementImpl && element.isGetter,
-      isOperator: element.isOperator,
-      isSetter: element is PropertyAccessorElementImpl && element.isSetter,
-      namedParameters: _namedFormalParameters(element.parameters),
-      positionalParameters: _positionalFormalParameters(element.parameters),
-      returnType: _dartType(element.returnType),
-      typeParameters: element.typeParameters.map(_typeParameter).toList(),
-    );
+    return _functionMap[element] ??= _functionElement(element);
   }
 
   macro.IdentifierImpl identifier(Element element) {
@@ -629,6 +645,34 @@ class DeclarationBuilderFromElement {
     }
   }
 
+  ExtensionDeclarationImpl _extensionElement(
+    ExtensionElementImpl element,
+  ) {
+    return ExtensionDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      onType: _dartType(element.extendedType),
+      element: element,
+    );
+  }
+
+  ExtensionTypeDeclarationImpl _extensionTypeElement(
+    ExtensionTypeElementImpl element,
+  ) {
+    return ExtensionTypeDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      representationType: _dartType(element.representation.type),
+      element: element,
+    );
+  }
+
   FieldDeclarationImpl _fieldElement(FieldElementImpl element) {
     final enclosing = element.enclosingInstanceElement;
     return FieldDeclarationImpl(
@@ -656,6 +700,25 @@ class DeclarationBuilderFromElement {
       library: library(element),
       metadata: _buildMetadata(element),
       type: _dartType(element.type),
+    );
+  }
+
+  FunctionDeclarationImpl _functionElement(ExecutableElementImpl element) {
+    return FunctionDeclarationImpl._(
+      element: element,
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      hasBody: !element.isAbstract,
+      hasExternal: element.isExternal,
+      isGetter: element is PropertyAccessorElementImpl && element.isGetter,
+      isOperator: element.isOperator,
+      isSetter: element is PropertyAccessorElementImpl && element.isSetter,
+      namedParameters: _namedFormalParameters(element.parameters),
+      positionalParameters: _positionalFormalParameters(element.parameters),
+      returnType: _dartType(element.returnType),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
     );
   }
 

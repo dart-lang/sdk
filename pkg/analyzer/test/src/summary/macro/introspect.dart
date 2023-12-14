@@ -167,6 +167,10 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     switch (declaration) {
       case ClassDeclaration():
         await printer.writeClassDeclaration(declaration);
+      case ExtensionDeclaration():
+        await printer.writeExtensionDeclaration(declaration);
+      case ExtensionTypeDeclaration():
+        await printer.writeExtensionTypeDeclaration(declaration);
       case FunctionDeclaration():
         await printer.writeFunctionDeclaration(declaration);
       case MixinDeclaration():

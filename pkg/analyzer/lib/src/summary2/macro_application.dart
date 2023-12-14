@@ -1062,8 +1062,9 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
   @override
   Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
     final libraryElement = elementFactory.libraryOfUri2(library);
-    final element = libraryElement.scope.lookup(name).getter!;
-    return declarationBuilder.fromElement.identifier(element);
+    final lookup = libraryElement.scope.lookup(name);
+    final element = lookup.getter ?? lookup.setter;
+    return declarationBuilder.fromElement.identifier(element!);
   }
 }
 
