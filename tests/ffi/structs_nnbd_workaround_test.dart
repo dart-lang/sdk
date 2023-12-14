@@ -17,6 +17,7 @@ void main() {
   for (int i = 0; i < 100; i++) {
     testStructAllocate();
     testStructFromAddress();
+    testStructFromAddressWithOperator();
     testStructWithNulls();
     testTypeTest();
     testUtf8();
@@ -57,6 +58,35 @@ void testStructFromAddress() {
   Pointer<Coordinate> c1 = calloc(3);
   Pointer<Coordinate> c2 = c1.elementAt(1);
   Pointer<Coordinate> c3 = c1.elementAt(2);
+  c1.ref
+    ..x = 10.0
+    ..y = 10.0
+    ..next = c3;
+  c2.ref
+    ..x = 20.0
+    ..y = 20.0
+    ..next = c1;
+  c3.ref
+    ..x = 30.0
+    ..y = 30.0
+    ..next = c2;
+
+  Coordinate currentCoordinate = c1.ref;
+  Expect.equals(10.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(30.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(20.0, currentCoordinate.x);
+  currentCoordinate = currentCoordinate.next.ref;
+  Expect.equals(10.0, currentCoordinate.x);
+
+  calloc.free(c1);
+}
+
+void testStructFromAddressWithOperator() {
+  Pointer<Coordinate> c1 = calloc(3);
+  Pointer<Coordinate> c2 = c1 + 1;
+  Pointer<Coordinate> c3 = c1 + 2;
   c1.ref
     ..x = 10.0
     ..y = 10.0

@@ -6,6 +6,8 @@
 
 // @dart=2.18
 
+import '../static_type_helper.dart';
+
 class C {
   final int? _privateFinalField;
 
@@ -14,9 +16,7 @@ class C {
 
 void testPrivateFinalField(C c) {
   if (c._privateFinalField != null) {
-    var x = c._privateFinalField;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._privateFinalField.expectStaticType<Exactly<int?>>();
   }
 }
 

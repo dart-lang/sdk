@@ -9,6 +9,8 @@
 
 // SharedOptions=--enable-experiment=inference-update-2
 
+import '../static_type_helper.dart';
+
 class C {
   final int? _promotable;
   final int? _notPromotable; // due to D._notPromotable
@@ -45,54 +47,36 @@ final topLevelPromotable =
 final topLevelNotPromotable =
     ((C c) => c._notPromotable != null ? c._notPromotable : 0)(new C(0));
 
-void acceptsInt(int x) {}
-
 void testTopLevelPromotable() {
-  var x = topLevelPromotable;
-  // `x` has type `int` so this is ok
-  acceptsInt(x);
+  topLevelPromotable.expectStaticType<Exactly<int>>();
 }
 
 void testTopLevelNotPromotable() {
-  var x = topLevelNotPromotable;
-  // `x` has type `int?` so this is ok
-  x = null;
+  topLevelNotPromotable.expectStaticType<Exactly<int?>>();
 }
 
 void testStaticPromotable() {
-  var x = C.staticPromotable;
-  // `x` has type `int` so this is ok
-  acceptsInt(x);
+  C.staticPromotable.expectStaticType<Exactly<int>>();
 }
 
 void testStaticNotPromotable() {
-  var x = C.staticNotPromotable;
-  // `x` has type `int?` so this is ok
-  x = null;
+  C.staticNotPromotable.expectStaticType<Exactly<int?>>();
 }
 
 void testInstancePromotable(C c) {
-  var x = c.instancePromotable;
-  // `x` has type `int` so this is ok
-  acceptsInt(x);
+  c.instancePromotable.expectStaticType<Exactly<int>>();
 }
 
 void testInstanceNotPromotable(C c) {
-  var x = c.instanceNotPromotable;
-  // `x` has type `int?` so this is ok
-  x = null;
+  c.instanceNotPromotable.expectStaticType<Exactly<int?>>();
 }
 
 void testInstancePromotableViaThis(C c) {
-  var x = c.instancePromotableViaThis;
-  // `x` has type `int` so this is ok
-  acceptsInt(x);
+  c.instancePromotableViaThis.expectStaticType<Exactly<int>>();
 }
 
 void testInstanceNotPromotableViaThis(C c) {
-  var x = c.instanceNotPromotableViaThis;
-  // `x` has type `int?` so this is ok
-  x = null;
+  c.instanceNotPromotableViaThis.expectStaticType<Exactly<int?>>();
 }
 
 main() {}
