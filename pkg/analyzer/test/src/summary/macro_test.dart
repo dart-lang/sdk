@@ -748,6 +748,21 @@ library
     );
   }
 
+  test_kind_named_positional() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<int>',
+        'bar': 'List<double>',
+      },
+      constructorParametersCode: '(this foo, {required this.bar})',
+      argumentsCode: '(bar: [0.1], [2])',
+      expected: r'''
+foo: List<int> [2]
+bar: List<double> [0.1]
+''',
+    );
+  }
+
   test_kind_optionalNamed() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
@@ -757,8 +772,8 @@ library
       constructorParametersCode: '({this.foo = -1, this.bar = -2})',
       argumentsCode: '(foo: 1)',
       expected: r'''
-foo: 1
-bar: -2
+foo: int 1
+bar: int -2
 ''',
     );
   }
@@ -772,8 +787,8 @@ bar: -2
       constructorParametersCode: '([this.foo = -1, this.bar = -2])',
       argumentsCode: '(1)',
       expected: r'''
-foo: 1
-bar: -2
+foo: int 1
+bar: int -2
 ''',
     );
   }
@@ -784,7 +799,7 @@ bar: -2
       constructorParametersCode: '({required this.foo})',
       argumentsCode: '(foo: 42)',
       expected: r'''
-foo: 42
+foo: int 42
 ''',
     );
   }
@@ -795,7 +810,7 @@ foo: 42
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(42)',
       expected: r'''
-foo: 42
+foo: int 42
 ''',
     );
   }
@@ -809,8 +824,8 @@ foo: 42
       constructorParametersCode: '(this.foo, this.bar)',
       argumentsCode: '(true, false)',
       expected: r'''
-foo: true
-bar: false
+foo: bool true
+bar: bool false
 ''',
     );
   }
@@ -821,7 +836,7 @@ bar: false
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(1.2)',
       expected: r'''
-foo: 1.2
+foo: double 1.2
 ''',
     );
   }
@@ -832,7 +847,7 @@ foo: 1.2
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(-1.2)',
       expected: r'''
-foo: -1.2
+foo: double -1.2
 ''',
     );
   }
@@ -843,7 +858,7 @@ foo: -1.2
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(42)',
       expected: r'''
-foo: 42
+foo: int 42
 ''',
     );
   }
@@ -854,12 +869,51 @@ foo: 42
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(-42)',
       expected: r'''
-foo: -42
+foo: int -42
 ''',
     );
   }
 
-  test_type_list() async {
+  test_type_list_int() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<int>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([0, 1, 2])',
+      expected: r'''
+foo: List<int> [0, 1, 2]
+''',
+    );
+  }
+
+  test_type_list_intQ() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<int?>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([0, null, 2])',
+      expected: r'''
+foo: List<int?> [0, null, 2]
+''',
+    );
+  }
+
+  test_type_list_map_int_string() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<Map<int, String>>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([{0: "a"}, {1: "b", 2: "c"}])',
+      expected: r'''
+foo: List<Map<int, String>> [{0: a}, {1: b, 2: c}]
+''',
+    );
+  }
+
+  test_type_list_objectQ() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
         'foo': 'List<Object?>',
@@ -867,20 +921,20 @@ foo: -42
       constructorParametersCode: '(this.foo)',
       argumentsCode: '([1, 2, true, 3, 4.2])',
       expected: r'''
-foo: [1, 2, true, 3, 4.2]
+foo: List<Object?> [1, 2, true, 3, 4.2]
 ''',
     );
   }
 
-  test_type_map() async {
+  test_type_map_int_string() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
-        'foo': 'Map<Object?, Object?>',
+        'foo': 'Map<int, String>',
       },
       constructorParametersCode: '(this.foo)',
-      argumentsCode: '({1: true, "abc": 2.3})',
+      argumentsCode: '({0: "a", 1: "b"})',
       expected: r'''
-foo: {1: true, abc: 2.3}
+foo: _Map<int, String> {0: a, 1: b}
 ''',
     );
   }
@@ -891,7 +945,7 @@ foo: {1: true, abc: 2.3}
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(null)',
       expected: r'''
-foo: null
+foo: Null null
 ''',
     );
   }
@@ -899,12 +953,12 @@ foo: null
   test_type_set() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
-        'foo': 'Set<Object?>',
+        'foo': 'Set<int>',
       },
       constructorParametersCode: '(this.foo)',
       argumentsCode: '({1, 2, 3})',
       expected: r'''
-foo: {1, 2, 3}
+foo: _Set<int> {1, 2, 3}
 ''',
     );
   }
@@ -915,7 +969,7 @@ foo: {1, 2, 3}
       constructorParametersCode: '(this.foo)',
       argumentsCode: "('aaa')",
       expected: r'''
-foo: aaa
+foo: String aaa
 ''',
     );
   }
@@ -926,7 +980,7 @@ foo: aaa
       constructorParametersCode: '(this.foo)',
       argumentsCode: "('aaa' 'bbb' 'ccc')",
       expected: r'''
-foo: aaabbbccc
+foo: String aaabbbccc
 ''',
     );
   }
@@ -947,7 +1001,7 @@ foo: aaabbbccc
     bool hasErrors = false,
   }) async {
     final dumpCode = fields.keys.map((name) {
-      return "$name: \$$name\\\\n";
+      return "$name: \${$name.runtimeType} \$$name\\\\n";
     }).join('');
 
     newFile('$testPackageLibPath/arguments_text.dart', '''
