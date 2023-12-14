@@ -17,7 +17,6 @@ import 'package:analysis_server/src/services/completion/dart/field_formal_contri
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/local_reference_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/named_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
@@ -30,7 +29,6 @@ import 'package:analysis_server/src/services/completion/dart/super_formal_contri
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/visibility_tracker.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -135,7 +133,6 @@ class DartCompletionManager {
     // Compute the list of contributors that will be run.
     var builder =
         SuggestionBuilder(request, useFilter: useFilter, listener: listener);
-    var localReferenceContributor = LocalReferenceContributor(request, builder);
     var contributors = <DartCompletionContributor>[
       ArgListContributor(request, builder),
       ClosureContributor(request, builder),
@@ -145,7 +142,6 @@ class DartCompletionManager {
       FieldFormalContributor(request, builder),
       LibraryMemberContributor(request, builder),
       LibraryPrefixContributor(request, builder),
-      localReferenceContributor,
       NamedConstructorContributor(request, builder),
       if (enableOverrideContributor) OverrideContributor(request, builder),
       RecordLiteralContributor(request, builder),
@@ -170,17 +166,12 @@ class DartCompletionManager {
     }
 
     try {
-      VisibilityTracker? visibilityTracker;
       await performance.runAsync(
         'InScopeCompletionPass',
         (performance) async {
-          visibilityTracker =
-              _runFirstPass(request, builder, includedElementKinds != null);
+          _runFirstPass(request, builder, includedElementKinds != null);
         },
       );
-      if (visibilityTracker != null) {
-        localReferenceContributor.visibilityTracker = visibilityTracker!;
-      }
       for (var contributor in contributors) {
         await performance.runAsync(
           '${contributor.runtimeType}',
@@ -239,10 +230,8 @@ class DartCompletionManager {
   }
 
   // Run the first pass of the code completion algorithm.
-  VisibilityTracker? _runFirstPass(DartCompletionRequest request,
-      SuggestionBuilder builder, bool skipImports) {
-    // TODO(brianwilkerson): Stop returning the visibility tracker when the
-    //  `LocalReferenceContributor` has been deleted.
+  void _runFirstPass(DartCompletionRequest request, SuggestionBuilder builder,
+      bool skipImports) {
     var collector = SuggestionCollector();
     var selection = request.unit.select(offset: request.offset, length: 0);
     if (selection == null) {
@@ -253,7 +242,6 @@ class DartCompletionManager {
         state: state, collector: collector, skipImports: skipImports);
     pass.computeSuggestions();
     builder.suggestFromCandidates(collector.suggestions);
-    return pass.visibilityTracker;
   }
 }
 

@@ -1496,10 +1496,10 @@ abstract class JElementEnvironment extends ElementEnvironment {
   /// argument is passed.
   DartType getTypeVariableDefaultType(TypeVariableEntity typeVariable);
 
-  /// Returns the 'element' type of a function with the async, async* or sync*
-  /// marker [marker]. [returnType] is the return type marked function.
+  /// Returns the 'element' type of a [function] with the async, async* or sync*
+  /// marker. [returnType] is the return type of the marked function.
   DartType getAsyncOrSyncStarElementType(
-      AsyncMarker marker, DartType returnType);
+      FunctionEntity function, DartType returnType);
 
   /// Returns the 'element' type of a function with an async, async* or sync*
   /// marker. The return type of the method is inspected to determine the type

@@ -317,10 +317,12 @@ class DeclarationBuilder {
       parameters: [
         ...typeCode.positionalParameters.map((e) {
           return buildFormalParameter(e, (e) {
-            // TODO(scheglov): this code does not actually work.
-            return e.keywords.contains('required')
-                ? ParameterKind.REQUIRED
-                : ParameterKind.POSITIONAL;
+            return ParameterKind.REQUIRED;
+          });
+        }),
+        ...typeCode.optionalPositionalParameters.map((e) {
+          return buildFormalParameter(e, (e) {
+            return ParameterKind.POSITIONAL;
           });
         }),
         ...typeCode.namedParameters.map((e) {
@@ -1104,8 +1106,9 @@ class DeclarationBuilderFromNode {
   }
 
   macro.TypeAnnotationImpl _typeAnnotation(ast.TypeAnnotation node) {
+    node as ast.TypeAnnotationImpl;
     switch (node) {
-      case ast.GenericFunctionType():
+      case ast.GenericFunctionTypeImpl():
         return macro.FunctionTypeAnnotationImpl(
           id: macro.RemoteInstance.uniqueId,
           isNullable: node.question != null,
@@ -1120,12 +1123,10 @@ class DeclarationBuilderFromNode {
           returnType: _typeAnnotationOrDynamic(node.returnType),
           typeParameters: _typeParameters(node.typeParameters),
         );
-      case ast.NamedType():
+      case ast.NamedTypeImpl():
         return _namedType(node);
-      case ast.RecordTypeAnnotation():
+      case ast.RecordTypeAnnotationImpl():
         return _typeAnnotationRecord(node);
-      default:
-        throw UnimplementedError('(${node.runtimeType}) $node');
     }
   }
 

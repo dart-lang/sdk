@@ -471,7 +471,6 @@ void f() {
   }
 
   Future<void> test_local_override() async {
-    // TODO(dantup): Debug why using "a" instead of "aa" doesn't work.
     final content = '''
 class Base {
   String aa(String a) => '';
@@ -4154,12 +4153,13 @@ void f() {
       prefix: IfElseStatement.prefix,
       label: IfElseStatement.label,
     );
-    expect(updated, r'''
+    var fourSpaces = '    ';
+    expect(updated, '''
 void f() {
-  if (${1:condition}) {
-    $0
+  if (\${1:condition}) {
+    \$0
   } else {
-    
+$fourSpaces
   }
 }
 ''');
@@ -4318,13 +4318,13 @@ void f() {
       prefix: TryCatchStatement.prefix,
       label: TryCatchStatement.label,
     );
-
-    expect(updated, r'''
+    var fourSpaces = '    ';
+    expect(updated, '''
 void f() {
   try {
-    $0
-  } catch (${1:e}) {
-    
+    \$0
+  } catch (\${1:e}) {
+$fourSpaces
   }
 }
 ''');
