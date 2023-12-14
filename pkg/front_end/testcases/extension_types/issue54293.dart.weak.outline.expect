@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type Int(core::int i) implements core::int {
+  abstract extension-type-member representation-field get i() → core::int;
+  operator + = self::Int|+;
+  constructor • = self::Int|constructor#;
+  constructor tearoff • = self::Int|constructor#_#new#tearOff;
+}
+static extension-type-member method Int|constructor#(core::int i) → self::Int /* = core::int */
+  ;
+static extension-type-member method Int|constructor#_#new#tearOff(core::int i) → self::Int /* = core::int */
+  return self::Int|constructor#(i);
+static extension-type-member method Int|+(lowered final self::Int /* = core::int */ #this, core::int other) → self::Int /* = core::int */
+  ;
+static method test() → void
+  ;
