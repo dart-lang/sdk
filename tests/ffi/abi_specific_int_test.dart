@@ -15,6 +15,7 @@ void main() {
   testStruct();
   testInlineArray();
   testInlineArray2();
+  testInlineArray2WithOperators();
 }
 
 void testSizeOf() {
@@ -99,6 +100,30 @@ void testInlineArray2() {
   }
   for (int i0 = 0; i0 < _dim0; i0++) {
     final array = p.elementAt(i0).ref.a0;
+    for (int i1 = 0; i1 < _dim1; i1++) {
+      final array2 = array[i1];
+      for (int i2 = 0; i2 < _dim2; i2++) {
+        Expect.equals(someValue(i0, i1, i2), array2[i2]);
+      }
+    }
+  }
+  calloc.free(p);
+}
+
+void testInlineArray2WithOperators() {
+  int someValue(int a, int b, int c) => a * 1337 + b * 42 + c;
+  final p = calloc<WCharArrayArrayStruct>(_dim0);
+  for (int i0 = 0; i0 < _dim0; i0++) {
+    final array = (p + i0).ref.a0;
+    for (int i1 = 0; i1 < _dim1; i1++) {
+      final array2 = array[i1];
+      for (int i2 = 0; i2 < _dim2; i2++) {
+        array2[i2] = someValue(i0, i1, i2);
+      }
+    }
+  }
+  for (int i0 = 0; i0 < _dim0; i0++) {
+    final array = (p + i0).ref.a0;
     for (int i1 = 0; i1 < _dim1; i1++) {
       final array2 = array[i1];
       for (int i2 = 0; i2 < _dim2; i2++) {

@@ -576,9 +576,6 @@ extension Int8Pointer on Pointer<Int8> {
   operator []=(int index, int value) => _storeInt8(this, index, value);
 
   @patch
-  Pointer<Int8> elementAt(int index) => Pointer.fromAddress(address + index);
-
-  @patch
   @pragma("vm:prefer-inline")
   Int8List asTypedList(
     int length, {
@@ -610,10 +607,6 @@ extension Int16Pointer on Pointer<Int16> {
 
   @patch
   operator []=(int index, int value) => _storeInt16(this, 2 * index, value);
-
-  @patch
-  Pointer<Int16> elementAt(int index) =>
-      Pointer.fromAddress(address + 2 * index);
 
   @patch
   @pragma("vm:prefer-inline")
@@ -649,10 +642,6 @@ extension Int32Pointer on Pointer<Int32> {
   operator []=(int index, int value) => _storeInt32(this, 4 * index, value);
 
   @patch
-  Pointer<Int32> elementAt(int index) =>
-      Pointer.fromAddress(address + 4 * index);
-
-  @patch
   @pragma("vm:prefer-inline")
   Int32List asTypedList(
     int length, {
@@ -684,10 +673,6 @@ extension Int64Pointer on Pointer<Int64> {
 
   @patch
   operator []=(int index, int value) => _storeInt64(this, 8 * index, value);
-
-  @patch
-  Pointer<Int64> elementAt(int index) =>
-      Pointer.fromAddress(address + 8 * index);
 
   @patch
   @pragma("vm:prefer-inline")
@@ -723,9 +708,6 @@ extension Uint8Pointer on Pointer<Uint8> {
   operator []=(int index, int value) => _storeUint8(this, index, value);
 
   @patch
-  Pointer<Uint8> elementAt(int index) => Pointer.fromAddress(address + index);
-
-  @patch
   @pragma("vm:prefer-inline")
   Uint8List asTypedList(
     int length, {
@@ -757,10 +739,6 @@ extension Uint16Pointer on Pointer<Uint16> {
 
   @patch
   operator []=(int index, int value) => _storeUint16(this, 2 * index, value);
-
-  @patch
-  Pointer<Uint16> elementAt(int index) =>
-      Pointer.fromAddress(address + 2 * index);
 
   @patch
   @pragma("vm:prefer-inline")
@@ -796,10 +774,6 @@ extension Uint32Pointer on Pointer<Uint32> {
   operator []=(int index, int value) => _storeUint32(this, 4 * index, value);
 
   @patch
-  Pointer<Uint32> elementAt(int index) =>
-      Pointer.fromAddress(address + 4 * index);
-
-  @patch
   @pragma("vm:prefer-inline")
   Uint32List asTypedList(
     int length, {
@@ -831,10 +805,6 @@ extension Uint64Pointer on Pointer<Uint64> {
 
   @patch
   operator []=(int index, int value) => _storeUint64(this, 8 * index, value);
-
-  @patch
-  Pointer<Uint64> elementAt(int index) =>
-      Pointer.fromAddress(address + 8 * index);
 
   @patch
   @pragma("vm:prefer-inline")
@@ -870,10 +840,6 @@ extension FloatPointer on Pointer<Float> {
   operator []=(int index, double value) => _storeFloat(this, 4 * index, value);
 
   @patch
-  Pointer<Float> elementAt(int index) =>
-      Pointer.fromAddress(address + 4 * index);
-
-  @patch
   @pragma("vm:prefer-inline")
   Float32List asTypedList(
     int length, {
@@ -907,10 +873,6 @@ extension DoublePointer on Pointer<Double> {
   operator []=(int index, double value) => _storeDouble(this, 8 * index, value);
 
   @patch
-  Pointer<Double> elementAt(int index) =>
-      Pointer.fromAddress(address + 8 * index);
-
-  @patch
   @pragma("vm:prefer-inline")
   Float64List asTypedList(
     int length, {
@@ -942,9 +904,6 @@ extension BoolPointer on Pointer<Bool> {
 
   @patch
   operator []=(int index, bool value) => _storeBool(this, index, value);
-
-  @patch
-  Pointer<Bool> elementAt(int index) => Pointer.fromAddress(address + index);
 }
 
 @patch
@@ -1132,6 +1091,14 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
       Pointer.fromAddress(address + _intPtrSize * index);
 
   @patch
+  Pointer<Pointer<T>> operator +(int offset) =>
+      Pointer.fromAddress(address + _intPtrSize * offset);
+
+  @patch
+  Pointer<Pointer<T>> operator -(int offset) =>
+      Pointer.fromAddress(address - _intPtrSize * offset);
+
+  @patch
   operator []=(int index, Pointer<T> value) =>
       _storePointer(this, _intPtrSize * index, value);
 }
@@ -1157,6 +1124,14 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   @patch
   Pointer<T> elementAt(int index) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> operator +(int offset) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> operator -(int offset) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
 @patch
@@ -1179,6 +1154,14 @@ extension UnionPointer<T extends Union> on Pointer<T> {
 
   @patch
   Pointer<T> elementAt(int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> operator +(int offset) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> operator -(int offset) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 
@@ -1203,6 +1186,14 @@ extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
 
   @patch
   Pointer<T> elementAt(int index) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> operator +(int offset) =>
+      throw "UNREACHABLE: This case should have been rewritten in the CFE.";
+
+  @patch
+  Pointer<T> operator -(int offset) =>
       throw "UNREACHABLE: This case should have been rewritten in the CFE.";
 }
 

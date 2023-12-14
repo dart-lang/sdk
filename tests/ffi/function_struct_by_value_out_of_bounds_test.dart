@@ -64,7 +64,7 @@ void main() {
 
   final array = alloc();
   Struct9Uint8 s9 = array[64 * 1024 - 1]; // At the end of a page.
-  Pointer<Struct9Uint8> s9Pointer = array.elementAt(64 * 1024 - 1);
+  Pointer<Struct9Uint8> s9Pointer = array + 64 * 1024 - 1;
 
   s9.a0 = 1;
   s9.a1 = 2;

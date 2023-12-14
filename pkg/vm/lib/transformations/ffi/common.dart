@@ -210,12 +210,16 @@ class FfiTransformer extends Transformer {
   final Procedure structPointerGetElemAt;
   final Procedure structPointerSetElemAt;
   final Procedure structPointerElementAt;
+  final Procedure structPointerPlusOperator;
+  final Procedure structPointerMinusOperator;
   final Procedure structPointerElementAtTearoff;
   final Procedure unionPointerGetRef;
   final Procedure unionPointerSetRef;
   final Procedure unionPointerGetElemAt;
   final Procedure unionPointerSetElemAt;
   final Procedure unionPointerElementAt;
+  final Procedure unionPointerPlusOperator;
+  final Procedure unionPointerMinusOperator;
   final Procedure unionPointerElementAtTearoff;
   final Procedure structArrayElemAt;
   final Procedure unionArrayElemAt;
@@ -226,6 +230,8 @@ class FfiTransformer extends Transformer {
   final Procedure abiSpecificIntegerPointerElemAt;
   final Procedure abiSpecificIntegerPointerSetElemAt;
   final Procedure abiSpecificIntegerPointerElementAt;
+  final Procedure abiSpecificIntegerPointerPlusOperator;
+  final Procedure abiSpecificIntegerPointerMinusOperator;
   final Procedure abiSpecificIntegerPointerElementAtTearoff;
   final Procedure abiSpecificIntegerArrayElemAt;
   final Procedure abiSpecificIntegerArraySetElemAt;
@@ -424,6 +430,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'StructPointer', '[]='),
         structPointerElementAt =
             index.getProcedure('dart:ffi', 'StructPointer', 'elementAt'),
+        structPointerPlusOperator =
+            index.getProcedure('dart:ffi', 'StructPointer', '+'),
+        structPointerMinusOperator =
+            index.getProcedure('dart:ffi', 'StructPointer', '-'),
         structPointerElementAtTearoff = index.getProcedure('dart:ffi',
             'StructPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
         unionPointerGetRef =
@@ -436,6 +446,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'UnionPointer', '[]='),
         unionPointerElementAt =
             index.getProcedure('dart:ffi', 'UnionPointer', 'elementAt'),
+        unionPointerPlusOperator =
+            index.getProcedure('dart:ffi', 'UnionPointer', '+'),
+        unionPointerMinusOperator =
+            index.getProcedure('dart:ffi', 'UnionPointer', '-'),
         unionPointerElementAtTearoff = index.getProcedure('dart:ffi',
             'UnionPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
         structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
@@ -453,6 +467,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '[]='),
         abiSpecificIntegerPointerElementAt = index.getProcedure(
             'dart:ffi', 'AbiSpecificIntegerPointer', 'elementAt'),
+        abiSpecificIntegerPointerPlusOperator =
+            index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '+'),
+        abiSpecificIntegerPointerMinusOperator =
+            index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '-'),
         abiSpecificIntegerPointerElementAtTearoff = index.getProcedure(
             'dart:ffi',
             'AbiSpecificIntegerPointer',

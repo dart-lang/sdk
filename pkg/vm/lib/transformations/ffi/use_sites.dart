@@ -17,6 +17,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiNotStatic;
 
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
+import 'package:front_end/src/fasta/names.dart' show unaryMinusName;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart';
@@ -239,9 +240,26 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         return _replaceSetRef(node);
       } else if (target == abiSpecificIntegerPointerElementAt ||
           target == structPointerElementAt ||
-          target == unionPointerElementAt) {
+          target == unionPointerElementAt ||
+          target == abiSpecificIntegerPointerPlusOperator ||
+          target == structPointerPlusOperator ||
+          target == unionPointerPlusOperator ||
+          target == abiSpecificIntegerPointerMinusOperator ||
+          target == structPointerMinusOperator ||
+          target == unionPointerMinusOperator) {
         final pointer = node.arguments.positional[0];
-        final index = node.arguments.positional[1];
+        final positiveOffset = node.arguments.positional[1];
+        final Expression offset;
+        if (target == abiSpecificIntegerPointerMinusOperator ||
+            target == structPointerMinusOperator ||
+            target == unionPointerMinusOperator) {
+          offset = InstanceInvocation(InstanceAccessKind.Instance,
+              positiveOffset, unaryMinusName, new Arguments([]),
+              interfaceTarget: coreTypes.intUnaryMinus,
+              functionType: coreTypes.intUnaryMinus.getterType as FunctionType);
+        } else {
+          offset = positiveOffset;
+        }
         final pointerType =
             pointer.getStaticType(staticTypeContext!) as InterfaceType;
         ensureNativeTypeValid(pointerType, pointer,
@@ -254,7 +272,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         if (inlineSizeOf != null) {
           // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
           return InstanceInvocation(InstanceAccessKind.Instance, pointer,
-              offsetByMethod.name, Arguments([multiply(index, inlineSizeOf)]),
+              offsetByMethod.name, Arguments([multiply(offset, inlineSizeOf)]),
               interfaceTarget: offsetByMethod,
               functionType: Substitution.fromInterfaceType(pointerType)
                   .substituteType(offsetByMethod.getterType) as FunctionType);

@@ -109,6 +109,9 @@ void testInlineArray2() {
   Expect.throws(() {
     p.elementAt(3);
   });
+  Expect.throws(() {
+    (p + 3);
+  });
   calloc.free(p);
 }
 
