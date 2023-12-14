@@ -2224,33 +2224,39 @@ class JsElementEnvironment extends ElementEnvironment
     return getAsyncOrSyncStarElementType(function, returnType);
   }
 
+  DartType _getGeneratorElementType(
+      DartType returnType, ClassEntity collectionClass) {
+    final unionFreeType = elementMap.types.getUnionFreeType(returnType);
+    if (unionFreeType is InterfaceType) {
+      final collectionType =
+          elementMap.asInstanceOf(unionFreeType, collectionClass);
+      if (collectionType != null) return collectionType.typeArguments.single;
+    }
+    return dynamicType;
+  }
+
+  DartType _getSyncStarElementType(DartType returnType) =>
+      _getGeneratorElementType(
+          returnType, elementMap.commonElements.iterableClass);
+
+  DartType _getAsyncStarElementType(DartType returnType) =>
+      _getGeneratorElementType(
+          returnType, elementMap.commonElements.streamClass);
+
   @override
   DartType getAsyncOrSyncStarElementType(
       FunctionEntity function, DartType returnType) {
     final asyncMarker = function.asyncMarker;
-    final returnTypeWithoutNullability = returnType.withoutNullability;
     switch (asyncMarker) {
       case AsyncMarker.SYNC:
         return returnType;
       case AsyncMarker.SYNC_STAR:
-        if (returnTypeWithoutNullability is InterfaceType) {
-          if (returnTypeWithoutNullability.element ==
-              elementMap.commonElements.iterableClass) {
-            return returnTypeWithoutNullability.typeArguments.first;
-          }
-        }
-        return dynamicType;
+        return _getSyncStarElementType(returnType);
       case AsyncMarker.ASYNC:
         return elementMap.getDartType(
             getFunctionNode(elementMap, function)!.futureValueType!);
       case AsyncMarker.ASYNC_STAR:
-        if (returnTypeWithoutNullability is InterfaceType) {
-          if (returnTypeWithoutNullability.element ==
-              elementMap.commonElements.streamClass) {
-            return returnTypeWithoutNullability.typeArguments.first;
-          }
-        }
-        return dynamicType;
+        return _getAsyncStarElementType(returnType);
     }
     throw failedAt(
         CURRENT_ELEMENT_SPANNABLE, 'Unexpected marker ${asyncMarker}');

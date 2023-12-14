@@ -50,6 +50,9 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       : super(
             staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
 
+  bool get isNonNullableByDefault =>
+      staticTypeContext.enclosingLibrary.isNonNullableByDefault;
+
   @override
   VariableScopeModel get variableScopeModel => _variableScopeModel!;
 
@@ -167,6 +170,26 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     registerGenericInstantiation(expressionType, node.typeArguments);
   }
 
+  ir.DartType _getGeneratorElementType(
+      ir.DartType returnType, ir.Class collectionClass) {
+    final unionFreeType = typeEnvironment.getUnionFreeType(returnType,
+        isNonNullableByDefault: isNonNullableByDefault);
+    if (unionFreeType is ir.TypeDeclarationType) {
+      final typeArguments = hierarchy.getTypeArgumentsAsInstanceOf(
+          unionFreeType, collectionClass);
+      if (typeArguments != null) return typeArguments.single;
+    }
+    return const ir.DynamicType();
+  }
+
+  ir.DartType _getSyncStarElementType(ir.DartType returnType) =>
+      _getGeneratorElementType(
+          returnType, typeEnvironment.coreTypes.iterableClass);
+
+  ir.DartType _getAsyncStarElementType(ir.DartType returnType) =>
+      _getGeneratorElementType(
+          returnType, typeEnvironment.coreTypes.streamClass);
+
   void handleAsyncMarker(ir.FunctionNode function) {
     ir.AsyncMarker asyncMarker = function.asyncMarker;
     ir.DartType returnType = function.returnType;
@@ -175,13 +198,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       case ir.AsyncMarker.Sync:
         break;
       case ir.AsyncMarker.SyncStar:
-        ir.DartType elementType = const ir.DynamicType();
-        if (returnType is ir.InterfaceType) {
-          if (returnType.classNode == typeEnvironment.coreTypes.iterableClass) {
-            elementType = returnType.typeArguments.first;
-          }
-        }
-        registerSyncStar(elementType);
+        registerSyncStar(_getSyncStarElementType(returnType));
         break;
 
       case ir.AsyncMarker.Async:
@@ -189,13 +206,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
         break;
 
       case ir.AsyncMarker.AsyncStar:
-        ir.DartType elementType = const ir.DynamicType();
-        if (returnType is ir.InterfaceType) {
-          if (returnType.classNode == typeEnvironment.coreTypes.streamClass) {
-            elementType = returnType.typeArguments.first;
-          }
-        }
-        registerAsyncStar(elementType);
+        registerAsyncStar(_getAsyncStarElementType(returnType));
         break;
     }
   }

@@ -2418,4 +2418,11 @@ abstract class DartTypes {
     }
     throw UnimplementedError('isNonNullableIfSound $type');
   }
+
+  DartType getUnionFreeType(DartType type) {
+    if (type is LegacyType) return getUnionFreeType(type.baseType);
+    if (type is NullableType) return getUnionFreeType(type.baseType);
+    if (type is FutureOrType) return getUnionFreeType(type.typeArgument);
+    return type;
+  }
 }
