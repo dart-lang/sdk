@@ -22,7 +22,7 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///non_simple_many_libs_same_name_cycle_lib.dart" as lib;
 
-typedef C<unrelated TypeX extends core::int> = invalid-type;
+typedef C<unrelated TypeX extends invalid-type> = invalid-type;
 class A<TypeX extends core::Object? = dynamic> extends core::Object {
   synthetic constructor •() → self::A<self::A::TypeX%>
     : super core::Object::•()

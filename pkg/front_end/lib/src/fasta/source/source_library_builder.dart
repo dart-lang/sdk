@@ -5310,6 +5310,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         case TypeUse.invocationTypeArgument:
         case TypeUse.typeLiteral:
         case TypeUse.extensionOnType:
+        case TypeUse.extensionTypeRepresentationType:
         case TypeUse.typeArgument:
           checkBoundsInType(pendingBoundsCheck.type, typeEnvironment,
               pendingBoundsCheck.fileUri, pendingBoundsCheck.charOffset,

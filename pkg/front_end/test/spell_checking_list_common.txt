@@ -735,6 +735,7 @@ cyan
 cycle
 cycles
 cyclic
+cyclicity
 dart
 dart2js
 dart2wasm

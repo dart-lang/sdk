@@ -316,11 +316,16 @@ class SourceExtensionTypeDeclarationBuilder
       ExtensionTypeDeclarationBuilder rootExtensionTypeDeclaration,
       Set<ExtensionTypeDeclarationBuilder> seenExtensionTypeDeclarations,
       Set<TypeAliasBuilder> usedTypeAliasBuilders) {
-    TypeBuilder? unaliased = typeBuilder?.unalias(
-        usedTypeAliasBuilders: usedTypeAliasBuilders,
-        // We allow creating new type variables during unaliasing. This type
-        // variables are short-lived and therefore don't need to be bound.
-        unboundTypeVariables: []);
+    TypeBuilder? unaliased;
+    if (typeBuilder != null) {
+      typeBuilder.build(
+          libraryBuilder, TypeUse.extensionTypeRepresentationType);
+      unaliased = typeBuilder.unalias(
+          usedTypeAliasBuilders: usedTypeAliasBuilders,
+          // We allow creating new type variables during unaliasing. This type
+          // variables are short-lived and therefore don't need to be bound.
+          unboundTypeVariables: []);
+    }
     switch (unaliased) {
       case NamedTypeBuilder(
           :TypeDeclarationBuilder? declaration,

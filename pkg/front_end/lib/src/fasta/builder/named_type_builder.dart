@@ -418,6 +418,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
         case TypeUse.invocationTypeArgument:
         case TypeUse.typeLiteral:
         case TypeUse.extensionOnType:
+        case TypeUse.extensionTypeRepresentationType:
         case TypeUse.typeArgument:
         case TypeUse.typedefAlias:
         case TypeUse.instantiation:
