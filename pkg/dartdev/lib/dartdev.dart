@@ -152,9 +152,13 @@ class DartdevRunner extends CommandRunner<int> {
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     final stopwatch = Stopwatch()..start();
+
+    // We don't want to run analytics when we're running in a CI environment
+    // unless we're explicitly testing analytics for dartdev.
+    final implicitlySuppressAnalytics = isBot() && !_isAnalyticsTest;
     bool suppressAnalytics = !topLevelResults['analytics'] ||
         topLevelResults['suppress-analytics'] ||
-        (isBot() && !_isAnalyticsTest);
+        implicitlySuppressAnalytics;
 
     if (topLevelResults.wasParsed('analytics')) {
       io.stderr.writeln(
@@ -164,7 +168,11 @@ class DartdevRunner extends CommandRunner<int> {
     final enableAnalytics = topLevelResults['enable-analytics'];
     final disableAnalytics = topLevelResults['disable-analytics'];
 
-    if (suppressAnalytics && (enableAnalytics || disableAnalytics)) {
+    if (!implicitlySuppressAnalytics &&
+        suppressAnalytics &&
+        (enableAnalytics || disableAnalytics)) {
+      // This isn't an error if we're implicitly disabling analytics because
+      // we're running in a CI environment.
       io.stderr.writeln('`--suppress-analytics` cannot be used with either'
           ' `--enable-analytics` or `--disable-analytics`.');
       return 254;

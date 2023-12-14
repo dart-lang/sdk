@@ -562,6 +562,10 @@ void ActivationFrame::GetVarDescriptors() {
   if (var_descriptors_.IsNull()) {
     Code& unoptimized_code = Code::Handle(function().unoptimized_code());
     if (unoptimized_code.IsNull()) {
+      if (function().ForceOptimize()) {
+        var_descriptors_ = Object::empty_var_descriptors().ptr();
+        return;
+      }
       Thread* thread = Thread::Current();
       Zone* zone = thread->zone();
       const Error& error = Error::Handle(
@@ -1542,26 +1546,26 @@ void Debugger::DeoptimizeWorld() {
           ASSERT(!function.IsNull());
           // Force-optimized functions don't have unoptimized code and can't
           // deoptimize. Their optimized codes are still valid.
-          if (function.ForceOptimize()) {
-            ASSERT(!function.HasImplicitClosureFunction());
-            continue;
-          }
-          if (function.HasOptimizedCode()) {
-            function.SwitchToUnoptimizedCode();
-          }
-          code = function.unoptimized_code();
-          if (!code.IsNull()) {
-            resetter.ResetSwitchableCalls(code);
-          }
-          // Also disable any optimized implicit closure functions.
-          if (function.HasImplicitClosureFunction()) {
-            function = function.ImplicitClosureFunction();
+          if (!function.ForceOptimize()) {
             if (function.HasOptimizedCode()) {
               function.SwitchToUnoptimizedCode();
             }
             code = function.unoptimized_code();
             if (!code.IsNull()) {
               resetter.ResetSwitchableCalls(code);
+            }
+          }
+          // Also disable any optimized implicit closure functions.
+          if (function.HasImplicitClosureFunction()) {
+            function = function.ImplicitClosureFunction();
+            if (!function.ForceOptimize()) {
+              if (function.HasOptimizedCode()) {
+                function.SwitchToUnoptimizedCode();
+              }
+              code = function.unoptimized_code();
+              if (!code.IsNull()) {
+                resetter.ResetSwitchableCalls(code);
+              }
             }
           }
         }
@@ -1571,12 +1575,14 @@ void Debugger::DeoptimizeWorld() {
 
   // Disable optimized closure functions.
   ClosureFunctionsCache::ForAllClosureFunctions([&](const Function& function) {
-    if (function.HasOptimizedCode()) {
-      function.SwitchToUnoptimizedCode();
-    }
-    code = function.unoptimized_code();
-    if (!code.IsNull()) {
-      resetter.ResetSwitchableCalls(code);
+    if (!function.ForceOptimize()) {
+      if (function.HasOptimizedCode()) {
+        function.SwitchToUnoptimizedCode();
+      }
+      code = function.unoptimized_code();
+      if (!code.IsNull()) {
+        resetter.ResetSwitchableCalls(code);
+      }
     }
     return true;  // Continue iteration.
   });

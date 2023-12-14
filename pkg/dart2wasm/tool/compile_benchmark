@@ -8,6 +8,12 @@
 
 set -e
 
+COMPILE_BENCHMARK_BASE_NAME=""
+if [[ "$1" == --compile-benchmark=* ]]; then
+  COMPILE_BENCHMARK_BASE_NAME=$(echo $1 | sed 's/--compile-benchmark=//g')
+  shift
+fi
+
 function follow_links() {
   file="$1"
   while [ -h "$file" ]; do
@@ -41,7 +47,65 @@ if [[ "$3" == "--omit-checks" ]]; then
   COMPILE_FLAGS+=" --omit-type-checks"
 fi
 
-"$DART2WASM" "$1" "$2" $COMPILE_FLAGS
+function measure() {
+  RESULT=$( { /usr/bin/time --format="\nMemory: %M KB, Time: %e s" $@; } 2>&1 )
+  MEMORY=$(echo "$RESULT" | tail -n1 | sed 's/Memory: \([0-9.]\+\) KB, Time: \([0-9.]\+\) s.*/\1/g')
+  MEMORY=$(($MEMORY * 1024))
+  TIME=$(echo "$RESULT" | tail -n1 | sed 's/Memory: \([0-9.]\+\) KB, Time: \([0-9.]\+\) s.*/\2/g')
+}
+
+function measure_size() {
+  SIZE=$(cat $1 | wc -c)
+  GZIP_SIZE=$(cat $1 | gzip -c6 | wc -c)
+}
+
+dart2wasm_command=("$DART2WASM" "$1" "$2" $COMPILE_FLAGS)
 
 # Keep in sync with sdk/bin/dart2wasm.
-"$BINARYEN" -all --closed-world -tnh --type-unfinalizing -O3 --type-ssa --gufa -O3 --type-merging -O1 --type-finalizing "$2" -o "$2"
+binaryen_command=("$BINARYEN" -all --closed-world -tnh --type-unfinalizing -O3 --type-ssa --gufa -O3 --type-merging -O1 --type-finalizing "$2" -o "$2")
+
+if [ -n "$COMPILE_BENCHMARK_BASE_NAME" ]; then
+  measure ${dart2wasm_command[@]}
+  COMPILER_TIME=$TIME
+  COMPILER_MEMORY=$MEMORY
+
+  measure_size ${2%.wasm}.mjs
+  MJS_SIZE=$SIZE
+  MJS_GZIP_SIZE=$GZIP_SIZE
+
+  measure_size $2
+  COMPILER_SIZE=$SIZE
+  COMPILER_GZIP_SIZE=$GZIP_SIZE
+
+  measure ${binaryen_command[@]}
+  BINARYEN_TIME=$TIME
+  BINARYEN_MEMORY=$MEMORY
+
+  measure_size $2
+  BINARYEN_SIZE=$SIZE
+  BINARYEN_GZIP_SIZE=$GZIP_SIZE
+
+  TOTAL_TIME=$(echo "$COMPILER_TIME + $BINARYEN_TIME" | bc)
+  MAX_MEMORY=$(($COMPILER_MEMORY > $BINARYEN_MEMORY ? $COMPILER_MEMORY : $BINARYEN_MEMORY ))
+
+  # CompileTime
+  echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Total(CompileTime): $TOTAL_TIME s"
+  echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Dart2Wasm(CompileTime): $COMPILER_TIME s"
+  echo "$COMPILE_BENCHMARK_BASE_NAME.Time.Wasm2WasmOpt(CompileTime): $BINARYEN_TIME s"
+
+  # CodeSize
+  echo "$COMPILE_BENCHMARK_BASE_NAME.Size.mjs(CodeSize): $MJS_SIZE bytes"
+  echo "$COMPILE_BENCHMARK_BASE_NAME.Size.mjs.gz(CodeSize): $MJS_GZIP_SIZE bytes"
+  echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm(CodeSize): $COMPILER_SIZE bytes"
+  echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm.gz(CodeSize): $COMPILER_GZIP_SIZE bytes"
+  echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm.opt(CodeSize): $BINARYEN_SIZE bytes"
+  echo "$COMPILE_BENCHMARK_BASE_NAME.Size.wasm.opt.gz(CodeSize): $BINARYEN_GZIP_SIZE bytes"
+
+  # MemoryUse
+  echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Max(MemoryUse): $MAX_MEMORY bytes"
+  echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Dart2Wasm(MemoryUse): $COMPILER_MEMORY bytes"
+  echo "$COMPILE_BENCHMARK_BASE_NAME.MemoryUse.Wasm2WasmOpt(MemoryUse): $BINARYEN_MEMORY bytes"
+else
+  ${dart2wasm_command[@]}
+  ${binaryen_command[@]}
+fi

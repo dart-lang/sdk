@@ -951,6 +951,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitHideCombinator(HideCombinator node) {
+    _forCombinator(node, node.hiddenNames);
+  }
+
+  @override
   void visitIfElement(IfElement node) {
     var expression = node.expression;
     if (offset > expression.end && offset <= node.rightParenthesis.offset) {
@@ -1406,6 +1411,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
       collector.completionLocation = 'SetOrMapLiteral_element';
       _forCollectionElement(node, node.elements);
     }
+  }
+
+  @override
+  void visitShowCombinator(ShowCombinator node) {
+    _forCombinator(node, node.shownNames);
   }
 
   @override
@@ -1869,6 +1879,31 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     var preceedingElement = elements.elementBefore(offset);
     declarationHelper(mustBeStatic: mustBeStatic)
         .addLexicalDeclarations(preceedingElement ?? literal);
+  }
+
+  /// Add the suggestions that are appropriate when completing in the given
+  /// [combinator] and the [existingNames] are in the list.
+  void _forCombinator(
+      Combinator combinator, NodeList<SimpleIdentifier> existingNames) {
+    var directive = combinator.parent;
+    if (directive is! NamespaceDirective) {
+      return;
+    }
+    var library = directive.referencedLibrary;
+    if (library == null) {
+      return;
+    }
+    var coveringNode = state.selection.coveringNode;
+    AstNode? excludedName;
+    if (existingNames.contains(coveringNode)) {
+      excludedName = coveringNode;
+    }
+    var excludedNames = existingNames
+        .where((element) => element != excludedName)
+        .map((element) => element.name)
+        .toSet();
+    declarationHelper(preferNonInvocation: true)
+        .addFromLibrary(library, excludedNames);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the

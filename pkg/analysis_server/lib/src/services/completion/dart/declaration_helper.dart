@@ -152,6 +152,17 @@ class DeclarationHelper {
     }
   }
 
+  /// Add suggestions for all of the top-level declarations that are exported
+  /// from the [library] except for those whose name is in the set of
+  /// [excludedNames].
+  void addFromLibrary(LibraryElement library, Set<String> excludedNames) {
+    for (var entry in library.exportNamespace.definedNames.entries) {
+      if (!excludedNames.contains(entry.key)) {
+        _addImportedElement(entry.value);
+      }
+    }
+  }
+
   /// Add any declarations that are visible at the completion location,
   /// given that the completion location is within the [node]. This includes
   /// local variables, local functions, parameters, members of the enclosing
@@ -321,6 +332,27 @@ class DeclarationHelper {
           collector.addSuggestion(NameSuggestion('Never'));
         }
       }
+    }
+  }
+
+  /// Use the [importData] to add a suggestion for the top-level [element].
+  void _addImportedElement(Element element) {
+    var suggestion = switch (element) {
+      ClassElement() => ClassSuggestion(null, element),
+      EnumElement() => EnumSuggestion(null, element),
+      ExtensionElement() => ExtensionSuggestion(null, element),
+      ExtensionTypeElement() => ExtensionTypeSuggestion(null, element),
+      FunctionElement() =>
+        TopLevelFunctionSuggestion(null, element, _executableSuggestionKind),
+      MixinElement() => MixinSuggestion(null, element),
+      PropertyAccessorElement() =>
+        TopLevelPropertyAccessSuggestion(null, element),
+      TopLevelVariableElement() => TopLevelVariableSuggestion(null, element),
+      TypeAliasElement() => TypeAliasSuggestion(null, element),
+      _ => null
+    };
+    if (suggestion != null) {
+      collector.addSuggestion(suggestion);
     }
   }
 

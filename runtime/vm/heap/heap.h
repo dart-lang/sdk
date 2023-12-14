@@ -115,6 +115,7 @@ class Heap {
 
   void CheckCatchUp(Thread* thread);
   void CheckConcurrentMarking(Thread* thread, GCReason reason, intptr_t size);
+  void CheckFinalizeMarking(Thread* thread);
   void StartConcurrentMarking(Thread* thread, GCReason reason);
   void WaitForMarkerTasks(Thread* thread);
   void WaitForSweeperTasks(Thread* thread);
