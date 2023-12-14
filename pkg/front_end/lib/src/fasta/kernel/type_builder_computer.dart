@@ -53,7 +53,9 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   TypeBuilderComputer(this.loader);
 
-  final Map<TypeParameter, NominalVariableBuilder> functionTypeParameters = {};
+  final Map<StructuralParameter, StructuralVariableBuilder>
+      functionTypeParameters =
+      <StructuralParameter, StructuralVariableBuilder>{};
 
   @override
   TypeBuilder visitInvalidType(InvalidType node) {
@@ -131,9 +133,15 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   @override
   TypeBuilder visitFunctionType(FunctionType node) {
     TypeBuilder returnType = node.returnType.accept(this);
-    // We could compute the type variables here. However, the current
-    // implementation of [visitTypeParameterType] is sufficient.
     List<StructuralVariableBuilder>? typeVariables = null;
+    if (node.typeParameters.isNotEmpty) {
+      typeVariables = <StructuralVariableBuilder>[
+        for (StructuralParameter structuralParameter in node.typeParameters)
+          functionTypeParameters[structuralParameter] =
+              new StructuralVariableBuilder.fromKernel(structuralParameter)
+      ];
+    }
+
     List<DartType> positionalParameters = node.positionalParameters;
     List<NamedType> namedParameters = node.namedParameters;
     List<ParameterBuilder> formals = new List<ParameterBuilder>.filled(
@@ -178,9 +186,9 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
 
   @override
   TypeBuilder visitStructuralParameterType(StructuralParameterType node) {
-    StructuralParameter parameter = node.parameter;
+    assert(functionTypeParameters.containsKey(node.parameter));
     return new NamedTypeBuilderImpl.fromTypeDeclarationBuilder(
-        new StructuralVariableBuilder.fromKernel(parameter),
+        functionTypeParameters[node.parameter]!,
         new NullabilityBuilder.fromNullability(node.nullability),
         instanceTypeVariableAccess: InstanceTypeVariableAccessState.Allowed,
         type: node);
