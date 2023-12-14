@@ -131,6 +131,58 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 }
 
+/*macro*/ class IntrospectDeclaration implements FunctionDefinitionMacro {
+  final String uriStr;
+  final String name;
+  final bool withUnnamedConstructor;
+
+  IntrospectDeclaration({
+    required this.uriStr,
+    required this.name,
+    this.withUnnamedConstructor = false,
+  });
+
+  @override
+  Future<void> buildDefinitionForFunction(declaration, builder) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final printer = _Printer(
+      sink: sink,
+      withMetadata: true,
+      withUnnamedConstructor: withUnnamedConstructor,
+      introspector: builder,
+      withDetailsFor: {name},
+    );
+
+    // ignore: deprecated_member_use
+    final identifier = await builder.resolveIdentifier(
+      Uri.parse(uriStr),
+      name,
+    );
+    final declaration = await builder.declarationOf(identifier);
+    switch (declaration) {
+      case ClassDeclaration():
+        await printer.writeClassDeclaration(declaration);
+      case FunctionDeclaration():
+        await printer.writeFunctionDeclaration(declaration);
+      case MixinDeclaration():
+        await printer.writeMixinDeclaration(declaration);
+      default:
+        throw UnimplementedError('${declaration.runtimeType}');
+    }
+
+    final text = buffer.toString();
+
+    builder.augment(
+      FunctionBodyCode.fromString('=> r"""$text""";'),
+    );
+  }
+}
+
 /// Wrapper around a [StringSink] for writing tree structures.
 class TreeStringSink {
   final StringSink _sink;

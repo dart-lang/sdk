@@ -904,9 +904,8 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   @override
   Future<macro.Declaration> declarationOf(
     covariant macro.Identifier identifier,
-  ) {
-    // TODO(scheglov): implement declarationOf
-    throw UnimplementedError();
+  ) async {
+    return declarationBuilder.declarationOf(identifier);
   }
 
   @override
