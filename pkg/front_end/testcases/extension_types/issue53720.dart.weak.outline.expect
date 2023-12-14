@@ -1,14 +1,4 @@
 library;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/extension_types/issue53720.dart:10:8: Error: Can't declare a member that conflicts with an inherited one.
-//   void m() {}
-//        ^
-// pkg/front_end/testcases/extension_types/issue53720.dart:6:7: Context: This is the inherited member.
-//   set m(_) {}
-//       ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -39,5 +29,5 @@ static extension-type-member method E2|m(lowered final self::E2 /* = core::int *
   ;
 static extension-type-member method E2|get#m(lowered final self::E2 /* = core::int */ #this) → () → void
   return () → void => self::E2|m(#this);
-static method main() → void
+static method test() → void
   ;

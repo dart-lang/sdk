@@ -1,0 +1,2 @@
+typedef F<X> = X;
+extension type E(F<F<E>> it) {}

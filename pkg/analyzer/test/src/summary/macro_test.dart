@@ -3242,28 +3242,16 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        <unnamed>
-          flags: hasBody isStatic
-          returnType: A
-        named
-          flags: hasBody isFactory isStatic
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    <unnamed>
+      flags: hasBody isStatic
+      returnType: A
+    named
+      flags: hasBody isFactory isStatic
+      returnType: A
 ''');
   }
 
@@ -3277,32 +3265,16 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withMetadata: true,
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        <unnamed>
-          flags: hasBody isStatic
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    <unnamed>
+      flags: hasBody isStatic
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      returnType: A
 ''');
   }
 
@@ -3313,25 +3285,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        named
-          flags: hasBody isStatic
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    named
+      flags: hasBody isStatic
+      returnType: A
 ''');
   }
 
@@ -3342,32 +3302,20 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        <unnamed>
-          flags: hasBody isStatic
-          namedParameters
-            a
-              flags: isNamed isRequired
-              type: int
-            b
-              flags: isNamed
-              type: String?
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    <unnamed>
+      flags: hasBody isStatic
+      namedParameters
+        a
+          flags: isNamed isRequired
+          type: int
+        b
+          flags: isNamed
+          type: String?
+      returnType: A
 ''');
   }
 
@@ -3378,31 +3326,19 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        <unnamed>
-          flags: hasBody isStatic
-          positionalParameters
-            a
-              flags: isRequired
-              type: int
-            b
-              type: String?
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    <unnamed>
+      flags: hasBody isStatic
+      positionalParameters
+        a
+          flags: isRequired
+          type: int
+        b
+          type: String?
+      returnType: A
 ''');
   }
 
@@ -3413,22 +3349,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasExternal
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: hasExternal
+      type: int
 ''');
   }
 
@@ -3439,22 +3366,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasFinal
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: hasFinal
+      type: int
 ''');
   }
 
@@ -3465,22 +3383,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasLate
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: hasLate
+      type: int
 ''');
   }
 
@@ -3491,22 +3400,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: isStatic
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: isStatic
+      type: int
 ''');
   }
 
@@ -3520,28 +3420,15 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          type: int?
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int?
 ''');
   }
 
@@ -3559,28 +3446,15 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          type: int?
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int?
 ''');
   }
 
@@ -3601,25 +3475,16 @@ augment class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasFinal
-          type: int
-        bar
-          flags: hasFinal
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: hasFinal
+      type: int
+    bar
+      flags: hasFinal
+      type: int
 ''');
   }
 
@@ -3628,19 +3493,10 @@ class X
 abstract class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      flags: hasAbstract
-      superclass: Object
+    await _assertIntrospectText('A', r'''
+class A
+  flags: hasAbstract
+  superclass: Object
 ''');
   }
 
@@ -3651,22 +3507,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody isGetter
-          returnType: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
 ''');
   }
 
@@ -3677,21 +3524,12 @@ class B {}
 class C implements A, B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'C'},
-)
-class X extends C {}
-''', r'''
-class X
-  superclass: C
-    class C
-      superclass: Object
-      interfaces
-        A
-        B
+    await _assertIntrospectText('C', r'''
+class C
+  superclass: Object
+  interfaces
+    A
+    B
 ''');
   }
 
@@ -3713,27 +3551,14 @@ library augment 'a.dart';
 augment class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', r'''
+class A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-        IdentifierMetadataAnnotation
-          identifier: b
-      superclass: Object
+    IdentifierMetadataAnnotation
+      identifier: a
+    IdentifierMetadataAnnotation
+      identifier: b
+  superclass: Object
 ''');
   }
 
@@ -3747,26 +3572,13 @@ class A {
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-          constructorName: named
-      superclass: Object
+      type: A
+      constructorName: named
+  superclass: Object
 ''');
   }
 
@@ -3784,26 +3596,13 @@ import 'a.dart';
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', uriStr: 'package:test/b.dart', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-          constructorName: named
-      superclass: Object
+      type: A
+      constructorName: named
+  superclass: Object
 ''');
   }
 
@@ -3821,26 +3620,13 @@ import 'a.dart' as prefix;
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', uriStr: 'package:test/b.dart', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-          constructorName: named
-      superclass: Object
+      type: A
+      constructorName: named
+  superclass: Object
 ''');
   }
 
@@ -3854,25 +3640,12 @@ class A {
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-      superclass: Object
+      type: A
+  superclass: Object
 ''');
   }
 
@@ -3890,25 +3663,12 @@ import 'a.dart';
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', uriStr: 'package:test/b.dart', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-      superclass: Object
+      type: A
+  superclass: Object
 ''');
   }
 
@@ -3926,25 +3686,12 @@ import 'a.dart' as prefix;
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', uriStr: 'package:test/b.dart', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-      superclass: Object
+      type: A
+  superclass: Object
 ''');
   }
 
@@ -3956,25 +3703,12 @@ const a = 0;
 class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', r'''
+class A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-      superclass: Object
+    IdentifierMetadataAnnotation
+      identifier: a
+  superclass: Object
 ''');
   }
 
@@ -3990,25 +3724,12 @@ import 'a.dart';
 class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-      superclass: Object
+    IdentifierMetadataAnnotation
+      identifier: a
+  superclass: Object
 ''');
   }
 
@@ -4024,25 +3745,12 @@ import 'a.dart' as prefix;
 class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-      superclass: Object
+    IdentifierMetadataAnnotation
+      identifier: a
+  superclass: Object
 ''');
   }
 
@@ -4053,22 +3761,13 @@ abstract class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      flags: hasAbstract
-      superclass: Object
-      methods
-        foo
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  flags: hasAbstract
+  superclass: Object
+  methods
+    foo
+      returnType: void
 ''');
   }
 
@@ -4079,22 +3778,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody hasExternal
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody hasExternal
+      returnType: void
 ''');
   }
 
@@ -4105,22 +3795,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody isStatic
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody isStatic
+      returnType: void
 ''');
   }
 
@@ -4138,29 +3819,16 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          returnType: void
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      returnType: void
 ''');
   }
 
@@ -4171,29 +3839,20 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          namedParameters
-            a
-              flags: isNamed isRequired
-              type: int
-            b
-              flags: isNamed
-              type: String?
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      namedParameters
+        a
+          flags: isNamed isRequired
+          type: int
+        b
+          flags: isNamed
+          type: String?
+      returnType: void
 ''');
   }
 
@@ -4210,33 +3869,20 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          namedParameters
-            x
-              flags: isNamed isRequired
-              metadata
-                IdentifierMetadataAnnotation
-                  identifier: a
-              type: int
-          returnType: void
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      namedParameters
+        x
+          flags: isNamed isRequired
+          metadata
+            IdentifierMetadataAnnotation
+              identifier: a
+          type: int
+      returnType: void
 ''');
   }
 
@@ -4247,28 +3893,19 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          positionalParameters
-            a
-              flags: isRequired
-              type: int
-            b
-              type: String?
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      positionalParameters
+        a
+          flags: isRequired
+          type: int
+        b
+          type: String?
+      returnType: void
 ''');
   }
 
@@ -4285,33 +3922,20 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          positionalParameters
-            x
-              flags: isRequired
-              metadata
-                IdentifierMetadataAnnotation
-                  identifier: a
-              type: int
-          returnType: void
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      positionalParameters
+        x
+          flags: isRequired
+          metadata
+            IdentifierMetadataAnnotation
+              identifier: a
+          type: int
+      returnType: void
 ''');
   }
 
@@ -4332,25 +3956,16 @@ augment class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          returnType: void
-        bar
-          flags: hasBody
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+    bar
+      flags: hasBody
+      returnType: void
 ''');
   }
 
@@ -4361,21 +3976,12 @@ mixin M2 {}
 class C with M1, M2 {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'C'},
-)
-class X extends C {}
-''', r'''
-class X
-  superclass: C
-    class C
-      superclass: Object
-      mixins
-        M1
-        M2
+    await _assertIntrospectText('C', r'''
+class C
+  superclass: Object
+  mixins
+    M1
+    M2
 ''');
   }
 
@@ -4386,26 +3992,17 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody isSetter
-          positionalParameters
-            value
-              flags: isRequired
-              type: int
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
 ''');
   }
 
@@ -4415,24 +4012,11 @@ class A<T> {}
 class B<U> extends A<U> {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A', 'B'},
-)
-class X extends B<int> {}
-''', r'''
-class X
-  superclass: B<int>
-    class B
-      superclass: A<U>
-        class A
-          superclass: Object
-          typeParameters
-            T
-      typeParameters
-        U
+    await _assertIntrospectText('B', r'''
+class B
+  superclass: A<U>
+  typeParameters
+    U
 ''');
   }
 
@@ -4441,22 +4025,13 @@ class X
 class A<T, U extends List<T>> {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      typeParameters
-        T
-        U
-          bound: List<T>
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  typeParameters
+    T
+    U
+      bound: List<T>
 ''');
   }
 
@@ -4467,24 +4042,14 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        fields
-          foo
-            flags: hasFinal
-            type: int
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  fields
+    foo
+      flags: hasFinal
+      type: int
 ''');
   }
 
@@ -4498,30 +4063,16 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X with A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        fields
-          foo
-            metadata
-              IdentifierMetadataAnnotation
-                identifier: a
-            type: int?
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  fields
+    foo
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int?
 ''');
   }
 
@@ -4539,30 +4090,16 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X with A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        fields
-          foo
-            metadata
-              IdentifierMetadataAnnotation
-                identifier: a
-            type: int?
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+mixin A
+  superclassConstraints
+    Object
+  fields
+    foo
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int?
 ''');
   }
 
@@ -4573,24 +4110,14 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        methods
-          foo
-            flags: hasBody isGetter
-            returnType: int
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
 ''');
   }
 
@@ -4612,28 +4139,15 @@ library augment 'a.dart';
 augment mixin A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', r'''
+mixin A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    mixin A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-        IdentifierMetadataAnnotation
-          identifier: b
-      superclassConstraints
-        Object
+    IdentifierMetadataAnnotation
+      identifier: a
+    IdentifierMetadataAnnotation
+      identifier: b
+  superclassConstraints
+    Object
 ''');
   }
 
@@ -4645,27 +4159,13 @@ const a = 0;
 mixin A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X with A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', r'''
+mixin A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  mixins
-    A
-      mixin A
-        metadata
-          IdentifierMetadataAnnotation
-            identifier: a
-        superclassConstraints
-          Object
+    IdentifierMetadataAnnotation
+      identifier: a
+  superclassConstraints
+    Object
 ''');
   }
 
@@ -4676,24 +4176,14 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        methods
-          foo
-            flags: hasBody
-            returnType: void
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  methods
+    foo
+      flags: hasBody
+      returnType: void
 ''');
   }
 
@@ -4704,36 +4194,75 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        methods
-          foo
-            flags: hasBody isSetter
-            positionalParameters
-              value
-                flags: isRequired
-                type: int
-            returnType: void
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
 ''');
   }
 
-  /// Checks the textual dump of the introspection information in [code].
-  Future<void> _assertIntrospectText(String code, String expected) async {
-    var actual = await _getIntrospectText(code);
+  test_unit_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo() {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  Future<void> _assertIntrospectText(
+    String name,
+    String expected, {
+    String uriStr = 'package:test/a.dart',
+    bool withUnnamedConstructor = false,
+  }) async {
+    newFile(
+      '$testPackageLibPath/introspect.dart',
+      _getMacroCode('introspect.dart'),
+    );
+
+    var library = await buildLibrary('''
+import '$uriStr';
+import 'introspect.dart';
+
+@IntrospectDeclaration(
+  uriStr: '$uriStr',
+  name: '$name',
+  withUnnamedConstructor: $withUnnamedConstructor,
+)
+void _starter() {}
+''');
+
+    if (library.macroDiagnostics.isNotEmpty) {
+      failWithLibraryText(library);
+    }
+
+    final generated = _getMacroGeneratedCode(library);
+
+    final regExp = RegExp(r'=> r"""(.+)""";', dotAll: true);
+    final match = regExp.firstMatch(generated);
+    final actual = match?.group(1);
+
+    if (actual == null) {
+      print('-------- Generated --------');
+      print('$generated---------------------------');
+      fail('No introspection result.');
+    }
+
     if (actual != expected) {
-      print(actual);
+      print('-------- Actual --------');
+      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);

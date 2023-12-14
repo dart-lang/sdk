@@ -22,6 +22,7 @@ typedef T2<X extends T3> = int;
 typedef T3 = T2<Never>;
 //      ^^
 // [analyzer] COMPILE_TIME_ERROR.TYPE_ALIAS_CANNOT_REFERENCE_ITSELF
+// [cfe] The typedef 'T3' has a reference to itself.
 
 typedef T4<X extends List<T4<Never>>> = int;
 //      ^^

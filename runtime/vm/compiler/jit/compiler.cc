@@ -476,7 +476,8 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     }
   }
 
-  if (function.IsFfiCallbackTrampoline()) {
+  if (function.IsFfiTrampoline() &&
+      function.GetFfiFunctionKind() != FfiFunctionKind::kCall) {
     compiler::ffi::SetFfiCallbackCode(thread(), function, code);
   }
 

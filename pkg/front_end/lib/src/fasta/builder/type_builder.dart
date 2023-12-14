@@ -157,6 +157,14 @@ enum TypeUse {
   ///
   extensionTypeImplementsType,
 
+  /// A type used as a representation type of an extension type.
+  ///
+  /// For instance `Y` in
+  ///
+  ///    extension type ExtensionType(Y y) implements X {}
+  ///
+  extensionTypeRepresentationType,
+
   /// A type used as the definition of a typedef.
   ///
   /// For instance `X`, `void Function()` in

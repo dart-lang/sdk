@@ -1044,7 +1044,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
       // Local closure function.
       const auto& target = Function::Cast(entry);
       AddFunction(target, RetainReasons::kLocalClosure);
-      if (target.IsFfiCallbackTrampoline()) {
+      if (target.IsFfiTrampoline()) {
         const auto& callback_target =
             Function::Handle(Z, target.FfiCallbackTarget());
         if (!callback_target.IsNull()) {
@@ -1117,7 +1117,7 @@ void Precompiler::AddTypesOf(const Function& function) {
   const Class& owner = Class::Handle(Z, function.Owner());
   AddTypesOf(owner);
 
-  if (function.IsFfiCallbackTrampoline()) {
+  if (function.IsFfiTrampoline()) {
     AddType(FunctionType::Handle(Z, function.FfiCSignature()));
   }
 
@@ -2030,7 +2030,7 @@ void Precompiler::TraceForRetainedFunctions() {
     // Ffi trampoline functions are not reachable from program structure,
     // they are referenced only from code (object pool).
     if (!functions_to_retain_.ContainsKey(function) &&
-        !function.IsFfiCallbackTrampoline()) {
+        !function.IsFfiTrampoline()) {
       FATAL("Function %s was not traced in TraceForRetainedFunctions\n",
             function.ToFullyQualifiedCString());
     }
@@ -2189,7 +2189,7 @@ void Precompiler::DropFunctions() {
       // which need the signature.
       return AddRetainReason(sig, RetainReasons::kClosureSignature);
     }
-    if (function.IsFfiCallbackTrampoline()) {
+    if (function.IsFfiTrampoline()) {
       // FFI trampolines may be dynamically called.
       return AddRetainReason(sig, RetainReasons::kFfiTrampolineSignature);
     }
@@ -3015,7 +3015,7 @@ void Precompiler::DiscardCodeObjects() {
       }
 
       // Retain Code objects corresponding to FFI trampolines.
-      if (function_.IsFfiCallbackTrampoline()) {
+      if (function_.IsFfiTrampoline()) {
         ++codes_with_ffi_trampoline_function_;
         return;
       }
@@ -3455,7 +3455,8 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
     function.AttachCode(code);
   }
 
-  if (function.IsFfiCallbackTrampoline()) {
+  if (function.IsFfiTrampoline() &&
+      function.GetFfiFunctionKind() != FfiFunctionKind::kCall) {
     compiler::ffi::SetFfiCallbackCode(thread(), function, code);
   }
 }

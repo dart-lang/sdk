@@ -105,6 +105,26 @@ class DeclarationBuilder {
     throw UnimplementedError('${node.runtimeType}');
   }
 
+  /// See [macro.DefinitionPhaseIntrospector.declarationOf].
+  macro.DeclarationImpl declarationOf(macro.Identifier identifier) {
+    if (identifier is! IdentifierImpl) {
+      throw ArgumentError('Not analyzer identifier.');
+    }
+
+    final element = identifier.element;
+    if (element == null) {
+      throw ArgumentError('Identifier without element.');
+    }
+
+    final node = nodeOfElement(element);
+    if (node != null) {
+      // TODO(scheglov): implement
+      throw UnimplementedError();
+    } else {
+      return fromElement.declarationOf(element);
+    }
+  }
+
   macro.TypeAnnotation inferOmittedType(
     macro.OmittedTypeAnnotation omittedType,
   ) {
@@ -437,8 +457,38 @@ class DeclarationBuilderFromElement {
     return _constructorMap[element] ??= _constructorElement(element);
   }
 
+  /// See [macro.DefinitionPhaseIntrospector.declarationOf].
+  macro.DeclarationImpl declarationOf(Element element) {
+    switch (element) {
+      case FunctionElementImpl():
+        return functionElement(element);
+      default:
+        // TODO(scheglov): other elements
+        return typeDeclarationOf(element);
+    }
+  }
+
   macro.FieldDeclarationImpl fieldElement(FieldElementImpl element) {
     return _fieldMap[element] ??= _fieldElement(element);
+  }
+
+  FunctionDeclarationImpl functionElement(ExecutableElementImpl element) {
+    return FunctionDeclarationImpl._(
+      element: element,
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      hasBody: !element.isAbstract,
+      hasExternal: element.isExternal,
+      isGetter: element is PropertyAccessorElementImpl && element.isGetter,
+      isOperator: element.isOperator,
+      isSetter: element is PropertyAccessorElementImpl && element.isSetter,
+      namedParameters: _namedFormalParameters(element.parameters),
+      positionalParameters: _positionalFormalParameters(element.parameters),
+      returnType: _dartType(element.returnType),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+    );
   }
 
   macro.IdentifierImpl identifier(Element element) {
@@ -483,12 +533,14 @@ class DeclarationBuilderFromElement {
 
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(Element element) {
-    if (element is ClassElementImpl) {
-      return classElement(element);
-    } else if (element is MixinElementImpl) {
-      return mixinElement(element);
-    } else {
-      throw ArgumentError('element: $element');
+    switch (element) {
+      case ClassElementImpl():
+        return classElement(element);
+      case MixinElementImpl():
+        return mixinElement(element);
+      default:
+        // TODO(scheglov): other elements
+        throw ArgumentError('element: $element');
     }
   }
 

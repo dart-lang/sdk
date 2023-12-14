@@ -167,7 +167,7 @@ void FlowGraph::ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
 bool FlowGraph::ShouldReorderBlocks(const Function& function,
                                     bool is_optimized) {
   return is_optimized && FLAG_reorder_basic_blocks &&
-         !function.is_intrinsic() && !function.IsFfiCallbackTrampoline();
+         !function.is_intrinsic() && !function.IsFfiTrampoline();
 }
 
 GrowableArray<BlockEntryInstr*>* FlowGraph::CodegenBlockOrder(

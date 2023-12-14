@@ -275,13 +275,13 @@ FfiCallbackMetadata::CreateIsolateLocalFfiCallback(Isolate* isolate,
   if (closure.IsNull()) {
     // If the closure is null, it means the target is a static function, so is
     // baked into the trampoline and is an ordinary sync callback.
-    ASSERT(function.GetFfiCallbackKind() ==
-           FfiCallbackKind::kIsolateLocalStaticCallback);
+    ASSERT(function.GetFfiFunctionKind() ==
+           FfiFunctionKind::kIsolateLocalStaticCallback);
     return CreateSyncFfiCallbackImpl(isolate, zone, function, nullptr,
                                      list_head);
   } else {
-    ASSERT(function.GetFfiCallbackKind() ==
-           FfiCallbackKind::kIsolateLocalClosureCallback);
+    ASSERT(function.GetFfiFunctionKind() ==
+           FfiFunctionKind::kIsolateLocalClosureCallback);
     return CreateSyncFfiCallbackImpl(isolate, zone, function,
                                      CreatePersistentHandle(isolate, closure),
                                      list_head);
@@ -319,7 +319,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateAsyncFfiCallback(
     const Function& send_function,
     Dart_Port send_port,
     Metadata** list_head) {
-  ASSERT(send_function.GetFfiCallbackKind() == FfiCallbackKind::kAsyncCallback);
+  ASSERT(send_function.GetFfiFunctionKind() == FfiFunctionKind::kAsyncCallback);
   return CreateMetadataEntry(isolate, TrampolineType::kAsync,
                              GetEntryPoint(zone, send_function),
                              static_cast<uint64_t>(send_port), list_head);

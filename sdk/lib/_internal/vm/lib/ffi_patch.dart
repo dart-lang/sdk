@@ -82,21 +82,13 @@ int sizeOf<T extends NativeType>() {
 @pragma("vm:idempotent")
 external Pointer<T> _fromAddress<T extends NativeType>(int ptr);
 
-/// Argument for vm:ffi:call-closure pragma describing FFI call.
-final class _FfiCall<NativeSignature> {
-  // Implementation note: VM hardcodes the layout of this class (number and
-  // order of its fields), so adding/removing/changing fields requires
-  // updating the VM code (see Function::GetFfiCallClosurePragmaValue()).
-  final bool isLeaf;
-  const _FfiCall({this.isLeaf = false});
-}
-
-// Helper function to perform FFI call.
-// Inserted by FFI kernel transformation into the FFI call closures.
-// Implemented in BuildFfiCall
-// in runtime/vm/compiler/frontend/kernel_binary_flowgraph.cc.
+// The real implementation of this function (for interface calls) lives in
+// BuildFfiAsFunctionInternal in the Kernel frontend. No calls can actually
+// reach this function.
 @pragma("vm:recognized", "other")
-external ReturnType _ffiCall<ReturnType>(Pointer<NativeFunction> target);
+@pragma("vm:external-name", "Ffi_asFunctionInternal")
+external DS _asFunctionInternal<DS extends Function, NS extends Function>(
+    Pointer<NativeFunction<NS>> ptr, bool isLeaf);
 
 @pragma("vm:recognized", "other")
 @pragma("vm:idempotent")

@@ -230,7 +230,7 @@ class FfiTransformer extends Transformer {
   final Procedure abiSpecificIntegerArrayElemAt;
   final Procedure abiSpecificIntegerArraySetElemAt;
   final Procedure asFunctionMethod;
-  final Procedure ffiCallMethod;
+  final Procedure asFunctionInternal;
   final Procedure sizeOfMethod;
   final Procedure lookupFunctionMethod;
   final Procedure fromFunctionMethod;
@@ -283,8 +283,6 @@ class FfiTransformer extends Transformer {
   final Field nativeCallablePointerField;
   final Procedure nativeAddressOf;
   final Procedure nativePrivateAddressOf;
-  final Class ffiCallClass;
-  final Field ffiCallIsLeafField;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
@@ -465,7 +463,8 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerArray', '[]='),
         asFunctionMethod = index.getProcedure(
             'dart:ffi', 'NativeFunctionPointer', 'asFunction'),
-        ffiCallMethod = index.getTopLevelProcedure('dart:ffi', '_ffiCall'),
+        asFunctionInternal =
+            index.getTopLevelProcedure('dart:ffi', '_asFunctionInternal'),
         sizeOfMethod = index.getTopLevelProcedure('dart:ffi', 'sizeOf'),
         lookupFunctionMethod = index.getProcedure(
             'dart:ffi', 'DynamicLibraryExtension', 'lookupFunction'),
@@ -572,9 +571,7 @@ class FfiTransformer extends Transformer {
         nativeAddressOf =
             index.getMember('dart:ffi', 'Native', 'addressOf') as Procedure,
         nativePrivateAddressOf =
-            index.getMember('dart:ffi', 'Native', '_addressOf') as Procedure,
-        ffiCallClass = index.getClass('dart:ffi', '_FfiCall'),
-        ffiCallIsLeafField = index.getField('dart:ffi', '_FfiCall', 'isLeaf') {
+            index.getMember('dart:ffi', 'Native', '_addressOf') as Procedure {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!
@@ -1200,6 +1197,37 @@ class FfiTransformer extends Transformer {
         ]),
         nestedExpression)
       ..fileOffset = nestedExpression.fileOffset;
+  }
+
+  /// Creates an invocation to asFunctionInternal.
+  ///
+  /// Adds a native effect invoking a compound constructors if this is used
+  /// as return type.
+  Expression buildAsFunctionInternal({
+    required Expression functionPointer,
+    required DartType nativeSignature,
+    required DartType dartSignature,
+    required bool isLeaf,
+    required int fileOffset,
+  }) {
+    final asFunctionInternalInvocation = StaticInvocation(
+        asFunctionInternal,
+        Arguments([
+          functionPointer,
+          BoolLiteral(isLeaf),
+        ], types: [
+          dartSignature,
+          nativeSignature,
+        ]))
+      ..fileOffset = fileOffset;
+
+    final possibleCompoundReturn = findCompoundReturnType(dartSignature);
+    if (possibleCompoundReturn != null) {
+      return invokeCompoundConstructor(
+          asFunctionInternalInvocation, possibleCompoundReturn);
+    }
+
+    return asFunctionInternalInvocation;
   }
 
   /// Returns the compound [Class] if a compound is returned, otherwise `null`.

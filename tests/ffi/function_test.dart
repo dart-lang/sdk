@@ -459,12 +459,6 @@ void testNoArgs() {
   Expect.approxEquals(1337.0, result);
 }
 
-// Returns a possibly ofuscated 'arg2' identifier.
-String get arg2ObfuscatedName {
-  final str = (arg2: 0).toString();
-  return str.substring('('.length, str.length - ': 0)'.length);
-}
-
 void testNativeFunctionNullableInt() {
   final sumPlus42 = ffiTestFunctions.lookupFunction<
       Int32 Function(Int32, Int32), int Function(int, int?)>("SumPlus42");
@@ -473,7 +467,7 @@ void testNativeFunctionNullableInt() {
     sumPlus42(3, null);
   } catch (e) {
     // TODO(http://dartbug.com/47098): Save param names to dwarf.
-    Expect.isTrue(e.toString().contains(arg2ObfuscatedName) ||
+    Expect.isTrue(e.toString().contains('ffi_param2') ||
         e.toString().contains('<optimized out>'));
   }
 }

@@ -20,12 +20,18 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/ffi/call.h"
 #include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/jit/compiler.h"
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
+
+// Static invocations to this method are translated directly in streaming FGB.
+DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
+  UNREACHABLE();
+}
 
 DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableListener, 1, 2) {
   const auto& send_function =

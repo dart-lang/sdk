@@ -10,6 +10,7 @@ import 'package:kernel/class_hierarchy.dart';
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
+import '../builder/invalid_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -33,7 +34,7 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
-  final TypeBuilder type;
+  TypeBuilder type;
 
   final List<NominalVariableBuilder>? _typeVariables;
 
@@ -91,13 +92,39 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   Typedef build() {
     buildThisType();
-    _checkCyclicTypedefDependency(type, this, {this});
+    if (_checkCyclicTypedefDependency(type, this, {this})) {
+      typedef.type = new InvalidType();
+      type = new InvalidTypeBuilderImpl(fileUri, charOffset);
+    }
     if (typeVariables != null) {
       for (TypeVariableBuilderBase typeVariable in typeVariables!) {
-        _checkCyclicTypedefDependency(typeVariable.bound, this, {this});
+        if (_checkCyclicTypedefDependency(typeVariable.bound, this, {this})) {
+          // The bound is erroneous and should be set to [InvalidType].
+          typeVariable.parameterBound = new InvalidType();
+          typeVariable.parameterDefaultType = new InvalidType();
+          typeVariable.bound = new InvalidTypeBuilderImpl(fileUri, charOffset);
+          typeVariable.defaultType =
+              new InvalidTypeBuilderImpl(fileUri, charOffset);
+          // The typedef itself can't be used without proper bounds of its type
+          // variables, so we set it to mean [InvalidType] too.
+          typedef.type = new InvalidType();
+          type = new InvalidTypeBuilderImpl(fileUri, charOffset);
+        }
       }
     }
     return typedef;
+  }
+
+  @override
+  TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+      List<TypeBuilder>? unboundTypes,
+      List<StructuralVariableBuilder>? unboundTypeVariables}) {
+    build();
+    return super.unalias(typeArguments,
+        usedTypeAliasBuilders: usedTypeAliasBuilders,
+        unboundTypes: unboundTypes,
+        unboundTypeVariables: unboundTypeVariables);
   }
 
   bool _checkCyclicTypedefDependency(
@@ -111,27 +138,46 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         ):
         if (declaration is TypeAliasBuilder) {
           bool declarationSeenFirstTime =
-              seenTypeAliasBuilders.add(declaration);
+              !seenTypeAliasBuilders.contains(declaration);
           if (declaration == rootTypeAliasBuilder) {
-            libraryBuilder.addProblem(
-                templateCyclicTypedef.withArguments(this.name),
-                rootTypeAliasBuilder.charOffset,
-                rootTypeAliasBuilder.name.length,
-                fileUri);
+            for (TypeAliasBuilder seenTypeAliasBuilder in {
+              ...seenTypeAliasBuilders,
+              declaration
+            }) {
+              seenTypeAliasBuilder.libraryBuilder.addProblem(
+                  templateCyclicTypedef
+                      .withArguments(seenTypeAliasBuilder.name),
+                  seenTypeAliasBuilder.charOffset,
+                  seenTypeAliasBuilder.name.length,
+                  seenTypeAliasBuilder.fileUri);
+            }
             return true;
           } else {
             if (declarationSeenFirstTime) {
-              if (_checkCyclicTypedefDependency(declaration.type,
-                  rootTypeAliasBuilder, seenTypeAliasBuilders.toSet())) {
+              if (_checkCyclicTypedefDependency(
+                  declaration.type,
+                  rootTypeAliasBuilder,
+                  {...seenTypeAliasBuilders, declaration})) {
                 return true;
+              }
+              if (declaration.typeVariables != null) {
+                for (TypeVariableBuilderBase typeVariable
+                    in declaration.typeVariables!) {
+                  if (_checkCyclicTypedefDependency(
+                      typeVariable.bound,
+                      rootTypeAliasBuilder,
+                      {...seenTypeAliasBuilders, declaration})) {
+                    return true;
+                  }
+                }
               }
             }
           }
         }
         if (arguments != null) {
           for (TypeBuilder typeArgument in arguments) {
-            if (_checkCyclicTypedefDependency(typeArgument,
-                rootTypeAliasBuilder, seenTypeAliasBuilders.toSet())) {
+            if (_checkCyclicTypedefDependency(
+                typeArgument, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
               return true;
             }
           }
@@ -171,7 +217,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               TypeVariableBuilderBase typeParameter = typeParameters[i];
               if (!isFromKernel) {
                 if (_checkCyclicTypedefDependency(typeParameter.defaultType!,
-                    rootTypeAliasBuilder, seenTypeAliasBuilders.toSet())) {
+                    rootTypeAliasBuilder, seenTypeAliasBuilders)) {
                   return true;
                 }
               } else if (typeParametersFromKernel != null) {
@@ -184,7 +230,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
                         .defaultType
                         .accept(typeBuilderComputer),
                     rootTypeAliasBuilder,
-                    seenTypeAliasBuilders.toSet())) {
+                    seenTypeAliasBuilders)) {
                   return true;
                 }
               }
@@ -197,13 +243,13 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           :TypeBuilder returnType
         ):
         if (_checkCyclicTypedefDependency(
-            returnType, rootTypeAliasBuilder, seenTypeAliasBuilders.toSet())) {
+            returnType, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
           return true;
         }
         if (formals != null) {
           for (ParameterBuilder formal in formals) {
-            if (_checkCyclicTypedefDependency(formal.type, rootTypeAliasBuilder,
-                seenTypeAliasBuilders.toSet())) {
+            if (_checkCyclicTypedefDependency(
+                formal.type, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
               return true;
             }
           }
@@ -212,7 +258,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           for (StructuralVariableBuilder typeVariable in typeVariables) {
             TypeBuilder? bound = typeVariable.bound;
             if (_checkCyclicTypedefDependency(
-                bound, rootTypeAliasBuilder, seenTypeAliasBuilders.toSet())) {
+                bound, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
               return true;
             }
           }
@@ -223,16 +269,16 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         ):
         if (positionalFields != null) {
           for (RecordTypeFieldBuilder field in positionalFields) {
-            if (_checkCyclicTypedefDependency(field.type, rootTypeAliasBuilder,
-                seenTypeAliasBuilders.toSet())) {
+            if (_checkCyclicTypedefDependency(
+                field.type, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
               return true;
             }
           }
         }
         if (namedFields != null) {
           for (RecordTypeFieldBuilder field in namedFields) {
-            if (_checkCyclicTypedefDependency(field.type, rootTypeAliasBuilder,
-                seenTypeAliasBuilders.toSet())) {
+            if (_checkCyclicTypedefDependency(
+                field.type, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
               return true;
             }
           }

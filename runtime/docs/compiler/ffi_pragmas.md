@@ -45,11 +45,3 @@ Related files:
 * [runtime/vm/kernel_loader.cc](../../../runtime/vm/kernel_loader.cc)
 * [runtime/vm/object.cc](../../../runtime/vm/object.cc)
 
-## FFI Calls
-
-This pragma is used to mark Dart closures which perform FFI calls:
-
-```
-  @pragma('vm:ffi:call-closure', _FfiCall<Int32 Function(Int32)>(isLeaf: false))
-  int #ffiCall0(int arg1) => _ffiCall<int>(target);
-```
