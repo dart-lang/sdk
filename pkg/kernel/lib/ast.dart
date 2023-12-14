@@ -2983,7 +2983,6 @@ class Procedure extends Member implements GenericFunction {
       bool isExtensionMember = false,
       bool isExtensionTypeMember = false,
       bool isSynthetic = false,
-      bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
@@ -2997,7 +2996,6 @@ class Procedure extends Member implements GenericFunction {
             isExtensionMember: isExtensionMember,
             isExtensionTypeMember: isExtensionTypeMember,
             isSynthetic: isSynthetic,
-            isAbstractFieldAccessor: isAbstractFieldAccessor,
             transformerFlags: transformerFlags,
             fileUri: fileUri,
             reference: reference,
@@ -3013,7 +3011,6 @@ class Procedure extends Member implements GenericFunction {
       bool isExtensionMember = false,
       bool isExtensionTypeMember = false,
       bool isSynthetic = false,
-      bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
@@ -3028,7 +3025,6 @@ class Procedure extends Member implements GenericFunction {
     this.isExtensionMember = isExtensionMember;
     this.isExtensionTypeMember = isExtensionTypeMember;
     this.isSynthetic = isSynthetic;
-    this.isAbstractFieldAccessor = isAbstractFieldAccessor;
     setTransformerFlagsWithoutLazyLoading(transformerFlags);
     assert(!(isMemberSignature && stubTargetReference == null),
         "No member signature origin for member signature $this.");
@@ -3080,9 +3076,8 @@ class Procedure extends Member implements GenericFunction {
   static const int FlagNonNullableByDefault = 1 << 5;
   static const int FlagSynthetic = 1 << 6;
   static const int FlagInternalImplementation = 1 << 7;
-  static const int FlagIsAbstractFieldAccessor = 1 << 8;
-  static const int FlagExtensionTypeMember = 1 << 9;
-  static const int FlagHasWeakTearoffReferencePragma = 1 << 10;
+  static const int FlagExtensionTypeMember = 1 << 8;
+  static const int FlagHasWeakTearoffReferencePragma = 1 << 9;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3148,15 +3143,6 @@ class Procedure extends Member implements GenericFunction {
     flags = value
         ? (flags | FlagInternalImplementation)
         : (flags & ~FlagInternalImplementation);
-  }
-
-  /// If `true` this procedure was generated from an abstract field.
-  bool get isAbstractFieldAccessor => flags & FlagIsAbstractFieldAccessor != 0;
-
-  void set isAbstractFieldAccessor(bool value) {
-    flags = value
-        ? (flags | FlagIsAbstractFieldAccessor)
-        : (flags & ~FlagIsAbstractFieldAccessor);
   }
 
   @override

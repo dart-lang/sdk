@@ -1757,7 +1757,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
               ..fileOffset = charOffset
               ..isLowered = true
           ]),
-          isAbstractFieldAccessor: isAbstract,
           fileUri: fileUri,
           reference: getterReference)
         ..fileOffset = charOffset
@@ -1784,7 +1783,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
                 returnType: const VoidType())
               ..fileOffset = charOffset
               ..fileEndOffset = charEndOffset,
-            isAbstractFieldAccessor: isAbstract,
             fileUri: fileUri,
             reference: setterReference)
           ..fileOffset = charOffset
@@ -1797,9 +1795,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
     } else {
       _getter = new Procedure(
           dummyName, ProcedureKind.Getter, new FunctionNode(null),
-          isAbstractFieldAccessor: isAbstract,
-          fileUri: fileUri,
-          reference: getterReference)
+          fileUri: fileUri, reference: getterReference)
         ..fileOffset = charOffset
         ..fileEndOffset = charEndOffset
         ..isNonNullableByDefault = isNonNullableByDefault;
@@ -1818,7 +1814,6 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
                 positionalParameters: [parameter], returnType: const VoidType())
               ..fileOffset = charOffset
               ..fileEndOffset = charEndOffset,
-            isAbstractFieldAccessor: isAbstract,
             fileUri: fileUri,
             reference: setterReference)
           ..fileOffset = charOffset
@@ -2065,9 +2060,7 @@ class RepresentationFieldEncoding implements FieldEncoding {
       Reference? getterReference) {
     _getter = new Procedure(
         dummyName, ProcedureKind.Getter, new FunctionNode(null),
-        isAbstractFieldAccessor: true,
-        fileUri: fileUri,
-        reference: getterReference)
+        fileUri: fileUri, reference: getterReference)
       ..stubKind = ProcedureStubKind.RepresentationField
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
