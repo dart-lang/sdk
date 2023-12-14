@@ -839,12 +839,25 @@ class _Tuple {
     }
 
     if (definingGetable != null && definingSetable != null) {
-      if (definingGetable.isStatic != definingSetable.isStatic ||
-          definingGetable.isProperty != definingSetable.isProperty) {
+      // TODO(johnniwinther): Should we remove [definingSetable] if we have a
+      // conflict? If we leave it in this conflict will also be reported in
+      // sub-extension types. If  we remove it, any write to the setable will be
+      // unresolved.
+      if (definingGetable.isStatic != definingSetable.isStatic) {
         builder.reportInheritanceConflict(definingGetable, definingSetable);
-        // TODO(johnniwinther): Should we remove [definingSetable]? If we
-        // leave it in this conflict will also be reported in subclasses. If
-        // we remove it, any write to the setable will be unresolved.
+      } else if (definingGetable.isProperty != definingSetable.isProperty) {
+        if (definingGetable.declarationBuilder == builder.declarationBuilder &&
+            definingSetable.declarationBuilder != builder.declarationBuilder) {
+          // The getable precludes the setable.
+          definingSetable = null;
+        } else if (definingSetable.declarationBuilder ==
+                builder.declarationBuilder &&
+            definingGetable.declarationBuilder != builder.declarationBuilder) {
+          // The setable precludes the getable.
+          definingGetable = null;
+        } else {
+          builder.reportInheritanceConflict(definingGetable, definingSetable);
+        }
       }
     }
     return (

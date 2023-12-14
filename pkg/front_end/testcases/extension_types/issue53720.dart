@@ -10,6 +10,6 @@ extension type E2(int i) implements E1 {
   void m() {}
 }
 
-void main() {
-  E2(1).m = 10;
+void test() {
+  E2(1).m = 10; /* Error */
 }
