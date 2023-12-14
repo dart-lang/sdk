@@ -29,7 +29,7 @@ extension type E(int it) {
   test_instance_sameKind() async {
     await assertErrorsInCode('''
 extension type E(int it) {
-  bool operator==(_) => false;
+  bool operator==(Object _) => false;
   int get hashCode => 0;
   String toString() => '';
   dynamic get runtimeType => null;
@@ -39,12 +39,12 @@ extension type E(int it) {
       error(
           CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 42, 2),
       error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 68, 8),
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 75, 8),
       error(
-          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 92, 8),
-      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 124,
+          CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 99, 8),
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 131,
           11),
-      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 155,
+      error(CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT, 162,
           12),
     ]);
   }

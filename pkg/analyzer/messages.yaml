@@ -6906,7 +6906,7 @@ CompileTimeErrorCode:
 
       ```dart
       mixin M on Enum {
-        bool operator [!==!](Object? other) => false;
+        bool operator [!==!](Object other) => false;
       }
       ```
 
@@ -24835,6 +24835,11 @@ WarningCode:
 
       void f() => const C();
       ```
+  NON_NULLABLE_EQUALS_PARAMETER:
+    problemMessage: "The parameter type of '==' operators should be non-nullable."
+    correctionMessage: Try using a non-nullable type.
+    hasPublishedDocs: false
+    comment: No parameters.
   NULLABLE_TYPE_IN_CATCH_CLAUSE:
     problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
     correctionMessage: Try using a non-nullable type.

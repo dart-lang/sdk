@@ -6895,6 +6895,13 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const WarningCode NON_NULLABLE_EQUALS_PARAMETER = WarningCode(
+    'NON_NULLABLE_EQUALS_PARAMETER',
+    "The parameter type of '==' operators should be non-nullable.",
+    correctionMessage: "Try using a non-nullable type.",
+  );
+
+  ///  No parameters.
   static const WarningCode NULLABLE_TYPE_IN_CATCH_CLAUSE = WarningCode(
     'NULLABLE_TYPE_IN_CATCH_CLAUSE',
     "A potentially nullable type can't be used in an 'on' clause because it "
