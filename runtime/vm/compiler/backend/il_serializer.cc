@@ -11,6 +11,7 @@
 #include "vm/compiler/backend/flow_graph.h"
 #include "vm/compiler/backend/il.h"
 #include "vm/compiler/backend/range_analysis.h"
+#include "vm/compiler/ffi/call.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -836,12 +837,20 @@ void FlowGraphSerializer::WriteTrait<const Function&>::Write(
       return;
     }
     case UntaggedFunction::kFfiTrampoline: {
-      s->Write<uint8_t>(static_cast<uint8_t>(x.GetFfiCallbackKind()));
+      s->Write<uint8_t>(static_cast<uint8_t>(x.GetFfiFunctionKind()));
       s->Write<const FunctionType&>(
           FunctionType::Handle(zone, x.FfiCSignature()));
-      s->Write<const Function&>(Function::Handle(zone, x.FfiCallbackTarget()));
-      s->Write<const Instance&>(
-          Instance::Handle(zone, x.FfiCallbackExceptionalReturn()));
+      if (x.GetFfiFunctionKind() != FfiFunctionKind::kCall) {
+        s->Write<const Function&>(
+            Function::Handle(zone, x.FfiCallbackTarget()));
+        s->Write<const Instance&>(
+            Instance::Handle(zone, x.FfiCallbackExceptionalReturn()));
+      } else {
+        s->Write<const String&>(String::Handle(zone, x.name()));
+        s->Write<const FunctionType&>(
+            FunctionType::Handle(zone, x.signature()));
+        s->Write<bool>(x.FfiIsLeaf());
+      }
       return;
     }
     default:
@@ -918,14 +927,23 @@ const Function& FlowGraphDeserializer::ReadTrait<const Function&>::Read(
                                   target.GetDynamicInvocationForwarder(name));
     }
     case UntaggedFunction::kFfiTrampoline: {
-      const FfiCallbackKind kind =
-          static_cast<FfiCallbackKind>(d->Read<uint8_t>());
+      const FfiFunctionKind kind =
+          static_cast<FfiFunctionKind>(d->Read<uint8_t>());
       const FunctionType& c_signature = d->Read<const FunctionType&>();
-      const Function& callback_target = d->Read<const Function&>();
-      const Instance& exceptional_return = d->Read<const Instance&>();
-      return Function::ZoneHandle(
-          zone, compiler::ffi::NativeCallbackFunction(
-                    c_signature, callback_target, exceptional_return, kind));
+      if (kind != FfiFunctionKind::kCall) {
+        const Function& callback_target = d->Read<const Function&>();
+        const Instance& exceptional_return = d->Read<const Instance&>();
+        return Function::ZoneHandle(
+            zone, compiler::ffi::NativeCallbackFunction(
+                      c_signature, callback_target, exceptional_return, kind));
+      } else {
+        const String& name = d->Read<const String&>();
+        const FunctionType& signature = d->Read<const FunctionType&>();
+        const bool is_leaf = d->Read<bool>();
+        return Function::ZoneHandle(
+            zone, compiler::ffi::TrampolineFunction(name, signature,
+                                                    c_signature, is_leaf));
+      }
     }
     default:
       UNIMPLEMENTED();

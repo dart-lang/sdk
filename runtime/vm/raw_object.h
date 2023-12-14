@@ -1501,7 +1501,10 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
   // Check 'callback_target_' to determine if this is a callback or not.
   int32_t callback_id_;
 
-  // The kind of trampoline this is. See FfiCallbackKind.
+  // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
+  bool is_leaf_;
+
+  // The kind of trampoline this is. See FfiFunctionKind.
   uint8_t ffi_function_kind_;
 };
 

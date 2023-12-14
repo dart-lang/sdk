@@ -100,6 +100,8 @@ compiler_sources = [
   "compiler_timings.h",
   "ffi/abi.cc",
   "ffi/abi.h",
+  "ffi/call.cc",
+  "ffi/call.h",
   "ffi/callback.cc",
   "ffi/callback.h",
   "ffi/frame_rebase.cc",

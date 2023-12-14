@@ -137,6 +137,8 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   FlowGraph* BuildGraphOfFfiTrampoline(const Function& function);
   FlowGraph* BuildGraphOfSyncFfiCallback(const Function& function);
   FlowGraph* BuildGraphOfAsyncFfiCallback(const Function& function);
+  FlowGraph* BuildGraphOfFfiCall(const Function& function);
+  Fragment FfiCallLookupAddress(const Function& function);
 
   // Resolves the address of a native symbol from the constant data of a
   // vm:ffi:native pragma.
@@ -148,8 +150,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   Fragment FfiNativeLookupAddress(const Function& function);
   // Expects target address on stack.
   Fragment FfiCallFunctionBody(const Function& function,
-                               const FunctionType& c_signature,
-                               intptr_t first_argument_parameter_offset);
+                               const FunctionType& c_signature);
   Fragment FfiNativeFunctionBody(const Function& function);
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
@@ -203,8 +204,7 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
       bool receiver_is_not_smi = false,
       bool is_call_on_this = false);
 
-  Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller,
-                   bool is_leaf);
+  Fragment FfiCall(const compiler::ffi::CallMarshaller& marshaller);
 
   Fragment CCall(
       const compiler::ffi::NativeCallingConvention& native_calling_convention);

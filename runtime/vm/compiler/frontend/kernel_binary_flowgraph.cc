@@ -3348,18 +3348,18 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
       return BuildNativeEffect();
     case MethodRecognizer::kReachabilityFence:
       return BuildReachabilityFence();
-    case MethodRecognizer::kFfiCall:
-      return BuildFfiCall();
+    case MethodRecognizer::kFfiAsFunctionInternal:
+      return BuildFfiAsFunctionInternal();
     case MethodRecognizer::kFfiNativeCallbackFunction:
       return BuildFfiNativeCallbackFunction(
-          FfiCallbackKind::kIsolateLocalStaticCallback);
+          FfiFunctionKind::kIsolateLocalStaticCallback);
     case MethodRecognizer::kFfiNativeAddressOf:
       return BuildFfiNativeAddressOf();
     case MethodRecognizer::kFfiNativeIsolateLocalCallbackFunction:
       return BuildFfiNativeCallbackFunction(
-          FfiCallbackKind::kIsolateLocalClosureCallback);
+          FfiFunctionKind::kIsolateLocalClosureCallback);
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
-      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsyncCallback);
+      return BuildFfiNativeCallbackFunction(FfiFunctionKind::kAsyncCallback);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
       return BuildLoadAbiSpecificInt(/*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
@@ -6221,46 +6221,34 @@ Fragment StreamingFlowGraphBuilder::BuildStoreAbiSpecificInt(bool at_index) {
   return code;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildFfiCall() {
+Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   const intptr_t argc = ReadUInt();               // Read argument count.
-  ASSERT(argc == 1);                              // Target pointer.
+  ASSERT(argc == 2);                              // Pointer, isLeaf.
   const intptr_t list_length = ReadListLength();  // Read types list length.
-  T.BuildTypeArguments(list_length);              // Read types.
+  ASSERT(list_length == 2);  // Dart signature, then native signature
+  // Read types.
+  const TypeArguments& type_arguments = T.BuildTypeArguments(list_length);
+  Fragment code;
   // Read positional argument count.
   const intptr_t positional_count = ReadListLength();
-  ASSERT(positional_count == argc);
+  ASSERT(positional_count == 2);
+  code += BuildExpression();  // Build first positional argument (pointer).
 
-  Fragment code;
-  // Push the target function pointer passed as Pointer object.
-  code += BuildExpression();
-  // This can only be Pointer, so it is always safe to LoadUntagged.
-  code += B->LoadUntagged(compiler::target::PointerBase::data_offset());
-  code += B->ConvertUntaggedToUnboxed(kUnboxedFfiIntPtr);
+  // The second argument, `isLeaf`, is only used internally and dictates whether
+  // we can do a lightweight leaf function call.
+  bool is_leaf = false;
+  Fragment frag = BuildExpression();
+  ASSERT(frag.entry->IsConstant());
+  if (frag.entry->AsConstant()->value().ptr() == Object::bool_true().ptr()) {
+    is_leaf = true;
+  }
+  Pop();
 
   // Skip (empty) named arguments list.
   const intptr_t named_args_len = ReadListLength();
   ASSERT(named_args_len == 0);
 
-  const auto& native_type = FunctionType::ZoneHandle(
-      Z, parsed_function()->function().FfiCSignature());
-
-  // AbiSpecificTypes can have an incomplete mapping.
-  const char* error = nullptr;
-  compiler::ffi::NativeFunctionTypeFromFunctionType(Z, native_type, &error);
-  if (error != nullptr) {
-    const auto& language_error = Error::Handle(
-        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
-                           Report::kError, Heap::kOld));
-    Report::LongJump(language_error);
-  }
-
-  code += B->FfiCallFunctionBody(parsed_function()->function(), native_type,
-                                 /*first_argument_parameter_offset=*/1);
-
-  ASSERT(code.is_closed());
-
-  NullConstant();  // Maintain stack balance.
-
+  code += B->BuildFfiAsFunctionInternalCall(type_arguments, is_leaf);
   return code;
 }
 
@@ -6325,23 +6313,23 @@ Fragment StreamingFlowGraphBuilder::BuildCachableIdempotentCall(
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
-    FfiCallbackKind kind) {
+    FfiFunctionKind kind) {
   // The call-site must look like this (guaranteed by the FE which inserts it):
   //
-  // FfiCallbackKind::kIsolateLocalStaticCallback:
+  // FfiFunctionKind::kIsolateLocalStaticCallback:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
-  // FfiCallbackKind::kAsyncCallback:
+  // FfiFunctionKind::kAsyncCallback:
   //   _nativeAsyncCallbackFunction<NativeSignatureType>()
   //
-  // FfiCallbackKind::kIsolateLocalClosureCallback:
+  // FfiFunctionKind::kIsolateLocalClosureCallback:
   //   _nativeIsolateLocalCallbackFunction<NativeSignatureType>(
   //       exceptionalReturn)
   //
   // The FE also guarantees that the arguments are constants.
 
-  const bool has_target = kind == FfiCallbackKind::kIsolateLocalStaticCallback;
-  const bool has_exceptional_return = kind != FfiCallbackKind::kAsyncCallback;
+  const bool has_target = kind == FfiFunctionKind::kIsolateLocalStaticCallback;
+  const bool has_exceptional_return = kind != FfiFunctionKind::kAsyncCallback;
   const intptr_t expected_argc =
       static_cast<int>(has_target) + static_cast<int>(has_exceptional_return);
 

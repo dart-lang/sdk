@@ -387,12 +387,13 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildLoadAbiSpecificInt(bool at_index);
   Fragment BuildStoreAbiSpecificInt(bool at_index);
 
-  // Build FG for FFI call.
-  Fragment BuildFfiCall();
+  // Build FG for '_asFunctionInternal'. Reads an Arguments from the
+  // Kernel buffer and pushes the resulting closure.
+  Fragment BuildFfiAsFunctionInternal();
 
   // Build FG for '_nativeCallbackFunction'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting Function object.
-  Fragment BuildFfiNativeCallbackFunction(FfiCallbackKind kind);
+  Fragment BuildFfiNativeCallbackFunction(FfiFunctionKind kind);
 
   Fragment BuildFfiNativeAddressOf();
 

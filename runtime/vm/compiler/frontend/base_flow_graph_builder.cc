@@ -7,6 +7,7 @@
 #include <utility>
 
 #include "vm/compiler/backend/range_analysis.h"  // For Range.
+#include "vm/compiler/ffi/call.h"
 #include "vm/compiler/frontend/flow_graph_builder.h"  // For InlineExitCollector.
 #include "vm/compiler/jit/compiler.h"  // For Compiler::IsBackgroundCompilation().
 #include "vm/compiler/runtime_api.h"
@@ -1022,6 +1023,65 @@ Fragment BaseFlowGraphBuilder::Box(Representation from) {
   BoxInstr* box = BoxInstr::Create(from, Pop());
   Push(box);
   return Fragment(box);
+}
+
+Fragment BaseFlowGraphBuilder::BuildFfiAsFunctionInternalCall(
+    const TypeArguments& signatures,
+    bool is_leaf) {
+  ASSERT(signatures.Length() == 2);
+  const auto& sig0 = AbstractType::Handle(signatures.TypeAt(0));
+  const auto& sig1 = AbstractType::Handle(signatures.TypeAt(1));
+
+  if (!signatures.IsInstantiated() || !sig0.IsFunctionType() ||
+      !sig1.IsFunctionType()) {
+    const auto& msg = String::Handle(String::NewFormatted(
+        "Invalid type arguments passed to dart:ffi _asFunctionInternal: %s",
+        String::Handle(signatures.UserVisibleName()).ToCString()));
+    const auto& language_error =
+        Error::Handle(LanguageError::New(msg, Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+
+  const auto& dart_type = FunctionType::Cast(sig0);
+  const auto& native_type = FunctionType::Cast(sig1);
+
+  // AbiSpecificTypes can have an incomplete mapping.
+  const char* error = nullptr;
+  compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_type, &error);
+  if (error != nullptr) {
+    const auto& language_error = Error::Handle(
+        LanguageError::New(String::Handle(String::New(error, Heap::kOld)),
+                           Report::kError, Heap::kOld));
+    Report::LongJump(language_error);
+  }
+
+  const auto& name =
+      String::Handle(parsed_function_->function().UserVisibleName());
+  const Function& target = Function::ZoneHandle(
+      compiler::ffi::TrampolineFunction(dart_type, native_type, is_leaf, name));
+
+  Fragment code;
+  // Store the pointer in the context, we cannot load the untagged address
+  // here as these can be unoptimized call sites.
+  LocalVariable* pointer = MakeTemporary();
+
+  code += Constant(target);
+
+  auto& context_slots = CompilerState::Current().GetDummyContextSlots(
+      /*context_id=*/0, /*num_variables=*/1);
+  code += AllocateContext(context_slots);
+  LocalVariable* context = MakeTemporary();
+
+  code += LoadLocal(context);
+  code += LoadLocal(pointer);
+  code += StoreNativeField(*context_slots[0]);
+
+  code += AllocateClosure();
+
+  // Drop address.
+  code += DropTempsPreserveTop(1);
+
+  return code;
 }
 
 Fragment BaseFlowGraphBuilder::DebugStepCheck(TokenPosition position) {

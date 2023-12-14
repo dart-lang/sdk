@@ -154,7 +154,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           FunctionNodeHelper::kPositionalParameters);
       // NOTE: FunctionNode is read further below the if.
 
-      if (function.is_ffi_native() || function.IsFfiCallClosure()) {
+      intptr_t pos = 0;
+      if (function.is_ffi_native()) {
         needs_expr_temp_ = true;
         // Calls with handles need try/catch variables.
         if (function.FfiCSignatureContainsHandles()) {
@@ -166,9 +167,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           FinalizeCatchVariables();
           --depth_.catch_;
         }
-      }
-      intptr_t pos = 0;
-      if (function.IsClosureFunction()) {
+      } else if (function.IsClosureFunction()) {
         LocalVariable* closure_parameter = MakeVariable(
             TokenPosition::kNoSource, TokenPosition::kNoSource,
             Symbols::ClosureParameter(), AbstractType::dynamic_type());
@@ -407,14 +406,17 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
     }
     case UntaggedFunction::kFfiTrampoline: {
       needs_expr_temp_ = true;
-      // Callbacks need try/catch variables.
-      ++depth_.try_;
-      AddTryVariables();
-      --depth_.try_;
-      ++depth_.catch_;
-      AddCatchVariables();
-      FinalizeCatchVariables();
-      --depth_.catch_;
+      // Callbacks and calls with handles need try/catch variables.
+      if ((function.GetFfiFunctionKind() != FfiFunctionKind::kCall ||
+           function.FfiCSignatureContainsHandles())) {
+        ++depth_.try_;
+        AddTryVariables();
+        --depth_.try_;
+        ++depth_.catch_;
+        AddCatchVariables();
+        FinalizeCatchVariables();
+        --depth_.catch_;
+      }
       FALL_THROUGH;
     }
     case UntaggedFunction::kInvokeFieldDispatcher: {
@@ -435,7 +437,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         LocalVariable* variable = MakeVariable(
             TokenPosition::kNoSource, TokenPosition::kNoSource,
             String::ZoneHandle(Z, function.ParameterNameAt(i)),
-            AbstractType::ZoneHandle(Z, function.IsFfiCallbackTrampoline()
+            AbstractType::ZoneHandle(Z, function.IsFfiTrampoline()
                                             ? function.ParameterTypeAt(i)
                                             : Object::dynamic_type().ptr()));
         bool added = scope_->InsertParameterAt(i, variable);
