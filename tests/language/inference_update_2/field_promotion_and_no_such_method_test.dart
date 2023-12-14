@@ -7,6 +7,8 @@
 
 // SharedOptions=--enable-experiment=inference-update-2
 
+import '../static_type_helper.dart';
+
 import 'field_promotion_and_no_such_method_lib.dart' as otherLib;
 
 class C {
@@ -131,85 +133,63 @@ mixin M4 implements K {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-void acceptsInt(int x) {}
-
 void testConflictsWithNoSuchMethodForwarder(C c) {
   if (c._f1 != null) {
-    var x = c._f1;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f1.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testNoConflictWithNoSuchMethodForwarderForDifferentLib(C c) {
   if (c._f2 != null) {
-    var x = c._f2;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f2.expectStaticType<Exactly<int>>();
   }
 }
 
 void testConflictsWithNoSuchMethodForwarderViaClassTypeAlias(C c) {
   if (c._f3 != null) {
-    var x = c._f3;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f3.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin(C c) {
   if (c._f4 != null) {
-    var x = c._f4;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f4.expectStaticType<Exactly<int>>();
   }
 }
 
 void testNoConflictWithNoSuchMethodForwarderIfImplementedInSuperclass(C c) {
   if (c._f5 != null) {
-    var x = c._f5;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f5.expectStaticType<Exactly<int>>();
   }
 }
 
 void testConflictsWithNoSuchMethodForwarderInEnum(C c) {
   if (c._f6 != null) {
-    var x = c._f6;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f6.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testConflictsWithNoSuchMethodForwarderThroughInheritedInterface(C c) {
   if (c._f7 != null) {
-    var x = c._f7;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f7.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testConflictsWithNoSuchMethodForwarderThroughMixedInInterface(C c) {
   if (c._f8 != null) {
-    var x = c._f8;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f8.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testNoConflictWithNoSuchMethodForwarderInUnusedMixin(C c) {
   if (c._f9 != null) {
-    var x = c._f9;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f9.expectStaticType<Exactly<int>>();
   }
 }
 
 void testConflictsWithNoSuchMethodForwarderBasedOnAbstractGetter(C c) {
   if (c._f10 != null) {
-    var x = c._f10;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f10.expectStaticType<Exactly<int?>>();
   }
 }
 

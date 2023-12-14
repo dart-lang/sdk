@@ -6,6 +6,8 @@
 
 // SharedOptions=--enable-experiment=inference-update-2
 
+import '../static_type_helper.dart';
+
 abstract class C {
   final int? _privateFinalField;
   final int? publicFinalField;
@@ -22,9 +24,7 @@ abstract class C {
 
   testPrivateFinalFieldThisAccess() {
     if (_privateFinalField != null) {
-      var x = _privateFinalField;
-      // `x` has type `int` so this is ok
-      acceptsInt(x);
+      _privateFinalField.expectStaticType<Exactly<int>>();
     }
   }
 }
@@ -34,9 +34,7 @@ abstract class D extends C {
 
   testPrivateFinalFieldSuperAccess() {
     if (super._privateFinalField != null) {
-      var x = super._privateFinalField;
-      // `x` has type `int` so this is ok
-      acceptsInt(x);
+      super._privateFinalField.expectStaticType<Exactly<int>>();
     }
   }
 }
@@ -49,77 +47,57 @@ enum E {
   const E(this._privateFinalFieldInEnum);
 }
 
-void acceptsInt(int x) {}
-
 void testPrivateFinalField(C c) {
   if (c._privateFinalField != null) {
-    var x = c._privateFinalField;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._privateFinalField.expectStaticType<Exactly<int>>();
   }
 }
 
 void testPublicFinalField(C c) {
   if (c.publicFinalField != null) {
-    var x = c.publicFinalField;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c.publicFinalField.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testPrivateField(C c) {
   if (c._privateField != null) {
-    var x = c._privateField;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._privateField.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testPublicField(C c) {
   if (c.publicField != null) {
-    var x = c.publicField;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c.publicField.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testPrivateAbstractGetter(C c) {
   if (c._privateAbstractGetter != null) {
-    var x = c._privateAbstractGetter;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._privateAbstractGetter.expectStaticType<Exactly<int>>();
   }
 }
 
 void testPublicAbstractGetter(C c) {
   if (c.publicAbstractGetter != null) {
-    var x = c.publicAbstractGetter;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c.publicAbstractGetter.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testPrivateConcreteGetter(C c) {
   if (c._privateConcreteGetter != null) {
-    var x = c._privateConcreteGetter;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._privateConcreteGetter.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testPublicConcreteGetter(C c) {
   if (c.publicConcreteGetter != null) {
-    var x = c.publicConcreteGetter;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c.publicConcreteGetter.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testPrivateFinalFieldInEnum(E e) {
   if (e._privateFinalFieldInEnum != null) {
-    var x = e._privateFinalFieldInEnum;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    e._privateFinalFieldInEnum.expectStaticType<Exactly<int>>();
   }
 }
 
@@ -127,9 +105,7 @@ void testPrivateFinalFieldGeneralPropertyAccess(C c) {
   // The analyzer uses a special data structure for `IDENTIFIER.IDENTIFIER`, so
   // we need to test the general case of property accesses as well.
   if ((c)._privateFinalField != null) {
-    var x = (c)._privateFinalField;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    (c)._privateFinalField.expectStaticType<Exactly<int>>();
   }
 }
 

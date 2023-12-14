@@ -9,6 +9,8 @@
 
 // SharedOptions=--enable-experiment=inference-update-2
 
+import '../static_type_helper.dart';
+
 abstract class C {
   int? get _f;
 }
@@ -19,21 +21,15 @@ class D extends C {
   D(this._f);
 }
 
-void acceptsInt(int x) {}
-
 void testBaseClass(C c) {
   if (c._f != null) {
-    var x = c._f;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f.expectStaticType<Exactly<int>>();
   }
 }
 
 void testDerivedClass(D d) {
   if (d._f != null) {
-    var x = d._f;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    d._f.expectStaticType<Exactly<int>>();
   }
 }
 
