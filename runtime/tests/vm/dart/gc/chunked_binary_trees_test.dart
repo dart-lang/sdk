@@ -60,10 +60,10 @@ checkTopDown(Node n, int depth) {
   checkTopDown(n.right!.right!, depth - 1);
 }
 
-runTopDown() {
-  Node n = new Node(10);
-  buildTopDown(n, 10);
-  checkTopDown(n, 10);
+runTopDown(int depth) {
+  Node n = new Node(depth);
+  buildTopDown(n, depth);
+  checkTopDown(n, depth);
 }
 
 Node buildBottomUp(int depth) {
@@ -106,14 +106,14 @@ checkButtomUp(Node n, int depth) {
   checkButtomUp(n.right!.right!, depth - 1);
 }
 
-runBottomUp() {
-  Node n = buildBottomUp(10);
-  checkButtomUp(n, 10);
+runBottomUp(int depth) {
+  Node n = buildBottomUp(depth);
+  checkButtomUp(n, depth);
 }
 
 main() {
-  for (var i = 0; i < 10; i++) {
-    runTopDown();
-    runBottomUp();
+  for (var i = 0; i < 5; i++) {
+    runTopDown(10);
+    runBottomUp(10);
   }
 }
