@@ -861,7 +861,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
   Page* image_page =
       Dart::vm_isolate_group()->heap()->old_space()->image_pages_;
   while (image_page != nullptr) {
-    RELEASE_ASSERT(next_offset <= kMaxImagePages);
+    RELEASE_ASSERT(next_offset < kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
     image_page_ranges_[next_offset].size =
         image_page->object_end() - image_page->object_start();
@@ -870,7 +870,7 @@ void HeapSnapshotWriter::SetupCountingPages() {
   }
   image_page = isolate_group()->heap()->old_space()->image_pages_;
   while (image_page != nullptr) {
-    RELEASE_ASSERT(next_offset <= kMaxImagePages);
+    RELEASE_ASSERT(next_offset < kMaxImagePages);
     image_page_ranges_[next_offset].base = image_page->object_start();
     image_page_ranges_[next_offset].size =
         image_page->object_end() - image_page->object_start();
@@ -880,7 +880,6 @@ void HeapSnapshotWriter::SetupCountingPages() {
 
   Page* page = isolate_group()->heap()->old_space()->pages_;
   while (page != nullptr) {
-    page->forwarding_page();
     CountingPage* counting_page =
         reinterpret_cast<CountingPage*>(page->forwarding_page());
     ASSERT(counting_page != nullptr);
