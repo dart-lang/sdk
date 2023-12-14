@@ -194,7 +194,8 @@ void main() {
         expectThrowsNSMWithExactError(
             () => Function.apply(arity1Tearoff, [42, false]),
             "NoSuchMethodError: 'arity1'\n"
-            "Dynamic call with too many arguments. Expected: 1 Actual: 2\n"
+            "Dynamic call with too many positional arguments. "
+            "Expected: 1 Actual: 2\n"
             "Receiver: ${Error.safeToString(arity1Tearoff)}\n"
             "Arguments: [42, false]");
       });
@@ -202,7 +203,8 @@ void main() {
         expectThrowsNSMWithExactError(
             () => Function.apply(arity1Tearoff, []),
             "NoSuchMethodError: 'arity1'\n"
-            "Dynamic call with too few arguments. Expected: 1 Actual: 0\n"
+            "Dynamic call with missing positional arguments. "
+            "Expected: 1 Actual: 0\n"
             "Receiver: ${Error.safeToString(arity1Tearoff)}\n"
             "Arguments: []");
       });

@@ -19,7 +19,6 @@ class ExpressionCompilerTestDriver {
   late int line;
 
   ExpressionCompilerTestDriver(this.setup, this.source) {
-    source = '${setup.dartLangComment}\n\n$source';
     line = _getEvaluationLine(source);
     var systemTempDir = Directory.systemTemp;
     testDir = systemTempDir.createTempSync('foo bar');

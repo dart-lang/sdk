@@ -214,7 +214,7 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
     var requiredCount = JS<int>('!', '#.length', requiredPositional);
     var actualsCount = actuals.length;
     if (actualsCount < requiredCount) {
-      return 'Dynamic call with too few required positional arguments. '
+      return 'Dynamic call with missing positional arguments. '
           'Expected: $requiredCount Actual: $actualsCount';
     }
     // Check for too many positional arguments.
@@ -293,15 +293,15 @@ String? _argumentErrors(Object type, @notNull List actuals, namedActuals) {
     var required = fType.args;
     int requiredCount = JS('!', '#.length', required);
     if (actualsCount < requiredCount) {
-      return 'Dynamic call with too few arguments. '
+      return 'Dynamic call with missing positional arguments. '
           'Expected: $requiredCount Actual: $actualsCount';
     }
 
-    // Check for too many postional arguments.
+    // Check for too many positional arguments.
     var extras = actualsCount - requiredCount;
     var optionals = fType.optionals;
     if (extras > JS<int>('!', '#.length', optionals)) {
-      return 'Dynamic call with too many arguments. '
+      return 'Dynamic call with too many positional arguments. '
           'Expected: $requiredCount Actual: $actualsCount';
     }
 
