@@ -8063,6 +8063,7 @@ void Function::EnsureHasCompiledUnoptimizedCode() const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
+  ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   DEBUG_ASSERT(
       thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
