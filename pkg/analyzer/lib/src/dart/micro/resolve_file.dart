@@ -546,9 +546,15 @@ class FileResolver {
         path: libraryFile.path,
         performance: performance,
       );
-      return libraryResult.units.firstWhere(
+      var unit = libraryResult.units.firstWhereOrNull(
         (unitResult) => unitResult.path == path,
       );
+      if (unit == null) {
+        var unitPaths = libraryResult.units.map((u) => "'${u.path}'");
+        throw StateError(
+            "No unit found among ${unitPaths.join(', ')} equal to '$path'");
+      }
+      return unit;
     });
   }
 
