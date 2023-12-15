@@ -141,6 +141,7 @@ class LibraryMacroApplier {
               libraryElement: libraryElement,
               container: container,
               targetNode: constant,
+              targetNodeElement: constant.declaredElement,
               targetDeclarationKind: macro.DeclarationKind.enumValue,
               annotations: constant.metadata,
             );
@@ -174,6 +175,7 @@ class LibraryMacroApplier {
             libraryElement: libraryElement,
             container: container,
             targetNode: declaration,
+            targetNodeElement: declaration.declaredElement,
             targetDeclarationKind: macro.DeclarationKind.function,
             annotations: declaration.metadata,
           );
@@ -197,6 +199,22 @@ class LibraryMacroApplier {
           );
         case ast.TopLevelVariableDeclarationImpl():
           // TODO(scheglov): implement it
+          break;
+      }
+    }
+
+    for (final directive in unit.directives.reversed) {
+      switch (directive) {
+        case ast.LibraryDirectiveImpl():
+          await _addAnnotations(
+            libraryElement: libraryElement,
+            container: container,
+            targetNode: directive,
+            targetNodeElement: libraryElement,
+            targetDeclarationKind: macro.DeclarationKind.library,
+            annotations: directive.metadata,
+          );
+        default:
           break;
       }
     }
@@ -249,7 +267,7 @@ class LibraryMacroApplier {
 
     await _runWithCatchingExceptions(
       () async {
-        final declaration = _buildDeclaration(application.target.node);
+        final target = _buildTarget(application.target.node);
 
         final introspector = _DeclarationPhaseIntrospector(
           elementFactory,
@@ -260,7 +278,7 @@ class LibraryMacroApplier {
 
         final result = await macroExecutor.executeDeclarationsPhase(
           application.instance,
-          declaration,
+          target,
           introspector,
         );
 
@@ -287,7 +305,7 @@ class LibraryMacroApplier {
 
     await _runWithCatchingExceptions(
       () async {
-        final declaration = _buildDeclaration(application.target.node);
+        final target = _buildTarget(application.target.node);
 
         final introspector = _DefinitionPhaseIntrospector(
           elementFactory,
@@ -298,7 +316,7 @@ class LibraryMacroApplier {
 
         final result = await macroExecutor.executeDefinitionsPhase(
           application.instance,
-          declaration,
+          target,
           introspector,
         );
 
@@ -324,11 +342,11 @@ class LibraryMacroApplier {
 
     await _runWithCatchingExceptions(
       () async {
-        final declaration = _buildDeclaration(application.target.node);
+        final target = _buildTarget(application.target.node);
 
         final result = await macroExecutor.executeTypesPhase(
           application.instance,
-          declaration,
+          target,
           _typesPhaseIntrospector,
         );
 
@@ -347,7 +365,8 @@ class LibraryMacroApplier {
   Future<void> _addAnnotations({
     required LibraryElementImpl libraryElement,
     required LibraryOrAugmentationElementImpl container,
-    required ast.Declaration targetNode,
+    required ast.AstNode targetNode,
+    required Element? targetNodeElement,
     required macro.DeclarationKind targetDeclarationKind,
     required List<ast.Annotation> annotations,
   }) async {
@@ -357,6 +376,7 @@ class LibraryMacroApplier {
           libraryElement: libraryElement,
           container: container,
           targetNode: field,
+          targetNodeElement: field.declaredElement,
           targetDeclarationKind: macro.DeclarationKind.field,
           annotations: annotations,
         );
@@ -364,8 +384,7 @@ class LibraryMacroApplier {
       return;
     }
 
-    final targetElement =
-        targetNode.declaredElement.ifTypeOrNull<MacroTargetElement>();
+    final targetElement = targetNodeElement.ifTypeOrNull<MacroTargetElement>();
     if (targetElement == null) {
       return;
     }
@@ -441,6 +460,7 @@ class LibraryMacroApplier {
       libraryElement: libraryElement,
       container: container,
       targetNode: classNode,
+      targetNodeElement: classNode.declaredElement,
       targetDeclarationKind: classDeclarationKind,
       annotations: classAnnotations,
     );
@@ -451,11 +471,11 @@ class LibraryMacroApplier {
         ast.FieldDeclaration() => macro.DeclarationKind.field,
         ast.MethodDeclaration() => macro.DeclarationKind.method,
       };
-
       await _addAnnotations(
         libraryElement: libraryElement,
         container: container,
         targetNode: member,
+        targetNodeElement: member.declaredElement,
         targetDeclarationKind: memberDeclarationKind,
         annotations: member.metadata,
       );
@@ -534,8 +554,8 @@ class LibraryMacroApplier {
     }
   }
 
-  macro.Declaration _buildDeclaration(ast.AstNode node) {
-    return declarationBuilder.buildDeclaration(node);
+  macro.MacroTarget _buildTarget(ast.AstNode node) {
+    return declarationBuilder.buildTarget(node);
   }
 
   /// If [annotation] references a macro, invokes the right callback.
@@ -949,9 +969,15 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   }
 
   @override
-  Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
-    // TODO(jakemac): implement typesOf
-    throw UnimplementedError();
+  Future<List<macro.TypeDeclaration>> typesOf(
+    covariant macro.Library library,
+  ) async {
+    library as LibraryImplFromElement;
+    final libraryElement = library.element;
+    return libraryElement.topLevelElements
+        .map((e) => declarationBuilder.declarationOfElement(e))
+        .whereType<macro.TypeDeclaration>()
+        .toList();
   }
 
   @override
@@ -1048,7 +1074,7 @@ class _MacroApplication {
 
 class _MacroTarget {
   final LibraryElementImpl library;
-  final ast.Declaration node;
+  final ast.AstNode node;
   final MacroTargetElement element;
 
   _MacroTarget({

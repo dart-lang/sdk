@@ -16,6 +16,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
         ExtensionTypeDeclarationsMacro,
         FieldDeclarationsMacro,
         FunctionDeclarationsMacro,
+        LibraryDeclarationsMacro,
         MethodDeclarationsMacro,
         MixinDeclarationsMacro {
   final Set<Object?> withDetailsFor;
@@ -109,6 +110,29 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 
   @override
+  Future<void> buildDeclarationsForLibrary(
+    Library library,
+    DeclarationBuilder builder,
+  ) async {
+    final types = await builder.typesOf(library);
+
+    final includedDeclarations = <Declaration>{};
+
+    await _writeMany(
+      builder,
+      shouldWriteDetailsFor: (declaration) {
+        return includedDeclarations.remove(declaration);
+      },
+      withPrinter: (printer) async {
+        for (final type in types) {
+          includedDeclarations.add(type);
+          await printer.writeAnyDeclaration(type);
+        }
+      },
+    );
+  }
+
+  @override
   Future<void> buildDeclarationsForMethod(
     MethodDeclaration declaration,
     MemberDeclarationBuilder builder,
@@ -133,8 +157,26 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     Declaration declaration,
     Future<void> Function(_Printer printer) f,
   ) async {
-    final declarationName = declaration.identifier.name;
+    final includedNames = {
+      declaration.identifier.name,
+      ...withDetailsFor,
+    };
 
+    await _writeMany(
+      builder,
+      shouldWriteDetailsFor: (declaration) {
+        final nameToCheck = declaration.identifier.name;
+        return includedNames.remove(nameToCheck);
+      },
+      withPrinter: f,
+    );
+  }
+
+  Future<void> _writeMany(
+    DeclarationBuilder builder, {
+    required bool Function(Declaration declaration) shouldWriteDetailsFor,
+    required Future<void> Function(_Printer printer) withPrinter,
+  }) async {
     final buffer = StringBuffer();
     final sink = TreeStringSink(
       sink: buffer,
@@ -146,12 +188,9 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
       withMetadata: withMetadata,
       withUnnamedConstructor: withUnnamedConstructor,
       introspector: builder,
-      withDetailsFor: {
-        declarationName,
-        ...withDetailsFor.cast(),
-      },
+      shouldWriteDetailsFor: shouldWriteDetailsFor,
     );
-    await f(printer);
+    await withPrinter(printer);
     final text = buffer.toString();
 
     builder.declareInLibrary(
@@ -184,12 +223,17 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
       indent: '',
     );
 
+    final includedNames = {name};
+
     final printer = _Printer(
       sink: sink,
       withMetadata: true,
       withUnnamedConstructor: withUnnamedConstructor,
       introspector: builder,
-      withDetailsFor: {name},
+      shouldWriteDetailsFor: (declaration) {
+        final name = declaration.identifier.name;
+        return includedNames.remove(name);
+      },
     );
 
     // ignore: deprecated_member_use
@@ -198,20 +242,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
       name,
     );
     final declaration = await builder.declarationOf(identifier);
-    switch (declaration) {
-      case ClassDeclaration():
-        await printer.writeClassDeclaration(declaration);
-      case ExtensionDeclaration():
-        await printer.writeExtensionDeclaration(declaration);
-      case ExtensionTypeDeclaration():
-        await printer.writeExtensionTypeDeclaration(declaration);
-      case FunctionDeclaration():
-        await printer.writeFunctionDeclaration(declaration);
-      case MixinDeclaration():
-        await printer.writeMixinDeclaration(declaration);
-      default:
-        throw UnimplementedError('${declaration.runtimeType}');
-    }
+    await printer.writeAnyDeclaration(declaration);
 
     final text = buffer.toString();
 
@@ -307,7 +338,7 @@ class _Printer {
   final bool withMetadata;
   final bool withUnnamedConstructor;
   final DeclarationPhaseIntrospector introspector;
-  final Set<String> withDetailsFor;
+  final bool Function(Declaration declaration) shouldWriteDetailsFor;
 
   Identifier? _enclosingDeclarationIdentifier;
 
@@ -316,11 +347,24 @@ class _Printer {
     required this.withMetadata,
     required this.withUnnamedConstructor,
     required this.introspector,
-    required this.withDetailsFor,
+    required this.shouldWriteDetailsFor,
   });
 
-  bool shouldWriteDetailsFor(Declaration declaration) {
-    return withDetailsFor.remove(declaration.identifier.name);
+  Future<void> writeAnyDeclaration(Declaration declaration) async {
+    switch (declaration) {
+      case ClassDeclaration():
+        await writeClassDeclaration(declaration);
+      case ExtensionDeclaration():
+        await writeExtensionDeclaration(declaration);
+      case ExtensionTypeDeclaration():
+        await writeExtensionTypeDeclaration(declaration);
+      case FunctionDeclaration():
+        await writeFunctionDeclaration(declaration);
+      case MixinDeclaration():
+        await writeMixinDeclaration(declaration);
+      default:
+        throw UnimplementedError('${declaration.runtimeType}');
+    }
   }
 
   Future<void> writeClassDeclaration(ClassDeclaration e) async {

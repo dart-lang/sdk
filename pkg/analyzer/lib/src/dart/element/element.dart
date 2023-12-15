@@ -4019,7 +4019,7 @@ class LibraryAugmentationElementImpl extends LibraryOrAugmentationElementImpl
 
 /// A concrete implementation of a [LibraryElement].
 class LibraryElementImpl extends LibraryOrAugmentationElementImpl
-    with _HasLibraryMixin
+    with _HasLibraryMixin, MacroTargetElement
     implements LibraryElement {
   /// The analysis context in which this library is defined.
   @override
@@ -4041,6 +4041,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
 
   late final List<ExportedReference> exportedReferences;
 
+  @override
   LibraryElementLinkedData? linkedData;
 
   /// The union of names for all searchable elements in this library.
