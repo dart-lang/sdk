@@ -18762,8 +18762,164 @@ FfiCode:
       ```
   ARGUMENT_MUST_BE_NATIVE:
     problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native"
-    correctionMessage: "Try passing a static function annotated with '@Native'"
+    correctionMessage: "Try passing a static function or field annotated with '@Native'"
     comment: No parameters
+  NATIVE_FIELD_INVALID_TYPE:
+    problemMessage: "'{0}' is an unsupported type for native fields. Native fields only support pointers or numeric and compound types."
+    correctionMessage: "Try changing the type in the `@Native` annotation to a numeric FFI type, a pointer, or a compound class."
+    comment: |-
+      Parameters:
+      0: The invalid type.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `@Native`-annotated field
+      has a type not supported for native fields.
+
+      Array fields are unsupported because there currently is no size
+      annotation for native fields. It is possible to represent global array
+      variables as pointers though, as they have an identical representation in
+      memory.
+
+      Handles are unsupported because there is no way to transparently load and
+      store Dart object into pointers.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `f` uses an
+      unsupported type, `Array`:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native()
+      Array<Int> f;
+      ```
+
+      #### Common fixes
+
+      For array fields, use a pointer instead:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native()
+      Pointer<Int> f;
+      ```
+  NATIVE_FIELD_MISSING_TYPE:
+    problemMessage: "The native type of this field could not be inferred and must be specified in the annotation."
+    correctionMessage: "Try adding a type parameter extending `NativeType` to the `@Native` annotation."
+    comment: "No parameters"
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `@Native`-annotated field
+      requires a type hint on the annotation to infer the native type.
+
+      Dart types like `int` and `double` have multiple possible native
+      representations. Since the native type needs to be known at compile time
+      to generate the correct load and stores when accessing the field, an
+      explicit type must be given.
+
+      #### Example
+
+      The following code produces this diagnostic because the field `f` has
+      the type `int` (for which multiple native representations exist), but no
+      explicit type parameter on the `Native` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native()
+      int f;
+      ```
+
+      #### Common fixes
+
+      To fix this diagnostic, find out the correct native representation from
+      the native declaration of the field. Then, add the corresponding type to
+      the annotation. For instance, if `f` was declared as an `uint8_t` in C,
+      the Dart field should be declared as:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Uint8>()
+      int f;
+      ```
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+  NATIVE_FIELD_NOT_STATIC:
+    problemMessage: "Native fields must be static."
+    correctionMessage: "Try adding the modifier 'static' to this field."
+    comment: "No parameters"
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance field in a class
+      has been annotated with `@Native`.
+      Native fields refer to global variables in C, C++ or other native
+      languages, whereas instance fields in Dart are specific to an instance of
+      that class. Hence, native fields must be static.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `f` in the
+      class `C` is `@Native`, but not `static`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C {
+        @Native<Int>()
+        external int f;
+      }
+      ```
+
+      #### Common fixes
+
+      Either make the field static:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C {
+        @Native<Int>()
+        external static int f;
+      }
+      ```
+
+      Or move it out of a class, in which case no explicit `static` modifier is
+      required:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C {
+      }
+
+      @Native<Int>()
+      external int f;
+      ```
+
+      If you meant to annotate an instance field that should be part of a
+      struct, omit the `@Native` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C extends Struct {
+        @Int()
+        external int f;
+      }
+      ```
   COMPOUND_IMPLEMENTS_FINALIZABLE:
     problemMessage: "The class '{0}' can't implement Finalizable."
     correctionMessage: "Try removing the implements clause from '{0}'."
@@ -19019,7 +19175,7 @@ FfiCode:
     correctionMessage: "Try removing the extra annotation."
     comment: No parameters
   FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
-    problemMessage: "Native functions must have exactly one `@Native` annotation."
+    problemMessage: "Native functions and fields must have exactly one `@Native` annotation."
     correctionMessage: "Try removing the extra annotation."
     comment: No parameters
   FIELD_INITIALIZER_IN_STRUCT:

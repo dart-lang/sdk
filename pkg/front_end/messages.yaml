@@ -5239,14 +5239,32 @@ FfiNativeOnlyNativeFieldWrapperClassCanBePointer:
 
 FfiNativeMustBeExternal:
   # Used by dart:ffi
-  problemMessage: "Native functions must be marked external."
+  problemMessage: "Native functions and fields must be marked external."
   external: test/ffi_test.dart
 
 FfiNativeDuplicateAnnotations:
   # Used by dart:ffi
-  problemMessage: "Native functions must not have more than @Native annotation."
+  problemMessage: "Native functions and fields must not have more than @Native annotation."
   external: test/ffi_test.dart
   analyzerCode: FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS
+
+FfiNativeFieldMustBeStatic:
+  # Used by dart:ffi
+  problemMessage: "Native fields must be static."
+  analyzerCode: NATIVE_FIELD_NOT_STATIC
+  external: test/ffi_test.dart
+
+FfiNativeFieldMissingType:
+  # Used by dart:ffi
+  problemMessage: "The native type of this field could not be inferred and must be specified in the annotation."
+  analyzerCode: NATIVE_FIELD_MISSING_TYPE
+  external: test/ffi_test.dart
+
+FfiNativeFieldType:
+  # Used by dart:ffi
+  problemMessage: "Unsupported type for native fields. Native fields only support pointers, compounds and numeric types."
+  analyzerCode: NATIVE_FIELD_INVALID_TYPE
+  external: test/ffi_test.dart
 
 FfiAddressOfMustBeNative:
   # Used by dart:ffi

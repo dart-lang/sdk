@@ -13,6 +13,7 @@ main() {
     defineReflectiveTests(AddressOfTest);
     defineReflectiveTests(DefaultAssetTest);
     defineReflectiveTests(FfiNativeTest);
+    defineReflectiveTests(NativeFieldTest);
     defineReflectiveTests(NativeTest);
   });
 }
@@ -26,6 +27,19 @@ import 'dart:ffi';
 void main() => print(Native.addressOf(() => 3));
 ''', [
       error(FfiCode.ARGUMENT_MUST_BE_NATIVE, 58, 7),
+    ]);
+  }
+
+  test_invalid_MismatchedInferredType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external Pointer<IntPtr> global;
+
+void main() => print(Native.addressOf<Pointer<Double>>(global));
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 85, 41),
     ]);
   }
 
@@ -93,8 +107,12 @@ import 'dart:ffi';
 @Native<Void Function()>()
 external void foo();
 
+@Native()
+external Pointer<IntPtr> global;
+
 void main() {
   print(Native.addressOf<NativeFunction<Void Function()>>(foo));
+  print(Native.addressOf<Pointer<IntPtr>>(global));
 }
 ''');
   }
@@ -324,7 +342,142 @@ external double wrongFfiReturnType(int v);
 }
 
 @reflectiveTest
+class NativeFieldTest extends PubPackageResolutionTest {
+  test_Accessors() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<IntPtr>()
+external int get foo;
+
+@Native<IntPtr>()
+external set foo(int value);
+''');
+  }
+
+  test_Infer() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+final class MyStruct extends Struct {
+  external Pointer<MyStruct> next;
+}
+
+@Native()
+external MyStruct first;
+
+@Native()
+external Pointer<MyStruct> last;
+''');
+  }
+
+  test_InvalidFunctionType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+@Native<IntPtr Function(IntPtr)>()
+external int field;
+''', [
+      error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 67, 5),
+    ]);
+  }
+
+  test_InvalidInstanceMember() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+class Foo {
+  @Native<IntPtr>()
+  external int field;
+}
+''', [
+      error(FfiCode.NATIVE_FIELD_NOT_STATIC, 67, 5),
+    ]);
+  }
+
+  test_InvalidNotExternal() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<IntPtr>()
+int field;
+''', [
+      error(CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_VARIABLE, 42, 5),
+      error(FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL, 42, 5),
+    ]);
+  }
+
+  test_MismatchingType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<Double>()
+external int field;
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 51, 5),
+    ]);
+  }
+
+  test_MissingType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external int invalid;
+
+@Native()
+external Pointer<IntPtr> valid;
+''', [
+      error(FfiCode.NATIVE_FIELD_MISSING_TYPE, 43, 7),
+    ]);
+  }
+
+  test_Unsupported_Array() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external Array<IntPtr> field;
+''', [
+      error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 53, 5),
+    ]);
+  }
+
+  test_Unsupported_Function() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<NativeFunction<Void Function()>>()
+external void Function() field;
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 88, 5),
+    ]);
+  }
+
+  test_Unsupported_Handle() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<Handle>()
+external Object field;
+''', [
+      error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 54, 5),
+    ]);
+  }
+}
+
+@reflectiveTest
 class NativeTest extends PubPackageResolutionTest {
+  test_annotation_InvalidFieldType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<IntPtr>()
+external int foo();
+''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 20, 37),
+    ]);
+  }
+
   test_annotation_MissingType() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';

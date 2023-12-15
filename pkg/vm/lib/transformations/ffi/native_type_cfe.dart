@@ -13,7 +13,21 @@ import 'common.dart';
 ///
 /// This algebraic data structure does not stand on its own but refers
 /// intimately to AST nodes such as [Class].
-abstract class NativeTypeCfe {
+sealed class NativeTypeCfe {
+  NativeTypeCfe._();
+
+  /// Constructs a [NativeTypeCfe] for transformers that can refer to types
+  /// without having to know their internal layout or size.
+  factory NativeTypeCfe.withoutLayout(
+      FfiTransformer transformer, DartType dartType) {
+    if (transformer.isCompoundSubtype(dartType)) {
+      return ReferencedCompoundSubtypeCfe(
+          (dartType as InterfaceType).classNode);
+    } else {
+      return NativeTypeCfe(transformer, dartType);
+    }
+  }
+
   factory NativeTypeCfe(FfiTransformer transformer, DartType dartType,
       {List<int>? arrayDimensions,
       Map<Class, NativeTypeCfe> compoundCache = const {},
@@ -107,11 +121,72 @@ abstract class NativeTypeCfe {
   /// See runtime/vm/compiler/ffi/native_type.cc:NativeType::FromAbstractType.
   Constant generateConstant(FfiTransformer transformer);
 
+  /// Generates an expression evaluating to an instance of [dartType], which is
+  /// assumed to be a Dart type compatible to this native type, by loading this
+  /// instance from memory.
+  ///
+  /// [typedDataBase] is an expression evaluating to a `Pointer` or `TypedData`,
+  /// the type will be loaded from that buffer, starting at [offsetInBytes].
+  ///
+  /// For example, loading a `Pointer` from memory (via [PointerNativeTypeCfe])
+  /// would build an expression like `ffi._loadPointer<T>
+  /// (#typedDataBase, #offsetInBytes)`, where `Pointer<T> == dartType`.
+  ///
+  /// For struct fields, [generateGetterStatement] fills in values for
+  /// [offsetInBytes] and [unaligned] based on the ABI of the struct. It also
+  /// wraps the expression in a return statement.
+  Expression generateLoad({
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  });
+
+  /// Generates an expression storing [value], which must evaluate to a
+  /// [dartType] compatible with this native type, in native memory.
+  ///
+  /// [typedDataBase] is an expression evaluating to a `Pointer` or `TypedData`,
+  /// the [value] will be stored in that buffer from [offsetInBytes].
+  ///
+  /// For example, storing a `Pointer` (via [PointerNativeTypeCfe]) would
+  /// generate a call to `ffi._storePointer`.
+  ///
+  /// For struct fields, [generateSetterStatement] fills in values for
+  /// [offsetInBytes] and [unaligned] based on the ABI of the struct. It also
+  /// wraps the expression in a return statement.
+  Expression generateStore(
+    Expression value, {
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  });
+
   /// Generates the return statement for a compound field getter with this type.
   ///
   /// Takes [transformer] to be able to lookup classes and methods.
-  ReturnStatement generateGetterStatement(DartType dartType, int fileOffset,
-      Map<Abi, int?> offsets, bool unalignedAccess, FfiTransformer transformer);
+  ReturnStatement generateGetterStatement(
+      DartType dartType,
+      int fileOffset,
+      Map<Abi, int?> offsets,
+      bool unalignedAccess,
+      FfiTransformer transformer) {
+    return ReturnStatement(
+      generateLoad(
+        dartType: dartType,
+        fileOffset: fileOffset,
+        typedDataBase: transformer.getCompoundTypedDataBaseField(
+            ThisExpression(), fileOffset),
+        transformer: transformer,
+        unaligned: unalignedAccess,
+        offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+      ),
+    );
+  }
 
   /// Generates the return statement for a compound field setter with this type.
   ///
@@ -122,13 +197,24 @@ abstract class NativeTypeCfe {
       Map<Abi, int?> offsets,
       bool unalignedAccess,
       VariableDeclaration argument,
-      FfiTransformer transformer);
+      FfiTransformer transformer) {
+    return ReturnStatement(generateStore(
+      VariableGet(argument)..fileOffset = fileOffset,
+      dartType: dartType,
+      fileOffset: fileOffset,
+      typedDataBase: transformer.getCompoundTypedDataBaseField(
+          ThisExpression(), fileOffset),
+      transformer: transformer,
+      offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
+      unaligned: unalignedAccess,
+    ));
+  }
 }
 
-class InvalidNativeTypeCfe implements NativeTypeCfe {
+final class InvalidNativeTypeCfe extends NativeTypeCfe {
   final String reason;
 
-  InvalidNativeTypeCfe(this.reason);
+  InvalidNativeTypeCfe(this.reason) : super._();
 
   @override
   Map<Abi, int?> get alignment => throw reason;
@@ -140,23 +226,29 @@ class InvalidNativeTypeCfe implements NativeTypeCfe {
   Constant generateConstant(FfiTransformer transformer) => throw reason;
 
   @override
-  ReturnStatement generateGetterStatement(
-          DartType dartType,
-          int fileOffset,
-          Map<Abi, int?> offsets,
-          bool unalignedAccess,
-          FfiTransformer transformer) =>
-      throw reason;
+  Expression generateLoad({
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
+    throw reason;
+  }
 
   @override
-  ReturnStatement generateSetterStatement(
-          DartType dartType,
-          int fileOffset,
-          Map<Abi, int?> offsets,
-          bool unalignedAccess,
-          VariableDeclaration argument,
-          FfiTransformer transformer) =>
-      throw reason;
+  Expression generateStore(
+    Expression value, {
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
+    throw reason;
+  }
 
   @override
   Map<Abi, int?> get size => throw reason;
@@ -165,12 +257,12 @@ class InvalidNativeTypeCfe implements NativeTypeCfe {
   int? getSizeFor(Abi abi) => throw reason;
 }
 
-class PrimitiveNativeTypeCfe implements NativeTypeCfe {
+class PrimitiveNativeTypeCfe extends NativeTypeCfe {
   final NativeType nativeType;
 
   final Class clazz;
 
-  PrimitiveNativeTypeCfe(this.nativeType, this.clazz);
+  PrimitiveNativeTypeCfe(this.nativeType, this.clazz) : super._();
 
   @override
   Map<Abi, int?> get size {
@@ -219,56 +311,59 @@ class PrimitiveNativeTypeCfe implements NativeTypeCfe {
     return false;
   }
 
-  /// Sample output for `int get x =>`:
+  /// Sample output for [nativeType] being [NativeType.kInt8]:
   ///
   /// ```
-  /// _loadInt8(_typedDataBase, offset);
+  /// _loadInt8(#typedDataBase, #offsetInBytes)
   /// ```
   @override
-  ReturnStatement generateGetterStatement(
-          DartType dartType,
-          int fileOffset,
-          Map<Abi, int?> offsets,
-          bool unalignedAccess,
-          FfiTransformer transformer) =>
-      ReturnStatement(StaticInvocation(
-          (unalignedAccess && isFloat
-              ? transformer.loadUnalignedMethods
-              : transformer.loadMethods)[nativeType]!,
-          Arguments([
-            transformer.getCompoundTypedDataBaseField(
-                ThisExpression(), fileOffset),
-            transformer.runtimeBranchOnLayout(offsets)
-          ]))
-        ..fileOffset = fileOffset);
+  Expression generateLoad({
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
+    return StaticInvocation(
+        (unaligned && isFloat
+            ? transformer.loadUnalignedMethods
+            : transformer.loadMethods)[nativeType]!,
+        Arguments([typedDataBase, offsetInBytes]))
+      ..fileOffset = fileOffset;
+  }
 
-  /// Sample output for `set x(int #v) =>`:
+  /// Sample output for [nativeType] being [NativeType.kInt8]:
   ///
   /// ```
-  /// _storeInt8(_typedDataBase, offset, #v);
+  /// _storeInt8(#typedDataBase, #offsetInBytes, #value)
   /// ```
   @override
-  ReturnStatement generateSetterStatement(
-          DartType dartType,
-          int fileOffset,
-          Map<Abi, int?> offsets,
-          bool unalignedAccess,
-          VariableDeclaration argument,
-          FfiTransformer transformer) =>
-      ReturnStatement(StaticInvocation(
-          (unalignedAccess && isFloat
-              ? transformer.storeUnalignedMethods
-              : transformer.storeMethods)[nativeType]!,
-          Arguments([
-            transformer.getCompoundTypedDataBaseField(
-                ThisExpression(), fileOffset),
-            transformer.runtimeBranchOnLayout(offsets),
-            VariableGet(argument)
-          ]))
-        ..fileOffset = fileOffset);
+  Expression generateStore(
+    Expression value, {
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
+    return StaticInvocation(
+        (unaligned && isFloat
+            ? transformer.storeUnalignedMethods
+            : transformer.storeMethods)[nativeType]!,
+        Arguments([
+          typedDataBase,
+          offsetInBytes,
+          value,
+        ]))
+      ..fileOffset = fileOffset;
+  }
 }
 
-class PointerNativeTypeCfe implements NativeTypeCfe {
+class PointerNativeTypeCfe extends NativeTypeCfe {
+  PointerNativeTypeCfe() : super._();
+
   @override
   Map<Abi, int?> get size => wordSize;
 
@@ -288,66 +383,61 @@ class PointerNativeTypeCfe implements NativeTypeCfe {
             transformer.pointerClass.superclass!, Nullability.nonNullable)
       ]));
 
-  /// Sample output for `Pointer<Int8> get x =>`:
+  /// Sample output:
   ///
   /// ```
-  /// _fromAddress<Int8>(_loadAbiSpecificInt<IntPtr>(_typedDataBase, offset));
+  /// _loadPointer<#dartType>(#typedDataBase, #offsetInBytes);
   /// ```
   @override
-  ReturnStatement generateGetterStatement(
-          DartType dartType,
-          int fileOffset,
-          Map<Abi, int?> offsets,
-          bool unalignedAccess,
-          FfiTransformer transformer) =>
-      ReturnStatement(StaticInvocation(
-          transformer.fromAddressInternal,
-          Arguments([
-            transformer.abiSpecificLoadOrStoreExpression(
-              transformer.intptrNativeTypeCfe,
-              typedDataBase: transformer.getCompoundTypedDataBaseField(
-                  ThisExpression(), fileOffset),
-              offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
-              fileOffset: fileOffset,
-            ),
-          ], types: [
-            (dartType as InterfaceType).typeArguments.single
-          ]))
-        ..fileOffset = fileOffset);
+  Expression generateLoad({
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
+    return StaticInvocation(
+      transformer.loadMethods[NativeType.kPointer]!,
+      Arguments([
+        typedDataBase,
+        offsetInBytes,
+      ], types: [
+        (dartType as InterfaceType).typeArguments.single
+      ]),
+    )..fileOffset = fileOffset;
+  }
 
-  /// Sample output for `set x(Pointer<Int8> #v) =>`:
+  /// Sample output:
   ///
   /// ```
-  /// _storeAbiSpecificInt<IntPtr>(
-  ///   _typedDataBase,
-  ///   offset,
-  ///   (#v as Pointer<Int8>).address,
+  /// _storePointer<#dartType>(
+  ///   #typedDataBase,
+  ///   #offsetInBytes,
+  ///   (#value as Pointer<#dartType>),
   /// );
   /// ```
   @override
-  ReturnStatement generateSetterStatement(
-          DartType dartType,
-          int fileOffset,
-          Map<Abi, int?> offsets,
-          bool unalignedAccess,
-          VariableDeclaration argument,
-          FfiTransformer transformer) =>
-      ReturnStatement(
-        transformer.abiSpecificLoadOrStoreExpression(
-          transformer.intptrNativeTypeCfe,
-          typedDataBase: transformer.getCompoundTypedDataBaseField(
-              ThisExpression(), fileOffset),
-          offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
-          value: InstanceGet(
-            InstanceAccessKind.Instance,
-            VariableGet(argument),
-            transformer.addressGetter.name,
-            interfaceTarget: transformer.addressGetter,
-            resultType: transformer.addressGetter.getterType,
-          )..fileOffset = fileOffset,
-          fileOffset: fileOffset,
-        ),
-      );
+  Expression generateStore(
+    Expression value, {
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
+    return StaticInvocation(
+      transformer.storeMethods[NativeType.kPointer]!,
+      Arguments([
+        typedDataBase,
+        offsetInBytes,
+        value,
+      ], types: [
+        (dartType as InterfaceType).typeArguments.single
+      ]),
+    )..fileOffset = fileOffset;
+  }
 }
 
 /// The layout of a `Struct` or `Union` in one [Abi].
@@ -366,14 +456,94 @@ class CompoundLayout {
   CompoundLayout(this.size, this.alignment, this.offsets);
 }
 
-abstract class CompoundNativeTypeCfe implements NativeTypeCfe {
+abstract mixin class _CompoundLoadAndStoreMixin implements NativeTypeCfe {
+  Class get clazz;
+  bool get knowsLayout;
+
+  /// Generates an expression evaluating to the size of this compound subtype in
+  /// bytes.
+  ///
+  /// If we know the size, we can construct a constant or a runtime lookup based
+  /// on the ABI. Otherwise, we'll look it up from the `#size` field generated
+  /// by the definitions transformer.
+  Expression _generateSize(FfiTransformer transformer) {
+    if (knowsLayout) {
+      return transformer.runtimeBranchOnLayout(size);
+    } else {
+      return transformer.inlineSizeOf(
+          clazz.getThisType(transformer.coreTypes, Nullability.nonNullable))!;
+    }
+  }
+
+  /// Sample output for `MyStruct`:
+  ///
+  /// ```
+  /// MyStruct.#fromTypedDataBase(
+  ///   typedDataBaseOffset(#typedDataBase, #offsetInBytes, size)
+  /// );
+  /// ```
+  @override
+  Expression generateLoad({
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
+    final constructor = clazz.constructors
+        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+
+    return ConstructorInvocation(
+        constructor,
+        Arguments([
+          transformer.typedDataBaseOffset(typedDataBase, offsetInBytes,
+              _generateSize(transformer), dartType, fileOffset)
+        ]))
+      ..fileOffset = fileOffset;
+  }
+
+  /// Sample output for `set x(MyStruct #v) =>`:
+  ///
+  /// ```
+  /// _memCopy(#typedDataBase, #offsetInBytes, #v._typedDataBase, 0, size);
+  /// ```
+  @override
+  Expression generateStore(
+    Expression value, {
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
+    return StaticInvocation(
+        transformer.memCopy,
+        Arguments([
+          typedDataBase,
+          offsetInBytes,
+          transformer.getCompoundTypedDataBaseField(value, fileOffset),
+          ConstantExpression(IntConstant(0)),
+          _generateSize(transformer),
+        ]))
+      ..fileOffset = fileOffset;
+  }
+}
+
+abstract class CompoundNativeTypeCfe extends NativeTypeCfe
+    with _CompoundLoadAndStoreMixin {
+  @override
   final Class clazz;
 
   final List<NativeTypeCfe> members;
 
   final Map<Abi, CompoundLayout> layout;
 
-  CompoundNativeTypeCfe._(this.clazz, this.members, this.layout);
+  @override
+  bool get knowsLayout => true;
+
+  CompoundNativeTypeCfe._(this.clazz, this.members, this.layout) : super._();
 
   @override
   Map<Abi, int?> get size =>
@@ -392,63 +562,6 @@ abstract class CompoundNativeTypeCfe implements NativeTypeCfe {
   @override
   Constant generateConstant(FfiTransformer transformer) =>
       TypeLiteralConstant(InterfaceType(clazz, Nullability.nonNullable));
-
-  /// Sample output for `MyStruct get x =>`:
-  ///
-  /// ```
-  /// MyStruct.#fromTypedDataBase(
-  ///   typedDataBaseOffset(_typedDataBase, offset, size, dartType)
-  /// );
-  /// ```
-  @override
-  ReturnStatement generateGetterStatement(
-      DartType dartType,
-      int fileOffset,
-      Map<Abi, int?> offsets,
-      bool unalignedAccess,
-      FfiTransformer transformer) {
-    final constructor = clazz.constructors
-        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
-
-    return ReturnStatement(ConstructorInvocation(
-        constructor,
-        Arguments([
-          transformer.typedDataBaseOffset(
-              transformer.getCompoundTypedDataBaseField(
-                  ThisExpression(), fileOffset),
-              transformer.runtimeBranchOnLayout(offsets),
-              transformer.runtimeBranchOnLayout(size),
-              dartType,
-              fileOffset)
-        ]))
-      ..fileOffset = fileOffset);
-  }
-
-  /// Sample output for `set x(MyStruct #v) =>`:
-  ///
-  /// ```
-  /// _memCopy(_typedDataBase, offset, #v._typedDataBase, 0, size);
-  /// ```
-  @override
-  ReturnStatement generateSetterStatement(
-          DartType dartType,
-          int fileOffset,
-          Map<Abi, int?> offsets,
-          bool unalignedAccess,
-          VariableDeclaration argument,
-          FfiTransformer transformer) =>
-      ReturnStatement(StaticInvocation(
-          transformer.memCopy,
-          Arguments([
-            transformer.getCompoundTypedDataBaseField(
-                ThisExpression(), fileOffset),
-            transformer.runtimeBranchOnLayout(offsets),
-            transformer.getCompoundTypedDataBaseField(
-                VariableGet(argument), fileOffset),
-            ConstantExpression(IntConstant(0)),
-            transformer.runtimeBranchOnLayout(size),
-          ]))
-        ..fileOffset = fileOffset);
 }
 
 class StructNativeTypeCfe extends CompoundNativeTypeCfe {
@@ -520,11 +633,51 @@ class UnionNativeTypeCfe extends CompoundNativeTypeCfe {
   }
 }
 
-class ArrayNativeTypeCfe implements NativeTypeCfe {
+/// A compound type only being referenced (instead of being fully resolved like
+/// in [CompoundNativeTypeCfe]).
+///
+/// This type can't report the underlying size, alignment or inner fields of
+/// the struct or union.
+///
+/// Since the definitions transformer generates static size fields on compounds,
+/// other transformers not needing access to individual fields can use this type
+/// to generate loads and stores to compounds when only having their class.
+class ReferencedCompoundSubtypeCfe extends NativeTypeCfe
+    with _CompoundLoadAndStoreMixin {
+  @override
+  final Class clazz;
+
+  ReferencedCompoundSubtypeCfe(this.clazz) : super._();
+
+  Never _informationUnavailable() {
+    throw UnsupportedError('Reference to struct');
+  }
+
+  @override
+  bool get knowsLayout => false;
+
+  @override
+  Map<Abi, int?> get alignment => _informationUnavailable();
+
+  @override
+  Constant generateConstant(FfiTransformer transformer) =>
+      _informationUnavailable();
+
+  @override
+  int? getAlignmentFor(Abi abi) => _informationUnavailable();
+
+  @override
+  int? getSizeFor(Abi abi) => _informationUnavailable();
+
+  @override
+  Map<Abi, int?> get size => _informationUnavailable();
+}
+
+class ArrayNativeTypeCfe extends NativeTypeCfe {
   final NativeTypeCfe elementType;
   final int length;
 
-  ArrayNativeTypeCfe(this.elementType, this.length);
+  ArrayNativeTypeCfe(this.elementType, this.length) : super._();
 
   factory ArrayNativeTypeCfe.multi(
       NativeTypeCfe elementType, List<int> dimensions) {
@@ -580,29 +733,31 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
             IntConstant(dimensionsFlattened)
       });
 
-  /// Sample output for `Array<Int8> get x =>`:
+  /// Sample output for `Array<Int8>`:
   ///
   /// ```
   /// Array<Int8>._(
-  ///   typedDataBaseOffset(_typedDataBase, offset, size, typeArgument)
+  ///   typedDataBaseOffset(#typedDataBase, #offsetInBytes, size, typeArgument)
   /// );
   /// ```
   @override
-  ReturnStatement generateGetterStatement(
-      DartType dartType,
-      int fileOffset,
-      Map<Abi, int?> offsets,
-      bool unalignedAccess,
-      FfiTransformer transformer) {
+  Expression generateLoad({
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
     InterfaceType typeArgument =
         (dartType as InterfaceType).typeArguments.single as InterfaceType;
-    return ReturnStatement(ConstructorInvocation(
+
+    return ConstructorInvocation(
         transformer.arrayConstructor,
         Arguments([
           transformer.typedDataBaseOffset(
-              transformer.getCompoundTypedDataBaseField(
-                  ThisExpression(), fileOffset),
-              transformer.runtimeBranchOnLayout(offsets),
+              typedDataBase,
+              offsetInBytes,
               transformer.runtimeBranchOnLayout(size),
               typeArgument,
               fileOffset),
@@ -611,42 +766,43 @@ class ArrayNativeTypeCfe implements NativeTypeCfe {
         ], types: [
           typeArgument
         ]))
-      ..fileOffset = fileOffset);
+      ..fileOffset = fileOffset;
   }
 
   /// Sample output for `set x(Array #v) =>`:
   ///
   /// ```
-  /// _memCopy(_typedDataBase, offset, #v._typedDataBase, 0, size);
+  /// _memCopy(#typedDataBase, #offsetInBytes, #v._typedDataBase, 0, size);
   /// ```
   @override
-  ReturnStatement generateSetterStatement(
-          DartType dartType,
-          int fileOffset,
-          Map<Abi, int?> offsets,
-          bool unalignedAccess,
-          VariableDeclaration argument,
-          FfiTransformer transformer) =>
-      ReturnStatement(StaticInvocation(
-          transformer.memCopy,
-          Arguments([
-            transformer.getCompoundTypedDataBaseField(
-                ThisExpression(), fileOffset),
-            transformer.runtimeBranchOnLayout(offsets),
-            transformer.getArrayTypedDataBaseField(
-                VariableGet(argument), fileOffset),
-            ConstantExpression(IntConstant(0)),
-            transformer.runtimeBranchOnLayout(size),
-          ]))
-        ..fileOffset = fileOffset);
+  Expression generateStore(
+    Expression value, {
+    required DartType dartType,
+    required int fileOffset,
+    required Expression typedDataBase,
+    required FfiTransformer transformer,
+    required Expression offsetInBytes,
+    bool unaligned = false,
+  }) {
+    return StaticInvocation(
+        transformer.memCopy,
+        Arguments([
+          typedDataBase,
+          offsetInBytes,
+          transformer.getArrayTypedDataBaseField(value, fileOffset),
+          ConstantExpression(IntConstant(0)),
+          transformer.runtimeBranchOnLayout(size),
+        ]))
+      ..fileOffset = fileOffset;
+  }
 }
 
-class AbiSpecificNativeTypeCfe implements NativeTypeCfe {
+class AbiSpecificNativeTypeCfe extends NativeTypeCfe {
   final Map<Abi, NativeTypeCfe> abiSpecificTypes;
 
   final Class clazz;
 
-  AbiSpecificNativeTypeCfe(this.abiSpecificTypes, this.clazz);
+  AbiSpecificNativeTypeCfe(this.abiSpecificTypes, this.clazz) : super._();
 
   @override
   Map<Abi, int?> get size => abiSpecificTypes.map(
@@ -667,42 +823,35 @@ class AbiSpecificNativeTypeCfe implements NativeTypeCfe {
       TypeLiteralConstant(InterfaceType(clazz, Nullability.nonNullable));
 
   @override
-  ReturnStatement generateGetterStatement(
-    DartType dartType,
-    int fileOffset,
-    Map<Abi, int?> offsets,
-    bool unalignedAccess,
-    FfiTransformer transformer,
-  ) {
-    return ReturnStatement(
-      transformer.abiSpecificLoadOrStoreExpression(
-        this,
-        typedDataBase: transformer.getCompoundTypedDataBaseField(
-            ThisExpression(), fileOffset),
-        offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
-        fileOffset: fileOffset,
-      ),
+  Expression generateLoad(
+      {required DartType dartType,
+      required int fileOffset,
+      required Expression typedDataBase,
+      required FfiTransformer transformer,
+      required Expression offsetInBytes,
+      bool unaligned = false}) {
+    return transformer.abiSpecificLoadOrStoreExpression(
+      this,
+      typedDataBase: typedDataBase,
+      offsetInBytes: offsetInBytes,
+      fileOffset: fileOffset,
     );
   }
 
   @override
-  ReturnStatement generateSetterStatement(
-    DartType dartType,
-    int fileOffset,
-    Map<Abi, int?> offsets,
-    bool unalignedAccess,
-    VariableDeclaration argument,
-    FfiTransformer transformer,
-  ) {
-    return ReturnStatement(
-      transformer.abiSpecificLoadOrStoreExpression(
-        this,
-        typedDataBase: transformer.getCompoundTypedDataBaseField(
-            ThisExpression(), fileOffset),
-        offsetInBytes: transformer.runtimeBranchOnLayout(offsets),
-        value: VariableGet(argument),
-        fileOffset: fileOffset,
-      ),
+  Expression generateStore(Expression value,
+      {required DartType dartType,
+      required int fileOffset,
+      required Expression typedDataBase,
+      required FfiTransformer transformer,
+      required Expression offsetInBytes,
+      bool unaligned = false}) {
+    return transformer.abiSpecificLoadOrStoreExpression(
+      this,
+      typedDataBase: typedDataBase,
+      offsetInBytes: offsetInBytes,
+      value: value,
+      fileOffset: fileOffset,
     );
   }
 }

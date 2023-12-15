@@ -51,6 +51,12 @@
 - `String.fromCharCodes` now allow `start` and `end` to be after the end of
   the `Iterable` argument, just like `skip` and `take` does on an `Iterable`.
 
+#### `dart:ffi`
+
+- In addition to functions, `@Native` can now be used on fields.
+- Allow taking the address of native functions and fields via
+  `Native.addressOf`.
+
 #### `dart:nativewrappers`
 
 - **Breaking Change** [#51896][]: The NativeWrapperClasses are marked `base` so

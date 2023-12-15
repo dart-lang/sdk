@@ -1495,42 +1495,63 @@ abstract final class NativeApi {
   external static Pointer<Void> get initializeApiDLData;
 }
 
-/// Annotation specifying how to bind an external function to native code.
+/// Annotation binding an external declaration to its native implementation.
 ///
-/// The annotation applies only to `external` function declarations.
+/// Can only be applied to `external` declarations of static and top-level
+/// functions and variables.
 ///
 /// A [Native]-annotated `external` function is implemented by native code.
 /// The implementation is found in the native library denoted by [assetId].
+/// Similarly, a [Native]-annotated `external` variable is implemented by
+/// reading from or writing to native memory.
 ///
 /// The compiler and/or runtime provides a binding from [assetId] to native
 /// library, which depends on the target platform.
 /// The compiler/runtime can then resolve/lookup symbols (identifiers)
-/// against the native library, to find a native function,
-/// and bind an `external` Dart function declaration to that native function.
+/// against the native library, to find a native function or a native global
+/// variable, and bind an `external` Dart function or variable declaration to
+/// that native declaration.
+/// By default, the runtime expects a native symbol with the same name as the
+/// annotated function or variable in Dart. This can be overridden with the
+/// [symbol] parameter on the annotation.
 ///
-/// Use this annotation on `external` functions to specify that they
-/// are resolved against an asset, and to, optionally, provide overrides
-/// of the default symbol and asset IDs.
+/// If this annotation is used on a function, then the type argument [T] to the
+/// [Native] annotation must be a function type representing the native
+/// function's parameter and return types. The parameter and return types must
+/// be subtypes of [NativeType].
 ///
-/// The type argument [T] to the [Native] annotation must be a function type
-/// representing the native function's parameter and return types.
-/// The parameter and return types must be subtypes of [NativeType].
+/// If this annotation is used on an external variable, then the type argument
+/// [T] must be a compatible native type. For example, an [int] field can be
+/// annotated with [Int32].
+/// If the type argument to `@Native` is omitted, it defaults to the Dart type
+/// of the annotated declaration, which *must* then be a native type too.
+/// This will never work for function declarations, but can apply to variables
+/// whose type is some of the types of this library, such as [Pointer].
+/// For native global variables that cannot be re-assigned, a final variable in
+/// Dart or a getter can be used to prevent assignments to the native field.
 ///
 /// Example:
 ///
 /// ```dart template:top
 /// @Native<Int64 Function(Int64, Int64)>()
 /// external int sum(int a, int b);
+///
+/// @Native<Int64>()
+/// external int aGlobalInt;
+///
+/// @Native()
+/// external final Pointer<Char> aGlobalString;
 /// ```
 ///
-/// Calling such function will try to resolve the [symbol] in (in that order)
+/// Calling a `@Native` function, as well as reading or writing to a `@Native`
+/// variable, will try to resolve the [symbol] in (in the order):
 /// 1. the provided or default [assetId],
 /// 2. the native resolver set with `Dart_SetFfiNativeResolver` in
 ///    `dart_api.h`, and
 /// 3. the current process.
 ///
 /// At least one of those three *must* provide a binding for the symbol,
-/// otherwise the method call fails.
+/// otherwise the method call or the variable access fails.
 ///
 /// NOTE: This is an experimental feature and may change in the future.
 @Since('2.19')
@@ -1614,6 +1635,8 @@ final class Native<T> {
   /// in a group is trying to perform a GC and a second isolate is blocked in a
   /// leaf call, then the first isolate will have to pause and wait until this
   /// leaf call returns.
+  ///
+  /// This value has no meaning for native fields.
   final bool isLeaf;
 
   const Native({
@@ -1622,12 +1645,26 @@ final class Native<T> {
     this.symbol,
   });
 
-  /// The native address of [native].
+  /// The native address of the implementation of [native].
   ///
-  /// [native] must be a reference to a method annotated with `@Native` and [T]
-  /// must be a [NativeFunction] compatible to the signature of [native].
+  /// When calling this function, the argument for [native] must be an
+  /// expression denoting a variable or function declaration which is annotated
+  /// with [Native].
+  /// For a variable declaration, the type [T] must be the same native type
+  /// as the type argument to that `@Native` annotation.
+  /// For a function declaration, the type [T] must be `NativeFunction<F>`
+  /// where `F` was the type argument to that `@Native` annotation.
   ///
-  /// Example:
+  /// For example, for a native C library exposing a function:
+  ///
+  /// ```C
+  /// #include <stdint.h>
+  /// int64_t sum(int64_t a, int64_t b) { return a + b; }
+  /// ```
+  ///
+  /// The following code binds `sum` to a Dart function declaration, and
+  /// extracts the address of the native `sum` implementation:
+  ///
   /// ```dart
   /// import 'dart:ffi';
   ///
@@ -1637,7 +1674,30 @@ final class Native<T> {
   /// external int sum(int a, int b);
   ///
   /// void main() {
-  ///   final address = Native.addressOf<NativeFunction<NativeAdd>>(sum);
+  ///   Pointer<NativeFunction<NativeAdd>> addressSum = Native.addressOf(sum);
+  /// }
+  /// ```
+  ///
+  /// Similarly, for a native C library exposing a global variable:
+  ///
+  /// ```C
+  /// const char* myString;
+  /// ```
+  ///
+  /// The following code binds `myString` to a top-level variable in Dart, and
+  /// extracts the address of the underlying native field:
+  ///
+  /// ```dart
+  /// import 'dart:ffi';
+  ///
+  /// @Native()
+  /// external Pointer<Char> myString;
+  ///
+  /// void main() {
+  ///   // This pointer points to the memory location where the loader has
+  ///   // placed the `myString` global itself. To get the string value, read
+  ///   // the myString field directly.
+  ///   Pointer<Pointer<Char>> addressMyString = Native.addressOf(myString);
   /// }
   /// ```
   @Since('3.3')

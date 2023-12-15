@@ -5062,10 +5062,16 @@ Fragment FlowGraphBuilder::FfiNativeLookupAddress(
       String::ZoneHandle(Z, String::RawCast(native.GetField(asset_id_field)));
   const auto& type_args = TypeArguments::Handle(Z, native.GetTypeArguments());
   ASSERT(type_args.Length() == 1);
-  const auto& native_type =
-      FunctionType::Cast(AbstractType::ZoneHandle(Z, type_args.TypeAt(0)));
-  const intptr_t arg_n =
-      native_type.NumParameters() - native_type.num_implicit_parameters();
+  const auto& native_type = AbstractType::ZoneHandle(Z, type_args.TypeAt(0));
+  intptr_t arg_n;
+  if (native_type.IsFunctionType()) {
+    const auto& native_function_type = FunctionType::Cast(native_type);
+    arg_n = native_function_type.NumParameters() -
+            native_function_type.num_implicit_parameters();
+  } else {
+    // We're looking up the address of a native field.
+    arg_n = 0;
+  }
   const auto& ffi_resolver =
       Function::ZoneHandle(Z, IG->object_store()->ffi_resolver_function());
 

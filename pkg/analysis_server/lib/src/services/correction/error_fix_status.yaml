@@ -1798,6 +1798,12 @@ FfiCode.MUST_BE_A_SUBTYPE:
   status: noFix
 FfiCode.MUST_RETURN_VOID:
   status: noFix
+FfiCode.NATIVE_FIELD_INVALID_TYPE:
+  status: needsEvaluation
+FfiCode.NATIVE_FIELD_MISSING_TYPE:
+  status: needsEvaluation
+FfiCode.NATIVE_FIELD_NOT_STATIC:
+  status: needsEvaluation
 FfiCode.NON_CONSTANT_TYPE_ARGUMENT:
   status: noFix
 FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:

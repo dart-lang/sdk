@@ -29,18 +29,10 @@ import 'package:kernel/type_algebra.dart'
     show FunctionTypeInstantiator, Substitution;
 import 'package:kernel/type_environment.dart';
 
-import 'abi.dart' show wordSize;
 import 'definitions.dart' as definitions;
 import 'native_type_cfe.dart';
 import 'native.dart' as native;
-import 'common.dart'
-    show
-        FfiStaticTypeError,
-        FfiTransformer,
-        NativeType,
-        nativeTypeSizes,
-        UNKNOWN,
-        WORD_SIZE;
+import 'common.dart' show FfiStaticTypeError, FfiTransformer, NativeType;
 import 'finalizable.dart';
 
 /// Checks and replaces calls to dart:ffi compound fields and methods.
@@ -268,7 +260,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         ensureNativeTypeValid(nativeType, node, allowCompounds: true);
 
-        Expression? inlineSizeOf = _inlineSizeOf(nativeType as InterfaceType);
+        Expression? inlineSizeOf =
+            this.inlineSizeOf(nativeType as InterfaceType);
         if (inlineSizeOf != null) {
           // Generates `receiver.offsetBy(inlineSizeOfExpression)`.
           return InstanceInvocation(InstanceAccessKind.Instance, pointer,
@@ -304,7 +297,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             allowCompounds: true, allowVoid: true);
 
         if (nativeType is InterfaceType) {
-          Expression? inlineSizeOf = _inlineSizeOf(nativeType);
+          Expression? inlineSizeOf = this.inlineSizeOf(nativeType);
           if (inlineSizeOf != null) {
             return inlineSizeOf;
           }
@@ -418,7 +411,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         // Inline the body to get rid of a generic invocation of sizeOf.
         // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
-        Expression? sizeInBytes = _inlineSizeOf(nativeType as InterfaceType);
+        Expression? sizeInBytes = inlineSizeOf(nativeType as InterfaceType);
         if (sizeInBytes != null) {
           if (node.arguments.positional.length == 2) {
             sizeInBytes = multiply(node.arguments.positional[1], sizeInBytes);
@@ -451,27 +444,6 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       compoundClasses
           .distinct()
           .fold(nestedExpression, invokeCompoundConstructor);
-
-  Expression? _inlineSizeOf(InterfaceType nativeType) {
-    final Class nativeClass = nativeType.classNode;
-    final NativeType? nt = getType(nativeClass);
-    if (nt == null) {
-      // User-defined compounds.
-      final Procedure sizeOfGetter = nativeClass.procedures
-          .firstWhere((function) => function.name == Name('#sizeOf'));
-      return StaticGet(sizeOfGetter);
-    }
-    final int size = nativeTypeSizes[nt]!;
-    if (size == WORD_SIZE) {
-      return runtimeBranchOnLayout(wordSize);
-    }
-    if (size != UNKNOWN) {
-      return ConstantExpression(IntConstant(size),
-          InterfaceType(intClass, currentLibrary.nonNullable));
-    }
-    // Size unknown.
-    return null;
-  }
 
   // We need to replace calls to 'DynamicLibrary.lookupFunction' with explicit
   // Kernel, because we cannot have a generic call to 'asFunction' in its body.
@@ -825,8 +797,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   Expression _replaceGetRef(StaticInvocation node) {
     final dartType = node.arguments.types[0];
     final clazz = (dartType as InterfaceType).classNode;
-    final constructor = clazz.constructors
-        .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
+    final referencedStruct = ReferencedCompoundSubtypeCfe(clazz);
+
     Expression pointer = NullCheck(node.arguments.positional[0]);
     if (node.arguments.positional.length == 2) {
       pointer = InstanceInvocation(
@@ -834,45 +806,50 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           pointer,
           offsetByMethod.name,
           Arguments([
-            multiply(node.arguments.positional[1], _inlineSizeOf(dartType)!)
+            multiply(node.arguments.positional[1], inlineSizeOf(dartType)!)
           ]),
           interfaceTarget: offsetByMethod,
           functionType:
               Substitution.fromPairs(pointerClass.typeParameters, [dartType])
                   .substituteType(offsetByMethod.getterType) as FunctionType);
     }
-    return ConstructorInvocation(constructor, Arguments([pointer]));
+
+    return referencedStruct.generateLoad(
+      dartType: dartType,
+      transformer: this,
+      typedDataBase: pointer,
+      offsetInBytes: ConstantExpression(IntConstant(0)),
+      fileOffset: node.fileOffset,
+    );
   }
 
   /// Replaces a `.ref=` or `[]=` on a compound pointer extension with a mem
   /// copy call.
   Expression _replaceSetRef(StaticInvocation node) {
     final target = node.arguments.positional[0]; // Receiver of extension
+    final referencedStruct = ReferencedCompoundSubtypeCfe(
+        (node.arguments.types[0] as InterfaceType).classNode);
 
-    final Expression source, targetOffset;
+    final Expression sourceStruct, targetOffset;
 
     if (node.arguments.positional.length == 3) {
       // []= call, args are (receiver, index, source)
-      source = getCompoundTypedDataBaseField(
-          node.arguments.positional[2], node.fileOffset);
+      sourceStruct = node.arguments.positional[2];
       targetOffset = multiply(node.arguments.positional[1],
-          _inlineSizeOf(node.arguments.types[0] as InterfaceType)!);
+          inlineSizeOf(node.arguments.types[0] as InterfaceType)!);
     } else {
       // .ref= call, args are (receiver, source)
-      source = getCompoundTypedDataBaseField(
-          node.arguments.positional[1], node.fileOffset);
+      sourceStruct = node.arguments.positional[1];
       targetOffset = ConstantExpression(IntConstant(0));
     }
 
-    return StaticInvocation(
-      memCopy,
-      Arguments([
-        target,
-        targetOffset,
-        source,
-        ConstantExpression(IntConstant(0)),
-        _inlineSizeOf(node.arguments.types[0] as InterfaceType)!,
-      ]),
+    return referencedStruct.generateStore(
+      sourceStruct,
+      dartType: node.arguments.types[0],
+      offsetInBytes: targetOffset,
+      typedDataBase: target,
+      transformer: this,
+      fileOffset: node.fileOffset,
     );
   }
 
@@ -884,8 +861,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     final typedDataBasePrime = typedDataBaseOffset(
         getArrayTypedDataBaseField(NullCheck(node.arguments.positional[0])),
-        multiply(node.arguments.positional[1], _inlineSizeOf(dartType)!),
-        _inlineSizeOf(dartType)!,
+        multiply(node.arguments.positional[1], inlineSizeOf(dartType)!),
+        inlineSizeOf(dartType)!,
         dartType,
         node.fileOffset);
 
@@ -905,7 +882,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   /// Array #array = this!;
   /// int #index = index!;
   /// #array._checkIndex(#index);
-  /// int #singleElementSize = _inlineSizeOf<innermost(T)>();
+  /// int #singleElementSize = inlineSizeOf<innermost(T)>();
   /// int #elementSize = #array.nestedDimensionsFlattened * #singleElementSize;
   /// int #offset = #elementSize * #index;
   ///
@@ -927,7 +904,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
   /// Array #array = this!;
   /// int #index = index!;
   /// #array._checkIndex(#index);
-  /// int #singleElementSize = _inlineSizeOf<innermost(T)>();
+  /// int #singleElementSize = inlineSizeOf<innermost(T)>();
   /// int #elementSize = #array.nestedDimensionsFlattened * #singleElementSize;
   /// int #offset = #elementSize * #index;
   ///
@@ -950,7 +927,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         isSynthesized: true)
       ..fileOffset = node.fileOffset;
     final singleElementSizeVar = VariableDeclaration("#singleElementSize",
-        initializer: _inlineSizeOf(elementType as InterfaceType),
+        initializer: inlineSizeOf(elementType as InterfaceType),
         type: coreTypes.intNonNullableRawType,
         isSynthesized: true)
       ..fileOffset = node.fileOffset;
@@ -1121,13 +1098,16 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final arg = node.arguments.positional.single;
     final nativeType = node.arguments.types.single;
 
-    // `x` must be a method annotated with `@Native`, so referencing it makes
-    // it a tear-off.
-    if (arg case ConstantExpression(constant: StaticTearOffConstant method)) {
-      // The method must have the `vm:ffi:native` pragma added by the native
-      // transformer.
-      Constant? nativeAnnotation;
-      for (final annotation in method.target.annotations) {
+    final potentiallyNativeTarget = switch (arg) {
+      ConstantExpression(constant: StaticTearOffConstant method) =>
+        method.target,
+      StaticGet(:var targetReference) => targetReference.asMember,
+      _ => null,
+    };
+    Constant? nativeAnnotation;
+
+    if (potentiallyNativeTarget != null) {
+      for (final annotation in potentiallyNativeTarget.annotations) {
         if (annotation
             case ConstantExpression(constant: final InstanceConstant c)) {
           if (c.classNode == coreTypes.pragmaClass) {
@@ -1141,25 +1121,22 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           }
         }
       }
+    }
 
-      if (nativeAnnotation == null) {
-        diagnosticReporter.report(messageFfiAddressOfMustBeNative,
-            node.arguments.fileOffset, 1, node.location?.file);
-        return node;
-      }
-
-      ensureNativeTypeValid(nativeType, node);
-      ensureNativeTypeToDartType(nativeType, arg.type, node);
-
-      return StaticInvocation(
-        nativePrivateAddressOf,
-        Arguments([ConstantExpression(nativeAnnotation)], types: [nativeType]),
-      )..fileOffset = arg.fileOffset;
-    } else {
+    if (nativeAnnotation == null) {
       diagnosticReporter.report(messageFfiAddressOfMustBeNative, arg.fileOffset,
           1, node.location?.file);
       return node;
     }
+
+    ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+    ensureNativeTypeToDartType(
+        nativeType, arg.getStaticType(staticTypeContext!), node);
+
+    return StaticInvocation(
+      nativePrivateAddressOf,
+      Arguments([ConstantExpression(nativeAnnotation)], types: [nativeType]),
+    )..fileOffset = arg.fileOffset;
   }
 }
 

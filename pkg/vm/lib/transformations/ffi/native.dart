@@ -6,12 +6,16 @@ import 'package:front_end/src/api_unstable/vm.dart'
     show
         messageFfiDefaultAssetDuplicate,
         messageFfiNativeDuplicateAnnotations,
+        messageFfiNativeFieldMissingType,
+        messageFfiNativeFieldMustBeStatic,
+        messageFfiNativeFieldType,
         messageFfiNativeMustBeExternal,
         messageFfiNativeOnlyNativeFieldWrapperClassCanBePointer,
         templateCantHaveNamedParameters,
         templateCantHaveOptionalParameters,
         templateFfiNativeUnexpectedNumberOfParameters,
-        templateFfiNativeUnexpectedNumberOfParametersWithReceiver;
+        templateFfiNativeUnexpectedNumberOfParametersWithReceiver,
+        templateFfiTypeInvalid;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
@@ -21,7 +25,8 @@ import 'package:kernel/reference_from_index.dart' show ReferenceFromIndex;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter;
 import 'package:kernel/type_environment.dart';
 
-import 'common.dart' show FfiStaticTypeError, FfiTransformer;
+import 'common.dart' show FfiStaticTypeError, FfiTransformer, NativeType;
+import 'native_type_cfe.dart';
 
 /// Transform @Native annotated functions into FFI native function pointer
 /// functions.
@@ -161,6 +166,26 @@ class FfiNativeTransformer extends FfiTransformer {
       }
     }
     return false;
+  }
+
+  StringConstant _resolveNativeSymbolName(
+      Member member, InstanceConstant native) {
+    final nativeFunctionConst =
+        native.fieldValues[nativeSymbolField.fieldReference];
+    return nativeFunctionConst is StringConstant
+        ? nativeFunctionConst
+        : StringConstant(member.name.text);
+  }
+
+  StringConstant? _assetNameFromAnnotation(InstanceConstant native) {
+    final assetConstant = native.fieldValues[nativeAssetField.fieldReference];
+    return assetConstant is StringConstant ? assetConstant : null;
+  }
+
+  bool _isLeaf(InstanceConstant native) {
+    return (native.fieldValues[nativeIsLeafField.fieldReference]
+            as BoolConstant)
+        .value;
   }
 
   // Replaces parameters with Pointer if:
@@ -444,7 +469,7 @@ class FfiNativeTransformer extends FfiTransformer {
   Procedure _transformProcedure(
     Procedure node,
     StringConstant nativeFunctionName,
-    StringConstant? assetName,
+    StringConstant? overriddenAssetName,
     bool isLeaf,
     int annotationOffset,
     FunctionType dartFunctionType,
@@ -462,15 +487,11 @@ class FfiNativeTransformer extends FfiTransformer {
       return node;
     }
 
-    final resolvedNative = InstanceConstant(
-      nativeClass.reference,
-      [ffiFunctionType],
-      {
-        nativeSymbolField.fieldReference: nativeFunctionName,
-        nativeAssetField.fieldReference:
-            assetName ?? StringConstant(currentLibrary.importUri.toString()),
-        nativeIsLeafField.fieldReference: BoolConstant(isLeaf),
-      },
+    final resolvedNative = _generateResolvedNativeConstant(
+      nativeType: ffiFunctionType,
+      nativeName: nativeFunctionName,
+      isLeaf: isLeaf,
+      overriddenAssetName: overriddenAssetName,
     );
     final pragmaConstant = ConstantExpression(
       InstanceConstant(pragmaClass.reference, [], {
@@ -584,6 +605,29 @@ class FfiNativeTransformer extends FfiTransformer {
     return node;
   }
 
+  /// Creates a `Native` constant with all fields resolved.
+  ///
+  /// Re-using the constant from the original `@Native` annotation doesn't work
+  /// because the asset field may be inferred from the library.
+  InstanceConstant _generateResolvedNativeConstant({
+    required DartType nativeType,
+    required StringConstant nativeName,
+    required bool isLeaf,
+    StringConstant? overriddenAssetName,
+  }) {
+    return InstanceConstant(
+      nativeClass.reference,
+      [nativeType],
+      {
+        nativeSymbolField.fieldReference: nativeName,
+        nativeAssetField.fieldReference: overriddenAssetName ??
+            currentAsset ??
+            StringConstant(currentLibrary.importUri.toString()),
+        nativeIsLeafField.fieldReference: BoolConstant(isLeaf),
+      },
+    );
+  }
+
   // Transform Native instance methods.
   //
   // Example:
@@ -665,7 +709,7 @@ class FfiNativeTransformer extends FfiTransformer {
       Procedure node,
       FunctionType ffiFunctionType,
       StringConstant nativeFunctionName,
-      StringConstant? assetName,
+      StringConstant? overriddenAssetName,
       bool isLeaf,
       int annotationOffset) {
     final dartFunctionType =
@@ -679,7 +723,7 @@ class FfiNativeTransformer extends FfiTransformer {
     return _transformProcedure(
       node,
       nativeFunctionName,
-      assetName,
+      overriddenAssetName,
       isLeaf,
       annotationOffset,
       dartFunctionType,
@@ -687,6 +731,75 @@ class FfiNativeTransformer extends FfiTransformer {
       argumentList,
       checkReceiverForNullptr: false,
     );
+  }
+
+  Expression _generateAddressOfField(
+      Member node, InterfaceType ffiType, InstanceConstant native) {
+    return StaticInvocation(
+      nativePrivateAddressOf,
+      Arguments([ConstantExpression(native)], types: [ffiType]),
+    )..fileOffset = node.fileOffset;
+  }
+
+  DartType _validateOrInferNativeFieldType(
+      Member node, DartType ffiType, DartType dartType) {
+    if (ffiType is DynamicType) {
+      // If no type argument is given on the @Native annotation, try to infer
+      // it.
+      final inferred = convertDartTypeToNativeType(dartType);
+      if (inferred != null) {
+        ffiType = inferred;
+      } else {
+        diagnosticReporter.report(messageFfiNativeFieldMissingType,
+            node.fileOffset, 1, node.location?.file);
+        throw FfiStaticTypeError();
+      }
+    }
+
+    ensureNativeTypeValid(
+      ffiType,
+      node,
+      allowCompounds: true,
+      // Handles and arrays are not currently supported, but checking them
+      // separately and allowing them here yields a more specific error message.
+      allowHandle: true,
+      allowInlineArray: true,
+    );
+    ensureNativeTypeToDartType(ffiType, dartType, node,
+        allowHandle: true, allowArray: true);
+    // Only allow compound, pointer and numeric types.
+    if (isCompoundSubtype(ffiType) || isAbiSpecificIntegerSubtype(ffiType)) {
+      return ffiType;
+    }
+    final type = switch (ffiType) {
+      InterfaceType(:var classNode) => getType(classNode),
+      _ => null,
+    };
+    if (type == null ||
+        type == NativeType.kNativeFunction ||
+        type == NativeType.kHandle ||
+        isArrayType(ffiType)) {
+      diagnosticReporter.report(
+          messageFfiNativeFieldType, node.fileOffset, 1, node.location?.file);
+      throw FfiStaticTypeError();
+    }
+
+    return ffiType;
+  }
+
+  @override
+  TreeNode visitField(Field node) {
+    final nativeAnnotation = tryGetNativeAnnotationOrWarnOnDuplicates(node);
+    if (nativeAnnotation == null) {
+      return node;
+    }
+    // @Native annotations on fields are valid if the field is external. But
+    // external fields are represented as a getter/setter pair in Kernel, so
+    // only visit fields to verify that no native annotation is present.
+    assert(!node.isExternal);
+    diagnosticReporter.report(messageFfiNativeMustBeExternal, node.fileOffset,
+        1, node.location?.file);
+    return node;
   }
 
   @override
@@ -708,37 +821,102 @@ class FfiNativeTransformer extends FfiTransformer {
     node.annotations.remove(ffiNativeAnnotation);
 
     final ffiConstant = ffiNativeAnnotation.constant as InstanceConstant;
-    final nativeType = ffiConstant.typeArguments[0];
-    try {
-      final nativeFunctionType = InterfaceType(
-          nativeFunctionClass, Nullability.nonNullable, [nativeType]);
-      ensureNativeTypeValid(nativeFunctionType, ffiNativeAnnotation,
-          allowCompounds: true, allowHandle: true);
-    } on FfiStaticTypeError {
-      // We've already reported an error.
-      return node;
-    }
-    final ffiFunctionType = ffiConstant.typeArguments[0] as FunctionType;
-    final nativeFunctionConst =
-        ffiConstant.fieldValues[nativeSymbolField.fieldReference];
-    final nativeFunctionName = nativeFunctionConst is StringConstant
-        ? nativeFunctionConst
-        : StringConstant(node.name.text);
-    final assetConstant =
-        ffiConstant.fieldValues[nativeAssetField.fieldReference];
-    final assetName =
-        assetConstant is StringConstant ? assetConstant : currentAsset;
-    final isLeaf = (ffiConstant.fieldValues[nativeIsLeafField.fieldReference]
-            as BoolConstant)
-        .value;
+    var nativeType = ffiConstant.typeArguments[0];
 
-    if (!node.isStatic) {
-      return _transformInstanceMethod(node, ffiFunctionType, nativeFunctionName,
-          assetName, isLeaf, ffiNativeAnnotation.fileOffset);
+    final nativeName = _resolveNativeSymbolName(node, ffiConstant);
+    final overriddenAssetName = _assetNameFromAnnotation(ffiConstant);
+    final isLeaf = _isLeaf(ffiConstant);
+
+    if (nativeType is FunctionType) {
+      try {
+        final nativeFunctionType = InterfaceType(
+            nativeFunctionClass, Nullability.nonNullable, [nativeType]);
+        ensureNativeTypeValid(nativeFunctionType, ffiNativeAnnotation,
+            allowCompounds: true, allowHandle: true);
+      } on FfiStaticTypeError {
+        // We've already reported an error.
+        return node;
+      }
+      final ffiFunctionType = ffiConstant.typeArguments[0] as FunctionType;
+
+      if (!node.isStatic) {
+        return _transformInstanceMethod(node, ffiFunctionType, nativeName,
+            overriddenAssetName, isLeaf, ffiNativeAnnotation.fileOffset);
+      }
+
+      return _transformStaticFunction(node, ffiFunctionType, nativeName,
+          overriddenAssetName, isLeaf, ffiNativeAnnotation.fileOffset);
+    } else if (node.kind == ProcedureKind.Getter ||
+        node.kind == ProcedureKind.Setter) {
+      if (!node.isStatic) {
+        diagnosticReporter.report(messageFfiNativeFieldMustBeStatic,
+            node.fileOffset, 1, node.location?.file);
+      }
+
+      DartType dartType;
+      try {
+        dartType = node.kind == ProcedureKind.Getter
+            ? node.function.returnType
+            : node.function.positionalParameters[0].type;
+        nativeType =
+            _validateOrInferNativeFieldType(node, nativeType, dartType);
+      } on FfiStaticTypeError {
+        return node;
+      }
+      final resolved = _generateResolvedNativeConstant(
+        nativeType: nativeType,
+        nativeName: nativeName,
+        isLeaf: isLeaf,
+        overriddenAssetName: overriddenAssetName,
+      );
+      node.isExternal = false;
+
+      final nativeTypeCfe = NativeTypeCfe.withoutLayout(this, nativeType);
+      final zeroOffset = ConstantExpression(IntConstant(0));
+
+      if (node.kind == ProcedureKind.Getter) {
+        node.function.body = ReturnStatement(nativeTypeCfe.generateLoad(
+          dartType: dartType,
+          fileOffset: node.fileOffset,
+          typedDataBase: _generateAddressOfField(
+              node, nativeType as InterfaceType, resolved),
+          transformer: this,
+          offsetInBytes: zeroOffset,
+        ));
+        node.annotations.add(ConstantExpression(
+          InstanceConstant(pragmaClass.reference, [], {
+            pragmaName.fieldReference: StringConstant(nativeMarker),
+            pragmaOptions.fieldReference: resolved,
+          }),
+          InterfaceType(
+            pragmaClass,
+            Nullability.nonNullable,
+            [],
+          ),
+        ));
+      } else {
+        node.function.body = ExpressionStatement(nativeTypeCfe.generateStore(
+          VariableGet(node.function.positionalParameters[0]),
+          dartType: dartType,
+          fileOffset: node.fileOffset,
+          typedDataBase: _generateAddressOfField(
+              node, nativeType as InterfaceType, resolved),
+          transformer: this,
+          offsetInBytes: zeroOffset,
+        ));
+      }
+    } else {
+      // This function is not annotated with a native function type, which is
+      // invalid.
+      diagnosticReporter.report(
+          templateFfiTypeInvalid.withArguments(
+              nativeType, currentLibrary.isNonNullableByDefault),
+          node.fileOffset,
+          1,
+          node.location?.file);
     }
 
-    return _transformStaticFunction(node, ffiFunctionType, nativeFunctionName,
-        assetName, isLeaf, ffiNativeAnnotation.fileOffset);
+    return node;
   }
 
   /// Checks whether the FFI function type is valid and reports any errors.
