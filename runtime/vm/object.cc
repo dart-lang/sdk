@@ -18396,16 +18396,14 @@ const char* Code::Name() const {
     // Type test stub.
     return OS::SCreate(zone, "[Stub] Type Test %s",
                        AbstractType::Cast(obj).ToCString());
-  } else {
-    ASSERT(IsFunctionCode());
+  } else if (obj.IsFunction()) {
     // Dart function.
     const char* opt = is_optimized() ? "[Optimized]" : "[Unoptimized]";
-    const char* function_name =
-        obj.IsFunction()
-            ? String::Handle(zone, Function::Cast(obj).UserVisibleName())
-                  .ToCString()
-            : WeakSerializationReference::Cast(obj).ToCString();
+    const char* function_name = Function::Cast(obj).UserVisibleNameCString();
     return OS::SCreate(zone, "%s %s", opt, function_name);
+  } else {
+    // --no_retain_function_objects etc
+    return "[unknown code]";
   }
 }
 

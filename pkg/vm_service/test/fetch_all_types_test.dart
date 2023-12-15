@@ -4,6 +4,9 @@
 
 // See https://github.com/dart-lang/sdk/issues/52893
 
+// VMOptions=--retain_function_objects=true
+// VMOptions=--retain_function_objects=false
+
 import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
