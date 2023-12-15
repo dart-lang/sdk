@@ -13,7 +13,7 @@ import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 import 'package:yaml/yaml.dart';
 
-import '../test/test_constants.dart';
+import '../tool/util/path_utils.dart';
 import 'since.dart';
 import 'util/score_utils.dart' as score_utils;
 

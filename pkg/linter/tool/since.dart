@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:yaml/yaml.dart';
 
-import '../test/test_constants.dart';
+import '../tool/util/path_utils.dart';
 import 'changelog.dart';
 import 'crawl.dart';
 

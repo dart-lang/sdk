@@ -298,14 +298,13 @@ def _CheckClangTidy(input_api, output_api):
 def _CheckAnalyzerFiles(input_api, output_api):
     """Run analyzer checks on source files."""
 
-    # The first (and so far, only) check, is to verify the "error fix status"
-    # file.
-    relevant_files = [
+    # Verify the "error fix status" file.
+    code_files = [
         "pkg/analyzer/lib/src/error/error_code_values.g.dart",
         "pkg/linter/lib/src/rules.dart",
     ]
 
-    if any(f.LocalPath() in relevant_files for f in input_api.AffectedFiles()):
+    if any(f.LocalPath() in code_files for f in input_api.AffectedFiles()):
         args = [
             "tools/sdks/dart-sdk/bin/dart",
             "pkg/analysis_server/tool/presubmit/verify_error_fix_status.dart",
@@ -317,6 +316,23 @@ def _CheckAnalyzerFiles(input_api, output_api):
         return [
             output_api.PresubmitError(
                 "The verify_error_fix_status Analyzer tool revealed issues:",
+                long_text=stdout)
+        ]
+
+    # Verify the linter's `example/all.yaml` file.
+    if any(f.LocalPath().startswith('pkg/linter/lib/src/rules')
+           for f in input_api.AffectedFiles()):
+        args = [
+            "tools/sdks/dart-sdk/bin/dart",
+            "pkg/analysis_server/tool/checks/check_all_yaml.dart",
+        ]
+        stdout = input_api.subprocess.check_output(args).strip()
+        if not stdout:
+            return []
+
+        return [
+            output_api.PresubmitError(
+                "The check_all_yaml linter tool revealed issues:",
                 long_text=stdout)
         ]
 

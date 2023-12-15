@@ -5,25 +5,13 @@
 import 'dart:io';
 
 import 'package:analyzer/src/lint/io.dart';
-import 'package:analyzer/src/lint/state.dart';
-import 'package:linter/src/analyzer.dart';
-import 'package:linter/src/rules.dart';
-import 'package:linter/src/utils.dart';
 import 'package:test/test.dart';
-import 'package:yaml/yaml.dart';
 
+import '../tool/checks/check_all_yaml.dart';
 import 'mocks.dart';
-import 'test_constants.dart';
 
 void main() {
-  // ignore: unnecessary_lambdas
   group('integration', () {
-    coreTests();
-  });
-}
-
-void coreTests() {
-  group('core', () {
     group('config', () {
       var currentOut = outSink;
       var collectingOut = CollectingSink();
@@ -40,61 +28,11 @@ void coreTests() {
 
     group('examples', () {
       test('all.yaml', () {
-        var src = readFile(pathRelativeToPackageRoot(['example', 'all.yaml']));
-
-        var options = _getOptionsFromString(src);
-        var configuredLints =
-            // ignore: cast_nullable_to_non_nullable
-            (options['linter'] as YamlMap)['rules'] as YamlList;
-
-        // rules are sorted
-        expect(
-            configuredLints, orderedEquals(configuredLints.toList()..sort()));
-
-        registerLintRules();
-
-        var registered = Analyzer.facade.registeredRules
-            .where((r) =>
-                !r.state.isDeprecated &&
-                !r.state.isInternal &&
-                !r.state.isRemoved)
-            .map((r) => r.name);
-
-        for (var l in configuredLints) {
-          if (!registered.contains(l)) {
-            printToConsole(l);
-          }
+        var errors = checkAllYaml();
+        if (errors != null) {
+          fail(errors);
         }
-
-        expect(configuredLints, unorderedEquals(registered));
       });
     });
   });
-}
-
-/// Provide the options found in [optionsSource].
-Map<String, YamlNode> _getOptionsFromString(String optionsSource) {
-  var options = <String, YamlNode>{};
-  var doc = loadYamlNode(optionsSource);
-
-  // Empty options.
-  if (doc is YamlScalar && doc.value == null) {
-    return options;
-  }
-  if (doc is! YamlMap) {
-    throw Exception(
-        'Bad options file format (expected map, got ${doc.runtimeType})');
-  }
-  doc.nodes.forEach((k, YamlNode v) {
-    Object? key;
-    if (k is YamlScalar) {
-      key = k.value;
-    }
-    if (key is! String) {
-      throw Exception('Bad options file format (expected String scope key, '
-          'got ${k.runtimeType})');
-    }
-    options[key] = v;
-  });
-  return options;
 }

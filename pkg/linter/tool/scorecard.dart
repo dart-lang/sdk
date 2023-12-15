@@ -13,7 +13,7 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 
-import '../test/test_constants.dart';
+import '../tool/util/path_utils.dart';
 import 'crawl.dart';
 import 'parse.dart';
 import 'since.dart';
