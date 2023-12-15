@@ -18,9 +18,10 @@ library;
 // extension type E3(final String foo) {} // Error.
 //                                ^^^
 //
-// pkg/front_end/testcases/extension_types/representation_field_error.dart:8:33: Error: Representation fields can't have modifiers.
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:8:19: Error: Can't have modifier 'covariant' in a primary constructor.
+// Try removing 'covariant'.
 // extension type E4(covariant num foo) {} // Error.
-//                                 ^^^
+//                   ^^^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/representation_field_error.dart:9:19: Error: Can't have modifier 'const' here.
 // Try removing 'const'.
@@ -30,6 +31,11 @@ library;
 // pkg/front_end/testcases/extension_types/representation_field_error.dart:9:30: Error: Representation fields can't have modifiers.
 // extension type E5(const bool foo) {} // Error.
 //                              ^^^
+//
+// pkg/front_end/testcases/extension_types/representation_field_error.dart:10:19: Error: Can't have modifier 'covariant' in a primary constructor.
+// Try removing 'covariant'.
+// extension type E6(covariant final double foo) {} // Error.
+//                   ^^^^^^^^^
 //
 // pkg/front_end/testcases/extension_types/representation_field_error.dart:10:42: Error: Representation fields can't have modifiers.
 // extension type E6(covariant final double foo) {} // Error.
@@ -105,13 +111,13 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension type E1(dynamic foo) {
-  abstract extension-type-member representation-field get foo() → dynamic;
+extension type E1(invalid-type foo) {
+  abstract extension-type-member representation-field get foo() → invalid-type;
   constructor • = self::E1|constructor#;
   constructor tearoff • = self::E1|constructor#_#new#tearOff;
 }
-extension type E2(dynamic foo) {
-  abstract extension-type-member representation-field get foo() → dynamic;
+extension type E2(invalid-type foo) {
+  abstract extension-type-member representation-field get foo() → invalid-type;
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
@@ -135,8 +141,8 @@ extension type E6(core::double foo) {
   constructor • = self::E6|constructor#;
   constructor tearoff • = self::E6|constructor#_#new#tearOff;
 }
-extension type E7(dynamic foo) {
-  abstract extension-type-member representation-field get foo() → dynamic;
+extension type E7(invalid-type foo) {
+  abstract extension-type-member representation-field get foo() → invalid-type;
   constructor • = self::E7|constructor#;
   constructor tearoff • = self::E7|constructor#_#new#tearOff;
 }
@@ -201,17 +207,17 @@ extension type E18(core::double foo) {
   constructor • = self::E18|constructor#;
   constructor tearoff • = self::E18|constructor#_#new#tearOff;
 }
-static extension-type-member method E1|constructor#(dynamic foo) → self::E1 /* = dynamic */ {
-  lowered final self::E1 /* = dynamic */ #this = foo;
+static extension-type-member method E1|constructor#(invalid-type foo) → self::E1 /* = invalid-type */ {
+  lowered final self::E1 /* = invalid-type */ #this = foo;
   return #this;
 }
-static extension-type-member method E1|constructor#_#new#tearOff(dynamic foo) → self::E1 /* = dynamic */
+static extension-type-member method E1|constructor#_#new#tearOff(invalid-type foo) → self::E1 /* = invalid-type */
   return self::E1|constructor#(foo);
-static extension-type-member method E2|constructor#(final dynamic foo) → self::E2 /* = dynamic */ {
-  lowered final self::E2 /* = dynamic */ #this = foo;
+static extension-type-member method E2|constructor#(final invalid-type foo) → self::E2 /* = invalid-type */ {
+  lowered final self::E2 /* = invalid-type */ #this = foo;
   return #this;
 }
-static extension-type-member method E2|constructor#_#new#tearOff(dynamic foo) → self::E2 /* = dynamic */
+static extension-type-member method E2|constructor#_#new#tearOff(invalid-type foo) → self::E2 /* = invalid-type */
   return self::E2|constructor#(foo);
 static extension-type-member method E3|constructor#(final core::String foo) → self::E3 /* = core::String */ {
   lowered final self::E3 /* = core::String */ #this = foo;
@@ -237,11 +243,11 @@ static extension-type-member method E6|constructor#(covariant-by-declaration fin
   lowered final self::E6 /* = core::double */ #this = foo;
   return #this;
 }
-static extension-type-member method E7|constructor#(dynamic foo) → self::E7 /* = dynamic */ {
-  lowered final self::E7 /* = dynamic */ #this = foo;
+static extension-type-member method E7|constructor#(invalid-type foo) → self::E7 /* = invalid-type */ {
+  lowered final self::E7 /* = invalid-type */ #this = foo;
   return #this;
 }
-static extension-type-member method E7|constructor#_#new#tearOff(dynamic foo) → self::E7 /* = dynamic */
+static extension-type-member method E7|constructor#_#new#tearOff(invalid-type foo) → self::E7 /* = invalid-type */
   return self::E7|constructor#(foo);
 static extension-type-member method E8|constructor#() → self::E8 /* = invalid-type */ {
   lowered final self::E8 /* = invalid-type */ #this;

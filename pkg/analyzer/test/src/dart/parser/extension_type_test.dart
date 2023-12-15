@@ -45,7 +45,7 @@ ExtensionTypeDeclaration
 extension type A(covariant int it) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 9),
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR, 17, 9),
     ]);
 
     final node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -70,7 +70,7 @@ ExtensionTypeDeclaration
 extension type A(covariant final int it) {}
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 17, 9),
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR, 17, 9),
       error(ParserErrorCode.REPRESENTATION_FIELD_MODIFIER, 27, 5),
     ]);
 
@@ -173,7 +173,7 @@ extension type A(int it) {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 38, 9),
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE, 38, 9),
     ]);
 
     final node = parseResult.findNode.singleExtensionTypeDeclaration;
@@ -217,7 +217,7 @@ extension type A(int it) {
 }
 ''');
     parseResult.assertErrors([
-      error(ParserErrorCode.EXTRANEOUS_MODIFIER, 45, 9),
+      error(ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE, 45, 9),
     ]);
 
     final node = parseResult.findNode.singleExtensionTypeDeclaration;

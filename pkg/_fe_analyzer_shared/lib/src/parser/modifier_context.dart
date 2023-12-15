@@ -197,12 +197,28 @@ class ModifierContext {
     if (parameterKind != FormalParameterKind.optionalNamed) {
       reportExtraneousModifier(requiredToken);
     }
-    if (memberKind == MemberKind.StaticMethod ||
-        memberKind == MemberKind.TopLevelMethod) {
-      reportExtraneousModifier(this.covariantToken);
-    } else if (memberKind == MemberKind.ExtensionNonStaticMethod ||
-        memberKind == MemberKind.ExtensionStaticMethod) {
-      reportExtraneousModifierInExtension(this.covariantToken);
+    switch (memberKind) {
+      case MemberKind.StaticMethod:
+      case MemberKind.TopLevelMethod:
+        reportExtraneousModifier(this.covariantToken);
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+        reportExtraneousModifierInExtension(this.covariantToken);
+      case MemberKind.ExtensionTypeNonStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
+        reportExtraneousModifierInExtensionType(this.covariantToken);
+      case MemberKind.PrimaryConstructor:
+        reportExtraneousModifierInPrimaryConstructor(this.covariantToken);
+      case MemberKind.Catch:
+      case MemberKind.Factory:
+      case MemberKind.FunctionTypeAlias:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+      case MemberKind.Local:
+      case MemberKind.NonStaticMethod:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
     }
     if (constToken != null) {
       reportExtraneousModifier(constToken);
@@ -623,6 +639,20 @@ class ModifierContext {
     if (modifier != null) {
       parser.reportRecoverableErrorWithToken(
           modifier, codes.templateExtraneousModifierInExtension);
+    }
+  }
+
+  void reportExtraneousModifierInExtensionType(Token? modifier) {
+    if (modifier != null) {
+      parser.reportRecoverableErrorWithToken(
+          modifier, codes.templateExtraneousModifierInExtensionType);
+    }
+  }
+
+  void reportExtraneousModifierInPrimaryConstructor(Token? modifier) {
+    if (modifier != null) {
+      parser.reportRecoverableErrorWithToken(
+          modifier, codes.templateExtraneousModifierInPrimaryConstructor);
     }
   }
 

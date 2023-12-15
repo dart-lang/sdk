@@ -195,6 +195,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.EXPECTED_SWITCH_EXPRESSION_BODY,
   ParserErrorCode.EXPECTED_SWITCH_STATEMENT_BODY,
   ParserErrorCode.EXPECTED_EXTENSION_BODY,
+  ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE,
+  ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -878,6 +880,20 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode EXTRANEOUS_MODIFIER = ParserErrorCode(
     'EXTRANEOUS_MODIFIER',
     "Can't have modifier '{0}' here.",
+    correctionMessage: "Try removing '{0}'.",
+  );
+
+  static const ParserErrorCode EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE =
+      ParserErrorCode(
+    'EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE',
+    "Can't have modifier '{0}' in an extension type.",
+    correctionMessage: "Try removing '{0}'.",
+  );
+
+  static const ParserErrorCode EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR =
+      ParserErrorCode(
+    'EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR',
+    "Can't have modifier '{0}' in a primary constructor.",
     correctionMessage: "Try removing '{0}'.",
   );
 

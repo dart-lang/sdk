@@ -2834,6 +2834,10 @@ ParserErrorCode.EXTRANEOUS_MODIFIER:
   status: needsFix
   notes: |-
     Remove the extraneous keyword.
+ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE:
+  status: needsEvaluation
+ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR:
+  status: needsEvaluation
 ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION:
   status: needsFix
   notes: |-
