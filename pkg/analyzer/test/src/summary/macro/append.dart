@@ -45,6 +45,28 @@ class A {}
   }
 }
 
+/*macro*/ class DeclareClassAppendInterfaceRawCode implements ClassTypesMacro {
+  final String interfaceName;
+
+  const DeclareClassAppendInterfaceRawCode(
+    this.interfaceName,
+  );
+
+  @override
+  buildTypesForClass(clazz, builder) {
+    builder.declareType(
+      interfaceName,
+      DeclarationCode.fromString(
+        'abstract interface class $interfaceName {}',
+      ),
+    );
+
+    builder.appendInterfaces([
+      RawTypeAnnotationCode.fromString(interfaceName),
+    ]);
+  }
+}
+
 /*macro*/ class DeclareInLibrary implements ClassDeclarationsMacro {
   final String code;
 

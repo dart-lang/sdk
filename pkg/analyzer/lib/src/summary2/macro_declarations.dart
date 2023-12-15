@@ -258,7 +258,6 @@ class DeclarationBuilder {
           staticScope: null,
         );
       default:
-        // TODO(scheglov): other elements
         throw UnimplementedError('${element.runtimeType}');
     }
   }
@@ -276,8 +275,7 @@ class DeclarationBuilder {
       case macro.OmittedTypeAnnotationCode():
         return _resolveTypeCodeOmitted(typeCode);
       case macro.RawTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+        throw ArgumentError('Not supported');
       case macro.RecordTypeAnnotationCode():
         return _resolveTypeCodeRecord(typeCode);
     }

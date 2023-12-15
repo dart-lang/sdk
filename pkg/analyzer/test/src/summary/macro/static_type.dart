@@ -25,3 +25,29 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     );
   }
 }
+
+/*macro*/ class IsExactly_enclosingClassInterface_formalParameterType
+    implements MethodDefinitionMacro {
+  const IsExactly_enclosingClassInterface_formalParameterType();
+
+  @override
+  buildDefinitionForMethod(declaration, builder) async {
+    final enclosingType = await builder.declarationOf(declaration.definingType);
+    enclosingType as ClassDeclaration;
+
+    final firstType = enclosingType.interfaces.first;
+    final secondType = declaration.positionalParameters.first.type;
+
+    final firstTypeCode = firstType.code;
+    final secondTypeCode = secondType.code;
+
+    final firstStaticType = await builder.resolve(firstTypeCode);
+    final secondStaticType = await builder.resolve(secondTypeCode);
+
+    final result = await firstStaticType.isExactly(secondStaticType);
+
+    builder.augment(
+      FunctionBodyCode.fromString('=> $result; // isExactly'),
+    );
+  }
+}

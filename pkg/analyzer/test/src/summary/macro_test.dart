@@ -6893,6 +6893,24 @@ class MacroStaticTypeTest extends MacroElementsBaseTest {
     }
   }
 
+  /// Verify what happens when we use `RawTypeAnnotationCode`.
+  /// We don't see it, because it disappears after the types phase.
+  test_isExactly_class_asRawCode_same() async {
+    final library = await buildLibrary('''
+import 'append.dart';
+import 'static_type.dart';
+
+@DeclareClassAppendInterfaceRawCode('A')
+class X {
+  @IsExactly_enclosingClassInterface_formalParameterType()
+  void foo(A a) {}
+}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    _assertIsExactlyValue(generated, true);
+  }
+
   test_isExactly_enum_notSame() async {
     await _assertIsExactly(
       firstTypeCode: 'A',
