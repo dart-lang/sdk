@@ -153,7 +153,7 @@ extension ClassElementExtension on ClassElement {
   /// equal to another static const field with the same type as the class is not
   /// included. Such a field is assumed to be deprecated in favor of the field
   /// with equal value.
-  EnumLikeClassDescription? asEnumLikeClass({required bool strictCasts}) {
+  EnumLikeClassDescription? asEnumLikeClass() {
     // See discussion: https://github.com/dart-lang/linter/issues/2083.
 
     // Must be concrete.
@@ -204,8 +204,7 @@ extension ClassElementExtension on ClassElement {
   bool isClass(String otherName, String otherLibrary) =>
       name == otherName && library.name == otherLibrary;
 
-  bool isEnumLikeClass({required bool strictCasts}) =>
-      asEnumLikeClass(strictCasts: strictCasts) != null;
+  bool isEnumLikeClass() => asEnumLikeClass() != null;
 }
 
 extension ClassMemberListExtension on List<ClassMember> {
