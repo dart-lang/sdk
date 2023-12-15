@@ -760,6 +760,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    var constructor = node.parent?.parent;
+    if (constructor is FormalParameterList) {
+      constructor = constructor.parent;
+    }
+    if (constructor is ConstructorDeclaration) {
+      var declaredElement = node.declaredElement;
+      FieldElement? field;
+      if (declaredElement is FieldFormalParameterElement) {
+        field = declaredElement.field;
+      }
+      declarationHelper().addFieldsForInitializers(constructor, field);
+    }
+  }
+
+  @override
   void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
     _visitForEachParts(node);
   }
@@ -1476,6 +1492,11 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    declarationHelper().addParametersFromSuperConstructor(node);
+  }
+
+  @override
   void visitSwitchCase(SwitchCase node) {
     _forStatement(node);
   }
@@ -1941,8 +1962,13 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// beginning of a constructor's initializer.
   void _forConstructorInitializer(ConstructorDeclaration constructor,
       ConstructorFieldInitializer? initializer) {
+    var element = initializer?.fieldName.staticElement;
+    FieldElement? field;
+    if (element is FieldElement) {
+      field = element;
+    }
     keywordHelper.addConstructorInitializerKeywords(constructor, initializer);
-    declarationHelper().addFieldsForInitializers(constructor);
+    declarationHelper().addFieldsForInitializers(constructor, field);
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
