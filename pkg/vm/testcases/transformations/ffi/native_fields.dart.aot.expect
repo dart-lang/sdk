@@ -1,0 +1,87 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+
+import "dart:ffi";
+
+@#C6
+final class Vec2d extends ffi::Struct {
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::Vec2d
+    : super ffi::Struct::_fromTypedDataBase(#typedDataBase)
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1] [@vm.unboxing-info.metadata=()->d]  get x() → core::double
+    return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C8.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2] [@vm.unboxing-info.metadata=()->d]  get y() → core::double
+    return [@vm.inferred-type.metadata=dart.core::_Double] ffi::_loadDouble([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C10.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
+}
+@#C15
+final class MyUnion extends ffi::Union {
+  constructor #fromTypedDataBase([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized core::Object #typedDataBase) → self::MyUnion
+    : super ffi::Union::_fromTypedDataBase(#typedDataBase)
+    ;
+[@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3]  set indirectVector([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<self::Vec2d> #externalFieldValue) → void
+    return ffi::_storePointer<self::Vec2d>([@vm.direct-call.metadata=dart.ffi::_Compound._typedDataBase] [@vm.inferred-type.metadata=dart.ffi::Pointer] this.{ffi::_Compound::_typedDataBase}{core::Object}, #C8.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue);
+}
+@#C21
+static get aString() → ffi::Pointer<ffi::Char>
+  return [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::_loadPointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C20), #C7);
+static set aString([@vm.inferred-arg-type.metadata=dart.ffi::Pointer] synthesized ffi::Pointer<ffi::Char> #externalFieldValue) → void
+  ffi::_storePointer<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Pointer<ffi::Char>>(#C20), #C7, #externalFieldValue);
+[@vm.unboxing-info.metadata=()->i]@#C24
+static get anInt() → core::int
+  return [@vm.inferred-type.metadata=int] ffi::_loadInt32([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int32>(#C23), #C7);
+[@vm.unboxing-info.metadata=(i)->b]static set anInt([@vm.inferred-arg-type.metadata=int] synthesized core::int #externalFieldValue) → void
+  ffi::_storeInt32([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int32>(#C23), #C7, #externalFieldValue);
+@#C27
+static get vector() → self::Vec2d
+  return new self::Vec2d::#fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C26));
+@#C30
+static get union() → self::MyUnion
+  return new self::MyUnion::#fromTypedDataBase([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::MyUnion>(#C29));
+static method main() → void {
+  core::print("first char of string: ${ffi::_loadAbiSpecificInt<ffi::Char>([@vm.inferred-type.metadata=dart.ffi::Pointer] self::aString, #C7)}");
+  core::print("global int: {${self::anInt}}");
+  self::aString = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::nullptr;
+  self::anInt = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.+] [@vm.inferred-type.metadata=int (skip check)] [@vm.inferred-type.metadata=int] self::anInt.{core::num::+}(1){(core::num) → core::int};
+  final self::Vec2d vec = [@vm.inferred-type.metadata=#lib::Vec2d] self::vector;
+  core::print("(${[@vm.direct-call.metadata=#lib::Vec2d.x] vec.{self::Vec2d::x}{core::double}}, ${[@vm.direct-call.metadata=#lib::Vec2d.y] vec.{self::Vec2d::y}{core::double}})");
+  [@vm.direct-call.metadata=#lib::MyUnion.indirectVector] [@vm.inferred-type.metadata=!? (skip check)] [@vm.inferred-type.metadata=#lib::MyUnion] self::union.{self::MyUnion::indirectVector} = [@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C26);
+  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<ffi::Int>(#C32));
+  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::Vec2d>(#C26));
+  core::print([@vm.inferred-type.metadata=dart.ffi::Pointer] ffi::Native::_addressOf<self::MyUnion>(#C29));
+}
+constants  {
+  #C1 = "vm:ffi:struct-fields"
+  #C2 = TypeLiteralConstant(ffi::Double)
+  #C3 = <core::Type>[#C2, #C2]
+  #C4 = null
+  #C5 = ffi::_FfiStructLayout {fieldTypes:#C3, packing:#C4}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = 0
+  #C8 = <core::int*>[#C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7, #C7]
+  #C9 = 8
+  #C10 = <core::int*>[#C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9, #C9]
+  #C11 = TypeLiteralConstant(self::Vec2d)
+  #C12 = TypeLiteralConstant(ffi::Pointer<ffi::NativeType>)
+  #C13 = <core::Type>[#C11, #C12]
+  #C14 = ffi::_FfiStructLayout {fieldTypes:#C13, packing:#C4}
+  #C15 = core::pragma {name:#C1, options:#C14}
+  #C16 = "cfe:ffi:native-marker"
+  #C17 = "aString"
+  #C18 = "#lib"
+  #C19 = false
+  #C20 = ffi::Native<ffi::Pointer<ffi::Char>> {symbol:#C17, assetId:#C18, isLeaf:#C19}
+  #C21 = core::pragma {name:#C16, options:#C20}
+  #C22 = "anInt"
+  #C23 = ffi::Native<ffi::Int32> {symbol:#C22, assetId:#C18, isLeaf:#C19}
+  #C24 = core::pragma {name:#C16, options:#C23}
+  #C25 = "vector"
+  #C26 = ffi::Native<self::Vec2d> {symbol:#C25, assetId:#C18, isLeaf:#C19}
+  #C27 = core::pragma {name:#C16, options:#C26}
+  #C28 = "union"
+  #C29 = ffi::Native<self::MyUnion> {symbol:#C28, assetId:#C18, isLeaf:#C19}
+  #C30 = core::pragma {name:#C16, options:#C29}
+  #C31 = "anotherInt"
+  #C32 = ffi::Native<ffi::Int> {symbol:#C31, assetId:#C18, isLeaf:#C19}
+}

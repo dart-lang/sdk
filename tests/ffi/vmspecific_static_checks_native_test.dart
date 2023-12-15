@@ -41,14 +41,66 @@ external void notNative();
 // [analyzer] COMPILE_TIME_ERROR.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS
 external int foo(int v);
 //           ^
-// [cfe] Native functions must not have more than @Native annotation.
+// [cfe] Native functions and fields must not have more than @Native annotation.
+
+@Native()
+external final MyStruct myStruct0;
+
+@Native<MyStruct>()
+external MyStruct myStruct1;
+
+@Native<Pointer<MyStruct>>()
+external MyStruct myStructInvalid;
+//                ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+// [cfe] Expected type 'MyStruct' to be 'Pointer<MyStruct>', which is the Dart type corresponding to 'Pointer<MyStruct>'.
+
+@Native()
+external Pointer<MyStruct> myStructPtr0;
+
+@Native<Pointer<MyStruct>>()
+external final Pointer<MyStruct> myStructPtr1;
+
+@Native<MyStruct>()
+external Pointer<MyStruct> myStructPtrInvalid;
+//                         ^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+// [cfe] Expected type 'Pointer<MyStruct>' to be 'MyStruct', which is the Dart type corresponding to 'MyStruct'.
+
+@Native()
+external int invalidNoInferrence;
+//           ^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NATIVE_FIELD_MISSING_TYPE
+// [cfe] The native type of this field could not be inferred and must be specified in the annotation.
+
+@Native<Handle>()
+external Object invalidUnsupportedHandle;
+//              ^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NATIVE_FIELD_INVALID_TYPE
+// [cfe] Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.
+
+@Native()
+external Array<IntPtr> invalidUnsupportedArray;
+//                     ^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.NATIVE_FIELD_INVALID_TYPE
+// [cfe] Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.
+
+class MyClass {
+  @Native<Double>()
+  external double invalidInstanceField;
+  //              ^^^^^^^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.NATIVE_FIELD_NOT_STATIC
+  // [cfe] Native fields must be static.
+
+  @Native<Double>()
+  external static double validField;
+}
 
 void addressOf() {
   Native.addressOf<NativeFunction<Void Function()>>(notNative);
-  //                                               ^
-  // [cfe] Argument to 'Native.addressOf' must be annotated with @Native.
   //                                                ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_MUST_BE_NATIVE
+  // [cfe] Argument to 'Native.addressOf' must be annotated with @Native.
 
   var boolean = 1 == 2;
   Native.addressOf<NativeFunction<Void Function()>>(boolean ? _valid : _valid2);
@@ -79,4 +131,15 @@ void addressOf() {
 // [cfe] Expected type 'void Function()' to be 'void Function(int)', which is the Dart type corresponding to 'NativeFunction<Void Function(Int)>'.
 
   Native.addressOf<NativeFunction<ComplexNativeFunction>>(validNative);
+
+  Native.addressOf<MyStruct>(myStruct0);
+  Native.addressOf<MyStruct>(myStruct1);
+  Native.addressOf<Pointer<MyStruct>>(myStructPtr0);
+  Native.addressOf<Pointer<MyStruct>>(myStructPtr1);
+
+  Native.addressOf<Int>(myStruct0);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+//       ^
+// [cfe] Expected type 'MyStruct' to be 'int', which is the Dart type corresponding to 'Int'.
 }

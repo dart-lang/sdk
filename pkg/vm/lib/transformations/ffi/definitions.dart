@@ -429,9 +429,9 @@ class _FfiDefinitionTransformer extends FfiTransformer {
             f.fileUri);
         // This class is invalid, but continue reporting other errors on it.
         success = false;
-      } else if (isPointerType(type) ||
-          isCompoundSubtype(type) ||
-          isArrayType(type)) {
+      } else if (convertDartTypeToNativeType(type) != null) {
+        // If the native type is obvious from the Dart type alone, don't allow
+        // a native type annotation.
         if (nativeTypeAnnos.isNotEmpty) {
           diagnosticReporter.report(
               templateFfiFieldNoAnnotation.withArguments(f.name.text),

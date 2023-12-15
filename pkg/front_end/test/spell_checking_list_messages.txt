@@ -29,6 +29,7 @@ cast
 collide
 compilercontext.runincontext
 compilesdk
+compounds
 conformance
 constructor(s)
 core

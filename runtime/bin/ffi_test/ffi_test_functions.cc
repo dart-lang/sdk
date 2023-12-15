@@ -25,9 +25,11 @@
 
 #if defined(_WIN32)
 #define DART_EXPORT extern "C" __declspec(dllexport)
+#define DART_EXPORT_FIELD DART_EXPORT
 #else
 #define DART_EXPORT                                                            \
   extern "C" __attribute__((visibility("default"))) __attribute((used))
+#define DART_EXPORT_FIELD __attribute__((visibility("default")))
 #endif
 
 namespace dart {
@@ -41,23 +43,39 @@ namespace dart {
 #define CHECK_EQ(X, Y) CHECK((X) == (Y))
 
 ////////////////////////////////////////////////////////////////////////////////
+// Tests for Dart -> native fields.
+struct Coord {
+  double x;
+  double y;
+  Coord* next;
+};
+
+extern "C" {
+DART_EXPORT_FIELD int32_t globalInt;
+DART_EXPORT_FIELD Coord globalStruct;
+DART_EXPORT_FIELD const char* globalString = "Hello Dart!";
+}
+
+////////////////////////////////////////////////////////////////////////////////
 // Tests for Dart -> native calls.
 //
 // Note: If this interface is changed please also update
-// sdk/runtime/tools/dartfuzz/ffiapi.dart
-
-int32_t globalVar;
+// sdk/runtime/tools/dartfuzz/dartfuzz_ffi_api.dart
 
 DART_EXPORT void InduceACrash() {
   *reinterpret_cast<int*>(InduceACrash) = 123;
 }
 
 DART_EXPORT void SetGlobalVar(int32_t v) {
-  globalVar = v;
+  globalInt = v;
 }
 
 DART_EXPORT int32_t GetGlobalVar() {
-  return globalVar;
+  return globalInt;
+}
+
+DART_EXPORT Coord GetGlobalStruct() {
+  return globalStruct;
 }
 
 // Sums two ints and adds 42.
@@ -541,12 +559,6 @@ DART_EXPORT int64_t* Assign1337Index1(int64_t* a) {
   std::cout << "returning " << retval << "\n";
   return retval;
 }
-
-struct Coord {
-  double x;
-  double y;
-  Coord* next;
-};
 
 // Transposes Coordinate by (10, 10) and returns next Coordinate.
 // Used for testing struct pointer parameter, struct pointer return value,

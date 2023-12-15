@@ -17,6 +17,7 @@
 // SharedObjects=ffi_test_functions
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -120,6 +121,7 @@ Future<void> invokeSelf({
 Future<void> runTests() async {
   testFfiTestfunctionsDll();
   testNonExistingFunction();
+  testFfiTestFieldsDll();
 }
 
 @Native<Int32 Function(Int32, Int32)>()
@@ -134,4 +136,69 @@ void testFfiTestfunctionsDll() {
           .asFunction<int Function(int, int)>();
 
   Expect.equals(2 + 3 + 42, viaAddressOf(2, 3));
+}
+
+@Native<Int32>()
+external int globalInt;
+
+@Native<Int32>(symbol: 'globalInt')
+external int get globalIntProcedure;
+
+@Native<Int32>(symbol: 'globalInt')
+external set globalIntProcedure(int value);
+
+@Native<Void Function(Int32)>()
+external void SetGlobalVar(int value);
+
+@Native<Int32 Function()>()
+external int GetGlobalVar();
+
+@Native()
+external final Pointer<Char> globalString;
+
+final class Coord extends Struct {
+  @Double()
+  external double x;
+
+  @Double()
+  external double y;
+
+  external Pointer<Coord> next;
+}
+
+@Native()
+external Coord globalStruct;
+
+@Native<Coord Function()>()
+external Coord GetGlobalStruct();
+
+void testFfiTestFieldsDll() {
+  SetGlobalVar(42);
+  Expect.equals(globalInt, 42);
+  Expect.equals(globalIntProcedure, 42);
+  globalInt = 13;
+  Expect.equals(GetGlobalVar(), 13);
+  globalIntProcedure = 26;
+  Expect.equals(GetGlobalVar(), 26);
+
+  var readString = utf8.decode(globalString.cast<Uint8>().asTypedList(11));
+  Expect.equals(readString, 'Hello Dart!');
+
+  globalStruct
+    ..x = 1
+    ..y = 2
+    ..next = nullptr;
+  final viaFunction = GetGlobalStruct();
+  Expect.equals(viaFunction.x, 1.0);
+  Expect.equals(viaFunction.y, 2.0);
+  Expect.equals(viaFunction.next, nullptr);
+
+  viaFunction.x *= 2;
+  viaFunction.y *= 2;
+  viaFunction.next = Pointer.fromAddress(0xdeadbeef);
+  globalStruct = viaFunction;
+
+  Expect.equals(globalStruct.x, 2.0);
+  Expect.equals(globalStruct.y, 4.0);
+  Expect.equals(globalStruct.next.address, 0xdeadbeef);
 }

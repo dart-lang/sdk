@@ -5275,7 +5275,38 @@ const MessageCode messageFfiNativeDuplicateAnnotations = const MessageCode(
     "FfiNativeDuplicateAnnotations",
     analyzerCodes: <String>["FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS"],
     problemMessage:
-        r"""Native functions must not have more than @Native annotation.""");
+        r"""Native functions and fields must not have more than @Native annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeFieldMissingType =
+    messageFfiNativeFieldMissingType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeFieldMissingType = const MessageCode(
+    "FfiNativeFieldMissingType",
+    analyzerCodes: <String>["NATIVE_FIELD_MISSING_TYPE"],
+    problemMessage:
+        r"""The native type of this field could not be inferred and must be specified in the annotation.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeFieldMustBeStatic =
+    messageFfiNativeFieldMustBeStatic;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeFieldMustBeStatic = const MessageCode(
+    "FfiNativeFieldMustBeStatic",
+    analyzerCodes: <String>["NATIVE_FIELD_NOT_STATIC"],
+    problemMessage: r"""Native fields must be static.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeFfiNativeFieldType = messageFfiNativeFieldType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageFfiNativeFieldType = const MessageCode(
+    "FfiNativeFieldType",
+    analyzerCodes: <String>["NATIVE_FIELD_INVALID_TYPE"],
+    problemMessage:
+        r"""Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
@@ -5283,7 +5314,8 @@ const Code<Null> codeFfiNativeMustBeExternal = messageFfiNativeMustBeExternal;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageFfiNativeMustBeExternal = const MessageCode(
     "FfiNativeMustBeExternal",
-    problemMessage: r"""Native functions must be marked external.""");
+    problemMessage:
+        r"""Native functions and fields must be marked external.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFfiNativeOnlyNativeFieldWrapperClassCanBePointer =

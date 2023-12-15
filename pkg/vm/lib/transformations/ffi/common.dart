@@ -642,6 +642,10 @@ class FfiTransformer extends Transformer {
   /// If [dartType] is provided, it can be used to guide what Dart type is
   /// expected. Currently, this is only used if [allowTypedData] is provided,
   /// because `Pointer` is a one to many mapping in this case.
+  ///
+  /// Some Dart types only have one possible native type (and vice-versa). For
+  /// those types, [convertNativeTypeToDartType] is the inverse of
+  /// [convertDartTypeToNativeType].
   DartType? convertNativeTypeToDartType(
     DartType nativeType, {
     DartType? dartType,
@@ -759,6 +763,25 @@ class FfiTransformer extends Transformer {
     }
     if (argumentTypes.contains(dummyDartType)) return null;
     return FunctionType(argumentTypes, returnType, Nullability.legacy);
+  }
+
+  /// Finds a native type for the given [dartType] if there is only one possible
+  /// native type.
+  ///
+  /// This is impossible for some types (like [int] which needs a specific ffi
+  /// type to denote the width in C). This method returns `null` for those
+  /// types.
+  ///
+  /// For types where this returns a non-null value, this is the inverse of
+  /// [convertNativeTypeToDartType].
+  DartType? convertDartTypeToNativeType(DartType dartType) {
+    if (isPointerType(dartType) ||
+        isCompoundSubtype(dartType) ||
+        isArrayType(dartType)) {
+      return dartType;
+    } else {
+      return null;
+    }
   }
 
   /// Removes the VarArgs from a DartType list.
@@ -933,6 +956,14 @@ class FfiTransformer extends Transformer {
   /// ```
   Expression typedDataBaseOffset(Expression typedDataBase, Expression offset,
       Expression length, DartType dartType, int fileOffset) {
+    // Avoid generating the branch on the kind of typed data and the offset
+    // calculation if the end result is a no-op. This offset-generating method
+    // is used to load compound subtypes, which in many cases are not using any
+    // offset from their base.
+    if (offset case ConstantExpression(constant: IntConstant(value: 0))) {
+      return typedDataBase;
+    }
+
     final typedDataBaseVar = VariableDeclaration("#typedDataBase",
         initializer: typedDataBase,
         type: coreTypes.objectNonNullableRawType,
@@ -1126,6 +1157,27 @@ class FfiTransformer extends Transformer {
     if (annotations.length == 1) {
       return annotations[0];
     }
+    return null;
+  }
+
+  Expression? inlineSizeOf(InterfaceType nativeType) {
+    final Class nativeClass = nativeType.classNode;
+    final NativeType? nt = getType(nativeClass);
+    if (nt == null) {
+      // User-defined compounds.
+      final Procedure sizeOfGetter = nativeClass.procedures
+          .firstWhere((function) => function.name == Name('#sizeOf'));
+      return StaticGet(sizeOfGetter);
+    }
+    final int size = nativeTypeSizes[nt]!;
+    if (size == WORD_SIZE) {
+      return runtimeBranchOnLayout(wordSize);
+    }
+    if (size != UNKNOWN) {
+      return ConstantExpression(IntConstant(size),
+          InterfaceType(intClass, currentLibrary.nonNullable));
+    }
+    // Size unknown.
     return null;
   }
 
@@ -1400,12 +1452,14 @@ class FfiTransformer extends Transformer {
     bool allowHandle = false,
     bool allowVoid = false,
     bool allowTypedData = false,
+    bool allowArray = false,
   }) {
     final DartType correspondingDartType = convertNativeTypeToDartType(
       nativeType,
       dartType: dartType,
       allowCompounds: true,
       allowHandle: allowHandle,
+      allowInlineArray: allowArray,
       allowVoid: allowVoid,
       allowTypedData: allowTypedData,
     )!;
