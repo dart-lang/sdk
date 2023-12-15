@@ -154,7 +154,7 @@ _vm_builder(
     category = "vm|jit|wr",
     dimensions = windows,
 )
-_vm_builder(
+_nightly_builder(
     "vm-win-debug-arm64",
     category = "vm|jit|wad",
     dimensions = [windows11, arm64, flutter_pool],
@@ -235,7 +235,7 @@ _vm_builder(
     category = "vm|aot|wr",
     dimensions = windows,
 )
-_vm_builder(
+_nightly_builder(
     "vm-aot-win-debug-arm64",
     category = "vm|aot|wad",
     dimensions = [windows11, arm64, flutter_pool],
