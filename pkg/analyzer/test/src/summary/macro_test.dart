@@ -1382,66 +1382,668 @@ augment class A {
 ''');
   }
 
-  test_resolveIdentifier_class_field_instance() async {
+  test_resolveIdentifier_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
     final library = await buildLibrary(r'''
 import 'code_generation.dart';
+import 'a.dart';
 
-class A {
-  @ReferenceField()
-  int foo = 0;
-}
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
 ''');
 
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-augment class A {
-  void foo() {
-    this.foo;
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_constructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A.named();
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'named')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.named;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_constructor_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class A {
+  A.named();
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'named')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.named;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_field_instance() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier(
+  'package:test/a.dart',
+  'A',
+  memberName: 'foo',
+  parametersCode: 'dynamic a',
+  leadCode: 'a.',
+)
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class X {
+  void doReference(dynamic a) {
+    a.foo;
   }
 }
 ''');
   }
 
   test_resolveIdentifier_class_field_static() async {
-    final library = await buildLibrary(r'''
-import 'code_generation.dart';
-
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
-  @ReferenceField()
   static int foo = 0;
 }
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
 ''');
 
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/test.dart' as prefix0;
+import 'package:test/a.dart' as prefix0;
 
-augment class A {
-  void foo() {
+augment class X {
+  void doReference() {
     prefix0.A.foo;
   }
 }
 ''');
   }
 
-  test_resolveIdentifier_function_dartCorePrint() async {
+  test_resolveIdentifier_class_field_static_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class A {
+  static int foo = 0;
+}
+''');
+
     final library = await buildLibrary(r'''
 import 'code_generation.dart';
+import 'a.dart';
 
-@ReferenceDartCorePrint()
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class B {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'B')
 class A {}
 ''');
 
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'dart:core' as prefix0;
+import 'package:test/a.dart' as prefix0;
 
 augment class A {
-  void foo() {
-    prefix0.print();
+  void doReference() {
+    prefix0.B;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_getter_instance() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int get foo => 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier(
+  'package:test/a.dart',
+  'A',
+  memberName: 'foo',
+  parametersCode: 'dynamic a',
+  leadCode: 'a.',
+)
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class X {
+  void doReference(dynamic a) {
+    a.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_getter_static() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int get foo => 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_getter_static_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class A {
+  static int get foo => 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_method_instance() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void foo() {}
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier(
+  'package:test/a.dart',
+  'A',
+  memberName: 'foo',
+  parametersCode: 'dynamic a',
+  leadCode: 'a.',
+)
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class X {
+  void doReference(dynamic a) {
+    a.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_method_static() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static void foo() {}
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_method_static_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class A {
+  static void foo() {}
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_extension() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_extensionType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A(int it) {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_functionTypeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef void A();
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_genericTypeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef A = int;
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo() {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_function_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+void foo() {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+int get foo => 0;
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_getter_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+int get foo => 0;
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+set foo(int value) {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var foo = 0;
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
   }
 }
 ''');

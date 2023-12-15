@@ -38,6 +38,11 @@ class NodeTextExpectationsCollector {
       argument: _ArgumentNamed('expected'),
     ),
     _AssertMethod(
+      className: 'MacroElementsBaseTest',
+      methodName: '_assertMacroCode',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
       className: 'ElementsBaseTest',
       methodName: 'checkElementText',
       argument: _ArgumentIndex(1),
