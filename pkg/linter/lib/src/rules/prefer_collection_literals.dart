@@ -165,9 +165,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     switch (ancestor) {
       // TODO(srawlins): Handle [AwaitExpression], [BinaryExpression],
-      // [CascadeExpression], [ConditionalExpression], [SwitchExpressionCase],
-      // likely others. Or move everything here to an analysis phase which
-      // has the actual context type.
+      // [CascadeExpression], [SwitchExpressionCase], likely others. Or move
+      // everything here to an analysis phase which has the actual context type.
       case ArgumentList():
         // Allow `function(LinkedHashSet())` for `function(LinkedHashSet mySet)`
         // and `function(LinkedHashMap())` for `function(LinkedHashMap myMap)`.
@@ -175,6 +174,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       case AssignmentExpression():
         // Allow `x = LinkedHashMap()`.
         return ancestor.staticType;
+      case ConditionalExpression():
+        return ancestor.staticType;
+      case ConstructorFieldInitializer():
+        var fieldElement = ancestor.fieldName.staticElement;
+        return (fieldElement is VariableElement) ? fieldElement.type : null;
       case ExpressionFunctionBody(parent: var function)
           when function is FunctionExpression:
         // Allow `<int, LinkedHashSet>{}.putIfAbsent(3, () => LinkedHashSet())`

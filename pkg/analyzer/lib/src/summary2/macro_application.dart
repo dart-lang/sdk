@@ -12,21 +12,29 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart' as ast;
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_declarations.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
-/// The full list of [macro.ArgumentKind]s for this dart type (includes the type
-/// itself as well as type arguments, in source order with
-/// [macro.ArgumentKind.nullable] modifiers preceding the nullable types).
-List<macro.ArgumentKind> _dartTypeArgumentKinds(DartType dartType) => [
-      if (dartType.nullabilitySuffix == NullabilitySuffix.question)
-        macro.ArgumentKind.nullable,
-      switch (dartType) {
+/// The full list of [macro.ArgumentKind]s for this dart type, with type
+/// arguments for [InterfaceType]s, if [includeTop] is `true` also including
+/// the [InterfaceType] itself, with [macro.ArgumentKind.nullable] preceding
+/// nullable types, depth first.
+List<macro.ArgumentKind> _argumentKindsOfType(
+  DartType type, {
+  bool includeTop = true,
+}) {
+  return [
+    if (type.nullabilitySuffix == NullabilitySuffix.question)
+      macro.ArgumentKind.nullable,
+    if (includeTop)
+      switch (type) {
         DartType(isDartCoreBool: true) => macro.ArgumentKind.bool,
         DartType(isDartCoreDouble: true) => macro.ArgumentKind.double,
         DartType(isDartCoreInt: true) => macro.ArgumentKind.int,
@@ -34,36 +42,17 @@ List<macro.ArgumentKind> _dartTypeArgumentKinds(DartType dartType) => [
         DartType(isDartCoreNull: true) => macro.ArgumentKind.nil,
         DartType(isDartCoreObject: true) => macro.ArgumentKind.object,
         DartType(isDartCoreString: true) => macro.ArgumentKind.string,
-        // TODO(jakemac): Support nested type arguments for collections.
         DartType(isDartCoreList: true) => macro.ArgumentKind.list,
         DartType(isDartCoreMap: true) => macro.ArgumentKind.map,
         DartType(isDartCoreSet: true) => macro.ArgumentKind.set,
         DynamicType() => macro.ArgumentKind.dynamic,
         // TODO(jakemac): Support type annotations and code objects
-        _ =>
-          throw UnsupportedError('Unsupported macro type argument $dartType'),
+        _ => throw UnsupportedError('Unsupported macro type argument $type'),
       },
-      if (dartType is ParameterizedType) ...[
-        for (var type in dartType.typeArguments)
-          ..._dartTypeArgumentKinds(type),
-      ]
-    ];
-
-List<macro.ArgumentKind> _typeArgumentsForNode(ast.TypedLiteral node) {
-  if (node.typeArguments == null) {
-    return [
-      // TODO(jakemac): Use downward inference to build these types and detect maps
-      // versus sets.
-      if (node is ast.ListLiteral || node is ast.SetOrMapLiteral)
-        macro.ArgumentKind.dynamic,
-      if (node is ast.SetOrMapLiteral &&
-          node.elements.first is ast.MapLiteralEntry)
-        macro.ArgumentKind.dynamic,
-    ];
-  }
-  return [
-    for (var type in node.typeArguments!.arguments.map((arg) => arg.type!))
-      ..._dartTypeArgumentKinds(type),
+    if (type is InterfaceType) ...[
+      for (final typeArgument in type.typeArguments)
+        ..._argumentKindsOfType(typeArgument),
+    ]
   ];
 }
 
@@ -378,10 +367,16 @@ class LibraryMacroApplier {
         continue;
       }
 
+      final constructorElement = importedMacro.constructorElement;
+      if (constructorElement == null) {
+        continue;
+      }
+
       final arguments = await _runWithCatchingExceptions(
         () async {
           return _buildArguments(
             annotationIndex: annotationIndex,
+            constructor: constructorElement,
             node: importedMacro.arguments,
           );
         },
@@ -639,21 +634,46 @@ class LibraryMacroApplier {
 
   static macro.Arguments _buildArguments({
     required int annotationIndex,
+    required ConstructorElement constructor,
     required ast.ArgumentList node,
   }) {
+    final allParameters = constructor.parameters;
+    final namedParameters = allParameters
+        .where((e) => e.isNamed)
+        .map((e) => MapEntry(e.name, e))
+        .mapFromEntries;
+    final positionalParameters =
+        allParameters.where((e) => e.isPositional).toList();
+    var positionalParameterIndex = 0;
+
     final positional = <macro.Argument>[];
     final named = <String, macro.Argument>{};
     for (var i = 0; i < node.arguments.length; ++i) {
+      final ParameterElement? parameter;
+      String? namedArgumentName;
+      final ast.Expression expressionToEvaluate;
       final argument = node.arguments[i];
+      if (argument is ast.NamedExpression) {
+        namedArgumentName = argument.name.label.name;
+        expressionToEvaluate = argument.expression;
+        parameter = namedParameters.remove(namedArgumentName);
+      } else {
+        expressionToEvaluate = argument;
+        parameter = positionalParameters.elementAtOrNull(
+          positionalParameterIndex++,
+        );
+      }
+
+      final contextType = parameter?.type ?? DynamicTypeImpl.instance;
       final evaluation = _ArgumentEvaluation(
         annotationIndex: annotationIndex,
         argumentIndex: i,
       );
-      if (argument is ast.NamedExpression) {
-        final value = evaluation.evaluate(argument.expression);
-        named[argument.name.label.name] = value;
+      final value = evaluation.evaluate(contextType, expressionToEvaluate);
+
+      if (namedArgumentName != null) {
+        named[namedArgumentName] = value;
       } else {
-        final value = evaluation.evaluate(argument);
         positional.add(value);
       }
     }
@@ -705,6 +725,10 @@ class _AnnotationMacro {
     required this.constructorName,
     required this.arguments,
   });
+
+  ConstructorElement? get constructorElement {
+    return macroClass.getNamedConstructor(constructorName ?? '');
+  }
 }
 
 /// Helper class for evaluating arguments for a single constructor based
@@ -718,10 +742,12 @@ class _ArgumentEvaluation {
     required this.argumentIndex,
   });
 
-  macro.Argument evaluate(ast.Expression node) {
+  macro.Argument evaluate(DartType contextType, ast.Expression node) {
     if (node is ast.AdjacentStrings) {
-      return macro.StringArgument(
-          node.strings.map(evaluate).map((arg) => arg.value).join(''));
+      return macro.StringArgument(node.strings
+          .map((e) => evaluate(contextType, e))
+          .map((arg) => arg.value)
+          .join(''));
     } else if (node is ast.BooleanLiteral) {
       return macro.BoolArgument(node.value);
     } else if (node is ast.DoubleLiteral) {
@@ -729,53 +755,88 @@ class _ArgumentEvaluation {
     } else if (node is ast.IntegerLiteral) {
       return macro.IntArgument(node.value!);
     } else if (node is ast.ListLiteral) {
-      final typeArguments = _typeArgumentsForNode(node);
-      return macro.ListArgument(
-          node.elements.cast<ast.Expression>().map(evaluate).toList(),
-          typeArguments);
+      return _listLiteral(contextType, node);
     } else if (node is ast.NullLiteral) {
       return macro.NullArgument();
     } else if (node is ast.PrefixExpression &&
         node.operator.type == TokenType.MINUS) {
-      final operandValue = evaluate(node.operand);
+      final operandValue = evaluate(contextType, node.operand);
       if (operandValue is macro.DoubleArgument) {
         return macro.DoubleArgument(-operandValue.value);
       } else if (operandValue is macro.IntArgument) {
         return macro.IntArgument(-operandValue.value);
       }
     } else if (node is ast.SetOrMapLiteral) {
-      return _setOrMapLiteral(node);
+      return _setOrMapLiteral(contextType, node);
     } else if (node is ast.SimpleStringLiteral) {
       return macro.StringArgument(node.value);
     }
     _throwError(node, 'Not supported: ${node.runtimeType}');
   }
 
-  macro.Argument _setOrMapLiteral(ast.SetOrMapLiteral node) {
-    final typeArguments = _typeArgumentsForNode(node);
+  macro.ListArgument _listLiteral(
+    DartType contextType,
+    ast.ListLiteral node,
+  ) {
+    final DartType elementType;
+    switch (contextType) {
+      case InterfaceType(isDartCoreList: true):
+        elementType = contextType.typeArguments[0];
+      default:
+        _throwError(node, 'Expected context type List');
+    }
 
-    if (node.elements.every((e) => e is ast.Expression)) {
-      final result = <macro.Argument>[];
-      for (final element in node.elements) {
-        if (element is! ast.Expression) {
-          _throwError(element, 'Expression expected');
+    final typeArguments = _argumentKindsOfType(
+      contextType,
+      includeTop: false,
+    );
+
+    return macro.ListArgument(
+      node.elements
+          .cast<ast.Expression>()
+          .map((e) => evaluate(elementType, e))
+          .toList(),
+      typeArguments,
+    );
+  }
+
+  macro.Argument _setOrMapLiteral(
+    DartType contextType,
+    ast.SetOrMapLiteral node,
+  ) {
+    final typeArguments = _argumentKindsOfType(
+      contextType,
+      includeTop: false,
+    );
+
+    switch (contextType) {
+      case InterfaceType(isDartCoreMap: true):
+        final keyType = contextType.typeArguments[0];
+        final valueType = contextType.typeArguments[1];
+        final result = <macro.Argument, macro.Argument>{};
+        for (final element in node.elements) {
+          if (element is! ast.MapLiteralEntry) {
+            _throwError(element, 'MapLiteralEntry expected');
+          }
+          final key = evaluate(keyType, element.key);
+          final value = evaluate(valueType, element.value);
+          result[key] = value;
         }
-        final value = evaluate(element);
-        result.add(value);
-      }
-      return macro.SetArgument(result, typeArguments);
+        return macro.MapArgument(result, typeArguments);
+      case InterfaceType(isDartCoreSet: true):
+        final elementType = contextType.typeArguments[0];
+        final result = <macro.Argument>[];
+        for (final element in node.elements) {
+          if (element is! ast.Expression) {
+            _throwError(element, 'Expression expected');
+          }
+          final value = evaluate(elementType, element);
+          result.add(value);
+        }
+        return macro.SetArgument(result, typeArguments);
+      default:
+        _throwError(node, 'Expected context type Map or Set');
     }
-
-    final result = <macro.Argument, macro.Argument>{};
-    for (final element in node.elements) {
-      if (element is! ast.MapLiteralEntry) {
-        _throwError(element, 'MapLiteralEntry expected');
-      }
-      final key = evaluate(element.key);
-      final value = evaluate(element.value);
-      result[key] = value;
-    }
-    return macro.MapArgument(result, typeArguments);
   }
 
   Never _throwError(ast.AstNode node, String message) {
@@ -1001,8 +1062,9 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
   @override
   Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
     final libraryElement = elementFactory.libraryOfUri2(library);
-    final element = libraryElement.scope.lookup(name).getter!;
-    return declarationBuilder.fromElement.identifier(element);
+    final lookup = libraryElement.scope.lookup(name);
+    final element = lookup.getter ?? lookup.setter;
+    return declarationBuilder.fromElement.identifier(element!);
   }
 }
 

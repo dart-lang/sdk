@@ -748,6 +748,21 @@ library
     );
   }
 
+  test_kind_named_positional() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<int>',
+        'bar': 'List<double>',
+      },
+      constructorParametersCode: '(this foo, {required this.bar})',
+      argumentsCode: '(bar: [0.1], [2])',
+      expected: r'''
+foo: List<int> [2]
+bar: List<double> [0.1]
+''',
+    );
+  }
+
   test_kind_optionalNamed() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
@@ -757,8 +772,8 @@ library
       constructorParametersCode: '({this.foo = -1, this.bar = -2})',
       argumentsCode: '(foo: 1)',
       expected: r'''
-foo: 1
-bar: -2
+foo: int 1
+bar: int -2
 ''',
     );
   }
@@ -772,8 +787,8 @@ bar: -2
       constructorParametersCode: '([this.foo = -1, this.bar = -2])',
       argumentsCode: '(1)',
       expected: r'''
-foo: 1
-bar: -2
+foo: int 1
+bar: int -2
 ''',
     );
   }
@@ -784,7 +799,7 @@ bar: -2
       constructorParametersCode: '({required this.foo})',
       argumentsCode: '(foo: 42)',
       expected: r'''
-foo: 42
+foo: int 42
 ''',
     );
   }
@@ -795,7 +810,7 @@ foo: 42
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(42)',
       expected: r'''
-foo: 42
+foo: int 42
 ''',
     );
   }
@@ -809,8 +824,8 @@ foo: 42
       constructorParametersCode: '(this.foo, this.bar)',
       argumentsCode: '(true, false)',
       expected: r'''
-foo: true
-bar: false
+foo: bool true
+bar: bool false
 ''',
     );
   }
@@ -821,7 +836,7 @@ bar: false
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(1.2)',
       expected: r'''
-foo: 1.2
+foo: double 1.2
 ''',
     );
   }
@@ -832,7 +847,7 @@ foo: 1.2
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(-1.2)',
       expected: r'''
-foo: -1.2
+foo: double -1.2
 ''',
     );
   }
@@ -843,7 +858,7 @@ foo: -1.2
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(42)',
       expected: r'''
-foo: 42
+foo: int 42
 ''',
     );
   }
@@ -854,12 +869,51 @@ foo: 42
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(-42)',
       expected: r'''
-foo: -42
+foo: int -42
 ''',
     );
   }
 
-  test_type_list() async {
+  test_type_list_int() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<int>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([0, 1, 2])',
+      expected: r'''
+foo: List<int> [0, 1, 2]
+''',
+    );
+  }
+
+  test_type_list_intQ() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<int?>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([0, null, 2])',
+      expected: r'''
+foo: List<int?> [0, null, 2]
+''',
+    );
+  }
+
+  test_type_list_map_int_string() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<Map<int, String>>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([{0: "a"}, {1: "b", 2: "c"}])',
+      expected: r'''
+foo: List<Map<int, String>> [{0: a}, {1: b, 2: c}]
+''',
+    );
+  }
+
+  test_type_list_objectQ() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
         'foo': 'List<Object?>',
@@ -867,20 +921,20 @@ foo: -42
       constructorParametersCode: '(this.foo)',
       argumentsCode: '([1, 2, true, 3, 4.2])',
       expected: r'''
-foo: [1, 2, true, 3, 4.2]
+foo: List<Object?> [1, 2, true, 3, 4.2]
 ''',
     );
   }
 
-  test_type_map() async {
+  test_type_map_int_string() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
-        'foo': 'Map<Object?, Object?>',
+        'foo': 'Map<int, String>',
       },
       constructorParametersCode: '(this.foo)',
-      argumentsCode: '({1: true, "abc": 2.3})',
+      argumentsCode: '({0: "a", 1: "b"})',
       expected: r'''
-foo: {1: true, abc: 2.3}
+foo: _Map<int, String> {0: a, 1: b}
 ''',
     );
   }
@@ -891,7 +945,7 @@ foo: {1: true, abc: 2.3}
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(null)',
       expected: r'''
-foo: null
+foo: Null null
 ''',
     );
   }
@@ -899,12 +953,12 @@ foo: null
   test_type_set() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
-        'foo': 'Set<Object?>',
+        'foo': 'Set<int>',
       },
       constructorParametersCode: '(this.foo)',
       argumentsCode: '({1, 2, 3})',
       expected: r'''
-foo: {1, 2, 3}
+foo: _Set<int> {1, 2, 3}
 ''',
     );
   }
@@ -915,7 +969,7 @@ foo: {1, 2, 3}
       constructorParametersCode: '(this.foo)',
       argumentsCode: "('aaa')",
       expected: r'''
-foo: aaa
+foo: String aaa
 ''',
     );
   }
@@ -926,7 +980,7 @@ foo: aaa
       constructorParametersCode: '(this.foo)',
       argumentsCode: "('aaa' 'bbb' 'ccc')",
       expected: r'''
-foo: aaabbbccc
+foo: String aaabbbccc
 ''',
     );
   }
@@ -947,7 +1001,7 @@ foo: aaabbbccc
     bool hasErrors = false,
   }) async {
     final dumpCode = fields.keys.map((name) {
-      return "$name: \$$name\\\\n";
+      return "$name: \${$name.runtimeType} \$$name\\\\n";
     }).join('');
 
     newFile('$testPackageLibPath/arguments_text.dart', '''
@@ -2406,6 +2460,10 @@ class MacroDefinitionTest_keepLinking extends MacroDefinitionTest {
 abstract class MacroElementsBaseTest extends ElementsBaseTest {
   /// We decided that we want to fail, and want to print the library.
   void failWithLibraryText(LibraryElementImpl library) {
+    // While developing, we hit unimplemented branches.
+    // It is useful to see where, so include stack traces.
+    configuration.withMacroStackTraces = true;
+
     final text = getLibraryText(
       library: library,
       configuration: configuration,
@@ -4035,6 +4093,171 @@ class A
 ''');
   }
 
+  test_extension_getters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extension_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+@a
+extension A on int {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a
+  onType: int
+''');
+  }
+
+  test_extension_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extension_setters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {
+  set foo(int value) {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
+''');
+  }
+
+  test_extension_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A<T> on Map<int, T> {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  typeParameters
+    T
+  onType: Map<int, T>
+''');
+  }
+
+  test_extensionType_getters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extensionType_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+@a
+extension type A(int it) {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_extensionType_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A(int it) {
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extensionType_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A<T>(int it) {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  typeParameters
+    T
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+''');
+  }
+
   test_mixin_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 mixin A {
@@ -4217,6 +4440,105 @@ void foo() {}
     await _assertIntrospectText('foo', r'''
 foo
   flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_unit_function_flags_hasExternal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+external void foo() {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody hasExternal
+  returnType: void
+''');
+  }
+
+  test_unit_function_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@a1
+@a2
+void foo() {}
+
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  returnType: void
+''');
+  }
+
+  test_unit_function_namedParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo({required int a, String? b}) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  namedParameters
+    a
+      flags: isNamed isRequired
+      type: int
+    b
+      flags: isNamed
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_function_positionalParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(int a, [String? b]) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    a
+      flags: isRequired
+      type: int
+    b
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+int get foo => 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_unit_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+set foo(int value) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: int
   returnType: void
 ''');
   }

@@ -6504,7 +6504,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             case 'NEW_RUNTIME_TYPES':
               return js.boolean(_options.newRuntimeTypes);
             case 'VARIANCE':
-              return js.boolean(false);
+              // Variance is turned on by default, but only interfaces that have
+              // at least one type parameter with non-legacy variance will have
+              // extra information recorded.
+              return js.boolean(true);
             default:
               throw UnsupportedError(
                   'Unknown JS_GET_FLAG "$value" at ${node.location}');

@@ -99,7 +99,7 @@ vars = {
   "boringssl_gen_rev": "a468ba9fec3f59edf46a7db98caaca893e1e4d96",
   "boringssl_rev": "74646566e93de7551bfdfc5f49de7462f13d1d05",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "devtools_rev": "27795d615e1878ccf5f55c4b90d611e2628a8618",
+  "devtools_rev": "f3756798cc53a74ae34a89d661b8718e6f9b7154",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -142,7 +142,7 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "8b1f24a8475a0116757172cd9acca4acbf87d973", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "53da3e1dd1802c5899352fce251ea0c385a827b0", # https://github.com/dart-lang/dartdoc/issues/3562
+  "dartdoc_rev": "f05afb4e95767825e52b99dc84eae6eda08a7d8f", # https://github.com/dart-lang/dartdoc/issues/3562
   "ecosystem_rev": "ce707fbb45e54cd2b353f33d3849f4b10a262850",
   "ffi_rev": "c926657618443ff4821411ede01684096b503f84",
   "file_rev": "cd3a9324f6483f313ba1f0f3ff382ea4e6982ef2",

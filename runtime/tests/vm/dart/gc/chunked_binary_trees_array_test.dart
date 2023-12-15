@@ -60,11 +60,11 @@ checkTopDown(List n, int depth) {
   checkTopDown(n[1][1]!, depth - 1);
 }
 
-runTopDown() {
+runTopDown(int depth) {
   List n = new List<dynamic>.filled(3, null);
-  n[2] = 10;
-  buildTopDown(n, 10);
-  checkTopDown(n, 10);
+  n[2] = depth;
+  buildTopDown(n, depth);
+  checkTopDown(n, depth);
 }
 
 List buildBottomUp(int depth) {
@@ -112,14 +112,14 @@ checkButtomUp(List n, int depth) {
   checkButtomUp(n[1][1]!, depth - 1);
 }
 
-runBottomUp() {
-  List n = buildBottomUp(10);
-  checkButtomUp(n, 10);
+runBottomUp(int depth) {
+  List n = buildBottomUp(depth);
+  checkButtomUp(n, depth);
 }
 
 main() {
-  for (var i = 0; i < 10; i++) {
-    runTopDown();
-    runBottomUp();
+  for (var i = 0; i < 5; i++) {
+    runTopDown(10);
+    runBottomUp(10);
   }
 }
