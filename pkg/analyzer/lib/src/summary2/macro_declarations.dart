@@ -88,6 +88,10 @@ class DeclarationBuilder {
         return fromNode.classDeclaration(node);
       case ast.ConstructorDeclarationImpl():
         return fromNode.constructorDeclaration(node);
+      case ast.EnumDeclarationImpl():
+        return fromNode.enumDeclaration(node);
+      case ast.EnumConstantDeclarationImpl():
+        return fromNode.enumConstantDeclaration(node);
       case ast.ExtensionDeclarationImpl():
         return fromNode.extensionDeclaration(node);
       case ast.ExtensionTypeDeclarationImpl():
@@ -116,10 +120,14 @@ class DeclarationBuilder {
       throw ArgumentError('Identifier without element.');
     }
 
+    return declarationOfElement(element);
+  }
+
+  /// See [macro.DefinitionPhaseIntrospector.declarationOf].
+  macro.DeclarationImpl declarationOfElement(Element element) {
     final node = nodeOfElement(element);
     if (node != null) {
-      // TODO(scheglov): implement
-      throw UnimplementedError();
+      return fromNode.declarationOf(node);
     } else {
       return fromElement.declarationOf(element);
     }
@@ -469,12 +477,16 @@ class DeclarationBuilderFromElement {
   /// See [macro.DefinitionPhaseIntrospector.declarationOf].
   macro.DeclarationImpl declarationOf(Element element) {
     switch (element) {
+      case ConstructorElementImpl():
+        return constructorElement(element);
       case ExtensionElementImpl():
         return extensionElement(element);
-      case ExtensionTypeElementImpl():
-        return extensionTypeElement(element);
+      case FieldElementImpl():
+        return fieldElement(element);
       case FunctionElementImpl():
         return functionElement(element);
+      case MethodElementImpl():
+        return methodElement(element);
       case PropertyAccessorElementImpl():
         if (element.enclosingElement is CompilationUnitElement) {
           return functionElement(element);
@@ -552,11 +564,13 @@ class DeclarationBuilderFromElement {
     switch (element) {
       case ClassElementImpl():
         return classElement(element);
+      case ExtensionTypeElementImpl():
+        return extensionTypeElement(element);
       case MixinElementImpl():
         return mixinElement(element);
       default:
         // TODO(scheglov): other elements
-        throw ArgumentError('element: $element');
+        throw ArgumentError('element: (${element.runtimeType}) $element');
     }
   }
 
@@ -880,6 +894,65 @@ class DeclarationBuilderFromNode {
     );
   }
 
+  /// See [macro.DefinitionPhaseIntrospector.declarationOf].
+  macro.DeclarationImpl declarationOf(ast.AstNode node) {
+    switch (node) {
+      case ast.ConstructorDeclarationImpl():
+        return constructorDeclaration(node);
+      case ast.MethodDeclarationImpl():
+        return methodDeclaration(node);
+      case ast.RepresentationDeclaration():
+        return representationDeclaration(node);
+      case ast.VariableDeclaration():
+        return variableDeclaration(node);
+      default:
+        // TODO(scheglov): other nodes
+        return typeDeclarationOf(node);
+    }
+  }
+
+  macro.EnumValueDeclarationImpl enumConstantDeclaration(
+    ast.EnumConstantDeclarationImpl node,
+  ) {
+    final element = node.declaredElement!;
+    return _enumConstantDeclaration(element);
+  }
+
+  EnumDeclarationImpl enumDeclaration(
+    ast.EnumDeclarationImpl node,
+  ) {
+    final element = node.declaredElement!;
+
+    // TODO(scheglov): this is duplicate
+    final interfaceNodes = <ast.NamedType>[];
+    final mixinNodes = <ast.NamedType>[];
+    for (var current = node;;) {
+      if (current.implementsClause case final clause?) {
+        interfaceNodes.addAll(clause.interfaces);
+      }
+      if (current.withClause case final clause?) {
+        mixinNodes.addAll(clause.mixinTypes);
+      }
+      final nextElement = current.declaredElement?.augmentation;
+      final nextNode = declarationBuilder.nodeOfElement(nextElement);
+      if (nextNode is! ast.EnumDeclarationImpl) {
+        break;
+      }
+      current = nextNode;
+    }
+
+    return EnumDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: _typeParameters(node.typeParameters),
+      interfaces: _namedTypes(interfaceNodes),
+      mixins: _namedTypes(mixinNodes),
+      element: element,
+    );
+  }
+
   ExtensionDeclarationImpl extensionDeclaration(
     ast.ExtensionDeclarationImpl node,
   ) {
@@ -969,6 +1042,7 @@ class DeclarationBuilderFromNode {
   ) {
     final element = node.declaredElement!;
 
+    // TODO(scheglov): this is duplicate (partial)
     final onNodes = <ast.NamedType>[];
     final interfaceNodes = <ast.NamedType>[];
     for (var current = node;;) {
@@ -999,23 +1073,52 @@ class DeclarationBuilderFromNode {
     );
   }
 
+  macro.FieldDeclarationImpl representationDeclaration(
+    ast.RepresentationDeclaration node,
+  ) {
+    final element = node.fieldElement as FieldElementImpl;
+    return FieldDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.fieldName, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      hasAbstract: false,
+      hasExternal: false,
+      hasFinal: element.isFinal,
+      hasLate: element.isLate,
+      type: _typeAnnotationVariable(node.fieldType, element),
+      definingType: _definingType(node),
+      isStatic: element.isStatic,
+      element: element,
+    );
+  }
+
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(ast.AstNode node) {
     switch (node) {
       case ast.ClassDeclarationImpl():
         return classDeclaration(node);
+      case ast.EnumDeclarationImpl():
+        return enumDeclaration(node);
       case ast.MixinDeclarationImpl():
         return mixinDeclaration(node);
       default:
-        throw ArgumentError('node: $node');
+        // TODO(scheglov): other nodes
+        throw ArgumentError('node: (${node.runtimeType}) $node');
     }
   }
 
-  macro.VariableDeclarationImpl variableDeclaration(
+  macro.DeclarationImpl variableDeclaration(
     ast.VariableDeclaration node,
   ) {
     final variableList = node.parent as ast.VariableDeclarationList;
     final variablesDeclaration = variableList.parent;
+
+    final element = node.declaredElement;
+    if (element is FieldElementImpl && element.isEnumConstant) {
+      return _enumConstantDeclaration(element);
+    }
+
     switch (variablesDeclaration) {
       case ast.FieldDeclarationImpl():
         final element = node.declaredElement as FieldElementImpl;
@@ -1068,6 +1171,10 @@ class DeclarationBuilderFromNode {
         final parentElement = parentNode.declaredElement!;
         final typeElement = parentElement.augmentationTarget ?? parentElement;
         return _declaredIdentifier(parentNode.name, typeElement);
+      case ast.EnumDeclaration():
+        final parentElement = parentNode.declaredElement!;
+        final typeElement = parentElement.augmentationTarget ?? parentElement;
+        return _declaredIdentifier(parentNode.name, typeElement);
       case ast.ExtensionDeclaration():
         final parentElement = parentNode.declaredElement!;
         final typeElement = parentElement.augmentationTarget ?? parentElement;
@@ -1086,6 +1193,22 @@ class DeclarationBuilderFromNode {
     }
   }
 
+  macro.EnumValueDeclarationImpl _enumConstantDeclaration(
+    FieldElementImpl element,
+  ) {
+    final enclosing = element.enclosingElement as EnumElementImpl;
+    return EnumValueDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier2(element.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      definingEnum: _declaredIdentifier2(enclosing.name, enclosing),
+      // TODO(scheglov): restore, when added
+      // type: _typeAnnotationVariable(variableList.type, element),
+      element: element,
+    );
+  }
+
   macro.ParameterDeclarationImpl _formalParameter(ast.FormalParameter node) {
     if (node is ast.DefaultFormalParameter) {
       node = node.parameter;
@@ -1094,10 +1217,13 @@ class DeclarationBuilderFromNode {
     final element = node.declaredElement!;
 
     final macro.TypeAnnotationImpl typeAnnotation;
-    if (node is ast.SimpleFormalParameter) {
-      typeAnnotation = _typeAnnotationVariable(node.type, element);
-    } else {
-      throw UnimplementedError('(${node.runtimeType}) $node');
+    switch (node) {
+      case ast.FieldFormalParameter():
+        typeAnnotation = _typeAnnotationVariable(node.type, element);
+      case ast.SimpleFormalParameter():
+        typeAnnotation = _typeAnnotationVariable(node.type, element);
+      default:
+        throw UnimplementedError('(${node.runtimeType}) $node');
     }
 
     return macro.ParameterDeclarationImpl(
@@ -1339,6 +1465,40 @@ class DeclarationBuilderFromNode {
       return const [];
     }
   }
+}
+
+class EnumDeclarationImpl extends macro.EnumDeclarationImpl
+    implements HasElement {
+  @override
+  final EnumElementImpl element;
+
+  EnumDeclarationImpl._({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.typeParameters,
+    required super.interfaces,
+    required super.mixins,
+    required this.element,
+  });
+}
+
+class EnumValueDeclarationImpl extends macro.EnumValueDeclarationImpl
+    implements HasElement {
+  @override
+  final FieldElementImpl element;
+
+  EnumValueDeclarationImpl({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.definingEnum,
+    // TODO(scheglov): restore, when added
+    // required super.type,
+    required this.element,
+  });
 }
 
 class ExtensionDeclarationImpl extends macro.ExtensionDeclarationImpl

@@ -7,13 +7,28 @@ import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /*macro*/ class AddClass
-    implements ClassTypesMacro, MethodTypesMacro, MixinTypesMacro {
+    implements
+        ClassTypesMacro,
+        EnumTypesMacro,
+        EnumValueTypesMacro,
+        MethodTypesMacro,
+        MixinTypesMacro {
   final String name;
 
   const AddClass(this.name);
 
   @override
   buildTypesForClass(clazz, builder) async {
+    _add(builder);
+  }
+
+  @override
+  buildTypesForEnum(declaration, builder) async {
+    _add(builder);
+  }
+
+  @override
+  buildTypesForEnumValue(declaration, builder) async {
     _add(builder);
   }
 

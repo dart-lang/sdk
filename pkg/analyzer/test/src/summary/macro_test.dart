@@ -537,6 +537,32 @@ class A2 {}
 ''');
   }
 
+  test_types_enum() async {
+    var library = await buildLibrary(r'''
+import 'order.dart';
+
+@AddClass('A1')
+enum X {
+  @AddClass('A2')
+  v1,
+  @AddClass('A3')
+  v2;
+  @AddClass('A4')
+  void foo() {}
+}
+''');
+
+    configuration.forOrder();
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+class A2 {}
+class A3 {}
+class A4 {}
+class A1 {}
+''');
+  }
+
   test_types_innerBeforeOuter_class_method() async {
     var library = await buildLibrary(r'''
 import 'order.dart';
@@ -5423,6 +5449,192 @@ class A
     T
     U
       bound: List<T>
+''');
+  }
+
+  test_enum_fields() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  v(0);
+  final int foo;
+  const A(this.foo);
+}
+''', r'''
+enum A
+  values
+    v
+  fields
+    foo
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_enum_getters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  v;
+  int get foo => 0;
+}
+''', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_enum_interfaces() async {
+    await _assertIntrospectText(r'''
+class A {}
+class B {}
+
+@Introspect()
+enum X implements A, B {
+  v
+}
+''', r'''
+enum X
+  interfaces
+    A
+    B
+  values
+    v
+''');
+  }
+
+  test_enum_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@Introspect(withMetadata: true)
+@a
+enum X {
+  v
+}
+
+''', r'''
+enum X
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a
+  values
+    v
+''');
+  }
+
+  test_enum_method() async {
+    await _assertIntrospectText(r'''
+enum A {
+  v;
+  @Introspect()
+  void foo() {}
+}
+''', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_enum_methods() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  v;
+  void foo() {}
+}
+''', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_enum_setters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  v;
+  set foo(int value) {}
+}
+''', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: OmittedType
+''');
+  }
+
+  test_enum_typeParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum E<T> {
+  v
+}
+''', r'''
+enum E
+  typeParameters
+    T
+  values
+    v
+''');
+  }
+
+  test_enumValue() async {
+    await _assertIntrospectText(r'''
+enum A {
+  @Introspect()
+  foo;
+}
+''', r'''
+foo
+''');
+  }
+
+  test_enumValue_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+enum X {
+  @Introspect(withMetadata: true)
+  @a
+  v
+}
+
+''', r'''
+v
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a
 ''');
   }
 

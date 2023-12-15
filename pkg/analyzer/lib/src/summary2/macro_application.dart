@@ -125,8 +125,26 @@ class LibraryMacroApplier {
           // TODO(scheglov): implement it
           break;
         case ast.EnumDeclarationImpl():
-          // TODO(scheglov): implement it
-          break;
+          final element = declaration.declaredElement!;
+          final declarationElement = element.augmented?.declaration ?? element;
+          await _addClassLike(
+            libraryElement: libraryElement,
+            container: container,
+            targetElement: declarationElement,
+            classNode: declaration,
+            classDeclarationKind: macro.DeclarationKind.enumType,
+            classAnnotations: declaration.metadata,
+            members: declaration.members,
+          );
+          for (final constant in declaration.constants.reversed) {
+            await _addAnnotations(
+              libraryElement: libraryElement,
+              container: container,
+              targetNode: constant,
+              targetDeclarationKind: macro.DeclarationKind.enumValue,
+              annotations: constant.metadata,
+            );
+          }
         case ast.ExtensionDeclarationImpl():
           final element = declaration.declaredElement!;
           final declarationElement = element.augmented?.declaration ?? element;
@@ -870,7 +888,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
     if (element case InterfaceElement(:final augmented?)) {
       return augmented.constructors
           .map((e) => e.declaration as ConstructorElementImpl)
-          .map(declarationBuilder.fromElement.constructorElement)
+          .map(declarationBuilder.declarationOfElement)
+          .whereType<macro.ConstructorDeclaration>()
           .toList();
     }
     return [];
@@ -887,7 +906,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
       return augmented.fields
           .whereNot((e) => e.isSynthetic)
           .map((e) => e.declaration as FieldElementImpl)
-          .map(declarationBuilder.fromElement.fieldElement)
+          .map(declarationBuilder.declarationOfElement)
+          .whereType<macro.FieldDeclaration>()
           .toList();
     }
     // TODO(scheglov): can we test this?
@@ -907,7 +927,8 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
         ...augmented.methods,
       ]
           .map((e) => e.declaration as ExecutableElementImpl)
-          .map(declarationBuilder.fromElement.methodElement)
+          .map(declarationBuilder.declarationOfElement)
+          .whereType<macro.MethodDeclaration>()
           .toList();
     }
     // TODO(scheglov): can we test this?
@@ -935,9 +956,17 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.EnumValueDeclaration>> valuesOf(
-      covariant macro.EnumDeclaration type) {
-    // TODO(jakemac): implement valuesOf
-    throw UnimplementedError();
+    covariant macro.EnumDeclaration type,
+  ) async {
+    final element = (type as HasElement).element;
+    await _runDeclarationsPhase(element);
+
+    element as EnumElementImpl;
+    // TODO(scheglov): use augmented
+    return element.constants
+        .map(declarationBuilder.declarationOfElement)
+        .whereType<macro.EnumValueDeclaration>()
+        .toList();
   }
 
   Future<void> _runDeclarationsPhase(ElementImpl element) async {
