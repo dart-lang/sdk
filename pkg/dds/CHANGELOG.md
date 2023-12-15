@@ -1,3 +1,6 @@
+# 3.1.1
+- Updated `vm_service` constraint to ^14.0.0.
+
 # 3.1.0
 - Updated `devtools_shared` to ^6.0.0.
 - Updated `vm_service` to ^13.0.0.
