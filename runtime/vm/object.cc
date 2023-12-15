@@ -19816,7 +19816,10 @@ intptr_t LoadingUnit::LoadingUnitOf(const Function& function) {
   cls = function.Owner();
   lib = cls.library();
   unit = lib.loading_unit();
-  ASSERT(!unit.IsNull());
+  if (unit.IsNull()) {
+    FATAL("Unable to find loading unit of %s (class %s, library %s)",
+          function.ToFullyQualifiedCString(), cls.ToCString(), lib.ToCString());
+  }
   return unit.id();
 }
 

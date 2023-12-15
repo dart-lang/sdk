@@ -1805,36 +1805,53 @@ class _TreeShakerPass2 extends RemovingTransformer {
     }
   }
 
-  final _libraryExportDeps = <Library, Set<Library>>{};
+  final _removedLibraryDeps = <Library, Set<Library>>{};
   final _additionalDeps = <Library>{};
 
   // Returns set of export dependencies of given library.
-  Set<Library> getLibraryExportDeps(Library node) =>
-      _libraryExportDeps[node] ??= calculateLibraryExportDeps(node);
+  Set<Library> getRemovedLibraryDeps(Library node) {
+    final deps = _removedLibraryDeps[node];
+    if (deps != null) return deps;
+    calculateRemovedLibraryDeps(node);
+    return _removedLibraryDeps[node]!;
+  }
 
-  Set<Library> calculateLibraryExportDeps(Library node) {
-    final processed = <Library>{};
-    final worklist = <Library>[];
-    final deps = <Library>{};
-    worklist.add(node);
-    processed.add(node);
+  void calculateRemovedLibraryDeps(Library node) {
+    final worklist = <Library>[node];
+    final deadPredecessors = <Library, Set<Library>>{node: {}};
+    final liveSuccessors = <Library, Set<Library>>{};
     while (worklist.isNotEmpty) {
       final lib = worklist.removeLast();
+      final deps = liveSuccessors[lib] = {};
       for (final dep in lib.dependencies) {
-        if (!dep.isExport) {
-          continue;
-        }
         final targetLibrary = dep.targetLibrary;
-        if (processed.add(targetLibrary)) {
-          if (shaker.isLibraryUsed(targetLibrary)) {
-            deps.add(targetLibrary);
+        if (shaker.isLibraryUsed(targetLibrary)) {
+          // Live import.
+          deps.add(targetLibrary);
+        } else {
+          final targetDeps = _removedLibraryDeps[targetLibrary];
+          if (targetDeps != null) {
+            // Reuse previously calculated live import.
+            deps.addAll(targetDeps);
           } else {
-            worklist.add(targetLibrary);
+            var preds = deadPredecessors[targetLibrary];
+            if (preds == null) {
+              deadPredecessors[targetLibrary] = preds = {};
+              worklist.add(targetLibrary);
+            }
+            preds.add(lib);
+            preds.addAll(deadPredecessors[lib]!);
           }
         }
       }
     }
-    return deps;
+    deadPredecessors.forEach((lib, preds) {
+      final successors = liveSuccessors[lib]!;
+      for (final pred in preds) {
+        liveSuccessors[pred]!.addAll(successors);
+      }
+    });
+    _removedLibraryDeps.addAll(liveSuccessors);
   }
 
   @override
@@ -1880,7 +1897,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
       LibraryDependency node, TreeNode? removalSentinel) {
     final targetLibrary = node.targetLibrary;
     if (!shaker.isLibraryUsed(targetLibrary)) {
-      _additionalDeps.addAll(getLibraryExportDeps(targetLibrary));
+      _additionalDeps.addAll(getRemovedLibraryDeps(targetLibrary));
       return removalSentinel!;
     }
     return node;
