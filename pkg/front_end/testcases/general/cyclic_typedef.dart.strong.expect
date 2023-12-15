@@ -7,6 +7,10 @@ library;
 // typedef F2 = void Function<X extends F2>();
 //         ^^
 //
+// pkg/front_end/testcases/general/cyclic_typedef.dart:14:9: Error: The typedef 'F5' has a reference to itself.
+// typedef F5<X extends F5<Never>> = Object;
+//         ^^
+//
 // pkg/front_end/testcases/general/cyclic_typedef.dart:5:9: Error: The typedef 'F1' has a reference to itself.
 // typedef F1<X> = List<G1<X>>;
 //         ^^
@@ -21,10 +25,6 @@ library;
 //
 // pkg/front_end/testcases/general/cyclic_typedef.dart:12:9: Error: The typedef 'F4' has a reference to itself.
 // typedef F4 = List<F4>;
-//         ^^
-//
-// pkg/front_end/testcases/general/cyclic_typedef.dart:14:9: Error: The typedef 'F5' has a reference to itself.
-// typedef F5<X extends F5<Never>> = Object;
 //         ^^
 //
 import self as self;

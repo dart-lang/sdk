@@ -4592,14 +4592,14 @@ NonSimpleBoundViaReference:
 
 CycleInTypeVariables:
   problemMessage: "Type '#name' is a bound of itself via '#string'."
-  correctionMessage: "Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle."
+  correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
   script:
     - "foo<A extends B, B extends A>() {}"
 
 DirectCycleInTypeVariables:
   problemMessage: "Type '#name' can't use itself as a bound."
-  correctionMessage: "Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle."
+  correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
   script:
     - "foo<A extends A>() {}"

@@ -8786,6 +8786,7 @@ class BodyBuilder extends StackListenerImpl
     // Peek to leave type parameters on top of stack.
     List<TypeVariableBuilderBase> typeVariables =
         peek() as List<TypeVariableBuilderBase>;
+    libraryBuilder.checkTypeVariableDependencies(typeVariables);
 
     List<TypeBuilder> unboundTypes = [];
     List<StructuralVariableBuilder> unboundTypeVariables = [];

@@ -2,8 +2,8 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/issue45330.dart:12:31: Error: Type 'T' is a bound of itself via 'T'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+// pkg/front_end/testcases/general/issue45330.dart:12:31: Error: Type 'T' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 //   genericMethod<void Function<T extends T>()>();
 //                               ^
 //
@@ -12,8 +12,8 @@ library;
 //   genericMethod<void Function<T extends T>()>();
 //   ^
 //
-// pkg/front_end/testcases/general/issue45330_lib.dart:37:31: Error: Type 'T' is a bound of itself via 'T'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+// pkg/front_end/testcases/general/issue45330_lib.dart:37:31: Error: Type 'T' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 //   genericMethod<void Function<T extends T>()>();
 //                               ^
 //
