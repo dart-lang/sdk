@@ -40,17 +40,6 @@ class AnalysisContextImpl implements AnalysisContext {
   // TODO(scheglov): Remove it, exists only for Cider.
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
     _analysisOptions = analysisOptions;
-
-    // TODO(scheglov): remove this method as well
-    _typeSystemLegacy?.updateOptions(
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
-    );
-
-    _typeSystemNonNullableByDefault?.updateOptions(
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
-    );
   }
 
   bool get hasTypeProvider {
@@ -95,23 +84,11 @@ class AnalysisContextImpl implements AnalysisContext {
 
     _typeSystemLegacy = TypeSystemImpl(
       isNonNullableByDefault: false,
-      // TODO(pq): move type system options to accommodate multiple options per context
-      // https://github.com/dart-lang/sdk/issues/53873
-      // ignore: deprecated_member_use_from_same_package
-      strictCasts: analysisOptions.strictCasts,
-      // ignore: deprecated_member_use_from_same_package
-      strictInference: analysisOptions.strictInference,
       typeProvider: legacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       isNonNullableByDefault: true,
-      // TODO(pq): move type system options to accommodate multiple options per context
-      // https://github.com/dart-lang/sdk/issues/53873
-      // ignore: deprecated_member_use_from_same_package
-      strictCasts: analysisOptions.strictCasts,
-      // ignore: deprecated_member_use_from_same_package
-      strictInference: analysisOptions.strictInference,
       typeProvider: nonNullableByDefault,
     );
 

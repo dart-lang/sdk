@@ -43,15 +43,11 @@ class TestAnalysisContext implements AnalysisContext {
 
     _typeSystemLegacy = TypeSystemImpl(
       isNonNullableByDefault: false,
-      strictCasts: _analysisOptions.strictCasts,
-      strictInference: _analysisOptions.strictInference,
       typeProvider: _typeProviderLegacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       isNonNullableByDefault: true,
-      strictCasts: _analysisOptions.strictCasts,
-      strictInference: _analysisOptions.strictInference,
       typeProvider: _typeProviderNonNullableByDefault,
     );
 

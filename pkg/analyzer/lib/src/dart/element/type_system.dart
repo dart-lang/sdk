@@ -74,20 +74,6 @@ class TypeSystemImpl implements TypeSystem {
   /// The provider of types for the system.
   final TypeProviderImpl typeProvider;
 
-  /// True if "strict casts" should be enforced.
-  ///
-  /// This affects the behavior of [isAssignableTo].
-  // TODO(pq): remove (https://github.com/dart-lang/sdk/issues/53873)
-  @deprecated
-  bool strictCasts;
-
-  /// A flag indicating whether inference failures are allowed, off by default.
-  ///
-  /// This option is experimental and subject to change.
-  // TODO(pq): remove (https://github.com/dart-lang/sdk/issues/53873)
-  @deprecated
-  bool strictInference;
-
   /// The cached instance of `Object?`.
   InterfaceTypeImpl? _objectQuestion;
 
@@ -108,8 +94,6 @@ class TypeSystemImpl implements TypeSystem {
 
   TypeSystemImpl({
     required this.isNonNullableByDefault,
-    @deprecated required this.strictCasts,
-    @deprecated required this.strictInference,
     required TypeProvider typeProvider,
   }) : typeProvider = typeProvider as TypeProviderImpl {
     _greatestLowerBoundHelper = GreatestLowerBoundHelper(this);
@@ -1957,16 +1941,6 @@ class TypeSystemImpl implements TypeSystem {
     } else {
       return const <TypeParameterElement>[];
     }
-  }
-
-  void updateOptions({
-    required bool strictCasts,
-    required bool strictInference,
-  }) {
-    // ignore: deprecated_member_use_from_same_package
-    this.strictCasts = strictCasts;
-    // ignore: deprecated_member_use_from_same_package
-    this.strictInference = strictInference;
   }
 
   /// Optimistically estimates, if type arguments of [left] can be equal to
