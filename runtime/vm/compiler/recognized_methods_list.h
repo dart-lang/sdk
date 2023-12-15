@@ -272,7 +272,7 @@ namespace dart {
   V(_WeakReference, get:target, WeakReference_getTarget, 0xc98185aa)           \
   V(_WeakReference, set:_target, WeakReference_setTarget, 0xc71add9a)          \
   V(::, _abi, FfiAbi, 0x7c3c2b95)                                              \
-  V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x630c8491)                \
+  V(::, _ffiCall, FfiCall, 0x6118e962)                                         \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3fe722bc)        \
   V(::, _nativeAsyncCallbackFunction, FfiNativeAsyncCallbackFunction,          \
     0xbec4b7b9)                                                                \

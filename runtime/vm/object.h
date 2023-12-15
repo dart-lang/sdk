@@ -2949,8 +2949,7 @@ struct NameFormattingParams {
   }
 };
 
-enum class FfiFunctionKind : uint8_t {
-  kCall,
+enum class FfiCallbackKind : uint8_t {
   kIsolateLocalStaticCallback,
   kIsolateLocalClosureCallback,
   kAsyncCallback,
@@ -2986,37 +2985,31 @@ class Function : public Object {
   bool FfiCSignatureReturnsStruct() const;
 
   // Can only be called on FFI trampolines.
-  // -1 for Dart -> native calls.
   int32_t FfiCallbackId() const;
 
   // Should be called when ffi trampoline function object is created.
   void AssignFfiCallbackId(int32_t callback_id) const;
 
-  // Can only be called on FFI trampolines.
+  // Can only be called on FFI natives and FFI call closures.
   bool FfiIsLeaf() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiIsLeaf(bool is_leaf) const;
-
-  // Can only be called on FFI trampolines.
-  // Null for Dart -> native calls.
   FunctionPtr FfiCallbackTarget() const;
 
   // Can only be called on FFI trampolines.
   void SetFfiCallbackTarget(const Function& target) const;
 
   // Can only be called on FFI trampolines.
-  // Null for Dart -> native calls.
   InstancePtr FfiCallbackExceptionalReturn() const;
 
   // Can only be called on FFI trampolines.
   void SetFfiCallbackExceptionalReturn(const Instance& value) const;
 
   // Can only be called on FFI trampolines.
-  FfiFunctionKind GetFfiFunctionKind() const;
+  FfiCallbackKind GetFfiCallbackKind() const;
 
   // Can only be called on FFI trampolines.
-  void SetFfiFunctionKind(FfiFunctionKind value) const;
+  void SetFfiCallbackKind(FfiCallbackKind value) const;
 
   // Return the signature of this function.
   PRECOMPILER_WSR_FIELD_DECLARATION(FunctionType, signature);
@@ -3902,14 +3895,21 @@ class Function : public Object {
   }
 
   // Returns true if this function represents an ffi trampoline.
-  bool IsFfiTrampoline() const {
+  bool IsFfiCallbackTrampoline() const {
     return kind() == UntaggedFunction::kFfiTrampoline;
   }
-  static bool IsFfiTrampoline(FunctionPtr function) {
+  static bool IsFfiCallbackTrampoline(FunctionPtr function) {
     NoSafepointScope no_safepoint;
     return function->untag()->kind_tag_.Read<KindBits>() ==
            UntaggedFunction::kFfiTrampoline;
   }
+
+  // Returns true if this function is a closure function
+  // used to represent ffi call.
+  bool IsFfiCallClosure() const;
+
+  // Returns value of vm:ffi:call-closure pragma.
+  InstancePtr GetFfiCallClosurePragmaValue() const;
 
   // Returns true for functions which execution can be suspended
   // using Suspend/Resume stubs. Such functions have an artificial
@@ -4347,16 +4347,13 @@ class FfiTrampolineData : public Object {
   }
   void set_callback_exceptional_return(const Instance& value) const;
 
-  FfiFunctionKind ffi_function_kind() const {
-    return static_cast<FfiFunctionKind>(untag()->ffi_function_kind_);
+  FfiCallbackKind ffi_function_kind() const {
+    return static_cast<FfiCallbackKind>(untag()->ffi_function_kind_);
   }
-  void set_ffi_function_kind(FfiFunctionKind kind) const;
+  void set_ffi_function_kind(FfiCallbackKind kind) const;
 
   int32_t callback_id() const { return untag()->callback_id_; }
   void set_callback_id(int32_t value) const;
-
-  bool is_leaf() const { return untag()->is_leaf_; }
-  void set_is_leaf(bool value) const;
 
   static FfiTrampolineDataPtr New();
 
