@@ -150,4 +150,9 @@ class Modifier {
   static int removeRequiredMask(int mask) {
     return mask & ~requiredMask;
   }
+
+  /// Sets the bit in [mask] corresponding to [covariantMask] to 0.
+  static int removeCovariantMask(int mask) {
+    return mask & ~covariantMask;
+  }
 }

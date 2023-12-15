@@ -4727,6 +4727,60 @@ Message _withArgumentsExtraneousModifierInExtension(Token token) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateExtraneousModifierInExtensionType =
+    const Template<Message Function(Token token)>(
+        "ExtraneousModifierInExtensionType",
+        problemMessageTemplate:
+            r"""Can't have modifier '#lexeme' in an extension type.""",
+        correctionMessageTemplate: r"""Try removing '#lexeme'.""",
+        withArguments: _withArgumentsExtraneousModifierInExtensionType);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)>
+    codeExtraneousModifierInExtensionType =
+    const Code<Message Function(Token token)>(
+        "ExtraneousModifierInExtensionType",
+        index: 174);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtraneousModifierInExtensionType(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExtraneousModifierInExtensionType,
+      problemMessage:
+          """Can't have modifier '${lexeme}' in an extension type.""",
+      correctionMessage: """Try removing '${lexeme}'.""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(Token token)>
+    templateExtraneousModifierInPrimaryConstructor =
+    const Template<Message Function(Token token)>(
+        "ExtraneousModifierInPrimaryConstructor",
+        problemMessageTemplate:
+            r"""Can't have modifier '#lexeme' in a primary constructor.""",
+        correctionMessageTemplate: r"""Try removing '#lexeme'.""",
+        withArguments: _withArgumentsExtraneousModifierInPrimaryConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(Token token)>
+    codeExtraneousModifierInPrimaryConstructor =
+    const Code<Message Function(Token token)>(
+        "ExtraneousModifierInPrimaryConstructor",
+        index: 175);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsExtraneousModifierInPrimaryConstructor(Token token) {
+  String lexeme = token.lexeme;
+  return new Message(codeExtraneousModifierInPrimaryConstructor,
+      problemMessage:
+          """Can't have modifier '${lexeme}' in a primary constructor.""",
+      correctionMessage: """Try removing '${lexeme}'.""",
+      arguments: {'lexeme': token});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeFactoryNotSync = messageFactoryNotSync;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

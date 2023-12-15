@@ -1635,10 +1635,14 @@ class OutlineBuilder extends StackListenerImpl {
         if (inExtensionType && formal.type is ImplicitTypeBuilder) {
           libraryBuilder.addProblem(messageExpectedRepresentationType,
               formal.charOffset, formal.name.length, formal.fileUri);
+          formal.type =
+              new InvalidTypeBuilderImpl(formal.fileUri, formal.charOffset);
         }
-        if (inExtensionType &&
-            Modifier.maskContainsActualModifiers(
-                Modifier.removeRequiredMask(formal.modifiers))) {
+        if (inExtensionType && Modifier.maskContainsActualModifiers(
+            // 'covariant' is reported in the parser.
+            Modifier.removeCovariantMask(
+                // 'required' is reported in the parser.
+                Modifier.removeRequiredMask(formal.modifiers)))) {
           libraryBuilder.addProblem(messageRepresentationFieldModifier,
               formal.charOffset, formal.name.length, formal.fileUri);
         }
@@ -4169,9 +4173,11 @@ extension on MemberKind {
       case MemberKind.TopLevelMethod:
       case MemberKind.ExtensionNonStaticMethod:
       case MemberKind.ExtensionStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
       case MemberKind.PrimaryConstructor:
         return false;
       case MemberKind.NonStaticMethod:
+      case MemberKind.ExtensionTypeNonStaticMethod:
       // These can be inferred but cannot hold parameters so the cases are
       // dead code:
       case MemberKind.NonStaticField:

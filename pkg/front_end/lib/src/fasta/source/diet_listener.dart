@@ -776,13 +776,12 @@ class DietListener extends StackListenerImpl {
       //  constructor body. An error is reported by the parser but we skip
       //  the body here to avoid overwriting the already lowering const
       //  constructor.
+      // TODO(johnniwinther): Pass [memberKind] from the caller.
+      MemberKind memberKind = builder.isStatic
+          ? MemberKind.StaticMethod
+          : MemberKind.NonStaticMethod;
       buildFunctionBody(
-          createFunctionListener(builder),
-          beginParam,
-          metadata,
-          builder.isStatic
-              ? MemberKind.StaticMethod
-              : MemberKind.NonStaticMethod);
+          createFunctionListener(builder), beginParam, metadata, memberKind);
     }
   }
 

@@ -1412,6 +1412,22 @@ ExtraneousModifierInExtension:
   script:
     - "extension on String { foo(covariant String child) {} }"
 
+ExtraneousModifierInExtensionType:
+  index: 174
+  problemMessage: "Can't have modifier '#lexeme' in an extension type."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE
+  script:
+    - "extension type ET(String i) { foo(covariant String child) {} }"
+
+ExtraneousModifierInPrimaryConstructor:
+  index: 175
+  problemMessage: "Can't have modifier '#lexeme' in a primary constructor."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+  script:
+    - "extension type ET(covariant String i) { }"
+
 FinalAndCovariant:
   index: 80
   problemMessage: "Members can't be declared to be both 'final' and 'covariant'."

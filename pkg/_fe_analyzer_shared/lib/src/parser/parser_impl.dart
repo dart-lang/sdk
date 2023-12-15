@@ -1826,13 +1826,28 @@ class Parser {
   /// Return the message that should be produced when the formal parameters are
   /// missing.
   codes.Message missingParameterMessage(MemberKind kind) {
-    if (kind == MemberKind.FunctionTypeAlias) {
-      return codes.messageMissingTypedefParameters;
-    } else if (kind == MemberKind.NonStaticMethod ||
-        kind == MemberKind.StaticMethod) {
-      return codes.messageMissingMethodParameters;
+    switch (kind) {
+      case MemberKind.FunctionTypeAlias:
+        return codes.messageMissingTypedefParameters;
+      case MemberKind.StaticMethod:
+      case MemberKind.NonStaticMethod:
+        return codes.messageMissingMethodParameters;
+      case MemberKind.TopLevelMethod:
+      case MemberKind.ExtensionNonStaticMethod:
+      case MemberKind.ExtensionStaticMethod:
+      case MemberKind.ExtensionTypeNonStaticMethod:
+      case MemberKind.ExtensionTypeStaticMethod:
+      case MemberKind.Catch:
+      case MemberKind.Factory:
+      case MemberKind.FunctionTypedParameter:
+      case MemberKind.GeneralizedFunctionType:
+      case MemberKind.Local:
+      case MemberKind.NonStaticField:
+      case MemberKind.StaticField:
+      case MemberKind.TopLevelField:
+      case MemberKind.PrimaryConstructor:
+        return codes.messageMissingFunctionParameters;
     }
-    return codes.messageMissingFunctionParameters;
   }
 
   /// Check if [token] is the usage of 'required' in a formal parameter in a
@@ -1923,12 +1938,29 @@ class Parser {
 
       if (isModifier(next)) {
         if (optional('covariant', next)) {
-          if (memberKind != MemberKind.StaticMethod &&
-              memberKind != MemberKind.TopLevelMethod &&
-              memberKind != MemberKind.ExtensionNonStaticMethod &&
-              memberKind != MemberKind.ExtensionStaticMethod) {
-            covariantToken = token = next;
-            next = token.next!;
+          switch (memberKind) {
+            case MemberKind.StaticMethod:
+            case MemberKind.TopLevelMethod:
+            case MemberKind.ExtensionNonStaticMethod:
+            case MemberKind.ExtensionStaticMethod:
+            case MemberKind.ExtensionTypeNonStaticMethod:
+            case MemberKind.ExtensionTypeStaticMethod:
+            case MemberKind.PrimaryConstructor:
+              // Error cases reported in
+              // [ModifierContext.parseFormalParameterModifiers].
+              break;
+            case MemberKind.Catch:
+            case MemberKind.Factory:
+            case MemberKind.FunctionTypeAlias:
+            case MemberKind.FunctionTypedParameter:
+            case MemberKind.GeneralizedFunctionType:
+            case MemberKind.Local:
+            case MemberKind.NonStaticMethod:
+            case MemberKind.NonStaticField:
+            case MemberKind.StaticField:
+            case MemberKind.TopLevelField:
+              covariantToken = token = next;
+              next = token.next!;
           }
         }
 
@@ -4846,19 +4878,28 @@ class Parser {
         // that a constructor. We issue an error about the name below.
       }
     }
+    MemberKind memberKind;
+    switch (kind) {
+      case DeclarationKind.TopLevel:
+      case DeclarationKind.Class:
+      case DeclarationKind.Mixin:
+      case DeclarationKind.Enum:
+        memberKind = staticToken != null
+            ? MemberKind.StaticMethod
+            : MemberKind.NonStaticMethod;
+      case DeclarationKind.Extension:
+        memberKind = staticToken != null
+            ? MemberKind.ExtensionStaticMethod
+            : MemberKind.ExtensionNonStaticMethod;
+      case DeclarationKind.ExtensionType:
+        memberKind = staticToken != null
+            ? MemberKind.ExtensionTypeStaticMethod
+            : MemberKind.ExtensionTypeNonStaticMethod;
+    }
 
     Token beforeParam = token;
     Token? beforeInitializers = parseGetterOrFormalParameters(
-        token,
-        name,
-        isConsideredGetter,
-        kind == DeclarationKind.Extension
-            ? staticToken != null
-                ? MemberKind.ExtensionStaticMethod
-                : MemberKind.ExtensionNonStaticMethod
-            : staticToken != null
-                ? MemberKind.StaticMethod
-                : MemberKind.NonStaticMethod);
+        token, name, isConsideredGetter, memberKind);
     token = parseInitializersOpt(beforeInitializers);
     if (token == beforeInitializers) beforeInitializers = null;
 

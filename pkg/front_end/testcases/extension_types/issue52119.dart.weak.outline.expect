@@ -24,8 +24,8 @@ extension type Foo(core::int i) {
   constructor erroneous = self::Foo|constructor#erroneous;
   constructor tearoff erroneous = self::Foo|constructor#_#erroneous#tearOff;
 }
-extension type Bar<T extends core::Object? = dynamic>(dynamic i) {
-  abstract extension-type-member representation-field get i() → dynamic;
+extension type Bar<T extends core::Object? = dynamic>(invalid-type i) {
+  abstract extension-type-member representation-field get i() → invalid-type;
   constructor _ = self::Bar|constructor#_;
   constructor tearoff _ = self::Bar|constructor#_#_#tearOff;
   constructor • = self::Bar|constructor#;
@@ -55,13 +55,13 @@ static extension-type-member method Foo|constructor#erroneous() → self::Foo /*
   ;
 static extension-type-member method Foo|constructor#_#erroneous#tearOff() → self::Foo /* = core::int */
   return self::Foo|constructor#erroneous();
-static extension-type-member method Bar|constructor#_<T extends core::Object? = dynamic>(dynamic i) → self::Bar<self::Bar|constructor#_::T%> /* = dynamic */
+static extension-type-member method Bar|constructor#_<T extends core::Object? = dynamic>(invalid-type i) → self::Bar<self::Bar|constructor#_::T%> /* = invalid-type */
   ;
-static extension-type-member method Bar|constructor#_#_#tearOff<T extends core::Object? = dynamic>(dynamic i) → self::Bar<self::Bar|constructor#_#_#tearOff::T%>% /* = dynamic */
+static extension-type-member method Bar|constructor#_#_#tearOff<T extends core::Object? = dynamic>(invalid-type i) → self::Bar<self::Bar|constructor#_#_#tearOff::T%>% /* = invalid-type */
   return self::Bar|constructor#_<self::Bar|constructor#_#_#tearOff::T%>(i);
-static extension-type-member method Bar|constructor#<T extends core::Object? = dynamic>(self::Bar|constructor#::T% i) → self::Bar<self::Bar|constructor#::T%> /* = dynamic */
+static extension-type-member method Bar|constructor#<T extends core::Object? = dynamic>(self::Bar|constructor#::T% i) → self::Bar<self::Bar|constructor#::T%> /* = invalid-type */
   ;
-static extension-type-member method Bar|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|constructor#_#new#tearOff::T% i) → self::Bar<self::Bar|constructor#_#new#tearOff::T%>% /* = dynamic */
+static extension-type-member method Bar|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|constructor#_#new#tearOff::T% i) → self::Bar<self::Bar|constructor#_#new#tearOff::T%>% /* = invalid-type */
   return self::Bar|constructor#<self::Bar|constructor#_#new#tearOff::T%>(i);
 static method main() → dynamic
   ;
