@@ -1,5 +1,0 @@
-import 'issue54164_lib.dart' as a;
-
-class B<A extends a.A> {}
-
-main() => B();
