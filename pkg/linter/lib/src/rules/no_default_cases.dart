@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../extensions.dart';
@@ -69,15 +70,21 @@ class NoDefaultCases extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    // TODO(pq): update when there's a better API to access strictCasts.
+    var strictCasts =
+        // ignore: deprecated_member_use
+        (context.analysisOptions as AnalysisOptionsImpl).strictCasts;
+
+    var visitor = _Visitor(this, strictCasts: strictCasts);
     registry.addSwitchStatement(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
+  final bool strictCasts;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, {required this.strictCasts});
 
   @override
   void visitSwitchStatement(SwitchStatement statement) {
@@ -88,7 +95,7 @@ class _Visitor extends SimpleAstVisitor {
           var interfaceElement = expressionType.element;
           if (interfaceElement is EnumElement ||
               interfaceElement is ClassElement &&
-                  interfaceElement.isEnumLikeClass) {
+                  interfaceElement.isEnumLikeClass(strictCasts: strictCasts)) {
             rule.reportLint(member);
           }
           return;

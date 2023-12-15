@@ -85,8 +85,8 @@ class FlowAnalysisHelper {
       flow;
 
   FlowAnalysisHelper(TypeSystemImpl typeSystem, bool retainDataForTesting,
-      FeatureSet featureSet)
-      : this._(TypeSystemOperations(typeSystem),
+      FeatureSet featureSet, {required bool strictCasts})
+      : this._(TypeSystemOperations(typeSystem, strictCasts: strictCasts),
             retainDataForTesting ? FlowAnalysisDataForTesting() : null,
             isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
             respectImplicitlyTypedVarInitializers:
@@ -373,9 +373,10 @@ class FlowAnalysisHelper {
 class TypeSystemOperations
     with TypeOperations<DartType>
     implements Operations<PromotableElement, DartType> {
+  final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
-  TypeSystemOperations(this.typeSystem);
+  TypeSystemOperations(this.typeSystem, {required this.strictCasts});
 
   @override
   DartType get boolType => typeSystem.typeProvider.boolType;
@@ -408,7 +409,8 @@ class TypeSystemOperations
 
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
-    return typeSystem.isAssignableTo(fromType, toType);
+    return typeSystem.isAssignableTo(fromType, toType,
+        strictCasts: strictCasts);
   }
 
   @override

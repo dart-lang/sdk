@@ -53,7 +53,8 @@ class ConvertClassToEnum extends ResolvedCorrectionProducer {
     }
     final declaration = node;
     if (declaration is ClassDeclaration && declaration.name == token) {
-      var description = _EnumDescription.fromClass(declaration);
+      var description = _EnumDescription.fromClass(declaration,
+          strictCasts: analysisOptions.strictCasts);
       if (description != null) {
         await builder.addDartFileEdit(file, (builder) {
           description.applyChanges(builder, utils);
@@ -356,7 +357,8 @@ class _EnumDescription {
 
   /// If the given [node] can be converted into an enum, then return a
   /// description of the conversion work to be done. Otherwise, return `null`.
-  static _EnumDescription? fromClass(ClassDeclaration node) {
+  static _EnumDescription? fromClass(ClassDeclaration node,
+      {required bool strictCasts}) {
     // The class must be a concrete class.
     var classElement = node.declaredElement;
     if (classElement == null || classElement.isAbstract) {
@@ -385,7 +387,7 @@ class _EnumDescription {
     // enum constant.
     //
     // The instance fields must all be final.
-    var fields = _validateFields(node, classElement);
+    var fields = _validateFields(node, classElement, strictCasts: strictCasts);
     if (fields == null || fields.fieldsToConvert.isEmpty) {
       return null;
     }
@@ -551,7 +553,8 @@ class _EnumDescription {
   ///
   /// The [classElement] must be the element declared by the [classDeclaration].
   static _Fields? _validateFields(
-      ClassDeclaration classDeclaration, ClassElement classElement) {
+      ClassDeclaration classDeclaration, ClassElement classElement,
+      {required bool strictCasts}) {
     var potentialFieldsToConvert = <DartObject, List<_ConstantField>>{};
     _Field? indexField;
 

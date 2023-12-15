@@ -445,13 +445,15 @@ class TypedLiteralResolver {
     var typeParameters = element.typeParameters;
 
     return _typeSystem.setupGenericTypeInference(
-        typeParameters: typeParameters,
-        declaredReturnType: element.thisType,
-        contextReturnType: contextType,
-        isConst: node.isConst,
-        errorReporter: _errorReporter,
-        errorNode: node,
-        genericMetadataIsEnabled: _genericMetadataIsEnabled);
+      typeParameters: typeParameters,
+      declaredReturnType: element.thisType,
+      contextReturnType: contextType,
+      isConst: node.isConst,
+      errorReporter: _errorReporter,
+      errorNode: node,
+      genericMetadataIsEnabled: _genericMetadataIsEnabled,
+      strictInference: _resolver.analysisOptions.strictInference,
+    );
   }
 
   InterfaceType? _inferListTypeUpwards(
@@ -498,6 +500,7 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
+      strictInference: _resolver.analysisOptions.strictInference,
     );
   }
 
@@ -585,6 +588,7 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
+      strictInference: _resolver.analysisOptions.strictInference,
     );
   }
 

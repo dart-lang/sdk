@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart'; //ignore: implementation_imports
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -70,8 +71,14 @@ class AvoidRedundantArgumentValues extends LintRule {
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
   final LinterContext context;
+  final bool strictCasts;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule, this.context)
+      :
+        // TODO(pq): update when there's a better API to access strictCasts.
+        strictCasts =
+            // ignore: deprecated_member_use
+            (context.analysisOptions as AnalysisOptionsImpl).strictCasts;
 
   void check(ArgumentList argumentList) {
     var arguments = argumentList.arguments;
@@ -101,6 +108,7 @@ class _Visitor extends SimpleAstVisitor {
         !param.isOptional) {
       return;
     }
+
     var value = param.computeConstantValue();
     // TODO(pq): reenable and do ecosystem cleanup (https://github.com/dart-lang/linter/issues/4368)
     // if (value == null && arg is NullLiteral) {

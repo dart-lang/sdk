@@ -93,6 +93,7 @@ class ExtensionMemberResolver {
         .applicableTo(
           targetLibrary: _resolver.definingLibrary,
           targetType: type,
+          strictInference: _resolver.analysisOptions.strictInference,
         );
 
     if (extensions.isEmpty) {
@@ -224,7 +225,8 @@ class ExtensionMemberResolver {
     if (receiverType is VoidType) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.USE_OF_VOID_RESULT, receiverExpression);
-    } else if (!_typeSystem.isAssignableTo(receiverType, extendedType)) {
+    } else if (!_typeSystem.isAssignableTo(receiverType, extendedType,
+        strictCasts: _resolver.analysisOptions.strictCasts)) {
       var whyNotPromoted =
           whyNotPromotedList.isEmpty ? null : whyNotPromotedList[0];
       _errorReporter.reportErrorForNode(
@@ -342,10 +344,14 @@ class ExtensionMemberResolver {
         return _listOfDynamic(typeParameters);
       }
     } else {
-      var inferrer = GenericInferrer(_typeSystem, typeParameters,
-          errorReporter: _errorReporter,
-          errorNode: SimpleIdentifierImpl(node.name),
-          genericMetadataIsEnabled: _genericMetadataIsEnabled);
+      var inferrer = GenericInferrer(
+        _typeSystem,
+        typeParameters,
+        errorReporter: _errorReporter,
+        errorNode: SimpleIdentifierImpl(node.name),
+        genericMetadataIsEnabled: _genericMetadataIsEnabled,
+        strictInference: _resolver.analysisOptions.strictInference,
+      );
       inferrer.constrainArgument(
         receiverType,
         element.extendedType,

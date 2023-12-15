@@ -95,8 +95,10 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
   final LintRule rule;
   final TypeSystem typeSystem;
   final TypeProvider typeProvider;
+  final bool strictCasts;
 
-  UnrelatedTypesProcessors(this.rule, this.typeSystem, this.typeProvider);
+  UnrelatedTypesProcessors(this.rule, this.typeSystem, this.typeProvider,
+      {required this.strictCasts});
 
   List<MethodDefinition> get indexOperators => [];
 
@@ -174,7 +176,8 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
       case ExpectedArgumentKind.assignableToCollectionTypeArgument:
         var typeArgument =
             collectionType.typeArguments[methodDefinition.typeArgumentIndex];
-        if (typesAreUnrelated(typeSystem, argumentType, typeArgument)) {
+        if (typesAreUnrelated(typeSystem, argumentType, typeArgument,
+            strictCasts: strictCasts)) {
           rule.reportLint(argument, arguments: [
             argumentType.getDisplayString(withNullability: true),
             typeArgument.getDisplayString(withNullability: true),
@@ -182,7 +185,8 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
         }
 
       case ExpectedArgumentKind.assignableToCollection:
-        if (!typeSystem.isAssignableTo(argumentType, collectionType)) {
+        if (!typeSystem.isAssignableTo(argumentType, collectionType,
+            strictCasts: strictCasts)) {
           rule.reportLint(argument, arguments: [
             argumentType.getDisplayString(withNullability: true),
             collectionType.getDisplayString(withNullability: true),
@@ -193,7 +197,8 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
         var iterableType =
             collectionType.asInstanceOf(typeProvider.iterableElement);
         if (iterableType != null &&
-            !typeSystem.isAssignableTo(argumentType, iterableType)) {
+            !typeSystem.isAssignableTo(argumentType, iterableType,
+                strictCasts: strictCasts)) {
           rule.reportLint(argument, arguments: [
             argumentType.getDisplayString(withNullability: true),
             iterableType.getDisplayString(withNullability: true),

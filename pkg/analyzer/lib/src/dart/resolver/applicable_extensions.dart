@@ -107,10 +107,12 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   List<InstantiatedExtensionWithoutMember> applicableTo({
     required LibraryElement targetLibrary,
     required DartType targetType,
+    required bool strictInference,
   }) {
     return map((e) => _NotInstantiatedExtensionWithoutMember(e)).applicableTo(
       targetLibrary: targetLibrary,
       targetType: targetType,
+      strictInference: strictInference,
     );
   }
 
@@ -174,6 +176,7 @@ extension NotInstantiatedExtensionsExtensions<R>
   List<R> applicableTo({
     required LibraryElement targetLibrary,
     required DartType targetType,
+    required bool strictInference,
   }) {
     if (identical(targetType, NeverTypeImpl.instance)) {
       return <R>[];
@@ -194,8 +197,12 @@ extension NotInstantiatedExtensionsExtensions<R>
       var freshTypeParameters = freshTypes.freshTypeParameters;
       var rawExtendedType = freshTypes.substitute(extension.extendedType);
 
-      var inferrer = GenericInferrer(typeSystem, freshTypeParameters,
-          genericMetadataIsEnabled: genericMetadataIsEnabled);
+      var inferrer = GenericInferrer(
+        typeSystem,
+        freshTypeParameters,
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+        strictInference: strictInference,
+      );
       inferrer.constrainArgument(
         targetType,
         rawExtendedType,

@@ -65,6 +65,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   /// The type system used to check types.
   final TypeSystemImpl typeSystem;
 
+  /// Whether implicit casts should be reported as potential problems.
+  final bool strictCasts;
+
   /// The error reporter used to report errors.
   final ErrorReporter _errorReporter;
 
@@ -76,7 +79,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   ClassDeclaration? compound;
 
   /// Initialize a newly created verifier.
-  FfiVerifier(this.typeSystem, this._errorReporter);
+  FfiVerifier(this.typeSystem, this._errorReporter,
+      {required this.strictCasts});
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -1452,7 +1456,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             } else {
               var targetFunctionType =
                   (targetType as InterfaceType).typeArguments[0];
-              if (!typeSystem.isAssignableTo(nativeType, targetFunctionType)) {
+              if (!typeSystem.isAssignableTo(nativeType, targetFunctionType,
+                  strictCasts: strictCasts)) {
                 _errorReporter.reportErrorForNode(
                   FfiCode.MUST_BE_A_SUBTYPE,
                   node,

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../ast.dart';
@@ -185,8 +186,14 @@ class _NonEnumVisitor extends _BaseVisitor {
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
   final LinterContext context;
+  final bool strictCasts;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule, this.context)
+      :
+        // TODO(pq): update when there's a better API to access strictCasts.
+        strictCasts =
+            // ignore: deprecated_member_use
+            (context.analysisOptions as AnalysisOptionsImpl).strictCasts;
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
@@ -220,7 +227,6 @@ class _Visitor extends SimpleAstVisitor {
           if (constructorElement == null) continue;
           if (constructorElement.isFactory) continue;
           if (constructorElement.enclosingElement != classElement) continue;
-
           if (fieldElement.computeConstantValue() == null) continue;
 
           candidateConstants.add(field);

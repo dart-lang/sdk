@@ -171,9 +171,12 @@ class StaticTypeAnalyzer {
   /// </blockquote>
   void visitIntegerLiteral(IntegerLiteralImpl node,
       {required DartType? contextType}) {
+    var strictCasts = _resolver.analysisOptions.strictCasts;
     if (contextType == null ||
-        _typeSystem.isAssignableTo(_typeProvider.intType, contextType) ||
-        !_typeSystem.isAssignableTo(_typeProvider.doubleType, contextType)) {
+        _typeSystem.isAssignableTo(_typeProvider.intType, contextType,
+            strictCasts: strictCasts) ||
+        !_typeSystem.isAssignableTo(_typeProvider.doubleType, contextType,
+            strictCasts: strictCasts)) {
       _inferenceHelper.recordStaticType(node, _typeProvider.intType,
           contextType: contextType);
     } else {

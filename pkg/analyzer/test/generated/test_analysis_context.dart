@@ -60,7 +60,7 @@ class TestAnalysisContext implements AnalysisContext {
   }
 
   @override
-  AnalysisOptions get analysisOptions => _analysisOptions;
+  AnalysisOptionsImpl get analysisOptions => _analysisOptions;
 
   AnalysisSessionImpl get analysisSession => _analysisSession;
 

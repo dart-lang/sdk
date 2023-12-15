@@ -194,7 +194,9 @@ class ChangeTo extends ResolvedCorrectionProducer {
           !exclusions.contains(element.name) &&
           !element.isSynthetic &&
           !element.isExternal &&
-          (type == null || typeSystem.isAssignableTo(type, element.type));
+          (type == null ||
+              typeSystem.isAssignableTo(type, element.type,
+                  strictCasts: analysisOptions.strictCasts));
     });
   }
 

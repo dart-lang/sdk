@@ -51,7 +51,8 @@ class BoolExpressionVerifier {
       required Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
-        !_resolver.typeSystem.isAssignableTo(type, _boolType)) {
+        !_resolver.typeSystem.isAssignableTo(type, _boolType,
+            strictCasts: _resolver.analysisOptions.strictCasts)) {
       if (type.isDartCoreBool) {
         _nullableDereferenceVerifier.report(
             CompileTimeErrorCode.UNCHECKED_USE_OF_NULLABLE_VALUE_AS_CONDITION,

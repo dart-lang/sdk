@@ -131,7 +131,9 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    if (_typeSystem.isAssignableTo(rightType, writeType)) {
+    var strictCasts = _resolver.analysisOptions.strictCasts;
+    if (_typeSystem.isAssignableTo(rightType, writeType,
+        strictCasts: strictCasts)) {
       return;
     }
 
@@ -140,7 +142,8 @@ class AssignmentExpressionResolver {
         rightType is! RecordType &&
         right is ParenthesizedExpression) {
       var field = writeType.positionalFields.first;
-      if (_typeSystem.isAssignableTo(field.type, rightType)) {
+      if (_typeSystem.isAssignableTo(field.type, rightType,
+          strictCasts: strictCasts)) {
         _errorReporter.reportErrorForNode(
           WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
           right,
