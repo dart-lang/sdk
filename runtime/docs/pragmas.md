@@ -47,6 +47,7 @@ These pragma's are only used on AST nodes synthesized by us, so users defining t
 
 | Pragma | Meaning |
 | --- | --- |
+| `vm:ffi:call-closure`| [Closure performing FFI calls](compiler/ffi_pragmas.md) |
 | `vm:ffi:native-assets` | [Passing a native assets mapping to the VM](compiler/ffi_pragmas.md) |
 | `vm:ffi:native`| [Passing a native arguments to the VM](compiler/ffi_pragmas.md) |
 

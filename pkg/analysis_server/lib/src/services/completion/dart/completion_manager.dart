@@ -12,7 +12,6 @@ import 'package:analysis_server/src/services/completion/dart/completion_state.da
 import 'package:analysis_server/src/services/completion/dart/enum_constant_constructor_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/extension_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
-import 'package:analysis_server/src/services/completion/dart/field_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/in_scope_completion_pass.dart';
 import 'package:analysis_server/src/services/completion/dart/library_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/library_prefix_contributor.dart';
@@ -24,7 +23,6 @@ import 'package:analysis_server/src/services/completion/dart/redirecting_contrib
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
-import 'package:analysis_server/src/services/completion/dart/super_formal_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/type_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/uri_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/variable_name_contributor.dart';
@@ -137,7 +135,6 @@ class DartCompletionManager {
       ClosureContributor(request, builder),
       EnumConstantConstructorContributor(request, builder),
       ExtensionMemberContributor(request, builder),
-      FieldFormalContributor(request, builder),
       LibraryMemberContributor(request, builder),
       LibraryPrefixContributor(request, builder),
       NamedConstructorContributor(request, builder),
@@ -145,7 +142,6 @@ class DartCompletionManager {
       RecordLiteralContributor(request, builder),
       RedirectingContributor(request, builder),
       StaticMemberContributor(request, builder),
-      SuperFormalContributor(request, builder),
       TypeMemberContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
       VariableNameContributor(request, builder),

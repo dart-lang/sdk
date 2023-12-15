@@ -92,6 +92,8 @@ class A {
 suggestions
   assert
     kind: keyword
+  f0
+    kind: field
   f1
     kind: field
   super

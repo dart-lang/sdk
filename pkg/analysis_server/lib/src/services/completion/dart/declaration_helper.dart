@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/completion/dart/visibility_tracker.
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /// A helper class that produces candidate suggestions for all of the
@@ -114,8 +115,10 @@ class DeclarationHelper {
   }
 
   /// Add any fields that can be initialized in the initializer list of the
-  /// given [constructor].
-  void addFieldsForInitializers(ConstructorDeclaration constructor) {
+  /// given [constructor]. If a [fieldToInclude] is provided, then it should not
+  /// be skipped because the cursor is inside that field's name.
+  void addFieldsForInitializers(
+      ConstructorDeclaration constructor, FieldElement? fieldToInclude) {
     var containingElement = constructor.declaredElement?.enclosingElement;
     if (containingElement == null) {
       return;
@@ -133,6 +136,9 @@ class DeclarationHelper {
     }
     // Skip fields that are already initialized in the parameter list.
     for (var parameter in constructor.parameters.parameters) {
+      if (parameter is DefaultFormalParameter) {
+        parameter = parameter.parameter;
+      }
       if (parameter is FieldFormalParameter) {
         var parameterElement = parameter.declaredElement;
         if (parameterElement is FieldFormalParameterElement) {
@@ -143,10 +149,14 @@ class DeclarationHelper {
         }
       }
     }
+    fieldsToSkip.remove(fieldToInclude);
 
     for (var field in containingElement.fields) {
       // Skip fields that are already initialized at their declaration.
-      if (!fieldsToSkip.contains(field) && !field.hasInitializer) {
+      if (!field.isStatic &&
+          !field.isSynthetic &&
+          !fieldsToSkip.contains(field) &&
+          (!(field.isFinal || field.isConst) || !field.hasInitializer)) {
         _suggestField(field, containingElement);
       }
     }
@@ -202,6 +212,57 @@ class DeclarationHelper {
 
   void addMembersOfType(DartType type) {
     // TODO(brianwilkerson): Implement this.
+  }
+
+  /// Add any parameters from the super constructor of the constructor
+  /// containing the [node] that can be referenced as a super parameter.
+  void addParametersFromSuperConstructor(SuperFormalParameter node) {
+    var element = node.declaredElement;
+    if (element is! SuperFormalParameterElementImpl) {
+      return;
+    }
+
+    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructor == null) {
+      return;
+    }
+
+    var constructorElement = constructor.declaredElement;
+    if (constructorElement is! ConstructorElementImpl) {
+      return;
+    }
+
+    var superConstructor = constructorElement.superConstructor;
+    if (superConstructor == null) {
+      return;
+    }
+
+    if (node.isNamed) {
+      var superConstructorInvocation = constructor.initializers
+          .whereType<SuperConstructorInvocation>()
+          .singleOrNull;
+      var specified = <String>{
+        ...constructorElement.parameters.map((e) => e.name),
+        ...?superConstructorInvocation?.argumentList.arguments
+            .whereType<NamedExpression>()
+            .map((e) => e.name.label.name),
+      };
+      for (var superParameter in superConstructor.parameters) {
+        if (superParameter.isNamed &&
+            !specified.contains(superParameter.name)) {
+          collector.addSuggestion(SuperParameterSuggestion(superParameter));
+        }
+      }
+    } else if (node.isPositional) {
+      var indexOfThis = element.indexIn(constructorElement);
+      var superPositionalList = superConstructor.parameters
+          .where((parameter) => parameter.isPositional)
+          .toList();
+      if (indexOfThis >= 0 && indexOfThis < superPositionalList.length) {
+        var superPositional = superPositionalList[indexOfThis];
+        collector.addSuggestion(SuperParameterSuggestion(superPositional));
+      }
+    }
   }
 
   /// Add suggestions for any constructors that are declared within the

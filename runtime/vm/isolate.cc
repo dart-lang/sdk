@@ -2986,6 +2986,7 @@ static ServiceEvent IsolatePauseEvent(Isolate* isolate) {
   } else {
     ServiceEvent pause_event(isolate, ServiceEvent::kResume);
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
     if (isolate->debugger() != nullptr) {
       // TODO(turnidge): Don't compute a full stack trace.
       DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
@@ -2993,6 +2994,7 @@ static ServiceEvent IsolatePauseEvent(Isolate* isolate) {
         pause_event.set_top_frame(stack->FrameAt(0));
       }
     }
+#endif
 
     return pause_event;
   }

@@ -356,6 +356,19 @@ final class StaticFieldSuggestion extends ImportableSuggestion {
   }
 }
 
+/// The information about a candidate suggestion based on a parameter from a
+/// super constructor.
+final class SuperParameterSuggestion extends CandidateSuggestion {
+  /// The element on which the suggestion is based.
+  final ParameterElement element;
+
+  /// Initialize a newly created candidate suggestion to suggest the [element].
+  SuperParameterSuggestion(this.element);
+
+  @override
+  String get completion => element.name;
+}
+
 /// The information about a candidate suggestion based on a top-level getter or
 /// setter.
 final class TopLevelFunctionSuggestion extends ImportableSuggestion {
@@ -516,6 +529,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         libraryUriStr = suggestion.libraryUriStr;
         suggestStaticField(suggestion.element, prefix: suggestion.prefix);
         libraryUriStr = null;
+      case SuperParameterSuggestion():
+        suggestSuperFormalParameter(suggestion.element);
       case TopLevelFunctionSuggestion():
         libraryUriStr = suggestion.libraryUriStr;
         suggestTopLevelFunction(suggestion.element,
