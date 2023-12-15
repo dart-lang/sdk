@@ -101,6 +101,8 @@ class SerializableResponse implements Response, Serializable {
       case MessageType.argumentError:
         deserializer.moveNext();
         error = deserializer.expectString();
+        deserializer.moveNext();
+        stackTrace = deserializer.expectNullableString();
         break;
       case MessageType.macroInstanceIdentifier:
         response = new MacroInstanceIdentifierImpl.deserialize(deserializer);
@@ -150,6 +152,7 @@ class SerializableResponse implements Response, Serializable {
         break;
       case MessageType.argumentError:
         serializer.addString(error!.toString());
+        serializer.addNullableString(stackTrace?.toString());
         break;
       default:
         response.serializeNullable(serializer);
@@ -792,7 +795,8 @@ T _handleResponse<T>(Response response) {
   if (response.responseType == MessageType.error) {
     throw new RemoteException(response.error!.toString(), response.stackTrace);
   } else if (response.responseType == MessageType.argumentError) {
-    throw new ArgumentError(response.error!.toString());
+    throw new ArgumentError('${response.error!.toString()}'
+        '${response.stackTrace == null ? '' : '\n\n${response.stackTrace}'}');
   }
 
   return response.response as T;

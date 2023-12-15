@@ -3699,6 +3699,11 @@ WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
   status: needsFix
   notes: |-
     The fix is to replace `new` with `const`.
+WarningCode.NON_NULLABLE_EQUALS_PARAMETER:
+  status: needsFix
+  notes: |-
+    The fix is to remove the question mark if the parameter has one (if the
+    written type is an alias, it may not).
 WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
 WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:

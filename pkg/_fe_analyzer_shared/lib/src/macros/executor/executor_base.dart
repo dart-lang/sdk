@@ -225,11 +225,12 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                 requestId: requestId,
                 responseType: resultType,
                 serializationZoneId: zoneId);
-          } on ArgumentError catch (error) {
+          } on ArgumentError catch (error, stackTrace) {
             // TODO: Something better here.
             if (requestId == null) rethrow;
             response = new SerializableResponse(
                 error: '$error',
+                stackTrace: '$stackTrace',
                 requestId: requestId,
                 responseType: MessageType.argumentError,
                 serializationZoneId: zoneId);
