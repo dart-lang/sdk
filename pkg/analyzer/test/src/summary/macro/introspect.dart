@@ -10,6 +10,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     implements
         ClassDeclarationsMacro,
         ConstructorDeclarationsMacro,
+        EnumDeclarationsMacro,
+        EnumValueDeclarationsMacro,
         ExtensionDeclarationsMacro,
         ExtensionTypeDeclarationsMacro,
         FieldDeclarationsMacro,
@@ -37,14 +39,37 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 
   @override
-  Future<void> buildDeclarationsForConstructor(declaration, builder) async {
+  Future<void> buildDeclarationsForConstructor(
+    ConstructorDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeConstructorDeclaration(declaration);
     });
   }
 
   @override
-  FutureOr<void> buildDeclarationsForExtension(
+  Future<void> buildDeclarationsForEnum(
+    EnumDeclaration declaration,
+    EnumDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeEnumDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForEnumValue(
+    EnumValueDeclaration declaration,
+    EnumDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeEnumValueDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForExtension(
     ExtensionDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
@@ -54,7 +79,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 
   @override
-  FutureOr<void> buildDeclarationsForExtensionType(
+  Future<void> buildDeclarationsForExtensionType(
     ExtensionTypeDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
@@ -64,7 +89,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 
   @override
-  FutureOr<void> buildDeclarationsForField(
+  Future<void> buildDeclarationsForField(
     FieldDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
@@ -74,14 +99,20 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 
   @override
-  Future<void> buildDeclarationsForFunction(declaration, builder) async {
+  Future<void> buildDeclarationsForFunction(
+    FunctionDeclaration declaration,
+    DeclarationBuilder builder,
+  ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeFunctionDeclaration(declaration);
     });
   }
 
   @override
-  Future<void> buildDeclarationsForMethod(declaration, builder) async {
+  Future<void> buildDeclarationsForMethod(
+    MethodDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeMethodDeclaration(declaration);
     });
@@ -143,7 +174,10 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   });
 
   @override
-  Future<void> buildDefinitionForFunction(declaration, builder) async {
+  Future<void> buildDefinitionForFunction(
+    FunctionDeclaration declaration,
+    FunctionDefinitionBuilder builder,
+  ) async {
     final buffer = StringBuffer();
     final sink = TreeStringSink(
       sink: buffer,
@@ -339,6 +373,42 @@ class _Printer {
       await _writePositionalFormalParameters(e.positionalParameters);
       await _writeNamedTypeAnnotation('returnType', e.returnType);
       await _writeTypeParameters(e.typeParameters);
+    });
+  }
+
+  Future<void> writeEnumDeclaration(EnumDeclaration e) async {
+    if (!shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    sink.writelnWithIndent('enum ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+      await _writeTypeParameters(e.typeParameters);
+      await _writeTypeAnnotations('mixins', e.mixins);
+      await _writeTypeAnnotations('interfaces', e.interfaces);
+      await sink.writeElements(
+        'values',
+        await introspector.valuesOf(e),
+        writeEnumValueDeclaration,
+      );
+      await _writeTypeDeclarationMembers(e);
+    });
+  }
+
+  Future<void> writeEnumValueDeclaration(EnumValueDeclaration e) async {
+    final enclosing = _enclosingDeclarationIdentifier;
+    if (enclosing != null && e.definingEnum != enclosing) {
+      throw StateError('Mismatch: definingEnum');
+    }
+
+    sink.writelnWithIndent(e.identifier.name);
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+      // TODO(scheglov): Write, when added.
+      // await _writeNamedTypeAnnotation('type', e.type);
     });
   }
 
