@@ -25,6 +25,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -280,6 +281,10 @@ abstract class ParsedCorrectionProducer
 /// the resolved AST.
 abstract class ResolvedCorrectionProducer
     extends CorrectionProducer<ResolvedUnitResult> {
+  AnalysisOptionsImpl get analysisOptions =>
+      sessionHelper.session.analysisContext
+          .getAnalysisOptionsForFile(unitResult.file) as AnalysisOptionsImpl;
+
   /// Return the type for the class `bool` from `dart:core`.
   DartType get coreTypeBool => unitResult.typeProvider.boolType;
 
@@ -342,8 +347,6 @@ abstract class ResolvedCorrectionProducer
   }
 
   LinterContext getLinterContext(path.Context pathContext) {
-    var analysisOptions = sessionHelper.session.analysisContext
-        .getAnalysisOptionsForFile(unitResult.file);
     return LinterContextImpl(
       [], // unused
       LinterContextUnit(unitResult.content, unitResult.unit),
@@ -555,7 +558,6 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
 
   AstNode get node => _context.node;
 
-  /// Return the resource provider used to access the file system.
   ResourceProvider get resourceProvider => unitResult.session.resourceProvider;
 
   int get selectionEnd => _context.selectionEnd;
@@ -565,6 +567,15 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   int get selectionOffset => _context.selectionOffset;
 
   AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
+
+  bool get strictInference {
+    var file = _context.dartFixContext?.resolveResult.file;
+    // TODO(pq): can this ever happen?
+    if (file == null) return false;
+    var analysisOptions = _context.session.analysisContext
+        .getAnalysisOptionsForFile(file) as AnalysisOptionsImpl;
+    return analysisOptions.strictInference;
+  }
 
   Token get token => _context.token;
 

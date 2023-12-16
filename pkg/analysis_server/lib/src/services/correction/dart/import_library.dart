@@ -186,6 +186,7 @@ class ImportLibrary extends MultiCorrectionProducer {
           .applicableTo(
             targetLibrary: libraryElement,
             targetType: targetType,
+            strictInference: strictInference,
           );
       for (var instantiatedExtension in instantiatedExtensions) {
         // If the import has a combinator that needs to be updated, then offer
@@ -462,6 +463,7 @@ class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
         .applicableTo(
           targetLibrary: libraryElement,
           targetType: targetType,
+          strictInference: strictInference,
         );
     if (instantiatedExtensions.isNotEmpty) {
       await builder.addDartFileEdit(file, (builder) {

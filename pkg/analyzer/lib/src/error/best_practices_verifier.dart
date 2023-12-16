@@ -118,10 +118,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _inheritanceManager = inheritanceManager,
         _annotationVerifier = AnnotationVerifier(
             _errorReporter, _currentLibrary, workspacePackage),
-        _deprecatedVerifier =
-            DeprecatedMemberUseVerifier(workspacePackage, _errorReporter),
-        _errorHandlerVerifier =
-            ErrorHandlerVerifier(_errorReporter, typeProvider, typeSystem),
+        _deprecatedVerifier = DeprecatedMemberUseVerifier(
+            workspacePackage, _errorReporter,
+            strictCasts: analysisOptions.strictCasts),
+        _errorHandlerVerifier = ErrorHandlerVerifier(
+            _errorReporter, typeProvider, typeSystem,
+            strictCasts: analysisOptions.strictCasts),
         _invalidAccessVerifier = _InvalidAccessVerifier(
             _errorReporter, _currentLibrary, workspacePackage),
         _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),

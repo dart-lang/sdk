@@ -107,6 +107,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     required AnalysisErrorListener errorListener,
     required FeatureSet featureSet,
     required Scope nameScope,
+    required bool strictInference,
     ElementWalker? elementWalker,
   }) {
     var libraryElement = unitElement.library;
@@ -123,6 +124,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       libraryElement,
       isNonNullableByDefault,
       errorReporter,
+      strictInference: strictInference,
     );
 
     final recordTypeResolver = RecordTypeAnnotationResolver(

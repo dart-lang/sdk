@@ -480,6 +480,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// assertions to verify that pushes and pops are properly balanced.
   int get rewriteStackDepth => _rewriteStack.length;
 
+  @override
+  bool get strictCasts => analysisOptions.strictCasts;
+
   /// If a class, or mixin, is being resolved, the type of the class.
   ///
   /// If an extension is being resolved, the type of `this`, the declared
@@ -1246,6 +1249,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       // If the constructor-tearoffs feature is enabled, then so is
       // generic-metadata.
       genericMetadataIsEnabled: true,
+      strictInference: analysisOptions.strictInference,
     );
     if (typeArgumentTypes.isNotEmpty) {
       staticType = staticType.instantiate(typeArgumentTypes);
@@ -3756,6 +3760,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       typeParameters,
       errorNode: errorNode,
       genericMetadataIsEnabled: genericMetadataIsEnabled,
+      strictInference: analysisOptions.strictInference,
     );
     inferrer.constrainReturnType(declaredType, contextType);
     return inferrer.chooseFinalTypes();
@@ -3799,6 +3804,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         // If the constructor-tearoffs feature is enabled, then so is
         // generic-metadata.
         genericMetadataIsEnabled: true,
+        strictInference: analysisOptions.strictInference,
       );
       if (typeArgumentTypes.isNotEmpty) {
         callMethodType = callMethodType.instantiate(typeArgumentTypes);

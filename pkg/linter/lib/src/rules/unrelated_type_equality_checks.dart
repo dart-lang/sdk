@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart'; //ignore: implementation_imports
 import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
@@ -158,7 +159,12 @@ class UnrelatedTypeEqualityChecks extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context.typeSystem);
+    // TODO(pq): update when there's a better API to access strictCasts.
+    var strictCasts =
+        // ignore: deprecated_member_use
+        (context.analysisOptions as AnalysisOptionsImpl).strictCasts;
+
+    var visitor = _Visitor(this, context.typeSystem, strictCasts: strictCasts);
     registry.addBinaryExpression(this, visitor);
     registry.addRelationalPattern(this, visitor);
   }
@@ -167,8 +173,9 @@ class UnrelatedTypeEqualityChecks extends LintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final TypeSystem typeSystem;
+  final bool strictCasts;
 
-  _Visitor(this.rule, this.typeSystem);
+  _Visitor(this.rule, this.typeSystem, {required this.strictCasts});
 
   @override
   void visitBinaryExpression(BinaryExpression node) {
@@ -218,7 +225,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _nonComparable(DartType leftType, DartType rightType) =>
-      typesAreUnrelated(typeSystem, leftType, rightType) &&
+      typesAreUnrelated(typeSystem, leftType, rightType,
+          strictCasts: strictCasts) &&
       !(leftType.isFixnumIntX && rightType.isCoreInt);
 }
 

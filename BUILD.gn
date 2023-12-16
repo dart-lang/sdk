@@ -50,7 +50,6 @@ group("runtime") {
     "runtime/vm:kernel_platform_files($host_toolchain)",
     "samples/ffi/http:fake_http",
     "utils/dartdev:dartdev",
-    "utils/dds:dds",
     "utils/kernel-service:kernel-service",
   ]
 

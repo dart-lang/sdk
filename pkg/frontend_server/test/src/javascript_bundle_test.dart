@@ -24,6 +24,7 @@ final Map<String, List<String>> additionalRequiredClasses = {
     'JSNumber',
     'JSArray',
     'JSString',
+    'LegacyJavaScriptObject',
   ],
   'dart:_native_typed_data': [],
   'dart:collection': [
@@ -35,6 +36,7 @@ final Map<String, List<String>> additionalRequiredClasses = {
   ],
   'dart:math': ['Rectangle'],
   'dart:html': [],
+  'dart:_rti': ['Rti', '_Universe'],
   'dart:indexed_db': [],
   'dart:svg': [],
   'dart:web_audio': [],

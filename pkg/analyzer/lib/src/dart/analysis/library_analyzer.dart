@@ -135,6 +135,7 @@ class LibraryAnalyzer {
           errorListener: errorListener,
           featureSet: _libraryElement.featureSet,
           nameScope: _libraryElement.scope,
+          strictInference: _analysisOptions.strictInference,
           elementWalker: ElementWalker.forCompilationUnit(
             unitElement,
             libraryFilePath: _library.file.path,
@@ -148,14 +149,15 @@ class LibraryAnalyzer {
           _libraryElement, file.source, _typeProvider, errorListener,
           nameScope: _libraryElement.scope));
 
-      FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-          _typeSystem, _testingData != null, _libraryElement.featureSet);
-      _testingData?.recordFlowAnalysisDataForTesting(
-          file.uri, flowAnalysisHelper.dataForTesting!);
-
       // TODO(pq): precache options in file state and fetch them from there
       var analysisOptions = _libraryElement.context
           .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
+
+      FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
+          _typeSystem, _testingData != null, _libraryElement.featureSet,
+          strictCasts: analysisOptions.strictCasts);
+      _testingData?.recordFlowAnalysisDataForTesting(
+          file.uri, flowAnalysisHelper.dataForTesting!);
 
       var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
           file.source, _typeProvider, errorListener,
@@ -385,6 +387,7 @@ class LibraryAnalyzer {
         _typeProvider,
         _typeSystem,
         errorReporter,
+        strictCasts: _analysisOptions.strictCasts,
       );
       checker.visitCompilationUnit(unit);
     }
@@ -397,8 +400,9 @@ class LibraryAnalyzer {
     //
     // Compute inheritance and override errors.
     //
-    var inheritanceOverrideVerifier =
-        InheritanceOverrideVerifier(_typeSystem, _inheritance, errorReporter);
+    var inheritanceOverrideVerifier = InheritanceOverrideVerifier(
+        _typeSystem, _inheritance, errorReporter,
+        strictCasts: _analysisOptions.strictCasts);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
@@ -415,7 +419,8 @@ class LibraryAnalyzer {
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
     // compile-time errors and so does the analyzer.
-    unit.accept(FfiVerifier(_typeSystem, errorReporter));
+    unit.accept(FfiVerifier(_typeSystem, errorReporter,
+        strictCasts: _analysisOptions.strictCasts));
   }
 
   void _computeWarnings(
@@ -790,6 +795,7 @@ class LibraryAnalyzer {
         errorListener: errorListener,
         featureSet: unit.featureSet,
         nameScope: _libraryElement.scope,
+        strictInference: _analysisOptions.strictInference,
         elementWalker: ElementWalker.forCompilationUnit(
           unitElement,
           libraryFilePath: _library.file.path,
@@ -806,14 +812,15 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper flowAnalysisHelper =
-        FlowAnalysisHelper(_typeSystem, _testingData != null, unit.featureSet);
-    _testingData?.recordFlowAnalysisDataForTesting(
-        file.uri, flowAnalysisHelper.dataForTesting!);
-
     // TODO(pq): precache options in file state and fetch them from there
     var analysisOptions = _libraryElement.context
         .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
+
+    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
+        _typeSystem, _testingData != null, unit.featureSet,
+        strictCasts: analysisOptions.strictCasts);
+    _testingData?.recordFlowAnalysisDataForTesting(
+        file.uri, flowAnalysisHelper.dataForTesting!);
 
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,

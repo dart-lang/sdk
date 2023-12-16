@@ -44,6 +44,10 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
   late final String testFile;
   late final String testCode;
 
+  late final AnalysisOptionsImpl analysisOptions;
+
+  bool get strictCasts => analysisOptions.strictCasts;
+
   void addTestFile(String content, {bool priority = false}) {
     testCode = content;
     newFile(testFile, content);
@@ -100,8 +104,9 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
     );
   }
 
-  AnalysisOptionsImpl createAnalysisOptions() => AnalysisOptionsImpl()
-    ..contextFeatures = FeatureSet.latestLanguageVersion();
+  AnalysisOptionsImpl createAnalysisOptions() =>
+      analysisOptions = AnalysisOptionsImpl()
+        ..contextFeatures = FeatureSet.latestLanguageVersion();
 
   int findOffset(String search) {
     int offset = testCode.indexOf(search);

@@ -153,6 +153,13 @@ class DeclarationBuilder {
     identifier as IdentifierImpl;
     final element = identifier.element;
     switch (element) {
+      case ConstructorElement():
+        return macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.staticInstanceMember,
+          name: element.name,
+          uri: element.library.source.uri,
+          staticScope: element.enclosingElement.name,
+        );
       case DynamicElementImpl():
         return macro.ResolvedIdentifier(
           kind: macro.IdentifierKind.topLevelMember,
@@ -160,12 +167,19 @@ class DeclarationBuilder {
           uri: Uri.parse('dart:core'),
           staticScope: null,
         );
+      case ExtensionElement():
+        return macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.topLevelMember,
+          name: element.name ?? '',
+          uri: element.library.source.uri,
+          staticScope: null,
+        );
       case FieldElement():
         if (element.isStatic) {
           return macro.ResolvedIdentifier(
             kind: macro.IdentifierKind.staticInstanceMember,
             name: element.name,
-            uri: element.source!.uri,
+            uri: element.library.source.uri,
             staticScope: element.enclosingElement.name,
           );
         } else {
@@ -180,14 +194,60 @@ class DeclarationBuilder {
         return macro.ResolvedIdentifier(
           kind: macro.IdentifierKind.topLevelMember,
           name: element.name,
-          uri: element.source.uri,
+          uri: element.library.source.uri,
           staticScope: null,
         );
       case InterfaceElement():
         return macro.ResolvedIdentifier(
           kind: macro.IdentifierKind.topLevelMember,
           name: element.name,
-          uri: element.source.uri,
+          uri: element.library.source.uri,
+          staticScope: null,
+        );
+      case MethodElement():
+        if (element.isStatic) {
+          return macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.staticInstanceMember,
+            name: element.name,
+            uri: element.library.source.uri,
+            staticScope: element.enclosingElement.name,
+          );
+        } else {
+          return macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.instanceMember,
+            name: element.name,
+            uri: null,
+            staticScope: null,
+          );
+        }
+      case PropertyAccessorElement():
+        if (element.enclosingElement is CompilationUnitElement) {
+          return macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.topLevelMember,
+            name: element.name,
+            uri: element.library.source.uri,
+            staticScope: null,
+          );
+        } else if (element.isStatic) {
+          return macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.staticInstanceMember,
+            name: element.name,
+            uri: element.library.source.uri,
+            staticScope: element.enclosingElement.name,
+          );
+        } else {
+          return macro.ResolvedIdentifier(
+            kind: macro.IdentifierKind.instanceMember,
+            name: element.name,
+            uri: null,
+            staticScope: null,
+          );
+        }
+      case TypeAliasElement():
+        return macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.topLevelMember,
+          name: element.name,
+          uri: element.library.source.uri,
           staticScope: null,
         );
       case TypeParameterElement():
@@ -198,7 +258,6 @@ class DeclarationBuilder {
           staticScope: null,
         );
       default:
-        // TODO(scheglov): other elements
         throw UnimplementedError('${element.runtimeType}');
     }
   }
@@ -216,8 +275,7 @@ class DeclarationBuilder {
       case macro.OmittedTypeAnnotationCode():
         return _resolveTypeCodeOmitted(typeCode);
       case macro.RawTypeAnnotationCode():
-        // TODO(scheglov): implement
-        throw UnimplementedError('(${typeCode.runtimeType}) $typeCode');
+        throw ArgumentError('Not supported');
       case macro.RecordTypeAnnotationCode():
         return _resolveTypeCodeRecord(typeCode);
     }

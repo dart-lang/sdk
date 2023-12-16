@@ -32,7 +32,11 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisErrorInfo, AnalysisErrorInfoImpl, AnalysisOptions;
+    show
+        AnalysisErrorInfo,
+        AnalysisErrorInfoImpl,
+        AnalysisOptions,
+        AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
 import 'package:analyzer/src/lint/analysis.dart';
 import 'package:analyzer/src/lint/io.dart';
@@ -309,6 +313,11 @@ class LinterContextImpl implements LinterContext {
       'DeclaredVariables that apply to `allUnits`, use '
       '`currentUnit.unit.declaredElement?.session`.')
   DeclaredVariables get declaredVariables => _declaredVariables;
+
+  bool get strictCasts =>
+      // TODO(pq): update when there's a better API to access strictCasts.
+      // ignore: deprecated_member_use_from_same_package
+      (analysisOptions as AnalysisOptionsImpl).strictCasts;
 
   @override
   bool canBeConst(Expression expression) {

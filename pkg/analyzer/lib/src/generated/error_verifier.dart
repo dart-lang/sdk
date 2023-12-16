@@ -158,7 +158,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   late final InterfaceType _intType;
 
   /// The options for verification.
-  final AnalysisOptionsImpl _options;
+  final AnalysisOptionsImpl options;
 
   /// The object providing access to the types defined by the language.
   final TypeProvider _typeProvider;
@@ -244,11 +244,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Initialize a newly created error verifier.
   ErrorVerifier(this.errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.libraryVerificationContext, this._options)
+      this._inheritanceManager, this.libraryVerificationContext, this.options)
       : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
-        _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
+        _requiredParametersVerifier = RequiredParametersVerifier(errorReporter,
+            strictCasts: options.strictCasts),
         _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
           _inheritanceManager,
           _currentLibrary,
@@ -261,7 +262,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _intType = _typeProvider.intType;
     typeSystem = _currentLibrary.typeSystem;
     _typeArgumentsVerifier =
-        TypeArgumentsVerifier(_options, _currentLibrary, errorReporter);
+        TypeArgumentsVerifier(options, _currentLibrary, errorReporter);
     _constructorFieldsVerifier = ConstructorFieldsVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -270,6 +271,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       typeProvider: _typeProvider as TypeProviderImpl,
       typeSystem: typeSystem,
       errorReporter: errorReporter,
+      strictCasts: strictCasts,
     );
   }
 
@@ -285,6 +287,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     assert(_enclosingClass == null);
     assert(_enclosingExecutable.element == null);
   }
+
+  @override
+  bool get strictCasts => options.strictCasts;
 
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
@@ -474,6 +479,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
+        strictCasts: strictCasts,
       ).checkStaticAccessors(declarationElement.accessors);
 
       super.visitClassDeclaration(node);
@@ -529,6 +535,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
+      strictCasts: strictCasts,
     ).checkStaticAccessors(element.accessors);
 
     super.visitCompilationUnit(node);
@@ -633,6 +640,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
+        strictCasts: strictCasts,
       ).checkStaticAccessors(element.accessors);
 
       super.visitEnumDeclaration(node);
@@ -676,6 +684,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
+      strictCasts: strictCasts,
     ).checkExtension(element);
 
     final name = node.name;
@@ -728,6 +737,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
+        strictCasts: strictCasts,
       ).checkExtensionType(element, interface);
 
       super.visitExtensionTypeDeclaration(node);
@@ -1642,8 +1652,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // Report specific problem when return type is incompatible
     FunctionType constructorType = declaration.declaredElement!.type;
     DartType constructorReturnType = constructorType.returnType;
-    if (!typeSystem.isAssignableTo(
-        redirectedReturnType, constructorReturnType)) {
+    if (!typeSystem.isAssignableTo(redirectedReturnType, constructorReturnType,
+        strictCasts: strictCasts)) {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE,
           redirectedConstructor,
@@ -2669,7 +2679,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // Use an explicit string instead of [loopType] to remove the "<E>".
     String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
 
-    if (iterableType is DynamicType && typeSystem.strictCasts) {
+    if (iterableType is DynamicType && strictCasts) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
@@ -2706,7 +2716,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       iterableType = requiredSequenceType;
     }
 
-    if (!typeSystem.isAssignableTo(iterableType, requiredSequenceType)) {
+    if (!typeSystem.isAssignableTo(iterableType, requiredSequenceType,
+        strictCasts: strictCasts)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
@@ -2730,7 +2741,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return true;
     }
 
-    if (!typeSystem.isAssignableTo(sequenceElementType, variableType)) {
+    if (!typeSystem.isAssignableTo(sequenceElementType, variableType,
+        strictCasts: strictCasts)) {
       // Use an explicit string instead of [loopType] to remove the "<E>".
       String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
 
@@ -2759,13 +2771,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             errorReporter: errorReporter,
             errorNode: node.iterable,
             genericMetadataIsEnabled: true,
+            strictInference: options.strictInference,
           );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);
           }
         }
 
-        if (!typeSystem.isAssignableTo(tearoffType, variableType)) {
+        if (!typeSystem.isAssignableTo(tearoffType, variableType,
+            strictCasts: strictCasts)) {
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
             node.iterable,
@@ -3298,7 +3312,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForIllegalLanguageOverride(CompilationUnit node) {
-    var sourceLanguageConstraint = _options.sourceLanguageConstraint;
+    var sourceLanguageConstraint = options.sourceLanguageConstraint;
     if (sourceLanguageConstraint == null) {
       return;
     }
@@ -4853,7 +4867,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var expression = node.expression;
     var type = node.expression.typeOrThrow;
 
-    if (!typeSystem.isAssignableTo(type, typeSystem.objectNone)) {
+    if (!typeSystem.isAssignableTo(type, typeSystem.objectNone,
+        strictCasts: strictCasts)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
         expression,

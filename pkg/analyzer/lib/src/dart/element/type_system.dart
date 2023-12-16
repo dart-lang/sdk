@@ -74,16 +74,6 @@ class TypeSystemImpl implements TypeSystem {
   /// The provider of types for the system.
   final TypeProviderImpl typeProvider;
 
-  /// True if "strict casts" should be enforced.
-  ///
-  /// This affects the behavior of [isAssignableTo].
-  bool strictCasts;
-
-  /// A flag indicating whether inference failures are allowed, off by default.
-  ///
-  /// This option is experimental and subject to change.
-  bool strictInference;
-
   /// The cached instance of `Object?`.
   InterfaceTypeImpl? _objectQuestion;
 
@@ -104,8 +94,6 @@ class TypeSystemImpl implements TypeSystem {
 
   TypeSystemImpl({
     required this.isNonNullableByDefault,
-    required this.strictCasts,
-    required this.strictInference,
     required TypeProvider typeProvider,
   }) : typeProvider = typeProvider as TypeProviderImpl {
     _greatestLowerBoundHelper = GreatestLowerBoundHelper(this);
@@ -693,6 +681,7 @@ class TypeSystemImpl implements TypeSystem {
     ErrorReporter? errorReporter,
     AstNode? errorNode,
     required bool genericMetadataIsEnabled,
+    required bool strictInference,
   }) {
     if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
       return const <DartType>[];
@@ -705,7 +694,8 @@ class TypeSystemImpl implements TypeSystem {
     var inferrer = GenericInferrer(this, fnType.typeFormals,
         errorReporter: errorReporter,
         errorNode: errorNode,
-        genericMetadataIsEnabled: genericMetadataIsEnabled);
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+        strictInference: strictInference);
     inferrer.constrainGenericFunctionInContext(fnType, contextType);
 
     // Infer and instantiate the resulting type.
@@ -916,7 +906,8 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  bool isAssignableTo(DartType fromType, DartType toType) {
+  bool isAssignableTo(DartType fromType, DartType toType,
+      {bool strictCasts = false}) {
     // An actual subtype
     if (isSubtypeOf(fromType, toType)) {
       return true;
@@ -932,7 +923,8 @@ class TypeSystemImpl implements TypeSystem {
         !isNullable(fromType) &&
         acceptsFunctionType(toType)) {
       var callMethodType = getCallMethodType(fromType);
-      if (callMethodType != null && isAssignableTo(callMethodType, toType)) {
+      if (callMethodType != null &&
+          isAssignableTo(callMethodType, toType, strictCasts: strictCasts)) {
         return true;
       }
     }
@@ -1578,9 +1570,11 @@ class TypeSystemImpl implements TypeSystem {
     List<DartType> srcTypes,
     List<DartType> destTypes, {
     required bool genericMetadataIsEnabled,
+    required bool strictInference,
   }) {
     var inferrer = GenericInferrer(this, typeParameters,
-        genericMetadataIsEnabled: genericMetadataIsEnabled);
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+        strictInference: strictInference);
     for (int i = 0; i < srcTypes.length; i++) {
       inferrer.constrainReturnType(srcTypes[i], destTypes[i]);
       inferrer.constrainReturnType(destTypes[i], srcTypes[i]);
@@ -1852,14 +1846,16 @@ class TypeSystemImpl implements TypeSystem {
   /// Prepares to infer type arguments for a generic type, function, method, or
   /// list/map literal, initializing a [GenericInferrer] using the downward
   /// context type.
-  GenericInferrer setupGenericTypeInference(
-      {required List<TypeParameterElement> typeParameters,
-      required DartType declaredReturnType,
-      required DartType? contextReturnType,
-      ErrorReporter? errorReporter,
-      AstNode? errorNode,
-      required bool genericMetadataIsEnabled,
-      bool isConst = false}) {
+  GenericInferrer setupGenericTypeInference({
+    required List<TypeParameterElement> typeParameters,
+    required DartType declaredReturnType,
+    required DartType? contextReturnType,
+    ErrorReporter? errorReporter,
+    AstNode? errorNode,
+    required bool genericMetadataIsEnabled,
+    bool isConst = false,
+    required bool strictInference,
+  }) {
     // Create a GenericInferrer that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
@@ -1867,7 +1863,8 @@ class TypeSystemImpl implements TypeSystem {
     var inferrer = GenericInferrer(this, typeParameters,
         errorReporter: errorReporter,
         errorNode: errorNode,
-        genericMetadataIsEnabled: genericMetadataIsEnabled);
+        genericMetadataIsEnabled: genericMetadataIsEnabled,
+        strictInference: strictInference);
 
     if (contextReturnType != null) {
       if (isConst) {
@@ -1944,14 +1941,6 @@ class TypeSystemImpl implements TypeSystem {
     } else {
       return const <TypeParameterElement>[];
     }
-  }
-
-  void updateOptions({
-    required bool strictCasts,
-    required bool strictInference,
-  }) {
-    this.strictCasts = strictCasts;
-    this.strictInference = strictInference;
   }
 
   /// Optimistically estimates, if type arguments of [left] can be equal to
