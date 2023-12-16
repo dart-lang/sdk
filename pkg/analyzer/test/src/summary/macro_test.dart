@@ -1063,7 +1063,7 @@ class A {}
         ..withMetadata = false;
       checkElementText(library, expected);
     } else {
-      if (library.macroDiagnostics.isNotEmpty) {
+      if (library.allMacroDiagnostics.isNotEmpty) {
         failWithLibraryText(library);
       }
 
@@ -3149,7 +3149,7 @@ import 'introspect.dart';
 $code
 ''');
 
-    if (library.macroDiagnostics.isNotEmpty) {
+    if (library.allMacroDiagnostics.isNotEmpty) {
       failWithLibraryText(library);
     }
 
@@ -3168,7 +3168,7 @@ $code
   }
 
   String _getMacroGeneratedCode(LibraryElementImpl library) {
-    if (library.macroDiagnostics.isNotEmpty) {
+    if (library.allMacroDiagnostics.isNotEmpty) {
       failWithLibraryText(library);
     }
 
@@ -5194,7 +5194,7 @@ import 'introspect.dart';
 void _starter() {}
 ''');
 
-    if (library.macroDiagnostics.isNotEmpty) {
+    if (library.allMacroDiagnostics.isNotEmpty) {
       failWithLibraryText(library);
     }
 
@@ -6539,6 +6539,108 @@ class A extends B<void Function<T, U extends num>()> {}
 class A
   superclass: B<void Function<T, U extends num>()>
     noDeclaration
+''');
+  }
+
+  test_library_classes() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+library;
+
+class A {
+  void foo() {}
+}
+
+class B {
+  void bar() {}
+}
+''', r'''
+class A
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+class B
+  methods
+    bar
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_library_extensions() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+library;
+
+extension A on int {
+  void foo() {}
+}
+
+extension B on int {
+  void bar() {}
+}
+''', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+extension B
+  onType: int
+  methods
+    bar
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_library_extensionTypes() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+library;
+
+extension type A(int it) {
+  void foo() {}
+}
+''', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_library_mixin() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+library;
+
+mixin A {
+  void foo() {}
+}
+
+mixin B {
+  void bar() {}
+}
+''', r'''
+mixin A
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+mixin B
+  methods
+    bar
+      flags: hasBody
+      returnType: void
 ''');
   }
 
@@ -8015,7 +8117,7 @@ class _MacroDiagnosticsCollector extends GeneralizingElementVisitor<void> {
 }
 
 extension on LibraryElement {
-  List<AnalyzerMacroDiagnostic> get macroDiagnostics {
+  List<AnalyzerMacroDiagnostic> get allMacroDiagnostics {
     final collector = _MacroDiagnosticsCollector();
     accept(collector);
     return collector.diagnostics;

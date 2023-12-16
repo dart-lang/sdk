@@ -82,7 +82,7 @@ class DeclarationBuilder {
     required this.nodeOfElement,
   });
 
-  macro.Declaration buildDeclaration(ast.AstNode node) {
+  macro.MacroTarget buildTarget(ast.AstNode node) {
     switch (node) {
       case ast.ClassDeclarationImpl():
         return fromNode.classDeclaration(node);
@@ -98,6 +98,8 @@ class DeclarationBuilder {
         return fromNode.extensionTypeDeclaration(node);
       case ast.FunctionDeclarationImpl():
         return fromNode.functionDeclaration(node);
+      case ast.LibraryDirectiveImpl():
+        return fromNode.libraryDirective(node);
       case ast.MethodDeclarationImpl():
         return fromNode.methodDeclaration(node);
       case ast.MixinDeclarationImpl():
@@ -592,19 +594,23 @@ class DeclarationBuilderFromElement {
   }
 
   macro.LibraryImpl library(Element element) {
-    var library = _libraryMap[element.library];
-    if (library == null) {
-      final version = element.library!.languageVersion.effective;
-      library = LibraryImplFromElement(
-          id: macro.RemoteInstance.uniqueId,
-          languageVersion:
-              macro.LanguageVersionImpl(version.major, version.minor),
-          metadata: _buildMetadata(element),
-          uri: element.library!.source.uri,
-          element: element);
-      _libraryMap[element.library!] = library;
+    final libraryElement = element.library as LibraryElementImpl;
+    var macroLibrary = _libraryMap[libraryElement];
+    if (macroLibrary == null) {
+      final version = libraryElement.languageVersion.effective;
+      macroLibrary = LibraryImplFromElement(
+        id: macro.RemoteInstance.uniqueId,
+        languageVersion: macro.LanguageVersionImpl(
+          version.major,
+          version.minor,
+        ),
+        metadata: _buildMetadata(element),
+        uri: libraryElement.source.uri,
+        element: libraryElement,
+      );
+      _libraryMap[libraryElement] = macroLibrary;
     }
-    return library;
+    return macroLibrary;
   }
 
   MethodDeclarationImpl methodElement(ExecutableElementImpl element) {
@@ -1068,16 +1074,16 @@ class DeclarationBuilderFromNode {
   }
 
   macro.LibraryImpl library(Element element) {
-    final library = element.library!;
+    final libraryElement = element.library as LibraryElementImpl;
 
-    if (_libraryMap[library] case final result?) {
+    if (_libraryMap[libraryElement] case final result?) {
       return result;
     }
 
-    final version = library.languageVersion.effective;
-    final uri = library.source.uri;
+    final version = libraryElement.languageVersion.effective;
+    final uri = libraryElement.source.uri;
 
-    return _libraryMap[library] = LibraryImplFromElement(
+    return _libraryMap[libraryElement] = LibraryImplFromElement(
       id: macro.RemoteInstance.uniqueId,
       languageVersion: macro.LanguageVersionImpl(
         version.major,
@@ -1085,8 +1091,15 @@ class DeclarationBuilderFromNode {
       ),
       metadata: _buildMetadata(element),
       uri: uri,
-      element: library,
+      element: libraryElement,
     );
+  }
+
+  macro.Library libraryDirective(
+    ast.LibraryDirectiveImpl node,
+  ) {
+    final element = node.element as LibraryElementImpl;
+    return library(element);
   }
 
   macro.MethodDeclarationImpl methodDeclaration(
@@ -1158,6 +1171,10 @@ class DeclarationBuilderFromNode {
         return classDeclaration(node);
       case ast.EnumDeclarationImpl():
         return enumDeclaration(node);
+      case ast.ExtensionDeclarationImpl():
+        return extensionDeclaration(node);
+      case ast.ExtensionTypeDeclarationImpl():
+        return extensionTypeDeclaration(node);
       case ast.MixinDeclarationImpl():
         return mixinDeclaration(node);
       default:
@@ -1686,7 +1703,7 @@ abstract class LibraryImpl extends macro.LibraryImpl {
 
 class LibraryImplFromElement extends LibraryImpl {
   @override
-  final Element element;
+  final LibraryElementImpl element;
 
   LibraryImplFromElement({
     required super.id,

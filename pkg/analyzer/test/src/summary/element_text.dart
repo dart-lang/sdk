@@ -112,6 +112,7 @@ class _ElementWriter {
       }
 
       _writeFieldNameNonPromotabilityInfo(e.fieldNameNonPromotabilityInfo);
+      _writeMacroDiagnostics(e);
     });
   }
 
