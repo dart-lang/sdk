@@ -7173,7 +7173,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (jsExpr is js_ast.LiteralString && jsExpr.valueWithoutQuotes.isEmpty) {
         continue;
       }
-      var type = e.getStaticType(_staticTypeContext);
+      var type = e.getStaticType(_staticTypeContext).extensionTypeErasure;
       if (DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
               .areEqual(type, _coreTypes.stringNonNullableRawType) &&
           !isNullable(e)) {
