@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/engine.dart'; //ignore: implementation_imports
 
 import '../analyzer.dart';
 
@@ -97,14 +96,8 @@ class _BodyVisitor extends RecursiveAstVisitor {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   final LinterContext context;
-  final bool strictCasts;
 
-  _Visitor(this.rule, this.context)
-      :
-        // TODO(pq): update when there's a better API to access strictCasts.
-        strictCasts =
-            // ignore: deprecated_member_use
-            (context.analysisOptions as AnalysisOptionsImpl).strictCasts;
+  _Visitor(this.rule, this.context);
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
