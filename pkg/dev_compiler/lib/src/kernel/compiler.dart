@@ -7937,6 +7937,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   List<js_ast.Comment> generateCompilationHeader() {
     var headerOptions = [
       if (_options.canaryFeatures) 'canary',
+      'newRuntimeTypes(${_options.newRuntimeTypes})',
       'soundNullSafety(${_options.soundNullSafety})',
       'enableAsserts(${_options.enableAsserts})',
     ];

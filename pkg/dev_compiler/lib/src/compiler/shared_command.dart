@@ -94,8 +94,10 @@ class SharedCompilerOptions {
   /// Whether or not the `--canary` flag was specified during compilation.
   final bool canaryFeatures;
 
-  /// A canary feature that enables a new runtime type representation.
-  final bool newRuntimeTypes;
+  // TODO(nshahan): Remove once it is safe to cleanup code for old type system.
+  // Likely after 3.3 stable cut when we know there is no need to easily revert
+  // to the old type system.
+  final bool newRuntimeTypes = true;
 
   /// When `true` stars "*" will appear to represent legacy types when printing
   /// runtime types in the compiled application.
@@ -128,9 +130,7 @@ class SharedCompilerOptions {
       this.soundNullSafety = true,
       this.canaryFeatures = false,
       this.precompiledMacros = const [],
-      this.macroSerializationMode})
-      : // Current canary features.
-        newRuntimeTypes = canaryFeatures;
+      this.macroSerializationMode});
 
   SharedCompilerOptions.fromArguments(ArgResults args)
       : this(
