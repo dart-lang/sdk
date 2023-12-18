@@ -17,6 +17,9 @@ class WrapInUnawaited extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     AstNode? node = this.node;
+    if (node.parent is CascadeExpression) {
+      return;
+    }
     if (node is SimpleIdentifier) {
       node = node.parent;
     }

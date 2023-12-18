@@ -34,6 +34,9 @@ class AddAwait extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     if (_correctionKind == _CorrectionKind.unawaited) {
+      if (node.parent is CascadeExpression) {
+        return;
+      }
       await _addAwait(builder);
     } else if (_correctionKind == _CorrectionKind.nonBool) {
       await _computeNonBool(builder);

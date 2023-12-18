@@ -75,6 +75,21 @@ class WrapInUnawaitedTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.unawaited_futures;
 
+  Future<void> test_cascadeExpression() async {
+    await resolveTestCode('''
+class C {
+  Future<String> something() {
+    return Future.value('hello');
+  }
+}
+
+void main() async {
+  C()..something(); 
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_expressionStatement() async {
     await resolveTestCode('''
 Future<void> f() async {
