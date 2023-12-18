@@ -362,6 +362,8 @@ class _Printer {
         await writeFunctionDeclaration(declaration);
       case MixinDeclaration():
         await writeMixinDeclaration(declaration);
+      case VariableDeclaration():
+        await writeVariable(declaration);
       default:
         throw UnimplementedError('${declaration.runtimeType}');
     }
@@ -572,6 +574,20 @@ class _Printer {
     });
   }
 
+  Future<void> writeVariable(VariableDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasExternal': e.hasExternal,
+        'hasFinal': e.hasFinal,
+        'hasLate': e.hasLate,
+      });
+      await _writeMetadata(e);
+      await _writeNamedTypeAnnotation('type', e.type);
+    });
+  }
+
   void _assertEnclosingClass(MemberDeclaration e) {
     final enclosing = _enclosingDeclarationIdentifier;
     if (enclosing != null && e.definingType != enclosing) {
@@ -607,6 +623,18 @@ class _Printer {
       await _writeMetadata(e);
       await _writeNamedTypeAnnotation('type', e.type);
     });
+  }
+
+  /// If [type] is [OmittedTypeAnnotation], write the inferred type.
+  Future<void> _writeInferredTypeAnnotation(TypeAnnotation type) async {
+    if (type is OmittedTypeAnnotation) {
+      if (introspector case final DefinitionPhaseIntrospector introspector) {
+        final inferred = await introspector.inferType(type);
+        await sink.withIndent(() async {
+          sink.writelnWithIndent('inferred: ${inferred.asString}');
+        });
+      }
+    }
   }
 
   Future<void> _writeMetadata(Annotatable e) async {
@@ -686,6 +714,7 @@ class _Printer {
   Future<void> _writeTypeAnnotation(TypeAnnotation? type) async {
     if (type != null) {
       sink.writeln(type.asString);
+      await _writeInferredTypeAnnotation(type);
       await _writeTypeAnnotationDeclaration(type);
     } else {
       sink.writeln('null');

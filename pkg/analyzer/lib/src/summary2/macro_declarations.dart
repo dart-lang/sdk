@@ -245,6 +245,13 @@ class DeclarationBuilder {
             staticScope: null,
           );
         }
+      case TopLevelVariableElement():
+        return macro.ResolvedIdentifier(
+          kind: macro.IdentifierKind.topLevelMember,
+          name: element.name,
+          uri: element.library.source.uri,
+          staticScope: null,
+        );
       case TypeAliasElement():
         return macro.ResolvedIdentifier(
           kind: macro.IdentifierKind.topLevelMember,
@@ -458,7 +465,7 @@ class DeclarationBuilder {
     switch (omittedType) {
       case _OmittedTypeAnnotationDynamic():
         return DynamicTypeImpl.instance;
-      case _OmittedTypeAnnotationMethodReturnType():
+      case _OmittedTypeAnnotationFunctionReturnType():
         return omittedType.element.returnType;
       case _OmittedTypeAnnotationVariable():
         return omittedType.element.type;
@@ -963,6 +970,8 @@ class DeclarationBuilderFromNode {
     switch (node) {
       case ast.ConstructorDeclarationImpl():
         return constructorDeclaration(node);
+      case ast.FunctionDeclarationImpl():
+        return functionDeclaration(node);
       case ast.MethodDeclarationImpl():
         return methodDeclaration(node);
       case ast.RepresentationDeclaration():
@@ -1068,7 +1077,7 @@ class DeclarationBuilderFromNode {
       isSetter: node.isSetter,
       namedParameters: _namedFormalParameters(function.parameters),
       positionalParameters: _positionalFormalParameters(function.parameters),
-      returnType: _typeAnnotationOrDynamic(node.returnType),
+      returnType: _typeAnnotationFunctionReturnType(node),
       typeParameters: _typeParameters(function.typeParameters),
     );
   }
@@ -1212,8 +1221,18 @@ class DeclarationBuilderFromNode {
           element: element,
         );
       default:
-        // TODO(scheglov): top-level variables
-        throw UnimplementedError();
+        final element = node.declaredElement as TopLevelVariableElementImpl;
+        return VariableDeclarationImpl(
+          id: macro.RemoteInstance.uniqueId,
+          identifier: _declaredIdentifier(node.name, element),
+          library: library(element),
+          metadata: _buildMetadata(element),
+          hasExternal: false,
+          hasFinal: element.isFinal,
+          hasLate: element.isLate,
+          type: _typeAnnotationVariable(variableList.type, element),
+          element: element,
+        );
     }
   }
 
@@ -1446,13 +1465,24 @@ class DeclarationBuilderFromNode {
     }
   }
 
+  macro.TypeAnnotationImpl _typeAnnotationFunctionReturnType(
+    ast.FunctionDeclaration node,
+  ) {
+    final returnType = node.returnType;
+    if (returnType == null) {
+      final element = node.declaredElement!;
+      return _OmittedTypeAnnotationFunctionReturnType(element);
+    }
+    return _typeAnnotation(returnType);
+  }
+
   macro.TypeAnnotationImpl _typeAnnotationMethodReturnType(
     ast.MethodDeclaration node,
   ) {
     final returnType = node.returnType;
     if (returnType == null) {
       final element = node.declaredElement!;
-      return _OmittedTypeAnnotationMethodReturnType(element);
+      return _OmittedTypeAnnotationFunctionReturnType(element);
     }
     return _typeAnnotation(returnType);
   }
@@ -1757,6 +1787,24 @@ class MixinDeclarationImpl extends macro.MixinDeclarationImpl
   });
 }
 
+class VariableDeclarationImpl extends macro.VariableDeclarationImpl
+    implements HasElement {
+  @override
+  final VariableElementImpl element;
+
+  VariableDeclarationImpl({
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    required super.hasExternal,
+    required super.hasFinal,
+    required super.hasLate,
+    required super.type,
+    required this.element,
+  });
+}
+
 class _DeclaredIdentifierImpl extends IdentifierImpl {
   @override
   final Element element;
@@ -1792,10 +1840,10 @@ class _OmittedTypeAnnotationDynamic extends _OmittedTypeAnnotation {
   _OmittedTypeAnnotationDynamic();
 }
 
-class _OmittedTypeAnnotationMethodReturnType extends _OmittedTypeAnnotation {
+class _OmittedTypeAnnotationFunctionReturnType extends _OmittedTypeAnnotation {
   final ExecutableElement element;
 
-  _OmittedTypeAnnotationMethodReturnType(this.element);
+  _OmittedTypeAnnotationFunctionReturnType(this.element);
 }
 
 class _OmittedTypeAnnotationVariable extends _OmittedTypeAnnotation {

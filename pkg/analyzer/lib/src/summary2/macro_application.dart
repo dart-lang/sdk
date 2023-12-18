@@ -1027,9 +1027,8 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   @override
   Future<macro.TypeAnnotation> inferType(
     covariant macro.OmittedTypeAnnotation omittedType,
-  ) {
-    // TODO(scheglov): implement inferType
-    throw UnimplementedError();
+  ) async {
+    return declarationBuilder.inferOmittedType(omittedType);
   }
 
   @override
@@ -1038,13 +1037,6 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   ) {
     // TODO(scheglov): implement topLevelDeclarationsOf
     throw UnimplementedError();
-  }
-
-  @override
-  Future<macro.TypeDeclaration> typeDeclarationOf(
-    macro.Identifier identifier,
-  ) async {
-    return await super.typeDeclarationOf(identifier);
   }
 }
 
@@ -1118,7 +1110,10 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
   Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
     final libraryElement = elementFactory.libraryOfUri2(library);
     final lookup = libraryElement.scope.lookup(name);
-    final element = lookup.getter ?? lookup.setter;
+    var element = lookup.getter ?? lookup.setter;
+    if (element is PropertyAccessorElement && element.isSynthetic) {
+      element = element.variable;
+    }
     return declarationBuilder.fromElement.identifier(element!);
   }
 }
