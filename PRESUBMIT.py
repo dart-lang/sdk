@@ -324,7 +324,7 @@ def _CheckAnalyzerFiles(input_api, output_api):
            for f in input_api.AffectedFiles()):
         args = [
             "tools/sdks/dart-sdk/bin/dart",
-            "pkg/analysis_server/tool/checks/check_all_yaml.dart",
+            "pkg/linter/tool/checks/check_all_yaml.dart",
         ]
         stdout = input_api.subprocess.check_output(args).strip()
         if not stdout:
