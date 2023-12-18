@@ -8,7 +8,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/error/deprecated_member_use_verifier.dart';
-import 'package:analyzer/src/generated/engine.dart'; //ignore: implementation_imports
 // ignore: implementation_imports
 import 'package:analyzer/src/workspace/workspace.dart';
 
@@ -117,8 +116,7 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   final LintRule _rule;
   final WorkspacePackage _workspacePackage;
 
-  _DeprecatedMemberUseVerifier(this._rule, this._workspacePackage,
-      {required super.strictCasts});
+  _DeprecatedMemberUseVerifier(this._rule, this._workspacePackage);
 
   @override
   void reportError(SyntacticEntity errorEntity, Element element,
@@ -161,10 +159,10 @@ class _DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
 class _RecursiveVisitor extends RecursiveAstVisitor<void> {
   final _DeprecatedMemberUseVerifier _deprecatedVerifier;
 
-  _RecursiveVisitor(LintRule rule, WorkspacePackage package,
-      {required bool strictCasts})
-      : _deprecatedVerifier = _DeprecatedMemberUseVerifier(rule, package,
-            strictCasts: strictCasts);
+  _RecursiveVisitor(
+    LintRule rule,
+    WorkspacePackage package,
+  ) : _deprecatedVerifier = _DeprecatedMemberUseVerifier(rule, package);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -484,12 +482,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
-    // TODO(pq): update when there's a better API to access strictCasts.
-    var strictCasts =
-        // ignore: deprecated_member_use
-        (_context.analysisOptions as AnalysisOptionsImpl).strictCasts;
-
-    var visitor = _RecursiveVisitor(_rule, package, strictCasts: strictCasts);
+    var visitor = _RecursiveVisitor(_rule, package);
     node.accept(visitor);
   }
 }

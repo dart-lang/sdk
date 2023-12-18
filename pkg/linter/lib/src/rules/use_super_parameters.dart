@@ -6,7 +6,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart'; //ignore: implementation_imports
 import 'package:analyzer/src/utilities/extensions/string.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
@@ -91,14 +90,8 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor {
   final LinterContext context;
   final LintRule rule;
-  final bool strictCasts;
 
-  _Visitor(this.rule, this.context)
-      :
-        // TODO(pq): update when there's a better API to access strictCasts.
-        strictCasts =
-            // ignore: deprecated_member_use
-            (context.analysisOptions as AnalysisOptionsImpl).strictCasts;
+  _Visitor(this.rule, this.context);
 
   void check(
       ConstructorDeclaration node,
@@ -248,8 +241,7 @@ class _Visitor extends SimpleAstVisitor {
     // Compare the types.
     var superType = superParameter.type;
     var thisType = parameterElement.type;
-    if (!context.typeSystem
-        .isAssignableTo(superType, thisType, strictCasts: strictCasts)) {
+    if (!context.typeSystem.isAssignableTo(superType, thisType)) {
       // If the type of the parameter can't be assigned to the super parameter,
       // then don't lint.
       return false;

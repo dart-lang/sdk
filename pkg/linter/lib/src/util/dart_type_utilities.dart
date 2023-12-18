@@ -148,8 +148,10 @@ bool canonicalElementsFromIdentifiersAreEqual(
 /// * Otherwise, any two types are related.
 // TODO(srawlins): typedefs and functions in general.
 bool typesAreUnrelated(
-    TypeSystem typeSystem, DartType? leftType, DartType? rightType,
-    {required bool strictCasts}) {
+  TypeSystem typeSystem,
+  DartType? leftType,
+  DartType? rightType,
+) {
   // If we don't have enough information, or can't really compare the types,
   // return false as they _might_ be related.
   if (leftType == null ||
@@ -169,13 +171,11 @@ bool typesAreUnrelated(
   }
   if (promotedLeftType is InterfaceType && promotedRightType is InterfaceType) {
     return typeSystem.interfaceTypesAreUnrelated(
-        promotedLeftType, promotedRightType,
-        strictCasts: strictCasts);
+        promotedLeftType, promotedRightType);
   } else if (promotedLeftType is TypeParameterType &&
       promotedRightType is TypeParameterType) {
     return typesAreUnrelated(typeSystem, promotedLeftType.element.bound,
-        promotedRightType.element.bound,
-        strictCasts: strictCasts);
+        promotedRightType.element.bound);
   } else if (promotedLeftType is FunctionType) {
     if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
       return true;
@@ -186,10 +186,8 @@ bool typesAreUnrelated(
     }
   } else if (promotedLeftType is RecordType ||
       promotedRightType is RecordType) {
-    return !typeSystem.isAssignableTo(promotedLeftType, promotedRightType,
-            strictCasts: strictCasts) &&
-        !typeSystem.isAssignableTo(promotedRightType, promotedLeftType,
-            strictCasts: strictCasts);
+    return !typeSystem.isAssignableTo(promotedLeftType, promotedRightType) &&
+        !typeSystem.isAssignableTo(promotedRightType, promotedLeftType);
   }
   return false;
 }
@@ -268,8 +266,7 @@ class InterfaceTypeDefinition {
 
 extension on TypeSystem {
   bool interfaceTypesAreUnrelated(
-      InterfaceType leftType, InterfaceType rightType,
-      {required bool strictCasts}) {
+      InterfaceType leftType, InterfaceType rightType) {
     var leftElement = leftType.element;
     var rightElement = rightType.element;
     if (leftElement == rightElement) {
@@ -286,8 +283,8 @@ extension on TypeSystem {
       for (var i = 0; i < leftTypeArguments.length; i++) {
         // If any of the pair-wise type arguments are unrelated, then
         // [leftType] and [rightType] are unrelated.
-        if (typesAreUnrelated(this, leftTypeArguments[i], rightTypeArguments[i],
-            strictCasts: strictCasts)) {
+        if (typesAreUnrelated(
+            this, leftTypeArguments[i], rightTypeArguments[i])) {
           return true;
         }
       }

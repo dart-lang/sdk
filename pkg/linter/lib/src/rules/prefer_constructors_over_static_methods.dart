@@ -115,8 +115,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var interfaceType = node.parent.typeToCheckOrNull();
     if (interfaceType != null) {
-      if (!context.typeSystem.isAssignableTo(returnType, interfaceType,
-          strictCasts: strictCasts)) {
+      if (!context.typeSystem.isAssignableTo(returnType, interfaceType)) {
         return;
       }
       if (_hasNewInvocation(returnType, node.body)) {
