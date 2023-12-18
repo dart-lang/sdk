@@ -7276,7 +7276,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsFrom = _visitExpression(fromExpr);
     if (node.isUnchecked) return jsFrom;
     var to = node.type.extensionTypeErasure;
-    var from = fromExpr.getStaticType(_staticTypeContext);
+    var from = fromExpr.getStaticType(_staticTypeContext).extensionTypeErasure;
 
     // If the check was put here by static analysis to ensure soundness, we
     // can't skip it. For example, one could implement covariant generic caller
