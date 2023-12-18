@@ -109,7 +109,6 @@ vars = {
   "perfetto_rev": "13ce0c9e13b0940d2476cd0cff2301708a9a2e2b",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "protobuf_gn_rev": "ca669f79945418f6229e4fef89b666b2a88cbb10",
-  "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "zlib_rev": "14dd4c4455602c9b71a1a89b5cafd1f4030d2e3f",
 
@@ -304,10 +303,6 @@ deps = {
       }],
       "dep_type": "cipd",
   },
-
-  Var("dart_root") + "/third_party/root_certificates":
-      Var("dart_git") + "root_certificates.git" +
-      "@" + Var("root_certificates_rev"),
 
   Var("dart_root") + "/third_party/emsdk":
       Var("dart_git") + "external/github.com/emscripten-core/emsdk.git" +
