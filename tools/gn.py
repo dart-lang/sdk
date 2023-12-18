@@ -7,6 +7,7 @@ import argparse
 import os
 import platform
 import subprocess
+import socket
 import sys
 import time
 import utils
@@ -412,6 +413,11 @@ def ProcessOptions(args):
     if HOST_OS != 'win' and args.use_crashpad:
         print("Crashpad is only supported on Windows")
         return False
+    if os.environ.get('RBE_cfg') == None and \
+       socket.getfqdn().endswith('.corp.google.com') and \
+       (args.rbe or args.goma) and \
+       sys.platform in ['linux']:
+        print('You can speed up your build by following: go/dart-rbe')
     return True
 
 
