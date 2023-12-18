@@ -51,3 +51,28 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     );
   }
 }
+
+/*macro*/ class IsSubtype implements FunctionDefinitionMacro {
+  const IsSubtype();
+
+  @override
+  Future<void> buildDefinitionForFunction(
+    FunctionDeclaration declaration,
+    FunctionDefinitionBuilder builder,
+  ) async {
+    final positional = declaration.positionalParameters.toList();
+    final first = positional[0];
+    final second = positional[1];
+
+    final firstTypeCode = first.type.code;
+    final secondTypeCode = second.type.code;
+
+    final firstStaticType = await builder.resolve(firstTypeCode);
+    final secondStaticType = await builder.resolve(secondTypeCode);
+
+    final result = await firstStaticType.isSubtypeOf(secondStaticType);
+    builder.augment(
+      FunctionBodyCode.fromString('=> $result; // isSubtype'),
+    );
+  }
+}

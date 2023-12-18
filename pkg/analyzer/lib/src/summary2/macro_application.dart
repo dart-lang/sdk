@@ -1090,10 +1090,8 @@ class _StaticTypeImpl implements macro.StaticType {
 
   @override
   Future<bool> isSubtypeOf(_StaticTypeImpl other) {
-    // TODO(scheglov): write tests
-    return Future.value(
-      typeSystem.isSubtypeOf(type, other.type),
-    );
+    final result = typeSystem.isSubtypeOf(type, other.type);
+    return Future.value(result);
   }
 }
 

@@ -7553,6 +7553,51 @@ void foo<T>(T a, T b) {}
     _assertIsExactlyValue(generated, true);
   }
 
+  test_isSubtype() async {
+    const testCases = {
+      ('double', 'double', true),
+      ('double', 'num', true),
+      ('double', 'int', false),
+      ('double', 'Object', true),
+      ('int', 'double', false),
+      ('int', 'num', true),
+      ('int', 'int', true),
+      ('int', 'Object', true),
+      // Object
+      ('Object?', 'Object?', true),
+      ('Object?', 'Object', false),
+      ('Object', 'Object?', true),
+      ('Object', 'Object', true),
+      // InterfaceType, type arguments
+      ('List<int>', 'List<double>', false),
+      ('List<int>', 'List<num>', true),
+      ('List<int>', 'List<int>', true),
+      // FunctionType
+      //   returnType
+      ('void Function()', 'void Function()', true),
+      ('int Function()', 'double Function()', false),
+      ('int Function()', 'num Function()', true),
+      ('int Function()', 'int Function()', true),
+      // RecordType
+      ('(int,)', '(double,)', false),
+      ('(int,)', '(num,)', true),
+      ('(int,)', '(int,)', true),
+      ('({int a,})', '({double a,})', false),
+      ('({int a,})', '({num a,})', true),
+      ('({int a,})', '({int a,})', true),
+      ('({int a,})', '({int b,})', false),
+    };
+
+    for (final testCase in testCases) {
+      await disposeAnalysisContextCollection();
+      await _assertIsSubtype(
+        firstTypeCode: testCase.$1,
+        secondTypeCode: testCase.$2,
+        isSubtype: testCase.$3,
+      );
+    }
+  }
+
   Future<void> _assertIsExactly({
     required String firstTypeCode,
     required String secondTypeCode,
@@ -7564,10 +7609,8 @@ import 'static_type.dart';
 
 $additionalDeclarations
 
-class A {
-  @IsExactly()
-  void foo($firstTypeCode a, $secondTypeCode b) {}
-}
+@IsExactly()
+void foo($firstTypeCode a, $secondTypeCode b) {}
 ''');
 
     final generated = _getMacroGeneratedCode(library);
@@ -7585,8 +7628,37 @@ class A {
     expect(generated, contains(expected));
   }
 
+  Future<void> _assertIsSubtype({
+    required String firstTypeCode,
+    required String secondTypeCode,
+    required bool isSubtype,
+    String additionalDeclarations = '',
+  }) async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+$additionalDeclarations
+
+@IsSubtype()
+void foo($firstTypeCode a, $secondTypeCode b) {}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    final expected = _isSubtypeExpected(isSubtype);
+    if (!generated.contains(expected)) {
+      fail(
+        '`$firstTypeCode` isSubtype `$secondTypeCode`'
+        ' expected to be `$isSubtype`, but is not.\n',
+      );
+    }
+  }
+
   String _isExactlyExpected(bool isExactly) {
     return '=> $isExactly; // isExactly';
+  }
+
+  String _isSubtypeExpected(bool isSubtype) {
+    return '=> $isSubtype; // isSubtype';
   }
 }
 
