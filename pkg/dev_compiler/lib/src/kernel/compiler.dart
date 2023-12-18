@@ -4699,7 +4699,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement visitAssertStatement(AssertStatement node) {
     if (!_options.enableAsserts) return js_ast.EmptyStatement();
     var condition = node.condition;
-    var conditionType = condition.getStaticType(_staticTypeContext);
+    var conditionType =
+        condition.getStaticType(_staticTypeContext).extensionTypeErasure;
     var jsCondition = _visitExpression(condition);
 
     if (conditionType != _coreTypes.boolLegacyRawType &&
@@ -4707,6 +4708,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         conditionType != _coreTypes.boolNonNullableRawType) {
       jsCondition = runtimeCall('dtest(#)', [jsCondition]);
     } else if (isNullable(condition)) {
+      // TODO(nshahan): Is this branch even reachable in null safe code?
       jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
 
