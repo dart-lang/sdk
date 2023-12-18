@@ -565,6 +565,9 @@ class KeywordHelper {
     addKeyword(Keyword.FINAL);
     addKeyword(Keyword.FOR);
     addKeyword(Keyword.IF);
+    if (node.inCatchClause) {
+      addKeyword(Keyword.RETHROW);
+    }
     addKeyword(Keyword.RETURN);
     if (!featureSet.isEnabled(Feature.patterns)) {
       // We don't suggest `switch` when patterns is enabled because `switch`

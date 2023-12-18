@@ -91,7 +91,7 @@ class _DebuggingSession {
       'dds_aot.dart.snapshot',
     ].join('/');
     String execName = dartAotPath;
-    if (!File(snapshotName).existsSync() || !File(dartAotPath).existsSync()) {
+    if (!File(snapshotName).existsSync()) {
       snapshotName = [
         dartDir,
         fullSdk ? 'snapshots' : 'gen',

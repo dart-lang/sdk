@@ -23,13 +23,13 @@
 #include <sys/mman.h>
 #endif
 
+#include "bin/ffi_test/ffi_test_fields.h"
+
 #if defined(_WIN32)
 #define DART_EXPORT extern "C" __declspec(dllexport)
-#define DART_EXPORT_FIELD __declspec(dllexport)
 #else
 #define DART_EXPORT                                                            \
   extern "C" __attribute__((visibility("default"))) __attribute((used))
-#define DART_EXPORT_FIELD __attribute__((visibility("default")))
 #endif
 
 namespace dart {
@@ -41,18 +41,6 @@ namespace dart {
   }
 
 #define CHECK_EQ(X, Y) CHECK((X) == (Y))
-
-////////////////////////////////////////////////////////////////////////////////
-// Tests for Dart -> native fields.
-struct Coord {
-  double x;
-  double y;
-  Coord* next;
-};
-
-DART_EXPORT_FIELD int32_t globalInt;
-DART_EXPORT_FIELD Coord globalStruct;
-DART_EXPORT_FIELD const char* globalString = "Hello Dart!";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Tests for Dart -> native calls.

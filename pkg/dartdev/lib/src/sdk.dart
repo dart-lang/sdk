@@ -80,13 +80,10 @@ class Sdk {
         'devtools',
       );
 
-  static bool checkArtifactExists(String path, {bool logError = true}) {
+  static bool checkArtifactExists(String path) {
     if (!File(path).existsSync()) {
-      if (logError) {
-        log.stderr(
-          'Could not find $path. Have you built the full Dart SDK?',
-        );
-      }
+      log.stderr('Could not find $path. Have you built the full '
+          'Dart SDK?');
       return false;
     }
     return true;

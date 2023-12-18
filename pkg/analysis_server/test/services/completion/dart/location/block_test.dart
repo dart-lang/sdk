@@ -179,6 +179,22 @@ suggestions
     kind: keyword
 ''');
   }
+
+  Future<void>
+      test_afterLeftBrace_beforeRightBrace_inCatchClause_partial() async {
+    await computeSuggestions('''
+void f() {try {} catch (e) {r^}}}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  rethrow
+    kind: keyword
+  return
+    kind: keyword
+''');
+  }
 }
 
 mixin DoStatementTestCases on AbstractCompletionDriverTest {
