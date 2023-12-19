@@ -2239,7 +2239,7 @@ const Template<Message Function(String name, String string)>
         problemMessageTemplate:
             r"""Type '#name' is a bound of itself via '#string'.""",
         correctionMessageTemplate:
-            r"""Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+            r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
         withArguments: _withArgumentsCycleInTypeVariables);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2258,7 +2258,7 @@ Message _withArgumentsCycleInTypeVariables(String name, String string) {
       problemMessage:
           """Type '${name}' is a bound of itself via '${string}'.""",
       correctionMessage:
-          """Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+          """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
       arguments: {'name': name, 'string': string});
 }
 
@@ -2580,7 +2580,7 @@ const Template<
         Message Function(String name)>("DirectCycleInTypeVariables",
     problemMessageTemplate: r"""Type '#name' can't use itself as a bound.""",
     correctionMessageTemplate:
-        r"""Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+        r"""Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
     withArguments: _withArgumentsDirectCycleInTypeVariables);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2595,7 +2595,7 @@ Message _withArgumentsDirectCycleInTypeVariables(String name) {
   return new Message(codeDirectCycleInTypeVariables,
       problemMessage: """Type '${name}' can't use itself as a bound.""",
       correctionMessage:
-          """Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.""",
+          """Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.""",
       arguments: {'name': name});
 }
 

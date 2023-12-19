@@ -2,13 +2,13 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/generic_metadata/issue45330.dart:10:31: Error: Type 'T' is a bound of itself via 'T'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+// pkg/front_end/testcases/generic_metadata/issue45330.dart:10:31: Error: Type 'T' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 //   genericMethod<void Function<T extends T>()>();
 //                               ^
 //
-// pkg/front_end/testcases/generic_metadata/issue45330_lib.dart:35:31: Error: Type 'T' is a bound of itself via 'T'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
+// pkg/front_end/testcases/generic_metadata/issue45330_lib.dart:35:31: Error: Type 'T' can't use itself as a bound.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
 //   genericMethod<void Function<T extends T>()>();
 //                               ^
 //

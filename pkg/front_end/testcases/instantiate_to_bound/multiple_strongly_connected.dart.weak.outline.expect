@@ -2,10 +2,10 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:41:9: Error: Type 'T' is a bound of itself via 'U', 'Y', 'Z'.
-// Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle.
-// class I<T extends U, U extends Y, V extends Function(W), W extends Function(X),
-//         ^
+// pkg/front_end/testcases/instantiate_to_bound/multiple_strongly_connected.dart:42:41: Error: Type 'Z' is a bound of itself via 'T', 'U', 'Y'.
+// Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle.
+//     X extends Function(V), Y extends Z, Z extends T> {}
+//                                         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -42,7 +42,7 @@ class H<S extends self::A<self::H::S> = self::A<dynamic>, T extends self::B<self
   synthetic constructor •() → self::H<self::H::S, self::H::T, self::H::U, self::H::V, self::H::W, self::H::X, self::H::Y, self::H::Z>
     ;
 }
-class I<T extends invalid-type, U extends self::I::Y% = invalid-type, V extends (self::I::W) → dynamic = (Never) → dynamic, W extends (self::I::X) → dynamic = (Never) → dynamic, X extends (self::I::V) → dynamic = (Never) → dynamic, Y extends self::I::Z% = invalid-type, Z extends self::I::T% = invalid-type> extends core::Object {
+class I<T extends self::I::U% = dynamic, U extends self::I::Y% = dynamic, V extends (self::I::W) → dynamic = (Never) → dynamic, W extends (self::I::X) → dynamic = (Never) → dynamic, X extends (self::I::V) → dynamic = (Never) → dynamic, Y extends self::I::Z% = dynamic, Z extends invalid-type = dynamic> extends core::Object {
   synthetic constructor •() → self::I<self::I::T%, self::I::U%, self::I::V, self::I::W, self::I::X, self::I::Y%, self::I::Z%>
     ;
 }
@@ -55,7 +55,7 @@ static field self::E<self::B<dynamic, dynamic>, self::C<dynamic, dynamic>, self:
 static field self::F<core::num, self::B<dynamic, dynamic>, self::C<dynamic, dynamic>, self::B<self::B<dynamic, dynamic>, self::C<dynamic, dynamic>>, self::C<self::B<self::B<dynamic, dynamic>, self::C<dynamic, dynamic>>, dynamic>> f;
 static field self::G<core::num, self::B<core::num, dynamic>, self::C<dynamic, core::num>, self::B<self::B<core::num, dynamic>, self::C<dynamic, core::num>>, self::C<self::B<self::B<core::num, dynamic>, self::C<dynamic, core::num>>, dynamic>> g;
 static field self::H<self::A<dynamic>, self::B<dynamic, dynamic>, self::C<dynamic, dynamic>, self::A<dynamic>, self::A<dynamic>, self::B<dynamic, dynamic>, self::C<dynamic, dynamic>, self::A<dynamic>> h;
-static field self::I<invalid-type, invalid-type, (Never) → dynamic, (Never) → dynamic, (Never) → dynamic, invalid-type, invalid-type> i;
+static field self::I<dynamic, dynamic, (Never) → dynamic, (Never) → dynamic, (Never) → dynamic, dynamic, dynamic> i;
 static field self::J<(Never) → dynamic, (Never) → dynamic, (Never) → dynamic, dynamic, dynamic, (Never) → dynamic, dynamic, dynamic> j;
 static method main() → dynamic
   ;
