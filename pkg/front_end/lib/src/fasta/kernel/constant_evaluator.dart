@@ -3089,8 +3089,15 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitListConcatenation(ListConcatenation node) {
+    DartType? type = _evaluateDartType(node, node.typeArgument);
+    if (type == null) {
+      AbortConstant error = _gotError!;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
     final ListConstantBuilder builder =
-        new ListConstantBuilder(node, convertType(node.typeArgument), this);
+        new ListConstantBuilder(node, convertType(type), this);
     for (Expression list in node.lists) {
       AbortConstant? error = builder.addSpread(list);
       if (error != null) return error;
@@ -3134,8 +3141,15 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitSetConcatenation(SetConcatenation node) {
+    DartType? type = _evaluateDartType(node, node.typeArgument);
+    if (type == null) {
+      AbortConstant error = _gotError!;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
     final SetConstantBuilder builder =
-        new SetConstantBuilder(node, convertType(node.typeArgument), this);
+        new SetConstantBuilder(node, convertType(type), this);
     for (Expression set_ in node.sets) {
       AbortConstant? error = builder.addSpread(set_);
       if (error != null) return error;
@@ -3187,8 +3201,22 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitMapConcatenation(MapConcatenation node) {
+    DartType? keyType = _evaluateDartType(node, node.keyType);
+    if (keyType == null) {
+      AbortConstant error = _gotError!;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
+    DartType? valueType = _evaluateDartType(node, node.valueType);
+    if (valueType == null) {
+      AbortConstant error = _gotError!;
+      _gotError = null;
+      return error;
+    }
+    assert(_gotError == null);
     final MapConstantBuilder builder = new MapConstantBuilder(
-        node, convertType(node.keyType), convertType(node.valueType), this);
+        node, convertType(keyType), convertType(valueType), this);
     for (Expression map in node.maps) {
       AbortConstant? error = builder.addSpread(map);
       if (error != null) return error;
