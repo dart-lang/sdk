@@ -20,8 +20,8 @@ abstract interface class Annotatable {
 /// These can be passed directly to [Code] objects, which will automatically do
 /// any necessary prefixing when emitting references.
 ///
-/// Concrete implementations should override `==` so that identifiers can be
-/// reliably compared against each other.
+/// Identifier equality/identity is not specified. To check for type equality, a
+/// [StaticType] should be used.
 abstract interface class Identifier {
   String get name;
 }

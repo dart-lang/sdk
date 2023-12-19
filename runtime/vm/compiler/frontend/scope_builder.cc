@@ -243,6 +243,11 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
         // async/async*/sync* function. It may reference receiver or type
         // arguments of the enclosing function which need to be captured.
         VisitDartType();
+
+        // Visit optional future value type.
+        if (helper_.ReadTag() == kSomething) {
+          VisitDartType();
+        }
       }
 
       // We generate a synthetic body for implicit closure functions - which

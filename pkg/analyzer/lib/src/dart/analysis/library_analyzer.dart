@@ -794,7 +794,7 @@ class LibraryAnalyzer {
         unitElement: unitElement,
         errorListener: errorListener,
         featureSet: unit.featureSet,
-        nameScope: _libraryElement.scope,
+        nameScope: unitElement.enclosingElement.scope,
         strictInference: _analysisOptions.strictInference,
         elementWalker: ElementWalker.forCompilationUnit(
           unitElement,

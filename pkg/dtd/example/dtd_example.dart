@@ -5,6 +5,9 @@
 import 'package:dtd/dtd.dart';
 
 void main() {
+  // TODO(@danchevalier) make simple testing services for ide's to know that
+  // things are working.
+
   // TODO(@danchevalier): make this example meaningful
   DartToolingDaemon.connect(Uri.parse('wss://127.0.0.1:12345'));
 }

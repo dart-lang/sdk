@@ -22,7 +22,20 @@ abstract interface class TypePhaseIntrospector {
   /// Returns an [Identifier] for a top level [name] in [library].
   ///
   /// You should only do this for libraries that are definitely in the
-  /// transitive import graph of the library you are generating code into.
+  /// transitive import graph of the library you are generating code into. If
+  /// [library] is not in this transitive import graph, then an unspecified
+  /// [Exception] should be thrown. The best way to ensure this, is to have the
+  /// macro library itself import [library] (even if it doesn't directly use
+  /// it).
+  ///
+  /// When the name alone is not sufficient to disambiguate between multiple
+  /// declarations, such as the case of a field (which has a synthetic getter),
+  /// an [Identifier] pointing to the non-synthetic declaration will be
+  /// returned. Future calls to `declarationOf(identifier)` will return that
+  /// non-synthetic declaration.
+  ///
+  /// If [name] does not exist in [library], then an unspecified [Exception]
+  /// should be thrown.
   @Deprecated(
       'This API should eventually be replaced with a different, safer API.')
   Future<Identifier> resolveIdentifier(Uri library, String name);
@@ -71,6 +84,9 @@ abstract interface class MixinTypeBuilder
 abstract interface class DeclarationPhaseIntrospector
     implements TypePhaseIntrospector {
   /// Instantiates a new [StaticType] for a given [type] annotation.
+  ///
+  /// Throws if [type] is a [RawTypeAnnotationCode], more specific subtypes must
+  /// be used, as raw [Identifier]s are not allowed.
   ///
   /// Throws an error if the [type] object contains [Identifier]s which cannot
   /// be resolved. This should only happen in the case of incomplete or invalid
