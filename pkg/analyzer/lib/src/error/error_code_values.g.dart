@@ -649,6 +649,8 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.ABSTRACT_CLASS_MEMBER,
   ParserErrorCode.ABSTRACT_ENUM,
   ParserErrorCode.ABSTRACT_EXTERNAL_FIELD,
+  ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS,
+  ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS,
   ParserErrorCode.ABSTRACT_LATE_FIELD,
   ParserErrorCode.ABSTRACT_SEALED_CLASS,
   ParserErrorCode.ABSTRACT_STATIC_FIELD,

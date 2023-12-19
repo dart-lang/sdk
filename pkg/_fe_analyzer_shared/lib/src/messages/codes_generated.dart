@@ -99,6 +99,31 @@ const MessageCode messageAbstractFieldInitializer = const MessageCode(
         r"""Try removing the initializer or the 'abstract' keyword.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFinalBaseClass = messageAbstractFinalBaseClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFinalBaseClass = const MessageCode(
+    "AbstractFinalBaseClass",
+    index: 176,
+    problemMessage:
+        r"""An 'abstract' class can't be declared as both 'final' and 'base'.""",
+    correctionMessage:
+        r"""Try removing either the 'final' or 'base' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeAbstractFinalInterfaceClass =
+    messageAbstractFinalInterfaceClass;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageAbstractFinalInterfaceClass = const MessageCode(
+    "AbstractFinalInterfaceClass",
+    index: 177,
+    problemMessage:
+        r"""An 'abstract' class can't be declared as both 'final' and 'interface'.""",
+    correctionMessage:
+        r"""Try removing either the 'final' or 'interface' keyword.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeAbstractLateField = messageAbstractLateField;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -1040,6 +1040,22 @@ AbstractLateField:
   script:
     - "abstract class C {abstract late var f;}"
 
+AbstractFinalBaseClass:
+  problemMessage: "An 'abstract' class can't be declared as both 'final' and 'base'."
+  correctionMessage: "Try removing either the 'final' or 'base' keyword."
+  analyzerCode: ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS
+  index: 176
+  script:
+    - "abstract final base class C {}"
+
+AbstractFinalInterfaceClass:
+  problemMessage: "An 'abstract' class can't be declared as both 'final' and 'interface'."
+  correctionMessage: "Try removing either the 'final' or 'interface' keyword."
+  analyzerCode: ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS
+  index: 177
+  script:
+    - "abstract final interface class C {}"
+
 AbstractSealedClass:
   problemMessage: "A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract."
   correctionMessage: "Try removing the 'abstract' keyword."

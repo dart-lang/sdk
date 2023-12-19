@@ -197,6 +197,8 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.EXPECTED_EXTENSION_BODY,
   ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE,
   ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR,
+  ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS,
+  ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -218,6 +220,19 @@ class ParserErrorCode extends ErrorCode {
     'ABSTRACT_EXTERNAL_FIELD',
     "Fields can't be declared both 'abstract' and 'external'.",
     correctionMessage: "Try removing the 'abstract' or 'external' keyword.",
+  );
+
+  static const ParserErrorCode ABSTRACT_FINAL_BASE_CLASS = ParserErrorCode(
+    'ABSTRACT_FINAL_BASE_CLASS',
+    "An 'abstract' class can't be declared as both 'final' and 'base'.",
+    correctionMessage: "Try removing either the 'final' or 'base' keyword.",
+  );
+
+  static const ParserErrorCode ABSTRACT_FINAL_INTERFACE_CLASS = ParserErrorCode(
+    'ABSTRACT_FINAL_INTERFACE_CLASS',
+    "An 'abstract' class can't be declared as both 'final' and 'interface'.",
+    correctionMessage:
+        "Try removing either the 'final' or 'interface' keyword.",
   );
 
   static const ParserErrorCode ABSTRACT_LATE_FIELD = ParserErrorCode(
