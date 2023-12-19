@@ -1862,19 +1862,24 @@ severity: $severity
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
-        sortedTypeVariables = sortAllTypeVariablesTopologically([
+    List<TypeVariableBuilderBase> sortedTypeVariables =
+        sortAllTypeVariablesTopologically([
       ...unboundFunctionTypeTypeVariableBuilders.keys,
       ...unboundTypeVariableBuilders.keys
     ]);
-    for (Object builder in sortedTypeVariables) {
-      if (builder is NominalVariableBuilder) {
-        builder.finish(
-            unboundTypeVariableBuilders[builder]!, object, dynamicType);
-      } else {
-        builder as StructuralVariableBuilder;
-        builder.finish(unboundFunctionTypeTypeVariableBuilders[builder]!,
-            object, dynamicType);
+
+    for (TypeVariableBuilderBase builder in sortedTypeVariables) {
+      switch (builder) {
+        case NominalVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundTypeVariableBuilders[builder]!;
+          libraryBuilder.checkTypeVariableDependencies([builder]);
+          builder.finish(libraryBuilder, object, dynamicType);
+        case StructuralVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundFunctionTypeTypeVariableBuilders[builder]!;
+          libraryBuilder.checkTypeVariableDependencies([builder]);
+          builder.finish(libraryBuilder, object, dynamicType);
       }
     }
 

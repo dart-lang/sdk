@@ -652,7 +652,7 @@
           "name": "front_end unit tests (no git)",
           "arguments": [
             "-ncfe-unittest-asserts-${mode}-${system}",
-            "pkg/pkg/(kernel|front_end|fasta)\/(*?)(?<!_git)_test"
+            "pkg/pkg/(kernel|front_end|frontend_server)\/(*?)(?<!_git)_test"
           ],
           "fileset": "front-end",
           "shards": 4
@@ -674,7 +674,7 @@
           "name": "front_end unit tests (with git)",
           "arguments": [
             "-ncfe-unittest-asserts-${mode}-${system}",
-            "pkg/pkg/(kernel|front_end|fasta)\/(*?)(_git)_test"
+            "pkg/pkg/(kernel|front_end|frontend_server)\/(*?)(_git)_test"
           ]
         },
         {
@@ -2973,7 +2973,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ],
           "shards": 3,
           "fileset": "vm"
@@ -3093,7 +3093,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-${arch}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|frontend_server|nnbd_migration|dartdev/test/native_assets|vm_service)/)"
           ]
         }
       ]
