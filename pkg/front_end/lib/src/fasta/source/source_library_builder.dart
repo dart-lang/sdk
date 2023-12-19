@@ -3494,14 +3494,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<FormalParameterBuilder>? formals,
       NullabilityBuilder nullabilityBuilder,
       Uri fileUri,
-      int charOffset) {
+      int charOffset,
+      {required bool hasFunctionFormalParameterSyntax}) {
     FunctionTypeBuilder builder = new FunctionTypeBuilderImpl(
         returnType,
         structuralVariableBuilders,
         formals,
         nullabilityBuilder,
         fileUri,
-        charOffset);
+        charOffset,
+        hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
     checkStructuralVariables(structuralVariableBuilders, null);
     if (structuralVariableBuilders != null) {
       for (StructuralVariableBuilder builder in structuralVariableBuilders) {

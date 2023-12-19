@@ -474,6 +474,10 @@ abstract class FunctionTypeBuilder extends TypeBuilder {
   TypeBuilder get returnType;
   List<ParameterBuilder>? get formals;
   List<StructuralVariableBuilder>? get typeVariables;
+
+  /// If `true`, this function type was created using function formal parameter
+  /// syntax, like `f` in `method(int f()) { ... }`.
+  bool get hasFunctionFormalParameterSyntax;
 }
 
 abstract class InvalidTypeBuilder extends TypeBuilder {}

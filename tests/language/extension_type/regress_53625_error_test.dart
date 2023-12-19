@@ -61,12 +61,15 @@ extension type E06(required int x) {}
 extension type E07(int this.x) {} // Initializing formal.
 //                 ^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_REPRESENTATION_FIELD
+//                          ^
+// [cfe] Primary constructors in extension types can't use initializing formals.
 
 extension type E08(this.x) {} // Initializing formal.
 //                 ^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_REPRESENTATION_FIELD
 //                      ^
 // [cfe] Expected a representation type.
+// [cfe] Primary constructors in extension types can't use initializing formals.
 
 extension type E09(int super.x) implements E {} // Constructor super-parameter.
 //                 ^^^
@@ -84,6 +87,8 @@ extension type E10(super.x) implements E {} // Constructor super-parameter.
 extension type E11(int x()) {} // Old-style function parameter syntax.
 //                 ^^^
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_REPRESENTATION_FIELD
+//                     ^
+// [cfe] Primary constructors in extension types can't use function formal parameter syntax.
 
 // The "primary parameter" declares a "field",
 // but still does not accept field modifiers or initializers.

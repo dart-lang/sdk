@@ -4552,6 +4552,33 @@ const MessageCode messageExtensionTypeMemberOneOfContext = const MessageCode(
         r"""This is one of the inherited extension type members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null>
+    codeExtensionTypePrimaryConstructorFunctionFormalParameterSyntax =
+    messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+    messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax =
+    const MessageCode(
+        "ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax",
+        problemMessage:
+            r"""Primary constructors in extension types can't use function formal parameter syntax.""",
+        correctionMessage:
+            r"""Try rewriting with an explicit function type, like `int Function() f`.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypePrimaryConstructorWithInitializingFormal =
+    messageExtensionTypePrimaryConstructorWithInitializingFormal;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypePrimaryConstructorWithInitializingFormal =
+    const MessageCode("ExtensionTypePrimaryConstructorWithInitializingFormal",
+        problemMessage:
+            r"""Primary constructors in extension types can't use initializing formals.""",
+        correctionMessage:
+            r"""Try removing `this.` from the formal parameter.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExtensionTypeRepresentationTypeBottom =
     messageExtensionTypeRepresentationTypeBottom;
 
