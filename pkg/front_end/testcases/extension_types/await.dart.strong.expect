@@ -25,7 +25,7 @@ static extension-type-member method V2|constructor#<T extends asy::Future<core::
 }
 static extension-type-member method V2|constructor#_#new#tearOff<T extends asy::Future<core::Object>>(self::V2|constructor#_#new#tearOff::T id) → self::V2<self::V2|constructor#_#new#tearOff::T> /* = self::V2|constructor#_#new#tearOff::T */
   return self::V2|constructor#<self::V2|constructor#_#new#tearOff::T>(id);
-static method main() → dynamic async /* futureValueType= dynamic */ {
+static method main() → dynamic async /* emittedValueType= dynamic */ {
   self::V1 /* = asy::Future<core::int> */ v1 = self::V1|constructor#(asy::Future::value<core::int>(42));
   core::int _v1 = await v1;
   self::expect(42, _v1);

@@ -2055,7 +2055,7 @@ class BinaryBuilder {
         returnType: returnType,
         asyncMarker: asyncMarker,
         dartAsyncMarker: dartAsyncMarker,
-        futureValueType: futureValueType)
+        emittedValueType: futureValueType)
       ..fileOffset = offset
       ..fileEndOffset = endOffset
       ..redirectingFactoryTarget = redirectingFactoryTarget;

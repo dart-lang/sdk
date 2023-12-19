@@ -4192,7 +4192,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn((_) => []);
     var returnType = _currentLibrary!.isNonNullableByDefault
-        ? function.futureValueType!
+        ? function.emittedValueType!
         // Otherwise flatten the return type because futureValueType(T) is not
         // defined for legacy libraries.
         : _types.flatten(function

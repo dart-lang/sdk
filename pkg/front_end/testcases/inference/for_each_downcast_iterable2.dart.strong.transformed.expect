@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method test(dynamic o) → dynamic async /* futureValueType= dynamic */ {
+static method test(dynamic o) → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized core::Iterator<dynamic>* :sync-for-iterator = (o as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {

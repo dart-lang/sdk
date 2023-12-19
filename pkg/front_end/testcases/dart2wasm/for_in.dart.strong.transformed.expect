@@ -14,7 +14,7 @@ static method method(core::Iterable<core::int> iterable) → dynamic {
     }
   }
 }
-static method asyncMethod(asy::Stream<core::int> stream) → dynamic async /* futureValueType= dynamic */ {
+static method asyncMethod(asy::Stream<core::int> stream) → dynamic async /* emittedValueType= dynamic */ {
   core::bool :async_temporary_0;
   dynamic :async_temporary_1;
   {

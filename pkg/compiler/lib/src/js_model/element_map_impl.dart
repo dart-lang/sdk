@@ -2254,7 +2254,7 @@ class JsElementEnvironment extends ElementEnvironment
         return _getSyncStarElementType(returnType);
       case AsyncMarker.ASYNC:
         return elementMap.getDartType(
-            getFunctionNode(elementMap, function)!.futureValueType!);
+            getFunctionNode(elementMap, function)!.emittedValueType!);
       case AsyncMarker.ASYNC_STAR:
         return _getAsyncStarElementType(returnType);
     }

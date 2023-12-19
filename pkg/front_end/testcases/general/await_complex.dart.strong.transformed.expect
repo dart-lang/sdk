@@ -52,7 +52,7 @@ static set topLevelSetter(dynamic val) → void {
 }
 static method dummy() → dynamic
   return 1;
-static method staticMembers() → dynamic async /* futureValueType= dynamic */ {
+static method staticMembers() → dynamic async /* emittedValueType= dynamic */ {
   core::num a = self::C::staticField.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, a);
   core::num f = (self::C::staticField = 1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
@@ -66,7 +66,7 @@ static method staticMembers() → dynamic async /* futureValueType= dynamic */ {
   core::num e = self::C::staticField.{core::num::+}(self::C::staticGetter){(core::num) → core::int}.{core::num::+}(self::C::staticSetter = 1){(core::num) → core::int}.{core::num::+}(self::C::staticFoo(1)){(core::num) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(5, e);
 }
-static method topLevelMembers() → dynamic async /* futureValueType= dynamic */ {
+static method topLevelMembers() → dynamic async /* emittedValueType= dynamic */ {
   core::num a = self::globalVariable.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, a);
   core::num b = self::topLevelGetter.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
@@ -78,7 +78,7 @@ static method topLevelMembers() → dynamic async /* futureValueType= dynamic */
   core::num e = self::globalVariable.{core::num::+}(self::topLevelGetter){(core::num) → core::int}.{core::num::+}(self::topLevelSetter = 1){(core::num) → core::int}.{core::num::+}(self::topLevelFoo(1)){(core::num) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(5, e);
 }
-static method instanceMembers() → dynamic async /* futureValueType= dynamic */ {
+static method instanceMembers() → dynamic async /* emittedValueType= dynamic */ {
   self::C inst = new self::C::•();
   core::num a = inst.{self::C::field}{core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, a);
@@ -91,7 +91,7 @@ static method instanceMembers() → dynamic async /* futureValueType= dynamic */
   core::num e = inst.{self::C::field}{core::int}.{core::num::+}(inst.{self::C::getter}{core::int}){(core::num) → core::int}.{core::num::+}(inst.{self::C::setter} = 1){(core::num) → core::int}.{core::num::+}(inst.{self::C::foo}(1){(core::int) → core::int}){(core::num) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(5, e);
 }
-static method others() → dynamic async /* futureValueType= dynamic */ {
+static method others() → dynamic async /* emittedValueType= dynamic */ {
   core::String a = "${self::globalVariable} ${await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ } ".{core::String::+}(await "someString" /* runtimeCheckType= asy::Future<core::String> */ ){(core::String) → core::String};
   self::expect("1 1 someString", a);
   self::C c = new self::C::•();
@@ -103,7 +103,7 @@ static method others() → dynamic async /* futureValueType= dynamic */ {
   core::num e = b.{core::List::[]}(0){(core::int) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, e);
 }
-static method conditionals() → dynamic async /* futureValueType= dynamic */ {
+static method conditionals() → dynamic async /* emittedValueType= dynamic */ {
   core::bool a = false;
   core::bool b = true;
   core::bool c = a || b || await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::bool;
@@ -118,7 +118,7 @@ static method conditionals() → dynamic async /* futureValueType= dynamic */ {
   on core::Object catch(final core::Object e) {
   }
 }
-static method asserts() → dynamic async /* futureValueType= dynamic */ {
+static method asserts() → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>> :sync-for-iterator = core::_GrowableList::_literal2<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>(#C1, #C2).{core::Iterable::iterator}{core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -141,7 +141,7 @@ static method asserts() → dynamic async /* futureValueType= dynamic */ {
     }
   }
 }
-static method controlFlow() → dynamic async /* futureValueType= dynamic */ {
+static method controlFlow() → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>> :sync-for-iterator = core::_GrowableList::_literal2<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>(#C1, #C2).{core::Iterable::iterator}{core::Iterator<<T extends core::Object? = dynamic>(T%) → FutureOr<T%>>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -213,17 +213,17 @@ static method controlFlow() → dynamic async /* futureValueType= dynamic */ {
               throw "unreachable";
             }
         }
-        self::expect(42, await(() → asy::Future<core::int> async /* futureValueType= core::int */ {
+        self::expect(42, await(() → asy::Future<core::int> async /* emittedValueType= core::int */ {
           return await func<core::int>(42){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ;
         })(){() → asy::Future<core::int>});
-        self::expect(42, await(() → asy::Future<core::int> async /* futureValueType= core::int */ {
+        self::expect(42, await(() → asy::Future<core::int> async /* emittedValueType= core::int */ {
           return func<core::int>(42){(core::int) → FutureOr<core::int>};
         })(){() → asy::Future<core::int>});
-        function testStream1() → asy::Stream<core::int> async* {
+        function testStream1() → asy::Stream<core::int> async* /* emittedValueType= core::int */ {
           yield await func<core::int>(42){(core::int) → FutureOr<core::int>} /* runtimeCheckType= asy::Future<core::int> */ ;
         }
         self::expectList(core::_GrowableList::_literal1<dynamic>(42), await testStream1(){() → asy::Stream<core::int>}.{asy::Stream::toList}(){() → asy::Future<core::List<core::int>>});
-        function testStream2() → asy::Stream<core::int> async* {
+        function testStream2() → asy::Stream<core::int> async* /* emittedValueType= core::int */ {
           yield* await func<asy::Stream<core::int>>(self::intStream()){(asy::Stream<core::int>) → FutureOr<asy::Stream<core::int>>} /* runtimeCheckType= asy::Future<asy::Stream<core::int>> */ ;
         }
         self::expectList(core::_GrowableList::_literal1<dynamic>(42), await testStream2(){() → asy::Stream<core::int>}.{asy::Stream::toList}(){() → asy::Future<core::List<core::int>>});
@@ -231,14 +231,14 @@ static method controlFlow() → dynamic async /* futureValueType= dynamic */ {
     }
   }
 }
-static method future<T extends core::Object? = dynamic>(self::future::T% value) → FutureOr<self::future::T%> async /* futureValueType= self::future::T% */ 
+static method future<T extends core::Object? = dynamic>(self::future::T% value) → FutureOr<self::future::T%> async /* emittedValueType= self::future::T% */ 
   return value;
 static method id<T extends core::Object? = dynamic>(self::id::T% value) → FutureOr<self::id::T%>
   return value;
-static method intStream() → asy::Stream<core::int> async* {
+static method intStream() → asy::Stream<core::int> async* /* emittedValueType= core::int */ {
   yield 42;
 }
-static method main() → dynamic async /* futureValueType= dynamic */ {
+static method main() → dynamic async /* emittedValueType= dynamic */ {
   for (core::int i = 0; i.{core::num::<}(11){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
     await self::staticMembers() /* runtimeCheckType= asy::Future<dynamic> */ ;
     await self::topLevelMembers() /* runtimeCheckType= asy::Future<dynamic> */ ;

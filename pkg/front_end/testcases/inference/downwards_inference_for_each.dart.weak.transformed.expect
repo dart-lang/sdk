@@ -11,7 +11,7 @@ abstract class MyStream<T extends core::Object? = dynamic> extends asy::Stream<s
 }
 static method F<T extends core::Object? = dynamic>() → self::F::T%
   return throw "";
-static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ {
+static method f() → asy::Future<dynamic> async /* emittedValueType= dynamic */ {
   dynamic d;
   core::Object o;
   {
@@ -118,7 +118,7 @@ static method f() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
 }
-static method main() → asy::Future<dynamic> async /* futureValueType= dynamic */ {
+static method main() → asy::Future<dynamic> async /* emittedValueType= dynamic */ {
   {
     synthesized core::Iterator<core::int> :sync-for-iterator = core::_GrowableList::_literal3<core::int>(1, 2, 3).{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {

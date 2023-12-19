@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method test() → dynamic async /* futureValueType= dynamic */ {
+static method test() → dynamic async /* emittedValueType= dynamic */ {
   late final core::int x;
   {
     synthesized asy::Stream<core::int> :stream = asy::Stream::fromIterable<core::int>(core::_GrowableList::_literal1<core::int>(1));

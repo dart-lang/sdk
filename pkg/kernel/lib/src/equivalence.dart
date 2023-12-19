@@ -2262,7 +2262,7 @@ class EquivalenceStrategy {
     if (!checkFunctionNode_body(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkFunctionNode_futureValueType(visitor, node, other)) {
+    if (!checkFunctionNode_emittedValueType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionNode_redirectingFactoryTarget(visitor, node, other)) {
@@ -6656,10 +6656,10 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.body, other.body, 'body');
   }
 
-  bool checkFunctionNode_futureValueType(
+  bool checkFunctionNode_emittedValueType(
       EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
     return visitor.checkNodes(
-        node.futureValueType, other.futureValueType, 'futureValueType');
+        node.emittedValueType, other.emittedValueType, 'emittedValueType');
   }
 
   bool checkRedirectingFactoryTarget_targetReference(EquivalenceVisitor visitor,

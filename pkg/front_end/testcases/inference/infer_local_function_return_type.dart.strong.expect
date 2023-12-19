@@ -6,18 +6,18 @@ import "dart:async" as asy;
 static method test() → dynamic {
   function f0() → core::int
     return 42;
-  function f1() → asy::Future<core::int> async /* futureValueType= core::int */ 
+  function f1() → asy::Future<core::int> async /* emittedValueType= core::int */ 
     return 42;
   function f2() → core::int {
     return 42;
   }
-  function f3() → asy::Future<core::int> async /* futureValueType= core::int */ {
+  function f3() → asy::Future<core::int> async /* emittedValueType= core::int */ {
     return 42;
   }
-  function f4() → core::Iterable<core::int> sync* {
+  function f4() → core::Iterable<core::int> sync* /* emittedValueType= core::int */ {
     yield 42;
   }
-  function f5() → asy::Stream<core::int> async* {
+  function f5() → asy::Stream<core::int> async* /* emittedValueType= core::int */ {
     yield 42;
   }
   function f6() → core::num

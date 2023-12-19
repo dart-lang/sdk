@@ -978,8 +978,8 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       helper_->SkipDartType();  // read return type.
       if (++next_read_ == field) return;
       FALL_THROUGH;
-    case kFutureValueType:
-      helper_->SkipOptionalDartType();  // read future value type.
+    case kEmittedValueType:
+      helper_->SkipOptionalDartType();  // read emitted value type.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kRedirectingFactoryTarget: {

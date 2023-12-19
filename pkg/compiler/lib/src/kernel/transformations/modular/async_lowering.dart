@@ -36,7 +36,7 @@ class AsyncLowering {
 
   bool _shouldTryAsyncLowering(FunctionNode node) =>
       node.asyncMarker == AsyncMarker.Async &&
-      node.futureValueType != null &&
+      node.emittedValueType != null &&
       _functions.last.shouldLower;
 
   void enterFunction(FunctionNode node) {
@@ -54,7 +54,7 @@ class AsyncLowering {
 
   void _wrapBodySync(FunctionNode node) {
     node.asyncMarker = AsyncMarker.Sync;
-    final futureValueType = node.futureValueType!;
+    final futureValueType = node.emittedValueType!;
     _updateFunctionBody(
         node,
         ReturnStatement(StaticInvocation(
@@ -69,7 +69,7 @@ class AsyncLowering {
   }
 
   void _wrapReturns(_FunctionData functionData, FunctionNode node) {
-    final futureValueType = node.futureValueType!;
+    final futureValueType = node.emittedValueType!;
     for (final returnStatement in functionData.returnStatements) {
       final expression = returnStatement.expression;
       // Ensure the returned future has a runtime type (T) matching the

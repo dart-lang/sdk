@@ -18,12 +18,12 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method main() → dynamic async /* futureValueType= dynamic */ {
-  function f_async() → core::int async /* futureValueType= core::Object? */ {
+static method main() → dynamic async /* emittedValueType= dynamic */ {
+  function f_async() → core::int async /* emittedValueType= core::Object? */ {
     return 42;
   }
   core::print(await f_async(){() → core::int} /* runtimeCheckType= asy::Future<core::int> */ );
-  function f_async_star() → core::int async* {
+  function f_async_star() → core::int async* /* emittedValueType= dynamic */ {
     yield 42;
   }
   {
@@ -40,7 +40,7 @@ static method main() → dynamic async /* futureValueType= dynamic */ {
       if(!(:for-iterator.{asy::_StreamIterator::_subscription}{asy::StreamSubscription<dynamic>?} == null))
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
-  function f_sync_star() → core::int sync* {
+  function f_sync_star() → core::int sync* /* emittedValueType= dynamic */ {
     yield 42;
   }
   {

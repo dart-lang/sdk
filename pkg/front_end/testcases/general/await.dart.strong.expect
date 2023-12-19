@@ -2,6 +2,6 @@ library;
 import self as self;
 import "dart:core" as core;
 
-static method main() → dynamic async /* futureValueType= dynamic */ {
+static method main() → dynamic async /* emittedValueType= dynamic */ {
   core::print(await "Hello, World!" /* runtimeCheckType= dart.async::Future<core::String> */ );
 }

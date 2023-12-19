@@ -36,7 +36,7 @@ abstract class MyStream<T extends core::Object? = dynamic> extends asy::Stream<s
   static factory •<T extends core::Object? = dynamic>() → self::MyStream<self::MyStream::•::T%>
     return throw "";
 }
-static method foo() → asy::Stream<core::List<core::int>> async* {
+static method foo() → asy::Stream<core::List<core::int>> async* /* emittedValueType= core::List<core::int> */ {
   yield core::_GrowableList::•<core::int>(0);
   yield invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:16:69: Error: A value of type 'MyStream<dynamic>' can't be assigned to a variable of type 'List<int>'.
  - 'MyStream' is from 'pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart'.
@@ -50,7 +50,7 @@ static method foo() → asy::Stream<core::List<core::int>> async* {
                                                                ^" in core::_GrowableList::•<dynamic>(0) as{TypeError} asy::Stream<core::List<core::int>>;
   yield* self::MyStream::•<core::List<core::int>>();
 }
-static method bar() → core::Iterable<core::Map<core::int, core::int>> sync* {
+static method bar() → core::Iterable<core::Map<core::int, core::int>> sync* /* emittedValueType= core::Map<core::int, core::int> */ {
   yield core::Map::•<core::int, core::int>();
   yield invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:23:63: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Map<int, int>'.
  - 'List' is from 'dart:core'.

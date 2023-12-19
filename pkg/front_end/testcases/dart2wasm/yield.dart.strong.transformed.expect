@@ -3,14 +3,14 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method method(core::Iterable<core::int> iterable) → core::Iterable<core::int> sync* {
+static method method(core::Iterable<core::int> iterable) → core::Iterable<core::int> sync* /* emittedValueType= core::int */ {
   yield 1;
   yield 2;
   yield* iterable;
 }
 static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::int> {
   synthesized asy::StreamController<core::Object?> #controller = asy::StreamController::•<core::Object?>();
-  synthesized () → asy::Future<void> #body = () → asy::Future<void> async /* futureValueType= void */ {
+  synthesized () → asy::Future<void> #body = () → asy::Future<void> async /* emittedValueType= void */ {
     core::bool :async_temporary_0;
     core::bool :async_temporary_1;
     core::bool :async_temporary_2;
@@ -96,7 +96,7 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
   synthesized core::bool #isFirst = #C2;
   synthesized core::bool #isEven = #C1;
   #controller.{asy::StreamController::add}(#C3){(core::Object?) → void};
-  return #controller.{asy::StreamController::stream}{asy::Stream<core::Object?>}.{asy::Stream::asyncMap}<core::Object?>((synthesized core::Object? value) → FutureOr<core::Object?> async /* futureValueType= core::Object? */ {
+  return #controller.{asy::StreamController::stream}{asy::Stream<core::Object?>}.{asy::Stream::asyncMap}<core::Object?>((synthesized core::Object? value) → FutureOr<core::Object?> async /* emittedValueType= core::Object? */ {
     if(#isFirst) {
       #body(){() → asy::Future<void>};
       return #C3;

@@ -464,7 +464,7 @@ class _WasmTransformer extends Transformer {
               _addCompleterToController(controller, completer, fileOffset)),
           tryFinally,
         ]),
-        futureValueType: const VoidType(),
+        emittedValueType: const VoidType(),
         returnType: InterfaceType(
             coreTypes.futureClass, Nullability.nonNullable, [const VoidType()]),
         asyncMarker: AsyncMarker.Async,
@@ -544,7 +544,7 @@ class _WasmTransformer extends Transformer {
           coreTypes.objectNullableRawType, Nullability.nonNullable),
       asyncMarker: AsyncMarker.Async,
       dartAsyncMarker: AsyncMarker.Async,
-      futureValueType: coreTypes.objectNullableRawType,
+      emittedValueType: coreTypes.objectNullableRawType,
     ));
 
     // Call `asyncMap`.
