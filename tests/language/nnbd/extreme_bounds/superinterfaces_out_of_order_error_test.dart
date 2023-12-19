@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Requirements=nnbd-weak
-
 // Test that upper bound computations which rely on the computations of the
 // cardinality of the superinterface sets define those sets without erasing or
 // modifying the superinterfaces.
