@@ -411,8 +411,8 @@ class TestConfiguration {
 
   /// The set of [Feature]s supported by this configuration.
   late final Set<Feature> supportedFeatures = compiler == Compiler.dart2analyzer
-      // The analyzer should parse all tests.
-      ? {...Feature.all}
+      // The analyzer should parse all tests that don't require legacy support.
+      ? {...Feature.noLegacy}
       : {
           // TODO(rnystrom): Define more features for things like "dart:io", separate
           // int/double representation, etc.
