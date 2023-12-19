@@ -86,6 +86,10 @@ class DocumentationValidator {
     'FfiCode.FIELD_INITIALIZER_IN_STRUCT',
     // This is not reported after 2.12, and the examples don't compile after 3.0.
     'FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER',
+    // See https://github.com/dart-lang/sdk/issues/54416.
+    'FfiCode.NATIVE_FIELD_NOT_STATIC',
+    'FfiCode.NATIVE_FIELD_MISSING_TYPE',
+    'FfiCode.NATIVE_FIELD_INVALID_TYPE',
 
     // This no longer works in 3.0.
     'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
