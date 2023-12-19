@@ -184,7 +184,10 @@ class _PhysicalFile extends _PhysicalResource implements File {
   @override
   ResourceWatcher watch() {
     final watcher = FileWatcher(_entry.path);
-    return ResourceWatcher(_wrapWatcherStream(watcher.events), watcher.ready);
+    return ResourceWatcher(
+      watcher.events.transform(_exceptionTransformer),
+      () => watcher.ready,
+    );
   }
 
   @override
@@ -320,13 +323,27 @@ class _PhysicalFolder extends _PhysicalResource implements Folder {
             // Don't suppress "Directory watcher closed," so the outer
             // listener can see the interruption & act on it.
             !error.message.startsWith("Directory watcher closed unexpectedly"));
-    return ResourceWatcher(_wrapWatcherStream(events), watcher.ready);
+    return ResourceWatcher(
+      events.transform(_exceptionTransformer),
+      () => watcher.ready,
+    );
   }
 }
 
 /// A `dart:io` based implementation of [Resource].
 abstract class _PhysicalResource implements Resource {
   final io.FileSystemEntity _entry;
+
+  /// Wraps [FileSystemException]s in the stream through [_wrapException].
+  late final _exceptionTransformer =
+      StreamTransformer<WatchEvent, WatchEvent>.fromHandlers(
+    handleError: (error, stackTrace, sink) {
+      if (error is io.FileSystemException) {
+        error = _wrapException(error);
+      }
+      sink.addError(error);
+    },
+  );
 
   _PhysicalResource(this._entry);
 
@@ -414,23 +431,5 @@ abstract class _PhysicalResource implements Resource {
     } else {
       return FileSystemException(e.path ?? path, e.message);
     }
-  }
-
-  /// Wraps a `Stream<WatchEvent>` to map all known errors through
-  /// [_wrapException] into server types.
-  Stream<WatchEvent> _wrapWatcherStream(Stream<WatchEvent> original) {
-    /// Helper to map thrown `FileSystemException`s to servers abstraction.
-    Object mapException(Object e) {
-      return e is io.FileSystemException ? _wrapException(e) : e;
-    }
-
-    final mappedEventsController = StreamController<WatchEvent>();
-    final subscription = original.listen(
-      mappedEventsController.add,
-      onError: (Object e) => mappedEventsController.addError(mapException(e)),
-      onDone: () => mappedEventsController.close(),
-    );
-    mappedEventsController.onCancel = subscription.cancel;
-    return mappedEventsController.stream;
   }
 }
