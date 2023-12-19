@@ -559,33 +559,25 @@ Fragment StreamingFlowGraphBuilder::SetupCapturedParameters(
 }
 
 Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
-    const Function& dart_function) {
+    const Function& dart_function,
+    const AbstractType* emitted_value_type) {
   Fragment body;
   if (dart_function.IsAsyncFunction()) {
-    const auto& result_type =
-        AbstractType::Handle(Z, dart_function.result_type());
-    auto& type_args = TypeArguments::ZoneHandle(Z);
-    if (result_type.IsType() &&
-        (Class::Handle(Z, result_type.type_class()).IsFutureClass() ||
-         result_type.IsFutureOrType())) {
-      ASSERT(result_type.IsFinalized());
-      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
-    }
-
+    ASSERT(emitted_value_type != nullptr);
+    auto& type_args = TypeArguments::ZoneHandle(Z, TypeArguments::New(1));
+    type_args.SetTypeAt(0, *emitted_value_type);
+    type_args = Class::Handle(Z, IG->object_store()->future_class())
+                    .GetInstanceTypeArguments(H.thread(), type_args);
     body += TranslateInstantiatedTypeArguments(type_args);
     body += B->Call1ArgStub(TokenPosition::kNoSource,
                             Call1ArgStubInstr::StubId::kInitAsync);
     body += Drop();
   } else if (dart_function.IsAsyncGenerator()) {
-    const auto& result_type =
-        AbstractType::Handle(Z, dart_function.result_type());
-    auto& type_args = TypeArguments::ZoneHandle(Z);
-    if (result_type.IsType() &&
-        (result_type.type_class() == IG->object_store()->stream_class())) {
-      ASSERT(result_type.IsFinalized());
-      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
-    }
-
+    ASSERT(emitted_value_type != nullptr);
+    auto& type_args = TypeArguments::ZoneHandle(Z, TypeArguments::New(1));
+    type_args.SetTypeAt(0, *emitted_value_type);
+    type_args = Class::Handle(Z, IG->object_store()->stream_class())
+                    .GetInstanceTypeArguments(H.thread(), type_args);
     body += TranslateInstantiatedTypeArguments(type_args);
     body += B->Call1ArgStub(TokenPosition::kNoSource,
                             Call1ArgStubInstr::StubId::kInitAsyncStar);
@@ -595,15 +587,11 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
                        SuspendInstr::StubId::kYieldAsyncStar);
     body += Drop();
   } else if (dart_function.IsSyncGenerator()) {
-    const auto& result_type =
-        AbstractType::Handle(Z, dart_function.result_type());
-    auto& type_args = TypeArguments::ZoneHandle(Z);
-    if (result_type.IsType() &&
-        (result_type.type_class() == IG->object_store()->iterable_class())) {
-      ASSERT(result_type.IsFinalized());
-      type_args = Type::Cast(result_type).GetInstanceTypeArguments(H.thread());
-    }
-
+    ASSERT(emitted_value_type != nullptr);
+    auto& type_args = TypeArguments::ZoneHandle(Z, TypeArguments::New(1));
+    type_args.SetTypeAt(0, *emitted_value_type);
+    type_args = Class::Handle(Z, IG->object_store()->iterable_class())
+                    .GetInstanceTypeArguments(H.thread(), type_args);
     body += TranslateInstantiatedTypeArguments(type_args);
     body += B->Call1ArgStub(TokenPosition::kNoSource,
                             Call1ArgStubInstr::StubId::kInitSyncStar);
@@ -618,6 +606,8 @@ Fragment StreamingFlowGraphBuilder::InitSuspendableFunction(
     if (scope->num_context_variables() > 0) {
       body += CloneContext(scope->context_slots());
     }
+  } else {
+    ASSERT(emitted_value_type == nullptr);
   }
   return body;
 }
@@ -784,17 +774,30 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
 
   LocalVariable* first_parameter = nullptr;
   TokenPosition token_position = TokenPosition::kNoSource;
+  const AbstractType* emitted_value_type = nullptr;
   {
     AlternativeReadingScope alt(&reader_);
     FunctionNodeHelper function_node_helper(this);
     function_node_helper.ReadUntilExcluding(
         FunctionNodeHelper::kPositionalParameters);
-    intptr_t list_length = ReadListLength();  // read number of positionals.
-    if (list_length > 0) {
-      intptr_t first_parameter_offset = ReaderOffset() + data_program_offset_;
-      first_parameter = LookupVariable(first_parameter_offset);
+    {
+      AlternativeReadingScope alt2(&reader_);
+      intptr_t list_length = ReadListLength();  // read number of positionals.
+      if (list_length > 0) {
+        intptr_t first_parameter_offset = ReaderOffset() + data_program_offset_;
+        first_parameter = LookupVariable(first_parameter_offset);
+      }
     }
     token_position = function_node_helper.position_;
+    if (dart_function.IsSuspendableFunction()) {
+      function_node_helper.ReadUntilExcluding(
+          FunctionNodeHelper::kEmittedValueType);
+      if (ReadTag() == kSomething) {
+        emitted_value_type = &T.BuildType();  // read emitted value type.
+      } else {
+        UNREACHABLE();
+      }
+    }
   }
 
   auto graph_entry = flow_graph_builder_->graph_entry_ =
@@ -833,7 +836,7 @@ FlowGraph* StreamingFlowGraphBuilder::BuildGraphOfFunction(
   // objects than necessary during GC.
   const Fragment body =
       ClearRawParameters(dart_function) + B->BuildNullAssertions() +
-      InitSuspendableFunction(dart_function) +
+      InitSuspendableFunction(dart_function, emitted_value_type) +
       BuildFunctionBody(dart_function, first_parameter, is_constructor);
 
   auto extra_entry_point_style =

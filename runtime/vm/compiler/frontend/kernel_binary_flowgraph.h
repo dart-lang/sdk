@@ -85,7 +85,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                     TokenPosition position);
   Fragment CheckStackOverflowInPrologue(const Function& dart_function);
   Fragment SetupCapturedParameters(const Function& dart_function);
-  Fragment InitSuspendableFunction(const Function& dart_function);
+  Fragment InitSuspendableFunction(const Function& dart_function,
+                                   const AbstractType* emitted_value_type);
   Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function);
