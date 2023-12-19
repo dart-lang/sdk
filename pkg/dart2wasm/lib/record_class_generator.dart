@@ -70,6 +70,8 @@ class _RecordClassGenerator {
   final CoreTypes coreTypes;
   final Map<RecordShape, Class> classes;
 
+  late final Class typeRuntimetypeTypeClass =
+      coreTypes.index.getClass("dart:core", "_Type");
   late final Class recordRuntimeTypeClass =
       coreTypes.index.getClass('dart:core', '_RecordType');
 
@@ -90,6 +92,20 @@ class _RecordClassGenerator {
   late final Procedure stringPlusProcedure =
       coreTypes.index.getProcedure('dart:core', 'String', '+');
 
+  late final Class wasmArrayClass =
+      coreTypes.index.getClass('dart:_wasm', 'WasmArray');
+
+  late final Constructor wasmArrayLiteralConstructor =
+      coreTypes.index.getConstructor('dart:_wasm', 'WasmArray', 'literal');
+  late final Field wasmArrayValueField =
+      coreTypes.index.getField("dart:_wasm", "WasmArray", "_value");
+
+  late final InterfaceType wasmArrayOfString = InterfaceType(
+      wasmArrayClass, Nullability.nonNullable, [nonNullableStringType]);
+
+  late final InterfaceType runtimeTypeType =
+      InterfaceType(typeRuntimetypeTypeClass, Nullability.nonNullable);
+
   late final Procedure getMasqueradedRuntimeTypeNullableProcedure = coreTypes
       .index
       .getTopLevelProcedure('dart:core', '_getMasqueradedRuntimeTypeNullable');
@@ -101,8 +117,6 @@ class _RecordClassGenerator {
   DartType get boolType => coreTypes.boolNonNullableRawType;
 
   DartType get intType => coreTypes.intNonNullableRawType;
-
-  DartType get runtimeTypeType => coreTypes.typeNonNullableRawType;
 
   Library get library => coreTypes.coreLibrary;
 
@@ -345,10 +359,14 @@ class _RecordClassGenerator {
   Procedure _generateRecordRuntimeType(RecordShape shape, List<Field> fields) {
     final List<Statement> statements = [];
 
-    // const ["name1", "name2", ...]
-    final fieldNamesList = ConstantExpression(ListConstant(
-        nonNullableStringType,
-        shape.names.map((name) => StringConstant(name)).toList()));
+    // const WasmArray(["name1", "name2", ...])
+    final fieldNamesList =
+        ConstantExpression(InstanceConstant(wasmArrayClass.reference, [
+      nonNullableStringType
+    ], {
+      wasmArrayValueField.fieldReference: ListConstant(nonNullableStringType,
+          shape.names.map((name) => StringConstant(name)).toList())
+    }));
 
     Expression fieldRuntimeTypeExpr(Field field) => StaticInvocation(
         getMasqueradedRuntimeTypeNullableProcedure,
@@ -357,11 +375,17 @@ class _RecordClassGenerator {
               interfaceTarget: field, resultType: nullableObjectType)
         ]));
 
-    // [this.$1.runtimeType, this.x.runtimeType, ...]
-    final fieldTypesList = ListLiteral(
-      fields.map(fieldRuntimeTypeExpr).toList(),
-      typeArgument: runtimeTypeType,
-    );
+    // WasmArray.literal([this.$1.runtimeType, this.x.runtimeType, ...])
+    final fieldTypesList = ConstructorInvocation(
+        wasmArrayLiteralConstructor,
+        Arguments([
+          ListLiteral(
+            fields.map(fieldRuntimeTypeExpr).toList(),
+            typeArgument: runtimeTypeType,
+          )
+        ], types: [
+          runtimeTypeType
+        ]));
 
     statements.add(ReturnStatement(ConstructorInvocation(
         recordRuntimeTypeConstructor,

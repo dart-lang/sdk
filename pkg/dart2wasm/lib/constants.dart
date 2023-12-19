@@ -853,13 +853,14 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         b.struct_new(info.struct);
       });
     } else if (type is RecordType) {
-      final names = ListConstant(
-          InterfaceType(
-              translator.coreTypes.stringClass, Nullability.nonNullable),
+      final names = constants.makeArrayOf(
+          translator.coreTypes.stringNonNullableRawType,
           type.named.map((t) => StringConstant(t.name)).toList());
       ensureConstant(names);
-      final fieldTypes = constants.makeTypeList(
-          type.positional.followedBy(type.named.map((n) => n.type)));
+      final fieldTypes = constants.makeArrayOf(translator.typeType, [
+        for (final pos in type.positional) TypeLiteralConstant(pos),
+        for (final named in type.named) TypeLiteralConstant(named.type),
+      ]);
       ensureConstant(fieldTypes);
       return createConstant(constant, info.nonNullableType, (function, b) {
         b.i32_const(info.classId);
