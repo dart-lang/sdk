@@ -970,11 +970,9 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
 
   @override
   Future<List<macro.TypeDeclaration>> typesOf(
-    covariant macro.Library library,
+    covariant LibraryImplFromElement library,
   ) async {
-    library as LibraryImplFromElement;
-    final libraryElement = library.element;
-    return libraryElement.topLevelElements
+    return library.element.topLevelElements
         .map((e) => declarationBuilder.declarationOfElement(e))
         .whereType<macro.TypeDeclaration>()
         .toList();
@@ -1033,11 +1031,9 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
 
   @override
   Future<List<macro.Declaration>> topLevelDeclarationsOf(
-    covariant macro.Library library,
+    covariant LibraryImplFromElement library,
   ) async {
-    library as LibraryImplFromElement;
-    final libraryElement = library.element;
-    return libraryElement.topLevelElements
+    return library.element.topLevelElements
         .whereNot((e) => e.isSynthetic)
         .map((e) => declarationBuilder.declarationOfElement(e))
         .whereType<macro.Declaration>()
