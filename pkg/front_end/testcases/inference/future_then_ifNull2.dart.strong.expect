@@ -59,8 +59,8 @@ class MyFuture<T extends core::Object? = dynamic> extends core::Object implement
     return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C10: onTimeout}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T%>;
 }
 static method test(self::MyFuture<core::int> f) → void {
-  asy::Future<core::int> t1 = f.{self::MyFuture::then}<core::int>((core::int x) → asy::Future<core::int> async /* futureValueType= core::int */ => let final core::int #t1 = x in #t1 == null ?{core::int} await asy::Future::value<core::int>(3) : #t1){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
-  asy::Future<core::int> t2 = f.{self::MyFuture::then}<core::int>((core::int x) → asy::Future<core::int> async /* futureValueType= core::int */ {
+  asy::Future<core::int> t1 = f.{self::MyFuture::then}<core::int>((core::int x) → asy::Future<core::int> async /* emittedValueType= core::int */ => let final core::int #t1 = x in #t1 == null ?{core::int} await asy::Future::value<core::int>(3) : #t1){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
+  asy::Future<core::int> t2 = f.{self::MyFuture::then}<core::int>((core::int x) → asy::Future<core::int> async /* emittedValueType= core::int */ {
     return invalid-expression "pkg/front_end/testcases/inference/future_then_ifNull2.dart:23:49: Error: A value of type 'Object' can't be returned from an async function with return type 'Future<int>'.
  - 'Object' is from 'dart:core'.
  - 'Future' is from 'dart:async'.

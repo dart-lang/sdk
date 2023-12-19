@@ -15,7 +15,7 @@ import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
 
-static method main() → dynamic async /* futureValueType= dynamic */ {
+static method main() → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized Never :stream = invalid-expression "pkg/front_end/testcases/general/error_recovery/empty_await_for.dart:2:14: Error: This couldn't be parsed.
   await for () {}

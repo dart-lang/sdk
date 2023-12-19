@@ -530,7 +530,7 @@ type FunctionNode {
   List<VariableDeclarationPlain> positionalParameters;
   List<VariableDeclarationPlain> namedParameters;
   DartType returnType;
-  Option<DartType> futureValueType;
+  Option<DartType> emittedValueType;
   Option<RedirectingFactoryTarget> redirectingFactoryTarget;
   Option<Statement> body;
 }

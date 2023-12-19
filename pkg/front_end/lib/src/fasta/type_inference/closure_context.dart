@@ -40,7 +40,7 @@ abstract class ClosureContext {
   /// the unknown type.
   DartType get yieldContext;
 
-  DartType? get futureValueType;
+  DartType? get emittedValueType;
 
   factory ClosureContext(InferenceVisitorBase inferrer, AsyncMarker asyncMarker,
       DartType returnContext, bool needToInferReturnType) {
@@ -142,6 +142,9 @@ class _SyncClosureContext implements ClosureContext {
   @override
   DartType get yieldContext => const UnknownType();
 
+  @override
+  DartType? get emittedValueType => null;
+
   final DartType _declaredReturnType;
 
   final bool _needToInferReturnType;
@@ -160,9 +163,6 @@ class _SyncClosureContext implements ClosureContext {
   /// A list of return expression types in functions whose return type is
   /// being inferred.
   List<DartType>? _returnExpressionTypes;
-
-  @override
-  DartType? get futureValueType => null;
 
   _SyncClosureContext(this.inferrer, this._returnContext,
       this._declaredReturnType, this._needToInferReturnType) {
@@ -493,6 +493,9 @@ class _AsyncClosureContext implements ClosureContext {
   @override
   DartType get yieldContext => const UnknownType();
 
+  @override
+  DartType? emittedValueType;
+
   final DartType _declaredReturnType;
 
   final bool _needToInferReturnType;
@@ -512,15 +515,12 @@ class _AsyncClosureContext implements ClosureContext {
   /// being inferred.
   List<DartType>? _returnExpressionTypes;
 
-  @override
-  DartType? futureValueType;
-
   _AsyncClosureContext(
       this.inferrer,
       this._returnContext,
       this._declaredReturnType,
       this._needToInferReturnType,
-      this.futureValueType) {
+      this.emittedValueType) {
     if (_needToInferReturnType) {
       _returnStatements = [];
       _returnExpressionTypes = [];
@@ -531,14 +531,14 @@ class _AsyncClosureContext implements ClosureContext {
       DartType returnType, ReturnStatement statement, DartType expressionType) {
     if (inferrer.isNonNullableByDefault) {
       assert(
-          futureValueType != null, "Future value type has not been computed.");
+          emittedValueType != null, "Future value type has not been computed.");
 
       if (statement.expression == null) {
         // It is a compile-time error if s is `return;`, unless T_v is void,
         // dynamic, or Null.
-        if (futureValueType is VoidType ||
-            futureValueType is DynamicType ||
-            futureValueType is NullType) {
+        if (emittedValueType is VoidType ||
+            emittedValueType is DynamicType ||
+            emittedValueType is NullType) {
           // Valid return;
         } else {
           statement.expression = inferrer.helper.wrapInProblem(
@@ -560,7 +560,7 @@ class _AsyncClosureContext implements ClosureContext {
 
         DartType flattenedExpressionType =
             inferrer.typeSchemaEnvironment.flatten(expressionType);
-        if (futureValueType is VoidType &&
+        if (emittedValueType is VoidType &&
             !(flattenedExpressionType is VoidType ||
                 flattenedExpressionType is DynamicType ||
                 flattenedExpressionType is NullType)) {
@@ -573,8 +573,8 @@ class _AsyncClosureContext implements ClosureContext {
               statement.expression!.fileOffset,
               noLength)
             ..parent = statement;
-        } else if (!(futureValueType is VoidType ||
-                futureValueType is DynamicType) &&
+        } else if (!(emittedValueType is VoidType ||
+                emittedValueType is DynamicType) &&
             flattenedExpressionType is VoidType) {
           // It is a compile-time error if s is `return e;`, T_v is neither void
           // nor dynamic, and flatten(S) is void.
@@ -588,13 +588,13 @@ class _AsyncClosureContext implements ClosureContext {
         } else if (flattenedExpressionType is! VoidType &&
             !inferrer.typeSchemaEnvironment
                 .performNullabilityAwareSubtypeCheck(
-                    flattenedExpressionType, futureValueType!)
+                    flattenedExpressionType, emittedValueType!)
                 .isSubtypeWhenUsingNullabilities()) {
           // It is a compile-time error if s is `return e;`, flatten(S) is not
           // void, S is not assignable to T_v, and flatten(S) is not a subtype
           // of T_v.
           statement.expression = inferrer.ensureAssignable(
-              futureValueType!, expressionType, statement.expression!,
+              emittedValueType!, expressionType, statement.expression!,
               fileOffset: statement.expression!.fileOffset,
               runtimeCheckedType:
                   inferrer.computeGreatestClosure2(_returnContext),
@@ -831,10 +831,10 @@ class _AsyncClosureContext implements ClosureContext {
     }
 
     if (inferrer.isNonNullableByDefault) {
-      futureValueType =
+      emittedValueType =
           computeFutureValueType(inferrer.coreTypes, inferredType);
     } else {
-      futureValueType = inferrer.typeSchemaEnvironment.flatten(inferredType);
+      emittedValueType = inferrer.typeSchemaEnvironment.flatten(inferredType);
     }
 
     for (int i = 0; i < _returnStatements!.length; ++i) {
@@ -915,7 +915,12 @@ class _SyncStarClosureContext implements ClosureContext {
   @override
   DartType get yieldContext => _yieldElementContext;
 
+  @override
+  DartType? get emittedValueType => _emittedValueType;
+
   final DartType _declaredReturnType;
+
+  DartType? _emittedValueType;
 
   final bool _needToInferReturnType;
 
@@ -923,13 +928,12 @@ class _SyncStarClosureContext implements ClosureContext {
   /// being inferred.
   List<DartType>? _yieldElementTypes;
 
-  @override
-  DartType? get futureValueType => null;
-
   _SyncStarClosureContext(this.inferrer, this._yieldElementContext,
       this._declaredReturnType, this._needToInferReturnType) {
     if (_needToInferReturnType) {
       _yieldElementTypes = [];
+    } else {
+      _emittedValueType = inferrer.computeGreatestClosure(_yieldElementContext);
     }
   }
 
@@ -1009,8 +1013,13 @@ class _SyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    return demoteTypeInLibrary(inferredType,
+    DartType demotedType = demoteTypeInLibrary(inferredType,
         isNonNullableByDefault: inferrer.isNonNullableByDefault);
+    _emittedValueType = inferrer.getTypeArgumentOf(
+        inferrer.typeSchemaEnvironment.getUnionFreeType(demotedType,
+            isNonNullableByDefault: inferrer.isNonNullableByDefault),
+        inferrer.coreTypes.iterableClass);
+    return demotedType;
   }
 
   @override
@@ -1050,7 +1059,12 @@ class _AsyncStarClosureContext implements ClosureContext {
   @override
   DartType get yieldContext => _yieldElementContext;
 
+  @override
+  DartType? get emittedValueType => _emittedValueType;
+
   final DartType _declaredReturnType;
+
+  DartType? _emittedValueType;
 
   final bool _needToInferReturnType;
 
@@ -1058,13 +1072,12 @@ class _AsyncStarClosureContext implements ClosureContext {
   /// being inferred.
   List<DartType>? _yieldElementTypes;
 
-  @override
-  DartType? get futureValueType => null;
-
   _AsyncStarClosureContext(this.inferrer, this._yieldElementContext,
       this._declaredReturnType, this._needToInferReturnType) {
     if (_needToInferReturnType) {
       _yieldElementTypes = [];
+    } else {
+      _emittedValueType = inferrer.computeGreatestClosure(_yieldElementContext);
     }
   }
 
@@ -1142,8 +1155,13 @@ class _AsyncStarClosureContext implements ClosureContext {
       inferredType = inferrer.computeGreatestClosure2(_declaredReturnType);
     }
 
-    return demoteTypeInLibrary(inferredType,
+    DartType demotedType = demoteTypeInLibrary(inferredType,
         isNonNullableByDefault: inferrer.isNonNullableByDefault);
+    _emittedValueType = inferrer.getTypeArgumentOf(
+        inferrer.typeSchemaEnvironment.getUnionFreeType(demotedType,
+            isNonNullableByDefault: inferrer.isNonNullableByDefault),
+        inferrer.coreTypes.streamClass);
+    return demotedType;
   }
 
   @override

@@ -18,18 +18,18 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method main() → dynamic async /* futureValueType= dynamic */ {
-  function f_async() → core::int async /* futureValueType= core::Object? */ {
+static method main() → dynamic async /* emittedValueType= dynamic */ {
+  function f_async() → core::int async /* emittedValueType= core::Object? */ {
     return 42;
   }
   core::print(await f_async(){() → core::int} /* runtimeCheckType= asy::Future<core::int> */ );
-  function f_async_star() → core::int async* {
+  function f_async_star() → core::int async* /* emittedValueType= dynamic */ {
     yield 42;
   }
   await for (dynamic x in (f_async_star(){() → core::int} as dynamic) as{TypeError,ForDynamic} asy::Stream<dynamic>) {
     core::print(x);
   }
-  function f_sync_star() → core::int sync* {
+  function f_sync_star() → core::int sync* /* emittedValueType= dynamic */ {
     yield 42;
   }
   for (dynamic x in (f_sync_star(){() → core::int} as dynamic) as{TypeError,ForDynamic} core::Iterable<dynamic>) {

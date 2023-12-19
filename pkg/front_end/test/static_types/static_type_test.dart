@@ -96,8 +96,8 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
 
   @override
   String? computeMemberValue(Id id, Member node) {
-    if (node is Procedure && node.function.futureValueType != null) {
-      return 'futureValueType=${typeToText(node.function.futureValueType!)}';
+    if (node is Procedure && node.function.emittedValueType != null) {
+      return 'futureValueType=${typeToText(node.function.emittedValueType!)}';
     }
     return null;
   }
@@ -109,9 +109,10 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
     }
     if (node is Expression) {
       DartType type = node.getStaticType(_staticTypeContext!);
-      if (node is FunctionExpression && node.function.futureValueType != null) {
+      if (node is FunctionExpression &&
+          node.function.emittedValueType != null) {
         return '${typeToText(type)},'
-            'futureValueType=${typeToText(node.function.futureValueType!)}';
+            'futureValueType=${typeToText(node.function.emittedValueType!)}';
       }
       return typeToText(type);
     } else if (node is Arguments) {
@@ -123,8 +124,8 @@ class StaticTypeDataExtractor extends CfeDataExtractor<String> {
         return typeToText(node.getElementType(_staticTypeContext!));
       }
     } else if (node is FunctionDeclaration) {
-      if (node.function.futureValueType != null) {
-        return 'futureValueType=${typeToText(node.function.futureValueType!)}';
+      if (node.function.emittedValueType != null) {
+        return 'futureValueType=${typeToText(node.function.emittedValueType!)}';
       }
     }
     return null;

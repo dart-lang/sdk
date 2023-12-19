@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
 
-static method test(dynamic o) → dynamic async /* futureValueType= dynamic */ {
+static method test(dynamic o) → dynamic async /* emittedValueType= dynamic */ {
   for (dynamic x in o as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*) {
   }
   await for (dynamic x in o as{TypeError,ForDynamic,ForLegacy} asy::Stream<dynamic>*) {

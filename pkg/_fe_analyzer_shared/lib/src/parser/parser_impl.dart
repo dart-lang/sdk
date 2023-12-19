@@ -2622,9 +2622,20 @@ class Parser {
     Token token = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
-    if (abstractToken != null && sealedToken != null) {
-      reportRecoverableError(sealedToken, codes.messageAbstractSealedClass);
+    if (abstractToken != null) {
+      if (sealedToken != null) {
+        reportRecoverableError(sealedToken, codes.messageAbstractSealedClass);
+      } else if (finalToken != null) {
+        if (baseToken != null) {
+          reportRecoverableErrorWithEnd(
+              finalToken, baseToken, codes.messageAbstractFinalBaseClass);
+        } else if (interfaceToken != null) {
+          reportRecoverableErrorWithEnd(finalToken, interfaceToken,
+              codes.messageAbstractFinalInterfaceClass);
+        }
+      }
     }
+
     if (optional('=', token.next!)) {
       listener.beginNamedMixinApplication(
           beginToken,

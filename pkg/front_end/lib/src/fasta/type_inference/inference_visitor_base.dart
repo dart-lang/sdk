@@ -2326,11 +2326,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     bodyResult = closureContext.handleImplicitReturn(
         this, function.body!, bodyResult, fileOffset);
-    function.futureValueType = closureContext.futureValueType;
-    assert(
-        !(function.asyncMarker == AsyncMarker.Async &&
-            function.futureValueType == null),
-        "No future value type computed.");
+    function.emittedValueType = closureContext.emittedValueType;
 
     if (bodyResult.hasChanged) {
       function.body = bodyResult.statement..parent = function;
@@ -3778,7 +3774,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Computes the `futureValueTypeSchema` for the type schema [type].
   ///
-  /// This is the same as the [futureValueType] except that this handles
+  /// This is the same as the [emittedValueType] except that this handles
   /// the unknown type.
   DartType computeFutureValueTypeSchema(DartType type) {
     return type.accept1(new FutureValueTypeVisitor(unhandledTypeHandler:

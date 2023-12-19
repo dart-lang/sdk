@@ -45,23 +45,18 @@ class _Directory extends FileSystemEntity implements Directory {
     return new _Directory(result);
   }
 
-  static void set current(path) {
-    late Uint8List _rawPath;
-    if (path is _Directory) {
+  static void set current(Object? path) {
+    var _rawPath = switch (path) {
       // For our internal Directory implementation, go ahead and use the raw
       // path.
-      _rawPath = path._rawPath;
-    } else if (path is Directory) {
-      // FIXME(bkonyi): package:file passes in instances of classes which do
-      // not have _path defined, so we will fallback to using the existing
-      // path String for now.
-      _rawPath = FileSystemEntity._toUtf8Array(path.path);
-    } else if (path is String) {
-      _rawPath = FileSystemEntity._toUtf8Array(path);
-    } else {
-      throw new ArgumentError('${Error.safeToString(path)} is not a String or'
-          ' Directory');
-    }
+      _Directory d => d._rawPath,
+      // Fall back to the String-based path.
+      Directory d => FileSystemEntity._toUtf8Array(d.path),
+      String s => FileSystemEntity._toUtf8Array(s),
+      _ => throw ArgumentError('${Error.safeToString(path)} is not a String or'
+          ' Directory')
+    };
+
     if (!_EmbedderConfig._mayChdir) {
       throw new UnsupportedError(
           "This embedder disallows setting Directory.current");

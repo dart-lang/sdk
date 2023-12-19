@@ -223,7 +223,7 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!cls.IsNull());
   set_set_impl_class(cls);
 
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   // The rest of these objects are only needed for code generation.
   return;
 #else
@@ -409,7 +409,7 @@ void ObjectStore::InitKnownObjects() {
   function_name =
       Function::CreateDynamicInvocationForwarderName(Symbols::Star());
   Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
-#endif
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void ObjectStore::LazyInitCoreMembers() {

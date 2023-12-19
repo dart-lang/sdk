@@ -156,7 +156,7 @@ No types are needed, the first is given by 'on', the second is always 'StackTrac
       #t5.{core::List::add}{Invariant}(i){(core::int) → void};
   }
 }
-static method hest() → dynamic async /* futureValueType= dynamic */ {
+static method hest() → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized asy::Stream<core::String> :stream = asy::Stream::fromIterable<core::String>(core::_GrowableList::_literal1<core::String>("hest"));
     synthesized asy::_StreamIterator<core::String>? :for-iterator = new asy::_StreamIterator::•<core::String>(:stream);
@@ -173,7 +173,7 @@ static method hest() → dynamic async /* futureValueType= dynamic */ {
   }
   return "hest";
 }
-static method fisk() → dynamic async /* futureValueType= dynamic */ {
+static method fisk() → dynamic async /* emittedValueType= dynamic */ {
   lowered has-declared-initializer core::String? #s1;
   lowered core::bool #s1#isSet = false;
   function #s1#get() → core::String {
@@ -208,7 +208,7 @@ static method fisk() → dynamic async /* futureValueType= dynamic */ {
   lowered core::bool #f#isSet = false;
   function #f#get() → core::Function {
     if(!#f#isSet) {
-      #f = () → asy::Future<dynamic> async /* futureValueType= dynamic */ => await self::hest() /* runtimeCheckType= asy::Future<dynamic> */ ;
+      #f = () → asy::Future<dynamic> async /* emittedValueType= dynamic */ => await self::hest() /* runtimeCheckType= asy::Future<dynamic> */ ;
       #f#isSet = true;
     }
     return #f{core::Function};

@@ -27,7 +27,7 @@ static extension-type-member method MyStream|constructor#<T extends core::Object
 }
 static extension-type-member method MyStream|constructor#_#new#tearOff<T extends core::Object? = dynamic>(asy::Stream<self::MyStream|constructor#_#new#tearOff::T%> it) → self::MyStream<self::MyStream|constructor#_#new#tearOff::T%> /* = asy::Stream<self::MyStream|constructor#_#new#tearOff::T%> */
   return self::MyStream|constructor#<self::MyStream|constructor#_#new#tearOff::T%>(it);
-static method method1(self::MyList<core::int> /* = core::List<core::int> */ list, self::MyStream<core::int> /* = asy::Stream<core::int> */ stream) → dynamic async /* futureValueType= dynamic */ {
+static method method1(self::MyList<core::int> /* = core::List<core::int> */ list, self::MyStream<core::int> /* = asy::Stream<core::int> */ stream) → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized core::Iterator<core::int> :sync-for-iterator = list.{core::Iterable::iterator}{core::Iterator<core::int>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -48,7 +48,7 @@ static method method1(self::MyList<core::int> /* = core::List<core::int> */ list
         await :for-iterator.{asy::_StreamIterator::cancel}(){() → asy::Future<dynamic>};
   }
 }
-static method method2(self::MyList<(core::int, core::String)> /* = core::List<(core::int, core::String)> */ list, self::MyStream<(core::int, core::String)> /* = asy::Stream<(core::int, core::String)> */ stream) → dynamic async /* futureValueType= dynamic */ {
+static method method2(self::MyList<(core::int, core::String)> /* = core::List<(core::int, core::String)> */ list, self::MyStream<(core::int, core::String)> /* = asy::Stream<(core::int, core::String)> */ stream) → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized core::Iterator<(core::int, core::String)> :sync-for-iterator = list.{core::Iterable::iterator}{core::Iterator<(core::int, core::String)>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {

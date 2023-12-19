@@ -29,6 +29,7 @@ void main() {
     defineReflectiveTests(UndefinedIdentifierTest);
     defineReflectiveTests(UndefinedMethodTest);
     defineReflectiveTests(UndefinedSetterTest);
+    defineReflectiveTests(UriTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsConstructorTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsExtensionTest);
     defineReflectiveTests(WrongNumberOfTypeArgumentsMethodTest);
@@ -1146,6 +1147,43 @@ import '$importUri';
 void f(C a, C b) {
   a.new = b.new = 1;
 }
+''');
+  }
+}
+
+@reflectiveTest
+class UriTest extends _DataDrivenTest {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/52233')
+  Future<void> test_relative_uri_for_exported() async {
+    newFile('$workspaceRootPath/p/lib/src/ex.dart', '''
+@deprecated
+class Old {}
+class New {}
+''');
+    newFile('$workspaceRootPath/p/lib/lib.dart', '''
+export 'src/ex.dart';
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+- title: 'Rename to New'
+  date: 2020-09-01
+  element:
+    uris: ['lib.dart']
+    class: 'Old'
+  changes:
+    - kind: 'rename'
+      newName: 'New'
+''');
+    await resolveTestCode('''
+import '$importUri';
+class A extends Old {}
+class B extends Old {}
+''');
+    await assertHasFix('''
+import '$importUri';
+class A extends New {}
+class B extends New {}
 ''');
   }
 }

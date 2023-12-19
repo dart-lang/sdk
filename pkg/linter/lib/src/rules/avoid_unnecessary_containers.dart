@@ -51,7 +51,7 @@ class AvoidUnnecessaryContainers extends LintRule {
   static const LintCode code = LintCode(
       'avoid_unnecessary_containers', "Unnecessary instance of 'Container'.",
       correctionMessage:
-          "Try removing the 'Container' (but not it's children) from the "
+          "Try removing the 'Container' (but not its children) from the "
           'widget tree.');
 
   AvoidUnnecessaryContainers()

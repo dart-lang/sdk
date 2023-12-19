@@ -202,7 +202,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
         break;
 
       case ir.AsyncMarker.Async:
-        registerAsync(function.futureValueType!);
+        registerAsync(function.emittedValueType!);
         break;
 
       case ir.AsyncMarker.AsyncStar:

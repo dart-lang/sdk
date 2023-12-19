@@ -173,8 +173,16 @@ class KernelCompilationService {
     }
 
     final executablePath = io.Platform.resolvedExecutable;
-    final binPath = package_path.dirname(executablePath);
-    final sdkPath = package_path.dirname(binPath);
+    var binPath = package_path.dirname(executablePath);
+    var sdkPath = package_path.dirname(binPath);
+
+    // By some reason `tools/test.py` uses `xcodebuild/ReleaseARM64/dart`
+    // instead of `xcodebuild/ReleaseARM64/dart-sdk/bin/dart`.
+    final realBin = package_path.join(binPath, 'dart-sdk', 'bin');
+    if (io.Directory(realBin).existsSync()) {
+      binPath = realBin;
+      sdkPath = package_path.dirname(binPath);
+    }
 
     return _SdkPaths(
       aotRuntime: package_path.join(binPath, 'dartaotruntime'),

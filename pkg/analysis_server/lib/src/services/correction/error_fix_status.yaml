@@ -2507,6 +2507,14 @@ ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
   status: needsFix
   notes: |-
     Remove either the `abstract` or the `external` keyword.
+ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS:
+  status: needsFix
+  notes: |-
+    Remove either the `final` or `base` keyword.
+ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS:
+  status: needsFix
+  notes: |-
+    Remove either the `final` or `interface` keyword.
 ParserErrorCode.ABSTRACT_LATE_FIELD:
   status: needsFix
   notes: |-

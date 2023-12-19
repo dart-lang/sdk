@@ -26,10 +26,10 @@ static extension-type-member method MyStream|constructor#<T extends core::Object
 static extension-type-member method MyStream|constructor#_#new#tearOff<T extends core::Object? = dynamic>(asy::Stream<self::MyStream|constructor#_#new#tearOff::T%> it) → self::MyStream<self::MyStream|constructor#_#new#tearOff::T%> /* = asy::Stream<self::MyStream|constructor#_#new#tearOff::T%> */
   return self::MyStream|constructor#<self::MyStream|constructor#_#new#tearOff::T%>(it);
 static method method(self::MyList<core::int> /* = core::List<core::int> */ list, self::MyStream<core::String> /* = asy::Stream<core::String> */ stream) → dynamic {
-  () → core::Iterable<core::int> a = () → core::Iterable<core::int> sync* {
+  () → core::Iterable<core::int> a = () → core::Iterable<core::int> sync* /* emittedValueType= core::int */ {
     yield* list;
   };
-  () → asy::Stream<core::String> b = () → asy::Stream<core::String> async* {
+  () → asy::Stream<core::String> b = () → asy::Stream<core::String> async* /* emittedValueType= core::String */ {
     yield* stream;
   };
 }

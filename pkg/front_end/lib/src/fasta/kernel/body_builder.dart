@@ -1305,11 +1305,9 @@ class BodyBuilder extends StackListenerImpl
           asyncModifier,
           body);
       body = inferredFunctionBody.body;
-      function.futureValueType = inferredFunctionBody.futureValueType;
-      assert(
-          !(function.asyncMarker == AsyncMarker.Async &&
-              function.futureValueType == null),
-          "No future value type computed.");
+      function.emittedValueType = inferredFunctionBody.emittedValueType;
+      assert(function.asyncMarker == AsyncMarker.Sync ||
+          function.emittedValueType != null);
     }
 
     if (_context.returnType is! OmittedTypeBuilder) {

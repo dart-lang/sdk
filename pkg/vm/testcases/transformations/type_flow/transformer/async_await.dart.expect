@@ -7,7 +7,7 @@ class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
-[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method bar(dynamic x) → asy::Future<dynamic> async /* futureValueType= dynamic */ 
+[@vm.procedure-attributes.metadata=getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]  method bar(dynamic x) → asy::Future<dynamic> async /* emittedValueType= dynamic */ 
     return core::print(x);
 }
 class B extends core::Object {
@@ -17,8 +17,8 @@ class B extends core::Object {
 }
 static method foo() → dynamic
   return new self::A::•();
-static method baz() → asy::Future<dynamic> async /* futureValueType= dynamic */ 
+static method baz() → asy::Future<dynamic> async /* emittedValueType= dynamic */ 
   return new self::B::•();
-static method main() → dynamic async /* futureValueType= dynamic */ {
+static method main() → dynamic async /* emittedValueType= dynamic */ {
   await [@vm.direct-call.metadata=#lib::A.bar] [@vm.inferred-type.metadata=!? (receiver not int)] [@vm.inferred-type.metadata=#lib::A] self::foo(){dynamic}.bar(await self::baz()) /* runtimeCheckType= asy::Future<dynamic> */ ;
 }

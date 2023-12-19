@@ -39,6 +39,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MacroArgumentsTest);
     defineReflectiveTests(MacroIntrospectNodeTest);
+    defineReflectiveTests(MacroIntrospectNodeDefinitionsTest);
     defineReflectiveTests(MacroIntrospectElementTest);
     defineReflectiveTests(MacroTypesTest_keepLinking);
     defineReflectiveTests(MacroTypesTest_fromBytes);
@@ -3122,6 +3123,50 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
     newFile('$testPackageLibPath/a.dart', code);
   }
 
+  /// Runs the definitions phase macro that introspects the declaration in
+  /// the library [uriStr], with the [name].
+  Future<void> _assertIntrospectDefinitionText(
+    String leadCode,
+    String expected, {
+    required String name,
+    required String uriStr,
+    required bool withUnnamedConstructor,
+  }) async {
+    var library = await buildLibrary('''
+$leadCode
+
+@IntrospectDeclaration(
+  uriStr: 'package:test/test.dart',
+  name: '$name',
+  withUnnamedConstructor: $withUnnamedConstructor,
+)
+void _starter() {}
+''');
+
+    if (library.allMacroDiagnostics.isNotEmpty) {
+      failWithLibraryText(library);
+    }
+
+    final generated = _getMacroGeneratedCode(library);
+
+    final regExp = RegExp(r'=> r"""(.+)""";', dotAll: true);
+    final match = regExp.firstMatch(generated);
+    final actual = match?.group(1);
+
+    if (actual == null) {
+      print('-------- Generated --------');
+      print('$generated---------------------------');
+      fail('No introspection result.');
+    }
+
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
   /// Verifies the code of the macro generated augmentation.
   void _assertMacroCode(LibraryElementImpl library, String expected) {
     final actual = _getMacroGeneratedCode(library);
@@ -3131,33 +3176,6 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
-  }
-
-  /// The [code] should have exactly one application of `IntrospectMacro`.
-  /// It may contain arbitrary code otherwise.
-  ///
-  /// The macro generates a top-level constant `_introspect`, with a string
-  /// literal initializer - the textual dump of the introspection.
-  Future<String> _getIntrospectText(String code) async {
-    newFile(
-      '$testPackageLibPath/introspect.dart',
-      _getMacroCode('introspect.dart'),
-    );
-
-    var library = await buildLibrary('''
-import 'introspect.dart';
-$code
-''');
-
-    if (library.allMacroDiagnostics.isNotEmpty) {
-      failWithLibraryText(library);
-    }
-
-    return library.topLevelElements
-        .whereType<ConstTopLevelVariableElementImpl>()
-        .where((e) => e.name == '_introspect')
-        .map((e) => (e.constantInitializer as SimpleStringLiteral).value)
-        .join('\n');
   }
 
   String _getMacroCode(String relativePath) {
@@ -5182,40 +5200,406 @@ foo
       _getMacroCode('introspect.dart'),
     );
 
-    var library = await buildLibrary('''
+    await _assertIntrospectDefinitionText(
+      '''
 import '$uriStr';
 import 'introspect.dart';
+''',
+      expected,
+      name: name,
+      uriStr: uriStr,
+      withUnnamedConstructor: withUnnamedConstructor,
+    );
+  }
+}
 
-@IntrospectDeclaration(
-  uriStr: '$uriStr',
-  name: '$name',
-  withUnnamedConstructor: $withUnnamedConstructor,
-)
-void _starter() {}
+@reflectiveTest
+class MacroIntrospectNodeDefinitionsTest extends MacroElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  test_inferType_constructor_fieldFormalParameter() async {
+    await _assertIntrospectText('A', r'''
+class A {
+  final int foo;
+  A.named(this.foo);
+}
+''', r'''
+class A
+  constructors
+    named
+      flags: isStatic
+      positionalParameters
+        foo
+          flags: isRequired
+          type: OmittedType
+            inferred: int
+      returnType: A
+  fields
+    foo
+      flags: hasFinal
+      type: int
 ''');
+  }
 
-    if (library.allMacroDiagnostics.isNotEmpty) {
-      failWithLibraryText(library);
-    }
+  test_inferType_fieldInstance_fromInitializer() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  final foo = 0;
+}
+''', r'''
+class X
+  fields
+    foo
+      flags: hasFinal
+      type: OmittedType
+        inferred: int
+''');
+  }
 
-    final generated = _getMacroGeneratedCode(library);
+  test_inferType_fieldInstance_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+class A {
+  int get foo => 0;
+}
 
-    final regExp = RegExp(r'=> r"""(.+)""";', dotAll: true);
-    final match = regExp.firstMatch(generated);
-    final actual = match?.group(1);
+class X extends A {
+  final foo = 0;
+}
+''', r'''
+class X
+  superclass: A
+  fields
+    foo
+      flags: hasFinal
+      type: OmittedType
+        inferred: int
+''');
+  }
 
-    if (actual == null) {
-      print('-------- Generated --------');
-      print('$generated---------------------------');
-      fail('No introspection result.');
-    }
+  test_inferType_fieldStatic() async {
+    await _assertIntrospectText('A', r'''
+class A {
+  static final foo;
+}
+''', r'''
+class A
+  fields
+    foo
+      flags: hasFinal isStatic
+      type: OmittedType
+        inferred: dynamic
+''');
+  }
 
-    if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
-      NodeTextExpectationsCollector.add(actual);
-    }
-    expect(actual, expected);
+  test_inferType_fieldStatic_fromInitializer() async {
+    await _assertIntrospectText('A', r'''
+class A {
+  static final foo = 0;
+}
+''', r'''
+class A
+  fields
+    foo
+      flags: hasFinal isStatic
+      type: OmittedType
+        inferred: int
+''');
+  }
+
+  test_inferType_function_formalParameter() async {
+    await _assertIntrospectText('foo', r'''
+void foo(a) => 0;
+''', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    a
+      flags: isRequired
+      type: OmittedType
+        inferred: dynamic
+  returnType: void
+''');
+  }
+
+  test_inferType_function_returnType() async {
+    await _assertIntrospectText('foo', r'''
+foo() => 0;
+''', r'''
+foo
+  flags: hasBody
+  returnType: OmittedType
+    inferred: dynamic
+''');
+  }
+
+  test_inferType_getterInstance_returnType_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+class A {
+  int get foo => 0;
+}
+
+class X extends A {
+  get foo => 0;
+}
+''', r'''
+class X
+  superclass: A
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: OmittedType
+        inferred: int
+''');
+  }
+
+  test_inferType_getterStatic_returnType() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static get foo => 0;
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isGetter isStatic
+      returnType: OmittedType
+        inferred: dynamic
+''');
+  }
+
+  test_inferType_methodInstance_formalParameter_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+class A {
+  void foo(int a) {}
+}
+
+class X extends A {
+  void foo(a) {}
+}
+''', r'''
+class X
+  superclass: A
+  methods
+    foo
+      flags: hasBody
+      positionalParameters
+        a
+          flags: isRequired
+          type: OmittedType
+            inferred: int
+      returnType: void
+''');
+  }
+
+  test_inferType_methodInstance_returnType_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+class A {
+  int foo() => 0;
+}
+
+class X extends A {
+  foo() => 0;
+}
+''', r'''
+class X
+  superclass: A
+  methods
+    foo
+      flags: hasBody
+      returnType: OmittedType
+        inferred: int
+''');
+  }
+
+  test_inferType_methodStatic_formalParameter() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static void foo(a) {}
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isStatic
+      positionalParameters
+        a
+          flags: isRequired
+          type: OmittedType
+            inferred: dynamic
+      returnType: void
+''');
+  }
+
+  test_inferType_methodStatic_returnType() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static foo() => 0;
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isStatic
+      returnType: OmittedType
+        inferred: dynamic
+''');
+  }
+
+  test_inferType_setterInstance_formalParameter_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+abstract class A {
+  set foo(int a);
+}
+
+class X extends A {
+  void set foo(a) {}
+}
+''', r'''
+class X
+  superclass: A
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        a
+          flags: isRequired
+          type: OmittedType
+            inferred: int
+      returnType: void
+''');
+  }
+
+  test_inferType_setterInstance_returnType() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  set foo(int a) {}
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        a
+          flags: isRequired
+          type: int
+      returnType: OmittedType
+        inferred: void
+''');
+  }
+
+  test_inferType_setterStatic_formalParameter() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static void set foo(a) {}
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isSetter isStatic
+      positionalParameters
+        a
+          flags: isRequired
+          type: OmittedType
+            inferred: dynamic
+      returnType: void
+''');
+  }
+
+  test_inferType_setterStatic_returnType() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static set foo(int a) {}
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isSetter isStatic
+      positionalParameters
+        a
+          flags: isRequired
+          type: int
+      returnType: OmittedType
+        inferred: void
+''');
+  }
+
+  test_inferType_topGetter_returnType() async {
+    await _assertIntrospectText('foo', r'''
+get foo => 0;
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: OmittedType
+    inferred: dynamic
+''');
+  }
+
+  test_inferType_topSetter_formalParameter() async {
+    await _assertIntrospectText('foo', r'''
+void set foo(value) {}
+''', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: OmittedType
+        inferred: dynamic
+  returnType: void
+''');
+  }
+
+  test_inferType_topSetter_returnType() async {
+    await _assertIntrospectText('foo', r'''
+set foo(int value) {}
+''', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: int
+  returnType: OmittedType
+    inferred: void
+''');
+  }
+
+  test_inferType_topVariable_fromInitializer() async {
+    await _assertIntrospectText('foo', r'''
+final foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
+    inferred: int
+''');
+  }
+
+  /// The [name] should be the name of a declaration in [code].
+  Future<void> _assertIntrospectText(
+    String name,
+    String code,
+    String expected,
+  ) async {
+    newFile(
+      '$testPackageLibPath/introspect.dart',
+      _getMacroCode('introspect.dart'),
+    );
+
+    await _assertIntrospectDefinitionText(
+      '''
+import 'introspect.dart';
+$code
+''',
+      expected,
+      name: name,
+      uriStr: 'package:test/test.dart',
+      withUnnamedConstructor: false,
+    );
   }
 }
 
@@ -6923,6 +7307,33 @@ foo
     }
     expect(actual, expected);
   }
+
+  /// The [code] should have exactly one application of `IntrospectMacro`.
+  /// It may contain arbitrary code otherwise.
+  ///
+  /// The macro generates a top-level constant `_introspect`, with a string
+  /// literal initializer - the textual dump of the introspection.
+  Future<String> _getIntrospectText(String code) async {
+    newFile(
+      '$testPackageLibPath/introspect.dart',
+      _getMacroCode('introspect.dart'),
+    );
+
+    var library = await buildLibrary('''
+import 'introspect.dart';
+$code
+''');
+
+    if (library.allMacroDiagnostics.isNotEmpty) {
+      failWithLibraryText(library);
+    }
+
+    return library.topLevelElements
+        .whereType<ConstTopLevelVariableElementImpl>()
+        .where((e) => e.name == '_introspect')
+        .map((e) => (e.constantInitializer as SimpleStringLiteral).value)
+        .join('\n');
+  }
 }
 
 @reflectiveTest
@@ -7142,6 +7553,51 @@ void foo<T>(T a, T b) {}
     _assertIsExactlyValue(generated, true);
   }
 
+  test_isSubtype() async {
+    const testCases = {
+      ('double', 'double', true),
+      ('double', 'num', true),
+      ('double', 'int', false),
+      ('double', 'Object', true),
+      ('int', 'double', false),
+      ('int', 'num', true),
+      ('int', 'int', true),
+      ('int', 'Object', true),
+      // Object
+      ('Object?', 'Object?', true),
+      ('Object?', 'Object', false),
+      ('Object', 'Object?', true),
+      ('Object', 'Object', true),
+      // InterfaceType, type arguments
+      ('List<int>', 'List<double>', false),
+      ('List<int>', 'List<num>', true),
+      ('List<int>', 'List<int>', true),
+      // FunctionType
+      //   returnType
+      ('void Function()', 'void Function()', true),
+      ('int Function()', 'double Function()', false),
+      ('int Function()', 'num Function()', true),
+      ('int Function()', 'int Function()', true),
+      // RecordType
+      ('(int,)', '(double,)', false),
+      ('(int,)', '(num,)', true),
+      ('(int,)', '(int,)', true),
+      ('({int a,})', '({double a,})', false),
+      ('({int a,})', '({num a,})', true),
+      ('({int a,})', '({int a,})', true),
+      ('({int a,})', '({int b,})', false),
+    };
+
+    for (final testCase in testCases) {
+      await disposeAnalysisContextCollection();
+      await _assertIsSubtype(
+        firstTypeCode: testCase.$1,
+        secondTypeCode: testCase.$2,
+        isSubtype: testCase.$3,
+      );
+    }
+  }
+
   Future<void> _assertIsExactly({
     required String firstTypeCode,
     required String secondTypeCode,
@@ -7153,10 +7609,8 @@ import 'static_type.dart';
 
 $additionalDeclarations
 
-class A {
-  @IsExactly()
-  void foo($firstTypeCode a, $secondTypeCode b) {}
-}
+@IsExactly()
+void foo($firstTypeCode a, $secondTypeCode b) {}
 ''');
 
     final generated = _getMacroGeneratedCode(library);
@@ -7174,8 +7628,37 @@ class A {
     expect(generated, contains(expected));
   }
 
+  Future<void> _assertIsSubtype({
+    required String firstTypeCode,
+    required String secondTypeCode,
+    required bool isSubtype,
+    String additionalDeclarations = '',
+  }) async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+$additionalDeclarations
+
+@IsSubtype()
+void foo($firstTypeCode a, $secondTypeCode b) {}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    final expected = _isSubtypeExpected(isSubtype);
+    if (!generated.contains(expected)) {
+      fail(
+        '`$firstTypeCode` isSubtype `$secondTypeCode`'
+        ' expected to be `$isSubtype`, but is not.\n',
+      );
+    }
+  }
+
   String _isExactlyExpected(bool isExactly) {
     return '=> $isExactly; // isExactly';
+  }
+
+  String _isSubtypeExpected(bool isSubtype) {
+    return '=> $isSubtype; // isSubtype';
   }
 }
 

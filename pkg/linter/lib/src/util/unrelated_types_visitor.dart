@@ -176,8 +176,7 @@ abstract class UnrelatedTypesProcessors extends SimpleAstVisitor<void> {
       case ExpectedArgumentKind.assignableToCollectionTypeArgument:
         var typeArgument =
             collectionType.typeArguments[methodDefinition.typeArgumentIndex];
-        if (typesAreUnrelated(typeSystem, argumentType, typeArgument,
-            strictCasts: strictCasts)) {
+        if (typesAreUnrelated(typeSystem, argumentType, typeArgument)) {
           rule.reportLint(argument, arguments: [
             argumentType.getDisplayString(withNullability: true),
             typeArgument.getDisplayString(withNullability: true),

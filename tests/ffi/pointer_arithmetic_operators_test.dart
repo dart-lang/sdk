@@ -9,6 +9,7 @@ import 'package:ffi/ffi.dart';
 
 void main() {
   Pointer<Int32> p = calloc<Int32>(3);
+  final p1 = p;
   p.value = 1;
   (p + 1).value = 2;
   (p + 2).value = 3;
@@ -17,4 +18,5 @@ void main() {
   Expect.equals(3, p.value);
   p -= 1;
   Expect.equals(2, p.value);
+  calloc.free(p1);
 }

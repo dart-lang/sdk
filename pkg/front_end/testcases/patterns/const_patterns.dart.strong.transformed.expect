@@ -317,7 +317,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
   method call() → dynamic {}
-  method test(dynamic o) → dynamic async /* futureValueType= dynamic */ {
+  method test(dynamic o) → dynamic async /* emittedValueType= dynamic */ {
     dynamic variable = 0;
     #L1:
     {

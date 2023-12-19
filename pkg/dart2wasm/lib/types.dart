@@ -417,18 +417,6 @@ class Types {
             : TopTypeKind.objectKind;
   }
 
-  /// Allocates a `List<_Type>` from [types] and pushes it to the stack.
-  void _makeTypeList(CodeGenerator codeGen, Iterable<DartType> types) {
-    if (types.every(_isTypeConstant)) {
-      translator.constants.instantiateConstant(codeGen.function, codeGen.b,
-          translator.constants.makeTypeList(types), typeListExpectedType);
-    } else {
-      w.ValueType listType = codeGen.makeListFromExpressions(
-          types.map((t) => TypeLiteral(t)).toList(), typeType);
-      translator.convertType(codeGen.function, listType, typeListExpectedType);
-    }
-  }
-
   /// Allocates a `WasmArray<_Type>` from [types] and pushes it to the
   /// stack.
   void _makeTypeArray(CodeGenerator codeGen, Iterable<DartType> types) {
@@ -453,16 +441,14 @@ class Types {
 
   void _makeRecordType(CodeGenerator codeGen, RecordType type) {
     codeGen.b.i32_const(encodedNullability(type));
+
+    final names = translator.constants.makeArrayOf(
+        translator.coreTypes.stringNonNullableRawType,
+        type.named.map((t) => StringConstant(t.name)).toList());
+
     translator.constants.instantiateConstant(
-        codeGen.function,
-        codeGen.b,
-        ListConstant(
-          InterfaceType(
-              translator.coreTypes.stringClass, Nullability.nonNullable),
-          type.named.map((t) => StringConstant(t.name)).toList(),
-        ),
-        recordTypeNamesFieldExpectedType);
-    _makeTypeList(
+        codeGen.function, codeGen.b, names, recordTypeNamesFieldExpectedType);
+    _makeTypeArray(
         codeGen, type.positional.followedBy(type.named.map((t) => t.type)));
   }
 

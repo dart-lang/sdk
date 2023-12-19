@@ -909,7 +909,7 @@ void KernelFingerprintHelper::CalculateFunctionNodeFingerprint() {
   CalculateListOfVariableDeclarationsFingerprint();  // read positionals
   CalculateListOfVariableDeclarationsFingerprint();  // read named
   CalculateDartTypeFingerprint();                    // read return type.
-  CalculateOptionalDartTypeFingerprint();            // read future value type.
+  CalculateOptionalDartTypeFingerprint();            // read emitted value type.
 
   if (ReadTag() == kSomething) {   // read redirecting factory target
     ReadCanonicalNameReference();  // read member reference

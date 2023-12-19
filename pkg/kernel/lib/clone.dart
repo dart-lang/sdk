@@ -637,8 +637,9 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     List<VariableDeclaration> positional =
         node.positionalParameters.map(clone).toList();
     List<VariableDeclaration> named = node.namedParameters.map(clone).toList();
-    final DartType? futureValueType =
-        node.futureValueType != null ? visitType(node.futureValueType!) : null;
+    final DartType? futureValueType = node.emittedValueType != null
+        ? visitType(node.emittedValueType!)
+        : null;
     return new FunctionNode(cloneFunctionNodeBody(node),
         typeParameters: typeParameters,
         positionalParameters: positional,
@@ -647,7 +648,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
         returnType: visitType(node.returnType),
         asyncMarker: node.asyncMarker,
         dartAsyncMarker: node.dartAsyncMarker,
-        futureValueType: futureValueType)
+        emittedValueType: futureValueType)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset);
   }
 

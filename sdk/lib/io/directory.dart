@@ -162,13 +162,26 @@ abstract interface class Directory implements FileSystemEntity {
   /// operations and multiple isolates. Changing the working directory,
   /// while asynchronous operations are pending or when other isolates
   /// are working with the file system, can lead to unexpected results.
-  static void set current(path) {
+  static void set current(dynamic path) {
+    // Disallow implicit casts to avoid bugs like
+    // <https://github.com/dart-lang/sdk/issues/52140>.
+    //
+    // This can be removed if `strict-casts` is enabled.
+    path as Object?;
+
     final IOOverrides? overrides = IOOverrides.current;
     if (overrides == null) {
       _Directory.current = path;
       return;
     }
-    overrides.setCurrentDirectory(path);
+
+    // IOOverrides.setCurrentDirectory accepts only a [String].
+    overrides.setCurrentDirectory(switch (path) {
+      String s => s,
+      Directory d => d.path,
+      _ => throw ArgumentError('${Error.safeToString(path)} is not a String or'
+          ' Directory'),
+    });
   }
 
   /// Creates the directory if it doesn't exist.

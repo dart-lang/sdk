@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/generated/engine.dart'; //ignore: implementation_imports
 import 'package:meta/meta_meta.dart';
 
 import '../analyzer.dart';
@@ -61,23 +60,17 @@ class LibraryAnnotations extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    // TODO(pq): update when there's a better API to access strictCasts.
-    var strictCasts =
-        // ignore: deprecated_member_use
-        (context.analysisOptions as AnalysisOptionsImpl).strictCasts;
-
-    var visitor = _Visitor(this, strictCasts: strictCasts);
+    var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LibraryAnnotations rule;
-  final bool strictCasts;
 
   Directive? firstDirective;
 
-  _Visitor(this.rule, {required this.strictCasts});
+  _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -107,8 +100,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           elementAnnotation.targetKinds.contains(TargetKind.library) &&
           firstDirective == node) {
         rule.reportLint(annotation);
-      } else if (elementAnnotation.isPragmaLateTrust(
-          strictCasts: strictCasts)) {
+      } else if (elementAnnotation.isPragmaLateTrust) {
         rule.reportLint(annotation);
       }
     }
@@ -117,7 +109,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
 extension on ElementAnnotation {
   /// Whether this is an annotation of the form `@pragma('dart2js:late:trust')`.
-  bool isPragmaLateTrust({required bool strictCasts}) {
+  bool get isPragmaLateTrust {
     if (_isConstructor(libraryName: 'dart.core', className: 'pragma')) {
       var value = computeConstantValue();
       var nameValue = value?.getField('name');

@@ -28,7 +28,7 @@ static method split<A extends core::Object? = dynamic>(core::Iterable<self::spli
         hoisted self::split::A% x;
         if(true) {
           x = #1#0.{core::Iterable::first}{self::split::A%};
-          #t1 = (() → core::Iterable<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)> sync* {
+          #t1 = (() → core::Iterable<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)> sync* /* emittedValueType= (core::Iterable<self::split::A%>, core::Iterable<self::split::A%>) */ {
             yield(new _in::EmptyIterable::•<self::split::A%>(), it);
             {
               synthesized core::Iterator<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)> :sync-for-iterator = self::split<self::split::A%>(it.{core::Iterable::skip}(1){(core::int) → core::Iterable<self::split::A%>}).{core::Iterable::iterator}{core::Iterator<(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)>};

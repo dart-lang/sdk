@@ -2,7 +2,7 @@ main = <No Member>;
 library from "org-dartlang-test:///lib.dart" as lib {
 
   abstract class TestMixin<T extends dart.core::Object? = dynamic> extends dart.core::Object /*isMixinDeclaration*/  {
-    method test(covariant-by-class dart.async::Future<lib::TestMixin::T%> fetch) → dart.async::Future<lib::TestMixin::T%> async /* futureValueType= lib::TestMixin::T% */ {
+    method test(covariant-by-class dart.async::Future<lib::TestMixin::T%> fetch) → dart.async::Future<lib::TestMixin::T%> async /* emittedValueType= lib::TestMixin::T% */ {
       final lib::TestMixin::T% response = await fetch;
       return response;
     }
@@ -16,7 +16,7 @@ library from "org-dartlang-test:///main.dart" as main {
     const synthetic constructor •() → main::_Class2&Object&TestMixin
       : super dart.core::Object::•()
       ;
-    method /* from org-dartlang-test:///lib.dart */ test(covariant-by-class dart.async::Future<dart.core::String> fetch) → dart.async::Future<dart.core::String> async /* futureValueType= dart.core::String */ {
+    method /* from org-dartlang-test:///lib.dart */ test(covariant-by-class dart.async::Future<dart.core::String> fetch) → dart.async::Future<dart.core::String> async /* emittedValueType= dart.core::String */ {
       final dart.core::String response = await fetch;
       return response;
     }

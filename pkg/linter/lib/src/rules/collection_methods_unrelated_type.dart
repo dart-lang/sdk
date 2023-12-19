@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/engine.dart'; //ignore: implementation_imports
-
 import '../analyzer.dart';
 import '../util/unrelated_types_visitor.dart';
 
@@ -81,21 +79,15 @@ class CollectionMethodsUnrelatedType extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    // TODO(pq): update when there's a better API to access strictCasts.
-    var strictCasts =
-        // ignore: deprecated_member_use
-        (context.analysisOptions as AnalysisOptionsImpl).strictCasts;
-
-    var visitor = _Visitor(this, context.typeSystem, context.typeProvider,
-        strictCasts: strictCasts);
+    var visitor = _Visitor(this, context.typeSystem, context.typeProvider);
     registry.addIndexExpression(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
 }
 
 class _Visitor extends UnrelatedTypesProcessors {
-  _Visitor(super.rule, super.typeSystem, super.typeProvider,
-      {required super.strictCasts});
+  _Visitor(super.rule, super.typeSystem, super.typeProvider)
+      : super(strictCasts: false);
 
   @override
   List<MethodDefinition> get indexOperators => [

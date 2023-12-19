@@ -4192,7 +4192,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // In the body of an `async`, `await` is generated simply as `yield`.
     var gen = emitGeneratorFn((_) => []);
     var returnType = _currentLibrary!.isNonNullableByDefault
-        ? function.futureValueType!
+        ? function.emittedValueType!
         // Otherwise flatten the return type because futureValueType(T) is not
         // defined for legacy libraries.
         : _types.flatten(function
@@ -4699,7 +4699,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   js_ast.Statement visitAssertStatement(AssertStatement node) {
     if (!_options.enableAsserts) return js_ast.EmptyStatement();
     var condition = node.condition;
-    var conditionType = condition.getStaticType(_staticTypeContext);
+    var conditionType =
+        condition.getStaticType(_staticTypeContext).extensionTypeErasure;
     var jsCondition = _visitExpression(condition);
 
     if (conditionType != _coreTypes.boolLegacyRawType &&
@@ -4707,6 +4708,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         conditionType != _coreTypes.boolNonNullableRawType) {
       jsCondition = runtimeCall('dtest(#)', [jsCondition]);
     } else if (isNullable(condition)) {
+      // TODO(nshahan): Is this branch even reachable in null safe code?
       jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
 
@@ -7171,7 +7173,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       if (jsExpr is js_ast.LiteralString && jsExpr.valueWithoutQuotes.isEmpty) {
         continue;
       }
-      var type = e.getStaticType(_staticTypeContext);
+      var type = e.getStaticType(_staticTypeContext).extensionTypeErasure;
       if (DartTypeEquivalence(_coreTypes, ignoreTopLevelNullability: true)
               .areEqual(type, _coreTypes.stringNonNullableRawType) &&
           !isNullable(e)) {
@@ -7274,7 +7276,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     var jsFrom = _visitExpression(fromExpr);
     if (node.isUnchecked) return jsFrom;
     var to = node.type.extensionTypeErasure;
-    var from = fromExpr.getStaticType(_staticTypeContext);
+    var from = fromExpr.getStaticType(_staticTypeContext).extensionTypeErasure;
 
     // If the check was put here by static analysis to ensure soundness, we
     // can't skip it. For example, one could implement covariant generic caller
@@ -7937,6 +7939,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   List<js_ast.Comment> generateCompilationHeader() {
     var headerOptions = [
       if (_options.canaryFeatures) 'canary',
+      'newRuntimeTypes(${_options.newRuntimeTypes})',
       'soundNullSafety(${_options.soundNullSafety})',
       'enableAsserts(${_options.enableAsserts})',
     ];

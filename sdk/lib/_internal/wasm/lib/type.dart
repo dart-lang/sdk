@@ -52,6 +52,11 @@ extension on WasmArray<_NamedParameter> {
   }
 }
 
+extension on WasmArray<String> {
+  @pragma("wasm:prefer-inline")
+  bool get isNotEmpty => length != 0;
+}
+
 // TODO: Remove any occurence of `List`s in this file.
 extension on List<_Type> {
   @pragma("wasm:prefer-inline")
@@ -542,8 +547,8 @@ class _AbstractRecordType extends _Type {
 
 @pragma("wasm:entry-point")
 class _RecordType extends _Type {
-  final List<String> names;
-  final List<_Type> fieldTypes;
+  final WasmArray<String> names;
+  final WasmArray<_Type> fieldTypes;
 
   @pragma("wasm:entry-point")
   _RecordType(this.names, this.fieldTypes, super.isDeclaredNullable);
@@ -564,7 +569,7 @@ class _RecordType extends _Type {
     final int numNames = names.length;
 
     for (int i = 0; i < numPositionals; i += 1) {
-      buffer.write(fieldTypes._getUnchecked(i));
+      buffer.write(fieldTypes[i]);
       if (i != fieldTypes.length - 1) {
         buffer.write(', ');
       }
@@ -573,8 +578,8 @@ class _RecordType extends _Type {
     if (names.isNotEmpty) {
       buffer.write('{');
       for (int i = 0; i < numNames; i += 1) {
-        final String fieldName = names._getUnchecked(i);
-        final _Type fieldType = fieldTypes._getUnchecked(numPositionals + i);
+        final String fieldName = names[i];
+        final _Type fieldType = fieldTypes[numPositionals + i];
         buffer.write(fieldType);
         buffer.write(' ');
         buffer.write(fieldName);
@@ -602,8 +607,7 @@ class _RecordType extends _Type {
     }
 
     for (int fieldIdx = 0; fieldIdx < fieldTypes.length; fieldIdx += 1) {
-      if (fieldTypes._getUnchecked(fieldIdx) !=
-          other.fieldTypes._getUnchecked(fieldIdx)) {
+      if (fieldTypes[fieldIdx] != other.fieldTypes[fieldIdx]) {
         return false;
       }
     }
@@ -990,8 +994,8 @@ class _TypeUniverse {
 
     final int numFields = s.fieldTypes.length;
     for (int fieldIdx = 0; fieldIdx < numFields; fieldIdx += 1) {
-      if (!isSubtype(s.fieldTypes._getUnchecked(fieldIdx), sEnv,
-          t.fieldTypes._getUnchecked(fieldIdx), tEnv)) {
+      if (!isSubtype(
+          s.fieldTypes[fieldIdx], sEnv, t.fieldTypes[fieldIdx], tEnv)) {
         return false;
       }
     }
