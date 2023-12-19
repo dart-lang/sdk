@@ -26,7 +26,7 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/verifier.dart' show VerificationStage, verifyComponent;
 import 'package:vm/kernel_front_end.dart';
 
-main(List<String> args) async {
+Future<void> main(List<String> args) async {
   String? flutterDir;
   String? flutterPlatformDir;
   for (String arg in args) {
@@ -37,11 +37,11 @@ main(List<String> args) async {
     }
   }
 
-  await compileTests(flutterDir, flutterPlatformDir, StdoutLogger());
+  await compileTests(flutterDir, flutterPlatformDir, new StdoutLogger());
 }
 
 Future<NnbdMode> _getNNBDMode(Uri script, Uri packageConfigUri) async {
-  final CompilerOptions compilerOptions = CompilerOptions()
+  final CompilerOptions compilerOptions = new CompilerOptions()
     ..sdkRoot = null
     ..fileSystem = StandardFileSystem.instance
     ..packagesFileUri = packageConfigUri
@@ -57,7 +57,7 @@ Future<NnbdMode> _getNNBDMode(Uri script, Uri packageConfigUri) async {
 Future compileTests(
     String? flutterDir, String? flutterPlatformDir, Logger logger,
     {String? filter, int shards = 1, int shard = 0}) async {
-  if (flutterDir == null || !(Directory(flutterDir).existsSync())) {
+  if (flutterDir == null || !(new Directory(flutterDir).existsSync())) {
     throw "Didn't get a valid flutter directory to work with.";
   }
   if (shards < 1) {
@@ -71,42 +71,43 @@ Future compileTests(
   }
   // Ensure the path ends in a slash.
   final Directory flutterDirectory =
-      Directory.fromUri(Directory(flutterDir).uri);
+      new Directory.fromUri(new Directory(flutterDir).uri);
 
   List<FileSystemEntity> allFlutterFiles =
       flutterDirectory.listSync(recursive: true, followLinks: false);
   Directory flutterPlatformDirectoryTmp;
 
   if (flutterPlatformDir == null) {
-    List<File> platformFiles = List<File>.from(allFlutterFiles.where((f) => f
-        .uri
-        .toString()
-        .endsWith("/flutter_patched_sdk/platform_strong.dill")));
+    List<File> platformFiles = new List<File>.from(allFlutterFiles.where((f) =>
+        f.uri
+            .toString()
+            .endsWith("/flutter_patched_sdk/platform_strong.dill")));
     if (platformFiles.isEmpty) {
       throw "Expected to find a flutter platform file but didn't.";
     }
     flutterPlatformDirectoryTmp = platformFiles.first.parent;
   } else {
-    flutterPlatformDirectoryTmp = Directory(flutterPlatformDir);
+    flutterPlatformDirectoryTmp = new Directory(flutterPlatformDir);
   }
   if (!flutterPlatformDirectoryTmp.existsSync()) {
     throw "$flutterPlatformDirectoryTmp doesn't exist.";
   }
   // Ensure the path ends in a slash.
   final Directory flutterPlatformDirectory =
-      Directory.fromUri(flutterPlatformDirectoryTmp.uri);
+      new Directory.fromUri(flutterPlatformDirectoryTmp.uri);
 
-  if (!File.fromUri(
+  if (!new File.fromUri(
           flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
       .existsSync()) {
     throw "$flutterPlatformDirectory doesn't contain a "
         "platform_strong.dill file.";
   }
   logger.notice("Using $flutterPlatformDirectory as platform directory.");
-  List<File> packageConfigFiles = List<File>.from(allFlutterFiles.where((f) =>
-      (f.uri.toString().contains("/examples/") ||
-          f.uri.toString().contains("/packages/")) &&
-      f.uri.toString().endsWith("/.dart_tool/package_config.json")));
+  List<File> packageConfigFiles = new List<File>.from(allFlutterFiles.where(
+      (f) =>
+          (f.uri.toString().contains("/examples/") ||
+              f.uri.toString().contains("/packages/")) &&
+          f.uri.toString().endsWith("/.dart_tool/package_config.json")));
 
   List<String> allCompilationErrors = [];
   final Directory systemTempDir = Directory.systemTemp;
@@ -115,7 +116,7 @@ Future compileTests(
   for (int i = 0; i < packageConfigFiles.length; i++) {
     File packageConfig = packageConfigFiles[i];
     Directory testDir =
-        Directory.fromUri(packageConfig.parent.uri.resolve("../test/"));
+        new Directory.fromUri(packageConfig.parent.uri.resolve("../test/"));
     if (!testDir.existsSync()) continue;
     if (testDir.toString().contains("packages/flutter_web_plugins/test/")) {
       // TODO(jensj): Figure out which tests are web-tests, and compile those
@@ -123,7 +124,7 @@ Future compileTests(
       continue;
     }
     List<File> testFiles =
-        List<File>.from(testDir.listSync(recursive: true).where((f) {
+        new List<File>.from(testDir.listSync(recursive: true).where((f) {
       if (!f.path.endsWith("_test.dart")) return false;
       if (filter != null) {
         String testName = f.path.substring(flutterDirectory.path.length);
@@ -149,7 +150,7 @@ Future compileTests(
     }
     for (List<File> files in [weak, strong]) {
       if (files.isEmpty) continue;
-      queue.add(_QueueEntry(files, packageConfig, testDir));
+      queue.add(new _QueueEntry(files, packageConfig, testDir));
       totalFiles += files.length;
     }
   }
@@ -247,14 +248,14 @@ Future<List<String>> attemptStuff(
     String? filter) async {
   if (testFiles.isEmpty) return [];
 
-  File dillFile = File('${tempDir.path}/dill.dill');
+  File dillFile = new File('${tempDir.path}/dill.dill');
   if (dillFile.existsSync()) {
     throw "$dillFile already exists.";
   }
 
-  List<int> platformData =
-      File.fromUri(flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
-          .readAsBytesSync();
+  List<int> platformData = new File.fromUri(
+          flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
+      .readAsBytesSync();
   final String targetName = 'flutter';
   final Target target = createFrontEndTarget(targetName)!;
   final List<String> args = <String>[
@@ -268,16 +269,16 @@ Future<List<String>> attemptStuff(
     // '--unsafe-package-serialization',
   ];
 
-  Stopwatch stopwatch = Stopwatch()..start();
+  Stopwatch stopwatch = new Stopwatch()..start();
 
   final StreamController<List<int>> inputStreamController =
-      StreamController<List<int>>();
+      new StreamController<List<int>>();
   final StreamController<List<int>> stdoutStreamController =
-      StreamController<List<int>>();
-  final IOSink ioSink = IOSink(stdoutStreamController.sink);
-  StreamController<Result> receivedResults = StreamController<Result>();
+      new StreamController<List<int>>();
+  final IOSink ioSink = new IOSink(stdoutStreamController.sink);
+  StreamController<Result> receivedResults = new StreamController<Result>();
 
-  final outputParser = OutputParser(receivedResults);
+  final OutputParser outputParser = new OutputParser(receivedResults);
   stdoutStreamController.stream
       .transform(utf8.decoder)
       .transform(const LineSplitter())
@@ -302,8 +303,8 @@ Future<List<String>> attemptStuff(
     return starter(args, input: inputStreamController.stream, output: ioSink);
   }, createFile: (String path) {
     if (files[path] != null) return files[path]!;
-    File f = parentZone.run(() => File(path));
-    if (path.endsWith(".dill")) return files[path] = _MockFile(f);
+    File f = parentZone.run(() => new File(path));
+    if (path.endsWith(".dill")) return files[path] = new _MockFile(f);
     return f;
   });
 
@@ -312,7 +313,7 @@ Future<List<String>> attemptStuff(
 
   logger.logTestStart(testName);
   logger.notice("    => $testName");
-  Stopwatch stopwatch2 = Stopwatch()..start();
+  Stopwatch stopwatch2 = new Stopwatch()..start();
   inputStreamController
       .add('compile ${testFileIterator.current.path}\n'.codeUnits);
   int compilations = 0;
@@ -421,7 +422,7 @@ class OutputParser {
       }
       // Second boundaryKey indicates end of frontend server response
       expectSources = true;
-      _receivedResults.add(Result(
+      _receivedResults.add(new Result(
           s.length > _boundaryKey!.length
               ? s.substring(_boundaryKey!.length + 1)
               : null,
@@ -442,7 +443,7 @@ class Result {
   Result(this.status, this.sources);
 
   void expectNoErrors({String? filename}) {
-    CompilationResult result = CompilationResult.parse(status!);
+    CompilationResult result = new CompilationResult.parse(status!);
     if (result.errorsCount != 0) {
       throw "Got ${result.errorsCount} errors. Expected 0.";
     }
@@ -532,7 +533,7 @@ class _MockFile implements File {
 
   @override
   IOSink openWrite({FileMode mode = FileMode.write, Encoding encoding = utf8}) {
-    return writeSink = _MockIOSink();
+    return writeSink = new _MockIOSink();
   }
 
   @override
@@ -542,7 +543,7 @@ class _MockFile implements File {
 }
 
 class _MockIOSink implements IOSink {
-  BytesBuilder bb = BytesBuilder();
+  BytesBuilder bb = new BytesBuilder();
   bool _closed = false;
 
   @override
@@ -554,7 +555,7 @@ class _MockIOSink implements IOSink {
   @override
   Future close() {
     _closed = true;
-    return Future.value();
+    return new Future.value();
   }
 
   @override

@@ -58,7 +58,7 @@ Future<void> _runAnalysis(CompilerOptions options, Iterable<Uri> entryPoints,
     options,
     retainDataForTesting: true,
     requireMain: false,
-    additionalSources: entryPoints.take(1).toList(),
+    additionalSources: entryPoints.skip(1).toList(),
   ) as InternalCompilerResult;
 
   performAnalysis(options.onDiagnostic!, compilerResult.component!);

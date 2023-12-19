@@ -22,23 +22,30 @@ import "utils/io_utils.dart";
 final Uri repoDir = computeRepoDirUri();
 
 Set<Uri> libUris = {};
+Set<Uri> ignoredLibUris = {};
 
 int errorCount = 0;
 
 Future<void> main(List<String> args) async {
-  List<Uri> inputs = [];
+  ignoredLibUris.add(repoDir.resolve("pkg/frontend_server/test/fixtures/"));
+
   if (args.isEmpty) {
     libUris.add(repoDir.resolve("pkg/front_end/lib/"));
     libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/"));
+    libUris.add(repoDir.resolve("pkg/frontend_server/"));
   } else {
     if (args[0] == "--front-end-only") {
       libUris.add(repoDir.resolve("pkg/front_end/lib/"));
     } else if (args[0] == "--shared-only") {
       libUris.add(repoDir.resolve("pkg/_fe_analyzer_shared/lib/"));
+    } else if (args[0] == "--frontend_server-only") {
+      libUris.add(repoDir.resolve("pkg/frontend_server/"));
     } else {
       throw "Unsupported arguments: $args";
     }
   }
+
+  Set<Uri> inputs = {};
   for (Uri uri in libUris) {
     Set<Uri> gitFiles = await getGitFiles(uri);
     List<FileSystemEntity> entities =
@@ -51,6 +58,15 @@ Future<void> main(List<String> args) async {
       }
     }
   }
+  for (Uri uri in ignoredLibUris) {
+    List<FileSystemEntity> entities =
+        new Directory.fromUri(uri).listSync(recursive: true);
+    for (FileSystemEntity entity in entities) {
+      if (entity is File && entity.path.endsWith(".dart")) {
+        inputs.remove(entity.uri);
+      }
+    }
+  }
 
   Uri packageConfigUri = repoDir.resolve(".dart_tool/package_config.json");
   if (!new File.fromUri(packageConfigUri).existsSync()) {
@@ -60,7 +76,7 @@ Future<void> main(List<String> args) async {
   Stopwatch stopwatch = new Stopwatch()..start();
 
   await compile(
-      inputs: inputs,
+      inputs: inputs.toList(),
       // Compile sdk because when this is run from a lint it uses the checked-in
       // sdk and we might not have a suitable compiled platform.dill file.
       compileSdk: true,
@@ -117,6 +133,14 @@ mixin BodyBuilderTestMixin on BodyBuilder {
         if (uri.toString().startsWith(libUri.toString())) {
           match = true;
           break;
+        }
+      }
+      if (match) {
+        for (Uri libUri in ignoredLibUris) {
+          if (uri.toString().startsWith(libUri.toString())) {
+            match = false;
+            break;
+          }
         }
       }
       if (!match) {

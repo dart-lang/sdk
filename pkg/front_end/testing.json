@@ -230,7 +230,8 @@
       "pattern": [
         "_fe_analyzer_shared/lib/.*\\.dart$",
         "kernel/lib/.*\\.dart$",
-        "front_end/lib/.*\\.dart$"
+        "front_end/lib/.*\\.dart$",
+        "frontend_server/.*\\.dart$"
       ],
       "exclude": [
         "kernel/lib/transformations/.*\\.dart$",
@@ -261,11 +262,11 @@
         "_fe_analyzer_shared/lib/.*\\.dart$",
         "front_end/lib/.*\\.dart$",
         "kernel/lib/.*\\.dart$",
-        "kernel/bin/.*\\.dart$"
+        "kernel/bin/.*\\.dart$",
+        "frontend_server/lib/.*\\.dart$",
+        "frontend_server/bin/.*\\.dart$"
       ],
       "exclude": [
-        "kernel/lib/vm/.*\\.dart$",
-        "kernel/lib/transformations/.*\\.dart$",
         "_fe_analyzer_shared/lib/src/messages/codes_generated\\.dart$",
         "front_end/lib/src/fasta/fasta_codes_cfe_generated\\.dart$"
       ]

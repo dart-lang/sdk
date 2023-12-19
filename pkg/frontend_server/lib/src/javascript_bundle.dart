@@ -6,8 +6,11 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dev_compiler/dev_compiler.dart';
+import 'package:dev_compiler/src/js_ast/nodes.dart';
+import 'package:dev_compiler/src/kernel/command.dart';
 import 'package:front_end/src/api_unstable/vm.dart' show FileSystem;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -23,7 +26,7 @@ import 'strong_components.dart';
 /// JavaScript modules concatenated together, and a second containing the byte
 /// offsets by module name for each JavaScript module in JSON format.
 ///
-/// Ths format is analogous to the dill and .incremental.dill in that during
+/// The format is analogous to the dill and .incremental.dill in that during
 /// an incremental build, a different file is written for each which contains
 /// only the updated libraries.
 class IncrementalJavaScriptBundler {
@@ -48,8 +51,8 @@ class IncrementalJavaScriptBundler {
   final FileSystem? _fileSystem;
   final Set<Library> _loadedLibraries;
   final Map<Uri, Component> _uriToComponent = <Uri, Component>{};
-  final _importToSummary = Map<Library, Component>.identity();
-  final _summaryToModule = Map<Component, String>.identity();
+  final _importToSummary = new Map<Library, Component>.identity();
+  final _summaryToModule = new Map<Component, String>.identity();
   final Map<Uri, String> _moduleImportForSummary = <Uri, String>{};
   final Map<Uri, String> _moduleImportNameForSummary = <Uri, String>{};
   final String _fileSystemScheme;
@@ -63,7 +66,7 @@ class IncrementalJavaScriptBundler {
       Component fullComponent, Uri mainUri, PackageConfig packageConfig) async {
     _lastFullComponent = fullComponent;
     _currentComponent = fullComponent;
-    _strongComponents = StrongComponents(
+    _strongComponents = new StrongComponents(
       fullComponent,
       _loadedLibraries,
       mainUri,
@@ -82,7 +85,7 @@ class IncrementalJavaScriptBundler {
       PackageConfig packageConfig) async {
     _currentComponent = partialComponent;
     _updateFullComponent(lastFullComponent, partialComponent);
-    _strongComponents = StrongComponents(
+    _strongComponents = new StrongComponents(
       _lastFullComponent,
       _loadedLibraries,
       mainUri,
@@ -93,7 +96,7 @@ class IncrementalJavaScriptBundler {
       for (Library library in partialComponent.libraries)
         library.importUri: library,
     });
-    var invalidated = <Uri>{
+    Set<Uri> invalidated = <Uri>{
       for (Library library in partialComponent.libraries)
         _strongComponents.moduleAssignment[library.importUri]!,
     };
@@ -112,12 +115,12 @@ class IncrementalJavaScriptBundler {
     uriToSource.addAll(lastKnownGood.uriToSource);
     uriToSource.addAll(candidate.uriToSource);
 
-    _lastFullComponent = Component(
+    _lastFullComponent = new Component(
       libraries: combined.values.toList(),
       uriToSource: uriToSource,
     )..setMainMethodAndMode(
         candidate.mainMethod?.reference, true, candidate.mode);
-    for (final repo in candidate.metadata.values) {
+    for (final MetadataRepository repo in candidate.metadata.values) {
       _lastFullComponent.addMetadataRepository(repo);
     }
   }
@@ -126,7 +129,7 @@ class IncrementalJavaScriptBundler {
   void _updateSummaries(Iterable<Uri> moduleKeys, PackageConfig packageConfig) {
     for (Uri uri in moduleKeys) {
       final List<Library> libraries = _strongComponents.modules[uri]!.toList();
-      final Component summaryComponent = Component(
+      final Component summaryComponent = new Component(
         libraries: libraries,
         nameRoot: _lastFullComponent.root,
         uriToSource: _lastFullComponent.uriToSource,
@@ -134,15 +137,15 @@ class IncrementalJavaScriptBundler {
       summaryComponent.setMainMethodAndMode(
           null, false, _currentComponent.mode);
 
-      var baseName = urlForComponentUri(uri, packageConfig);
+      String baseName = urlForComponentUri(uri, packageConfig);
       _moduleImportForSummary[uri] = '$baseName.lib.js';
       _moduleImportNameForSummary[uri] = makeModuleName(baseName);
 
       _uriToComponent[uri] = summaryComponent;
       // module loaders loads modules by modules names, not paths
-      var moduleImport = _moduleImportNameForSummary[uri]!;
+      String moduleImport = _moduleImportNameForSummary[uri]!;
 
-      var oldSummaries = <Component>[];
+      List<Component> oldSummaries = [];
       for (Component summary in _summaryToModule.keys) {
         if (_summaryToModule[summary] == moduleImport) {
           oldSummaries.add(summary);
@@ -173,12 +176,12 @@ class IncrementalJavaScriptBundler {
     IOSink? metadataSink,
     IOSink? symbolsSink,
   ) async {
-    var codeOffset = 0;
-    var sourceMapOffset = 0;
-    var metadataOffset = 0;
-    var symbolsOffset = 0;
-    final manifest = <String, Map<String, List<int>>>{};
-    final Set<Uri> visited = <Uri>{};
+    int codeOffset = 0;
+    int sourceMapOffset = 0;
+    int metadataOffset = 0;
+    int symbolsOffset = 0;
+    final Map<String, Map<String, List<int>>> manifest = {};
+    final Set<Uri> visited = {};
     final Map<String, ProgramCompiler> kernel2JsCompilers = {};
 
     for (Library library in _currentComponent.libraries) {
@@ -193,17 +196,17 @@ class IncrementalJavaScriptBundler {
       }
       visited.add(moduleUri);
 
-      final summaryComponent = _uriToComponent[moduleUri]!;
+      final Component summaryComponent = _uriToComponent[moduleUri]!;
 
       // module name to use in trackLibraries
       // use full path for tracking if module uri is not a package uri.
-      final moduleUrl = urlForComponentUri(moduleUri, packageConfig);
-      final moduleName = makeModuleName(moduleUrl);
+      final String moduleUrl = urlForComponentUri(moduleUri, packageConfig);
+      final String moduleName = makeModuleName(moduleUrl);
 
-      var compiler = ProgramCompiler(
+      ProgramCompiler compiler = new ProgramCompiler(
         _currentComponent,
         classHierarchy,
-        SharedCompilerOptions(
+        new SharedCompilerOptions(
           sourceMap: true,
           summarizeApi: false,
           emitDebugMetadata: emitDebugMetadata,
@@ -217,7 +220,7 @@ class IncrementalJavaScriptBundler {
         coreTypes: coreTypes,
       );
 
-      final jsModule = compiler.emitModule(summaryComponent);
+      final Program jsModule = compiler.emitModule(summaryComponent);
 
       // Save program compiler to reuse for expression evaluation.
       kernel2JsCompilers[moduleName] = compiler;
@@ -230,7 +233,7 @@ class IncrementalJavaScriptBundler {
         sourceMapBase = p.dirname((packageConfig.resolve(moduleUri))!.path);
       }
 
-      final code = jsProgramToCode(
+      final JSCode code = jsProgramToCode(
         jsModule,
         _moduleFormat,
         inlineSourceMap: true,
@@ -244,11 +247,11 @@ class IncrementalJavaScriptBundler {
         compiler: compiler,
         component: summaryComponent,
       );
-      final codeBytes = utf8.encode(code.code);
-      final sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
-      final metadataBytes =
+      final Uint8List codeBytes = utf8.encode(code.code);
+      final Uint8List sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
+      final Uint8List? metadataBytes =
           emitDebugMetadata ? utf8.encode(json.encode(code.metadata)) : null;
-      final symbolsBytes =
+      final Uint8List? symbolsBytes =
           emitDebugSymbols ? utf8.encode(json.encode(code.symbols)) : null;
 
       codeSink.add(codeBytes);
@@ -309,12 +312,12 @@ class IncrementalJavaScriptBundler {
     // Match relative directory structure of server paths to the
     // actual directory structure, so the sourcemaps relative paths
     // can be resolved by the browser.
-    final resolvedUri = packageConfig.resolve(componentUri)!;
-    final package = packageConfig.packageOf(resolvedUri)!;
-    final root = package.root;
-    final relativeRoot =
+    final Uri resolvedUri = packageConfig.resolve(componentUri)!;
+    final Package package = packageConfig.packageOf(resolvedUri)!;
+    final Uri root = package.root;
+    final String relativeRoot =
         root.pathSegments.lastWhere((segment) => segment.isNotEmpty);
-    final relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
+    final String relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
 
     // Relative component url (used as server path in the browser):
     // `packages/<package directory>/<path to file.dart>`

@@ -22,6 +22,7 @@ import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/file_system.dart';
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
 import 'package:front_end/src/api_unstable/bazel_worker.dart' as fe;
+import 'package:front_end/src/fasta/uri_translator.dart';
 import 'package:kernel/ast.dart'
     show Component, Library, NonNullableByDefaultCompiledMode;
 import 'package:kernel/target/targets.dart';
@@ -37,25 +38,25 @@ import 'package:vm/target/vm.dart';
 /// This is how individual work request args are differentiated from startup
 /// args in bazel (individual work request args go in that file).
 List<String> preprocessArgs(List<String> args) {
-  args = List.from(args);
+  args = new List.of(args);
   if (args.isEmpty) {
     return args;
   }
   String lastArg = args.last;
   if (lastArg.startsWith('@')) {
-    File argsFile = File(lastArg.substring(1));
+    File argsFile = new File(lastArg.substring(1));
     try {
       args.removeLast();
       args.addAll(argsFile.readAsLinesSync());
     } on FileSystemException catch (e) {
-      throw Exception('Failed to read file specified by $lastArg : $e');
+      throw new Exception('Failed to read file specified by $lastArg : $e');
     }
   }
   return args;
 }
 
 /// An [ArgParser] for generating kernel summaries.
-final summaryArgsParser = ArgParser()
+final ArgParser summaryArgsParser = new ArgParser()
   ..addFlag('help', negatable: false, abbr: 'h')
   ..addFlag('exclude-non-sources',
       negatable: false,
@@ -141,100 +142,102 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     Map<Uri, List<int>>? inputDigests,
     fe.InitializedCompilerState? previousState}) async {
   inputDigests ??= <Uri, List<int>>{};
-  dynamic out = outputBuffer ?? stderr;
+  StringSink out = outputBuffer ?? stderr;
   bool succeeded = true;
 
-  var parsedArgs = summaryArgsParser.parse(args);
+  ArgResults parsedArgs = summaryArgsParser.parse(args);
 
   if (parsedArgs['help']) {
     out.writeln(summaryArgsParser.usage);
     if (!isWorker) exit(0);
-    return ComputeKernelResult(false, previousState);
+    return new ComputeKernelResult(false, previousState);
   }
 
   // Bazel creates an overlay file system where some files may be located in the
   // source tree, some in a gendir, and some in a bindir. The multi-root file
   // system hides this from the front end.
-  var multiRoots = parsedArgs['multi-root'].map(Uri.base.resolve).toList();
+  List<Uri> multiRoots =
+      (parsedArgs['multi-root'] as List<String>).map(Uri.base.resolve).toList();
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
-  MultiRootFileSystem mrfs = MultiRootFileSystem(
+  MultiRootFileSystem mrfs = new MultiRootFileSystem(
       parsedArgs['multi-root-scheme'],
       multiRoots,
       fe.StandardFileSystem.instance);
   FileSystem fileSystem = mrfs;
-  var sources = (parsedArgs['source'] as List<String>).map(toUri).toList();
-  var excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
+  List<Uri> sources =
+      (parsedArgs['source'] as List<String>).map(toUri).toList();
+  bool excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
-  var nnbdMode = parsedArgs['sound-null-safety'] as bool
+  fe.NnbdMode nnbdMode = parsedArgs['sound-null-safety'] as bool
       ? fe.NnbdMode.Strong
       : fe.NnbdMode.Weak;
-  var summaryOnly = parsedArgs['summary-only'] as bool;
-  var summary = parsedArgs['summary'] as bool;
+  bool summaryOnly = parsedArgs['summary-only'] as bool;
+  bool summary = parsedArgs['summary'] as bool;
   if (summaryOnly && !summary) {
-    throw ArgumentError('--summary-only conflicts with --no-summary');
+    throw new ArgumentError('--summary-only conflicts with --no-summary');
   }
-  var trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
+  bool trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
 
   // TODO(sigmund,jakemac): make target mandatory. We allow null to be backwards
   // compatible while we migrate existing clients of this tool.
-  var targetName =
+  String targetName =
       (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
-  var targetFlags = TargetFlags(
+  TargetFlags targetFlags = new TargetFlags(
       trackWidgetCreation: trackWidgetCreation,
       soundNullSafety: nnbdMode == fe.NnbdMode.Strong);
   Target target;
   switch (targetName) {
     case 'vm':
-      target = VmTarget(targetFlags);
+      target = new VmTarget(targetFlags);
       if (summaryOnly) {
         out.writeln('error: --summary-only not supported for the vm target');
       }
       break;
     case 'flutter':
-      target = FlutterTarget(targetFlags);
+      target = new FlutterTarget(targetFlags);
       if (summaryOnly) {
-        throw ArgumentError(
+        throw new ArgumentError(
             'error: --summary-only not supported for the flutter target');
       }
       break;
     case 'flutter_runner':
-      target = FlutterRunnerTarget(targetFlags);
+      target = new FlutterRunnerTarget(targetFlags);
       if (summaryOnly) {
-        throw ArgumentError('error: --summary-only not supported for the '
+        throw new ArgumentError('error: --summary-only not supported for the '
             'flutter_runner target');
       }
       break;
     case 'dart2js':
-      target = Dart2jsTarget('dart2js', targetFlags);
+      target = new Dart2jsTarget('dart2js', targetFlags);
       if (summaryOnly) {
         out.writeln(
             'error: --summary-only not supported for the dart2js target');
       }
       break;
     case 'dart2js_summary':
-      target = Dart2jsSummaryTarget(
+      target = new Dart2jsSummaryTarget(
           'dart2js', sources, excludeNonSources, targetFlags);
       if (!summaryOnly) {
-        out.writeln(
-            'error: --no-summary-only not supported for the dart2js summary target');
+        out.writeln('error: --no-summary-only not supported for '
+            'the dart2js summary target');
       }
       break;
     case 'ddc':
       // TODO(jakemac):If `generateKernel` changes to return a summary
       // component, process the component instead.
       target =
-          DevCompilerSummaryTarget(sources, excludeNonSources, targetFlags);
+          new DevCompilerSummaryTarget(sources, excludeNonSources, targetFlags);
       if (!summaryOnly) {
         out.writeln('error: --no-summary-only not supported for the '
             'ddc target');
       }
       break;
     case 'dart2wasm':
-      target = WasmTarget();
+      target = new WasmTarget();
       break;
     default:
       out.writeln('error: unsupported target: $targetName');
-      return ComputeKernelResult(false, previousState);
+      return new ComputeKernelResult(false, previousState);
   }
 
   List<Uri> linkedInputs =
@@ -248,22 +251,24 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   bool recordUsedInputs = parsedArgs["used-inputs"] != null;
   bool usingNullEnvironment = parsedArgs['null-environment'];
   Map<String, String>? nullableEnvironmentDefines;
-  var environmentDefines = _parseEnvironmentDefines(parsedArgs['define']);
+  Map<String, String> environmentDefines =
+      _parseEnvironmentDefines(parsedArgs['define']);
   if (usingNullEnvironment) {
     if (environmentDefines.isNotEmpty) {
-      throw ArgumentError('`--null-environment` not supported with defines.');
+      throw new ArgumentError(
+          '`--null-environment` not supported with defines.');
     } else if (!target.constantsBackend.supportsUnevaluatedConstants) {
-      throw ArgumentError(
+      throw new ArgumentError(
           '`--null-environment` not supported on `$targetName`.');
     } else if (usingIncrementalCompiler) {
-      throw ArgumentError(
+      throw new ArgumentError(
           '`--null-environment` not supported with incremental compilation.');
     }
   } else {
     nullableEnvironmentDefines = environmentDefines;
   }
-  var verbose = parsedArgs['verbose'] as bool;
-  var verbosity = fe.Verbosity.parseArgument(parsedArgs['verbosity']);
+  bool verbose = parsedArgs['verbose'] as bool;
+  fe.Verbosity verbosity = fe.Verbosity.parseArgument(parsedArgs['verbosity']);
   Uri? sdkSummaryUri = toUriNullable(parsedArgs['dart-sdk-summary']);
 
   Map<Uri, Uri> redirectsToFrom = {};
@@ -300,17 +305,18 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         nullableEnvironmentDefines,
         verbose: verbose,
         nnbdMode: nnbdMode);
-    var uriTranslator = await helper.processedOpts.getUriTranslator();
-    _FakeFileSystem ffs = fileSystem = _FakeFileSystem(fileSystem);
+    UriTranslator uriTranslator = await helper.processedOpts.getUriTranslator();
+    _FakeFileSystem fakeFileSystem =
+        fileSystem = new _FakeFileSystem(fileSystem);
     for (MapEntry<Uri, Uri> entry in redirectsToFrom.entries) {
-      ffs.addRedirect(
+      fakeFileSystem.addRedirect(
           uriTranslator.translate(entry.value, false) ?? entry.value,
           uriTranslator.translate(entry.key, false) ?? entry.key);
     }
   }
 
   SerializationMode macroSerializationMode =
-      SerializationMode.fromOption(parsedArgs['macro-serialization-mode']);
+      new SerializationMode.fromOption(parsedArgs['macro-serialization-mode']);
   if (usingIncrementalCompiler) {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with
@@ -380,15 +386,15 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
   List<int>? kernel;
   bool wroteUsedDills = false;
-  var nativeAssets = parsedArgs['native-assets'];
+  String? nativeAssets = parsedArgs['native-assets'];
   Library? nativeAssetsLibrary;
   if (nativeAssets != null) {
-    var nativeAssetsUri = Uri.base.resolve(nativeAssets);
+    Uri nativeAssetsUri = Uri.base.resolve(nativeAssets);
 
     nativeAssetsLibrary =
         await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
       nativeAssetsUri,
-      ErrorDetector(),
+      new ErrorDetector(),
       nonNullableByDefaultCompiledMode:
           state.options.nnbdMode == fe.NnbdMode.Strong
               ? NonNullableByDefaultCompiledMode.Strong
@@ -411,12 +417,12 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         if (lib.importUri.isScheme("dart")) continue;
         Uri? uri = state.libraryToInputDill![lib.importUri];
         if (uri == null) {
-          throw StateError("Library ${lib.importUri} was recorded as used, "
+          throw new StateError("Library ${lib.importUri} was recorded as used, "
               "but was not in the list of known libraries.");
         }
         usedOutlines.add(uri);
       }
-      var outputUsedFile = File(parsedArgs["used-inputs"]);
+      File outputUsedFile = new File(parsedArgs["used-inputs"]);
       outputUsedFile.createSync(recursive: true);
       outputUsedFile.writeAsStringSync(usedOutlines.join("\n"));
       wroteUsedDills = true;
@@ -430,14 +436,14 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
             null, true, incrementalComponent.mode);
         target.performOutlineTransformations(incrementalComponent);
         makeStable(incrementalComponent);
-        return Future.value(fe.serializeComponent(incrementalComponent,
+        return new Future.value(fe.serializeComponent(incrementalComponent,
             includeSources: false, includeOffsets: false));
       }
 
       makeStable(incrementalComponent);
       setNativeAssetsLibrary(incrementalComponent, nativeAssetsLibrary);
 
-      return Future.value(fe.serializeComponent(incrementalComponent,
+      return new Future.value(fe.serializeComponent(incrementalComponent,
           filter: excludeNonSources
               ? (library) =>
                   sources.contains(library.importUri) ||
@@ -468,7 +474,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
   if (!wroteUsedDills && recordUsedInputs) {
     // The path taken didn't record inputs used: Say we used everything.
-    var outputUsedFile = File(parsedArgs["used-inputs"]);
+    File outputUsedFile = new File(parsedArgs["used-inputs"]);
     outputUsedFile.createSync(recursive: true);
     Set<Uri> allFiles = {...summaryInputs, ...linkedInputs};
     outputUsedFile.writeAsStringSync(allFiles.join("\n"));
@@ -476,20 +482,19 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   }
 
   if (kernel != null) {
-    var outputFile = File(parsedArgs['output']);
+    File outputFile = new File(parsedArgs['output']);
     outputFile.createSync(recursive: true);
     outputFile.writeAsBytesSync(kernel);
   } else {
     assert(!succeeded);
   }
 
-  return ComputeKernelResult(succeeded, state);
+  return new ComputeKernelResult(succeeded, state);
 }
 
-final _nativeAssetsLibraryUri = Uri.parse('vm:ffi:native-assets');
+final Uri _nativeAssetsLibraryUri = Uri.parse('vm:ffi:native-assets');
 
-void setNativeAssetsLibrary(
-    Component component, Library? nativeAssetsLibrary) async {
+void setNativeAssetsLibrary(Component component, Library? nativeAssetsLibrary) {
   if (nativeAssetsLibrary == null) {
     return;
   }
@@ -555,16 +560,16 @@ Uri toUri(String uriString) {
 }
 
 Map<String, String> _parseEnvironmentDefines(List<String> args) {
-  var environment = <String, String>{};
+  Map<String, String> environment = {};
 
-  for (var arg in args) {
-    var eq = arg.indexOf('=');
+  for (String arg in args) {
+    int eq = arg.indexOf('=');
     if (eq <= 0) {
-      var kind = eq == 0 ? 'name' : 'value';
-      throw FormatException('no $kind given to -D option `$arg`');
+      String kind = eq == 0 ? 'name' : 'value';
+      throw new FormatException('no $kind given to -D option `$arg`');
     }
-    var name = arg.substring(0, eq);
-    var value = arg.substring(eq + 1);
+    String name = arg.substring(0, eq);
+    String value = arg.substring(eq + 1);
     environment[name] = value;
   }
 
