@@ -3785,16 +3785,6 @@ m(){f(a, b, {x1, x2, y}) {};f(1, 2, ^);}
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
   |x1: |
     kind: namedArgument
   |x2: |
@@ -3820,16 +3810,6 @@ m(){f(a, b, {x1, x2, y}) {};f(1, 2, ^
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
   |x1: |
     kind: namedArgument
   |x2: |
@@ -3845,16 +3825,6 @@ m(){f(a, b, {x1, x2, y}) {};f(1, 2, ^;
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
   |x1: |
     kind: namedArgument
   |x2: |
@@ -4594,7 +4564,7 @@ suggestions
   Future<void> test_commentSnippets015_2() async {
     allowedIdentifiers = {'f'};
     await computeSuggestions('''
-class D {f(){} g(){f(f^);}}
+class D {f(p){} g(){f(f^);}}
 ''');
     assertResponse(r'''
 replacement
@@ -8569,16 +8539,6 @@ void f(FFF fff) {
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
   |x1: |
     kind: namedArgument
   |x2: |

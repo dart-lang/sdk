@@ -313,6 +313,32 @@ final class MixinSuggestion extends ImportableSuggestion {
   String get completion => '$completionPrefix${element.name}';
 }
 
+/// Suggest the name of a named parameter in the argument list of an invocation.
+final class NamedArgumentSuggestion extends CandidateSuggestion {
+  /// The parameter whose name is to be suggested.
+  final ParameterElement parameter;
+
+  /// Whether a colon should be appended after the name.
+  final bool appendColon;
+
+  /// Whether a comma should be appended after the suggestion.
+  final bool appendComma;
+
+  /// The number of characters that should be replaced, or `null` if the default
+  /// doesn't need to be overridden.
+  final int? replacementLength;
+
+  NamedArgumentSuggestion(
+      {required this.parameter,
+      required this.appendColon,
+      required this.appendComma,
+      this.replacementLength});
+
+  @override
+  String get completion =>
+      '${parameter.name}${appendColon ? ': ' : ''}${appendComma ? ',' : ''}';
+}
+
 /// The information about a candidate suggestion based on a getter or setter.
 final class NameSuggestion extends CandidateSuggestion {
   /// The name being suggested.
@@ -511,6 +537,11 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         libraryUriStr = suggestion.libraryUriStr;
         suggestInterface(suggestion.element, prefix: suggestion.prefix);
         libraryUriStr = null;
+      case NamedArgumentSuggestion():
+        suggestNamedArgument(suggestion.parameter,
+            appendColon: suggestion.appendColon,
+            appendComma: suggestion.appendComma,
+            replacementLength: suggestion.replacementLength);
       case NameSuggestion():
         suggestName(suggestion.name);
       case PropertyAccessSuggestion():
