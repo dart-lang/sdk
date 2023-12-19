@@ -1034,9 +1034,14 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
   @override
   Future<List<macro.Declaration>> topLevelDeclarationsOf(
     covariant macro.Library library,
-  ) {
-    // TODO(scheglov): implement topLevelDeclarationsOf
-    throw UnimplementedError();
+  ) async {
+    library as LibraryImplFromElement;
+    final libraryElement = library.element;
+    return libraryElement.topLevelElements
+        .whereNot((e) => e.isSynthetic)
+        .map((e) => declarationBuilder.declarationOfElement(e))
+        .whereType<macro.Declaration>()
+        .toList();
   }
 }
 
