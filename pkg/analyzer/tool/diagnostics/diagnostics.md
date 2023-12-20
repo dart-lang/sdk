@@ -14088,7 +14088,7 @@ unsupported type, `Array`:
 import 'dart:ffi';
 
 @Native()
-Array<Int> [!f!];
+external Array<Int> [!f!];
 {% endprettify %}
 
 #### Common fixes
@@ -14099,7 +14099,7 @@ For array fields, use a pointer instead:
 import 'dart:ffi';
 
 @Native()
-Pointer<Int> f;
+external Pointer<Int> f;
 {% endprettify %}
 
 ### native_field_missing_type
@@ -14127,7 +14127,7 @@ explicit type parameter on the `Native` annotation:
 import 'dart:ffi';
 
 @Native()
-int [!f!];
+external int [!f!];
 {% endprettify %}
 
 #### Common fixes
@@ -14141,7 +14141,7 @@ the Dart field should be declared as:
 import 'dart:ffi';
 
 @Native<Uint8>()
-int f;
+external int f;
 {% endprettify %}
 
 For more information about FFI, see [C interop using dart:ffi][ffi].
@@ -14206,7 +14206,7 @@ struct, omit the `@Native` annotation:
 {% prettify dart tag=pre+code %}
 import 'dart:ffi';
 
-class C extends Struct {
+final class C extends Struct {
   @Int()
   external int f;
 }

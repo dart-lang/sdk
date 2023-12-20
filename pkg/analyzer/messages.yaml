@@ -18796,7 +18796,7 @@ FfiCode:
       import 'dart:ffi';
 
       @Native()
-      Array<Int> [!f!];
+      external Array<Int> [!f!];
       ```
 
       #### Common fixes
@@ -18807,7 +18807,7 @@ FfiCode:
       import 'dart:ffi';
 
       @Native()
-      Pointer<Int> f;
+      external Pointer<Int> f;
       ```
   NATIVE_FIELD_MISSING_TYPE:
     problemMessage: "The native type of this field could not be inferred and must be specified in the annotation."
@@ -18835,7 +18835,7 @@ FfiCode:
       import 'dart:ffi';
 
       @Native()
-      int [!f!];
+      external int [!f!];
       ```
 
       #### Common fixes
@@ -18849,7 +18849,7 @@ FfiCode:
       import 'dart:ffi';
 
       @Native<Uint8>()
-      int f;
+      external int f;
       ```
 
       For more information about FFI, see [C interop using dart:ffi][ffi].
@@ -18915,7 +18915,7 @@ FfiCode:
       ```dart
       import 'dart:ffi';
 
-      class C extends Struct {
+      final class C extends Struct {
         @Int()
         external int f;
       }

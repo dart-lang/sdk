@@ -343,6 +343,15 @@ external double wrongFfiReturnType(int v);
 
 @reflectiveTest
 class NativeFieldTest extends PubPackageResolutionTest {
+  test_AbiSpecific() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<Int>()
+external int foo;
+''');
+  }
+
   test_Accessors() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
