@@ -1,3 +1,7 @@
+# 3.1.2
+- Improved error handling for serving static DevTools assets.
+- Updated `devtools_shared` constraint to ^6.0.3.
+
 # 3.1.1
 - Updated `vm_service` constraint to ^14.0.0.
 
