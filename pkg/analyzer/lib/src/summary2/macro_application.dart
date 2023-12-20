@@ -1113,7 +1113,14 @@ class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
     if (element is PropertyAccessorElement && element.isSynthetic) {
       element = element.variable;
     }
-    return declarationBuilder.fromElement.identifier(element!);
+    if (element == null) {
+      throw ArgumentError([
+        'Unresolved identifier.',
+        'library: $library',
+        'name: $name',
+      ].join('\n'));
+    }
+    return declarationBuilder.fromElement.identifier(element);
   }
 }
 

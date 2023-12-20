@@ -342,4 +342,67 @@ augment class A {
         type: InvalidType
 ''');
   }
+
+  test_getResolvedLibrary_reference_declaredGetter() async {
+    newFile(
+      '$testPackageLibPath/append.dart',
+      getMacroCode('append.dart'),
+    );
+
+    newFile('$testPackageLibPath/test.dart', r'''
+import 'append.dart';
+
+@DeclareInLibrary('{{dart:core@int}} get x => 0;')
+void f() {
+  x;
+}
+''');
+
+    final session = contextFor(testFile).currentSession;
+    final result = await session.getResolvedLibrary(testFile.path);
+
+    // 1. `get x` was declared.
+    // 2. The reference to `x` can be resolved in the library unit.
+    assertResolvedLibraryResultText(result, configure: (configuration) {
+      configuration.unitConfiguration
+        ..nodeSelector = (unitResult) {
+          switch (unitResult.uriStr) {
+            case 'package:test/test.dart':
+              return unitResult.findNode.singleBlock;
+          }
+          return null;
+        }
+        ..withContentPredicate = (unitResult) {
+          return unitResult.isAugmentation;
+        };
+    }, r'''
+ResolvedLibraryResult
+  element: package:test/test.dart
+  units
+    /home/test/lib/test.dart
+      flags: exists isLibrary
+      uri: package:test/test.dart
+      selectedNode: Block
+        leftBracket: {
+        statements
+          ExpressionStatement
+            expression: SimpleIdentifier
+              token: x
+              staticElement: package:test/test.dart::@augmentation::package:test/test.macro.dart::@accessor::x
+              staticType: int
+            semicolon: ;
+        rightBracket: }
+    /home/test/lib/test.macro.dart
+      flags: exists isAugmentation isMacroAugmentation
+      uri: package:test/test.macro.dart
+      content
+---
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+prefix0.int get x => 0;
+---
+''');
+  }
 }

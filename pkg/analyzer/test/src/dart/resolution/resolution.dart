@@ -652,4 +652,6 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
   FindNode get findNode {
     return FindNode(content, unit);
   }
+
+  String get uriStr => '$uri';
 }

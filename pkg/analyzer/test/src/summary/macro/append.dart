@@ -4,6 +4,35 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+/// Resolves top-level identifier references of form `{{uri@name}}`.
+Future<List<Object>> resolveIdentifiers(
+  TypePhaseIntrospector introspector,
+  String withIdentifiers,
+) async {
+  final result = <Object>[];
+  var lastMatchEnd = 0;
+
+  void addStringPart(int end) {
+    final str = withIdentifiers.substring(lastMatchEnd, end);
+    result.add(str);
+  }
+
+  final pattern = RegExp(r'\{\{(.+)@(\w+)\}\}');
+  for (final match in pattern.allMatches(withIdentifiers)) {
+    addStringPart(match.start);
+    // ignore: deprecated_member_use
+    final identifier = await introspector.resolveIdentifier(
+      Uri.parse(match.group(1)!),
+      match.group(2)!,
+    );
+    result.add(identifier);
+    lastMatchEnd = match.end;
+  }
+
+  addStringPart(withIdentifiers.length);
+  return result;
+}
+
 Future<NamedTypeAnnotationCode> _codeA(TypePhaseIntrospector builder) async {
   return NamedTypeAnnotationCode(
     // ignore:deprecated_member_use
@@ -67,15 +96,26 @@ class A {}
   }
 }
 
-/*macro*/ class DeclareInLibrary implements ClassDeclarationsMacro {
+/*macro*/ class DeclareInLibrary
+    implements ClassDeclarationsMacro, FunctionDeclarationsMacro {
   final String code;
 
   const DeclareInLibrary(this.code);
 
   @override
   buildDeclarationsForClass(clazz, builder) async {
+    await _declare(builder);
+  }
+
+  @override
+  buildDeclarationsForFunction(clazz, builder) async {
+    await _declare(builder);
+  }
+
+  Future<void> _declare(DeclarationBuilder builder) async {
+    final parts = await resolveIdentifiers(builder, code);
     builder.declareInLibrary(
-      DeclarationCode.fromString(code),
+      DeclarationCode.fromParts(parts),
     );
   }
 }

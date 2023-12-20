@@ -125,6 +125,56 @@ class Linker {
     }
   }
 
+  void _buildExportScopes() {
+    for (var library in builders.values) {
+      library.buildInitialExportScope();
+    }
+
+    var exportingBuilders = <LibraryBuilder>{};
+    var exportedBuilders = <LibraryBuilder>{};
+
+    for (var library in builders.values) {
+      library.addExporters();
+    }
+
+    for (var library in builders.values) {
+      if (library.exports.isNotEmpty) {
+        exportedBuilders.add(library);
+        for (var export in library.exports) {
+          exportingBuilders.add(export.exporter);
+        }
+      }
+    }
+
+    var both = <LibraryBuilder>{};
+    for (var exported in exportedBuilders) {
+      if (exportingBuilders.contains(exported)) {
+        both.add(exported);
+      }
+      for (var export in exported.exports) {
+        exported.exportScope.forEach(export.addToExportScope);
+      }
+    }
+
+    while (true) {
+      var hasChanges = false;
+      for (var exported in both) {
+        for (var export in exported.exports) {
+          exported.exportScope.forEach((name, reference) {
+            if (export.addToExportScope(name, reference)) {
+              hasChanges = true;
+            }
+          });
+        }
+      }
+      if (!hasChanges) break;
+    }
+
+    for (var library in builders.values) {
+      library.storeExportScope();
+    }
+  }
+
   Future<LibraryMacroApplier?> _buildMacroApplier() async {
     final macroExecutor = this.macroExecutor;
     if (macroExecutor == null) {
@@ -245,53 +295,7 @@ class Linker {
       },
     );
 
-    for (var library in builders.values) {
-      library.buildInitialExportScope();
-    }
-
-    var exportingBuilders = <LibraryBuilder>{};
-    var exportedBuilders = <LibraryBuilder>{};
-
-    for (var library in builders.values) {
-      library.addExporters();
-    }
-
-    for (var library in builders.values) {
-      if (library.exports.isNotEmpty) {
-        exportedBuilders.add(library);
-        for (var export in library.exports) {
-          exportingBuilders.add(export.exporter);
-        }
-      }
-    }
-
-    var both = <LibraryBuilder>{};
-    for (var exported in exportedBuilders) {
-      if (exportingBuilders.contains(exported)) {
-        both.add(exported);
-      }
-      for (var export in exported.exports) {
-        exported.exportScope.forEach(export.addToExportScope);
-      }
-    }
-
-    while (true) {
-      var hasChanges = false;
-      for (var exported in both) {
-        for (var export in exported.exports) {
-          exported.exportScope.forEach((name, reference) {
-            if (export.addToExportScope(name, reference)) {
-              hasChanges = true;
-            }
-          });
-        }
-      }
-      if (!hasChanges) break;
-    }
-
-    for (var library in builders.values) {
-      library.storeExportScope();
-    }
+    _buildExportScopes();
   }
 
   void _createTypeSystem() {
@@ -324,9 +328,18 @@ class Linker {
     while (true) {
       var hasProgress = false;
       for (final library in builders.values) {
-        hasProgress |= await library.executeMacroDeclarationsPhase(
+        final stepResult = await library.executeMacroDeclarationsPhase(
           targetElement: targetElement,
         );
+        switch (stepResult) {
+          case MacroDeclarationsPhaseStepResult.nothing:
+            break;
+          case MacroDeclarationsPhaseStepResult.otherProgress:
+            hasProgress = true;
+          case MacroDeclarationsPhaseStepResult.topDeclaration:
+            hasProgress = true;
+            _buildExportScopes();
+        }
       }
       if (!hasProgress) {
         break;

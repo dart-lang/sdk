@@ -4039,7 +4039,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
   @override
   late TypeSystemImpl typeSystem;
 
-  late final List<ExportedReference> exportedReferences;
+  late List<ExportedReference> exportedReferences;
 
   @override
   LibraryElementLinkedData? linkedData;
@@ -4789,6 +4789,10 @@ abstract class LibraryOrAugmentationElementImpl extends ElementImpl
   @override
   Source get source {
     return _definingCompilationUnit.source;
+  }
+
+  void resetScope() {
+    _scope = null;
   }
 
   void _readLinkedData();
