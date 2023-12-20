@@ -18796,7 +18796,7 @@ FfiCode:
       import 'dart:ffi';
 
       @Native()
-      Array<Int> f;
+      Array<Int> [!f!];
       ```
 
       #### Common fixes
@@ -18835,7 +18835,7 @@ FfiCode:
       import 'dart:ffi';
 
       @Native()
-      int f;
+      int [!f!];
       ```
 
       #### Common fixes
@@ -18879,7 +18879,7 @@ FfiCode:
 
       class C {
         @Native<Int>()
-        external int f;
+        external int [!f!];
       }
       ```
 
