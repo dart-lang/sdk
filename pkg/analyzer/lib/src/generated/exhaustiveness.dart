@@ -143,6 +143,9 @@ class AnalyzerSealedClassOperations
     LibraryElement library = sealedClass.library;
     outer:
     for (Element declaration in library.topLevelElements) {
+      if (declaration is ExtensionTypeElement) {
+        continue;
+      }
       if (declaration != sealedClass && declaration is InterfaceElement) {
         bool checkType(InterfaceType? type) {
           if (type?.element == sealedClass) {
