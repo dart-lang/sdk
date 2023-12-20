@@ -1283,6 +1283,10 @@ class ThreadInfo with FileUtils {
     } else if (input.isScheme('file')) {
       return input.toFilePath();
     } else {
+      final uriConverter = _manager._adapter.uriConverter();
+      if (uriConverter != null) {
+        return uriConverter(input.toString());
+      }
       return _manager._adapter.convertOrgDartlangSdkToPath(input);
     }
   }

@@ -302,7 +302,10 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _addIfNotShadowed(node.name2);
+    _addIfNotShadowed(
+      node.name2,
+      hasImportPrefix: node.importPrefix != null,
+    );
     super.visitNamedType(node);
   }
 
@@ -335,10 +338,13 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   /// Adds [token] if it is not shadowed by a local element.
-  void _addIfNotShadowed(Token token) {
+  void _addIfNotShadowed(
+    Token token, {
+    required bool hasImportPrefix,
+  }) {
     final name = token.lexeme;
 
-    if (localScope.contains(name)) {
+    if (localScope.contains(name) && !hasImportPrefix) {
       return;
     }
 

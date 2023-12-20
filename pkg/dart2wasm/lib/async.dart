@@ -1243,9 +1243,9 @@ class AsyncCodeGenerator extends CodeGenerator {
     if (inner == null) return super.visitWhileStatement(node);
     StateTarget after = afterTargets[node]!;
 
+    allocateContext(node);
     _emitTargetLabel(inner);
     jumpToTarget(after, condition: node.condition, negated: true);
-    allocateContext(node);
     visitStatement(node.body);
     jumpToTarget(inner);
     _emitTargetLabel(after);

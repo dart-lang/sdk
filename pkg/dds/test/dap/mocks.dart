@@ -76,6 +76,15 @@ class MockDartCliDebugAdapter extends DartCliDebugAdapter {
     this.workingDirectory = workingDirectory;
     this.env = env;
   }
+
+  UriConverter? _uriConverter;
+
+  @override
+  UriConverter? uriConverter() => _uriConverter;
+
+  void setUriConverter(UriConverter uriConverter) {
+    _uriConverter = uriConverter;
+  }
 }
 
 /// A [DartTestDebugAdapter] that captures information about the process that
@@ -188,13 +197,18 @@ class MockVmService implements VmService {
         : throw SentinelException.parse('getIsolate', {});
   }
 
+  List<String>? receivedLookupResolvedPackageUris;
+  UriList? lookupResolvedPackageUrisResponse;
+
   @override
   Future<UriList> lookupResolvedPackageUris(
     String isolateId,
     List<String> uris, {
     bool? local,
   }) async {
-    return UriList(uris: uris.map((e) => null).toList());
+    receivedLookupResolvedPackageUris = uris;
+    return lookupResolvedPackageUrisResponse ??
+        UriList(uris: uris.map((e) => null).toList());
   }
 
   @override

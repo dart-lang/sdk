@@ -252,7 +252,7 @@ class JsBackendStrategy {
     _recordsCodegen = RecordsCodegen(commonElements, closedWorld.recordData);
     return CodegenEnqueuer(
         task,
-        CodegenWorldBuilderImpl(
+        CodegenWorldBuilder(
             closedWorld,
             _compiler.abstractValueStrategy.createSelectorStrategy(),
             oneShotInterceptorData),

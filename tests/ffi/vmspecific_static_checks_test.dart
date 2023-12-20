@@ -962,149 +962,60 @@ final class EmptyStruct extends Struct {}
 // [cfe] Struct 'EmptyStruct' is empty. Empty structs and unions are undefined behavior.
 // [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
 
-final class EmptyStruct extends Struct {}
-//          ^^^^^^^^^^^
-// [cfe] 'EmptyStruct' is already declared in this scope.
-// [cfe] Struct 'EmptyStruct#1#0' is empty. Empty structs and unions are undefined behavior.
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
-
 void testEmptyStructLookupFunctionArgument() {
   testLibrary.lookupFunction<
-      //      ^
-      // [cfe] Expected type 'NativeFunction<Void Function(invalid-type)>' to be a valid and instantiated subtype of 'NativeType'.
       /**/ Void Function(EmptyStruct),
       //   ^^^^^^^^^^^^^^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
-      //                 ^
-      // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
       void Function(EmptyStruct)>("DoesNotExist");
-  //                ^
-  // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
 }
-// [cfe] Can't use 'EmptyStruct' because it is declared more than once.
-
-final class EmptyStruct extends Struct {}
-//          ^^^^^^^^^^^
-// [cfe] 'EmptyStruct' is already declared in this scope.
-// [cfe] Struct 'EmptyStruct#2#0' is empty. Empty structs and unions are undefined behavior.
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
 
 void testEmptyStructLookupFunctionReturn() {
   testLibrary.lookupFunction<EmptyStruct Function(), EmptyStruct Function()>(
       //                     ^^^^^^^^^^^^^^^^^^^^^^
-      // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
       // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
-      //                                             ^
-      // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
-      //      ^
-      // [cfe] Expected type 'NativeFunction<invalid-type Function()>' to be a valid and instantiated subtype of 'NativeType'.
       "DoesNotExist");
 }
 
-final class EmptyStruct extends Struct {}
-//          ^^^^^^^^^^^
-// [cfe] 'EmptyStruct' is already declared in this scope.
-// [cfe] Struct 'EmptyStruct#3#0' is empty. Empty structs and unions are undefined behavior.
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
-
 void testEmptyStructAsFunctionArgument() {
   final Pointer<NativeFunction<Void Function(EmptyStruct)>> pointer =
-      //                                     ^
-      // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
       Pointer.fromAddress(1234);
   pointer.asFunction<void Function(EmptyStruct)>();
-  //                               ^
-  // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
-  //      ^
-  // [cfe] Expected type 'NativeFunction<Void Function(invalid-type)>' to be a valid and instantiated subtype of 'NativeType'.
   //                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER
 }
 
-final class EmptyStruct extends Struct {}
-//          ^^^^^^^^^^^
-// [cfe] 'EmptyStruct' is already declared in this scope.
-// [cfe] Struct 'EmptyStruct#4#0' is empty. Empty structs and unions are undefined behavior.
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
-
 void testEmptyStructAsFunctionReturn() {
   final Pointer<NativeFunction<EmptyStruct Function()>> pointer =
-      //                       ^
-      // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
       Pointer.fromAddress(1234);
   pointer.asFunction<EmptyStruct Function()>();
   //                 ^^^^^^^^^^^^^^^^^^^^^^
-  // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
   // [analyzer] COMPILE_TIME_ERROR.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER
-  //      ^
-  // [cfe] Expected type 'NativeFunction<invalid-type Function()>' to be a valid and instantiated subtype of 'NativeType'.
 }
 
-final class EmptyStruct extends Struct {}
-//          ^^^^^^^^^^^
-// [cfe] 'EmptyStruct' is already declared in this scope.
-// [cfe] Struct 'EmptyStruct#5#0' is empty. Empty structs and unions are undefined behavior.
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
-
 void _consumeEmptyStruct(EmptyStruct e) => print(e);
-//                       ^
-// [cfe] 'EmptyStruct' isn't a type.
-// [cfe] Can't use 'EmptyStruct' because it is declared more than once.
 
 void testEmptyStructFromFunctionArgument() {
   Pointer.fromFunction<Void Function(EmptyStruct)>(_consumeEmptyStruct);
-  //      ^
-  // [cfe] Expected type 'NativeFunction<Void Function(invalid-type)>' to be a valid and instantiated subtype of 'NativeType'.
-  //                                 ^
-  // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
   //                   ^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
 }
 
-final class EmptyStruct extends Struct {}
-//          ^^^^^^^^^^^
-// [cfe] 'EmptyStruct' is already declared in this scope.
-// [cfe] Struct 'EmptyStruct#6#0' is empty. Empty structs and unions are undefined behavior.
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
-
 /**/ EmptyStruct _returnEmptyStruct() => EmptyStruct();
 //                                       ^^^^^^^^^^^
-// [cfe] Can't use 'EmptyStruct' because it is declared more than once.
 // [analyzer] COMPILE_TIME_ERROR.CREATION_OF_STRUCT_OR_UNION
-//   ^
-// [cfe] 'EmptyStruct' isn't a type.
+// [cfe] Subclasses of 'Struct' and 'Union' are backed by native memory, and can't be instantiated by a generative constructor. Try allocating it via allocation, or load from a 'Pointer'.
 
 void testEmptyStructFromFunctionReturn() {
   Pointer.fromFunction<EmptyStruct Function()>(_returnEmptyStruct);
   //                   ^^^^^^^^^^^^^^^^^^^^^^
-  // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
-  //      ^
-  // [cfe] Expected type 'NativeFunction<invalid-type Function()>' to be a valid and instantiated subtype of 'NativeType'.
 }
-
-final class EmptyStruct extends Struct {}
-//          ^^^^^^^^^^^
-// [cfe] 'EmptyStruct' is already declared in this scope.
-// [cfe] Struct 'EmptyStruct#7#0' is empty. Empty structs and unions are undefined behavior.
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
-// [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
 
 final class HasNestedEmptyStruct extends Struct {
   external EmptyStruct nestedEmptyStruct;
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.EMPTY_STRUCT
-  //                   ^
-  // [cfe] Field 'nestedEmptyStruct' requires exactly one annotation to declare its native type, which cannot be Void. dart:ffi Structs and Unions cannot have regular Dart fields.
-  //       ^
-  // [cfe] 'EmptyStruct' isn't a type.
-  // [cfe] Can't use 'EmptyStruct' because it is declared more than once.
 
   external Pointer notEmpty;
 }

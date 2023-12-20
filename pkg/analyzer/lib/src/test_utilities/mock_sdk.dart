@@ -941,6 +941,11 @@ final class AbiSpecificIntegerMapping {
   const AbiSpecificIntegerMapping(this.mapping);
 }
 
+@AbiSpecificIntegerMapping({})
+final class Int extends AbiSpecificInteger {
+  const Int();
+}
+
 @Since('2.17')
 abstract interface class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
