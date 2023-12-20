@@ -26,18 +26,6 @@ import 'use.dart'
     show ConstantUse, DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 import 'world_builder.dart';
 
-/// World builder specific to codegen.
-///
-/// This adds additional access to liveness of selectors and elements.
-abstract class CodegenWorldBuilder {
-  /// Register [constant] as needed for emission.
-  void addCompileTimeConstantForEmission(ConstantValue constant);
-
-  /// Close the codegen world builder and return the immutable [CodegenWorld]
-  /// as the result.
-  CodegenWorld close();
-}
-
 // The immutable result of the [CodegenWorldBuilder].
 abstract class CodegenWorld extends BuiltWorld {
   /// Returns `true` if [member] is a late member visited by the codegen
@@ -106,8 +94,7 @@ abstract class CodegenWorld extends BuiltWorld {
   OneShotInterceptorData get oneShotInterceptorData;
 }
 
-class CodegenWorldBuilderImpl extends WorldBuilder
-    implements CodegenWorldBuilder {
+class CodegenWorldBuilder extends WorldBuilder {
   final JClosedWorld _closedWorld;
   final OneShotInterceptorData _oneShotInterceptorData;
 
@@ -169,7 +156,7 @@ class CodegenWorldBuilderImpl extends WorldBuilder
   final Set<TypeVariableType> _namedTypeVariablesNewRti = {};
   final Set<ClassEntity> _constructorReferences = {};
 
-  CodegenWorldBuilderImpl(this._closedWorld, this._selectorConstraintsStrategy,
+  CodegenWorldBuilder(this._closedWorld, this._selectorConstraintsStrategy,
       this._oneShotInterceptorData);
 
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
@@ -562,7 +549,6 @@ class CodegenWorldBuilderImpl extends WorldBuilder
 
   Iterable<ConstantValue> get compiledConstantsForTesting => _compiledConstants;
 
-  @override
   void addCompileTimeConstantForEmission(ConstantValue constant) {
     _compiledConstants.add(constant);
   }
@@ -586,7 +572,6 @@ class CodegenWorldBuilderImpl extends WorldBuilder
     _constructorReferences.add(type.element);
   }
 
-  @override
   CodegenWorld close() {
     Map<MemberEntity, MemberUsage> liveMemberUsage = {};
     _memberUsage.forEach((MemberEntity member, MemberUsage usage) {

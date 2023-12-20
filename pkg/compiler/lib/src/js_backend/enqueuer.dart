@@ -32,7 +32,7 @@ class CodegenEnqueuer extends Enqueuer {
   final String name;
   final Set<ClassEntity> _recentClasses = Setlet();
   bool _recentConstants = false;
-  final CodegenWorldBuilderImpl worldBuilder;
+  final CodegenWorldBuilder worldBuilder;
   final WorkItemBuilder _workItemBuilder;
 
   @override
