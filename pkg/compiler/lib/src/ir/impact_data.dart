@@ -170,35 +170,13 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
     registerGenericInstantiation(expressionType, node.typeArguments);
   }
 
-  ir.DartType _getGeneratorElementType(
-      ir.DartType returnType, ir.Class collectionClass) {
-    final unionFreeType = typeEnvironment.getUnionFreeType(returnType,
-        isNonNullableByDefault: isNonNullableByDefault);
-    if (unionFreeType is ir.TypeDeclarationType) {
-      final typeArguments = hierarchy.getTypeArgumentsAsInstanceOf(
-          unionFreeType, collectionClass);
-      if (typeArguments != null) return typeArguments.single;
-    }
-    return const ir.DynamicType();
-  }
-
-  ir.DartType _getSyncStarElementType(ir.DartType returnType) =>
-      _getGeneratorElementType(
-          returnType, typeEnvironment.coreTypes.iterableClass);
-
-  ir.DartType _getAsyncStarElementType(ir.DartType returnType) =>
-      _getGeneratorElementType(
-          returnType, typeEnvironment.coreTypes.streamClass);
-
   void handleAsyncMarker(ir.FunctionNode function) {
-    ir.AsyncMarker asyncMarker = function.asyncMarker;
-    ir.DartType returnType = function.returnType;
-
-    switch (asyncMarker) {
+    switch (function.asyncMarker) {
       case ir.AsyncMarker.Sync:
         break;
+
       case ir.AsyncMarker.SyncStar:
-        registerSyncStar(_getSyncStarElementType(returnType));
+        registerSyncStar(function.emittedValueType!);
         break;
 
       case ir.AsyncMarker.Async:
@@ -206,7 +184,7 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
         break;
 
       case ir.AsyncMarker.AsyncStar:
-        registerAsyncStar(_getAsyncStarElementType(returnType));
+        registerAsyncStar(function.emittedValueType!);
         break;
     }
   }
