@@ -1816,11 +1816,20 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         new Map<String, DartType>.of(inputDefinitions);
 
     return await context.runInContext((_) async {
+      // TODO(jensj): We should probably allow for this not being an import uri.
       LibraryBuilder libraryBuilder =
           lastGoodKernelTarget!.loader.readAsEntryPoint(libraryUri);
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
+          if (scriptUriAsUri.isScheme("package")) {
+            // TODO(jensj): Add tests for this.
+            // Methods etc saves file uris, so try to convert the script uri to
+            // a file uri.
+            scriptUriAsUri = lastGoodKernelTarget.uriTranslator
+                    .translate(scriptUriAsUri, false) ??
+                scriptUriAsUri;
+          }
           Library library = libraryBuilder.library;
           Class? cls;
           if (className != null) {

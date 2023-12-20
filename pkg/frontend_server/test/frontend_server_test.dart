@@ -636,6 +636,109 @@ Future<void> main() async {
       frontendServer.close();
     });
 
+    test('compile expression extension types', skip: !useJsonForCommunication,
+        () async {
+      File file = new File('${tempDir.path}/foo.dart')..createSync();
+      String data = r"""
+//@dart=3.3
+void main() {
+  Foo f = new Foo(42);
+  print(f);
+  print(f.value);
+  f.printValue();
+  f.printThis();
+}
+extension type Foo(int value) {
+  void printValue() {
+    print("This foos value is '$value'");
+  }
+  void printThis() {
+    print("This foos this value is '$this'");
+  }
+}""";
+      file.writeAsStringSync(data);
+      File dillFile = new File('${tempDir.path}/app.dill');
+
+      File packageConfig =
+          new File('${tempDir.path}/.dart_tool/package_config.json')
+            ..createSync(recursive: true)
+            ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+      Uri fileImportUri = Uri.parse("package:hello/foo.dart");
+
+      expect(dillFile.existsSync(), equals(false));
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${platformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--packages=${packageConfig.path}',
+      ];
+
+      final FrontendServer frontendServer = new FrontendServer();
+      Future<int> result = frontendServer.open(args);
+      frontendServer.compile(file.path);
+      int count = 0;
+      frontendServer.listen((Result compiledResult) {
+        CompilationResult result =
+            new CompilationResult.parse(compiledResult.status);
+        if (count == 0) {
+          // First request is to 'compile', which results in full kernel file.
+          expect(result.errorsCount, equals(0));
+          expect(dillFile.existsSync(), equals(true));
+          expect(result.filename, dillFile.path);
+          frontendServer.accept();
+
+          frontendServer.compileExpression('f.value', fileImportUri,
+              // actually file.uri but check we accept this too.
+              scriptUri: fileImportUri,
+              definitions: ["f"],
+              // int.
+              definitionTypes: ["dart:core", "int", "1", "0"],
+              methodName: "main",
+              offset: 63,
+              isStatic: true);
+          count += 1;
+        } else if (count == 1) {
+          expect(result.errorsCount, equals(0));
+          File outputFile = new File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          frontendServer.compileExpression('this.value', fileImportUri,
+              scriptUri: file.uri,
+              definitions: ["#this"],
+              // int.
+              definitionTypes: ["dart:core", "int", "1", "0"],
+              methodName: "Foo.printValue",
+              offset: 174,
+              isStatic: true);
+          count += 1;
+        } else if (count == 2) {
+          expect(result.errorsCount, equals(0));
+          File outputFile = new File(result.filename);
+          expect(outputFile.existsSync(), equals(true));
+          expect(outputFile.lengthSync(), isPositive);
+
+          frontendServer.quit();
+        }
+      });
+
+      expect(await result, 0);
+      expect(count, 2);
+      frontendServer.close();
+    });
+
     test('mixed compile expression commands with non-web target', () async {
       File file = new File('${tempDir.path}/foo.dart')..createSync();
       file.writeAsStringSync("main() {}\n");
@@ -2981,6 +3084,8 @@ class OutputParser {
       if (_readingSources) {
         _receivedSources ??= <String>[];
         _receivedSources!.add(s);
+      } else {
+        print("> $s");
       }
     }
   }
@@ -3124,7 +3229,13 @@ class FrontendServer {
     inputStreamController.add('native-assets $uri\n'.codeUnits);
   }
 
-  /// Compiles the [expression] as if it occurs in [library].
+  /// Compiles the [expression] as if it occurs in [library] in "script"
+  /// [scriptUri] at offset [offset].
+  /// If no [scriptUri] is provided it defaults to the same as [library].
+  /// If no [offset] is provided it defaults to -1 (i.e. "no offset").
+  /// [scriptUri] (if different, e.g. if in a part) and [offset] is needed for
+  /// finding static types which is needed for expression evaluation on
+  /// extension types.
   ///
   /// If [className] is provided, [expression] is compiled as if it occurs in
   /// the class of that name.
@@ -3136,7 +3247,14 @@ class FrontendServer {
   /// frontend server.
   // TODO(johnniwinther): Use (required) named arguments.
   void compileExpression(String expression, Uri library,
-      {String boundaryKey = 'abc', String className = '', bool? isStatic}) {
+      {String boundaryKey = 'abc',
+      List<String> definitions = const [],
+      List<String> definitionTypes = const [],
+      String? className,
+      String? methodName,
+      bool? isStatic,
+      Uri? scriptUri,
+      int? offset}) {
     if (useJsonForCommunication) {
       outputParser.expectSources = false;
       inputStreamController.add('JSON_INPUT\n'.codeUnits);
@@ -3145,6 +3263,12 @@ class FrontendServer {
         "data": {
           "expression": expression,
           "libraryUri": library.toString(),
+          "definitions": definitions,
+          "definitionTypes": definitionTypes,
+          if (className != null) "class": className,
+          if (methodName != null) "method": methodName,
+          if (scriptUri != null) "scriptUri": scriptUri.toString(),
+          if (offset != null) "offset": offset,
           if (isStatic != null) "static": isStatic,
         }
       });
@@ -3184,7 +3308,7 @@ class FrontendServer {
               '$boundaryKey\n'
               '$boundaryKey\n'
               '$library\n'
-              '$className\n'
+              '${className ?? ''}\n'
               '\n'
               '${isStatic != null ? '$isStatic' : ''}\n'
           .codeUnits);
