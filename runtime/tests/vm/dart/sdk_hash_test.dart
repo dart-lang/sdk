@@ -59,14 +59,6 @@ Future<void> main(List<String> args) async {
       myFile.writeAsBytesSync(bytes);
     }
 
-    {
-      final result = await Process.run(dart, [dillPath, '--child']);
-      Expect.equals(
-          'Can\'t load Kernel binary: Invalid SDK hash.', result.stderr.trim());
-      Expect.equals(253, result.exitCode);
-      Expect.equals('', result.stdout);
-    }
-
     // Zero out the SDK hash in the kernel dill to disable the check:
     {
       final myFile = File(dillPath);

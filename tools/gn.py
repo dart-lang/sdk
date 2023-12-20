@@ -189,7 +189,8 @@ def UseSysroot(args, gn_args):
     return True
 
 
-def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
+def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash,
+             git_version):
     gn_args = {}
 
     host_os = HostOsForGn(HOST_OS)
@@ -332,6 +333,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
         gn_args['debug_optimization_level'] = args.debug_opt_level
 
     gn_args['verify_sdk_hash'] = verify_sdk_hash
+    gn_args['dart_version_git_info'] = git_version
 
     if args.codesigning_identity != '':
         gn_args['codesigning_identity'] = args.codesigning_identity
@@ -437,22 +439,26 @@ def ide_switch(host_os):
 def AddCommonGnOptionArgs(parser):
     """Adds arguments that will change the default GN arguments."""
 
+    use_rbe = os.environ.get('RBE_cfg') != None
+
     parser.add_argument('--goma', help='Use goma', action='store_true')
     parser.add_argument('--no-goma',
                         help='Disable goma',
                         dest='goma',
                         action='store_false')
-    parser.set_defaults(goma=os.environ.get('RBE_cfg') == None)
+    parser.set_defaults(goma=not use_rbe)
 
     parser.add_argument('--rbe', help='Use rbe', action='store_true')
     parser.add_argument('--no-rbe',
                         help='Disable rbe',
                         dest='rbe',
                         action='store_false')
-    parser.set_defaults(rbe=os.environ.get('RBE_cfg') != None)
+    parser.set_defaults(rbe=use_rbe)
 
+    # Disable git hashes when remote compiling to ensure cache hits of the final
+    # output artifacts when nothing has changed.
     parser.add_argument('--verify-sdk-hash',
-                        help='Enable SDK hash checks (default)',
+                        help='Enable SDK hash checks',
                         dest='verify_sdk_hash',
                         action='store_true')
     parser.add_argument('-nvh',
@@ -460,7 +466,18 @@ def AddCommonGnOptionArgs(parser):
                         help='Disable SDK hash checks',
                         dest='verify_sdk_hash',
                         action='store_false')
-    parser.set_defaults(verify_sdk_hash=True)
+    parser.set_defaults(verify_sdk_hash=not use_rbe)
+
+    parser.add_argument('--git-version',
+                        help='Enable git commit in version',
+                        dest='git_version',
+                        action='store_true')
+    parser.add_argument('-ngv',
+                        '--no-git-version',
+                        help='Disable git commit in version',
+                        dest='git_version',
+                        action='store_false')
+    parser.set_defaults(git_version=not use_rbe)
 
     parser.add_argument('--clang', help='Use Clang', action='store_true')
     parser.add_argument('--no-clang',
@@ -615,7 +632,8 @@ def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
     # See dartbug.com/32364
     command = [gn, 'gen', out_dir]
     gn_args = ToCommandLine(
-        ToGnArgs(args, mode, arch, target_os, sanitizer, args.verify_sdk_hash))
+        ToGnArgs(args, mode, arch, target_os, sanitizer, args.verify_sdk_hash,
+                 args.git_version))
     gn_args += GetGNArgs(args)
     if args.ide:
         command.append(ide_switch(HOST_OS))

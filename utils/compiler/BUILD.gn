@@ -45,6 +45,9 @@ prebuilt_dart_action("dart2js_create_snapshot_entry") {
   packages = "../../.dart_tool/package_config.json"
 
   args = [ "--output_dir=$output_dir" ]
+  if (!dart_version_git_info) {
+    args += [ "--no-git-hash" ]
+  }
 }
 
 sdk_root = "../../sdk"

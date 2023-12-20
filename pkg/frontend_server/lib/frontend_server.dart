@@ -272,6 +272,8 @@ enum _State {
   COMPILE_EXPRESSION_TO_JS_JSFRAMEVALUES,
   COMPILE_EXPRESSION_TO_JS_MODULENAME,
   COMPILE_EXPRESSION_TO_JS_EXPRESSION,
+  // Json input
+  JSON_INPUT,
 }
 
 /// Actions that every compiler should implement.
@@ -1280,6 +1282,7 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
   late _CompileExpressionRequest compileExpressionRequest;
   late _CompileExpressionToJsRequest compileExpressionToJsRequest;
   late String boundaryKey;
+  StringBuffer? previousJsonString;
   String? recompileEntryPoint;
   return input
       .transform(utf8.decoder)
@@ -1359,6 +1362,8 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
           boundaryKey =
               string.substring(COMPILE_EXPRESSION_INSTRUCTION_SPACE.length);
           state = _State.COMPILE_EXPRESSION_EXPRESSION;
+        } else if (string == 'JSON_INPUT') {
+          state = _State.JSON_INPUT;
         } else if (string == 'accept') {
           compiler.acceptLastDelta();
         } else if (string == 'reject') {
@@ -1500,6 +1505,160 @@ StreamSubscription<String> listenAndCompile(CompilerInterface compiler,
             compileExpressionToJsRequest.expression);
         state = _State.READY_FOR_INSTRUCTION;
         break;
+      case _State.JSON_INPUT:
+        state = _State.READY_FOR_INSTRUCTION;
+
+        /// TODO(jensj): Find/make a better way to combine json if it's
+        /// finished after the first line.
+        Map<String, dynamic>? jsonDecoded;
+        String data;
+        bool ok = false;
+        if (previousJsonString == null) {
+          data = string;
+        } else {
+          previousJsonString!.write(string);
+          data = previousJsonString.toString();
+        }
+        try {
+          jsonDecoded = jsonDecode(data) as Map<String, dynamic>;
+          previousJsonString = null;
+          ok = true;
+        } catch (e) {
+          if (e is FormatException && e.offset == data.length) {
+            // Need more input.
+            if (previousJsonString == null) {
+              previousJsonString = new StringBuffer()..write(string);
+            }
+            state = _State.JSON_INPUT;
+          } else {
+            // Invalid input.
+            compiler.reportError('Json input error: $e');
+            previousJsonString = null;
+          }
+        }
+        if (ok) {
+          await processJsonInput(jsonDecoded!, compiler);
+        }
     }
   });
+}
+
+Future<void> processJsonInput(
+    Map<String, dynamic> topLevelData, CompilerInterface compiler) async {
+  final dynamic type = topLevelData["type"];
+  if (type is! String) {
+    compiler.reportError("No valid 'type' data in json input.");
+    return;
+  }
+  final dynamic data = topLevelData["data"];
+  if (data is! Map) {
+    compiler.reportError("No valid 'data' data in json input.");
+    return;
+  }
+
+  // Note: If deprecating keys they should probably be "soft-deprecated" by
+  // allowing it to be send for a while, i.e. we should probably remove it from
+  // this set.
+  Set<String> unusedKeys = new Set<String>.from(data.keys);
+
+  List<String> errorMessages = [];
+  E? getValue<E>(String key) {
+    unusedKeys.remove(key);
+    try {
+      return data[key] as E;
+    } catch (e) {
+      errorMessages.add("'$key' was invalid: $e");
+      return null;
+    }
+  }
+
+  List<String>? getList(String key) {
+    unusedKeys.remove(key);
+    try {
+      if (!data.containsKey(key)) return null;
+      List<dynamic> list = data[key] as List;
+      return new List<String>.from(list);
+    } catch (e) {
+      errorMessages.add("'$key' was invalid: $e");
+      return null;
+    }
+  }
+
+  Map<String, String>? getMap(String key) {
+    unusedKeys.remove(key);
+    try {
+      if (!data.containsKey(key)) return null;
+      Map<dynamic, dynamic> map = data[key] as Map;
+      return new Map<String, String>.from(map);
+    } catch (e) {
+      errorMessages.add("'$key' was invalid: $e");
+      return null;
+    }
+  }
+
+  // TODO(jensj): Use shared constants for these.
+  if (type == "COMPILE_EXPRESSION") {
+    String expression = getValue<String>("expression") ?? "";
+    List<String> definitions = getList("definitions") ?? [];
+    List<String> definitionTypes = getList("definitionTypes") ?? [];
+    List<String> typeDefinitions = getList("typeDefinitions") ?? [];
+    List<String> typeBounds = getList("typeBounds") ?? [];
+    List<String> typeDefaults = getList("typeDefaults") ?? [];
+    String libraryUri = getValue<String>("libraryUri") ?? "";
+    String? klass = getValue<String?>("class");
+    String? method = getValue<String?>("method");
+    int offset = getValue<int?>("offset") ?? -1;
+    String? scriptUri = getValue<String?>("scriptUri");
+    bool isStatic = getValue<bool>("static") ?? true;
+
+    if (errorMessages.isNotEmpty) {
+      compiler.reportError("Errors: $errorMessages.");
+      return;
+    }
+    if (unusedKeys.isNotEmpty) {
+      compiler.reportError("Errors: Unused data sent: $unusedKeys.");
+    }
+    await compiler.compileExpression(
+        expression,
+        definitions,
+        definitionTypes,
+        typeDefinitions,
+        typeBounds,
+        typeDefaults,
+        libraryUri,
+        klass,
+        method,
+        offset,
+        scriptUri,
+        isStatic);
+  } else if (type == "COMPILE_EXPRESSION_JS") {
+    String expression = getValue<String>("expression") ?? "";
+    String libraryUri = getValue<String>("libraryUri") ?? "";
+    int line = getValue<int>("line") ?? -1;
+    int column = getValue<int>("column") ?? -1;
+    Map<String, String> jsModules = getMap("jsModules") ?? {};
+    Map<String, String> jsFrameValues = getMap("jsFrameValues") ?? {};
+    String moduleName = getValue<String>("moduleName") ?? "";
+
+    if (errorMessages.isNotEmpty) {
+      compiler.reportError("Errors: $errorMessages.");
+      return;
+    }
+    if (unusedKeys.isNotEmpty) {
+      compiler.reportError("Errors: Send over unused data: $unusedKeys.");
+    }
+
+    await compiler.compileExpressionToJs(
+      libraryUri,
+      line,
+      column,
+      jsModules,
+      jsFrameValues,
+      moduleName,
+      expression,
+    );
+  } else {
+    compiler.reportError("Unsupported type '$type' in json input.");
+    return;
+  }
 }

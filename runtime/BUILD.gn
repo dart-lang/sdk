@@ -366,9 +366,9 @@ action("generate_version_cc_file") {
     rebase_path("vm/version_in.cc", root_build_dir),
   ]
   if (!dart_version_git_info) {
-    args += [ "--no_git_hash" ]
+    args += [ "--no-git-hash" ]
   }
   if (!verify_sdk_hash) {
-    args += [ "--no_sdk_hash" ]
+    args += [ "--no-sdk-hash" ]
   }
 }
