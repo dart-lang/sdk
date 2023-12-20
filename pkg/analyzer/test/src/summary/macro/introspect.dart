@@ -114,22 +114,32 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     Library library,
     DeclarationBuilder builder,
   ) async {
-    final types = await builder.typesOf(library);
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
 
+    final types = await builder.typesOf(library);
     final includedDeclarations = <Declaration>{};
 
-    await _writeMany(
-      builder,
+    final printer = _Printer(
+      sink: sink,
+      withMetadata: withMetadata,
+      withUnnamedConstructor: withUnnamedConstructor,
+      introspector: builder,
       shouldWriteDetailsFor: (declaration) {
         return includedDeclarations.remove(declaration);
       },
-      withPrinter: (printer) async {
-        for (final type in types) {
-          includedDeclarations.add(type);
-          await printer.writeAnyDeclaration(type);
-        }
-      },
     );
+
+    for (final type in types) {
+      includedDeclarations.add(type);
+      await printer.writeAnyDeclaration(type);
+    }
+
+    final text = buffer.toString();
+    _declareIntrospectResult(builder, text);
   }
 
   @override
@@ -152,52 +162,44 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     });
   }
 
-  Future<void> _write(
-    DeclarationBuilder builder,
-    Declaration declaration,
-    Future<void> Function(_Printer printer) f,
-  ) async {
-    final includedNames = {
-      declaration.identifier.name,
-      ...withDetailsFor,
-    };
-
-    await _writeMany(
-      builder,
-      shouldWriteDetailsFor: (declaration) {
-        final nameToCheck = declaration.identifier.name;
-        return includedNames.remove(nameToCheck);
-      },
-      withPrinter: f,
+  void _declareIntrospectResult(DeclarationBuilder builder, String text) {
+    builder.declareInLibrary(
+      DeclarationCode.fromString(
+        'const _introspect = r"""$text""";',
+      ),
     );
   }
 
-  Future<void> _writeMany(
-    DeclarationBuilder builder, {
-    required bool Function(Declaration declaration) shouldWriteDetailsFor,
-    required Future<void> Function(_Printer printer) withPrinter,
-  }) async {
+  Future<void> _write(
+    DeclarationBuilder builder,
+    Declaration declaration,
+    Future<void> Function(_Printer printer) withPrinter,
+  ) async {
     final buffer = StringBuffer();
     final sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
 
+    final includedNames = {
+      declaration.identifier.name,
+      ...withDetailsFor,
+    };
+
     final printer = _Printer(
       sink: sink,
       withMetadata: withMetadata,
       withUnnamedConstructor: withUnnamedConstructor,
       introspector: builder,
-      shouldWriteDetailsFor: shouldWriteDetailsFor,
+      shouldWriteDetailsFor: (declaration) {
+        final nameToCheck = declaration.identifier.name;
+        return includedNames.remove(nameToCheck);
+      },
     );
     await withPrinter(printer);
-    final text = buffer.toString();
 
-    builder.declareInLibrary(
-      DeclarationCode.fromString(
-        'const _introspect = r"""$text""";',
-      ),
-    );
+    final text = buffer.toString();
+    _declareIntrospectResult(builder, text);
   }
 }
 
@@ -246,6 +248,67 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
     final text = buffer.toString();
 
+    builder.augment(
+      FunctionBodyCode.fromString('=> r"""$text""";'),
+    );
+  }
+}
+
+/// We use [nameToFind] only because we cannot get [Library] by URI.
+/*macro*/ class LibraryTopLevelDeclarations implements FunctionDefinitionMacro {
+  final String uriStr;
+  final String nameToFind;
+
+  LibraryTopLevelDeclarations({
+    required this.uriStr,
+    required this.nameToFind,
+  });
+
+  @override
+  Future<void> buildDefinitionForFunction(
+    FunctionDeclaration declaration,
+    FunctionDefinitionBuilder builder,
+  ) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final includedNames = <String>{};
+
+    final printer = _Printer(
+      sink: sink,
+      withMetadata: true,
+      withUnnamedConstructor: false,
+      introspector: builder,
+      shouldWriteDetailsFor: (declaration) {
+        final name = declaration.identifier.name;
+        return includedNames.remove(name);
+      },
+    );
+
+    // ignore: deprecated_member_use
+    final identifier = await builder.resolveIdentifier(
+      Uri.parse(uriStr),
+      nameToFind,
+    );
+    final declaration = await builder.declarationOf(identifier);
+    final library = declaration.library;
+
+    sink.writelnWithIndent('topLevelDeclarationsOf');
+    await sink.withIndent(() async {
+      final topDeclarations = await builder.topLevelDeclarationsOf(library);
+      for (final declaration in topDeclarations) {
+        final name = declaration.identifier.name;
+        if (name != '_starter') {
+          includedNames.add(name);
+          await printer.writeAnyDeclaration(declaration);
+        }
+      }
+    });
+
+    final text = buffer.toString();
     builder.augment(
       FunctionBodyCode.fromString('=> r"""$text""";'),
     );
@@ -354,6 +417,8 @@ class _Printer {
     switch (declaration) {
       case ClassDeclaration():
         await writeClassDeclaration(declaration);
+      case EnumDeclaration():
+        await writeEnumDeclaration(declaration);
       case ExtensionDeclaration():
         await writeExtensionDeclaration(declaration);
       case ExtensionTypeDeclaration():

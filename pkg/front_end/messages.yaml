@@ -7485,6 +7485,20 @@ ExtensionTypeConstructorWithSuperFormalParameter:
     extension type A(int foo) { A.named(this.foo, super.bar); }
   analyzerCode: EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER
 
+ExtensionTypePrimaryConstructorWithInitializingFormal:
+  problemMessage: "Primary constructors in extension types can't use initializing formals."
+  correctionMessage: "Try removing `this.` from the formal parameter."
+  experiments: inline-class
+  script: |
+    extension type A(int this.foo) { }
+
+ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax:
+  problemMessage: "Primary constructors in extension types can't use function formal parameter syntax."
+  correctionMessage: "Try rewriting with an explicit function type, like `int Function() f`."
+  experiments: inline-class
+  script: |
+    extension type A(int foo()) { }
+
 ExtensionTypeRepresentationTypeBottom:
   problemMessage: "The representation type can't be a bottom type."
   experiments: inline-class

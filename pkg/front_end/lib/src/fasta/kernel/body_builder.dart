@@ -5182,7 +5182,8 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
-        typeVariables);
+        structuralVariableBuilders: typeVariables,
+        hasFunctionFormalParameterSyntax: false);
     exitLocalScope();
     push(type);
   }
@@ -5499,7 +5500,8 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(question != null),
-        typeVariables);
+        structuralVariableBuilders: typeVariables,
+        hasFunctionFormalParameterSyntax: true);
     exitLocalScope();
     push(type);
     functionNestingLevel--;
@@ -10046,9 +10048,11 @@ class FormalParameters {
 
   TypeBuilder toFunctionType(
       TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
-      [List<StructuralVariableBuilder>? structuralVariableBuilders]) {
+      {List<StructuralVariableBuilder>? structuralVariableBuilders,
+      required bool hasFunctionFormalParameterSyntax}) {
     return new FunctionTypeBuilderImpl(returnType, structuralVariableBuilders,
-        parameters, nullabilityBuilder, uri, charOffset);
+        parameters, nullabilityBuilder, uri, charOffset,
+        hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
   }
 
   Scope computeFormalParameterScope(

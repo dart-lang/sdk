@@ -1632,20 +1632,40 @@ class OutlineBuilder extends StackListenerImpl {
       int? firstOptionalPositionalParameterOffset;
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
-        if (inExtensionType && formal.type is ImplicitTypeBuilder) {
-          libraryBuilder.addProblem(messageExpectedRepresentationType,
-              formal.charOffset, formal.name.length, formal.fileUri);
-          formal.type =
-              new InvalidTypeBuilderImpl(formal.fileUri, formal.charOffset);
+        if (inExtensionType) {
+          TypeBuilder type = formal.type;
+          if (type is FunctionTypeBuilder &&
+              type.hasFunctionFormalParameterSyntax) {
+            libraryBuilder.addProblem(
+                // ignore: lines_longer_than_80_chars
+                messageExtensionTypePrimaryConstructorFunctionFormalParameterSyntax,
+                formal.charOffset,
+                formal.name.length,
+                formal.fileUri);
+          }
+          if (type is ImplicitTypeBuilder) {
+            libraryBuilder.addProblem(messageExpectedRepresentationType,
+                formal.charOffset, formal.name.length, formal.fileUri);
+            formal.type =
+                new InvalidTypeBuilderImpl(formal.fileUri, formal.charOffset);
+          }
+          if (Modifier.maskContainsActualModifiers(
+              // 'covariant' is reported in the parser.
+              Modifier.removeCovariantMask(
+                  // 'required' is reported in the parser.
+                  Modifier.removeRequiredMask(formal.modifiers)))) {
+            libraryBuilder.addProblem(messageRepresentationFieldModifier,
+                formal.charOffset, formal.name.length, formal.fileUri);
+          }
+          if (formal.isInitializingFormal) {
+            libraryBuilder.addProblem(
+                messageExtensionTypePrimaryConstructorWithInitializingFormal,
+                formal.charOffset,
+                formal.name.length,
+                formal.fileUri);
+          }
         }
-        if (inExtensionType && Modifier.maskContainsActualModifiers(
-            // 'covariant' is reported in the parser.
-            Modifier.removeCovariantMask(
-                // 'required' is reported in the parser.
-                Modifier.removeRequiredMask(formal.modifiers)))) {
-          libraryBuilder.addProblem(messageRepresentationFieldModifier,
-              formal.charOffset, formal.name.length, formal.fileUri);
-        }
+
         if (formal.isPositional) {
           if (formal.isOptionalPositional) {
             firstOptionalPositionalParameterOffset = formal.charOffset;
@@ -1683,7 +1703,7 @@ class OutlineBuilder extends StackListenerImpl {
         } else if (requiredPositionalCount == 0) {
           libraryBuilder.addProblem(
               messageExpectedRepresentationField, charOffset, 1, uri);
-        } else if (inExtensionType && formals.length > 1) {
+        } else if (formals.length > 1) {
           libraryBuilder.addProblem(
               messageMultipleRepresentationFields, charOffset, 1, uri);
         }
@@ -3185,7 +3205,8 @@ class OutlineBuilder extends StackListenerImpl {
         formals,
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
         uri,
-        functionToken.charOffset));
+        functionToken.charOffset,
+        hasFunctionFormalParameterSyntax: false));
   }
 
   @override
@@ -3206,7 +3227,8 @@ class OutlineBuilder extends StackListenerImpl {
         formals,
         libraryBuilder.nullableBuilderIfTrue(question != null),
         uri,
-        formalsOffset));
+        formalsOffset,
+        hasFunctionFormalParameterSyntax: true));
   }
 
   @override
@@ -3267,7 +3289,8 @@ class OutlineBuilder extends StackListenerImpl {
           formals,
           const NullabilityBuilder.omitted(),
           uri,
-          identifier.nameOffset);
+          identifier.nameOffset,
+          hasFunctionFormalParameterSyntax: true);
     } else {
       Object? type = pop(NullValues.TypeBuilder);
       typeVariables =

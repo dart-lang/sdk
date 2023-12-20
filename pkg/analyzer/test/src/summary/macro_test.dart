@@ -3123,26 +3123,12 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
     newFile('$testPackageLibPath/a.dart', code);
   }
 
-  /// Runs the definitions phase macro that introspects the declaration in
-  /// the library [uriStr], with the [name].
-  Future<void> _assertIntrospectDefinitionText(
-    String leadCode,
-    String expected, {
-    required String name,
-    required String uriStr,
-    required bool withUnnamedConstructor,
-  }) async {
-    var library = await buildLibrary('''
-$leadCode
-
-@IntrospectDeclaration(
-  uriStr: 'package:test/test.dart',
-  name: '$name',
-  withUnnamedConstructor: $withUnnamedConstructor,
-)
-void _starter() {}
-''');
-
+  /// Matches [library]'s generated code against `=> r'''(.+)''';` pattern,
+  /// and verifies that the extracted content is [expected].
+  void _assertDefinitionsPhaseText(
+    LibraryElementImpl library,
+    String expected,
+  ) {
     if (library.allMacroDiagnostics.isNotEmpty) {
       failWithLibraryText(library);
     }
@@ -3165,6 +3151,29 @@ void _starter() {}
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
+  }
+
+  /// Runs the definitions phase macro that introspects the declaration in
+  /// the library [uriStr], with the [name].
+  Future<void> _assertIntrospectDefinitionText(
+    String leadCode,
+    String expected, {
+    required String name,
+    required String uriStr,
+    required bool withUnnamedConstructor,
+  }) async {
+    var library = await buildLibrary('''
+$leadCode
+
+@IntrospectDeclaration(
+  uriStr: 'package:test/test.dart',
+  name: '$name',
+  withUnnamedConstructor: $withUnnamedConstructor,
+)
+void _starter() {}
+''');
+
+    _assertDefinitionsPhaseText(library, expected);
   }
 
   /// Verifies the code of the macro generated augmentation.
@@ -5579,6 +5588,148 @@ foo
 ''');
   }
 
+  test_topLevelDeclarationsOf_imported_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+''');
+
+    await _assertLibraryDefinitionsPhaseText(
+      'A',
+      uriStr: 'package:test/a.dart',
+      r'''
+import 'a.dart';
+''',
+      r'''
+topLevelDeclarationsOf
+  class A
+    superclass: Object
+  class B
+    superclass: Object
+''',
+    );
+  }
+
+  test_topLevelDeclarationsOf_self_class() async {
+    await _assertLibraryDefinitionsPhaseText('A', r'''
+class A {}
+class B {}
+''', r'''
+topLevelDeclarationsOf
+  class A
+  class B
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_enum() async {
+    await _assertLibraryDefinitionsPhaseText('A', r'''
+enum A {v1}
+enum B {v2}
+''', r'''
+topLevelDeclarationsOf
+  enum A
+    values
+      v1
+  enum B
+    values
+      v2
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_extension() async {
+    await _assertLibraryDefinitionsPhaseText('A', r'''
+extension A on int {}
+extension B on double {}
+''', r'''
+topLevelDeclarationsOf
+  extension A
+    onType: int
+  extension B
+    onType: double
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_function() async {
+    await _assertLibraryDefinitionsPhaseText('foo', r'''
+void foo() {}
+void bar() {}
+''', r'''
+topLevelDeclarationsOf
+  foo
+    flags: hasBody
+    returnType: void
+  bar
+    flags: hasBody
+    returnType: void
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_getter() async {
+    await _assertLibraryDefinitionsPhaseText('foo', r'''
+int get foo => 0;
+int get bar => 0;
+''', r'''
+topLevelDeclarationsOf
+  foo
+    flags: hasBody isGetter
+    returnType: int
+  bar
+    flags: hasBody isGetter
+    returnType: int
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_mixin() async {
+    await _assertLibraryDefinitionsPhaseText('A', r'''
+mixin A {}
+mixin B {}
+''', r'''
+topLevelDeclarationsOf
+  mixin A
+  mixin B
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_setter() async {
+    await _assertLibraryDefinitionsPhaseText('foo', r'''
+set foo(int value) {}
+set bar(int value) {}
+''', r'''
+topLevelDeclarationsOf
+  foo
+    flags: hasBody isSetter
+    positionalParameters
+      value
+        flags: isRequired
+        type: int
+    returnType: OmittedType
+      inferred: void
+  bar
+    flags: hasBody isSetter
+    positionalParameters
+      value
+        flags: isRequired
+        type: int
+    returnType: OmittedType
+      inferred: void
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_variable() async {
+    await _assertLibraryDefinitionsPhaseText('foo', r'''
+final int foo = 0;
+final int bar = 0;
+''', r'''
+topLevelDeclarationsOf
+  foo
+    flags: hasFinal
+    type: int
+  bar
+    flags: hasFinal
+    type: int
+''');
+  }
+
   /// The [name] should be the name of a declaration in [code].
   Future<void> _assertIntrospectText(
     String name,
@@ -5600,6 +5751,34 @@ $code
       uriStr: 'package:test/test.dart',
       withUnnamedConstructor: false,
     );
+  }
+
+  /// We use [nameToFind] only because there is no API to get `Library` by
+  /// its URI. So, we get the identifier, resolve it to the declaration,
+  /// and then get its `Library`.
+  Future<void> _assertLibraryDefinitionsPhaseText(
+    String nameToFind,
+    String code,
+    String expected, {
+    String uriStr = 'package:test/test.dart',
+  }) async {
+    newFile(
+      '$testPackageLibPath/introspect.dart',
+      _getMacroCode('introspect.dart'),
+    );
+
+    final library = await buildLibrary('''
+import 'introspect.dart';
+$code
+
+@LibraryTopLevelDeclarations(
+  uriStr: '$uriStr',
+  nameToFind: '$nameToFind',
+)
+void _starter() {}
+''');
+
+    _assertDefinitionsPhaseText(library, expected);
   }
 }
 

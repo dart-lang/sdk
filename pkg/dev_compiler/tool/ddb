@@ -12,6 +12,7 @@
 /// inspection, modification or rerunning the code.
 
 import 'dart:io';
+import 'dart:ffi';
 
 import 'package:args/args.dart' show ArgParser;
 import 'package:dev_compiler/src/compiler/js_names.dart' as js_names;
@@ -396,12 +397,13 @@ self.dartMainRunner(function () {
 }
 
 String get _d8executable {
+  final arch = Abi.current().toString().split('_')[1];
   if (Platform.isWindows) {
-    return p.join('third_party', 'd8', 'windows', 'd8.exe');
+    return p.join('third_party', 'd8', 'windows', arch, 'd8.exe');
   } else if (Platform.isLinux) {
-    return p.join('third_party', 'd8', 'linux', 'd8');
+    return p.join('third_party', 'd8', 'linux', arch, 'd8');
   } else if (Platform.isMacOS) {
-    return p.join('third_party', 'd8', 'macos', 'd8');
+    return p.join('third_party', 'd8', 'macos', arch, 'd8');
   }
   throw UnsupportedError('Unsupported platform.');
 }

@@ -13,6 +13,7 @@ extension_types/const_constructor_body: FormatterCrash
 extension_types/field_access: FormatterCrash
 extension_types/issue52119: FormatterCrash
 extension_types/issue53212: FormatterCrash
+extension_types/issue53625: FormatterCrash
 extension_types/representation: FormatterCrash
 general/base_class_declaration: FormatterCrash
 general/constants/non_const_constructor: FormatterCrash
