@@ -1,0 +1,30 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class S extends core::Object {
+  synthetic constructor •() → self::S
+    ;
+  abstract get b() → core::bool;
+}
+class A extends core::Object implements self::S {
+  final field core::bool b;
+  constructor •(core::bool b) → self::A
+    ;
+}
+class B extends core::Object implements self::S {
+  final field core::bool b;
+  constructor •(core::bool b) → self::B
+    ;
+}
+class C extends core::Object implements self::A, self::B {
+  synthetic constructor •() → self::C
+    ;
+  get b() → core::bool
+    ;
+}
+static field core::int? value;
+static method method(self::S s) → core::int?
+  ;
+static method test() → dynamic
+  ;

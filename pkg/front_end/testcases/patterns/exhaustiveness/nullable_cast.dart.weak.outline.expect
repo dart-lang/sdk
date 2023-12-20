@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+static final field core::bool inWeakMode;
+static method exhaustiveNonNullableTypeVariable<T extends core::Object>(core::int? o) → dynamic
+  ;
+static method exhaustiveNonNullableType(core::int? o) → dynamic
+  ;
+static method exhaustiveNonNullableSuperType(core::int? o) → dynamic
+  ;
+static method exhaustiveNonNullableFutureOr1(FutureOr<core::int>? o) → dynamic
+  ;
+static method exhaustiveNonNullableFutureOr2(FutureOr<core::int?>o) → dynamic
+  ;
+static method exhaustiveNonNullableFutureOrTypeVariable1<T extends core::Object>(FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable1::T>? o) → dynamic
+  ;
+static method exhaustiveNonNullableFutureOrTypeVariable2<T extends core::Object>(FutureOr<self::exhaustiveNonNullableFutureOrTypeVariable2::T?>o) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+static method throwsOr(dynamic expectedIfWeak, () → dynamic f) → dynamic
+  ;
+static method throws(() → dynamic f) → dynamic
+  ;

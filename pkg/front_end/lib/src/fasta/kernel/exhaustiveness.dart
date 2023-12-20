@@ -81,6 +81,11 @@ class CfeTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  bool isPotentiallyNullable(DartType type) {
+    return type.nullability != Nullability.nonNullable;
+  }
+
+  @override
   bool isNullableObject(DartType type) {
     return type == _typeEnvironment.objectNullableRawType;
   }
@@ -515,12 +520,18 @@ class CfeExhaustivenessCache
 }
 
 class PatternConverter with SpaceCreator<Pattern, DartType> {
+  final Version languageVersion;
   final CfeExhaustivenessCache cache;
   final StaticTypeContext context;
   final bool Function(Constant) hasPrimitiveEquality;
 
-  PatternConverter(this.cache, this.context,
+  PatternConverter(this.languageVersion, this.cache, this.context,
       {required this.hasPrimitiveEquality});
+
+  @override
+  bool hasLanguageVersion(int major, int minor) {
+    return languageVersion >= new Version(major, minor);
+  }
 
   @override
   Space dispatchPattern(Path path, StaticType contextType, Pattern pattern,

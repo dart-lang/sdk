@@ -872,6 +872,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var hasDefault = false;
 
     final patternConverter = PatternConverter(
+      languageVersion: _currentLibrary.languageVersion.effective,
       featureSet: _currentLibrary.featureSet,
       cache: _exhaustivenessCache,
       mapPatternKeyValues: mapPatternKeyValues,

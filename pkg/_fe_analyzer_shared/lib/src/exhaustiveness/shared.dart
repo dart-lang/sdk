@@ -25,8 +25,11 @@ abstract class TypeOperations<Type extends Object> {
   /// replacing all type variables with the default types.
   Type overapproximate(Type type);
 
-  /// Returns `true` if [type] is a potentially nullable type.
+  /// Returns `true` if [type] is a nullable type.
   bool isNullable(Type type);
+
+  /// Returns `true` if [type] is a potentially nullable type.
+  bool isPotentiallyNullable(Type type);
 
   /// Returns the non-nullable type corresponding to [type]. For instance
   /// `Foo` for `Foo?`. If [type] is already non-nullable, it itself is
@@ -351,6 +354,10 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
 
   ObjectPropertyLookup get objectFieldLookup;
 
+  /// Returns `true` if the current library has version greater than or equal
+  /// to `$major.$minor`.
+  bool hasLanguageVersion(int major, int minor);
+
   /// Creates a [StaticType] for an unknown type.
   ///
   /// This is used when the type of the pattern is unknown or can't be
@@ -504,6 +511,76 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     return createUnknownSpace(path);
   }
 
+  /// Returns `true` if [singleSpace] does not restrict the spaces of any of its
+  /// properties. For instance the pattern `Object(:int hashCode)` is
+  /// unrestricted but the pattern `Object(hashCode: 5)` is restricted.
+  bool _isUnrestricted(SingleSpace singleSpace) {
+    if (singleSpace.properties.isNotEmpty) {
+      Map<Key, StaticType> fieldTypes = singleSpace.type.fields;
+      for (MapEntry<Key, Space> entry in singleSpace.properties.entries) {
+        Key key = entry.key;
+        StaticType fieldType = fieldTypes[key] ?? StaticType.neverType;
+        if (!_isContainedIn(fieldType, entry.value)) {
+          return false;
+        }
+      }
+    }
+    if (singleSpace.additionalProperties.isNotEmpty) {
+      for (MapEntry<Key, Space> entry
+          in singleSpace.additionalProperties.entries) {
+        Key key = entry.key;
+        StaticType fieldType =
+            singleSpace.type.getAdditionalPropertyType(key) ??
+                StaticType.neverType;
+        if (!_isContainedIn(fieldType, entry.value)) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  /// Returns `true` if the space implied by [type], i.e. all values of [type]
+  /// regardless of properties, is contained in [space].
+  bool _isContainedIn(StaticType type, Space space) {
+    Map<SingleSpace, bool> unrestrictedCache = {};
+    if (space.singleSpaces.length == 1) {
+      // Optimize for simple spaces to avoid unnecessary expansion of subtypes.
+      SingleSpace singleSpace = space.singleSpaces.single;
+      bool isUnrestricted =
+          unrestrictedCache[singleSpace] ??= _isUnrestricted(singleSpace);
+      if (isUnrestricted && type.isSubtypeOf(singleSpace.type)) {
+        return true;
+      }
+    }
+    // To handle case like:
+    //
+    //    sealed class M {}
+    //    class A extends M {}
+    //    class B extends M {}
+    //    method(o) => switch (o) {
+    //        (A() || B()) as M => 0,
+    //      };
+    //
+    // we expand [type] into subtypes before determining for containment.
+    List<StaticType> subtypes = expandSealedSubtypes(type, const {});
+    for (StaticType subtype in subtypes) {
+      bool found = false;
+      for (SingleSpace singleSpace in space.singleSpaces) {
+        bool isUnrestricted =
+            unrestrictedCache[singleSpace] ??= _isUnrestricted(singleSpace);
+        if (isUnrestricted && subtype.isSubtypeOf(singleSpace.type)) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   /// Creates the [Space] at [path] for a cast pattern with the given
   /// [subPattern].
   ///
@@ -514,34 +591,58 @@ mixin SpaceCreator<Pattern extends Object, Type extends Object> {
     Space space =
         dispatchPattern(path, contextType, subPattern, nonNull: nonNull);
     StaticType castType = createStaticType(type);
-    if (castType.isSubtypeOf(contextType) && contextType.isSealed) {
-      for (StaticType subtype in expandSealedSubtypes(contextType, const {})) {
-        // If [subtype] is a subtype of [castType] it will not throw and must
-        // be handled by [subPattern]. For instance
+    if (hasLanguageVersion(3, 3)) {
+      if (_isContainedIn(castType, space)) {
+        // If all values in [castType] are also in [space] then the complete
+        // [contextType] is matched. For instance
         //
-        //    sealed class S {}
-        //    sealed class X extends S {}
-        //    class A extends X {}
-        //    method(S s) => switch (s) {
-        //      A() as X => 0,
-        //    }
-        //
-        // If [castType] is a subtype of [subtype] it might not throw but still
-        // not handle all values of the [subtype].
-        //
-        //    sealed class S {}
-        //    class A extends S {}
-        //    class X extends A {
-        //      int field;
-        //      X(this.field);
-        //    }
-        //    method(S s) => switch (s) {
-        //      X(field: 42) as X => 0,
-        //    }
-        //
-        if (!castType.isSubtypeOf(subtype) && !subtype.isSubtypeOf(castType)) {
-          // Otherwise the cast implicitly handles [subtype].
-          space = space.union(new Space(path, subtype));
+        //    method(var d) => switch (d) {
+        //        final String value => value,
+        //        // This covers everything either by matching as int or by
+        //        // throwing.
+        //        final value as int => value,
+        //      };
+        space = new Space(path, contextType);
+      }
+      if (!typeOperations.isPotentiallyNullable(type)) {
+        // If `null` is _not_ included in [castType], we can include in the
+        // generated [space].
+        space = space.union(new Space(path, StaticType.nullType));
+      }
+    } else {
+      // The following check assumes that the subpattern space is
+      // unrestrictive.
+      if (castType.isSubtypeOf(contextType) && contextType.isSealed) {
+        for (StaticType subtype
+            in expandSealedSubtypes(contextType, const {})) {
+          // If [subtype] is a subtype of [castType] it will not throw and
+          // must be handled by [subPattern]. For instance
+          //
+          //    sealed class S {}
+          //    sealed class X extends S {}
+          //    class A extends X {}
+          //    method(S s) => switch (s) {
+          //      A() as X => 0,
+          //    }
+          //
+          // If [castType] is a subtype of [subtype] it might not throw but
+          // still not handle all values of the [subtype].
+          //
+          //    sealed class S {}
+          //    class A extends S {}
+          //    class X extends A {
+          //      int field;
+          //      X(this.field);
+          //    }
+          //    method(S s) => switch (s) {
+          //      X(field: 42) as X => 0,
+          //    }
+          //
+          if (!castType.isSubtypeOf(subtype) &&
+              !subtype.isSubtypeOf(castType)) {
+            // Otherwise the cast implicitly handles [subtype].
+            space = space.union(new Space(path, subtype));
+          }
         }
       }
     }
