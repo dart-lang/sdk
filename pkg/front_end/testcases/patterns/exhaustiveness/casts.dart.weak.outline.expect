@@ -1,0 +1,46 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class M extends core::Object {
+  synthetic constructor •() → self::M
+    ;
+}
+class A extends self::M {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::M {
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends self::M {
+  synthetic constructor •() → self::C
+    ;
+}
+static method exhaustiveDynamicAsStringOrInt(dynamic o) → dynamic
+  ;
+static method exhaustiveDynamicAsStringOrIntAnd(dynamic o) → dynamic
+  ;
+static method exhaustiveDynamicAsStringOrNum(dynamic o) → dynamic
+  ;
+static method nonExhaustiveDynamicAsStringOrDouble(dynamic o) → dynamic
+  ;
+static method exhaustiveDynamicAsStringOrIntUnrestricted(dynamic o) → dynamic
+  ;
+static method nonExhaustiveDynamicAsStringOrIntRestricted(dynamic o) → dynamic
+  ;
+static method exhaustiveMAsM(self::M m) → dynamic
+  ;
+static method exhaustiveDynamicAsM(dynamic m) → dynamic
+  ;
+static method exhaustiveDynamicAsMUnrestricted(dynamic m) → dynamic
+  ;
+static method nonExhaustiveDynamicAsMRestricted(dynamic m) → dynamic
+  ;
+static method exhaustiveDynamicAsMSeeminglyRestricted(dynamic m) → dynamic
+  ;
+static method exhaustiveList(dynamic o) → dynamic
+  ;
+static method nonExhaustiveList(dynamic o) → dynamic
+  ;

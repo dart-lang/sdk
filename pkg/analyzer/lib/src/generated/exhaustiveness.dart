@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/element/replacement_visitor.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// The buffer that accumulates types and elements as is, so that they
 /// can be written latter into Dart code that considers imports. It also
@@ -372,6 +373,10 @@ class AnalyzerTypeOperations implements TypeOperations<DartType> {
   }
 
   @override
+  bool isPotentiallyNullable(DartType type) =>
+      _typeSystem.isPotentiallyNullable(type);
+
+  @override
   bool isRecordType(DartType type) {
     return type is RecordType && !isNullable(type);
   }
@@ -477,6 +482,7 @@ class MissingPatternTypePart extends MissingPatternPart {
 }
 
 class PatternConverter with SpaceCreator<DartPattern, DartType> {
+  final Version languageVersion;
   final FeatureSet featureSet;
   final AnalyzerExhaustivenessCache cache;
   final Map<Expression, DartObjectImpl> mapPatternKeyValues;
@@ -487,6 +493,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
   bool hasInvalidType = false;
 
   PatternConverter({
+    required this.languageVersion,
     required this.featureSet,
     required this.cache,
     required this.mapPatternKeyValues,
@@ -674,6 +681,11 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
     }
     assert(false, "Unexpected pattern $pattern (${pattern.runtimeType})");
     return createUnknownSpace(path);
+  }
+
+  @override
+  bool hasLanguageVersion(int major, int minor) {
+    return languageVersion >= Version(major, minor, 0);
   }
 
   Space _convertConstantValue(DartObjectImpl value, Path path) {

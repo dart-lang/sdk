@@ -331,6 +331,12 @@ class _TypeOperations implements TypeOperations<_Type> {
   }
 
   @override
+  bool isPotentiallyNullable(_Type type) {
+    // TODO(johnniwinther): Support type variables.
+    return type is _NullableType;
+  }
+
+  @override
   bool isNullableObject(_Type type) {
     return type == _Type.NullableObject;
   }

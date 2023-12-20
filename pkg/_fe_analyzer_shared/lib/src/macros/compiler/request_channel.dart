@@ -7,19 +7,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/macros/executor/message_grouper.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
-
-/// An instance of this class is thrown when remotely executed code throws
-/// an exception.
-class RemoteException {
-  final String message;
-  final String stackTrace;
-
-  RemoteException({
-    required this.message,
-    required this.stackTrace,
-  });
-}
 
 /// Channel for exchanging requests and responses over [Socket].
 class RequestChannel {
@@ -115,8 +104,8 @@ class RequestChannel {
         if (exception is Map) {
           completer.completeError(
             new RemoteException(
-              message: exception['message'] as String,
-              stackTrace: exception['stackTrace'] as String,
+              exception['message'] as String,
+              exception['stackTrace'] as String,
             ),
           );
           return;

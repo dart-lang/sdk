@@ -1547,7 +1547,9 @@ class ConstantsTransformer extends RemovingTransformer {
             : expressionType);
     List<Space> cases = [];
     PatternConverter patternConverter = new PatternConverter(
-        _exhaustivenessCache!, staticTypeContext,
+        currentLibrary.languageVersion,
+        _exhaustivenessCache!,
+        staticTypeContext,
         hasPrimitiveEquality: (Constant constant) => constantEvaluator
             .hasPrimitiveEqual(constant, staticTypeContext: staticTypeContext));
     for (PatternGuard patternGuard in patternGuards) {

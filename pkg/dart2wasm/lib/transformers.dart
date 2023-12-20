@@ -602,17 +602,7 @@ class _WasmTransformer extends Transformer {
 
     // Finally call cast.
 
-    // Stream element type is defined in language spec section 9. If the return
-    // type is `Stream<U>` then the element type is `U`. Otherwise it needs to
-    // be a supertype of `Object` and the element type is `dynamic`.
-    final DartType streamTypeArgument;
-    final DartType functionReturnType = functionNode.returnType;
-    if (functionReturnType is InterfaceType &&
-        functionReturnType.classNode == coreTypes.streamClass) {
-      streamTypeArgument = functionReturnType.typeArguments.single;
-    } else {
-      streamTypeArgument = const DynamicType();
-    }
+    final DartType streamTypeArgument = functionNode.emittedValueType!;
     Procedure castProc =
         coreTypes.index.getProcedure('dart:async', 'Stream', 'cast');
     final returnStreamType = InterfaceType(coreTypes.streamClass,
