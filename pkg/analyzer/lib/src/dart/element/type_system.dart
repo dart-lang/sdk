@@ -879,6 +879,9 @@ class TypeSystemImpl implements TypeSystem {
       if (element is ClassElement && element.isSealed) {
         return true;
       }
+      if (element is ExtensionTypeElement) {
+        return isAlwaysExhaustive(type.extensionTypeErasure);
+      }
       if (type.isDartAsyncFutureOr) {
         return isAlwaysExhaustive(type.typeArguments[0]);
       }

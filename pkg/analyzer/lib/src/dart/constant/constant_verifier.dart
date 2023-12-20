@@ -145,6 +145,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         if (value.hasPrimitiveEquality(_currentLibrary.featureSet)) {
           var constantType = value.type;
           var matchedValueType = node.matchedValueType;
+          matchedValueType = matchedValueType?.extensionTypeErasure;
           if (matchedValueType != null) {
             if (!_canBeEqual(constantType, matchedValueType)) {
               _errorReporter.reportErrorForNode(
