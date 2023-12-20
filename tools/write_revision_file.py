@@ -12,17 +12,24 @@ import utils
 def ParseArgs(args):
     args = args[1:]
     parser = argparse.ArgumentParser(
-        description='A script to write the version string to a file')
+        description='A script to write the revision string to a file')
 
     parser.add_argument(
         '--output', '-o', type=str, required=True, help='File to write')
+    parser.add_argument('--no-git-hash',
+                        help='Omit the git hash in the output',
+                        dest='no_git_hash',
+                        action='store_true')
 
     return parser.parse_args(args)
 
 
 def Main(argv):
     args = ParseArgs(argv)
-    revision = utils.GetGitRevision()
+    if not args.no_git_hash:
+        revision = utils.GetGitRevision()
+    else:
+        revision = ''
     if revision is not None:
         with open(args.output, 'w') as f:
             f.write('%s\n' % revision)

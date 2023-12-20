@@ -674,6 +674,9 @@ action("write_version_file") {
     "--output",
     rebase_path(output),
   ]
+  if (!dart_version_git_info) {
+    args += [ "--no-git-hash" ]
+  }
 }
 
 # This rule writes the revision file.
@@ -687,6 +690,9 @@ action("write_revision_file") {
     "--output",
     rebase_path(output),
   ]
+  if (!dart_version_git_info) {
+    args += [ "--no-git-hash" ]
+  }
 }
 
 # This rule copies the README file.
@@ -714,6 +720,9 @@ action("write_dartdoc_options") {
     "--output",
     rebase_path(output),
   ]
+  if (!dart_version_git_info) {
+    args += [ "--no-git-hash" ]
+  }
 }
 
 # This rule copies the API readme file to lib/
