@@ -430,6 +430,7 @@ dep
 depended
 dependency's
 depfile
+deprecating
 deps
 dereferencing
 deregister
@@ -1605,6 +1606,7 @@ smith
 sn
 socket
 sockets
+soft
 sole
 solely
 somehow

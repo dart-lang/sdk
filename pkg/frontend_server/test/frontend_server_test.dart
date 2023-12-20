@@ -26,6 +26,9 @@ import 'package:test/test.dart';
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart';
 
+bool useJsonForCommunication = false;
+bool useJsonLineBreaks = false;
+
 class _MockedBinaryPrinter implements BinaryPrinter {
   @override
   dynamic noSuchMethod(Invocation invocation) {}
@@ -116,7 +119,7 @@ class _MockedIncrementalCompiler implements IncrementalCompiler {
   dynamic noSuchMethod(Invocation invocation) {}
 }
 
-void main() async {
+Future<void> main() async {
   group('basic', () {
     final _MockedCompiler compiler = new _MockedCompiler();
 
@@ -3134,40 +3137,58 @@ class FrontendServer {
   // TODO(johnniwinther): Use (required) named arguments.
   void compileExpression(String expression, Uri library,
       {String boundaryKey = 'abc', String className = '', bool? isStatic}) {
-    // 'compile-expression <boundarykey>
-    // expression
-    // definitions (one per line)
-    // ...
-    // <boundarykey>
-    // definitionTypes (one per line)
-    // ...
-    // <boundarykey>
-    // type-definitions (one per line)
-    // ...
-    // <boundarykey>
-    // type-bounds (one per line)
-    // ...
-    // <boundarykey>
-    // type-defaults (one per line)
-    // ...
-    // <boundarykey>
-    // <libraryUri: String>
-    // <klass: String>
-    // <method: String>
-    // <isStatic: true|false>
-    outputParser.expectSources = false;
-    inputStreamController.add('compile-expression $boundaryKey\n'
-            '$expression\n'
-            '$boundaryKey\n'
-            '$boundaryKey\n'
-            '$boundaryKey\n'
-            '$boundaryKey\n'
-            '$boundaryKey\n'
-            '$library\n'
-            '$className\n'
-            '\n'
-            '${isStatic != null ? '$isStatic' : ''}\n'
-        .codeUnits);
+    if (useJsonForCommunication) {
+      outputParser.expectSources = false;
+      inputStreamController.add('JSON_INPUT\n'.codeUnits);
+      String jsonData = json.encode({
+        "type": "COMPILE_EXPRESSION",
+        "data": {
+          "expression": expression,
+          "libraryUri": library.toString(),
+          if (isStatic != null) "static": isStatic,
+        }
+      });
+      if (useJsonLineBreaks) {
+        jsonData = jsonData.replaceAll(",", ",\n");
+      }
+      inputStreamController.add(jsonData.codeUnits);
+      inputStreamController.add('\n'.codeUnits);
+    } else {
+      // 'compile-expression <boundarykey>
+      // expression
+      // definitions (one per line)
+      // ...
+      // <boundarykey>
+      // definitionTypes (one per line)
+      // ...
+      // <boundarykey>
+      // type-definitions (one per line)
+      // ...
+      // <boundarykey>
+      // type-bounds (one per line)
+      // ...
+      // <boundarykey>
+      // type-defaults (one per line)
+      // ...
+      // <boundarykey>
+      // <libraryUri: String>
+      // <klass: String>
+      // <method: String>
+      // <isStatic: true|false>
+      outputParser.expectSources = false;
+      inputStreamController.add('compile-expression $boundaryKey\n'
+              '$expression\n'
+              '$boundaryKey\n'
+              '$boundaryKey\n'
+              '$boundaryKey\n'
+              '$boundaryKey\n'
+              '$boundaryKey\n'
+              '$library\n'
+              '$className\n'
+              '\n'
+              '${isStatic != null ? '$isStatic' : ''}\n'
+          .codeUnits);
+    }
   }
 
   /// Compiles the [expression] to JavaScript as if it occurs in [line] and
@@ -3179,27 +3200,47 @@ class FrontendServer {
   void compileExpressionToJs(String expression, String libraryUri, int line,
       int column, String moduleName,
       {String boundaryKey = 'abc'}) {
-    // 'compile-expression-to-js <boundarykey>
-    // libraryUri
-    // line
-    // column
-    // jsModules (one k-v pair per line)
-    // ...
-    // <boundarykey>
-    // jsFrameValues (one k-v pair per line)
-    // ...
-    // <boundarykey>
-    // moduleName
-    // expression
-    outputParser.expectSources = false;
-    inputStreamController.add('compile-expression-to-js $boundaryKey\n'
-            '$libraryUri\n'
-            '$line\n'
-            '$column\n'
-            '$boundaryKey\n'
-            '$boundaryKey\n'
-            '$moduleName\n'
-            '$expression\n'
-        .codeUnits);
+    if (useJsonForCommunication) {
+      outputParser.expectSources = false;
+      inputStreamController.add('JSON_INPUT\n'.codeUnits);
+      String jsonData = json.encode({
+        "type": "COMPILE_EXPRESSION_JS",
+        "data": {
+          "expression": expression,
+          "libraryUri": libraryUri,
+          "line": line,
+          "column": column,
+          "moduleName": moduleName,
+        }
+      });
+      if (useJsonLineBreaks) {
+        jsonData = jsonData.replaceAll(",", ",\n");
+      }
+      inputStreamController.add(jsonData.codeUnits);
+      inputStreamController.add('\n'.codeUnits);
+    } else {
+      // 'compile-expression-to-js <boundarykey>
+      // libraryUri
+      // line
+      // column
+      // jsModules (one k-v pair per line)
+      // ...
+      // <boundarykey>
+      // jsFrameValues (one k-v pair per line)
+      // ...
+      // <boundarykey>
+      // moduleName
+      // expression
+      outputParser.expectSources = false;
+      inputStreamController.add('compile-expression-to-js $boundaryKey\n'
+              '$libraryUri\n'
+              '$line\n'
+              '$column\n'
+              '$boundaryKey\n'
+              '$boundaryKey\n'
+              '$moduleName\n'
+              '$expression\n'
+          .codeUnits);
+    }
   }
 }
