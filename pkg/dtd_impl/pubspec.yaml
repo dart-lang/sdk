@@ -15,6 +15,7 @@ dependencies:
   sse: any
   stream_channel: any
   web_socket_channel: any
+  dtd: any
 
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the

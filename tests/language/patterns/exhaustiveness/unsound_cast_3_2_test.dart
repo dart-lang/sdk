@@ -36,9 +36,6 @@ int? sound(S s) => switch (s) {
     };
 
 main() {
-  if (hasSoundNullSafety) {
-    Expect.equals(sound(Z()), unsound(Z()));
-  } else {
-    Expect.throws(() => unsound(Z()));
-  }
+  Expect.equals(sound(X()), unsound(X()));
+  Expect.throws(() => unsound(Z()));
 }
