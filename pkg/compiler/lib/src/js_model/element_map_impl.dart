@@ -2219,29 +2219,9 @@ class JsElementEnvironment extends ElementEnvironment
 
   @override
   DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
-    // TODO(sra): Should be getting the DartType from the node.
     DartType returnType = getFunctionType(function).returnType;
     return getAsyncOrSyncStarElementType(function, returnType);
   }
-
-  DartType _getGeneratorElementType(
-      DartType returnType, ClassEntity collectionClass) {
-    final unionFreeType = elementMap.types.getUnionFreeType(returnType);
-    if (unionFreeType is InterfaceType) {
-      final collectionType =
-          elementMap.asInstanceOf(unionFreeType, collectionClass);
-      if (collectionType != null) return collectionType.typeArguments.single;
-    }
-    return dynamicType;
-  }
-
-  DartType _getSyncStarElementType(DartType returnType) =>
-      _getGeneratorElementType(
-          returnType, elementMap.commonElements.iterableClass);
-
-  DartType _getAsyncStarElementType(DartType returnType) =>
-      _getGeneratorElementType(
-          returnType, elementMap.commonElements.streamClass);
 
   @override
   DartType getAsyncOrSyncStarElementType(
@@ -2251,12 +2231,10 @@ class JsElementEnvironment extends ElementEnvironment
       case AsyncMarker.SYNC:
         return returnType;
       case AsyncMarker.SYNC_STAR:
-        return _getSyncStarElementType(returnType);
       case AsyncMarker.ASYNC:
+      case AsyncMarker.ASYNC_STAR:
         return elementMap.getDartType(
             getFunctionNode(elementMap, function)!.emittedValueType!);
-      case AsyncMarker.ASYNC_STAR:
-        return _getAsyncStarElementType(returnType);
     }
     throw failedAt(
         CURRENT_ELEMENT_SPANNABLE, 'Unexpected marker ${asyncMarker}');
