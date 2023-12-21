@@ -224,10 +224,11 @@ class DeclarationBuilder {
         }
       case ParameterElement():
         return macro.ResolvedIdentifier(
-            kind: macro.IdentifierKind.local,
-            name: element.name,
-            uri: null,
-            staticScope: null);
+          kind: macro.IdentifierKind.local,
+          name: element.name,
+          uri: null,
+          staticScope: null,
+        );
       case PropertyAccessorElement():
         if (element.enclosingElement is CompilationUnitElement) {
           return macro.ResolvedIdentifier(
