@@ -2615,6 +2615,54 @@ augment class A {
 ''');
   }
 
+  test_unit_function_add() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareInLibrary('void foo() {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withExportScope = true
+      ..withMetadata = false
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/append.dart
+  definingUnit
+    reference: self
+    classes
+      class A @64
+        reference: self::@class::A
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+void foo() {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        functions
+          foo @35
+            reference: self::@augmentation::package:test/test.macro.dart::@function::foo
+            returnType: void
+  exportedReferences
+    declared self::@augmentation::package:test/test.macro.dart::@function::foo
+    declared self::@class::A
+  exportNamespace
+    A: self::@class::A
+    foo: self::@augmentation::package:test/test.macro.dart::@function::foo
+''');
+  }
+
   test_unit_variable_add() async {
     var library = await buildLibrary(r'''
 import 'append.dart';
@@ -2625,6 +2673,7 @@ class A {}
 
     configuration
       ..withConstructors = false
+      ..withExportScope = true
       ..withMetadata = false
       ..withPropertyLinking = true
       ..withReferences = true;
@@ -2662,6 +2711,12 @@ final x = 42;
             returnType: int
             id: getter_0
             variable: variable_0
+  exportedReferences
+    declared self::@augmentation::package:test/test.macro.dart::@accessor::x
+    declared self::@class::A
+  exportNamespace
+    A: self::@class::A
+    x: self::@augmentation::package:test/test.macro.dart::@accessor::x
 ''');
   }
 }
@@ -7998,6 +8053,53 @@ class MyClass {}
           class MyClass @36
             constructors
               synthetic @-1
+''');
+  }
+
+  test_declareType_exported() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withExportScope = true
+      ..withMetadata = false
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/append.dart
+  definingUnit
+    reference: self
+    classes
+      class A @61
+        reference: self::@class::A
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class B {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class B @36
+            reference: self::@augmentation::package:test/test.macro.dart::@class::B
+  exportedReferences
+    declared self::@augmentation::package:test/test.macro.dart::@class::B
+    declared self::@class::A
+  exportNamespace
+    A: self::@class::A
+    B: self::@augmentation::package:test/test.macro.dart::@class::B
 ''');
   }
 

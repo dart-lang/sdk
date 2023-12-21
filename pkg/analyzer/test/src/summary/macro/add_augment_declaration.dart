@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
+import 'append.dart';
+
 /*macro*/ class AddConstructor extends _AddMacroClass {
   const AddConstructor();
 
@@ -127,38 +129,9 @@ class _AddMacro {
     String withIdentifiers,
   ) async {
     final withoutEOL = withIdentifiers.trimRight();
-    final parts = await _resolveIdentifiers(builder, withoutEOL);
+    final parts = await resolveIdentifiers(builder, withoutEOL);
     final code = DeclarationCode.fromParts(parts);
     builder.declareInType(code);
-  }
-
-  /// Resolves top-level identifier references of form `{{uri@name}}`.
-  static Future<List<Object>> _resolveIdentifiers(
-    TypePhaseIntrospector introspector,
-    String withIdentifiers,
-  ) async {
-    final result = <Object>[];
-    var lastMatchEnd = 0;
-
-    void addStringPart(int end) {
-      final str = withIdentifiers.substring(lastMatchEnd, end);
-      result.add(str);
-    }
-
-    final pattern = RegExp(r'\{\{(.+)@(\w+)\}\}');
-    for (final match in pattern.allMatches(withIdentifiers)) {
-      addStringPart(match.start);
-      // ignore: deprecated_member_use
-      final identifier = await introspector.resolveIdentifier(
-        Uri.parse(match.group(1)!),
-        match.group(2)!,
-      );
-      result.add(identifier);
-      lastMatchEnd = match.end;
-    }
-
-    addStringPart(withIdentifiers.length);
-    return result;
   }
 }
 

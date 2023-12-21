@@ -178,7 +178,7 @@ class LibraryBuilder {
   final Map<String, Reference> _declaredReferences = {};
 
   /// The export scope of the library.
-  final ExportScope exportScope = ExportScope();
+  ExportScope exportScope = ExportScope();
 
   /// The `export` directives that export this library.
   final List<Export> exports = [];
@@ -319,6 +319,7 @@ class LibraryBuilder {
   }
 
   void buildInitialExportScope() {
+    exportScope = ExportScope();
     _declaredReferences.forEach((name, reference) {
       if (name.startsWith('_')) return;
       if (reference.isPrefix) return;
@@ -361,12 +362,12 @@ class LibraryBuilder {
   /// because we ran all, or those that we have not run yet have dependencies
   /// of interfaces declared in other libraries that, and we have not run yet
   /// declarations phase macro applications for them.
-  Future<bool> executeMacroDeclarationsPhase({
+  Future<MacroDeclarationsPhaseStepResult> executeMacroDeclarationsPhase({
     required Element? targetElement,
   }) async {
     final macroApplier = linker.macroApplier;
     if (macroApplier == null) {
-      return false;
+      return MacroDeclarationsPhaseStepResult.nothing;
     }
 
     final results = await macroApplier.executeDeclarationsPhase(
@@ -376,11 +377,21 @@ class LibraryBuilder {
 
     // No more applications to execute.
     if (results == null) {
-      return false;
+      return MacroDeclarationsPhaseStepResult.nothing;
     }
 
     await _addMacroResults(macroApplier, results, buildTypes: true);
-    return true;
+
+    // Check if a new top-level declaration was added.
+    final augmentationUnit = units.last.element;
+    if (augmentationUnit.functions.isNotEmpty ||
+        augmentationUnit.topLevelVariables.isNotEmpty) {
+      element.resetScope();
+      return MacroDeclarationsPhaseStepResult.topDeclaration;
+    }
+
+    // Probably class member declarations.
+    return MacroDeclarationsPhaseStepResult.otherProgress;
   }
 
   Future<void> executeMacroDefinitionsPhase({
@@ -1195,6 +1206,12 @@ class LinkingUnit {
     required this.container,
     required this.element,
   });
+}
+
+enum MacroDeclarationsPhaseStepResult {
+  nothing,
+  otherProgress,
+  topDeclaration,
 }
 
 /// This class examines all the [InterfaceElement]s in a library and determines

@@ -42,6 +42,8 @@ extension FooServiceExtension on DTDConnection {
 
 void main(List<String> args) async {
   final url = args[0]; // pass the url as a param to the example
+  print('Connecting to DTD at $url');
+
   final fooService = await DartToolingDaemon.connect(Uri.parse('ws://$url'));
   final client = await DartToolingDaemon.connect(Uri.parse('ws://$url'));
 

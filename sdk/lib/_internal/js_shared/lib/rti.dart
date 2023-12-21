@@ -660,6 +660,13 @@ Rti _substitute(Object? universe, Rti rti, Object? typeArguments, int depth) {
           _Utils.isIdentical(substitutedArguments, arguments)) return rti;
       return _Universe._lookupBindingRti(
           universe, substitutedBase, substitutedArguments);
+    case Rti.kindRecord:
+      String tag = Rti._getRecordPartialShapeTag(rti);
+      var fields = Rti._getRecordFields(rti);
+      var substitutedFields =
+          _substituteArray(universe, fields, typeArguments, depth);
+      if (_Utils.isIdentical(substitutedFields, fields)) return rti;
+      return _Universe._lookupRecordRti(universe, tag, substitutedFields);
     case Rti.kindFunction:
       Rti returnType = Rti._getReturnType(rti);
       Rti substitutedReturnType =
@@ -1979,6 +1986,12 @@ String _rtiToDebugString(Rti rti) {
     Rti base = Rti._getBindingBase(rti);
     var arguments = Rti._getBindingArguments(rti);
     return 'binding(${_rtiToDebugString(base)}, ${_rtiArrayToDebugString(arguments)})';
+  }
+
+  if (kind == Rti.kindRecord) {
+    String tag = Rti._getRecordPartialShapeTag(rti);
+    var fields = Rti._getRecordFields(rti);
+    return 'record([$tag], ${_rtiArrayToDebugString(fields)})';
   }
 
   if (kind == Rti.kindFunction) {
