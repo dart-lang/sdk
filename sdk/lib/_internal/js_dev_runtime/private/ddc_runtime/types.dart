@@ -2376,12 +2376,13 @@ class RecordType extends DartType {
   @JSExportName('is')
   bool is_T(obj) {
     if (!(obj is RecordImpl)) return false;
-    if (shape != obj.shape) return false;
-    if (types.length != obj.values.length) {
+    if (shape != JS<Shape>('!', '#[#]', obj, shapeProperty)) return false;
+    var values = JS<JSArray>('!', '#[#]', obj, valuesProperty);
+    if (types.length != values.length) {
       return false;
     }
     for (var i = 0; i < types.length; i++) {
-      if (!JS<bool>('!', '#.is(#)', types[i], obj.values[i])) {
+      if (!JS<bool>('!', '#.is(#)', types[i], values[i])) {
         return false;
       }
     }
