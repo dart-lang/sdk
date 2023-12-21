@@ -13,6 +13,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
+import '../loader.dart';
 import '../modifier.dart' show abstractMask, namedMixinApplicationMask;
 import '../problems.dart' show unimplemented;
 import '../scope.dart';
@@ -109,8 +110,8 @@ class DillClassBuilder extends ClassBuilderImpl
   List<NominalVariableBuilder>? get typeVariables {
     List<NominalVariableBuilder>? typeVariables = _typeVariables;
     if (typeVariables == null && cls.typeParameters.isNotEmpty) {
-      typeVariables =
-          _typeVariables = computeTypeVariableBuilders(cls.typeParameters);
+      typeVariables = _typeVariables = computeTypeVariableBuilders(
+          cls.typeParameters, libraryBuilder.loader);
     }
     return typeVariables;
   }
@@ -258,9 +259,10 @@ TypeBuilder? computeTypeBuilder(
 }
 
 List<NominalVariableBuilder>? computeTypeVariableBuilders(
-    List<TypeParameter>? typeParameters) {
+    List<TypeParameter>? typeParameters, Loader loader) {
   if (typeParameters == null || typeParameters.length == 0) return null;
-  return new List.generate(typeParameters.length,
-      (int i) => new NominalVariableBuilder.fromKernel(typeParameters[i]),
-      growable: false);
+  return <NominalVariableBuilder>[
+    for (TypeParameter typeParameter in typeParameters)
+      new NominalVariableBuilder.fromKernel(typeParameter, loader: loader)
+  ];
 }

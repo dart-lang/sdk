@@ -282,24 +282,10 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         if (typeVariables != null) {
           if (typeArguments == null ||
               typeVariables.length != typeArguments.length) {
-            if (typeVariables.isEmpty) {
-              typeArguments = <TypeBuilder>[];
-            } else {
-              if (typeVariables.first.kind == TypeVariableKind.fromKernel) {
-                TypeBuilderComputer typeBuilderComputer =
-                    new TypeBuilderComputer(libraryBuilder.loader);
-                typeArguments = <TypeBuilder>[
-                  for (NominalVariableBuilder typeVariable in typeVariables)
-                    typeVariable.parameter.defaultType
-                        .accept(typeBuilderComputer)
-                ];
-              } else {
-                typeArguments = <TypeBuilder>[
-                  for (NominalVariableBuilder typeVariable in typeVariables)
-                    typeVariable.defaultType!
-                ];
-              }
-            }
+            typeArguments = <TypeBuilder>[
+              for (NominalVariableBuilder typeVariable in typeVariables)
+                typeVariable.defaultType!
+            ];
           }
           return unaliasedRhsType!.subst(
               new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(

@@ -8,7 +8,7 @@ import 'package:kernel/src/unaliasing.dart';
 
 import '../fasta_codes.dart';
 import '../kernel/body_builder_context.dart';
-import '../kernel/type_builder_computer.dart';
+import '../loader.dart';
 import '../messages.dart';
 import '../modifier.dart';
 import '../problems.dart' show internalProblem, unexpected, unhandled;

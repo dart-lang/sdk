@@ -38,6 +38,7 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
   TypeVariableBuilderBase(
       String name, Builder? compilationUnit, int charOffset, this.fileUri,
       {this.bound,
+      this.defaultType,
       required this.kind,
       int? variableVariance,
       List<MetadataBuilder>? metadata})
@@ -203,12 +204,25 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
             variableVariance: variableVariance,
             metadata: metadata);
 
-  NominalVariableBuilder.fromKernel(TypeParameter parameter)
+  /// Restores a [NominalVariableBuilder] from kernel
+  ///
+  /// The [loader] parameter is supposed to be passed by the clients and be not
+  /// null. It is needed to restore [bound] and [defaultType] of the type
+  /// variable from dill. The null value of this parameter is used only once in
+  /// [TypeBuilderComputer] to break the infinite loop of recovering type
+  /// variables of some recursive declarations, like the declaration of `A` in
+  /// the example below.
+  ///
+  ///   class A<X extends A<X>> {}
+  NominalVariableBuilder.fromKernel(TypeParameter parameter,
+      {required Loader? loader})
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
         super(parameter.name ?? "", null, parameter.fileOffset, null,
-            kind: TypeVariableKind.fromKernel);
+            kind: TypeVariableKind.fromKernel,
+            bound: loader?.computeTypeBuilder(parameter.bound),
+            defaultType: loader?.computeTypeBuilder(parameter.defaultType));
 
   @override
   String get debugName => "NominalVariableBuilder";
