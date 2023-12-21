@@ -71,11 +71,12 @@ FutureOr<Handler> defaultHandler({
           path.joinAll(pathSegments),
         );
         final contentType = lookupMimeType(extensionAssetPath) ?? 'text/html';
+        final baseHref = '$appRoot$extensionRequestPath/$extensionName/';
         return _serveStaticFile(
           request,
           File(extensionAssetPath),
           contentType,
-          baseHref: '$appRoot$extensionRequestPath/$extensionName/',
+          baseHref: baseHref,
         );
       }
     }
@@ -174,12 +175,22 @@ Future<Response> _serveStaticFile(
       // between a static file being served and accessed. See
       // https://github.com/flutter/devtools/issues/6365.
       await Future.delayed(Duration(milliseconds: 500));
-      fileBytes = file.readAsBytesSync();
+      try {
+        fileBytes = file.readAsBytesSync();
+      } catch (e) {
+        return Response.notFound('could not read file as bytes: ${file.path}');
+      }
     }
     return Response.ok(fileBytes, headers: headers);
   }
 
-  var contents = file.readAsStringSync();
+  late String contents;
+  try {
+    contents = file.readAsStringSync();
+  } catch (e) {
+    return Response.notFound('could not read file as String: ${file.path}');
+  }
+
   if (baseHref != null) {
     assert(baseHref.startsWith('/'));
     assert(baseHref.endsWith('/'));

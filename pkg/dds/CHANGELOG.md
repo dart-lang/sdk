@@ -1,3 +1,6 @@
+# 3.1.2
+- Improved error handling for serving static DevTools assets.
+
 # 2.11.0
 - Added a retry to the DevTools handler for serving static files.
 - Updated `devtools_shared` to ^4.0.0.

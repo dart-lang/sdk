@@ -1,3 +1,11 @@
+## 3.2.4
+
+This is a patch release that:
+
+- Fixes an issue with serving static DevTools assets. (issue [#54428][])
+
+[#54428]: https://github.com/dart-lang/sdk/issues/54428
+
 ## 3.2.3 - 2023-12-06
 
 This is a patch release that:
