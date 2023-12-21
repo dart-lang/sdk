@@ -66,6 +66,43 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 }
 
+/*macro*/ class ReferenceFirstFormalParameter
+    implements FunctionDefinitionMacro {
+  const ReferenceFirstFormalParameter();
+
+  @override
+  Future<void> buildDefinitionForFunction(
+    FunctionDeclaration function,
+    FunctionDefinitionBuilder builder,
+  ) async {
+    builder.augment(
+      FunctionBodyCode.fromParts([
+        '{\n  ',
+        function.positionalParameters.first.identifier,
+        ';\n}',
+      ]),
+    );
+  }
+}
+
+/*macro*/ class ReferenceFirstTypeParameter implements FunctionDefinitionMacro {
+  const ReferenceFirstTypeParameter();
+
+  @override
+  Future<void> buildDefinitionForFunction(
+    FunctionDeclaration function,
+    FunctionDefinitionBuilder builder,
+  ) async {
+    builder.augment(
+      FunctionBodyCode.fromParts([
+        '{\n  ',
+        function.typeParameters.first.identifier,
+        ';\n}',
+      ]),
+    );
+  }
+}
+
 /*macro*/ class ReferenceIdentifier implements ClassDeclarationsMacro {
   final String uriStr;
   final String topName;

@@ -1832,6 +1832,25 @@ augment class X {
 ''');
   }
 
+  test_resolveIdentifier_formalParameter() async {
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@ReferenceFirstFormalParameter()
+void foo(int a);
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment void foo(prefix0.int a, ) {
+  a;
+}
+''');
+  }
+
   test_resolveIdentifier_functionTypeAlias() async {
     newFile('$testPackageLibPath/a.dart', r'''
 typedef void A();
@@ -1880,6 +1899,23 @@ augment class X {
   void doReference() {
     prefix0.A;
   }
+}
+''');
+  }
+
+  test_resolveIdentifier_typeParameter() async {
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@ReferenceFirstTypeParameter()
+void foo<T>();
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment void foo<T>() {
+  T;
 }
 ''');
   }
