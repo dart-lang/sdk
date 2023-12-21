@@ -1549,26 +1549,27 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
   @override
   visitNode(js.Node node, _) {}
 
-  void _handleFunction(js.Node node, js.Node body, int start) {
-    _currentNode.active =
-        _currentNode.active || reader.getSourceInformation(node) != null;
-    Offset entryOffset = getOffsetForNode(_currentNode.statementOffset, start);
-    notifyStep(node, entryOffset, StepKind.FUN_ENTRY);
+  void _handleFunction(_PositionInfoNode node, js.Node body, int start) {
+    _currentNode.active = _currentNode.active ||
+        reader.getSourceInformation(node.astNode) != null;
+    Offset entryOffset = getOffsetForNode(node.statementOffset, start);
+    notifyStep(node.astNode, entryOffset, StepKind.FUN_ENTRY);
 
     visit(body, statementOffset: start);
 
-    _currentNode.addNotifyStep(StepKind.FUN_EXIT);
+    node.addNotifyStep(StepKind.FUN_EXIT);
   }
 
   _handleFunctionExpression(js.FunctionExpression node, int start) {
-    final parentNode = _currentNode.parent!.astNode;
-    js.NamedFunction? namedParent;
+    final parentNode = _currentNode.parent;
+    final parentAstNode = _currentNode.parent?.astNode;
+    _PositionInfoNode functionNode = _currentNode;
     js.Expression? declaration;
-    if (parentNode is js.NamedFunction) {
-      namedParent = parentNode;
-      declaration = parentNode.name;
-    } else if (parentNode is js.FunctionDeclaration) {
-      declaration = parentNode.name;
+    if (parentAstNode is js.NamedFunction) {
+      functionNode = parentNode!;
+      declaration = parentAstNode.name;
+    } else if (parentAstNode is js.FunctionDeclaration) {
+      declaration = parentAstNode.name;
     }
 
     visit(declaration);
@@ -1576,7 +1577,7 @@ class OnlineJavaScriptTracer extends js.BaseVisitor1Void<int>
       visit(param);
     }
     // For named functions we treat the named parent as the main node.
-    _handleFunction(namedParent ?? node, node.body, start);
+    _handleFunction(functionNode, node.body, start);
   }
 
   @override
