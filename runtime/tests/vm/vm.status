@@ -130,7 +130,6 @@ dart/gc/scavenger_abort_test: Skip # Uses too much memory with TSAN overhead and
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/regress_40462_test: SkipSlow
 dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
-dart/regress_48523_test: Pass, Slow
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
 dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating several snapshots in both ELF and assembly modes.
 dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
