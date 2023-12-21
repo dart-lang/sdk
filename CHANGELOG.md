@@ -1,9 +1,11 @@
-## 3.2.4
+## 3.2.4 - 2023-12-21
 
 This is a patch release that:
 
+- Upgrades Dart DevTools to version 2.28.5 (issue [#54427][])
 - Fixes an issue with serving static DevTools assets. (issue [#54428][])
 
+[#54427]: https://github.com/dart-lang/sdk/issues/54427
 [#54428]: https://github.com/dart-lang/sdk/issues/54428
 
 ## 3.2.3 - 2023-12-06
