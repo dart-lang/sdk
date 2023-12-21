@@ -34,18 +34,19 @@ import 'package:front_end/src/api_prototype/front_end.dart' as fe
     show CompilerResult;
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
-import 'package:kernel/binary/ast_to_binary.dart';
+import 'package:front_end/src/isolate_macro_serializer.dart';
 import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
+import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart'
     show Component, Library, Procedure, NonNullableByDefaultCompiledMode;
-import 'package:kernel/target/targets.dart' show TargetFlags;
+import 'package:kernel/target/targets.dart' show Target, TargetFlags;
+import 'package:vm/http_filesystem.dart';
 import 'package:vm/incremental_compiler.dart';
 import 'package:vm/kernel_front_end.dart'
     show createLoadedLibrariesSet, ErrorDetector;
-import 'package:vm/http_filesystem.dart';
 import 'package:vm/native_assets/diagnostic_message.dart';
 import 'package:vm/native_assets/synthesizer.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
@@ -100,10 +101,13 @@ CompilerOptions setupCompilerOptions(
   }
 
   Verbosity verbosity = Verbosity.parseArgument(verbosityLevel);
+  Target target = new VmTarget(new TargetFlags(
+      soundNullSafety: soundNullSafety, supportMirrors: enableMirrors));
   return new CompilerOptions()
     ..fileSystem = fileSystem
-    ..target = new VmTarget(new TargetFlags(
-        soundNullSafety: soundNullSafety, supportMirrors: enableMirrors))
+    ..target = target
+    ..macroTarget = target
+    ..macroSerializer = new IsolateMacroSerializer()
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
     ..embedSourceText = embedSources
