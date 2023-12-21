@@ -11,11 +11,15 @@ import 'package:sse/server/sse_handler.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:shelf_web_socket/shelf_web_socket.dart';
 import 'package:shelf/shelf_io.dart' as io;
+import 'package:dtd/dtd.dart' as dtd;
+import 'package:dtd/dtd_file_system_service.dart';
 
 import 'constants.dart';
 import 'dtd_client.dart';
 import 'dtd_client_manager.dart';
 import 'dtd_stream_manager.dart';
+
+/// TODO(https://github.com/dart-lang/sdk/issues/54429): Add shutdown behavior.
 
 /// A service that facilitates communication between dart tools.
 class DartToolingDaemon {
@@ -82,7 +86,7 @@ class DartToolingDaemon {
     _server = tmpServer;
 
     _uri = Uri(
-      scheme: 'http',
+      scheme: 'ws',
       host: host,
       port: _server.port,
       path: '/',
@@ -103,6 +107,7 @@ class DartToolingDaemon {
       shouldLogRequests: shouldLogRequests,
     );
     await dtd._startService();
+    await dtd._startAuxilliaryServices();
     return dtd;
   }
 
@@ -136,6 +141,12 @@ class DartToolingDaemon {
     });
 
     return handler.handler;
+  }
+
+  /// Starts any services that DTD is responsible for starting.
+  Future<void> _startAuxilliaryServices() async {
+    final fileService = await dtd.DartToolingDaemon.connect(_uri!);
+    await DTDFileService.register(fileService);
   }
 }
 
