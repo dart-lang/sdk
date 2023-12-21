@@ -27,7 +27,8 @@ ForwardingCorpse* ForwardingCorpse::AsForwarder(uword addr, intptr_t size) {
   tags = UntaggedObject::SizeTag::update(size, tags);
   tags = UntaggedObject::ClassIdTag::update(kForwardingCorpse, tags);
   bool is_old = (addr & kNewObjectAlignmentOffset) == kOldObjectAlignmentOffset;
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
+  tags = UntaggedObject::OldBit::update(is_old, tags);
+  tags = UntaggedObject::OldAndNotMarkedBit::update(is_old, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(is_old, tags);
   tags = UntaggedObject::NewBit::update(!is_old, tags);
 

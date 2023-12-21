@@ -29,10 +29,6 @@ class JSONObject;
 class ObjectSet;
 template <bool parallel>
 class ScavengerVisitorBase;
-class GCMarker;
-template <typename Type, typename PtrType>
-class GCLinkedList;
-struct GCLinkedLists;
 
 class SemiSpace {
  public:
@@ -159,7 +155,7 @@ class Scavenger {
 
   intptr_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
-    return to_->used_in_words() - freed_in_words_;
+    return to_->used_in_words();
   }
   intptr_t CapacityInWords() const {
     MutexLocker ml(&space_lock_);
@@ -221,8 +217,6 @@ class Scavenger {
     ASSERT(external_size_ >= 0);
   }
 
-  void set_freed_in_words(intptr_t value) { freed_in_words_ = value; }
-
   // The maximum number of Dart mutator threads we allow to execute at the same
   // time.
   static intptr_t MaxMutatorThreadCount() {
@@ -237,12 +231,6 @@ class Scavenger {
   Page* head() const {
     return to_->head();
   }
-
-  void Prune(MarkingStackBlock** from, MarkingStack* to);
-  void Forward(MarkingStack* stack);
-  void PruneWeak(GCLinkedLists* delayed);
-  template <typename Type, typename PtrType>
-  void PruneWeak(GCLinkedList<Type, PtrType>* list);
 
  private:
   // Ids for time and data records in Heap::GCStats.
@@ -306,29 +294,25 @@ class Scavenger {
   intptr_t max_semi_capacity_in_words_;
 
   // Keep track whether a scavenge is currently running.
-  bool scavenging_ = false;
+  bool scavenging_;
   bool early_tenure_ = false;
-  RelaxedAtomic<intptr_t> root_slices_started_ = {0};
-  RelaxedAtomic<intptr_t> weak_slices_started_ = {0};
+  RelaxedAtomic<intptr_t> root_slices_started_;
+  RelaxedAtomic<intptr_t> weak_slices_started_;
   StoreBufferBlock* blocks_ = nullptr;
-  MarkingStackBlock* mark_blocks_ = nullptr;
-  MarkingStackBlock* new_blocks_ = nullptr;
-  MarkingStackBlock* deferred_blocks_ = nullptr;
 
-  int64_t gc_time_micros_ = 0;
-  intptr_t collections_ = 0;
+  int64_t gc_time_micros_;
+  intptr_t collections_;
   static constexpr int kStatsHistoryCapacity = 4;
   RingBuffer<ScavengeStats, kStatsHistoryCapacity> stats_history_;
 
   intptr_t scavenge_words_per_micro_;
-  intptr_t idle_scavenge_threshold_in_words_ = 0;
+  intptr_t idle_scavenge_threshold_in_words_;
 
   // The total size of external data associated with objects in this scavenger.
-  RelaxedAtomic<intptr_t> external_size_ = {0};
-  intptr_t freed_in_words_ = 0;
+  RelaxedAtomic<intptr_t> external_size_;
 
-  RelaxedAtomic<bool> failed_to_promote_ = {false};
-  RelaxedAtomic<bool> abort_ = {false};
+  RelaxedAtomic<bool> failed_to_promote_;
+  RelaxedAtomic<bool> abort_;
 
   // Protects new space during the allocation of new TLABs
   mutable Mutex space_lock_;

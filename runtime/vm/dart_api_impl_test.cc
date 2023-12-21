@@ -1766,6 +1766,9 @@ TEST_CASE(DartAPI_ExternalStringCallback) {
     TransitionNativeToVM transition(thread);
     EXPECT_EQ(40, peer8);
     EXPECT_EQ(41, peer16);
+    GCTestHelper::CollectOldSpace();
+    EXPECT_EQ(40, peer8);
+    EXPECT_EQ(41, peer16);
     GCTestHelper::CollectNewSpace();
     EXPECT_EQ(80, peer8);
     EXPECT_EQ(82, peer16);
@@ -3280,6 +3283,8 @@ TEST_CASE(DartAPI_ExternalTypedDataCallback) {
   {
     TransitionNativeToVM transition(thread);
     EXPECT(peer == 0);
+    GCTestHelper::CollectOldSpace();
+    EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace();
     EXPECT(peer == 42);
   }
@@ -4057,6 +4062,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleCallback) {
   }
   {
     TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectOldSpace();
+    EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace();
     EXPECT(peer == 42);
   }
@@ -4080,6 +4087,8 @@ TEST_CASE(DartAPI_FinalizableHandleCallback) {
   }
   {
     TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectOldSpace();
+    EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace();
     EXPECT(peer == 42);
   }
@@ -4167,6 +4176,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleCallbackSelfDelete) {
   }
   {
     TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectOldSpace();
+    EXPECT(peer == 0);
     GCTestHelper::CollectNewSpace();
     EXPECT(peer == 42);
     ASSERT(delete_on_finalization == nullptr);
@@ -4201,8 +4212,8 @@ VM_UNIT_TEST_CASE(DartAPI_FinalizableHandlesCallbackShutdown) {
 
 TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
   Heap* heap = IsolateGroup::Current()->heap();
-  EXPECT_EQ(heap->ExternalInWords(Heap::kNew), 0);
-  EXPECT_EQ(heap->ExternalInWords(Heap::kOld), 0);
+  EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
+  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   Dart_WeakPersistentHandle weak1 = nullptr;
   const intptr_t kWeak1ExternalSize = 1 * KB;
   {
@@ -4230,26 +4241,20 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
   }
   {
     TransitionNativeToVM transition(thread);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kNew),
-              (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kOld), 0);
-    // Collect weakly referenced string.
+    GCTestHelper::CollectOldSpace();
+    EXPECT(heap->ExternalInWords(Heap::kNew) ==
+           (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
+    // Collect weakly referenced string, and promote strongly referenced string.
     GCTestHelper::CollectNewSpace();
-    EXPECT_EQ(heap->ExternalInWords(Heap::kNew),
-              kWeak2ExternalSize / kWordSize);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kOld), 0);
-    // Promote strongly referenced string.
     GCTestHelper::CollectNewSpace();
-    EXPECT_EQ(heap->ExternalInWords(Heap::kNew), 0);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kOld),
-              kWeak2ExternalSize / kWordSize);
+    EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
+    EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
   }
   Dart_DeletePersistentHandle(strong_ref);
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectOldSpace();
-    EXPECT_EQ(heap->ExternalInWords(Heap::kNew), 0);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kOld), 0);
+    EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   }
   Dart_DeleteWeakPersistentHandle(weak1);
   Dart_DeleteWeakPersistentHandle(weak2);
@@ -4257,8 +4262,8 @@ TEST_CASE(DartAPI_WeakPersistentHandleExternalAllocationSize) {
 
 TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSize) {
   Heap* heap = IsolateGroup::Current()->heap();
-  EXPECT_EQ(heap->ExternalInWords(Heap::kNew), 0);
-  EXPECT_EQ(heap->ExternalInWords(Heap::kOld), 0);
+  EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
+  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   const intptr_t kWeak1ExternalSize = 1 * KB;
   {
     Dart_EnterScope();
@@ -4280,26 +4285,20 @@ TEST_CASE(DartAPI_FinalizableHandleExternalAllocationSize) {
   }
   {
     TransitionNativeToVM transition(thread);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kNew),
-              (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kOld), 0);
-    // Collect weakly referenced string.
+    GCTestHelper::CollectOldSpace();
+    EXPECT(heap->ExternalInWords(Heap::kNew) ==
+           (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
+    // Collect weakly referenced string, and promote strongly referenced string.
     GCTestHelper::CollectNewSpace();
-    EXPECT_EQ(heap->ExternalInWords(Heap::kNew),
-              kWeak2ExternalSize / kWordSize);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kOld), 0);
-    // Promote strongly referenced string.
     GCTestHelper::CollectNewSpace();
-    EXPECT_EQ(heap->ExternalInWords(Heap::kNew), 0);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kOld),
-              kWeak2ExternalSize / kWordSize);
+    EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
+    EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
   }
   Dart_DeletePersistentHandle(strong_ref);
   {
     TransitionNativeToVM transition(thread);
     GCTestHelper::CollectOldSpace();
-    EXPECT_EQ(heap->ExternalInWords(Heap::kNew), 0);
-    EXPECT_EQ(heap->ExternalInWords(Heap::kOld), 0);
+    EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
   }
 }
 
@@ -4751,6 +4750,20 @@ TEST_CASE(DartAPI_ImplicitReferencesNewSpace) {
     EXPECT_VALID(AsHandle(weak1));
     EXPECT_VALID(AsHandle(weak2));
     EXPECT_VALID(AsHandle(weak3));
+    Dart_ExitScope();
+  }
+
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectOldSpace();
+  }
+
+  {
+    Dart_EnterScope();
+    // Old space collection should not affect old space objects.
+    EXPECT(!Dart_IsNull(AsHandle(weak1)));
+    EXPECT(!Dart_IsNull(AsHandle(weak2)));
+    EXPECT(!Dart_IsNull(AsHandle(weak3)));
     Dart_ExitScope();
   }
 

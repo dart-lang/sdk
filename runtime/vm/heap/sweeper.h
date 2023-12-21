@@ -34,8 +34,6 @@ class GCSweeper {
   // last marked object.
   intptr_t SweepLargePage(Page* page);
 
-  intptr_t SweepNewPage(Page* page);
-
   // Sweep the large and regular sized data pages.
   static void SweepConcurrent(IsolateGroup* isolate_group);
 };
