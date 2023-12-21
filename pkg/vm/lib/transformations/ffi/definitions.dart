@@ -7,7 +7,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         messageFfiAbiSpecificIntegerInvalid,
         messageFfiAbiSpecificIntegerMappingInvalid,
         messageFfiPackedAnnotationAlignment,
-        messageNonPositiveArrayDimensions,
         templateFfiCompoundImplementsFinalizable,
         templateFfiEmptyStruct,
         templateFfiFieldAnnotation,
@@ -16,8 +15,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         templateFfiFieldNoAnnotation,
         templateFfiFieldNull,
         templateFfiPackedAnnotation,
-        templateFfiSizeAnnotation,
-        templateFfiSizeAnnotationDimensions,
         templateFfiStructGeneric,
         templateFfiTypeMismatch;
 
@@ -145,7 +142,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         final clazz = (type as InterfaceType).classNode;
         dependencies.add(clazz);
       } else if (isArrayType(type)) {
-        final sizeAnnotations = _getArraySizeAnnotations(f);
+        final sizeAnnotations = getArraySizeAnnotations(f);
         if (sizeAnnotations.length == 1) {
           final singleElementType = arraySingleElementType(type);
           if (singleElementType is InterfaceType &&
@@ -444,44 +441,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         if (isArrayType(type)) {
           try {
             ensureNativeTypeValid(type, f, allowInlineArray: true);
+            ensureArraySizeAnnotation(f, type);
           } on FfiStaticTypeError {
             // It's OK to swallow the exception because the diagnostics issued will
             // cause compilation to fail. By continuing, we can report more
             // diagnostics before compilation ends.
-            success = false;
-          }
-          final sizeAnnotations = _getArraySizeAnnotations(f);
-          if (sizeAnnotations.length == 1) {
-            final singleElementType = arraySingleElementType(type);
-            if (singleElementType is! InterfaceType) {
-              assert(singleElementType is InvalidType);
-              // This class is invalid, but continue reporting other errors on it.
-              // An error on the type will already have been reported.
-              success = false;
-            } else {
-              final dimensions = sizeAnnotations.single;
-              if (arrayDimensions(type) != dimensions.length) {
-                diagnosticReporter.report(
-                    templateFfiSizeAnnotationDimensions
-                        .withArguments(f.name.text),
-                    f.fileOffset,
-                    f.name.text.length,
-                    f.fileUri);
-              }
-              for (var dimension in dimensions) {
-                if (dimension <= 0) {
-                  diagnosticReporter.report(messageNonPositiveArrayDimensions,
-                      f.fileOffset, f.name.text.length, f.fileUri);
-                  success = false;
-                }
-              }
-            }
-          } else {
-            diagnosticReporter.report(
-                templateFfiSizeAnnotation.withArguments(f.name.text),
-                f.fileOffset,
-                f.name.text.length,
-                f.fileUri);
             success = false;
           }
         }
@@ -588,7 +552,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       // Nullable.
       NativeTypeCfe? type;
       if (isArrayType(dartType)) {
-        final sizeAnnotations = _getArraySizeAnnotations(m).toList();
+        final sizeAnnotations = getArraySizeAnnotations(m).toList();
         if (sizeAnnotations.length == 1) {
           final arrayDimensions = sizeAnnotations.single;
           if (this.arrayDimensions(dartType) == arrayDimensions.length) {
@@ -942,42 +906,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         .map((constant) => constant.classNode)
         .where((klass) =>
             _getFieldType(klass) != null || _isUserAbiSpecificInteger(klass));
-  }
-
-  Iterable<List<int>> _getArraySizeAnnotations(Member node) {
-    return node.annotations
-        .whereType<ConstantExpression>()
-        .map((e) => e.constant)
-        .whereType<InstanceConstant>()
-        .where((e) => e.classNode == arraySizeClass)
-        .map(_arraySize);
-  }
-
-  List<int> _arraySize(InstanceConstant constant) {
-    final dimensions =
-        constant.fieldValues[arraySizeDimensionsField.fieldReference];
-    if (dimensions != null) {
-      if (dimensions is ListConstant) {
-        final result = dimensions.entries
-            .whereType<IntConstant>()
-            .map((e) => e.value)
-            .toList();
-        return result;
-      }
-    }
-    final dimensionFields = [
-      arraySizeDimension1Field,
-      arraySizeDimension2Field,
-      arraySizeDimension3Field,
-      arraySizeDimension4Field,
-      arraySizeDimension5Field
-    ];
-    final result = dimensionFields
-        .map((f) => constant.fieldValues[f.fieldReference])
-        .whereType<IntConstant>()
-        .map((c) => c.value)
-        .toList();
-    return result;
   }
 
   Iterable<int> _getPackedAnnotations(Class node) {

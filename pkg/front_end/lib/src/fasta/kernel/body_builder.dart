@@ -1768,8 +1768,9 @@ class BodyBuilder extends StackListenerImpl
     List<NominalVariableBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
       typeParameterBuilders ??= <NominalVariableBuilder>[];
-      typeParameterBuilders
-          .add(new NominalVariableBuilder.fromKernel(typeParameter));
+      typeParameterBuilders.add(new NominalVariableBuilder.fromKernel(
+          typeParameter,
+          loader: libraryBuilder.loader));
     }
     enterNominalVariablesScope(typeParameterBuilders);
 

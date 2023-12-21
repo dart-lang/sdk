@@ -9,12 +9,15 @@ library vm.transformations.ffi;
 
 import 'package:front_end/src/api_unstable/vm.dart'
     show
+        messageFfiCallMustNotReturnTypedData,
+        messageFfiCallbackMustNotUseTypedData,
         messageFfiLeafCallMustNotReturnHandle,
         messageFfiLeafCallMustNotTakeHandle,
-        templateFfiTypeInvalid,
-        messageFfiCallbackMustNotUseTypedData,
-        messageFfiCallMustNotReturnTypedData,
         messageFfiNonLeafCallMustNotTakeTypedData,
+        messageNonPositiveArrayDimensions,
+        templateFfiSizeAnnotation,
+        templateFfiSizeAnnotationDimensions,
+        templateFfiTypeInvalid,
         templateFfiTypeMismatch;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -1060,6 +1063,90 @@ class FfiTransformer extends Transformer {
       elementType = elementTypeAny;
     }
     return elementType;
+  }
+
+  /// Ensures that [node] has an `Array` annotation with valid dimensions
+  /// matching its [type].
+  ///
+  /// Throws an [FfiStaticTypeError] otherwise.
+  List<int> ensureArraySizeAnnotation(Member node, DartType type) {
+    final sizeAnnotations = getArraySizeAnnotations(node);
+    List<int> dimensions;
+    var success = true;
+
+    if (sizeAnnotations.length == 1) {
+      final singleElementType = arraySingleElementType(type);
+      if (singleElementType is! InterfaceType) {
+        assert(singleElementType is InvalidType);
+        throw FfiStaticTypeError();
+      } else {
+        dimensions = sizeAnnotations.single;
+        if (arrayDimensions(type) != dimensions.length) {
+          diagnosticReporter.report(
+              templateFfiSizeAnnotationDimensions.withArguments(node.name.text),
+              node.fileOffset,
+              node.name.text.length,
+              node.fileUri);
+        }
+        for (var dimension in dimensions) {
+          if (dimension <= 0) {
+            diagnosticReporter.report(messageNonPositiveArrayDimensions,
+                node.fileOffset, node.name.text.length, node.fileUri);
+            success = false;
+          }
+        }
+      }
+    } else {
+      diagnosticReporter.report(
+          templateFfiSizeAnnotation.withArguments(node.name.text),
+          node.fileOffset,
+          node.name.text.length,
+          node.fileUri);
+      throw FfiStaticTypeError();
+    }
+
+    if (!success) {
+      throw FfiStaticTypeError();
+    }
+
+    return dimensions;
+  }
+
+  Iterable<List<int>> getArraySizeAnnotations(Member node) {
+    return node.annotations
+        .whereType<ConstantExpression>()
+        .map((e) => e.constant)
+        .whereType<InstanceConstant>()
+        .where((e) => e.classNode == arraySizeClass)
+        .map(_arraySize);
+  }
+
+  /// Reads the dimensions from a constant instance of `_ArraySize`.
+  List<int> _arraySize(InstanceConstant constant) {
+    final dimensions =
+        constant.fieldValues[arraySizeDimensionsField.fieldReference];
+    if (dimensions != null) {
+      if (dimensions is ListConstant) {
+        final result = dimensions.entries
+            .whereType<IntConstant>()
+            .map((e) => e.value)
+            .toList();
+        return result;
+      }
+    }
+    final dimensionFields = [
+      arraySizeDimension1Field,
+      arraySizeDimension2Field,
+      arraySizeDimension3Field,
+      arraySizeDimension4Field,
+      arraySizeDimension5Field
+    ];
+    final result = dimensionFields
+        .map((f) => constant.fieldValues[f.fieldReference])
+        .whereType<IntConstant>()
+        .map((c) => c.value)
+        .toList();
+    return result;
   }
 
   /// Returns the number of dimensions of `Array`.

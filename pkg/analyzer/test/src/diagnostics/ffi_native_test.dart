@@ -364,6 +364,56 @@ external set foo(int value);
 ''');
   }
 
+  test_Array_InvalidDimension() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+@Array(0)
+external Array<IntPtr> field;
+''', [
+      error(FfiCode.NON_POSITIVE_ARRAY_DIMENSION, 37, 1),
+    ]);
+  }
+
+  test_Array_InvalidDimensionCount() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+@Array(10, 20)
+external Array<IntPtr> field;
+''', [
+      error(FfiCode.SIZE_ANNOTATION_DIMENSIONS, 30, 14),
+    ]);
+  }
+
+  test_Array_MissingAnnotation() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+external Array<IntPtr> field;
+''', [
+      error(FfiCode.MISSING_SIZE_ANNOTATION_CARRAY, 53, 5),
+    ]);
+  }
+
+  test_Array_Valid() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native()
+@Array(12)
+external Array<IntPtr> field0;
+
+@Array(10, 20)
+@Native()
+external Array<Array<IntPtr>> field1;
+
+''');
+  }
+
   test_Infer() async {
     await assertNoErrorsInCode(r'''
 import 'dart:ffi';
@@ -415,6 +465,17 @@ int field;
     ]);
   }
 
+  test_MismatchingFunctionType() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+
+@Native<NativeFunction<Double Function()>>()
+external int Function() field;
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 89, 5),
+    ]);
+  }
+
   test_MismatchingType() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -440,17 +501,6 @@ external Pointer<IntPtr> valid;
     ]);
   }
 
-  test_Unsupported_Array() async {
-    await assertErrorsInCode(r'''
-import 'dart:ffi';
-
-@Native()
-external Array<IntPtr> field;
-''', [
-      error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 53, 5),
-    ]);
-  }
-
   test_Unsupported_Function() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
@@ -458,7 +508,7 @@ import 'dart:ffi';
 @Native<NativeFunction<Void Function()>>()
 external void Function() field;
 ''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 88, 5),
+      error(FfiCode.NATIVE_FIELD_INVALID_TYPE, 88, 5),
     ]);
   }
 

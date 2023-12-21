@@ -19,12 +19,16 @@ sealed class NativeTypeCfe {
   /// Constructs a [NativeTypeCfe] for transformers that can refer to types
   /// without having to know their internal layout or size.
   factory NativeTypeCfe.withoutLayout(
-      FfiTransformer transformer, DartType dartType) {
+    FfiTransformer transformer,
+    DartType dartType, {
+    List<int>? arrayDimensions,
+  }) {
     if (transformer.isCompoundSubtype(dartType)) {
       return ReferencedCompoundSubtypeCfe(
           (dartType as InterfaceType).classNode);
     } else {
-      return NativeTypeCfe(transformer, dartType);
+      return NativeTypeCfe(transformer, dartType,
+          arrayDimensions: arrayDimensions);
     }
   }
 

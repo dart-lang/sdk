@@ -17,16 +17,12 @@ import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
-import '../dill/dill_class_builder.dart';
-import '../dill/dill_extension_type_declaration_builder.dart';
-import '../dill/dill_type_alias_builder.dart';
 import '../fasta_codes.dart'
     show templateCyclicTypedef, templateTypeArgumentMismatch;
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
 import '../kernel/kernel_helper.dart';
-import '../kernel/type_builder_computer.dart';
 import '../problems.dart' show unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
@@ -183,28 +179,13 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           }
         } else if (declaration != null && declaration.typeVariablesCount > 0) {
           List<TypeVariableBuilderBase>? typeParameters;
-          List<TypeParameter>? typeParametersFromKernel;
-          bool isFromKernel = false;
           switch (declaration) {
             case ClassBuilder():
               typeParameters = declaration.typeVariables;
-              if (declaration is DillClassBuilder) {
-                isFromKernel = true;
-                typeParametersFromKernel = declaration.cls.typeParameters;
-              }
             case TypeAliasBuilder():
               typeParameters = declaration.typeVariables;
-              if (declaration is DillTypeAliasBuilder) {
-                isFromKernel = true;
-                typeParametersFromKernel = declaration.typedef.typeParameters;
-              }
             case ExtensionTypeDeclarationBuilder():
               typeParameters = declaration.typeParameters;
-              if (declaration is DillExtensionTypeDeclarationBuilder) {
-                isFromKernel = true;
-                typeParametersFromKernel =
-                    declaration.extensionTypeDeclaration.typeParameters;
-              }
             case BuiltinTypeDeclarationBuilder():
             case InvalidTypeDeclarationBuilder():
             case OmittedTypeDeclarationBuilder():
@@ -212,27 +193,11 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
             case TypeVariableBuilderBase():
           }
           if (typeParameters != null) {
-            TypeBuilderComputer? typeBuilderComputer;
             for (int i = 0; i < typeParameters.length; i++) {
               TypeVariableBuilderBase typeParameter = typeParameters[i];
-              if (!isFromKernel) {
-                if (_checkCyclicTypedefDependency(typeParameter.defaultType!,
-                    rootTypeAliasBuilder, seenTypeAliasBuilders)) {
-                  return true;
-                }
-              } else if (typeParametersFromKernel != null) {
-                assert(
-                    typeParameters.length == typeParametersFromKernel.length);
-                typeBuilderComputer ??=
-                    new TypeBuilderComputer(libraryBuilder.loader);
-                if (_checkCyclicTypedefDependency(
-                    typeParametersFromKernel[i]
-                        .defaultType
-                        .accept(typeBuilderComputer),
-                    rootTypeAliasBuilder,
-                    seenTypeAliasBuilders)) {
-                  return true;
-                }
+              if (_checkCyclicTypedefDependency(typeParameter.defaultType!,
+                  rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+                return true;
               }
             }
           }

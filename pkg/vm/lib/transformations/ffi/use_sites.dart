@@ -1208,9 +1208,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       return node;
     }
 
-    ensureNativeTypeValid(nativeType, node, allowCompounds: true);
+    ensureNativeTypeValid(nativeType, node,
+        allowCompounds: true, allowInlineArray: true);
     ensureNativeTypeToDartType(
-        nativeType, arg.getStaticType(staticTypeContext!), node);
+        nativeType, arg.getStaticType(staticTypeContext!), node,
+        allowArray: true);
 
     return StaticInvocation(
       nativePrivateAddressOf,

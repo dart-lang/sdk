@@ -7,6 +7,10 @@
   "pkg/_fe_analyzer_shared/lib/src/util/colors.dart": {
     "Dynamic invocation of 'split'.": 1
   },
+  "pkg/front_end/lib/src/isolate_macro_serializer.dart": {
+    "Dynamic invocation of 'unregisterKernelBlobUri'.": 1,
+    "Dynamic invocation of 'createUriForKernelBlob'.": 1
+  },
   "pkg/_fe_analyzer_shared/lib/src/scanner/token_impl.dart": {
     "Dynamic access of 'data'.": 1,
     "Dynamic access of 'start'.": 1,
