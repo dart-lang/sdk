@@ -1062,6 +1062,10 @@ UnmatchedToken/script3: Fail
 UnnamedObjectPatternField/analyzerCode: Fail
 UnreachableSwitchCase/part_wrapped_script: Fail # https://github.com/dart-lang/language/issues/2924
 UnreachableSwitchCase/script: Fail # https://github.com/dart-lang/language/issues/2924
+UnsoundSwitchExpressionError/analyzerCode: Fail
+UnsoundSwitchExpressionError/example: Fail
+UnsoundSwitchStatementError/analyzerCode: Fail
+UnsoundSwitchStatementError/example: Fail
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedDartExt/analyzerCode: Fail

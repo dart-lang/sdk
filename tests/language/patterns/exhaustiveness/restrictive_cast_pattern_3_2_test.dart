@@ -36,9 +36,5 @@ int? method(S s) => switch (s) {
     };
 
 main() {
-  if (hasSoundNullSafety) {
-    Expect.equals(null, method(C()));
-  } else {
-    Expect.throws(() => method(C()));
-  }
+  Expect.throws(() => method(C()));
 }

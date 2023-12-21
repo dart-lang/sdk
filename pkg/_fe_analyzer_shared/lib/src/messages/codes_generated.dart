@@ -14653,6 +14653,26 @@ Message _withArgumentsUnresolvedPrefixInTypeAnnotation(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnsoundSwitchExpressionError =
+    messageUnsoundSwitchExpressionError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnsoundSwitchExpressionError = const MessageCode(
+    "UnsoundSwitchExpressionError",
+    problemMessage:
+        r"""None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnsoundSwitchStatementError =
+    messageUnsoundSwitchStatementError;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnsoundSwitchStatementError = const MessageCode(
+    "UnsoundSwitchStatementError",
+    problemMessage:
+        r"""None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String string)> templateUnspecified =
     const Template<Message Function(String string)>("Unspecified",
         problemMessageTemplate: r"""#string""",

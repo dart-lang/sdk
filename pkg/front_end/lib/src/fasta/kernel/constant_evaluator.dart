@@ -1256,9 +1256,15 @@ class ConstantsTransformer extends RemovingTransformer {
       Map<String, List<VariableDeclaration>> declaredVariablesByName = {};
 
       // In weak mode we need to throw on `null` for non-nullable types.
-      bool needsThrowForNull = isAlwaysExhaustiveType &&
-          !hasDefault &&
-          constantEvaluator.evaluationMode != EvaluationMode.strong;
+      bool needsThrowForNull = false;
+      bool forUnsoundness = false;
+      if (isAlwaysExhaustiveType && !hasDefault) {
+        if (constantEvaluator.evaluationMode != EvaluationMode.strong) {
+          needsThrowForNull = true;
+        } else if (currentLibrary.languageVersion <= const Version(3, 2)) {
+          needsThrowForNull = forUnsoundness = true;
+        }
+      }
 
       for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
         PatternSwitchCase switchCase = node.cases[caseIndex];
@@ -1465,7 +1471,10 @@ class ConstantsTransformer extends RemovingTransformer {
                 typeEnvironment.coreTypes.reachabilityErrorConstructor,
                 createArguments([
                   createStringLiteral(
-                      messageNeverReachableSwitchStatementError.problemMessage,
+                      forUnsoundness
+                          ? messageUnsoundSwitchStatementError.problemMessage
+                          : messageNeverReachableSwitchStatementError
+                              .problemMessage,
                       fileOffset: node.fileOffset)
                 ], fileOffset: node.fileOffset),
                 fileOffset: node.fileOffset))));
@@ -2132,13 +2141,23 @@ class ConstantsTransformer extends RemovingTransformer {
               fileOffset: switchCase.fileOffset)
         ], fileOffset: switchCase.fileOffset));
       }
+      bool forUnsoundness = false;
+      bool needsThrow = false;
       if (constantEvaluator.evaluationMode != EvaluationMode.strong) {
+        needsThrow = true;
+      } else if (currentLibrary.languageVersion <= const Version(3, 2)) {
+        needsThrow = forUnsoundness = true;
+      }
+      if (needsThrow) {
         cases.add(
             createExpressionStatement(createThrow(createConstructorInvocation(
                 typeEnvironment.coreTypes.reachabilityErrorConstructor,
                 createArguments([
                   createStringLiteral(
-                      messageNeverReachableSwitchExpressionError.problemMessage,
+                      forUnsoundness
+                          ? messageUnsoundSwitchExpressionError.problemMessage
+                          : messageNeverReachableSwitchExpressionError
+                              .problemMessage,
                       fileOffset: node.fileOffset)
                 ], fileOffset: node.fileOffset),
                 fileOffset: node.fileOffset))));

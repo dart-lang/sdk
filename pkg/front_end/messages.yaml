@@ -6139,6 +6139,12 @@ NeverReachableSwitchExpressionError:
 NeverReachableSwitchStatementError:
   problemMessage: "`null` encountered as case in a switch statement with a non-nullable type."
 
+UnsoundSwitchExpressionError:
+  problemMessage: "None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details."
+
+UnsoundSwitchStatementError:
+  problemMessage: "None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details."
+
 NeverValueError:
   problemMessage: "`null` encountered as the result from expression with type `Never`."
 

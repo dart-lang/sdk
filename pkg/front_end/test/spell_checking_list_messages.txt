@@ -56,6 +56,7 @@ finality
 flutter_runner
 function.tojs
 futureor
+github.com
 guarded
 guides
 h
@@ -68,6 +69,7 @@ js_util
 jsany
 jsexport
 jsobject
+lang
 libraries.json
 list.filled
 loadlibrary
@@ -80,8 +82,8 @@ name.#name
 name.stack
 name3.#name
 nameokempty
-native.addressof
 native('native
+native.addressof
 nativecallable
 nativecallable.listener
 nativefieldwrapperclass

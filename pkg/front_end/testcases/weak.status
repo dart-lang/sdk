@@ -44,6 +44,7 @@ macros/macro_class: SemiFuzzFailure # Declares macros.
 patterns/exhaustiveness/extension_types: semiFuzzFailureOnForceRebuildBodies # uses sealed
 patterns/exhaustiveness/issue51957: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/exhaustiveness/issue52041: semiFuzzFailureOnForceRebuildBodies # can't match on private field in split out library.
+patterns/exhaustiveness/unsound_cast_3_2: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 nnbd_mixed/exhaustiveness: semiFuzzFailureOnForceRebuildBodies # can't split because of sealed class.
 patterns/extension_access: semiFuzzFailureOnForceRebuildBodies # private extension method.
 patterns/extension_tear_off: semiFuzzFailureOnForceRebuildBodies # private extension method.
