@@ -268,6 +268,8 @@ class TypeVariableTests {
   MethodNode _getMethodNode(Entity function) {
     return _methods.putIfAbsent(function, () {
       MethodNode node;
+      List<DartType> boundTypes = [];
+
       if (function is FunctionEntity) {
         Name? instanceName;
         bool isCallTarget;
@@ -284,11 +286,39 @@ class TypeVariableTests {
             isCallTarget: isCallTarget,
             instanceName: instanceName,
             isNoSuchMethod: isNoSuchMethod);
+        _elementEnvironment
+            .getFunctionTypeVariables(function)
+            .forEach((typeVariable) {
+          boundTypes.add(
+              _elementEnvironment.getTypeVariableBound(typeVariable.element));
+        });
       } else {
-        ParameterStructure parameterStructure = ParameterStructure.fromType(
-            _elementEnvironment.getLocalFunctionType(function as Local));
+        final functionType =
+            _elementEnvironment.getLocalFunctionType(function as Local);
+        ParameterStructure parameterStructure =
+            ParameterStructure.fromType(functionType);
         node = MethodNode(function, parameterStructure, isCallTarget: true);
+        functionType.typeVariables.forEach((typeVariable) {
+          boundTypes.add(typeVariable.bound);
+        });
       }
+
+      // Add dependencies to any type variables in the function's parameter
+      // bounds. Usages of this function's type parameter implies potential
+      // usage of the bound type parameters. Deeply nested scopes are explored
+      // recursively via _getMethodNode and _getClassNode.
+      boundTypes.forEach((DartType bound) {
+        bound.forEachTypeVariable((boundTypeVariable) {
+          final boundTypeEntity = boundTypeVariable.element.typeDeclaration;
+          if (boundTypeEntity == function) return;
+          if (boundTypeEntity is ClassEntity) {
+            node.addDependency(_getClassNode(boundTypeEntity));
+          } else {
+            node.addDependency(_getMethodNode(boundTypeEntity));
+          }
+        });
+      });
+
       return node;
     });
   }
