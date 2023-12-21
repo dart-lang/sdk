@@ -374,10 +374,10 @@ class FfiCode extends AnalyzerErrorCode {
   static const FfiCode NATIVE_FIELD_INVALID_TYPE = FfiCode(
     'NATIVE_FIELD_INVALID_TYPE',
     "'{0}' is an unsupported type for native fields. Native fields only "
-        "support pointers or numeric and compound types.",
+        "support pointers, arrays or numeric and compound types.",
     correctionMessage:
         "Try changing the type in the `@Native` annotation to a numeric FFI "
-        "type, a pointer, or a compound class.",
+        "type, a pointer, array, or a compound class.",
     hasPublishedDocs: true,
   );
 

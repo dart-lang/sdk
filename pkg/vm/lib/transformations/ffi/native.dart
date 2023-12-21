@@ -741,7 +741,7 @@ class FfiNativeTransformer extends FfiTransformer {
     )..fileOffset = node.fileOffset;
   }
 
-  DartType _validateOrInferNativeFieldType(
+  (DartType, NativeTypeCfe) _validateOrInferNativeFieldType(
       Member node, DartType ffiType, DartType dartType) {
     if (ffiType is DynamicType) {
       // If no type argument is given on the @Native annotation, try to infer
@@ -760,31 +760,41 @@ class FfiNativeTransformer extends FfiTransformer {
       ffiType,
       node,
       allowCompounds: true,
-      // Handles and arrays are not currently supported, but checking them
-      // separately and allowing them here yields a more specific error message.
+      // Handles are not currently supported, but checking them separately and
+      // allowing them here yields a more specific error message.
       allowHandle: true,
       allowInlineArray: true,
     );
     ensureNativeTypeToDartType(ffiType, dartType, node,
         allowHandle: true, allowArray: true);
-    // Only allow compound, pointer and numeric types.
-    if (isCompoundSubtype(ffiType) || isAbiSpecificIntegerSubtype(ffiType)) {
-      return ffiType;
-    }
-    final type = switch (ffiType) {
-      InterfaceType(:var classNode) => getType(classNode),
-      _ => null,
-    };
-    if (type == null ||
-        type == NativeType.kNativeFunction ||
-        type == NativeType.kHandle ||
-        isArrayType(ffiType)) {
-      diagnosticReporter.report(
-          messageFfiNativeFieldType, node.fileOffset, 1, node.location?.file);
-      throw FfiStaticTypeError();
+
+    // Array types must have an @Array annotation denoting its size.
+    if (isArrayType(ffiType)) {
+      final dimensions = ensureArraySizeAnnotation(node, ffiType);
+      return (
+        ffiType,
+        NativeTypeCfe.withoutLayout(this, dartType, arrayDimensions: dimensions)
+      );
     }
 
-    return ffiType;
+    // Apart from arrays, compound subtypes, pointers and numeric types are
+    // supported for fields.
+    if (!isCompoundSubtype(ffiType) && !isAbiSpecificIntegerSubtype(ffiType)) {
+      final type = switch (ffiType) {
+        InterfaceType(:var classNode) => getType(classNode),
+        _ => null,
+      };
+      if (type == null ||
+          type == NativeType.kNativeFunction ||
+          type == NativeType.kHandle ||
+          isArrayType(ffiType)) {
+        diagnosticReporter.report(
+            messageFfiNativeFieldType, node.fileOffset, 1, node.location?.file);
+        throw FfiStaticTypeError();
+      }
+    }
+
+    return (ffiType, NativeTypeCfe.withoutLayout(this, ffiType));
   }
 
   @override
@@ -854,11 +864,12 @@ class FfiNativeTransformer extends FfiTransformer {
       }
 
       DartType dartType;
+      NativeTypeCfe nativeTypeCfe;
       try {
         dartType = node.kind == ProcedureKind.Getter
             ? node.function.returnType
             : node.function.positionalParameters[0].type;
-        nativeType =
+        (nativeType, nativeTypeCfe) =
             _validateOrInferNativeFieldType(node, nativeType, dartType);
       } on FfiStaticTypeError {
         return node;
@@ -871,7 +882,6 @@ class FfiNativeTransformer extends FfiTransformer {
       );
       node.isExternal = false;
 
-      final nativeTypeCfe = NativeTypeCfe.withoutLayout(this, nativeType);
       final zeroOffset = ConstantExpression(IntConstant(0));
 
       if (node.kind == ProcedureKind.Getter) {

@@ -194,6 +194,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           declarationElement: declaredElement,
           formalParameterList: null,
           isExternal: node.externalKeyword != null,
+          metadata: node.metadata,
         );
       }
     }
@@ -207,6 +208,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       errorNode: node,
       declarationElement: node.declaredElement!,
       formalParameterList: node.functionExpression.parameters,
+      metadata: node.metadata,
       isExternal: node.externalKeyword != null,
     );
     super.visitFunctionDeclaration(node);
@@ -285,6 +287,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       declarationElement: node.declaredElement!,
       formalParameterList: node.parameters,
       isExternal: node.externalKeyword != null,
+      metadata: node.metadata,
     );
     super.visitMethodDeclaration(node);
   }
@@ -364,6 +367,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           declarationElement: declaredElement,
           formalParameterList: null,
           isExternal: node.externalKeyword != null,
+          metadata: node.metadata,
         );
       }
     }
@@ -381,6 +385,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _checkFfiNative({
     required Declaration errorNode,
     required Element declarationElement,
+    required NodeList<Annotation> metadata,
     required FormalParameterList? formalParameterList,
     required bool isExternal,
   }) {
@@ -437,8 +442,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               errorNode,
               ['T', 'Native']);
         } else {
-          _checkFfiNativeField(
-              errorNode, declarationElement, ffiSignature, annotationValue);
+          _checkFfiNativeField(errorNode, declarationElement, metadata,
+              ffiSignature, annotationValue);
         }
       }
 
@@ -450,6 +455,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   void _checkFfiNativeField(
     Declaration errorNode,
     Element declarationElement,
+    NodeList<Annotation> metadata,
     DartType ffiSignature,
     DartObject annotationValue,
   ) {
@@ -484,12 +490,21 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (!_validateCompatibleNativeType(type, ffiSignature)) {
+    if (!_validateCompatibleNativeType(
+      type,
+      ffiSignature,
+      // Functions are not allowed in native fields, but allowing them in the
+      // subtype check allows reporting the more-specific diagnostic for the
+      // invalid field type.
+      allowFunctions: true,
+    )) {
       _errorReporter.reportErrorForNode(
           FfiCode.MUST_BE_A_SUBTYPE, errorNode, [type, ffiSignature, 'Native']);
-    } else if (ffiSignature.isArray ||
-        ffiSignature.isHandle ||
-        ffiSignature.isNativeFunction) {
+    } else if (ffiSignature.isArray) {
+      // Array fields need an `@Array` size annotation.
+      _validateSizeOfAnnotation(
+          errorNode, metadata, ffiSignature.arrayDimensions);
+    } else if (ffiSignature.isHandle || ffiSignature.isNativeFunction) {
       _errorReporter.reportErrorForNode(
           FfiCode.NATIVE_FIELD_INVALID_TYPE, errorNode, [ffiSignature]);
     }
@@ -1110,6 +1125,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     DartType nativeType, {
     bool checkCovariance = false,
     bool nativeFieldWrappersAsPointer = false,
+    bool allowFunctions = false,
   }) {
     final nativeReturnType = _primitiveNativeType(nativeType);
     if (nativeReturnType == _PrimitiveDartType.int ||
@@ -1147,6 +1163,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return checkCovariance
           ? typeSystem.isSubtypeOf(dartType, nativeType)
           : typeSystem.isSubtypeOf(nativeType, dartType);
+    } else if (dartType is FunctionType &&
+        allowFunctions &&
+        nativeType is InterfaceType &&
+        nativeType.isNativeFunction) {
+      final nativeFunction = nativeType.typeArguments[0];
+      return _validateCompatibleFunctionTypes(dartType, nativeFunction,
+          nativeFieldWrappersAsPointer: nativeFieldWrappersAsPointer);
     } else {
       // If the [nativeType] is not a primitive int/double type then it has to
       // be a Pointer type atm.

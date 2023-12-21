@@ -6,3 +6,5 @@
 DART_EXPORT_FIELD int32_t globalInt;
 DART_EXPORT_FIELD struct Coord globalStruct;
 DART_EXPORT_FIELD const char* globalString = "Hello Dart!";
+DART_EXPORT_FIELD int globalArray[] = {1, 2, 3};
+DART_EXPORT_FIELD double identity3x3[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};

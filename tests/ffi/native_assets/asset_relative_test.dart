@@ -172,6 +172,14 @@ external Coord globalStruct;
 @Native<Coord Function()>()
 external Coord GetGlobalStruct();
 
+@Native()
+@Array(3)
+external Array<Int> globalArray;
+
+@Native()
+@Array(3, 3)
+external final Array<Array<Double>> identity3x3;
+
 void testFfiTestFieldsDll() {
   SetGlobalVar(42);
   Expect.equals(globalInt, 42);
@@ -201,4 +209,22 @@ void testFfiTestFieldsDll() {
   Expect.equals(globalStruct.x, 2.0);
   Expect.equals(globalStruct.y, 4.0);
   Expect.equals(globalStruct.next.address, 0xdeadbeef);
+
+  Expect.equals(globalArray[0], 1);
+  Expect.equals(globalArray[1], 2);
+  Expect.equals(globalArray[2], 3);
+
+  globalArray[0] = 42;
+  Expect.equals(globalArray[0], 42);
+  globalArray[0] = 1;
+
+  for (var i = 0; i < 3; i++) {
+    for (var j = 0; j < 3; j++) {
+      if (i == j) {
+        Expect.equals(identity3x3[i][j], 1);
+      } else {
+        Expect.equals(identity3x3[i][j], 0);
+      }
+    }
+  }
 }

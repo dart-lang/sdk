@@ -80,10 +80,55 @@ external Object invalidUnsupportedHandle;
 // [cfe] Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.
 
 @Native()
-external Array<IntPtr> invalidUnsupportedArray;
-//                     ^^^^^^^^^^^^^^^^^^^^^^^
+external Array<IntPtr> invalidMissingArrayAnnotation;
+//                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MISSING_SIZE_ANNOTATION_CARRAY
+// [cfe] Field 'invalidMissingArrayAnnotation' must have exactly one 'Array' annotation.
+
+@Native()
+@Array(10)
+@Array(12)
+// [error column 1, length 10]
+// [analyzer] COMPILE_TIME_ERROR.EXTRA_SIZE_ANNOTATION_CARRAY
+external Array<IntPtr> invalidDuplicateArrayAnnotation;
+//                     ^
+// [cfe] Field 'invalidDuplicateArrayAnnotation' must have exactly one 'Array' annotation.
+
+@Native()
+@Array(1, 2)
+// [error column 1, length 12]
+// [analyzer] COMPILE_TIME_ERROR.SIZE_ANNOTATION_DIMENSIONS
+external Array<IntPtr> invalidArrayWrongDimensions;
+//                     ^
+// [cfe] Field 'invalidArrayWrongDimensions' must have an 'Array' annotation that matches the dimensions.
+
+@Native()
+@Array(-10)
+//     ^^^
+// [analyzer] COMPILE_TIME_ERROR.NON_POSITIVE_ARRAY_DIMENSION
+external Array<IntPtr> invalidArrayDimensionSize;
+//                     ^
+// [cfe] Array dimensions must be positive numbers.
+
+@Native()
+@Array(10)
+external Array<IntPtr> validArray;
+
+@Native()
+@Array(2, 3)
+external Array<Array<IntPtr>> validNestedArray;
+
+@Native<NativeFunction<Int Function()>>()
+external int Function() invalidUnsupportedType;
+//                      ^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.NATIVE_FIELD_INVALID_TYPE
 // [cfe] Unsupported type for native fields. Native fields only support pointers, compounds and numeric types.
+
+@Native<NativeFunction<Int Function(Pointer<Void>)>>()
+external int Function() invalidUnsupportedAndMismatchingType;
+//                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+// [cfe] Expected type 'int Function()' to be 'int Function(Pointer<Void>)', which is the Dart type corresponding to 'NativeFunction<Int Function(Pointer<Void>)>'.
 
 class MyClass {
   @Native<Double>()
@@ -121,14 +166,14 @@ void addressOf() {
   Native.addressOf(_valid);
 //^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_NATIVE_FUNCTION_TYPE
-//       ^
-// [cfe] Expected type 'NativeType' to be a valid and instantiated subtype of 'NativeType'.
+  //     ^
+  // [cfe] Expected type 'NativeType' to be a valid and instantiated subtype of 'NativeType'.
 
   Native.addressOf<NativeFunction<Void Function(Int)>>(_valid);
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
-//       ^
-// [cfe] Expected type 'void Function()' to be 'void Function(int)', which is the Dart type corresponding to 'NativeFunction<Void Function(Int)>'.
+  //     ^
+  // [cfe] Expected type 'void Function()' to be 'void Function(int)', which is the Dart type corresponding to 'NativeFunction<Void Function(Int)>'.
 
   Native.addressOf<NativeFunction<ComplexNativeFunction>>(validNative);
 
@@ -140,6 +185,14 @@ void addressOf() {
   Native.addressOf<Int>(myStruct0);
 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
-//       ^
-// [cfe] Expected type 'MyStruct' to be 'int', which is the Dart type corresponding to 'Int'.
+  //     ^
+  // [cfe] Expected type 'MyStruct' to be 'int', which is the Dart type corresponding to 'Int'.
+
+  Native.addressOf<Array<IntPtr>>(validArray);
+
+  Native.addressOf<Array<IntPtr>>(validNestedArray);
+//^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+  //     ^
+  // [cfe] Expected type 'Array<Array<IntPtr>>' to be 'Array<IntPtr>', which is the Dart type corresponding to 'Array<IntPtr>'.
 }

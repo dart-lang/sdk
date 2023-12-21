@@ -27,6 +27,10 @@ external final Vec2d vector;
 @Native()
 external MyUnion union;
 
+@Native()
+@Array(1, 2, 3)
+external Array<Array<Array<Double>>> manyNumbers;
+
 void main() {
   print('first char of string: ${aString.value}');
   print('global int: {$anInt}');
@@ -42,4 +46,9 @@ void main() {
   print(Native.addressOf<Int>(anotherInt));
   print(Native.addressOf<Vec2d>(vector));
   print(Native.addressOf<MyUnion>(union));
+
+  final wholeArray = manyNumbers;
+  wholeArray[0][1][2] = 123.45;
+  manyNumbers = wholeArray;
+  manyNumbers[0][0][0] = 54.321;
 }
