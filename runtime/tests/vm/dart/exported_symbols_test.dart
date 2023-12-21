@@ -13,10 +13,14 @@ main() {
 
   var nm;
   for (var path in [
-    "buildtools/linux-arm64/clang/bin/llvm-nm",
-    "buildtools/linux-x64/clang/bin/llvm-nm",
-    "buildtools/mac-arm64/clang/bin/llvm-nm",
-    "buildtools/mac-x64/clang/bin/llvm-nm",
+    if (Platform.isLinux) ...[
+      "buildtools/linux-arm64/clang/bin/llvm-nm",
+      "buildtools/linux-x64/clang/bin/llvm-nm",
+    ],
+    if (Platform.isMacOS) ...[
+      "buildtools/mac-arm64/clang/bin/llvm-nm",
+      "buildtools/mac-x64/clang/bin/llvm-nm",
+    ],
   ]) {
     if (new File(path).existsSync()) {
       nm = path;
