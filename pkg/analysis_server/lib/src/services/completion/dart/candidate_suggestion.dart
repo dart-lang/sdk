@@ -40,8 +40,12 @@ final class ConstructorSuggestion extends ImportableSuggestion {
   /// The element on which the suggestion is based.
   final ConstructorElement element;
 
+  /// Whether the class name is already, implicitly or explicitly, at the call
+  /// site. That is, whether we are completing after a period.
+  final bool hasClassName;
+
   /// Initialize a newly created candidate suggestion to suggest the [element].
-  ConstructorSuggestion(super.importData, this.element);
+  ConstructorSuggestion(super.importData, this.element, this.hasClassName);
 
   @override
   String get completion => '$completionPrefix${element.displayName}';
@@ -477,7 +481,8 @@ extension SuggestionBuilderExtension on SuggestionBuilder {
         libraryUriStr = null;
       case ConstructorSuggestion():
         libraryUriStr = suggestion.libraryUriStr;
-        suggestConstructor(suggestion.element, prefix: suggestion.prefix);
+        suggestConstructor(suggestion.element,
+            hasClassName: suggestion.hasClassName, prefix: suggestion.prefix);
         libraryUriStr = null;
       case EnumSuggestion():
         libraryUriStr = suggestion.libraryUriStr;

@@ -182,8 +182,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    if (offset >= node.leftParenthesis.end &&
-        offset <= node.rightParenthesis.offset) {
+    if (offset <= node.leftParenthesis.offset) {
+      node.parent?.accept(this);
+    } else if (offset <= node.rightParenthesis.offset) {
       // TODO(brianwilkerson): Consider moving most of this method (and some of
       //  `visitNamedExpression`) into an `ArgumentListHelper`.
       var parent = node.parent;
@@ -514,16 +515,46 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
         collector.completionLocation = 'ConstructorDeclaration_initializer';
         _forConstructorInitializer(node, null);
       }
+    } else if (type == TokenType.EQ) {
+      var constructorElement = node.declaredElement;
+      if (constructorElement == null) {
+        return;
+      }
+      var libraryElement = state.libraryElement;
+      declarationHelper(mustBeConstant: constructorElement.isConst)
+          .addPosibleRedirectionsInLibrary(constructorElement, libraryElement);
     }
   }
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    collector.completionLocation = 'ConstructorDeclaration_initializer';
+    var constructor = node.parent;
+    if (constructor is! ConstructorDeclaration) {
+      return;
+    }
     if (offset <= node.equals.offset) {
-      var constructor = node.parent as ConstructorDeclaration;
+      collector.completionLocation = 'ConstructorDeclaration_initializer';
       _forConstructorInitializer(constructor, node);
     } else {
+      if (node.fieldName.isSynthetic && node.equals.isSynthetic) {
+        var expression = node.expression;
+        if (expression is PropertyAccess &&
+            expression.target is ThisExpression) {
+          if (expression.operator.isSynthetic) {
+            // The parser recovers from `this` by treating it as a property
+            // access on the right side of a field initializer. The user appears
+            // to be attempting to complete an initializer.
+            collector.completionLocation = 'ConstructorDeclaration_initializer';
+            _forConstructorInitializer(constructor, node);
+          } else {
+            // The parser recovers from `this.` by treating it as a property
+            // access on the right side of a field initializer. The user appears
+            // to be attempting to complete the name of a constructor.
+            _forRedirectingConstructorInvocation(constructor);
+          }
+          return;
+        }
+      }
       _forExpression(node, mustBeNonVoid: true);
     }
   }
@@ -1434,9 +1465,20 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    // suggestions before '.' but not after
     if (offset <= node.operator.offset) {
+      // We will only get here if the target is a `SimpleIdentifier`, in which
+      // case the user is attempting to complete that identifier.
       _forExpression(node);
+    } else {
+      if (node.target is ThisExpression &&
+          node.parent is ConstructorFieldInitializer) {
+        // The parser recovers from `this` by treating it as a property access
+        // on the right side of a field initializer. The user appears to be
+        // attempting to complete an initializer.
+        node.parent?.accept(this);
+        return;
+      }
+      // TODO(brianwilkerson): Suggest the members on the type of the target.
     }
   }
 
@@ -1456,9 +1498,23 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   @override
   void visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
-    collector.completionLocation = 'ConstructorDeclaration_initializer';
-    keywordHelper.addConstructorInitializerKeywords(
-        node.parent as ConstructorDeclaration, node);
+    var constructor = node.parent;
+    if (constructor is! ConstructorDeclaration) {
+      return;
+    }
+    if (offset <= node.thisKeyword.end && node.argumentList.isFullySynthetic) {
+      collector.completionLocation = 'ConstructorDeclaration_initializer';
+      keywordHelper.addConstructorInitializerKeywords(constructor, node);
+      return;
+    }
+    var period = node.period;
+    // TODO(brianwilkerson): If the period is `null` we might want to complete
+    //  the argument list after `this`.
+    if (period != null &&
+        offset >= period.end &&
+        offset <= node.argumentList.offset) {
+      _forRedirectingConstructorInvocation(constructor);
+    }
   }
 
   @override
@@ -1576,9 +1632,32 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
 
   @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    collector.completionLocation = 'ConstructorDeclaration_initializer';
-    keywordHelper.addConstructorInitializerKeywords(
-        node.parent as ConstructorDeclaration, node);
+    var constructor = node.parent;
+    if (constructor is! ConstructorDeclaration) {
+      return;
+    }
+    if (offset <= node.superKeyword.end && node.argumentList.isFullySynthetic) {
+      collector.completionLocation = 'ConstructorDeclaration_initializer';
+      keywordHelper.addConstructorInitializerKeywords(constructor, node);
+      return;
+    }
+    var period = node.period;
+    // TODO(brianwilkerson): If the period is `null` we might want to complete
+    //  the argument list after `super`.
+    if (period != null &&
+        offset >= period.end &&
+        offset <= node.argumentList.offset) {
+      var container = constructor.parent;
+      var superType = switch (container) {
+        ClassDeclaration() => container.declaredElement?.supertype,
+        EnumDeclaration() => container.declaredElement?.supertype,
+        _ => null,
+      };
+      if (superType != null) {
+        declarationHelper(mustBeConstant: constructor.constKeyword != null)
+            .addConstructorNamesForType(type: superType);
+      }
+    }
   }
 
   @override
@@ -2187,6 +2266,22 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
     declarationHelper(
             mustBeConstant: mustBeConst, mustBeStatic: node.inStaticContext)
         .addLexicalDeclarations(node);
+  }
+
+  void _forRedirectingConstructorInvocation(
+      ConstructorDeclaration constructor) {
+    var constructorName = constructor.name?.lexeme;
+    var container = constructor.parent;
+    var thisType = switch (container) {
+      ClassDeclaration() => container.declaredElement?.thisType,
+      EnumDeclaration() => container.declaredElement?.thisType,
+      ExtensionTypeDeclaration() => container.declaredElement?.thisType,
+      _ => null,
+    };
+    if (thisType != null) {
+      declarationHelper(mustBeConstant: constructor.constKeyword != null)
+          .addConstructorNamesForType(type: thisType, exclude: constructorName);
+    }
   }
 
   /// Add the suggestions that are appropriate when the selection is at the

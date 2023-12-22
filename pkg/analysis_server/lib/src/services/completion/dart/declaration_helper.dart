@@ -106,11 +106,26 @@ class DeclarationHelper {
       ? CompletionSuggestionKind.IDENTIFIER
       : CompletionSuggestionKind.INVOCATION;
 
+  /// Add any constructors that are visible within the current library.
   void addConstructorInvocations() {
     var library = request.libraryElement;
     _addConstructors(library, null);
     if (!skipImports) {
       _addImportedConstructors(library);
+    }
+  }
+
+  /// Add suggestions for all of the named constructors in the [type]. If
+  /// [exclude] is not `null` it is the name of a constructor that should be
+  /// omitted from the list, typically because suggesting it would result in an
+  /// infinite loop.
+  void addConstructorNamesForType(
+      {required InterfaceType type, String? exclude}) {
+    for (var constructor in type.constructors) {
+      var name = constructor.name;
+      if (name.isNotEmpty && name != exclude) {
+        _suggestConstructor(constructor, hasClassName: true, importData: null);
+      }
     }
   }
 
@@ -261,6 +276,32 @@ class DeclarationHelper {
       if (indexOfThis >= 0 && indexOfThis < superPositionalList.length) {
         var superPositional = superPositionalList[indexOfThis];
         collector.addSuggestion(SuperParameterSuggestion(superPositional));
+      }
+    }
+  }
+
+  /// Add suggestions for all of the constructor in the [library] that could be
+  /// a redirection target for the [redirectingConstructor].
+  void addPosibleRedirectionsInLibrary(
+      ConstructorElement redirectingConstructor, LibraryElement library) {
+    var classElement =
+        redirectingConstructor.enclosingElement.augmented?.declaration;
+    var classType = classElement?.thisType;
+    if (classType == null) {
+      return;
+    }
+    var typeSystem = library.typeSystem;
+    for (var unit in library.units) {
+      for (var classElement in unit.classes) {
+        if (typeSystem.isSubtypeOf(classElement.thisType, classType)) {
+          for (var constructor in classElement.constructors) {
+            if (constructor != redirectingConstructor &&
+                constructor.isAccessibleIn(library)) {
+              _suggestConstructor(constructor,
+                  hasClassName: false, importData: null);
+            }
+          }
+        }
       }
     }
   }
@@ -739,11 +780,12 @@ class DeclarationHelper {
 
   /// Add a suggestion for the constructor represented by the [element]. The
   /// [prefix] is the prefix by which the class is imported.
-  void _suggestConstructor(ConstructorElement element, ImportData? importData) {
+  void _suggestConstructor(ConstructorElement element,
+      {required ImportData? importData, required bool hasClassName}) {
     if (mustBeAssignable || (mustBeConstant && !element.isConst)) {
       return;
     }
-    var suggestion = ConstructorSuggestion(importData, element);
+    var suggestion = ConstructorSuggestion(importData, element, hasClassName);
     collector.addSuggestion(suggestion);
   }
 
@@ -757,7 +799,8 @@ class DeclarationHelper {
     for (var constructor in constructors) {
       if (constructor.isVisibleIn(request.libraryElement) &&
           (allowNonFactory || constructor.isFactory)) {
-        _suggestConstructor(constructor, importData);
+        _suggestConstructor(constructor,
+            hasClassName: false, importData: importData);
       }
     }
   }

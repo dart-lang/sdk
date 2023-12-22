@@ -18,7 +18,6 @@ import 'package:analysis_server/src/services/completion/dart/named_constructor_c
 import 'package:analysis_server/src/services/completion/dart/not_imported_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/override_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/record_literal_contributor.dart';
-import 'package:analysis_server/src/services/completion/dart/redirecting_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/static_member_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
@@ -138,7 +137,6 @@ class DartCompletionManager {
       NamedConstructorContributor(request, builder),
       if (enableOverrideContributor) OverrideContributor(request, builder),
       RecordLiteralContributor(request, builder),
-      RedirectingContributor(request, builder),
       StaticMemberContributor(request, builder),
       TypeMemberContributor(request, builder),
       if (enableUriContributor) UriContributor(request, builder),
