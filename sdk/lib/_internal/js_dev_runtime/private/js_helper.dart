@@ -882,9 +882,10 @@ Object? createRecordTypePredicate(String partialShapeTag, JSArray fieldRtis) {
     return (obj) {
       return JS<bool>(
               '!', '# instanceof #', obj, JS_CLASS_REF(dart.RecordImpl)) &&
-          JS<dart.RecordImpl>('!', '#', obj).shape ==
+          JS<dart.Shape>('!', '#[#]', obj, dart.shapeProperty) ==
               JS<dart.Shape?>('', '#.get(#)', dart.shapes, shapeKey) &&
-          rti.pairwiseIsTest(fieldRtis, JS<JSArray>('!', '#.values', obj));
+          rti.pairwiseIsTest(
+              fieldRtis, JS<JSArray>('!', '#[#]', obj, dart.valuesProperty));
     };
   } else {
     dart.throwUnimplementedInCurrentRti();
@@ -902,14 +903,16 @@ rti.Rti getRtiForRecord(Object? record) {
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
     var recordObj = JS<dart.RecordImpl>('!', '#', record);
     var recipeBuffer = StringBuffer('+');
-    var named = recordObj.shape.named;
+    var shape = JS<dart.Shape>('!', '#[#]', recordObj, dart.shapeProperty);
+    var values = JS<JSArray>('!', '#[#]', recordObj, dart.valuesProperty);
+    var named = shape.named;
     if (named != null) recipeBuffer.writeAll(named, ',');
     recipeBuffer.write('(');
-    var elementCount = recordObj.values.length;
+    var elementCount = values.length;
     recipeBuffer.writeAll([for (var i = 1; i <= elementCount; i++) i], ',');
     recipeBuffer.write(')');
 
-    return rti.evaluateRtiForRecord(recipeBuffer.toString(), recordObj.values);
+    return rti.evaluateRtiForRecord(recipeBuffer.toString(), values);
   } else {
     dart.throwUnimplementedInCurrentRti();
   }

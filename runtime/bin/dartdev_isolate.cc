@@ -86,10 +86,6 @@ Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevSnapshotPath() {
   return TryResolveArtifactPath("dartdev.dart.snapshot");
 }
 
-Utils::CStringUniquePtr DartDevIsolate::TryResolveDartDevKernelPath() {
-  return TryResolveArtifactPath("dartdev.dill");
-}
-
 void DartDevIsolate::DartDevRunner::Run(
     Dart_IsolateGroupCreateCallback create_isolate,
     char** packages_file,

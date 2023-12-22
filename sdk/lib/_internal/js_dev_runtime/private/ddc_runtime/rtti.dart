@@ -96,7 +96,7 @@ getFunctionType(obj) {
 RecordType getRecordType(RecordImpl obj) {
   var type = JS<RecordType?>('', '#[#]', obj, _runtimeType);
   if (type == null) {
-    var shape = obj.shape;
+    var shape = JS<Shape>('!', '#[#]', obj, shapeProperty);
     var named = shape.named;
     var positionals = shape.positionals;
     var types = [];

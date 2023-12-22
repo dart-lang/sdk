@@ -46,9 +46,6 @@ class DartDevIsolate {
 
   static bool should_run_dart_dev() { return should_run_dart_dev_; }
 
-  // Attempts to find the path of the DartDev kernel file.
-  static Utils::CStringUniquePtr TryResolveDartDevKernelPath();
-
   // Attempts to find the path of the DartDev snapshot.
   static Utils::CStringUniquePtr TryResolveDartDevSnapshotPath();
 

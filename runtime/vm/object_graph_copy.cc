@@ -230,8 +230,8 @@ void SetNewSpaceTaggingWord(ObjectPtr to, classid_t cid, uint32_t size) {
 
   tags = UntaggedObject::SizeTag::update(size, tags);
   tags = UntaggedObject::ClassIdTag::update(cid, tags);
-  tags = UntaggedObject::AlwaysSetBit::update(true, tags);
-  tags = UntaggedObject::NotMarkedBit::update(true, tags);
+  tags = UntaggedObject::OldBit::update(false, tags);
+  tags = UntaggedObject::OldAndNotMarkedBit::update(false, tags);
   tags = UntaggedObject::OldAndNotRememberedBit::update(false, tags);
   tags = UntaggedObject::CanonicalBit::update(false, tags);
   tags = UntaggedObject::NewBit::update(true, tags);

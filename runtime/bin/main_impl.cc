@@ -372,11 +372,11 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     CHECK_RESULT(result);
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // Disable pausing the DartDev isolate on start and exit.
   const char* isolate_name = nullptr;
   result = Dart_StringToCString(Dart_DebugName(), &isolate_name);
   CHECK_RESULT(result);
-#if !defined(DART_PRECOMPILED_RUNTIME)
   if (strstr(isolate_name, DART_DEV_ISOLATE_NAME) != nullptr) {
     Dart_SetShouldPauseOnStart(false);
     Dart_SetShouldPauseOnExit(false);
