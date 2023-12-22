@@ -4,6 +4,7 @@
 
 library dart2js.js_model.env;
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../constants/values.dart';

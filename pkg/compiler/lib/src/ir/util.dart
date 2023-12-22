@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
-import '../elements/entities.dart' show AsyncMarker, MemberEntity, Variance;
+import '../elements/entities.dart' show AsyncMarker, MemberEntity;
 import '../universe/record_shape.dart';
 
 /// Returns a textual representation of [node] that include the runtime type and
