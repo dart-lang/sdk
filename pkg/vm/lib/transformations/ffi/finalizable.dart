@@ -255,7 +255,7 @@ mixin FinalizableTransformer on Transformer {
       return true;
     }
     if (declaration.type.declaredNullability == Nullability.nonNullable &&
-        !declaration.hasDeclaredInitializer &&
+        declaration.initializer == null &&
         _currentScope?.node is Block) {
       // Variable declarations in a block without an initializer might be
       // uninitialized. (Variable declarations in function blocks are
