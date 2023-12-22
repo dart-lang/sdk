@@ -10077,8 +10077,6 @@ class B extends A {
 ''');
     assertResponse(r'''
 suggestions
-  assert
-    kind: keyword
   bar
     kind: constructorInvocation
   fooA

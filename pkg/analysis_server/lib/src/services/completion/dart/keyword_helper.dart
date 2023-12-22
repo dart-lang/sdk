@@ -182,9 +182,9 @@ class KeywordHelper {
     var initializers = constructor.initializers;
     if (initializer == null || initializers.last == initializer) {
       var last = initializers.lastNonSynthetic;
-      if (offset >= last.end &&
-          last is! SuperConstructorInvocation &&
-          last is! RedirectingConstructorInvocation) {
+      if (last == initializer ||
+          (last is! SuperConstructorInvocation &&
+              last is! RedirectingConstructorInvocation)) {
         if (constructor.parent is! ExtensionTypeDeclaration) {
           addKeyword(Keyword.SUPER);
         }
