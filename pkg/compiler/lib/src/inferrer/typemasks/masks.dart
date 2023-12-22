@@ -4,6 +4,7 @@
 
 library masks;
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../../common.dart';

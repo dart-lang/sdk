@@ -3240,7 +3240,8 @@ class TypeRule {
       JS('', '#.#', rule, supertype);
 }
 
-// This needs to be kept in sync with `Variance` in `entities.dart`.
+// This needs to be kept in sync with `Variance` in
+// `pkg/js_shared/lib/variance.dart`.
 class Variance {
   // TODO(fishythefish): Try bitmask representation.
   static const int legacyCovariant = 0;

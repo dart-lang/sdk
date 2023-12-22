@@ -35,6 +35,7 @@ import 'package:js_shared/synced/embedded_names.dart'
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
         TYPES;
+import 'package:js_shared/variance.dart';
 
 import 'package:js_ast/src/precedence.dart' as js_precedence;
 

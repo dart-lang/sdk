@@ -29,6 +29,8 @@
 /// (Specialization classes have not yet been implemented).
 library dart2js.js_model.records;
 
+import 'package:js_shared/variance.dart';
+
 import '../common.dart';
 import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
