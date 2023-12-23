@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/field_promotability.dart';
-import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    hide NamedType, RecordType;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
@@ -15,6 +17,7 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../kernel/benchmarker.dart' show Benchmarker;
+import '../kernel/exhaustiveness.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
@@ -25,6 +28,7 @@ import '../source/source_library_builder.dart'
     show FieldNonPromotabilityInfo, SourceLibraryBuilder;
 import 'factor_type.dart';
 import 'type_inferrer.dart';
+import 'type_schema.dart';
 import 'type_schema_environment.dart' show TypeSchemaEnvironment;
 
 /// Visitor to check whether a given type mentions any of a class's type
@@ -458,10 +462,9 @@ class FlowAnalysisResult {
   final Map<TreeNode, String> nonPromotionReasonTargets = {};
 }
 
-/// CFE-specific implementation of [TypeOperations].
+/// CFE-specific implementation of [FlowAnalysisOperations].
 class OperationsCfe
-    with TypeOperations<DartType>
-    implements Operations<VariableDeclaration, DartType> {
+    implements TypeAnalyzerOperations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
   final Nullability nullability;
@@ -491,6 +494,41 @@ class OperationsCfe
   DartType get boolType => typeEnvironment.coreTypes.boolRawType(nullability);
 
   @override
+  DartType get doubleType => throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  DartType get dynamicType => const DynamicType();
+
+  @override
+  DartType get errorType => const InvalidType();
+
+  @override
+  DartType get intType => throw new UnimplementedError('TODO(paulberry)');
+
+  @override
+  DartType get neverType => const NeverType.nonNullable();
+
+  @override
+  DartType get objectQuestionType =>
+      typeEnvironment.coreTypes.objectNullableRawType;
+
+  @override
+  DartType get unknownType => const UnknownType();
+
+  @override
+  shared.RecordType<DartType>? asRecordType(DartType type) {
+    if (type is RecordType) {
+      return new shared.RecordType(
+          positional: type.positional,
+          named: type.named
+              .map((field) => new shared.NamedType(field.name, field.type))
+              .toList());
+    } else {
+      return null;
+    }
+  }
+
+  @override
   TypeClassification classifyType(DartType? type) {
     if (type == null) {
       // Note: this can happen during top-level inference.
@@ -508,6 +546,11 @@ class OperationsCfe
   @override
   DartType factor(DartType from, DartType what) {
     return factorType(typeEnvironment, from, what);
+  }
+
+  @override
+  bool isAlwaysExhaustiveType(DartType type) {
+    return computeIsAlwaysExhaustiveType(type, typeEnvironment.coreTypes);
   }
 
   @override
@@ -681,6 +724,23 @@ class OperationsCfe
   bool isError(DartType type) => type is InvalidType;
 
   @override
+  bool isVariableFinal(VariableDeclaration node) {
+    return node.isFinal;
+  }
+
+  @override
+  DartType iterableType(DartType elementType) {
+    return new InterfaceType(typeEnvironment.coreTypes.iterableClass,
+        Nullability.nonNullable, <DartType>[elementType]);
+  }
+
+  @override
+  DartType listType(DartType elementType) {
+    return new InterfaceType(typeEnvironment.coreTypes.listClass,
+        Nullability.nonNullable, <DartType>[elementType]);
+  }
+
+  @override
   DartType lub(DartType type1, DartType type2) {
     return typeEnvironment.getStandardUpperBound(type1, type2,
         isNonNullableByDefault: true);
@@ -689,6 +749,12 @@ class OperationsCfe
   @override
   DartType makeNullable(DartType type) {
     return type.withDeclaredNullability(Nullability.nullable);
+  }
+
+  @override
+  DartType mapType({required DartType keyType, required DartType valueType}) {
+    return new InterfaceType(typeEnvironment.coreTypes.mapClass,
+        Nullability.nonNullable, <DartType>[keyType, valueType]);
   }
 
   @override
@@ -768,6 +834,24 @@ class OperationsCfe
         return interfaceType.typeArguments.single;
       }
     }
+  }
+
+  @override
+  DartType recordType(
+      {required List<DartType> positional,
+      required List<shared.NamedType<DartType>> named}) {
+    List<NamedType> namedFields = [];
+    for (shared.NamedType<DartType> namedType in named) {
+      namedFields.add(new NamedType(namedType.name, namedType.type));
+    }
+    namedFields.sort((f1, f2) => f1.name.compareTo(f2.name));
+    return new RecordType(positional, namedFields, Nullability.nonNullable);
+  }
+
+  @override
+  DartType streamType(DartType elementType) {
+    return new InterfaceType(typeEnvironment.coreTypes.streamClass,
+        Nullability.nonNullable, <DartType>[elementType]);
   }
 }
 

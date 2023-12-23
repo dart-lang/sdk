@@ -4,16 +4,16 @@
 
 import 'dart:collection';
 
-import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordType;
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -424,15 +424,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         FunctionReferenceResolver(this, _isNonNullableByDefault);
   }
 
-  @override
-  DartType get boolType => typeProvider.boolType;
-
-  @override
-  DartType get doubleType => throw UnimplementedError('TODO(paulberry)');
-
-  @override
-  DartType get dynamicType => typeProvider.dynamicType;
-
   /// Return the element representing the function containing the current node,
   /// or `null` if the current node is not contained in a function.
   ///
@@ -440,14 +431,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
-  DartType get errorType => InvalidTypeImpl.instance;
-
-  @override
   FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
       get flow => flowAnalysis.flow!;
-
-  @override
-  DartType get intType => throw UnimplementedError('TODO(paulberry)');
 
   bool get isConstructorTearoffsEnabled =>
       _featureSet.isEnabled(Feature.constructor_tearoffs);
@@ -460,9 +445,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return flowAnalysis.localVariableTypeProvider;
   }
 
-  @override
-  DartType get neverType => typeProvider.neverType;
-
   NullabilitySuffix get noneOrStarSuffix {
     return _isNonNullableByDefault
         ? NullabilitySuffix.none
@@ -470,10 +452,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType get objectQuestionType => typeSystem.objectQuestion;
-
-  @override
-  Operations<PromotableElement, DartType> get operations =>
+  shared.TypeAnalyzerOperations<PromotableElement, DartType> get operations =>
       flowAnalysis.typeOperations;
 
   /// Gets the current depth of the [_rewriteStack].  This may be used in
@@ -493,25 +472,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return _thisType;
   }
 
-  @override
-  DartType get unknownType => UnknownInferredType.instance;
-
   /// Return `true` if NNBD is enabled for this compilation unit.
   bool get _isNonNullableByDefault =>
       _featureSet.isEnabled(Feature.non_nullable);
-
-  @override
-  shared.RecordType<DartType>? asRecordType(DartType type) {
-    if (type is RecordType) {
-      return shared.RecordType(
-        positional: type.positionalFields.map((e) => e.type).toList(),
-        named: type.namedFields
-            .map((e) => shared.NamedType(e.name, e.type))
-            .toList(),
-      );
-    }
-    return null;
-  }
 
   List<SharedPatternField> buildSharedPatternFields(
     List<PatternFieldImpl> fields, {
@@ -790,7 +753,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant CollectionLiteralContext? context,
   ) {
     if (element is ExpressionImpl) {
-      dispatchExpression(element, context?.elementType ?? unknownType);
+      dispatchExpression(
+          element, context?.elementType ?? operations.unknownType);
     } else {
       element.resolveElement(this, context);
     }
@@ -832,7 +796,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           '(${replacementExpression.runtimeType}) $replacementExpression',
         );
       }
-      staticType = unknownType;
+      staticType = operations.unknownType;
     }
     return SimpleTypeAnalysisResult<DartType>(type: staticType);
   }
@@ -1057,11 +1021,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  DartType getVariableType(PromotableElement element) {
-    return element.type;
-  }
-
-  @override
   void handle_ifElement_conditionEnd(covariant IfElementImpl node) {
     // Stack: (Expression condition)
     var condition = popRewrite()!;
@@ -1269,11 +1228,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  bool isAlwaysExhaustiveType(DartType type) {
-    return typeSystem.isAlwaysExhaustive(type);
-  }
-
-  @override
   bool isLegacySwitchExhaustive(AstNode node, DartType expressionType) =>
       legacySwitchExhaustiveness!.isExhaustive;
 
@@ -1283,30 +1237,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  bool isVariableFinal(PromotableElement element) {
-    return element.isFinal;
-  }
-
-  @override
   bool isVariablePattern(AstNode pattern) => pattern is DeclaredVariablePattern;
-
-  @override
-  DartType iterableType(DartType elementType) {
-    return typeProvider.iterableType(elementType);
-  }
-
-  @override
-  DartType listType(DartType elementType) {
-    return typeProvider.listType(elementType);
-  }
-
-  @override
-  DartType mapType({
-    required DartType keyType,
-    required DartType valueType,
-  }) {
-    return typeProvider.mapType(keyType, valueType);
-  }
 
   /// If we reached a null-shorting termination, and the [node] has null
   /// shorting, make the type of the [node] nullable.
@@ -1406,24 +1337,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       assert(_debugPrint('PUSH ${expression.runtimeType} $expression'));
     }
     _rewriteStack.add(expression);
-  }
-
-  @override
-  DartType recordType(
-      {required List<DartType> positional,
-      required List<shared.NamedType<DartType>> named}) {
-    return RecordTypeImpl(
-      positionalFields: positional.map((type) {
-        return RecordTypePositionalFieldImpl(type: type);
-      }).toList(),
-      namedFields: named.map((namedType) {
-        return RecordTypeNamedFieldImpl(
-          name: namedType.name,
-          type: namedType.type,
-        );
-      }).toList(),
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
   }
 
   /// Replaces the expression [oldNode] with [newNode], updating the node's
@@ -1825,11 +1738,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
       }
     }
-  }
-
-  @override
-  DartType streamType(DartType elementType) {
-    return typeProvider.streamType(elementType);
   }
 
   /// Returns the result of an implicit `this.` lookup for the identifier string
@@ -5282,15 +5190,15 @@ class _WhyNotPromotedVisitor
       propertyType = reason.staticType;
       var propertyName = reason.propertyName;
       String message = switch (reason.whyNotPromotable) {
-        PropertyNonPromotabilityReason.isNotField =>
+        shared.PropertyNonPromotabilityReason.isNotField =>
           "'$propertyName' refers to a getter so it couldn't be promoted.",
-        PropertyNonPromotabilityReason.isNotPrivate =>
+        shared.PropertyNonPromotabilityReason.isNotPrivate =>
           "'$propertyName' refers to a public property so it couldn't be "
               "promoted.",
-        PropertyNonPromotabilityReason.isExternal =>
+        shared.PropertyNonPromotabilityReason.isExternal =>
           "'$propertyName' refers to an external field so it couldn't be "
               "promoted.",
-        PropertyNonPromotabilityReason.isNotFinal =>
+        shared.PropertyNonPromotabilityReason.isNotFinal =>
           "'$propertyName' refers to a non-final field so it couldn't be "
               "promoted."
       };

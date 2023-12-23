@@ -264,11 +264,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
       FunctionNode functionNode, Context? context, w.BaseFunction resumeFun) {
     // Instantiate a [_SyncStarIterable] containing the context and resume
     // function for this `sync*` function.
-    DartType returnType = functionNode.returnType;
-    DartType elementType = returnType is InterfaceType &&
-            returnType.classNode == translator.coreTypes.iterableClass
-        ? returnType.typeArguments.single
-        : DynamicType();
+    DartType elementType = functionNode.emittedValueType!;
     translator.functions.allocateClass(syncStarIterableInfo.classId);
     b.i32_const(syncStarIterableInfo.classId);
     b.i32_const(initialIdentityHash);
