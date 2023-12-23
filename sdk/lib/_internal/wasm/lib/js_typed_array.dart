@@ -608,10 +608,18 @@ mixin _IntListMixin implements List<int> {
 
     if (iterable is JSArrayBase) {
       final JSArrayBase source = unsafeCast<JSArrayBase>(iterable);
-      final length = end - start;
-      final sourceArray = source.toJSArrayExternRef(skipCount, length);
-      final targetArray = toJSArrayExternRef(start, length);
-      return _setRangeFast(targetArray, sourceArray);
+
+      // JS `TypedArray.prototype.set` does not allow mixing `BigInt` and other
+      // types. Check that either both of the arrays are `BigInt`s (signed or
+      // unsigned), or none of them are.
+      final sourceBigInt = source.elementSizeInBytes == 8;
+      final targetBigInt = elementSizeInBytes == 8;
+      if (!(sourceBigInt ^ targetBigInt)) {
+        final length = end - start;
+        final sourceArray = source.toJSArrayExternRef(skipCount, length);
+        final targetArray = toJSArrayExternRef(start, length);
+        return _setRangeFast(targetArray, sourceArray);
+      }
     }
 
     List<int> otherList = iterable.skip(skipCount).toList(growable: false);
