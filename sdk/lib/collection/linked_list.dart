@@ -4,7 +4,7 @@
 
 part of dart.collection;
 
-/// A specialized double-linked list of elements that extends [LinkedListEntry].
+/// A specialized circular doubly linked list of elements that extends [LinkedListEntry].
 ///
 /// This is not a generic data structure. It only accepts elements that *extend*
 /// the [LinkedListEntry] class. See the [Queue] implementations for generic
