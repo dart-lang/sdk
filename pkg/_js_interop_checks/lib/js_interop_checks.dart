@@ -303,8 +303,6 @@ class JsInteropChecks extends RecursiveVisitor {
     void report(Message message) => _reporter.report(
         message, node.fileOffset, node.name.text.length, node.fileUri);
 
-    // TODO(joshualitt): Add a check that only supported operators are allowed
-    // in external extension members and extension types.
     _checkInstanceMemberJSAnnotation(node);
     if (_classHasJSAnnotation &&
         !node.isExternal &&
@@ -319,7 +317,7 @@ class JsInteropChecks extends RecursiveVisitor {
     if (!_isJSInteropMember(node)) {
       _checkDisallowedExternal(node);
     } else {
-      _checkJsInteropMemberNotOperator(node);
+      _checkJsInteropOperator(node);
 
       // Check JS Interop positional and named parameters. Literal constructors
       // can only have named parameters, and every other interop member can only
@@ -735,10 +733,8 @@ class JsInteropChecks extends RecursiveVisitor {
   }
 
   /// Given JS interop member [node], checks that it is not an operator that is
-  /// disallowed.
-  ///
-  /// Also checks that no renaming is done on interop operators.
-  void _checkJsInteropMemberNotOperator(Procedure node) {
+  /// disallowed, on a non-static interop type, or renamed.
+  void _checkJsInteropOperator(Procedure node) {
     var isInvalidOperator = false;
     var operatorHasRenaming = false;
     if ((node.isExtensionTypeMember &&

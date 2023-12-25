@@ -9016,8 +9016,9 @@ const Code<Null> codeJsInteropOperatorsNotSupported =
 const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     "JsInteropOperatorsNotSupported",
     problemMessage:
-        r"""JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop.""",
-    correctionMessage: r"""Try replacing this with a normal method.""");
+        r"""JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop.""",
+    correctionMessage:
+        r"""Try making this class a static interop type instead.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =

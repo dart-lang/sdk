@@ -5904,8 +5904,8 @@ JsInteropOperatorCannotBeRenamed:
   correctionMessage: "Remove the annotation or remove the value inside the annotation."
 
 JsInteropOperatorsNotSupported:
-  problemMessage: "JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop."
-  correctionMessage: "Try replacing this with a normal method."
+  problemMessage: "JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop."
+  correctionMessage: "Try making this class a static interop type instead."
 
 JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."

@@ -29,11 +29,19 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
   @patch
   @pragma('dart2js:prefer-inline')
   bool get isNull => foreign_helper.JS('bool', '# === null', this);
+}
 
+@patch
+extension JSAnyUtilityExtension on JSAny? {
   @patch
   @pragma('dart2js:prefer-inline')
   bool typeofEquals(String typeString) =>
       foreign_helper.JS('bool', 'typeof # === #', this, typeString);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool instanceof(JSFunction constructor) =>
+      foreign_helper.JS('bool', '# instanceof #', this, constructor);
 
   @patch
   @pragma('dart2js:prefer-inline')
@@ -46,15 +54,6 @@ extension NullableObjectUtilExtension on Object? {
   @patch
   @pragma('dart2js:prefer-inline')
   JSAny? jsify() => js_util.jsify(this) as JSAny?;
-}
-
-/// Utility extensions for [JSObject].
-@patch
-extension JSObjectUtilExtension on JSObject {
-  @patch
-  @pragma('dart2js:prefer-inline')
-  bool instanceof(JSFunction constructor) =>
-      foreign_helper.JS('bool', '# instanceof #', this, constructor);
 }
 
 /// [JSExportedDartFunction] <-> [Function]
@@ -367,4 +366,85 @@ extension StringToJSString on String {
   @patch
   @pragma('dart2js:prefer-inline')
   JSString get toJS => this as JSString;
+}
+
+@patch
+extension JSAnyOperatorExtension on JSAny? {
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny add(JSAny? any) => js_util.add(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny subtract(JSAny? any) => js_util.subtract(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny multiply(JSAny? any) => js_util.multiply(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny divide(JSAny? any) => js_util.divide(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny modulo(JSAny? any) => js_util.modulo(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny exponentiate(JSAny? any) => js_util.exponentiate(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool greaterThan(JSAny? any) => js_util.greaterThan(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool greaterThanOrEqualTo(JSAny? any) =>
+      js_util.greaterThanOrEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool lessThan(JSAny? any) => js_util.lessThan(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool lessThanOrEqualTo(JSAny? any) => js_util.lessThanOrEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool equals(JSAny? any) => js_util.equal(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool notEquals(JSAny? any) => js_util.notEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool strictEquals(JSAny? any) => js_util.strictEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool strictNotEquals(JSAny? any) => js_util.strictNotEqual(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSNumber unsignedRightShift(JSAny? any) =>
+      js_util.unsignedRightShift(this, any).toJS;
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny? and(JSAny? any) => js_util.and(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSAny? or(JSAny? any) => js_util.or(this, any);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool get not => js_util.not(this);
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  bool get isTruthy => js_util.isTruthy(this);
 }

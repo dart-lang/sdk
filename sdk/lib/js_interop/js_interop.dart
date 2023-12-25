@@ -26,6 +26,7 @@ import 'dart:typed_data';
 /// Allow use of `@staticInterop` classes with JS types as well as export
 /// functionality.
 export 'dart:_js_annotations' show staticInterop, anonymous, JSExport;
+export 'dart:js_util' show NullRejectionException;
 
 /// The annotation for JS interop members.
 ///
@@ -247,7 +248,22 @@ extension NullableUndefineableJSAnyExtension on JSAny? {
 
   bool get isUndefinedOrNull => this == null;
   bool get isDefinedAndNotNull => !isUndefinedOrNull;
+}
+
+/// Common utility functions that are useful for any JS value.
+extension JSAnyUtilityExtension on JSAny? {
+  /// Returns whether the result of `typeof` on this [JSAny]? is [typeString].
   external bool typeofEquals(String typeString);
+
+  /// Returns whether this [JSAny]? is an `instanceof` [constructor].
+  external bool instanceof(JSFunction constructor);
+
+  /// Like [instanceof], but only takes a [String] for the constructor name,
+  /// which is then looked up in the [globalContext].
+  bool instanceOfString(String constructorName) {
+    final constructor = globalContext[constructorName] as JSFunction?;
+    return constructor != null && instanceof(constructor);
+  }
 
   /// Effectively the inverse of [jsify], [dartify] Takes a JavaScript object,
   /// and converts it to a Dart based object. Only JS primitives, arrays, or
@@ -260,18 +276,6 @@ extension NullableObjectUtilExtension on Object? {
   /// Recursively converts a JSON-like collection, or Dart primitive to a
   /// JavaScript compatible representation.
   external JSAny? jsify();
-}
-
-/// Utility extensions for [JSObject].
-extension JSObjectUtilExtension on JSObject {
-  external bool instanceof(JSFunction constructor);
-
-  /// Like [instanceof], but only takes a [String] for the constructor name,
-  /// which is then looked up in the [globalContext].
-  bool instanceOfString(String constructorName) {
-    final constructor = globalContext[constructorName] as JSFunction?;
-    return constructor != null && instanceof(constructor);
-  }
 }
 
 /// The type of `JSUndefined` when returned from functions. Unlike pure JS,
@@ -543,4 +547,77 @@ extension JSStringToString on JSString {
 
 extension StringToJSString on String {
   external JSString get toJS;
+}
+
+// General-purpose operators.
+//
+// Indexing operators (`[]`, `[]=`) should be declared through operator
+// overloading instead e.g. `external operator int [](int key);`.
+// TODO(srujzs): Add more as needed. For now, we just expose the ones needed to
+// migrate from `dart:js_util`.
+extension JSAnyOperatorExtension on JSAny? {
+  // Artithmetic operators.
+
+  /// Returns the result of '[this] + [any]' in JS.
+  external JSAny add(JSAny? any);
+
+  /// Returns the result of '[this] - [any]' in JS.
+  external JSAny subtract(JSAny? any);
+
+  /// Returns the result of '[this] * [any]' in JS.
+  external JSAny multiply(JSAny? any);
+
+  /// Returns the result of '[this] / [any]' in JS.
+  external JSAny divide(JSAny? any);
+
+  /// Returns the result of '[this] % [any]' in JS.
+  external JSAny modulo(JSAny? any);
+
+  /// Returns the result of '[this] ** [any]' in JS.
+  external JSAny exponentiate(JSAny? any);
+
+  // Comparison operators.
+
+  /// Returns the result of '[this] > [any]' in JS.
+  external JSBoolean greaterThan(JSAny? any);
+
+  /// Returns the result of '[this] >= [any]' in JS.
+  external JSBoolean greaterThanOrEqualTo(JSAny? any);
+
+  /// Returns the result of '[this] < [any]' in JS.
+  external JSBoolean lessThan(JSAny? any);
+
+  /// Returns the result of '[this] <= [any]' in JS.
+  external JSBoolean lessThanOrEqualTo(JSAny? any);
+
+  /// Returns the result of '[this] == [any]' in JS.
+  external JSBoolean equals(JSAny? any);
+
+  /// Returns the result of '[this] != [any]' in JS.
+  external JSBoolean notEquals(JSAny? any);
+
+  /// Returns the result of '[this] === [any]' in JS.
+  external JSBoolean strictEquals(JSAny? any);
+
+  /// Returns the result of '[this] !== [any]' in JS.
+  external JSBoolean strictNotEquals(JSAny? any);
+
+  // Bitwise operators.
+
+  /// Returns the result of '[this] >>> [any]' in JS.
+  external JSNumber unsignedRightShift(JSAny? any);
+
+  // Logical operators.
+
+  /// Returns the result of '[this] && [any]' in JS.
+  external JSAny? and(JSAny? any);
+
+  /// Returns the result of '[this] || [any]' in JS.
+  external JSAny? or(JSAny? any);
+
+  /// Returns the result of '![this]' in JS.
+  external bool get not;
+
+  /// Returns the result of '!![this]' in JS.
+  external bool get isTruthy;
 }
