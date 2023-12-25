@@ -601,6 +601,25 @@ const v = int;
     _assertHasPrimitiveEqualityTrue('v');
   }
 
+  test_identical_extensionType_nullable() async {
+    await assertNoErrorsInCode('''
+extension type E(int it) {}
+
+class A {
+  final E? f;
+  const A() : f = null;
+}
+
+const v = A();
+''');
+    final result = _topLevelVar('v');
+    assertDartObjectText(result, r'''
+A
+  f: Null null
+  variable: self::@variable::v
+''');
+  }
+
   test_identical_extensionType_types_recursive() async {
     await assertNoErrorsInCode('''
 const c = identical(ExList<ExInt>, List<int>);
