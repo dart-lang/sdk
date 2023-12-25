@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test various uses of exports that are returned from `createDartExport`.
+// Test various uses of exports that are returned from `createDartExport` or
+// `createJSInteropWrapper`.
+
+import 'dart:js_interop';
 
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
 // Test exporting all vs. only some members.
@@ -32,9 +34,9 @@ extension on ExportAll {
   static void extensionStaticMethod() => throw '';
 }
 
-void testExportAll() {
+void testExportAll(WrapperCreator creator) {
   var dartInstance = ExportAll.constructor();
-  var all = createDartExport(dartInstance);
+  var all = creator.createExportAll(dartInstance);
 
   // Verify only the exportable properties exist.
   expect(hasProperty(all, 'constructor'), false);
@@ -73,9 +75,9 @@ class ExportSome {
   String nonExportMethod() => throw '';
 }
 
-void testExportSome() {
+void testExportSome(WrapperCreator creator) {
   var dartInstance = ExportSome.constructor();
-  var some = createDartExport(dartInstance);
+  var some = creator.createExportSome(dartInstance);
 
   // Verify only the properties we marked as exportable exist.
   expect(hasProperty(some, 'constructor'), false);
@@ -93,9 +95,9 @@ void testExportSome() {
 }
 
 // Test that the properties are forwarded correctly in the object literal.
-void testForwarding() {
+void testForwarding(WrapperCreator creator) {
   var dartInstance = ExportAll.constructor();
-  var all = createDartExport(dartInstance);
+  var all = creator.createExportAll(dartInstance);
 
   expect(getProperty(all, 'field'), dartInstance.field);
   setProperty(all, 'field', 'modified');
@@ -128,9 +130,9 @@ class Superclass {
 @JSExport()
 class Inheritance extends Superclass {}
 
-void testInheritance() {
+void testInheritance(WrapperCreator creator) {
   var dartInheritance = Inheritance();
-  var inheritance = createDartExport(dartInheritance);
+  var inheritance = creator.createInheritance(dartInheritance);
 
   expect(getProperty(inheritance, 'field'), dartInheritance.field);
   setProperty(inheritance, 'field', 'modified');
@@ -156,9 +158,9 @@ class Overrides extends Superclass {
   String method() => 'derivedMethod';
 }
 
-void testOverrides() {
+void testOverrides(WrapperCreator creator) {
   var dartOverrides = Overrides();
-  var overrides = createDartExport(dartOverrides);
+  var overrides = creator.createOverrides(dartOverrides);
 
   expect(getProperty(overrides, 'field'), dartOverrides.field);
   setProperty(overrides, 'field', 'modified');
@@ -195,9 +197,9 @@ class InheritanceShadowed extends SuperclassShadowed {
   String method() => 'derivedMethod';
 }
 
-void testShadowed() {
+void testShadowed(WrapperCreator creator) {
   var dartShadowed = InheritanceShadowed();
-  var shadowed = createDartExport(dartShadowed);
+  var shadowed = creator.createInheritanceShadowed(dartShadowed);
 
   expect(hasProperty(shadowed, 'field'), false);
   expect(hasProperty(shadowed, 'finalField'), false);
@@ -216,8 +218,8 @@ class Arity {
   void onePositionalOneOptional(String arg1, [String? arg2]) {}
 }
 
-void testArity() {
-  var arity = createDartExport(Arity());
+void testArity(WrapperCreator creator) {
+  var arity = creator.createArity(Arity());
 
   callMethod(arity, 'onePositional', ['']);
 
@@ -235,19 +237,62 @@ void testArity() {
 }
 
 // Test that the transformation occurs in other js_util calls.
-void testNestedJsUtil() {
-  setProperty(globalThis, 'export', createDartExport(ExportAll.constructor()));
+void testNestedJsUtil(WrapperCreator creator) {
+  setProperty(
+      globalThis, 'export', creator.createExportAll(ExportAll.constructor()));
   expect(hasProperty(globalThis, 'export'), true);
   expect(hasProperty(getProperty(globalThis, 'export'), 'field'), true);
 }
 
+void test(WrapperCreator creator) {
+  testExportAll(creator);
+  testExportSome(creator);
+  testForwarding(creator);
+  testInheritance(creator);
+  testOverrides(creator);
+  testShadowed(creator);
+  testArity(creator);
+  testNestedJsUtil(creator);
+}
+
+// Test classes to test both `dart:js_interop`'s `createJSInteropWrapper` and
+// `dart:js_util`'s `createDartExport`. Since both methods need the type
+// parameter to be statically available, we have to use methods that statically
+// declare what class they want wrapped.
+abstract class WrapperCreator {
+  Object createExportAll(ExportAll instance);
+  Object createExportSome(ExportSome instance);
+  Object createInheritance(Inheritance instance);
+  Object createInheritanceShadowed(InheritanceShadowed instance);
+  Object createOverrides(Overrides instance);
+  Object createArity(Arity instance);
+}
+
+class UseCreateDartExport implements WrapperCreator {
+  Object createExportAll(ExportAll instance) => createDartExport(instance);
+  Object createExportSome(ExportSome instance) => createDartExport(instance);
+  Object createInheritance(Inheritance instance) => createDartExport(instance);
+  Object createInheritanceShadowed(InheritanceShadowed instance) =>
+      createDartExport(instance);
+  Object createOverrides(Overrides instance) => createDartExport(instance);
+  Object createArity(Arity instance) => createDartExport(instance);
+}
+
+class UseCreateJSInteropWrapper implements WrapperCreator {
+  JSObject createExportAll(ExportAll instance) =>
+      createJSInteropWrapper(instance);
+  JSObject createExportSome(ExportSome instance) =>
+      createJSInteropWrapper(instance);
+  JSObject createInheritance(Inheritance instance) =>
+      createJSInteropWrapper(instance);
+  JSObject createInheritanceShadowed(InheritanceShadowed instance) =>
+      createJSInteropWrapper(instance);
+  JSObject createOverrides(Overrides instance) =>
+      createJSInteropWrapper(instance);
+  JSObject createArity(Arity instance) => createJSInteropWrapper(instance);
+}
+
 void main() {
-  testExportAll();
-  testExportSome();
-  testForwarding();
-  testInheritance();
-  testOverrides();
-  testShadowed();
-  testArity();
-  testNestedJsUtil();
+  test(UseCreateDartExport());
+  test(UseCreateJSInteropWrapper());
 }

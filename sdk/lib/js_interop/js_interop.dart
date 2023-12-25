@@ -621,3 +621,49 @@ extension JSAnyOperatorExtension on JSAny? {
   /// Returns the result of '!![this]' in JS.
   external bool get isTruthy;
 }
+
+/// Given a Dart object that is marked "exportable", creates a JS object that
+/// wraps the given Dart object. Look at the `@JSExport` annotation to determine
+/// what constitutes "exportable" for a Dart class. The object literal
+/// will be a map of export names (which are either the written instance member
+/// names or their rename) to their respective Dart instance members.
+///
+/// For example:
+///
+/// ```
+/// import 'dart:js_interop';
+///
+/// import 'package:expect/expect.dart';
+///
+/// @JSExport()
+/// class ExportCounter {
+///   @JSExport('value')
+///   int counterValue = 0;
+///   String stringify() => counterValue.toString();
+/// }
+///
+/// extension type Counter(JSObject _) {
+///   external int get value;
+///   external set value(int val);
+///   external String stringify();
+/// }
+///
+/// void main() {
+///   var export = ExportCounter();
+///   var counter = Counter(createJSInteropWrapper(export));
+///   export.counterValue = 1;
+///   Expect.equals(counter.value, export.counterValue);
+///   Expect.equals(counter.stringify(), export.stringify());
+/// }
+/// ```
+external JSObject createJSInteropWrapper<T extends Object>(T dartObject);
+
+// TODO(srujzs): Expose this method when we handle conformance checking for
+// interop extension types. We don't expose this method today due to the bound
+// on `T`. `@staticInterop` types can't implement `JSObject`, so this method
+// simply wouldn't work. We could make it extend `Object` to support the
+// `@staticInterop` case, but if we ever refactor to `extends JSObject`, this
+// would be a breaking change. For now, due to the low usage of
+// `createStaticInteropMock`, we avoid introducing this method until later.
+// external T createJSInteropMock<T extends JSObject, U extends Object>(
+//     U dartMock, [JSObject? proto = null]);
