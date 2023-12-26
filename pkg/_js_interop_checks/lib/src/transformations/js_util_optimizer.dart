@@ -274,25 +274,19 @@ class JsUtilOptimizer extends Transformer {
       [Expression? maybeReceiver]) {
     final target =
         shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
-    final isOperator = _extensionIndex.isOperator(node);
     final isInstanceInteropMember =
         _extensionIndex.isInstanceInteropMember(node);
     final name = _getMemberJSName(node);
     return (Arguments arguments, Expression invocation) {
       // Parameter `this` only exists for extension and extension type instance
-      // members. Operators take a `this` and an index.
+      // members.
       final positionalArgs = arguments.positional;
-      assert(positionalArgs.length ==
-          (isOperator
-              ? 2
-              : isInstanceInteropMember
-                  ? 1
-                  : 0));
+      assert(positionalArgs.length == (isInstanceInteropMember ? 1 : 0));
       // We clone the receiver as each invocation needs a fresh node.
       final receiver = maybeReceiver == null
           ? positionalArgs.first
           : _cloner.clone(maybeReceiver);
-      final property = isOperator ? positionalArgs[1] : StringLiteral(name);
+      final property = StringLiteral(name);
       return StaticInvocation(
           target,
           Arguments([receiver, property],
@@ -311,24 +305,18 @@ class JsUtilOptimizer extends Transformer {
   /// positional argument as the receiver for `js_util.setProperty`.
   _InvocationBuilder _getExternalSetterInvocationBuilder(Procedure node,
       [Expression? maybeReceiver]) {
-    final isOperator = _extensionIndex.isOperator(node);
     final isInstanceInteropMember =
         _extensionIndex.isInstanceInteropMember(node);
     final name = _getMemberJSName(node);
     return (Arguments arguments, Expression invocation) {
       // Parameter `this` only exists for extension and extension type instance
-      // members. Operators take a `this`, an index, and a value.
+      // members.
       final positionalArgs = arguments.positional;
-      assert(positionalArgs.length ==
-          (isOperator
-              ? 3
-              : isInstanceInteropMember
-                  ? 2
-                  : 1));
+      assert(positionalArgs.length == (isInstanceInteropMember ? 2 : 1));
       final receiver = maybeReceiver == null
           ? positionalArgs.first
           : _cloner.clone(maybeReceiver);
-      final property = isOperator ? positionalArgs[1] : StringLiteral(name);
+      final property = StringLiteral(name);
       final value = positionalArgs.last;
       return StaticInvocation(
           _setPropertyTarget,
@@ -389,14 +377,32 @@ class JsUtilOptimizer extends Transformer {
     final operator =
         _extensionIndex.getExtensionTypeDescriptor(node)?.name.text ??
             _extensionIndex.getExtensionDescriptor(node)?.name.text;
+
+    // TODO(srujzs): Support more operators for overloading using some
+    // combination of Dart-defineable operators and @JS renaming for the ones
+    // that are not renameable.
+    late Procedure target;
     switch (operator) {
       case '[]':
-        return _getExternalGetterInvocationBuilder(node, shouldTrustType);
+        target =
+            shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
+        break;
       case '[]=':
-        return _getExternalSetterInvocationBuilder(node);
+        target = _setPropertyTarget;
+        break;
       default:
-        throw 'External operator $operator is unsupported for static interop.';
+        throw UnimplementedError(
+            'External operator $operator is unsupported for static interop. ');
     }
+
+    return (Arguments arguments, Expression invocation) {
+      return StaticInvocation(
+          target,
+          Arguments(arguments.positional,
+              types: [invocation.getStaticType(_staticTypeContext)]))
+        ..fileOffset = invocation.fileOffset
+        ..parent = invocation.parent;
+    };
   }
 
   /// Returns a new [_InvocationBuilder] for the given [node] external

@@ -81,6 +81,11 @@
   types whose type parameter is a subtype of `JSAny?`. Conversions to and from
   these types are changed to account for the type parameters of the Dart or JS
   type, respectively.
+- **Breaking Change in names of extensions**: Some `dart:js_interop` extension
+  members are moved to different extensions on the same type or a supertype to
+  better organize the API surface. See `JSAnyUtilityExtension` and
+  `JSAnyOperatorExtension` for the new extensions. This shouldn't make a
+  difference unless the extension names were explicitly used.
 
 [#52687]: https://github.com/dart-lang/sdk/issues/52687
 

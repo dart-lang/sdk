@@ -22,6 +22,7 @@ import 'static_interop_mock_validator.dart';
 class ExportCreator extends Transformer {
   final Procedure _callMethodVarArgs;
   final Procedure _createDartExport;
+  final Procedure _createJSInteropWrapper;
   final Procedure _createStaticInteropMock;
   final JsInteropDiagnosticReporter _diagnosticReporter;
   final ExportChecker _exportChecker;
@@ -42,6 +43,8 @@ class ExportCreator extends Transformer {
                 'JSObjectUnsafeUtilExtension|callMethodVarArgs'),
         _createDartExport = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'createDartExport'),
+        _createJSInteropWrapper = _typeEnvironment.coreTypes.index
+            .getTopLevelProcedure('dart:js_interop', 'createJSInteropWrapper'),
         _createStaticInteropMock = _typeEnvironment.coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'createStaticInteropMock'),
         _functionToJS = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
@@ -63,13 +66,19 @@ class ExportCreator extends Transformer {
 
   @override
   TreeNode visitStaticInvocation(StaticInvocation node) {
-    if (node.target == _createDartExport) {
+    final target = node.target;
+    if (target == _createDartExport || target == _createJSInteropWrapper) {
       final typeArguments = node.arguments.types;
       assert(typeArguments.length == 1);
       if (_verifyExportable(node, typeArguments[0])) {
-        return _createExport(node, typeArguments[0] as InterfaceType);
+        final interface = typeArguments[0] as InterfaceType;
+        if (target == _createJSInteropWrapper) {
+          return _createExport(node, interface,
+              ExtensionType(_jsObject, Nullability.nonNullable));
+        }
+        return _createExport(node, interface);
       }
-    } else if (node.target == _createStaticInteropMock) {
+    } else if (target == _createStaticInteropMock) {
       final typeArguments = node.arguments.types;
       assert(typeArguments.length == 2);
       final staticInteropType = typeArguments[0];
@@ -98,8 +107,8 @@ class ExportCreator extends Transformer {
     return node;
   }
 
-  /// Validate that the [dartType] provided via `createDartExport` can be
-  /// exported safely.
+  /// Validate that the [dartType] provided via `createDartExport` or
+  /// `createJSInteropWrapper` can be exported safely.
   ///
   /// Checks that:
   /// - Type argument is a valid Dart interface type.
@@ -158,11 +167,11 @@ class ExportCreator extends Transformer {
   /// Create the object literal using the export map that was computed from the
   /// interface in [dartType].
   ///
-  /// [node] is either a call to `createStaticInteropMock` or
-  /// `createDartExport`. [dartType] is assumed to be a valid exportable class.
-  /// [returnType] is the type that the object literal will be casted to.
-  /// [proto] is an optional prototype object that users can pass to instantiate
-  /// the object literal.
+  /// [node] is either a call to `createStaticInteropMock`, `createDartExport`,
+  /// or `createJSInteropWrapper`. [dartType] is assumed to be a valid
+  /// exportable class. [returnType] is the type that the object literal will be
+  /// casted to. [proto] is an optional prototype object that users can pass to
+  /// instantiate the object literal.
   ///
   /// The export map is already validated, so this method simply iterates over
   /// it and either assigns a method for a given property name, or assigns a
