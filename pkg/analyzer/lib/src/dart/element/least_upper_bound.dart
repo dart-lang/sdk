@@ -227,6 +227,14 @@ class InterfaceLeastUpperBoundHelper {
         return type.nullabilitySuffix == NullabilitySuffix.none ? 1 : 0;
       }
     }
+
+    // Extension type without interfaces, implicit `Object?`
+    if (element is ExtensionTypeElement) {
+      if (element.interfaces.isEmpty) {
+        return 1;
+      }
+    }
+
     int longestPath = 0;
     try {
       visitedElements.add(element);
