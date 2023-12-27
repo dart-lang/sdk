@@ -171,7 +171,7 @@ class EditGetFixesHandler extends LegacyHandler
 
           List<Fix> fixes;
           try {
-            fixes = await DartFixContributor().computeFixes(context);
+            fixes = await computeFixes(context);
           } on InconsistentAnalysisException {
             fixes = [];
           } catch (exception, stackTrace) {
