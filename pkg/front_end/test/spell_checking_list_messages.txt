@@ -42,6 +42,7 @@ dart:_internal
 dart:ffi
 dart:html
 dart:js_interop
+dart:js_interop_unsafe
 dart_runner
 dartbug.com
 defaultasset
