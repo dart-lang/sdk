@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
     show eraseStaticInteropTypesForJSCompilers;
 import 'package:js_shared/synced/recipe_syntax.dart' show Recipe;
+import 'package:js_shared/variance.dart' as shared_variance;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -171,6 +172,23 @@ class TypeRecipeGenerator {
     return rules;
   }
 
+  /// A mapping of type parameter variances for every [InterfaceType] that's
+  /// appeared in type recipes.
+  Map<String, Iterable<int>> get variances {
+    return {
+      for (var type in _recipeVisitor.visitedInterfaceTypes)
+        if (type.classNode case var cls && Class(:var typeParameters)
+            // Only emit type parameter variances for the interface if there
+            // exists at least one type parameter that doesn't have legacy
+            // covariance to avoid encoding extra information.
+            when typeParameters.any((element) => !element.isLegacyCovariant))
+          interfaceTypeRecipe(cls): [
+            for (var typeParameter in typeParameters)
+              _convertVariance(typeParameter)
+          ]
+    };
+  }
+
   /// Returns a mapping of type hierarchies for all [InterfaceType]s that have
   /// appeared in type recipes.
   Map<String, Object> get updateLegacyJavaScriptObjectRules {
@@ -195,6 +213,21 @@ class TypeRecipeGenerator {
   Iterable<String> get visitedJsInteropTypeRecipes =>
       _recipeVisitor.visitedJsInteropTypes
           .map((type) => interfaceTypeRecipe(type.classNode));
+
+  /// Converts the AST variance of the [typeParameter] to one that can be used
+  /// at runtime.
+  int _convertVariance(TypeParameter typeParameter) {
+    if (typeParameter.isLegacyCovariant) {
+      return shared_variance.Variance.legacyCovariant.index;
+    }
+    return switch (typeParameter.variance) {
+      Variance.covariant => shared_variance.Variance.covariant.index,
+      Variance.contravariant => shared_variance.Variance.contravariant.index,
+      Variance.invariant => shared_variance.Variance.invariant.index,
+      var variance =>
+        throw UnsupportedError('Variance $variance is not supported.'),
+    };
+  }
 }
 
 /// A visitor to generate type recipe strings from a [DartType].
