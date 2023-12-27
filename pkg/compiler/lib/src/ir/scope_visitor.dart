@@ -403,6 +403,9 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   @override
   EvaluationComplexity visitStructuralParameter(
       ir.StructuralParameter typeParameter) {
+    // Visit the default type to register any necessary type parameters that RTI
+    // might need if the associated function is used as a generic tear off.
+    visitNode(typeParameter.defaultType);
     return const EvaluationComplexity.constant();
   }
 

@@ -2861,6 +2861,38 @@ class UpperBoundTest extends _BoundsTestBase {
     );
   }
 
+  void test_extensionType_implementExtensionType_implicitObjectQuestion() {
+    // extension type A(Object?) {}
+    // extension type B(Object?) implements A {}
+    // extension type C(Object?) implements A {}
+
+    final A_none = interfaceTypeNone(
+      extensionType(
+        'A',
+        representationType: objectQuestion,
+        interfaces: [],
+      ),
+    );
+
+    _checkLeastUpperBound(
+      interfaceTypeNone(
+        extensionType(
+          'B',
+          representationType: objectQuestion,
+          interfaces: [A_none],
+        ),
+      ),
+      interfaceTypeNone(
+        extensionType(
+          'C',
+          representationType: objectQuestion,
+          interfaces: [A_none],
+        ),
+      ),
+      A_none,
+    );
+  }
+
   void test_extensionType_noTypeParameters_interfaces() {
     // extension type A(int) implements int {}
     // extension type B(double) implements double {}

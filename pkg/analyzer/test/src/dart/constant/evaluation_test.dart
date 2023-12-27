@@ -3563,6 +3563,36 @@ double Infinity
 ''');
   }
 
+  test_visitBinaryExpression_eqeq_double_double_nan_left() async {
+    await assertErrorsInCode('''
+const c = double.nan == 2.3;
+''', [
+      error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 10, 13),
+    ]);
+    // This test case produces an warning, but the value of the constant should
+    // be `false`.
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_eqeq_double_double_nan_right() async {
+    await assertErrorsInCode('''
+const c = 2.3 == double.nan;
+''', [
+      error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 14, 13),
+    ]);
+    // This test case produces an warning, but the value of the constant should
+    // be `false`.
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
   test_visitBinaryExpression_minus_double_double() async {
     await assertNoErrorsInCode('''
 const c = 3.2 - 2.3;
