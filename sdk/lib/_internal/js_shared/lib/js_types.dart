@@ -20,16 +20,9 @@ typedef JSAnyRepType = Object;
 
 typedef JSObjectRepType = interceptors.JSObject;
 
-// TODO(srujzs): The JS function types have to be typed as
-// `LegacyJavaScriptObject` for now until we reify JS functions as
-// `JavaScriptFunction` instead of `LegacyJavaScriptObject` in DDC. This will
-// happen with the new RTI. Note that we *cannot* make this `Function`, even
-// though all JS functions are Dart functions in our type system, because
-// `Function` is not <: `JSObject`. This subtyping relationship is required for
-// `dart:js_interop`'s extension types.
-typedef JSFunctionRepType = interceptors.LegacyJavaScriptObject;
+typedef JSFunctionRepType = interceptors.JavaScriptFunction;
 
-typedef JSExportedDartFunctionRepType = interceptors.LegacyJavaScriptObject;
+typedef JSExportedDartFunctionRepType = interceptors.JavaScriptFunction;
 
 typedef JSArrayRepType = interceptors.JSArray<Object?>;
 
