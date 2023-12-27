@@ -10,3 +10,4 @@ import 'dtd.dart';
 import 'dtd_file_system_service.dart';
 
 export 'src/file_system/file_extension.dart';
+export 'src/file_system/types.dart';
