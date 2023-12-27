@@ -588,6 +588,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             [legacyJavaScriptObjectClassRef, interopRecipesArray]);
         moduleItems.add(jsInteropRules);
       }
+
+      // Annotates the type parameter variances for each interface.
+      var typeVariances = _typeRecipeGenerator.variances;
+      if (typeVariances.isNotEmpty) {
+        var addTypeParameterVariancesTemplate =
+            '#._Universe.#(#, JSON.parse(#))';
+        var addTypeParameterVariancesStatement =
+            js.call(addTypeParameterVariancesTemplate, [
+          emitLibraryName(rtiLibrary),
+          _emitMemberName('addTypeParameterVariances',
+              memberClass: universeClass),
+          runtimeCall('typeUniverse'),
+          js.string(jsonEncode(typeVariances), "'")
+        ]).toStatement();
+        moduleItems.add(addTypeParameterVariancesStatement);
+      }
     }
 
     // Visit directives (for exports)
