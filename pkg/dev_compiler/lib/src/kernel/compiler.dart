@@ -3047,7 +3047,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Arguments which are _directly_ wrapped at the site they are passed are
   /// unmodified.
   Expression _assertInterop(Expression f) {
-    var type = f.getStaticType(_staticTypeContext);
+    // Erasing any extension types here for legacy JS interop support but if
+    // using the new extension type interop the type system requires that
+    // `.toJS` was called.
+    var type = f.getStaticType(_staticTypeContext).extensionTypeErasure;
     if (type is FunctionType ||
         (type is InterfaceType && type.classNode == _coreTypes.functionClass)) {
       if (!isAllowInterop(f)) {
@@ -5493,6 +5496,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return false;
   }
 
+  // TODO(54463): Refactor and specialize this code for each type of 'get'.
   js_ast.Expression _emitPropertyGet(
       Expression receiver, Member? member, String memberName) {
     // TODO(jmesserly): should tearoff of `.call` on a function type be
@@ -5526,8 +5530,11 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
       // Otherwise generate this as a normal typed property get.
     } else if (member == null &&
-        // Records have no member node for the element getters so avoid emitting
-        // a dynamic get when the types are known statically.
+        // Null member usually means this is a dynamic get but Records also have
+        // no member node for the element getters so avoid emitting a dynamic
+        // get when the types are known statically.
+        // Accesses of extension type getters don't lead to this code path
+        // at all so only the test for RecordType is needed.
         receiver.getStaticType(_staticTypeContext) is! RecordType) {
       return runtimeCall('dload$_replSuffix(#, #)', [jsReceiver, jsName]);
     }
@@ -5765,9 +5772,17 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
     var isCallingDynamicField = target is Member &&
         target.hasGetter &&
+        // Erasing extension types here doesn't make sense. If there is an
+        // extension type on dynamic or Function it will only be callable if it
+        // defines a call method which would be invoked statically.
         _isDynamicOrFunction(target.getterType);
     if (name == 'call') {
-      var receiverType = receiver.getStaticType(_staticTypeContext);
+      // Erasing the extension types here to support existing callable behaivor
+      // on the old style JS interop types that are callable. This should be
+      // safe as it is a compile time error to try to dynamically invoke a call
+      // method that is inherited from an extension type.
+      var receiverType =
+          receiver.getStaticType(_staticTypeContext).extensionTypeErasure;
       if (isCallingDynamicField || _isDynamicOrFunction(receiverType)) {
         return _emitDynamicInvoke(jsReceiver, null, args, arguments);
       } else if (_isDirectCallable(receiverType)) {
@@ -5793,7 +5808,22 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     // TODO(jmesserly): remove when Kernel desugars this for us.
     // Handle `o.m(a)` where `o.m` is a getter returning a class with `call`.
     if (target is Field || target is Procedure && target.isAccessor) {
-      var fromType = target!.getterType;
+      // We must erase the extension type to find the `call` method.
+      // If the extension type has a runtime representation with a `call`:
+      //
+      // ```
+      // extension type Ext(C c) implements C {...}
+      // class C {
+      //   call() {...}
+      // }
+      // ```
+      //
+      // We can always erase eagerly becuase:
+      //  - Extension types that do not implment an interface that exposes a
+      //    `call` method will result in a static error at the call site.
+      //  - Calls to extension types that implement their own call method are
+      //    lowered by the CFE to top level static method calls.
+      var fromType = target!.getterType.extensionTypeErasure;
       if (fromType is InterfaceType) {
         var callName = _implicitCallTarget(fromType);
         if (callName != null) {
