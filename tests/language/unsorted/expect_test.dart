@@ -39,15 +39,15 @@ class ExpectTest {
     throw "Expect.isFalse did not fail";
   }
 
-  static testIdentical(a) {
-    var ab = a + "B";
+  static testIdentical(uriA) {
+    var uriB = Uri.parse('$uriA');
     try {
-      Expect.identical("AB", ab);
+      Expect.identical(uriA, uriB);
     } on ExpectException catch (msg) {
       print(msg);
       return;
     }
-    Expect.equals("AB", ab);
+    Expect.equals(uriA, uriB);
     throw "Expect.identical did not fail";
   }
 
@@ -67,7 +67,7 @@ class ExpectTest {
     testIsTrue(1);
     testIsFalse(true);
     testIsFalse(0);
-    testIdentical("A");
+    testIdentical(Uri.parse("A"));
     testFail();
   }
 }
