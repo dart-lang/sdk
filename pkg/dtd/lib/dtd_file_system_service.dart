@@ -8,3 +8,4 @@ library;
 import 'dtd_file_system_service.dart';
 
 export 'src/file_system/file_service.dart';
+export 'src/file_system/types.dart';

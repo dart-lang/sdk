@@ -11,7 +11,6 @@ import 'package:json_rpc_2/json_rpc_2.dart';
 import '../../dtd.dart';
 import '../../dtd_file_system_service.dart';
 import 'constants.dart';
-import 'types.dart';
 
 extension FileSystemExtension on DTDConnection {
   /// Reads the file at [uri] from disk and returns the content as a
