@@ -27,7 +27,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropStaticInteropParameterInitializersAreIgnored,
         messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
-        templateJsInteropDisallowedInteropLibraryInDart2Wasm,
         templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNonStaticWithStaticInteropSupertype,
         templateJsInteropStaticInteropNoJSAnnotation,
@@ -37,7 +36,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         templateJsInteropNativeClassInAnnotation,
         templateJsInteropStaticInteropTearOffsDisallowed,
         templateJsInteropStaticInteropTrustTypesUsageNotAllowed,
-        templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop;
+        templateJsInteropStaticInteropTrustTypesUsedWithoutStaticInterop,
+        templateJsInteropStrictModeForbiddenLibrary;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
@@ -71,6 +71,7 @@ class JsInteropChecks extends RecursiveVisitor {
   bool _classHasJSAnnotation = false;
   bool _classHasAnonymousAnnotation = false;
   bool _classHasStaticInteropAnnotation = false;
+  final _checkDisallowedInterop = false;
   bool _inTearoff = false;
   bool _libraryHasDartJSInteropAnnotation = false;
   bool _libraryHasJSAnnotation = false;
@@ -91,36 +92,11 @@ class JsInteropChecks extends RecursiveVisitor {
     RegExp(r'(?<!generated_)tests/lib/js'),
   ];
 
-  static final List<Pattern>
-      _allowedUseOfDart2WasmDisallowedInteropLibrariesTestPatterns = [
-    RegExp(r'(?<!generated_)tests/lib/js/export'),
-    // Negative lookahead to test the violation.
-    RegExp(
-        r'(?<!generated_)tests/lib/js/static_interop_test(?!/disallowed_interop_libraries_test.dart)'),
-    RegExp(r'(?<!generated_)tests/web/wasm'),
-  ];
-
-  // TODO(srujzs): Help migrate some of these away. Once we're done, we can
-  // remove `dart:*` interop libraries from the check as they can be moved out
-  // of `libraries.json`.
-  static const _allowedInteropLibrariesInDart2WasmPackages = [
-    // Both these packages re-export other interop libraries
-    'js',
-    'js_util',
-    // Flutter
-    'flutter',
-    'ui',
-    // Non-SDK packages that have been migrated for the Wasm experiment but
-    // still have references to older interop libraries.
-    'package_info_plus',
-    'test',
-    'url_launcher_web',
-  ];
-
-  /// Interop libraries that cannot be used in dart2wasm.
-  static const _disallowedInteropLibrariesInDart2Wasm = [
+  /// Libraries that cannot be used when [_enforceStrictMode] is true.
+  static const _disallowedLibrariesInStrictMode = [
     'package:js/js.dart',
     'package:js/js_util.dart',
+    'dart:html',
     'dart:js_util',
     'dart:js'
   ];
@@ -309,7 +285,10 @@ class JsInteropChecks extends RecursiveVisitor {
         _libraryHasDartJSInteropAnnotation || hasJSInteropAnnotation(node);
     _libraryIsGlobalNamespace = _isLibraryGlobalNamespace(node);
 
-    if (isDart2Wasm) _checkDisallowedLibrariesForDart2Wasm(node);
+    // TODO(srujzs): Should we still keep around this check? Currently, it's
+    // unused since we allow the old interop on dart2wasm, but we should
+    // disallow them eventually.
+    if (_checkDisallowedInterop) _checkDisallowedLibrariesForDart2Wasm(node);
 
     super.visitLibrary(node);
     exportChecker.visitLibrary(node);
@@ -525,28 +504,12 @@ class JsInteropChecks extends RecursiveVisitor {
 
   // JS interop library checks
 
-  /// Check that [node] doesn't depend on any disallowed interop libraries in
-  /// dart2wasm.
-  ///
-  /// We allowlist `dart:*` libraries, select packages, and test patterns.
   void _checkDisallowedLibrariesForDart2Wasm(Library node) {
-    final uri = node.importUri;
     for (final dependency in node.dependencies) {
       final dependencyUriString = dependency.targetLibrary.importUri.toString();
-      if (_disallowedInteropLibrariesInDart2Wasm
-          .contains(dependencyUriString)) {
-        // TODO(srujzs): While we allow these imports for all `dart:*`
-        // libraries, we may want to restrict this further, as it may include
-        // `dart:ui`.
-        final allowedToImport = uri.isScheme('dart') ||
-            (uri.isScheme('package') &&
-                _allowedInteropLibrariesInDart2WasmPackages
-                    .any((pkg) => uri.pathSegments.first == pkg)) ||
-            _allowedUseOfDart2WasmDisallowedInteropLibrariesTestPatterns
-                .any((pattern) => uri.path.contains(pattern));
-        if (allowedToImport) return;
+      if (_disallowedLibrariesInStrictMode.contains(dependencyUriString)) {
         _reporter.report(
-            templateJsInteropDisallowedInteropLibraryInDart2Wasm
+            templateJsInteropStrictModeForbiddenLibrary
                 .withArguments(dependencyUriString),
             dependency.fileOffset,
             dependencyUriString.length,
@@ -619,7 +582,7 @@ class JsInteropChecks extends RecursiveVisitor {
   /// a dart low level library, a foreign helper, a native test,
   /// or a from environment constructor.
   bool _isAllowedExternalUsage(Member member) {
-    final uri = member.enclosingLibrary.importUri;
+    Uri uri = member.enclosingLibrary.importUri;
     return uri.isScheme('dart') &&
             _pathsWithAllowedDartExternalUsage.contains(uri.path) ||
         _allowedNativeTestPatterns.any((pattern) => uri.path.contains(pattern));
