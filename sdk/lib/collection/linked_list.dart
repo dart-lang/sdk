@@ -31,7 +31,7 @@ part of dart.collection;
 ///
 /// Example:
 /// ```dart
-/// class EntryItem extends LinkedListEntry<EntryItem> {
+/// final class EntryItem extends LinkedListEntry<EntryItem> {
 ///   final int id;
 ///   final String text;
 ///   EntryItem(this.id, this.text);
@@ -42,10 +42,10 @@ part of dart.collection;
 ///   }
 /// }
 ///
-/// void main(){
+/// void main() {
 ///   final linkedList = LinkedList<EntryItem>();
-///   linkedList.addAll(
-///       [EntryItem(1, 'A'), EntryItem(2, 'B'), EntryItem(3, 'C')]);
+///   linkedList
+///       .addAll([EntryItem(1, 'A'), EntryItem(2, 'B'), EntryItem(3, 'C')]);
 ///   print(linkedList.first); // 1 : A
 ///   print(linkedList.last); // 3 : C
 ///
