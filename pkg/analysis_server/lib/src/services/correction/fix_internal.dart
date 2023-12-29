@@ -243,22 +243,28 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart' hide FixContributor;
 
-Future<List<Fix>> computeFixes(DartFixContext context) async {
-  try {
-    return [
-      ...await FixProcessor(context).compute(),
-      ...await FixInFileProcessor(context).compute(),
-    ];
-  } on CancelCorrectionException {
-    return const [];
-  }
-}
-
 /// A function that can be executed to create a multi-correction producer.
 typedef MultiProducerGenerator = MultiCorrectionProducer Function();
 
 /// A function that can be executed to create a correction producer.
 typedef ProducerGenerator = CorrectionProducer Function();
+
+/// A fix contributor that provides the default set of fixes for Dart files.
+class DartFixContributor implements FixContributor {
+  @override
+  Future<List<Fix>> computeFixes(DartFixContext context) async {
+    try {
+      var processor = FixProcessor(context);
+      var fixes = await processor.compute();
+      var fixInFileProcessor = FixInFileProcessor(context);
+      var fixInFileFixes = await fixInFileProcessor.compute();
+      fixes.addAll(fixInFileFixes);
+      return fixes;
+    } on CancelCorrectionException {
+      return const <Fix>[];
+    }
+  }
+}
 
 /// Computer for Dart "fix all in file" fixes.
 class FixInFileProcessor {

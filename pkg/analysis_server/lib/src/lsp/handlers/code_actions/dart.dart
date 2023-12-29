@@ -151,6 +151,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
     final lineInfo = unit.lineInfo;
     final codeActions = <CodeActionWithPriority>[];
+    final fixContributor = DartFixContributor();
 
     try {
       final workspace = DartChangeWorkspace(await server.currentSessions);
@@ -168,7 +169,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         }
         var context = DartFixContextImpl(
             server.instrumentationService, workspace, unit, error);
-        final fixes = await computeFixes(context);
+        final fixes = await fixContributor.computeFixes(context);
         if (fixes.isNotEmpty) {
           final diagnostic = toDiagnostic(
             server.pathContext,
