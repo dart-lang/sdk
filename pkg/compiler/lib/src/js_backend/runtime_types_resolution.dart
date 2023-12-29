@@ -11,7 +11,7 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../js_model/elements.dart' show JLocalFunction;
+import '../js_model/elements.dart' show JLocalFunction, JParameterStub;
 import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
@@ -884,6 +884,7 @@ class RuntimeTypesNeedImpl implements RuntimeTypesNeed {
 
   @override
   bool methodNeedsTypeArguments(FunctionEntity function) {
+    if (function is JParameterStub) function = function.target;
     return methodsNeedingTypeArguments.contains(function);
   }
 

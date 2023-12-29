@@ -397,7 +397,7 @@ class CodegenRegistry {
 /// Code generation results computed on-demand.
 ///
 /// This is used in the non-modular codegen enqueuer driving code generation.
-class OnDemandCodegenResults extends CodegenResults {
+class OnDemandCodegenResults implements CodegenResults {
   @override
   final CodegenInputs codegenInputs;
   final FunctionCompiler _functionCompiler;
@@ -2234,19 +2234,23 @@ abstract class CodegenResults {
 /// Deserialized code generation results.
 ///
 /// This is used for modular code generation.
-class DeserializedCodegenResults extends CodegenResults {
+class DeserializedCodegenResults implements CodegenResults {
   @override
   final CodegenInputs codegenInputs;
+  final FunctionCompiler _functionCompiler;
 
   final Map<MemberEntity, CodegenResult> _map;
 
-  DeserializedCodegenResults(this.codegenInputs, this._map);
+  DeserializedCodegenResults(
+      this.codegenInputs, this._map, this._functionCompiler);
 
   @override
   CodegenResult getCodegenResults(MemberEntity member) {
     // We only access these results once as it is picked up by the work queue
     // so it is safe to remove and free up space in the map. With deferred
     // deserialization this will also free the Deferrable holder.
-    return _map.remove(member)!;
+    // Some entities such as parameter stubs are generated lazily and so we have
+    // to compile them on the fly.
+    return _map.remove(member) ?? _functionCompiler.compile(member);
   }
 }

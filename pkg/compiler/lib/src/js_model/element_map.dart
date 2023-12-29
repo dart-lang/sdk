@@ -245,6 +245,7 @@ ir.FunctionNode? getFunctionNode(
     case MemberKind.closureField:
     case MemberKind.signature:
     case MemberKind.recordGetter:
+    case MemberKind.parameterStub:
       return null;
   }
 }
@@ -354,6 +355,9 @@ enum MemberKind {
 
   /// A dynamic getter for a field of a record.
   recordGetter,
+
+  /// A parameter stub for an invokable member.
+  parameterStub,
 }
 
 /// Definition information for a [MemberEntity].
@@ -381,6 +385,7 @@ abstract class MemberDefinition {
       case MemberKind.constructorBody:
       case MemberKind.signature:
       case MemberKind.generatorBody:
+      case MemberKind.parameterStub:
         return SpecialMemberDefinition.readFromDataSource(source, kind);
       case MemberKind.closureCall:
       case MemberKind.closureField:

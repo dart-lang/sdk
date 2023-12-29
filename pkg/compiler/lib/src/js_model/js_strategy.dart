@@ -236,6 +236,7 @@ class JsBackendStrategy {
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task,
       JClosedWorld closedWorld,
+      InferredData inferredData,
       CodegenInputs codegen,
       CodegenResults codegenResults,
       SourceLookup sourceLookup) {
@@ -250,12 +251,14 @@ class JsBackendStrategy {
     _customElementsCodegenAnalysis = CustomElementsCodegenAnalysis(
         commonElements, elementEnvironment, closedWorld.nativeData);
     _recordsCodegen = RecordsCodegen(commonElements, closedWorld.recordData);
+    final worldBuilder = CodegenWorldBuilder(
+        closedWorld,
+        inferredData,
+        _compiler.abstractValueStrategy.createSelectorStrategy(),
+        oneShotInterceptorData);
     return CodegenEnqueuer(
         task,
-        CodegenWorldBuilder(
-            closedWorld,
-            _compiler.abstractValueStrategy.createSelectorStrategy(),
-            oneShotInterceptorData),
+        worldBuilder,
         KernelCodegenWorkItemBuilder(
             this,
             closedWorld.abstractValueDomain,
@@ -276,7 +279,8 @@ class JsBackendStrategy {
             customElementsCodegenAnalysis,
             recordsCodegen,
             closedWorld.nativeData,
-            nativeCodegenEnqueuer),
+            nativeCodegenEnqueuer,
+            worldBuilder),
         closedWorld.annotationsData);
   }
 

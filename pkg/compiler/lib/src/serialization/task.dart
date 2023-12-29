@@ -243,8 +243,8 @@ class SerializationTask extends CompilerTask {
         dataInput.release();
       });
     }
-    return DeserializedCodegenResults(
-        codegenInputs, DeferrableValueMap(results));
+    return DeserializedCodegenResults(codegenInputs,
+        DeferrableValueMap(results), backendStrategy.functionCompiler);
   }
 
   void _deserializeCodegenInput(

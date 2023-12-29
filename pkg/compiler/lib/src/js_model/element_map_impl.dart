@@ -1119,6 +1119,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         break;
 
       case MemberKind.recordGetter:
+      case MemberKind.parameterStub:
         // TODO(51310): Avoid calling [getStaticTypeProvider] for synthetic
         // elements that have no Kernel Node context.
         return NoStaticTypeProvider();
@@ -1575,6 +1576,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       case MemberKind.signature:
       case MemberKind.generatorBody:
         return getParentMember(definition.node as ir.TreeNode?);
+      case MemberKind.parameterStub:
       case MemberKind.recordGetter:
         return null;
     }
@@ -2010,6 +2012,57 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   /// These names are not used in generated code, just as element name.
   String _getClosureVariableName(String name, int id) {
     return "_captured_${name}_$id";
+  }
+
+  JParameterStub? createParameterStub(JFunction function, Selector selector,
+      {required Selector? callSelector, required bool needsSuper}) {
+    CallStructure callStructure = selector.callStructure;
+    ParameterStructure parameterStructure = function.parameterStructure;
+    int positionalArgumentCount = callStructure.positionalArgumentCount;
+    assert(callStructure.typeArgumentCount == 0 ||
+        callStructure.typeArgumentCount == parameterStructure.typeParameters);
+    assert(
+        callStructure.typeArgumentCount != parameterStructure.typeParameters ||
+            positionalArgumentCount != parameterStructure.totalParameters ||
+            (parameterStructure.namedParameters.isNotEmpty &&
+                callStructure.namedArgumentCount ==
+                    parameterStructure.namedParameters.length));
+
+    final newParameterStructure = ParameterStructure(
+        callStructure.positionalArgumentCount,
+        callStructure.positionalArgumentCount,
+        callStructure.namedArguments,
+        callStructure.namedArguments.toSet(),
+        callStructure.typeArgumentCount);
+
+    final stub = JParameterStub(function, newParameterStructure,
+        callSelector: callSelector, needsSuper: needsSuper);
+    final data = members.getData(function) as FunctionData;
+    final definition = data.definition;
+    switch (definition.kind) {
+      case MemberKind.regular:
+      case MemberKind.closureCall:
+        final node = definition.node;
+        final stubDefinition = SpecialMemberDefinition(
+            node as ir.TreeNode, MemberKind.parameterStub);
+        members.register(stub, ParameterStubFunctionData(data, stubDefinition));
+        lateOutputUnitDataBuilder.registerColocatedMembers(function, stub);
+        // We intentionally avoid registering the stub on a class here. We don't
+        // want the emitter to emit code for the stub as if it were a normal
+        // member. Code will be emitted alongside the target member.
+        break;
+      case MemberKind.signature:
+      case MemberKind.recordGetter:
+      case MemberKind.closureField:
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+      case MemberKind.generatorBody:
+      case MemberKind.parameterStub:
+        throw UnsupportedError(
+            'Cannot generate stub for $function with kind ${definition.kind}');
+    }
+
+    return stub;
   }
 
   @override

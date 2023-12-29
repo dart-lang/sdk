@@ -10,6 +10,7 @@ library dart2js.source_information.kernel;
 import 'package:kernel/ast.dart' as ir;
 import '../elements/entities.dart';
 import '../js_model/element_map.dart';
+import '../js_model/elements.dart';
 import '../universe/call_structure.dart';
 import 'source_information.dart';
 import 'position_information.dart';
@@ -181,10 +182,16 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
       case MemberKind.closureCall:
         final node = definition.node as ir.LocalFunction;
         return _buildFunction(name, base ?? node, node.function);
+      case MemberKind.parameterStub:
+        return buildStub(
+            member as JParameterStub, member.parameterStructure.callStructure);
       case MemberKind.recordGetter:
         return null;
-      // TODO(sra): generatorBody
-      default:
+      case MemberKind.closureField:
+      case MemberKind.signature:
+      case MemberKind.generatorBody:
+        // TODO(sra): Should we target the generator itself for generatorBody
+        break;
     }
     return _buildTreeNode(base ?? definition.node as ir.TreeNode, name: name);
   }
@@ -255,6 +262,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
           return _buildBody(node, node.function!.body);
         }
         break;
+      case MemberKind.parameterStub:
       case MemberKind.recordGetter:
         // This is a completely synthetic element. Perhaps we can use
         // definition.location, but that is often 'nowhere'.
@@ -263,8 +271,9 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
         // [KernelSourceInformationBuilder] for synthetic elements that are not
         // defined by Kernel ASTs.
         return null;
-
-      default:
+      case MemberKind.signature:
+      case MemberKind.closureField:
+        break;
     }
     return _buildTreeNode(definition.node as ir.TreeNode);
   }

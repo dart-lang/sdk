@@ -72,8 +72,8 @@ class CodeEmitterTask extends CompilerTask {
   void createEmitter(
       Namer namer, CodegenInputs codegen, JClosedWorld closedWorld) {
     measure(() {
-      nativeEmitter = NativeEmitter(
-          this, closedWorld, _backendStrategy.nativeCodegenEnqueuer);
+      nativeEmitter =
+          NativeEmitter(closedWorld, _backendStrategy.nativeCodegenEnqueuer);
       emitter = startup_js_emitter.EmitterImpl(
           _compiler.options,
           _compiler.reporter,

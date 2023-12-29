@@ -608,6 +608,7 @@ class InferrerEngine {
       case MemberKind.signature:
       case MemberKind.generatorBody:
       case MemberKind.recordGetter:
+      case MemberKind.parameterStub:
         break;
     }
     failedAt(member, 'Unexpected member definition: $definition.');

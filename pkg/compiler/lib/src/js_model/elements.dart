@@ -13,6 +13,7 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_set.dart' show ClassHierarchyNodesMapKey;
+import '../universe/selector.dart';
 import 'closure.dart';
 import 'records.dart' show JRecordClass, JRecordGetter;
 
@@ -127,7 +128,13 @@ enum JMemberKind {
   signatureMethod,
   contextField,
   recordGetter,
+  parameterStub,
 }
+
+@override
+String _membertoString(JMember member) => '${jsElementPrefix}${member._kind}'
+    '(${member.enclosingClass != null ? '${member.enclosingClass!.name}.' : ''}'
+    '${member.name})';
 
 abstract class JMember with EntityMapKey implements MemberEntity {
   @override
@@ -171,6 +178,8 @@ abstract class JMember with EntityMapKey implements MemberEntity {
         return JContextField.readFromDataSource(source);
       case JMemberKind.recordGetter:
         return JRecordGetter.readFromDataSource(source);
+      case JMemberKind.parameterStub:
+        return JParameterStub.readFromDataSource(source);
     }
   }
 
@@ -213,8 +222,7 @@ abstract class JMember with EntityMapKey implements MemberEntity {
   String get _kind;
 
   @override
-  String toString() => '${jsElementPrefix}$_kind'
-      '(${enclosingClass != null ? '${enclosingClass!.name}.' : ''}$name)';
+  String toString() => _membertoString(this);
 }
 
 abstract class JFunction extends JMember implements FunctionEntity {
@@ -396,6 +404,99 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
 
   @override
   int get hashCode => constructor.hashCode + 7;
+}
+
+class JParameterStub with EntityMapKey implements JMethod {
+  static const String kind = 'parameter-stub';
+
+  final JFunction target;
+  @override
+  final ParameterStructure parameterStructure;
+  final Selector? callSelector;
+  final bool needsSuper;
+
+  JParameterStub(this.target, this.parameterStructure,
+      {required this.callSelector, required this.needsSuper});
+
+  @override
+  String toString() => _membertoString(this);
+
+  @override
+  String get _kind => 'parameter_stub';
+
+  @override
+  bool get _isStatic => target._isStatic;
+
+  @override
+  Name get _name => target._name;
+
+  @override
+  AsyncMarker get asyncMarker => target.asyncMarker;
+
+  @override
+  JClass? get enclosingClass => target.enclosingClass;
+
+  @override
+  bool get isAbstract => target.isAbstract;
+
+  @override
+  bool get isAssignable => target.isAssignable;
+
+  @override
+  bool get isConst => target.isConst;
+
+  @override
+  bool get isExternal => target.isExternal;
+
+  @override
+  bool get isFunction => target.isFunction;
+
+  @override
+  bool get isGetter => target.isGetter;
+
+  @override
+  bool get isInstanceMember => target.isInstanceMember;
+
+  @override
+  bool get isSetter => target.isSetter;
+
+  @override
+  bool get isStatic => target.isStatic;
+
+  @override
+  bool get isTopLevel => target.isTopLevel;
+
+  @override
+  JLibrary get library => target.library;
+
+  @override
+  Name get memberName => target.memberName;
+
+  @override
+  String get name => target.name;
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(JMemberKind.parameterStub);
+    sink.begin(kind);
+    sink.writeMember(target);
+    parameterStructure.writeToDataSink(sink);
+    sink.writeValueOrNull(callSelector, (value) => value.writeToDataSink(sink));
+    sink.writeBool(needsSuper);
+    sink.end(kind);
+  }
+
+  factory JParameterStub.readFromDataSource(DataSourceReader source) {
+    source.begin(kind);
+    final target = source.readMember() as JFunction;
+    final parameterStructure = ParameterStructure.readFromDataSource(source);
+    final callSelector =
+        source.readValueOrNull(() => Selector.readFromDataSource(source));
+    final needsSuper = source.readBool();
+    source.end(kind);
+    return JParameterStub(target, parameterStructure,
+        callSelector: callSelector, needsSuper: needsSuper);
+  }
 }
 
 class JMethod extends JFunction {
