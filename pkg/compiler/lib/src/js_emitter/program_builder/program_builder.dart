@@ -31,7 +31,7 @@ import '../../js_backend/runtime_types_new.dart'
 import '../../js_backend/runtime_types_new.dart' as newRti;
 import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart'
-    show JField, JGeneratorBody, JSignatureMethod;
+    show JField, JParameterStub, JSignatureMethod;
 import '../../js_model/js_world.dart';
 import '../../js_model/records.dart' show RecordData, RecordRepresentation;
 import '../../js_model/type_recipe.dart'
@@ -46,7 +46,6 @@ import '../class_stub_generator.dart' show ClassStubGenerator;
 import '../instantiation_stub_generator.dart' show InstantiationStubGenerator;
 import '../interceptor_stub_generator.dart' show InterceptorStubGenerator;
 import '../main_call_stub_generator.dart' show MainCallStubGenerator;
-import '../parameter_stub_generator.dart' show ParameterStubGenerator;
 import '../runtime_type_generator.dart'
     show RuntimeTypeGenerator, TypeTestProperties;
 import '../js_emitter.dart' show CodeEmitterTask, Emitter;
@@ -536,7 +535,9 @@ class ProgramBuilder {
     String uri = library.canonicalUri.toString();
 
     List<StaticMethod> statics = memberElements
-        .where((e) => e is! FieldEntity)
+        // We omit static stubs here because we use the function bodies directly
+        // when we install the tear offs.
+        .where((e) => e is! FieldEntity && e is! JParameterStub)
         .cast<FunctionEntity>()
         .map<StaticMethod>(_buildStaticMethod)
         .toList();
@@ -802,13 +803,6 @@ class ProgramBuilder {
     }
   }
 
-  bool _methodNeedsStubs(FunctionEntity method) {
-    if (method is JGeneratorBody) return false;
-    if (method is ConstructorBodyEntity) return false;
-    return method.parameterStructure.optionalParameters != 0 ||
-        method.parameterStructure.typeParameters != 0;
-  }
-
   bool _methodCanBeApplied(FunctionEntity method) {
     return _backendUsage.isFunctionApplyUsed &&
         _inferredData.getMightBePassedToApply(method);
@@ -925,8 +919,8 @@ class ProgramBuilder {
       }
     }
 
-    return InstanceMethod(element, name, code,
-        _generateParameterStubs(element, canTearOff, canBeApplied), callName,
+    return InstanceMethod(
+        element, name, code, _stubsForMethod(method), callName,
         needsTearOff: canTearOff,
         tearOffName: tearOffName,
         tearOffNeedsDirectAccess: tearOffNeedsDirectAccess,
@@ -971,23 +965,6 @@ class ProgramBuilder {
     } else {
       return _task.metadataCollector.reifyType(type, outputUnit);
     }
-  }
-
-  List<ParameterStubMethod> _generateParameterStubs(
-      FunctionEntity element, bool canTearOff, bool canBeApplied) {
-    if (!_methodNeedsStubs(element)) return const [];
-
-    ParameterStubGenerator generator = ParameterStubGenerator(
-        _task.emitter,
-        _task.nativeEmitter,
-        _namer,
-        _nativeData,
-        _interceptorData,
-        _codegenWorld,
-        _closedWorld,
-        _sourceInformationStrategy);
-    return generator.generateParameterStubs(element,
-        canTearOff: canTearOff, canBeApplied: canBeApplied);
   }
 
   List<StubMethod> _generateInstantiationStubs(ClassEntity instantiationClass) {
@@ -1186,8 +1163,8 @@ class ProgramBuilder {
       }
     }
 
-    return StaticDartMethod(element, name, code,
-        _generateParameterStubs(element, needsTearOff, canBeApplied), callName,
+    return StaticDartMethod(
+        element, name, code, _stubsForMethod(method), callName,
         needsTearOff: needsTearOff,
         tearOffName: tearOffName,
         canBeApplied: canBeApplied,
@@ -1195,6 +1172,18 @@ class ProgramBuilder {
         optionalParameterDefaultValues: optionalParameterDefaultValues,
         functionType: functionType,
         applyIndex: applyIndex);
+  }
+
+  List<ParameterStubMethod> _stubsForMethod(FunctionEntity element) {
+    final stubMethods = _codegenWorld.getParameterStubs(element).map((stub) {
+      final name = element.isStatic ? null : _namer.instanceMethodName(stub);
+      final callSelector = stub.callSelector;
+      final callName =
+          (callSelector != null) ? _namer.invocationName(callSelector) : null;
+      final stubCode = _generatedCode[stub]!;
+      return ParameterStubMethod(name, callName, stubCode, element: element);
+    }).toList(growable: false);
+    return stubMethods.isEmpty ? const [] : stubMethods;
   }
 
   void _registerConstants(

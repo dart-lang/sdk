@@ -26,8 +26,8 @@ import 'closure.dart'
         ClosureFieldData;
 import 'element_map.dart'
     show
-        JsToElementMap,
         ClassDefinition,
+        JsToElementMap,
         MemberDefinition,
         forEachOrderedParameterByFunctionNode;
 import 'element_map_impl.dart';
@@ -919,6 +919,21 @@ abstract class DelegatedFunctionData implements FunctionData {
   @override
   ClassTypeVariableAccess get classTypeVariableAccess =>
       baseData.classTypeVariableAccess;
+}
+
+class ParameterStubFunctionData extends DelegatedFunctionData {
+  @override
+  final MemberDefinition definition;
+
+  ParameterStubFunctionData(super.baseData, this.definition);
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    throw UnimplementedError('Cannot serialize parameter stub data.');
+  }
+
+  @override
+  StaticTypeCache get staticTypes => const StaticTypeCache();
 }
 
 class GeneratorBodyFunctionData extends DelegatedFunctionData {
