@@ -550,7 +550,7 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       testAnalysisResult,
       error,
     );
-    return await computeFixes(context);
+    return await DartFixContributor().computeFixes(context);
   }
 
   List<Position> _findResultPositions(List<String> searchStrings) {

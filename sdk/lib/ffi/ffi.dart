@@ -188,9 +188,9 @@ abstract final class NativeCallable<T extends Function> {
   /// Unlike [Pointer.fromFunction], [NativeCallable]s can be constructed from
   /// any Dart function or closure, not just static or top level functions.
   ///
-  /// This callback must be [close]d when it is no longer needed, but it will
-  /// *not* keep its [Isolate] alive. After the isolate is terminated, or
-  /// [NativeCallable.close] is called, invoking the [nativeFunction] from
+  /// This callback must be [close]d when it is no longer needed. The [Isolate]
+  /// that created the callback will be kept alive until [close] is called.
+  /// After [NativeCallable.close] is called, invoking the [nativeFunction] from
   /// native code will cause undefined behavior.
   factory NativeCallable.isolateLocal(
       @DartRepresentationOf("T") Function callback,
@@ -214,6 +214,8 @@ abstract final class NativeCallable<T extends Function> {
   ///
   /// This callback must be [close]d when it is no longer needed. The [Isolate]
   /// that created the callback will be kept alive until [close] is called.
+  /// After [NativeCallable.close] is called, invoking the [nativeFunction] from
+  /// native code will cause undefined behavior.
   ///
   /// For example:
   ///
