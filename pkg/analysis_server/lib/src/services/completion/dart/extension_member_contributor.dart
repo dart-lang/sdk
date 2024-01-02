@@ -108,7 +108,6 @@ class ExtensionMemberContributor extends DartCompletionContributor {
     var applicableExtensions = extensions.applicableTo(
       targetLibrary: request.libraryElement,
       targetType: type,
-      strictInference: false,
     );
     for (var instantiatedExtension in applicableExtensions) {
       var extendedType = instantiatedExtension.extendedType;

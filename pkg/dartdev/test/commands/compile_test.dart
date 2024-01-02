@@ -318,7 +318,7 @@ void defineCompileTests() {
     );
 
     expect(result.stderr,
-        "'dart compile exe' is not supported on x86 architectures");
+        "'dart compile exe' is not supported on x86 architectures.\n");
     expect(result.exitCode, 64);
   }, skip: !isRunningOnIA32);
 
@@ -335,7 +335,7 @@ void defineCompileTests() {
     );
 
     expect(result.stderr,
-        "'dart compile aot-snapshot' is not supported on x86 architectures");
+        "'dart compile aot-snapshot' is not supported on x86 architectures.\n");
     expect(result.exitCode, 64);
   }, skip: !isRunningOnIA32);
 

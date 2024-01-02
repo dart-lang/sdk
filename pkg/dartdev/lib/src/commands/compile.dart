@@ -299,16 +299,16 @@ Remove debugging information from the output and save it separately to the speci
 
   @override
   FutureOr<int> run() async {
-    if (!Sdk.checkArtifactExists(genKernel) ||
-        !Sdk.checkArtifactExists(genSnapshot)) {
-      return 255;
-    }
     // AOT compilation isn't supported on ia32. Currently, generating an
     // executable only supports AOT runtimes, so these commands are disabled.
     if (Platform.version.contains('ia32')) {
       stderr.write(
-          "'dart compile $commandName' is not supported on x86 architectures");
+          "'dart compile $commandName' is not supported on x86 architectures.\n");
       return 64;
+    }
+    if (!Sdk.checkArtifactExists(genKernel) ||
+        !Sdk.checkArtifactExists(genSnapshot)) {
+      return 255;
     }
     final args = argResults!;
 

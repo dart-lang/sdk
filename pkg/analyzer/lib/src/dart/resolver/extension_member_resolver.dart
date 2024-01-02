@@ -93,7 +93,6 @@ class ExtensionMemberResolver {
         .applicableTo(
           targetLibrary: _resolver.definingLibrary,
           targetType: type,
-          strictInference: _resolver.analysisOptions.strictInference,
         );
 
     if (extensions.isEmpty) {
