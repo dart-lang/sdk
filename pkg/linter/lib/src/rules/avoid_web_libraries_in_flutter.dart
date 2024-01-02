@@ -15,17 +15,26 @@ const _desc =
     r'Avoid using web-only libraries outside Flutter web plugin packages.';
 
 const _details = r'''
-**AVOID** using web libraries, `dart:html`, `dart:js` and 
-`dart:js_util` in Flutter packages that are not web plugins. These libraries are 
-not supported outside a web context; functionality that depends on them will
-fail at runtime in Flutter mobile, and their use is generally discouraged in
-Flutter web.
+**AVOID** using web libraries or web-only packages in
+Flutter packages that are not web plugins.
 
-Web library access *is* allowed in:
+Web libraries are not supported outside a web context; functionality that
+depends on them will fail at runtime on non-web platforms, and
+their use is generally discouraged in Flutter web apps.
 
-* plugin packages that declare `web` as a supported context
+This lint flags any import of the following libraries and packages:
 
-otherwise, imports of `dart:html`, `dart:js` and  `dart:js_util` are disallowed.
+- `dart:html`
+- `dart:js`
+- `dart:js_util`
+- `dart:js_interop`
+- `dart:js_interop_unsafe`
+- `package:js`
+- `package:web`
+
+Web library usage is allowed in Flutter plugins that
+[explicitly declare](https://docs.flutter.dev/packages-and-plugins/developing-packages#plugin-platforms)
+the `web` platform as supported in their `pubspec.yaml` file.
 ''';
 
 // TODO(pq): consider making a utility and sharing w/ `prefer_relative_imports`
@@ -119,16 +128,21 @@ class AvoidWebLibrariesInFlutter extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static const Set<String> _webUris = {
+    'dart:html',
+    'dart:js',
+    'dart:js_util',
+    'dart:js_interop',
+    'dart:js_interop_unsafe',
+    'package:js',
+    'package:web',
+  };
+
   final LintRule rule;
 
   _Visitor(this.rule);
 
-  bool isWebUri(String uri) {
-    var uriLength = uri.length;
-    return (uriLength == 9 && uri == 'dart:html') ||
-        (uriLength == 7 && uri == 'dart:js') ||
-        (uriLength == 12 && uri == 'dart:js_util');
-  }
+  bool isWebUri(String uri) => _webUris.contains(uri.split('/')[0]);
 
   @override
   void visitImportDirective(ImportDirective node) {
