@@ -5803,6 +5803,10 @@ JsInteropDartJsInteropAnnotationForStaticInteropOnly:
   problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes."
   correctionMessage: "Try making this class an extension type or marking it as '@staticInterop'."
 
+JsInteropDisallowedInteropLibraryInDart2Wasm:
+  problemMessage: "JS interop library '#name' can't be imported when compiling to Wasm."
+  correctionMessage: "Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead."
+
 JsInteropEnclosingClassJSAnnotation:
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."
   correctionMessage: "Try adding the annotation to the enclosing class."
@@ -5967,10 +5971,6 @@ JsInteropStaticInteropWithInstanceMembers:
 JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
-
-JsInteropStrictModeForbiddenLibrary:
-  problemMessage: "Library '#name' is forbidden when strict mode is enabled."
-  correctionMessage: "Remove the import of a forbidden library."
 
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."

@@ -8571,6 +8571,38 @@ const MessageCode messageJsInteropDartJsInteropAnnotationForStaticInteropOnly =
             r"""Try making this class an extension type or marking it as '@staticInterop'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(String name)>
+    templateJsInteropDisallowedInteropLibraryInDart2Wasm =
+    const Template<Message Function(String name)>(
+        "JsInteropDisallowedInteropLibraryInDart2Wasm",
+        problemMessageTemplate:
+            r"""JS interop library '#name' can't be imported when compiling to Wasm.""",
+        correctionMessageTemplate:
+            r"""Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead.""",
+        withArguments:
+            _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeJsInteropDisallowedInteropLibraryInDart2Wasm =
+    const Code<Message Function(String name)>(
+  "JsInteropDisallowedInteropLibraryInDart2Wasm",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropDisallowedInteropLibraryInDart2Wasm(
+    String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeJsInteropDisallowedInteropLibraryInDart2Wasm,
+      problemMessage:
+          """JS interop library '${name}' can't be imported when compiling to Wasm.""",
+      correctionMessage: """Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropEnclosingClassJSAnnotation =
     messageJsInteropEnclosingClassJSAnnotation;
 
@@ -9327,35 +9359,6 @@ Message _withArgumentsJsInteropStaticInteropWithNonStaticSupertype(
           """JS interop class '${name}' has an `@staticInterop` annotation, but has supertype '${name2}', which does not.""",
       correctionMessage: """Try marking the supertype as a static interop class using `@staticInterop`.""",
       arguments: {'name': name, 'name2': name2});
-}
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<Message Function(String name)>
-    templateJsInteropStrictModeForbiddenLibrary =
-    const Template<Message Function(String name)>(
-        "JsInteropStrictModeForbiddenLibrary",
-        problemMessageTemplate:
-            r"""Library '#name' is forbidden when strict mode is enabled.""",
-        correctionMessageTemplate:
-            r"""Remove the import of a forbidden library.""",
-        withArguments: _withArgumentsJsInteropStrictModeForbiddenLibrary);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Message Function(String name)>
-    codeJsInteropStrictModeForbiddenLibrary =
-    const Code<Message Function(String name)>(
-  "JsInteropStrictModeForbiddenLibrary",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsJsInteropStrictModeForbiddenLibrary(String name) {
-  if (name.isEmpty) throw 'No name provided';
-  name = demangleMixinApplicationName(name);
-  return new Message(codeJsInteropStrictModeForbiddenLibrary,
-      problemMessage:
-          """Library '${name}' is forbidden when strict mode is enabled.""",
-      correctionMessage: """Remove the import of a forbidden library.""",
-      arguments: {'name': name});
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

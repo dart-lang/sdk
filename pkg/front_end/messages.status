@@ -601,6 +601,8 @@ JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
 JsInteropDartJsInteropAnnotationForStaticInteropOnly/analyzerCode: Fail # Web compiler specific
 JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: Fail # Web compiler specific
+JsInteropDisallowedInteropLibraryInDart2Wasm/analyzerCode: Fail # Web compiler specific
+JsInteropDisallowedInteropLibraryInDart2Wasm/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
 JsInteropExportClassNotMarkedExportable/analyzerCode: Fail # Web compiler specific
@@ -681,8 +683,6 @@ JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler spec
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
-JsInteropStrictModeForbiddenLibrary/analyzerCode: Fail # Web compiler specific
-JsInteropStrictModeForbiddenLibrary/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
