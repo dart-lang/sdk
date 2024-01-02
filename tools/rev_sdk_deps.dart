@@ -283,14 +283,6 @@ class PackageDependency {
       org = parts[parts.length - 2];
     }
 
-    // TODO(devoncarew): Eliminate this special-casing; see #48830.
-    const orgOverrides = {
-      'platform.dart': 'google',
-    };
-    if (orgOverrides.containsKey(repo)) {
-      org = orgOverrides[repo]!;
-    }
-
     return 'https://github.com/$org/$repo/compare/$from..$to';
   }
 
