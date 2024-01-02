@@ -1157,6 +1157,19 @@ class ThreadInfo with FileUtils {
         if (results == null) {
           // If no result, all of the results are null.
           completers.forEach((uri, completer) => completer.complete(null));
+        } else if (results.length != requiredUris.length) {
+          // If the lengths of the lists are different, we have an invalid
+          // response from the VM. This is a bug in the VM/VM Service:
+          // https://github.com/dart-lang/sdk/issues/52632
+
+          final reason =
+              results.length > requiredUris.length ? 'more' : 'fewer';
+          final message =
+              'lookupResolvedPackageUris result contained $reason results than '
+              'the request. See https://github.com/dart-lang/sdk/issues/52632';
+          final error = Exception(message);
+          completers
+              .forEach((uri, completer) => completer.completeError(error));
         } else {
           // Otherwise, complete each one by index with the corresponding value.
           results.map(_convertUriToFilePath).forEachIndexed((i, result) {
@@ -1167,7 +1180,15 @@ class ThreadInfo with FileUtils {
       } catch (e) {
         // We can't leave dangling completers here because others may already
         // be waiting on them, so propagate the error to them.
-        completers.forEach((uri, completer) => completer.completeError(e));
+        completers.forEach((uri, completer) {
+          // Only complete if not already completed. It's possible an exception
+          // occurred above inside the loop and that some of the completers have
+          // already completed. We don't want to replace a good exception with
+          // "Future already completed".
+          if (!completer.isCompleted) {
+            completer.completeError(e);
+          }
+        });
 
         // Don't rethrow here, because it will cause these completers futures
         // to not have error handlers attached which can cause their errors to
