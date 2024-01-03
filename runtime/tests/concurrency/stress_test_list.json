@@ -906,7 +906,6 @@
   "../../../tests/language/closure/tearoff_bounds_instantiation_test.dart",
   "../../../tests/language/closure/tearoff_dynamic_test.dart",
   "../../../tests/language/closure/tearoff_super_default_test.dart",
-  "../../../tests/language/closure/type_arguments_test.dart",
   "../../../tests/language/closure/type_test.dart",
   "../../../tests/language/closure/type_variable_test.dart",
   "../../../tests/language/closure/type_variables_test.dart",
