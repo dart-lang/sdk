@@ -236,6 +236,7 @@ $platform$truncate$alignment  external void operator []=(int index, $dartType va
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<$nativeType> operator +(int offset) => Pointer.fromAddress(address + sizeOf<$nativeType>() * offset);
 
   /// A pointer to the [offset]th [$nativeType] before this one.
@@ -248,6 +249,7 @@ $platform$truncate$alignment  external void operator []=(int index, $dartType va
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<$nativeType> operator -(int offset) => Pointer.fromAddress(address - sizeOf<$nativeType>() * offset);
 
 $asTypedList

@@ -334,6 +334,7 @@ extension Int8Pointer on Pointer<Int8> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Int8> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Int8>() * offset);
 
@@ -347,6 +348,7 @@ extension Int8Pointer on Pointer<Int8> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Int8> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Int8>() * offset);
 
@@ -409,6 +411,7 @@ extension Int16Pointer on Pointer<Int16> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Int16> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Int16>() * offset);
 
@@ -422,6 +425,7 @@ extension Int16Pointer on Pointer<Int16> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Int16> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Int16>() * offset);
 
@@ -486,6 +490,7 @@ extension Int32Pointer on Pointer<Int32> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Int32> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Int32>() * offset);
 
@@ -499,6 +504,7 @@ extension Int32Pointer on Pointer<Int32> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Int32> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Int32>() * offset);
 
@@ -554,6 +560,7 @@ extension Int64Pointer on Pointer<Int64> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Int64> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Int64>() * offset);
 
@@ -567,6 +574,7 @@ extension Int64Pointer on Pointer<Int64> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Int64> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Int64>() * offset);
 
@@ -625,6 +633,7 @@ extension Uint8Pointer on Pointer<Uint8> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Uint8> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Uint8>() * offset);
 
@@ -638,6 +647,7 @@ extension Uint8Pointer on Pointer<Uint8> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Uint8> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Uint8>() * offset);
 
@@ -700,6 +710,7 @@ extension Uint16Pointer on Pointer<Uint16> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Uint16> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Uint16>() * offset);
 
@@ -713,6 +724,7 @@ extension Uint16Pointer on Pointer<Uint16> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Uint16> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Uint16>() * offset);
 
@@ -777,6 +789,7 @@ extension Uint32Pointer on Pointer<Uint32> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Uint32> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Uint32>() * offset);
 
@@ -790,6 +803,7 @@ extension Uint32Pointer on Pointer<Uint32> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Uint32> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Uint32>() * offset);
 
@@ -845,6 +859,7 @@ extension Uint64Pointer on Pointer<Uint64> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Uint64> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Uint64>() * offset);
 
@@ -858,6 +873,7 @@ extension Uint64Pointer on Pointer<Uint64> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Uint64> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Uint64>() * offset);
 
@@ -922,6 +938,7 @@ extension FloatPointer on Pointer<Float> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Float> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Float>() * offset);
 
@@ -935,6 +952,7 @@ extension FloatPointer on Pointer<Float> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Float> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Float>() * offset);
 
@@ -990,6 +1008,7 @@ extension DoublePointer on Pointer<Double> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Double> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Double>() * offset);
 
@@ -1003,6 +1022,7 @@ extension DoublePointer on Pointer<Double> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Double> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Double>() * offset);
 
@@ -1053,6 +1073,7 @@ extension BoolPointer on Pointer<Bool> {
   ///
   /// Also `(this + offset).value` is equivalent to `this[offset]`,
   /// and similarly for setting.
+  @Since('3.3')
   Pointer<Bool> operator +(int offset) =>
       Pointer.fromAddress(address + sizeOf<Bool>() * offset);
 
@@ -1066,6 +1087,7 @@ extension BoolPointer on Pointer<Bool> {
   ///
   /// Also, `(this - offset).value` is equivalent to `this[-offset]`,
   /// and similarly for setting,
+  @Since('3.3')
   Pointer<Bool> operator -(int offset) =>
       Pointer.fromAddress(address - sizeOf<Bool>() * offset);
 }
