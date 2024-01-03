@@ -18,7 +18,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
         FunctionDeclarationsMacro,
         LibraryDeclarationsMacro,
         MethodDeclarationsMacro,
-        MixinDeclarationsMacro {
+        MixinDeclarationsMacro,
+        VariableDeclarationsMacro {
   final Set<Object?> withDetailsFor;
   final bool withMetadata;
   final bool withUnnamedConstructor;
@@ -159,6 +160,16 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeMixinDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForVariable(
+    VariableDeclaration declaration,
+    DeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeVariable(declaration);
     });
   }
 

@@ -536,6 +536,9 @@ class DeclarationBuilderFromElement {
   final Map<TypeParameterElement, macro.TypeParameterDeclarationImpl>
       _typeParameterMap = Map.identity();
 
+  final Map<TopLevelVariableElement, VariableDeclarationImpl> _variableMap =
+      Map.identity();
+
   DeclarationBuilderFromElement(this.declarationBuilder);
 
   macro.ClassDeclarationImpl classElement(
@@ -569,6 +572,8 @@ class DeclarationBuilderFromElement {
         } else {
           return methodElement(element);
         }
+      case TopLevelVariableElementImpl():
+        return topLevelVariableElement(element);
       default:
         // TODO(scheglov): other elements
         return typeDeclarationOf(element);
@@ -637,6 +642,12 @@ class DeclarationBuilderFromElement {
     MixinElementImpl element,
   ) {
     return _mixinMap[element] ??= _mixinElement(element);
+  }
+
+  macro.VariableDeclarationImpl topLevelVariableElement(
+    TopLevelVariableElementImpl element,
+  ) {
+    return _variableMap[element] ??= _topLevelVariableElement(element);
   }
 
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
@@ -880,6 +891,22 @@ class DeclarationBuilderFromElement {
         .where((element) => element.isPositional)
         .map(_formalParameter)
         .toList();
+  }
+
+  VariableDeclarationImpl _topLevelVariableElement(
+    TopLevelVariableElementImpl element,
+  ) {
+    return VariableDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      hasExternal: element.isExternal,
+      hasFinal: element.isFinal,
+      hasLate: element.isLate,
+      type: _dartType(element.type),
+      element: element,
+    );
   }
 
   macro.TypeParameterDeclarationImpl _typeParameter(
@@ -1271,19 +1298,21 @@ class DeclarationBuilderFromNode {
           isStatic: element.isStatic,
           element: element,
         );
-      default:
+      case ast.TopLevelVariableDeclarationImpl():
         final element = node.declaredElement as TopLevelVariableElementImpl;
         return VariableDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
           identifier: _declaredIdentifier(node.name, element),
           library: library(element),
           metadata: _buildMetadata(element),
-          hasExternal: false,
+          hasExternal: element.isExternal,
           hasFinal: element.isFinal,
           hasLate: element.isLate,
           type: _typeAnnotationVariable(variableList.type, element),
           element: element,
         );
+      default:
+        throw UnimplementedError('${variablesDeclaration.runtimeType}');
     }
   }
 

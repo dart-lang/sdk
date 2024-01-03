@@ -5329,6 +5329,75 @@ foo
 ''');
   }
 
+  test_unit_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final foo = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasFinal
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasExternal_true() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+external int foo;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasExternal
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasFinal_false() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var foo = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasLate_true() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+late int foo;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasLate
+  type: int
+''');
+  }
+
+  test_unit_variable_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@a1
+@a2
+final foo = 0;
+
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasFinal
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  type: int
+''');
+  }
+
   Future<void> _assertIntrospectText(
     String name,
     String expected, {
@@ -7680,6 +7749,94 @@ foo
       flags: isRequired
       type: int
   returnType: OmittedType
+''');
+  }
+
+  test_unit_variable_flags_hasExternal_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+external int foo;
+''', r'''
+foo
+  flags: hasExternal
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasFinal_false() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+var foo = 0;
+''', r'''
+foo
+  type: OmittedType
+''');
+  }
+
+  test_unit_variable_flags_hasFinal_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+final foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
+''');
+  }
+
+  test_unit_variable_flags_hasLate_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+late int foo;
+''', r'''
+foo
+  flags: hasLate
+  type: int
+''');
+  }
+
+  test_unit_variable_metadata() async {
+    await _assertIntrospectText(r'''
+@Introspect(withMetadata: true)
+@a1
+@a2
+final foo = 0;
+
+const a1 = 0;
+const a2 = 0;
+''', r'''
+foo
+  flags: hasFinal
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  type: OmittedType
+''');
+  }
+
+  test_unit_variable_type_explicit() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+final num foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: num
+''');
+  }
+
+  test_unit_variable_type_implicit() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+final foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
 ''');
   }
 

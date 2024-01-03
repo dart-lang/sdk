@@ -207,8 +207,17 @@ class LibraryMacroApplier {
             members: declaration.members,
           );
         case ast.TopLevelVariableDeclarationImpl():
-          // TODO(scheglov): implement it
-          break;
+          final variables = declaration.variables.variables;
+          for (final variable in variables.reversed) {
+            await _addAnnotations(
+              libraryElement: libraryElement,
+              container: container,
+              targetNode: variable,
+              targetNodeElement: variable.declaredElement,
+              targetDeclarationKind: macro.DeclarationKind.variable,
+              annotations: declaration.metadata,
+            );
+          }
       }
     }
 
