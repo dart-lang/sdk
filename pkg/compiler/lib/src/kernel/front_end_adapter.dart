@@ -123,7 +123,8 @@ void reportFrontEndMessage(
     case fe.Severity.info:
       reporter.reportInfo(mainMessage, infos);
       break;
-    default:
+    case fe.Severity.context:
+    case fe.Severity.ignored:
       throw UnimplementedError('unhandled severity ${message.severity}');
   }
 }

@@ -971,12 +971,19 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
           constructorData, field.enclosingClass!);
 
       MemberDefinition definition = _elementMap.getMemberDefinition(field);
-      late final ir.Field node;
+      ir.Field node;
       switch (definition.kind) {
         case MemberKind.regular:
           node = definition.node as ir.Field;
           break;
-        default:
+        case MemberKind.constructor:
+        case MemberKind.constructorBody:
+        case MemberKind.closureCall:
+        case MemberKind.closureField:
+        case MemberKind.signature:
+        case MemberKind.generatorBody:
+        case MemberKind.recordGetter:
+        case MemberKind.parameterStub:
           failedAt(field, "Unexpected member definition $definition.");
       }
 
@@ -5118,7 +5125,7 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         String typesAccess = _emitter.generateEmbeddedGlobalAccessString(TYPES);
         return js.js.expressionTemplateFor("$typesAccess[#]");
 
-      default:
+      case JsBuiltin.isJsInteropTypeArgument:
         reporter.internalError(
             NO_LOCATION_SPANNABLE, "Unhandled Builtin: $builtin");
         return null;
@@ -6857,8 +6864,11 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         final node = definition.node as ir.LocalFunction;
         node.function.body!.accept(this);
         return;
-      default:
-        break;
+      case MemberKind.closureField:
+      case MemberKind.generatorBody:
+      case MemberKind.recordGetter:
+      case MemberKind.signature:
+      case MemberKind.parameterStub:
     }
     failedAt(function, "Unexpected inlined function: $definition");
   }

@@ -301,7 +301,14 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
             methodMap[node as ir.Procedure] = member as JFunction;
           }
           break;
-        default:
+        case MemberKind.closureCall:
+        case MemberKind.closureField:
+        case MemberKind.constructorBody:
+        case MemberKind.generatorBody:
+        case MemberKind.recordGetter:
+        case MemberKind.signature:
+        case MemberKind.parameterStub:
+          break;
       }
     }
     source.end(memberTag);

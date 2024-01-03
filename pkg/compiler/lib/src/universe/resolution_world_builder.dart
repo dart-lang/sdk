@@ -147,7 +147,7 @@ class InstantiationInfo {
         break;
       case Instantiation.UNINSTANTIATED:
         break;
-      default:
+      case Instantiation.INDIRECTLY_INSTANTIATED:
         throw StateError("Instantiation $kind is not allowed.");
     }
   }

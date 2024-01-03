@@ -2263,9 +2263,6 @@ abstract class DartTypes {
                 if (!_isSubtype(sArgs[i], tArgs[i], env) ||
                     !_isSubtype(tArgs[i], sArgs[i], env)) return false;
                 break;
-              default:
-                throw StateError(
-                    "Invalid variance ${variances[i]} used for subtype check.");
             }
           }
           return true;

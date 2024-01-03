@@ -4,21 +4,23 @@
 
 /// Utility methods to manipulate JS objects dynamically.
 ///
-/// This library is meant to be used when the names of properties or methods are
-/// not known statically. This library is similar to 'dart:js_util', except
-/// the methods here are extension methods that use JS types. This enables
-/// support with dart2wasm.
+/// This library is typically meant to be used when the names of properties or
+/// methods are not known statically. This library is similar to 'dart:js_util',
+/// except the methods here are extension methods that use JS types. This
+/// enables support with dart2wasm.
 ///
 /// In general, we expect people to use 'dart:js_interop' and that this library
-/// will be rarely used. Prefer to write JS interop interfaces and external
-/// static interop members using 'dart:js_interop'. The APIs in this library are
-/// meant to work around issues and help with migration from older JS interop
-/// libraries like 'dart:js'.
+/// will be less commonly used. Prefer to write JS interop interfaces and
+/// external static interop members using 'dart:js_interop'. The APIs in this
+/// library are generally meant to work around issues and help with migration
+/// from older JS interop libraries like 'dart:js'.
 ///
-/// As the name suggests, usage of this library is considered unsafe. This means
-/// that safe usage of these methods cannot necessarily be verified statically.
-/// Therefore, they should be used cautiously and only when the same effect
-/// cannot be achieved with static interop.
+/// As the name suggests, usage of this library *can* be unsafe. This means that
+/// safe usage of these methods cannot necessarily be verified statically.
+/// Prefer using statically analyzable values like constants or literals for
+/// property or method names so that usage can be verified. This library should
+/// be used cautiously and only when the same effect cannot be achieved with
+/// static interop.
 ///
 /// {@category Web}
 library dart.js_interop_unsafe;
@@ -26,6 +28,9 @@ library dart.js_interop_unsafe;
 import 'dart:js_interop';
 
 extension JSObjectUnsafeUtilExtension on JSObject {
+  /// Shorthand helper to check for String properties.
+  bool has(String property) => hasProperty(property.toJS).toDart;
+
   /// Whether or not this [JSObject] has a given property.
   external JSBoolean hasProperty(JSAny property);
 

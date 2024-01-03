@@ -1988,9 +1988,6 @@ abstract class ModularNamer {
         return asName(fixedNames.recordShapeTag);
       case JsGetName.RECORD_SHAPE_TYPE_PROPERTY:
         return asName(fixedNames.recordShapeRecipe);
-      default:
-        throw failedAt(spannable ?? CURRENT_ELEMENT_SPANNABLE,
-            'Error: Namer has no name for "$name".');
     }
   }
 }
