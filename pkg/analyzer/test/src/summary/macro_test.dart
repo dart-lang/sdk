@@ -4879,6 +4879,182 @@ class C
 ''');
   }
 
+  test_enum_fields() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v(0);
+  final int foo;
+  const A(this.foo);
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  fields
+    foo
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_enum_getters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v;
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_enum_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+
+enum X implements A, B {
+  v
+}
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  interfaces
+    A
+    B
+  values
+    v
+''');
+  }
+
+  test_enum_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@a1
+@a2
+enum X {
+  v
+}
+
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  values
+    v
+''');
+  }
+
+  test_enum_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v;
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_enum_mixins() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin A {}
+mixin B {}
+
+enum X with A, B {
+  v
+}
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  mixins
+    A
+    B
+  values
+    v
+''');
+  }
+
+  test_enum_setters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v;
+  set foo(int value) {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
+''');
+  }
+
+  test_enum_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A<T> {
+  v
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  typeParameters
+    T
+  values
+    v
+''');
+  }
+
+  test_enum_values() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum X with A, B {
+  foo, bar
+}
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  values
+    foo
+    bar
+''');
+  }
+
   test_extension_getters() async {
     newFile('$testPackageLibPath/a.dart', r'''
 extension A on int {
@@ -7011,6 +7187,25 @@ enum A
 ''');
   }
 
+  test_enum_mixins() async {
+    await _assertIntrospectText(r'''
+mixin A {}
+mixin B {}
+
+@Introspect()
+enum X with A, B {
+  v
+}
+''', r'''
+enum X
+  mixins
+    A
+    B
+  values
+    v
+''');
+  }
+
   test_enum_setters() async {
     await _assertIntrospectText(r'''
 @Introspect()
@@ -7045,6 +7240,20 @@ enum E
     T
   values
     v
+''');
+  }
+
+  test_enum_values() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  foo, bar
+}
+''', r'''
+enum A
+  values
+    foo
+    bar
 ''');
   }
 

@@ -514,6 +514,11 @@ class DeclarationBuilderFromElement {
 
   final Map<ClassElement, ClassDeclarationImpl> _classMap = Map.identity();
 
+  final Map<EnumElement, EnumDeclarationImpl> _enumMap = Map.identity();
+
+  final Map<FieldElement, EnumValueDeclarationImpl> _enumConstantMap =
+      Map.identity();
+
   final Map<ExtensionElement, ExtensionDeclarationImpl> _extensionMap =
       Map.identity();
 
@@ -558,8 +563,6 @@ class DeclarationBuilderFromElement {
     switch (element) {
       case ConstructorElementImpl():
         return constructorElement(element);
-      case ExtensionElementImpl():
-        return extensionElement(element);
       case FieldElementImpl():
         return fieldElement(element);
       case FunctionElementImpl():
@@ -580,6 +583,12 @@ class DeclarationBuilderFromElement {
     }
   }
 
+  EnumDeclarationImpl enumElement(
+    EnumElementImpl element,
+  ) {
+    return _enumMap[element] ??= _enumElement(element);
+  }
+
   ExtensionDeclarationImpl extensionElement(
     ExtensionElementImpl element,
   ) {
@@ -592,7 +601,11 @@ class DeclarationBuilderFromElement {
     return _extensionTypeMap[element] ??= _extensionTypeElement(element);
   }
 
-  macro.FieldDeclarationImpl fieldElement(FieldElementImpl element) {
+  macro.DeclarationImpl fieldElement(FieldElementImpl element) {
+    if (element.isEnumConstant) {
+      return _enumConstantMap[element] ??= _enumConstantElement(element);
+    }
+
     return _fieldMap[element] ??= _fieldElement(element);
   }
 
@@ -655,6 +668,10 @@ class DeclarationBuilderFromElement {
     switch (element) {
       case ClassElementImpl():
         return classElement(element);
+      case EnumElementImpl():
+        return enumElement(element);
+      case ExtensionElementImpl():
+        return extensionElement(element);
       case ExtensionTypeElementImpl():
         return extensionTypeElement(element);
       case MixinElementImpl():
@@ -748,6 +765,37 @@ class DeclarationBuilderFromElement {
         // TODO(scheglov): implement other types
         throw UnimplementedError('(${type.runtimeType}) $type');
     }
+  }
+
+  EnumValueDeclarationImpl _enumConstantElement(
+    FieldElementImpl element,
+  ) {
+    final enclosing = element.enclosingElement as EnumElementImpl;
+    return EnumValueDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      definingEnum: identifier(enclosing),
+      // TODO(scheglov): restore, when added
+      // type: _typeAnnotationVariable(variableList.type, element),
+      element: element,
+    );
+  }
+
+  EnumDeclarationImpl _enumElement(
+    EnumElementImpl element,
+  ) {
+    return EnumDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      interfaces: element.interfaces.map(_interfaceType).toList(),
+      mixins: element.mixins.map(_interfaceType).toList(),
+      element: element,
+    );
   }
 
   ExtensionDeclarationImpl _extensionElement(

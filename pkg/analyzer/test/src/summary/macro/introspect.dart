@@ -817,6 +817,8 @@ class _Printer {
           switch (declaration) {
             case ClassDeclaration():
               await writeClassDeclaration(declaration);
+            case EnumDeclaration():
+              await writeEnumDeclaration(declaration);
             case MixinDeclaration():
               await writeMixinDeclaration(declaration);
             default:
