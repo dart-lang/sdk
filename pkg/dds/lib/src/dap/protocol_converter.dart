@@ -736,8 +736,14 @@ class ProtocolConverter {
     final getterNames = <String>{};
     final service = _adapter.vmService;
     while (service != null && classRef != null) {
-      final classResponse =
-          await service.getObject(thread.isolate.id!, classRef.id!);
+      vm.Obj classResponse;
+      try {
+        classResponse =
+            await service.getObject(thread.isolate.id!, classRef.id!);
+      } catch (e) {
+        _adapter.logger?.call('Failed to fetch getter for class: $e');
+        break;
+      }
       if (classResponse is! vm.Class) {
         break;
       }
