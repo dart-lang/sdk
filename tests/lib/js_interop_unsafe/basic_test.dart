@@ -14,17 +14,17 @@ external void eval(String code);
 void createObjectTest() {
   JSObject o = JSObject();
   void testHasGetSet(String property, String? value) {
-    // []/[]=
-    Expect.isFalse(o.hasProperty(property.toJS).toDart);
+    // has/[]/[]=
+    Expect.isFalse(o.has(property));
     o[property] = value?.toJS;
-    Expect.isTrue(o.hasProperty(property.toJS).toDart);
+    Expect.isTrue(o.has(property));
     Expect.equals(value, (o[property] as JSString?)?.toDart);
     Expect.isTrue(o.delete(property.toJS).toDart);
 
     // Weirdly enough, delete almost always returns true.
     Expect.isTrue(o.delete(property.toJS).toDart);
 
-    // getProperty/setProperty
+    // hasProperty/getProperty/setProperty
     Expect.isFalse(o.hasProperty(property.toJS).toDart);
     o.setProperty(property.toJS, value?.toJS);
     Expect.isTrue(o.hasProperty(property.toJS).toDart);
