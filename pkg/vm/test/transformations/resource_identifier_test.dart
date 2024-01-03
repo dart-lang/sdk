@@ -17,9 +17,9 @@ import '../common_test_utils.dart';
 
 import 'package:path/path.dart' as path;
 
-final String pkgVmDir = Platform.script.resolve('../..').toFilePath();
+final Uri _pkgVmDir = Platform.script.resolve('../..');
 
-runTestCaseAot(Uri source) async {
+void runTestCaseAot(Uri source) async {
   final target = VmTarget(TargetFlags(supportMirrors: false));
 
   Component component =
@@ -66,8 +66,8 @@ void main(List<String> args) {
   assert(args.isEmpty || args.length == 1);
   final filter = args.firstOrNull;
   group('resource-identifier-transformations', () {
-    final testCasesDir =
-        Directory(pkgVmDir + 'testcases/transformations/resource_identifier');
+    final testCasesDir = Directory.fromUri(
+        _pkgVmDir.resolve('testcases/transformations/resource_identifier'));
 
     for (var file in testCasesDir
         .listSync(recursive: true, followLinks: false)

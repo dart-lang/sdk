@@ -6,12 +6,11 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:collection/collection.dart';
-import 'package:kernel/kernel.dart';
-import 'package:path/path.dart' as path;
-
-import 'package:vm/metadata/loading_units.dart';
 import 'package:front_end/src/fasta/kernel/resource_identifier.dart'
     as ResourceIdentifiers;
+import 'package:kernel/import_table.dart' show relativeUriPath;
+import 'package:kernel/kernel.dart';
+import 'package:vm/metadata/loading_units.dart';
 
 /// Collect calls to methods annotated with `@ResourceIdentifier`.
 ///
@@ -42,7 +41,7 @@ Component transformComponent(Component component, Uri resourcesFile) {
 
 String _toJson(List<Identifier> identifiers) {
   return JsonEncoder.withIndent('  ').convert({
-    '_comment': 'Resources referenced by annotated resource identifers',
+    '_comment': 'Resources referenced by annotated resource identifiers',
     'AppTag': 'TBD',
     'environment': {
       'dart.tool.dart2js': false,
@@ -94,7 +93,7 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor<void> {
 
   Identifier _identifierOf(StaticInvocation node, String resourceId) {
     final identifierUri =
-        path.relative(node.target.enclosingLibrary.fileUri.toFilePath());
+        relativeUriPath(node.target.enclosingLibrary.fileUri, Uri.base);
 
     return identifiers
             .where((id) => id.name == node.name.text && id.uri == identifierUri)
@@ -139,10 +138,11 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor<void> {
           argument.name: value,
     };
 
+    final location = node.location!;
     return ResourceReference(
-      uri: path.relative(node.location!.file.toFilePath()),
-      line: node.location!.line,
-      column: node.location!.column,
+      uri: relativeUriPath(location.file, Uri.base),
+      line: location.line,
+      column: location.column,
       arguments: arguments,
     );
   }
