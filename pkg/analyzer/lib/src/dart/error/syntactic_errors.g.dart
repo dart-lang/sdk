@@ -199,6 +199,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR,
   ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS,
   ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS,
+  ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -814,6 +815,15 @@ class ParserErrorCode extends ErrorCode {
     "External constructors can't have a body.",
     correctionMessage:
         "Try removing the body of the constructor, or removing the keyword "
+        "'external'.",
+  );
+
+  static const ParserErrorCode EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS =
+      ParserErrorCode(
+    'EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS',
+    "An external constructor can't initialize fields.",
+    correctionMessage:
+        "Try removing the field initializers, or removing the keyword "
         "'external'.",
   );
 
