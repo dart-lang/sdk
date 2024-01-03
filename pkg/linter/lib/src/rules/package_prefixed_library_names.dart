@@ -53,8 +53,8 @@ bool matchesOrIsPrefixedBy(String name, String prefix) =>
 class PackagePrefixedLibraryNames extends LintRule {
   static const LintCode code = LintCode(
       'package_prefixed_library_names',
-      'The library name is not prefixed by the package name and a '
-          'dot-separated path.',
+      'The library name is not a dot-separated path prefixed by the package '
+          'name.',
       correctionMessage: "Try changing the name to '{0}'.");
 
   PackagePrefixedLibraryNames()

@@ -33,10 +33,11 @@ import 'package:javascript_utils/javascript_utils.dart' as js_utils;
 ''';
 
 class LibraryPrefixes extends LintRule {
-  static const LintCode code = LintCode(
-      'library_prefixes', "The prefix '{0}' isn't a snake_case identifier.",
+  static const LintCode code = LintCode('library_prefixes',
+      "The prefix '{0}' isn't a lower_case_with_underscores identifier.",
       correctionMessage:
-          'Try changing the prefix to follow the snake_case style.');
+          'Try changing the prefix to follow the lower_case_with_underscores '
+          'style.');
 
   LibraryPrefixes()
       : super(
