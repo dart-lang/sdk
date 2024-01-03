@@ -14,7 +14,6 @@
 #include "vm/compiler/backend/loops.h"
 #include "vm/hash_map.h"
 #include "vm/object_store.h"
-#include "vm/stack_frame.h"
 
 namespace dart {
 
@@ -298,18 +297,6 @@ class Place : public ValueObject {
     }
   }
 
-  bool IsConstant(Object* value) const {
-    switch (kind()) {
-      case kInstanceField:
-        return (instance() != nullptr) && instance()->IsConstant() &&
-               LoadFieldInstr::TryEvaluateLoad(
-                   instance()->AsConstant()->constant_value(), instance_field(),
-                   value);
-      default:
-        return false;
-    }
-  }
-
   // Create object representing *[*] alias.
   static Place* CreateAnyInstanceAnyIndexAlias(Zone* zone, intptr_t id) {
     return Wrap(
@@ -526,13 +513,6 @@ class Place : public ValueObject {
     return (kind() == kStaticField)
                ? (static_field().Original() == other.static_field().Original())
                : (raw_selector_ == other.raw_selector_);
-  }
-
-  uword FieldHash() const {
-    return (kind() == kStaticField)
-               ? String::Handle(Field::Handle(static_field().Original()).name())
-                     .Hash()
-               : raw_selector_;
   }
 
   void set_representation(Representation rep) {
