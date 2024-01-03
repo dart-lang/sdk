@@ -977,8 +977,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final shouldExpandTruncatedValues = isClipboard || isRepl;
 
     if ((thread == null || frameIndex == null) && targetScriptFileUri == null) {
-      throw UnimplementedError(
-          'Global evaluation not currently supported without a Dart script context');
+      throw DebugAdapterException(
+          'Evaluation is only supported when the debugger is paused '
+          'unless you have a Dart file active in the editor');
     }
 
     // Parse the expression for trailing format specifiers.

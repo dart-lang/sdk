@@ -306,6 +306,10 @@ void foo() {
       });
 
       test('returns a suitable error with no context', () async {
+        const expectedErrorMessage = 'Evaluation is only supported when the '
+            'debugger is paused unless you have a Dart file active in the '
+            'editor';
+
         final client = dap.client;
         final testFile = dap.createTestFile(globalEvaluationProgram);
 
@@ -325,12 +329,16 @@ void foo() {
           allowFailure: true,
         );
         expect(response.success, isFalse);
-        expect(
-          response.message,
-          contains(
-            'Global evaluation not currently supported without a Dart script context',
-          ),
-        );
+        expect(response.message, expectedErrorMessage);
+
+        // Also verify the structured error body.
+        final body = response.body as Map<String, Object?>;
+        final error = body['error'] as Map<String, Object?>;
+        final variables = error['variables'] as Map<String, Object?>;
+        expect(error['format'], '{message}');
+        expect(error['showUser'], true);
+        expect(variables['message'], expectedErrorMessage);
+        expect(variables['stack'], isNotNull);
       });
 
       test('returns a suitable error with an unknown script context', () async {
