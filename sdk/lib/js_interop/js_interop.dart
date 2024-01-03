@@ -622,6 +622,8 @@ extension JSAnyOperatorExtension on JSAny? {
   external bool get isTruthy;
 }
 
+// Top-levels.
+
 /// Given a Dart object that is marked "exportable", creates a JS object that
 /// wraps the given Dart object. Look at the `@JSExport` annotation to determine
 /// what constitutes "exportable" for a Dart class. The object literal
@@ -667,3 +669,13 @@ external JSObject createJSInteropWrapper<T extends Object>(T dartObject);
 // `createStaticInteropMock`, we avoid introducing this method until later.
 // external T createJSInteropMock<T extends JSObject, U extends Object>(
 //     U dartMock, [JSObject? proto = null]);
+
+/// Call to dynamically import a JS module with the given [moduleName] using the
+/// JS `import()` syntax.
+///
+/// See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import
+/// for more details.
+///
+/// Returns a [JSPromise] that resolves to a [JSObject] that's the module
+/// namespace object.
+external JSPromise<JSObject> importModule(String moduleName);

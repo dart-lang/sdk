@@ -526,14 +526,19 @@ extension JSAnyOperatorExtension on JSAny? {
 
   @patch
   bool get not => _boxNonNullable<JSBoolean>(
-          js_helper.JS<WasmExternRef?>('(o) =>  !o', this.toExternRef))
+          js_helper.JS<WasmExternRef?>('(o) => !o', this.toExternRef))
       .toDart;
 
   @patch
   bool get isTruthy => _boxNonNullable<JSBoolean>(
-          js_helper.JS<WasmExternRef?>('(o) =>  !!o', this.toExternRef))
+          js_helper.JS<WasmExternRef?>('(o) => !!o', this.toExternRef))
       .toDart;
 }
+
+@patch
+JSPromise<JSObject> importModule(String moduleName) =>
+    _boxNonNullable<JSPromise<JSObject>>(js_helper.JS<WasmExternRef?>(
+        '(m) => import(m)', moduleName.toJS.toExternRef));
 
 @JS('Array')
 @staticInterop
