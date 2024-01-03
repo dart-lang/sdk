@@ -1568,8 +1568,6 @@ class EvaluationComplexity {
       case ComplexityLevel.definitelyLazy:
         sb.write('lazy');
         break;
-      default:
-        throw UnsupportedError("Unexpected complexity level $level");
     }
     return sb.toString();
   }

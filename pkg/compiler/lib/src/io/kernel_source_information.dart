@@ -69,7 +69,13 @@ String? computeKernelElementNameForSourceMaps(
       String enclosingMemberName =
           computeElementNameForSourceMaps(enclosingMember, callStructure)!;
       return '$enclosingMemberName.$name';
-    default:
+    case MemberKind.constructor:
+    case MemberKind.constructorBody:
+    case MemberKind.recordGetter:
+    case MemberKind.signature:
+    case MemberKind.closureField:
+    case MemberKind.generatorBody:
+    case MemberKind.parameterStub:
       return computeElementNameForSourceMaps(member, callStructure);
   }
 }
@@ -190,7 +196,7 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
       case MemberKind.closureField:
       case MemberKind.signature:
       case MemberKind.generatorBody:
-        // TODO(sra): Should we target the generator itself for generatorBody
+        // TODO(sra): Should we target the generator itself for generatorBody?
         break;
     }
     return _buildTreeNode(base ?? definition.node as ir.TreeNode, name: name);
@@ -295,7 +301,12 @@ class KernelSourceInformationBuilder implements SourceInformationBuilder {
       case MemberKind.closureCall:
         final node = definition.node as ir.LocalFunction;
         return _buildFunctionExit(node, node.function);
-      default:
+      case MemberKind.signature:
+      case MemberKind.closureField:
+      case MemberKind.recordGetter:
+      case MemberKind.generatorBody:
+      case MemberKind.parameterStub:
+        break;
     }
     return _buildTreeNode(definition.node as ir.TreeNode);
   }

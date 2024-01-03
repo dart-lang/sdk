@@ -28,7 +28,7 @@ import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/runtime_types_codegen.dart';
 import '../js_backend/runtime_types_new.dart'
     show RecipeEncoder, RecipeEncoding, indexTypeVariable;
-import '../js_backend/specialized_checks.dart' show IsTestSpecialization;
+import '../js_backend/specialized_checks.dart' show IsTestSpecializationKind;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/js_emitter.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
@@ -3192,41 +3192,37 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     late js.Expression test;
-    switch (node.specialization) {
-      case IsTestSpecialization.isNull:
-      case IsTestSpecialization.isNotNull:
+    switch (node.specialization.kind) {
+      case IsTestSpecializationKind.isNull:
+      case IsTestSpecializationKind.isNotNull:
         // These cases should be lowered using [HIdentity] during optimization.
         failedAt(node, 'Missing lowering');
 
-      case IsTestSpecialization.isString:
+      case IsTestSpecializationKind.isString:
         test = typeof("string");
         break;
 
-      case IsTestSpecialization.isBool:
+      case IsTestSpecializationKind.isBool:
         test = isTest(_commonElements.specializedIsBool);
         break;
 
-      case IsTestSpecialization.isNum:
+      case IsTestSpecializationKind.isNum:
         test = typeof("number");
         break;
 
-      case IsTestSpecialization.isInt:
+      case IsTestSpecializationKind.isInt:
         test = isTest(_commonElements.specializedIsInt);
         break;
 
-      case IsTestSpecialization.isArrayTop:
+      case IsTestSpecializationKind.isArrayTop:
         test = handleNegative(js.js('Array.isArray(#)', [value]));
         break;
 
-      default:
-        if (node.specialization.isInstanceof) {
-          InterfaceType type = node.specialization.interfaceType;
-          _registry.registerTypeUse(TypeUse.constructorReference(type));
-          test = handleNegative(js.js('# instanceof #',
-              [value, _emitter.constructorAccess(type.element)]));
-        } else {
-          failedAt(node, 'Unknown specialization: ${node.specialization}');
-        }
+      case IsTestSpecializationKind.isInstanceof:
+        InterfaceType type = node.specialization.interfaceType;
+        _registry.registerTypeUse(TypeUse.constructorReference(type));
+        test = handleNegative(js.js('# instanceof #',
+            [value, _emitter.constructorAccess(type.element)]));
     }
     push(test.withSourceInformation(node.sourceInformation));
   }

@@ -642,7 +642,12 @@ void forEachOrderedParameter(JsToElementMap elementMap, FunctionEntity function,
       forEachOrderedParameterByFunctionNode(
           node.function, parameterStructure, handleParameter);
       return;
-    default:
+    case MemberKind.closureField:
+    case MemberKind.generatorBody:
+    case MemberKind.recordGetter:
+    case MemberKind.signature:
+    case MemberKind.parameterStub:
+      break;
   }
   failedAt(function, "Unexpected function definition $definition.");
 }

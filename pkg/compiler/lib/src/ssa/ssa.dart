@@ -190,6 +190,8 @@ class SsaFunctionCompiler implements FunctionCompiler {
             asyncTypeParameter,
             name);
         break;
+      case AsyncMarker.SYNC:
+        throw StateError('Cannot rewrite sync method as async.');
     }
     return rewriter.rewrite(
         code as js.Fun, bodySourceInformation, exitSourceInformation);

@@ -236,7 +236,7 @@ abstract class TypeBuilder {
         case ClassTypeVariableAccess.property:
           usesInstanceParameters = true;
           return;
-        default:
+        case ClassTypeVariableAccess.none:
           builder.reporter.internalError(
               type.element, 'Unexpected type variable in static context.');
       }

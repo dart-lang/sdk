@@ -17,3 +17,5 @@ linter:
     - prefer_if_null_operators
     - prefer_null_aware_operators
     - use_super_parameters
+    - exhaustive_cases
+    - no_default_cases

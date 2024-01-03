@@ -167,7 +167,9 @@ class ClosureDataImpl implements ClosureData {
             const CapturedScope();
       case MemberKind.parameterStub:
         return const CapturedScope();
-      default:
+      case MemberKind.closureField:
+      case MemberKind.generatorBody:
+      case MemberKind.recordGetter:
         throw failedAt(entity, "Unexpected member definition $definition");
     }
   }
