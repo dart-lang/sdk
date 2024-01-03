@@ -4839,6 +4839,46 @@ class A
 ''');
   }
 
+  test_classAlias_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+mixin M {}
+class I {}
+class J {}
+
+class C = A with M implements I, J;
+''');
+
+    await _assertIntrospectText('C', r'''
+class C
+  superclass: A
+  mixins
+    M
+  interfaces
+    I
+    J
+''');
+  }
+
+  test_classAlias_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T1> {}
+mixin M<U1> {}
+
+class C<T2, U2> = A<T2> with M<U2>;
+''');
+
+    await _assertIntrospectText('C', r'''
+class C
+  superclass: A<T2>
+  typeParameters
+    T2
+    U2
+  mixins
+    M<U2>
+''');
+  }
+
   test_extension_getters() async {
     newFile('$testPackageLibPath/a.dart', r'''
 extension A on int {
@@ -6705,6 +6745,86 @@ class A
     T
     U
       bound: List<T>
+''');
+  }
+
+  test_classAlias_flags_hasAbstract() async {
+    await _assertIntrospectText(r'''
+class A {}
+mixin M {}
+
+@Introspect()
+abstract class C = A with M;
+''', r'''
+class C
+  flags: hasAbstract
+  superclass: A
+  mixins
+    M
+''');
+  }
+
+  test_classAlias_interfaces() async {
+    await _assertIntrospectText(r'''
+class A {}
+mixin M {}
+class I {}
+class J {}
+
+@Introspect()
+class C = A with M implements I, J;
+''', r'''
+class C
+  superclass: A
+  mixins
+    M
+  interfaces
+    I
+    J
+''');
+  }
+
+  test_classAlias_metadata_identifier() async {
+    await _assertIntrospectText(r'''
+class A {}
+mixin M {}
+
+@Introspect(withMetadata: true)
+@a1
+@a2
+class C = A with M;
+
+class X {}
+''', r'''
+class C
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  superclass: A
+  mixins
+    M
+''');
+  }
+
+  test_classAlias_typeParameters() async {
+    await _assertIntrospectText(r'''
+class A<T1> {}
+mixin M<U1> {}
+
+@Introspect()
+class C<T2, U2> = A<T2> with M<U2>;
+''', r'''
+class C
+  superclass: A<T2>
+  typeParameters
+    T2
+    U2
+  mixins
+    M<U2>
 ''');
   }
 

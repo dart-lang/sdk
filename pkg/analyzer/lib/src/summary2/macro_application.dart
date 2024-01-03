@@ -122,8 +122,17 @@ class LibraryMacroApplier {
             members: declaration.members,
           );
         case ast.ClassTypeAliasImpl():
-          // TODO(scheglov): implement it
-          break;
+          final element = declaration.declaredElement!;
+          final declarationElement = element.augmented?.declaration ?? element;
+          await _addClassLike(
+            libraryElement: libraryElement,
+            container: container,
+            targetElement: declarationElement,
+            classNode: declaration,
+            classDeclarationKind: macro.DeclarationKind.classType,
+            classAnnotations: declaration.metadata,
+            members: const [],
+          );
         case ast.EnumDeclarationImpl():
           final element = declaration.declaredElement!;
           final declarationElement = element.augmented?.declaration ?? element;

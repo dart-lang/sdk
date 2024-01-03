@@ -86,6 +86,8 @@ class DeclarationBuilder {
     switch (node) {
       case ast.ClassDeclarationImpl():
         return fromNode.classDeclaration(node);
+      case ast.ClassTypeAliasImpl():
+        return fromNode.classTypeAlias(node);
       case ast.ConstructorDeclarationImpl():
         return fromNode.constructorDeclaration(node);
       case ast.EnumDeclarationImpl():
@@ -944,6 +946,46 @@ class DeclarationBuilderFromNode {
     );
   }
 
+  ClassDeclarationImpl classTypeAlias(
+    ast.ClassTypeAliasImpl node,
+  ) {
+    final element = node.declaredElement!;
+
+    final interfaceNodes = <ast.NamedType>[];
+    final mixinNodes = <ast.NamedType>[];
+    for (var current = node;;) {
+      if (current.implementsClause case final clause?) {
+        interfaceNodes.addAll(clause.interfaces);
+      }
+      mixinNodes.addAll(current.withClause.mixinTypes);
+      final nextElement = current.declaredElement?.augmentation;
+      final nextNode = declarationBuilder.nodeOfElement(nextElement);
+      if (nextNode is! ast.ClassTypeAliasImpl) {
+        break;
+      }
+      current = nextNode;
+    }
+
+    return ClassDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: _typeParameters(node.typeParameters),
+      interfaces: _namedTypes(interfaceNodes),
+      hasAbstract: node.abstractKeyword != null,
+      hasBase: node.baseKeyword != null,
+      hasExternal: false,
+      hasFinal: node.finalKeyword != null,
+      hasInterface: node.interfaceKeyword != null,
+      hasMixin: node.mixinKeyword != null,
+      hasSealed: node.sealedKeyword != null,
+      mixins: _namedTypes(mixinNodes),
+      superclass: node.superclass.mapOrNull(_namedType),
+      element: element,
+    );
+  }
+
   macro.ConstructorDeclarationImpl constructorDeclaration(
     ast.ConstructorDeclarationImpl node,
   ) {
@@ -1185,6 +1227,8 @@ class DeclarationBuilderFromNode {
     switch (node) {
       case ast.ClassDeclarationImpl():
         return classDeclaration(node);
+      case ast.ClassTypeAliasImpl():
+        return classTypeAlias(node);
       case ast.EnumDeclarationImpl():
         return enumDeclaration(node);
       case ast.ExtensionDeclarationImpl():
