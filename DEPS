@@ -99,7 +99,7 @@ vars = {
   "boringssl_gen_rev": "a468ba9fec3f59edf46a7db98caaca893e1e4d96",
   "boringssl_rev": "74646566e93de7551bfdfc5f49de7462f13d1d05",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "devtools_rev": "071405a237dab931ea10be728ec188aa2d55111f",
+  "devtools_rev": "226af81369622cce9c0d98adbe31598208a27cc0",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "44079a4cc04cdeffb9cfe8067bfb3c276fb2bab0",
@@ -120,16 +120,16 @@ vars = {
   "args_rev": "46d5033377d277d70bc6ec68504730b9384b1db1",
   "async_rev": "992457079da78dede35a56257d698288c467dc91",
   "bazel_worker_rev": "3d9cd5823fc96872b7275fe99a4fabc4dcfe57c8",
-  "benchmark_harness_rev": "e59f675ae00578e46a283d5868b36e4554398309",
+  "benchmark_harness_rev": "a62e4169c120ac04b1f5bfdf8f14346459529781",
   "boolean_selector_rev": "caea8d41cab1b7f4cc3c86d15a27c011ab01766b",
   "browser_launcher_rev": "c68ec25e36187b050ac918d2b614f2d6320f0045",
   "characters_rev": "7633a16a22c626e19ca750223237396315268a06",
-  "cli_util_rev": "500dffab6e00332c4c0b814359f06c8a9c3a5573",
+  "cli_util_rev": "e5b38ac76887e6eefaf417f5222c317929eed278",
   "clock_rev": "f975668839f45bad561d6227f88297bbbcff03fa",
   "collection_rev": "2d57a82ad079fe2d127f5a9b188170de2f5cdedc",
-  "convert_rev": "35031701fab532ada1a75c51155c0a6801055d88",
-  "crypto_rev": "f3e64d234416466683e29a4b20cf751684cbae6a",
-  "csslib_rev": "17346e528b19c09b2d20589e0ffa0f01a5ad54ad",
+  "convert_rev": "f8a72d67a10805bca358be8d7e189a62f79d86b9",
+  "crypto_rev": "63e9a90c97d216bfd6e3ce72e80df320ef84572a",
+  "csslib_rev": "1ad2d1ec461fb1836180e917220a5a48fd641897",
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -142,7 +142,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "8b1f24a8475a0116757172cd9acca4acbf87d973", # disable rev_sdk_deps.dart
   "dartdoc_rev": "3ce64a3d7da6702a4342bdfd0723b750fddeb35a", # https://github.com/dart-lang/dartdoc/issues/3562
-  "ecosystem_rev": "ce707fbb45e54cd2b353f33d3849f4b10a262850",
+  "ecosystem_rev": "dc44e820d0cbe943192bec1e0499aa176463b91f",
   "ffi_rev": "c926657618443ff4821411ede01684096b503f84",
   "file_rev": "cd3a9324f6483f313ba1f0f3ff382ea4e6982ef2",
   "fixnum_rev": "3e08c0d7ce1a0cd832a17391444898ec610b5f89",
@@ -153,7 +153,7 @@ vars = {
   "http_multi_server_rev": "ae484896624cee8b0a8a97a0fb1ea323c4c3d31f",
   "http_parser_rev": "224c1a9d24b46c7a9da1f09147e0e1fbda78089d",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
-  "json_rpc_2_rev": "460545c62d12c2cd4635054e327846628288cb7e",
+  "json_rpc_2_rev": "ac1fabddd51fc90aa6fa4e1248f1a7141899eb4a",
   "leak_tracker_rev": "8644f8b1c78009e9149e08e0c349d06c304110a9",
   "lints_rev": "3810f8b3dc3205cfaa4ccc0054b021e68046d851",
   "logging_rev": "324a0b5fd2b49b80ea4fbe2b48aac7794000e25a",

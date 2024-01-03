@@ -124,6 +124,15 @@
 
 [lints-3-0]: https://pub.dev/packages/lints/changelog#300
 
+
+#### Wasm compiler (dart2wasm)
+
+- **Breaking Change** [#54004][]: `dart:js_util`, `package:js`, and `dart:js`
+  are now disallowed from being imported when compiling with `dart2wasm`. Prefer
+  using `dart:js_interop` and `dart:js_interop_unsafe`.
+
+[#54004]: https://github.com/dart-lang/sdk/issues/54004
+
 #### Development JavaScript compiler (DDC)
 
 - Type arguments of `package:js` interop types are now printed as `any` instead

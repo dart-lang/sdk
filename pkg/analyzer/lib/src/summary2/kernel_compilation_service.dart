@@ -156,7 +156,7 @@ class KernelCompilationService {
 
   static _SdkPaths _computeSdkPaths() {
     // Check for google3.
-    final runFiles = io.Platform.environment['RUNFILES'];
+    final runFiles = io.Platform.environment['TEST_SRCDIR'];
     if (runFiles != null) {
       final aotRuntimePath = io.Platform.environment['AOT_RUNTIME_PATH']!;
       final frontServerPath = io.Platform.environment['FRONTEND_SERVER_PATH']!;
