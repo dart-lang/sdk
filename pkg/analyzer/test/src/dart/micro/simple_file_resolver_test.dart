@@ -2553,7 +2553,7 @@ import 'dart:math';
   }
 
   Future<Element> _findElement(int offset, String filePath) async {
-    var resolvedUnit = await fileResolver.resolve2(path: filePath);
+    var resolvedUnit = await fileResolver.resolve(path: filePath);
     var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
     var element = getElementOfNode(node);
     return element!;

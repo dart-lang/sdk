@@ -121,7 +121,7 @@ class FileResolutionTest with ResourceProviderMixin, ResolutionTest {
     String path, {
     OperationPerformanceImpl? performance,
   }) async {
-    result = await fileResolver.resolve2(
+    result = await fileResolver.resolve(
       path: path,
       performance: performance,
     );
