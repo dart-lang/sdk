@@ -801,7 +801,7 @@ class ContextsPage extends DiagnosticPageWithNav {
       var contentsPath = '/contents?file=${Uri.encodeQueryComponent(file)}';
       var hasOverlay = server.resourceProvider.hasOverlay(file);
 
-      buf.write(file);
+      buf.write(file.wordBreakOnSlashes);
       buf.writeln(' <a href="$astPath">ast</a>');
       buf.writeln(' <a href="$elementPath">element</a>');
       buf.writeln(
@@ -1425,32 +1425,34 @@ class PluginsPage extends DiagnosticPageWithNav {
 
         var components = path.split(id);
         var length = components.length;
-        String name;
-        if (length == 0) {
-          name = 'unknown plugin';
-        } else if (length > 2) {
-          name = components[length - 3];
-        } else {
-          name = components[length - 1];
-        }
+        var name = switch (length) {
+          0 => 'unknown plugin',
+          > 2 => components[length - 3],
+          _ => components[length - 1],
+        };
         h4(name);
-        p('bootstrap package path: $id');
-        if (plugin is DiscoveredPluginInfo) {
-          p('execution path: ${plugin.executionPath}');
-          p('packages file path: ${plugin.packagesPath}');
-        }
+
+        _emitTable([
+          ['Bootstrap package path:', id],
+          if (plugin is DiscoveredPluginInfo) ...[
+            ['Execution path:', plugin.executionPath.wordBreakOnSlashes],
+            ['Packages file path', plugin.packagesPath.wordBreakOnSlashes],
+          ],
+        ]);
+
         if (data.name == null) {
           if (plugin.exception != null) {
-            p('not running');
+            p('Not running due to:');
             pre(() {
               buf.write(plugin.exception);
             });
           } else {
-            p('not running for unknown reason');
+            p('Not running for unknown reason (no exception was caught while '
+                'starting).');
           }
         } else {
-          p('name: ${data.name}');
-          p('version: ${data.version}');
+          p('Name: ${data.name}');
+          p('Version: ${data.version}');
           p('Associated contexts:');
           var contexts = plugin.contextRoots;
           if (contexts.isEmpty) {
@@ -1477,6 +1479,19 @@ class PluginsPage extends DiagnosticPageWithNav {
         }
       }
     }
+  }
+
+  void _emitTable(List<List<String>> data) {
+    buf.writeln('<table>');
+    for (var row in data) {
+      buf.writeln('<tr>');
+      for (var value in row) {
+        buf.writeln('<td>$value</td>');
+      }
+      buf.writeln('</tr>');
+    }
+
+    buf.writeln('</table>');
   }
 }
 
@@ -1669,4 +1684,8 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       _emitTable(itemsSlow);
     }
   }
+}
+
+extension on String {
+  String get wordBreakOnSlashes => splitMapJoin('/', onMatch: (_) => '/<wbr>');
 }
