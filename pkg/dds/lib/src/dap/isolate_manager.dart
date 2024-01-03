@@ -278,7 +278,7 @@ class IsolateManager {
   /// [vm.StepOption.kOver], a [StepOption.kOverAsyncSuspension] step will be
   /// sent instead.
   Future<void> resumeThread(int threadId, [String? resumeType]) async {
-    _resume(threadId, resumeType: resumeType);
+    await _resume(threadId, resumeType: resumeType);
   }
 
   /// Rewinds an isolate to an earlier frame using its client [threadId].
@@ -286,7 +286,7 @@ class IsolateManager {
   /// If the isolate is not paused, or already has a pending resume request
   /// in-flight, a request will not be sent.
   Future<void> rewindThread(int threadId, {required int frameIndex}) async {
-    _resume(
+    await _resume(
       threadId,
       resumeType: vm.StepOption.kRewind,
       frameIndex: frameIndex,
