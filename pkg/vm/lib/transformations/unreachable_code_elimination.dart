@@ -48,25 +48,10 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
     return constant is BoolConstant ? constant.value : null;
   }
 
-  Expression _makeConstantExpression(Constant constant, Expression node) {
-    if (constant is UnevaluatedConstant &&
-        constant.expression is InvalidExpression) {
-      return constant.expression;
-    }
-    ConstantExpression constantExpression = new ConstantExpression(
-        constant, node.getStaticType(_staticTypeContext!))
-      ..fileOffset = node.fileOffset;
-    if (node is FileUriExpression) {
-      return new FileUriConstantExpression(constantExpression.constant,
-          type: constantExpression.type, fileUri: node.fileUri)
-        ..fileOffset = node.fileOffset;
-    }
-    return constantExpression;
-  }
-
   Expression _createBoolConstantExpression(bool value, Expression node) =>
-      _makeConstantExpression(
-          constantEvaluator.canonicalize(BoolConstant(value)), node);
+      ConstantExpression(constantEvaluator.makeBoolConstant(value),
+          node.getStaticType(_staticTypeContext!))
+        ..fileOffset = node.fileOffset;
 
   Statement _makeEmptyBlockIfEmptyStatement(Statement node, TreeNode parent) =>
       node is EmptyStatement ? (Block(<Statement>[])..parent = parent) : node;
@@ -219,11 +204,21 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
     if (target is Field && target.isConst) {
       throw 'StaticGet from const field $target should be evaluated by front-end: $node';
     }
-    if (!constantEvaluator.transformerShouldEvaluateExpression(node)) {
-      return node;
+
+    if (!constantEvaluator.hasTargetOS ||
+        !constantEvaluator.isPlatformConst(target)) {
+      return super.visitStaticGet(node, removalSentinel);
     }
+
     final result = constantEvaluator.evaluate(_staticTypeContext!, node);
-    return _makeConstantExpression(result, node);
+
+    if (result is UnevaluatedConstant &&
+        result.expression is InvalidExpression) {
+      return result.expression;
+    }
+
+    final type = node.getStaticType(_staticTypeContext!);
+    return ConstantExpression(result, type)..fileOffset = node.fileOffset;
   }
 
   @override

@@ -1,6 +1,7 @@
 library #lib;
 import self as self;
 import "dart:core" as core;
+import "dart:io" as io;
 
 import "dart:io";
 
@@ -20,7 +21,7 @@ class TestPlatform extends core::_Enum /*isEnum*/  {
 }
 static const field core::bool kDebugMode = #C20;
 static field self::TestPlatform? debugDefaultTestPlatform;
-static const field core::bool enableAsserts = #C20;
+static const field core::bool enableAsserts = #C21;
 static method testAndroid(core::int i) → void {
   final core::bool b = #C20;
   core::print(b);
@@ -87,20 +88,60 @@ static method testConditionalPragma(core::int i) → void {
     break #L3;
   }
 }
-@#C27
+@#C28
 static get defaultTestPlatformOverridableWithAsserts() → self::TestPlatform {
   late self::TestPlatform result;
   {
     result = #C6;
   }
+  assert((() → core::bool {
+    if(io::Platform::environment.{core::Map::containsKey}("FLUTTER_TEST"){(core::Object?) → core::bool}) {
+      result = #C3;
+    }
+    return true;
+  })(){() → core::bool});
   return result;
 }
 static method testConditionalPragmaWithAsserts(core::int i) → void {
-  core::print(#C6);
+  core::print(self::defaultTestPlatformOverridableWithAsserts);
   #L4:
-  {
-    core::print("is fuchsia");
-    break #L4;
+  switch(self::defaultTestPlatformOverridableWithAsserts) /* isExplicitlyExhaustive, self::TestPlatform */ {
+    #L5:
+    case #C3:
+      {
+        core::print("is android");
+        break #L4;
+      }
+    #L6:
+    case #C6:
+      {
+        core::print("is fuchsia");
+        break #L4;
+      }
+    #L7:
+    case #C9:
+      {
+        core::print("is ios");
+        break #L4;
+      }
+    #L8:
+    case #C12:
+      {
+        core::print("is linux");
+        break #L4;
+      }
+    #L9:
+    case #C15:
+      {
+        core::print("is macos");
+        break #L4;
+      }
+    #L10:
+    case #C18:
+      {
+        core::print("is windows");
+        break #L4;
+      }
   }
 }
 static method main(core::List<core::String> args) → dynamic {
@@ -147,4 +188,5 @@ constants  {
   #C25 = core::pragma {name:#C23, options:#C24}
   #C26 = "vm:platform-const-if"
   #C27 = core::pragma {name:#C26, options:#C21}
+  #C28 = core::pragma {name:#C26, options:#C20}
 }
