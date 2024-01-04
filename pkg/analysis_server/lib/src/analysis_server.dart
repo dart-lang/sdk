@@ -637,7 +637,7 @@ abstract class AnalysisServer {
     }
 
     return driver
-        .getResult(path, sendCachedToStream: sendCachedToStream)
+        .getResolvedUnit(path, sendCachedToStream: sendCachedToStream)
         .then((value) => value is ResolvedUnitResult ? value : null)
         .catchError((Object e, StackTrace st) {
       instrumentationService.logException(e, st);

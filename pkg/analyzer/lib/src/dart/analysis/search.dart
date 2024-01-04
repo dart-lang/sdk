@@ -700,7 +700,7 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await _driver.getResult(unitPath);
+      var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = ImportElementReferencesVisitor(element, unitElement);
         unitResult.unit.accept(visitor);
@@ -720,7 +720,7 @@ class Search {
     List<SearchResult> results = <SearchResult>[];
     for (CompilationUnitElement unitElement in element.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await _driver.getResult(unitPath);
+      var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         CompilationUnit unit = unitResult.unit;
         for (Directive directive in unit.directives) {
@@ -750,7 +750,7 @@ class Search {
     }
 
     // Prepare the unit.
-    var unitResult = await _driver.getResult(path);
+    var unitResult = await _driver.getResolvedUnit(path);
     if (unitResult is! ResolvedUnitResult) {
       return const <SearchResult>[];
     }
@@ -850,7 +850,7 @@ class Search {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await _driver.getResult(unitPath);
+      var unitResult = await _driver.getResolvedUnit(unitPath);
       if (unitResult is ResolvedUnitResult) {
         var visitor = _LocalReferencesVisitor({element}, unitElement);
         unitResult.unit.accept(visitor);

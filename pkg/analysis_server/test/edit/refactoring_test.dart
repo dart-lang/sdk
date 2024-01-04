@@ -2661,8 +2661,9 @@ void f() {
   print(otherName);
 }
 ''');
-    unawaited(
-        server.getAnalysisDriver(testFile.path)!.getResult(testFile.path));
+    unawaited(server
+        .getAnalysisDriver(testFile.path)!
+        .getResolvedUnit(testFile.path));
     // send the second request, with the same kind, file and offset
     await waitForTasksFinished();
     result = await getRefactoringResult(() {

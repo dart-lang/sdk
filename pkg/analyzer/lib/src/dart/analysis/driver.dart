@@ -176,7 +176,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   final _pendingFileChangesCompleters = <Completer<List<String>>>[];
 
   /// The mapping from the files for which analysis was requested using
-  /// [getResult] to the [Completer]s to report the result.
+  /// [getResolvedUnit] to the [Completer]s to report the result.
   final _requestedFiles = <String, List<Completer<SomeResolvedUnitResult>>>{};
 
   /// The mapping from the files for which analysis was requested using
@@ -414,7 +414,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// the analysis state transitions to "idle".
   ///
   /// [ResolvedUnitResult]s are produced for:
-  /// 1. Files requested using [getResult].
+  /// 1. Files requested using [getResolvedUnit].
   /// 2. Files passed to [addFile] which are also in [priorityFiles].
   ///
   /// [ErrorsResult]s are produced for:
@@ -430,7 +430,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// client does not change the state of the files.
   ///
   /// Results might be produced even for files that have never been added
-  /// using [addFile], for example when [getResult] was called for a file.
+  /// using [addFile], for example when [getResolvedUnit] was called for a file.
   Stream<Object> get results => _onResults;
 
   /// Return the search support for the driver.
@@ -592,7 +592,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// transitions to "idle".
   ///
   /// Invocation of this method will not prevent a [Future] returned from
-  /// [getResult] from completing with a result, but the result is not
+  /// [getResolvedUnit] from completing with a result, but the result is not
   /// guaranteed to be consistent with the new current file state after this
   /// [changeFile] invocation.
   void changeFile(String path) {
@@ -965,7 +965,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// it, which is consistent with the current file state (including new states
   /// of the files previously reported using [changeFile]), prior to the next
   /// time the analysis state transitions to "idle".
-  Future<SomeResolvedUnitResult> getResult(String path,
+  Future<SomeResolvedUnitResult> getResolvedUnit(String path,
       {bool sendCachedToStream = false}) {
     if (!_isAbsolutePath(path)) {
       return Future.value(
