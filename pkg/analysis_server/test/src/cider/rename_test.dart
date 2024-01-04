@@ -636,7 +636,7 @@ void f() {
     var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 foo() {}
 ''');
-    await fileResolver.resolve2(path: a.path);
+    await fileResolver.resolve(path: a.path);
     var result = await _rename(r'''
 import 'a.dart';
 void f() {
@@ -797,7 +797,7 @@ class A {
   foo() {}
 }
 ''');
-    await fileResolver.resolve2(path: a.path);
+    await fileResolver.resolve(path: a.path);
     var result = await _rename(r'''
 import 'a.dart';
 void f() {

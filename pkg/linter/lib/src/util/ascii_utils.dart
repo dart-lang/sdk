@@ -25,7 +25,7 @@ bool isUnderScore(int character) => character == $_;
 /// Check if the given [name] is a valid Dart filename.
 ///
 /// Files with a strict `.dart` extension are required to use:
-/// * `lower_snake_case` and are
+/// * lower_case_with_underscores and are
 /// * limited to valid Dart identifiers
 ///
 /// (Files without a strict `.dart` extension are considered valid.)

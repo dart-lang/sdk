@@ -86,6 +86,8 @@ class DeclarationBuilder {
     switch (node) {
       case ast.ClassDeclarationImpl():
         return fromNode.classDeclaration(node);
+      case ast.ClassTypeAliasImpl():
+        return fromNode.classTypeAlias(node);
       case ast.ConstructorDeclarationImpl():
         return fromNode.constructorDeclaration(node);
       case ast.EnumDeclarationImpl():
@@ -512,6 +514,11 @@ class DeclarationBuilderFromElement {
 
   final Map<ClassElement, ClassDeclarationImpl> _classMap = Map.identity();
 
+  final Map<EnumElement, EnumDeclarationImpl> _enumMap = Map.identity();
+
+  final Map<FieldElement, EnumValueDeclarationImpl> _enumConstantMap =
+      Map.identity();
+
   final Map<ExtensionElement, ExtensionDeclarationImpl> _extensionMap =
       Map.identity();
 
@@ -534,6 +541,9 @@ class DeclarationBuilderFromElement {
   final Map<TypeParameterElement, macro.TypeParameterDeclarationImpl>
       _typeParameterMap = Map.identity();
 
+  final Map<TopLevelVariableElement, VariableDeclarationImpl> _variableMap =
+      Map.identity();
+
   DeclarationBuilderFromElement(this.declarationBuilder);
 
   macro.ClassDeclarationImpl classElement(
@@ -553,8 +563,6 @@ class DeclarationBuilderFromElement {
     switch (element) {
       case ConstructorElementImpl():
         return constructorElement(element);
-      case ExtensionElementImpl():
-        return extensionElement(element);
       case FieldElementImpl():
         return fieldElement(element);
       case FunctionElementImpl():
@@ -567,10 +575,18 @@ class DeclarationBuilderFromElement {
         } else {
           return methodElement(element);
         }
+      case TopLevelVariableElementImpl():
+        return topLevelVariableElement(element);
       default:
         // TODO(scheglov): other elements
         return typeDeclarationOf(element);
     }
+  }
+
+  EnumDeclarationImpl enumElement(
+    EnumElementImpl element,
+  ) {
+    return _enumMap[element] ??= _enumElement(element);
   }
 
   ExtensionDeclarationImpl extensionElement(
@@ -585,7 +601,11 @@ class DeclarationBuilderFromElement {
     return _extensionTypeMap[element] ??= _extensionTypeElement(element);
   }
 
-  macro.FieldDeclarationImpl fieldElement(FieldElementImpl element) {
+  macro.DeclarationImpl fieldElement(FieldElementImpl element) {
+    if (element.isEnumConstant) {
+      return _enumConstantMap[element] ??= _enumConstantElement(element);
+    }
+
     return _fieldMap[element] ??= _fieldElement(element);
   }
 
@@ -637,11 +657,21 @@ class DeclarationBuilderFromElement {
     return _mixinMap[element] ??= _mixinElement(element);
   }
 
+  macro.VariableDeclarationImpl topLevelVariableElement(
+    TopLevelVariableElementImpl element,
+  ) {
+    return _variableMap[element] ??= _topLevelVariableElement(element);
+  }
+
   /// See [macro.DeclarationPhaseIntrospector.typeDeclarationOf].
   macro.TypeDeclarationImpl typeDeclarationOf(Element element) {
     switch (element) {
       case ClassElementImpl():
         return classElement(element);
+      case EnumElementImpl():
+        return enumElement(element);
+      case ExtensionElementImpl():
+        return extensionElement(element);
       case ExtensionTypeElementImpl():
         return extensionTypeElement(element);
       case MixinElementImpl():
@@ -735,6 +765,37 @@ class DeclarationBuilderFromElement {
         // TODO(scheglov): implement other types
         throw UnimplementedError('(${type.runtimeType}) $type');
     }
+  }
+
+  EnumValueDeclarationImpl _enumConstantElement(
+    FieldElementImpl element,
+  ) {
+    final enclosing = element.enclosingElement as EnumElementImpl;
+    return EnumValueDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      definingEnum: identifier(enclosing),
+      // TODO(scheglov): restore, when added
+      // type: _typeAnnotationVariable(variableList.type, element),
+      element: element,
+    );
+  }
+
+  EnumDeclarationImpl _enumElement(
+    EnumElementImpl element,
+  ) {
+    return EnumDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: element.typeParameters.map(_typeParameter).toList(),
+      interfaces: element.interfaces.map(_interfaceType).toList(),
+      mixins: element.mixins.map(_interfaceType).toList(),
+      element: element,
+    );
   }
 
   ExtensionDeclarationImpl _extensionElement(
@@ -880,6 +941,22 @@ class DeclarationBuilderFromElement {
         .toList();
   }
 
+  VariableDeclarationImpl _topLevelVariableElement(
+    TopLevelVariableElementImpl element,
+  ) {
+    return VariableDeclarationImpl(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: identifier(element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      hasExternal: element.isExternal,
+      hasFinal: element.isFinal,
+      hasLate: element.isLate,
+      type: _dartType(element.type),
+      element: element,
+    );
+  }
+
   macro.TypeParameterDeclarationImpl _typeParameter(
     TypeParameterElement element,
   ) {
@@ -940,6 +1017,46 @@ class DeclarationBuilderFromNode {
       hasSealed: node.sealedKeyword != null,
       mixins: _namedTypes(mixinNodes),
       superclass: node.extendsClause?.superclass.mapOrNull(_namedType),
+      element: element,
+    );
+  }
+
+  ClassDeclarationImpl classTypeAlias(
+    ast.ClassTypeAliasImpl node,
+  ) {
+    final element = node.declaredElement!;
+
+    final interfaceNodes = <ast.NamedType>[];
+    final mixinNodes = <ast.NamedType>[];
+    for (var current = node;;) {
+      if (current.implementsClause case final clause?) {
+        interfaceNodes.addAll(clause.interfaces);
+      }
+      mixinNodes.addAll(current.withClause.mixinTypes);
+      final nextElement = current.declaredElement?.augmentation;
+      final nextNode = declarationBuilder.nodeOfElement(nextElement);
+      if (nextNode is! ast.ClassTypeAliasImpl) {
+        break;
+      }
+      current = nextNode;
+    }
+
+    return ClassDeclarationImpl._(
+      id: macro.RemoteInstance.uniqueId,
+      identifier: _declaredIdentifier(node.name, element),
+      library: library(element),
+      metadata: _buildMetadata(element),
+      typeParameters: _typeParameters(node.typeParameters),
+      interfaces: _namedTypes(interfaceNodes),
+      hasAbstract: node.abstractKeyword != null,
+      hasBase: node.baseKeyword != null,
+      hasExternal: false,
+      hasFinal: node.finalKeyword != null,
+      hasInterface: node.interfaceKeyword != null,
+      hasMixin: node.mixinKeyword != null,
+      hasSealed: node.sealedKeyword != null,
+      mixins: _namedTypes(mixinNodes),
+      superclass: node.superclass.mapOrNull(_namedType),
       element: element,
     );
   }
@@ -1185,6 +1302,8 @@ class DeclarationBuilderFromNode {
     switch (node) {
       case ast.ClassDeclarationImpl():
         return classDeclaration(node);
+      case ast.ClassTypeAliasImpl():
+        return classTypeAlias(node);
       case ast.EnumDeclarationImpl():
         return enumDeclaration(node);
       case ast.ExtensionDeclarationImpl():
@@ -1227,19 +1346,21 @@ class DeclarationBuilderFromNode {
           isStatic: element.isStatic,
           element: element,
         );
-      default:
+      case ast.TopLevelVariableDeclarationImpl():
         final element = node.declaredElement as TopLevelVariableElementImpl;
         return VariableDeclarationImpl(
           id: macro.RemoteInstance.uniqueId,
           identifier: _declaredIdentifier(node.name, element),
           library: library(element),
           metadata: _buildMetadata(element),
-          hasExternal: false,
+          hasExternal: element.isExternal,
           hasFinal: element.isFinal,
           hasLate: element.isLate,
           type: _typeAnnotationVariable(variableList.type, element),
           element: element,
         );
+      default:
+        throw UnimplementedError('${variablesDeclaration.runtimeType}');
     }
   }
 

@@ -5660,6 +5660,18 @@ class AstBuilder extends StackListener {
       handleRecoverableError(
           messageConstConstructorWithBody, bodyToken, bodyToken);
     }
+
+    if (modifiers?.externalKeyword != null) {
+      for (final formalParameter in parameters.parameters) {
+        if (formalParameter is FieldFormalParameterImpl) {
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
+            formalParameter.thisKeyword,
+          );
+        }
+      }
+    }
+
     var constructor = ConstructorDeclarationImpl(
       comment: comment,
       metadata: metadata,

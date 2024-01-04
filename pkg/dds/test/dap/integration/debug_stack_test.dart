@@ -157,6 +157,29 @@ main() {
         );
       }
     });
+
+    test('returns empty stack for exited threads', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(isolateSpawningProgram);
+
+      // Run the script and wait for the additional isolate to exit.
+      final threadExitFuture =
+          client.threadEvents.where((event) => event.reason == 'exited').first;
+      await Future.wait([
+        threadExitFuture,
+        client.initialize(),
+        client.launch(testFile.path),
+      ], eagerError: true);
+      final exitedThreadId = (await threadExitFuture).threadId;
+
+      // Verify empty stack and no error.
+      final stack = await client.getValidStack(
+        exitedThreadId,
+        startFrame: 0,
+        numFrames: 8,
+      );
+      expect(stack.stackFrames, isEmpty);
+    });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }

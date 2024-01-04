@@ -4628,7 +4628,7 @@ const Code<Null> codeExternalConstructorWithFieldInitializers =
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageExternalConstructorWithFieldInitializers =
     const MessageCode("ExternalConstructorWithFieldInitializers",
-        analyzerCodes: <String>["EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS"],
+        index: 178,
         problemMessage: r"""An external constructor can't initialize fields.""",
         correctionMessage:
             r"""Try removing the field initializers, or removing the keyword 'external'.""");

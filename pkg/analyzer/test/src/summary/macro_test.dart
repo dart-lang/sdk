@@ -4839,6 +4839,222 @@ class A
 ''');
   }
 
+  test_classAlias_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+mixin M {}
+class I {}
+class J {}
+
+class C = A with M implements I, J;
+''');
+
+    await _assertIntrospectText('C', r'''
+class C
+  superclass: A
+  mixins
+    M
+  interfaces
+    I
+    J
+''');
+  }
+
+  test_classAlias_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T1> {}
+mixin M<U1> {}
+
+class C<T2, U2> = A<T2> with M<U2>;
+''');
+
+    await _assertIntrospectText('C', r'''
+class C
+  superclass: A<T2>
+  typeParameters
+    T2
+    U2
+  mixins
+    M<U2>
+''');
+  }
+
+  test_enum_fields() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v(0);
+  final int foo;
+  const A(this.foo);
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  fields
+    foo
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_enum_getters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v;
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_enum_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+
+enum X implements A, B {
+  v
+}
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  interfaces
+    A
+    B
+  values
+    v
+''');
+  }
+
+  test_enum_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@a1
+@a2
+enum X {
+  v
+}
+
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  values
+    v
+''');
+  }
+
+  test_enum_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v;
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_enum_mixins() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin A {}
+mixin B {}
+
+enum X with A, B {
+  v
+}
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  mixins
+    A
+    B
+  values
+    v
+''');
+  }
+
+  test_enum_setters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v;
+  set foo(int value) {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
+''');
+  }
+
+  test_enum_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A<T> {
+  v
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  typeParameters
+    T
+  values
+    v
+''');
+  }
+
+  test_enum_values() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum X with A, B {
+  foo, bar
+}
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  values
+    foo
+    bar
+''');
+  }
+
   test_extension_getters() async {
     newFile('$testPackageLibPath/a.dart', r'''
 extension A on int {
@@ -5286,6 +5502,75 @@ foo
       flags: isRequired
       type: int
   returnType: void
+''');
+  }
+
+  test_unit_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final foo = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasFinal
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasExternal_true() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+external int foo;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasExternal
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasFinal_false() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var foo = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasLate_true() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+late int foo;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasLate
+  type: int
+''');
+  }
+
+  test_unit_variable_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@a1
+@a2
+final foo = 0;
+
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasFinal
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  type: int
 ''');
   }
 
@@ -6708,6 +6993,86 @@ class A
 ''');
   }
 
+  test_classAlias_flags_hasAbstract() async {
+    await _assertIntrospectText(r'''
+class A {}
+mixin M {}
+
+@Introspect()
+abstract class C = A with M;
+''', r'''
+class C
+  flags: hasAbstract
+  superclass: A
+  mixins
+    M
+''');
+  }
+
+  test_classAlias_interfaces() async {
+    await _assertIntrospectText(r'''
+class A {}
+mixin M {}
+class I {}
+class J {}
+
+@Introspect()
+class C = A with M implements I, J;
+''', r'''
+class C
+  superclass: A
+  mixins
+    M
+  interfaces
+    I
+    J
+''');
+  }
+
+  test_classAlias_metadata_identifier() async {
+    await _assertIntrospectText(r'''
+class A {}
+mixin M {}
+
+@Introspect(withMetadata: true)
+@a1
+@a2
+class C = A with M;
+
+class X {}
+''', r'''
+class C
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  superclass: A
+  mixins
+    M
+''');
+  }
+
+  test_classAlias_typeParameters() async {
+    await _assertIntrospectText(r'''
+class A<T1> {}
+mixin M<U1> {}
+
+@Introspect()
+class C<T2, U2> = A<T2> with M<U2>;
+''', r'''
+class C
+  superclass: A<T2>
+  typeParameters
+    T2
+    U2
+  mixins
+    M<U2>
+''');
+  }
+
   test_enum_fields() async {
     await _assertIntrospectText(r'''
 @Introspect()
@@ -6822,6 +7187,25 @@ enum A
 ''');
   }
 
+  test_enum_mixins() async {
+    await _assertIntrospectText(r'''
+mixin A {}
+mixin B {}
+
+@Introspect()
+enum X with A, B {
+  v
+}
+''', r'''
+enum X
+  mixins
+    A
+    B
+  values
+    v
+''');
+  }
+
   test_enum_setters() async {
     await _assertIntrospectText(r'''
 @Introspect()
@@ -6856,6 +7240,20 @@ enum E
     T
   values
     v
+''');
+  }
+
+  test_enum_values() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  foo, bar
+}
+''', r'''
+enum A
+  values
+    foo
+    bar
 ''');
   }
 
@@ -7560,6 +7958,94 @@ foo
       flags: isRequired
       type: int
   returnType: OmittedType
+''');
+  }
+
+  test_unit_variable_flags_hasExternal_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+external int foo;
+''', r'''
+foo
+  flags: hasExternal
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasFinal_false() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+var foo = 0;
+''', r'''
+foo
+  type: OmittedType
+''');
+  }
+
+  test_unit_variable_flags_hasFinal_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+final foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
+''');
+  }
+
+  test_unit_variable_flags_hasLate_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+late int foo;
+''', r'''
+foo
+  flags: hasLate
+  type: int
+''');
+  }
+
+  test_unit_variable_metadata() async {
+    await _assertIntrospectText(r'''
+@Introspect(withMetadata: true)
+@a1
+@a2
+final foo = 0;
+
+const a1 = 0;
+const a2 = 0;
+''', r'''
+foo
+  flags: hasFinal
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  type: OmittedType
+''');
+  }
+
+  test_unit_variable_type_explicit() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+final num foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: num
+''');
+  }
+
+  test_unit_variable_type_implicit() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+final foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
 ''');
   }
 

@@ -320,12 +320,14 @@ class A {}
 ResolvedLibraryResult
   element: package:test/test.dart
   units
-    /home/test/lib/test.dart
-      flags: exists isLibrary
+    ResolvedUnitResult #0
+      path: /home/test/lib/test.dart
       uri: package:test/test.dart
-    /home/test/lib/test.macro.dart
-      flags: exists isAugmentation isMacroAugmentation
+      flags: exists isLibrary
+    ResolvedUnitResult #1
+      path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
+      flags: exists isAugmentation isMacroAugmentation
       content
 ---
 library augment 'test.dart';
@@ -379,9 +381,10 @@ void f() {
 ResolvedLibraryResult
   element: package:test/test.dart
   units
-    /home/test/lib/test.dart
-      flags: exists isLibrary
+    ResolvedUnitResult #0
+      path: /home/test/lib/test.dart
       uri: package:test/test.dart
+      flags: exists isLibrary
       selectedNode: Block
         leftBracket: {
         statements
@@ -392,9 +395,10 @@ ResolvedLibraryResult
               staticType: int
             semicolon: ;
         rightBracket: }
-    /home/test/lib/test.macro.dart
-      flags: exists isAugmentation isMacroAugmentation
+    ResolvedUnitResult #1
+      path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
+      flags: exists isAugmentation isMacroAugmentation
       content
 ---
 library augment 'test.dart';

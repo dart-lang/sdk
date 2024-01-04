@@ -268,7 +268,7 @@ class FileResolver {
       Future<void> collectReferences2(
           String path, OperationPerformanceImpl performance) async {
         await performance.runAsync('collectReferences', (_) async {
-          var resolved = await resolve2(path: path);
+          var resolved = await resolve(path: path);
           var collector = ReferencesCollector(element);
           resolved.unit.accept(collector);
           var matches = collector.references;
@@ -334,7 +334,7 @@ class FileResolver {
           return ErrorEncoding.decode(file.source, error)!;
         }).toList();
       } else {
-        var unitResult = await resolve2(
+        var unitResult = await resolve(
           path: path,
           performance: performance,
         );
@@ -524,7 +524,7 @@ class FileResolver {
     releaseAndClearRemovedIds();
   }
 
-  Future<ResolvedUnitResult> resolve2({
+  Future<ResolvedUnitResult> resolve({
     required String path,
     OperationPerformanceImpl? performance,
   }) async {
@@ -556,6 +556,14 @@ class FileResolver {
       }
       return unit;
     });
+  }
+
+  // TODO(pq): remove after cider extensions are updated.
+  Future<ResolvedUnitResult> resolve2({
+    required String path,
+    OperationPerformanceImpl? performance,
+  }) async {
+    return resolve(path: path, performance: performance);
   }
 
   /// The [completionLine] and [completionColumn] are zero based.
@@ -864,7 +872,7 @@ class FileResolver {
     LibraryElement libraryElement = element.library;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       String unitPath = unitElement.source.fullName;
-      var unitResult = await resolve2(path: unitPath);
+      var unitResult = await resolve(path: unitPath);
       var visitor = ImportElementReferencesVisitor(element, unitElement);
       unitResult.unit.accept(visitor);
       var lineInfo = unitResult.lineInfo;

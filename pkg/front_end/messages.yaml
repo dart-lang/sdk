@@ -1270,9 +1270,10 @@ ExternalConstructorWithBody:
     - "class C { external C() {} }"
 
 ExternalConstructorWithFieldInitializers:
+  index: 178
   problemMessage: "An external constructor can't initialize fields."
   correctionMessage: "Try removing the field initializers, or removing the keyword 'external'."
-  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
+  analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
 
 ExternalFactoryWithBody:
   index: 86

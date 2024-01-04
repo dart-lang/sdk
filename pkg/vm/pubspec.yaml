@@ -16,7 +16,6 @@ dependencies:
   kernel: any
   package_config: any
   yaml: any
-  path: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
@@ -24,5 +23,6 @@ dev_dependencies:
   expect: any
   json_rpc_2: any
   lints: any
+  path: any
   test: any
   web_socket_channel: any

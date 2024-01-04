@@ -492,11 +492,7 @@ class RecordGetterData extends RecordMemberData implements FunctionData {
       JsToElementMap elementMap,
       ParameterStructure parameterStructure,
       void f(DartType type, String? name, ConstantValue? defaultValue),
-      {bool isNative = false}) {
-    // This `throw` can be removed if `RecordGetterData.forEachParameter` is
-    // used from general code via `FunctionData.forEachParameter`.
-    throw UnsupportedError('${runtimeType}.forEachParameter');
-  }
+      {bool isNative = false}) {}
 
   @override
   // It is a bit of a code-smell here that an synthetic element introduced

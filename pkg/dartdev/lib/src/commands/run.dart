@@ -61,6 +61,7 @@ class RunCommand extends DartdevCommand {
         help:
             'Enable faster startup times with the resident frontend compiler.\n'
             "See 'dart ${CompilationServerCommand.commandName} -h' for more information.",
+        hide: !verbose,
       )
       ..addOption(
         CompilationServerCommand.residentServerInfoFileFlag,
@@ -79,41 +80,58 @@ class RunCommand extends DartdevCommand {
         ..addOption(
           'observe',
           help: 'The observe flag is a convenience flag used to run a program '
-              'with a set of common options useful for debugging.',
+              'with a set of common options useful for debugging. '
+              'Run `dart help -v run` for details.',
           valueHelp: '[<port>[/<bind-address>]]',
         )
-        ..addOption('launch-dds', hide: true, help: 'Launch DDS.')
-        ..addSeparator(
-          'Options implied by --observe are currently:',
+        ..addFlag(
+          'enable-asserts',
+          help: 'Enable assert statements.',
         )
+        ..addOption(
+          'launch-dds',
+          hide: true,
+          help: 'Launch DDS.',
+        );
+
+      if (verbose) {
+        argParser.addSeparator(
+            verbose ? 'Options implied by --observe are currently:' : '');
+      }
+      argParser
         ..addOption(
           'enable-vm-service',
           help: 'Enables the VM service and listens on the specified port for '
               'connections (default port number is 8181, default bind address '
               'is localhost).',
           valueHelp: '[<port>[/<bind-address>]]',
+          hide: !verbose,
         )
         ..addFlag(
           'serve-devtools',
           help: 'Serves an instance of the Dart DevTools debugger and profiler '
               'via the VM service at <vm-service-uri>/devtools.',
           defaultsTo: true,
+          hide: !verbose,
         )
         ..addFlag(
           'pause-isolates-on-exit',
           help: 'Pause isolates on exit when '
               'running with --enable-vm-service.',
+          hide: !verbose,
         )
         ..addFlag(
           'pause-isolates-on-unhandled-exceptions',
           help: 'Pause isolates when an unhandled exception is encountered '
               'when running with --enable-vm-service.',
+          hide: !verbose,
         )
         ..addFlag(
           'warn-on-pause-with-no-debugger',
           help:
               'Print a warning when an isolate pauses with no attached debugger'
               ' when running with --enable-vm-service.',
+          hide: !verbose,
         )
         ..addOption(
           'timeline-streams',
@@ -122,25 +140,28 @@ class RunCommand extends DartdevCommand {
               'Debugger, Embedder, GC, Isolate, VM.\n'
               'Defaults to "Compiler, Dart, GC" when --observe is provided.',
           valueHelp: 'str1, str2, ...',
-        )
-        ..addSeparator(
-          'Other debugging options:',
-        )
+          hide: !verbose,
+        );
+
+      if (verbose) {
+        argParser.addSeparator('Other debugging options:');
+      }
+      argParser
         ..addFlag(
           'pause-isolates-on-start',
           help: 'Pause isolates on start when '
               'running with --enable-vm-service.',
+          hide: !verbose,
         )
-        ..addFlag(
-          'enable-asserts',
-          help: 'Enable assert statements.',
-        )
-        ..addOption('timeline-recorder',
-            help: 'Selects the timeline recorder to use.\n'
-                'Valid recorders include: none, ring, endless, startup, '
-                'systrace, file, callback, perfettofile.\n'
-                'Defaults to ring.',
-            valueHelp: 'recorder');
+        ..addOption(
+          'timeline-recorder',
+          help: 'Selects the timeline recorder to use.\n'
+              'Valid recorders include: none, ring, endless, startup, '
+              'systrace, file, callback, perfettofile.\n'
+              'Defaults to ring.',
+          valueHelp: 'recorder',
+          hide: !verbose,
+        );
     } else {
       argParser.addOption('timeline-recorder',
           help: 'Selects the timeline recorder to use.\n'
@@ -148,6 +169,8 @@ class RunCommand extends DartdevCommand {
               'Defaults to none.',
           valueHelp: 'recorder');
     }
+
+    argParser.addSeparator('Logging options:');
     argParser.addOption(
       'verbosity',
       help: 'Sets the verbosity level of the compilation.',
@@ -157,15 +180,14 @@ class RunCommand extends DartdevCommand {
     );
 
     if (verbose) {
-      argParser.addSeparator(
-        'Advanced options:',
-      );
+      argParser.addSeparator('Advanced options:');
     }
     argParser.addMultiOption(
       'define',
       abbr: 'D',
       valueHelp: 'key=value',
       help: 'Define an environment declaration.',
+      hide: !verbose,
     );
     if (!isProductMode) {
       argParser

@@ -2800,6 +2800,10 @@ ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword.
+ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword or remove the initializers.
 ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
   status: needsFix
   notes: |-

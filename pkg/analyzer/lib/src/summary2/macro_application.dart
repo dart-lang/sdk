@@ -122,8 +122,17 @@ class LibraryMacroApplier {
             members: declaration.members,
           );
         case ast.ClassTypeAliasImpl():
-          // TODO(scheglov): implement it
-          break;
+          final element = declaration.declaredElement!;
+          final declarationElement = element.augmented?.declaration ?? element;
+          await _addClassLike(
+            libraryElement: libraryElement,
+            container: container,
+            targetElement: declarationElement,
+            classNode: declaration,
+            classDeclarationKind: macro.DeclarationKind.classType,
+            classAnnotations: declaration.metadata,
+            members: const [],
+          );
         case ast.EnumDeclarationImpl():
           final element = declaration.declaredElement!;
           final declarationElement = element.augmented?.declaration ?? element;
@@ -198,8 +207,17 @@ class LibraryMacroApplier {
             members: declaration.members,
           );
         case ast.TopLevelVariableDeclarationImpl():
-          // TODO(scheglov): implement it
-          break;
+          final variables = declaration.variables.variables;
+          for (final variable in variables.reversed) {
+            await _addAnnotations(
+              libraryElement: libraryElement,
+              container: container,
+              targetNode: variable,
+              targetNodeElement: variable.declaredElement,
+              targetDeclarationKind: macro.DeclarationKind.variable,
+              annotations: declaration.metadata,
+            );
+          }
       }
     }
 
