@@ -38,7 +38,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
@@ -1186,19 +1185,6 @@ class LspServerContextManagerCallbacks
       final lspOutline = toFlutterOutline(result.lineInfo, outline);
       analysisServer.publishFlutterOutline(path, lspOutline);
     }
-  }
-
-  @override
-  void listenAnalysisDriver(analysis.AnalysisDriver driver) {
-    // TODO(dantup): Is this required, or covered by
-    // addContextsToDeclarationsTracker? The original server does not appear to
-    // have an equivalent call.
-    final analysisContext = driver.analysisContext;
-    if (analysisContext != null) {
-      analysisServer.declarationsTracker?.addContext(analysisContext);
-    }
-
-    super.listenAnalysisDriver(driver);
   }
 
   @override
