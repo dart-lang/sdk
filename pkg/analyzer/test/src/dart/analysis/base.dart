@@ -7,6 +7,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
@@ -77,7 +78,8 @@ class BaseAnalysisDriverTest with ResourceProviderMixin {
         PackageMapUriResolver(resourceProvider, packageMap),
         ResourceUriResolver(resourceProvider)
       ]),
-      analysisOptions: createAnalysisOptions(),
+      analysisOptionsMap:
+          AnalysisOptionsMap.forSharedOptions(createAnalysisOptions()),
       packages: Packages({
         'test': Package(
           name: 'test',

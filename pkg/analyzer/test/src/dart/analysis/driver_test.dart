@@ -12,6 +12,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/info_declaration_store.dart';
@@ -498,7 +499,8 @@ class AnalysisDriverSchedulerTest with ResourceProviderMixin {
       sourceFactory: SourceFactory(
         [DartUriResolver(sdk), ResourceUriResolver(resourceProvider)],
       ),
-      analysisOptions: AnalysisOptionsImpl(),
+      analysisOptionsMap:
+          AnalysisOptionsMap.forSharedOptions(AnalysisOptionsImpl()),
       packages: Packages.empty,
     );
     driver.results.listen((result) {
