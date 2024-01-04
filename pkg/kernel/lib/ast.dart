@@ -2971,8 +2971,11 @@ class Procedure extends Member implements GenericFunction {
   /// Since `Super.method` allows `num` as argument, the inserted covariant
   /// check must be against `num` and not `int`, and the parameter type of the
   /// forwarding semi stub must be changed to `num`. Still, the interface of
-  /// `Class` requires that `Class.method` is `void Function(int)`, so for this,
-  /// it is stored explicitly as the [signatureType] on the procedure.
+  /// `Class` requires that `Class.method` is `void Function(int)`, so for
+  /// this, it is stored explicitly as the [signatureType] on the procedure.
+  ///
+  /// When [signatureType] is null, you can compute the function type with
+  /// `function.computeFunctionType(Nullability.nonNullable)`.
   FunctionType? signatureType;
 
   Procedure(Name name, ProcedureKind kind, FunctionNode function,
