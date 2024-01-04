@@ -84,12 +84,17 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'ResolutionTest',
-      methodName: 'assertParsedNodeText',
+      methodName: 'assertDartObjectText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(
       className: 'ResolutionTest',
-      methodName: 'assertDartObjectText',
+      methodName: 'assertDriverEventsText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'ResolutionTest',
+      methodName: 'assertParsedNodeText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(

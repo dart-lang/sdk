@@ -18,7 +18,7 @@ import '../../summary/resolved_ast_printer.dart';
 sealed class DriverEvent {}
 
 class DriverEventsPrinter {
-  final ResolvedLibraryResultPrinterConfiguration configuration;
+  final DriverEventsPrinterConfiguration configuration;
   final TreeStringSink sink;
   final ElementPrinter elementPrinter;
   final IdProvider idProvider;
@@ -36,8 +36,42 @@ class DriverEventsPrinter {
     }
   }
 
+  void _writeAnalysisError(AnalysisError e) {
+    sink.writelnWithIndent('${e.offset} +${e.length} ${e.errorCode.name}');
+  }
+
+  void _writeErrorsResult(SomeErrorsResult result) {
+    switch (result) {
+      case ErrorsResultImpl():
+        final id = idProvider[result];
+        sink.writelnWithIndent('ErrorsResult $id');
+
+        sink.withIndent(() {
+          sink.writelnWithIndent('path: ${result.file.posixPath}');
+          expect(result.path, result.file.path);
+
+          sink.writelnWithIndent('uri: ${result.uri}');
+
+          sink.writeFlags({
+            'isAugmentation': result.isAugmentation,
+            'isLibrary': result.isLibrary,
+            'isMacroAugmentation': result.isMacroAugmentation,
+            'isPart': result.isPart,
+          });
+
+          sink.writeElements('errors', result.errors, _writeAnalysisError);
+        });
+      default:
+        throw UnimplementedError('${result.runtimeType}');
+    }
+  }
+
   void _writeEvent(DriverEvent event) {
     switch (event) {
+      case GetLibraryByUriEvent():
+        _writeGetLibraryByUriEvent(event);
+      case GetResolvedLibraryEvent():
+        _writeGetResolvedLibrary(event);
       case GetResolvedLibraryByUriEvent():
         _writeGetResolvedLibraryByUri(event);
       case GetResolvedUnitEvent():
@@ -49,28 +83,27 @@ class DriverEventsPrinter {
     }
   }
 
+  void _writeGetLibraryByUriEvent(GetLibraryByUriEvent event) {
+    sink.writelnWithIndent('[future] getLibraryByUri');
+    sink.withIndent(() {
+      sink.writelnWithIndent('name: ${event.name}');
+      _writeLibraryElementResult(event.result);
+    });
+  }
+
+  void _writeGetResolvedLibrary(GetResolvedLibraryEvent event) {
+    sink.writelnWithIndent('[future] getResolvedLibrary');
+    sink.withIndent(() {
+      sink.writelnWithIndent('name: ${event.name}');
+      _writeResolvedLibraryResult(event.result);
+    });
+  }
+
   void _writeGetResolvedLibraryByUri(GetResolvedLibraryByUriEvent event) {
     sink.writelnWithIndent('[future] getResolvedLibraryByUri');
     sink.withIndent(() {
       sink.writelnWithIndent('name: ${event.name}');
-      final result = event.result;
-      switch (result) {
-        case NotLibraryButAugmentationResult():
-          sink.writelnWithIndent('NotLibraryButAugmentationResult');
-        case ResolvedLibraryResult():
-          ResolvedLibraryResultPrinter(
-            configuration: configuration,
-            sink: sink,
-            idProvider: idProvider,
-            elementPrinter: ElementPrinter(
-              sink: sink,
-              configuration: ElementPrinterConfiguration(),
-              selfUriStr: null,
-            ),
-          ).write(result);
-        default:
-          throw UnimplementedError('${result.runtimeType}');
-      }
+      _writeResolvedLibraryResult(event.result);
     });
   }
 
@@ -82,9 +115,46 @@ class DriverEventsPrinter {
     });
   }
 
+  void _writeLibraryElementResult(SomeLibraryElementResult result) {
+    switch (result) {
+      case CannotResolveUriResult():
+        sink.writelnWithIndent('CannotResolveUriResult');
+      case NotLibraryButAugmentationResult():
+        sink.writelnWithIndent('NotLibraryButAugmentationResult');
+      case NotLibraryButPartResult():
+        sink.writelnWithIndent('NotLibraryButPartResult');
+      default:
+        throw UnimplementedError('${result.runtimeType}');
+    }
+  }
+
+  void _writeResolvedLibraryResult(SomeResolvedLibraryResult result) {
+    switch (result) {
+      case CannotResolveUriResult():
+        sink.writelnWithIndent('CannotResolveUriResult');
+      case NotLibraryButAugmentationResult():
+        sink.writelnWithIndent('NotLibraryButAugmentationResult');
+      case NotLibraryButPartResult():
+        sink.writelnWithIndent('NotLibraryButPartResult');
+      case ResolvedLibraryResult():
+        ResolvedLibraryResultPrinter(
+          configuration: configuration.libraryConfiguration,
+          sink: sink,
+          idProvider: idProvider,
+          elementPrinter: ElementPrinter(
+            sink: sink,
+            configuration: ElementPrinterConfiguration(),
+            selfUriStr: null,
+          ),
+        ).write(result);
+      default:
+        throw UnimplementedError('${result.runtimeType}');
+    }
+  }
+
   void _writeResolvedUnitResult(SomeResolvedUnitResult result) {
     ResolvedUnitResultPrinter(
-      configuration: configuration.unitConfiguration,
+      configuration: configuration.libraryConfiguration.unitConfiguration,
       sink: sink,
       elementPrinter: elementPrinter,
       idProvider: idProvider,
@@ -96,6 +166,9 @@ class DriverEventsPrinter {
     final object = event.object;
     switch (object) {
       case events.ComputeAnalysis():
+        if (!configuration.withOperations) {
+          return;
+        }
         sink.writelnWithIndent('[operation] computeAnalysisResult');
         sink.withIndent(() {
           final file = object.file.resource;
@@ -104,11 +177,19 @@ class DriverEventsPrinter {
           sink.writelnWithIndent('library: ${libraryFile.posixPath}');
         });
       case events.ComputeResolvedLibrary():
+        if (!configuration.withOperations) {
+          return;
+        }
         sink.writelnWithIndent('[operation] computeResolvedLibrary');
         sink.withIndent(() {
           final fileState = object.library.file;
           final file = fileState.resource;
           sink.writelnWithIndent('library: ${file.posixPath}');
+        });
+      case ErrorsResult():
+        sink.writelnWithIndent('[stream]');
+        sink.withIndent(() {
+          _writeErrorsResult(object);
         });
       case ResolvedUnitResult():
         sink.writelnWithIndent('[stream]');
@@ -121,12 +202,39 @@ class DriverEventsPrinter {
   }
 }
 
+class DriverEventsPrinterConfiguration {
+  var withOperations = false;
+  var libraryConfiguration = ResolvedLibraryResultPrinterConfiguration();
+}
+
+/// The result of `getLibraryByUri`.
+final class GetLibraryByUriEvent extends DriverEvent {
+  final String name;
+  final SomeLibraryElementResult result;
+
+  GetLibraryByUriEvent({
+    required this.name,
+    required this.result,
+  });
+}
+
 /// The result of `getResolvedLibraryByUri`.
 final class GetResolvedLibraryByUriEvent extends DriverEvent {
   final String name;
   final SomeResolvedLibraryResult result;
 
   GetResolvedLibraryByUriEvent({
+    required this.name,
+    required this.result,
+  });
+}
+
+/// The result of `getResolvedLibrary`.
+final class GetResolvedLibraryEvent extends DriverEvent {
+  final String name;
+  final SomeResolvedLibraryResult result;
+
+  GetResolvedLibraryEvent({
     required this.name,
     required this.result,
   });

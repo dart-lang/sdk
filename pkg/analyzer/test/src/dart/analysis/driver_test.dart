@@ -35,6 +35,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import '../../../util/element_type_matchers.dart';
 import '../../../utils.dart';
 import '../resolution/context_collection_resolution.dart';
+import '../resolution/node_text_expectations.dart';
 import 'base.dart';
 import 'result_printer.dart';
 
@@ -44,6 +45,7 @@ main() {
     defineReflectiveTests(AnalysisDriverTest);
     defineReflectiveTests(AnalysisDriver_PubPackageTest);
     defineReflectiveTests(AnalysisDriver_BlazeWorkspaceTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -116,12 +118,55 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     registerLintRules();
   }
 
+  test_addFile_priorityFiles() async {
+    final a = newFile('$testPackageLibPath/a.dart', 'class A {}');
+    final b = newFile('$testPackageLibPath/b.dart', 'class B {}');
+    final c = newFile('$testPackageLibPath/c.dart', 'class C {}');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile(a.path);
+    driver.addFile(b.path);
+    driver.addFile(c.path);
+    driver.priorityFiles = [b.path];
+
+    await pumpEventQueue();
+
+    // 1. The priority file is produced first.
+    // 2. We get full `ResolvedUnitResult`.
+    // 3. For other files we get only `ErrorsResult`.
+    assertDriverEventsText(collector.events, r'''
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isLibrary
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[stream]
+  ErrorsResult #2
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: isLibrary
+''');
+  }
+
   test_getLibraryByUri_cannotResolveUri() async {
     final driver = driverFor(testFile);
-    expect(
-      await driver.getLibraryByUri('foo:bar'),
-      isA<CannotResolveUriResult>(),
-    );
+    final collector = DriverEventCollector(driver);
+
+    collector.getLibraryByUri('X', 'foo:bar');
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[future] getLibraryByUri
+  name: X
+  CannotResolveUriResult
+''');
   }
 
   test_getLibraryByUri_notLibrary_augmentation() async {
@@ -130,10 +175,17 @@ library augment 'b.dart';
 ''');
 
     final driver = driverFor(a);
-    expect(
-      await driver.getLibraryByUri('package:test/a.dart'),
-      isA<NotLibraryButAugmentationResult>(),
-    );
+    final collector = DriverEventCollector(driver);
+
+    final uriStr = 'package:test/a.dart';
+    collector.getLibraryByUri('X', uriStr);
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[future] getLibraryByUri
+  name: X
+  NotLibraryButAugmentationResult
+''');
   }
 
   test_getLibraryByUri_notLibrary_part() async {
@@ -142,10 +194,17 @@ part of 'b.dart';
 ''');
 
     final driver = driverFor(a);
-    expect(
-      await driver.getLibraryByUri('package:test/a.dart'),
-      isA<NotLibraryButPartResult>(),
-    );
+    final collector = DriverEventCollector(driver);
+
+    final uriStr = 'package:test/a.dart';
+    collector.getLibraryByUri('X', uriStr);
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[future] getLibraryByUri
+  name: X
+  NotLibraryButPartResult
+''');
   }
 
   test_getParsedLibraryByUri_cannotResolveUri() async {
@@ -189,10 +248,16 @@ library augment 'b.dart';
 ''');
 
     final driver = driverFor(a);
-    expect(
-      await driver.getResolvedLibrary(a.path),
-      isA<NotLibraryButAugmentationResult>(),
-    );
+    final collector = DriverEventCollector(driver);
+
+    collector.getResolvedLibrary('X', a);
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[future] getResolvedLibrary
+  name: X
+  NotLibraryButAugmentationResult
+''');
   }
 
   test_getResolvedLibrary_notLibrary_part() async {
@@ -201,19 +266,31 @@ part of 'b.dart';
 ''');
 
     final driver = driverFor(a);
-    expect(
-      await driver.getResolvedLibrary(a.path),
-      isA<NotLibraryButPartResult>(),
-    );
+    final collector = DriverEventCollector(driver);
+
+    collector.getResolvedLibrary('X', a);
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[future] getResolvedLibrary
+  name: X
+  NotLibraryButPartResult
+''');
   }
 
   test_getResolvedLibraryByUri_cannotResolveUri() async {
     final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
     final uri = Uri.parse('foo:bar');
-    expect(
-      await driver.getResolvedLibraryByUri(uri),
-      isA<CannotResolveUriResult>(),
-    );
+    collector.getResolvedLibraryByUri('X', uri);
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[future] getResolvedLibraryByUri
+  name: X
+  CannotResolveUriResult
+''');
   }
 
   test_getResolvedLibraryByUri_library_pending_getResolvedUnit() async {
@@ -228,11 +305,11 @@ part of 'a.dart';
     final driver = driverFor(a);
 
     final collector = DriverEventCollector(driver);
-    collector.getResolvedUnit('a1', a);
-    collector.getResolvedUnit('b1', b);
+    collector.getResolvedUnit('A1', a);
+    collector.getResolvedUnit('B2', b);
 
     final uri = Uri.parse('package:test/a.dart');
-    collector.getResolvedLibraryByUri('a2', uri);
+    collector.getResolvedLibraryByUri('A2', uri);
 
     await pumpEventQueue();
 
@@ -244,12 +321,14 @@ part of 'a.dart';
     // So, we resolved it twice.
     // Even worse, for `getResolvedLibraryByUri` we resolve it again.
     // Theoretically we could have just one resolution overall.
-    assertDriverEventsText(collector.events, r'''
+    assertDriverEventsText(collector.events, configure: (configuration) {
+      configuration.withOperations = true;
+    }, r'''
 [operation] computeAnalysisResult
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
 [future] getResolvedUnit
-  name: a1
+  name: A1
   ResolvedUnitResult #0
     path: /home/test/lib/a.dart
     uri: package:test/a.dart
@@ -260,7 +339,7 @@ part of 'a.dart';
   file: /home/test/lib/b.dart
   library: /home/test/lib/a.dart
 [future] getResolvedUnit
-  name: b1
+  name: B2
   ResolvedUnitResult #1
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
@@ -270,7 +349,7 @@ part of 'a.dart';
 [operation] computeResolvedLibrary
   library: /home/test/lib/a.dart
 [future] getResolvedLibraryByUri
-  name: a2
+  name: A2
   ResolvedLibraryResult
     element: package:test/a.dart
     units
@@ -294,12 +373,12 @@ library augment 'b.dart';
     final collector = DriverEventCollector(driver);
 
     final uri = Uri.parse('package:test/a.dart');
-    collector.getResolvedLibraryByUri('a1', uri);
+    collector.getResolvedLibraryByUri('X', uri);
 
     await pumpEventQueue();
     assertDriverEventsText(collector.events, r'''
 [future] getResolvedLibraryByUri
-  name: a1
+  name: X
   NotLibraryButAugmentationResult
 ''');
   }
@@ -310,11 +389,17 @@ part of 'b.dart';
 ''');
 
     final driver = driverFor(a);
+    final collector = DriverEventCollector(driver);
+
     final uri = Uri.parse('package:test/a.dart');
-    expect(
-      await driver.getResolvedLibraryByUri(uri),
-      isA<NotLibraryButPartResult>(),
-    );
+    collector.getResolvedLibraryByUri('X', uri);
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[future] getResolvedLibraryByUri
+  name: X
+  NotLibraryButPartResult
+''');
   }
 
   test_getResolvedUnit_part_doesNotExist_lints() async {
@@ -3700,27 +3785,6 @@ class F extends X {}
     assertType(f.returnType!.typeOrThrow, 'int');
   }
 
-  test_results_priorityFirst() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-    var c = convertPath('/test/lib/c.dart');
-    newFile(a, 'class A {}');
-    newFile(b, 'class B {}');
-    newFile(c, 'class C {}');
-
-    driver.addFile(a);
-    driver.addFile(b);
-    driver.addFile(c);
-    driver.priorityFiles = [b];
-    await waitForIdleWithoutExceptions();
-
-    expect(allResults, hasLength(6));
-    var result = allResults.whereType<ResolvedUnitResult>().first;
-    expect(result.path, b);
-    expect(result.unit, isNotNull);
-    expect(result.errors, hasLength(0));
-  }
-
   test_results_regular() async {
     String content = 'int f() => 42;';
     addTestFile(content);
@@ -3921,6 +3985,30 @@ class DriverEventCollector {
         ),
       );
     });
+  }
+
+  void getLibraryByUri(String name, String uriStr) {
+    final future = driver.getLibraryByUri(uriStr);
+    unawaited(future.then((value) {
+      events.add(
+        GetLibraryByUriEvent(
+          name: name,
+          result: value,
+        ),
+      );
+    }));
+  }
+
+  void getResolvedLibrary(String name, File file) {
+    final future = driver.getResolvedLibrary(file.path);
+    unawaited(future.then((value) {
+      events.add(
+        GetResolvedLibraryEvent(
+          name: name,
+          result: value,
+        ),
+      );
+    }));
   }
 
   void getResolvedLibraryByUri(String name, Uri uri) {

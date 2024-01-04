@@ -137,9 +137,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertDriverEventsText(
     List<DriverEvent> events,
     String expected, {
-    void Function(ResolvedLibraryResultPrinterConfiguration)? configure,
+    void Function(DriverEventsPrinterConfiguration)? configure,
   }) {
-    final configuration = ResolvedLibraryResultPrinterConfiguration();
+    final configuration = DriverEventsPrinterConfiguration();
     configure?.call(configuration);
 
     final buffer = StringBuffer();
