@@ -1,13 +1,10 @@
-# 3.1.2
+# 3.1.0+1
 - Improved error handling for serving static DevTools assets.
 - Updated `devtools_shared` constraint to ^6.0.3.
 - [DAP] The error message shown when global evaluation is unavailable been improved.
 - [DAP] Error messages shown on the client no longer contain verbose stack traces (although they are still included in the JSON payloads).
 - [DAP] `stackTraceRequest` now returns an empty stack instead of throwing if called for a thread that has exited.
 - [DAP] Fixed an issue that could cause a crash during shutdown if an isolate was being resumed.
-
-# 3.1.1
-- Updated `vm_service` constraint to ^14.0.0.
 
 # 3.1.0
 - Updated `devtools_shared` to ^6.0.0.
