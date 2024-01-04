@@ -304,7 +304,7 @@ Object getObjectMetadata(@notNull Object object) {
   } else if (object is Function) {
     _set(result, 'runtimeKind', RuntimeObjectKind.function);
   } else if (object is RecordImpl) {
-    var shape = object.shape;
+    var shape = JS<Shape>('!', '#[#]', object, shapeProperty);
     var positionalCount = shape.positionals;
     var namedCount = shape.named?.length ?? 0;
     var length = positionalCount + namedCount;
@@ -452,10 +452,10 @@ Object getTypeFields(@notNull Type type) {
 /// ```
 @notNull
 Object getRecordFields(@notNull RecordImpl record) {
-  var shape = record.shape;
+  var shape = JS<Shape>('!', '#[#]', record, shapeProperty);
   var positionalCount = shape.positionals;
   var named = shape.named?.toList();
-  var values = record.values;
+  var values = JS('!', '#[#]', record, valuesProperty);
 
   return _createJsObject({
     'positionalCount': positionalCount,

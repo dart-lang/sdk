@@ -73,6 +73,7 @@ typedef AnalyzeFunctionBodiesPredicate = bool Function(Source source);
 abstract class AnalysisContext {
   /// Return the set of analysis options controlling the behavior of this
   /// context. Clients should not modify the returned set of options.
+  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions;
 
   /// Return the set of declared variables used when computing constant values.
@@ -166,6 +167,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   Uint32List? _signatureForElements;
 
   @override
+  @Deprecated('Use `PubWorkspacePackage.sdkVersionConstraint` instead')
   VersionConstraint? sdkVersionConstraint;
 
   /// The constraint on the language version for every Dart file.
@@ -265,6 +267,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       strictInference = options.strictInference;
       strictRawTypes = options.strictRawTypes;
     }
+    // ignore: deprecated_member_use_from_same_package
     sdkVersionConstraint = options.sdkVersionConstraint;
   }
 
@@ -319,7 +322,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       ApiSignature buffer = ApiSignature();
 
       // Append environment.
+      // TODO(pq): remove
+      // ignore: deprecated_member_use_from_same_package
       if (sdkVersionConstraint != null) {
+        // ignore: deprecated_member_use_from_same_package
         buffer.addString(sdkVersionConstraint.toString());
       }
 

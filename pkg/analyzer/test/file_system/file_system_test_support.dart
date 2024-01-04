@@ -2,19 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:watcher/watcher.dart' show ChangeType;
 
 final isFile = TypeMatcher<File>();
 final isFileSystemException = TypeMatcher<FileSystemException>();
 final isFolder = TypeMatcher<Folder>();
 
 final throwsFileSystemException = throwsA(isFileSystemException);
+
+typedef _WatcherChanges = ({
+  List<ChangeType> changes,
+  Future<void> Function() cancel,
+});
 
 abstract class FileSystemTestSupport {
   /// The content used for the file at the [defaultFilePath] if it is created
@@ -65,6 +74,38 @@ abstract class FileSystemTestSupport {
           String? part5,
           String? part6]) =>
       provider.pathContext.join(part1, part2, part3, part4, part5, part6);
+
+  /// Subscribes to [watcher], waits for it to become ready, and returns
+  /// a record containing a list of events received (which updates as events
+  /// arrive) and a function to cancel.
+  Future<_WatcherChanges> _subscribeToWatcher(ResourceWatcher watcher) async {
+    var changes = <ChangeType>[];
+    var subscription =
+        watcher.changes.listen((event) => changes.add(event.type));
+
+    await watcher.ready;
+
+    return (changes: changes, cancel: subscription.cancel);
+  }
+
+  /// Waits up to [maxDuration] for [condition] to return `true`.
+  ///
+  /// Throws if condition is not `true` before the time expires.
+  Future<void> _waitFor(
+    FutureOr<bool> Function() condition, [
+    // Set the default max high enough to ensure no flakes on slow bots. We
+    // check periodically and will exit early if the condition is met.
+    Duration maxDuration = const Duration(seconds: 5),
+  ]) async {
+    var endTime = DateTime.now().add(maxDuration);
+    while (DateTime.now().isBefore(endTime)) {
+      if (await condition()) {
+        return;
+      }
+      await pumpEventQueue(times: 1000);
+    }
+    throw 'Condition was not true within $maxDuration';
+  }
 }
 
 /// Unlike most test mixins, this mixin defines some abstract test methods.
@@ -227,6 +268,77 @@ mixin FileTestMixin implements FileSystemTestSupport {
     File file = getFile(exists: false);
 
     expect(() => file.modificationStamp, throwsA(isFileSystemException));
+  }
+
+  /// Test that we can reuse a [ResourceWatcher] to create a second subscription
+  /// and cancel it at a different time.
+  test_multipleWatchers_staggeredCancel() async {
+    var filePath = path.join(tempPath, 'foo');
+    var file = getFile(filePath: filePath, exists: true);
+
+    // On Windows, package:watcher may miss modification events for files that
+    // were created just before we started watching (see
+    // https://github.com/dart-lang/watcher/issues/159), so add an artificial
+    // delay there to ensure we don't miss events until that issue is resolved.
+    if (provider is PhysicalResourceProvider && Platform.isWindows) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+    }
+
+    var resource = provider.getResource(filePath);
+    var watcher = resource.watch();
+
+    var watch1 = await _subscribeToWatcher(watcher);
+    var watch2 = await _subscribeToWatcher(watcher);
+    file.writeAsStringSync('first');
+    await _waitFor(
+      () => watch1.changes.isNotEmpty && watch2.changes.isNotEmpty,
+    );
+
+    // Cancel the second watcher before causing the second event.
+    await watch2.cancel();
+
+    file.writeAsStringSync('second');
+    await _waitFor(() => watch1.changes.length >= 2);
+
+    await watch1.cancel();
+
+    // Watcher 1 should have both events, and watcher 2 should have only the
+    // first one.
+    expect(watch1.changes.length, 2);
+    expect(watch2.changes.length, 1);
+  }
+
+  /// Test that we can reuse a [ResourceWatcher] to create a second subscription
+  /// at a different time.
+  test_multipleWatchers_staggeredSubscribe() async {
+    var filePath = path.join(tempPath, 'foo');
+    var file = getFile(filePath: filePath, exists: true);
+
+    // On Windows, package:watcher may miss modification events for files that
+    // were created just before we started watching (see
+    // https://github.com/dart-lang/watcher/issues/159), so add an artificial
+    // delay there to ensure we don't miss events until that issue is resolved.
+    if (provider is PhysicalResourceProvider && Platform.isWindows) {
+      await Future<void>.delayed(const Duration(seconds: 1));
+    }
+
+    var resource = provider.getResource(filePath);
+    var watcher = resource.watch();
+
+    var watch1 = await _subscribeToWatcher(watcher);
+    file.writeAsStringSync('first');
+    await _waitFor(() => watch1.changes.isNotEmpty);
+
+    var watch2 = await _subscribeToWatcher(watcher);
+    file.writeAsStringSync('second');
+    await _waitFor(() => watch2.changes.isNotEmpty);
+
+    await Future.wait([watch1.cancel(), watch2.cancel()]);
+
+    // Watcher 1 should have both events, and watcher 2 should have only the
+    // second.
+    expect(watch1.changes.length, 2);
+    expect(watch2.changes.length, 1);
   }
 
   test_parent2() {
@@ -776,6 +888,61 @@ mixin FolderTestMixin implements FileSystemTestSupport {
     Folder folder = getFolder(exists: true);
 
     expect(folder.isOrContains(defaultFolderPath), isTrue);
+  }
+
+  /// Test that we can reuse a [ResourceWatcher] to create a second subscription
+  /// and cancel it at a different time.
+  test_multipleWatchers_staggeredCancel() async {
+    var folderPath = path.join(tempPath, 'foo');
+    var fileInFolder =
+        getFile(filePath: path.join(folderPath, 'file'), exists: true);
+    var resource = provider.getResource(folderPath);
+    var watcher = resource.watch();
+
+    var watch1 = await _subscribeToWatcher(watcher);
+    var watch2 = await _subscribeToWatcher(watcher);
+    fileInFolder.writeAsStringSync('first');
+    await _waitFor(
+      () => watch1.changes.isNotEmpty && watch2.changes.isNotEmpty,
+    );
+
+    // Cancel the second watcher before causing the second event.
+    await watch2.cancel();
+
+    fileInFolder.writeAsStringSync('second');
+    await _waitFor(() => watch1.changes.length >= 2);
+
+    await watch1.cancel();
+
+    // Watcher 1 should have both events, and watcher 2 should have only the
+    // first one.
+    expect(watch1.changes.length, 2);
+    expect(watch2.changes.length, 1);
+  }
+
+  /// Test that we can reuse a [ResourceWatcher] to create a second subscription
+  /// at a different time.
+  test_multipleWatchers_staggeredSubscribe() async {
+    var folderPath = path.join(tempPath, 'foo');
+    var fileInFolder =
+        getFile(filePath: path.join(folderPath, 'file'), exists: true);
+    var resource = provider.getResource(folderPath);
+    var watcher = resource.watch();
+
+    var watch1 = await _subscribeToWatcher(watcher);
+    fileInFolder.writeAsStringSync('first');
+    await _waitFor(() => watch1.changes.isNotEmpty);
+
+    var watch2 = await _subscribeToWatcher(watcher);
+    fileInFolder.writeAsStringSync('second');
+    await _waitFor(() => watch2.changes.isNotEmpty);
+
+    await Future.wait([watch1.cancel(), watch2.cancel()]);
+
+    // Watcher 1 should have both events, and watcher 2 should have only the
+    // second.
+    expect(watch1.changes.length, 2);
+    expect(watch2.changes.length, 1);
   }
 
   test_parent() {

@@ -58,7 +58,7 @@ class CompilerOutput {
 /// Returns `null` if an error occurred during compilation. The
 /// [handleDiagnosticMessage] callback will have received an error message
 /// describing the error.
-Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
+Future<CompilerOutput?> compileToModule(compiler.WasmCompilerOptions options,
     void Function(DiagnosticMessage) handleDiagnosticMessage) async {
   var succeeded = true;
   void diagnosticMessageHandler(DiagnosticMessage message) {

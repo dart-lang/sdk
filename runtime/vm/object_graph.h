@@ -173,6 +173,7 @@ class HeapSnapshotWriter : public ThreadStackResource {
  public:
   HeapSnapshotWriter(Thread* thread, ChunkedWriter* writer)
       : ThreadStackResource(thread), writer_(writer) {}
+  ~HeapSnapshotWriter() { free(image_page_ranges_); }
 
   void WriteSigned(int64_t value) {
     EnsureAvailable((sizeof(value) * kBitsPerByte) / 7 + 1);
@@ -245,6 +246,7 @@ class HeapSnapshotWriter : public ThreadStackResource {
 
   static constexpr intptr_t kPreferredChunkSize = MB;
 
+  void SetupImagePageBoundaries();
   void SetupCountingPages();
   bool OnImagePage(ObjectPtr obj) const;
   CountingPage* FindCountingPage(ObjectPtr obj) const;
@@ -264,13 +266,21 @@ class HeapSnapshotWriter : public ThreadStackResource {
   intptr_t external_property_count_ = 0;
 
   struct ImagePageRange {
-    uword base;
-    uword size;
+    uword start;
+    uword end;
   };
-  // There are up to 4 images to consider:
-  // {instructions, data} x {vm isolate, current isolate}
-  static constexpr intptr_t kMaxImagePages = 4;
-  ImagePageRange image_page_ranges_[kMaxImagePages];
+  static int CompareImagePageRanges(const ImagePageRange* a,
+                                    const ImagePageRange* b) {
+    if (a->start < b->start) {
+      return -1;
+    } else if (a->start == b->start) {
+      return 0;
+    } else {
+      return 1;
+    }
+  }
+  intptr_t image_page_hi_ = 0;
+  ImagePageRange* image_page_ranges_ = nullptr;
 
   MallocGrowableArray<SmiPtr> smis_;
 

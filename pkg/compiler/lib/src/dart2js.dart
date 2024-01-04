@@ -14,9 +14,9 @@ import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 import '../compiler_api.dart' as api;
 import 'commandline_options.dart';
 import 'common/ram_usage.dart';
+import 'compiler.dart' as defaultCompiler show Compiler;
 import 'io/mapped_file.dart';
 import 'options.dart' show CompilerOptions, Dart2JSStage, FeatureOptions;
-import 'compiler.dart' as defaultCompiler show Compiler;
 import 'source_file_provider.dart';
 import 'util/command_line.dart';
 import 'util/util.dart' show stackTraceFilePrefix;
@@ -982,7 +982,8 @@ Usage: dart compile js [arguments] <dart entry point>
      -O2          Safe production-oriented optimizations (like minification).
      -O3          Potentially unsafe optimizations (see -h -v for details).
      -O4          More agressive unsafe optimizations (see -h -v for details).
-  ''');
+'''
+      .trim());
 }
 
 void verboseHelp() {

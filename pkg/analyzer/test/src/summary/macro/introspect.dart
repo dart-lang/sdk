@@ -10,9 +10,16 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     implements
         ClassDeclarationsMacro,
         ConstructorDeclarationsMacro,
+        EnumDeclarationsMacro,
+        EnumValueDeclarationsMacro,
+        ExtensionDeclarationsMacro,
+        ExtensionTypeDeclarationsMacro,
         FieldDeclarationsMacro,
+        FunctionDeclarationsMacro,
+        LibraryDeclarationsMacro,
         MethodDeclarationsMacro,
-        MixinDeclarationsMacro {
+        MixinDeclarationsMacro,
+        VariableDeclarationsMacro {
   final Set<Object?> withDetailsFor;
   final bool withMetadata;
   final bool withUnnamedConstructor;
@@ -25,7 +32,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
   @override
   Future<void> buildDeclarationsForClass(
-    IntrospectableClassDeclaration declaration,
+    ClassDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
     await _write(builder, declaration, (printer) async {
@@ -34,14 +41,57 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 
   @override
-  Future<void> buildDeclarationsForConstructor(declaration, builder) async {
+  Future<void> buildDeclarationsForConstructor(
+    ConstructorDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeConstructorDeclaration(declaration);
     });
   }
 
   @override
-  FutureOr<void> buildDeclarationsForField(
+  Future<void> buildDeclarationsForEnum(
+    EnumDeclaration declaration,
+    EnumDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeEnumDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForEnumValue(
+    EnumValueDeclaration declaration,
+    EnumDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeEnumValueDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForExtension(
+    ExtensionDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeExtensionDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForExtensionType(
+    ExtensionTypeDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeExtensionTypeDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForField(
     FieldDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
@@ -51,7 +101,53 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
   }
 
   @override
-  Future<void> buildDeclarationsForMethod(declaration, builder) async {
+  Future<void> buildDeclarationsForFunction(
+    FunctionDeclaration declaration,
+    DeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeFunctionDeclaration(declaration);
+    });
+  }
+
+  @override
+  Future<void> buildDeclarationsForLibrary(
+    Library library,
+    DeclarationBuilder builder,
+  ) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final types = await builder.typesOf(library);
+    final includedDeclarations = <Declaration>{};
+
+    final printer = _Printer(
+      sink: sink,
+      withMetadata: withMetadata,
+      withUnnamedConstructor: withUnnamedConstructor,
+      introspector: builder,
+      shouldWriteDetailsFor: (declaration) {
+        return includedDeclarations.remove(declaration);
+      },
+    );
+
+    for (final type in types) {
+      includedDeclarations.add(type);
+      await printer.writeAnyDeclaration(type);
+    }
+
+    final text = buffer.toString();
+    _declareIntrospectResult(builder, text);
+  }
+
+  @override
+  Future<void> buildDeclarationsForMethod(
+    MethodDeclaration declaration,
+    MemberDeclarationBuilder builder,
+  ) async {
     await _write(builder, declaration, (printer) async {
       await printer.writeMethodDeclaration(declaration);
     });
@@ -59,7 +155,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
   @override
   Future<void> buildDeclarationsForMixin(
-    IntrospectableMixinDeclaration declaration,
+    MixinDeclaration declaration,
     MemberDeclarationBuilder builder,
   ) async {
     await _write(builder, declaration, (printer) async {
@@ -67,36 +163,165 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
     });
   }
 
+  @override
+  Future<void> buildDeclarationsForVariable(
+    VariableDeclaration declaration,
+    DeclarationBuilder builder,
+  ) async {
+    await _write(builder, declaration, (printer) async {
+      await printer.writeVariable(declaration);
+    });
+  }
+
+  void _declareIntrospectResult(DeclarationBuilder builder, String text) {
+    builder.declareInLibrary(
+      DeclarationCode.fromString(
+        'const _introspect = r"""$text""";',
+      ),
+    );
+  }
+
   Future<void> _write(
     DeclarationBuilder builder,
     Declaration declaration,
-    Future<void> Function(_Printer printer) f,
+    Future<void> Function(_Printer printer) withPrinter,
   ) async {
-    final declarationName = declaration.identifier.name;
-
     final buffer = StringBuffer();
     final sink = TreeStringSink(
       sink: buffer,
       indent: '',
     );
 
+    final includedNames = {
+      declaration.identifier.name,
+      ...withDetailsFor,
+    };
+
     final printer = _Printer(
       sink: sink,
       withMetadata: withMetadata,
       withUnnamedConstructor: withUnnamedConstructor,
       introspector: builder,
-      withDetailsFor: {
-        declarationName,
-        ...withDetailsFor.cast(),
+      shouldWriteDetailsFor: (declaration) {
+        final nameToCheck = declaration.identifier.name;
+        return includedNames.remove(nameToCheck);
       },
     );
-    await f(printer);
+    await withPrinter(printer);
+
+    final text = buffer.toString();
+    _declareIntrospectResult(builder, text);
+  }
+}
+
+/*macro*/ class IntrospectDeclaration implements FunctionDefinitionMacro {
+  final String uriStr;
+  final String name;
+  final bool withUnnamedConstructor;
+
+  IntrospectDeclaration({
+    required this.uriStr,
+    required this.name,
+    this.withUnnamedConstructor = false,
+  });
+
+  @override
+  Future<void> buildDefinitionForFunction(
+    FunctionDeclaration declaration,
+    FunctionDefinitionBuilder builder,
+  ) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final includedNames = {name};
+
+    final printer = _Printer(
+      sink: sink,
+      withMetadata: true,
+      withUnnamedConstructor: withUnnamedConstructor,
+      introspector: builder,
+      shouldWriteDetailsFor: (declaration) {
+        final name = declaration.identifier.name;
+        return includedNames.remove(name);
+      },
+    );
+
+    // ignore: deprecated_member_use
+    final identifier = await builder.resolveIdentifier(
+      Uri.parse(uriStr),
+      name,
+    );
+    final declaration = await builder.declarationOf(identifier);
+    await printer.writeAnyDeclaration(declaration);
+
     final text = buffer.toString();
 
-    builder.declareInLibrary(
-      DeclarationCode.fromString(
-        'const _introspect = r"""$text""";',
-      ),
+    builder.augment(
+      FunctionBodyCode.fromString('=> r"""$text""";'),
+    );
+  }
+}
+
+/// We use [nameToFind] only because we cannot get [Library] by URI.
+/*macro*/ class LibraryTopLevelDeclarations implements FunctionDefinitionMacro {
+  final String uriStr;
+  final String nameToFind;
+
+  LibraryTopLevelDeclarations({
+    required this.uriStr,
+    required this.nameToFind,
+  });
+
+  @override
+  Future<void> buildDefinitionForFunction(
+    FunctionDeclaration declaration,
+    FunctionDefinitionBuilder builder,
+  ) async {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+
+    final includedNames = <String>{};
+
+    final printer = _Printer(
+      sink: sink,
+      withMetadata: true,
+      withUnnamedConstructor: false,
+      introspector: builder,
+      shouldWriteDetailsFor: (declaration) {
+        final name = declaration.identifier.name;
+        return includedNames.remove(name);
+      },
+    );
+
+    // ignore: deprecated_member_use
+    final identifier = await builder.resolveIdentifier(
+      Uri.parse(uriStr),
+      nameToFind,
+    );
+    final declaration = await builder.declarationOf(identifier);
+    final library = declaration.library;
+
+    sink.writelnWithIndent('topLevelDeclarationsOf');
+    await sink.withIndent(() async {
+      final topDeclarations = await builder.topLevelDeclarationsOf(library);
+      for (final declaration in topDeclarations) {
+        final name = declaration.identifier.name;
+        if (name != '_starter') {
+          includedNames.add(name);
+          await printer.writeAnyDeclaration(declaration);
+        }
+      }
+    });
+
+    final text = buffer.toString();
+    builder.augment(
+      FunctionBodyCode.fromString('=> r"""$text""";'),
     );
   }
 }
@@ -187,7 +412,7 @@ class _Printer {
   final bool withMetadata;
   final bool withUnnamedConstructor;
   final DeclarationPhaseIntrospector introspector;
-  final Set<String> withDetailsFor;
+  final bool Function(Declaration declaration) shouldWriteDetailsFor;
 
   Identifier? _enclosingDeclarationIdentifier;
 
@@ -196,11 +421,28 @@ class _Printer {
     required this.withMetadata,
     required this.withUnnamedConstructor,
     required this.introspector,
-    required this.withDetailsFor,
+    required this.shouldWriteDetailsFor,
   });
 
-  bool shouldWriteDetailsFor(Declaration declaration) {
-    return withDetailsFor.remove(declaration.identifier.name);
+  Future<void> writeAnyDeclaration(Declaration declaration) async {
+    switch (declaration) {
+      case ClassDeclaration():
+        await writeClassDeclaration(declaration);
+      case EnumDeclaration():
+        await writeEnumDeclaration(declaration);
+      case ExtensionDeclaration():
+        await writeExtensionDeclaration(declaration);
+      case ExtensionTypeDeclaration():
+        await writeExtensionTypeDeclaration(declaration);
+      case FunctionDeclaration():
+        await writeFunctionDeclaration(declaration);
+      case MixinDeclaration():
+        await writeMixinDeclaration(declaration);
+      case VariableDeclaration():
+        await writeVariable(declaration);
+      default:
+        throw UnimplementedError('${declaration.runtimeType}');
+    }
   }
 
   Future<void> writeClassDeclaration(ClassDeclaration e) async {
@@ -256,6 +498,77 @@ class _Printer {
     });
   }
 
+  Future<void> writeEnumDeclaration(EnumDeclaration e) async {
+    if (!shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    sink.writelnWithIndent('enum ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+      await _writeTypeParameters(e.typeParameters);
+      await _writeTypeAnnotations('mixins', e.mixins);
+      await _writeTypeAnnotations('interfaces', e.interfaces);
+      await sink.writeElements(
+        'values',
+        await introspector.valuesOf(e),
+        writeEnumValueDeclaration,
+      );
+      await _writeTypeDeclarationMembers(e);
+    });
+  }
+
+  Future<void> writeEnumValueDeclaration(EnumValueDeclaration e) async {
+    final enclosing = _enclosingDeclarationIdentifier;
+    if (enclosing != null && e.definingEnum != enclosing) {
+      throw StateError('Mismatch: definingEnum');
+    }
+
+    sink.writelnWithIndent(e.identifier.name);
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+      // TODO(scheglov): Write, when added.
+      // await _writeNamedTypeAnnotation('type', e.type);
+    });
+  }
+
+  Future<void> writeExtensionDeclaration(ExtensionDeclaration e) async {
+    if (!shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    sink.writelnWithIndent('extension ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+
+      await _writeTypeParameters(e.typeParameters);
+      await _writeNamedTypeAnnotation('onType', e.onType);
+      await _writeTypeDeclarationMembers(e);
+    });
+  }
+
+  Future<void> writeExtensionTypeDeclaration(ExtensionTypeDeclaration e) async {
+    if (!shouldWriteDetailsFor(e)) {
+      return;
+    }
+
+    sink.writelnWithIndent('extension type ${e.identifier.name}');
+
+    await sink.withIndent(() async {
+      await _writeMetadata(e);
+
+      await _writeTypeParameters(e.typeParameters);
+      await _writeNamedTypeAnnotation(
+        'representationType',
+        e.representationType,
+      );
+      await _writeTypeDeclarationMembers(e);
+    });
+  }
+
   Future<void> writeField(FieldDeclaration e) async {
     _assertEnclosingClass(e);
     sink.writelnWithIndent(e.identifier.name);
@@ -270,6 +583,25 @@ class _Printer {
       });
       await _writeMetadata(e);
       await _writeNamedTypeAnnotation('type', e.type);
+    });
+  }
+
+  Future<void> writeFunctionDeclaration(FunctionDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasBody': e.hasBody,
+        'hasExternal': e.hasExternal,
+        'isGetter': e.isGetter,
+        'isOperator': e.isOperator,
+        'isSetter': e.isSetter,
+      });
+      await _writeMetadata(e);
+      await _writeNamedFormalParameters(e.namedParameters);
+      await _writePositionalFormalParameters(e.positionalParameters);
+      await _writeNamedTypeAnnotation('returnType', e.returnType);
+      await _writeTypeParameters(e.typeParameters);
     });
   }
 
@@ -318,6 +650,20 @@ class _Printer {
     });
   }
 
+  Future<void> writeVariable(VariableDeclaration e) async {
+    sink.writelnWithIndent(e.identifier.name);
+
+    await sink.withIndent(() async {
+      await sink.writeFlags({
+        'hasExternal': e.hasExternal,
+        'hasFinal': e.hasFinal,
+        'hasLate': e.hasLate,
+      });
+      await _writeMetadata(e);
+      await _writeNamedTypeAnnotation('type', e.type);
+    });
+  }
+
   void _assertEnclosingClass(MemberDeclaration e) {
     final enclosing = _enclosingDeclarationIdentifier;
     if (enclosing != null && e.definingType != enclosing) {
@@ -353,6 +699,18 @@ class _Printer {
       await _writeMetadata(e);
       await _writeNamedTypeAnnotation('type', e.type);
     });
+  }
+
+  /// If [type] is [OmittedTypeAnnotation], write the inferred type.
+  Future<void> _writeInferredTypeAnnotation(TypeAnnotation type) async {
+    if (type is OmittedTypeAnnotation) {
+      if (introspector case final DefinitionPhaseIntrospector introspector) {
+        final inferred = await introspector.inferType(type);
+        await sink.withIndent(() async {
+          sink.writelnWithIndent('inferred: ${inferred.asString}');
+        });
+      }
+    }
   }
 
   Future<void> _writeMetadata(Annotatable e) async {
@@ -432,6 +790,7 @@ class _Printer {
   Future<void> _writeTypeAnnotation(TypeAnnotation? type) async {
     if (type != null) {
       sink.writeln(type.asString);
+      await _writeInferredTypeAnnotation(type);
       await _writeTypeAnnotationDeclaration(type);
     } else {
       sink.writeln('null');
@@ -458,6 +817,8 @@ class _Printer {
           switch (declaration) {
             case ClassDeclaration():
               await writeClassDeclaration(declaration);
+            case EnumDeclaration():
+              await writeEnumDeclaration(declaration);
             case MixinDeclaration():
               await writeMixinDeclaration(declaration);
             default:
@@ -485,27 +846,25 @@ class _Printer {
   Future<void> _writeTypeDeclarationMembers(TypeDeclaration e) async {
     _enclosingDeclarationIdentifier = e.identifier;
 
-    if (e is IntrospectableType) {
-      final constructors = await introspector.constructorsOf(e);
-      await sink.writeElements(
-        'constructors',
-        constructors.where((element) {
-          return element.identifier.name.isNotEmpty || withUnnamedConstructor;
-        }),
-        writeConstructorDeclaration,
-      );
+    final constructors = await introspector.constructorsOf(e);
+    await sink.writeElements(
+      'constructors',
+      constructors.where((element) {
+        return element.identifier.name.isNotEmpty || withUnnamedConstructor;
+      }),
+      writeConstructorDeclaration,
+    );
 
-      await sink.writeElements(
-        'fields',
-        await introspector.fieldsOf(e),
-        writeField,
-      );
-      await sink.writeElements(
-        'methods',
-        await introspector.methodsOf(e),
-        writeMethodDeclaration,
-      );
-    }
+    await sink.writeElements(
+      'fields',
+      await introspector.fieldsOf(e),
+      writeField,
+    );
+    await sink.writeElements(
+      'methods',
+      await introspector.methodsOf(e),
+      writeMethodDeclaration,
+    );
 
     _enclosingDeclarationIdentifier = null;
   }

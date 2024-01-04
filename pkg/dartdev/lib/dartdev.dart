@@ -88,16 +88,19 @@ class DartdevRunner extends CommandRunner<int> {
   final List<String> vmEnabledExperiments;
 
   Analytics? _unifiedAnalytics;
+  final bool _isAnalyticsTest;
 
   DartdevRunner(
     List<String> args, {
     Analytics? analyticsOverride,
+    bool isAnalyticsTest = false,
     List<String> vmArgs = const [],
   })  : verbose = args.contains('-v') || args.contains('--verbose'),
         argParser = globalDartdevOptionsParser(
             verbose: args.contains('-v') || args.contains('--verbose')),
         vmEnabledExperiments = parseVmEnabledExperiments(vmArgs),
         _unifiedAnalytics = analyticsOverride,
+        _isAnalyticsTest = isAnalyticsTest,
         super('dart', '$dartdevDescription.') {
     addCommand(AnalyzeCommand(verbose: verbose));
     addCommand(CompilationServerCommand(verbose: verbose));
@@ -149,8 +152,14 @@ class DartdevRunner extends CommandRunner<int> {
   @override
   Future<int> runCommand(ArgResults topLevelResults) async {
     final stopwatch = Stopwatch()..start();
-    bool suppressAnalytics =
-        !topLevelResults['analytics'] || topLevelResults['suppress-analytics'];
+
+    // We don't want to run analytics when we're running in a CI environment
+    // unless we're explicitly testing analytics for dartdev.
+    final implicitlySuppressAnalytics = isBot() && !_isAnalyticsTest;
+    bool suppressAnalytics = !topLevelResults['analytics'] ||
+        topLevelResults['suppress-analytics'] ||
+        implicitlySuppressAnalytics;
+
     if (topLevelResults.wasParsed('analytics')) {
       io.stderr.writeln(
           '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
@@ -159,7 +168,11 @@ class DartdevRunner extends CommandRunner<int> {
     final enableAnalytics = topLevelResults['enable-analytics'];
     final disableAnalytics = topLevelResults['disable-analytics'];
 
-    if (suppressAnalytics && (enableAnalytics || disableAnalytics)) {
+    if (!implicitlySuppressAnalytics &&
+        suppressAnalytics &&
+        (enableAnalytics || disableAnalytics)) {
+      // This isn't an error if we're implicitly disabling analytics because
+      // we're running in a CI environment.
       io.stderr.writeln('`--suppress-analytics` cannot be used with either'
           ' `--enable-analytics` or `--disable-analytics`.');
       return 254;
@@ -183,18 +196,18 @@ class DartdevRunner extends CommandRunner<int> {
 
     // When `--disable-analytics` or `--enable-analytics` are called we perform
     // the respective intention and print any notices to standard out and exit.
-    if (topLevelResults['disable-analytics']) {
+    if (disableAnalytics) {
       // Disable sending data via the unified analytics package.
       await unifiedAnalytics.setTelemetry(false);
-      unifiedAnalytics.close();
+      await unifiedAnalytics.close();
 
       // Alert the user that analytics has been disabled.
       print(analyticsDisabledNoticeMessage);
       return 0;
-    } else if (topLevelResults['enable-analytics']) {
+    } else if (enableAnalytics) {
       // Enable sending data via the unified analytics package.
       await unifiedAnalytics.setTelemetry(true);
-      unifiedAnalytics.close();
+      await unifiedAnalytics.close();
 
       // Alert the user again that data will be collected.
       if (!analyticsMessagePrinted) {
@@ -259,7 +272,7 @@ class DartdevRunner extends CommandRunner<int> {
 
       // Set the exitCode, if it wasn't set in the catch block above.
       exitCode ??= 0;
-      unifiedAnalytics.close();
+      await unifiedAnalytics.close();
     }
 
     return exitCode;

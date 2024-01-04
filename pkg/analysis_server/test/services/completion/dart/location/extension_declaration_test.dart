@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ExtensionDeclarationTest1);
-    defineReflectiveTests(ExtensionDeclarationTest2);
+    defineReflectiveTests(ExtensionDeclarationTest);
   });
 }
 
 @reflectiveTest
-class ExtensionDeclarationTest1 extends AbstractCompletionDriverTest
-    with ExtensionDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ExtensionDeclarationTest2 extends AbstractCompletionDriverTest
-    with ExtensionDeclarationTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ExtensionDeclarationTest extends AbstractCompletionDriverTest
+    with ExtensionDeclarationTestCases {}
 
 mixin ExtensionDeclarationTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterExtension_beforeEof() async {
@@ -56,24 +45,12 @@ suggestions
     await computeSuggestions('''
 extension o^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   on
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  on
-    kind: keyword
-  type
-    kind: keyword
-''');
-    }
   }
 }

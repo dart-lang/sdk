@@ -1213,7 +1213,8 @@ ISOLATE_UNIT_TEST_CASE(IRTest_FfiCallInstrLeafDoesntSpill) {
   const auto& c_signature =
       FunctionType::ZoneHandle(zone, ffi_trampoline.FfiCSignature());
   const auto marshaller_ptr = compiler::ffi::CallMarshaller::FromFunction(
-      zone, ffi_trampoline, c_signature, &error);
+      zone, ffi_trampoline, /*function_params_start_at=*/1, c_signature,
+      &error);
   RELEASE_ASSERT(error == nullptr);
   RELEASE_ASSERT(marshaller_ptr != nullptr);
   const auto& marshaller = *marshaller_ptr;

@@ -87,7 +87,7 @@ class ConcreteClass extends core::Object implements self::Interface1, self::Inte
     : super core::Object::•()
     ;
   abstract get declareAbstractImplementMultipleField() → core::int;
-  abstract set declareAbstractImplementMultipleField(core::int #externalFieldValue) → void;
+  abstract set declareAbstractImplementMultipleField(synthesized core::int #externalFieldValue) → void;
 }
 abstract class AbstractClass extends core::Object implements self::Interface1, self::Interface2 {
   field core::int declareConcreteImplementMultipleField = 0;
@@ -95,7 +95,7 @@ abstract class AbstractClass extends core::Object implements self::Interface1, s
     : super core::Object::•()
     ;
   abstract get declareAbstractImplementMultipleField() → core::int;
-  abstract set declareAbstractImplementMultipleField(core::int #externalFieldValue) → void;
+  abstract set declareAbstractImplementMultipleField(synthesized core::int #externalFieldValue) → void;
 }
 class ConcreteSub extends self::AbstractClass {
   synthetic constructor •() → self::ConcreteSub

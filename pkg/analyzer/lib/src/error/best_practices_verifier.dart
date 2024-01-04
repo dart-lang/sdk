@@ -118,10 +118,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _inheritanceManager = inheritanceManager,
         _annotationVerifier = AnnotationVerifier(
             _errorReporter, _currentLibrary, workspacePackage),
-        _deprecatedVerifier =
-            DeprecatedMemberUseVerifier(workspacePackage, _errorReporter),
-        _errorHandlerVerifier =
-            ErrorHandlerVerifier(_errorReporter, typeProvider, typeSystem),
+        _deprecatedVerifier = DeprecatedMemberUseVerifier(
+            workspacePackage, _errorReporter,
+            strictCasts: analysisOptions.strictCasts),
+        _errorHandlerVerifier = ErrorHandlerVerifier(
+            _errorReporter, typeProvider, typeSystem,
+            strictCasts: analysisOptions.strictCasts),
         _invalidAccessVerifier = _InvalidAccessVerifier(
             _errorReporter, _currentLibrary, workspacePackage),
         _mustCallSuperVerifier = MustCallSuperVerifier(_errorReporter),
@@ -593,6 +595,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _checkForMissingReturn(node.body, node);
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
+      _checkForNullableEqualsParameterType(node);
 
       var name = Name(_currentLibrary.source.uri, element.name);
       var elementIsOverride = element is ClassMemberElement &&
@@ -1262,6 +1265,44 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  void _checkForNullableEqualsParameterType(MethodDeclaration node) {
+    if (!_typeSystem.isNonNullableByDefault) {
+      // Cannot specify non-nullable types before null safety.
+      return;
+    }
+
+    if (node.name.type != TokenType.EQ_EQ) {
+      return;
+    }
+
+    var parameters = node.parameters;
+    if (parameters == null) {
+      return;
+    }
+
+    if (parameters.parameters.length != 1) {
+      return;
+    }
+
+    var parameter = parameters.parameters.first;
+    var parameterElement = parameter.declaredElement;
+    if (parameterElement == null) {
+      return;
+    }
+
+    var type = parameterElement.type;
+    if (!type.isDartCoreObject && type is! DynamicType) {
+      // There is no legal way to define a nullable parameter type, which is not
+      // `dynamic` or `Object?`, so avoid double reporting here.
+      return;
+    }
+
+    if (_typeSystem.isNullable(parameterElement.type)) {
+      _errorReporter.reportErrorForToken(
+          WarningCode.NON_NULLABLE_EQUALS_PARAMETER, node.name);
+    }
+  }
+
   void _checkForNullableTypeInCatchClause(CatchClause node) {
     if (!_isNonNullableByDefault) {
       return;
@@ -1383,11 +1424,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       if (isReturnVoid) {
         var expression = body.expression;
         if (expression is SetOrMapLiteralImpl && expression.isSet) {
-          var elements = expression.elements;
-          if (elements.length == 1 && elements.first is Expression) {
-            _errorReporter.reportErrorForNode(
-                WarningCode.UNNECESSARY_SET_LITERAL, expression);
-          }
+          _errorReporter.reportErrorForNode(
+              WarningCode.UNNECESSARY_SET_LITERAL, expression);
         }
       }
     }

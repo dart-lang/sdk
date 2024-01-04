@@ -36,6 +36,6 @@ class A {}
 
     final link = links!.single;
     expect(link.range, code.range.range);
-    expect(link.target, exampleFileUri.toString());
+    expect(link.target, exampleFileUri);
   }
 }

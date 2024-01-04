@@ -47,9 +47,9 @@ class Coordinate extends ffi::Struct {
   set y(synthesized core::double* #v) → void
     return ffi::_storeDouble(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v);
   get next() → ffi::Pointer<self::Coordinate*>*
-    return ffi::_fromAddress<self::Coordinate*>(ffi::_loadAbiSpecificInt<ffi::IntPtr>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}));
+    return ffi::_loadPointer<self::Coordinate*>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});
   set next(synthesized ffi::Pointer<self::Coordinate*>* #v) → void
-    return ffi::_storeAbiSpecificInt<ffi::IntPtr>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v.{ffi::Pointer::address}{core::int});
+    return ffi::_storePointer<self::Coordinate*>(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C14.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #v);
   @#C16
   static get /*isNonNullableByDefault*/ #sizeOf() → core::int*
     return #C19.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};

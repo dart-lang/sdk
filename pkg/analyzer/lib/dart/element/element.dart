@@ -656,7 +656,7 @@ abstract class Element implements AnalysisTarget {
   /// The kind of element that this is.
   ElementKind get kind;
 
-  /// Tibrary that contains this element.
+  /// Library that contains this element.
   ///
   /// This will be the element itself if it is a library element. This will be
   /// `null` if this element is [MultiplyDefinedElement] that is not contained

@@ -223,7 +223,7 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!cls.IsNull());
   set_set_impl_class(cls);
 
-#ifdef DART_PRECOMPILED_RUNTIME
+#if defined(DART_PRECOMPILED_RUNTIME)
   // The rest of these objects are only needed for code generation.
   return;
 #else
@@ -409,7 +409,7 @@ void ObjectStore::InitKnownObjects() {
   function_name =
       Function::CreateDynamicInvocationForwarderName(Symbols::Star());
   Resolver::ResolveDynamicAnyArgs(zone, smi_class, function_name);
-#endif
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void ObjectStore::LazyInitCoreMembers() {
@@ -543,13 +543,12 @@ void ObjectStore::LazyInitFfiMembers() {
     ASSERT(!function.IsNull());
     handle_native_finalizer_message_function_.store(function.ptr());
 
-    const auto& lib = Library::Handle(zone, Library::FfiLibrary());
-    const Class& klass = Class::ZoneHandle(zone, lib.toplevel_class());
-    ASSERT(!klass.IsNull());
-    error = klass.EnsureIsFinalized(thread);
+    cls = ffi_lib.LookupClass(Symbols::FfiNative());
+    ASSERT(!cls.IsNull());
+    error = cls.EnsureIsFinalized(thread);
     ASSERT(error.IsNull());
-    function = klass.LookupStaticFunctionAllowPrivate(
-        Symbols::_ffi_resolver_function());
+    function =
+        cls.LookupStaticFunctionAllowPrivate(Symbols::_ffi_resolver_function());
     ASSERT(!function.IsNull());
     ffi_resolver_function_.store(function.ptr());
 

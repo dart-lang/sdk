@@ -12,5 +12,4 @@ export 'main_call_stub_generator.dart';
 export 'metadata_collector.dart';
 export 'native_emitter.dart';
 export 'native_generator.dart';
-export 'parameter_stub_generator.dart';
 export 'runtime_type_generator.dart';

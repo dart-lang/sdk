@@ -824,9 +824,6 @@ byteStore
 
 @reflectiveTest
 class FileResolverTest extends FileResolutionTest {
-  @override
-  bool get isNullSafetyEnabled => true;
-
   test_analysisOptions_default_fromPackageUri() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', r'''
 analyzer:
@@ -1858,23 +1855,6 @@ void f(int? a) {
     );
   }
 
-  test_nullSafety_notEnabled() async {
-    newFile('/workspace/dart/test/BUILD', r'''
-dart_package(null_safety = False)
-''');
-
-    await assertErrorsInCode(r'''
-void f(int? a) {}
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 10, 1),
-    ]);
-
-    assertType(
-      findElement.parameter('a').type,
-      'int*',
-    );
-  }
-
   test_part_notInLibrary_libraryDoesNotExist() async {
     // TODO(scheglov): Should report CompileTimeErrorCode.URI_DOES_NOT_EXIST
     await assertNoErrorsInCode(r'''
@@ -2573,7 +2553,7 @@ import 'dart:math';
   }
 
   Future<Element> _findElement(int offset, String filePath) async {
-    var resolvedUnit = await fileResolver.resolve2(path: filePath);
+    var resolvedUnit = await fileResolver.resolve(path: filePath);
     var node = NodeLocator(offset).searchWithin(resolvedUnit.unit);
     var element = getElementOfNode(node);
     return element!;

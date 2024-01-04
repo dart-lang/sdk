@@ -80,6 +80,13 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 2),
       experimentReleasedVersion: const Version(3, 2)),
 
+  inferenceUpdate3(
+      name: 'inference-update-3',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: defaultLanguageVersion,
+      experimentReleasedVersion: defaultLanguageVersion),
+
   inlineClass(
       name: 'inline-class',
       isEnabledByDefault: true,

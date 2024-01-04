@@ -39,12 +39,17 @@ class ErrorHandlerVerifier {
 
   final ReturnTypeVerifier _returnTypeVerifier;
 
+  final bool _strictCasts;
+
   ErrorHandlerVerifier(
-      this._errorReporter, this._typeProvider, this._typeSystem)
-      : _returnTypeVerifier = ReturnTypeVerifier(
+      this._errorReporter, this._typeProvider, this._typeSystem,
+      {required bool strictCasts})
+      : _strictCasts = strictCasts,
+        _returnTypeVerifier = ReturnTypeVerifier(
           typeProvider: _typeProvider,
           typeSystem: _typeSystem,
           errorReporter: _errorReporter,
+          strictCasts: strictCasts,
         );
 
   void verifyMethodInvocation(MethodInvocation node) {
@@ -241,7 +246,8 @@ class ErrorHandlerVerifier {
 
   void _checkReturnType(
       DartType expectedType, DartType functionReturnType, Expression callback) {
-    if (!_typeSystem.isAssignableTo(functionReturnType, expectedType)) {
+    if (!_typeSystem.isAssignableTo(functionReturnType, expectedType,
+        strictCasts: _strictCasts)) {
       _errorReporter.reportErrorForNode(
         WarningCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR,
         callback,

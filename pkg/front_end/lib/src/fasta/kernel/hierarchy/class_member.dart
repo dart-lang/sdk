@@ -629,8 +629,6 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
           libraryBuilder.forwardersOrigins
             ..add(stub)
             ..add(canonicalMember);
-          stub.isAbstractFieldAccessor =
-              canonicalMember.isAbstractFieldAccessor;
         }
         _member = stub;
         _covariance = combinedMemberSignature.combinedMemberSignatureCovariance;

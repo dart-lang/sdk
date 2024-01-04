@@ -735,6 +735,7 @@ cyan
 cycle
 cycles
 cyclic
+cyclicity
 dart
 dart2js
 dart2wasm
@@ -2025,6 +2026,7 @@ nested
 nesting
 net
 never
+nevertheless
 new
 newer
 newline
@@ -2736,6 +2738,7 @@ semantic
 semantics
 semi
 semicolon
+semicolons
 send
 sending
 sends

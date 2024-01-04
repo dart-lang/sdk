@@ -31,6 +31,7 @@ class AnalysisContextImpl implements AnalysisContext {
     required this.sourceFactory,
   }) : _analysisOptions = analysisOptions;
 
+  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   @override
   AnalysisOptionsImpl get analysisOptions {
     return _analysisOptions;
@@ -39,17 +40,6 @@ class AnalysisContextImpl implements AnalysisContext {
   // TODO(scheglov): Remove it, exists only for Cider.
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {
     _analysisOptions = analysisOptions;
-
-    // TODO(scheglov): remove this method as well
-    _typeSystemLegacy?.updateOptions(
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
-    );
-
-    _typeSystemNonNullableByDefault?.updateOptions(
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
-    );
   }
 
   bool get hasTypeProvider {
@@ -94,15 +84,11 @@ class AnalysisContextImpl implements AnalysisContext {
 
     _typeSystemLegacy = TypeSystemImpl(
       isNonNullableByDefault: false,
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
       typeProvider: legacy,
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
       isNonNullableByDefault: true,
-      strictCasts: analysisOptions.strictCasts,
-      strictInference: analysisOptions.strictInference,
       typeProvider: nonNullableByDefault,
     );
 

@@ -110,6 +110,10 @@ static bool IsSmiValue(Value* val, intptr_t* int_val) {
   return false;
 }
 
+static bool IsCompilingForSoundNullSafety() {
+  return dart::Thread::Current()->isolate_group()->null_safety();
+}
+
 // Test if a call is recursive by looking in the deoptimization environment.
 static bool IsCallRecursive(const Function& function, Definition* call) {
   Environment* env = call->env();
@@ -2800,7 +2804,7 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
       new (Z) Value(*array), Slot::GetLengthFieldForArrayCid(array_cid),
       call->source());
   *cursor = flow_graph->AppendTo(*cursor, length, nullptr, FlowGraph::kValue);
-  if (CompilerState::Current().is_aot()) {
+  if (CompilerState::Current().is_aot() && !IsCompilingForSoundNullSafety()) {
     // Add a null-check in case the index argument is known to be compatible
     // but possibly nullable. By inserting the null-check, we can allow the
     // unbox instruction later inserted to be non-speculative.
@@ -3031,12 +3035,13 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
   array_cid = PrepareInlineIndexedOp(flow_graph, call, array_cid, &array,
                                      &index, &cursor);
 
+  const bool is_typed_data_store =
+      (IsTypedDataClassId(array_cid) || IsTypedDataViewClassId(array_cid) ||
+       IsExternalTypedDataClassId(array_cid));
+
   // Check if store barrier is needed. Byte arrays don't need a store barrier.
   StoreBarrierType needs_store_barrier =
-      (IsTypedDataClassId(array_cid) || IsTypedDataViewClassId(array_cid) ||
-       IsExternalTypedDataClassId(array_cid))
-          ? kNoStoreBarrier
-          : kEmitStoreBarrier;
+      is_typed_data_store ? kNoStoreBarrier : kEmitStoreBarrier;
 
   const bool value_needs_unboxing =
       array_cid == kTypedDataInt8ArrayCid ||
@@ -3048,6 +3053,16 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
       array_cid == kTypedDataUint32ArrayCid ||
       array_cid == kExternalTypedDataUint8ArrayCid ||
       array_cid == kExternalTypedDataUint8ClampedArrayCid;
+
+  // We know that the incomming type matches, but we still need to handle the
+  // null check.
+  if (is_typed_data_store && !IsCompilingForSoundNullSafety()) {
+    String& name = String::ZoneHandle(Z, target.name());
+    Instruction* check = new (Z) CheckNullInstr(
+        new (Z) Value(stored_value), name, call->deopt_id(), call->source());
+    cursor =
+        flow_graph->AppendTo(cursor, check, call->env(), FlowGraph::kEffect);
+  }
 
   if (array_cid == kTypedDataFloat32ArrayCid) {
     stored_value = new (Z)
@@ -3332,7 +3347,7 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
 
   // We know that the incomming type matches, but we still need to handle the
   // null check.
-  if (!dart::Thread::Current()->isolate_group()->null_safety()) {
+  if (!IsCompilingForSoundNullSafety()) {
     String& name = String::ZoneHandle(Z, target.name());
     Instruction* check = new (Z) CheckNullInstr(
         new (Z) Value(stored_value), name, call->deopt_id(), call->source());

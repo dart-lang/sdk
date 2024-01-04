@@ -607,8 +607,6 @@ class DartObjectImpl implements DartObject, Constant {
       TypeProvider typeProvider, DartObjectImpl rightOperand) {
     var typeSystem = TypeSystemImpl(
       isNonNullableByDefault: false,
-      strictCasts: false,
-      strictInference: false,
       typeProvider: typeProvider,
     );
     return isIdentical2(typeSystem, rightOperand);
@@ -1177,13 +1175,20 @@ class DoubleState extends NumState {
 
   @override
   BoolState isIdentical(TypeSystemImpl typeSystem, InstanceState rightOperand) {
+    final value = this.value;
     if (value == null) {
       return BoolState.UNKNOWN_VALUE;
+    } else if (value.isNaN) {
+      // `double.nan` equality will always be `false`.
+      return BoolState.FALSE_STATE;
     }
     if (rightOperand is DoubleState) {
       var rightValue = rightOperand.value;
       if (rightValue == null) {
         return BoolState.UNKNOWN_VALUE;
+      } else if (rightValue.isNaN) {
+        // `double.nan` equality will always be `false`.
+        return BoolState.FALSE_STATE;
       }
       return BoolState.from(identical(value, rightValue));
     } else if (rightOperand is IntState) {

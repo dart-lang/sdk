@@ -9,22 +9,12 @@ import '../completion_check.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(EnumTest1);
-    defineReflectiveTests(EnumTest2);
+    defineReflectiveTests(EnumTest);
   });
 }
 
 @reflectiveTest
-class EnumTest1 extends AbstractCompletionDriverTest with EnumTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class EnumTest2 extends AbstractCompletionDriverTest with EnumTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
+class EnumTest extends AbstractCompletionDriverTest with EnumTestCases {
   @failingTest
   Future<void> test_inside_implicitThis_constants() async {
     await computeSuggestions('''
@@ -203,27 +193,13 @@ void f() {
   E0.o^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   o0
     kind: enumConstant
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  o0
-    kind: enumConstant
-  t0
-    kind: enumConstant
-  values
-    kind: field
-''');
-    }
   }
 
   Future<void> test_afterPeriod_throughTypedef() async {
@@ -306,28 +282,13 @@ enum E1 { foo02 }
       declarationForContextType: 'void useMyEnum(E0 _) {}',
       codeAtCompletion: 'useMyEnum(foo0^);',
       validator: (response, context) {
-        if (isProtocolVersion2) {
-          assertResponse(r'''
+        assertResponse(r'''
 replacement
   left: 4
 suggestions
   E0.foo01
     kind: enumConstant
 ''');
-        } else {
-          _configureWithMyEnum();
-          // The response includes much more, such as `MyEnum` itself.
-          // We don't expect though that the client will show it.
-          if (context == _Context.local) {
-            assertResponse(r'''
-replacement
-  left: 4
-suggestions
-  E0.foo01
-    kind: enumConstant
-''');
-          }
-        }
       },
     );
   }
@@ -337,10 +298,6 @@ suggestions
 enum E0 { foo01 }
 enum E1 { foo02 }
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await computeSuggestions('''
 import 'a.dart' as p0;
@@ -352,27 +309,13 @@ void f() {
 }
 ''');
 
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
   p0.E0.foo01
     kind: enumConstant
 ''');
-    } else {
-      _configureWithMyEnum();
-      // TODO(scheglov): This is wrong.
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-  E0.foo01
-    kind: enumConstant
-  E1.foo02
-    kind: enumConstant
-''');
-    }
   }
 
   Future<void> test_enumName() async {
@@ -381,35 +324,14 @@ suggestions
       codeAtCompletion: 'E^',
       referencesDeclaration: false,
       validator: (response, context) {
-        if (isProtocolVersion2) {
-          // No enum constants.
-          assertResponse(r'''
+        // No enum constants.
+        assertResponse(r'''
 replacement
   left: 1
 suggestions
   E0
     kind: enum
 ''');
-        } else {
-          _configureWithMyEnum();
-          switch (context) {
-            case _Context.local:
-              assertResponse(r'''
-replacement
-  left: 1
-suggestions
-''');
-            case _Context.imported:
-            case _Context.notImported:
-              assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  E0.foo01
-    kind: enumConstant
-''');
-          }
-        }
       },
     );
   }
@@ -419,10 +341,6 @@ suggestions
 enum MyEnum { foo01 }
 ''');
 
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
-
     await computeSuggestions('''
 import 'a.dart' as p0;
 
@@ -431,37 +349,19 @@ void f() {
 }
 ''');
 
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 5
 suggestions
   p0.MyEnum
     kind: enum
 ''');
-    } else {
-      _configureWithMyEnum();
-      // TODO(scheglov): This is wrong.
-      assertResponse(r'''
-replacement
-  left: 5
-suggestions
-  MyEnum
-    kind: enum
-  MyEnum.foo01
-    kind: enumConstant
-''');
-    }
   }
 
   Future<void> test_importPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum MyEnum { v }
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await computeSuggestions('''
 import 'a.dart' as p0;
@@ -471,38 +371,20 @@ void f() {
 }
 ''');
 
-    if (isProtocolVersion2) {
-      // TODO(scheglov): The kind should be a prefix.
-      assertResponse(r'''
+    // TODO(scheglov): The kind should be a prefix.
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   p0
     kind: library
 ''');
-    } else {
-      _configureWithMyEnum();
-      // TODO(scheglov): This is wrong.
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  MyEnum
-    kind: enum
-  MyEnum.v
-    kind: enumConstant
-''');
-    }
   }
 
   Future<void> test_importPrefix_dot() async {
     newFile('$testPackageLibPath/a.dart', r'''
 enum E0 { v }
 ''');
-
-    if (isProtocolVersion1) {
-      await waitForSetWithUri('package:test/a.dart');
-    }
 
     await computeSuggestions('''
 import 'a.dart' as p0;
@@ -529,37 +411,13 @@ suggestions
       declarationForContextType: 'void useMyEnum(MyEnum _) {}',
       codeAtCompletion: 'useMyEnum(^);',
       validator: (response, context) {
-        if (isProtocolVersion2) {
-          assertResponse(r'''
+        assertResponse(r'''
 suggestions
   MyEnum
     kind: enum
   MyEnum.foo01
     kind: enumConstant
 ''');
-        } else {
-          switch (context) {
-            case _Context.local:
-            case _Context.imported:
-              assertResponse(r'''
-suggestions
-  MyEnum
-    kind: enum
-  MyEnum.foo01
-    kind: enumConstant
-''');
-            case _Context.notImported:
-              assertResponse(r'''
-suggestions
-  MyEnum
-    kind: enum
-  MyEnum.foo01
-    kind: enumConstant
-  useMyEnum
-    kind: functionInvocation
-''');
-          }
-        }
       },
     );
   }
@@ -580,25 +438,13 @@ void f() {
   useMyEnum(^);
 }
 ''');
-
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   p0.MyEnum
     kind: enum
   p0.MyEnum.foo01
     kind: enumConstant
 ''');
-    } else {
-      // TODO(scheglov): This is wrong.
-      assertResponse(r'''
-suggestions
-  MyEnum
-    kind: enum
-  MyEnum.foo01
-    kind: enumConstant
-''');
-    }
   }
 
   Future<void> _check_locations({
@@ -628,9 +474,6 @@ void f() {
       newFile('$testPackageLibPath/a.dart', '''
 $declaration
 ''');
-      if (isProtocolVersion1) {
-        await waitForSetWithUri('package:test/a.dart');
-      }
       await computeSuggestions('''
 import 'a.dart';
 $declarationForContextType
@@ -650,9 +493,6 @@ $declaration
 import 'a.dart';${referencesDeclaration ? '' : ' // ignore: unused_import'}
 $declarationForContextType
 ''');
-      if (isProtocolVersion1) {
-        await waitForSetWithUri('package:test/a.dart');
-      }
       await computeSuggestions('''
 import 'context_type.dart';
 void f() {

@@ -8063,6 +8063,7 @@ void Function::EnsureHasCompiledUnoptimizedCode() const {
 
 void Function::SwitchToUnoptimizedCode() const {
   ASSERT(HasOptimizedCode());
+  ASSERT(!ForceOptimize());
   Thread* thread = Thread::Current();
   DEBUG_ASSERT(
       thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
@@ -8336,7 +8337,8 @@ FunctionPtr Function::GetOutermostFunction() const {
 
 FunctionPtr Function::implicit_closure_function() const {
   if (IsClosureFunction() || IsDispatcherOrImplicitAccessor() ||
-      IsFieldInitializer() || IsFfiTrampoline() || IsMethodExtractor()) {
+      IsFieldInitializer() || IsFfiCallbackTrampoline() ||
+      IsMethodExtractor()) {
     return Function::null();
   }
   const Object& obj = Object::Handle(data());
@@ -8371,7 +8373,7 @@ void Function::set_implicit_closure_function(const Function& value) const {
 }
 
 void Function::SetFfiCSignature(const FunctionType& sig) const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_c_signature(sig);
@@ -8379,15 +8381,21 @@ void Function::SetFfiCSignature(const FunctionType& sig) const {
 
 FunctionTypePtr Function::FfiCSignature() const {
   auto* const zone = Thread::Current()->zone();
-  if (IsFfiTrampoline()) {
+  if (IsFfiCallbackTrampoline()) {
     const Object& obj = Object::Handle(zone, data());
     ASSERT(!obj.IsNull());
     return FfiTrampolineData::Cast(obj).c_signature();
   }
-  ASSERT(is_ffi_native());
-  auto const& native_instance = Instance::Handle(GetNativeAnnotation());
+  auto& pragma_value = Instance::Handle(zone);
+  if (is_ffi_native()) {
+    pragma_value = GetNativeAnnotation();
+  } else if (IsFfiCallClosure()) {
+    pragma_value = GetFfiCallClosurePragmaValue();
+  } else {
+    UNREACHABLE();
+  }
   const auto& type_args =
-      TypeArguments::Handle(zone, native_instance.GetTypeArguments());
+      TypeArguments::Handle(zone, pragma_value.GetTypeArguments());
   ASSERT(type_args.Length() == 1);
   const auto& native_type =
       FunctionType::Cast(AbstractType::ZoneHandle(zone, type_args.TypeAt(0)));
@@ -8414,7 +8422,7 @@ bool FunctionType::ContainsHandles() const {
 
 // Keep consistent with BaseMarshaller::IsCompound.
 bool Function::FfiCSignatureReturnsStruct() const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   Zone* zone = Thread::Current()->zone();
   const auto& c_signature = FunctionType::Handle(zone, FfiCSignature());
   const auto& type = AbstractType::Handle(zone, c_signature.result_type());
@@ -8440,8 +8448,7 @@ bool Function::FfiCSignatureReturnsStruct() const {
 }
 
 int32_t Function::FfiCallbackId() const {
-  ASSERT(IsFfiTrampoline());
-  ASSERT(GetFfiFunctionKind() != FfiFunctionKind::kCall);
+  ASSERT(IsFfiCallbackTrampoline());
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8453,8 +8460,7 @@ int32_t Function::FfiCallbackId() const {
 }
 
 void Function::AssignFfiCallbackId(int32_t callback_id) const {
-  ASSERT(IsFfiTrampoline());
-  ASSERT(GetFfiFunctionKind() != FfiFunctionKind::kCall);
+  ASSERT(IsFfiCallbackTrampoline());
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8465,68 +8471,64 @@ void Function::AssignFfiCallbackId(int32_t callback_id) const {
 }
 
 bool Function::FfiIsLeaf() const {
-  if (IsFfiTrampoline()) {
-    const Object& obj = Object::Handle(untag()->data());
-    ASSERT(!obj.IsNull());
-    return FfiTrampolineData::Cast(obj).is_leaf();
-  }
-  ASSERT(is_ffi_native());
   Zone* zone = Thread::Current()->zone();
-  auto const& native_instance = Instance::Handle(GetNativeAnnotation());
-  const auto& native_class = Class::Handle(zone, native_instance.clazz());
-  const auto& native_class_fields = Array::Handle(zone, native_class.fields());
-  ASSERT(native_class_fields.Length() == 3);
-  const auto& is_leaf_field =
-      Field::Handle(zone, Field::RawCast(native_class_fields.At(2)));
-  return Bool::Handle(zone,
-                      Bool::RawCast(native_instance.GetField(is_leaf_field)))
+  auto& pragma_value = Instance::Handle(zone);
+  if (is_ffi_native()) {
+    pragma_value = GetNativeAnnotation();
+  } else if (IsFfiCallClosure()) {
+    pragma_value = GetFfiCallClosurePragmaValue();
+  } else {
+    UNREACHABLE();
+  }
+  const auto& pragma_value_class = Class::Handle(zone, pragma_value.clazz());
+  const auto& pragma_value_fields =
+      Array::Handle(zone, pragma_value_class.fields());
+  ASSERT(pragma_value_fields.Length() >= 1);
+  const auto& is_leaf_field = Field::Handle(
+      zone,
+      Field::RawCast(pragma_value_fields.At(pragma_value_fields.Length() - 1)));
+  ASSERT(is_leaf_field.name() == Symbols::isLeaf().ptr());
+  return Bool::Handle(zone, Bool::RawCast(pragma_value.GetField(is_leaf_field)))
       .value();
 }
 
-void Function::SetFfiIsLeaf(bool is_leaf) const {
-  ASSERT(IsFfiTrampoline());
-  const Object& obj = Object::Handle(untag()->data());
-  ASSERT(!obj.IsNull());
-  FfiTrampolineData::Cast(obj).set_is_leaf(is_leaf);
-}
-
 FunctionPtr Function::FfiCallbackTarget() const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_target();
 }
 
 void Function::SetFfiCallbackTarget(const Function& target) const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_target(target);
 }
 
 InstancePtr Function::FfiCallbackExceptionalReturn() const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).callback_exceptional_return();
 }
 
 void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
-  ASSERT(IsFfiTrampoline());
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
 
-FfiFunctionKind Function::GetFfiFunctionKind() const {
-  ASSERT(IsFfiTrampoline());
+FfiCallbackKind Function::GetFfiCallbackKind() const {
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   return FfiTrampolineData::Cast(obj).ffi_function_kind();
 }
 
-void Function::SetFfiFunctionKind(FfiFunctionKind value) const {
-  ASSERT(IsFfiTrampoline());
+void Function::SetFfiCallbackKind(FfiCallbackKind value) const {
+  ASSERT(IsFfiCallbackTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
   FfiTrampolineData::Cast(obj).set_ffi_function_kind(value);
@@ -9131,7 +9133,8 @@ static bool InVmTests(const Function& function) {
 }
 
 bool Function::ForceOptimize() const {
-  if (RecognizedKindForceOptimize() || IsFfiTrampoline() || is_ffi_native() ||
+  if (RecognizedKindForceOptimize() || IsFfiCallClosure() ||
+      IsFfiCallbackTrampoline() || is_ffi_native() ||
       IsTypedDataViewFactory() || IsUnmodifiableTypedDataViewFactory()) {
     return true;
   }
@@ -9170,6 +9173,25 @@ bool Function::IsCachableIdempotent() const {
 
   // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions.
   return InVmTests(*this);
+}
+
+bool Function::IsFfiCallClosure() const {
+  if (!IsNonImplicitClosureFunction()) return false;
+  if (!has_pragma()) return false;
+  return Library::FindPragma(Thread::Current(), /*only_core=*/false, *this,
+                             Symbols::vm_ffi_call_closure());
+}
+
+InstancePtr Function::GetFfiCallClosurePragmaValue() const {
+  ASSERT(IsFfiCallClosure());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  auto& pragma_value = Object::Handle(zone);
+  Library::FindPragma(thread, /*only_core=*/false, *this,
+                      Symbols::vm_ffi_call_closure(),
+                      /*multiple=*/false, &pragma_value);
+  ASSERT(!pragma_value.IsNull());
+  return Instance::Cast(pragma_value).ptr();
 }
 
 bool Function::RecognizedKindForceOptimize() const {
@@ -9246,7 +9268,7 @@ bool Function::RecognizedKindForceOptimize() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
 bool Function::CanBeInlined() const {
   if (ForceOptimize()) {
-    if (IsFfiTrampoline() || is_ffi_native()) {
+    if (IsFfiCallClosure() || IsFfiCallbackTrampoline() || is_ffi_native()) {
       // We currently don't support inlining FFI trampolines. Some of them
       // are naturally non-inlinable because they contain a try/catch block,
       // but this condition is broader than strictly necessary.
@@ -10998,7 +11020,7 @@ intptr_t Function::KernelLibraryOffset() const {
 
 intptr_t Function::KernelLibraryIndex() const {
   if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher() ||
-      IsFfiTrampoline()) {
+      IsFfiCallbackTrampoline()) {
     return -1;
   }
   if (is_eval_function()) {
@@ -11042,7 +11064,9 @@ const char* Function::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
     return String::Handle(name()).ToCString();
   }
-  return String::ScrubName(String::Handle(name()), is_extension_member());
+  is_extension_type_member();
+  return String::ScrubName(String::Handle(name()),
+                           is_extension_member() || is_extension_type_member());
 }
 
 StringPtr Function::UserVisibleName() const {
@@ -11051,7 +11075,8 @@ StringPtr Function::UserVisibleName() const {
   }
   return Symbols::New(
       Thread::Current(),
-      String::ScrubName(String::Handle(name()), is_extension_member()));
+      String::ScrubName(String::Handle(name()),
+                        is_extension_member() || is_extension_type_member()));
 }
 
 StringPtr Function::QualifiedScrubbedName() const {
@@ -11758,16 +11783,12 @@ void FfiTrampolineData::set_callback_id(int32_t callback_id) const {
   StoreNonPointer(&untag()->callback_id_, callback_id);
 }
 
-void FfiTrampolineData::set_is_leaf(bool is_leaf) const {
-  StoreNonPointer(&untag()->is_leaf_, is_leaf);
-}
-
 void FfiTrampolineData::set_callback_exceptional_return(
     const Instance& value) const {
   untag()->set_callback_exceptional_return(value.ptr());
 }
 
-void FfiTrampolineData::set_ffi_function_kind(FfiFunctionKind kind) const {
+void FfiTrampolineData::set_ffi_function_kind(FfiCallbackKind kind) const {
   StoreNonPointer(&untag()->ffi_function_kind_, static_cast<uint8_t>(kind));
 }
 
@@ -12134,7 +12155,8 @@ const char* Field::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
     return String::Handle(name()).ToCString();
   }
-  return String::ScrubName(String::Handle(name()), is_extension_member());
+  return String::ScrubName(String::Handle(name()),
+                           is_extension_member() || is_extension_type_member());
 }
 
 StringPtr Field::UserVisibleName() const {
@@ -12143,7 +12165,8 @@ StringPtr Field::UserVisibleName() const {
   }
   return Symbols::New(
       Thread::Current(),
-      String::ScrubName(String::Handle(name()), is_extension_member()));
+      String::ScrubName(String::Handle(name()),
+                        is_extension_member() || is_extension_type_member()));
 }
 
 intptr_t Field::guarded_list_length() const {
@@ -13763,6 +13786,65 @@ ObjectPtr Library::GetMetadata(const Object& declaration) const {
   return evaluated_value.ptr();
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+static bool HasPragma(const Object& declaration) {
+  return (declaration.IsClass() && Class::Cast(declaration).has_pragma()) ||
+         (declaration.IsFunction() &&
+          Function::Cast(declaration).has_pragma()) ||
+         (declaration.IsField() && Field::Cast(declaration).has_pragma());
+}
+
+void Library::EvaluatePragmas() {
+  Object& declaration = Object::Handle();
+  const GrowableObjectArray& declarations =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
+  {
+    auto thread = Thread::Current();
+    SafepointReadRwLocker ml(thread, thread->isolate_group()->program_lock());
+    MetadataMap map(metadata());
+    MetadataMap::Iterator it(&map);
+    while (it.MoveNext()) {
+      const intptr_t entry = it.Current();
+      ASSERT(entry != -1);
+      declaration = map.GetKey(entry);
+      if (HasPragma(declaration)) {
+        declarations.Add(declaration);
+      }
+    }
+    set_metadata(map.Release());
+  }
+  for (intptr_t i = 0; i < declarations.Length(); ++i) {
+    declaration = declarations.At(i);
+    GetMetadata(declaration);
+  }
+}
+
+void Library::CopyPragmas(const Library& old_lib) {
+  auto thread = Thread::Current();
+  SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+  MetadataMap new_map(metadata());
+  MetadataMap old_map(old_lib.metadata());
+  Object& declaration = Object::Handle();
+  Object& value = Object::Handle();
+  MetadataMap::Iterator it(&old_map);
+  while (it.MoveNext()) {
+    const intptr_t entry = it.Current();
+    ASSERT(entry != -1);
+    declaration = old_map.GetKey(entry);
+    if (HasPragma(declaration)) {
+      value = old_map.GetPayload(entry, 0);
+      ASSERT(!value.IsNull());
+      // Pragmas should be evaluated during hot reload phase 1
+      // (when checkpointing libraries).
+      ASSERT(!value.IsSmi());
+      new_map.UpdateOrInsert(declaration, value);
+    }
+  }
+  old_lib.set_metadata(old_map.Release());
+  set_metadata(new_map.Release());
+}
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 static bool ShouldBePrivate(const String& name) {
   return (name.Length() >= 1 && name.CharAt(0) == '_') ||
@@ -18314,16 +18396,14 @@ const char* Code::Name() const {
     // Type test stub.
     return OS::SCreate(zone, "[Stub] Type Test %s",
                        AbstractType::Cast(obj).ToCString());
-  } else {
-    ASSERT(IsFunctionCode());
+  } else if (obj.IsFunction()) {
     // Dart function.
     const char* opt = is_optimized() ? "[Optimized]" : "[Unoptimized]";
-    const char* function_name =
-        obj.IsFunction()
-            ? String::Handle(zone, Function::Cast(obj).UserVisibleName())
-                  .ToCString()
-            : WeakSerializationReference::Cast(obj).ToCString();
+    const char* function_name = Function::Cast(obj).UserVisibleNameCString();
     return OS::SCreate(zone, "%s %s", opt, function_name);
+  } else {
+    // --no_retain_function_objects etc
+    return "[unknown code]";
   }
 }
 
@@ -19736,7 +19816,10 @@ intptr_t LoadingUnit::LoadingUnitOf(const Function& function) {
   cls = function.Owner();
   lib = cls.library();
   unit = lib.loading_unit();
-  ASSERT(!unit.IsNull());
+  if (unit.IsNull()) {
+    FATAL("Unable to find loading unit of %s (class %s, library %s)",
+          function.ToFullyQualifiedCString(), cls.ToCString(), lib.ToCString());
+  }
   return unit.id();
 }
 
@@ -27612,20 +27695,20 @@ RecordTypePtr RecordType::ToNullability(Nullability value,
     return ptr();
   }
   // Clone record type and set new nullability.
-  RecordType& type = RecordType::Handle();
   // Always cloning in old space and removing space parameter would not satisfy
   // currently existing requests for type instantiation in new space.
-  type ^= Object::Clone(*this, space);
-  type.set_nullability(value);
-  type.SetHash(0);
-  type.InitializeTypeTestingStubNonAtomic(
-      Code::Handle(TypeTestingStubGenerator::DefaultCodeForType(type)));
-  if (IsCanonical()) {
-    // Object::Clone does not clone canonical bit.
-    ASSERT(!type.IsCanonical());
-    type ^= type.Canonicalize(Thread::Current());
+  Thread* T = Thread::Current();
+  Zone* Z = T->zone();
+  AbstractType& type = RecordType::Handle(
+      Z,
+      RecordType::New(shape(), Array::Handle(Z, field_types()), value, space));
+  if (IsFinalized()) {
+    type.SetIsFinalized();
+    if (IsCanonical()) {
+      type ^= type.Canonicalize(T);
+    }
   }
-  return type.ptr();
+  return RecordType::Cast(type).ptr();
 }
 
 bool RecordType::IsEquivalent(

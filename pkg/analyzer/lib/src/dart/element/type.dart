@@ -903,6 +903,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       element: element,
       typeArguments: typeArguments,
       nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
     );
   }
 
@@ -1203,6 +1204,7 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
       positionalFields: positionalFields,
       namedFields: namedFields,
       nullabilitySuffix: nullabilitySuffix,
+      alias: alias,
     );
   }
 
@@ -1448,6 +1450,13 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   @Deprecated('Check element, or use getDisplayString()')
   @override
   String get name => element.name;
+
+  TypeParameterTypeImpl get withoutPromotedBound {
+    return TypeParameterTypeImpl(
+      element: element,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
 
   @override
   bool operator ==(Object other) {

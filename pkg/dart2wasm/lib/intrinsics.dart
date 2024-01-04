@@ -6,6 +6,7 @@ import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/dynamic_forwarders.dart';
 import 'package:dart2wasm/translator.dart';
+import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 
@@ -223,125 +224,9 @@ class Intrinsifier {
       return translator.topInfo.nonNullableType;
     }
 
-    // WasmIntArray.(readSigned|readUnsigned|write)
-    // WasmFloatArray.(read|write)
-    // WasmObjectArray.(read|write)
-    if (cls.superclass == translator.wasmArrayRefClass) {
-      DartType elementType =
-          (receiverType as InterfaceType).typeArguments.single;
-      w.ArrayType arrayType = translator.arrayTypeForDartType(elementType);
-      w.StorageType wasmType = arrayType.elementType.type;
-      bool innerExtend =
-          wasmType == w.PackedType.i8 || wasmType == w.PackedType.i16;
-      bool outerExtend =
-          wasmType.unpacked == w.NumType.i32 || wasmType == w.NumType.f32;
-      switch (name) {
-        case 'read':
-        case 'readSigned':
-        case 'readUnsigned':
-          bool unsigned = name == 'readUnsigned';
-          Expression array = receiver;
-          Expression index = node.arguments.positional.single;
-          codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
-          codeGen.wrap(index, w.NumType.i64);
-          b.i32_wrap_i64();
-          if (innerExtend) {
-            if (unsigned) {
-              b.array_get_u(arrayType);
-            } else {
-              b.array_get_s(arrayType);
-            }
-          } else {
-            b.array_get(arrayType);
-          }
-          if (outerExtend) {
-            if (wasmType == w.NumType.f32) {
-              b.f64_promote_f32();
-              return w.NumType.f64;
-            } else {
-              if (unsigned) {
-                b.i64_extend_i32_u();
-              } else {
-                b.i64_extend_i32_s();
-              }
-              return w.NumType.i64;
-            }
-          }
-          return wasmType.unpacked;
-        case 'write':
-          Expression array = receiver;
-          Expression index = node.arguments.positional[0];
-          Expression value = node.arguments.positional[1];
-          codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
-          codeGen.wrap(index, w.NumType.i64);
-          b.i32_wrap_i64();
-          codeGen.wrap(value, typeOfExp(value));
-          if (outerExtend) {
-            if (wasmType == w.NumType.f32) {
-              b.f32_demote_f64();
-            } else {
-              b.i32_wrap_i64();
-            }
-          }
-          b.array_set(arrayType);
-          return codeGen.voidMarker;
-      }
-    }
-
-    // WasmIntArray.copy
-    // WasmFloatArray.copy
-    // WasmObjectArray.copy
-    if (cls.superclass == translator.wasmArrayRefClass && name == 'copy') {
-      final DartType elementType =
-          (receiverType as InterfaceType).typeArguments.single;
-      final w.ArrayType arrayType =
-          translator.arrayTypeForDartType(elementType);
-
-      final Expression destArray = receiver;
-      final Expression destOffset = node.arguments.positional[0];
-      final Expression sourceArray = node.arguments.positional[1];
-      final Expression sourceOffset = node.arguments.positional[2];
-      final Expression size = node.arguments.positional[3];
-
-      codeGen.wrap(destArray, w.RefType.def(arrayType, nullable: false));
-      codeGen.wrap(destOffset, w.NumType.i64);
-      b.i32_wrap_i64();
-      codeGen.wrap(sourceArray, w.RefType.def(arrayType, nullable: false));
-      codeGen.wrap(sourceOffset, w.NumType.i64);
-      b.i32_wrap_i64();
-      codeGen.wrap(size, w.NumType.i64);
-      b.i32_wrap_i64();
-      b.array_copy(arrayType, arrayType);
-      return codeGen.voidMarker;
-    }
-
-    // WasmIntArray.fill
-    // WasmFloatArray.fill
-    // WasmObjectArray.fill
-    if (cls.superclass == translator.wasmArrayRefClass && name == 'fill') {
-      final DartType elementType =
-          (receiverType as InterfaceType).typeArguments.single;
-      final w.ArrayType arrayType =
-          translator.arrayTypeForDartType(elementType);
-
-      final Expression array = receiver;
-      final Expression offset = node.arguments.positional[0];
-      final Expression value = node.arguments.positional[1];
-      final Expression size = node.arguments.positional[2];
-
-      codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
-      codeGen.wrap(offset, w.NumType.i64);
-      b.i32_wrap_i64();
-      codeGen.wrap(value, translator.translateType(elementType));
-      codeGen.wrap(size, w.NumType.i64);
-      b.i32_wrap_i64();
-      b.array_fill(arrayType);
-      return codeGen.voidMarker;
-    }
-
     // Wasm(I32|I64|F32|F64) conversions
-    if (cls.superclass?.superclass == translator.wasmTypesBaseClass) {
-      w.StorageType receiverType = translator.builtinTypes[cls]!;
+    if (cls.superclass == translator.wasmTypesBaseClass) {
+      w.StorageType? receiverType = translator.builtinTypes[cls];
       switch (receiverType) {
         case w.NumType.i32:
           codeGen.wrap(receiver, w.NumType.i32);
@@ -368,6 +253,11 @@ class Intrinsifier {
               codeGen.wrap(receiver, w.NumType.i64);
               codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
               b.i64_le_u();
+              return boolType;
+            case "ltU":
+              codeGen.wrap(receiver, w.NumType.i64);
+              codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
+              b.i64_lt_u();
               return boolType;
             default:
               throw 'Unknown WasmI64 member $name';
@@ -566,7 +456,152 @@ class Intrinsifier {
   /// intrinsic.
   w.ValueType? generateStaticIntrinsic(StaticInvocation node) {
     String name = node.name.text;
-    Class? cls = node.target.enclosingClass;
+    final Procedure target = node.target;
+    final Library library = target.enclosingLibrary;
+    Class? cls = target.enclosingClass;
+
+    if (target.isExtensionMember && library == translator.wasmLibrary) {
+      final (ext, extDescriptor) = translator.extensionOfMember(target);
+      final memberName = extDescriptor.name.text;
+
+      // extension WasmArrayExt on WasmArray<T>
+      if (ext.name == 'WasmArrayExt') {
+        final dartWasmArrayType = dartTypeOf(node.arguments.positional.first);
+        final dartElementType =
+            (dartWasmArrayType as InterfaceType).typeArguments.single;
+        w.ArrayType arrayType =
+            translator.arrayTypeForDartType(dartElementType);
+        w.StorageType wasmType = arrayType.elementType.type;
+
+        switch (memberName) {
+          case '[]':
+            final array = node.arguments.positional[0];
+            final index = node.arguments.positional[1];
+            codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
+            codeGen.wrap(index, w.NumType.i64);
+            b.i32_wrap_i64();
+            if (wasmType is w.PackedType) {
+              b.array_get_u(arrayType);
+            } else {
+              b.array_get(arrayType);
+            }
+            return wasmType.unpacked;
+          case '[]=':
+            final array = node.arguments.positional[0];
+            final index = node.arguments.positional[1];
+            final value = node.arguments.positional[2];
+            codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
+            codeGen.wrap(index, w.NumType.i64);
+            b.i32_wrap_i64();
+            codeGen.wrap(value, typeOfExp(value));
+            b.array_set(arrayType);
+            return codeGen.voidMarker;
+          case 'copy':
+            final destArray = node.arguments.positional[0];
+            final destOffset = node.arguments.positional[1];
+            final sourceArray = node.arguments.positional[2];
+            final sourceOffset = node.arguments.positional[3];
+            final size = node.arguments.positional[4];
+
+            codeGen.wrap(destArray, w.RefType.def(arrayType, nullable: false));
+            codeGen.wrap(destOffset, w.NumType.i64);
+            b.i32_wrap_i64();
+            codeGen.wrap(
+                sourceArray, w.RefType.def(arrayType, nullable: false));
+            codeGen.wrap(sourceOffset, w.NumType.i64);
+            b.i32_wrap_i64();
+            codeGen.wrap(size, w.NumType.i64);
+            b.i32_wrap_i64();
+            b.array_copy(arrayType, arrayType);
+            return codeGen.voidMarker;
+          case 'fill':
+            final array = node.arguments.positional[0];
+            final offset = node.arguments.positional[1];
+            final value = node.arguments.positional[2];
+            final size = node.arguments.positional[3];
+
+            codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
+            codeGen.wrap(offset, w.NumType.i64);
+            b.i32_wrap_i64();
+            codeGen.wrap(value, translator.translateType(dartElementType));
+            codeGen.wrap(size, w.NumType.i64);
+            b.i32_wrap_i64();
+            b.array_fill(arrayType);
+            return codeGen.voidMarker;
+          default:
+            throw 'unknown';
+        }
+      }
+
+      // extension (I8|I16|I32|I64|F32|F64)ArrayExt on WasmArray<...>
+      if (ext.name.endsWith('ArrayExt')) {
+        final dartWasmArrayType = dartTypeOf(node.arguments.positional.first);
+        final dartElementType =
+            (dartWasmArrayType as InterfaceType).typeArguments.single;
+        w.ArrayType arrayType =
+            translator.arrayTypeForDartType(dartElementType);
+        w.StorageType wasmType = arrayType.elementType.type;
+
+        final innerExtend =
+            wasmType == w.PackedType.i8 || wasmType == w.PackedType.i16;
+        final outerExtend =
+            wasmType.unpacked == w.NumType.i32 || wasmType == w.NumType.f32;
+
+        // WasmArray<I*>.(readSigned|readUnsigned|write)
+        // WasmArray<F*>.(read|write)
+        switch (memberName) {
+          case 'read':
+          case 'readSigned':
+          case 'readUnsigned':
+            final unsigned = memberName == 'readUnsigned';
+            final array = node.arguments.positional[0];
+            final index = node.arguments.positional[1];
+            codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
+            codeGen.wrap(index, w.NumType.i64);
+            b.i32_wrap_i64();
+            if (innerExtend) {
+              if (unsigned) {
+                b.array_get_u(arrayType);
+              } else {
+                b.array_get_s(arrayType);
+              }
+            } else {
+              b.array_get(arrayType);
+            }
+            if (outerExtend) {
+              if (wasmType == w.NumType.f32) {
+                b.f64_promote_f32();
+                return w.NumType.f64;
+              } else {
+                if (unsigned) {
+                  b.i64_extend_i32_u();
+                } else {
+                  b.i64_extend_i32_s();
+                }
+                return w.NumType.i64;
+              }
+            }
+            return wasmType.unpacked;
+          case 'write':
+            final array = node.arguments.positional[0];
+            final index = node.arguments.positional[1];
+            final value = node.arguments.positional[2];
+            codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
+            codeGen.wrap(index, w.NumType.i64);
+            b.i32_wrap_i64();
+            codeGen.wrap(value, typeOfExp(value));
+            if (outerExtend) {
+              if (wasmType == w.NumType.f32) {
+                b.f32_demote_f64();
+              } else {
+                b.i32_wrap_i64();
+              }
+            }
+            b.array_set(arrayType);
+            return codeGen.voidMarker;
+        }
+      }
+    }
 
     // dart:core static functions
     if (node.target.enclosingLibrary == translator.coreTypes.coreLibrary) {
@@ -602,6 +637,27 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSubstitutions(b);
         case "_getTypeNames":
           return translator.types.makeTypeNames(b);
+        case "_getFunctionRuntimeType":
+          Expression f = node.arguments.positional.single;
+          final w.StructType closureBaseStruct =
+              translator.closureLayouter.closureBaseStruct;
+          final w.RefType closureBaseStructRef =
+              w.RefType.def(closureBaseStruct, nullable: false);
+          codeGen.wrap(f, closureBaseStructRef);
+          b.struct_get(closureBaseStruct, FieldIndex.closureRuntimeType);
+          return closureBaseStruct
+              .fields[FieldIndex.closureRuntimeType].type.unpacked;
+        case "_isRecordInstance":
+          Expression o = node.arguments.positional.single;
+          b.global_get(translator.types.typeCategoryTable);
+          codeGen.wrap(o, translator.topInfo.nonNullableType);
+          b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+          b.array_get_u(
+              (translator.types.typeCategoryTable.type.type as w.RefType)
+                  .heapType as w.ArrayType);
+          b.i32_const(TypeCategory.record);
+          b.i32_eq();
+          return w.NumType.i32;
       }
     }
 
@@ -790,18 +846,24 @@ class Intrinsifier {
     }
 
     if (cls != null && translator.isWasmType(cls)) {
-      // Wasm(Int|Float|Object)Array constructors
-      if (cls.superclass == translator.wasmArrayRefClass) {
-        Expression length = node.arguments.positional[0];
+      // WasmArray constructors
+      if (cls == translator.wasmArrayClass) {
+        final dartElementType = node.arguments.types.single;
         w.ArrayType arrayType =
-            translator.arrayTypeForDartType(node.arguments.types.single);
+            translator.arrayTypeForDartType(dartElementType);
+        final elementType = arrayType.elementType.type;
+        final isDefaultable = elementType is! w.RefType || elementType.nullable;
+        if (!isDefaultable && node.arguments.positional.length == 1) {
+          throw 'The element type $dartElementType does not have a default value'
+              '- please use WasmArray<$dartElementType>.filled() instead.';
+        }
+
+        Expression length = node.arguments.positional[0];
         codeGen.wrap(length, w.NumType.i64);
         b.i32_wrap_i64();
         if (node.arguments.positional.length < 2) {
-          // WasmIntArray or WasmFloatArray
           b.array_new_default(arrayType);
         } else {
-          // WasmObjectArray
           Expression initialValue = node.arguments.positional[1];
           if (initialValue is NullLiteral ||
               initialValue is ConstantExpression &&
@@ -946,6 +1008,7 @@ class Intrinsifier {
     b.local_set(receiverLocal);
 
     ClassInfo newInfo = translator.classInfo[newClass]!;
+    translator.functions.allocateClass(newInfo.classId);
     b.i32_const(newInfo.classId);
     b.i32_const(initialIdentityHash);
     b.local_get(receiverLocal);
@@ -966,9 +1029,9 @@ class Intrinsifier {
   w.ValueType? generateConstructorIntrinsic(ConstructorInvocation node) {
     String name = node.name.text;
 
-    // WasmObjectArray.literal
-    if (node.target.enclosingClass == translator.wasmObjectArrayClass &&
-        name == "literal") {
+    // WasmArray.literal
+    final klass = node.target.enclosingClass;
+    if (klass == translator.wasmArrayClass && name == "literal") {
       w.ArrayType arrayType =
           translator.arrayTypeForDartType(node.arguments.types.single);
       w.ValueType elementType = arrayType.elementType.type.unpacked;
@@ -980,7 +1043,7 @@ class Intrinsifier {
                   .entries
                   .map(ConstantExpression.new)
                   .toList()
-              : throw "WasmObjectArray.literal argument is not a list literal"
+              : throw "WasmArray.literal argument is not a list literal"
                   " at ${value.location}";
       for (Expression element in elements) {
         codeGen.wrap(element, elementType);

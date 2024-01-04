@@ -45,5 +45,5 @@ cd ./tools/dom/scripts
 
 # Calculate, emit, and format the bindings.
 BINDINGS="../web_library_bindings.dart"
-dart ./web_library_bindings_emitter.dart $BINDINGS
+dart --enable-asserts ./web_library_bindings_emitter.dart $BINDINGS
 dart format $BINDINGS

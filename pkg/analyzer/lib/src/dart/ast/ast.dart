@@ -6,7 +6,7 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
@@ -868,7 +868,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
     if (element is PromotableElement) {
       return resolverVisitor.analyzeAssignedVariablePatternSchema(element);
     }
-    return resolverVisitor.unknownType;
+    return resolverVisitor.operations.unknownType;
   }
 
   @override

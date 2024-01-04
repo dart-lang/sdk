@@ -254,6 +254,21 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredIdentifier(DeclaredIdentifier node) {
+    super.visitDeclaredIdentifier(node);
+
+    // Has explicit type.
+    if (node.type != null) {
+      return;
+    }
+
+    final declaration = node.declaredElement;
+    if (declaration != null) {
+      _computer._addTypePrefix(node.name, declaration.type);
+    }
+  }
+
+  @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     super.visitDeclaredVariablePattern(node);
 

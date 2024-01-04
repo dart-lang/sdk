@@ -65,35 +65,30 @@ class ScopeDataExtractor extends CfeDataExtractor<Features> {
     if (node is StaticGet && node.target.name.text == 'x') {
       Location? location = node.location;
       if (location != null) {
-        List<DartScope> scopes = DartScopeBuilder2.findScopeFromOffsetAndClass(
+        DartScope scope = DartScopeBuilder2.findScopeFromOffsetAndClass(
             library, location.file, cls, node.fileOffset);
-        if (scopes.isNotEmpty) {
-          // TODO(johnniwinther,jensj): Support more than one scope.
-          DartScope scope = scopes.first;
-          Features features = Features();
-          if (scope.cls != null) {
-            features[Tags.cls] = scope.cls!.name;
-          }
-          if (scope.member != null) {
-            features[Tags.member] = scope.member!.name.text;
-          }
-          if (scope.isStatic) {
-            features.add(Tags.isStatic);
-          }
-          for (TypeParameter typeParameter in scope.typeParameters) {
-            AstPrinter printer = new AstPrinter(const AstTextStrategy(
-                useQualifiedTypeParameterNames: true,
-                useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions:
-                    true,
-                includeLibraryNamesInTypes: false));
-            printer.writeTypeParameterName(typeParameter);
-            features.addElement(Tags.typeParameter, printer.getText());
-          }
-          for (String variable in scope.definitions.keys) {
-            features.addElement(Tags.variables, variable);
-          }
-          return features;
+        Features features = Features();
+        if (scope.cls != null) {
+          features[Tags.cls] = scope.cls!.name;
         }
+        if (scope.member != null) {
+          features[Tags.member] = scope.member!.name.text;
+        }
+        if (scope.isStatic) {
+          features.add(Tags.isStatic);
+        }
+        for (TypeParameter typeParameter in scope.typeParameters) {
+          AstPrinter printer = new AstPrinter(const AstTextStrategy(
+              useQualifiedTypeParameterNames: true,
+              useQualifiedTypeParameterNamesRecurseOnNamedLocalFunctions: true,
+              includeLibraryNamesInTypes: false));
+          printer.writeTypeParameterName(typeParameter);
+          features.addElement(Tags.typeParameter, printer.getText());
+        }
+        for (String variable in scope.definitions.keys) {
+          features.addElement(Tags.variables, variable);
+        }
+        return features;
       }
     }
     return super.computeNodeValue(id, node);

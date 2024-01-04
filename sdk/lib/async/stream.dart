@@ -775,9 +775,10 @@ abstract mixin class Stream<T> {
   /// Creates a new stream with each data event of this stream asynchronously
   /// mapped to a new event.
   ///
-  /// This acts like [map], except that [convert] may return a [Future],
-  /// and in that case, this stream waits for that future to complete before
-  /// continuing with its result.
+  /// This acts like [map], in that [convert] function is called once per
+  /// data event, but here [convert] may be asynchronous and return a [Future].
+  /// If that happens, this stream waits for that future to complete before
+  /// continuing with further events.
   ///
   /// The returned stream is a broadcast stream if this stream is.
   Stream<E> asyncMap<E>(FutureOr<E> convert(T event)) {

@@ -6,7 +6,7 @@ class X extends core::Object {
   synthetic constructor •() → self::X
     : super core::Object::•()
     ;
-  method _foo() → void async /* futureValueType= void */ {
+  method _foo() → void async /* emittedValueType= void */ {
     await null /* runtimeCheckType= dart.async::Future<Null> */ ;
     core::print("hello");
   }

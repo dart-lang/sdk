@@ -107,6 +107,19 @@ class UseResultVerifier {
     }
   }
 
+  String? _getUseResultMessage(ElementAnnotation annotation) {
+    if (annotation.element is PropertyAccessorElement) {
+      return null;
+    }
+    var constantValue = annotation.computeConstantValue();
+    return constantValue?.getField('message')?.toStringValue();
+  }
+
+  String? _getUseResultUnlessParam(ElementAnnotation annotation) {
+    var constantValue = annotation.computeConstantValue();
+    return constantValue?.getField('parameterDefined')?.toStringValue();
+  }
+
   bool _passesUsingParam(AstNode node, ElementAnnotation annotation) {
     if (node is! MethodInvocation) {
       return false;
@@ -146,25 +159,12 @@ class UseResultVerifier {
     return node;
   }
 
-  static String? _getUseResultMessage(ElementAnnotation annotation) {
-    if (annotation.element is PropertyAccessorElement) {
-      return null;
-    }
-    var constantValue = annotation.computeConstantValue();
-    return constantValue?.getField('message')?.toStringValue();
-  }
-
   static ElementAnnotation? _getUseResultMetadata(Element element) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
       element = element.variable;
     }
     return element.metadata.firstWhereOrNull((e) => e.isUseResult);
-  }
-
-  static String? _getUseResultUnlessParam(ElementAnnotation annotation) {
-    var constantValue = annotation.computeConstantValue();
-    return constantValue?.getField('parameterDefined')?.toStringValue();
   }
 
   static bool _isUsed(AstNode node) {

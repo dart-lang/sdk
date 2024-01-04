@@ -401,10 +401,12 @@ final class DocCommentBuilder {
         _endBlockDocDirectiveTag(parser, DocDirectiveType.endTemplate);
         return true;
       case 'example':
+        // ignore: deprecated_member_use_from_same_package
         _pushDocDirective(parser.simpleDirective(DocDirectiveType.example));
         return true;
       case 'hideConstantImplementations':
         _pushDocDirective(parser
+            // ignore: deprecated_member_use_from_same_package
             .simpleDirective(DocDirectiveType.hideConstantImplementations));
         return true;
       case 'inject-html':

@@ -7,8 +7,8 @@ import "return_async_promoted_lib.dart" as ret;
 import "org-dartlang-testcase:///return_async_promoted_lib.dart";
 
 static method main() → void {
-  <T extends core::Object? = dynamic>(dynamic) → asy::Future<core::int> f = <T extends core::Object? = dynamic>(dynamic o) → asy::Future<core::int> async /* futureValueType= core::int */ => o is core::int ?{core::int} o{core::int} : throw "";
-  () → asy::Future<core::int> g = () → asy::Future<core::int> async /* futureValueType= core::int* */ => ret::legacy();
+  <T extends core::Object? = dynamic>(dynamic) → asy::Future<core::int> f = <T extends core::Object? = dynamic>(dynamic o) → asy::Future<core::int> async /* emittedValueType= core::int */ => o is core::int ?{core::int} o{core::int} : throw "";
+  () → asy::Future<core::int> g = () → asy::Future<core::int> async /* emittedValueType= core::int* */ => ret::legacy();
 }
 static method nullable() → core::int?
   return null;
@@ -31,8 +31,8 @@ import "return_async_promoted.dart" as self;
 import "org-dartlang-testcase:///return_async_promoted.dart";
 
 static method legacy() → core::int* {
-  <T extends core::Object* = dynamic>(dynamic) →* asy::Future<core::int*>* f = <T extends core::Object* = dynamic>(dynamic o) → asy::Future<core::int*>* async /* futureValueType= core::int* */ => o is{ForLegacy} core::int* ?{core::int*} o{core::int*} : throw "";
-  () →* asy::Future<core::int*>* g = () → asy::Future<core::int*>* async /* futureValueType= core::int* */ => self::nullable();
-  () →* asy::Future<core::int*>* h = () → asy::Future<core::int*>* async /* futureValueType= core::int* */ => self::nonNullable();
+  <T extends core::Object* = dynamic>(dynamic) →* asy::Future<core::int*>* f = <T extends core::Object* = dynamic>(dynamic o) → asy::Future<core::int*>* async /* emittedValueType= core::int* */ => o is{ForLegacy} core::int* ?{core::int*} o{core::int*} : throw "";
+  () →* asy::Future<core::int*>* g = () → asy::Future<core::int*>* async /* emittedValueType= core::int* */ => self::nullable();
+  () →* asy::Future<core::int*>* h = () → asy::Future<core::int*>* async /* emittedValueType= core::int* */ => self::nonNullable();
   return null;
 }

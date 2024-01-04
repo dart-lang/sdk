@@ -10,11 +10,11 @@ library from "org-dartlang-test:///main.dart" as main {
     method toString() → dart.core::String
       return "Foo!";
   }
-  static method main() → dynamic async /* futureValueType= dynamic */ {
+  static method main() → dynamic async /* emittedValueType= dynamic */ {
     await main::whatever() /* runtimeCheckType= dart.async::Future<dynamic> */ ;
     dart.core::print(#C2);
   }
-  static method /* from org-dartlang-test:///myPart.dart */ whatever() → dynamic async /* futureValueType= dynamic */ {
+  static method /* from org-dartlang-test:///myPart.dart */ whatever() → dynamic async /* emittedValueType= dynamic */ {
     await null /* runtimeCheckType= dart.async::Future<Null> */ ;
     return "hello!!!";
   }

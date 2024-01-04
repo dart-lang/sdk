@@ -8,8 +8,8 @@ library _fe_analyzer_shared.src.macros.executor_shared.protocol;
 
 import 'package:meta/meta.dart';
 
-import '../executor.dart';
 import '../api.dart';
+import '../executor.dart';
 import '../executor/response_impls.dart';
 import 'introspection_impls.dart';
 import 'remote_instance.dart';
@@ -101,6 +101,8 @@ class SerializableResponse implements Response, Serializable {
       case MessageType.argumentError:
         deserializer.moveNext();
         error = deserializer.expectString();
+        deserializer.moveNext();
+        stackTrace = deserializer.expectNullableString();
         break;
       case MessageType.macroInstanceIdentifier:
         response = new MacroInstanceIdentifierImpl.deserialize(deserializer);
@@ -150,6 +152,7 @@ class SerializableResponse implements Response, Serializable {
         break;
       case MessageType.argumentError:
         serializer.addString(error!.toString());
+        serializer.addNullableString(stackTrace?.toString());
         break;
       default:
         response.serializeNullable(serializer);
@@ -639,7 +642,7 @@ final class ClientDeclarationPhaseIntrospector
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
-      IntrospectableType type) async {
+      TypeDeclaration type) async {
     TypeIntrospectorRequest request = new TypeIntrospectorRequest(
         type, remoteInstance, MessageType.constructorsOfRequest,
         serializationZoneId: serializationZoneId);
@@ -650,8 +653,7 @@ final class ClientDeclarationPhaseIntrospector
   }
 
   @override
-  Future<List<EnumValueDeclaration>> valuesOf(
-      IntrospectableEnum enumType) async {
+  Future<List<EnumValueDeclaration>> valuesOf(EnumDeclaration enumType) async {
     TypeIntrospectorRequest request = new TypeIntrospectorRequest(
         enumType, remoteInstance, MessageType.valuesOfRequest,
         serializationZoneId: serializationZoneId);
@@ -662,7 +664,7 @@ final class ClientDeclarationPhaseIntrospector
   }
 
   @override
-  Future<List<FieldDeclaration>> fieldsOf(IntrospectableType type) async {
+  Future<List<FieldDeclaration>> fieldsOf(TypeDeclaration type) async {
     TypeIntrospectorRequest request = new TypeIntrospectorRequest(
         type, remoteInstance, MessageType.fieldsOfRequest,
         serializationZoneId: serializationZoneId);
@@ -673,7 +675,7 @@ final class ClientDeclarationPhaseIntrospector
   }
 
   @override
-  Future<List<MethodDeclaration>> methodsOf(IntrospectableType type) async {
+  Future<List<MethodDeclaration>> methodsOf(TypeDeclaration type) async {
     TypeIntrospectorRequest request = new TypeIntrospectorRequest(
         type, remoteInstance, MessageType.methodsOfRequest,
         serializationZoneId: serializationZoneId);
@@ -766,12 +768,11 @@ final class ClientDefinitionPhaseIntrospector
   }
 
   @override
-  Future<IntrospectableType> typeDeclarationOf(
-      IdentifierImpl identifier) async {
+  Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) async {
     DeclarationOfRequest request = new DeclarationOfRequest(
         identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<IntrospectableType>(await _sendRequest(request));
+    return _handleResponse<TypeDeclaration>(await _sendRequest(request));
   }
 }
 
@@ -794,7 +795,8 @@ T _handleResponse<T>(Response response) {
   if (response.responseType == MessageType.error) {
     throw new RemoteException(response.error!.toString(), response.stackTrace);
   } else if (response.responseType == MessageType.argumentError) {
-    throw new ArgumentError(response.error!.toString());
+    throw new ArgumentError('${response.error!.toString()}'
+        '${response.stackTrace == null ? '' : '\n\n${response.stackTrace}'}');
   }
 
   return response.response as T;

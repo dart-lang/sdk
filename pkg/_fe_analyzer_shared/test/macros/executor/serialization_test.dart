@@ -408,7 +408,7 @@ void main() {
               library: Fixtures.library,
               metadata: [],
               typeParameters: [],
-              onType: Fixtures.myClassType);
+              representationType: Fixtures.myClassType);
           expectSerializationEquality<DeclarationImpl>(
               extensionType, mode, RemoteInstance.deserialize);
         });

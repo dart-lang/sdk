@@ -11,6 +11,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart' show AnnotationsData;
+import '../js_backend/inferred_data.dart';
 import '../js_backend/interceptor_data.dart' show OneShotInterceptorData;
 import '../js_backend/native_data.dart' show NativeBasicData;
 import '../js_model/elements.dart';
@@ -25,18 +26,6 @@ import 'selector.dart' show Selector;
 import 'use.dart'
     show ConstantUse, DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 import 'world_builder.dart';
-
-/// World builder specific to codegen.
-///
-/// This adds additional access to liveness of selectors and elements.
-abstract class CodegenWorldBuilder {
-  /// Register [constant] as needed for emission.
-  void addCompileTimeConstantForEmission(ConstantValue constant);
-
-  /// Close the codegen world builder and return the immutable [CodegenWorld]
-  /// as the result.
-  CodegenWorld close();
-}
 
 // The immutable result of the [CodegenWorldBuilder].
 abstract class CodegenWorld extends BuiltWorld {
@@ -104,11 +93,13 @@ abstract class CodegenWorld extends BuiltWorld {
   bool isAliasedSuperMember(MemberEntity member);
 
   OneShotInterceptorData get oneShotInterceptorData;
+
+  Iterable<JParameterStub> getParameterStubs(FunctionEntity function);
 }
 
-class CodegenWorldBuilderImpl extends WorldBuilder
-    implements CodegenWorldBuilder {
+class CodegenWorldBuilder extends WorldBuilder {
   final JClosedWorld _closedWorld;
+  final InferredData _inferredData;
   final OneShotInterceptorData _oneShotInterceptorData;
 
   /// All declaration elements that have been processed by codegen.
@@ -169,8 +160,10 @@ class CodegenWorldBuilderImpl extends WorldBuilder
   final Set<TypeVariableType> _namedTypeVariablesNewRti = {};
   final Set<ClassEntity> _constructorReferences = {};
 
-  CodegenWorldBuilderImpl(this._closedWorld, this._selectorConstraintsStrategy,
-      this._oneShotInterceptorData);
+  final Map<FunctionEntity, List<JParameterStub>> _parameterStubs = {};
+
+  CodegenWorldBuilder(this._closedWorld, this._inferredData,
+      this._selectorConstraintsStrategy, this._oneShotInterceptorData);
 
   ElementEnvironment get _elementEnvironment => _closedWorld.elementEnvironment;
 
@@ -269,9 +262,9 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         EnumSet<MemberUse> action(MemberUsage usage),
         bool shouldBeRemoved(MemberUsage usage)) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
-        if (selector.appliesUnnamed(usage.entity) &&
-            _selectorConstraintsStrategy.appliedUnnamed(
-                dynamicUse, usage.entity, _closedWorld)) {
+        // Strategy will check both that selector applies and constraint is met.
+        if (_selectorConstraintsStrategy.appliedUnnamed(
+            dynamicUse, usage.entity, _closedWorld)) {
           memberUsed(usage.entity, action(usage));
           return shouldBeRemoved(usage);
         }
@@ -562,7 +555,6 @@ class CodegenWorldBuilderImpl extends WorldBuilder
 
   Iterable<ConstantValue> get compiledConstantsForTesting => _compiledConstants;
 
-  @override
   void addCompileTimeConstantForEmission(ConstantValue constant) {
     _compiledConstants.add(constant);
   }
@@ -586,7 +578,191 @@ class CodegenWorldBuilderImpl extends WorldBuilder
     _constructorReferences.add(type.element);
   }
 
-  @override
+  bool _canTearOffFunction(FunctionEntity member, MemberUsage usage) {
+    if (!member.isFunction) return false;
+    if (member.isInstanceMember) {
+      if (member.enclosingClass!.isClosure) return false;
+      if (usage.reads.contains(Access.superAccess)) return true;
+      if (_hasInvokedGetter(member)) return true;
+      return false;
+    } else {
+      if (member is ConstructorEntity) return false;
+      assert(member.isStatic || member.isTopLevel);
+      return usage.hasRead;
+    }
+  }
+
+  bool _methodCanBeApplied(FunctionEntity method) {
+    return _closedWorld.backendUsage.isFunctionApplyUsed &&
+        _inferredData.getMightBePassedToApply(method);
+  }
+
+  bool _functionNeedsStubs(FunctionEntity member) {
+    if (member.isAbstract) return false;
+    if (member is JGeneratorBody) return false;
+    if (member is ConstructorBodyEntity) return false;
+    return member.parameterStructure.optionalParameters != 0 ||
+        member.parameterStructure.typeParameters != 0;
+  }
+
+  List<JParameterStub> generateParameterStubs() {
+    List<JParameterStub> newStubs = [];
+    _memberUsage.forEach((member, usage) {
+      if (member is! FunctionEntity) return;
+      if (member is JParameterStub) return;
+      if (!usage.hasUse) return;
+      if (!_functionNeedsStubs(member)) return;
+
+      final Map<Selector, SelectorConstraints> liveSelectors =
+          // Only instance members (not static methods) need stubs.
+          (member.isInstanceMember ? _invokedNames[member.name!] : const {}) ??
+              const {};
+      final Map<Selector, SelectorConstraints> callSelectors =
+          (_canTearOffFunction(member, usage)
+                  ? _invokedNames[Identifiers.call]
+                  : const {}) ??
+              const {};
+
+      bool canBeApplied = _methodCanBeApplied(member);
+      int memberTypeParameters = member.parameterStructure.typeParameters;
+
+      if (liveSelectors.isEmpty &&
+          callSelectors.isEmpty &&
+          // Function.apply might need a stub to default the type parameter.
+          !(canBeApplied && memberTypeParameters > 0)) {
+        return;
+      }
+
+      // For every call-selector the corresponding selector with the name of the
+      // member.
+      //
+      // For example, for the call-selector `call(x, y)` the renamed selector
+      // for member `foo` would be `foo(x, y)`.
+      Set<Selector> renamedCallSelectors = {};
+
+      Set<Selector> stubSelectors = {};
+
+      void createStub(FunctionEntity member, Selector selector,
+          {Selector? callSelector, required bool needsSuper}) {
+        if (_parameterStubs[member]?.any((e) =>
+                e.parameterStructure.callStructure == selector.callStructure) ??
+            false) {
+          return;
+        }
+        final stub = _generateParameterStub(member, selector,
+            callSelector: callSelector, needsSuper: needsSuper);
+        if (stub == null) return;
+
+        newStubs.add(stub);
+        (_parameterStubs[member] ??= []).add(stub);
+        if (needsSuper) {
+          // We need to force the accesses here since the target member may not
+          // have a pending super invoke. This ensures that the emitter uses the
+          // aliased name for this super invocation.
+          usage.invoke(
+              Accesses.superAccess, member.parameterStructure.callStructure,
+              forceAccesses: true);
+        }
+      }
+
+      bool needsSuper = usage.reads.contains(Access.superAccess);
+
+      // Start with closure-call selectors, since they imply the generation
+      // of the non-call version.
+      if (canBeApplied && memberTypeParameters > 0) {
+        // Function.apply calls the function with no type arguments, so generic
+        // methods need the stub to default the type arguments.
+        // This has to be the first stub.
+        Selector namedSelector = Selector.fromElement(member).toNonGeneric();
+        Selector closureSelector = namedSelector.toCallSelector();
+
+        renamedCallSelectors.add(namedSelector);
+        stubSelectors.add(namedSelector);
+        createStub(member, namedSelector,
+            callSelector: closureSelector, needsSuper: needsSuper);
+      }
+
+      for (Selector selector in callSelectors.keys) {
+        Selector renamedSelector =
+            Selector.call(member.memberName, selector.callStructure);
+        renamedCallSelectors.add(renamedSelector);
+
+        if (!renamedSelector.appliesUnnamed(member)) {
+          continue;
+        }
+
+        if (stubSelectors.add(renamedSelector)) {
+          createStub(member, renamedSelector,
+              callSelector: selector, needsSuper: needsSuper);
+        }
+
+        // A generic method might need to support `call<T>(x)` for a generic
+        // instantiation stub without `call<T>(x)` being in [callSelectors].
+        // [selector] will be `call(x)` (that already passes the appliesUnnamed
+        // check by defaulting type arguments), and the method will be generic.
+        //
+        // This is basically the same logic as above, but with type arguments.
+        if (selector.callStructure.typeArgumentCount == 0) {
+          if (memberTypeParameters > 0) {
+            Selector renamedSelectorWithTypeArguments = Selector.call(
+                member.memberName,
+                selector.callStructure
+                    .withTypeArgumentCount(memberTypeParameters));
+            renamedCallSelectors.add(renamedSelectorWithTypeArguments);
+
+            if (stubSelectors.add(renamedSelectorWithTypeArguments)) {
+              Selector closureSelector =
+                  Selector.callClosureFrom(renamedSelectorWithTypeArguments);
+              createStub(member, renamedSelectorWithTypeArguments,
+                  callSelector: closureSelector, needsSuper: needsSuper);
+            }
+          }
+        }
+      }
+
+      // Now run through the actual member selectors (eg. `foo$2(x, y)` and not
+      // `call$2(x, y)`). Some of them have already been generated because of the
+      // call-selectors and they are in the renamedCallSelectors set.
+      for (Selector selector in liveSelectors.keys) {
+        if (renamedCallSelectors.contains(selector)) continue;
+        if (!selector.appliesUnnamed(member)) continue;
+        if (!liveSelectors[selector]!
+            .canHit(member, selector.memberName, _closedWorld)) {
+          continue;
+        }
+
+        if (stubSelectors.add(selector)) {
+          createStub(member, selector, needsSuper: needsSuper);
+        }
+      }
+    });
+    return newStubs;
+  }
+
+  JParameterStub? _generateParameterStub(
+      FunctionEntity member, Selector selector,
+      {Selector? callSelector, required bool needsSuper}) {
+    ParameterStructure parameterStructure = member.parameterStructure;
+    final callStructure = selector.callStructure;
+    int positionalArgumentCount = callStructure.positionalArgumentCount;
+    if (callStructure.typeArgumentCount == parameterStructure.typeParameters) {
+      if (positionalArgumentCount == parameterStructure.totalParameters) {
+        // Positional optional arguments are all provided.
+        assert(callStructure.isUnnamed);
+        return null;
+      }
+      if (parameterStructure.namedParameters.isNotEmpty &&
+          callStructure.namedArgumentCount ==
+              parameterStructure.namedParameters.length) {
+        // Named optional arguments are all provided.
+        return null;
+      }
+    }
+    return _closedWorld.elementMap.createParameterStub(
+        member as JFunction, selector,
+        callSelector: callSelector, needsSuper: needsSuper);
+  }
+
   CodegenWorld close() {
     Map<MemberEntity, MemberUsage> liveMemberUsage = {};
     _memberUsage.forEach((MemberEntity member, MemberUsage usage) {
@@ -610,7 +786,8 @@ class CodegenWorldBuilderImpl extends WorldBuilder
         invokedSetters: _invokedSetters,
         staticTypeArgumentDependencies: staticTypeArgumentDependencies,
         dynamicTypeArgumentDependencies: dynamicTypeArgumentDependencies,
-        oneShotInterceptorData: _oneShotInterceptorData);
+        oneShotInterceptorData: _oneShotInterceptorData,
+        parameterStubs: _parameterStubs);
   }
 }
 
@@ -659,6 +836,8 @@ class CodegenWorldImpl implements CodegenWorld {
 
   final Map<Selector, Set<DartType>> _dynamicTypeArgumentDependencies;
 
+  final Map<FunctionEntity, List<JParameterStub>> _parameterStubs;
+
   @override
   final OneShotInterceptorData oneShotInterceptorData;
 
@@ -673,6 +852,7 @@ class CodegenWorldImpl implements CodegenWorld {
       required this.namedTypeVariablesNewRti,
       required this.instantiatedTypes,
       required this.liveTypeArguments,
+      required Map<FunctionEntity, List<JParameterStub>> parameterStubs,
       required Iterable<ConstantValue> compiledConstants,
       required Map<String, Map<Selector, SelectorConstraints>> invokedNames,
       required Map<String, Map<Selector, SelectorConstraints>> invokedGetters,
@@ -680,7 +860,8 @@ class CodegenWorldImpl implements CodegenWorld {
       required Map<Entity, Set<DartType>> staticTypeArgumentDependencies,
       required Map<Selector, Set<DartType>> dynamicTypeArgumentDependencies,
       required this.oneShotInterceptorData})
-      : _reachableLazyMemberBodies = processedEntities
+      : _parameterStubs = parameterStubs,
+        _reachableLazyMemberBodies = processedEntities
             .where((e) => e is JGeneratorBody || e is JConstructorBody)
             .toSet(),
         _compiledConstants = compiledConstants,
@@ -925,5 +1106,10 @@ class CodegenWorldImpl implements CodegenWorld {
   @override
   bool isLateMemberReachable(MemberEntity member) {
     return _reachableLazyMemberBodies.contains(member);
+  }
+
+  @override
+  Iterable<JParameterStub> getParameterStubs(FunctionEntity member) {
+    return _parameterStubs[member] ?? const [];
   }
 }

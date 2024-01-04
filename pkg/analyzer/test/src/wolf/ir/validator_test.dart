@@ -330,6 +330,25 @@ class ValidatorTest {
     _checkInvalidMessageAt('bad').equals('Value stack underflow');
   }
 
+  test_concat_ok() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 3)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(3)))
+      ..concat(3)
+      ..onValidate((v) => check(v.valueStackDepth).equals(ValueCount(1)))
+      ..end());
+    _validate();
+  }
+
+  test_concat_underflow() {
+    _analyze((ir) => ir
+      ..ordinaryFunction(parameterCount: 2)
+      ..label('bad')
+      ..concat(3)
+      ..end());
+    _checkInvalidMessageAt('bad').equals('Value stack underflow');
+  }
+
   test_drop_ok() {
     _analyze((ir) => ir
       ..ordinaryFunction(parameterCount: 2)
@@ -938,8 +957,7 @@ class ValidatorTest {
           .message;
 
   void _validate() {
-    validate(ir,
-        eventListener: _ValidationEventListener(_addressToOnValidateCallbacks));
+    validate(ir, eventListener: _ValidationEventListener(this));
     check(
             because: 'make sure all callbacks got invoked',
             _addressToOnValidateCallbacks)
@@ -950,14 +968,19 @@ class ValidatorTest {
 /// Validation event listener that executes callbacks installed by
 /// [_ValidationTestIRWriter].
 base class _ValidationEventListener extends ValidationEventListener {
-  final Map<int, List<void Function(ValidationEventListener)>>
-      _addressToOnValidateCallbacks;
+  final ValidatorTest test;
 
-  _ValidationEventListener(this._addressToOnValidateCallbacks);
+  _ValidationEventListener(this.test);
 
   @override
-  void onAddress(int address) {
-    if (_addressToOnValidateCallbacks.remove(address) case var callbacks?) {
+  void onFinished() => _onAddress(test.ir.endAddress);
+
+  @override
+  void onInstruction(int address) => _onAddress(address);
+
+  void _onAddress(int address) {
+    if (test._addressToOnValidateCallbacks.remove(address)
+        case var callbacks?) {
       for (var callback in callbacks) {
         callback(this);
       }

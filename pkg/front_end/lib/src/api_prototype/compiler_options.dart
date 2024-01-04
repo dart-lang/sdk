@@ -5,19 +5,18 @@
 library front_end.compiler_options;
 
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart'
+    as macros show SerializationMode;
 import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler;
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-
 import 'package:kernel/ast.dart' show Component, Version;
-
 import 'package:kernel/default_language_version.dart' as kernel
     show defaultLanguageVersion;
-
 import 'package:kernel/target/targets.dart' show Target;
 
+import '../api_unstable/util.dart';
 import '../base/nnbd_mode.dart';
-
 import '../macro_serializer.dart';
 import 'experimental_flags.dart'
     show
@@ -25,17 +24,12 @@ import 'experimental_flags.dart'
         ExperimentalFlag,
         GlobalFeatures,
         parseExperimentalFlag;
-
 import 'experimental_flags.dart' as flags
     show
         getExperimentEnabledVersionInLibrary,
         isExperimentEnabledInLibraryByVersion;
-
 import 'file_system.dart' show FileSystem;
-
 import 'standard_file_system.dart' show StandardFileSystem;
-
-import '../api_unstable/util.dart';
 
 export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage;
@@ -126,6 +120,15 @@ class CompilerOptions {
   ///
   /// This is part of the experimental macro feature.
   MacroSerializer? macroSerializer;
+
+  /// Raw precompiled macro options, each of the format
+  /// `<program-uri>;<macro-library-uri>`.
+  ///
+  /// Multiple library URIs may be provided separated by additional semicolons.
+  List<String>? precompiledMacros;
+
+  /// The serialization mode to use for macro communication.
+  macros.SerializationMode? macroSerializationMode;
 
   /// Whether to generate code for the SDK.
   ///

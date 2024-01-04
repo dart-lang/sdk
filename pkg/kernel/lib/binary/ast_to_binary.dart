@@ -1542,7 +1542,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeVariableDeclarationList(node.positionalParameters);
     writeVariableDeclarationList(node.namedParameters);
     writeNode(node.returnType);
-    writeOptionalNode(node.futureValueType);
+    writeOptionalNode(node.emittedValueType);
     RedirectingFactoryTarget? redirectingFactoryTarget =
         node.redirectingFactoryTarget;
     if (redirectingFactoryTarget == null) {

@@ -367,10 +367,8 @@ class MatchingExpressionVisitor
       NullCheckPattern node, CacheableExpression matchedExpression) {
     CacheableExpression nullCheckExpression = matchingCache
         .createNullCheckMatcher(matchedExpression, fileOffset: node.fileOffset);
-    return new DelayedConditionalExpression(
-        nullCheckExpression,
-        visitPattern(node.pattern, matchedExpression),
-        new BooleanExpression(false, fileOffset: node.fileOffset),
+    return new DelayedAndExpression(
+        nullCheckExpression, visitPattern(node.pattern, matchedExpression),
         fileOffset: node.fileOffset);
   }
 
@@ -679,6 +677,7 @@ class MatchingExpressionVisitor
     }
     VariableDeclaration target =
         matchingCache.getUnaliasedVariable(node.variable);
+    // TODO(johnniwinther): Avoid hoisting variables for irrefutable tails.
     target.isHoisted = true;
     CacheableExpression valueExpression =
         new PromotedCacheableExpression(matchedExpression, target.type);

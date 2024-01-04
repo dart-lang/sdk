@@ -42,4 +42,18 @@ main() {
   //   void Function<T extends String*, S extends Object*>()
   Expect.isTrue(fnWithNonNullableStringNullableObjectBounds
       is fnTypeWithLegacyStringLegacyObjectBounds);
+
+  // void fn<T extends Object?>() is void Function<T extends Object?>()
+  Expect.isTrue(fnWithNullableObjectBound is fnTypeWithNullableObjectBound);
+  // void fn<T extends int?>() is void Function<T extends int?>()
+  Expect.isTrue(fnWithNullableIntBound is fnTypeWithNullableIntBound);
+
+  // void fn<T extends Object?>() is! void Function<T extends Object>()
+  // (except when using unsound null safety)
+  Expect.equals(hasUnsoundNullSafety,
+      fnWithNullableObjectBound is fnTypeWithNonNullObjectBound);
+  // void fn<T extends Object>() is! void Function<T extends Object?>()
+  // (except when using unsound null safety)
+  Expect.equals(hasUnsoundNullSafety,
+      fnWithNonNullObjectBound is fnTypeWithNullableObjectBound);
 }

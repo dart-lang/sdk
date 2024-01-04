@@ -503,6 +503,7 @@ class BundleWriter {
     _writeReference(element);
     MixinElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
+    _resolutionSink.writeMacroDiagnostics(element.macroDiagnostics);
 
     _writeTypeParameters(element.typeParameters, () {
       _resolutionSink._writeTypeList(element.superclassConstraints);
@@ -951,11 +952,19 @@ class ResolutionSink extends _SummaryDataWriter {
         writeUInt30(diagnostic.annotationIndex);
         writeUInt30(diagnostic.argumentIndex);
         writeStringUtf8(diagnostic.message);
+      case DeclarationsIntrospectionCycleDiagnostic():
+        writeByte(0x01);
+        writeList(diagnostic.components, (component) {
+          writeElement(component.element);
+          writeUInt30(component.annotationIndex);
+        });
       case ExceptionMacroDiagnostic():
-        // TODO(scheglov): Handle this case.
-        throw UnimplementedError();
-      case MacroDiagnostic():
         writeByte(0x02);
+        writeUInt30(diagnostic.annotationIndex);
+        writeStringUtf8(diagnostic.message);
+        writeStringUtf8(diagnostic.stackTrace);
+      case MacroDiagnostic():
+        writeByte(0x03);
         writeByte(diagnostic.severity.index);
         _writeMacroDiagnosticMessage(diagnostic.message);
         writeList(

@@ -1,0 +1,25 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension type MetadataIndex(core::Map<core::String, dynamic> map) {
+  abstract extension-type-member representation-field get map() → core::Map<core::String, dynamic>;
+  get key = self::MetadataIndex|get#key;
+  constructor • = self::MetadataIndex|constructor#;
+  constructor tearoff • = self::MetadataIndex|constructor#_#new#tearOff;
+}
+static extension-type-member method MetadataIndex|constructor#(core::Map<core::String, dynamic> map) → self::MetadataIndex /* = core::Map<core::String, dynamic> */ {
+  lowered final self::MetadataIndex /* = core::Map<core::String, dynamic> */ #this = map;
+  return #this;
+}
+static extension-type-member method MetadataIndex|constructor#_#new#tearOff(core::Map<core::String, dynamic> map) → self::MetadataIndex /* = core::Map<core::String, dynamic> */
+  return self::MetadataIndex|constructor#(map);
+static extension-type-member method MetadataIndex|get#key(lowered final self::MetadataIndex /* = core::Map<core::String, dynamic> */ #this) → core::Map<core::String, dynamic>
+  return (#this as{Unchecked} core::Map<core::String, dynamic>).{core::Map::[]}("key"){(core::Object?) → dynamic} as{TypeError,ForDynamic} core::Map<core::String, dynamic>;
+static method test(self::MetadataIndex /* = core::Map<core::String, dynamic> */ index) → dynamic {
+  final hoisted has-declared-initializer core::Map<core::String, dynamic> key;
+  {
+    final synthesized self::MetadataIndex /* = core::Map<core::String, dynamic> */ #0#0 = index;
+    key = self::MetadataIndex|get#key(#0#0);
+  }
+}

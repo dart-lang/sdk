@@ -10,6 +10,9 @@ import 'dart:ffi';
 void main() {
   final result = returnStruct1ByteIntNative(-1);
   print("result = $result");
+
+  Native.addressOf<NativeFunction<Struct1ByteInt Function(Int8)>>(
+      returnStruct1ByteIntNative);
 }
 
 // ignore: sdk_version_since

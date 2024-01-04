@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
@@ -467,11 +468,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         isNonNullableByDefault: isNonNullableByDefault,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null,
-        coerceExpression: coerceExpression);
+        coerceExpression: coerceExpression,
+        fileOffset: fileOffset);
 
     if (assignabilityResult.needsTearOff) {
-      TypedTearoff typedTearoff = _tearOffCall(inferenceResult.expression,
-          inferenceResult.inferredType as InterfaceType, fileOffset);
+      TypedTearoff typedTearoff = _tearOffCall(
+          inferenceResult.expression, inferenceResult.inferredType, fileOffset);
       inferenceResult = new ExpressionInferenceResult(
           typedTearoff.tearoffType, typedTearoff.tearoff);
     }
@@ -577,11 +579,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         isNonNullableByDefault: isNonNullableByDefault,
         isVoidAllowed: isVoidAllowed,
         isExpressionTypePrecise: preciseTypeErrorTemplate != null,
-        coerceExpression: isCoercionAllowed);
+        coerceExpression: isCoercionAllowed,
+        fileOffset: fileOffset);
 
     if (assignabilityResult.needsTearOff) {
-      TypedTearoff typedTearoff = _tearOffCall(inferenceResult.expression,
-          inferenceResult.inferredType as InterfaceType, fileOffset);
+      TypedTearoff typedTearoff = _tearOffCall(
+          inferenceResult.expression, inferenceResult.inferredType, fileOffset);
       inferenceResult = new ExpressionInferenceResult(
           typedTearoff.tearoffType, typedTearoff.tearoff);
     }
@@ -788,10 +791,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   TypedTearoff _tearOffCall(
-      Expression expression, InterfaceType expressionType, int fileOffset) {
-    Class classNode = expressionType.classNode;
-    Member callMember = membersBuilder.getInterfaceMember(classNode, callName)!;
-    assert(callMember is Procedure && callMember.kind == ProcedureKind.Method);
+      Expression expression, DartType expressionType, int fileOffset) {
+    ObjectAccessTarget target = findInterfaceMember(
+        expressionType, callName, fileOffset,
+        isSetter: false);
 
     // Replace expression with:
     // `let t = expression in t == null ? null : t.call`
@@ -804,13 +807,44 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         new EqualsNull(new VariableGet(t)..fileOffset = fileOffset)
           ..fileOffset = fileOffset;
 
-    DartType tearoffType =
-        getGetterTypeForMemberTarget(callMember, expressionType, isSuper: false)
-            .withDeclaredNullability(expressionType.nullability);
-    Expression tearOff = new InstanceTearOff(
-        InstanceAccessKind.Instance, new VariableGet(t), callName,
-        interfaceTarget: callMember as Procedure, resultType: tearoffType)
-      ..fileOffset = fileOffset;
+    DartType tearoffType = target.getGetterType(this);
+    Expression tearOff;
+    switch (target.kind) {
+      case ObjectAccessTargetKind.instanceMember:
+        tearOff = new InstanceTearOff(
+            InstanceAccessKind.Instance, new VariableGet(t), callName,
+            interfaceTarget: target.member as Procedure,
+            resultType: tearoffType)
+          ..fileOffset = fileOffset;
+      case ObjectAccessTargetKind.extensionTypeMember:
+        tearOff = new StaticInvocation(
+            target.tearoffTarget as Procedure,
+            new Arguments([new VariableGet(t)],
+                types: target.receiverTypeArguments)
+              ..fileOffset = fileOffset)
+          ..fileOffset = fileOffset;
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.superMember:
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+      case ObjectAccessTargetKind.dynamic:
+      case ObjectAccessTargetKind.never:
+      case ObjectAccessTargetKind.invalid:
+      case ObjectAccessTargetKind.missing:
+      case ObjectAccessTargetKind.ambiguous:
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+        throw new UnsupportedError("Unexpected call tear-off $target.");
+    }
+
     ConditionalExpression conditional = new ConditionalExpression(nullCheck,
         new NullLiteral()..fileOffset = fileOffset, tearOff, tearoffType);
     return new TypedTearoff(
@@ -825,30 +859,53 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required bool isNonNullableByDefault,
       required bool isVoidAllowed,
       required bool isExpressionTypePrecise,
-      required bool coerceExpression}) {
+      required bool coerceExpression,
+      required int fileOffset}) {
     // If an interface type is being assigned to a function type, see if we
     // should tear off `.call`.
     // TODO(paulberry): use resolveTypeParameter.  See findInterfaceMember.
     bool needsTearoff = false;
-    if (coerceExpression &&
-        expressionType is InterfaceType &&
-        _shouldMaybeTearOffCall(contextType)) {
-      Class classNode = expressionType.classNode;
-      Member? callMember =
-          membersBuilder.getInterfaceMember(classNode, callName);
-      if (callMember is Procedure && callMember.kind == ProcedureKind.Method) {
-        if (_shouldTearOffCall(contextType, expressionType)) {
-          needsTearoff = true;
-          if (isNonNullableByDefault && expressionType.isPotentiallyNullable) {
-            return const AssignabilityResult(
-                AssignabilityKind.unassignableCantTearoff,
-                needsTearOff: false);
-          }
-          expressionType = getGetterTypeForMemberTarget(
-                  callMember, expressionType,
-                  isSuper: false)
-              .withDeclaredNullability(expressionType.nullability);
+    if (coerceExpression && _shouldTearOffCall(contextType, expressionType)) {
+      ObjectAccessTarget target = findInterfaceMember(
+          expressionType, callName, fileOffset,
+          isSetter: false);
+      bool shouldTearOff;
+      switch (target.kind) {
+        case ObjectAccessTargetKind.instanceMember:
+        case ObjectAccessTargetKind.nullableInstanceMember:
+          Member? member = target.member;
+          shouldTearOff =
+              member is Procedure && member.kind == ProcedureKind.Method;
+        case ObjectAccessTargetKind.extensionTypeMember:
+        case ObjectAccessTargetKind.nullableExtensionTypeMember:
+          shouldTearOff = target.tearoffTarget is Procedure;
+        case ObjectAccessTargetKind.objectMember:
+        case ObjectAccessTargetKind.superMember:
+        case ObjectAccessTargetKind.extensionMember:
+        case ObjectAccessTargetKind.nullableExtensionMember:
+        case ObjectAccessTargetKind.dynamic:
+        case ObjectAccessTargetKind.never:
+        case ObjectAccessTargetKind.invalid:
+        case ObjectAccessTargetKind.missing:
+        case ObjectAccessTargetKind.ambiguous:
+        case ObjectAccessTargetKind.recordIndexed:
+        case ObjectAccessTargetKind.recordNamed:
+        case ObjectAccessTargetKind.nullableRecordIndexed:
+        case ObjectAccessTargetKind.nullableRecordNamed:
+        case ObjectAccessTargetKind.callFunction:
+        case ObjectAccessTargetKind.nullableCallFunction:
+        case ObjectAccessTargetKind.extensionTypeRepresentation:
+        case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+          shouldTearOff = false;
+      }
+      if (shouldTearOff) {
+        needsTearoff = true;
+        if (isNonNullableByDefault && target.isNullable) {
+          return const AssignabilityResult(
+              AssignabilityKind.unassignableCantTearoff,
+              needsTearOff: false);
         }
+        expressionType = target.getGetterType(this);
       }
     }
     ImplicitInstantiation? implicitInstantiation;
@@ -2270,11 +2327,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     bodyResult = closureContext.handleImplicitReturn(
         this, function.body!, bodyResult, fileOffset);
-    function.futureValueType = closureContext.futureValueType;
-    assert(
-        !(function.asyncMarker == AsyncMarker.Async &&
-            function.futureValueType == null),
-        "No future value type computed.");
+    function.emittedValueType = closureContext.emittedValueType;
 
     if (bodyResult.hasChanged) {
       function.body = bodyResult.statement..parent = function;
@@ -3722,7 +3775,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Computes the `futureValueTypeSchema` for the type schema [type].
   ///
-  /// This is the same as the [futureValueType] except that this handles
+  /// This is the same as the [emittedValueType] except that this handles
   /// the unknown type.
   DartType computeFutureValueTypeSchema(DartType type) {
     return type.accept1(new FutureValueTypeVisitor(unhandledTypeHandler:
@@ -3834,19 +3887,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           SubtypeCheckMode.ignoringNullabilities)) {
         return true;
       }
-    }
-    return false;
-  }
-
-  bool _shouldMaybeTearOffCall(DartType contextType) {
-    if (contextType is FutureOrType) {
-      contextType = contextType.typeArgument;
-    }
-    if (contextType is FunctionType) return true;
-    if (contextType is InterfaceType &&
-        contextType.classReference ==
-            typeSchemaEnvironment.functionClass.reference) {
-      return true;
     }
     return false;
   }
@@ -4677,7 +4717,31 @@ class _ObjectAccessDescriptor {
     } else if (receiverBound is NeverType) {
       switch (receiverBound.nullability) {
         case Nullability.nonNullable:
-          return const ObjectAccessTarget.never();
+          Member? interfaceMember =
+              visitor._getInterfaceMember(classNode, name, isSetter);
+          FunctionType? functionType;
+          if (interfaceMember is Procedure) {
+            // The member exists on `Object` but has a special function type
+            // that we compute here.
+            FunctionNode function = interfaceMember.function;
+            assert(
+                function.namedParameters.isEmpty,
+                "Unexpected named parameters on $classNode member "
+                "$interfaceMember.");
+            assert(
+                function.typeParameters.isEmpty,
+                "Unexpected type parameters on $classNode member "
+                "$interfaceMember.");
+            functionType = new FunctionType(
+                new List<DartType>.filled(
+                    function.positionalParameters.length, const DynamicType()),
+                const NeverType.nonNullable(),
+                Nullability.nonNullable);
+          }
+          return new ObjectAccessTarget.never(
+            member: interfaceMember,
+            functionType: functionType,
+          );
         case Nullability.nullable:
         case Nullability.legacy:
           // Never? and Never* are equivalent to Null.

@@ -1,8 +1,8 @@
 // Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-import 'package:analyzer/dart/ast/ast.dart';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:scrape/scrape.dart';
 
 /// Looks at expressions that could likely be converted to spread operators and
@@ -12,7 +12,7 @@ void main(List<String> arguments) {
   Scrape()
     ..addHistogram('Arguments')
     ..addHistogram('Lengths', order: SortOrder.numeric)
-    ..addVisitor(() => SpreadVisitor())
+    ..addVisitor(SpreadVisitor.new)
     ..runCommandLine(arguments);
 }
 

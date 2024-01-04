@@ -17,9 +17,6 @@ void main() {
 class ClassStaticMembersWithoutClassNameTest
     extends AbstractCompletionDriverTest with _Helpers {
   @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-
-  @override
   Future<void> setUp() async {
     await super.setUp();
 

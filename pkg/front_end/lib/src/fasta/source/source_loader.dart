@@ -1503,8 +1503,6 @@ severity: $severity
   ///
   /// If no macros need precompilation, `null` is returned.
   NeededPrecompilations? computeMacroDeclarations() {
-    if (!enableMacros) return null;
-
     LibraryBuilder? macroLibraryBuilder = lookupLibraryBuilder(macroLibraryUri);
     if (macroLibraryBuilder == null) return null;
 
@@ -1678,7 +1676,7 @@ severity: $severity
   Class? get macroClass => _macroClassBuilder?.cls;
 
   Future<MacroApplications?> computeMacroApplications() async {
-    if ((!enableMacros || _macroClassBuilder == null) && !forceEnableMacros) {
+    if (_macroClassBuilder == null) {
       return null;
     }
 
@@ -1864,19 +1862,24 @@ severity: $severity
 
     // Ensure that type parameters are built after their dependencies by sorting
     // them topologically using references in bounds.
-    List< /* NominalVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
-        sortedTypeVariables = sortAllTypeVariablesTopologically([
+    List<TypeVariableBuilderBase> sortedTypeVariables =
+        sortAllTypeVariablesTopologically([
       ...unboundFunctionTypeTypeVariableBuilders.keys,
       ...unboundTypeVariableBuilders.keys
     ]);
-    for (Object builder in sortedTypeVariables) {
-      if (builder is NominalVariableBuilder) {
-        builder.finish(
-            unboundTypeVariableBuilders[builder]!, object, dynamicType);
-      } else {
-        builder as StructuralVariableBuilder;
-        builder.finish(unboundFunctionTypeTypeVariableBuilders[builder]!,
-            object, dynamicType);
+
+    for (TypeVariableBuilderBase builder in sortedTypeVariables) {
+      switch (builder) {
+        case NominalVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundTypeVariableBuilders[builder]!;
+          libraryBuilder.checkTypeVariableDependencies([builder]);
+          builder.finish(libraryBuilder, object, dynamicType);
+        case StructuralVariableBuilder():
+          SourceLibraryBuilder? libraryBuilder =
+              unboundFunctionTypeTypeVariableBuilders[builder]!;
+          libraryBuilder.checkTypeVariableDependencies([builder]);
+          builder.finish(libraryBuilder, object, dynamicType);
       }
     }
 
@@ -3130,7 +3133,7 @@ severity: $severity
 
   @override
   TypeBuilder computeTypeBuilder(DartType type) {
-    return type.accept(_typeBuilderComputer);
+    return _typeBuilderComputer.visit(type);
   }
 
   BodyBuilder createBodyBuilderForField(

@@ -1040,6 +1040,22 @@ AbstractLateField:
   script:
     - "abstract class C {abstract late var f;}"
 
+AbstractFinalBaseClass:
+  problemMessage: "An 'abstract' class can't be declared as both 'final' and 'base'."
+  correctionMessage: "Try removing either the 'final' or 'base' keyword."
+  analyzerCode: ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS
+  index: 176
+  script:
+    - "abstract final base class C {}"
+
+AbstractFinalInterfaceClass:
+  problemMessage: "An 'abstract' class can't be declared as both 'final' and 'interface'."
+  correctionMessage: "Try removing either the 'final' or 'interface' keyword."
+  analyzerCode: ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS
+  index: 177
+  script:
+    - "abstract final interface class C {}"
+
 AbstractSealedClass:
   problemMessage: "A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract."
   correctionMessage: "Try removing the 'abstract' keyword."
@@ -1254,9 +1270,10 @@ ExternalConstructorWithBody:
     - "class C { external C() {} }"
 
 ExternalConstructorWithFieldInitializers:
+  index: 178
   problemMessage: "An external constructor can't initialize fields."
   correctionMessage: "Try removing the field initializers, or removing the keyword 'external'."
-  analyzerCode: EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
+  analyzerCode: ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS
 
 ExternalFactoryWithBody:
   index: 86
@@ -1411,6 +1428,22 @@ ExtraneousModifierInExtension:
     ```
   script:
     - "extension on String { foo(covariant String child) {} }"
+
+ExtraneousModifierInExtensionType:
+  index: 174
+  problemMessage: "Can't have modifier '#lexeme' in an extension type."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE
+  script:
+    - "extension type ET(String i) { foo(covariant String child) {} }"
+
+ExtraneousModifierInPrimaryConstructor:
+  index: 175
+  problemMessage: "Can't have modifier '#lexeme' in a primary constructor."
+  correctionMessage: "Try removing '#lexeme'."
+  analyzerCode: ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR
+  script:
+    - "extension type ET(covariant String i) { }"
 
 FinalAndCovariant:
   index: 80
@@ -1995,7 +2028,7 @@ FunctionTypeDefaultValue:
   analyzerCode: DEFAULT_VALUE_IN_FUNCTION_TYPE
 
 PrivateNamedParameter:
-  problemMessage: "An optional named parameter can't start with '_'."
+  problemMessage: "A named parameter can't start with an underscore ('_')."
   analyzerCode: PRIVATE_OPTIONAL_PARAMETER
 
 NoFormals:
@@ -4592,14 +4625,14 @@ NonSimpleBoundViaReference:
 
 CycleInTypeVariables:
   problemMessage: "Type '#name' is a bound of itself via '#string'."
-  correctionMessage: "Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle."
+  correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
   script:
     - "foo<A extends B, B extends A>() {}"
 
 DirectCycleInTypeVariables:
   problemMessage: "Type '#name' can't use itself as a bound."
-  correctionMessage: "Try breaking the cycle by removing at least on of the 'extends' clauses in the cycle."
+  correctionMessage: "Try breaking the cycle by removing at least one of the 'extends' clauses in the cycle."
   analyzerCode: TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND
   script:
     - "foo<A extends A>() {}"
@@ -5139,6 +5172,12 @@ FfiDartTypeMismatch:
   problemMessage: "Expected '#type' to be a subtype of '#type2'."
   external: test/ffi_test.dart
 
+FfiDefaultAssetDuplicate:
+  # Used by dart:ffi
+  problemMessage: "There may be at most one @DefaultAsset annotation on a library."
+  external: test/ffi_test.dart
+  analyzerCode: FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET
+
 FfiExpectedExceptionalReturn:
   # Used by dart:ffi
   problemMessage: "Expected an exceptional return value for a native callback returning '#type'."
@@ -5179,6 +5218,27 @@ FfiLeafCallMustNotReturnHandle:
   problemMessage: "FFI leaf call must not have Handle return type."
   external: test/ffi_test.dart
 
+FfiNonLeafCallMustNotTakeTypedData:
+  # Used by dart:ffi
+  problemMessage: "FFI non-leaf calls can't take typed data arguments."
+  correctionMessage: Try changing the call to a leaf call.
+  analyzerCode: NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA
+  external: test/ffi_test.dart
+
+FfiCallMustNotReturnTypedData:
+  # Used by dart:ffi
+  problemMessage: "FFI calls can't return typed data."
+  correctionMessage: Try changing using `Pointer`s.
+  analyzerCode: CALL_MUST_NOT_RETURN_TYPED_DATA
+  external: test/ffi_test.dart
+
+FfiCallbackMustNotUseTypedData:
+  # Used by dart:ffi
+  problemMessage: "FFI callbacks can't take typed data arguments or return value."
+  correctionMessage: Try changing using `Pointer`s.
+  analyzerCode: CALLBACK_MUST_NOT_USE_TYPED_DATA
+  external: test/ffi_test.dart 
+
 FfiNativeUnexpectedNumberOfParametersWithReceiver:
   # Used by dart:ffi
   problemMessage: "Unexpected number of Native annotation parameters. Expected #count but has #count2. Native instance method annotation must have receiver as first argument."
@@ -5196,7 +5256,37 @@ FfiNativeOnlyNativeFieldWrapperClassCanBePointer:
 
 FfiNativeMustBeExternal:
   # Used by dart:ffi
-  problemMessage: "Native functions must be marked external."
+  problemMessage: "Native functions and fields must be marked external."
+  external: test/ffi_test.dart
+
+FfiNativeDuplicateAnnotations:
+  # Used by dart:ffi
+  problemMessage: "Native functions and fields must not have more than @Native annotation."
+  external: test/ffi_test.dart
+  analyzerCode: FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS
+
+FfiNativeFieldMustBeStatic:
+  # Used by dart:ffi
+  problemMessage: "Native fields must be static."
+  analyzerCode: NATIVE_FIELD_NOT_STATIC
+  external: test/ffi_test.dart
+
+FfiNativeFieldMissingType:
+  # Used by dart:ffi
+  problemMessage: "The native type of this field could not be inferred and must be specified in the annotation."
+  analyzerCode: NATIVE_FIELD_MISSING_TYPE
+  external: test/ffi_test.dart
+
+FfiNativeFieldType:
+  # Used by dart:ffi
+  problemMessage: "Unsupported type for native fields. Native fields only support pointers, compounds and numeric types."
+  analyzerCode: NATIVE_FIELD_INVALID_TYPE
+  external: test/ffi_test.dart
+
+FfiAddressOfMustBeNative:
+  # Used by dart:ffi
+  problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native."
+  analyzerCode: ARGUMENT_MUST_BE_NATIVE
   external: test/ffi_test.dart
 
 SpreadTypeMismatch:
@@ -5529,7 +5619,7 @@ FieldNotPromotedBecauseNotField:
     }
 
 FieldNotPromotedBecauseNotPrivate:
-  problemMessage: "'#name' refers to a public field so it couldn't be promoted."
+  problemMessage: "'#name' refers to a public property so it couldn't be promoted."
   correctionMessage: "See #string"
   script: >
     class C {
@@ -5714,6 +5804,10 @@ JsInteropDartJsInteropAnnotationForStaticInteropOnly:
   problemMessage: "The '@JS' annotation from 'dart:js_interop' can only be used for static interop, either through extension types or '@staticInterop' classes."
   correctionMessage: "Try making this class an extension type or marking it as '@staticInterop'."
 
+JsInteropDisallowedInteropLibraryInDart2Wasm:
+  problemMessage: "JS interop library '#name' can't be imported when compiling to Wasm."
+  correctionMessage: "Try using 'dart:js_interop' or 'dart:js_interop_unsafe' instead."
+
 JsInteropEnclosingClassJSAnnotation:
   problemMessage: "Member has a JS interop annotation but the enclosing class does not."
   correctionMessage: "Try adding the annotation to the enclosing class."
@@ -5775,6 +5869,14 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
+JsInteropFunctionToJSRequiresStaticType:
+  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a precise function type, e.g., `void Function()`."
+  correctionMessage: "Insert an explicit cast to the expected function type."
+
+JsInteropFunctionToJSTypeParameters:
+  problemMessage: "Functions converted via `toJS` cannot declare type parameters."
+  correctionMessage: "Remove the declared type parameters from the function."
+
 JsInteropInvalidStaticClassMemberName:
   problemMessage: "JS interop static class members cannot have '.' in their JS name."
 
@@ -5807,19 +5909,15 @@ JsInteropOperatorCannotBeRenamed:
   correctionMessage: "Remove the annotation or remove the value inside the annotation."
 
 JsInteropOperatorsNotSupported:
-  problemMessage: "JS interop classes do not support operator methods, with the exception of '[]' and '[]=' using static interop."
-  correctionMessage: "Try replacing this with a normal method."
+  problemMessage: "JS interop types do not support overloading external operator methods, with the exception of '[]' and '[]=' using static interop."
+  correctionMessage: "Try making this class a static interop type instead."
 
 JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
-JsInteropStaticInteropExternalMemberWithInvalidTypeParameters:
-  problemMessage: "External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types."
-  correctionMessage: "Try adding a valid bound to the type parameters used in this member."
-
 JsInteropStaticInteropExternalTypeViolation:
-  problemMessage: "Type '#type' is not a valid type for external `dart:js_interop` APIs. The only valid types are: @staticInterop types, JS types from `dart:js_interop`, void, bool, num, double, int, String, and any extension type that erases to one of these types."
+  problemMessage: "Type '#type' is not a valid type in the signature of `dart:js_interop` external APIs or APIs converted via `toJS`. The only valid types are: JS types from `dart:js_interop`, @staticInterop types, void, bool, num, double, int, String, extension types that erases to one of these types, or a type parameter that is bound to a static interop type."
   correctionMessage: "Use one of the valid types instead."
 
 JsInteropStaticInteropGenerativeConstructor:
@@ -5871,21 +5969,9 @@ JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
 
-JsInteropStaticInteropWithInvalidJsTypesSupertype:
-  problemMessage: "`@staticInterop` class '#name' cannot have '#name2' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes."
-  correctionMessage: "Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '#name' to '#name2' when needed."
-
 JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."
-
-JsInteropStrictModeForbiddenLibrary:
-  problemMessage: "Library '#name' is forbidden when strict mode is enabled."
-  correctionMessage: "Remove the import of a forbidden library."
-
-JsInteropFunctionToJSRequiresStaticType:
-  problemMessage: "`Function.toJS` requires a statically known function type, but Type '#type' is not a function type, e.g., `void Function()`."
-  correctionMessage: "Insert an explicit cast to the expected function type."
 
 NonNullableInNullAware:
   problemMessage: "Operand of null-aware operation '#name' has type '#type' which excludes null."
@@ -6053,6 +6139,12 @@ NeverReachableSwitchExpressionError:
 
 NeverReachableSwitchStatementError:
   problemMessage: "`null` encountered as case in a switch statement with a non-nullable type."
+
+UnsoundSwitchExpressionError:
+  problemMessage: "None of the patterns in the switch expression the matched input value. See https://github.com/dart-lang/language/issues/3488 for details."
+
+UnsoundSwitchStatementError:
+  problemMessage: "None of the patterns in the exhaustive switch statement the matched input value. See https://github.com/dart-lang/language/issues/3488 for details."
 
 NeverValueError:
   problemMessage: "`null` encountered as the result from expression with type `Never`."
@@ -7400,6 +7492,20 @@ ExtensionTypeConstructorWithSuperFormalParameter:
     extension type A(int foo) { A.named(this.foo, super.bar); }
   analyzerCode: EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER
 
+ExtensionTypePrimaryConstructorWithInitializingFormal:
+  problemMessage: "Primary constructors in extension types can't use initializing formals."
+  correctionMessage: "Try removing `this.` from the formal parameter."
+  experiments: inline-class
+  script: |
+    extension type A(int this.foo) { }
+
+ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax:
+  problemMessage: "Primary constructors in extension types can't use function formal parameter syntax."
+  correctionMessage: "Try rewriting with an explicit function type, like `int Function() f`."
+  experiments: inline-class
+  script: |
+    extension type A(int foo()) { }
+
 ExtensionTypeRepresentationTypeBottom:
   problemMessage: "The representation type can't be a bottom type."
   experiments: inline-class
@@ -7439,3 +7545,58 @@ OptionalParametersInExtensionTypeDeclaration:
   experiments: inline-class
   script: |
     extension type E(int foo, [dynamic bar]) {}
+
+ClassImplementsDeferredClass:
+  problemMessage: "Classes and mixins can't implement deferred classes."
+  correctionMessage: Try specifying a different interface, removing the class from the list, or changing the import to not be deferred.
+  analyzerCode: IMPLEMENTS_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      class B implements d.A {}
+    lib.dart: |
+      class A {}
+
+MixinDeferredMixin:
+  problemMessage: "Classes can't mix in deferred mixins."
+  correctionMessage: Try changing the import to not be deferred.
+  analyzerCode: MIXIN_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      class B with d.A {}
+    lib.dart: |
+      mixin A {}
+
+MixinSuperClassConstraintDeferredClass:
+  problemMessage: "Deferred classes can't be used as superclass constraints."
+  correctionMessage: Try changing the import to not be deferred.
+  analyzerCode: MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      mixin B on d.A {}
+    lib.dart: |
+      class A {}
+
+ExtendsDeferredClass:
+  problemMessage: "Classes can't extend deferred classes."
+  correctionMessage: Try specifying a different superclass, or removing the extends clause.
+  analyzerCode: EXTENDS_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      class B extends d.A {}
+    lib.dart: |
+      class A {}
+
+ExtensionTypeImplementsDeferred:
+  problemMessage: "Extension types can't implement deferred types."
+  correctionMessage: Try specifying a different type, removing the type from the list, or changing the import to not be deferred.
+  analyzerCode: IMPLEMENTS_DEFERRED_CLASS
+  script:
+    main.dart: |
+      import 'lib.dart' deferred as d;
+      extension type ET(d.A id) implements d.A {}
+    lib.dart: |
+      class A {}

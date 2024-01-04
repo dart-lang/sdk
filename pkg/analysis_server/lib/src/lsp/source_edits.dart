@@ -17,8 +17,6 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:dart_style/dart_style.dart';
 
-DartFormatter _formatter = DartFormatter();
-
 /// Checks whether a string contains only whitespace and commas.
 final _isWhitespaceAndCommas = RegExp(r'^[\s,]*$').hasMatch;
 
@@ -87,11 +85,10 @@ ErrorOr<List<TextEdit>?> generateEditsForFormatting(
       SourceCode(unformattedSource, uri: null, isCompilationUnit: true);
   SourceCode formattedResult;
   try {
-    // If the lineLength has changed, recreate the formatter with the new setting.
-    if (lineLength != _formatter.pageWidth) {
-      _formatter = DartFormatter(pageWidth: lineLength);
-    }
-    formattedResult = _formatter.formatSource(code);
+    // Create a new formatter on every request because it may contain state that
+    // affects repeated formats.
+    // https://github.com/dart-lang/dart_style/issues/1337
+    formattedResult = DartFormatter(pageWidth: lineLength).formatSource(code);
   } on FormatterException {
     // If the document fails to parse, just return no edits to avoid the
     // use seeing edits on every save with invalid code (if LSP gains the

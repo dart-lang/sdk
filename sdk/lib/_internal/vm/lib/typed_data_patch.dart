@@ -103,7 +103,7 @@ abstract final class _TypedListBase {
   }
 
   @pragma("vm:prefer-inline")
-  void setRange(int start, int end, Iterable from, [int skipCount = 0]) {
+  void _setRange(int start, int end, Iterable from, [int skipCount = 0]) {
     // Range check all numeric inputs.
     if (0 > start || start > end || end > length) {
       RangeError.checkValidRange(start, end, length); // Always throws.
@@ -114,8 +114,8 @@ abstract final class _TypedListBase {
     }
 
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<int> so there is
-      // no promotion here.
+      // Note: _TypedListBase is not related to Iterable so there is no
+      // promotion here.
       final fromAsTyped = unsafeCast<_TypedListBase>(from);
       if (fromAsTyped.elementSizeInBytes == elementSizeInBytes) {
         // Check that from has enough elements, which is assumed by
@@ -206,7 +206,7 @@ abstract final class _TypedListBase {
       int start, int count, _TypedListBase from, int skipCount);
 }
 
-mixin _IntListMixin implements List<int> {
+base mixin _IntListMixin on _TypedListBase implements List<int> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -476,9 +476,13 @@ mixin _IntListMixin implements List<int> {
       this[i] = fillValue;
     }
   }
+
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) =>
+      _setRange(start, end, from, skipCount);
 }
 
-mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
+base mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
     implements List<int> {
   SpawnedType _createList(int length);
 
@@ -486,8 +490,8 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
     // The numeric inputs have already been checked, all that's left is to
     // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<int> so there is
-      // no promotion here.
+      // Note: _TypedListBase is not related to Iterable so there is no
+      // promotion here.
       final fromAsTyped = unsafeCast<_TypedListBase>(from);
       if (fromAsTyped.buffer == this.buffer) {
         final count = end - start;
@@ -536,7 +540,7 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
   }
 }
 
-mixin _DoubleListMixin implements List<double> {
+base mixin _DoubleListMixin on _TypedListBase implements List<double> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -809,9 +813,14 @@ mixin _DoubleListMixin implements List<double> {
       this[i] = fillValue;
     }
   }
+
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable<double> from,
+          [int skipCount = 0]) =>
+      _setRange(start, end, from, skipCount);
 }
 
-mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
+base mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
     on _DoubleListMixin implements List<double> {
   SpawnedType _createList(int length);
 
@@ -819,8 +828,8 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
     // The numeric inputs have already been checked, all that's left is to
     // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<int> so there is
-      // no promotion here.
+      // Note: _TypedListBase is not related to Iterable so there is no
+      // promotion here.
       final fromAsTyped = unsafeCast<_TypedListBase>(from);
       if (fromAsTyped.buffer == this.buffer) {
         final count = end - start;
@@ -869,7 +878,7 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
   }
 }
 
-mixin _Float32x4ListMixin implements List<Float32x4> {
+base mixin _Float32x4ListMixin on _TypedListBase implements List<Float32x4> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -935,8 +944,8 @@ mixin _Float32x4ListMixin implements List<Float32x4> {
     // The numeric inputs have already been checked, all that's left is to
     // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<int> so there is
-      // no promotion here.
+      // Note: _TypedListBase is not related to Iterable so there is no
+      // promotion here.
       final fromAsTyped = unsafeCast<_TypedListBase>(from);
       if (fromAsTyped.buffer == this.buffer) {
         final count = end - start;
@@ -1200,9 +1209,14 @@ mixin _Float32x4ListMixin implements List<Float32x4> {
       this[i] = fillValue;
     }
   }
+
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable<Float32x4> from,
+          [int skipCount = 0]) =>
+      _setRange(start, end, from, skipCount);
 }
 
-mixin _Int32x4ListMixin implements List<Int32x4> {
+base mixin _Int32x4ListMixin on _TypedListBase implements List<Int32x4> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -1268,8 +1282,8 @@ mixin _Int32x4ListMixin implements List<Int32x4> {
     // The numeric inputs have already been checked, all that's left is to
     // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<int> so there is
-      // no promotion here.
+      // Note: _TypedListBase is not related to Iterable so there is no
+      // promotion here.
       final fromAsTyped = unsafeCast<_TypedListBase>(from);
       if (fromAsTyped.buffer == this.buffer) {
         final count = end - start;
@@ -1532,9 +1546,14 @@ mixin _Int32x4ListMixin implements List<Int32x4> {
       this[i] = fillValue;
     }
   }
+
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable<Int32x4> from,
+          [int skipCount = 0]) =>
+      _setRange(start, end, from, skipCount);
 }
 
-mixin _Float64x2ListMixin implements List<Float64x2> {
+base mixin _Float64x2ListMixin on _TypedListBase implements List<Float64x2> {
   int get elementSizeInBytes;
   int get offsetInBytes;
   _ByteBuffer get buffer;
@@ -1600,8 +1619,8 @@ mixin _Float64x2ListMixin implements List<Float64x2> {
     // The numeric inputs have already been checked, all that's left is to
     // check that from has enough elements when applicable.
     if (from is _TypedListBase) {
-      // Note: _TypedListBase is not related to Iterable<int> so there is
-      // no promotion here.
+      // Note: _TypedListBase is not related to Iterable so there is no
+      // promotion here.
       final fromAsTyped = unsafeCast<_TypedListBase>(from);
       if (fromAsTyped.buffer == this.buffer) {
         final count = end - start;
@@ -1865,6 +1884,11 @@ mixin _Float64x2ListMixin implements List<Float64x2> {
       this[i] = fillValue;
     }
   }
+
+  @pragma("vm:prefer-inline")
+  void setRange(int start, int end, Iterable<Float64x2> from,
+          [int skipCount = 0]) =>
+      _setRange(start, end, from, skipCount);
 }
 
 @pragma("vm:entry-point")
@@ -2362,14 +2386,15 @@ final class _Int16List extends _TypedList
   }
 
   @pragma("vm:prefer-inline")
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    if (iterable is CodeUnits) {
+  @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (from is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
       int byteStart = this.offsetInBytes + start * Int16List.bytesPerElement;
-      _setCodeUnits(iterable, byteStart, length, skipCount);
+      _setCodeUnits(from, byteStart, length, skipCount);
     } else {
-      super.setRange(start, end, iterable, skipCount);
+      super.setRange(start, end, from, skipCount);
     }
   }
 
@@ -2438,14 +2463,15 @@ final class _Uint16List extends _TypedList
   }
 
   @pragma("vm:prefer-inline")
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    if (iterable is CodeUnits) {
+  @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (from is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
       int byteStart = this.offsetInBytes + start * Uint16List.bytesPerElement;
-      _setCodeUnits(iterable, byteStart, length, skipCount);
+      _setCodeUnits(from, byteStart, length, skipCount);
     } else {
-      super.setRange(start, end, iterable, skipCount);
+      super.setRange(start, end, from, skipCount);
     }
   }
 
@@ -4405,14 +4431,15 @@ final class _Int16ArrayView extends _TypedListView
   }
 
   @pragma("vm:prefer-inline")
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    if (iterable is CodeUnits) {
+  @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (from is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
       int byteStart = this.offsetInBytes + start * Int16List.bytesPerElement;
-      _typedData._setCodeUnits(iterable, byteStart, length, skipCount);
+      _typedData._setCodeUnits(from, byteStart, length, skipCount);
     } else {
-      super.setRange(start, end, iterable, skipCount);
+      super.setRange(start, end, from, skipCount);
     }
   }
 
@@ -4464,14 +4491,15 @@ final class _Uint16ArrayView extends _TypedListView
   }
 
   @pragma("vm:prefer-inline")
-  void setRange(int start, int end, Iterable iterable, [int skipCount = 0]) {
-    if (iterable is CodeUnits) {
+  @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (from is CodeUnits) {
       end = RangeError.checkValidRange(start, end, this.length);
       int length = end - start;
       int byteStart = this.offsetInBytes + start * Uint16List.bytesPerElement;
-      _typedData._setCodeUnits(iterable, byteStart, length, skipCount);
+      _typedData._setCodeUnits(from, byteStart, length, skipCount);
     } else {
-      super.setRange(start, end, iterable, skipCount);
+      super.setRange(start, end, from, skipCount);
     }
   }
 

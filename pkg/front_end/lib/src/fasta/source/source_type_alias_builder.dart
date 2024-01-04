@@ -9,13 +9,16 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
+import '../builder/formal_parameter_builder.dart';
+import '../builder/invalid_type_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fasta_codes.dart'
-    show noLength, templateCyclicTypedef, templateTypeArgumentMismatch;
+    show templateCyclicTypedef, templateTypeArgumentMismatch;
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/expression_generator_helper.dart';
@@ -27,7 +30,7 @@ import 'source_library_builder.dart' show SourceLibraryBuilder;
 
 class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   @override
-  final TypeBuilder type;
+  TypeBuilder type;
 
   final List<NominalVariableBuilder>? _typeVariables;
 
@@ -85,7 +88,172 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
   Typedef build() {
     buildThisType();
+    if (_checkCyclicTypedefDependency(type, this, {this})) {
+      typedef.type = new InvalidType();
+      type = new InvalidTypeBuilderImpl(fileUri, charOffset);
+    }
+    if (typeVariables != null) {
+      for (TypeVariableBuilderBase typeVariable in typeVariables!) {
+        if (_checkCyclicTypedefDependency(typeVariable.bound, this, {this})) {
+          // The bound is erroneous and should be set to [InvalidType].
+          typeVariable.parameterBound = new InvalidType();
+          typeVariable.parameterDefaultType = new InvalidType();
+          typeVariable.bound = new InvalidTypeBuilderImpl(fileUri, charOffset);
+          typeVariable.defaultType =
+              new InvalidTypeBuilderImpl(fileUri, charOffset);
+          // The typedef itself can't be used without proper bounds of its type
+          // variables, so we set it to mean [InvalidType] too.
+          typedef.type = new InvalidType();
+          type = new InvalidTypeBuilderImpl(fileUri, charOffset);
+        }
+      }
+    }
     return typedef;
+  }
+
+  @override
+  TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+      List<TypeBuilder>? unboundTypes,
+      List<StructuralVariableBuilder>? unboundTypeVariables}) {
+    build();
+    return super.unalias(typeArguments,
+        usedTypeAliasBuilders: usedTypeAliasBuilders,
+        unboundTypes: unboundTypes,
+        unboundTypeVariables: unboundTypeVariables);
+  }
+
+  bool _checkCyclicTypedefDependency(
+      TypeBuilder? typeBuilder,
+      TypeAliasBuilder rootTypeAliasBuilder,
+      Set<TypeAliasBuilder> seenTypeAliasBuilders) {
+    switch (typeBuilder) {
+      case NamedTypeBuilder(
+          :TypeDeclarationBuilder? declaration,
+          typeArguments: List<TypeBuilder>? arguments
+        ):
+        if (declaration is TypeAliasBuilder) {
+          bool declarationSeenFirstTime =
+              !seenTypeAliasBuilders.contains(declaration);
+          if (declaration == rootTypeAliasBuilder) {
+            for (TypeAliasBuilder seenTypeAliasBuilder in {
+              ...seenTypeAliasBuilders,
+              declaration
+            }) {
+              seenTypeAliasBuilder.libraryBuilder.addProblem(
+                  templateCyclicTypedef
+                      .withArguments(seenTypeAliasBuilder.name),
+                  seenTypeAliasBuilder.charOffset,
+                  seenTypeAliasBuilder.name.length,
+                  seenTypeAliasBuilder.fileUri);
+            }
+            return true;
+          } else {
+            if (declarationSeenFirstTime) {
+              if (_checkCyclicTypedefDependency(
+                  declaration.type,
+                  rootTypeAliasBuilder,
+                  {...seenTypeAliasBuilders, declaration})) {
+                return true;
+              }
+              if (declaration.typeVariables != null) {
+                for (TypeVariableBuilderBase typeVariable
+                    in declaration.typeVariables!) {
+                  if (_checkCyclicTypedefDependency(
+                      typeVariable.bound,
+                      rootTypeAliasBuilder,
+                      {...seenTypeAliasBuilders, declaration})) {
+                    return true;
+                  }
+                }
+              }
+            }
+          }
+        }
+        if (arguments != null) {
+          for (TypeBuilder typeArgument in arguments) {
+            if (_checkCyclicTypedefDependency(
+                typeArgument, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              return true;
+            }
+          }
+        } else if (declaration != null && declaration.typeVariablesCount > 0) {
+          List<TypeVariableBuilderBase>? typeParameters;
+          switch (declaration) {
+            case ClassBuilder():
+              typeParameters = declaration.typeVariables;
+            case TypeAliasBuilder():
+              typeParameters = declaration.typeVariables;
+            case ExtensionTypeDeclarationBuilder():
+              typeParameters = declaration.typeParameters;
+            case BuiltinTypeDeclarationBuilder():
+            case InvalidTypeDeclarationBuilder():
+            case OmittedTypeDeclarationBuilder():
+            case ExtensionBuilder():
+            case TypeVariableBuilderBase():
+          }
+          if (typeParameters != null) {
+            for (int i = 0; i < typeParameters.length; i++) {
+              TypeVariableBuilderBase typeParameter = typeParameters[i];
+              if (_checkCyclicTypedefDependency(typeParameter.defaultType!,
+                  rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+                return true;
+              }
+            }
+          }
+        }
+      case FunctionTypeBuilder(
+          :List<StructuralVariableBuilder>? typeVariables,
+          :List<ParameterBuilder>? formals,
+          :TypeBuilder returnType
+        ):
+        if (_checkCyclicTypedefDependency(
+            returnType, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+          return true;
+        }
+        if (formals != null) {
+          for (ParameterBuilder formal in formals) {
+            if (_checkCyclicTypedefDependency(
+                formal.type, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              return true;
+            }
+          }
+        }
+        if (typeVariables != null) {
+          for (StructuralVariableBuilder typeVariable in typeVariables) {
+            TypeBuilder? bound = typeVariable.bound;
+            if (_checkCyclicTypedefDependency(
+                bound, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              return true;
+            }
+          }
+        }
+      case RecordTypeBuilder(
+          :List<RecordTypeFieldBuilder>? positionalFields,
+          :List<RecordTypeFieldBuilder>? namedFields
+        ):
+        if (positionalFields != null) {
+          for (RecordTypeFieldBuilder field in positionalFields) {
+            if (_checkCyclicTypedefDependency(
+                field.type, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              return true;
+            }
+          }
+        }
+        if (namedFields != null) {
+          for (RecordTypeFieldBuilder field in namedFields) {
+            if (_checkCyclicTypedefDependency(
+                field.type, rootTypeAliasBuilder, seenTypeAliasBuilders)) {
+              return true;
+            }
+          }
+        }
+      case OmittedTypeBuilder():
+      case FixedTypeBuilder():
+      case InvalidTypeBuilder():
+      case null:
+    }
+    return false;
   }
 
   @override
@@ -93,8 +261,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     if (thisType != null) {
       if (identical(thisType, pendingTypeAliasMarker)) {
         thisType = cyclicTypeAliasMarker;
-        libraryBuilder.addProblem(templateCyclicTypedef.withArguments(name),
-            charOffset, noLength, fileUri);
+        // Cyclic type alias. The error is reported elsewhere.
         return const InvalidType();
       } else if (identical(thisType, cyclicTypeAliasMarker)) {
         return const InvalidType();

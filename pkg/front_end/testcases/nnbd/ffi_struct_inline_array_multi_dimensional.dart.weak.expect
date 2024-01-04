@@ -13,7 +13,7 @@ final class StructInlineArrayMultiDimensional extends ffi::Struct {
   @#C3
   external get a0() → ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>>;
   @#C3
-  external set a0(ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void;
+  external set a0(synthesized ffi::Array<ffi::Array<ffi::Array<ffi::Uint8>>> #externalFieldValue) → void;
 }
 static method main() → dynamic {
   final ffi::Pointer<self::StructInlineArrayMultiDimensional> pointer = ffi::AllocatorAlloc|call<self::StructInlineArrayMultiDimensional>(#C4);

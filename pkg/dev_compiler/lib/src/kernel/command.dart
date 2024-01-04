@@ -288,7 +288,9 @@ Future<CompilerResult> _compile(List<String> args,
         explicitExperimentalFlags: explicitExperimentalFlags,
         environmentDefines: declaredVariables,
         nnbdMode:
-            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak);
+            options.soundNullSafety ? fe.NnbdMode.Strong : fe.NnbdMode.Weak,
+        precompiledMacros: options.precompiledMacros,
+        macroSerializationMode: options.macroSerializationMode);
     result = await fe.compile(compilerState, inputs, diagnosticMessageHandler);
   } else {
     // If digests weren't given and if not in worker mode, create fake data and

@@ -204,6 +204,8 @@ class Forwarder {
     final positionalArgsLocal = function.locals[2]; // ref _ListBase
     final namedArgsLocal = function.locals[3]; // ref _ListBase
 
+    final classIdLocal = function.addLocal(w.NumType.i32);
+
     // Continuation of this block calls `noSuchMethod` on the receiver.
     final noSuchMethodBlock = b.block();
 
@@ -213,9 +215,18 @@ class Forwarder {
         translator.dispatchTable.dynamicMethodSelectors(memberName);
     for (final selector in methodSelectors) {
       translator.functions.activateSelector(selector);
-      for (int classID in selector.classIds) {
-        final Reference target = selector.targets[classID]!;
+
+      // Map methods to classes that inherit them, to avoid generating
+      // duplicate blocks when a method is inherited by multiple classes.
+      final Map<Reference, List<int>> targets = {};
+      for (final classTarget in selector.targets.entries) {
+        targets.putIfAbsent(classTarget.value, () => []).add(classTarget.key);
+      }
+
+      for (final targetClasses in targets.entries) {
+        final Reference target = targetClasses.key;
         final Procedure targetMember = target.asMember as Procedure;
+        final List<int> classIds = targetClasses.value;
         if (targetMember.isAbstract) {
           continue;
         }
@@ -224,9 +235,42 @@ class Forwarder {
 
         b.local_get(receiverLocal);
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.i32_const(classID);
-        b.i32_eq();
-        b.if_();
+        b.local_set(classIdLocal);
+
+        final classIdNoMatch = b.block();
+        final classIdMatch = b.block();
+
+        classIds.sort();
+        final List<ClassIdRange> classIdRanges = [];
+        int i = 0;
+        while (i < classIds.length) {
+          final start = classIds[i];
+          while ((i < classIds.length - 1) &&
+              (classIds[i] + 1 == classIds[i + 1])) {
+            i += 1;
+          }
+          classIdRanges.add(ClassIdRange(start, classIds[i]));
+          i += 1;
+        }
+
+        for (ClassIdRange classIdRange in classIdRanges) {
+          if (classIdRange.start == classIdRange.end) {
+            b.local_get(classIdLocal);
+            b.i32_const(classIdRange.start);
+            b.i32_eq();
+            b.br_if(classIdMatch);
+          } else {
+            b.local_get(classIdLocal);
+            b.i32_const(classIdRange.start);
+            b.i32_sub();
+            b.i32_const(classIdRange.end - classIdRange.start);
+            b.i32_le_u();
+            b.br_if(classIdMatch);
+          }
+        }
+
+        b.br(classIdNoMatch);
+        b.end(); // classIdMatch
 
         // Check number of type arguments. It needs to be 0 or match the
         // member's type parameters.
@@ -470,7 +514,7 @@ class Forwarder {
             translator.functions.getFunction(targetMember.typeCheckerReference);
         b.call(wasmFunction);
         b.return_();
-        b.end(); // class ID
+        b.end(); // classIdNoMatch
       }
     }
 
@@ -828,4 +872,11 @@ void _makeEmptyGrowableList(
   b.i32_const(capacity);
   b.array_new_default(arrayType); // _data
   b.struct_new(info.struct);
+}
+
+class ClassIdRange {
+  final int start;
+  final int end; // inclusive
+
+  ClassIdRange(this.start, this.end);
 }

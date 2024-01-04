@@ -30,7 +30,7 @@ static extension-type-member method I|constructor#(core::int x, [core::int? y = 
   lowered final self::I /* = core::int */ #this = x.{core::num::+}(let final core::int? #t1 = y in #t1 == null ?{core::int} 42 : #t1{core::int}){(core::num) → core::int};
   return #this;
 }
-static extension-type-member method I|constructor#_#new#tearOff(core::int x, [core::int? y]) → self::I /* = core::int */
+static extension-type-member method I|constructor#_#new#tearOff(core::int x, [core::int? y = #C1]) → self::I /* = core::int */
   return self::I|constructor#(x, y);
 static extension-type-member method I|m(lowered final self::I /* = core::int */ #this, core::String s, [core::int i = #C2]) → void {}
 static extension-type-member method I|get#m(lowered final self::I /* = core::int */ #this) → (core::String, [core::int]) → void
@@ -45,7 +45,7 @@ static extension-type-member method I2|constructor#(core::int x, {core::int? y =
   lowered final self::I2 /* = core::int */ #this = x.{core::num::+}(let final core::int? #t2 = y in #t2 == null ?{core::int} 87 : #t2{core::int}){(core::num) → core::int};
   return #this;
 }
-static extension-type-member method I2|constructor#_#new#tearOff(core::int x, {core::int? y}) → self::I2 /* = core::int */
+static extension-type-member method I2|constructor#_#new#tearOff(core::int x, {core::int? y = #C1}) → self::I2 /* = core::int */
   return self::I2|constructor#(x, y: y);
 static extension-type-member method I2|m(lowered final self::I2 /* = core::int */ #this, core::String s, {core::int i = #C2}) → void {}
 static extension-type-member method I2|get#m(lowered final self::I2 /* = core::int */ #this) → (core::String, {i: core::int}) → void

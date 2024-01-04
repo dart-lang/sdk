@@ -11,8 +11,7 @@ class Foo {
   Foo.private({this._y = 77}) {}
   //                ^^
   // [analyzer] COMPILE_TIME_ERROR.PRIVATE_OPTIONAL_PARAMETER
-  //                ^
-  // [cfe] An optional named parameter can't start with '_'.
+  // [cfe] A named parameter can't start with an underscore ('_').
 }
 
 main() {

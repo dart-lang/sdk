@@ -116,13 +116,27 @@ void f() {
   }
 
   test_expressionFunctionBody_multipleElements() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void g(void Function() fun) {}
 
 void f() {
   g(() => {1, 2});
 }
-''');
+''', [
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 53, 6),
+    ]);
+  }
+
+  test_expressionFunctionBody_multipleElements_statements() async {
+    await assertErrorsInCode(r'''
+void g(void Function() fun) {}
+
+void f(bool b) {
+  g(() => {1, if (b) 2 else 3, 4, for (;;) 5},);
+}
+''', [
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 59, 35),
+    ]);
   }
 
   test_expressionFunctionBody_object() async {
@@ -136,13 +150,15 @@ void f() {
   }
 
   test_expressionFunctionBody_statement() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void g(void Function(bool) fun) {}
 
 void f() {
   g((value) => {if (value) print('')});
 }
-''');
+''', [
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 62, 22),
+    ]);
   }
 
   test_expressionFunctionBody_void() async {
@@ -155,6 +171,16 @@ void f() {
 ''', [
       error(WarningCode.UNNECESSARY_SET_LITERAL, 53, 3),
     ]);
+  }
+
+  test_expressionFunctionBody_void_empty() async {
+    await assertNoErrorsInCode(r'''
+void g(void Function() fun) {}
+
+void f() {
+  g(() => {});
+}
+''');
   }
 
   test_functionDeclaration_dynamic() async {
@@ -216,9 +242,19 @@ void f() => {1: 2};
   }
 
   test_functionDeclaration_multipleElements() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() => {1, 2};
-''');
+''', [
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 12, 6),
+    ]);
+  }
+
+  test_functionDeclaration_multipleElements_statements() async {
+    await assertErrorsInCode(r'''
+void f(bool b) => {1, if (b) 2 else 3, 4, for (;;) 5};
+''', [
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 18, 35),
+    ]);
   }
 
   test_functionDeclaration_object() async {
@@ -228,9 +264,11 @@ Object f() => {1};
   }
 
   test_functionDeclaration_statement() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(bool value) => {if (value) print('')};
-''');
+''', [
+      error(WarningCode.UNNECESSARY_SET_LITERAL, 22, 22),
+    ]);
   }
 
   test_functionDeclaration_void() async {

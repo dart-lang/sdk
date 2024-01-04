@@ -5,7 +5,7 @@ import "dart:core" as core;
 
 import "dart:async";
 
-static method test(asy::StreamController<void> _eventStreamController) → dynamic async /* futureValueType= dynamic */ {
+static method test(asy::StreamController<void> _eventStreamController) → dynamic async /* emittedValueType= dynamic */ {
   {
     synthesized asy::Stream<void> :stream = _eventStreamController.{asy::StreamController::stream}{asy::Stream<void>};
     synthesized asy::_StreamIterator<void>? :for-iterator = new asy::_StreamIterator::•<void>(:stream);

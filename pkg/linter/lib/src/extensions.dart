@@ -122,6 +122,20 @@ extension BlockExtension on Block {
 }
 
 extension ClassElementExtension on ClassElement {
+  bool get hasSubclassInDefiningCompilationUnit {
+    var compilationUnit = library.definingCompilationUnit;
+    for (var cls in compilationUnit.classes) {
+      InterfaceType? classType = cls.thisType;
+      do {
+        classType = classType?.superclass;
+        if (classType == thisType) {
+          return true;
+        }
+      } while (classType != null && !classType.isDartCoreObject);
+    }
+    return false;
+  }
+
   /// Returns an [EnumLikeClassDescription] for this if the latter is a valid
   /// "enum-like" class.
   ///
@@ -139,7 +153,7 @@ extension ClassElementExtension on ClassElement {
   /// equal to another static const field with the same type as the class is not
   /// included. Such a field is assumed to be deprecated in favor of the field
   /// with equal value.
-  EnumLikeClassDescription? get asEnumLikeClass {
+  EnumLikeClassDescription? asEnumLikeClass() {
     // See discussion: https://github.com/dart-lang/linter/issues/2083.
 
     // Must be concrete.
@@ -185,26 +199,12 @@ extension ClassElementExtension on ClassElement {
     return EnumLikeClassDescription(enumConstants);
   }
 
-  bool get hasSubclassInDefiningCompilationUnit {
-    var compilationUnit = library.definingCompilationUnit;
-    for (var cls in compilationUnit.classes) {
-      InterfaceType? classType = cls.thisType;
-      do {
-        classType = classType?.superclass;
-        if (classType == thisType) {
-          return true;
-        }
-      } while (classType != null && !classType.isDartCoreObject);
-    }
-    return false;
-  }
-
-  bool get isEnumLikeClass => asEnumLikeClass != null;
-
   /// Returns whether this class is exactly [otherName] declared in
   /// [otherLibrary].
   bool isClass(String otherName, String otherLibrary) =>
       name == otherName && library.name == otherLibrary;
+
+  bool isEnumLikeClass() => asEnumLikeClass() != null;
 }
 
 extension ClassMemberListExtension on List<ClassMember> {

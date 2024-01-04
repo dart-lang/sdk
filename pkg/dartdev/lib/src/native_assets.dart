@@ -13,8 +13,13 @@ import 'package:native_assets_cli/native_assets_cli.dart';
 import 'core.dart';
 
 /// Compiles all native assets for host OS in JIT mode.
-Future<(bool success, List<Asset> assets)> compileNativeAssetsJit(
-    {required bool verbose}) async {
+///
+/// If provided, only native assets of all transitive dependencies of
+/// [runPackageName] are built.
+Future<(bool success, List<Asset> assets)> compileNativeAssetsJit({
+  required bool verbose,
+  String? runPackageName,
+}) async {
   final workingDirectory = Directory.current.uri;
   // TODO(https://github.com/dart-lang/package_config/issues/126): Use
   // package config resolution from package:package_config.
@@ -36,6 +41,7 @@ Future<(bool success, List<Asset> assets)> compileNativeAssetsJit(
     // Dart has no concept of release vs debug, default to release.
     buildMode: BuildMode.release,
     includeParentEnvironment: true,
+    runPackageName: runPackageName,
   );
   return (buildResult.success, buildResult.assets);
 }
@@ -43,10 +49,18 @@ Future<(bool success, List<Asset> assets)> compileNativeAssetsJit(
 /// Compiles all native assets for host OS in JIT mode, and creates the
 /// native assets yaml file.
 ///
+/// If provided, only native assets of all transitive dependencies of
+/// [runPackageName] are built.
+///
 /// Used in `dart run` and `dart test`.
-Future<(bool success, Uri? nativeAssetsYaml)> compileNativeAssetsJitYamlFile(
-    {required bool verbose}) async {
-  final (success, assets) = await compileNativeAssetsJit(verbose: verbose);
+Future<(bool success, Uri? nativeAssetsYaml)> compileNativeAssetsJitYamlFile({
+  required bool verbose,
+  String? runPackageName,
+}) async {
+  final (success, assets) = await compileNativeAssetsJit(
+    verbose: verbose,
+    runPackageName: runPackageName,
+  );
   if (!success) {
     return (false, null);
   }

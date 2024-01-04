@@ -115,6 +115,16 @@ main() {
     ]);
   }
 
+  test_todo_singleLineCommentFollowedByDartdoc() async {
+    await assertErrorsInCode(r'''
+// TODO: Implement something
+/// This is the function documentation
+void f() {}
+''', [
+      error(TodoCode.TODO, 3, 25, text: 'TODO: Implement something'),
+    ]);
+  }
+
   test_todo_singleLineCommentLessIndentedContinuation() async {
     await assertErrorsInCode(r'''
 main() {

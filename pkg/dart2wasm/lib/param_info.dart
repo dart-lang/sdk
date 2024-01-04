@@ -6,12 +6,18 @@ import 'package:dart2wasm/reference_extensions.dart';
 
 import 'package:kernel/ast.dart';
 
-/// Information about optional parameters and their default values for a
-/// member or a set of members belonging to the same override group.
+/// Information about optional parameters and their default values for a member
+/// or a set of members belonging to the same override group.
 class ParameterInfo {
   final Member? member;
   int typeParamCount = 0;
+
+  /// Default values of optional positonal parameters. `positional[i] == null`
+  /// means positional parameter `i` is not optional.
   late final List<Constant?> positional;
+
+  /// Default values of named parameters. Similar to [positional], `null` means
+  /// the the parameter is not optional.
   late final Map<String, Constant?> named;
 
   // Do not access these until the info is complete.
@@ -28,7 +34,7 @@ class ParameterInfo {
 
   int get paramCount => positional.length + named.length;
 
-  static Constant? defaultValue(VariableDeclaration param) {
+  static Constant? _defaultValue(VariableDeclaration param) {
     Expression? initializer = param.initializer;
     if (initializer is ConstantExpression) {
       return initializer.constant;
@@ -52,11 +58,11 @@ class ParameterInfo {
       positional = List.generate(function.positionalParameters.length, (i) {
         // A required parameter has no default value.
         if (i < function.requiredParameterCount) return null;
-        return defaultValue(function.positionalParameters[i]);
+        return _defaultValue(function.positionalParameters[i]);
       });
       named = {
         for (VariableDeclaration param in function.namedParameters)
-          param.name!: defaultValue(param)
+          param.name!: _defaultValue(param)
       };
     } else {
       // A setter parameter has no default value.
@@ -70,11 +76,11 @@ class ParameterInfo {
     positional = List.generate(function.positionalParameters.length, (i) {
       // A required parameter has no default value.
       if (i < function.requiredParameterCount) return null;
-      return defaultValue(function.positionalParameters[i]);
+      return _defaultValue(function.positionalParameters[i]);
     });
     named = {
       for (VariableDeclaration param in function.namedParameters)
-        param.name!: defaultValue(param)
+        param.name!: _defaultValue(param)
     };
   }
 

@@ -1,3 +1,6 @@
+# 1.6.3
+- Updated `vm_service` version to `^14.0.0`.
+
 # 1.6.2
 - Updated `vm_service` version to `^13.0.0`.
 

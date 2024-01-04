@@ -435,8 +435,8 @@ CompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE:
   status: noFix
 CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE:
   status: hasFix
-CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY:
-  status: needsFix
+? CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
+: status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.CONST_INSTANCE_FIELD:
@@ -1029,6 +1029,8 @@ CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED:
     Remove `final`.
 CompileTimeErrorCode.LIST_ELEMENT_TYPE_NOT_ASSIGNABLE:
   status: noFix
+CompileTimeErrorCode.MACRO_ERROR:
+  status: noFix
 CompileTimeErrorCode.MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
   status: needsFix
   notes: |-
@@ -1232,8 +1234,8 @@ CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
     Make the pattern expression a constant.
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: noFix
-CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
-  status: noFix
+? CompileTimeErrorCode.NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE
+: status: noFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_EXPRESSION:
   status: hasFix
 CompileTimeErrorCode.NON_EXHAUSTIVE_SWITCH_STATEMENT:
@@ -1335,8 +1337,8 @@ CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
   notes: |-
     We do not have enough information to figure out the user's intent with the
     use of the variable in the pattern.
-CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE:
-  status: needsFix
+? CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_DIFFERENT_FINALITY_OR_TYPE
+: status: needsFix
   notes: |-
     Make all of the types / finalities the same.
 CompileTimeErrorCode.PATTERN_VARIABLE_SHARED_CASE_SCOPE_HAS_LABEL:
@@ -1408,8 +1410,8 @@ CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
   status: noFix
 CompileTimeErrorCode.RELATIONAL_PATTERN_OPERAND_TYPE_NOT_ASSIGNABLE:
   status: noFix
-CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
-  status: noFix
+? CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL
+: status: noFix
 CompileTimeErrorCode.REST_ELEMENT_IN_MAP_PATTERN:
   status: needsFix
   issue: https://github.com/dart-lang/sdk/issues/51892
@@ -1720,6 +1722,8 @@ FfiCode.ANNOTATION_ON_POINTER_FIELD:
   status: needsFix
 FfiCode.ARGUMENT_MUST_BE_A_CONSTANT:
   status: noFix
+FfiCode.ARGUMENT_MUST_BE_NATIVE:
+  status: needsEvaluation
 FfiCode.COMPOUND_IMPLEMENTS_FINALIZABLE:
   status: noFix
 FfiCode.CREATION_OF_STRUCT_OR_UNION:
@@ -1736,8 +1740,8 @@ FfiCode.FFI_NATIVE_MUST_BE_EXTERNAL:
   since: ~2.15
   notes: |-
     The fix is to add the `external` keyword.
-FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER:
-  status: noFix
+? FfiCode.FFI_NATIVE_ONLY_CLASSES_EXTENDING_NATIVEFIELDWRAPPERCLASS1_CAN_BE_POINTER
+: status: noFix
   since: ~2.15
 FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
   status: noFix
@@ -1745,6 +1749,10 @@ FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS:
 FfiCode.FFI_NATIVE_UNEXPECTED_NUMBER_OF_PARAMETERS_WITH_RECEIVER:
   status: noFix
   since: ~2.15
+FfiCode.FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
+  status: needsEvaluation
+FfiCode.FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
+  status: needsEvaluation
 FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER:
   status: needsFix
   notes: |-
@@ -1768,6 +1776,12 @@ FfiCode.LEAF_CALL_MUST_NOT_RETURN_HANDLE:
   status: noFix
 FfiCode.LEAF_CALL_MUST_NOT_TAKE_HANDLE:
   status: noFix
+FfiCode.CALLBACK_MUST_NOT_USE_TYPED_DATA:
+  status: noFix
+FfiCode.CALL_MUST_NOT_RETURN_TYPED_DATA:
+  status: noFix
+FfiCode.NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA:
+  status: noFix
 FfiCode.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD:
   status: noFix
 FfiCode.MISSING_ANNOTATION_ON_STRUCT_FIELD:
@@ -1784,6 +1798,12 @@ FfiCode.MUST_BE_A_SUBTYPE:
   status: noFix
 FfiCode.MUST_RETURN_VOID:
   status: noFix
+FfiCode.NATIVE_FIELD_INVALID_TYPE:
+  status: needsEvaluation
+FfiCode.NATIVE_FIELD_MISSING_TYPE:
+  status: needsEvaluation
+FfiCode.NATIVE_FIELD_NOT_STATIC:
+  status: needsEvaluation
 FfiCode.NON_CONSTANT_TYPE_ARGUMENT:
   status: noFix
 FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
@@ -1827,6 +1847,8 @@ HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
   status: noFix
   notes: Deprecated
+HintCode.MACRO_INFO:
+  status: noFix
 HintCode.UNNECESSARY_CAST:
   status: hasFix
 HintCode.UNNECESSARY_IMPORT:
@@ -1846,7 +1868,7 @@ LintCode.always_put_required_named_parameters_first:
 LintCode.always_require_non_null_named_parameters:
   status: noFix
   notes: |-
-      Removed.
+    Removed.
 LintCode.always_specify_types:
   status: hasFix
 LintCode.always_use_package_imports:
@@ -1941,7 +1963,7 @@ LintCode.avoid_returning_null:
 LintCode.avoid_returning_null_for_future:
   status: noFix
   notes: |-
-      Removed.
+    Removed.
 LintCode.avoid_returning_null_for_void:
   status: hasFix
 LintCode.avoid_returning_this:
@@ -1978,6 +2000,7 @@ LintCode.avoid_unnecessary_containers:
   status: hasFix
 LintCode.avoid_unstable_final_fields:
   status: noFix
+  notes: This lint is deprecated.
 LintCode.avoid_unused_constructor_parameters:
   status: hasFix
 LintCode.avoid_void_async:
@@ -2406,8 +2429,13 @@ LintCode.unsafe_html_method:
   status: noFix
 LintCode.unsafe_html_constructor:
   status: noFix
-LintCode.use_build_context_synchronously:
+LintCode.use_build_context_synchronously_async_use:
   status: noFix
+LintCode.use_build_context_synchronously_wrong_mounted:
+  status: needsFix
+  notes: |-
+    We could have a fix that would replace a mounted check on the wrong element
+    to a mounted check on the right element.
 LintCode.use_colored_box:
   status: needsFix
 LintCode.use_decorated_box:
@@ -2479,6 +2507,14 @@ ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
   status: needsFix
   notes: |-
     Remove either the `abstract` or the `external` keyword.
+ParserErrorCode.ABSTRACT_FINAL_BASE_CLASS:
+  status: needsFix
+  notes: |-
+    Remove either the `final` or `base` keyword.
+ParserErrorCode.ABSTRACT_FINAL_INTERFACE_CLASS:
+  status: needsFix
+  notes: |-
+    Remove either the `final` or `interface` keyword.
 ParserErrorCode.ABSTRACT_LATE_FIELD:
   status: needsFix
   notes: |-
@@ -2764,6 +2800,10 @@ ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY:
   status: needsFix
   notes: |-
     Remove the `external` keyword.
+ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS:
+  status: needsFix
+  notes: |-
+    Remove the `external` keyword or remove the initializers.
 ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_INITIALIZER:
   status: needsFix
   notes: |-
@@ -2812,6 +2852,10 @@ ParserErrorCode.EXTRANEOUS_MODIFIER:
   status: needsFix
   notes: |-
     Remove the extraneous keyword.
+ParserErrorCode.EXTRANEOUS_MODIFIER_IN_EXTENSION_TYPE:
+  status: needsEvaluation
+ParserErrorCode.EXTRANEOUS_MODIFIER_IN_PRIMARY_CONSTRUCTOR:
+  status: needsEvaluation
 ParserErrorCode.FACTORY_TOP_LEVEL_DECLARATION:
   status: needsFix
   notes: |-
@@ -3346,9 +3390,16 @@ PubspecWarningCode.ASSET_DIRECTORY_DOES_NOT_EXIST:
 PubspecWarningCode.ASSET_FIELD_NOT_LIST:
   status: noFix
   since: ~2.15
+PubspecWarningCode.ASSET_MISSING_PATH:
+  status: needsFix
+  notes: We could add a path field with a blank value.
 PubspecWarningCode.ASSET_NOT_STRING:
   status: noFix
   since: ~2.15
+PubspecWarningCode.ASSET_NOT_STRING_OR_MAP:
+  status: noFix
+PubspecWarningCode.ASSET_PATH_NOT_STRING:
+  status: noFix
 PubspecWarningCode.DEPENDENCIES_FIELD_NOT_MAP:
   status: noFix
   since: ~2.15
@@ -3639,6 +3690,8 @@ WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
   status: hasFix
 WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
   status: needsEvaluation
+WarningCode.MACRO_WARNING:
+  status: noFix
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
   status: hasFix
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
@@ -3668,6 +3721,11 @@ WarningCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
   status: needsFix
   notes: |-
     The fix is to replace `new` with `const`.
+WarningCode.NON_NULLABLE_EQUALS_PARAMETER:
+  status: needsFix
+  notes: |-
+    The fix is to remove the question mark if the parameter has one (if the
+    written type is an alias, it may not).
 WarningCode.NULLABLE_TYPE_IN_CATCH_CLAUSE:
   status: hasFix
 WarningCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:

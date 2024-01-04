@@ -4,7 +4,6 @@
 
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/hint_codes.dart';
-import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -14,7 +13,6 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonNullableTest);
-    defineReflectiveTests(NullableTest);
   });
 }
 
@@ -429,68 +427,5 @@ main() {
 
     assertType(findNode.namedType('F<int>'), 'int Function(int)?');
     assertType(findNode.namedType('F<double>?'), 'int Function(double)?');
-  }
-}
-
-@reflectiveTest
-class NullableTest extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin {
-  @override
-  bool get isNullSafetyEnabled => true;
-
-  test_class_hierarchy() async {
-    await assertNoErrorsInCode('''
-class A {}
-
-class X1 extends A {} // 1
-class X2 implements A {} // 2
-class X3 with A {} // 3
-''');
-
-    assertType(findNode.namedType('A {} // 1'), 'A*');
-    assertType(findNode.namedType('A {} // 2'), 'A*');
-    assertType(findNode.namedType('A {} // 3'), 'A*');
-  }
-
-  test_classTypeAlias_hierarchy() async {
-    await assertNoErrorsInCode('''
-class A {}
-class B {}
-class C {}
-
-class X = A with B implements C;
-''');
-
-    assertType(findNode.namedType('A with'), 'A*');
-    assertType(findNode.namedType('B implements'), 'B*');
-    assertType(findNode.namedType('C;'), 'C*');
-  }
-
-  test_local_variable_interfaceType_notMigrated() async {
-    await assertErrorsInCode('''
-main() {
-  int? a = 0;
-  int b = 0;
-}
-''', [
-      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 16, 1),
-      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
-    ]);
-
-    assertType(findNode.namedType('int? a'), 'int*');
-    assertType(findNode.namedType('int b'), 'int*');
-  }
-
-  test_mixin_hierarchy() async {
-    await assertNoErrorsInCode('''
-class A {}
-
-mixin X1 on A {} // 1
-mixin X2 implements A {} // 2
-''');
-
-    assertType(findNode.namedType('A {} // 1'), 'A*');
-    assertType(findNode.namedType('A {} // 2'), 'A*');
   }
 }

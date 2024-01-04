@@ -678,7 +678,7 @@ void f() {
 
     final expectedHoverContent = '''
 ```dart
-void set mySetter(String value)
+set mySetter(String value)
 ```
 Type: `String`
 
@@ -702,7 +702,7 @@ void f() {
 
     final expectedHoverContent = '''
 ```dart
-void set mySetter(T value)
+set mySetter(T value)
 ```
 Type: `String`
 

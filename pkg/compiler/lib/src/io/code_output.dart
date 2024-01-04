@@ -218,6 +218,14 @@ abstract class BufferedCodeOutput {
   String getText();
 }
 
+class NoopCodeOutput extends AbstractCodeOutput {
+  @override
+  void _addInternal(String text) {}
+
+  @override
+  int get length => 0;
+}
+
 /// [CodeOutput] using a [StringBuffer] as backend.
 class CodeBuffer extends AbstractCodeOutput implements BufferedCodeOutput {
   StringBuffer buffer = StringBuffer();

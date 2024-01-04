@@ -4,6 +4,8 @@
 
 import 'package:_fe_analyzer_shared/src/util/dependency_walker.dart';
 
+import 'flow_analysis/flow_analysis_operations.dart';
+
 /// Information about a [Class] that is necessary for computing the set of
 /// private `noSuchMethod` forwarding getters the compiler will generate.
 ///
@@ -222,16 +224,16 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
   ///
   /// [isAbstract] indicates whether the getter is abstract.
   ///
-  /// Note that unlike [addField], this method does not return a
-  /// [PropertyNonPromotabilityReason]. The caller may safely assume that the
-  /// reason that getters are not promotable is
-  /// [PropertyNonPromotabilityReason.isNotField].
-  void addGetter(ClassInfo<Class> classInfo, Getter getter, String name,
+  /// A return value of `null` indicates that this getter *might* wind up being
+  /// promotable; any other return value indicates the reason why it
+  /// *definitely* isn't promotable.
+  PropertyNonPromotabilityReason? addGetter(
+      ClassInfo<Class> classInfo, Getter getter, String name,
       {required bool isAbstract}) {
     // Public fields are never promotable, so we may safely ignore getters with
     // public names.
     if (!name.startsWith('_')) {
-      return;
+      return PropertyNonPromotabilityReason.isNotPrivate;
     }
 
     // Record the getter name for later use in computation of `noSuchMethod`
@@ -242,6 +244,10 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
 
       // The getter is concrete, so no fields with the same name are promotable.
       _fieldNonPromoInfo(name).conflictingGetters.add(getter);
+
+      return PropertyNonPromotabilityReason.isNotField;
+    } else {
+      return null;
     }
   }
 
@@ -316,30 +322,6 @@ abstract class FieldPromotability<Class extends Object, Field, Getter> {
   /// Gets or creates the [_InterfaceNode] for [class_].
   _InterfaceNode<Class> _getInterfaceNode(Class class_) =>
       _interfaceNodes[class_] ??= new _InterfaceNode<Class>(this, class_);
-}
-
-/// Possible reasons why a property may not be promotable.
-///
-/// This enum captures the possible non-promotability reasons that are inherent
-/// to the property declaration itself. A property may also be non-promotable
-/// because field promotion is disabled, or due to a conflict with another
-/// declaration; the code that handles those two reasons doesn't use this enum.
-///
-/// Some of these reasons are distinguished by [FieldPromotability.addField];
-/// others must be distinguished by the client.
-enum PropertyNonPromotabilityReason {
-  /// The property is not promotable because it's not a field (it's either a
-  /// getter or a tear-off of a method).
-  isNotField,
-
-  /// The property is not promotable because its name is public.
-  isNotPrivate,
-
-  /// The property is not promotable because it's an external field.
-  isExternal,
-
-  /// The property is not promotable because it's a non-final field.
-  isNotFinal,
 }
 
 /// Dependency walker that traverses the graph of a class's type hierarchy,

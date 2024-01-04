@@ -101,7 +101,7 @@ class AssistProcessor extends BaseProcessor {
     ConvertDocumentationIntoLine.new,
     ConvertIfStatementToSwitchStatement.new,
     ConvertIntoAsyncBody.new,
-    ConvertIntoBlockBody.new,
+    ConvertIntoBlockBody.missingBody,
     ConvertIntoFinalField.new,
     ConvertIntoForIndex.new,
     ConvertIntoGetter.new,

@@ -11,12 +11,12 @@ import '../support/integration_tests.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(GetSuggestionsTest);
+    defineReflectiveTests(GetSuggestions2Test);
   });
 }
 
 @reflectiveTest
-class GetSuggestionsTest extends AbstractAnalysisServerIntegrationTest {
+class GetSuggestions2Test extends AbstractAnalysisServerIntegrationTest {
   bool initialized = false;
   late String path;
   late String content;
@@ -49,14 +49,11 @@ void f() {
     writeFile(path, content);
     await standardAnalysisSetup();
     await analysisFinished;
-    var result = await sendCompletionGetSuggestions(path, completionOffset);
-    var completionId = result.id;
-    var param = await onCompletionResults.firstWhere(
-        (CompletionResultsParams param) =>
-            param.id == completionId && param.isLast);
-    expect(param.replacementOffset, completionOffset);
-    expect(param.replacementLength, 0);
-    param.results.firstWhere(
+    var result =
+        await sendCompletionGetSuggestions2(path, completionOffset, 100);
+    expect(result.replacementOffset, completionOffset);
+    expect(result.replacementLength, 0);
+    result.suggestions.firstWhere(
         (CompletionSuggestion suggestion) => suggestion.completion == 'length');
   }
 
@@ -72,14 +69,11 @@ void f() {
     await standardAnalysisSetup();
     await sendAnalysisUpdateContent({path: AddContentOverlay(content)});
     await analysisFinished;
-    var result = await sendCompletionGetSuggestions(path, completionOffset);
-    var completionId = result.id;
-    var param = await onCompletionResults.firstWhere(
-        (CompletionResultsParams param) =>
-            param.id == completionId && param.isLast);
-    expect(param.replacementOffset, completionOffset);
-    expect(param.replacementLength, 0);
-    param.results.firstWhere(
+    var result =
+        await sendCompletionGetSuggestions2(path, completionOffset, 100);
+    expect(result.replacementOffset, completionOffset);
+    expect(result.replacementLength, 0);
+    result.suggestions.firstWhere(
         (CompletionSuggestion suggestion) => suggestion.completion == 'length');
   }
 
@@ -96,12 +90,11 @@ void f() {
     //   writeFile(pathname, text);
     // Don't wait for any results except the completion notifications
     await sendAnalysisUpdateContent({path: AddContentOverlay(content)});
-    await sendCompletionGetSuggestions(path, completionOffset);
-    var param = await onCompletionResults
-        .firstWhere((CompletionResultsParams param) => param.isLast);
-    expect(param.replacementOffset, completionOffset);
-    expect(param.replacementLength, 0);
-    param.results.firstWhere(
+    var result =
+        await sendCompletionGetSuggestions2(path, completionOffset, 100);
+    expect(result.replacementOffset, completionOffset);
+    expect(result.replacementLength, 0);
+    result.suggestions.firstWhere(
         (CompletionSuggestion suggestion) => suggestion.completion == 'length');
   }
 
@@ -114,7 +107,7 @@ void f() {
     await analysisFinished;
     // Missing file and no overlay
     //sendAnalysisUpdateContent({path: new AddContentOverlay(content)});
-    var result = await sendCompletionGetSuggestions(path, 0);
-    expect(result, const TypeMatcher<CompletionGetSuggestionsResult>());
+    var result = await sendCompletionGetSuggestions2(path, 0, 100);
+    expect(result, const TypeMatcher<CompletionGetSuggestions2Result>());
   }
 }

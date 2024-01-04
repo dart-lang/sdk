@@ -17,6 +17,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
@@ -25,7 +26,9 @@ import 'package:test/test.dart';
 import '../../../generated/test_support.dart';
 import '../../../util/element_printer.dart';
 import '../../../util/tree_string_sink.dart';
+import '../../summary/macros_environment.dart';
 import '../../summary/resolved_ast_printer.dart';
+import '../analysis/result_printer.dart';
 import 'dart_object_printer.dart';
 import 'node_text_expectations.dart';
 
@@ -68,7 +71,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     return !result.libraryElement.isNonNullableByDefault;
   }
 
-  bool get isNullSafetyEnabled => false;
+  bool get isNullSafetyEnabled => true;
 
   ClassElement get listElement => typeProvider.listElement;
 
@@ -80,6 +83,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   ClassElement get objectElement =>
       typeProvider.objectType.element as ClassElement;
+
+  bool get strictCasts {
+    var analysisOptions = result.session.analysisContext
+        .getAnalysisOptionsForFile(result.file) as AnalysisOptionsImpl;
+    return analysisOptions.strictCasts;
+  }
 
   ClassElement get stringElement => typeProvider.stringElement;
 
@@ -121,6 +130,40 @@ mixin ResolutionTest implements ResourceProviderMixin {
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
       print(actual);
+    }
+    expect(actual, expected);
+  }
+
+  void assertDriverEventsText(
+    List<DriverEvent> events,
+    String expected, {
+    void Function(ResolvedLibraryResultPrinterConfiguration)? configure,
+  }) {
+    final configuration = ResolvedLibraryResultPrinterConfiguration();
+    configure?.call(configuration);
+
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(sink: buffer, indent: '');
+    final idProvider = IdProvider();
+
+    final elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+      selfUriStr: null,
+    );
+
+    DriverEventsPrinter(
+      configuration: configuration,
+      sink: sink,
+      elementPrinter: elementPrinter,
+      idProvider: idProvider,
+    ).write(events);
+
+    final actual = buffer.toString();
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
   }
@@ -288,6 +331,37 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
+  void assertResolvedLibraryResultText(
+    SomeResolvedLibraryResult result,
+    String expected, {
+    void Function(ResolvedLibraryResultPrinterConfiguration)? configure,
+  }) {
+    final configuration = ResolvedLibraryResultPrinterConfiguration();
+    configure?.call(configuration);
+
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(sink: buffer, indent: '');
+    final idProvider = IdProvider();
+    ResolvedLibraryResultPrinter(
+      configuration: configuration,
+      sink: sink,
+      idProvider: idProvider,
+      elementPrinter: ElementPrinter(
+        sink: sink,
+        configuration: ElementPrinterConfiguration(),
+        selfUriStr: null,
+      ),
+    ).write(result);
+
+    final actual = buffer.toString();
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
   void assertResolvedNodeText(AstNode node, String expected) {
     var actual = _resolvedNodeText(node);
     if (actual != expected) {
@@ -374,6 +448,13 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       return legacy;
     }
+  }
+
+  String getMacroCode(String relativePath) {
+    final code = MacrosEnvironment.instance.packageAnalyzerFolder
+        .getChildAssumingFile('test/src/summary/macro/$relativePath')
+        .readAsStringSync();
+    return code.replaceAll('/*macro*/', 'macro');
   }
 
   Element? getNodeElement(AstNode node) {
@@ -601,4 +682,12 @@ class _MultiplyDefinedElementMatcher extends Matcher {
     }
     return false;
   }
+}
+
+extension ResolvedUnitResultExtension on ResolvedUnitResult {
+  FindNode get findNode {
+    return FindNode(content, unit);
+  }
+
+  String get uriStr => '$uri';
 }

@@ -1276,7 +1276,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       } else if (parent is FunctionExpressionInvocation) {
         return 'function';
       } else if (parent is InstanceCreationExpression) {
-        if (Flutter.instance.isWidgetType(parent.staticType)) {
+        if (Flutter.isWidgetType(parent.staticType)) {
           return 'widgetConstructor';
         }
         return 'constructor';

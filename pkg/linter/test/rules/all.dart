@@ -11,6 +11,10 @@ import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'avoid_annotating_with_dynamic_test.dart'
     as avoid_annotating_with_dynamic;
 import 'avoid_catching_errors_test.dart' as avoid_catching_errors;
+import 'avoid_classes_with_only_static_members_test.dart'
+    as avoid_class_with_only_static_members;
+import 'avoid_dynamic_calls_test.dart' as avoid_dynamic_calls;
+import 'avoid_empty_else_test.dart' as avoid_empty_else;
 import 'avoid_equals_and_hash_code_on_mutable_classes_test.dart'
     as avoid_equals_and_hash_code_on_mutable_classes;
 import 'avoid_escaping_inner_quotes_test.dart' as avoid_escaping_inner_quotes;
@@ -47,7 +51,6 @@ import 'avoid_types_as_parameter_names_test.dart'
 import 'avoid_types_on_closure_parameters_test.dart'
     as avoid_types_on_closure_parameters;
 import 'avoid_unnecessary_containers_test.dart' as avoid_unnecessary_containers;
-import 'avoid_unstable_final_fields_test.dart' as avoid_unstable_final_fields;
 import 'avoid_unused_constructor_parameters_test.dart'
     as avoid_unused_constructor_parameters;
 import 'avoid_void_async_test.dart' as avoid_void_async;
@@ -260,6 +263,9 @@ void main() {
   annotate_redeclares.main();
   avoid_annotating_with_dynamic.main();
   avoid_catching_errors.main();
+  avoid_class_with_only_static_members.main();
+  avoid_dynamic_calls.main();
+  avoid_empty_else.main();
   avoid_equals_and_hash_code_on_mutable_classes.main();
   avoid_escaping_inner_quotes.main();
   avoid_final_parameters.main();
@@ -283,7 +289,6 @@ void main() {
   avoid_types_as_parameter_names.main();
   avoid_types_on_closure_parameters.main();
   avoid_unnecessary_containers.main();
-  avoid_unstable_final_fields.main();
   avoid_unused_constructor_parameters.main();
   avoid_void_async.main();
   avoid_web_libraries_in_flutter.main();

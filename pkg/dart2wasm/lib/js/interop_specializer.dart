@@ -200,12 +200,16 @@ class _OperatorSpecializer extends _ProcedureSpecializer {
 
   @override
   String bodyString(String object, List<String> callArguments) {
-    if (jsString == '[]') {
-      return '$object[${callArguments[0]}]';
-    } else if (jsString == '[]=') {
-      return '$object[${callArguments[0]}] = ${callArguments[1]}';
-    } else {
-      throw 'Unsupported operator: $jsString';
+    // TODO(srujzs): Switch to switch-case expression once we update pubspec.
+    switch (jsString) {
+      case '[]':
+        return '$object[${callArguments[0]}]';
+      case '[]=':
+        return '$object[${callArguments[0]}] = ${callArguments[1]}';
+      default:
+        throw UnimplementedError(
+            'External operator $jsString is unsupported for static interop. '
+            'Please file a request in the SDK if you want it to be supported.');
     }
   }
 }

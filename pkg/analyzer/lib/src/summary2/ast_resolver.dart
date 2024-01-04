@@ -31,6 +31,7 @@ class AstResolver {
     featureSet: _featureSet,
     nameScope: _nameScope,
     errorListener: _errorListener,
+    strictInference: analysisOptions.strictInference,
   );
   late final _scopeResolverVisitor = ScopeResolverVisitor(
     _unitElement.library,
@@ -39,8 +40,9 @@ class AstResolver {
     _errorListener,
     nameScope: _nameScope,
   );
-  late final _flowAnalysis =
-      FlowAnalysisHelper(_unitElement.library.typeSystem, false, _featureSet);
+  late final _flowAnalysis = FlowAnalysisHelper(
+      _unitElement.library.typeSystem, false, _featureSet,
+      strictCasts: analysisOptions.strictCasts);
   late final _resolverVisitor = ResolverVisitor(
     _linker.inheritance,
     _unitElement.library,

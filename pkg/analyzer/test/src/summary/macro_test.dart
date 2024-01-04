@@ -39,25 +39,26 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MacroArgumentsTest);
     defineReflectiveTests(MacroIntrospectNodeTest);
+    defineReflectiveTests(MacroIntrospectNodeDefinitionsTest);
     defineReflectiveTests(MacroIntrospectElementTest);
     defineReflectiveTests(MacroTypesTest_keepLinking);
     defineReflectiveTests(MacroTypesTest_fromBytes);
     defineReflectiveTests(MacroDeclarationsTest_keepLinking);
     defineReflectiveTests(MacroDeclarationsTest_fromBytes);
+    defineReflectiveTests(MacroDefinitionTest_keepLinking);
+    defineReflectiveTests(MacroDefinitionTest_fromBytes);
     defineReflectiveTests(MacroElementsTest_keepLinking);
     defineReflectiveTests(MacroElementsTest_fromBytes);
-    defineReflectiveTests(MacroApplicationOrderTest);
+    defineReflectiveTests(MacroApplicationOrderTest_keepLinking);
+    defineReflectiveTests(MacroApplicationOrderTest_fromBytes);
     defineReflectiveTests(MacroCodeGenerationTest);
+    defineReflectiveTests(MacroStaticTypeTest);
     defineReflectiveTests(MacroExampleTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
-@reflectiveTest
-class MacroApplicationOrderTest extends MacroElementsBaseTest {
-  @override
-  bool get keepLinkingLibraries => true;
-
+abstract class MacroApplicationOrderTest extends MacroElementsBaseTest {
   @override
   Future<void> setUp() async {
     await super.setUp();
@@ -68,745 +69,334 @@ class MacroApplicationOrderTest extends MacroElementsBaseTest {
     );
   }
 
-  test_declarations_class_interfaces_backward() async {
+  test_declarations_class_constructorsOf_alreadyDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclareInType('  A1.named12();')
+class A1 {
+  A1.named11();
+}
+
+@DeclarationsIntrospectConstructors('A1')
+class A2 {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A1 {
+  A1.named12();
+}
+augment class A2 {
+  void introspected_A1_named11();
+  void introspected_A1_named12();
+}
+''');
+  }
+
+  test_declarations_class_constructorsOf_cycle2() async {
     var library = await buildLibrary(r'''
 import 'order.dart';
 
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
+@DeclarationsIntrospectConstructors('A2')
+class A1 {}
 
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f11')
-@AddFunction('f12')
-class X1 implements X2, X3 {}
+@DeclarationsIntrospectConstructors('A1')
+class A2 {}
 ''');
 
-    configuration.forOrder();
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
     checkElementText(library, r'''
 library
   imports
     package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f32() {}
-void f31() {}
-void f22() {}
-void f21() {}
-void f12() {}
-void f11() {}
----
+  definingUnit
+    classes
+      class A1 @70
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+          components
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A1
+              annotationIndex: 0
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A2
+              annotationIndex: 0
+      class A2 @125
 ''');
   }
 
-  test_declarations_class_interfaces_forward() async {
+  test_declarations_class_constructorsOf_notYetDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclarationsIntrospectConstructors('A2')
+class A1 {
+}
+
+@DeclareInType('  A2.named23();')
+class A2 {
+  @DeclareInType('  A2.named22();')
+  A2.named21();
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A2 {
+  A2.named22();
+  A2.named23();
+}
+augment class A1 {
+  void introspected_A2_named21();
+  void introspected_A2_named22();
+  void introspected_A2_named23();
+}
+''');
+  }
+
+  test_declarations_class_fieldsOf_alreadyDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclareInType('  int f12 = 0;')
+class A1 {
+  int f11 = 0;
+}
+
+@DeclarationsIntrospectFields('A1')
+class A2 {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A1 {
+  int f12 = 0;
+}
+augment class A2 {
+  void introspected_A1_f11();
+  void introspected_A1_f12();
+}
+''');
+  }
+
+  test_declarations_class_fieldsOf_cycle2() async {
     var library = await buildLibrary(r'''
 import 'order.dart';
 
-@AddFunction('f11')
-@AddFunction('f12')
-class X1 implements X2, X3 {}
+@DeclarationsIntrospectFields('A2')
+class A1 {}
 
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
+@DeclarationsIntrospectFields('A1')
+class A2 {}
 ''');
 
-    configuration.forOrder();
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
     checkElementText(library, r'''
 library
   imports
     package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f22() {}
-void f21() {}
-void f32() {}
-void f31() {}
-void f12() {}
-void f11() {}
----
+  definingUnit
+    classes
+      class A1 @64
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+          components
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A1
+              annotationIndex: 0
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A2
+              annotationIndex: 0
+      class A2 @113
 ''');
   }
 
-  test_declarations_class_interfaces_forward2() async {
+  test_declarations_class_fieldsOf_notYetDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclarationsIntrospectFields('A2')
+class A1 {}
+
+@DeclareInType('  int f23 = 0;')
+class A2 {
+  @DeclareInType('  int f22 = 0;')
+  int f21 = 0;
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A2 {
+  int f22 = 0;
+  int f23 = 0;
+}
+augment class A1 {
+  void introspected_A2_f21();
+  void introspected_A2_f22();
+  void introspected_A2_f23();
+}
+''');
+  }
+
+  test_declarations_class_methodsOf_alreadyDone() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+import 'order.dart';
+
+@DeclareInType('  void f12() {}')
+class A1 {
+  void f11() {}
+}
+
+@DeclarationsIntrospectMethods('A1')
+class A2 {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class A1 {
+  void f12() {}
+}
+augment class A2 {
+  void introspected_A1_f11();
+  void introspected_A1_f12();
+}
+''');
+  }
+
+  test_declarations_class_methodsOf_cycle2() async {
     var library = await buildLibrary(r'''
 import 'order.dart';
 
-@AddFunction('f11')
-@AddFunction('f12')
-class X1 implements X3, X4 {}
+@DeclarationsIntrospectMethods('A2')
+class A1 {}
 
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 implements X3, X4 {}
-
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
-
-@AddFunction('f41')
-@AddFunction('f42')
-class X4 {}
+@DeclarationsIntrospectMethods('A1')
+class A2 {}
 ''');
 
-    configuration.forOrder();
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
     checkElementText(library, r'''
 library
   imports
     package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f32() {}
-void f31() {}
-void f42() {}
-void f41() {}
-void f12() {}
-void f11() {}
-void f22() {}
-void f21() {}
----
+  definingUnit
+    classes
+      class A1 @65
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+          components
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A1
+              annotationIndex: 0
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A2
+              annotationIndex: 0
+      class A2 @115
 ''');
   }
 
-  test_declarations_class_interfaces_forward3() async {
+  test_declarations_class_methodsOf_cycle2_withHead() async {
     var library = await buildLibrary(r'''
 import 'order.dart';
 
-@AddFunction('f11')
-@AddFunction('f12')
-class X1 implements X2, X4 {}
+@DeclarationsIntrospectMethods('A2')
+class A1 {}
 
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 implements X3 {}
+@DeclarationsIntrospectMethods('A3')
+class A2 {}
 
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
-
-@AddFunction('f41')
-@AddFunction('f42')
-class X4 {}
+@DeclarationsIntrospectMethods('A2')
+class A3 {}
 ''');
 
-    configuration.forOrder();
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
     checkElementText(library, r'''
 library
   imports
     package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f32() {}
-void f31() {}
-void f22() {}
-void f21() {}
-void f42() {}
-void f41() {}
-void f12() {}
-void f11() {}
----
+  definingUnit
+    classes
+      class A1 @65
+      class A2 @115
+        macroDiagnostics
+          DeclarationsIntrospectionCycleDiagnostic
+          components
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A2
+              annotationIndex: 0
+            DeclarationsIntrospectionCycleComponent
+              element: self::@class::A3
+              annotationIndex: 0
+      class A3 @165
 ''');
   }
 
-  test_declarations_class_mixins_backward() async {
+  test_declarations_class_methodsOf_notYetDone() async {
     var library = await buildLibrary(r'''
+import 'append.dart';
 import 'order.dart';
 
-@AddFunction('f31')
-@AddFunction('f32')
-mixin X3 {}
+@DeclarationsIntrospectMethods('A2')
+class A1 {}
 
-@AddFunction('f21')
-@AddFunction('f22')
-mixin X2 {}
-
-@AddFunction('f11')
-@AddFunction('f12')
-class X1 with X2, X3 {}
+@DeclareInType('  void f23() {}')
+class A2 {
+  @DeclareInType('  void f22() {}')
+  void f21() {}
+}
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-void f32() {}
-void f31() {}
-void f22() {}
-void f21() {}
-void f12() {}
-void f11() {}
----
+augment class A2 {
+  void f22() {}
+  void f23() {}
+}
+augment class A1 {
+  void introspected_A2_f21();
+  void introspected_A2_f22();
+  void introspected_A2_f23();
+}
 ''');
   }
 
-  test_declarations_class_mixins_forward() async {
+  test_declarations_class_methodsOf_self() async {
     var library = await buildLibrary(r'''
 import 'order.dart';
 
-@AddFunction('f11')
-@AddFunction('f12')
-class X1 with X2, X3 {}
-
-@AddFunction('f21')
-@AddFunction('f22')
-mixin X2 {}
-
-@AddFunction('f31')
-@AddFunction('f32')
-mixin X3 {}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f22() {}
-void f21() {}
-void f32() {}
-void f31() {}
-void f12() {}
-void f11() {}
----
-''');
-  }
-
-  test_declarations_class_superclass_backward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f3')
-class X3 extends X2 {
-  @AddFunction('f31')
+@DeclarationsIntrospectMethods('A')
+class A {
   void foo() {}
-
-  @AddFunction('f32')
-  void bar() {}
-}
-
-@AddFunction('f2')
-class X2 extends X1 {
-  @AddFunction('f21')
-  void foo() {}
-
-  @AddFunction('f22')
-  void bar() {}
-}
-
-@AddFunction('f1')
-class X1 {
-  @AddFunction('f11')
-  void foo() {}
-
-  @AddFunction('f12')
-  void bar() {}
 }
 ''');
 
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
+    _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-void f11() {}
-void f12() {}
-void f1() {}
-void f21() {}
-void f22() {}
-void f2() {}
-void f31() {}
-void f32() {}
-void f3() {}
----
-''');
-  }
-
-  test_declarations_class_superclass_forward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f1')
-class X1 {
-  @AddFunction('f11')
-  void foo() {}
-
-  @AddFunction('f12')
-  void bar() {}
+augment class A {
+  void introspected_A_foo();
 }
-
-@AddFunction('f2')
-class X2 extends X1 {
-  @AddFunction('f21')
-  void foo() {}
-
-  @AddFunction('f22')
-  void bar() {}
-}
-
-@AddFunction('f3')
-class X3 extends X2 {
-  @AddFunction('f31')
-  void foo() {}
-
-  @AddFunction('f32')
-  void bar() {}
-}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f11() {}
-void f12() {}
-void f1() {}
-void f21() {}
-void f22() {}
-void f2() {}
-void f31() {}
-void f32() {}
-void f3() {}
----
-''');
-  }
-
-  test_declarations_class_superClass_mixins_interfaces_backward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f41')
-@AddFunction('f42')
-class X4 {}
-
-@AddFunction('f31')
-@AddFunction('f32')
-mixin X3 {}
-
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f11')
-@AddFunction('f12')
-class X1 extends X2 with X3 implements X4 {}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f42() {}
-void f41() {}
-void f32() {}
-void f31() {}
-void f22() {}
-void f21() {}
-void f12() {}
-void f11() {}
----
-''');
-  }
-
-  test_declarations_class_superClass_mixins_interfaces_forward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f11')
-@AddFunction('f12')
-class X1 extends X2 with X3 implements X4 {}
-
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f31')
-@AddFunction('f32')
-mixin X3 {}
-
-@AddFunction('f41')
-@AddFunction('f42')
-class X4 {}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f22() {}
-void f21() {}
-void f32() {}
-void f31() {}
-void f42() {}
-void f41() {}
-void f12() {}
-void f11() {}
----
-''');
-  }
-
-  test_declarations_libraryCycle_class_interfaces() async {
-    useEmptyByteStore();
-
-    newFile('$testPackageLibPath/x2.dart', r'''
-import 'test.dart';
-import 'order.dart';
-
-@AddHierarchyMethod('f211')
-@AddHierarchyMethod('f212')
-class X21 {}
-
-@AddHierarchyMethod('f221')
-@AddHierarchyMethod('f222')
-class X22 {}
-''');
-
-    final testLibrary = await buildLibrary(r'''
-import 'order.dart';
-import 'x2.dart';
-
-@AddHierarchyMethod('f11')
-@AddHierarchyMethod('f12')
-class X1 implements X22 {}
-''');
-
-    // When we process `X1`, we see macro generated methods of `X22`.
-    // This shows that we processed `X22` before `X1`.
-    configuration.forOrder();
-    checkElementText(testLibrary, r'''
-library
-  imports
-    package:test/order.dart
-    package:test/x2.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-augment class X1 {
-  void f222_f221_f12() {}
-  void f222_f221_f11() {}
-}
----
-''');
-
-    // There are no dependencies between `X21` and `X22`, so they are
-    // processed in the source order.
-    // We see `f212` before `f211`, this shows that we process annotations
-    // from right to left.
-    final x2Library = await testContextLibrary('package:test/x2.dart');
-    checkElementText(x2Library, r'''
-library
-  imports
-    package:test/test.dart
-    package:test/order.dart
-  augmentationImports
-    package:test/x2.macro.dart
-      macroGeneratedCode
----
-library augment 'x2.dart';
-
-augment class X21 {
-  void f212() {}
-  void f211() {}
-}
-augment class X22 {
-  void f222() {}
-  void f221() {}
-}
----
-''');
-  }
-
-  test_declarations_mixin_interfaces_backward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
-
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f11')
-@AddFunction('f12')
-mixin X1 implements X2, X3 {}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f32() {}
-void f31() {}
-void f22() {}
-void f21() {}
-void f12() {}
-void f11() {}
----
-''');
-  }
-
-  test_declarations_mixin_interfaces_forward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f11')
-@AddFunction('f12')
-mixin X1 implements X2, X3 {}
-
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f22() {}
-void f21() {}
-void f32() {}
-void f31() {}
-void f12() {}
-void f11() {}
----
-''');
-  }
-
-  test_declarations_mixin_superclassConstraints_backward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
-
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f11')
-@AddFunction('f12')
-mixin X1 on X2, X3 {}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f32() {}
-void f31() {}
-void f22() {}
-void f21() {}
-void f12() {}
-void f11() {}
----
-''');
-  }
-
-  test_declarations_mixin_superclassConstraints_forward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f11')
-@AddFunction('f12')
-mixin X1 on X2, X3 {}
-
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f22() {}
-void f21() {}
-void f32() {}
-void f31() {}
-void f12() {}
-void f11() {}
----
-''');
-  }
-
-  test_declarations_mixin_superclassConstraints_interfaces_backward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
-
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f11')
-@AddFunction('f12')
-mixin X1 on X2 implements X3 {}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f32() {}
-void f31() {}
-void f22() {}
-void f21() {}
-void f12() {}
-void f11() {}
----
-''');
-  }
-
-  test_declarations_mixin_superclassConstraints_interfaces_forward() async {
-    var library = await buildLibrary(r'''
-import 'order.dart';
-
-@AddFunction('f11')
-@AddFunction('f12')
-mixin X1 on X2 implements X3 {}
-
-@AddFunction('f21')
-@AddFunction('f22')
-class X2 {}
-
-@AddFunction('f31')
-@AddFunction('f32')
-class X3 {}
-''');
-
-    configuration.forOrder();
-    checkElementText(library, r'''
-library
-  imports
-    package:test/order.dart
-  augmentationImports
-    package:test/test.macro.dart
-      macroGeneratedCode
----
-library augment 'test.dart';
-
-void f22() {}
-void f21() {}
-void f32() {}
-void f31() {}
-void f12() {}
-void f11() {}
----
 ''');
   }
 
@@ -945,6 +535,32 @@ library augment 'test.dart';
 class A1 {}
 class A2 {}
 ---
+''');
+  }
+
+  test_types_enum() async {
+    var library = await buildLibrary(r'''
+import 'order.dart';
+
+@AddClass('A1')
+enum X {
+  @AddClass('A2')
+  v1,
+  @AddClass('A3')
+  v2;
+  @AddClass('A4')
+  void foo() {}
+}
+''');
+
+    configuration.forOrder();
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+class A2 {}
+class A3 {}
+class A4 {}
+class A1 {}
 ''');
   }
 
@@ -1118,6 +734,18 @@ class A2 {}
 }
 
 @reflectiveTest
+class MacroApplicationOrderTest_fromBytes extends MacroApplicationOrderTest {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class MacroApplicationOrderTest_keepLinking extends MacroApplicationOrderTest {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
+@reflectiveTest
 class MacroArgumentsTest extends MacroElementsBaseTest {
   @override
   bool get keepLinkingLibraries => true;
@@ -1147,6 +775,21 @@ library
     );
   }
 
+  test_kind_named_positional() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<int>',
+        'bar': 'List<double>',
+      },
+      constructorParametersCode: '(this foo, {required this.bar})',
+      argumentsCode: '(bar: [0.1], [2])',
+      expected: r'''
+foo: List<int> [2]
+bar: List<double> [0.1]
+''',
+    );
+  }
+
   test_kind_optionalNamed() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
@@ -1156,8 +799,8 @@ library
       constructorParametersCode: '({this.foo = -1, this.bar = -2})',
       argumentsCode: '(foo: 1)',
       expected: r'''
-foo: 1
-bar: -2
+foo: int 1
+bar: int -2
 ''',
     );
   }
@@ -1171,8 +814,8 @@ bar: -2
       constructorParametersCode: '([this.foo = -1, this.bar = -2])',
       argumentsCode: '(1)',
       expected: r'''
-foo: 1
-bar: -2
+foo: int 1
+bar: int -2
 ''',
     );
   }
@@ -1183,7 +826,7 @@ bar: -2
       constructorParametersCode: '({required this.foo})',
       argumentsCode: '(foo: 42)',
       expected: r'''
-foo: 42
+foo: int 42
 ''',
     );
   }
@@ -1194,7 +837,7 @@ foo: 42
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(42)',
       expected: r'''
-foo: 42
+foo: int 42
 ''',
     );
   }
@@ -1208,8 +851,8 @@ foo: 42
       constructorParametersCode: '(this.foo, this.bar)',
       argumentsCode: '(true, false)',
       expected: r'''
-foo: true
-bar: false
+foo: bool true
+bar: bool false
 ''',
     );
   }
@@ -1220,7 +863,7 @@ bar: false
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(1.2)',
       expected: r'''
-foo: 1.2
+foo: double 1.2
 ''',
     );
   }
@@ -1231,7 +874,7 @@ foo: 1.2
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(-1.2)',
       expected: r'''
-foo: -1.2
+foo: double -1.2
 ''',
     );
   }
@@ -1242,7 +885,7 @@ foo: -1.2
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(42)',
       expected: r'''
-foo: 42
+foo: int 42
 ''',
     );
   }
@@ -1253,12 +896,51 @@ foo: 42
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(-42)',
       expected: r'''
-foo: -42
+foo: int -42
 ''',
     );
   }
 
-  test_type_list() async {
+  test_type_list_int() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<int>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([0, 1, 2])',
+      expected: r'''
+foo: List<int> [0, 1, 2]
+''',
+    );
+  }
+
+  test_type_list_intQ() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<int?>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([0, null, 2])',
+      expected: r'''
+foo: List<int?> [0, null, 2]
+''',
+    );
+  }
+
+  test_type_list_map_int_string() async {
+    await _assertTypesPhaseArgumentsText(
+      fields: {
+        'foo': 'List<Map<int, String>>',
+      },
+      constructorParametersCode: '(this.foo)',
+      argumentsCode: '([{0: "a"}, {1: "b", 2: "c"}])',
+      expected: r'''
+foo: List<Map<int, String>> [{0: a}, {1: b, 2: c}]
+''',
+    );
+  }
+
+  test_type_list_objectQ() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
         'foo': 'List<Object?>',
@@ -1266,20 +948,20 @@ foo: -42
       constructorParametersCode: '(this.foo)',
       argumentsCode: '([1, 2, true, 3, 4.2])',
       expected: r'''
-foo: [1, 2, true, 3, 4.2]
+foo: List<Object?> [1, 2, true, 3, 4.2]
 ''',
     );
   }
 
-  test_type_map() async {
+  test_type_map_int_string() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
-        'foo': 'Map<Object?, Object?>',
+        'foo': 'Map<int, String>',
       },
       constructorParametersCode: '(this.foo)',
-      argumentsCode: '({1: true, "abc": 2.3})',
+      argumentsCode: '({0: "a", 1: "b"})',
       expected: r'''
-foo: {1: true, abc: 2.3}
+foo: _Map<int, String> {0: a, 1: b}
 ''',
     );
   }
@@ -1290,7 +972,7 @@ foo: {1: true, abc: 2.3}
       constructorParametersCode: '(this.foo)',
       argumentsCode: '(null)',
       expected: r'''
-foo: null
+foo: Null null
 ''',
     );
   }
@@ -1298,12 +980,12 @@ foo: null
   test_type_set() async {
     await _assertTypesPhaseArgumentsText(
       fields: {
-        'foo': 'Set<Object?>',
+        'foo': 'Set<int>',
       },
       constructorParametersCode: '(this.foo)',
       argumentsCode: '({1, 2, 3})',
       expected: r'''
-foo: {1, 2, 3}
+foo: _Set<int> {1, 2, 3}
 ''',
     );
   }
@@ -1314,7 +996,7 @@ foo: {1, 2, 3}
       constructorParametersCode: '(this.foo)',
       argumentsCode: "('aaa')",
       expected: r'''
-foo: aaa
+foo: String aaa
 ''',
     );
   }
@@ -1325,7 +1007,7 @@ foo: aaa
       constructorParametersCode: '(this.foo)',
       argumentsCode: "('aaa' 'bbb' 'ccc')",
       expected: r'''
-foo: aaabbbccc
+foo: String aaabbbccc
 ''',
     );
   }
@@ -1346,7 +1028,7 @@ foo: aaabbbccc
     bool hasErrors = false,
   }) async {
     final dumpCode = fields.keys.map((name) {
-      return "$name: \$$name\\\\n";
+      return "$name: \${$name.runtimeType} \$$name\\\\n";
     }).join('');
 
     newFile('$testPackageLibPath/arguments_text.dart', '''
@@ -1382,7 +1064,9 @@ class A {}
         ..withMetadata = false;
       checkElementText(library, expected);
     } else {
-      library.assertNoMacroErrors();
+      if (library.allMacroDiagnostics.isNotEmpty) {
+        failWithLibraryText(library);
+      }
 
       final x = library.topLevelElements
           .whereType<ConstTopLevelVariableElementImpl>()
@@ -1414,58 +1098,39 @@ class MacroCodeGenerationTest extends MacroElementsBaseTest {
     );
   }
 
-  test_resolveIdentifier_class_field_instance() async {
-    final library = await buildLibrary(r'''
+  test_inferOmittedType_fieldInstance_type() async {
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 
 class A {
-  @ReferenceField()
-  int foo = 0;
+  num? foo = 42;
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  var foo;
 }
 ''');
 
     _assertMacroCode(library, r'''
 library augment 'test.dart';
 
-import 'package:test/test.dart' as prefix0;
+import 'dart:core' as prefix0;
 
-augment class A {
-  void foo() {
-    this.foo;
-  }
+augment class B {
+  augment prefix0.num? foo = 0;
 }
 ''');
   }
 
-  test_resolveIdentifier_class_field_static() async {
-    final library = await buildLibrary(r'''
+  test_inferOmittedType_fieldStatic_type() async {
+    var library = await buildLibrary(r'''
 import 'code_generation.dart';
 
 class A {
-  @ReferenceField()
-  static int foo = 0;
+  @AugmentForOmittedTypes()
+  static var foo;
 }
-''');
-
-    _assertMacroCode(library, r'''
-library augment 'test.dart';
-
-import 'package:test/test.dart' as prefix0;
-
-augment class A {
-  void foo() {
-    prefix0.A.foo;
-  }
-}
-''');
-  }
-
-  test_resolveIdentifier_function_dartCorePrint() async {
-    final library = await buildLibrary(r'''
-import 'code_generation.dart';
-
-@ReferenceDartCorePrint()
-class A {}
 ''');
 
     _assertMacroCode(library, r'''
@@ -1474,8 +1139,948 @@ library augment 'test.dart';
 import 'dart:core' as prefix0;
 
 augment class A {
-  void foo() {
-    prefix0.print();
+  augment static prefix0.dynamic foo = 0;
+}
+''');
+  }
+
+  test_inferOmittedType_function_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@AugmentForOmittedTypes()
+foo() {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment prefix0.dynamic foo() {}
+''');
+  }
+
+  test_inferOmittedType_functionType_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@AugmentForOmittedTypes()
+void foo(Function() a) {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment void foo(prefix0.dynamic Function() a, ) {}
+''');
+  }
+
+  test_inferOmittedType_getterInstance_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  get foo => 0;
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class B {
+  augment prefix0.int get foo {}
+}
+''');
+  }
+
+  test_inferOmittedType_methodInstance_formalParameter() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  void foo(int a) {}
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  void foo(a) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class B {
+  augment void foo(prefix0.int a, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_methodInstance_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  foo() {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class B {
+  augment prefix0.int foo() {}
+}
+''');
+  }
+
+  test_inferOmittedType_methodStatic_formalParameter() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  static void foo(a) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment static void foo(prefix0.dynamic a, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_methodStatic_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  static foo() {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment static prefix0.dynamic foo() {}
+}
+''');
+  }
+
+  test_inferOmittedType_setterInstance_formalParameter() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  void set foo(int a) {}
+}
+
+class B extends A {
+  @AugmentForOmittedTypes()
+  void set foo(a) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class B {
+  augment void set foo(prefix0.int a, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_setterInstance_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  set foo(int _) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment void set foo(prefix0.int _, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_setterStatic_formalParameter() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  static void set foo(a) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment static void set foo(prefix0.dynamic a, ) {}
+}
+''');
+  }
+
+  test_inferOmittedType_setterStatic_returnType() async {
+    var library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+class A {
+  @AugmentForOmittedTypes()
+  static set foo(int _) {}
+}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment class A {
+  augment static void set foo(prefix0.int _, ) {}
+}
+''');
+  }
+
+  test_resolveIdentifier_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_constructor() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  A.named();
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'named')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.named;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_constructor_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class A {
+  A.named();
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'named')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.named;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_field_instance() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int foo = 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier(
+  'package:test/a.dart',
+  'A',
+  memberName: 'foo',
+  parametersCode: 'dynamic a',
+  leadCode: 'a.',
+)
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class X {
+  void doReference(dynamic a) {
+    a.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_field_static() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int foo = 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_field_static_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class A {
+  static int foo = 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class B {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'B')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.B;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_getter_instance() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int get foo => 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier(
+  'package:test/a.dart',
+  'A',
+  memberName: 'foo',
+  parametersCode: 'dynamic a',
+  leadCode: 'a.',
+)
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class X {
+  void doReference(dynamic a) {
+    a.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_getter_static() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int get foo => 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_getter_static_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class A {
+  static int get foo => 0;
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_method_instance() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void foo() {}
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier(
+  'package:test/a.dart',
+  'A',
+  memberName: 'foo',
+  parametersCode: 'dynamic a',
+  leadCode: 'a.',
+)
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment class X {
+  void doReference(dynamic a) {
+    a.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_method_static() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static void foo() {}
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_class_method_static_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+class A {
+  static void foo() {}
+}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A', memberName: 'foo')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_extension() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_extensionType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A(int it) {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_formalParameter() async {
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@ReferenceFirstFormalParameter()
+void foo(int a);
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'dart:core' as prefix0;
+
+augment void foo(prefix0.int a, ) {
+  a;
+}
+''');
+  }
+
+  test_resolveIdentifier_functionTypeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef void A();
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_genericTypeAlias() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef A = int;
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'A')
+class X {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class X {
+  void doReference() {
+    prefix0.A;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_typeParameter() async {
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+
+@ReferenceFirstTypeParameter()
+void foo<T>();
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+augment void foo<T>() {
+  T;
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo() {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_function_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+void foo() {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+int get foo => 0;
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_getter_fromPart() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+int get foo => 0;
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+set foo(int value) {}
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
+  }
+}
+''');
+  }
+
+  test_resolveIdentifier_unit_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var foo = 0;
+''');
+
+    final library = await buildLibrary(r'''
+import 'code_generation.dart';
+import 'a.dart';
+
+@ReferenceIdentifier('package:test/a.dart', 'foo')
+class A {}
+''');
+
+    _assertMacroCode(library, r'''
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  void doReference() {
+    prefix0.foo;
   }
 }
 ''');
@@ -1528,57 +2133,7 @@ augment class A {
 
 abstract class MacroDeclarationsTest extends MacroElementsBaseTest {
   test_addClass_addMethod_addMethod() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class AddClassB implements ClassTypesMacro {
-  const AddClassB();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
-    final identifier = await builder.resolveIdentifier(
-      Uri.parse('package:test/a.dart'),
-      'AddMethodFoo',
-    );
-    builder.declareType(
-      'MyClass',
-      DeclarationCode.fromParts([
-        '@',
-        identifier,
-        '()\nclass B {}\n',
-      ]),
-    );
-  }
-}
-
-macro class AddMethodFoo implements ClassDeclarationsMacro {
-  const AddMethodFoo();
-
-  buildDeclarationsForClass(clazz, builder) async {
-    final identifier = await builder.resolveIdentifier(
-      Uri.parse('package:test/a.dart'),
-      'AddMethodBar',
-    );
-    builder.declareInType(
-      DeclarationCode.fromParts([
-        '  @',
-        identifier,
-        '()\n  void foo() {}',
-      ]),
-    );
-  }
-}
-
-macro class AddMethodBar implements MethodDeclarationsMacro {
-  const AddMethodBar();
-
-  buildDeclarationsForMethod(method, builder) async {
-    builder.declareInType(
-      DeclarationCode.fromString('  void bar() {}'),
-    );
-  }
-}
-''');
+    _addSingleMacro('addClass_addMethod_addMethod.dart');
 
     var library = await buildLibrary(r'''
 import 'a.dart';
@@ -1657,8 +2212,6 @@ augment class B {
                 element: <null>
             augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::B
             augmented
-              constructors
-                self::@augmentation::package:test/test.macro.dart::@class::B::@constructor::new
               methods
                 self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::bar
                 self::@augmentation::package:test/test.macro.dart::@classAugmentation::B::@method::foo
@@ -1892,8 +2445,6 @@ library
         augmented
           fields
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-          constructors
-            self::@class::A::@constructor::new
           accessors
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
@@ -1958,8 +2509,6 @@ library
         augmented
           fields
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-          constructors
-            self::@class::A::@constructor::new
           accessors
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
   augmentationImports
@@ -2014,8 +2563,6 @@ library
         reference: self::@class::A
         augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
         augmented
-          constructors
-            self::@class::A::@constructor::new
           methods
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
   augmentationImports
@@ -2071,8 +2618,6 @@ library
         augmented
           fields
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
-          constructors
-            self::@class::A::@constructor::new
           accessors
             self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
   augmentationImports
@@ -2106,6 +2651,54 @@ augment class A {
 ''');
   }
 
+  test_unit_function_add() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareInLibrary('void foo() {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withExportScope = true
+      ..withMetadata = false
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/append.dart
+  definingUnit
+    reference: self
+    classes
+      class A @64
+        reference: self::@class::A
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+void foo() {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        functions
+          foo @35
+            reference: self::@augmentation::package:test/test.macro.dart::@function::foo
+            returnType: void
+  exportedReferences
+    declared self::@augmentation::package:test/test.macro.dart::@function::foo
+    declared self::@class::A
+  exportNamespace
+    A: self::@class::A
+    foo: self::@augmentation::package:test/test.macro.dart::@function::foo
+''');
+  }
+
   test_unit_variable_add() async {
     var library = await buildLibrary(r'''
 import 'append.dart';
@@ -2116,6 +2709,7 @@ class A {}
 
     configuration
       ..withConstructors = false
+      ..withExportScope = true
       ..withMetadata = false
       ..withPropertyLinking = true
       ..withReferences = true;
@@ -2153,6 +2747,12 @@ final x = 42;
             returnType: int
             id: getter_0
             variable: variable_0
+  exportedReferences
+    declared self::@augmentation::package:test/test.macro.dart::@accessor::x
+    declared self::@class::A
+  exportNamespace
+    A: self::@class::A
+    x: self::@augmentation::package:test/test.macro.dart::@accessor::x
 ''');
   }
 }
@@ -2169,7 +2769,430 @@ class MacroDeclarationsTest_keepLinking extends MacroDeclarationsTest {
   bool get keepLinkingLibraries => true;
 }
 
+abstract class MacroDefinitionTest extends MacroElementsBaseTest {
+  test_class_addConstructor_augmentConstructor() async {
+    newFile(
+      '$testPackageLibPath/a.dart',
+      _getMacroCode('add_augment_declaration.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddConstructor()
+class A {}
+''');
+
+    configuration
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @42
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmented
+          constructors
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+
+augment class A {
+  @prefix0.AugmentConstructor()
+  A.named();
+  augment A.named() { print(42); }
+}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @86
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            constructors
+              named @126
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+                periodOffset: 125
+                nameEnd: 131
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+              augment named @147
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructorAugmentation::named
+                periodOffset: 146
+                nameEnd: 152
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@constructor::named
+''');
+  }
+
+  test_class_addField_augmentField() async {
+    newFile(
+      '$testPackageLibPath/a.dart',
+      _getMacroCode('add_augment_declaration.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddField()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @36
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmented
+          fields
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+          accessors
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+import 'dart:core' as prefix1;
+
+augment class A {
+  @prefix0.AugmentField()
+  prefix1.int foo;
+  augment prefix1.int foo = 42;
+}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+        dart:core as prefix1 @93
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @117
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            fields
+              foo @161
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                type: int
+                id: field_0
+                getter: getter_0
+                setter: setter_0
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+              augment foo @188
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@fieldAugmentation::foo
+                type: int
+                shouldUseTypeForInitializerInference: true
+                id: field_1
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+            accessors
+              synthetic get foo @-1
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                returnType: int
+                id: getter_0
+                variable: field_0
+              synthetic set foo= @-1
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                parameters
+                  requiredPositional _foo @-1
+                    type: int
+                returnType: void
+                id: setter_0
+                variable: field_0
+''');
+  }
+
+  test_class_addGetter_augmentGetter() async {
+    newFile(
+      '$testPackageLibPath/a.dart',
+      _getMacroCode('add_augment_declaration.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddGetter()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @37
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmented
+          fields
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          accessors
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+import 'dart:core' as prefix1;
+
+augment class A {
+  @prefix0.AugmentGetter()
+  external prefix1.int get foo;
+  augment prefix1.int get foo => 42;
+}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+        dart:core as prefix1 @93
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @117
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            fields
+              synthetic foo @-1
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                type: int
+                id: field_0
+                getter: getter_0
+            accessors
+              external get foo @175
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+                returnType: int
+                id: getter_0
+                variable: field_0
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+              augment get foo @206
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getterAugmentation::foo
+                returnType: int
+                id: getter_1
+                variable: field_0
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@getter::foo
+''');
+  }
+
+  test_class_addMethod_augmentMethod() async {
+    newFile(
+      '$testPackageLibPath/a.dart',
+      _getMacroCode('add_augment_declaration.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddMethod()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @37
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmented
+          methods
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+import 'dart:core' as prefix1;
+
+augment class A {
+  @prefix0.AugmentMethod()
+  external prefix1.int foo();
+  augment prefix1.int foo() => 42;
+}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+        dart:core as prefix1 @93
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @117
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            methods
+              external foo @171
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+                returnType: int
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+              augment foo @200
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@methodAugmentation::foo
+                returnType: int
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@method::foo
+''');
+  }
+
+  test_class_addSetter_augmentSetter() async {
+    newFile(
+      '$testPackageLibPath/a.dart',
+      _getMacroCode('add_augment_declaration.dart'),
+    );
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+
+@AddSetter()
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/a.dart
+  definingUnit
+    reference: self
+    classes
+      class A @37
+        reference: self::@class::A
+        augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+        augmented
+          fields
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+          accessors
+            self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+import 'package:test/a.dart' as prefix0;
+import 'dart:core' as prefix1;
+
+augment class A {
+  @prefix0.AugmentSetter()
+  external void set foo(prefix1.int value);
+  augment void set foo(prefix1.int value, ) { print(42); }
+}
+---
+      imports
+        package:test/a.dart as prefix0 @62
+        dart:core as prefix1 @93
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          augment class A @117
+            reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A
+            augmentationTarget: self::@class::A
+            fields
+              synthetic foo @-1
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@field::foo
+                type: int
+                id: field_0
+                setter: setter_0
+            accessors
+              external set foo= @168
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+                parameters
+                  requiredPositional value @184
+                    type: int
+                returnType: void
+                id: setter_0
+                variable: field_0
+                augmentation: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+              augment set foo= @211
+                reference: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setterAugmentation::foo
+                parameters
+                  requiredPositional value @227
+                    type: int
+                returnType: void
+                id: setter_1
+                variable: field_0
+                augmentationTarget: self::@augmentation::package:test/test.macro.dart::@classAugmentation::A::@setter::foo
+''');
+  }
+}
+
+@reflectiveTest
+class MacroDefinitionTest_fromBytes extends MacroDefinitionTest {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class MacroDefinitionTest_keepLinking extends MacroDefinitionTest {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
 abstract class MacroElementsBaseTest extends ElementsBaseTest {
+  /// We decided that we want to fail, and want to print the library.
+  void failWithLibraryText(LibraryElementImpl library) {
+    // While developing, we hit unimplemented branches.
+    // It is useful to see where, so include stack traces.
+    configuration.withMacroStackTraces = true;
+
+    final text = getLibraryText(
+      library: library,
+      configuration: configuration,
+    );
+    print('------------------------');
+    print('$text------------------------');
+    fail('The library text above should have details.');
+  }
+
   @override
   Future<void> setUp() async {
     super.setUp();
@@ -2185,9 +3208,34 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
     );
   }
 
-  /// Verifies the code of the macro generated augmentation.
-  void _assertMacroCode(LibraryElementImpl library, String expected) {
-    final actual = library.augmentations.single.macroGenerated!.code;
+  /// Adds `a.dart` with the content from `single/` directory.
+  void _addSingleMacro(String fileName) {
+    final code = _getMacroCode('single/$fileName');
+    newFile('$testPackageLibPath/a.dart', code);
+  }
+
+  /// Matches [library]'s generated code against `=> r'''(.+)''';` pattern,
+  /// and verifies that the extracted content is [expected].
+  void _assertDefinitionsPhaseText(
+    LibraryElementImpl library,
+    String expected,
+  ) {
+    if (library.allMacroDiagnostics.isNotEmpty) {
+      failWithLibraryText(library);
+    }
+
+    final generated = _getMacroGeneratedCode(library);
+
+    final regExp = RegExp(r'=> r"""(.+)""";', dotAll: true);
+    final match = regExp.firstMatch(generated);
+    final actual = match?.group(1);
+
+    if (actual == null) {
+      print('-------- Generated --------');
+      print('$generated---------------------------');
+      fail('No introspection result.');
+    }
+
     if (actual != expected) {
       print('-------- Actual --------');
       print('$actual------------------------');
@@ -2196,29 +3244,38 @@ abstract class MacroElementsBaseTest extends ElementsBaseTest {
     expect(actual, expected);
   }
 
-  /// The [code] should have exactly one application of `IntrospectMacro`.
-  /// It may contain arbitrary code otherwise.
-  ///
-  /// The macro generates a top-level constant `_introspect`, with a string
-  /// literal initializer - the textual dump of the introspection.
-  Future<String> _getIntrospectText(String code) async {
-    newFile(
-      '$testPackageLibPath/introspect.dart',
-      _getMacroCode('introspect.dart'),
-    );
-
+  /// Runs the definitions phase macro that introspects the declaration in
+  /// the library [uriStr], with the [name].
+  Future<void> _assertIntrospectDefinitionText(
+    String leadCode,
+    String expected, {
+    required String name,
+    required String uriStr,
+    required bool withUnnamedConstructor,
+  }) async {
     var library = await buildLibrary('''
-import 'introspect.dart';
-$code
+$leadCode
+
+@IntrospectDeclaration(
+  uriStr: 'package:test/test.dart',
+  name: '$name',
+  withUnnamedConstructor: $withUnnamedConstructor,
+)
+void _starter() {}
 ''');
 
-    library.assertNoMacroErrors();
+    _assertDefinitionsPhaseText(library, expected);
+  }
 
-    return library.topLevelElements
-        .whereType<ConstTopLevelVariableElementImpl>()
-        .where((e) => e.name == '_introspect')
-        .map((e) => (e.constantInitializer as SimpleStringLiteral).value)
-        .join('\n');
+  /// Verifies the code of the macro generated augmentation.
+  void _assertMacroCode(LibraryElementImpl library, String expected) {
+    final actual = _getMacroGeneratedCode(library);
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
   }
 
   String _getMacroCode(String relativePath) {
@@ -2226,6 +3283,14 @@ $code
         .getChildAssumingFile('test/src/summary/macro/$relativePath')
         .readAsStringSync();
     return code.replaceAll('/*macro*/', 'macro');
+  }
+
+  String _getMacroGeneratedCode(LibraryElementImpl library) {
+    if (library.allMacroDiagnostics.isNotEmpty) {
+      failWithLibraryText(library);
+    }
+
+    return library.augmentations.single.macroGenerated!.code;
   }
 }
 
@@ -2418,6 +3483,79 @@ library
                   target: ElementMacroDiagnosticTarget
                     element: self::@class::A::@method::foo
                 severity: warning
+''');
+  }
+
+  test_macroDiagnostics_report_atDeclaration_mixin() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtTargetDeclaration()
+mixin A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    mixins
+      mixin A @62
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementMacroDiagnosticTarget
+                element: self::@mixin::A
+            severity: warning
+        superclassConstraints
+          Object
+''');
+  }
+
+  test_macroDiagnostics_report_atTarget_method() async {
+    newFile(
+      '$testPackageLibPath/diagnostic.dart',
+      _getMacroCode('diagnostic.dart'),
+    );
+
+    final library = await buildLibrary(r'''
+import 'diagnostic.dart';
+
+@ReportAtFirstMethod()
+class A {
+  void foo() {}
+}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withMetadata = false;
+    checkElementText(library, r'''
+library
+  imports
+    package:test/diagnostic.dart
+  definingUnit
+    classes
+      class A @56
+        macroDiagnostics
+          MacroDiagnostic
+            message: MacroDiagnosticMessage
+              message: Reported message
+              target: ElementMacroDiagnosticTarget
+                element: self::@class::A::@method::foo
+            severity: warning
+        methods
+          foo @67
+            returnType: void
 ''');
   }
 
@@ -2878,7 +4016,6 @@ class A {
 library augment 'test.dart';
 
 import 'dart:core' as prefix0;
-import 'package:test/test.dart' as prefix1;
 
 augment class A {
   prefix0.int get foo => this._foo;
@@ -2909,28 +4046,16 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        <unnamed>
-          flags: hasBody isStatic
-          returnType: A
-        named
-          flags: hasBody isFactory isStatic
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    <unnamed>
+      flags: hasBody isStatic
+      returnType: A
+    named
+      flags: hasBody isFactory isStatic
+      returnType: A
 ''');
   }
 
@@ -2944,32 +4069,16 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withMetadata: true,
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        <unnamed>
-          flags: hasBody isStatic
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    <unnamed>
+      flags: hasBody isStatic
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      returnType: A
 ''');
   }
 
@@ -2980,25 +4089,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        named
-          flags: hasBody isStatic
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    named
+      flags: hasBody isStatic
+      returnType: A
 ''');
   }
 
@@ -3009,32 +4106,20 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        <unnamed>
-          flags: hasBody isStatic
-          namedParameters
-            a
-              flags: isNamed isRequired
-              type: int
-            b
-              flags: isNamed
-              type: String?
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    <unnamed>
+      flags: hasBody isStatic
+      namedParameters
+        a
+          flags: isNamed isRequired
+          type: int
+        b
+          flags: isNamed
+          type: String?
+      returnType: A
 ''');
   }
 
@@ -3045,31 +4130,19 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-class X {
-  @Introspect(
-    withDetailsFor: {'A'},
-    withUnnamedConstructor: true,
-  )
-  A? foo;
-}
-''', r'''
-foo
-  type: A?
-    class A
-      superclass: Object
-      constructors
-        <unnamed>
-          flags: hasBody isStatic
-          positionalParameters
-            a
-              flags: isRequired
-              type: int
-            b
-              type: String?
-          returnType: A
+    await _assertIntrospectText('A', withUnnamedConstructor: true, r'''
+class A
+  superclass: Object
+  constructors
+    <unnamed>
+      flags: hasBody isStatic
+      positionalParameters
+        a
+          flags: isRequired
+          type: int
+        b
+          type: String?
+      returnType: A
 ''');
   }
 
@@ -3080,22 +4153,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasExternal
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: hasExternal
+      type: int
 ''');
   }
 
@@ -3106,22 +4170,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasFinal
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: hasFinal
+      type: int
 ''');
   }
 
@@ -3132,22 +4187,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasLate
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: hasLate
+      type: int
 ''');
   }
 
@@ -3158,22 +4204,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: isStatic
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: isStatic
+      type: int
 ''');
   }
 
@@ -3187,28 +4224,15 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          type: int?
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int?
 ''');
   }
 
@@ -3226,28 +4250,15 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          type: int?
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int?
 ''');
   }
 
@@ -3268,25 +4279,16 @@ augment class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      fields
-        foo
-          flags: hasFinal
-          type: int
-        bar
-          flags: hasFinal
-          type: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  fields
+    foo
+      flags: hasFinal
+      type: int
+    bar
+      flags: hasFinal
+      type: int
 ''');
   }
 
@@ -3295,19 +4297,10 @@ class X
 abstract class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      flags: hasAbstract
-      superclass: Object
+    await _assertIntrospectText('A', r'''
+class A
+  flags: hasAbstract
+  superclass: Object
 ''');
   }
 
@@ -3318,22 +4311,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody isGetter
-          returnType: int
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
 ''');
   }
 
@@ -3344,21 +4328,12 @@ class B {}
 class C implements A, B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'C'},
-)
-class X extends C {}
-''', r'''
-class X
-  superclass: C
-    class C
-      superclass: Object
-      interfaces
-        A
-        B
+    await _assertIntrospectText('C', r'''
+class C
+  superclass: Object
+  interfaces
+    A
+    B
 ''');
   }
 
@@ -3380,27 +4355,14 @@ library augment 'a.dart';
 augment class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', r'''
+class A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-        IdentifierMetadataAnnotation
-          identifier: b
-      superclass: Object
+    IdentifierMetadataAnnotation
+      identifier: a
+    IdentifierMetadataAnnotation
+      identifier: b
+  superclass: Object
 ''');
   }
 
@@ -3414,26 +4376,13 @@ class A {
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-          constructorName: named
-      superclass: Object
+      type: A
+      constructorName: named
+  superclass: Object
 ''');
   }
 
@@ -3451,26 +4400,13 @@ import 'a.dart';
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', uriStr: 'package:test/b.dart', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-          constructorName: named
-      superclass: Object
+      type: A
+      constructorName: named
+  superclass: Object
 ''');
   }
 
@@ -3488,26 +4424,13 @@ import 'a.dart' as prefix;
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', uriStr: 'package:test/b.dart', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-          constructorName: named
-      superclass: Object
+      type: A
+      constructorName: named
+  superclass: Object
 ''');
   }
 
@@ -3521,25 +4444,12 @@ class A {
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-      superclass: Object
+      type: A
+  superclass: Object
 ''');
   }
 
@@ -3557,25 +4467,12 @@ import 'a.dart';
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', uriStr: 'package:test/b.dart', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-      superclass: Object
+      type: A
+  superclass: Object
 ''');
   }
 
@@ -3593,25 +4490,12 @@ import 'a.dart' as prefix;
 class B {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'B'},
-  withMetadata: true,
-)
-class X extends B {}
-''', r'''
-class X
+    await _assertIntrospectText('B', uriStr: 'package:test/b.dart', r'''
+class B
   metadata
     ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: B
-    class B
-      metadata
-        ConstructorMetadataAnnotation
-          type: A
-      superclass: Object
+      type: A
+  superclass: Object
 ''');
   }
 
@@ -3623,25 +4507,12 @@ const a = 0;
 class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', r'''
+class A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-      superclass: Object
+    IdentifierMetadataAnnotation
+      identifier: a
+  superclass: Object
 ''');
   }
 
@@ -3657,25 +4528,12 @@ import 'a.dart';
 class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-      superclass: Object
+    IdentifierMetadataAnnotation
+      identifier: a
+  superclass: Object
 ''');
   }
 
@@ -3691,25 +4549,12 @@ import 'a.dart' as prefix;
 class A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-      superclass: Object
+    IdentifierMetadataAnnotation
+      identifier: a
+  superclass: Object
 ''');
   }
 
@@ -3720,22 +4565,13 @@ abstract class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      flags: hasAbstract
-      superclass: Object
-      methods
-        foo
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  flags: hasAbstract
+  superclass: Object
+  methods
+    foo
+      returnType: void
 ''');
   }
 
@@ -3746,22 +4582,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody hasExternal
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody hasExternal
+      returnType: void
 ''');
   }
 
@@ -3772,22 +4599,13 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody isStatic
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody isStatic
+      returnType: void
 ''');
   }
 
@@ -3805,29 +4623,16 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          metadata
-            IdentifierMetadataAnnotation
-              identifier: a
-          returnType: void
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      returnType: void
 ''');
   }
 
@@ -3838,29 +4643,20 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          namedParameters
-            a
-              flags: isNamed isRequired
-              type: int
-            b
-              flags: isNamed
-              type: String?
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      namedParameters
+        a
+          flags: isNamed isRequired
+          type: int
+        b
+          flags: isNamed
+          type: String?
+      returnType: void
 ''');
   }
 
@@ -3877,33 +4673,20 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          namedParameters
-            x
-              flags: isNamed isRequired
-              metadata
-                IdentifierMetadataAnnotation
-                  identifier: a
-              type: int
-          returnType: void
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      namedParameters
+        x
+          flags: isNamed isRequired
+          metadata
+            IdentifierMetadataAnnotation
+              identifier: a
+          type: int
+      returnType: void
 ''');
   }
 
@@ -3914,28 +4697,19 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          positionalParameters
-            a
-              flags: isRequired
-              type: int
-            b
-              type: String?
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      positionalParameters
+        a
+          flags: isRequired
+          type: int
+        b
+          type: String?
+      returnType: void
 ''');
   }
 
@@ -3952,33 +4726,20 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          positionalParameters
-            x
-              flags: isRequired
-              metadata
-                IdentifierMetadataAnnotation
-                  identifier: a
-              type: int
-          returnType: void
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      positionalParameters
+        x
+          flags: isRequired
+          metadata
+            IdentifierMetadataAnnotation
+              identifier: a
+          type: int
+      returnType: void
 ''');
   }
 
@@ -3999,25 +4760,16 @@ augment class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody
-          returnType: void
-        bar
-          flags: hasBody
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+    bar
+      flags: hasBody
+      returnType: void
 ''');
   }
 
@@ -4028,21 +4780,12 @@ mixin M2 {}
 class C with M1, M2 {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'C'},
-)
-class X extends C {}
-''', r'''
-class X
-  superclass: C
-    class C
-      superclass: Object
-      mixins
-        M1
-        M2
+    await _assertIntrospectText('C', r'''
+class C
+  superclass: Object
+  mixins
+    M1
+    M2
 ''');
   }
 
@@ -4053,26 +4796,17 @@ class A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
-  superclass: A
-    class A
-      superclass: Object
-      methods
-        foo
-          flags: hasBody isSetter
-          positionalParameters
-            value
-              flags: isRequired
-              type: int
-          returnType: void
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
 ''');
   }
 
@@ -4082,24 +4816,11 @@ class A<T> {}
 class B<U> extends A<U> {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A', 'B'},
-)
-class X extends B<int> {}
-''', r'''
-class X
-  superclass: B<int>
-    class B
-      superclass: A<U>
-        class A
-          superclass: Object
-          typeParameters
-            T
-      typeParameters
-        U
+    await _assertIntrospectText('B', r'''
+class B
+  superclass: A<U>
+  typeParameters
+    U
 ''');
   }
 
@@ -4108,22 +4829,394 @@ class X
 class A<T, U extends List<T>> {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
+    await _assertIntrospectText('A', r'''
+class A
+  superclass: Object
+  typeParameters
+    T
+    U
+      bound: List<T>
+''');
+  }
 
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X extends A {}
-''', r'''
-class X
+  test_classAlias_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+mixin M {}
+class I {}
+class J {}
+
+class C = A with M implements I, J;
+''');
+
+    await _assertIntrospectText('C', r'''
+class C
   superclass: A
-    class A
-      superclass: Object
-      typeParameters
-        T
-        U
-          bound: List<T>
+  mixins
+    M
+  interfaces
+    I
+    J
+''');
+  }
+
+  test_classAlias_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A<T1> {}
+mixin M<U1> {}
+
+class C<T2, U2> = A<T2> with M<U2>;
+''');
+
+    await _assertIntrospectText('C', r'''
+class C
+  superclass: A<T2>
+  typeParameters
+    T2
+    U2
+  mixins
+    M<U2>
+''');
+  }
+
+  test_enum_fields() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v(0);
+  final int foo;
+  const A(this.foo);
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  fields
+    foo
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_enum_getters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v;
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_enum_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+
+enum X implements A, B {
+  v
+}
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  interfaces
+    A
+    B
+  values
+    v
+''');
+  }
+
+  test_enum_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@a1
+@a2
+enum X {
+  v
+}
+
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  values
+    v
+''');
+  }
+
+  test_enum_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v;
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_enum_mixins() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+mixin A {}
+mixin B {}
+
+enum X with A, B {
+  v
+}
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  mixins
+    A
+    B
+  values
+    v
+''');
+  }
+
+  test_enum_setters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A {
+  v;
+  set foo(int value) {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
+''');
+  }
+
+  test_enum_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum A<T> {
+  v
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+enum A
+  typeParameters
+    T
+  values
+    v
+''');
+  }
+
+  test_enum_values() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+enum X with A, B {
+  foo, bar
+}
+''');
+
+    await _assertIntrospectText('X', r'''
+enum X
+  values
+    foo
+    bar
+''');
+  }
+
+  test_extension_getters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extension_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+@a
+extension A on int {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a
+  onType: int
+''');
+  }
+
+  test_extension_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extension_setters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A on int {
+  set foo(int value) {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
+''');
+  }
+
+  test_extension_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension A<T> on Map<int, T> {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension A
+  typeParameters
+    T
+  onType: Map<int, T>
+''');
+  }
+
+  test_extensionType_getters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extensionType_metadata_identifier() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+
+@a
+extension type A(int it) {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_extensionType_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A(int it) {
+  void foo() {}
+}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extensionType_typeParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+extension type A<T>(int it) {}
+''');
+
+    await _assertIntrospectText('A', r'''
+extension type A
+  typeParameters
+    T
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
 ''');
   }
 
@@ -4134,24 +5227,14 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        fields
-          foo
-            flags: hasFinal
-            type: int
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  fields
+    foo
+      flags: hasFinal
+      type: int
 ''');
   }
 
@@ -4165,30 +5248,16 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X with A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        fields
-          foo
-            metadata
-              IdentifierMetadataAnnotation
-                identifier: a
-            type: int?
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  fields
+    foo
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int?
 ''');
   }
 
@@ -4206,30 +5275,16 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'b.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X with A {}
-''', r'''
-class X
-  metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        fields
-          foo
-            metadata
-              IdentifierMetadataAnnotation
-                identifier: a
-            type: int?
+    await _assertIntrospectText('A', uriStr: 'package:test/b.dart', r'''
+mixin A
+  superclassConstraints
+    Object
+  fields
+    foo
+      metadata
+        IdentifierMetadataAnnotation
+          identifier: a
+      type: int?
 ''');
   }
 
@@ -4240,24 +5295,14 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        methods
-          foo
-            flags: hasBody isGetter
-            returnType: int
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
 ''');
   }
 
@@ -4279,28 +5324,15 @@ library augment 'a.dart';
 augment mixin A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X extends A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', r'''
+mixin A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  superclass: A
-    mixin A
-      metadata
-        IdentifierMetadataAnnotation
-          identifier: a
-        IdentifierMetadataAnnotation
-          identifier: b
-      superclassConstraints
-        Object
+    IdentifierMetadataAnnotation
+      identifier: a
+    IdentifierMetadataAnnotation
+      identifier: b
+  superclassConstraints
+    Object
 ''');
   }
 
@@ -4312,27 +5344,13 @@ const a = 0;
 mixin A {}
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-  withMetadata: true,
-)
-class X with A {}
-''', r'''
-class X
+    await _assertIntrospectText('A', r'''
+mixin A
   metadata
-    ConstructorMetadataAnnotation
-      type: Introspect
-  mixins
-    A
-      mixin A
-        metadata
-          IdentifierMetadataAnnotation
-            identifier: a
-        superclassConstraints
-          Object
+    IdentifierMetadataAnnotation
+      identifier: a
+  superclassConstraints
+    Object
 ''');
   }
 
@@ -4343,24 +5361,14 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        methods
-          foo
-            flags: hasBody
-            returnType: void
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  methods
+    foo
+      flags: hasBody
+      returnType: void
 ''');
   }
 
@@ -4371,39 +5379,782 @@ mixin A {
 }
 ''');
 
-    await _assertIntrospectText(r'''
-import 'a.dart';
-
-@Introspect(
-  withDetailsFor: {'A'},
-)
-class X with A {}
-''', r'''
-class X
-  mixins
-    A
-      mixin A
-        superclassConstraints
-          Object
-        methods
-          foo
-            flags: hasBody isSetter
-            positionalParameters
-              value
-                flags: isRequired
-                type: int
-            returnType: void
+    await _assertIntrospectText('A', r'''
+mixin A
+  superclassConstraints
+    Object
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: void
 ''');
   }
 
-  /// Checks the textual dump of the introspection information in [code].
-  Future<void> _assertIntrospectText(String code, String expected) async {
-    var actual = await _getIntrospectText(code);
-    if (actual != expected) {
-      print(actual);
-      NodeTextExpectationsCollector.add(actual);
-    }
-    expect(actual, expected);
+  test_unit_function() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo() {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_unit_function_flags_hasExternal() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+external void foo() {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody hasExternal
+  returnType: void
+''');
+  }
+
+  test_unit_function_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@a1
+@a2
+void foo() {}
+
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  returnType: void
+''');
+  }
+
+  test_unit_function_namedParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo({required int a, String? b}) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  namedParameters
+    a
+      flags: isNamed isRequired
+      type: int
+    b
+      flags: isNamed
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_function_positionalParameters() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+void foo(int a, [String? b]) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    a
+      flags: isRequired
+      type: int
+    b
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_getter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+int get foo => 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_unit_setter() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+set foo(int value) {}
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: int
+  returnType: void
+''');
+  }
+
+  test_unit_variable() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+final foo = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasFinal
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasExternal_true() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+external int foo;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasExternal
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasFinal_false() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var foo = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasLate_true() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+late int foo;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasLate
+  type: int
+''');
+  }
+
+  test_unit_variable_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+@a1
+@a2
+final foo = 0;
+
+const a1 = 0;
+const a2 = 0;
+''');
+
+    await _assertIntrospectText('foo', r'''
+foo
+  flags: hasFinal
+  metadata
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  type: int
+''');
+  }
+
+  Future<void> _assertIntrospectText(
+    String name,
+    String expected, {
+    String uriStr = 'package:test/a.dart',
+    bool withUnnamedConstructor = false,
+  }) async {
+    newFile(
+      '$testPackageLibPath/introspect.dart',
+      _getMacroCode('introspect.dart'),
+    );
+
+    await _assertIntrospectDefinitionText(
+      '''
+import '$uriStr';
+import 'introspect.dart';
+''',
+      expected,
+      name: name,
+      uriStr: uriStr,
+      withUnnamedConstructor: withUnnamedConstructor,
+    );
+  }
+}
+
+@reflectiveTest
+class MacroIntrospectNodeDefinitionsTest extends MacroElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  test_inferType_constructor_fieldFormalParameter() async {
+    await _assertIntrospectText('A', r'''
+class A {
+  final int foo;
+  A.named(this.foo);
+}
+''', r'''
+class A
+  constructors
+    named
+      flags: isStatic
+      positionalParameters
+        foo
+          flags: isRequired
+          type: OmittedType
+            inferred: int
+      returnType: A
+  fields
+    foo
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_inferType_fieldInstance_fromInitializer() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  final foo = 0;
+}
+''', r'''
+class X
+  fields
+    foo
+      flags: hasFinal
+      type: OmittedType
+        inferred: int
+''');
+  }
+
+  test_inferType_fieldInstance_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+class A {
+  int get foo => 0;
+}
+
+class X extends A {
+  final foo = 0;
+}
+''', r'''
+class X
+  superclass: A
+  fields
+    foo
+      flags: hasFinal
+      type: OmittedType
+        inferred: int
+''');
+  }
+
+  test_inferType_fieldStatic() async {
+    await _assertIntrospectText('A', r'''
+class A {
+  static final foo;
+}
+''', r'''
+class A
+  fields
+    foo
+      flags: hasFinal isStatic
+      type: OmittedType
+        inferred: dynamic
+''');
+  }
+
+  test_inferType_fieldStatic_fromInitializer() async {
+    await _assertIntrospectText('A', r'''
+class A {
+  static final foo = 0;
+}
+''', r'''
+class A
+  fields
+    foo
+      flags: hasFinal isStatic
+      type: OmittedType
+        inferred: int
+''');
+  }
+
+  test_inferType_function_formalParameter() async {
+    await _assertIntrospectText('foo', r'''
+void foo(a) => 0;
+''', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    a
+      flags: isRequired
+      type: OmittedType
+        inferred: dynamic
+  returnType: void
+''');
+  }
+
+  test_inferType_function_returnType() async {
+    await _assertIntrospectText('foo', r'''
+foo() => 0;
+''', r'''
+foo
+  flags: hasBody
+  returnType: OmittedType
+    inferred: dynamic
+''');
+  }
+
+  test_inferType_getterInstance_returnType_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+class A {
+  int get foo => 0;
+}
+
+class X extends A {
+  get foo => 0;
+}
+''', r'''
+class X
+  superclass: A
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: OmittedType
+        inferred: int
+''');
+  }
+
+  test_inferType_getterStatic_returnType() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static get foo => 0;
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isGetter isStatic
+      returnType: OmittedType
+        inferred: dynamic
+''');
+  }
+
+  test_inferType_methodInstance_formalParameter_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+class A {
+  void foo(int a) {}
+}
+
+class X extends A {
+  void foo(a) {}
+}
+''', r'''
+class X
+  superclass: A
+  methods
+    foo
+      flags: hasBody
+      positionalParameters
+        a
+          flags: isRequired
+          type: OmittedType
+            inferred: int
+      returnType: void
+''');
+  }
+
+  test_inferType_methodInstance_returnType_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+class A {
+  int foo() => 0;
+}
+
+class X extends A {
+  foo() => 0;
+}
+''', r'''
+class X
+  superclass: A
+  methods
+    foo
+      flags: hasBody
+      returnType: OmittedType
+        inferred: int
+''');
+  }
+
+  test_inferType_methodStatic_formalParameter() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static void foo(a) {}
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isStatic
+      positionalParameters
+        a
+          flags: isRequired
+          type: OmittedType
+            inferred: dynamic
+      returnType: void
+''');
+  }
+
+  test_inferType_methodStatic_returnType() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static foo() => 0;
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isStatic
+      returnType: OmittedType
+        inferred: dynamic
+''');
+  }
+
+  test_inferType_setterInstance_formalParameter_fromSuper() async {
+    await _assertIntrospectText('X', r'''
+abstract class A {
+  set foo(int a);
+}
+
+class X extends A {
+  void set foo(a) {}
+}
+''', r'''
+class X
+  superclass: A
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        a
+          flags: isRequired
+          type: OmittedType
+            inferred: int
+      returnType: void
+''');
+  }
+
+  test_inferType_setterInstance_returnType() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  set foo(int a) {}
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        a
+          flags: isRequired
+          type: int
+      returnType: OmittedType
+        inferred: void
+''');
+  }
+
+  test_inferType_setterStatic_formalParameter() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static void set foo(a) {}
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isSetter isStatic
+      positionalParameters
+        a
+          flags: isRequired
+          type: OmittedType
+            inferred: dynamic
+      returnType: void
+''');
+  }
+
+  test_inferType_setterStatic_returnType() async {
+    await _assertIntrospectText('X', r'''
+class X {
+  static set foo(int a) {}
+}
+''', r'''
+class X
+  methods
+    foo
+      flags: hasBody isSetter isStatic
+      positionalParameters
+        a
+          flags: isRequired
+          type: int
+      returnType: OmittedType
+        inferred: void
+''');
+  }
+
+  test_inferType_topGetter_returnType() async {
+    await _assertIntrospectText('foo', r'''
+get foo => 0;
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: OmittedType
+    inferred: dynamic
+''');
+  }
+
+  test_inferType_topSetter_formalParameter() async {
+    await _assertIntrospectText('foo', r'''
+void set foo(value) {}
+''', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: OmittedType
+        inferred: dynamic
+  returnType: void
+''');
+  }
+
+  test_inferType_topSetter_returnType() async {
+    await _assertIntrospectText('foo', r'''
+set foo(int value) {}
+''', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: int
+  returnType: OmittedType
+    inferred: void
+''');
+  }
+
+  test_inferType_topVariable_fromInitializer() async {
+    await _assertIntrospectText('foo', r'''
+final foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
+    inferred: int
+''');
+  }
+
+  test_topLevelDeclarationsOf_imported_class() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+''');
+
+    await _assertLibraryDefinitionsPhaseText(
+      'A',
+      uriStr: 'package:test/a.dart',
+      r'''
+import 'a.dart';
+''',
+      r'''
+topLevelDeclarationsOf
+  class A
+    superclass: Object
+  class B
+    superclass: Object
+''',
+    );
+  }
+
+  test_topLevelDeclarationsOf_self_class() async {
+    await _assertLibraryDefinitionsPhaseText('A', r'''
+class A {}
+class B {}
+''', r'''
+topLevelDeclarationsOf
+  class A
+  class B
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_enum() async {
+    await _assertLibraryDefinitionsPhaseText('A', r'''
+enum A {v1}
+enum B {v2}
+''', r'''
+topLevelDeclarationsOf
+  enum A
+    values
+      v1
+  enum B
+    values
+      v2
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_extension() async {
+    await _assertLibraryDefinitionsPhaseText('A', r'''
+extension A on int {}
+extension B on double {}
+''', r'''
+topLevelDeclarationsOf
+  extension A
+    onType: int
+  extension B
+    onType: double
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_function() async {
+    await _assertLibraryDefinitionsPhaseText('foo', r'''
+void foo() {}
+void bar() {}
+''', r'''
+topLevelDeclarationsOf
+  foo
+    flags: hasBody
+    returnType: void
+  bar
+    flags: hasBody
+    returnType: void
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_getter() async {
+    await _assertLibraryDefinitionsPhaseText('foo', r'''
+int get foo => 0;
+int get bar => 0;
+''', r'''
+topLevelDeclarationsOf
+  foo
+    flags: hasBody isGetter
+    returnType: int
+  bar
+    flags: hasBody isGetter
+    returnType: int
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_mixin() async {
+    await _assertLibraryDefinitionsPhaseText('A', r'''
+mixin A {}
+mixin B {}
+''', r'''
+topLevelDeclarationsOf
+  mixin A
+  mixin B
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_setter() async {
+    await _assertLibraryDefinitionsPhaseText('foo', r'''
+set foo(int value) {}
+set bar(int value) {}
+''', r'''
+topLevelDeclarationsOf
+  foo
+    flags: hasBody isSetter
+    positionalParameters
+      value
+        flags: isRequired
+        type: int
+    returnType: OmittedType
+      inferred: void
+  bar
+    flags: hasBody isSetter
+    positionalParameters
+      value
+        flags: isRequired
+        type: int
+    returnType: OmittedType
+      inferred: void
+''');
+  }
+
+  test_topLevelDeclarationsOf_self_variable() async {
+    await _assertLibraryDefinitionsPhaseText('foo', r'''
+final int foo = 0;
+final int bar = 0;
+''', r'''
+topLevelDeclarationsOf
+  foo
+    flags: hasFinal
+    type: int
+  bar
+    flags: hasFinal
+    type: int
+''');
+  }
+
+  /// The [name] should be the name of a declaration in [code].
+  Future<void> _assertIntrospectText(
+    String name,
+    String code,
+    String expected,
+  ) async {
+    newFile(
+      '$testPackageLibPath/introspect.dart',
+      _getMacroCode('introspect.dart'),
+    );
+
+    await _assertIntrospectDefinitionText(
+      '''
+import 'introspect.dart';
+$code
+''',
+      expected,
+      name: name,
+      uriStr: 'package:test/test.dart',
+      withUnnamedConstructor: false,
+    );
+  }
+
+  /// We use [nameToFind] only because there is no API to get `Library` by
+  /// its URI. So, we get the identifier, resolve it to the declaration,
+  /// and then get its `Library`.
+  Future<void> _assertLibraryDefinitionsPhaseText(
+    String nameToFind,
+    String code,
+    String expected, {
+    String uriStr = 'package:test/test.dart',
+  }) async {
+    newFile(
+      '$testPackageLibPath/introspect.dart',
+      _getMacroCode('introspect.dart'),
+    );
+
+    final library = await buildLibrary('''
+import 'introspect.dart';
+$code
+
+@LibraryTopLevelDeclarations(
+  uriStr: '$uriStr',
+  nameToFind: '$nameToFind',
+)
+void _starter() {}
+''');
+
+    _assertDefinitionsPhaseText(library, expected);
   }
 }
 
@@ -5242,6 +6993,497 @@ class A
 ''');
   }
 
+  test_classAlias_flags_hasAbstract() async {
+    await _assertIntrospectText(r'''
+class A {}
+mixin M {}
+
+@Introspect()
+abstract class C = A with M;
+''', r'''
+class C
+  flags: hasAbstract
+  superclass: A
+  mixins
+    M
+''');
+  }
+
+  test_classAlias_interfaces() async {
+    await _assertIntrospectText(r'''
+class A {}
+mixin M {}
+class I {}
+class J {}
+
+@Introspect()
+class C = A with M implements I, J;
+''', r'''
+class C
+  superclass: A
+  mixins
+    M
+  interfaces
+    I
+    J
+''');
+  }
+
+  test_classAlias_metadata_identifier() async {
+    await _assertIntrospectText(r'''
+class A {}
+mixin M {}
+
+@Introspect(withMetadata: true)
+@a1
+@a2
+class C = A with M;
+
+class X {}
+''', r'''
+class C
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  superclass: A
+  mixins
+    M
+''');
+  }
+
+  test_classAlias_typeParameters() async {
+    await _assertIntrospectText(r'''
+class A<T1> {}
+mixin M<U1> {}
+
+@Introspect()
+class C<T2, U2> = A<T2> with M<U2>;
+''', r'''
+class C
+  superclass: A<T2>
+  typeParameters
+    T2
+    U2
+  mixins
+    M<U2>
+''');
+  }
+
+  test_enum_fields() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  v(0);
+  final int foo;
+  const A(this.foo);
+}
+''', r'''
+enum A
+  values
+    v
+  fields
+    foo
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_enum_getters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  v;
+  int get foo => 0;
+}
+''', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_enum_interfaces() async {
+    await _assertIntrospectText(r'''
+class A {}
+class B {}
+
+@Introspect()
+enum X implements A, B {
+  v
+}
+''', r'''
+enum X
+  interfaces
+    A
+    B
+  values
+    v
+''');
+  }
+
+  test_enum_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+@Introspect(withMetadata: true)
+@a
+enum X {
+  v
+}
+
+''', r'''
+enum X
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a
+  values
+    v
+''');
+  }
+
+  test_enum_method() async {
+    await _assertIntrospectText(r'''
+enum A {
+  v;
+  @Introspect()
+  void foo() {}
+}
+''', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_enum_methods() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  v;
+  void foo() {}
+}
+''', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_enum_mixins() async {
+    await _assertIntrospectText(r'''
+mixin A {}
+mixin B {}
+
+@Introspect()
+enum X with A, B {
+  v
+}
+''', r'''
+enum X
+  mixins
+    A
+    B
+  values
+    v
+''');
+  }
+
+  test_enum_setters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  v;
+  set foo(int value) {}
+}
+''', r'''
+enum A
+  values
+    v
+  methods
+    foo
+      flags: hasBody isSetter
+      positionalParameters
+        value
+          flags: isRequired
+          type: int
+      returnType: OmittedType
+''');
+  }
+
+  test_enum_typeParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum E<T> {
+  v
+}
+''', r'''
+enum E
+  typeParameters
+    T
+  values
+    v
+''');
+  }
+
+  test_enum_values() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+enum A {
+  foo, bar
+}
+''', r'''
+enum A
+  values
+    foo
+    bar
+''');
+  }
+
+  test_enumValue() async {
+    await _assertIntrospectText(r'''
+enum A {
+  @Introspect()
+  foo;
+}
+''', r'''
+foo
+''');
+  }
+
+  test_enumValue_metadata_identifier_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await _assertIntrospectText(r'''
+import 'a.dart';
+
+enum X {
+  @Introspect(withMetadata: true)
+  @a
+  v
+}
+
+''', r'''
+v
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a
+''');
+  }
+
+  test_extension_getter() async {
+    await _assertIntrospectText(r'''
+extension A on int {
+  @Introspect()
+  int get foo => 0;
+}
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_extension_getters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension A on int {
+  int get foo => 0;
+}
+''', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extension_metadata_identifier() async {
+    await _assertIntrospectText(r'''
+const a = 0;
+
+@Introspect(withMetadata: true)
+@a
+extension A on int {}
+''', r'''
+extension A
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a
+  onType: int
+''');
+  }
+
+  test_extension_method() async {
+    await _assertIntrospectText(r'''
+extension A on int {
+  @Introspect()
+  void foo() {}
+}
+''', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_extension_methods() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension A on int {
+  void foo() {}
+}
+''', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extension_typeParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension A<T> on int {}
+''', r'''
+extension A
+  typeParameters
+    T
+  onType: int
+''');
+  }
+
+  test_extensionType_getter() async {
+    await _assertIntrospectText(r'''
+extension type A(int it) {
+  @Introspect()
+  int get foo => 0;
+}
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_extensionType_getters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension type A(int it) {
+  int get foo => 0;
+}
+''', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody isGetter
+      returnType: int
+''');
+  }
+
+  test_extensionType_metadata_identifier() async {
+    await _assertIntrospectText(r'''
+const a = 0;
+
+@Introspect(withMetadata: true)
+@a
+extension type A(int it) {}
+''', r'''
+extension type A
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+''');
+  }
+
+  test_extensionType_method() async {
+    await _assertIntrospectText(r'''
+extension type A(int it) {
+  @Introspect()
+  void foo() {}
+}
+''', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_extensionType_methods() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension type A(int it) {
+  void foo() {}
+}
+''', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_extensionType_typeParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+extension type A<T>(int it) {}
+''', r'''
+extension type A
+  typeParameters
+    T
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+''');
+  }
+
   test_functionTypeAnnotation_formalParameters_namedOptional_simpleFormalParameter() async {
     await _assertIntrospectText(r'''
 @Introspect()
@@ -5349,6 +7591,108 @@ class A extends B<void Function<T, U extends num>()> {}
 class A
   superclass: B<void Function<T, U extends num>()>
     noDeclaration
+''');
+  }
+
+  test_library_classes() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+library;
+
+class A {
+  void foo() {}
+}
+
+class B {
+  void bar() {}
+}
+''', r'''
+class A
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+class B
+  methods
+    bar
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_library_extensions() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+library;
+
+extension A on int {
+  void foo() {}
+}
+
+extension B on int {
+  void bar() {}
+}
+''', r'''
+extension A
+  onType: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+extension B
+  onType: int
+  methods
+    bar
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_library_extensionTypes() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+library;
+
+extension type A(int it) {
+  void foo() {}
+}
+''', r'''
+extension type A
+  representationType: int
+  fields
+    it
+      flags: hasFinal
+      type: int
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+''');
+  }
+
+  test_library_mixin() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+library;
+
+mixin A {
+  void foo() {}
+}
+
+mixin B {
+  void bar() {}
+}
+''', r'''
+mixin A
+  methods
+    foo
+      flags: hasBody
+      returnType: void
+mixin B
+  methods
+    bar
+      flags: hasBody
+      returnType: void
 ''');
   }
 
@@ -5511,6 +7855,200 @@ class A
 ''');
   }
 
+  test_unit_function() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+void foo() {}
+''', r'''
+foo
+  flags: hasBody
+  returnType: void
+''');
+  }
+
+  test_unit_function_flags_hasExternal() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+external void foo();
+''', r'''
+foo
+  flags: hasExternal
+  returnType: void
+''');
+  }
+
+  test_unit_function_metadata() async {
+    await _assertIntrospectText(r'''
+@Introspect(withMetadata: true)
+@a1
+@a2
+void foo() {}
+
+const a1 = 0;
+const a2 = 0;
+''', r'''
+foo
+  flags: hasBody
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  returnType: void
+''');
+  }
+
+  test_unit_function_namedParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+void foo({required int a, String? b}) {}
+''', r'''
+foo
+  flags: hasBody
+  namedParameters
+    a
+      flags: isNamed isRequired
+      type: int
+    b
+      flags: isNamed
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_function_positionalParameters() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+void foo(int a, [String? b]) {}
+''', r'''
+foo
+  flags: hasBody
+  positionalParameters
+    a
+      flags: isRequired
+      type: int
+    b
+      type: String?
+  returnType: void
+''');
+  }
+
+  test_unit_getter() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+int get foo => 0;
+''', r'''
+foo
+  flags: hasBody isGetter
+  returnType: int
+''');
+  }
+
+  test_unit_setter() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+set foo(int value) {}
+''', r'''
+foo
+  flags: hasBody isSetter
+  positionalParameters
+    value
+      flags: isRequired
+      type: int
+  returnType: OmittedType
+''');
+  }
+
+  test_unit_variable_flags_hasExternal_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+external int foo;
+''', r'''
+foo
+  flags: hasExternal
+  type: int
+''');
+  }
+
+  test_unit_variable_flags_hasFinal_false() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+var foo = 0;
+''', r'''
+foo
+  type: OmittedType
+''');
+  }
+
+  test_unit_variable_flags_hasFinal_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+final foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
+''');
+  }
+
+  test_unit_variable_flags_hasLate_true() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+late int foo;
+''', r'''
+foo
+  flags: hasLate
+  type: int
+''');
+  }
+
+  test_unit_variable_metadata() async {
+    await _assertIntrospectText(r'''
+@Introspect(withMetadata: true)
+@a1
+@a2
+final foo = 0;
+
+const a1 = 0;
+const a2 = 0;
+''', r'''
+foo
+  flags: hasFinal
+  metadata
+    ConstructorMetadataAnnotation
+      type: Introspect
+    IdentifierMetadataAnnotation
+      identifier: a1
+    IdentifierMetadataAnnotation
+      identifier: a2
+  type: OmittedType
+''');
+  }
+
+  test_unit_variable_type_explicit() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+final num foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: num
+''');
+  }
+
+  test_unit_variable_type_implicit() async {
+    await _assertIntrospectText(r'''
+@Introspect()
+final foo = 0;
+''', r'''
+foo
+  flags: hasFinal
+  type: OmittedType
+''');
+  }
+
   /// Assert that the textual dump of the introspection information produced
   /// by `IntrospectTypesPhaseMacro` in [code], is the [expected].
   Future<void> _assertIntrospectText(
@@ -5520,9 +8058,363 @@ class A
     var actual = await _getIntrospectText(code);
     if (actual != expected) {
       NodeTextExpectationsCollector.add(actual);
-      print(actual);
+      print('-------- Actual --------');
+      print('$actual------------------------');
     }
     expect(actual, expected);
+  }
+
+  /// The [code] should have exactly one application of `IntrospectMacro`.
+  /// It may contain arbitrary code otherwise.
+  ///
+  /// The macro generates a top-level constant `_introspect`, with a string
+  /// literal initializer - the textual dump of the introspection.
+  Future<String> _getIntrospectText(String code) async {
+    newFile(
+      '$testPackageLibPath/introspect.dart',
+      _getMacroCode('introspect.dart'),
+    );
+
+    var library = await buildLibrary('''
+import 'introspect.dart';
+$code
+''');
+
+    if (library.allMacroDiagnostics.isNotEmpty) {
+      failWithLibraryText(library);
+    }
+
+    return library.topLevelElements
+        .whereType<ConstTopLevelVariableElementImpl>()
+        .where((e) => e.name == '_introspect')
+        .map((e) => (e.constantInitializer as SimpleStringLiteral).value)
+        .join('\n');
+  }
+}
+
+@reflectiveTest
+class MacroStaticTypeTest extends MacroElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
+
+  @override
+  Future<void> setUp() async {
+    await super.setUp();
+
+    newFile(
+      '$testPackageLibPath/static_type.dart',
+      _getMacroCode('static_type.dart'),
+    );
+  }
+
+  test_isExactly() async {
+    const testCases = {
+      ('double', 'double', true),
+      ('double', 'int', false),
+      ('int', 'double', false),
+      ('int', 'int', true),
+      ('int', 'void', false),
+      ('void', 'void', true),
+      // Object
+      ('Object?', 'Object?', true),
+      ('Object?', 'Object', false),
+      ('Object?', 'dynamic', false),
+      // InterfaceType, type arguments
+      ('List<int>', 'List<double>', false),
+      ('List<int>', 'List<int>', true),
+      // FunctionType
+      //   returnType
+      ('void Function()', 'void Function()', true),
+      ('void Function()', 'int Function()', false),
+      //   typeParameters
+      ('void Function<T>()', 'void Function<T>()', true),
+      ('void Function<T>()', 'void Function()', false),
+      //   positionalParameters
+      ('void Function(int a)', 'void Function(int a)', true),
+      ('void Function(int a)', 'void Function(double a)', false),
+      ('void Function([int a])', 'void Function([int a])', true),
+      ('void Function([int a])', 'void Function(int a)', false),
+      //   namedParameters
+      ('void Function({int a})', 'void Function({int a})', true),
+      ('void Function({int a})', 'void Function({double a})', false),
+      (
+        'void Function({required int a})',
+        'void Function({required int a})',
+        true,
+      ),
+      ('void Function({int a})', 'void Function({required int a})', false),
+      // RecordType
+      ('(int,)', '(int,)', true),
+      ('(int,)', '(double,)', false),
+      ('({int a,})', '({int a,})', true),
+      ('({int a,})', '({int b,})', false),
+      ('({int a,})', '({double a,})', false),
+      ('({int a,})', '({int a, int b})', false),
+    };
+
+    for (final testCase in testCases) {
+      await disposeAnalysisContextCollection();
+      await _assertIsExactly(
+        firstTypeCode: testCase.$1,
+        secondTypeCode: testCase.$2,
+        isExactly: testCase.$3,
+      );
+    }
+  }
+
+  /// Verify what happens when we use `RawTypeAnnotationCode`.
+  /// We don't see it, because it disappears after the types phase.
+  test_isExactly_class_asRawCode_same() async {
+    final library = await buildLibrary('''
+import 'append.dart';
+import 'static_type.dart';
+
+@DeclareClassAppendInterfaceRawCode('A')
+class X {
+  @IsExactly_enclosingClassInterface_formalParameterType()
+  void foo(A a) {}
+}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    _assertIsExactlyValue(generated, true);
+  }
+
+  test_isExactly_enum_notSame() async {
+    await _assertIsExactly(
+      firstTypeCode: 'A',
+      secondTypeCode: 'B',
+      isExactly: false,
+      additionalDeclarations: r'''
+enum A { v }
+enum B { v }
+''',
+    );
+  }
+
+  test_isExactly_enum_same() async {
+    await _assertIsExactly(
+      firstTypeCode: 'A',
+      secondTypeCode: 'A',
+      isExactly: true,
+      additionalDeclarations: r'''
+enum A { v }
+''',
+    );
+  }
+
+  test_isExactly_extensionType_notSame() async {
+    await _assertIsExactly(
+      firstTypeCode: 'A',
+      secondTypeCode: 'B',
+      isExactly: false,
+      additionalDeclarations: r'''
+extension type A(int it) {}
+extension type B(int it) {}
+''',
+    );
+  }
+
+  test_isExactly_extensionType_same() async {
+    await _assertIsExactly(
+      firstTypeCode: 'A',
+      secondTypeCode: 'A',
+      isExactly: true,
+      additionalDeclarations: r'''
+extension type A(int it) {}
+''',
+    );
+  }
+
+  test_isExactly_mixin_notSame() async {
+    await _assertIsExactly(
+      firstTypeCode: 'A',
+      secondTypeCode: 'B',
+      isExactly: false,
+      additionalDeclarations: r'''
+mixin A {}
+mixin B {}
+''',
+    );
+  }
+
+  test_isExactly_mixin_same() async {
+    await _assertIsExactly(
+      firstTypeCode: 'A',
+      secondTypeCode: 'A',
+      isExactly: true,
+      additionalDeclarations: r'''
+mixin A {}
+''',
+    );
+  }
+
+  test_isExactly_omittedType_notSame() async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+class A {
+  void foo(int a, double b) {}
+}
+
+class B extends A {
+  @IsExactly()
+  void foo(a, b) {}
+}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    _assertIsExactlyValue(generated, false);
+  }
+
+  test_isExactly_omittedType_same() async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+class A {
+  void foo(int a, int b) {}
+}
+
+class B extends A {
+  @IsExactly()
+  void foo(a, b) {}
+}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    _assertIsExactlyValue(generated, true);
+  }
+
+  test_isExactly_typeParameter_notSame() async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+@IsExactly()
+void foo<T, U>(T a, U b) {}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    _assertIsExactlyValue(generated, false);
+  }
+
+  test_isExactly_typeParameter_same() async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+@IsExactly()
+void foo<T>(T a, T b) {}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    _assertIsExactlyValue(generated, true);
+  }
+
+  test_isSubtype() async {
+    const testCases = {
+      ('double', 'double', true),
+      ('double', 'num', true),
+      ('double', 'int', false),
+      ('double', 'Object', true),
+      ('int', 'double', false),
+      ('int', 'num', true),
+      ('int', 'int', true),
+      ('int', 'Object', true),
+      // Object
+      ('Object?', 'Object?', true),
+      ('Object?', 'Object', false),
+      ('Object', 'Object?', true),
+      ('Object', 'Object', true),
+      // InterfaceType, type arguments
+      ('List<int>', 'List<double>', false),
+      ('List<int>', 'List<num>', true),
+      ('List<int>', 'List<int>', true),
+      // FunctionType
+      //   returnType
+      ('void Function()', 'void Function()', true),
+      ('int Function()', 'double Function()', false),
+      ('int Function()', 'num Function()', true),
+      ('int Function()', 'int Function()', true),
+      // RecordType
+      ('(int,)', '(double,)', false),
+      ('(int,)', '(num,)', true),
+      ('(int,)', '(int,)', true),
+      ('({int a,})', '({double a,})', false),
+      ('({int a,})', '({num a,})', true),
+      ('({int a,})', '({int a,})', true),
+      ('({int a,})', '({int b,})', false),
+    };
+
+    for (final testCase in testCases) {
+      await disposeAnalysisContextCollection();
+      await _assertIsSubtype(
+        firstTypeCode: testCase.$1,
+        secondTypeCode: testCase.$2,
+        isSubtype: testCase.$3,
+      );
+    }
+  }
+
+  Future<void> _assertIsExactly({
+    required String firstTypeCode,
+    required String secondTypeCode,
+    required bool isExactly,
+    String additionalDeclarations = '',
+  }) async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+$additionalDeclarations
+
+@IsExactly()
+void foo($firstTypeCode a, $secondTypeCode b) {}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    final expected = _isExactlyExpected(isExactly);
+    if (!generated.contains(expected)) {
+      fail(
+        '`$firstTypeCode` isExactly `$secondTypeCode`'
+        ' expected to be `$isExactly`, but is not.\n',
+      );
+    }
+  }
+
+  void _assertIsExactlyValue(String generated, bool isExactly) {
+    final expected = _isExactlyExpected(isExactly);
+    expect(generated, contains(expected));
+  }
+
+  Future<void> _assertIsSubtype({
+    required String firstTypeCode,
+    required String secondTypeCode,
+    required bool isSubtype,
+    String additionalDeclarations = '',
+  }) async {
+    final library = await buildLibrary('''
+import 'static_type.dart';
+
+$additionalDeclarations
+
+@IsSubtype()
+void foo($firstTypeCode a, $secondTypeCode b) {}
+''');
+
+    final generated = _getMacroGeneratedCode(library);
+    final expected = _isSubtypeExpected(isSubtype);
+    if (!generated.contains(expected)) {
+      fail(
+        '`$firstTypeCode` isSubtype `$secondTypeCode`'
+        ' expected to be `$isSubtype`, but is not.\n',
+      );
+    }
+  }
+
+  String _isExactlyExpected(bool isExactly) {
+    return '=> $isExactly; // isExactly';
+  }
+
+  String _isSubtypeExpected(bool isSubtype) {
+    return '=> $isSubtype; // isSubtype';
   }
 }
 
@@ -5686,6 +8578,53 @@ class MyClass {}
 ''');
   }
 
+  test_declareType_exported() async {
+    var library = await buildLibrary(r'''
+import 'append.dart';
+
+@DeclareType('B', 'class B {}')
+class A {}
+''');
+
+    configuration
+      ..withConstructors = false
+      ..withExportScope = true
+      ..withMetadata = false
+      ..withPropertyLinking = true
+      ..withReferences = true;
+    checkElementText(library, r'''
+library
+  reference: self
+  imports
+    package:test/append.dart
+  definingUnit
+    reference: self
+    classes
+      class A @61
+        reference: self::@class::A
+  augmentationImports
+    package:test/test.macro.dart
+      reference: self::@augmentation::package:test/test.macro.dart
+      macroGeneratedCode
+---
+library augment 'test.dart';
+
+class B {}
+---
+      definingUnit
+        reference: self::@augmentation::package:test/test.macro.dart
+        classes
+          class B @36
+            reference: self::@augmentation::package:test/test.macro.dart::@class::B
+  exportedReferences
+    declared self::@augmentation::package:test/test.macro.dart::@class::B
+    declared self::@class::A
+  exportNamespace
+    A: self::@class::A
+    B: self::@augmentation::package:test/test.macro.dart::@class::B
+''');
+  }
+
   test_executable() async {
     // We use AOT executables only on Linux.
     if (resourceProvider.pathContext.style != package_path.Style.posix) {
@@ -5698,13 +8637,12 @@ class MyClass {}
     }
 
     const macroCode = r'''
-import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class MyMacro implements ClassTypesMacro {
   const MyMacro();
 
-  FutureOr<void> buildTypesForClass(clazz, builder) {
+  buildTypesForClass(clazz, builder) async {
     builder.declareType(
       'MyClass',
       DeclarationCode.fromString('class MyClass {}'),
@@ -5885,7 +8823,7 @@ import 'a.dart';
 macro class MyMacro implements ClassTypesMacro {
   const MyMacro();
 
-  FutureOr<void> buildTypesForClass(clazz, ClassTypeBuilder builder) async {
+  buildTypesForClass(clazz, ClassTypeBuilder builder) async {
     final identifier = await builder.resolveIdentifier(
       Uri.parse('package:test/a.dart'),
       'A',
@@ -6214,13 +9152,12 @@ elementFactory
     useEmptyByteStore();
 
     newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 macro class AddClassA implements ClassTypesMacro {
   const AddClassA();
 
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
+  buildTypesForClass(clazz, builder) async {
     final identifier = await builder.resolveIdentifier(
       Uri.parse('package:test/a.dart'),
       'AddClassB',
@@ -6239,7 +9176,7 @@ macro class AddClassA implements ClassTypesMacro {
 macro class AddClassB implements ClassTypesMacro {
   const AddClassB();
 
-  FutureOr<void> buildTypesForClass(clazz, builder) async {
+  buildTypesForClass(clazz, builder) async {
     builder.declareType(
       'B',
       DeclarationCode.fromString('class B {}\n'),
@@ -6299,7 +9236,6 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_11 dart:async
           library_3 package:macro/api.dart
           library_9 dart:core synthetic
         cycle_0
@@ -6372,7 +9308,6 @@ files
       id: file_0
       kind: library_0
         libraryImports
-          library_11 dart:async
           library_3 package:macro/api.dart
           library_9 dart:core synthetic
         cycle_0
@@ -6468,14 +9403,10 @@ class _MacroDiagnosticsCollector extends GeneralizingElementVisitor<void> {
 }
 
 extension on LibraryElement {
-  List<AnalyzerMacroDiagnostic> get macroDiagnostics {
+  List<AnalyzerMacroDiagnostic> get allMacroDiagnostics {
     final collector = _MacroDiagnosticsCollector();
     accept(collector);
     return collector.diagnostics;
-  }
-
-  void assertNoMacroErrors() {
-    expect(macroDiagnostics, isEmpty);
   }
 }
 

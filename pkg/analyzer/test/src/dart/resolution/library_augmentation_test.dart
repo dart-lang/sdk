@@ -10,6 +10,7 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(LibraryAugmentationDirectiveResolutionTest);
+    defineReflectiveTests(LibraryAugmentationResolutionTest);
   });
 }
 
@@ -177,5 +178,192 @@ LibraryAugmentationDirective
   semicolon: ;
   element: self
 ''');
+  }
+}
+
+@reflectiveTest
+class LibraryAugmentationResolutionTest extends PubPackageResolutionTest {
+  test_namespace_import_augmentationImports() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+math.Random get foo => throw 0;
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+import 'dart:math' as math;
+math.Random get bar => throw 0;
+''');
+
+    // In the library.
+    {
+      await resolveFile2(a);
+      assertErrorsInResult([
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 25, 11),
+      ]);
+
+      final node = findNode.singleNamedType;
+      assertResolvedNodeText(node, r'''
+NamedType
+  importPrefix: ImportPrefixReference
+    name: math
+    period: .
+    element: <null>
+  name: Random
+  element: <null>
+  type: InvalidType
+''');
+    }
+
+    // In the augmentation.
+    {
+      await resolveFile2(b);
+      assertNoErrorsInResult();
+
+      final node = findNode.singleNamedType;
+      assertResolvedNodeText(node, r'''
+NamedType
+  importPrefix: ImportPrefixReference
+    name: math
+    period: .
+    element: self::@augmentation::package:test/b.dart::@prefix::math
+  name: Random
+  element: dart:math::@class::Random
+  type: Random
+''');
+    }
+  }
+
+  test_namespace_import_libraryImports() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+import 'dart:math' as math;
+math.Random get foo => throw 0;
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+math.Random get bar => throw 0;
+''');
+
+    // In the library.
+    {
+      await resolveFile2(a);
+      assertNoErrorsInResult();
+
+      final node = findNode.singleNamedType;
+      assertResolvedNodeText(node, r'''
+NamedType
+  importPrefix: ImportPrefixReference
+    name: math
+    period: .
+    element: self::@prefix::math
+  name: Random
+  element: dart:math::@class::Random
+  type: Random
+''');
+    }
+
+    // In the augmentation.
+    {
+      await resolveFile2(b);
+      assertErrorsInResult([
+        error(CompileTimeErrorCode.UNDEFINED_CLASS, 26, 11),
+      ]);
+
+      final node = findNode.singleNamedType;
+      assertResolvedNodeText(node, r'''
+NamedType
+  importPrefix: ImportPrefixReference
+    name: math
+    period: .
+    element: <null>
+  name: Random
+  element: <null>
+  type: InvalidType
+''');
+    }
+  }
+
+  test_namespace_top_class_augmentationDeclares() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+A foo() => throw 0;
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+class A {}
+A bar() => throw 0;
+''');
+
+    // In the library.
+    {
+      await resolveFile2(a);
+      assertNoErrorsInResult();
+
+      final node = findNode.singleNamedType;
+      assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@augmentation::package:test/b.dart::@class::A
+  type: A
+''');
+    }
+
+    // In the augmentation.
+    {
+      await resolveFile2(b);
+      assertNoErrorsInResult();
+
+      final node = findNode.singleNamedType;
+      assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@augmentation::package:test/b.dart::@class::A
+  type: A
+''');
+    }
+  }
+
+  test_namespace_top_class_libraryDeclares() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+import augment 'b.dart';
+class A {}
+A foo() => throw 0;
+''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+A bar() => throw 0;
+''');
+
+    // In the library.
+    {
+      await resolveFile2(a);
+      assertNoErrorsInResult();
+
+      final node = findNode.singleNamedType;
+      assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@class::A
+  type: A
+''');
+    }
+
+    // In the augmentation.
+    {
+      await resolveFile2(b);
+      assertNoErrorsInResult();
+
+      final node = findNode.singleNamedType;
+      assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@class::A
+  type: A
+''');
+    }
   }
 }

@@ -70,6 +70,7 @@ base class AstToIREventListener {
 class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   final TypeSystem typeSystem;
   final TypeProvider typeProvider;
+  final LibraryElement coreLibrary;
   final AstToIREventListener eventListener;
 
   /// For each enclosing flow control construct that may be the target of a
@@ -103,7 +104,8 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   _AstToIRVisitor(
       {required this.typeSystem,
       required this.typeProvider,
-      required this.eventListener});
+      required this.eventListener})
+      : coreLibrary = typeProvider.objectElement.library;
 
   /// If [node] is used as the target of a [CompoundAssignmentExpression],
   /// returns the [CompoundAssignmentExpression].
@@ -187,6 +189,12 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
         twoArguments);
   }
 
+  MethodElement lookupToString(DartType? type) {
+    var class_ =
+        type is InterfaceType ? type.element : typeProvider.objectElement;
+    return class_.lookUpMethod('toString', coreLibrary)!;
+  }
+
   /// Performs a null check that is part of a null shorting expression.
   ///
   /// If [nonNull] is `false` (the default), and the value at the top of the
@@ -237,6 +245,17 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
 
   Null this_() {
     ir.readLocal(0); // Stack: this
+  }
+
+  @override
+  Null visitAdjacentStrings(AdjacentStrings node) {
+    for (var string in node.strings) {
+      dispatchNode(string);
+      // Stack: string
+    }
+    // Stack: strings
+    ir.concat(node.strings.length);
+    // Stack: result
   }
 
   @override
@@ -653,6 +672,21 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   }
 
   @override
+  Null visitInterpolationExpression(InterpolationExpression node) {
+    dispatchNode(node.expression);
+    // Stack: expression
+    instanceCall(lookupToString(node.expression.staticType), 'toString', [],
+        oneArgument);
+    // Stack: expression.toString()
+  }
+
+  @override
+  Null visitInterpolationString(InterpolationString node) {
+    ir.literal(ir.encodeLiteral(node.value));
+    // Stack: value
+  }
+
+  @override
   Null visitIsExpression(IsExpression node) {
     dispatchNode(node.expression);
     // Stack: expression
@@ -862,6 +896,16 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
   Null visitSimpleStringLiteral(SimpleStringLiteral node) {
     ir.literal(ir.encodeLiteral(node.value));
     // Stack: value
+  }
+
+  @override
+  Null visitStringInterpolation(StringInterpolation node) {
+    for (var element in node.elements) {
+      dispatchNode(element);
+    }
+    // Stack: strings
+    ir.concat(node.elements.length);
+    // Stack: result
   }
 
   @override

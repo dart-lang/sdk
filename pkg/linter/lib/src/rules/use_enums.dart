@@ -220,7 +220,6 @@ class _Visitor extends SimpleAstVisitor {
           if (constructorElement == null) continue;
           if (constructorElement.isFactory) continue;
           if (constructorElement.enclosingElement != classElement) continue;
-
           if (fieldElement.computeConstantValue() == null) continue;
 
           candidateConstants.add(field);

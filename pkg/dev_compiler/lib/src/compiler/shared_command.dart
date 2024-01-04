@@ -94,12 +94,23 @@ class SharedCompilerOptions {
   /// Whether or not the `--canary` flag was specified during compilation.
   final bool canaryFeatures;
 
-  /// A canary feature that enables a new runtime type representation.
-  final bool newRuntimeTypes;
+  // TODO(nshahan): Remove once it is safe to cleanup code for old type system.
+  // Likely after 3.3 stable cut when we know there is no need to easily revert
+  // to the old type system.
+  final bool newRuntimeTypes = true;
 
   /// When `true` stars "*" will appear to represent legacy types when printing
   /// runtime types in the compiled application.
   final bool printLegacyStars = false;
+
+  /// Raw precompiled macro options, each of the format
+  /// `<program-uri>;<macro-library-uri>`.
+  ///
+  /// Multiple library URIs may be provided separated by additional semicolons.
+  final List<String> precompiledMacros;
+
+  /// The serialization mode to use for macro communication.
+  final String? macroSerializationMode;
 
   SharedCompilerOptions(
       {this.sourceMap = true,
@@ -117,9 +128,9 @@ class SharedCompilerOptions {
       this.multiRootOutputPath,
       this.experiments = const {},
       this.soundNullSafety = true,
-      this.canaryFeatures = false})
-      : // Current canary features.
-        newRuntimeTypes = canaryFeatures;
+      this.canaryFeatures = false,
+      this.precompiledMacros = const [],
+      this.macroSerializationMode});
 
   SharedCompilerOptions.fromArguments(ArgResults args)
       : this(
@@ -141,7 +152,10 @@ class SharedCompilerOptions {
             experiments: parseExperimentalArguments(
                 args['enable-experiment'] as List<String>),
             soundNullSafety: args['sound-null-safety'] as bool,
-            canaryFeatures: args['canary'] as bool);
+            canaryFeatures: args['canary'] as bool,
+            precompiledMacros: args['precompiled-macro'] as List<String>,
+            macroSerializationMode:
+                args['macro-serialization-mode'] as String?);
 
   SharedCompilerOptions.fromSdkRequiredArguments(ArgResults args)
       : this(
@@ -197,7 +211,20 @@ class SharedCompilerOptions {
               'Output a full kernel file for currently compiled module next to '
               'the .js output.',
           defaultsTo: false,
-          hide: true);
+          hide: true)
+      ..addMultiOption('precompiled-macro',
+          help:
+              'Configuration for precompiled macro binaries or kernel files.\n'
+              'The expected format of this option is as follows: '
+              '<absolute-path-to-binary>;<macro-library-uri>\nFor example: '
+              '--precompiled-macro="/path/to/compiled/macro;'
+              'package:some_macro/some_macro.dart". Multiple library uris may be '
+              'passed as well (separated by semicolons).',
+          hide: true)
+      ..addOption('macro-serialization-mode',
+          help: 'The serialization mode for communicating with macros.',
+          allowed: ['bytedata', 'json'],
+          defaultsTo: 'bytedata');
   }
 
   /// Adds only the arguments used to compile the SDK from a full dill file.

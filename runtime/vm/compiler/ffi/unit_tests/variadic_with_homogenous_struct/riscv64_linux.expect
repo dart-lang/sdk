@@ -9,7 +9,7 @@ fa7 double
 a0 int32[float]
 M(a1 uint64, a2 uint64[uint32]) Struct(size: 12)
 t3 int64
-t4 int32
+t4 int64[int32]
 M(t5 uint64, a6 uint64[uint32]) Struct(size: 12)
 =>
 fa0 double

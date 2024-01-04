@@ -31,14 +31,13 @@ class Object {
 
   /// Concrete subclasses of [Object] will have overrides of [_typeArguments]
   /// which return their type arguments.
-  WasmObjectArray<_Type> get _typeArguments =>
-      const WasmObjectArray<_Type>.literal([]);
+  WasmArray<_Type> get _typeArguments => const WasmArray<_Type>.literal([]);
 
   // An instance member needs a call from Dart code to be properly included in
   // the dispatch table. Hence we use an inlined static wrapper as entry point.
   @pragma("wasm:entry-point")
   @pragma("wasm:prefer-inline")
-  static WasmObjectArray<_Type> _getTypeArguments(Object object) =>
+  static WasmArray<_Type> _getTypeArguments(Object object) =>
       object._typeArguments;
 
   @patch

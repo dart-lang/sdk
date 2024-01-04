@@ -110,6 +110,12 @@ class OverrideContributor extends DartCompletionContributor {
     var namesToOverride = <Name>[];
     for (var name in interface.map.keys) {
       if (name.isAccessibleFor(libraryUri)) {
+        // TODO(brianwilkerson): When the user is typing the name of an
+        //  inherited member, the map will contain a key matching the current
+        //  prefix. If the name is the only thing typed (that is, the field
+        //  declaration consists of a single identifier), and that identifier
+        //  matches the name of an overridden member, then the override should
+        //  still be suggested.
         if (!interface.declared.containsKey(name)) {
           namesToOverride.add(name);
         }

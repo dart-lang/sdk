@@ -309,6 +309,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         equals: Tokens.eq(),
         initializer: initializer,
       );
+      constant.declaredElement = field;
+      variableDeclaration.declaredElement = field;
       VariableDeclarationListImpl(
         comment: null,
         metadata: null,

@@ -285,6 +285,7 @@ estat
 et
 everytime
 evicting
+ex
 examines
 exceed
 excess
@@ -315,6 +316,7 @@ filler
 filters
 fisk
 five
+fixtures
 fl
 flame
 flipped
@@ -463,6 +465,7 @@ loopback
 ma
 mac
 maker
+manual
 matters
 mds
 meaningless
@@ -488,6 +491,7 @@ misspelled
 mistake
 mistakes
 mixups
+ml
 mmethod
 mod
 modelled
@@ -703,6 +707,7 @@ splitting
 spurious
 sqrt
 squared
+ss
 sssp
 stacks
 stashed

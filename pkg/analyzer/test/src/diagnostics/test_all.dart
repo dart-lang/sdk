@@ -298,6 +298,7 @@ import 'ffi_async_callback_test.dart' as ffi_async_callback_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
 import 'ffi_native_test.dart' as ffi_native_test;
+import 'ffi_unwrap_typed_data_test.dart' as ffi_unwrap_typed_data_test;
 import 'field_in_struct_with_initializer_test.dart'
     as field_in_struct_with_initializer;
 import 'field_initialized_by_multiple_initializers_test.dart'
@@ -636,6 +637,7 @@ import 'non_generative_implicit_constructor_test.dart'
 import 'non_native_function_type_argument_to_pointer_test.dart'
     as non_native_function_type_argument_to_pointer;
 import 'non_null_opt_out_test.dart' as non_null_opt_out;
+import 'non_nullable_equals_parameter_test.dart' as non_null_equals_parameters;
 import 'non_positive_array_dimension_test.dart' as non_positive_array_dimension;
 import 'non_sized_type_argument_test.dart' as non_sized_type_argument;
 import 'non_type_as_type_argument_test.dart' as non_type_as_type_argument;
@@ -1112,6 +1114,7 @@ main() {
     ffi_async_callback_test.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();
+    ffi_unwrap_typed_data_test.main();
     field_in_struct_with_initializer.main();
     field_initialized_by_multiple_initializers.main();
     final_initialized_in_declaration_and_constructor.main();
@@ -1325,6 +1328,7 @@ main() {
     non_generative_implicit_constructor.main();
     non_native_function_type_argument_to_pointer.main();
     non_null_opt_out.main();
+    non_null_equals_parameters.main();
     non_positive_array_dimension.main();
     non_sized_type_argument.main();
     non_type_as_type_argument.main();

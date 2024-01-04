@@ -173,6 +173,11 @@ class RecordingSourceInformationProcessor extends SourceInformationProcessor {
       this.codePositions, this.nodeToSourceLocationsMap);
 
   @override
+  void onStartPosition(js.Node node, int startPosition) {
+    processor.onStartPosition(node, startPosition);
+  }
+
+  @override
   void onPositions(
       js.Node node, int startPosition, int endPosition, int? closingPosition) {
     codePositions.registerPositions(
@@ -293,6 +298,35 @@ class FindVisitor extends js.BaseVisitorVoid {
   }
 }
 
+class HelperOnlinePositionSourceInformationStrategy
+    implements JavaScriptSourceInformationStrategy {
+  final List<TraceListener> listeners;
+  HelperOnlinePositionSourceInformationStrategy(this.listeners);
+
+  @override
+  SourceInformationProcessor createProcessor(
+      SourceMapperProvider provider, SourceInformationReader reader) {
+    return OnlineSourceInformationProcessor(provider, reader, listeners);
+  }
+
+  @override
+  void onComplete() {}
+
+  @override
+  SourceInformation buildSourceMappedMarker() {
+    return const SourceMappedMarker();
+  }
+
+  @override
+  SourceInformationBuilder createBuilderForContext(
+      covariant MemberEntity member) {
+    throw UnimplementedError();
+  }
+
+  @override
+  void onElementMapAvailable(JsToElementMap elementMap) {}
+}
+
 /// Processor that computes [SourceMapInfo] for the JavaScript compiled for a
 /// given Dart file.
 class SourceMapProcessor {
@@ -380,9 +414,21 @@ class SourceMapProcessor {
         CodePositionRecorder codePositions = subProcess.codePositions;
         CodePointComputer visitor =
             CodePointComputer(sourceFileManager, code, nodeMap);
-        JavaScriptTracer(
-                codePositions, const SourceInformationReader(), [visitor])
-            .apply(node);
+        final outBuffer = NoopCodeOutput();
+        SourceInformationProcessor sourceInformationProcessor =
+            HelperOnlinePositionSourceInformationStrategy([visitor])
+                .createProcessor(SourceMapperProviderImpl(outBuffer),
+                    const SourceInformationReader());
+
+        js.Dart2JSJavaScriptPrintingContext context =
+            js.Dart2JSJavaScriptPrintingContext(
+                null,
+                outBuffer,
+                sourceInformationProcessor,
+                const js.JavaScriptAnnotationMonitor());
+        js.Printer printer =
+            js.Printer(const js.JavaScriptPrintingOptions(), context);
+        printer.visit(node);
         List<CodePoint> codePoints = visitor.codePoints;
         elementSourceMapInfos[element] = SourceMapInfo(
             element, code, node, codePoints, codePositions, nodeMap);
@@ -400,9 +446,21 @@ class SourceMapProcessor {
       codePositions = process.codePositions;
       CodePointComputer visitor =
           CodePointComputer(sourceFileManager, code, nodeMap);
-      JavaScriptTracer(
-              codePositions, const SourceInformationReader(), [visitor])
-          .apply(node);
+      final outBuffer = NoopCodeOutput();
+      SourceInformationProcessor sourceInformationProcessor =
+          HelperOnlinePositionSourceInformationStrategy([visitor])
+              .createProcessor(SourceMapperProviderImpl(outBuffer),
+                  const SourceInformationReader());
+
+      js.Dart2JSJavaScriptPrintingContext context =
+          js.Dart2JSJavaScriptPrintingContext(
+              null,
+              outBuffer,
+              sourceInformationProcessor,
+              const js.JavaScriptAnnotationMonitor());
+      js.Printer printer =
+          js.Printer(const js.JavaScriptPrintingOptions(), context);
+      printer.visit(node);
       List<CodePoint> codePoints = visitor.codePoints;
       mainSourceMapInfo =
           SourceMapInfo(null, code, node, codePoints, codePositions, nodeMap);

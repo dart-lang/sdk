@@ -7524,6 +7524,21 @@ ForStatement
 ''');
   }
 
+  test_patternAssignment_declaresVariableWithMissingName() {
+    // Test case from https://github.com/dart-lang/sdk/issues/54178.
+    _parse('''
+void main() {
+  final b = (final g, final ) = 55;
+}
+''', errors: [
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 33, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 42, 1),
+      error(ParserErrorCode.PATTERN_ASSIGNMENT_DECLARES_VARIABLE, 42, 1),
+    ]);
+    // No assertion on the parsed node text; all we are concerned with is that
+    // the parser doesn't crash.
+  }
+
   test_patternVariableDeclaration_inClass() {
     // If a pattern variable declaration appears outside a function or method,
     // the parser recovers by replacing the pattern with a synthetic identifier,
@@ -11103,6 +11118,21 @@ SwitchExpression
         literal: 'two'
   rightBracket: }
 ''');
+  }
+
+  test_switchExpression_recovery_unmatchedLessThanInTokensToBeSkipped() {
+    // Test case from https://github.com/dart-lang/sdk/issues/54236.
+    _parse('''
+f(x) => switch (x) {
+    1 => 2
+    > 1 => 1
+    < 1 => 0
+};
+''', errors: [
+      error(ParserErrorCode.EXPECTED_TOKEN, 40, 2),
+    ]);
+    // No assertion on the parsed node text; all we are concerned with is that
+    // the parser doesn't crash.
   }
 
   test_switchExpression_twoPatterns() {

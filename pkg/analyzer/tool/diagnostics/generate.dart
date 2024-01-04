@@ -194,6 +194,7 @@ The analyzer produces the following diagnostics for code that
 doesn't conform to the language specification or
 that might work in unexpected ways.
 
+[bottom type]: https://dart.dev/null-safety/understanding-null-safety#top-and-bottom
 [ffi]: https://dart.dev/guides/libraries/c-interop
 [IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [irrefutable pattern]: https://dart.dev/resources/glossary#irrefutable-pattern

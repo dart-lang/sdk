@@ -158,7 +158,25 @@ class ResolutionEnqueuer extends Enqueuer {
               constructor: staticUse.element as ConstructorEntity?,
               globalDependency: false);
           break;
-        default:
+        case StaticUseKind.STATIC_TEAR_OFF:
+        case StaticUseKind.SUPER_TEAR_OFF:
+        case StaticUseKind.SUPER_FIELD_SET:
+        case StaticUseKind.SUPER_GET:
+        case StaticUseKind.SUPER_SETTER_SET:
+        case StaticUseKind.SUPER_INVOKE:
+        case StaticUseKind.INSTANCE_FIELD_GET:
+        case StaticUseKind.INSTANCE_FIELD_SET:
+        case StaticUseKind.CLOSURE:
+        case StaticUseKind.CLOSURE_CALL:
+        case StaticUseKind.CALL_METHOD:
+        case StaticUseKind.DIRECT_INVOKE:
+        case StaticUseKind.INLINING:
+        case StaticUseKind.STATIC_INVOKE:
+        case StaticUseKind.STATIC_GET:
+        case StaticUseKind.STATIC_SET:
+        case StaticUseKind.FIELD_INIT:
+        case StaticUseKind.FIELD_CONSTANT_INIT:
+        case StaticUseKind.WEAK_STATIC_TEAR_OFF:
           break;
       }
     });

@@ -4,4 +4,4 @@ extension type E1(int i) {
 extension type E2(int i) implements E1 {
   void m() {}
 }
-void main() {}
+void test() {}

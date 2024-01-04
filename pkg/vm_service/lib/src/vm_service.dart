@@ -1796,6 +1796,9 @@ class VmService {
     // Expect a String, an int[], or a ByteData.
     if (message is String) {
       _processMessageStr(message);
+    } else if (message is Uint8List) {
+      _processMessageByteData(ByteData.view(
+          message.buffer, message.offsetInBytes, message.lengthInBytes));
     } else if (message is List<int>) {
       final list = Uint8List.fromList(message);
       _processMessageByteData(ByteData.view(list.buffer));
@@ -7224,7 +7227,7 @@ class Response {
 
   Response();
 
-  Response._fromJson(this.json);
+  Response._fromJson(Map<String, dynamic> this.json);
 
   String get type => 'Response';
 
@@ -7849,7 +7852,7 @@ class Success extends Response {
 
   Success();
 
-  Success._fromJson(Map<String, dynamic> json) : super._fromJson(json);
+  Success._fromJson(super.json) : super._fromJson();
 
   @override
   String get type => 'Success';
@@ -7927,7 +7930,7 @@ class TimelineEvent {
 
   TimelineEvent();
 
-  TimelineEvent._fromJson(this.json);
+  TimelineEvent._fromJson(Map<String, dynamic> this.json);
 
   Map<String, dynamic> toJson() {
     final localJson = json;
@@ -8131,8 +8134,7 @@ class TypeParametersRef extends ObjRef {
           id: id,
         );
 
-  TypeParametersRef._fromJson(Map<String, dynamic> json)
-      : super._fromJson(json);
+  TypeParametersRef._fromJson(super.json) : super._fromJson();
 
   @override
   String get type => '@TypeParameters';

@@ -10,6 +10,18 @@ import 'package:vm_service_protos/vm_service_protos.dart';
 
 import 'common/test_helper.dart';
 
+int fib(n) {
+  if (n < 0) return 0;
+  if (n == 0) return 1;
+  return fib(n - 1) + fib(n - 2);
+}
+
+void testeeDo() {
+  print('Testee doing something.');
+  fib(44);
+  print('Testee did something.');
+}
+
 int computeTimeOriginNanos(List<TracePacket> packets) {
   final packetsWithPerfSamples =
       packets.where((packet) => packet.hasPerfSample()).toList();
@@ -102,5 +114,10 @@ void main([args = const <String>[]]) => runIsolateTests(
       args,
       tests,
       'get_perfetto_cpu_samples_rpc_test.dart',
-      extraArgs: ['--profiler=true'],
+      testeeBefore: testeeDo,
+      extraArgs: [
+        '--profiler=true',
+        // Crank up the sampling rate to make sure we get samples.
+        '--profile_period=100',
+      ],
     );

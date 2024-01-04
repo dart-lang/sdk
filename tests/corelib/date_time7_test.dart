@@ -19,19 +19,25 @@ testLocal() {
     // "Arabian Standard Time" (UTC+04), or PST stands for Pacific Standard Time
     // and Philippine Standard Time.
     //
-    // Hardcode some common timezones.
-    if (name == "CET") {
-      Expect.equals(1, offset.inHours);
-    } else if (name == "CEST") {
-      Expect.equals(2, offset.inHours);
-    } else if (name == "GMT") {
-      Expect.equals(0, offset.inSeconds);
-    } else if (name == "EST") {
-      Expect.equals(-5, offset.inHours);
-    } else if (name == "EDT") {
-      Expect.equals(-4, offset.inHours);
-    } else if (name == "PDT") {
-      Expect.equals(-7, offset.inHours);
+    // Hardcode some common timezones, in both their abbreviated and expanded
+    // forms to account for differences between host platforms.
+    switch (name) {
+      case "CET" || "Central European Time" || "Central European Standard Time":
+        Expect.equals(1, offset.inHours);
+      case "CEST" || "Central European Summer Time":
+        Expect.equals(2, offset.inHours);
+      case "GMT" || "Greenwich Mean Time":
+        Expect.equals(0, offset.inSeconds);
+      case "EST" || "Eastern Standard Time":
+        Expect.equals(-5, offset.inHours);
+      case "EDT" || "Eastern Daylight Time":
+        Expect.equals(-4, offset.inHours);
+      case "PDT" || "Pacific Daylight Time":
+        Expect.equals(-7, offset.inHours);
+      case "CST" || "Central Standard Time":
+        Expect.equals(-6, offset.inHours);
+      case "CDT" || "Central Daylight Time":
+        Expect.equals(-5, offset.inHours);
     }
   }
 

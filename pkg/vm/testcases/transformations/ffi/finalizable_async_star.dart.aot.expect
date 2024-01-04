@@ -14,7 +14,7 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
 }
 [@vm.unboxing-info.metadata=()->i]static method doSomething() → core::int
   return 3;
-[@vm.closure-id=1]static method useFinalizableAsyncStar([@vm.inferred-arg-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → asy::Stream<core::int> async* {
+[@vm.closure-id=1]static method useFinalizableAsyncStar([@vm.inferred-arg-type.metadata=#lib::MyFinalizable] ffi::Finalizable finalizable) → asy::Stream<core::int> async* /* emittedValueType= core::int */ {
   final self::MyFinalizable finalizable2 = new self::MyFinalizable::•();
   yield block {
     final synthesized core::int :expressionValueWrappedFinalizable = self::doSomething();
@@ -50,7 +50,7 @@ class MyFinalizable extends core::Object implements ffi::Finalizable {
   _in::reachabilityFence(finalizable4);
   _in::reachabilityFence(finalizable);
 }
-static method main() → void async /* futureValueType= void */ {
+static method main() → void async /* emittedValueType= void */ {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();
   final asy::Stream<core::int> asyncStarResult = [@vm.inferred-type.metadata=!] self::useFinalizableAsyncStar(finalizable);
   {

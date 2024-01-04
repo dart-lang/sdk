@@ -29,6 +29,7 @@ cast
 collide
 compilercontext.runincontext
 compilesdk
+compounds
 conformance
 constructor(s)
 core
@@ -41,8 +42,10 @@ dart:_internal
 dart:ffi
 dart:html
 dart:js_interop
+dart:js_interop_unsafe
 dart_runner
 dartbug.com
+defaultasset
 dname
 e.g
 enclose
@@ -54,6 +57,7 @@ finality
 flutter_runner
 function.tojs
 futureor
+github.com
 guarded
 guides
 h
@@ -66,6 +70,7 @@ js_util
 jsany
 jsexport
 jsobject
+lang
 libraries.json
 list.filled
 loadlibrary
@@ -79,6 +84,7 @@ name.stack
 name3.#name
 nameokempty
 native('native
+native.addressof
 nativecallable
 nativecallable.listener
 nativefieldwrapperclass
@@ -96,6 +102,7 @@ part(s)
 patch(es)
 patterns
 placing
+pointer`s
 pragma
 preexisting
 pubspec.yaml
@@ -121,6 +128,7 @@ team
 tearoff
 this.namedconstructor
 this.x
+tojs
 trusttypes
 type3.#name
 u

@@ -168,12 +168,13 @@ static method duplicateRecordPatternField(dynamic o) → dynamic {
   #L3:
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::int #0#2 = (#0#0 as{Unchecked} self::Class).{self::Class::field}{core::int};
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
     {
       if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case (field: 1, field: 2): // Error
-                           ^" || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 && (let final dynamic #t2 = #0#2 in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
+                           ^" || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t2 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int}) && (let final dynamic #t3 = #0#2#isSet ?{core::int} #0#2{core::int} : let final dynamic #t4 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int} in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case Class(field: 1, field: 2): // Error
                                 ^")) {
@@ -229,10 +230,15 @@ static method matchedTypeIsStrictlyNonNullable(core::List<core::int> list) → d
     hoisted core::int a;
     hoisted core::int b;
     final synthesized core::List<core::int> #0#0 = list;
-    late final synthesized core::int #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int};
-    late final synthesized core::int #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int};
-    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t3 = #0#4! in let final dynamic #t4 = a = #0#4! in true) && (!(#0#6 == null) ?{core::bool} let final dynamic #t5 = b = #0#6 in true : false)) {
-      core::print(0);
+    synthesized core::int #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized core::int #0#6;
+    synthesized core::bool #0#6#isSet = false;
+    if(#0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t5 = (#0#4#isSet ?{core::int} #0#4{core::int} : let final dynamic #t6 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int})! in let final dynamic #t7 = a = (#0#4#isSet ?{core::int} #0#4{core::int} : let final dynamic #t8 = #0#4#isSet = true in #0#4 = #0#0.{core::List::[]}(0){(core::int) → core::int})! in true) && !((#0#6#isSet ?{core::int} #0#6{core::int} : let final dynamic #t9 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int}) == null)) {
+      b = #0#6#isSet ?{core::int} #0#6{core::int} : let final dynamic #t10 = #0#6#isSet = true in #0#6 = #0#0.{core::List::[]}(1){(core::int) → core::int};
+      {
+        core::print(0);
+      }
     }
   }
 }
@@ -251,15 +257,16 @@ static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
   hoisted has-declared-initializer core::int a;
   {
     final synthesized core::int? #0#0 = x;
-    if(!(!(#0#0 == null) ?{core::bool} let final dynamic #t6 = a = #0#0{core::int} in true : false))
+    if(!(!(#0#0 == null) && (let final dynamic #t11 = a = #0#0{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }
 static method restPatternNotLastInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized dynamic #0#4 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
-    if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#4) {
+    synthesized dynamic #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t12 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t13 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic})) {
       core::print(0);
     }
   }
@@ -267,8 +274,9 @@ static method restPatternNotLastInMap(dynamic o) → dynamic {
 static method restPatternWithSubPatternInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized dynamic #0#4 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
-    if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#4 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#4) {
+    synthesized dynamic #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    if(#0#0 is core::Map<dynamic, dynamic> && (!((#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t14 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && #C5 =={core::num::==}{(core::Object) → core::bool} (#0#4#isSet ?{dynamic} #0#4{dynamic} : let final dynamic #t15 = #0#4#isSet = true in #0#4 = #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic})) {
       core::print(0);
     }
   }

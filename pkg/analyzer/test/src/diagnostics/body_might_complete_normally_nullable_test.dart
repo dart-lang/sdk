@@ -38,6 +38,23 @@ void f(Future f) async {}
 ''');
   }
 
+  test_function_switchStatement_exhaustive_extensionType() async {
+    await assertNoErrorsInCode(r'''
+enum E { a, b }
+
+extension type EE(E it) {}
+
+int f(EE e) {
+  switch (e) {
+    case E.a:
+      return 0;
+    case E.b:
+      return 1;
+  }
+}
+''');
+  }
+
   test_function_sync_block_dynamic() async {
     await assertNoErrorsInCode('''
 dynamic f() {}

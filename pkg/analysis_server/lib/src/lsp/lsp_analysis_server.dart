@@ -135,7 +135,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// This is an optimization to avoid sending empty diagnostics when they are
   /// unnecessary (at startup, when a file is re-analyzed because a file it
   /// imports was modified, etc).
-  final Set<String> filesWithClientDiagnostics = {};
+  final Set<String> _filesWithClientDiagnostics = {};
 
   /// Initialize a newly created server to send and receive messages to the
   /// given [channel].
@@ -306,7 +306,7 @@ class LspAnalysisServer extends AnalysisServer {
             // Dart settings for each workspace folder.
             for (final folder in folders)
               ConfigurationItem(
-                scopeUri: pathContext.toUri(folder).toString(),
+                scopeUri: pathContext.toUri(folder),
                 section: 'dart',
               ),
             // Global Dart settings. This comes last to simplify matching up the
@@ -632,15 +632,15 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
-    if (errors.isEmpty && !filesWithClientDiagnostics.contains(path)) {
+    if (errors.isEmpty && !_filesWithClientDiagnostics.contains(path)) {
       // Don't sent empty set if client is already empty.
       return;
     }
 
     if (errors.isEmpty) {
-      filesWithClientDiagnostics.remove(path);
+      _filesWithClientDiagnostics.remove(path);
     } else {
-      filesWithClientDiagnostics.add(path);
+      _filesWithClientDiagnostics.add(path);
     }
 
     final params = PublishDiagnosticsParams(
@@ -1013,7 +1013,7 @@ class LspAnalysisServer extends AnalysisServer {
           .getDriverFor(file)
           ?.currentSession
           .uriConverter
-          .uriToPath(Uri.parse(Flutter.instance.widgetsUri)) !=
+          .uriToPath(Uri.parse(Flutter.widgetsUri)) !=
       null;
 
   void _notifyPluginsOverlayChanged(

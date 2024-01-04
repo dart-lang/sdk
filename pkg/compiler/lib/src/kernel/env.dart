@@ -4,6 +4,7 @@
 
 library dart2js.kernel.env;
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.

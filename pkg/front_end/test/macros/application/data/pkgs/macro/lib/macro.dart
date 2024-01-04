@@ -191,16 +191,16 @@ macro
 class ClassDeclarationsMacro1 implements ClassDeclarationsMacro, MixinDeclarationsMacro {
   const ClassDeclarationsMacro1();
 
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
     MemberDeclarationBuilder builder) => _build(clazz, builder);
 
-  FutureOr<void> buildDeclarationsForMixin(IntrospectableMixinDeclaration mixin,
+  FutureOr<void> buildDeclarationsForMixin(MixinDeclaration mixin,
     MemberDeclarationBuilder builder) => _build(mixin, builder);
 
-  FutureOr<void> _build(IntrospectableType type,
+  FutureOr<void> _build(TypeDeclaration type,
       MemberDeclarationBuilder builder) {
     StringBuffer sb = new StringBuffer();
-    if (type is IntrospectableClassDeclaration) {
+    if (type is ClassDeclaration) {
       if (type.hasAbstract) {
         sb.write('a');
       }
@@ -218,13 +218,13 @@ macro
 
 class ClassDeclarationsMacro2 implements ClassDeclarationsMacro, MixinDeclarationsMacro {
   const ClassDeclarationsMacro2();
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) => _build(clazz, builder);
 
-  FutureOr<void> buildDeclarationsForMixin(IntrospectableMixinDeclaration mixin,
+  FutureOr<void> buildDeclarationsForMixin(MixinDeclaration mixin,
       MemberDeclarationBuilder builder) => _build(mixin, builder);
 
-  FutureOr<void> _build(IntrospectableType type,
+  FutureOr<void> _build(TypeDeclaration type,
       MemberDeclarationBuilder builder) async {
     List<ConstructorDeclaration> constructors = await builder.constructorsOf(
         type);
@@ -307,13 +307,13 @@ macro
 class ToStringMacro implements ClassDeclarationsMacro, MixinDeclarationsMacro {
   const ToStringMacro();
 
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) => _build(clazz, builder);
 
-  FutureOr<void> buildDeclarationsForMixin(IntrospectableMixinDeclaration mixin,
+  FutureOr<void> buildDeclarationsForMixin(MixinDeclaration mixin,
       MemberDeclarationBuilder builder) => _build(mixin, builder);
 
-  FutureOr<void> _build(IntrospectableType type, MemberDeclarationBuilder builder) async {
+  FutureOr<void> _build(TypeDeclaration type, MemberDeclarationBuilder builder) async {
     Iterable<MethodDeclaration> methods = await builder.methodsOf(type);
     if (!methods.any((m) => m.identifier.name == 'toString')) {
       Iterable<FieldDeclaration> fields = await builder.fieldsOf(type);
@@ -353,57 +353,52 @@ class SequenceMacro
 
   Future<void> _findAllMethods(
       MemberDeclarationBuilder builder,
-      IntrospectableType cls,
+      TypeDeclaration cls,
       List<MethodDeclaration> methods) async {
-    if (cls is IntrospectableClassDeclaration) {
+    if (cls is ClassDeclaration) {
       if (cls.superclass != null) {
         await _findAllMethods(
           builder,
-          await builder.typeDeclarationOf(cls.superclass!.identifier)
-              as IntrospectableType,
+          await builder.typeDeclarationOf(cls.superclass!.identifier),
           methods);
       }
       for (NamedTypeAnnotation mixin in cls.mixins) {
         await _findAllMethods(
           builder,
-          await builder.typeDeclarationOf(mixin.identifier)
-              as IntrospectableType,
+          await builder.typeDeclarationOf(mixin.identifier),
           methods);
       }
       for (NamedTypeAnnotation interface in cls.interfaces) {
         await _findAllMethods(
           builder,
-          await builder.typeDeclarationOf(interface.identifier)
-              as IntrospectableType,
+          await builder.typeDeclarationOf(interface.identifier),
           methods);
       }
     }
-    if (cls is IntrospectableMixinDeclaration) {
+    if (cls is MixinDeclaration) {
       for (NamedTypeAnnotation interface in cls.interfaces) {
         await _findAllMethods(
           builder,
-          await builder.typeDeclarationOf(interface.identifier)
-              as IntrospectableType,
+          await builder.typeDeclarationOf(interface.identifier),
           methods);
       }
       for (NamedTypeAnnotation superclass in cls.superclassConstraints) {
         await _findAllMethods(
           builder,
-          await builder.typeDeclarationOf(superclass.identifier)
-              as IntrospectableType,
+          await builder.typeDeclarationOf(superclass.identifier),
           methods);
       }
     }
     methods.addAll(await builder.methodsOf(cls));
   }
 
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) => _build(clazz, builder);
 
-  FutureOr<void> buildDeclarationsForMixin(IntrospectableMixinDeclaration mixin,
+  FutureOr<void> buildDeclarationsForMixin(MixinDeclaration mixin,
       MemberDeclarationBuilder builder) => _build(mixin, builder);
 
-  FutureOr<void> _build(IntrospectableType type,
+  FutureOr<void> _build(TypeDeclaration type,
       MemberDeclarationBuilder builder) async {
     List<MethodDeclaration> methods = [];
     await _findAllMethods(builder, type, methods);
@@ -428,15 +423,15 @@ macro
 
 class SupertypesMacro implements ClassDefinitionMacro, MixinDefinitionMacro {
   const SupertypesMacro();
-  FutureOr<void> buildDefinitionForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDefinitionForClass(ClassDeclaration clazz,
       TypeDefinitionBuilder builder) => _build(clazz, builder);
 
-  FutureOr<void> buildDefinitionForMixin(IntrospectableMixinDeclaration mixin,
+  FutureOr<void> buildDefinitionForMixin(MixinDeclaration mixin,
       TypeDefinitionBuilder builder) => _build(mixin, builder);
 
-  FutureOr<void> _build(IntrospectableType type, TypeDefinitionBuilder builder) async {
+  FutureOr<void> _build(TypeDeclaration type, TypeDefinitionBuilder builder) async {
     ParameterizedTypeDeclaration? superClass;
-    if (type is IntrospectableClassDeclaration && type.superclass != null) {
+    if (type is ClassDeclaration && type.superclass != null) {
       superClass =  await builder.typeDeclarationOf(type.superclass!.identifier)
           as ParameterizedTypeDeclaration?;
     }

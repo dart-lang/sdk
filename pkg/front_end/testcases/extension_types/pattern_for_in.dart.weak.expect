@@ -27,13 +27,13 @@ static extension-type-member method MyStream|constructor#<T extends core::Object
 }
 static extension-type-member method MyStream|constructor#_#new#tearOff<T extends core::Object? = dynamic>(asy::Stream<self::MyStream|constructor#_#new#tearOff::T%> it) → self::MyStream<self::MyStream|constructor#_#new#tearOff::T%> /* = asy::Stream<self::MyStream|constructor#_#new#tearOff::T%> */
   return self::MyStream|constructor#<self::MyStream|constructor#_#new#tearOff::T%>(it);
-static method method1(self::MyList<core::int> /* = core::List<core::int> */ list, self::MyStream<core::int> /* = asy::Stream<core::int> */ stream) → dynamic async /* futureValueType= dynamic */ {
+static method method1(self::MyList<core::int> /* = core::List<core::int> */ list, self::MyStream<core::int> /* = asy::Stream<core::int> */ stream) → dynamic async /* emittedValueType= dynamic */ {
   for (core::int a in list) {
   }
   await for (core::int a in stream) {
   }
 }
-static method method2(self::MyList<(core::int, core::String)> /* = core::List<(core::int, core::String)> */ list, self::MyStream<(core::int, core::String)> /* = asy::Stream<(core::int, core::String)> */ stream) → dynamic async /* futureValueType= dynamic */ {
+static method method2(self::MyList<(core::int, core::String)> /* = core::List<(core::int, core::String)> */ list, self::MyStream<(core::int, core::String)> /* = asy::Stream<(core::int, core::String)> */ stream) → dynamic async /* emittedValueType= dynamic */ {
   for (final(core::int, core::String) #t1 in list) {
     hoisted core::int a;
     hoisted core::String b;

@@ -48,7 +48,7 @@ final tests = <IsolateTest>[
     final Library rootLib =
         (await service.getObject(isolateId, isolate.rootLib!.id!)) as Library;
     final FuncRef function =
-        rootLib.functions!.firstWhere((f) => f.name == 'IdNumber|<');
+        rootLib.functions!.firstWhere((f) => f.name == 'IdNumber.<');
     expect(function, isNotNull);
     await service.addBreakpointAtEntry(isolateId, function.id!);
   },

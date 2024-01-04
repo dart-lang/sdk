@@ -49,7 +49,7 @@ String? getRelativePathIfInside(String libraryPath, String filePath,
     }
   }
   // They're the same up to and including index [same].
-  // If there isn't a path seperator left in the rest of the string [libPath],
+  // If there isn't a path separator left in the rest of the string [libPath],
   // [filePath] is inside the same dir as [libPath] (possibly within
   // subdirs).
   for (int i = same; i < libraryPath.length; i++) {
@@ -60,7 +60,7 @@ String? getRelativePathIfInside(String libraryPath, String filePath,
   }
 
   // To get the relative path we need to go back to the previous path
-  // seperator.
+  // separator.
   for (int i = same; i >= 0; i--) {
     int c = libraryPath.codeUnitAt(i);
     if (c == _forwardSlash || c == _backwardsSlash) {

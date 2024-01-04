@@ -15,10 +15,9 @@ static method test(dynamic x) → dynamic {
   {
     hoisted core::String y;
     final synthesized dynamic #0#0 = x;
-    function ##0#5#initializer() → core::Object?
-      return (#0#0 as{Unchecked} self::A).{self::A::bar}{core::Object?};
-    late final synthesized core::Object? #0#5 = ##0#5#initializer(){() → core::Object?};
-    if(#0#0 is self::A && #C1 =={core::String::==}{(core::Object) → core::bool} #0#0{self::A}.{self::A::foo}{core::String} && (let final core::String #t1 = #0#5 as core::String in (#0#5 as core::String) is core::String && (let final core::String #t2 = y = #0#5 as core::String in true))) {
+    synthesized core::Object? #0#5;
+    synthesized core::bool #0#5#isSet = false;
+    if(#0#0 is self::A && #C1 =={core::String::==}{(core::Object) → core::bool} #0#0{self::A}.{self::A::foo}{core::String} && (let final core::String #t1 = (#0#5#isSet ?{core::Object?} #0#5{core::Object?} : let final core::bool* #t2 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::bar}{core::Object?}) as core::String in ((#0#5#isSet ?{core::Object?} #0#5{core::Object?} : let final core::bool* #t3 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::bar}{core::Object?}) as core::String) is core::String && (let final core::String #t4 = y = (#0#5#isSet ?{core::Object?} #0#5{core::Object?} : let final core::bool* #t5 = #0#5#isSet = true in #0#5 = #0#0{self::A}.{self::A::bar}{core::Object?}) as core::String in true))) {
       return y;
     }
     else {

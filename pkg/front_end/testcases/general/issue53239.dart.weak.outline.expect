@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  final field core::int id;
+  constructor n1(core::int id, [core::String s = "a"]) → self::C1
+    ;
+}
+extension type ET1(core::int id) {
+  abstract extension-type-member representation-field get id() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+  constructor n1 = self::ET1|constructor#n1;
+  constructor tearoff n1 = self::ET1|constructor#_#n1#tearOff;
+}
+static field dynamic log;
+static extension-type-member method ET1|constructor#(core::int id) → self::ET1 /* = core::int */
+  ;
+static extension-type-member method ET1|constructor#_#new#tearOff(core::int id) → self::ET1 /* = core::int */
+  return self::ET1|constructor#(id);
+static extension-type-member method ET1|constructor#n1(core::int id, [core::String s = "b"]) → self::ET1 /* = core::int */
+  ;
+static extension-type-member method ET1|constructor#_#n1#tearOff(core::int id, [has-declared-initializer core::String s]) → self::ET1 /* = core::int */
+  return self::ET1|constructor#n1(id, s);
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

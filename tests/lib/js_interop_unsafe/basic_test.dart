@@ -14,17 +14,17 @@ external void eval(String code);
 void createObjectTest() {
   JSObject o = JSObject();
   void testHasGetSet(String property, String? value) {
-    // []/[]=
-    Expect.isFalse(o.hasProperty(property.toJS).toDart);
+    // has/[]/[]=
+    Expect.isFalse(o.has(property));
     o[property] = value?.toJS;
-    Expect.isTrue(o.hasProperty(property.toJS).toDart);
+    Expect.isTrue(o.has(property));
     Expect.equals(value, (o[property] as JSString?)?.toDart);
     Expect.isTrue(o.delete(property.toJS).toDart);
 
     // Weirdly enough, delete almost always returns true.
     Expect.isTrue(o.delete(property.toJS).toDart);
 
-    // getProperty/setProperty
+    // hasProperty/getProperty/setProperty
     Expect.isFalse(o.hasProperty(property.toJS).toDart);
     o.setProperty(property.toJS, value?.toJS);
     Expect.isTrue(o.hasProperty(property.toJS).toDart);
@@ -133,8 +133,10 @@ void instanceOfTest() {
   JSFunction jsClass2Constructor = gc['JSClass2'] as JSFunction;
   Expect.isTrue(obj.instanceof(jsClass1Constructor));
   Expect.isFalse(obj.instanceof(jsClass2Constructor));
+  Expect.isFalse(0.toJS.instanceof(jsClass2Constructor));
   Expect.isTrue(obj.instanceOfString('JSClass1'));
   Expect.isFalse(obj.instanceOfString('JSClass2'));
+  Expect.isFalse(0.toJS.instanceOfString('JSClass1'));
 }
 
 void _expectIterableEquals(Iterable<Object?> l, Iterable<Object?> r) {

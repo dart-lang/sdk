@@ -239,7 +239,8 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
 
   @override
   void visitLocalFunctionInvocation(LocalFunctionInvocation node) {
-    computeForNode(node, createInvokeId(node));
+    computeForNode(node,
+        node.fileOffset == TreeNode.noOffset ? null : createInvokeId(node));
     super.visitLocalFunctionInvocation(node);
   }
 
@@ -426,7 +427,8 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    computeForNode(node, createGotoId(node));
+    computeForNode(
+        node, node.fileOffset == TreeNode.noOffset ? null : createGotoId(node));
     super.visitBreakStatement(node);
   }
 
@@ -471,7 +473,10 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
 
   @override
   void visitBoolLiteral(BoolLiteral node) {
-    computeForNode(node, computeDefaultNodeId(node));
+    // Some synthetic bool literals, for instance inside some lets,
+    // have no offset.
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     super.visitBoolLiteral(node);
   }
 
@@ -593,7 +598,8 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
     if (node.isTypeError) {
       computeForNode(node, createImplicitAsId(node));
     } else {
-      computeForNode(node, computeDefaultNodeId(node));
+      computeForNode(
+          node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     }
     return super.visitAsExpression(node);
   }
@@ -627,7 +633,8 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
 
   @override
   void visitLogicalExpression(LogicalExpression node) {
-    computeForNode(node, computeDefaultNodeId(node));
+    computeForNode(
+        node, computeDefaultNodeId(node, skipNodeWithNoOffset: true));
     return super.visitLogicalExpression(node);
   }
 

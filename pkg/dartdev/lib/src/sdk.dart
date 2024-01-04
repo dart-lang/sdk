@@ -29,7 +29,11 @@ class Sdk {
   // if the SDK isn't completely built.
   String get dart => Platform.resolvedExecutable;
 
-  String get dartAotRuntime => path.join(sdkPath, 'bin', 'dartaotruntime');
+  String get dartAotRuntime => path.join(
+        sdkPath,
+        'bin',
+        'dartaotruntime${Platform.isWindows ? '.exe' : ''}',
+      );
 
   String get analysisServerSnapshot => path.absolute(
         sdkPath,
@@ -80,10 +84,13 @@ class Sdk {
         'devtools',
       );
 
-  static bool checkArtifactExists(String path) {
+  static bool checkArtifactExists(String path, {bool logError = true}) {
     if (!File(path).existsSync()) {
-      log.stderr('Could not find $path. Have you built the full '
-          'Dart SDK?');
+      if (logError) {
+        log.stderr(
+          'Could not find $path. Have you built the full Dart SDK?',
+        );
+      }
       return false;
     }
     return true;

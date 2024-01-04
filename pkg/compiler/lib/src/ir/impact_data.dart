@@ -50,6 +50,9 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
       : super(
             staticTypeContext.typeEnvironment, classHierarchy, staticTypeCache);
 
+  bool get isNonNullableByDefault =>
+      staticTypeContext.enclosingLibrary.isNonNullableByDefault;
+
   @override
   VariableScopeModel get variableScopeModel => _variableScopeModel!;
 
@@ -168,41 +171,20 @@ class ImpactBuilder extends StaticTypeVisitor implements ImpactRegistry {
   }
 
   void handleAsyncMarker(ir.FunctionNode function) {
-    ir.AsyncMarker asyncMarker = function.asyncMarker;
-    ir.DartType returnType = function.returnType;
-
-    switch (asyncMarker) {
+    switch (function.asyncMarker) {
       case ir.AsyncMarker.Sync:
         break;
+
       case ir.AsyncMarker.SyncStar:
-        ir.DartType elementType = const ir.DynamicType();
-        if (returnType is ir.InterfaceType) {
-          if (returnType.classNode == typeEnvironment.coreTypes.iterableClass) {
-            elementType = returnType.typeArguments.first;
-          }
-        }
-        registerSyncStar(elementType);
+        registerSyncStar(function.emittedValueType!);
         break;
 
       case ir.AsyncMarker.Async:
-        ir.DartType elementType = const ir.DynamicType();
-        if (returnType is ir.InterfaceType &&
-            returnType.classNode == typeEnvironment.coreTypes.futureClass) {
-          elementType = returnType.typeArguments.first;
-        } else if (returnType is ir.FutureOrType) {
-          elementType = returnType.typeArgument;
-        }
-        registerAsync(elementType);
+        registerAsync(function.emittedValueType!);
         break;
 
       case ir.AsyncMarker.AsyncStar:
-        ir.DartType elementType = const ir.DynamicType();
-        if (returnType is ir.InterfaceType) {
-          if (returnType.classNode == typeEnvironment.coreTypes.streamClass) {
-            elementType = returnType.typeArguments.first;
-          }
-        }
-        registerAsyncStar(elementType);
+        registerAsyncStar(function.emittedValueType!);
         break;
     }
   }

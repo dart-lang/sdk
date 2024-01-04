@@ -4,16 +4,11 @@
 
 #include "include/dart_api.h"
 #include "include/dart_api_dl.h"
-#include "include/dart_native_api.h"
 #include "include/dart_version.h"
 #include "include/internal/dart_api_dl_impl.h"
 #include "platform/globals.h"
 #include "vm/bootstrap_natives.h"
-#include "vm/class_finalizer.h"
-#include "vm/class_id.h"
-#include "vm/compiler/ffi/native_type.h"
 #include "vm/exceptions.h"
-#include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
 #include "vm/heap/gc_shared.h"
 #include "vm/log.h"
@@ -25,18 +20,12 @@
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/compiler/assembler/assembler.h"
-#include "vm/compiler/ffi/call.h"
 #include "vm/compiler/ffi/callback.h"
 #include "vm/compiler/ffi/marshaller.h"
 #include "vm/compiler/jit/compiler.h"
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
-
-// Static invocations to this method are translated directly in streaming FGB.
-DEFINE_NATIVE_ENTRY(Ffi_asFunctionInternal, 2, 2) {
-  UNREACHABLE();
-}
 
 DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableListener, 1, 2) {
   const auto& send_function =

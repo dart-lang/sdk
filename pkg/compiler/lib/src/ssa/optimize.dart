@@ -2717,6 +2717,9 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
       // change the CFG structure so we replace the HIf condition with a
       // constant. This may leave the original condition unused. i.e. a
       // candidate for being dead code.
+      //
+      // TODO(http://dartbug.com/29475): Remove empty blocks so that recognizing
+      // no-op control flow is trivial.
 
       List<HBasicBlock> dominated = block.dominatedBlocks;
       // Diamond-like control flow dominates the then-, else- and join- blocks.
@@ -2743,15 +2746,33 @@ class SsaDeadCodeEliminator extends HGraphVisitor implements OptimizationPhase {
   /// flow).  Returns `null` if there is an exit from the region other than
   /// [end] or via control flow other than HGoto and HIf.
   int? measureEmptyInterval(HBasicBlock start, HBasicBlock end) {
-    if (start.first != start.last) return null; // start is not empty.
-    // Do a simple single-block region test first.
-    if (start.last is HGoto &&
-        start.successors.length == 1 &&
-        start.successors.single == end) {
-      return 1;
+    const int maxCount = 10;
+    int count = 0;
+    for (HBasicBlock currentBlock = start; currentBlock != end;) {
+      final instruction = currentBlock.first;
+      if (instruction!.next != null) return null; // Block not empty.
+      count++;
+      // K-limit the search for `end`.
+      if (count > maxCount) return null;
+      HBasicBlock? next;
+      if (instruction is HGoto) {
+        next = currentBlock.successors.single;
+      } else if (instruction is HIf) {
+        // If no-op control flow in the subgraph was simplified, the condition
+        // will be constant, and point us down the shorter side of the diamond.
+        final condition = instruction.inputs.single;
+        if (condition.isConstantTrue()) {
+          next = instruction.thenBlock;
+        } else if (condition.isConstantFalse()) {
+          next = instruction.elseBlock;
+        }
+      }
+      if (next == null) return null;
+      // Check [next] is within [start,end) region.
+      if (next.id < start.id || next.id > end.id) return null;
+      currentBlock = next;
     }
-    // TODO(sra): Implement fuller test.
-    return null;
+    return count;
   }
 
   /// If [block] is an always-taken branch, move the code from the taken branch

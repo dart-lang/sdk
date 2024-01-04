@@ -37,3 +37,26 @@ void main() {
 
 [dds-protocol]: dds_protocol.md
 [service-protocol]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md
+
+# Debugging DDS
+
+One way to get stdout from files in DDS while debugging is to log messages to a file. You can add a method such as:
+
+```dart
+void _fileLog(String message) {
+  final file = File('/tmp/dds.log');
+  if (!file.existsSync()) {
+    file.createSync();
+  }
+  file.writeAsStringSync(
+'''
+$message
+''',
+    mode: FileMode.append,
+  );
+}
+```
+
+Then you can call `_fileLog('some print debugging message')`, and the log message will be written to a temp file.
+
+To get logging output in real time, run `tail -f /tmp/dds.log`.

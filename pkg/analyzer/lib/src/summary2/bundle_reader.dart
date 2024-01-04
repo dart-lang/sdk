@@ -1851,6 +1851,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     element.metadata = reader._readAnnotationList(
       unitElement: element.enclosingElement,
     );
+    element.macroDiagnostics = reader.readMacroDiagnostics();
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
@@ -2309,7 +2310,22 @@ class ResolutionReader {
           argumentIndex: readUInt30(),
           message: _reader.readStringUtf8(),
         );
+      case 0x01:
+        return DeclarationsIntrospectionCycleDiagnostic(
+          components: readTypedList(() {
+            return DeclarationsIntrospectionCycleComponent(
+              element: readElement() as ElementImpl,
+              annotationIndex: readUInt30(),
+            );
+          }),
+        );
       case 0x02:
+        return ExceptionMacroDiagnostic(
+          annotationIndex: readUInt30(),
+          message: _reader.readStringUtf8(),
+          stackTrace: _reader.readStringUtf8(),
+        );
+      case 0x03:
         return MacroDiagnostic(
           severity: macro.Severity.values[readByte()],
           message: _readMacroDiagnosticMessage(),

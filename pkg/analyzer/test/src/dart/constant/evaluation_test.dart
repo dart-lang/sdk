@@ -601,6 +601,25 @@ const v = int;
     _assertHasPrimitiveEqualityTrue('v');
   }
 
+  test_identical_extensionType_nullable() async {
+    await assertNoErrorsInCode('''
+extension type E(int it) {}
+
+class A {
+  final E? f;
+  const A() : f = null;
+}
+
+const v = A();
+''');
+    final result = _topLevelVar('v');
+    assertDartObjectText(result, r'''
+A
+  f: Null null
+  variable: self::@variable::v
+''');
+  }
+
   test_identical_extensionType_types_recursive() async {
     await assertNoErrorsInCode('''
 const c = identical(ExList<ExInt>, List<int>);
@@ -3540,6 +3559,36 @@ const c = 3 / 0;
     final result = _topLevelVar('c');
     assertDartObjectText(result, r'''
 double Infinity
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_eqeq_double_double_nan_left() async {
+    await assertErrorsInCode('''
+const c = double.nan == 2.3;
+''', [
+      error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 10, 13),
+    ]);
+    // This test case produces a warning, but the value of the constant should
+    // be `false`.
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_eqeq_double_double_nan_right() async {
+    await assertErrorsInCode('''
+const c = 2.3 == double.nan;
+''', [
+      error(WarningCode.UNNECESSARY_NAN_COMPARISON_FALSE, 14, 13),
+    ]);
+    // This test case produces a warning, but the value of the constant should
+    // be `false`.
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, r'''
+bool false
   variable: self::@variable::c
 ''');
   }

@@ -2983,7 +2983,6 @@ class Procedure extends Member implements GenericFunction {
       bool isExtensionMember = false,
       bool isExtensionTypeMember = false,
       bool isSynthetic = false,
-      bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
@@ -2997,7 +2996,6 @@ class Procedure extends Member implements GenericFunction {
             isExtensionMember: isExtensionMember,
             isExtensionTypeMember: isExtensionTypeMember,
             isSynthetic: isSynthetic,
-            isAbstractFieldAccessor: isAbstractFieldAccessor,
             transformerFlags: transformerFlags,
             fileUri: fileUri,
             reference: reference,
@@ -3013,7 +3011,6 @@ class Procedure extends Member implements GenericFunction {
       bool isExtensionMember = false,
       bool isExtensionTypeMember = false,
       bool isSynthetic = false,
-      bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
@@ -3028,7 +3025,6 @@ class Procedure extends Member implements GenericFunction {
     this.isExtensionMember = isExtensionMember;
     this.isExtensionTypeMember = isExtensionTypeMember;
     this.isSynthetic = isSynthetic;
-    this.isAbstractFieldAccessor = isAbstractFieldAccessor;
     setTransformerFlagsWithoutLazyLoading(transformerFlags);
     assert(!(isMemberSignature && stubTargetReference == null),
         "No member signature origin for member signature $this.");
@@ -3080,9 +3076,8 @@ class Procedure extends Member implements GenericFunction {
   static const int FlagNonNullableByDefault = 1 << 5;
   static const int FlagSynthetic = 1 << 6;
   static const int FlagInternalImplementation = 1 << 7;
-  static const int FlagIsAbstractFieldAccessor = 1 << 8;
-  static const int FlagExtensionTypeMember = 1 << 9;
-  static const int FlagHasWeakTearoffReferencePragma = 1 << 10;
+  static const int FlagExtensionTypeMember = 1 << 8;
+  static const int FlagHasWeakTearoffReferencePragma = 1 << 9;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3148,15 +3143,6 @@ class Procedure extends Member implements GenericFunction {
     flags = value
         ? (flags | FlagInternalImplementation)
         : (flags & ~FlagInternalImplementation);
-  }
-
-  /// If `true` this procedure was generated from an abstract field.
-  bool get isAbstractFieldAccessor => flags & FlagIsAbstractFieldAccessor != 0;
-
-  void set isAbstractFieldAccessor(bool value) {
-    flags = value
-        ? (flags | FlagIsAbstractFieldAccessor)
-        : (flags & ~FlagIsAbstractFieldAccessor);
   }
 
   @override
@@ -3730,10 +3716,10 @@ class FunctionNode extends TreeNode {
   DartType returnType; // Not null.
   Statement? _body;
 
-  /// The future value type of this is an async function, otherwise `null`.
+  /// The emitted value of non-sync functions
   ///
-  /// The future value type is the element type returned by an async function.
-  /// For instance
+  /// For `async` functions [emittedValueType] is the future value type, that
+  /// is, the returned element type. For instance
   ///
   ///     Future<Foo> method1() async => new Foo();
   ///     FutureOr<Foo> method2() async => new Foo();
@@ -3745,7 +3731,16 @@ class FunctionNode extends TreeNode {
   /// For pre-nnbd libraries, this is set to `flatten(T)` of the return type
   /// `T`, which can be seen as the pre-nnbd equivalent of the future value
   /// type.
-  DartType? futureValueType;
+  ///
+  /// For `sync*` functions [emittedValueType] is the type of the element of the
+  /// iterable returned by the function.
+  ///
+  /// For `async*` functions [emittedValueType] is the type of the element of
+  /// the stream return ed by the function.
+  ///
+  /// For sync functions (those not marked with one of `async`, `sync*`, or
+  /// `async*`) the value of [emittedValueType] is null.
+  DartType? emittedValueType;
 
   /// If the function is a redirecting factory constructor, this holds
   /// the target and type arguments of the redirection.
@@ -3779,7 +3774,7 @@ class FunctionNode extends TreeNode {
       this.returnType = const DynamicType(),
       this.asyncMarker = AsyncMarker.Sync,
       AsyncMarker? dartAsyncMarker,
-      this.futureValueType})
+      this.emittedValueType})
       : this.positionalParameters =
             positionalParameters ?? <VariableDeclaration>[],
         this.requiredParameterCount =
@@ -3900,7 +3895,7 @@ class FunctionNode extends TreeNode {
     visitList(positionalParameters, v);
     visitList(namedParameters, v);
     returnType.accept(v);
-    futureValueType?.accept(v);
+    emittedValueType?.accept(v);
     redirectingFactoryTarget?.target?.acceptReference(v);
     if (redirectingFactoryTarget?.typeArguments != null) {
       visitList(redirectingFactoryTarget!.typeArguments!, v);
@@ -3914,8 +3909,8 @@ class FunctionNode extends TreeNode {
     v.transformList(positionalParameters, this);
     v.transformList(namedParameters, this);
     returnType = v.visitDartType(returnType);
-    if (futureValueType != null) {
-      futureValueType = v.visitDartType(futureValueType!);
+    if (emittedValueType != null) {
+      emittedValueType = v.visitDartType(emittedValueType!);
     }
     if (redirectingFactoryTarget?.typeArguments != null) {
       v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
@@ -3932,8 +3927,9 @@ class FunctionNode extends TreeNode {
     v.transformVariableDeclarationList(positionalParameters, this);
     v.transformVariableDeclarationList(namedParameters, this);
     returnType = v.visitDartType(returnType, cannotRemoveSentinel);
-    if (futureValueType != null) {
-      futureValueType = v.visitDartType(futureValueType!, cannotRemoveSentinel);
+    if (emittedValueType != null) {
+      emittedValueType =
+          v.visitDartType(emittedValueType!, cannotRemoveSentinel);
     }
     if (redirectingFactoryTarget?.typeArguments != null) {
       v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);

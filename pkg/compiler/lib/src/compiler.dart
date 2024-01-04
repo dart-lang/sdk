@@ -455,7 +455,12 @@ class Compiler {
       JClosedWorld closedWorld) {
     CodegenInputs codegenInputs = codegenResults.codegenInputs;
     CodegenEnqueuer codegenEnqueuer = backendStrategy.createCodegenEnqueuer(
-        enqueueTask, closedWorld, codegenInputs, codegenResults, sourceLookup)
+        enqueueTask,
+        closedWorld,
+        inferredData,
+        codegenInputs,
+        codegenResults,
+        sourceLookup)
       ..onEmptyForTesting = onCodegenQueueEmptyForTesting;
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = codegenEnqueuer;

@@ -16,7 +16,7 @@ import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 
 import 'element_map.dart';
-import 'elements.dart' show JGeneratorBody;
+import 'elements.dart' show JGeneratorBody, JParameterStub;
 
 class GlobalLocalsMap {
   /// Tag used for identifying serialized [GlobalLocalsMap] objects in a
@@ -89,8 +89,11 @@ class GlobalLocalsMap {
     // have the concept of an initializer list, so the constructor (initializer
     // list) and the constructor body are implemented as two separate
     // constructor steps.
-    MemberEntity entity = key;
-    if (entity is ConstructorBodyEntity) key = entity.constructor;
+    if (key is ConstructorBodyEntity) {
+      key = key.constructor;
+    } else if (key is JParameterStub) {
+      key = key.target;
+    }
     return _localsMaps.putIfAbsent(key, () => KernelToLocalsMapImpl(key));
   }
 }

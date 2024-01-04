@@ -8,10 +8,10 @@ import "dart:typed_data";
 
 static method getBinaryTestProto() → asy::Future<typ::Uint8List>
   return self::readFileWeb("test.binary.pb");
-static method readFileWeb(core::String path) → asy::Future<typ::Uint8List> async /* futureValueType= typ::Uint8List */ {
+static method readFileWeb(core::String path) → asy::Future<typ::Uint8List> async /* emittedValueType= typ::Uint8List */ {
   throw "";
 }
-static method runBench([typ::Uint8List? data = #C1]) → void async /* futureValueType= void */ {
+static method runBench([typ::Uint8List? data = #C1]) → void async /* emittedValueType= void */ {
   typ::Uint8List :async_temporary_0;
   typ::Uint8List? :async_temporary_1;
   if(data == null) {
@@ -24,7 +24,7 @@ static method runBench([typ::Uint8List? data = #C1]) → void async /* futureVal
   :async_temporary_1 as{ForLegacy} dynamic;
   core::print(data{typ::Uint8List});
 }
-static method main() → void async /* futureValueType= void */ {
+static method main() → void async /* emittedValueType= void */ {
   typ::Uint8List :async_temporary_0;
   :async_temporary_0 = await self::getBinaryTestProto();
   typ::Uint8List data = :async_temporary_0 as{ForLegacy} dynamic;

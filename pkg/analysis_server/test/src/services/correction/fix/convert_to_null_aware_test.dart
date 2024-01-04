@@ -60,4 +60,122 @@ abstract class A {
 int? f(A? a) => a?.m();
 ''');
   }
+
+  Future<void> test_equal_targetAlreadyNullAware() async {
+    await resolveTestCode('''
+class A {
+  late int? value;
+}
+
+void f(A bar) {
+  final foo = bar.value == null
+      ? null
+      : bar.value?.sign;
+  print(foo);
+}
+''');
+    await assertHasFix('''
+class A {
+  late int? value;
+}
+
+void f(A bar) {
+  final foo = bar.value?.sign;
+  print(foo);
+}
+''');
+  }
+
+  Future<void> test_equal_targetTrailingNonNullAssert() async {
+    await resolveTestCode('''
+class A {
+  int? x;
+}
+class C {
+  late A foo;
+  int? bar;
+
+  void f() {
+    bar = foo.x == null
+      ? null
+      : foo.x!;
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  int? x;
+}
+class C {
+  late A foo;
+  int? bar;
+
+  void f() {
+    bar = foo.x;
+  }
+}
+''');
+  }
+
+  Future<void> test_notEqual_targetChained() async {
+    await resolveTestCode('''
+void f(int? bar) {
+  final foo = bar != null
+      ? bar.sign.remainder(5)
+      : null;
+  print(foo);
+}
+''');
+    await assertHasFix('''
+void f(int? bar) {
+  final foo = bar?.sign.remainder(5);
+  print(foo);
+}
+''');
+  }
+
+  Future<void> test_notEqual_targetIndexAndNonNullAssert() async {
+    await resolveTestCode('''
+void f(List a, int i) {
+  print(a[i] != null
+      ? a[i]!.test()
+      : null);
+}
+''');
+    await assertHasFix('''
+void f(List a, int i) {
+  print(a[i]?.test());
+}
+''');
+  }
+
+  Future<void> test_notEqual_targetNonNullAssertChained() async {
+    await resolveTestCode('''
+abstract class A {
+  int? x;
+  int? f() => x != null ? x!.remainder(5) : null;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  int? x;
+  int? f() => x?.remainder(5);
+}
+''');
+  }
+
+  Future<void> test_notEqual_targetTrailingNonNullAssertSingle() async {
+    await resolveTestCode('''
+abstract class A {
+  String? bar;
+  String? f() => bar != null ? bar! : null;
+}
+''');
+    await assertHasFix('''
+abstract class A {
+  String? bar;
+  String? f() => bar;
+}
+''');
+  }
 }

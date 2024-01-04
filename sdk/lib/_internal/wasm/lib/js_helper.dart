@@ -65,6 +65,10 @@ class JSValue {
   WasmExternRef? get toExternRef => _ref;
 }
 
+// Extension helpers to convert to an externref.
+// TODO(srujzs): We should rename these to `getAsExternRef` so they don't
+// collide with instance members of box objects.
+
 extension DoubleToExternRef on double? {
   WasmExternRef? get toExternRef =>
       this == null ? WasmExternRef.nullRef : toJSNumber(this!);
@@ -527,9 +531,9 @@ List<int> jsIntTypedArrayToDartIntTypedData(
   return list;
 }
 
-JSArray toJSArray(List<JSAny?> list) {
+JSArray<T> toJSArray<T extends JSAny?>(List<T> list) {
   int length = list.length;
-  JSArray result = JSArray.withLength(length);
+  JSArray<T> result = JSArray<T>.withLength(length);
   for (int i = 0; i < length; i++) {
     result[i.toJS] = list[i];
   }

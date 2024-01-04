@@ -15,6 +15,9 @@ class B<T> extends A<T> {
 }
 
 main() {
-  var t = new B<int>();
-  Expect.throwsTypeError(() => new B<String>());
+  if (!dart2jsProductionMode) {
+    Expect.throwsTypeError(() => new B<String>());
+  } else {
+    new B<String>(); // Checks are omitted in dart2js production mode.
+  }
 }

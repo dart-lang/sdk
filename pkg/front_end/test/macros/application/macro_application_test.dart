@@ -32,7 +32,6 @@ import '../../utils/kernel_chain.dart';
 
 Future<void> main(List<String> args) async {
   bool generateExpectations = args.contains('-g');
-  enableMacros = true;
 
   MacroSerializer macroSerializer =
       new TempDirMacroSerializer('macro_application');

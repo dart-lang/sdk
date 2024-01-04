@@ -148,7 +148,10 @@ bool canonicalElementsFromIdentifiersAreEqual(
 /// * Otherwise, any two types are related.
 // TODO(srawlins): typedefs and functions in general.
 bool typesAreUnrelated(
-    TypeSystem typeSystem, DartType? leftType, DartType? rightType) {
+  TypeSystem typeSystem,
+  DartType? leftType,
+  DartType? rightType,
+) {
   // If we don't have enough information, or can't really compare the types,
   // return false as they _might_ be related.
   if (leftType == null ||

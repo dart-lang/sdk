@@ -492,7 +492,6 @@ class FlatTypeMask extends TypeMask {
         return other.withFlags(
             isNullable: includeNull, hasLateSentinel: includeLateSentinel);
       case SubclassResultKind.SET:
-      default:
         if (result.classes.isEmpty) {
           return includeNull
               ? TypeMask.empty(hasLateSentinel: includeLateSentinel)

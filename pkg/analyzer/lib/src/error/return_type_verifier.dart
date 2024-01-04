@@ -19,6 +19,7 @@ class ReturnTypeVerifier {
   final TypeProviderImpl _typeProvider;
   final TypeSystemImpl _typeSystem;
   final ErrorReporter _errorReporter;
+  final bool _strictCasts;
 
   late EnclosingExecutableContext enclosingExecutable;
 
@@ -26,9 +27,11 @@ class ReturnTypeVerifier {
     required TypeProviderImpl typeProvider,
     required TypeSystemImpl typeSystem,
     required ErrorReporter errorReporter,
+    required bool strictCasts,
   })  : _typeProvider = typeProvider,
         _typeSystem = typeSystem,
-        _errorReporter = errorReporter;
+        _errorReporter = errorReporter,
+        _strictCasts = strictCasts;
 
   DartType get _flattenedReturnType {
     var returnType = enclosingExecutable.returnType;
@@ -219,7 +222,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `S` is not `void`,
       // and `S` is not assignable to `T`.
       if (S is! VoidType) {
-        if (!_typeSystem.isAssignableTo(S, T)) {
+        if (!_typeSystem.isAssignableTo(S, T, strictCasts: _strictCasts)) {
           reportTypeError();
           return;
         }
@@ -256,7 +259,8 @@ class ReturnTypeVerifier {
       // and `Future<flatten(S)>` is not assignable to `T`.
       if (flatten_S is! VoidType) {
         var future_flatten_S = _typeProvider.futureType(flatten_S);
-        if (!_typeSystem.isAssignableTo(future_flatten_S, T)) {
+        if (!_typeSystem.isAssignableTo(future_flatten_S, T,
+            strictCasts: _strictCasts)) {
           reportTypeError();
           return;
         }
@@ -343,7 +347,8 @@ class ReturnTypeVerifier {
             S is! RecordType &&
             expression is ParenthesizedExpression) {
           var field = T.positionalFields.first;
-          if (_typeSystem.isAssignableTo(field.type, S)) {
+          if (_typeSystem.isAssignableTo(field.type, S,
+              strictCasts: _strictCasts)) {
             _errorReporter.reportErrorForNode(
               WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
               expression,
@@ -353,7 +358,7 @@ class ReturnTypeVerifier {
           }
         }
 
-        if (!_typeSystem.isAssignableTo(S, T)) {
+        if (!_typeSystem.isAssignableTo(S, T, strictCasts: _strictCasts)) {
           reportTypeError();
           return;
         }
@@ -384,7 +389,7 @@ class ReturnTypeVerifier {
       // It is a compile-time error if `flatten(S)` is not `void`,
       // and `Future<flatten(S)>` is not assignable to `T`.
       if (flatten_S is! VoidType) {
-        if (!_typeSystem.isAssignableTo(S, T_v) &&
+        if (!_typeSystem.isAssignableTo(S, T_v, strictCasts: _strictCasts) &&
             !_typeSystem.isSubtypeOf(flatten_S, T_v)) {
           reportTypeError();
           return;

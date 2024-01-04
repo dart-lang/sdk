@@ -8,8 +8,7 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ForElementTest1);
-    defineReflectiveTests(ForElementTest2);
+    defineReflectiveTests(ForElementTest);
   });
 }
 
@@ -39,15 +38,5 @@ suggestions
 }
 
 @reflectiveTest
-class ForElementTest1 extends AbstractCompletionDriverTest
-    with ForElementInListTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ForElementTest2 extends AbstractCompletionDriverTest
-    with ForElementInListTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ForElementTest extends AbstractCompletionDriverTest
+    with ForElementInListTestCases {}

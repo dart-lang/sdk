@@ -35,7 +35,7 @@ macro class MethodMacro extends core::Object implements api::ClassDeclarationsMa
     : super core::Object::•()
     ;
   @#C2
-  method buildDeclarationsForClass(api::ClassDeclaration clazz, api::MemberDeclarationBuilder builder) → FutureOr<void> async /* futureValueType= void */ {
+  method buildDeclarationsForClass(api::ClassDeclaration clazz, api::MemberDeclarationBuilder builder) → FutureOr<void> async /* emittedValueType= void */ {
     builder.{api::MemberDeclarationBuilder::declareInType}(new api::DeclarationCode::fromString(mac2::generateBody())){(api::DeclarationCode) → void};
   }
 }

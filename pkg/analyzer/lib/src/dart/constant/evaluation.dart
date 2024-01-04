@@ -2666,7 +2666,9 @@ class _InstanceCreationEvaluator {
                 // initializer is statically assignable to the field.
                 // TODO(kallentu): https://github.com/dart-lang/sdk/issues/53263
                 var isRuntimeException = _library.typeSystem.isAssignableTo(
-                    initializerExpression.typeOrThrow, field.type);
+                  initializerExpression.typeOrThrow,
+                  field.type,
+                );
                 var errorNode =
                     isRuntimeException ? initializerExpression : _errorNode;
                 return _InitializersEvaluationResult(
@@ -2820,8 +2822,10 @@ class _InstanceCreationEvaluator {
           // is statically assignable to the parameter.
           // TODO(kallentu): https://github.com/dart-lang/sdk/issues/53263
           var isEvaluationException = errorTarget is Expression &&
-              _library.typeSystem
-                  .isAssignableTo(errorTarget.typeOrThrow, parameter.type);
+              _library.typeSystem.isAssignableTo(
+                errorTarget.typeOrThrow,
+                parameter.type,
+              );
           return InvalidConstant.forEntity(errorTarget,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
               arguments: [

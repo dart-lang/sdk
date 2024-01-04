@@ -380,9 +380,6 @@ class RandomAccessFileOutputProvider implements api.CompilerOutput {
         }
         uri = out!.resolve('$name.$extension');
         break;
-      default:
-        onFailure('Unknown output type: $type');
-        throw StateError('unreachable');
     }
     return uri;
   }

@@ -207,6 +207,12 @@ class PointerType extends CType {
   String get dartStructFieldAnnotation => "";
   bool get hasSize => false;
   int get size => throw "Size unknown";
+  String get dartTypedData => switch (pointerTo) {
+        float => 'Float32List',
+        double_ => 'Float64List',
+        FundamentalType() => '${pointerTo.dartCType}List',
+        _ => throw UnimplementedError(),
+      };
 
   bool get isOnlyFloatingPoint => false;
   bool get isOnlyInteger => true;

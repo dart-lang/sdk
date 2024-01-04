@@ -648,10 +648,12 @@ class Type extends Member {
 
     // Build from JSON.
     gen.writeln();
-    String superCall = superName == null ? '' : ': super._fromJson(json) ';
     if (name == 'Response' || name == 'TimelineEvent') {
-      gen.write('$name._fromJson(this.json)');
+      gen.write('$name._fromJson(Map<String, dynamic> this.json)');
+    } else if (superName != null && fields.isEmpty) {
+      gen.write('$name._fromJson(super.json): super._fromJson()');
     } else {
+      final superCall = superName == null ? '' : ': super._fromJson(json) ';
       gen.write('$name._fromJson(Map<String, dynamic> json) $superCall');
     }
 

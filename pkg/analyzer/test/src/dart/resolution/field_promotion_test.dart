@@ -654,9 +654,9 @@ PrefixedIdentifier
   identifier: SimpleIdentifier
     token: _foo
     staticElement: self::@class::C::@getter::_foo
-    staticType: int?
+    staticType: int
   staticElement: self::@class::C::@getter::_foo
-  staticType: int?
+  staticType: int
 ''');
   }
 

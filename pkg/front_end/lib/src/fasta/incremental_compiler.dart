@@ -5,18 +5,14 @@
 library fasta.incremental_compiler;
 
 import 'dart:async' show Completer;
-
 import 'dart:convert' show JsonEncoder;
-
-import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
-    show ScannerConfiguration;
 
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macros;
-
+import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
+    show ScannerConfiguration;
 import 'package:front_end/src/fasta/kernel/benchmarker.dart'
     show BenchmarkPhases, Benchmarker;
-
 import 'package:kernel/binary/ast_from_binary.dart'
     show
         BinaryBuilderWithMetadata,
@@ -25,10 +21,12 @@ import 'package:kernel/binary/ast_from_binary.dart'
         InvalidKernelVersionError,
         SubComponentView,
         mergeCompilationModeOrThrow;
-
+import 'package:kernel/canonical_name.dart'
+    show CanonicalNameError, CanonicalNameSdkError;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClosedWorldClassHierarchy;
-
+import 'package:kernel/dart_scope_calculator.dart'
+    show DartScope, DartScopeBuilder2;
 import 'package:kernel/kernel.dart'
     show
         Class,
@@ -36,12 +34,15 @@ import 'package:kernel/kernel.dart'
         DartType,
         Expression,
         Extension,
+        ExtensionType,
+        ExtensionTypeDeclaration,
         FunctionNode,
         Library,
         LibraryDependency,
         LibraryPart,
         Name,
         NamedNode,
+        Node,
         NonNullableByDefaultCompiledMode,
         Procedure,
         ProcedureKind,
@@ -51,107 +52,68 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter,
-        VariableDeclaration;
-
-import 'package:kernel/canonical_name.dart'
-    show CanonicalNameError, CanonicalNameSdkError;
-
+        VariableDeclaration,
+        VisitorDefault,
+        VisitorVoidMixin;
 import 'package:kernel/kernel.dart' as kernel show Combinator;
-
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
-
 import 'package:package_config/package_config.dart' show Package, PackageConfig;
 
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart' show FileSystem, FileSystemEntity;
-
 import '../api_prototype/incremental_kernel_generator.dart'
     show
         IncrementalCompilerResult,
         IncrementalKernelGenerator,
         isLegalIdentifier;
-
 import '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
-
 import '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
-
 import '../base/nnbd_mode.dart';
-
 import '../base/processed_options.dart' show ProcessedOptions;
-
 import '../kernel_generator_impl.dart' show precompileMacros;
-
 import 'builder/builder.dart' show Builder;
-
 import 'builder/declaration_builders.dart'
-    show ClassBuilder, ExtensionBuilder, TypeDeclarationBuilder;
-
+    show
+        ClassBuilder,
+        ExtensionBuilder,
+        ExtensionTypeDeclarationBuilder,
+        TypeDeclarationBuilder;
 import 'builder/field_builder.dart' show FieldBuilder;
-
 import 'builder/library_builder.dart' show LibraryBuilder;
-
 import 'builder/member_builder.dart' show MemberBuilder;
-
 import 'builder/name_iterator.dart' show NameIterator;
-
 import 'builder/type_builder.dart' show NamedTypeBuilder, TypeBuilder;
-
 import 'builder_graph.dart' show BuilderGraph;
-
 import 'combinator.dart' show CombinatorBuilder;
-
 import 'compiler_context.dart' show CompilerContext;
-
 import 'dill/dill_class_builder.dart' show DillClassBuilder;
-
 import 'dill/dill_library_builder.dart' show DillLibraryBuilder;
-
 import 'dill/dill_loader.dart' show DillLoader;
 import 'dill/dill_target.dart' show DillTarget;
-
 import 'export.dart' show Export;
-
 import 'fasta_codes.dart';
-
-import 'import.dart' show Import;
-
-import 'incremental_serializer.dart' show IncrementalSerializer;
-
-import 'kernel/macro/macro.dart' show enableMacros, NeededPrecompilations;
-
-import 'scope.dart' show Scope, ScopeKind;
-
-import 'source/source_class_builder.dart' show SourceClassBuilder;
-
-import 'source/source_extension_builder.dart';
-import 'util/error_reporter_file_copier.dart' show saveAsGzip;
-
-import 'util/experiment_environment_getter.dart'
-    show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
-
-import 'util/textual_outline.dart' show textualOutline;
-
-import 'uris.dart' show dartCore;
-
 import 'hybrid_file_system.dart' show HybridFileSystem;
-
+import 'import.dart' show Import;
+import 'incremental_serializer.dart' show IncrementalSerializer;
 import 'kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
-
 import 'kernel/internal_ast.dart' show VariableDeclarationImpl;
-
 import 'kernel/kernel_target.dart' show BuildResult, KernelTarget;
-
+import 'kernel/macro/macro.dart' show NeededPrecompilations;
 import 'library_graph.dart' show LibraryGraph;
-
+import 'scope.dart' show Scope, ScopeKind;
+import 'source/source_class_builder.dart' show SourceClassBuilder;
+import 'source/source_extension_builder.dart';
 import 'source/source_library_builder.dart'
     show ImplicitLanguageVersion, SourceLibraryBuilder;
-
 import 'source/source_loader.dart';
-
 import 'ticker.dart' show Ticker;
-
 import 'uri_translator.dart' show UriTranslator;
+import 'uris.dart' show dartCore;
+import 'util/error_reporter_file_copier.dart' show saveAsGzip;
+import 'util/experiment_environment_getter.dart'
+    show enableIncrementalCompilerBenchmarking, getExperimentEnvironment;
+import 'util/textual_outline.dart' show textualOutline;
 
 final Uri dartFfiUri = Uri.parse("dart:ffi");
 
@@ -378,7 +340,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         NeededPrecompilations? neededPrecompilations =
             await currentKernelTarget.computeNeededPrecompilations();
         _benchmarker?.enterPhase(BenchmarkPhases.incremental_precompileMacros);
-        if (enableMacros) {
+        if (context.options.globalFeatures.macros.isEnabled) {
           Map<Uri, macros.ExecutorFactoryToken>? precompiled =
               await precompileMacros(neededPrecompilations, c.options);
           if (precompiled != null) {
@@ -1201,7 +1163,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       return null;
     }
 
-    if (enableMacros) {
+    if (context.options.globalFeatures.macros.isEnabled) {
       /// TODO(johnniwinther): Add a [hasMacro] property to [LibraryBuilder].
       for (LibraryBuilder builder in reusedResult.notReusedLibraries) {
         // TODO(johnniwinther): Should this include non-local (i.e. injected)
@@ -1838,22 +1800,60 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   @override
   Future<Procedure?> compileExpression(
     String expression,
-    Map<String, DartType> definitions,
+    Map<String, DartType> inputDefinitions,
     List<TypeParameter> typeDefinitions,
     String syntheticProcedureName,
     Uri libraryUri, {
     String? className,
     String? methodName,
-    int offset = -1,
+    int offset = TreeNode.noOffset,
     String? scriptUri,
     bool isStatic = false,
   }) async {
     IncrementalKernelTarget? lastGoodKernelTarget = this._lastGoodKernelTarget;
     assert(_dillLoadedData != null && lastGoodKernelTarget != null);
+    Map<String, DartType> usedDefinitions =
+        new Map<String, DartType>.of(inputDefinitions);
 
     return await context.runInContext((_) async {
+      // TODO(jensj): We should probably allow for this not being an import uri.
       LibraryBuilder libraryBuilder =
           lastGoodKernelTarget!.loader.readAsEntryPoint(libraryUri);
+      if (scriptUri != null && offset != TreeNode.noOffset) {
+        Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
+        if (scriptUriAsUri != null) {
+          if (scriptUriAsUri.isScheme("package")) {
+            // TODO(jensj): Add tests for this.
+            // Methods etc saves file uris, so try to convert the script uri to
+            // a file uri.
+            scriptUriAsUri = lastGoodKernelTarget.uriTranslator
+                    .translate(scriptUriAsUri, false) ??
+                scriptUriAsUri;
+          }
+          Library library = libraryBuilder.library;
+          Class? cls;
+          if (className != null) {
+            for (Class c in library.classes) {
+              if (c.name == className) {
+                cls = c;
+                break;
+              }
+            }
+          }
+          DartScope foundScope = DartScopeBuilder2.findScopeFromOffsetAndClass(
+              library, scriptUriAsUri, cls, offset);
+          // For now, if any definition is (or contains) an Extension Type,
+          // we'll overwrite the given (runtime?) definitions so we know about
+          // the extension type.
+          for (MapEntry<String, DartType> def
+              in foundScope.definitions.entries) {
+            if (_ExtensionTypeFinder.isOrContainsExtensionType(def.value)) {
+              usedDefinitions[def.key] = def.value;
+            }
+          }
+        }
+      }
+
       _ticker.logMs("Loaded library $libraryUri");
 
       Class? cls;
@@ -1867,6 +1867,7 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
       Extension? extension;
+      ExtensionTypeDeclaration? extensionType;
       String? extensionName;
       if (methodName != null) {
         int indexOfDot = methodName.indexOf(".");
@@ -1882,6 +1883,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
                 builder.lookupLocalMember(afterDot, setter: false);
             if (subBuilder is MemberBuilder) {
               if (subBuilder.isExtensionInstanceMember) {
+                isStatic = false;
+              }
+            }
+          } else if (builder is ExtensionTypeDeclarationBuilder) {
+            extensionType = builder.extensionTypeDeclaration;
+            Builder? subBuilder =
+                builder.lookupLocalMember(afterDot, setter: false);
+            if (subBuilder is MemberBuilder) {
+              if (subBuilder.isExtensionTypeInstanceMember) {
                 isStatic = false;
               }
             }
@@ -1903,10 +1913,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         }
       }
       int index = 0;
-      for (String name in definitions.keys) {
+      for (String name in usedDefinitions.keys) {
         index++;
         if (!(isLegalIdentifier(name) ||
-            (extension != null &&
+            ((extension != null || extensionType != null) &&
                 !isStatic &&
                 index == 1 &&
                 isExtensionThisName(name)))) {
@@ -2010,16 +2020,17 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // https://github.com/dart-lang/sdk/issues/44158
       FunctionNode parameters = new FunctionNode(null,
           typeParameters: typeDefinitions,
-          positionalParameters: definitions.keys
-              .map<VariableDeclaration>((name) =>
-                  new VariableDeclarationImpl(name, type: definitions[name])
+          positionalParameters: usedDefinitions.entries
+              .map<VariableDeclaration>((MapEntry<String, DartType> def) =>
+                  new VariableDeclarationImpl(def.key, type: def.value)
                     ..fileOffset = cls?.fileOffset ??
                         extension?.fileOffset ??
+                        extensionType?.fileOffset ??
                         libraryBuilder.library.fileOffset)
               .toList());
 
       VariableDeclaration? extensionThis;
-      if (extension != null &&
+      if ((extension != null || extensionType != null) &&
           !isStatic &&
           parameters.positionalParameters.isNotEmpty) {
         // We expect the first parameter to be called #this and be special.
@@ -2266,6 +2277,28 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
   void setModulesToLoadOnNextComputeDelta(List<Component> components) {
     _modulesToLoad = components.toList();
   }
+}
+
+class _ExtensionTypeFinder extends VisitorDefault<void> with VisitorVoidMixin {
+  static bool isOrContainsExtensionType(DartType type) {
+    if (type is ExtensionType) return true;
+    _ExtensionTypeFinder finder = new _ExtensionTypeFinder();
+    type.accept(finder);
+    return finder._foundExtensionType;
+  }
+
+  @override
+  void visitExtensionType(ExtensionType node) {
+    _foundExtensionType = true;
+  }
+
+  @override
+  void defaultNode(Node node) {
+    if (_foundExtensionType) return;
+    node.visitChildren(this);
+  }
+
+  bool _foundExtensionType = false;
 }
 
 /// Translate a parts "partUri" to an actual uri with handling of invalid uris.

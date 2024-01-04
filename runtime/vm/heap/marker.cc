@@ -856,6 +856,7 @@ class ConcurrentMarkTask : public ThreadPool::Task {
       ASSERT(page_space_->phase() == PageSpace::kMarking);
       if (page_space_->concurrent_marker_tasks() == 0) {
         page_space_->set_phase(PageSpace::kAwaitingFinalization);
+        isolate_group_->ScheduleInterrupts(Thread::kVMInterrupt);
       }
       ml.NotifyAll();
     }

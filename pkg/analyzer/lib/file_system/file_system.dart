@@ -255,16 +255,30 @@ abstract class ResourceProvider {
 /// The [ready] event will not fire until a listener has been set up on
 /// [changes] and the watcher initialization is complete.
 class ResourceWatcher {
+  /// A broadcast stream of changes from this watcher.
+  ///
+  /// This stream can be subscribed to by multiple listeners, but each listener
+  /// should await the latest [Future] returned by [ready] after subscribing to
+  /// ensure the watcher is set up. The internal watcher may be closed when
+  /// there are no subscribers and re-created when another subscriber appears.
   final Stream<WatchEvent> changes;
+
+  /// A function to obtain the to current [ready] [Future] from the underlying
+  /// watcher.
+  final Future<void> Function() _ready;
+
+  ResourceWatcher(this.changes, this._ready);
 
   /// An event that fires when the watcher is fully initialized and ready to
   /// produce events.
   ///
   /// This event will not fire until a listener has been set up on [changes] and
   /// the watcher initialization is complete.
-  final Future<void> ready;
-
-  ResourceWatcher(this.changes, this.ready);
+  ///
+  /// This Future may change over time because the internal watcher may be
+  /// closed when there are no subscribers and re-created when another
+  /// subscriber appears.
+  Future<void> get ready => _ready();
 }
 
 extension FolderExtension on Folder {

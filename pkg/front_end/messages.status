@@ -71,6 +71,7 @@ CantUsePrefixAsExpression/part_wrapped_script: Fail # Importing file in the (now
 CantUsePrefixWithNullAware/part_wrapped_script: Fail # Importing file in the (now) part.
 CantUseSuperBoundedTypeForInstanceCreation/analyzerCode: Fail
 CantUseSuperBoundedTypeForInstanceCreation/example: Fail
+ClassImplementsDeferredClass/part_wrapped_script: Fail # Uses imports
 ClassInNullAwareReceiver/analyzerCode: Fail
 ColonInPlaceOfIn/example: Fail
 CompilingWithSoundNullSafety/analyzerCode: Fail
@@ -308,6 +309,7 @@ ExpressionNotMetadata/analyzerCode: Fail
 ExpressionNotMetadata/example: Fail
 ExtendingEnum/example: Fail
 ExtendingRestricted/example: Fail
+ExtendsDeferredClass/part_wrapped_script: Fail # Uses imports
 ExtendsDynamic/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsDynamic/example: Fail # Feature not yet enabled by default.
 ExtendsFunctionType/analyzerCode: Fail # Feature not yet in analyzer.
@@ -320,6 +322,10 @@ ExtendsVoid/analyzerCode: Fail # Feature not yet in analyzer.
 ExtendsVoid/example: Fail # Feature not yet enabled by default.
 ExtensionInNullAwareReceiver/analyzerCode: Fail
 ExtensionMemberConflictsWithObjectMember/analyzerCode: Fail
+ExtensionTypeImplementsDeferred/part_wrapped_script: Fail # Uses imports
+ExtensionTypeImplementsDeferred/script: Fail # Uses imports
+ExtensionTypePrimaryConstructorFunctionFormalParameterSyntax/analyzerCode: Fail
+ExtensionTypePrimaryConstructorWithInitializingFormal/analyzerCode: Fail
 ExternalConstructorWithBody/part_wrapped_script1: Fail
 ExternalConstructorWithBody/script1: Fail
 ExternalConstructorWithFieldInitializers/example: Fail
@@ -595,6 +601,8 @@ JsInteropDartClassExtendsJSClass/analyzerCode: Fail # Web compiler specific
 JsInteropDartClassExtendsJSClass/example: Fail # Web compiler specific
 JsInteropDartJsInteropAnnotationForStaticInteropOnly/analyzerCode: Fail # Web compiler specific
 JsInteropDartJsInteropAnnotationForStaticInteropOnly/example: Fail # Web compiler specific
+JsInteropDisallowedInteropLibraryInDart2Wasm/analyzerCode: Fail # Web compiler specific
+JsInteropDisallowedInteropLibraryInDart2Wasm/example: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropEnclosingClassJSAnnotation/example: Fail # Web compiler specific
 JsInteropExportClassNotMarkedExportable/analyzerCode: Fail # Web compiler specific
@@ -625,6 +633,8 @@ JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/example: Fail # Web compiler specific
+JsInteropFunctionToJSTypeParameters/analyzerCode: Fail # Web compiler specific
+JsInteropFunctionToJSTypeParameters/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail
 JsInteropInvalidStaticClassMemberName/example: Fail
 JsInteropJSClassExtendsDartClass/analyzerCode: Fail # Web compiler specific
@@ -645,8 +655,6 @@ JsInteropOperatorCannotBeRenamed/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorCannotBeRenamed/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
-JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalTypeViolation/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalTypeViolation/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
@@ -673,12 +681,8 @@ JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # We
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
-JsInteropStaticInteropWithInvalidJsTypesSupertype/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropWithInvalidJsTypesSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
-JsInteropStrictModeForbiddenLibrary/analyzerCode: Fail # Web compiler specific
-JsInteropStrictModeForbiddenLibrary/example: Fail # Web compiler specific
 LanguageVersionInvalidInDotPackages/analyzerCode: Fail
 LanguageVersionMismatchInPart/analyzerCode: Fail
 LanguageVersionMismatchInPart/part_wrapped_script: Fail # Part in (now) part.
@@ -726,7 +730,9 @@ MissingMain/example: Fail
 MissingPartOf/part_wrapped_script: Fail # Using 'part' in the (now) part.
 MissingPrefixInDeferredImport/example: Fail
 MixinDeclaresConstructor/example: Fail
+MixinDeferredMixin/part_wrapped_script: Fail # Uses imports
 MixinInferenceNoMatchingClass/example: Fail
+MixinSuperClassConstraintDeferredClass/part_wrapped_script: Fail # Uses imports
 ModifierOutOfOrder/part_wrapped_script1: Fail
 ModifierOutOfOrder/script1: Fail
 MultipleImplements/part_wrapped_script: Fail
@@ -926,6 +932,10 @@ RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
+ResourceIdentifiersMultiple/analyzerCode: Fail
+ResourceIdentifiersMultiple/example: Fail
+ResourceIdentifiersNotStatic/analyzerCode: Fail
+ResourceIdentifiersNotStatic/example: Fail
 RestPatternInMapPattern/analyzerCode: Fail
 RestPatternMoreThanOne/analyzerCode: Fail
 RethrowNotCatch/example: Fail
@@ -1052,6 +1062,10 @@ UnmatchedToken/script3: Fail
 UnnamedObjectPatternField/analyzerCode: Fail
 UnreachableSwitchCase/part_wrapped_script: Fail # https://github.com/dart-lang/language/issues/2924
 UnreachableSwitchCase/script: Fail # https://github.com/dart-lang/language/issues/2924
+UnsoundSwitchExpressionError/analyzerCode: Fail
+UnsoundSwitchExpressionError/example: Fail
+UnsoundSwitchStatementError/analyzerCode: Fail
+UnsoundSwitchStatementError/example: Fail
 Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedDartExt/analyzerCode: Fail
@@ -1086,10 +1100,6 @@ WeakReferenceNotOneArgument/analyzerCode: Fail
 WeakReferenceNotOneArgument/example: Fail
 WeakReferenceNotStatic/analyzerCode: Fail
 WeakReferenceNotStatic/example: Fail
-ResourceIdentifiersNotStatic/analyzerCode: Fail
-ResourceIdentifiersNotStatic/example: Fail
-ResourceIdentifiersMultiple/analyzerCode: Fail
-ResourceIdentifiersMultiple/example: Fail
 WeakReferenceReturnTypeNotNullable/analyzerCode: Fail
 WeakReferenceReturnTypeNotNullable/example: Fail
 WeakReferenceTargetHasParameters/analyzerCode: Fail

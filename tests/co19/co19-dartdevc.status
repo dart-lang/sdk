@@ -87,7 +87,13 @@ LibTest/typed_data/ByteData/setInt64_A02_t02: SkipByDesign # 64-bit int not supp
 LibTest/typed_data/ByteData/setUint64_A01_t01: SkipByDesign # 64-bit int not supported on the web
 LibTest/typed_data/ByteData/setUint64_A02_t01: SkipByDesign # 64-bit int not supported on the web
 LibTest/typed_data/ByteData/setUint64_A02_t02: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/Float32List/setRange_A06_t03: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/Float32x4List/setRange_A06_t03: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/Float64List/setRange_A06_t01: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/Float64x2List/setRange_A06_t02: SkipByDesign # 64-bit int not supported on the web
+LibTest/typed_data/Int32List/setRange_A06_t02: SkipByDesign # 64-bit int not supported on the web
 LibTest/typed_data/Int64List/*: SkipByDesign # Int64List not supported on the web
+LibTest/typed_data/Uint32List/setRange_A06_t02: SkipByDesign # 64-bit int not supported on the web
 LibTest/typed_data/Uint64List/*: SkipByDesign # Uint64List not supported on the web
 
 [ $compiler == ddc && $runtime == chrome ]

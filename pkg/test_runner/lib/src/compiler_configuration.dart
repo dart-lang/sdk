@@ -604,6 +604,7 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     final isD8 = runtimeConfiguration is D8RuntimeConfiguration;
     return [
       if (isD8) '--turboshaft-wasm',
+      if (isD8) '--experimental-wasm-imported-strings',
       'pkg/dart2wasm/bin/run_wasm.js',
       if (isD8) '--',
       '${filename.substring(0, filename.lastIndexOf('.'))}.mjs',
@@ -933,16 +934,13 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
     var exec = _configuration.genSnapshotPath;
     if (exec == null) {
       var gcc32 = "<does-not-exist>";
-      var gcc64 = "<does-not-exist>";
       var clang32 = "<does-not-exist>";
       var clang64 = "<does-not-exist>";
       if (Architecture.host == Architecture.x64) {
         gcc32 = "x86";
-        gcc64 = "x64";
         clang32 = "clang_x86";
         clang64 = "clang_x64";
       } else if (Architecture.host == Architecture.arm64) {
-        gcc64 = "arm64";
         clang64 = "clang_arm64";
       }
       if (_isAndroid) {
@@ -966,7 +964,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       } else if (_isRiscv32 && _configuration.useQemu) {
         exec = "$buildDir/$gcc32/gen_snapshot";
       } else if (_isRiscv64 && _configuration.useQemu) {
-        exec = "$buildDir/$gcc64/gen_snapshot";
+        exec = "$buildDir/$clang64/gen_snapshot";
       } else {
         exec = "$buildDir/gen_snapshot";
       }

@@ -13,7 +13,7 @@ class Macro2 implements ClassDeclarationsMacro {
   const Macro2();
 
   @override
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) {
     if (isMacro) {
       builder.declareInType(new DeclarationCode.fromString('''

@@ -10,24 +10,13 @@ import '../completion_printer.dart' as printer;
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CompilationUnitTest1);
-    defineReflectiveTests(CompilationUnitTest2);
+    defineReflectiveTests(CompilationUnitTest);
   });
 }
 
 @reflectiveTest
-class CompilationUnitTest1 extends AbstractCompletionDriverTest
-    with CompilationUnitTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class CompilationUnitTest2 extends AbstractCompletionDriverTest
-    with CompilationUnitTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class CompilationUnitTest extends AbstractCompletionDriverTest
+    with CompilationUnitTestCases {}
 
 mixin CompilationUnitTestCases on AbstractCompletionDriverTest {
   @override
@@ -36,12 +25,7 @@ mixin CompilationUnitTestCases on AbstractCompletionDriverTest {
 
     printerConfiguration = printer.Configuration(
       filter: (suggestion) {
-        if (isProtocolVersion2) {
-          return suggestion.kind == CompletionSuggestionKind.KEYWORD;
-        } else {
-          final completion = suggestion.completion;
-          return const {'import', 'export', 'part'}.any(completion.contains);
-        }
+        return suggestion.kind == CompletionSuggestionKind.KEYWORD;
       },
     );
   }
@@ -50,63 +34,6 @@ mixin CompilationUnitTestCases on AbstractCompletionDriverTest {
     await computeSuggestions('''
 exp^
 ''');
-
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  export '';
-    kind: keyword
-    selection: 8
-''');
-    } else {
-      // TODO(scheglov): This is wrong, should filter.
-      _protocol1Directives();
-    }
-  }
-
-  Future<void> test_definingUnit_import() async {
-    await computeSuggestions('''
-imp^
-''');
-
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  import '';
-    kind: keyword
-    selection: 8
-''');
-    } else {
-      // TODO(scheglov): This is wrong, should filter.
-      _protocol1Directives();
-    }
-  }
-
-  Future<void> test_definingUnit_part() async {
-    await computeSuggestions('''
-par^
-''');
-
-    if (isProtocolVersion2) {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  part '';
-    kind: keyword
-    selection: 6
-''');
-    } else {
-      // TODO(scheglov): This is wrong, should filter.
-      _protocol1Directives();
-    }
-  }
-
-  void _protocol1Directives() {
     assertResponse(r'''
 replacement
   left: 3
@@ -114,9 +41,31 @@ suggestions
   export '';
     kind: keyword
     selection: 8
+''');
+  }
+
+  Future<void> test_definingUnit_import() async {
+    await computeSuggestions('''
+imp^
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
   import '';
     kind: keyword
     selection: 8
+''');
+  }
+
+  Future<void> test_definingUnit_part() async {
+    await computeSuggestions('''
+par^
+''');
+    assertResponse(r'''
+replacement
+  left: 3
+suggestions
   part '';
     kind: keyword
     selection: 6

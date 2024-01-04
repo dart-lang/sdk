@@ -1,11 +1,61 @@
 ## 3.3.0
 
+### Language
+
+- **Breaking Change** [#54056][]: The rules for private field promotion have
+  been changed so that an abstract getter is considered promotable if there are
+  no conflicting declarations (i.e., there are no non-final fields, external
+  fields, concrete getters, or `noSuchMethod` forwarding getters with the same
+  name in the same library). This makes the implementation more consistent and
+  allows type promotion in a few rare scenarios where it wasn't prevoiusly
+  allowed. It is unlikely, but this change could in principle cause a breakage
+  by changing an inferred type in a way that breaks later code. For example:
+
+  ```dart
+  class A {
+    int? get _field;
+  }
+  class B extends A {
+    final int? _field;
+    B(this._field);
+  }
+  test(A a) {
+    if (a._field != null) {
+      var x = a._field; // Previously had type `int?`; now has type `int`
+      ...
+      x = null; // Previously allowed; now causes a compile-time error.
+    }
+  }
+  ```
+
+  Affected code can be fixed by adding an explicit type annotation (e.g., in the
+  above example `var x` can be changed to `int? x`).
+
+  It's also possible that some continuous integration configurations might fail
+  if they have been configured to treat warnings as errors, because the expanded
+  type promotion could lead to one of the following warnings:
+
+  - unnecessary_non_null_assertion
+  - unnecessary_cast
+  - invalid_null_aware_operator
+
+  These warnings can be addressed in the usual way, by removing the unnecessary
+  operation in the first two cases, or changing `?.` to `.` in the second case.
+
+[#54056]: https://github.com/dart-lang/sdk/issues/54056
+
 ### Libraries
 
 #### `dart:core`
 
 - `String.fromCharCodes` now allow `start` and `end` to be after the end of
   the `Iterable` argument, just like `skip` and `take` does on an `Iterable`.
+
+#### `dart:ffi`
+
+- In addition to functions, `@Native` can now be used on fields.
+- Allow taking the address of native functions and fields via
+  `Native.addressOf`.
 
 #### `dart:nativewrappers`
 
@@ -15,6 +65,29 @@
   unwrap a native field that doesn't exist.
 
 [#51896]: https://github.com/dart-lang/sdk/issues/51896
+
+#### `dart:js_interop`
+
+- **Breaking Change in the representation of JS types** [#52687][]: JS types
+  like `JSAny` were previously represented using a custom erasure of
+  `@staticInterop` types that were compiler-specific. They are now represented
+  as extension types where their representation types are compiler-specific.
+  This means that user-defined `@staticInterop` types that implemented `JSAny`
+  or `JSObject` can no longer do so and need to use
+  `JSObject.fromInteropObject`. Going forward, it's recommended to use extension
+  types to define interop APIs. Those extension types can still implement JS
+  types.
+- **JSArray and JSPromise generics**: `JSArray` and `JSPromise` are now generic
+  types whose type parameter is a subtype of `JSAny?`. Conversions to and from
+  these types are changed to account for the type parameters of the Dart or JS
+  type, respectively.
+- **Breaking Change in names of extensions**: Some `dart:js_interop` extension
+  members are moved to different extensions on the same type or a supertype to
+  better organize the API surface. See `JSAnyUtilityExtension` and
+  `JSAnyOperatorExtension` for the new extensions. This shouldn't make a
+  difference unless the extension names were explicitly used.
+
+[#52687]: https://github.com/dart-lang/sdk/issues/52687
 
 #### `dart:typed_data`
 
@@ -51,6 +124,15 @@
 
 [lints-3-0]: https://pub.dev/packages/lints/changelog#300
 
+
+#### Wasm compiler (dart2wasm)
+
+- **Breaking Change** [#54004][]: `dart:js_util`, `package:js`, and `dart:js`
+  are now disallowed from being imported when compiling with `dart2wasm`. Prefer
+  using `dart:js_interop` and `dart:js_interop_unsafe`.
+
+[#54004]: https://github.com/dart-lang/sdk/issues/54004
+
 #### Development JavaScript compiler (DDC)
 
 - Type arguments of `package:js` interop types are now printed as `any` instead
@@ -62,6 +144,15 @@
   Dart classes. This information provides little value and keeping it imposes an
   unnecessary maintenance cost.
 
+#### Production JavaScript compiler (dart2js)
+
+- **Breaking Change** [#54201][]:
+  The `Invocation` that is passed to `noSuchMethod` will no longer have a
+  minified `memberName`, even when dart2js is invoked with `--minify`.
+  See [#54201][] for more details.
+
+[#54201]: https://github.com/dart-lang/sdk/issues/54201
+
 #### Linter
 
 - Removed the `iterable_contains_unrelated_type` and
@@ -71,7 +162,53 @@
 
 [`collection_methods_unrelated_type`]: https://dart.dev/lints/collection_methods_unrelated_type
 
-## 3.2.0
+## 3.2.3 - 2023-12-06
+
+This is a patch release that:
+
+- Disallows final fields to be used in a constant context during analysis
+  (issue [#54232][]).
+- Upgrades Dart DevTools to version 2.28.4 (issue [#54213][])
+- Fixes new AOT snapshots in the SDK failing with SIGILL in ARM
+  environments that don't support the integer division
+  instructions or x86-64 environments that don't support
+  SSE4.1  (issue [#54215][]).
+
+[#54232]: https://github.com/dart-lang/sdk/issues/54232
+[#54213]: https://github.com/dart-lang/sdk/issues/54213
+[#54215]: https://github.com/dart-lang/sdk/issues/54215
+
+## 3.2.2 - 2023-11-29
+
+This is a patch release that:
+
+- Adjusts the nullablity computations in the implementation of the
+  upper bound algorithm in the CFE (issue [#53999][]).
+
+- Fixes missing closure code completion entries for function parameters
+  (issue [#54112][]) for LSP-based editors like VS Code.
+
+[#53999]: https://github.com/dart-lang/sdk/issues/53999
+[#54112]: https://github.com/dart-lang/sdk/issues/54112
+
+## 3.2.1 - 2023-11-22
+
+This is a patch release that:
+
+- Fixes the left/mobile sidebar being empty on non-class pages
+  in documentation generated with `dart doc` (issue [#54073][]).
+
+- Fixes a JSON array parsing bug that causes seg fault when --coverage is used.
+  This bug has been reported by flutter customers here
+  https://github.com/flutter/flutter/issues/124145 (issue [#54059][])
+
+- Upgrades Dart DevTools to version 2.28.3 (issue [#54085][])
+
+[#54073]: https://github.com/dart-lang/sdk/issues/54073
+[#54059]: https://github.com/dart-lang/sdk/issues/54059
+[#54085]: https://github.com/dart-lang/sdk/issues/54085
+
+## 3.2.0 - 2023-11-15
 
 ### Language
 

@@ -17,6 +17,7 @@ import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/feature_set_provider.dart';
 import 'package:analyzer/src/dart/analysis/file_content_cache.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
@@ -88,7 +89,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver implements AnalysisDriverGeneric {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 320;
+  static const int DATA_VERSION = 326;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -328,7 +329,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   Set<String> get addedFiles => _fileTracker.addedFiles;
 
   /// Return the analysis options used to control analysis.
-  // TODO(pq): @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
+  @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions => _analysisOptions;
 
   /// Return the current analysis session.
@@ -1115,9 +1116,8 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (_errorsRequestedFiles.isNotEmpty) {
       var path = _errorsRequestedFiles.keys.first;
       var completers = _errorsRequestedFiles.remove(path)!;
-      var result = await _computeErrors(
-        path: path,
-      );
+      var analysisResult = await _computeAnalysisResult(path, withUnit: false);
+      var result = analysisResult.errorsResult!;
       for (var completer in completers) {
         completer.complete(result);
       }
@@ -1340,7 +1340,15 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     if (!withUnit) {
       var bytes = _byteStore.get(key);
       if (bytes != null) {
-        return _getAnalysisResultFromBytes(file, signature, bytes);
+        final unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
+        final errors = _getErrorsFromSerialized(file, unit.errors);
+        _updateHasErrorOrWarningFlag(file, errors);
+        final index = unit.index!;
+        final errorsResult = _createErrorsResultImpl(
+          file: file,
+          errors: errors,
+        );
+        return AnalysisResult.errors(signature, errorsResult, index);
       }
     }
 
@@ -1349,6 +1357,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _logger.writeln('Work in $name');
       try {
         testView?.numOfAnalyzedLibraries++;
+        _resultController.add(
+          events.ComputeAnalysis(
+            file: file,
+            library: library,
+          ),
+        );
 
         if (!_hasLibraryByUri('dart:core')) {
           return _newMissingDartLibraryResult(file, 'dart:core');
@@ -1446,13 +1460,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     });
   }
 
-  Future<SomeErrorsResult> _computeErrors({
-    required String path,
-  }) async {
-    var analysisResult = await _computeAnalysisResult(path, withUnit: false);
-    return analysisResult.errorsResult!;
-  }
-
   Future<AnalysisDriverUnitIndex> _computeIndex(String path) async {
     var analysisResult = await _computeAnalysisResult(path, withUnit: false);
     return analysisResult._index!;
@@ -1474,6 +1481,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       await libraryContext.load(
         targetLibrary: library,
         performance: OperationPerformanceImpl('<root>'),
+      );
+
+      _resultController.add(
+        events.ComputeResolvedLibrary(
+          library: library,
+        ),
       );
 
       var analysisOptions = libraryContext.analysisContext
@@ -1550,6 +1563,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
+      isMacroAugmentation: file.isMacroAugmentation,
       isPart: file.kind is PartFileKind,
       errors: errors,
     );
@@ -1688,38 +1702,6 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     _saltForUnlinked = buffer.toUint32List();
   }
 
-  /// Load the [AnalysisResult] for the given [file] from the [bytes]. Set
-  /// optional [content] and [resolvedUnit].
-  AnalysisResult _getAnalysisResultFromBytes(
-    FileState file,
-    String signature,
-    Uint8List bytes, {
-    String? content,
-    CompilationUnit? resolvedUnit,
-    List<AnalysisError>? errors,
-  }) {
-    var unit = AnalysisDriverResolvedUnit.fromBuffer(bytes);
-    errors ??= _getErrorsFromSerialized(file, unit.errors);
-    _updateHasErrorOrWarningFlag(file, errors);
-    var index = unit.index!;
-    if (content != null && resolvedUnit != null) {
-      var resolvedUnitResult = ResolvedUnitResultImpl(
-        session: currentSession,
-        fileState: file,
-        content: content,
-        unit: resolvedUnit,
-        errors: errors,
-      );
-      return AnalysisResult.unit(signature, resolvedUnitResult, index);
-    } else {
-      var errorsResult = _createErrorsResultImpl(
-        file: file,
-        errors: errors,
-      );
-      return AnalysisResult.errors(signature, errorsResult, index);
-    }
-  }
-
   /// Return [AnalysisError]s for the given [serialized] errors.
   List<AnalysisError> _getErrorsFromSerialized(
       FileState file, List<AnalysisDriverUnitError> serialized) {
@@ -1796,6 +1778,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       uri: file.uri,
       isAugmentation: file.kind is AugmentationFileKind,
       isLibrary: file.kind is LibraryFileKind,
+      isMacroAugmentation: file.isMacroAugmentation,
       isPart: file.kind is PartFileKind,
       errors: [
         AnalysisError.tmp(

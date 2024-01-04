@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -86,7 +87,9 @@ class AssignmentExpressionResolver {
     DartType? rhsContext;
     {
       var leftType = node.writeType;
-      if (writeElement is VariableElement) {
+      if (writeElement is VariableElement &&
+          !_resolver.definingLibrary.featureSet
+              .isEnabled(Feature.inference_update_3)) {
         leftType = _resolver.localVariableTypeProvider
             .getType(left as SimpleIdentifier, isRead: false);
       }
@@ -128,7 +131,9 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    if (_typeSystem.isAssignableTo(rightType, writeType)) {
+    var strictCasts = _resolver.analysisOptions.strictCasts;
+    if (_typeSystem.isAssignableTo(rightType, writeType,
+        strictCasts: strictCasts)) {
       return;
     }
 
@@ -137,7 +142,8 @@ class AssignmentExpressionResolver {
         rightType is! RecordType &&
         right is ParenthesizedExpression) {
       var field = writeType.positionalFields.first;
-      if (_typeSystem.isAssignableTo(field.type, rightType)) {
+      if (_typeSystem.isAssignableTo(field.type, rightType,
+          strictCasts: strictCasts)) {
         _errorReporter.reportErrorForNode(
           WarningCode.RECORD_LITERAL_ONE_POSITIONAL_NO_TRAILING_COMMA,
           right,

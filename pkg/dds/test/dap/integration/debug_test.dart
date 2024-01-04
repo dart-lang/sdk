@@ -98,6 +98,37 @@ main() {
       expect(proc!.exitCode, completes);
     });
 
+    test('runs a simple script with commas in the filename', () async {
+      final packageUri = await dap.createFooPackage('foo,foo.dart');
+      final testFile = dap.createTestFile(
+        '''
+          import '$packageUri';
+          void main() {
+            foo();
+          }
+        ''',
+      );
+
+      final outputEvents = await dap.client.collectOutput(
+        launch: () => dap.client.launch(
+          testFile.path,
+          args: ['one', 'two'],
+        ),
+      );
+
+      // Expect the normal applications output. This means we set up the
+      // debugger without crashing, even though we imported files with commas
+      // in the name.
+      final output = outputEvents.skip(1).map((e) => e.output).join();
+      expectLines(output, [
+        'Hello!',
+        'World!',
+        'args: [one, two]',
+        '',
+        'Exited.',
+      ]);
+    }, skip: 'Fails because of https://github.com/dart-lang/sdk/issues/52632');
+
     test('does not resume isolates if user passes --pause-isolates-on-exit',
         () async {
       // Internally we always pass --pause-isolates-on-exit and resume the

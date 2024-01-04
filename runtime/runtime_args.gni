@@ -93,5 +93,6 @@ declare_args() {
   build_analyze_snapshot =
       (target_os == "linux" || target_os == "android" ||
        target_os == "fuchsia") &&
-      (dart_target_arch == "x64" || dart_target_arch == "arm64")
+      (dart_target_arch == "x64" || dart_target_arch == "arm64" ||
+       dart_target_arch == "riscv64")
 }

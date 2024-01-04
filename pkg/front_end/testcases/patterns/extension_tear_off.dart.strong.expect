@@ -18,7 +18,8 @@ static method method(dynamic d) → dynamic
     {
       {
         hoisted (core::int) → core::int method;
-        if(#0#0 is core::int && (let final dynamic #t2 = method = self::_|get#method(#0#0{core::int}) in true)) {
+        if(#0#0 is core::int) {
+          method = self::_|get#method(#0#0{core::int});
           #t1 = method(d{core::int}){(core::int) → core::int};
           break #L1;
         }

@@ -26,6 +26,7 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/legacy.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
@@ -246,12 +247,18 @@ class Driver implements CommandLineStarter {
           var analysisOptions = analysisDriver.getAnalysisOptionsForFile(file);
           var content = file.readAsStringSync();
           var lineInfo = LineInfo.fromContent(content);
+          var contextRoot =
+              analysisDriver.currentSession.analysisContext.contextRoot;
+          var package = contextRoot.workspace.findPackageFor(file.path);
+          var sdkVersionConstraint = (package is PubWorkspacePackage)
+              ? package.sdkVersionConstraint
+              : null;
           var errors = analyzeAnalysisOptions(
             file.createSource(),
             content,
             analysisDriver.sourceFactory,
-            analysisDriver.currentSession.analysisContext.contextRoot.root.path,
-            analysisOptions.sdkVersionConstraint,
+            contextRoot.root.path,
+            sdkVersionConstraint,
           );
           await formatter.formatErrors([
             ErrorsResultImpl(
@@ -261,6 +268,7 @@ class Driver implements CommandLineStarter {
               lineInfo: lineInfo,
               isAugmentation: false,
               isLibrary: true,
+              isMacroAugmentation: false,
               isPart: false,
               errors: errors,
             )
@@ -304,6 +312,7 @@ class Driver implements CommandLineStarter {
                   lineInfo: lineInfo,
                   isAugmentation: false,
                   isLibrary: true,
+                  isMacroAugmentation: false,
                   isPart: false,
                   errors: errors,
                 ),
@@ -329,6 +338,7 @@ class Driver implements CommandLineStarter {
                 uri: pathContext.toUri(path),
                 lineInfo: lineInfo,
                 isAugmentation: false,
+                isMacroAugmentation: false,
                 isLibrary: true,
                 isPart: false,
                 errors: errors,

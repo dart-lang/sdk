@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/builder/record_type_builder.dart';
-import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -20,7 +18,9 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
+import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../kernel/type_algorithms.dart';
@@ -139,8 +139,8 @@ class SourceExtensionTypeDeclarationBuilder
             typeBuilder.declaration is TypeAliasBuilder
                 ? typeBuilder.declaration as TypeAliasBuilder
                 : null;
-        DartType interface =
-            typeBuilder.build(libraryBuilder, TypeUse.superType);
+        DartType interface = typeBuilder.build(
+            libraryBuilder, TypeUse.extensionTypeImplementsType);
         Message? errorMessage;
         List<LocatedMessage>? errorContext;
 
@@ -312,11 +312,16 @@ class SourceExtensionTypeDeclarationBuilder
       ExtensionTypeDeclarationBuilder rootExtensionTypeDeclaration,
       Set<ExtensionTypeDeclarationBuilder> seenExtensionTypeDeclarations,
       Set<TypeAliasBuilder> usedTypeAliasBuilders) {
-    TypeBuilder? unaliased = typeBuilder?.unalias(
-        usedTypeAliasBuilders: usedTypeAliasBuilders,
-        // We allow creating new type variables during unaliasing. This type
-        // variables are short-lived and therefore don't need to be bound.
-        unboundTypeVariables: []);
+    TypeBuilder? unaliased;
+    if (typeBuilder != null) {
+      typeBuilder.build(
+          libraryBuilder, TypeUse.extensionTypeRepresentationType);
+      unaliased = typeBuilder.unalias(
+          usedTypeAliasBuilders: usedTypeAliasBuilders,
+          // We allow creating new type variables during unaliasing. This type
+          // variables are short-lived and therefore don't need to be bound.
+          unboundTypeVariables: []);
+    }
     switch (unaliased) {
       case NamedTypeBuilder(
           :TypeDeclarationBuilder? declaration,
@@ -371,6 +376,33 @@ class SourceExtensionTypeDeclarationBuilder
                 seenExtensionTypeDeclarations.toSet(),
                 usedTypeAliasBuilders.toSet())) {
               return true;
+            }
+          }
+        } else if (declaration != null && declaration.typeVariablesCount > 0) {
+          List<TypeVariableBuilderBase>? typeParameters;
+          switch (declaration) {
+            case ClassBuilder():
+              typeParameters = declaration.typeVariables;
+            case TypeAliasBuilder():
+              typeParameters = declaration.typeVariables;
+            case ExtensionTypeDeclarationBuilder():
+              typeParameters = declaration.typeParameters;
+            case BuiltinTypeDeclarationBuilder():
+            case InvalidTypeDeclarationBuilder():
+            case OmittedTypeDeclarationBuilder():
+            case ExtensionBuilder():
+            case TypeVariableBuilderBase():
+          }
+          if (typeParameters != null) {
+            for (int i = 0; i < typeParameters.length; i++) {
+              TypeVariableBuilderBase typeParameter = typeParameters[i];
+              if (_checkRepresentationDependency(
+                  typeParameter.defaultType!,
+                  rootExtensionTypeDeclaration,
+                  seenExtensionTypeDeclarations.toSet(),
+                  usedTypeAliasBuilders.toSet())) {
+                return true;
+              }
             }
           }
         }
@@ -451,8 +483,8 @@ class SourceExtensionTypeDeclarationBuilder
       Set<TypeDeclarationBuilder> implemented = {};
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         TypeBuilder typeBuilder = interfaceBuilders![i];
-        DartType interface =
-            typeBuilder.build(libraryBuilder, TypeUse.superType);
+        DartType interface = typeBuilder.build(
+            libraryBuilder, TypeUse.extensionTypeImplementsType);
         if (interface is InterfaceType) {
           if (!hierarchyBuilder.types.isSubtypeOf(declaredRepresentationType,
               interface, SubtypeCheckMode.withNullabilities)) {

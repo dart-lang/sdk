@@ -655,6 +655,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
         literal: KeywordToken(Keyword.NULL, 0),
       ),
       genericMetadataIsEnabled: true,
+      strictInference: false,
     );
     inferrer.constrainArguments(
         parameters: ft.parameters, argumentTypes: arguments);

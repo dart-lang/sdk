@@ -51,6 +51,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
@@ -134,6 +135,7 @@ class LibraryAnalyzer {
           errorListener: errorListener,
           featureSet: _libraryElement.featureSet,
           nameScope: _libraryElement.scope,
+          strictInference: _analysisOptions.strictInference,
           elementWalker: ElementWalker.forCompilationUnit(
             unitElement,
             libraryFilePath: _library.file.path,
@@ -147,14 +149,15 @@ class LibraryAnalyzer {
           _libraryElement, file.source, _typeProvider, errorListener,
           nameScope: _libraryElement.scope));
 
-      FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-          _typeSystem, _testingData != null, _libraryElement.featureSet);
-      _testingData?.recordFlowAnalysisDataForTesting(
-          file.uri, flowAnalysisHelper.dataForTesting!);
-
       // TODO(pq): precache options in file state and fetch them from there
       var analysisOptions = _libraryElement.context
           .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
+
+      FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
+          _typeSystem, _testingData != null, _libraryElement.featureSet,
+          strictCasts: analysisOptions.strictCasts);
+      _testingData?.recordFlowAnalysisDataForTesting(
+          file.uri, flowAnalysisHelper.dataForTesting!);
 
       var resolverVisitor = ResolverVisitor(_inheritance, _libraryElement,
           file.source, _typeProvider, errorListener,
@@ -384,6 +387,7 @@ class LibraryAnalyzer {
         _typeProvider,
         _typeSystem,
         errorReporter,
+        strictCasts: _analysisOptions.strictCasts,
       );
       checker.visitCompilationUnit(unit);
     }
@@ -396,8 +400,9 @@ class LibraryAnalyzer {
     //
     // Compute inheritance and override errors.
     //
-    var inheritanceOverrideVerifier =
-        InheritanceOverrideVerifier(_typeSystem, _inheritance, errorReporter);
+    var inheritanceOverrideVerifier = InheritanceOverrideVerifier(
+        _typeSystem, _inheritance, errorReporter,
+        strictCasts: _analysisOptions.strictCasts);
     inheritanceOverrideVerifier.verifyUnit(unit);
 
     //
@@ -414,7 +419,8 @@ class LibraryAnalyzer {
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
     // compile-time errors and so does the analyzer.
-    unit.accept(FfiVerifier(_typeSystem, errorReporter));
+    unit.accept(FfiVerifier(_typeSystem, errorReporter,
+        strictCasts: _analysisOptions.strictCasts));
   }
 
   void _computeWarnings(
@@ -495,7 +501,9 @@ class LibraryAnalyzer {
     // Find code that uses features from an SDK version that does not satisfy
     // the SDK constraints specified in analysis options.
     //
-    var sdkVersionConstraint = _analysisOptions.sdkVersionConstraint;
+    var package = file.workspacePackage;
+    var sdkVersionConstraint =
+        (package is PubWorkspacePackage) ? package.sdkVersionConstraint : null;
     if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
         errorReporter,
@@ -601,61 +609,61 @@ class LibraryAnalyzer {
   }
 
   void _resolveAugmentationImportDirective({
-    required AugmentationImportDirectiveImpl directive,
+    required AugmentationImportDirectiveImpl? directive,
     required AugmentationImportElementImpl element,
     required AugmentationImportState state,
     required ErrorReporter errorReporter,
     required Set<AugmentationFileKind> seenAugmentations,
     required Map<FileState, CompilationUnitImpl> units,
   }) {
-    directive.element = element;
+    directive?.element = element;
+
+    void reportOnDirective(ErrorCode errorCode, List<Object>? arguments) {
+      if (directive != null) {
+        errorReporter.reportErrorForNode(errorCode, directive.uri, arguments);
+      }
+    }
 
     final AugmentationFileKind? importedAugmentationKind;
     if (state is AugmentationImportWithFile) {
       importedAugmentationKind = state.importedAugmentation;
       if (!state.importedFile.exists) {
-        final errorCode = isGeneratedSource(state.importedSource)
-            ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
-            : CompileTimeErrorCode.URI_DOES_NOT_EXIST;
-        errorReporter.reportErrorForNode(
-          errorCode,
-          directive.uri,
+        reportOnDirective(
+          isGeneratedSource(state.importedSource)
+              ? CompileTimeErrorCode.URI_HAS_NOT_BEEN_GENERATED
+              : CompileTimeErrorCode.URI_DOES_NOT_EXIST,
           [state.importedFile.uriStr],
         );
         return;
       } else if (importedAugmentationKind == null) {
-        errorReporter.reportErrorForNode(
+        reportOnDirective(
           CompileTimeErrorCode.IMPORT_OF_NOT_AUGMENTATION,
-          directive.uri,
           [state.importedFile.uriStr],
         );
         return;
       } else if (!seenAugmentations.add(importedAugmentationKind)) {
-        errorReporter.reportErrorForNode(
+        reportOnDirective(
           CompileTimeErrorCode.DUPLICATE_AUGMENTATION_IMPORT,
-          directive.uri,
           [state.importedFile.uriStr],
         );
         return;
       }
     } else if (state is AugmentationImportWithUri) {
-      errorReporter.reportErrorForNode(
+      reportOnDirective(
         CompileTimeErrorCode.URI_DOES_NOT_EXIST,
-        directive.uri,
         [state.uri.relativeUriStr],
       );
       return;
     } else if (state is AugmentationImportWithUriStr) {
-      errorReporter.reportErrorForNode(
+      reportOnDirective(
         CompileTimeErrorCode.INVALID_URI,
-        directive.uri,
         [state.uri.relativeUriStr],
       );
       return;
     } else {
-      errorReporter.reportErrorForNode(
+      reportOnDirective(
         CompileTimeErrorCode.URI_WITH_INTERPOLATION,
-        directive.uri,
+        null,
       );
       return;
     }
@@ -756,6 +764,23 @@ class LibraryAnalyzer {
         }
       }
     }
+
+    // The macro augmentation does not have an explicit `import` directive.
+    // So, we look into the file augmentation imports.
+    final macroImport = containerKind.augmentationImports.lastOrNull;
+    if (macroImport is AugmentationImportWithFile) {
+      final importedFile = macroImport.importedFile;
+      if (importedFile.isMacroAugmentation) {
+        _resolveAugmentationImportDirective(
+          directive: null,
+          element: _libraryElement.augmentationImports.last,
+          state: macroImport,
+          errorReporter: containerErrorReporter,
+          seenAugmentations: seenAugmentations,
+          units: units,
+        );
+      }
+    }
   }
 
   void _resolveFile(FileState file, CompilationUnitImpl unit) {
@@ -769,7 +794,8 @@ class LibraryAnalyzer {
         unitElement: unitElement,
         errorListener: errorListener,
         featureSet: unit.featureSet,
-        nameScope: _libraryElement.scope,
+        nameScope: unitElement.enclosingElement.scope,
+        strictInference: _analysisOptions.strictInference,
         elementWalker: ElementWalker.forCompilationUnit(
           unitElement,
           libraryFilePath: _library.file.path,
@@ -786,14 +812,15 @@ class LibraryAnalyzer {
     // Nothing for RESOLVED_UNIT9?
     // Nothing for RESOLVED_UNIT10?
 
-    FlowAnalysisHelper flowAnalysisHelper =
-        FlowAnalysisHelper(_typeSystem, _testingData != null, unit.featureSet);
-    _testingData?.recordFlowAnalysisDataForTesting(
-        file.uri, flowAnalysisHelper.dataForTesting!);
-
     // TODO(pq): precache options in file state and fetch them from there
     var analysisOptions = _libraryElement.context
         .getAnalysisOptionsForFile(file.resource) as AnalysisOptionsImpl;
+
+    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
+        _typeSystem, _testingData != null, unit.featureSet,
+        strictCasts: analysisOptions.strictCasts);
+    _testingData?.recordFlowAnalysisDataForTesting(
+        file.uri, flowAnalysisHelper.dataForTesting!);
 
     unit.accept(ResolverVisitor(
         _inheritance, _libraryElement, source, _typeProvider, errorListener,

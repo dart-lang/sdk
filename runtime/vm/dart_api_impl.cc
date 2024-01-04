@@ -6253,8 +6253,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const uint8_t* snapshot_instructions,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // If snapshot is an app-jit snapshot we will figure out the mode by
+  // If we have a snapshot then try to figure out the mode by
   // sniffing the feature string in the snapshot.
   if (snapshot_data != nullptr) {
     // Read the snapshot and check for null safety option.
@@ -6263,6 +6262,8 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
       return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
     }
   }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // If kernel_buffer is specified, it could be a self contained
   // kernel file or the kernel file of the application,
   // figure out the null safety mode by sniffing the kernel file.
@@ -6274,6 +6275,7 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
     }
   }
 #endif
+
   return FLAG_sound_null_safety;
 }
 

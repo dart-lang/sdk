@@ -13,7 +13,7 @@ import "dart:core" as core;
 import "dart:async";
 
 static method test() → dynamic {
-  () → asy::Stream<core::num> f = () → asy::Stream<core::num> async* {
+  () → asy::Stream<core::num> f = () → asy::Stream<core::num> async* /* emittedValueType= core::num */ {
     yield 1;
     asy::Stream<core::double> s;
     yield* invalid-expression "pkg/front_end/testcases/inference/block_bodied_lambdas_async_star2.dart:14:12: Error: Non-nullable variable 's' must be assigned before it can be used.

@@ -3913,6 +3913,44 @@ void f(StatefulElement element) {
   }
 
   Future<void>
+      test_widgets_WidgetInspectorService_enum_value_deprecated() async {
+    setPackageContent('''
+enum WidgetInspectorServiceExtensions {
+  @Deprecated(use add instead)
+  setPubRootDirectories,
+  addPubRootDirectories,
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Use WidgetServiceExtensions.addPubRootDirectories'
+    date: 2023-12-12
+    element:
+      uris: ['$importUri']
+      constant: 'setPubRootDirectories'
+      inEnum: 'WidgetInspectorServiceExtensions'
+    changes:
+      - kind: 'rename'
+        newName: addPubRootDirectories
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  print(WidgetInspectorServiceExtensions.setPubRootDirectories);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  print(WidgetInspectorServiceExtensions.addPubRootDirectories);
+}
+''');
+  }
+
+  Future<void>
       test_widgets_WidgetsApp_debugShowWidgetInspectorOverride_replace() async {
     setPackageContent('''
 class WidgetsApp {

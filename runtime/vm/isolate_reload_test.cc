@@ -6198,6 +6198,164 @@ TEST_CASE(IsolateReload_EnumInMainLibraryModified) {
   EXPECT_STREQ("foo", SimpleInvokeStr(lib, "main"));
 }
 
+TEST_CASE(IsolateReload_KeepPragma1) {
+  // Old version of closure function bar() has a pragma.
+  const char* kScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "foo() {\n"
+      "  @pragma('vm:prefer-inline')\n"
+      "  void bar() {}\n"
+      "  return bar;\n"
+      "}"
+      "main() {\n"
+      "  reloadTest();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+
+  // New version of closure function bar() doesn't have a pragma.
+  const char* kReloadScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "foo() {\n"
+      "  void bar() {}\n"
+      "  return bar;\n"
+      "}"
+      "main() {\n"
+      "  reloadTest();\n"
+      "}\n";
+
+  EXPECT_VALID(TestCase::SetReloadTestScript(kReloadScript));
+
+  Dart_Handle foo1_result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(foo1_result);
+
+  EXPECT_VALID(Dart_Invoke(lib, NewString("main"), 0, nullptr));
+
+  Dart_Handle foo2_result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(foo2_result);
+
+  TransitionNativeToVM transition(thread);
+  const auto& bar1 = Function::Handle(
+      Closure::Handle(Closure::RawCast(Api::UnwrapHandle(foo1_result)))
+          .function());
+  const auto& bar2 = Function::Handle(
+      Closure::Handle(Closure::RawCast(Api::UnwrapHandle(foo2_result)))
+          .function());
+  // Pragma should be retained on the old function,
+  // and should not appear on the new function.
+  EXPECT(Library::FindPragma(thread, /*only_core=*/false, bar1,
+                             Symbols::vm_prefer_inline()));
+  EXPECT(!Library::FindPragma(thread, /*only_core=*/false, bar2,
+                              Symbols::vm_prefer_inline()));
+}
+
+TEST_CASE(IsolateReload_KeepPragma2) {
+  // Old version of closure function bar() has a pragma.
+  const char* kScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "foo() {\n"
+      "  @pragma('vm:prefer-inline')\n"
+      "  void bar() {}\n"
+      "  return bar;\n"
+      "}"
+      "main() {\n"
+      "  reloadTest();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+
+  // New version of closure function bar() has a different pragma.
+  const char* kReloadScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "foo() {\n"
+      "  @pragma('vm:never-inline')\n"
+      "  void bar() {}\n"
+      "  return bar;\n"
+      "}"
+      "main() {\n"
+      "  reloadTest();\n"
+      "}\n";
+
+  EXPECT_VALID(TestCase::SetReloadTestScript(kReloadScript));
+
+  Dart_Handle foo1_result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(foo1_result);
+
+  EXPECT_VALID(Dart_Invoke(lib, NewString("main"), 0, nullptr));
+
+  Dart_Handle foo2_result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(foo2_result);
+
+  TransitionNativeToVM transition(thread);
+  const auto& bar1 = Function::Handle(
+      Closure::Handle(Closure::RawCast(Api::UnwrapHandle(foo1_result)))
+          .function());
+  const auto& bar2 = Function::Handle(
+      Closure::Handle(Closure::RawCast(Api::UnwrapHandle(foo2_result)))
+          .function());
+  EXPECT(Library::FindPragma(thread, /*only_core=*/false, bar1,
+                             Symbols::vm_prefer_inline()));
+  EXPECT(!Library::FindPragma(thread, /*only_core=*/false, bar1,
+                              Symbols::vm_never_inline()));
+  EXPECT(!Library::FindPragma(thread, /*only_core=*/false, bar2,
+                              Symbols::vm_prefer_inline()));
+  EXPECT(Library::FindPragma(thread, /*only_core=*/false, bar2,
+                             Symbols::vm_never_inline()));
+}
+
+TEST_CASE(IsolateReload_KeepPragma3) {
+  // Old version of closure function bar() doesn't have a pragma.
+  const char* kScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "foo() {\n"
+      "  void bar() {}\n"
+      "  return bar;\n"
+      "}"
+      "main() {\n"
+      "  reloadTest();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+
+  // New version of closure function bar() has a pragma.
+  const char* kReloadScript =
+      "import 'file:///test:isolate_reload_helper';\n"
+      "foo() {\n"
+      "  @pragma('vm:never-inline')\n"
+      "  void bar() {}\n"
+      "  return bar;\n"
+      "}"
+      "main() {\n"
+      "  reloadTest();\n"
+      "}\n";
+
+  EXPECT_VALID(TestCase::SetReloadTestScript(kReloadScript));
+
+  Dart_Handle foo1_result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(foo1_result);
+
+  EXPECT_VALID(Dart_Invoke(lib, NewString("main"), 0, nullptr));
+
+  Dart_Handle foo2_result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(foo2_result);
+
+  TransitionNativeToVM transition(thread);
+  const auto& bar1 = Function::Handle(
+      Closure::Handle(Closure::RawCast(Api::UnwrapHandle(foo1_result)))
+          .function());
+  const auto& bar2 = Function::Handle(
+      Closure::Handle(Closure::RawCast(Api::UnwrapHandle(foo2_result)))
+          .function());
+  EXPECT(Library::FindPragma(thread, /*only_core=*/false, bar2,
+                             Symbols::vm_never_inline()));
+  // Should not appear on previous version of bar().
+  EXPECT(!Library::FindPragma(thread, /*only_core=*/false, bar1,
+                              Symbols::vm_never_inline()));
+}
+
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

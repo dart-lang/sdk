@@ -11,7 +11,7 @@ static method foo() → dynamic {
     core::print("Hello from finally block!");
   }
 }
-static method bar(dynamic d) → dynamic async* {
+static method bar(dynamic d) → dynamic async* /* emittedValueType= dynamic */ {
   {
     synthesized asy::Stream<dynamic> :stream = d as{TypeError,ForDynamic} asy::Stream<dynamic>;
     synthesized asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);

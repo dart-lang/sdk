@@ -6,6 +6,8 @@
 
 // SharedOptions=--enable-experiment=inference-update-2
 
+import '../static_type_helper.dart';
+
 abstract class C {
   abstract final int? _f1;
   abstract int? _f2;
@@ -20,13 +22,9 @@ class D {
         _f2 = i;
 }
 
-void acceptsInt(int x) {}
-
 void testAbstractFinalFieldIsPromotable(C c) {
   if (c._f1 != null) {
-    var x = c._f1;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    c._f1.expectStaticType<Exactly<int>>();
   }
 }
 
@@ -37,17 +35,13 @@ void testAbstractNonFinalFieldIsNotPromotable(C c) {
   // we might as well prevent promotion even in the absence of an
   // implementation.
   if (c._f2 != null) {
-    var x = c._f2;
-    // `x` has type `int?` so this is ok
-    x = null;
+    c._f2.expectStaticType<Exactly<int?>>();
   }
 }
 
 void testAbstractFinalFieldDoesNotBlockPromotionElsewhere(D d) {
   if (d._f1 != null) {
-    var x = d._f1;
-    // `x` has type `int` so this is ok
-    acceptsInt(x);
+    d._f1.expectStaticType<Exactly<int>>();
   }
 }
 
@@ -58,9 +52,7 @@ void testAbstractNonFinalFieldBlocksPromotionElsewhere(D d) {
   // promotion.  So we might as well block promotion even in the absence of an
   // implementation.
   if (d._f2 != null) {
-    var x = d._f2;
-    // `x` has type `int?` so this is ok
-    x = null;
+    d._f2.expectStaticType<Exactly<int?>>();
   }
 }
 

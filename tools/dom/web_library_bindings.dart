@@ -3486,15 +3486,6 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'systemLanguage': {'systemLanguage'},
     'transform': {'transform'}
   },
-  'SVGImageElement': {
-    'async': {'async'},
-    'height': {'height'},
-    'href': {'href'},
-    'preserveAspectRatio': {'preserveAspectRatio'},
-    'width': {'width'},
-    'x': {'x'},
-    'y': {'y'}
-  },
   'SVGLength': {
     'convertToSpecifiedUnits': {'convertToSpecifiedUnits'},
     'newValueSpecifiedUnits': {'newValueSpecifiedUnits'},
@@ -3678,10 +3669,6 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'y': {'y'},
     'zoomAndPan': {'zoomAndPan'}
   },
-  'SVGScriptElement': {
-    'href': {'href'},
-    'type': {'type'}
-  },
   'SVGStopElement': {
     'offset': {'gradientOffset'}
   },
@@ -3694,12 +3681,6 @@ final Map<String, Map<String, Set<String>>> nativeTypeToDartMembers = {
     'numberOfItems': {'numberOfItems'},
     'removeItem': {'removeItem'},
     'replaceItem': {'replaceItem'}
-  },
-  'SVGStyleElement': {
-    'disabled': {'disabled'},
-    'media': {'media'},
-    'sheet': {'sheet'},
-    'type': {'type'}
   },
   'SVGSymbolElement': {
     'preserveAspectRatio': {'preserveAspectRatio'},
@@ -6537,13 +6518,21 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
   'ImageCapture': {'track': 'track'},
   'ImageData': {'data': 'data', 'height': 'height', 'width': 'width'},
   'ImageElement': {
+    'alt': 'alt',
     'async': 'async',
+    'complete': 'complete',
+    'crossOrigin': 'crossOrigin',
+    'currentSrc': 'currentSrc',
     'height': 'height',
-    'href': 'href',
-    'preserveAspectRatio': 'preserveAspectRatio',
-    'width': 'width',
-    'x': 'x',
-    'y': 'y'
+    'isMap': 'isMap',
+    'naturalHeight': 'naturalHeight',
+    'naturalWidth': 'naturalWidth',
+    'referrerPolicy': 'referrerPolicy',
+    'sizes': 'sizes',
+    'src': 'src',
+    'srcset': 'srcset',
+    'useMap': 'useMap',
+    'width': 'width'
   },
   'Index': {
     'getAll': 'getAll',
@@ -8143,7 +8132,16 @@ final Map<String, Map<String, String>> dartTypeToNativeMembers = {
     'width': 'width'
   },
   'ScreenOrientation': {'angle': 'angle', 'type': 'type', 'unlock': 'unlock'},
-  'ScriptElement': {'href': 'href', 'type': 'type'},
+  'ScriptElement': {
+    'async': 'async',
+    'charset': 'charset',
+    'crossOrigin': 'crossOrigin',
+    'defer': 'defer',
+    'integrity': 'integrity',
+    'noModule': 'noModule',
+    'src': 'src',
+    'type': 'type'
+  },
   'ScriptProcessorNode': {
     'bufferSize': 'bufferSize',
     'setEventListener': 'setEventListener'
@@ -9465,7 +9463,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'ImageButtonInputElement': {'ImageButtonInputElement'},
   'ImageCapture': {'ImageCapture'},
   'ImageData': {'ImageData'},
-  'ImageElement': {'SVGImageElement'},
+  'ImageElement': {'HTMLImageElement'},
   'ImmutableListMixin': {'ImmutableListMixin'},
   'Index': {'IDBIndex'},
   'InputDeviceCapabilities': {'InputDeviceCapabilities'},
@@ -9737,7 +9735,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'Sampler': {'WebGLSampler'},
   'Screen': {'Screen'},
   'ScreenOrientation': {'ScreenOrientation'},
-  'ScriptElement': {'SVGScriptElement'},
+  'ScriptElement': {'HTMLScriptElement'},
   'ScriptProcessorNode': {'JavaScriptAudioNode', 'ScriptProcessorNode'},
   'ScrollAlignment': {'ScrollAlignment'},
   'ScrollState': {'ScrollState'},
@@ -9783,7 +9781,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'StorageEvent': {'StorageEvent'},
   'StorageManager': {'StorageManager'},
   'StringList': {'SVGStringList'},
-  'StyleElement': {'SVGStyleElement'},
+  'StyleElement': {'HTMLStyleElement'},
   'StyleMedia': {'StyleMedia'},
   'StylePropertyMap': {'StylePropertyMap'},
   'StylePropertyMapReadonly': {'StylePropertyMapReadonly'},
@@ -9831,7 +9829,7 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'TimeInputElement': {'TimeInputElement'},
   'TimeRanges': {'TimeRanges'},
   'TimerQueryExt': {'WebGLTimerQueryEXT'},
-  'TitleElement': {'SVGTitleElement'},
+  'TitleElement': {'HTMLTitleElement'},
   'Touch': {'Touch'},
   'TouchEvent': {'TouchEvent'},
   'TouchList': {'TouchList'},

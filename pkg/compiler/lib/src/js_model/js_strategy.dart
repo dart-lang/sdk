@@ -19,7 +19,7 @@ import '../elements/entities.dart';
 import '../enqueue.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/kernel_source_information.dart'
-    show KernelSourceInformationStrategy;
+    show OnlineKernelSourceInformationStrategy;
 import '../io/source_information.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../inferrer/types.dart';
@@ -109,7 +109,7 @@ class JsBackendStrategy {
     if (!generateSourceMap) {
       sourceInformationStrategy = const JavaScriptSourceInformationStrategy();
     } else {
-      sourceInformationStrategy = KernelSourceInformationStrategy();
+      sourceInformationStrategy = OnlineKernelSourceInformationStrategy();
     }
     _emitterTask = CodeEmitterTask(_compiler, generateSourceMap);
     _functionCompiler = SsaFunctionCompiler(
@@ -236,6 +236,7 @@ class JsBackendStrategy {
   CodegenEnqueuer createCodegenEnqueuer(
       CompilerTask task,
       JClosedWorld closedWorld,
+      InferredData inferredData,
       CodegenInputs codegen,
       CodegenResults codegenResults,
       SourceLookup sourceLookup) {
@@ -250,12 +251,14 @@ class JsBackendStrategy {
     _customElementsCodegenAnalysis = CustomElementsCodegenAnalysis(
         commonElements, elementEnvironment, closedWorld.nativeData);
     _recordsCodegen = RecordsCodegen(commonElements, closedWorld.recordData);
+    final worldBuilder = CodegenWorldBuilder(
+        closedWorld,
+        inferredData,
+        _compiler.abstractValueStrategy.createSelectorStrategy(),
+        oneShotInterceptorData);
     return CodegenEnqueuer(
         task,
-        CodegenWorldBuilderImpl(
-            closedWorld,
-            _compiler.abstractValueStrategy.createSelectorStrategy(),
-            oneShotInterceptorData),
+        worldBuilder,
         KernelCodegenWorkItemBuilder(
             this,
             closedWorld.abstractValueDomain,
@@ -275,7 +278,9 @@ class JsBackendStrategy {
             closedWorld.recordData,
             customElementsCodegenAnalysis,
             recordsCodegen,
-            nativeCodegenEnqueuer),
+            closedWorld.nativeData,
+            nativeCodegenEnqueuer,
+            worldBuilder),
         closedWorld.annotationsData);
   }
 

@@ -456,9 +456,9 @@ exhaustiveSealed(List<A> list) {
 
 exhaustiveSealedExtensionType(ExtensionTypeList<A> list) {
   return /*
-   checkingOrder={ExtensionTypeList<A>,<A>[],<A>[()],<A>[(), (), ...]},
+   checkingOrder={List<A>,<A>[],<A>[()],<A>[(), (), ...]},
    subtypes={<A>[],<A>[()],<A>[(), (), ...]},
-   type=ExtensionTypeList<A>
+   type=List<A>
   */
     switch (list) {
       [] /*space=<[]>*/ => 0,
@@ -485,10 +485,10 @@ nonExhaustiveSealedSubtype(List<A> list) {
 
 nonExhaustiveSealedSubtypeExtensionType(ExtensionTypeList<A> list) {
   return /*
-   checkingOrder={ExtensionTypeList<A>,<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
+   checkingOrder={List<A>,<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
    error=non-exhaustive:[B(), C()],
    subtypes={<A>[],<A>[()],<A>[(), ()],<A>[(), (), (), ...]},
-   type=ExtensionTypeList<A>
+   type=List<A>
   */
     switch (list) {
       [] /*space=<[]>*/ => 0,

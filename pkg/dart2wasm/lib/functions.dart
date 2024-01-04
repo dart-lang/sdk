@@ -140,6 +140,10 @@ class FunctionCollector {
     return _getFunctionTypeAndName(target, (ftype, name) => ftype);
   }
 
+  /// Pass the Wasm type and name of the function for [target] to [action].
+  ///
+  /// Name should be used for the Wasm names section entry for the function so
+  /// that the error stack traces will have names expected by the Dart spec.
   T _getFunctionTypeAndName<T>(
       Reference target, T Function(w.FunctionType, String) action) {
     if (target.isTypeCheckerReference) {
@@ -162,13 +166,20 @@ class FunctionCollector {
     Member member = target.asMember;
     final ftype = member.accept1(_FunctionTypeGenerator(translator), target);
 
-    if (target.isInitializerReference) {
-      return action(ftype, '${member} initializer');
-    } else if (target.isConstructorBodyReference) {
-      return action(ftype, '${member} constructor body');
+    String memberName = member.toString();
+    if (memberName.endsWith('.')) {
+      memberName = memberName.substring(0, memberName.length - 1);
     }
 
-    return action(ftype, "${target.asMember}");
+    if (target.isInitializerReference) {
+      return action(ftype, 'new $memberName (initializer)');
+    } else if (target.isConstructorBodyReference) {
+      return action(ftype, 'new $memberName (constructor body)');
+    } else if (member is Procedure && member.isFactory) {
+      return action(ftype, 'new $memberName');
+    } else {
+      return action(ftype, memberName);
+    }
   }
 
   void activateSelector(SelectorInfo selector) {

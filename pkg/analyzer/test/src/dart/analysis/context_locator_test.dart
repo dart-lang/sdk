@@ -1748,7 +1748,7 @@ ${getFolder(outPath).path}
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/53874')
   void test_multiple_packages_monorepo() {
-    var rootPath = '/test/outer';
+    var rootPath = convertPath('/test/outer');
     Folder rootFolder = newFolder(rootPath);
     File packagesFile = newPackageConfigJsonFile(rootPath, '');
     newPubspecYamlFile(rootPath, '');
@@ -1764,9 +1764,11 @@ ${getFolder(outPath).path}
     ContextRoot root = findRoot(roots, rootFolder);
     expect(root.includedPaths, unorderedEquals([rootFolder.path]));
     expect(root.packagesFile, packagesFile);
-    var package = root.workspace.findPackageFor(package1.path);
+    var path = convertPath('${package1.path}/lib/a.dart');
+    var package = root.workspace.findPackageFor(path);
     expect(package?.root, package1.path);
-    package = root.workspace.findPackageFor(package2.path);
+    path = convertPath('${package2.path}/lib/a.dart');
+    package = root.workspace.findPackageFor(path);
     expect(package?.root, package2.path);
   }
 

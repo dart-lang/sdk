@@ -40,27 +40,30 @@ static method method(self::MyList<core::int> /* = core::List<core::int> */ list,
   {
     hoisted core::int c;
     final synthesized self::MyList<core::int> /* = core::List<core::int> */ #2#0 = list;
-    if(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t3 = c = #2#0.{core::List::[]}(0){(core::int) → core::int} in true)) {
+    if(#2#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
+      c = #2#0.{core::List::[]}(0){(core::int) → core::int};
+      {}
     }
   }
   {
     hoisted core::bool d;
     final synthesized self::MyMap<core::String, core::bool> /* = core::Map<core::String, core::bool> */ #3#0 = map;
-    if(#3#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool} && (let final core::bool #t4 = d = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?} in true)) {
+    if(#3#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool}) {
+      d = #3#0.{core::Map::[]}(#C2){(core::Object?) → core::bool?};
+      {}
     }
   }
   #L1:
   {
     final synthesized self::MyList<core::int> /* = core::List<core::int> */ #4#0 = list;
-    function ##4#1#initializer() → core::int
-      return #4#0.{core::List::length}{core::int};
-    late final synthesized core::int #4#1 = ##4#1#initializer(){() → core::int};
-    dynamic #t5;
+    synthesized core::int #4#1;
+    synthesized core::bool #4#1#isSet = false;
+    dynamic #t3;
     {
       lowered hoisted core::int e#case#0;
       lowered hoisted core::int e#case#1;
-      if(#4#1 =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t6 = e#case#0 = #4#0.{core::List::[]}(0){(core::int) → core::int} in true) && e#case#0.{core::num::>}(5){(core::num) → core::bool} && (let final core::int #t7 = #t5 = e#case#0 in true) || #4#1 =={core::num::==}{(core::Object) → core::bool} #C3 && (let final core::int #t8 = e#case#1 = #4#0.{core::List::[]}(1){(core::int) → core::int} in true) && e#case#1.{core::num::<}(5){(core::num) → core::bool} && (let final core::int #t9 = #t5 = e#case#1 in true)) {
-        core::int e = #t5{core::int};
+      if((#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool* #t4 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C1 && (let final core::int #t5 = e#case#0 = #4#0.{core::List::[]}(0){(core::int) → core::int} in true) && e#case#0.{core::num::>}(5){(core::num) → core::bool} && (let final core::int #t6 = #t3 = e#case#0 in true) || (#4#1#isSet ?{core::int} #4#1{core::int} : let final core::bool* #t7 = #4#1#isSet = true in #4#1 = #4#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C3 && (let final core::int #t8 = e#case#1 = #4#0.{core::List::[]}(1){(core::int) → core::int} in true) && e#case#1.{core::num::<}(5){(core::num) → core::bool} && (let final core::int #t9 = #t3 = e#case#1 in true)) {
+        core::int e = #t3{core::int};
         {
           core::print(e);
         }

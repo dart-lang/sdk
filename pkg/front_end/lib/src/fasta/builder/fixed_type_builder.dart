@@ -60,7 +60,7 @@ class FixedTypeBuilderImpl extends FixedTypeBuilder {
   }
 
   @override
-  Supertype buildSupertype(LibraryBuilder library) {
+  Supertype buildSupertype(LibraryBuilder library, TypeUse typeUse) {
     return unhandled(
         'buildSupertype', 'FixedTypeBuilder', charOffset ?? -1, fileUri);
   }

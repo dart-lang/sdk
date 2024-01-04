@@ -676,6 +676,16 @@ mixin StandardBounds {
       return type1;
     }
 
+    if (type1 is IntersectionType) {
+      return _getNullabilityAwareIntersectionStandardUpperBound(
+          type1, type2, isNonNullableByDefault);
+    }
+
+    if (type2 is IntersectionType) {
+      return _getNullabilityAwareIntersectionStandardUpperBound(
+          type2, type1, isNonNullableByDefault);
+    }
+
     // UP(T1, T2) where NULL(T1) and NULL(T2) =
     //   T2 if MOREBOTTOM(T1, T2)
     //   T1 otherwise
@@ -780,18 +790,8 @@ mixin StandardBounds {
           type1, type2, isNonNullableByDefault);
     }
 
-    if (type1 is IntersectionType) {
-      return _getNullabilityAwareIntersectionStandardUpperBound(
-          type1, type2, isNonNullableByDefault);
-    }
-
     if (type2 is TypeParameterType) {
       return _getNullabilityAwareTypeParameterStandardUpperBound(
-          type2, type1, isNonNullableByDefault);
-    }
-
-    if (type2 is IntersectionType) {
-      return _getNullabilityAwareIntersectionStandardUpperBound(
           type2, type1, isNonNullableByDefault);
     }
 

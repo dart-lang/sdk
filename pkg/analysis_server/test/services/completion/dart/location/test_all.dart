@@ -54,11 +54,14 @@ import 'property_access_expression_test.dart' as property_access_expression;
 import 'record_literal_test.dart' as record_literal;
 import 'record_pattern_test.dart' as record_pattern;
 import 'record_type_annotation_test.dart' as record_type_annotation;
+import 'redirecting_constructor_invocation_test.dart'
+    as redirecting_constructor_invocation;
 import 'relational_pattern_test.dart' as relational_pattern;
 import 'rest_pattern_test.dart' as rest_pattern;
 import 'return_statement_test.dart' as return_statement;
 import 'set_literal_test.dart' as set_literal;
 import 'string_literal_test.dart' as string_literal;
+import 'super_constructor_invocation_test.dart' as super_constructor_invocation;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_expression_test.dart' as switch_expression;
 import 'switch_pattern_case_test.dart' as switch_pattern_case;
@@ -122,11 +125,13 @@ void main() {
     record_literal.main();
     record_pattern.main();
     record_type_annotation.main();
+    redirecting_constructor_invocation.main();
     relational_pattern.main();
     rest_pattern.main();
     return_statement.main();
     set_literal.main();
     string_literal.main();
+    super_constructor_invocation.main();
     super_formal_parameter.main();
     switch_expression.main();
     switch_pattern_case.main();

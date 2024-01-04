@@ -31,7 +31,7 @@ import 'package:front_end/src/fasta/kernel/utils.dart'
 import 'package:front_end/src/fasta/ticker.dart' show Ticker;
 import 'package:front_end/src/fasta/uri_translator.dart' show UriTranslator;
 import 'package:front_end/src/kernel_generator_impl.dart'
-    show generateKernelInternal;
+    show generateKernelInternal, precompileMacros;
 import 'package:front_end/src/linux_and_intel_specific_perf.dart';
 import 'package:kernel/kernel.dart'
     show
@@ -395,6 +395,15 @@ class CompileTask {
 
     kernelTarget.setEntryPoints(c.options.inputs);
     dillTarget.buildOutlines();
+
+    final neededPrecompilations =
+        await kernelTarget.computeNeededPrecompilations();
+    if (neededPrecompilations != null) {
+      kernelTarget.benchmarker?.enterPhase(BenchmarkPhases.precompileMacros);
+      await precompileMacros(neededPrecompilations, c.options);
+      kernelTarget.benchmarker
+          ?.enterPhase(BenchmarkPhases.unknownGenerateKernelInternal);
+    }
     BuildResult buildResult = await kernelTarget.buildOutlines();
     Component? outline = buildResult.component;
     if (c.options.debugDump && output != null) {

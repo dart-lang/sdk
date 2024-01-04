@@ -488,7 +488,7 @@ template("dart_io") {
 
     if (is_linux || is_win || is_fuchsia) {
       if (dart_use_fallback_root_certificates) {
-        sources += [ "//third_party/root_certificates/root_certificates.cc" ]
+        deps += [ "../../third_party/fallback_root_certificates" ]
       } else {
         defines += [ "DART_IO_ROOT_CERTS_DISABLED" ]
       }
@@ -1084,8 +1084,10 @@ shared_library("ffi_test_functions") {
     # flutter/flutter integration tests will only use
     # `ffi_test_functions{,_generated}.cc` - any test functionality using
     # `dart_api.h` has to go into `ffi_test_functions_vmspecific.cc`.
+    "ffi_test/ffi_test_fields.c",
     "ffi_test/ffi_test_functions.cc",
     "ffi_test/ffi_test_functions_generated.cc",
+    "ffi_test/ffi_test_functions_generated_2.cc",
     "ffi_test/ffi_test_functions_vmspecific.cc",
   ]
   if (is_win && current_cpu == "x64") {

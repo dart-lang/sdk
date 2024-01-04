@@ -360,15 +360,22 @@ Iterable<String> _wrapLines(List<String> lines, int maxLength) sync* {
         yield line;
         break;
       } else {
+        // First try to wrap at the last space before the max length, and fall
+        // back to wrapping at the first space if there were none before the
+        // max length.
         var lastSpace = line.lastIndexOf(' ', maxLength);
-        // If there was no valid place to wrap, yield the whole string.
+        if (lastSpace == -1) {
+          lastSpace = line.indexOf(' ');
+        }
+
+        // If we still don't have one, the whole line has no spaces to split on.
         if (lastSpace == -1) {
           yield line;
           break;
-        } else {
-          yield line.substring(0, lastSpace);
-          line = line.substring(lastSpace + 1);
         }
+
+        yield line.substring(0, lastSpace);
+        line = line.substring(lastSpace + 1);
       }
     }
   }

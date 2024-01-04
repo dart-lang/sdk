@@ -108,9 +108,6 @@ class ExpressionEvaluationTestDriver {
     if (!File(summaryPath).existsSync()) {
       throw StateError('Unable to find SDK summary at path: $summaryPath.');
     }
-
-    // Prepend legacy Dart version comment.
-    if (setup.legacyCode) source = '// @dart = 2.11\n\n$source';
     this.setup = setup;
     this.source = source;
     testDir = chromeDir.createTempSync('ddc_eval_test');

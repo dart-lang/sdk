@@ -210,13 +210,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     if (member is Constructor) {
+      translator.membersBeingGenerated.add(member);
       if (reference.isConstructorBodyReference) {
-        return generateConstructorBody(reference);
+        generateConstructorBody(reference);
       } else if (reference.isInitializerReference) {
-        return generateInitializerList(reference);
+        generateInitializerList(reference);
+      } else {
+        generateConstructorAllocator(member);
       }
-
-      return generateConstructorAllocator(member);
+      translator.membersBeingGenerated.remove(member);
+      return;
     }
 
     if (member is Field) {
@@ -1290,7 +1293,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // execution after the finalizer (no throws, returns, or breaks).
     w.Label tryFinallyBlock = b.block();
 
-    // Create one block for each wrapping label
+    // Create one block for each wrapping label.
     for (final labelBlocks in breakFinalizers.values.toList().reversed) {
       labelBlocks.add(b.block());
     }
@@ -1302,29 +1305,36 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     w.Label tryBlock = b.try_();
     visitStatement(node.body);
+
     final bool mustHandleReturn =
         returnFinalizers.removeLast().mustHandleReturn;
-    b.catch_(translator.exceptionTag);
 
     // `break` statements in the current finalizer and the rest will not run
-    // the current finalizer, update the `break` targets
+    // the current finalizer, update the `break` targets.
     final removedBreakTargets = <LabeledStatement, w.Label>{};
     for (final breakFinalizerEntry in breakFinalizers.entries) {
       removedBreakTargets[breakFinalizerEntry.key] =
           breakFinalizerEntry.value.removeLast();
     }
 
-    // Run finalizer on exception
+    // Handle Dart exceptions.
+    b.catch_(translator.exceptionTag);
     visitStatement(node.finalizer);
     b.rethrow_(tryBlock);
-    b.end(); // end tryBlock.
 
-    // Run finalizer on normal execution (no breaks, throws, or returns)
+    // Handle JS exceptions.
+    b.catch_all();
+    visitStatement(node.finalizer);
+    b.rethrow_(tryBlock);
+
+    b.end(); // tryBlock
+
+    // Run finalizer on normal execution (no breaks, throws, or returns).
     visitStatement(node.finalizer);
     b.br(tryFinallyBlock);
-    b.end(); // end returnFinalizerBlock.
+    b.end(); // returnFinalizerBlock
 
-    // Run finalizer on `return`
+    // Run the finalizer on `return`.
     if (mustHandleReturn) {
       visitStatement(node.finalizer);
       if (returnFinalizers.isNotEmpty) {
@@ -1338,15 +1348,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       }
     }
 
-    // Generate finalizers for `break`s in the `try` block
+    // Generate finalizers for `break`s in the `try` block.
     for (final removedBreakTargetEntry in removedBreakTargets.entries) {
       b.end();
       visitStatement(node.finalizer);
       b.br(breakFinalizers[removedBreakTargetEntry.key]!.last);
     }
 
-    // Terminate `tryFinallyBlock`
-    b.end();
+    b.end(); // tryFinallyBlock
   }
 
   @override
@@ -2926,6 +2935,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       makeList(typeArg, expressions.length,
           (w.ValueType elementType, int i) => wrap(expressions[i], elementType),
           isGrowable: isGrowable);
+
+  w.ValueType makeArrayFromExpressions(
+      List<Expression> expressions, InterfaceType elementType) {
+    return translator.makeArray(
+        function,
+        translator.arrayTypeForDartType(elementType),
+        expressions.length, (w.ValueType elementType, int i) {
+      wrap(expressions[i], elementType);
+    });
+  }
 
   @override
   w.ValueType visitMapLiteral(MapLiteral node, w.ValueType expectedType) {

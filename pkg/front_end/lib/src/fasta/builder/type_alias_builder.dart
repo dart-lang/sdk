@@ -60,33 +60,6 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
       List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables});
 
-  /// Helper method for computing [unalias].
-  ///
-  /// Returns the directly alias of this type alias with the given
-  /// [typeArguments], or `null` if this type alias is cyclic.
-  ///
-  /// [currentTypeAliasBuilders] contains the type alias builders used so
-  /// for in the computation of [unalias]. This method will add this type alias
-  /// builder to [currentTypeAliasBuilders] or report a cyclic error if this
-  /// type alias builder is already in the set.
-  ///
-  /// If [unboundTypes] is provided, created type builders that are not bound
-  /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
-  /// results in an assertion error.
-  ///
-  /// If [unboundTypeVariables] is provided, created type variable builders are
-  /// added to [unboundTypeVariables]. Otherwise, creating a
-  /// type variable builder result in an assertion error.
-  ///
-  /// The [unboundTypes] and [unboundTypeVariables] must be processed by the
-  /// call, unless the created [TypeBuilder]s and [TypeVariableBuilder]s are
-  /// not part of the generated AST.
-  TypeBuilder? unaliasOnce(
-      List<TypeBuilder>? typeArguments,
-      Set<TypeAliasBuilder> currentTypeAliasBuilders,
-      List<TypeBuilder>? unboundTypes,
-      List<StructuralVariableBuilder>? unboundTypeVariables);
-
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
   /// based on the given [typeArguments]. It expands type aliases repeatedly
   /// until it encounters a builder which is not a [TypeAliasBuilder].
@@ -158,6 +131,10 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   @override
   final Uri fileUri;
 
+  TypeBuilder? _unaliasedRhsType;
+
+  List<TypeAliasBuilder> _typeAliasesUsedInUnaliasing = [];
+
   TypeAliasBuilderImpl(List<MetadataBuilder>? metadata, String name,
       LibraryBuilder parent, int charOffset)
       : fileUri = parent.fileUri,
@@ -221,61 +198,110 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         hasExplicitTypeArguments: hasExplicitTypeArguments);
   }
 
+  void _ensureUnaliasedType(
+      {required List<TypeBuilder>? unboundTypes,
+      required List<StructuralVariableBuilder>? unboundTypeVariables}) {
+    if (_unaliasedRhsType != null) {
+      return;
+    }
+    _typeAliasesUsedInUnaliasing.add(this);
+    TypeDeclarationBuilder? rhsTypeDeclaration = type.declaration;
+    switch (rhsTypeDeclaration) {
+      case ClassBuilder():
+      case ExtensionTypeDeclarationBuilder():
+      case NominalVariableBuilder():
+      case StructuralVariableBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      case OmittedTypeDeclarationBuilder():
+      case InvalidTypeDeclarationBuilder():
+      case null:
+        _unaliasedRhsType = type;
+      case TypeAliasBuilder():
+        rhsTypeDeclaration as TypeAliasBuilderImpl;
+        NamedTypeBuilder namedType = type as NamedTypeBuilder;
+        Set<TypeAliasBuilder> usedTypeAliasBuilders = {};
+        List<NominalVariableBuilder>? typeVariables =
+            rhsTypeDeclaration.typeVariables;
+        List<TypeBuilder>? typeArguments = namedType.typeArguments;
+        TypeBuilder? unaliasedRhsType = rhsTypeDeclaration.unalias(
+            typeArguments,
+            usedTypeAliasBuilders: usedTypeAliasBuilders,
+            unboundTypes: unboundTypes,
+            unboundTypeVariables: unboundTypeVariables);
+        _unaliasedRhsType = unaliasedRhsType;
+        if (typeVariables != null) {
+          if (typeArguments == null ||
+              typeVariables.length != typeArguments.length) {
+            typeArguments = <TypeBuilder>[
+              for (NominalVariableBuilder typeVariable in typeVariables)
+                typeVariable.defaultType!
+            ];
+          }
+
+          _unaliasedRhsType = _unaliasedRhsType
+              ?.subst(
+                  new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(
+                      typeVariables, typeArguments))
+              .unalias(
+                  usedTypeAliasBuilders: usedTypeAliasBuilders,
+                  unboundTypes: unboundTypes,
+                  unboundTypeVariables: unboundTypeVariables);
+        }
+        _typeAliasesUsedInUnaliasing.addAll(usedTypeAliasBuilders);
+      case ExtensionBuilder():
+        unexpected(
+            "type", "${rhsTypeDeclaration.runtimeType}", charOffset, fileUri);
+    }
+  }
+
   @override
   TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
       {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
       List<TypeBuilder>? unboundTypes,
       List<StructuralVariableBuilder>? unboundTypeVariables}) {
-    Set<TypeAliasBuilder> currentTypeAliasBuilders;
-    if (usedTypeAliasBuilders != null && usedTypeAliasBuilders.isEmpty) {
-      currentTypeAliasBuilders = usedTypeAliasBuilders;
-    } else {
-      currentTypeAliasBuilders = {};
+    _ensureUnaliasedType(
+        unboundTypes: unboundTypes, unboundTypeVariables: unboundTypeVariables);
+    if (usedTypeAliasBuilders != null) {
+      usedTypeAliasBuilders.addAll(_typeAliasesUsedInUnaliasing);
     }
-    TypeBuilder? type = unaliasOnce(typeArguments, currentTypeAliasBuilders,
-        unboundTypes, unboundTypeVariables);
-    while (type is NamedTypeBuilder && type.declaration is TypeAliasBuilder) {
-      TypeAliasBuilder? declaration = type.declaration as TypeAliasBuilder;
-      type = declaration.unaliasOnce(type.typeArguments,
-          currentTypeAliasBuilders, unboundTypes, unboundTypeVariables);
-    }
-    if (usedTypeAliasBuilders != null &&
-        !identical(usedTypeAliasBuilders, currentTypeAliasBuilders)) {
-      usedTypeAliasBuilders.addAll(currentTypeAliasBuilders);
-    }
-    return type;
-  }
 
-  @override
-  TypeBuilder? unaliasOnce(
-      List<TypeBuilder>? typeArguments,
-      Set<TypeAliasBuilder> currentBuilders,
-      List<TypeBuilder>? unboundTypes,
-      List<StructuralVariableBuilder>? unboundTypeVariables) {
-    if (!currentBuilders.add(this)) {
-      // Cyclic type alias.
-      libraryBuilder.addProblem(templateCyclicTypedef.withArguments(this.name),
-          charOffset, noLength, fileUri);
-      return null;
+    TypeBuilder? unaliasedRhsType = _unaliasedRhsType;
+    TypeDeclarationBuilder? rhsDeclaration = unaliasedRhsType?.declaration;
+    switch (rhsDeclaration) {
+      case TypeAliasBuilder():
+        // At this point the unaliased right-hand side type can't be a type
+        // alias, which is ensured by the call to [_ensureUnaliasedType]
+        // earlier.
+        return unexpected(
+            "unaliased", "${rhsDeclaration.runtimeType}", charOffset, fileUri);
+      case ClassBuilder():
+      case ExtensionTypeDeclarationBuilder():
+      case NominalVariableBuilder():
+      case StructuralVariableBuilder():
+        List<NominalVariableBuilder>? typeVariables = this.typeVariables;
+        if (typeVariables != null) {
+          if (typeArguments == null ||
+              typeVariables.length != typeArguments.length) {
+            typeArguments = <TypeBuilder>[
+              for (NominalVariableBuilder typeVariable in typeVariables)
+                typeVariable.defaultType!
+            ];
+          }
+          return unaliasedRhsType!.subst(
+              new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(
+                  typeVariables, typeArguments),
+              unboundTypes: unboundTypes,
+              unboundTypeVariables: unboundTypeVariables);
+        }
+      case ExtensionBuilder():
+      case BuiltinTypeDeclarationBuilder():
+      case InvalidTypeDeclarationBuilder():
+      case OmittedTypeDeclarationBuilder():
+        // These types won't change after substitution, so we just return them.
+        return unaliasedRhsType;
+      case null:
     }
-    // TODO(johnniwinther): Handle/report type argument count mismatch. These
-    // are currently reported through [unaliasDeclaration].
-    if (typeVariables != null) {
-      if (typeArguments == null ||
-          typeArguments.length != typeVariables!.length) {
-        typeArguments =
-            new List<TypeBuilder>.generate(typeVariables!.length, (int i) {
-          return typeVariables![i].defaultType!;
-        }, growable: true);
-      }
-      Map<NominalVariableBuilder, TypeBuilder> substitution = {};
-      for (int index = 0; index < typeArguments.length; index++) {
-        substitution[typeVariables![index]] = typeArguments[index];
-      }
-      return type.subst(substitution,
-          unboundTypes: unboundTypes,
-          unboundTypeVariables: unboundTypeVariables);
-    }
+
     return type;
   }
 

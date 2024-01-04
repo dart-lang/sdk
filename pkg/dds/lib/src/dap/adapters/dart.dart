@@ -977,8 +977,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final shouldExpandTruncatedValues = isClipboard || isRepl;
 
     if ((thread == null || frameIndex == null) && targetScriptFileUri == null) {
-      throw UnimplementedError(
-          'Global evaluation not currently supported without a Dart script context');
+      throw DebugAdapterException(
+          'Evaluation is only supported when the debugger is paused '
+          'unless you have a Dart file active in the editor');
     }
 
     // Parse the expression for trailing format specifiers.
@@ -1674,7 +1675,19 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     var totalFrames = 1;
 
     if (thread == null) {
-      throw DebugAdapterException('No thread with threadId $threadId');
+      if (isolateManager.isInvalidThreadId(threadId)) {
+        throw DebugAdapterException('Thread $threadId was not found');
+      } else {
+        // This condition means the thread ID was valid but the isolate has
+        // since exited so rather than displaying an error, just return an empty
+        // response because the client will be no longer interested in the
+        // response.
+        sendResponse(StackTraceResponseBody(
+          stackFrames: [],
+          totalFrames: 0,
+        ));
+        return;
+      }
     }
 
     if (!thread.paused) {

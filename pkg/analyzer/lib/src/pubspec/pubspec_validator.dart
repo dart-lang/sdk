@@ -90,6 +90,10 @@ final class PubspecField {
   /// assets available to Flutter apps at runtime.
   static const String ASSETS_FIELD = 'assets';
 
+  /// The name of the sub-field (under `flutter / assets`) whose value is a path
+  /// to an asset available to Flutter apps at runtime.
+  static const String ASSET_PATH_FIELD = 'path';
+
   /// The name of the field whose value is a map of dependencies.
   static const String DEPENDENCIES_FIELD = 'dependencies';
 

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -300,7 +301,14 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
             methodMap[node as ir.Procedure] = member as JFunction;
           }
           break;
-        default:
+        case MemberKind.closureCall:
+        case MemberKind.closureField:
+        case MemberKind.constructorBody:
+        case MemberKind.generatorBody:
+        case MemberKind.recordGetter:
+        case MemberKind.signature:
+        case MemberKind.parameterStub:
+          break;
       }
     }
     source.end(memberTag);
@@ -1118,6 +1126,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         break;
 
       case MemberKind.recordGetter:
+      case MemberKind.parameterStub:
         // TODO(51310): Avoid calling [getStaticTypeProvider] for synthetic
         // elements that have no Kernel Node context.
         return NoStaticTypeProvider();
@@ -1574,6 +1583,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       case MemberKind.signature:
       case MemberKind.generatorBody:
         return getParentMember(definition.node as ir.TreeNode?);
+      case MemberKind.parameterStub:
       case MemberKind.recordGetter:
         return null;
     }
@@ -2011,6 +2021,57 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     return "_captured_${name}_$id";
   }
 
+  JParameterStub? createParameterStub(JFunction function, Selector selector,
+      {required Selector? callSelector, required bool needsSuper}) {
+    CallStructure callStructure = selector.callStructure;
+    ParameterStructure parameterStructure = function.parameterStructure;
+    int positionalArgumentCount = callStructure.positionalArgumentCount;
+    assert(callStructure.typeArgumentCount == 0 ||
+        callStructure.typeArgumentCount == parameterStructure.typeParameters);
+    assert(
+        callStructure.typeArgumentCount != parameterStructure.typeParameters ||
+            positionalArgumentCount != parameterStructure.totalParameters ||
+            (parameterStructure.namedParameters.isNotEmpty &&
+                callStructure.namedArgumentCount ==
+                    parameterStructure.namedParameters.length));
+
+    final newParameterStructure = ParameterStructure(
+        callStructure.positionalArgumentCount,
+        callStructure.positionalArgumentCount,
+        callStructure.namedArguments,
+        callStructure.namedArguments.toSet(),
+        callStructure.typeArgumentCount);
+
+    final stub = JParameterStub(function, newParameterStructure,
+        callSelector: callSelector, needsSuper: needsSuper);
+    final data = members.getData(function) as FunctionData;
+    final definition = data.definition;
+    switch (definition.kind) {
+      case MemberKind.regular:
+      case MemberKind.closureCall:
+        final node = definition.node;
+        final stubDefinition = SpecialMemberDefinition(
+            node as ir.TreeNode, MemberKind.parameterStub);
+        members.register(stub, ParameterStubFunctionData(data, stubDefinition));
+        lateOutputUnitDataBuilder.registerColocatedMembers(function, stub);
+        // We intentionally avoid registering the stub on a class here. We don't
+        // want the emitter to emit code for the stub as if it were a normal
+        // member. Code will be emitted alongside the target member.
+        break;
+      case MemberKind.signature:
+      case MemberKind.recordGetter:
+      case MemberKind.closureField:
+      case MemberKind.constructor:
+      case MemberKind.constructorBody:
+      case MemberKind.generatorBody:
+      case MemberKind.parameterStub:
+        throw UnsupportedError(
+            'Cannot generate stub for $function with kind ${definition.kind}');
+    }
+
+    return stub;
+  }
+
   @override
   JGeneratorBody getGeneratorBody(covariant JFunction function) {
     JGeneratorBody? generatorBody = _generatorBodies[function];
@@ -2219,45 +2280,22 @@ class JsElementEnvironment extends ElementEnvironment
 
   @override
   DartType getFunctionAsyncOrSyncStarElementType(FunctionEntity function) {
-    // TODO(sra): Should be getting the DartType from the node.
     DartType returnType = getFunctionType(function).returnType;
-    return getAsyncOrSyncStarElementType(function.asyncMarker, returnType);
+    return getAsyncOrSyncStarElementType(function, returnType);
   }
 
   @override
   DartType getAsyncOrSyncStarElementType(
-      AsyncMarker asyncMarker, DartType returnType) {
-    var returnTypeWithoutNullability = returnType.withoutNullability;
+      FunctionEntity function, DartType returnType) {
+    final asyncMarker = function.asyncMarker;
     switch (asyncMarker) {
       case AsyncMarker.SYNC:
         return returnType;
       case AsyncMarker.SYNC_STAR:
-        if (returnTypeWithoutNullability is InterfaceType) {
-          if (returnTypeWithoutNullability.element ==
-              elementMap.commonElements.iterableClass) {
-            return returnTypeWithoutNullability.typeArguments.first;
-          }
-        }
-        return dynamicType;
       case AsyncMarker.ASYNC:
-        if (returnTypeWithoutNullability is FutureOrType) {
-          return returnTypeWithoutNullability.typeArgument;
-        }
-        if (returnTypeWithoutNullability is InterfaceType) {
-          if (returnTypeWithoutNullability.element ==
-              elementMap.commonElements.futureClass) {
-            return returnTypeWithoutNullability.typeArguments.first;
-          }
-        }
-        return dynamicType;
       case AsyncMarker.ASYNC_STAR:
-        if (returnTypeWithoutNullability is InterfaceType) {
-          if (returnTypeWithoutNullability.element ==
-              elementMap.commonElements.streamClass) {
-            return returnTypeWithoutNullability.typeArguments.first;
-          }
-        }
-        return dynamicType;
+        return elementMap.getDartType(
+            getFunctionNode(elementMap, function)!.emittedValueType!);
     }
     throw failedAt(
         CURRENT_ELEMENT_SPANNABLE, 'Unexpected marker ${asyncMarker}');

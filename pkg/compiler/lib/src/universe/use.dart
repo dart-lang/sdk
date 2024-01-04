@@ -334,7 +334,22 @@ class StaticUse {
       case StaticUseKind.CLOSURE:
         sb.write('def:');
         break;
-      default:
+      case StaticUseKind.STATIC_TEAR_OFF:
+      case StaticUseKind.SUPER_TEAR_OFF:
+      case StaticUseKind.SUPER_GET:
+      case StaticUseKind.SUPER_INVOKE:
+      case StaticUseKind.INSTANCE_FIELD_GET:
+      case StaticUseKind.CLOSURE_CALL:
+      case StaticUseKind.CALL_METHOD:
+      case StaticUseKind.CONSTRUCTOR_INVOKE:
+      case StaticUseKind.CONST_CONSTRUCTOR_INVOKE:
+      case StaticUseKind.DIRECT_INVOKE:
+      case StaticUseKind.INLINING:
+      case StaticUseKind.STATIC_INVOKE:
+      case StaticUseKind.STATIC_GET:
+      case StaticUseKind.FIELD_CONSTANT_INIT:
+      case StaticUseKind.WEAK_STATIC_TEAR_OFF:
+        break;
     }
     final member = element;
     if (member is MemberEntity) {

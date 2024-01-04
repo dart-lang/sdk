@@ -6,35 +6,35 @@ part of dart._js_types;
 
 // TODO(joshualitt): Refactor indexing here and in `js_string` to elide range
 // checks for internal functions.
-class JSArrayImpl implements List<JSAny?> {
+class JSArrayImpl<T extends JSAny?> implements List<T> {
   final WasmExternRef? _ref;
 
   JSArrayImpl(this._ref);
 
   factory JSArrayImpl.fromLength(int length) =>
-      JSArrayImpl(js.newArrayFromLengthRaw(length));
+      JSArrayImpl<T>(js.newArrayFromLengthRaw(length));
 
-  static JSArrayImpl? box(WasmExternRef? ref) =>
-      js.isDartNull(ref) ? null : JSArrayImpl(ref);
+  static JSArrayImpl<T>? box<T extends JSAny?>(WasmExternRef? ref) =>
+      js.isDartNull(ref) ? null : JSArrayImpl<T>(ref);
 
   WasmExternRef? get toExternRef => _ref;
 
   @override
-  List<R> cast<R>() => List.castFrom<JSAny?, R>(this);
+  List<R> cast<R>() => List.castFrom<T, R>(this);
 
   @override
-  void add(JSAny? value) =>
+  void add(T value) =>
       js.JS<void>('(a, i) => a.push(i)', toExternRef, value.toExternRef);
 
   @override
-  JSAny? removeAt(int index) {
+  T removeAt(int index) {
     RangeError.checkValueInInterval(index, 0, length - 1);
-    return js.JSValue.boxT<JSAny?>(js.JS<WasmExternRef?>(
+    return js.JSValue.boxT<T>(js.JS<WasmExternRef?>(
         '(a, i) => a.splice(i, 1)[0]', toExternRef, index.toJS.toExternRef));
   }
 
   @override
-  void insert(int index, JSAny? value) {
+  void insert(int index, T value) {
     RangeError.checkValueInInterval(index, 0, length);
     js.JS<void>('(a, i, v) => a.splice(i, 0, v)', toExternRef,
         index.toJS.toExternRef, value.toExternRef);
@@ -44,7 +44,7 @@ class JSArrayImpl implements List<JSAny?> {
       '(a, l) => a.length = l', toExternRef, newLength.toJS.toExternRef);
 
   @override
-  void insertAll(int index, Iterable<JSAny?> iterable) {
+  void insertAll(int index, Iterable<T> iterable) {
     RangeError.checkValueInInterval(index, 0, length);
     final that =
         iterable is EfficientLengthIterable ? iterable : iterable.toList();
@@ -56,7 +56,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  void setAll(int index, Iterable<JSAny?> iterable) {
+  void setAll(int index, Iterable<T> iterable) {
     RangeError.checkValueInInterval(index, 0, length);
     for (final element in iterable) {
       this[index++] = element;
@@ -64,8 +64,8 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  JSAny? removeLast() => js.JSValue.boxT<JSAny?>(
-      js.JS<WasmExternRef?>('a => a.pop()', toExternRef));
+  T removeLast() =>
+      js.JSValue.boxT<T>(js.JS<WasmExternRef?>('a => a.pop()', toExternRef));
 
   @override
   bool remove(Object? element) {
@@ -80,13 +80,13 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  void removeWhere(bool Function(JSAny?) test) => _retainWhere(test, false);
+  void removeWhere(bool Function(T) test) => _retainWhere(test, false);
 
   @override
-  void retainWhere(bool Function(JSAny?) test) => _retainWhere(test, true);
+  void retainWhere(bool Function(T) test) => _retainWhere(test, true);
 
-  void _retainWhere(bool Function(JSAny?) test, bool retainMatching) {
-    final retained = <JSAny?>[];
+  void _retainWhere(bool Function(T) test, bool retainMatching) {
+    final retained = <T>[];
     final end = length;
     for (var i = 0; i < end; i++) {
       final element = this[i];
@@ -104,17 +104,17 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  Iterable<JSAny?> where(bool Function(JSAny?) f) {
-    return WhereIterable<JSAny?>(this, f);
+  Iterable<T> where(bool Function(T) f) {
+    return WhereIterable<T>(this, f);
   }
 
   @override
-  Iterable<T> expand<T>(Iterable<T> Function(JSAny?) f) {
-    return ExpandIterable<JSAny?, T>(this, f);
+  Iterable<U> expand<U>(Iterable<U> Function(T) f) {
+    return ExpandIterable<T, U>(this, f);
   }
 
   @override
-  void addAll(Iterable<JSAny?> collection) {
+  void addAll(Iterable<T> collection) {
     for (final v in collection) {
       add(v);
     }
@@ -126,7 +126,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  void forEach(void Function(JSAny?) f) {
+  void forEach(void Function(T) f) {
     final end = length;
     for (var i = 0; i < end; i++) {
       f(this[i]);
@@ -135,8 +135,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  Iterable<T> map<T>(T Function(JSAny?) f) =>
-      MappedListIterable<JSAny?, T>(this, f);
+  Iterable<U> map<U>(U Function(T) f) => MappedListIterable<T, U>(this, f);
 
   @override
   String join([String separator = ""]) {
@@ -152,24 +151,23 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  Iterable<JSAny?> take(int n) => SubListIterable<JSAny?>(this, 0, n);
+  Iterable<T> take(int n) => SubListIterable<T>(this, 0, n);
 
   @override
-  Iterable<JSAny?> takeWhile(bool test(JSAny? value)) =>
-      TakeWhileIterable<JSAny?>(this, test);
+  Iterable<T> takeWhile(bool test(T value)) => TakeWhileIterable<T>(this, test);
 
   @override
-  Iterable<JSAny?> skip(int n) => SubListIterable<JSAny?>(this, n, null);
+  Iterable<T> skip(int n) => SubListIterable<T>(this, n, null);
 
   @override
-  Iterable<JSAny?> skipWhile(bool Function(JSAny?) test) =>
-      SkipWhileIterable<JSAny?>(this, test);
+  Iterable<T> skipWhile(bool Function(T) test) =>
+      SkipWhileIterable<T>(this, test);
 
   @override
-  JSAny? reduce(JSAny? combine(JSAny? previousValue, JSAny? element)) {
+  T reduce(T combine(T previousValue, T element)) {
     final end = length;
     if (end == 0) throw IterableElementError.noElement();
-    JSAny? value = this[0];
+    T value = this[0];
     for (var i = 1; i < end; i++) {
       final element = this[i];
       value = combine(value, element);
@@ -179,8 +177,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  T fold<T>(
-      T initialValue, T Function(T previousValue, JSAny? element) combine) {
+  U fold<U>(U initialValue, U Function(U previousValue, T element) combine) {
     final end = length;
     var value = initialValue;
     for (int i = 0; i < end; i++) {
@@ -192,7 +189,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  JSAny? firstWhere(bool Function(JSAny?) test, {JSAny? Function()? orElse}) {
+  T firstWhere(bool Function(T) test, {T Function()? orElse}) {
     final end = length;
     for (int i = 0; i < end; i++) {
       final element = this[i];
@@ -204,7 +201,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  JSAny? lastWhere(bool Function(JSAny?) test, {JSAny? Function()? orElse}) {
+  T lastWhere(bool Function(T) test, {T Function()? orElse}) {
     final end = length;
     for (int i = end - 1; i >= 0; i--) {
       final element = this[i];
@@ -216,9 +213,9 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  JSAny? singleWhere(bool Function(JSAny?) test, {JSAny? Function()? orElse}) {
+  T singleWhere(bool Function(T) test, {T Function()? orElse}) {
     final end = length;
-    JSAny? match;
+    late T match;
     var matchFound = false;
     for (int i = 0; i < end; i++) {
       final element = this[i];
@@ -237,35 +234,35 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  JSAny? elementAt(int index) => this[index];
+  T elementAt(int index) => this[index];
 
   @override
-  List<JSAny?> sublist(int start, [int? end]) {
+  List<T> sublist(int start, [int? end]) {
     end = RangeError.checkValidRange(start, end, length);
-    return JSArrayImpl(js.JS<WasmExternRef?>('(a, s, e) => a.slice(s, e)',
+    return JSArrayImpl<T>(js.JS<WasmExternRef?>('(a, s, e) => a.slice(s, e)',
         toExternRef, start.toJS.toExternRef, end.toJS.toExternRef));
   }
 
   @override
-  Iterable<JSAny?> getRange(int start, int end) {
+  Iterable<T> getRange(int start, int end) {
     RangeError.checkValidRange(start, end, length);
-    return SubListIterable<JSAny?>(this, start, end);
+    return SubListIterable<T>(this, start, end);
   }
 
   @override
-  JSAny? get first {
+  T get first {
     if (length > 0) return this[0];
     throw IterableElementError.noElement();
   }
 
   @override
-  JSAny? get last {
+  T get last {
     if (length > 0) return this[length - 1];
     throw IterableElementError.noElement();
   }
 
   @override
-  JSAny? get single {
+  T get single {
     if (length == 1) return this[0];
     if (length == 0) throw IterableElementError.noElement();
     throw IterableElementError.tooMany();
@@ -280,17 +277,16 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  void setRange(int start, int end, Iterable<JSAny?> iterable,
-      [int skipCount = 0]) {
+  void setRange(int start, int end, Iterable<T> iterable, [int skipCount = 0]) {
     RangeError.checkValidRange(start, end, length);
     final rangeLength = end - start;
     if (rangeLength == 0) return;
     RangeError.checkNotNegative(skipCount);
 
     // TODO(joshualitt): Fast path for when iterable is JS backed.
-    List<JSAny?> otherList;
+    List<T> otherList;
     int otherStart;
-    if (iterable is List<JSAny?>) {
+    if (iterable is List<T>) {
       otherList = iterable;
       otherStart = skipCount;
     } else {
@@ -313,15 +309,15 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  void fillRange(int start, int end, [JSAny? fillValue]) {
+  void fillRange(int start, int end, [T? fillValue]) {
     RangeError.checkValidRange(start, end, length);
     for (var i = start; i < end; i++) {
-      this[i] = fillValue;
+      this[i] = fillValue as T;
     }
   }
 
   @override
-  void replaceRange(int start, int end, Iterable<JSAny?> replacement) {
+  void replaceRange(int start, int end, Iterable<T> replacement) {
     RangeError.checkValidRange(start, end, length);
     final replacementList = replacement is EfficientLengthIterable
         ? replacement
@@ -348,7 +344,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  bool any(bool test(JSAny? element)) {
+  bool any(bool test(T element)) {
     final end = length;
     for (var i = 0; i < end; i++) {
       final element = this[i];
@@ -359,7 +355,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  bool every(bool test(JSAny? element)) {
+  bool every(bool test(T element)) {
     final end = length;
     for (var i = 0; i < end; i++) {
       final element = this[i];
@@ -370,16 +366,16 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  Iterable<JSAny?> get reversed => ReversedListIterable<JSAny?>(this);
+  Iterable<T> get reversed => ReversedListIterable<T>(this);
 
-  static int _compareAny(JSAny? a, JSAny? b) => js
+  static int _compareAny<T extends JSAny?>(T a, T b) => js
       .JS<double>('(a, b) => a == b ? 0 : (a > b ? 1 : -1)', a.toExternRef,
           b.toExternRef)
       .toInt();
 
   @override
-  void sort([int Function(JSAny?, JSAny?)? compare]) =>
-      Sort.sort(this, compare ?? _compareAny);
+  void sort([int Function(T, T)? compare]) =>
+      Sort.sort(this, compare ?? _compareAny<T>);
 
   @override
   void shuffle([Random? random]) {
@@ -446,14 +442,14 @@ class JSArrayImpl implements List<JSAny?> {
   String toString() => ListBase.listToString(this);
 
   @override
-  List<JSAny?> toList({bool growable = true}) =>
-      List<JSAny?>.of(this, growable: growable);
+  List<T> toList({bool growable = true}) =>
+      List<T>.of(this, growable: growable);
 
   @override
-  Set<JSAny?> toSet() => Set<JSAny?>.from(this);
+  Set<T> toSet() => Set<T>.from(this);
 
   @override
-  Iterator<JSAny?> get iterator => JSArrayImplIterator(this);
+  Iterator<T> get iterator => JSArrayImplIterator<T>(this);
 
   @override
   int get length => js.JS<double>('a => a.length', toExternRef).toInt();
@@ -466,34 +462,42 @@ class JSArrayImpl implements List<JSAny?> {
         '(a, l) => a.length = l', toExternRef, newLength.toJS.toExternRef);
   }
 
+  @pragma("wasm:prefer-inline")
+  T _getUnchecked(int index) => js.JSValue.boxT<T>(js.JS<WasmExternRef?>(
+      '(a, i) => a[i]', toExternRef, index.toJS.toExternRef));
+
   @override
-  JSAny? operator [](int index) {
-    RangeError.checkValueInInterval(index, 0, length - 1);
-    return js.JSValue.boxT<JSAny?>(js.JS<WasmExternRef?>(
-        '(a, i) => a[i]', toExternRef, index.toJS.toExternRef));
+  @pragma("wasm:prefer-inline")
+  T operator [](int index) {
+    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    return _getUnchecked(index);
+  }
+
+  @pragma("wasm:prefer-inline")
+  void _setUnchecked(int index, T value) => js.JS<void>('(a, i, v) => a[i] = v',
+      toExternRef, index.toJS.toExternRef, value.toExternRef);
+
+  @override
+  @pragma("wasm:prefer-inline")
+  void operator []=(int index, T value) {
+    IndexErrorUtils.checkAssumePositiveLength(index, length);
+    _setUnchecked(index, value);
   }
 
   @override
-  void operator []=(int index, JSAny? value) {
-    RangeError.checkValueInInterval(index, 0, length - 1);
-    js.JS<void>('(a, i, v) => a[i] = v', toExternRef, index.toJS.toExternRef,
-        value.toExternRef);
-  }
+  Map<int, T> asMap() => ListMapView<T>(this);
 
   @override
-  Map<int, JSAny?> asMap() => ListMapView<JSAny?>(this);
-
-  @override
-  Iterable<JSAny?> followedBy(Iterable<JSAny?> other) =>
-      FollowedByIterable<JSAny?>.firstEfficient(this, other);
+  Iterable<T> followedBy(Iterable<T> other) =>
+      FollowedByIterable<T>.firstEfficient(this, other);
 
   @override
   Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
   @override
-  List<JSAny?> operator +(List<JSAny?> other) {
+  List<T> operator +(List<T> other) {
     if (other is JSArrayImpl) {
-      return JSArrayImpl(js.JS<WasmExternRef?>(
+      return JSArrayImpl<T>(js.JS<WasmExternRef?>(
           '(a, t) => a.concat(t)', toExternRef, other.toExternRef));
     } else {
       return [...this, ...other];
@@ -501,7 +505,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  int indexWhere(bool Function(JSAny?) test, [int start = 0]) {
+  int indexWhere(bool Function(T) test, [int start = 0]) {
     if (start >= length) {
       return -1;
     }
@@ -517,7 +521,7 @@ class JSArrayImpl implements List<JSAny?> {
   }
 
   @override
-  int lastIndexWhere(bool Function(JSAny?) test, [int? start]) {
+  int lastIndexWhere(bool Function(T) test, [int? start]) {
     if (start == null) {
       start = length - 1;
     }
@@ -532,14 +536,14 @@ class JSArrayImpl implements List<JSAny?> {
     return -1;
   }
 
-  void set first(JSAny? element) {
+  void set first(T element) {
     if (isEmpty) {
       throw IterableElementError.noElement();
     }
     this[0] = element;
   }
 
-  void set last(JSAny? element) {
+  void set last(T element) {
     if (isEmpty) {
       throw IterableElementError.noElement();
     }
@@ -549,14 +553,14 @@ class JSArrayImpl implements List<JSAny?> {
   // TODO(joshualitt): Override hash code and operator==?
 }
 
-class JSArrayImplIterator implements Iterator<JSAny?> {
-  final JSArrayImpl _array;
+class JSArrayImplIterator<T extends JSAny?> implements Iterator<T> {
+  final JSArrayImpl<T> _array;
   final int _length;
   int _index = -1;
 
   JSArrayImplIterator(this._array) : _length = _array.length {}
 
-  JSAny? get current => _array[_index];
+  T get current => _array[_index];
 
   bool moveNext() {
     if (_length != _array.length) {

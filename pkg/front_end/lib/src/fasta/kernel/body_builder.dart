@@ -1305,11 +1305,9 @@ class BodyBuilder extends StackListenerImpl
           asyncModifier,
           body);
       body = inferredFunctionBody.body;
-      function.futureValueType = inferredFunctionBody.futureValueType;
-      assert(
-          !(function.asyncMarker == AsyncMarker.Async &&
-              function.futureValueType == null),
-          "No future value type computed.");
+      function.emittedValueType = inferredFunctionBody.emittedValueType;
+      assert(function.asyncMarker == AsyncMarker.Sync ||
+          function.emittedValueType != null);
     }
 
     if (_context.returnType is! OmittedTypeBuilder) {
@@ -1770,8 +1768,9 @@ class BodyBuilder extends StackListenerImpl
     List<NominalVariableBuilder>? typeParameterBuilders;
     for (TypeParameter typeParameter in parameters.typeParameters) {
       typeParameterBuilders ??= <NominalVariableBuilder>[];
-      typeParameterBuilders
-          .add(new NominalVariableBuilder.fromKernel(typeParameter));
+      typeParameterBuilders.add(new NominalVariableBuilder.fromKernel(
+          typeParameter,
+          loader: libraryBuilder.loader));
     }
     enterNominalVariablesScope(typeParameterBuilders);
 
@@ -5184,7 +5183,8 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(questionMark != null),
-        typeVariables);
+        structuralVariableBuilders: typeVariables,
+        hasFunctionFormalParameterSyntax: false);
     exitLocalScope();
     push(type);
   }
@@ -5501,7 +5501,8 @@ class BodyBuilder extends StackListenerImpl
     TypeBuilder type = formals.toFunctionType(
         returnType ?? const ImplicitTypeBuilder(),
         libraryBuilder.nullableBuilderIfTrue(question != null),
-        typeVariables);
+        structuralVariableBuilders: typeVariables,
+        hasFunctionFormalParameterSyntax: true);
     exitLocalScope();
     push(type);
     functionNestingLevel--;
@@ -8786,6 +8787,7 @@ class BodyBuilder extends StackListenerImpl
     // Peek to leave type parameters on top of stack.
     List<TypeVariableBuilderBase> typeVariables =
         peek() as List<TypeVariableBuilderBase>;
+    libraryBuilder.checkTypeVariableDependencies(typeVariables);
 
     List<TypeBuilder> unboundTypes = [];
     List<StructuralVariableBuilder> unboundTypeVariables = [];
@@ -10047,9 +10049,11 @@ class FormalParameters {
 
   TypeBuilder toFunctionType(
       TypeBuilder returnType, NullabilityBuilder nullabilityBuilder,
-      [List<StructuralVariableBuilder>? structuralVariableBuilders]) {
+      {List<StructuralVariableBuilder>? structuralVariableBuilders,
+      required bool hasFunctionFormalParameterSyntax}) {
     return new FunctionTypeBuilderImpl(returnType, structuralVariableBuilders,
-        parameters, nullabilityBuilder, uri, charOffset);
+        parameters, nullabilityBuilder, uri, charOffset,
+        hasFunctionFormalParameterSyntax: hasFunctionFormalParameterSyntax);
   }
 
   Scope computeFormalParameterScope(

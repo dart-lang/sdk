@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RestPatternTest1);
-    defineReflectiveTests(RestPatternTest2);
+    defineReflectiveTests(RestPatternTest);
   });
 }
 
 @reflectiveTest
-class RestPatternTest1 extends AbstractCompletionDriverTest
-    with RestPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class RestPatternTest2 extends AbstractCompletionDriverTest
-    with RestPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class RestPatternTest extends AbstractCompletionDriverTest
+    with RestPatternTestCases {}
 
 mixin RestPatternTestCases on AbstractCompletionDriverTest {
   void test_afterRest() async {
@@ -57,8 +46,7 @@ void f(Object o) {
   if(o case [int first, ... f^]) {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -67,24 +55,5 @@ suggestions
   final
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 }

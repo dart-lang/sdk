@@ -1276,8 +1276,7 @@ mixin LspAnalysisServerTestMixin
         return configurationParams.items.map(
           (requestedConfig) {
             final uri = requestedConfig.scopeUri;
-            final path =
-                uri != null ? pathContext.fromUri(Uri.parse(uri)) : null;
+            final path = uri != null ? pathContext.fromUri(uri) : null;
             // Use the config the test provided for this path, or fall back to
             // global.
             return (folders != null ? folders[path] : null) ?? global;

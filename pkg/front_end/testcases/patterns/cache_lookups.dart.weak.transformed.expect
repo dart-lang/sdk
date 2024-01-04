@@ -19,20 +19,16 @@ static method test(dynamic o) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = o;
-    function ##0#2#initializer() → core::int
-      return (#0#0 as{Unchecked} self::Class).{self::Class::field}{core::int};
-    late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
-    function ##0#10#initializer() → core::bool
-      return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    late final synthesized core::bool #0#10 = ##0#10#initializer(){() → core::bool};
-    function ##0#12#initializer() → dynamic
-      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#12 = ##0#12#initializer(){() → dynamic};
-    function ##0#13#initializer() → dynamic
-      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
-    late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
+    synthesized core::int #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    synthesized core::bool #0#10;
+    synthesized core::bool #0#10#isSet = false;
+    synthesized dynamic #0#12;
+    synthesized core::bool #0#12#isSet = false;
+    synthesized dynamic #0#13;
+    synthesized core::bool #0#13#isSet = false;
     {
-      if(#0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 || #0#0 is self::Class && #C3 =={core::num::==}{(core::Object) → core::bool} #0#2) {
+      if(#0#0 is self::Class && #C1 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t1 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int}) || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#2#isSet ?{core::int} #0#2{core::int} : let final core::bool* #t2 = #0#2#isSet = true in #0#2 = #0#0{self::Class}.{self::Class::field}{core::int})) {
         {
           core::print("Class");
           break #L1;
@@ -41,7 +37,7 @@ static method test(dynamic o) → dynamic {
     }
     {
       hoisted core::int a;
-      if(#0#0 is core::List<dynamic> && #0#10 && (#0#12 is core::int && (let final core::int #t1 = a = #0#12{core::int} in true)) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#13 || #0#0 is core::List<dynamic> && #0#10 && (#0#12 is core::int && (let final core::int #t2 = a = #0#12{core::int} in true)) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#13) {
+      if(#0#0 is core::List<dynamic> && (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t3 = #0#10#isSet = true in #0#10 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3) && ((#0#12#isSet ?{dynamic} #0#12{dynamic} : let final core::bool* #t4 = #0#12#isSet = true in #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final core::int #t5 = a = (#0#12#isSet ?{dynamic} #0#12{dynamic} : let final core::bool* #t6 = #0#12#isSet = true in #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#13#isSet ?{dynamic} #0#13{dynamic} : let final core::bool* #t7 = #0#13#isSet = true in #0#13 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) || #0#0 is core::List<dynamic> && (#0#10#isSet ?{core::bool} #0#10{core::bool} : let final core::bool* #t8 = #0#10#isSet = true in #0#10 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3) && ((#0#12#isSet ?{dynamic} #0#12{dynamic} : let final core::bool* #t9 = #0#12#isSet = true in #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) is core::int && (let final core::int #t10 = a = (#0#12#isSet ?{dynamic} #0#12{dynamic} : let final core::bool* #t11 = #0#12#isSet = true in #0#12 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) as{Unchecked} core::int in true)) && #C3 =={core::num::==}{(core::Object) → core::bool} (#0#13#isSet ?{dynamic} #0#13{dynamic} : let final core::bool* #t12 = #0#13#isSet = true in #0#13 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic})) {
         {
           core::print("List");
         }
@@ -217,9 +213,9 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ join([core::String separator = #C7]) → core::String {
     if(this.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0)
       return "";
-    core::StringBuffer buffer = let final core::StringBuffer #t3 = new core::StringBuffer::•() in block {
-      #t3.{core::StringBuffer::writeAll}(this, separator){(core::Iterable<dynamic>, [core::String]) → void};
-    } =>#t3;
+    core::StringBuffer buffer = let final core::StringBuffer #t13 = new core::StringBuffer::•() in block {
+      #t13.{core::StringBuffer::writeAll}(this, separator){(core::Iterable<dynamic>, [core::String]) → void};
+    } =>#t13;
     return buffer.{core::StringBuffer::toString}(){() → core::String};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ where((cac::_CustomList&Object&ListMixin::E%) → core::bool test) → core::Iterable<cac::_CustomList&Object&ListMixin::E%>
@@ -282,7 +278,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     return result;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ add(covariant-by-class cac::_CustomList&Object&ListMixin::E% element) → void {
-    this.{core::List::[]=}(let final core::int #t4 = this.{core::List::length}{core::int} in let final core::int #t5 = this.{core::List::length} = #t4.{core::num::+}(1){(core::num) → core::int} in #t4, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
+    this.{core::List::[]=}(let final core::int #t14 = this.{core::List::length}{core::int} in let final core::int #t15 = this.{core::List::length} = #t14.{core::num::+}(1){(core::num) → core::int} in #t14, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ addAll(covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable) → void {
     core::int i = this.{core::List::length}{core::int};
@@ -355,7 +351,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     return result;
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sort([(cac::_CustomList&Object&ListMixin::E%, cac::_CustomList&Object&ListMixin::E%) →? core::int compare = #C5]) → void {
-    _in::Sort::sort<cac::_CustomList&Object&ListMixin::E%>(this, let final (cac::_CustomList&Object&ListMixin::E%, cac::_CustomList&Object&ListMixin::E%) →? core::int #t6 = compare in #t6 == null ?{(cac::_CustomList&Object&ListMixin::E%, cac::_CustomList&Object&ListMixin::E%) → core::int} #C9 : #t6{(cac::_CustomList&Object&ListMixin::E%, cac::_CustomList&Object&ListMixin::E%) → core::int});
+    _in::Sort::sort<cac::_CustomList&Object&ListMixin::E%>(this, let final (cac::_CustomList&Object&ListMixin::E%, cac::_CustomList&Object&ListMixin::E%) →? core::int #t16 = compare in #t16 == null ?{(cac::_CustomList&Object&ListMixin::E%, cac::_CustomList&Object&ListMixin::E%) → core::int} #C9 : #t16{(cac::_CustomList&Object&ListMixin::E%, cac::_CustomList&Object&ListMixin::E%) → core::int});
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ shuffle([math::Random? random = #C5]) → void {
     random == null ?{math::Random?} random = math::Random::•() : null;
@@ -373,9 +369,9 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
   }
   operator /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ +(covariant-by-class core::List<cac::_CustomList&Object&ListMixin::E%> other) → core::List<cac::_CustomList&Object&ListMixin::E%>
     return block {
-      final core::List<cac::_CustomList&Object&ListMixin::E%> #t7 = core::List::of<cac::_CustomList&Object&ListMixin::E%>(this);
-      #t7.{core::List::addAll}{Invariant}(other){(core::Iterable<cac::_CustomList&Object&ListMixin::E%>) → void};
-    } =>#t7;
+      final core::List<cac::_CustomList&Object&ListMixin::E%> #t17 = core::List::of<cac::_CustomList&Object&ListMixin::E%>(this);
+      #t17.{core::List::addAll}{Invariant}(other){(core::Iterable<cac::_CustomList&Object&ListMixin::E%>) → void};
+    } =>#t17;
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ sublist(core::int start, [core::int? end = #C5]) → core::List<cac::_CustomList&Object&ListMixin::E%> {
     core::int listLength = this.{core::List::length}{core::int};
     end == null ?{core::int?} end = listLength : null;
@@ -393,13 +389,13 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     }
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ fillRange(core::int start, core::int end, [covariant-by-class cac::_CustomList&Object&ListMixin::E? fill = #C5]) → void {
-    cac::_CustomList&Object&ListMixin::E% value = let cac::_CustomList&Object&ListMixin::E? #t8 = fill in #t8 == null ?{cac::_CustomList&Object&ListMixin::E%} #t8 : #t8{cac::_CustomList&Object&ListMixin::E%};
+    cac::_CustomList&Object&ListMixin::E% value = let cac::_CustomList&Object&ListMixin::E? #t18 = fill in #t18 == null ?{cac::_CustomList&Object&ListMixin::E%} #t18 : #t18{cac::_CustomList&Object&ListMixin::E%};
     core::RangeError::checkValidRange(start, end, this.{core::List::length}{core::int});
     for (core::int i = start; i.{core::num::<}(end){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
       this.{core::List::[]=}(i, value){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
     }
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setRange(core::int start, core::int end, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable, [core::int skipCount = #C2]) → void {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setRange(core::int start, core::int end, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable, [core::int skipCount = #C1]) → void {
     core::RangeError::checkValidRange(start, end, this.{core::List::length}{core::int});
     core::int length = end.{core::num::-}(start){(core::num) → core::int};
     if(length =={core::num::==}{(core::Object) → core::bool} 0)
@@ -479,7 +475,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
         this.{col::ListBase::setRange}(start, insertEnd, newContents){(core::int, core::int, core::Iterable<cac::_CustomList&Object&ListMixin::E%>, [core::int]) → void};
       }
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexOf(covariant-by-class core::Object? element, [core::int start = #C2]) → core::int {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexOf(covariant-by-class core::Object? element, [core::int start = #C1]) → core::int {
     if(start.{core::num::<}(0){(core::num) → core::bool})
       start = 0;
     for (core::int i = start; i.{core::num::<}(this.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
@@ -488,7 +484,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     }
     return 1.{core::int::unary-}(){() → core::int};
   }
-  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, [core::int start = #C2]) → core::int {
+  method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ indexWhere((cac::_CustomList&Object&ListMixin::E%) → core::bool test, [core::int start = #C1]) → core::int {
     if(start.{core::num::<}(0){(core::num) → core::bool})
       start = 0;
     for (core::int i = start; i.{core::num::<}(this.{core::List::length}{core::int}){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
@@ -567,7 +563,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
           cac::_CustomList&Object&ListMixin::E% element = :sync-for-iterator.{core::Iterator::current}{cac::_CustomList&Object&ListMixin::E%};
           {
-            this.{core::List::[]=}(let final core::int #t9 = index in let final core::int #t10 = index = #t9.{core::num::+}(1){(core::num) → core::int} in #t9, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
+            this.{core::List::[]=}(let final core::int #t19 = index in let final core::int #t20 = index = #t19.{core::num::+}(1){(core::num) → core::int} in #t19, element){(core::int, cac::_CustomList&Object&ListMixin::E%) → void};
           }
         }
       }
@@ -603,9 +599,9 @@ class CustomList<E extends core::Object? = dynamic> extends cac::_CustomList&Obj
 }
 
 constants  {
-  #C1 = 2
-  #C2 = 0
-  #C3 = 1
+  #C1 = 0
+  #C2 = 1
+  #C3 = 2
   #C4 = "vm:prefer-inline"
   #C5 = null
   #C6 = core::pragma {name:#C4, options:#C5}
@@ -619,4 +615,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1150, effectively constant: 4
+Extra constant evaluation: evaluated: 1208, effectively constant: 4

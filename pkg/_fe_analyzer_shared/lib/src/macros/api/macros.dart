@@ -85,14 +85,14 @@ abstract interface class ClassTypesMacro implements Macro {
 /// contribute new non-type declarations to the program.
 abstract interface class ClassDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForClass(
-      IntrospectableClassDeclaration clazz, MemberDeclarationBuilder builder);
+      ClassDeclaration clazz, MemberDeclarationBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any class, and want to
 /// augment the definitions of the members of that class.
 abstract interface class ClassDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForClass(
-      IntrospectableClassDeclaration clazz, TypeDefinitionBuilder builder);
+      ClassDeclaration clazz, TypeDefinitionBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any enum, and want to
@@ -106,14 +106,14 @@ abstract interface class EnumTypesMacro implements Macro {
 /// contribute new non-type declarations to the program.
 abstract interface class EnumDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForEnum(
-      IntrospectableEnumDeclaration enuum, EnumDeclarationBuilder builder);
+      EnumDeclaration enuum, EnumDeclarationBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any enum, and want to
 /// augment the definitions of members or values of that enum.
 abstract interface class EnumDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForEnum(
-      IntrospectableEnumDeclaration enuum, EnumDefinitionBuilder builder);
+      EnumDeclaration enuum, EnumDefinitionBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any enum, and want to
@@ -211,14 +211,14 @@ abstract interface class MixinTypesMacro implements Macro {
 /// want to contribute new non-type declarations to the program.
 abstract interface class MixinDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForMixin(
-      IntrospectableMixinDeclaration mixin, MemberDeclarationBuilder builder);
+      MixinDeclaration mixin, MemberDeclarationBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any mixin declaration, and
 /// want to augment the definitions of the members of that mixin.
 abstract interface class MixinDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForMixin(
-      IntrospectableMixinDeclaration mixin, TypeDefinitionBuilder builder);
+      MixinDeclaration mixin, TypeDefinitionBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any extension declaration,
@@ -232,16 +232,14 @@ abstract interface class ExtensionTypesMacro implements Macro {
 /// and want to contribute new non-type declarations to the program.
 abstract interface class ExtensionDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForExtension(
-      IntrospectableExtensionDeclaration extension,
-      MemberDeclarationBuilder builder);
+      ExtensionDeclaration extension, MemberDeclarationBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any extension declaration,
 /// and want to augment the definitions of the members of that extension.
 abstract interface class ExtensionDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForExtension(
-      IntrospectableExtensionDeclaration extension,
-      TypeDefinitionBuilder builder);
+      ExtensionDeclaration extension, TypeDefinitionBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any extension type
@@ -256,8 +254,7 @@ abstract interface class ExtensionTypeTypesMacro implements Macro {
 /// program.
 abstract interface class ExtensionTypeDeclarationsMacro implements Macro {
   FutureOr<void> buildDeclarationsForExtensionType(
-      IntrospectableExtensionTypeDeclaration extension,
-      MemberDeclarationBuilder builder);
+      ExtensionTypeDeclaration extension, MemberDeclarationBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any extension type
@@ -265,6 +262,5 @@ abstract interface class ExtensionTypeDeclarationsMacro implements Macro {
 /// extension.
 abstract interface class ExtensionTypeDefinitionMacro implements Macro {
   FutureOr<void> buildDefinitionForExtensionType(
-      IntrospectableExtensionTypeDeclaration extension,
-      TypeDefinitionBuilder builder);
+      ExtensionTypeDeclaration extension, TypeDefinitionBuilder builder);
 }

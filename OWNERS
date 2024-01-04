@@ -12,13 +12,16 @@ vsm@google.com #{LAST_RESORT_SUGGESTION}
 per-file DEPS=file:/tools/OWNERS_ENG
 
 # Changelog, AUTHORS, and .git* do not require approval.
-per-file CHANGELOG.md,AUTHORS,.gitattributes,.gitconfig,.gitignore=*
+per-file CHANGELOG.md,AUTHORS,WATCHLISTS,.gitattributes,.gitconfig,.gitignore,sdk.code-workspace=*
 
 # Product documentation
 per-file CONTRIBUTING.md,LICENSE,PATENT_GRANT,README.*,SECURITY.md=file:/tools/OWNERS_PRODUCT
 
 # Top level build files
-per-file .clang-format,BUILD.gn,sdk_args.gni=file:/tools/OWNERS_BUILD
+per-file .clang-format,.gn,BUILD.gn,sdk_args.gni=file:/tools/OWNERS_BUILD
+
+# Infrastructure files.
+per-file .style.yapf,codereview.settings,PRESUBMIT.py=file:/tools/OWNERS_INFRA
 
 # Generated file
 per-file .packages=*

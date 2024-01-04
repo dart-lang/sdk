@@ -403,6 +403,9 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
   @override
   EvaluationComplexity visitStructuralParameter(
       ir.StructuralParameter typeParameter) {
+    // Visit the default type to register any necessary type parameters that RTI
+    // might need if the associated function is used as a generic tear off.
+    visitNode(typeParameter.defaultType);
     return const EvaluationComplexity.constant();
   }
 
@@ -431,6 +434,14 @@ class ScopeModelBuilder extends ir.VisitorDefault<EvaluationComplexity>
     }
     enterNewScope(node, () {
       visitNode(node.variable);
+      if (node.isAsync) {
+        // If this is async then the type is explicitly used to instantiate
+        // the underlying StreamIterator.
+        visitInContext(
+            node.variable.type,
+            VariableUse.constructorTypeArgument(
+                _coreTypes.streamIteratorDefaultConstructor));
+      }
       visitInVariableScope(node, () {
         visitNode(node.iterable);
         visitNode(node.body);
@@ -1557,8 +1568,6 @@ class EvaluationComplexity {
       case ComplexityLevel.definitelyLazy:
         sb.write('lazy');
         break;
-      default:
-        throw UnsupportedError("Unexpected complexity level $level");
     }
     return sb.toString();
   }

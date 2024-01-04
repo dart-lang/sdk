@@ -99,8 +99,10 @@ class ElementDisplayStringBuilder {
       _write('augment ');
     }
 
-    _writeType(element.returnType);
-    _write(' ');
+    if (element.kind != ElementKind.SETTER) {
+      _writeType(element.returnType);
+      _write(' ');
+    }
 
     _write(name);
 

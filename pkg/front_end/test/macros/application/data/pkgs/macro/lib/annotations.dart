@@ -13,7 +13,7 @@ class AnnotationsMacro
 
   const AnnotationsMacro(this.object);
 
-  FutureOr<void> buildDeclarationsForClass(IntrospectableClassDeclaration clazz,
+  FutureOr<void> buildDeclarationsForClass(ClassDeclaration clazz,
       MemberDeclarationBuilder builder) {}
 
   FutureOr<void> buildDeclarationsForFunction(FunctionDeclaration function,

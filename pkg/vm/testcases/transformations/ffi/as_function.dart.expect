@@ -1,0 +1,63 @@
+library #lib;
+import self as self;
+import "dart:ffi" as ffi;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:ffi";
+
+static method testVoidNoArg() → dynamic {
+  final ffi::Pointer<ffi::NativeFunction<() → ffi::Void>> pointer = ffi::Pointer::fromAddress<ffi::NativeFunction<() → ffi::Void>>(3735928559);
+  final () → void function = block {
+    synthesized ffi::Pointer<ffi::NativeFunction<() → ffi::Void>> #ffiTarget0 = pointer;
+    @#C4
+    function #ffiClosure0() → void {
+      return ffi::_ffiCall<void>(#ffiTarget0);
+    }
+  } =>#ffiClosure0;
+  function(){() → void};
+}
+static method testIntInt() → dynamic {
+  final ffi::Pointer<ffi::NativeFunction<(ffi::Int64) → ffi::Int32>> pointer = ffi::Pointer::fromAddress<ffi::NativeFunction<(ffi::Int64) → ffi::Int32>>(3735928559);
+  final (core::int) → core::int function = block {
+    synthesized ffi::Pointer<ffi::NativeFunction<(ffi::Int64) → ffi::Int32>> #ffiTarget1 = pointer;
+    @#C6
+    function #ffiClosure1(core::int arg1) → core::int {
+      _in::_nativeEffect(arg1);
+      return ffi::_ffiCall<core::int>(#ffiTarget1);
+    }
+  } =>#ffiClosure1;
+  return function(42){(core::int) → core::int};
+}
+static method testLeaf5Args() → dynamic {
+  final ffi::Pointer<ffi::NativeFunction<(ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32) → ffi::Int32>> pointer = ffi::Pointer::fromAddress<ffi::NativeFunction<(ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32) → ffi::Int32>>(3735928559);
+  final (core::int, core::int, core::int, core::int, core::int) → core::int function = block {
+    synthesized ffi::Pointer<ffi::NativeFunction<(ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32) → ffi::Int32>> #ffiTarget2 = pointer;
+    @#C9
+    function #ffiClosure2(core::int arg1, core::int arg2, core::int arg3, core::int arg4, core::int arg5) → core::int {
+      _in::_nativeEffect(arg1);
+      _in::_nativeEffect(arg2);
+      _in::_nativeEffect(arg3);
+      _in::_nativeEffect(arg4);
+      _in::_nativeEffect(arg5);
+      return ffi::_ffiCall<core::int>(#ffiTarget2);
+    }
+  } =>#ffiClosure2;
+  return function(1, 2, 3, 4, 5){(core::int, core::int, core::int, core::int, core::int) → core::int};
+}
+static method main() → void {
+  self::testVoidNoArg();
+  self::testIntInt();
+  self::testLeaf5Args();
+}
+constants  {
+  #C1 = "vm:ffi:call-closure"
+  #C2 = false
+  #C3 = ffi::_FfiCall<() → ffi::Void> {isLeaf:#C2}
+  #C4 = core::pragma {name:#C1, options:#C3}
+  #C5 = ffi::_FfiCall<(ffi::Int64) → ffi::Int32> {isLeaf:#C2}
+  #C6 = core::pragma {name:#C1, options:#C5}
+  #C7 = true
+  #C8 = ffi::_FfiCall<(ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32, ffi::Int32) → ffi::Int32> {isLeaf:#C7}
+  #C9 = core::pragma {name:#C1, options:#C8}
+}

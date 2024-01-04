@@ -1,0 +1,303 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/casts.dart:20:52: Error: The type 'dynamic' is not exhaustively matched by the switch cases since it doesn't match 'Object()'.
+// Try adding a wildcard pattern or cases that match 'Object()'.
+// nonExhaustiveDynamicAsStringOrDouble(o) => switch (o) {
+//                                                    ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/casts.dart:30:59: Error: The type 'dynamic' is not exhaustively matched by the switch cases since it doesn't match 'Object()'.
+// Try adding a wildcard pattern or cases that match 'Object()'.
+// nonExhaustiveDynamicAsStringOrIntRestricted(o) => switch (o) {
+//                                                           ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/casts.dart:55:57: Error: The type 'dynamic' is not exhaustively matched by the switch cases since it doesn't match 'Object()'.
+// Try adding a wildcard pattern or cases that match 'Object()'.
+// nonExhaustiveDynamicAsMRestricted(dynamic m) => switch (m) {
+//                                                         ^
+//
+// pkg/front_end/testcases/patterns/exhaustiveness/casts.dart:68:33: Error: The type 'dynamic' is not exhaustively matched by the switch cases since it doesn't match 'Object()'.
+// Try adding a wildcard pattern or cases that match 'Object()'.
+// nonExhaustiveList(o) => switch (o) {
+//                                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract sealed class M extends core::Object {
+  synthetic constructor •() → self::M
+    : super core::Object::•()
+    ;
+}
+class A extends self::M {
+  synthetic constructor •() → self::A
+    : super self::M::•()
+    ;
+}
+class B extends self::M {
+  synthetic constructor •() → self::B
+    : super self::M::•()
+    ;
+}
+class C extends self::M {
+  synthetic constructor •() → self::C
+    : super self::M::•()
+    ;
+}
+static method exhaustiveDynamicAsStringOrInt(dynamic o) → dynamic
+  return block {
+    core::String #t1;
+    final synthesized dynamic #0#0 = o;
+    #L1:
+    {
+      {
+        final hoisted core::String value;
+        if(#0#0 is core::String) {
+          value = #0#0{core::String};
+          #t1 = value;
+          break #L1;
+        }
+      }
+      {
+        final hoisted core::int value;
+        if(true) {
+          #0#0 as core::int;
+          value = #0#0 as core::int;
+          #t1 = "${value}";
+          break #L1;
+        }
+      }
+    }
+  } =>#t1;
+static method exhaustiveDynamicAsStringOrIntAnd(dynamic o) → dynamic
+  return block {
+    core::String #t2;
+    final synthesized dynamic #0#0 = o;
+    #L2:
+    {
+      {
+        final hoisted core::String value;
+        if(#0#0 is core::String) {
+          value = #0#0{core::String};
+          #t2 = value;
+          break #L2;
+        }
+      }
+      {
+        final hoisted core::int value;
+        final hoisted core::int value2;
+        if(true) {
+          #0#0 as core::int;
+          value = #0#0 as core::int;
+          value2 = #0#0 as core::int;
+          #t2 = "${value}${value2}";
+          break #L2;
+        }
+      }
+    }
+  } =>#t2;
+static method exhaustiveDynamicAsStringOrNum(dynamic o) → dynamic
+  return block {
+    core::String #t3;
+    final synthesized dynamic #0#0 = o;
+    #L3:
+    {
+      {
+        final hoisted core::String value;
+        if(#0#0 is core::String) {
+          value = #0#0{core::String};
+          #t3 = value;
+          break #L3;
+        }
+      }
+      {
+        final hoisted core::num value;
+        if(let final dynamic #t4 = #0#0 as core::int in (#0#0 as core::int) is core::num && (let final dynamic #t5 = value = #0#0 as core::int in true)) {
+          #t3 = "${value}";
+          break #L3;
+        }
+      }
+    }
+  } =>#t3;
+static method nonExhaustiveDynamicAsStringOrDouble(dynamic o) → dynamic
+  return block {
+    core::String #t6;
+    final synthesized dynamic #0#0 = o;
+    #L4:
+    {
+      {
+        final hoisted core::String value;
+        if(#0#0 is core::String) {
+          value = #0#0{core::String};
+          #t6 = value;
+          break #L4;
+        }
+      }
+      {
+        final hoisted core::double value;
+        if(let final dynamic #t7 = #0#0 as core::num in (#0#0 as core::num) is core::double && (let final dynamic #t8 = value = (#0#0 as core::num) as{Unchecked} core::double in true)) {
+          #t6 = "${value}";
+          break #L4;
+        }
+      }
+    }
+  } =>#t6;
+static method exhaustiveDynamicAsStringOrIntUnrestricted(dynamic o) → dynamic
+  return block {
+    core::String #t9;
+    final synthesized dynamic #0#0 = o;
+    synthesized core::bool #0#2;
+    synthesized core::bool #0#2#isSet = false;
+    #L5:
+    {
+      {
+        final hoisted core::String value;
+        if(#0#0 is core::String) {
+          value = #0#0{core::String};
+          #t9 = value;
+          break #L5;
+        }
+      }
+      {
+        hoisted core::bool isEven;
+        if(let final dynamic #t10 = #0#0 as core::int in (#0#2#isSet ?{core::bool} #0#2{core::bool} : let final dynamic #t11 = #0#2#isSet = true in #0#2 = (#0#0 as core::int).{core::int::isEven}{core::bool}) is core::bool && (let final dynamic #t12 = isEven = #0#2#isSet ?{core::bool} #0#2{core::bool} : let final dynamic #t13 = #0#2#isSet = true in #0#2 = (#0#0 as core::int).{core::int::isEven}{core::bool} in true)) {
+          #t9 = "${isEven}";
+          break #L5;
+        }
+      }
+    }
+  } =>#t9;
+static method nonExhaustiveDynamicAsStringOrIntRestricted(dynamic o) → dynamic
+  return block {
+    core::String #t14;
+    final synthesized dynamic #0#0 = o;
+    #L6:
+    {
+      {
+        final hoisted core::String value;
+        if(#0#0 is core::String) {
+          value = #0#0{core::String};
+          #t14 = value;
+          break #L6;
+        }
+      }
+      {
+        if(let final dynamic #t15 = #0#0 as core::int in #C1 =={core::Object::==}{(core::Object) → core::bool} (#0#0 as core::int).{core::int::isEven}{core::bool}) {
+          #t14 = "";
+          break #L6;
+        }
+      }
+    }
+  } =>#t14;
+static method exhaustiveMAsM(self::M m) → dynamic
+  return block {
+    core::int #t16;
+    final synthesized self::M #0#0 = m;
+    #L7:
+    {
+      {
+        if(let final dynamic #t17 = #0#0 as self::M in (#0#0 as self::M) is self::A || (#0#0 as self::M) is self::B || (#0#0 as self::M) is self::C) {
+          #t16 = 0;
+          break #L7;
+        }
+      }
+    }
+  } =>#t16;
+static method exhaustiveDynamicAsM(dynamic m) → dynamic
+  return block {
+    core::int #t18;
+    final synthesized dynamic #0#0 = m;
+    #L8:
+    {
+      {
+        if(let final dynamic #t19 = #0#0 as self::M in (#0#0 as self::M) is self::A || (#0#0 as self::M) is self::B || (#0#0 as self::M) is self::C) {
+          #t18 = 0;
+          break #L8;
+        }
+      }
+    }
+  } =>#t18;
+static method exhaustiveDynamicAsMUnrestricted(dynamic m) → dynamic
+  return block {
+    core::int #t20;
+    final synthesized dynamic #0#0 = m;
+    #L9:
+    {
+      {
+        if(let final dynamic #t21 = #0#0 as self::M in (#0#0 as self::M) is self::A || (#0#0 as self::M) is self::B || (#0#0 as self::M) is self::C && (let final dynamic #t22 = ((#0#0 as self::M) as{Unchecked} self::C).{core::Object::hashCode}{core::int} in true)) {
+          #t20 = 0;
+          break #L9;
+        }
+      }
+    }
+  } =>#t20;
+static method nonExhaustiveDynamicAsMRestricted(dynamic m) → dynamic
+  return block {
+    core::int #t23;
+    final synthesized dynamic #0#0 = m;
+    #L10:
+    {
+      {
+        if(let final dynamic #t24 = #0#0 as self::M in (#0#0 as self::M) is self::A || (#0#0 as self::M) is self::B || (#0#0 as self::M) is self::C && #C2 =={core::num::==}{(core::Object) → core::bool} ((#0#0 as self::M) as{Unchecked} self::C).{core::Object::hashCode}{core::int}) {
+          #t23 = 0;
+          break #L10;
+        }
+      }
+    }
+  } =>#t23;
+static method exhaustiveDynamicAsMSeeminglyRestricted(dynamic m) → dynamic
+  return block {
+    core::int #t25;
+    final synthesized dynamic #0#0 = m;
+    #L11:
+    {
+      {
+        if(let final dynamic #t26 = #0#0 as self::A in true || (#0#0 as self::A) is self::B || (#0#0 as self::A) is self::C && #C2 =={core::num::==}{(core::Object) → core::bool} ((#0#0 as self::A) as{Unchecked} self::C).{core::Object::hashCode}{core::int}) {
+          #t25 = 0;
+          break #L11;
+        }
+      }
+    }
+  } =>#t25;
+static method exhaustiveList(dynamic o) → dynamic
+  return block {
+    core::int #t27;
+    final synthesized dynamic #0#0 = o;
+    #L12:
+    {
+      {
+        if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3) {
+          #t27 = 1;
+          break #L12;
+        }
+      }
+      {
+        if(let final dynamic #t28 = #0#0 as core::List<dynamic> in true) {
+          #t27 = 0;
+          break #L12;
+        }
+      }
+    }
+  } =>#t27;
+static method nonExhaustiveList(dynamic o) → dynamic
+  return block {
+    core::int #t29;
+    final synthesized dynamic #0#0 = o;
+    #L13:
+    {
+      {
+        if(let final dynamic #t30 = #0#0 as core::List<dynamic> in (#0#0 as core::List<dynamic>).{core::List::length}{core::int}.{core::num::<=}(#C4){(core::num) → core::bool}) {
+          #t29 = 0;
+          break #L13;
+        }
+      }
+    }
+  } =>#t29;
+
+constants  {
+  #C1 = true
+  #C2 = 5
+  #C3 = 1
+  #C4 = 0
+}

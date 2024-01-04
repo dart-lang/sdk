@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(NamedExpressionExpressionTest1);
-    defineReflectiveTests(NamedExpressionExpressionTest2);
+    defineReflectiveTests(NamedExpressionExpressionTest);
   });
 }
 
 @reflectiveTest
-class NamedExpressionExpressionTest1 extends AbstractCompletionDriverTest
-    with NamedExpressionExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class NamedExpressionExpressionTest2 extends AbstractCompletionDriverTest
-    with NamedExpressionExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class NamedExpressionExpressionTest extends AbstractCompletionDriverTest
+    with NamedExpressionExpressionTestCases {}
 
 mixin NamedExpressionExpressionTestCases on AbstractCompletionDriverTest {
   @override

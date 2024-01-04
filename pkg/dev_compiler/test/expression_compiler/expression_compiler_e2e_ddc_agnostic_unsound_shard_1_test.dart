@@ -21,7 +21,6 @@ void main(List<String> args) async {
     group('(DDC module system)', () {
       var setup = SetupCompilerOptions(
         soundNullSafety: false,
-        legacyCode: false,
         moduleFormat: ModuleFormat.ddc,
         args: args,
       );

@@ -206,12 +206,11 @@ class TypeInferrerImpl implements TypeInferrer {
     result =
         closureContext.handleImplicitReturn(visitor, body, result, fileOffset);
     visitor.checkCleanState();
-    DartType? futureValueType = closureContext.futureValueType;
-    assert(!(asyncMarker == AsyncMarker.Async && futureValueType == null),
-        "No future value type computed.");
+    DartType? emittedValueType = closureContext.emittedValueType;
+    assert(asyncMarker == AsyncMarker.Sync || emittedValueType != null);
     flowAnalysis.finish();
     return new InferredFunctionBody(
-        result.hasChanged ? result.statement : body, futureValueType);
+        result.hasChanged ? result.statement : body, emittedValueType);
   }
 
   @override
@@ -432,7 +431,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
 
 class InferredFunctionBody {
   final Statement body;
-  final DartType? futureValueType;
+  final DartType? emittedValueType;
 
-  InferredFunctionBody(this.body, this.futureValueType);
+  InferredFunctionBody(this.body, this.emittedValueType);
 }

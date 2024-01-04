@@ -168,9 +168,7 @@ void _doTransformsOnKernelLoad(
         evaluationMode: options.useLegacySubtyping
             ? fe.EvaluationMode.weak
             : fe.EvaluationMode.strong);
-    StaticInteropClassEraser(coreTypes,
-            additionalCoreLibraries: {'_js_types', 'js_interop'})
-        .visitComponent(component);
+    StaticInteropClassEraser(coreTypes).visitComponent(component);
     globalTransforms.transformLibraries(
         component.libraries, constantsEvaluator, coreTypes, options);
     _simplifyConstConditionals(component, options, classHierarchy, reporter);

@@ -117,7 +117,7 @@ class TargetKind {
   /// For example, the result of `TargetKind.classType.name` is the string "classType".
   final String name;
 
-  // This class isnot meant to be instantiated or extended; this constructor
+  // This class is not meant to be instantiated or extended; this constructor
   // prevents instantiation and extension.
   const TargetKind._(this.displayString, this.name);
 

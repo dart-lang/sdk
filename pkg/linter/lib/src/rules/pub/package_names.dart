@@ -20,10 +20,11 @@ with digits and isn't a reserved word.
 ''';
 
 class PackageNames extends LintRule {
-  static const LintCode code = LintCode(
-      'package_names', "The package name '{0}' isn't a snake_case identifier.",
+  static const LintCode code = LintCode('package_names',
+      "The package name '{0}' isn't a lower_case_with_underscores identifier.",
       correctionMessage:
-          'Try changing the name to follow the snake_case style.');
+          'Try changing the name to follow the lower_case_with_underscores '
+          'style.');
 
   PackageNames()
       : super(

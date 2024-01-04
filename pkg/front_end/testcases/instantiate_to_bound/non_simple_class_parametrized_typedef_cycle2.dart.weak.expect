@@ -26,7 +26,7 @@ library;
 //
 // pkg/front_end/testcases/instantiate_to_bound/non_simple_class_parametrized_typedef_cycle2.dart:19:9: Error: The typedef 'Typedef3' has a reference to itself.
 // typedef Typedef3 = (void Function<Y3 extends Class3>(), int);
-//         ^
+//         ^^^^^^^^
 //
 import self as self;
 import "dart:core" as core;

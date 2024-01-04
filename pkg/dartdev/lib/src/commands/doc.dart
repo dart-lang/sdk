@@ -5,7 +5,11 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+// TODO(srawlins): Un-deprecate these, and support importing a few pieces of
+// public API.
+// ignore: deprecated_member_use
 import 'package:dartdoc/dartdoc.dart';
+// ignore: deprecated_member_use
 import 'package:dartdoc/options.dart';
 import 'package:path/path.dart' as path;
 

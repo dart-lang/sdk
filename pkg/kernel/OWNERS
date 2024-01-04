@@ -2,3 +2,6 @@ set noparent
 file:/tools/OWNERS_CFE
 # In addition to CFE team allow global owners.
 file:/OWNERS
+
+# Let the infrastructure team bump the language version on releases.
+per-file lib/default_language_version.dart=file:/tools/OWNERS_INFRA

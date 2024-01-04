@@ -20,14 +20,14 @@ static method method1(core::int i) → dynamic
   return block {
     core::int #t1;
     final synthesized core::int #0#0 = i;
-    function ##0#1#initializer() → core::num
-      return self::Extension|get#getter(#0#0);
-    late final synthesized core::num #0#1 = ##0#1#initializer(){() → core::num};
+    synthesized core::num #0#1;
+    synthesized core::bool #0#1#isSet = false;
     #L1:
     {
       {
         hoisted core::num getter;
-        if(#0#1 is core::num && (let final core::num #t2 = getter = #0#1 in true)) {
+        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t2 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0)) is core::num) {
+          getter = #0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t3 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0);
           #t1 = 0;
           break #L1;
         }
@@ -37,20 +37,20 @@ static method method1(core::int i) → dynamic
   } =>#t1;
 static method method2(core::int i) → dynamic
   return block {
-    core::int #t3;
+    core::int #t4;
     final synthesized core::int #0#0 = i;
-    function ##0#1#initializer() → core::num
-      return self::Extension|get#getter(#0#0);
-    late final synthesized core::num #0#1 = ##0#1#initializer(){() → core::num};
+    synthesized core::num #0#1;
+    synthesized core::bool #0#1#isSet = false;
     #L2:
     {
       {
         hoisted core::int getter;
-        if(#0#1 is core::int && (let final core::int #t4 = getter = #0#1{core::int} in true)) {
-          #t3 = 0;
+        if((#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t5 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0)) is core::int) {
+          getter = (#0#1#isSet ?{core::num} #0#1{core::num} : let final core::bool* #t6 = #0#1#isSet = true in #0#1 = self::Extension|get#getter(#0#0)) as{Unchecked} core::int;
+          #t4 = 0;
           break #L2;
         }
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t3;
+  } =>#t4;

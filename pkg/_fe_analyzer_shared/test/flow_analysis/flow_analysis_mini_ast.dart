@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/promotion_key_store.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 
@@ -21,9 +22,9 @@ Expression implicitThis_whyNotPromoted(String staticType,
     new _WhyNotPromoted_ImplicitThis(Type(staticType), callback,
         location: computeLocation());
 
-/// Test harness for creating flow analysis tests.  This class implements all
-/// the [Operations] needed by flow analysis, as well as other methods needed
-/// for testing.
+/// Test harness for creating flow analysis tests.  This class provides all
+/// the [FlowAnalysisOperations] needed by flow analysis, as well as other
+/// methods needed for testing.
 class FlowAnalysisTestHarness extends Harness with FlowModelHelper<Type> {
   @override
   final PromotionKeyStore<Var> promotionKeyStore = PromotionKeyStore();
@@ -32,7 +33,8 @@ class FlowAnalysisTestHarness extends Harness with FlowModelHelper<Type> {
   final Type boolType = Type('bool');
 
   @override
-  Operations<Var, Type> get typeOperations => typeAnalyzer.operations;
+  FlowAnalysisOperations<Var, Type> get typeOperations =>
+      typeAnalyzer.operations;
 }
 
 /// Helper class allowing tests to examine the values of variables' SSA nodes.
@@ -61,7 +63,7 @@ class _GetExpressionInfo extends Expression {
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var type =
-        h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
+        h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
     h.flow.forwardExpression(this, target);
     callback(h.flow.expressionInfoForTesting(this));
     return new SimpleTypeAnalysisResult<Type>(type: type);
@@ -102,7 +104,7 @@ class _WhyNotPromoted extends Expression {
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var type =
-        h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
+        h.typeAnalyzer.analyzeExpression(target, h.operations.unknownType);
     h.flow.forwardExpression(this, target);
     Type.withComparisonsAllowed(() {
       callback(h.flow.whyNotPromoted(this)());

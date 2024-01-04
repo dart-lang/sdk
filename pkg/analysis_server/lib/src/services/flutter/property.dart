@@ -4,13 +4,13 @@
 
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/flutter/class_description.dart';
-import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -36,9 +36,6 @@ class PropertyDescription {
 
   /// The resolved unit, where the property value is.
   final ResolvedUnitResult resolvedUnit;
-
-  /// The instance of [Flutter] support for the [resolvedUnit].
-  final Flutter? flutter;
 
   /// If the object that has this property is not materialized yet, so the
   /// [instanceCreation] is `null`, the description of the object to
@@ -81,7 +78,6 @@ class PropertyDescription {
   PropertyDescription({
     this.parent,
     required this.resolvedUnit,
-    this.flutter,
     this.classDescription,
     this.instanceCreation,
     this.argumentExpression,
@@ -454,8 +450,6 @@ class _EdgeInsetsProperty {
 
   _EdgeInsetsProperty(this.classEdgeInsets, this.property);
 
-  Flutter? get flutter => property.flutter;
-
   void addNested() {
     Expression? leftExpression;
     Expression? topExpression;
@@ -463,36 +457,34 @@ class _EdgeInsetsProperty {
     Expression? bottomExpression;
     var propertyExpression = property.valueExpression;
     if (propertyExpression is InstanceCreationExpression) {
-      final flutter = this.flutter;
       var constructor = propertyExpression.constructorName.staticElement;
-      if (flutter != null &&
-          constructor != null &&
+      if (constructor != null &&
           constructor.enclosingElement == classEdgeInsets) {
-        var arguments = propertyExpression.argumentList.arguments;
+        var arguments = propertyExpression.argumentList;
         var constructorName = constructor.name;
         if (constructorName == 'all') {
-          var expression = flutter.argumentByIndex(arguments, 0);
+          var expression = arguments.elementAtOrNull(0);
           leftExpression = expression;
           topExpression = expression;
           rightExpression = expression;
           bottomExpression = expression;
         } else if (constructorName == 'fromLTRB') {
-          leftExpression = flutter.argumentByIndex(arguments, 0);
-          topExpression = flutter.argumentByIndex(arguments, 1);
-          rightExpression = flutter.argumentByIndex(arguments, 2);
-          bottomExpression = flutter.argumentByIndex(arguments, 3);
+          leftExpression = arguments.elementAtOrNull(0);
+          topExpression = arguments.elementAtOrNull(1);
+          rightExpression = arguments.elementAtOrNull(2);
+          bottomExpression = arguments.elementAtOrNull(3);
         } else if (constructorName == 'only') {
-          var leftArgument = flutter.argumentByName(arguments, 'left');
-          var topArgument = flutter.argumentByName(arguments, 'top');
-          var rightArgument = flutter.argumentByName(arguments, 'right');
-          var bottomArgument = flutter.argumentByName(arguments, 'bottom');
+          var leftArgument = arguments.byName('left');
+          var topArgument = arguments.byName('top');
+          var rightArgument = arguments.byName('right');
+          var bottomArgument = arguments.byName('bottom');
           leftExpression = leftArgument?.expression;
           topExpression = topArgument?.expression;
           rightExpression = rightArgument?.expression;
           bottomExpression = bottomArgument?.expression;
         } else if (constructorName == 'symmetric') {
-          var hArgument = flutter.argumentByName(arguments, 'horizontal');
-          var vArgument = flutter.argumentByName(arguments, 'vertical');
+          var hArgument = arguments.byName('horizontal');
+          var vArgument = arguments.byName('vertical');
           leftExpression = hArgument?.expression;
           topExpression = vArgument?.expression;
           rightExpression = hArgument?.expression;

@@ -175,7 +175,7 @@ class DapTestSession {
   }
 
   /// Create a simple package named `foo` that has an empty `foo` function.
-  Future<Uri> createFooPackage() {
+  Future<Uri> createFooPackage([String? filename]) {
     return createSimplePackage(
       'foo',
       '''
@@ -183,6 +183,7 @@ foo() {
   // Does nothing.
 }
       ''',
+      filename,
     );
   }
 
@@ -203,8 +204,10 @@ environment:
   /// .dart_tool/package_config.json
   Future<Uri> createSimplePackage(
     String name,
-    String content,
-  ) async {
+    String content, [
+    String? filename,
+  ]) async {
+    filename ??= '$name.dart';
     final packageDir = Directory(path.join(testPackagesDir.path, name))
       ..createSync(recursive: true);
     final packageLibDir = Directory(path.join(packageDir.path, 'lib'))
@@ -212,21 +215,21 @@ environment:
 
     // Create a pubspec and a implementation file in the lib folder.
     createPubspec(packageDir, name);
-    final testFile = File(path.join(packageLibDir.path, '$name.dart'));
+    final testFile = File(path.join(packageLibDir.path, filename));
     testFile.writeAsStringSync(content);
 
     // Add this new package as a dependency for the app.
     final fileUri = Uri.file('${packageDir.path}/');
     await addPackageDependency(testAppDir, name, fileUri);
 
-    return Uri.parse('package:$name/$name.dart');
+    return Uri.parse('package:$name/$filename');
   }
 
   /// Creates a file in a temporary folder to be used as an application for testing.
   ///
   /// The file will be deleted at the end of the test run.
-  File createTestFile(String content) {
-    final testFile = File(path.join(testAppDir.path, 'test_file.dart'));
+  File createTestFile(String content, [String filename = 'test_file.dart']) {
+    final testFile = File(path.join(testAppDir.path, filename));
     testFile.writeAsStringSync(content);
     return testFile;
   }

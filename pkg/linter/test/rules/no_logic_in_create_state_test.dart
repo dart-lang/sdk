@@ -29,7 +29,7 @@ abstract class MyWidget extends StatefulWidget {
   MyState createState();
 }
 
-class MyState extends State {
+abstract class MyState extends State {
   int field = 0;
 }
 ''');
@@ -46,6 +46,9 @@ class MyWidget extends StatefulWidget {
 
 class MyState extends State {
   int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
 }
 ''');
   }
@@ -62,6 +65,9 @@ class MyWidget extends StatefulWidget {
 class MyState extends State {
   int field;
   MyState(this.field);
+
+  late BuildContext context;
+  bool get mounted => false;
 }
 ''', [
       lint(119, 10),
@@ -79,6 +85,9 @@ class MyWidget extends StatefulWidget {
 
 class MyState extends State {
   int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
 }
 ''', [
       lint(119, 20),
@@ -99,6 +108,9 @@ class MyWidget extends StatefulWidget {
 
 class MyState extends State {
   int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
 }
 ''', [
       lint(161, 8),
@@ -118,6 +130,9 @@ class MyWidget extends StatefulWidget {
 
 class MyState extends State {
   int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
 }
 ''');
   }
@@ -135,6 +150,9 @@ class MyWidget extends StatefulWidget {
 
 class MyState extends State {
   int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
 }
 ''', [
       lint(129, 20),
@@ -155,6 +173,9 @@ class MyStatefulBad extends StatefulWidget {
 
 class MyState extends State {
   int field = 0;
+
+  late BuildContext context;
+  bool get mounted => false;
 }
 
 var global = MyState();

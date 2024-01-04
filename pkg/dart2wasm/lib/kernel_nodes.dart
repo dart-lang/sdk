@@ -65,6 +65,8 @@ mixin KernelNodes {
 
   // dart:core runtime type classes
   late final Class typeClass = index.getClass("dart:core", "_Type");
+  late final InterfaceType typeType =
+      InterfaceType(typeClass, Nullability.nonNullable);
   late final Class abstractFunctionTypeClass =
       index.getClass("dart:core", "_AbstractFunctionType");
   late final Class functionTypeClass =
@@ -79,6 +81,14 @@ mixin KernelNodes {
       index.getClass("dart:core", "_InterfaceTypeParameterType");
   late final Class namedParameterClass =
       index.getClass("dart:core", "_NamedParameter");
+  late final Field namedParameterNameField =
+      index.getField("dart:core", "_NamedParameter", "name");
+  late final Field namedParameterTypeField =
+      index.getField("dart:core", "_NamedParameter", "type");
+  late final Field namedParameterIsRequiredField =
+      index.getField("dart:core", "_NamedParameter", "isRequired");
+  late final InterfaceType namedParameterType =
+      InterfaceType(namedParameterClass, Nullability.nonNullable);
   late final Class bottomTypeClass = index.getClass("dart:core", "_BottomType");
   late final Class topTypeClass = index.getClass("dart:core", "_TopType");
   late final Class stackTraceClass = index.getClass("dart:core", "StackTrace");
@@ -117,6 +127,7 @@ mixin KernelNodes {
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");
 
   // dart:_wasm classes
+  late final Library wasmLibrary = index.getLibrary("dart:_wasm");
   late final Class wasmTypesBaseClass =
       index.getClass("dart:_wasm", "_WasmBase");
   late final wasmI8Class = index.getClass("dart:_wasm", "WasmI8");
@@ -139,10 +150,9 @@ mixin KernelNodes {
       index.getClass("dart:_wasm", "WasmFunction");
   late final Class wasmVoidClass = index.getClass("dart:_wasm", "WasmVoid");
   late final Class wasmTableClass = index.getClass("dart:_wasm", "WasmTable");
-  late final Class wasmObjectArrayClass =
-      index.getClass("dart:_wasm", "WasmObjectArray");
-  late final Field wasmObjectArrayValueField =
-      index.getField("dart:_wasm", "WasmObjectArray", "_value");
+  late final Class wasmArrayClass = index.getClass("dart:_wasm", "WasmArray");
+  late final Field wasmArrayValueField =
+      index.getField("dart:_wasm", "WasmArray", "_value");
 
   // dart:_internal procedures
   late final Procedure loadLibrary =
@@ -280,4 +290,23 @@ mixin KernelNodes {
   // Debugging
   late final Procedure printToConsole =
       index.getTopLevelProcedure("dart:_internal", "printToConsole");
+
+  late final Map<Member, (Extension, ExtensionMemberDescriptor)>
+      _extensionCache = {};
+
+  (Extension, ExtensionMemberDescriptor) extensionOfMember(Member member) {
+    return _extensionCache.putIfAbsent(member, () {
+      assert(member.isExtensionMember);
+
+      final memberRef = member.reference;
+      for (final ext in member.enclosingLibrary.extensions) {
+        for (final descriptor in ext.memberDescriptors) {
+          if (memberRef == descriptor.memberReference) {
+            return (ext, descriptor);
+          }
+        }
+      }
+      throw 'Did not find extension for $member';
+    });
+  }
 }

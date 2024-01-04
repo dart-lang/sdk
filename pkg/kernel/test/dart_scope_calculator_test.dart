@@ -8,11 +8,19 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/dart_scope_calculator.dart';
+import 'package:kernel/src/printer.dart';
 
 import 'binary/find_sdk_dills.dart';
 
 void main() {
-  List<File> dills = findSdkDills();
+  List<File> dills = findSdkDills().where((dill) {
+    // Patching is bad on outlines, see
+    // https://github.com/dart-lang/sdk/issues/54117.
+    if (dill.path.endsWith("_outline.dill")) return false;
+    if (dill.path.endsWith("_outline_unsound.dill")) return false;
+    if (dill.path.contains("/vm_outline_")) return false;
+    return true;
+  }).toList();
 
   print("Found ${dills.length} dill files.");
 
@@ -22,12 +30,24 @@ void main() {
     print("Finished dill ${i + 1} out of ${dills.length}");
   }
 
-  List<MapEntry<String, int>> fromWhereList = fromWhereMap.entries.toList();
-  fromWhereList.sort((a, b) => b.value - a.value);
-  print("");
-  print("More-than-ones came from here:");
-  for (MapEntry<String, int> entry in fromWhereList.take(5)) {
-    print(" => ${entry.value}: ${entry.key}");
+  {
+    List<MapEntry<String, int>> unfilteredCountsList =
+        afterFilterCounts.entries.toList();
+    unfilteredCountsList.sort((a, b) => b.value - a.value);
+    print("");
+    print("Small counts came from here:");
+    for (MapEntry<String, int> entry in unfilteredCountsList) {
+      if (needleCount(entry.key, "|") <= 2) {
+        print(" => ${entry.value}: ${entry.key}");
+      }
+    }
+    print("");
+    print("Big filtered counts came from here:");
+    for (MapEntry<String, int> entry in unfilteredCountsList) {
+      if (needleCount(entry.key, "|") > 2) {
+        print(" => ${entry.value}: ${entry.key}");
+      }
+    }
   }
 
   print("");
@@ -48,12 +68,30 @@ void main() {
   }
 }
 
+int needleCount(String s, String needle) {
+  int result = 0;
+  int indexOf = s.indexOf(needle);
+  while (indexOf >= 0) {
+    result++;
+    indexOf = s.indexOf(needle, indexOf + 1);
+  }
+  return result;
+}
+
 List<String> errors = [];
 
 void testDill(File dill) {
   print("Looking at $dill");
   Component component = new Component();
-  new BinaryBuilder(dill.readAsBytesSync()).readComponent(component);
+  try {
+    new BinaryBuilder(dill.readAsBytesSync()).readComponent(component);
+  } catch (e) {
+    if (e is InvalidKernelVersionError) {
+      print("$dill has a wrong kernel version. Skipping.");
+      return;
+    }
+    rethrow;
+  }
   DillBlockChecker dillBlockChecker = new DillBlockChecker();
   component.accept(dillBlockChecker);
 
@@ -64,6 +102,9 @@ void testDill(File dill) {
       "(${binaryPrinter.moreButAgree}/${binaryPrinter.total - binaryPrinter.exact})");
   int totalAgree = binaryPrinter.exact + binaryPrinter.moreButAgree;
   print(" => ${totalAgree * 100 / binaryPrinter.total}%");
+  print(" =====> Also notice more than 1: "
+      "${binaryPrinter.countMoreThanOneAfterFilter}; "
+      "== 1: ${binaryPrinter.countExactlyOneAfterFilter}");
 }
 
 class DevNullSink<T> implements Sink<T> {
@@ -164,19 +205,20 @@ class DillBlockChecker extends VisitorDefault<void> with VisitorVoidMixin {
   }
 }
 
-final Map<String, int> fromWhereMap = {};
-
 class ScopeTestingBinaryPrinter extends BinaryPrinter {
   Library? currentLibrary;
   Class? currentClass;
   Member? currentMember;
   Uri? currentUri;
+  Set<int> askedOffsets = {};
   bool checkOffset = false;
   Set<Member> skipMembers = {};
 
   int exact = 0;
   int total = 0;
   int moreButAgree = 0;
+  int countMoreThanOneAfterFilter = 0;
+  int countExactlyOneAfterFilter = 0;
 
   ScopeTestingBinaryPrinter()
       : super(const DevNullSink(),
@@ -187,6 +229,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
     currentClass = node;
     Uri? prevUri = currentUri;
     currentUri = node.fileUri;
+    askedOffsets.clear();
     super.visitClass(node);
     currentUri = prevUri;
     currentClass = null;
@@ -197,6 +240,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
     currentMember = node;
     Uri? prevUri = currentUri;
     currentUri = node.fileUri;
+    askedOffsets.clear();
     super.visitConstructor(node);
     currentUri = prevUri;
     currentMember = null;
@@ -208,18 +252,30 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
       // The tear off procedures have two enclosing function nodes with the same
       // offsets, but with (possibly) different type parameters. Skip them.
       Member? skip = memberDescriptor.tearOffReference?.asMember;
-      if (skip != null) skipMembers.add(skip);
+      if (skip != null) {
+        skipMembers.add(skip);
+      }
     }
     Uri? prevUri = currentUri;
     currentUri = node.fileUri;
+    askedOffsets.clear();
     super.visitExtension(node);
     currentUri = prevUri;
+  }
+
+  Set<VariableDeclaration> setVariables = {};
+
+  @override
+  void visitVariableSet(VariableSet node) {
+    super.visitVariableSet(node);
+    setVariables.add(node.variable);
   }
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     Uri? prevUri = currentUri;
     currentUri = node.fileUri;
+    askedOffsets.clear();
     super.visitExtensionTypeDeclaration(node);
     currentUri = prevUri;
   }
@@ -229,6 +285,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
     currentMember = node;
     Uri? prevUri = currentUri;
     currentUri = node.fileUri;
+    askedOffsets.clear();
     super.visitField(node);
     currentUri = prevUri;
     currentMember = null;
@@ -238,6 +295,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   void visitFileUriExpression(FileUriExpression node) {
     Uri? prevUri = currentUri;
     currentUri = node.fileUri;
+    askedOffsets.clear();
     super.visitFileUriExpression(node);
     currentUri = prevUri;
   }
@@ -255,6 +313,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
     currentLibrary = node;
     Uri? prevUri = currentUri;
     currentUri = node.fileUri;
+    askedOffsets.clear();
     super.visitLibrary(node);
     currentUri = prevUri;
     currentLibrary = null;
@@ -265,6 +324,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
     currentMember = node;
     Uri? prevUri = currentUri;
     currentUri = node.fileUri;
+    askedOffsets.clear();
     super.visitProcedure(node);
     currentUri = prevUri;
     currentMember = null;
@@ -274,20 +334,19 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   void visitTypedef(Typedef node) {
     Uri? prevUri = currentUri;
     currentUri = node.fileUri;
+    askedOffsets.clear();
     super.visitTypedef(node);
     currentUri = prevUri;
   }
 
   @override
   void writeOffset(int offset) {
-    // TODO(jensj): Currently, e.g. for function node, we write the end offset
-    // before the data --- and the actual code finding it sees it before too,
-    // but really, if we've asked for the scope at the end we've seen everything
-    // inside --- although if that's theoretically in scope or not is probably
-    // up for debate.
-    if (checkOffset && offset >= 0 && !skipMembers.contains(currentMember)) {
-      List<DartScope> nodesAtPoint =
-          DartScopeBuilder2.findScopeFromOffsetAndClass(
+    if (checkOffset &&
+        offset >= 0 &&
+        !skipMembers.contains(currentMember) &&
+        askedOffsets.add(offset)) {
+      List<DartScope2> nodesAtPoint =
+          DartScopeBuilder2.findScopeFromOffsetAndClassRawForTesting(
               currentLibrary!, currentUri!, currentClass, offset);
 
       List<Object> expectedTypeParameters =
@@ -298,8 +357,13 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
       Map<String, DartType> expectedVariablesMap = {};
       for (VariableDeclaration variable in varIndexer?.declsOrder ?? const []) {
         String? name = variable.name;
-        if (name != null && name != "") {
-          expectedVariablesMap[name] = variable.type;
+        if (name != null && name != "" && !variable.isSynthesized) {
+          if (variable.isHoisted && !setVariables.contains(variable)) {
+            // A hoisted variable that isn't set (yet) --- pretend it isn't
+            // there.
+          } else {
+            expectedVariablesMap[name] = variable.type;
+          }
         }
       }
 
@@ -321,7 +385,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
         // Does one that agree exist?
         bool foundMatch = false;
         bool allMatch = true;
-        for (DartScope compareMe in nodesAtPoint) {
+        for (DartScope2 compareMe in nodesAtPoint) {
           if (compareScopes(
               expectedTypeParameters, expectedVariablesMap, compareMe, offset,
               doPrint: false)) {
@@ -339,10 +403,62 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
         }
         if (allMatch) {
           moreButAgree++;
+        }
+
+        List<DartScope2> filteredScopes = DartScopeBuilder2.filterAllForTesting(
+            nodesAtPoint, currentLibrary!, offset);
+
+        if (filteredScopes.length == 1) {
+          countExactlyOneAfterFilter++;
+          return;
         } else {
-          String fromWhere =
-              StackTrace.current.toString().split("\n").skip(1).first;
-          fromWhereMap[fromWhere] = (fromWhereMap[fromWhere] ?? 0) + 1;
+          if (filteredScopes.isEmpty) throw "Now empty :/";
+          countMoreThanOneAfterFilter++;
+          {
+            String key = filteredScopes
+                .map((e) => e.node.runtimeType.toString())
+                .join("|");
+            afterFilterCounts[key] = (afterFilterCounts[key] ?? 0) + 1;
+            WrappedBool wrappedBoolForDebugging = new WrappedBool();
+
+            {
+              for (int i = 0; i < filteredScopes.length; i++) {
+                DartScope2 scope = filteredScopes[i];
+                TreeNode node = scope.node;
+                if (node is Member) {
+                  print("$i ${scope.node.runtimeType} name = ${node.name}");
+                }
+              }
+            }
+
+            {
+              TreeNode node = filteredScopes[0].node;
+              if (node is Procedure) {
+                if (node.function.body != null) node = node.function.body!;
+              } else if (node is FunctionNode) {
+                if (node.body != null) node = node.body!;
+              } else if (node is! Block) {
+                if (node.parent != null) node = node.parent!;
+                for (int i = 0; i < 3; i++) {
+                  if (node is! Block &&
+                      node.parent != null &&
+                      node.parent is! Member &&
+                      node.parent is! FunctionNode) node = node.parent!;
+                }
+              }
+              print("-----------");
+              print("$key via ${filteredScopes[0].node.location}:");
+              print(node.debugPrint(filteredScopes));
+              print("-----------");
+            }
+
+            if (wrappedBoolForDebugging.value) {
+              // Go in here to debug by setting
+              // wrappedBoolForDebugging.value = true in the debugger.
+              print(DartScopeBuilder2.filterAllForTesting(
+                  nodesAtPoint, currentLibrary!, offset));
+            }
+          }
         }
       }
     }
@@ -352,7 +468,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
   bool compareScopes(
       List<Object> expectedTypeParameters,
       Map<String, DartType> expectedVariablesMap,
-      DartScope compareWith,
+      DartScope2 compareWith,
       int offsetForErrorMessage,
       {required bool doPrint}) {
     bool compareOk = true;
@@ -399,7 +515,7 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
       // Do they agree?
       for (String variableName in expectedVariablesMap.keys) {
         DartType? a = expectedVariablesMap[variableName];
-        DartType? b = compareWith.definitions[variableName];
+        DartType? b = compareWith.definitions[variableName]?.type;
         if (a != b) {
           compareOk = false;
           if (doPrint) {
@@ -462,4 +578,23 @@ class VariableIndexer2 implements VariableIndexer {
       declsOrder.add(declsOrderPopped.removeLast());
     }
   }
+}
+
+Map<String, int> afterFilterCounts = {};
+
+extension on TreeNode {
+  String debugPrint(List<DartScope2> scopes) {
+    Set<TreeNode> mark = {};
+    for (DartScope2 scope in scopes) {
+      mark.add(scope.node);
+    }
+    MarkingAstPrinter markingAstPrinter =
+        new MarkingAstPrinter(defaultAstTextStrategy, mark);
+    this.toTextInternal(markingAstPrinter);
+    return markingAstPrinter.getText();
+  }
+}
+
+class WrappedBool {
+  bool value = false;
 }

@@ -1171,6 +1171,7 @@ CompileTimeErrorCode:
   AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE:
     problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
     correctionMessage: Try removing the `await`, or updating the extension type to implement 'Future'.
+    hasPublishedDocs: true
     documentation: |-
       #### Description
 
@@ -5182,6 +5183,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_FORMAL_PARAMETER:
     problemMessage: "Extension type constructors can't declare super formal parameters."
     correctionMessage: Try removing the super formal parameter declaration.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5222,6 +5224,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION:
     problemMessage: Extension type constructors can't include super initializers.
     correctionMessage: Try removing the super constructor invocation.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5254,6 +5257,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
     problemMessage: "Extension types can't declare instance fields."
     correctionMessage: Try replacing the field with a getter.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5297,6 +5301,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
     problemMessage: "Extension types can't declare members with the same name as a member declared by 'Object'."
     correctionMessage: Try specifying a different name for the member.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5336,6 +5341,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
     problemMessage: "Extension types can't implement '{0}'."
     correctionMessage: Try specifying a different type, or remove the type from the list.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the display string of the disallowed type
@@ -5364,6 +5370,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_IMPLEMENTS_ITSELF:
     problemMessage: "The extension type can't implement itself."
     correctionMessage: Try removing the superinterface that references this extension type.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5402,6 +5409,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_IMPLEMENTS_NOT_SUPERTYPE:
     problemMessage: "'{0}' is not a supertype of '{1}', the representation type."
     correctionMessage: Try specifying a different type, or remove the type from the list.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the implemented not extension type
@@ -5440,6 +5448,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_IMPLEMENTS_REPRESENTATION_NOT_SUPERTYPE:
     problemMessage: "'{0}', the representation type of '{1}', is not a supertype of '{2}', the representation type of '{3}'."
     correctionMessage: Try specifying a different type, or remove the type from the list.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the representation type of the implemented extension type
@@ -5488,6 +5497,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT:
     problemMessage: "The extension type '{0}' has more than one distinct member named '{1}' from implemented types."
     correctionMessage: Try redeclaring the corresponding member in this extension type.
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the extension type
@@ -5551,6 +5561,7 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF:
     problemMessage: "The extension type representation can't depend on itself."
     correctionMessage: Try specifying a different type.
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -5595,14 +5606,75 @@ CompileTimeErrorCode:
   EXTENSION_TYPE_REPRESENTATION_TYPE_BOTTOM:
     problemMessage: "The representation type can't be a bottom type."
     correctionMessage: Try specifying a different type.
+    hasPublishedDocs: true
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the representation type of an
+      extension type is the [bottom type][] `Never`. The type `Never` can't be
+      the representation type of an extension type because there are no values
+      that can be extended.
+
+      #### Example
+
+      The following code produces this diagnostic because the representation
+      type of the extension type `E` is `Never`:
+
+      ```dart
+      extension type E([!Never!] n) {}
+      ```
+
+      #### Common fixes
+
+      Replace the extension type with a different type:
+
+      ```dart
+      extension type E(String s) {}
+      ```
   EXTENSION_TYPE_WITH_ABSTRACT_MEMBER:
     problemMessage: "'{0}' must have a method body because '{1}' is an extension type."
     correctionMessage: "Try adding a body to '{0}'."
+    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the abstract method
       1: the name of the enclosing extension type
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an extension type declares an
+      abstract member. Because extension type member references are resolved
+      statically, an abstract member in an extension type could never be
+      executed.
+
+      #### Example
+
+      The following code produces this diagnostic because the method `m` in the
+      extension type `E` is abstract:
+
+      ```dart
+      extension type E(String s) {
+        [!void m();!]
+      }
+      ```
+
+      #### Common fixes
+
+      If the member is intended to be executable, then provide an implementation
+      of the member:
+
+      ```dart
+      extension type E(String s) {
+        void m() {}
+      }
+      ```
+
+      If the member isn't intended to be executable, then remove it:
+
+      ```dart
+      extension type E(String s) {}
+      ```
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External fields can't have initializers.
@@ -6834,7 +6906,7 @@ CompileTimeErrorCode:
 
       ```dart
       mixin M on Enum {
-        bool operator [!==!](Object? other) => false;
+        bool operator [!==!](Object other) => false;
       }
       ```
 
@@ -9449,6 +9521,11 @@ CompileTimeErrorCode:
       ```dart
       List<num> x = [1, 2.5, 3];
       ```
+  MACRO_ERROR:
+    problemMessage: "{0}"
+    comment: |-
+      Parameters:
+      0: the message
   MAIN_FIRST_POSITIONAL_PARAMETER_TYPE:
     problemMessage: "The type of the first positional parameter of the 'main' function must be a supertype of 'List<String>'."
     correctionMessage: Try changing the type of the parameter.
@@ -11504,6 +11581,7 @@ CompileTimeErrorCode:
   NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
     problemMessage: "An extension type parameter can't be used in a non-covariant position of its representation type."
     correctionMessage: "Try removing the type parameters from function parameter types and type parameter bounds."
+    hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
@@ -15687,7 +15765,38 @@ CompileTimeErrorCode:
       ```
   SUPER_IN_EXTENSION_TYPE:
     problemMessage: "The 'super' keyword can't be used in an extension type because an extension type doesn't have a superclass."
+    hasPublishedDocs: true
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when `super` is used in an instance
+      member of an extension type. Extension types don't have superclasses, so
+      there's no inherited member that could be invoked.
+
+      #### Example
+
+      The following code produces this diagnostic because :
+
+      ```dart
+      extension type E(String s) {
+        void m() {
+          [!super!].m();
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Replace or remove the `super` invocation:
+
+      ```dart
+      extension type E(String s) {
+        void m() {
+          s.toLowerCase();
+        }
+      }
+      ```
   SUPER_IN_INVALID_CONTEXT:
     problemMessage: "Invalid context for 'super' invocation."
     hasPublishedDocs: true
@@ -18651,6 +18760,179 @@ FfiCode:
         return p.asFunction(isLeaf: true);
       }
       ```
+  ARGUMENT_MUST_BE_NATIVE:
+    problemMessage: "Argument to 'Native.addressOf' must be annotated with @Native"
+    correctionMessage: "Try passing a static function or field annotated with '@Native'"
+    comment: No parameters
+  NATIVE_FIELD_INVALID_TYPE:
+    problemMessage: "'{0}' is an unsupported type for native fields. Native fields only support pointers, arrays or numeric and compound types."
+    correctionMessage: "Try changing the type in the `@Native` annotation to a numeric FFI type, a pointer, array, or a compound class."
+    comment: |-
+      Parameters:
+      0: The invalid type.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `@Native`-annotated field
+      has a type not supported for native fields.
+
+      Native fields support pointers, arrays, numeric types and subtypes of
+      `Compound` (i.e., structs or unions). Other subtypes of `NativeType`,
+      such as `Handle` or `NativeFunction` are not allowed as native fields.
+
+      Native functions should be used with external functions instead of
+      external fields.
+
+      Handles are unsupported because there is no way to transparently load and
+      store Dart objects into pointers.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `free` uses
+      an unsupported native type, `NativeFunction`:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<NativeFunction<Void Function()>>()
+      external void Function() [!free!];
+      ```
+
+      #### Common fixes
+
+      If you meant to bind to an existing native function with a
+      `NativeFunction` field, use `@Native` methods instead:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Void Function(Pointer<Void>)>()
+      external void free(Pointer<Void> ptr);
+      ```
+
+      To bind to a field storing a function pointer in C, use a pointer type
+      for the Dart field:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native()
+      external Pointer<NativeFunction<Void Function(Pointer<Void>)>> free;
+      ```
+  NATIVE_FIELD_MISSING_TYPE:
+    problemMessage: "The native type of this field could not be inferred and must be specified in the annotation."
+    correctionMessage: "Try adding a type parameter extending `NativeType` to the `@Native` annotation."
+    comment: "No parameters"
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `@Native`-annotated field
+      requires a type hint on the annotation to infer the native type.
+
+      Dart types like `int` and `double` have multiple possible native
+      representations. Since the native type needs to be known at compile time
+      to generate the correct load and stores when accessing the field, an
+      explicit type must be given.
+
+      #### Example
+
+      The following code produces this diagnostic because the field `f` has
+      the type `int` (for which multiple native representations exist), but no
+      explicit type parameter on the `Native` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native()
+      external int [!f!];
+      ```
+
+      #### Common fixes
+
+      To fix this diagnostic, find out the correct native representation from
+      the native declaration of the field. Then, add the corresponding type to
+      the annotation. For instance, if `f` was declared as an `uint8_t` in C,
+      the Dart field should be declared as:
+
+      ```dart
+      import 'dart:ffi';
+
+      @Native<Uint8>()
+      external int f;
+      ```
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+  NATIVE_FIELD_NOT_STATIC:
+    problemMessage: "Native fields must be static."
+    correctionMessage: "Try adding the modifier 'static' to this field."
+    comment: "No parameters"
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance field in a class
+      has been annotated with `@Native`.
+      Native fields refer to global variables in C, C++ or other native
+      languages, whereas instance fields in Dart are specific to an instance of
+      that class. Hence, native fields must be static.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the field `f` in the
+      class `C` is `@Native`, but not `static`:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C {
+        @Native<Int>()
+        external int [!f!];
+      }
+      ```
+
+      #### Common fixes
+
+      Either make the field static:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C {
+        @Native<Int>()
+        external static int f;
+      }
+      ```
+
+      Or move it out of a class, in which case no explicit `static` modifier is
+      required:
+
+      ```dart
+      import 'dart:ffi';
+
+      class C {
+      }
+
+      @Native<Int>()
+      external int f;
+      ```
+
+      If you meant to annotate an instance field that should be part of a
+      struct, omit the `@Native` annotation:
+
+      ```dart
+      import 'dart:ffi';
+
+      final class C extends Struct {
+        @Int()
+        external int f;
+      }
+      ```
   COMPOUND_IMPLEMENTS_FINALIZABLE:
     problemMessage: "The class '{0}' can't implement Finalizable."
     correctionMessage: "Try removing the implements clause from '{0}'."
@@ -18901,6 +19183,14 @@ FfiCode:
       Parameters:
       0: the expected number of parameters
       1: the actual number of parameters
+  FFI_NATIVE_INVALID_DUPLICATE_DEFAULT_ASSET:
+    problemMessage: "There may be at most one @DefaultAsset annotation on a library."
+    correctionMessage: "Try removing the extra annotation."
+    comment: No parameters
+  FFI_NATIVE_INVALID_MULTIPLE_ANNOTATIONS:
+    problemMessage: "Native functions and fields must have exactly one `@Native` annotation."
+    correctionMessage: "Try removing the extra annotation."
+    comment: No parameters
   FIELD_INITIALIZER_IN_STRUCT:
     problemMessage: "Constructors in subclasses of 'Struct' and 'Union' can't have field initializers."
     correctionMessage: Try removing the field initializer and marking the field as external.
@@ -19711,6 +20001,139 @@ FfiCode:
         }
       }
       ```
+  NON_LEAF_CALL_MUST_NOT_TAKE_TYPED_DATA:
+    problemMessage: "FFI non-leaf calls can't take typed data arguments."
+    correctionMessage: Try changing the call to a leaf call.
+    comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the value of the `isLeaf`
+      argument of `Pointer.asFunction`, `DynamicLibrary.lookupFunction`, or
+      `@Native` is `false` and the Dart function signature contains a typed
+      data parameter.
+
+      Typed data unwrapping is only supported on arguments for leaf FFI calls.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the dart function
+      signature contains a typed data, but the `isLeaf` argument is `false`:
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      void f(Pointer<NativeFunction<Void Function(Pointer<Uint8>)>> p) {
+        p.asFunction<[!void Function(Uint8List)!]>();
+      }
+      ```
+
+      #### Common fixes
+
+      If the function has at least one typed data parameter, then add
+      the `isLeaf` argument:
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      void f(Pointer<NativeFunction<Void Function(Pointer<Uint8>)>> p) {
+        p.asFunction<void Function(Uint8List)>(isLeaf: true);
+      }
+      ```
+
+      If the function also uses `Handle`s, then it must be non-leaf. In That
+      case use `Pointer`s instead of typed data.
+  CALL_MUST_NOT_RETURN_TYPED_DATA:
+    problemMessage: "FFI calls can't return typed data."
+    correctionMessage: Try changing using `Pointer`s.
+    comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the return type of
+      `Pointer.asFunction`, `DynamicLibrary.lookupFunction`, or
+      `@Native` is a typed data.
+
+      Typed data unwrapping is only supported on arguments for leaf FFI calls.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the dart function
+      signature contains a typed data, but the `isLeaf` argument is `false`:
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      void f(Pointer<NativeFunction<Pointer<Uint8> Function()>> p) {
+        p.asFunction<[!Uint8List Function()!]>();
+      }
+      ```
+
+      #### Common fixes
+
+      Use the `Pointer` type instead:
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(Pointer<NativeFunction<Pointer<Uint8> Function()>> p) {
+        p.asFunction<Pointer<Uint8> Function()>();
+      }
+      ```
+  CALLBACK_MUST_NOT_USE_TYPED_DATA:
+    problemMessage: "FFI callbacks can't take typed data arguments or return value."
+    correctionMessage: Try changing using `Pointer`s.
+    comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an invocation of
+      `Pointer.fromFunction`, one of`NativeCallable`'s constructors has a
+      typed data argument or return value."
+
+      Typed data unwrapping is only supported on arguments for leaf FFI calls.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the parameter type
+      of `g` is a typed data.
+
+      ```dart
+      import 'dart:ffi';
+      import 'dart:typed_data';
+
+      void f(Uint8List i) {}
+
+      void g() {
+        Pointer.fromFunction<Void Function(Pointer<Uint8>)>([!f!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Use the `Pointer` type instead:
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(Pointer<Uint8> i) {}
+
+      void g() {
+        Pointer.fromFunction<Void Function(Pointer<Uint8>)>(f);
+      }
+      ```
   NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
     problemMessage: "Can't invoke 'asFunction' because the function signature '{0}' for the pointer isn't a valid C function signature."
     correctionMessage: "Try changing the function argument in 'NativeFunction' to only use NativeTypes."
@@ -20378,6 +20801,11 @@ HintCode:
       If you can't migrate the imported library, then the importing library
       needs to have a language version that is before 2.12, when null safety was
       enabled by default.
+  MACRO_INFO:
+    problemMessage: "{0}"
+    comment: |-
+      Parameters:
+      0: the message
   UNNECESSARY_CAST:
     problemMessage: Unnecessary cast.
     correctionMessage: Try removing the cast.
@@ -20585,7 +21013,7 @@ HintCode:
 ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".
-    correctionMessage: "Try adding `<uses-feature android:name=\"android.hardware.camera\"  android:required=\"false\">` `<uses-feature android:name=\"android.hardware.camera.autofocus\"  android:required=\"false\">`."
+    correctionMessage: 'Try adding `<uses-feature android:name="android.hardware.camera"  android:required="false">` `<uses-feature android:name="android.hardware.camera.autofocus"  android:required="false">`.'
     comment: |-
       A code indicating that the camera permissions is not supported on Chrome
       OS.
@@ -20594,14 +21022,14 @@ ManifestWarningCode:
     correctionMessage: Consider declaring the corresponding activity element with `resizableActivity="true"` attribute.
     comment: A code indicating that the activity is set to be non resizable.
   NO_TOUCHSCREEN_FEATURE:
-    problemMessage: "The default \"android.hardware.touchscreen\" needs to be optional for Chrome OS. "
-    correctionMessage: "Consider adding <uses-feature android:name=\"android.hardware.touchscreen\" android:required=\"false\" /> to the manifest."
+    problemMessage: 'The default "android.hardware.touchscreen" needs to be optional for Chrome OS. '
+    correctionMessage: 'Consider adding <uses-feature android:name="android.hardware.touchscreen" android:required="false" /> to the manifest.'
     comment: |-
       A code indicating that the touchscreen feature is not specified in the
       manifest.
   PERMISSION_IMPLIES_UNSUPPORTED_HARDWARE:
     problemMessage: "Permission makes app incompatible for Chrome OS, consider adding optional {0} feature tag, "
-    correctionMessage: " Try adding `<uses-feature android:name=\"{0}\"  android:required=\"false\">`."
+    correctionMessage: ' Try adding `<uses-feature android:name="{0}"  android:required="false">`.'
     comment: |-
       A code indicating that a specified permission is not supported on Chrome
       OS.
@@ -20614,7 +21042,7 @@ ManifestWarningCode:
     comment: A code indicating that the activity is locked to an orientation.
   UNSUPPORTED_CHROME_OS_FEATURE:
     problemMessage: "The feature {0} isn't supported on Chrome OS, consider making it optional."
-    correctionMessage: "Try changing to `android:required=\"false\"` for this feature."
+    correctionMessage: 'Try changing to `android:required="false"` for this feature.'
     comment: |-
       A code indicating that a specified feature is not supported on Chrome OS.
 
@@ -20622,7 +21050,7 @@ ManifestWarningCode:
       0: the name of the feature
   UNSUPPORTED_CHROME_OS_HARDWARE:
     problemMessage: "The feature {0} isn't supported on Chrome OS, consider making it optional."
-    correctionMessage: "Try adding `android:required=\"false\"` for this feature."
+    correctionMessage: 'Try adding `android:required="false"` for this feature.'
     comment: |-
       A code indicating that a specified hardware feature is not supported on
       Chrome OS.
@@ -21034,20 +21462,20 @@ PubspecWarningCode:
       If the path isn't correct, then change the path to match the path of the
       file containing the asset.
   ASSET_FIELD_NOT_LIST:
-    problemMessage: "The value of the 'asset' field is expected to be a list of relative file paths."
+    problemMessage: "The value of the 'assets' field is expected to be a list of relative file paths."
     correctionMessage: Try converting the value to be a list of relative file paths.
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when the value of the `asset` key
+      The analyzer produces this diagnostic when the value of the `assets` key
       isn't a list.
 
       #### Example
 
-      The following code produces this diagnostic because the value of the assets
-      key is a string when a list is expected:
+      The following code produces this diagnostic because the value of the
+      `assets` key is a string when a list is expected:
 
       ```yaml
       %uri="pubspec.yaml"
@@ -21067,21 +21495,64 @@ PubspecWarningCode:
         assets:
           - assets/
       ```
-  ASSET_NOT_STRING:
-    problemMessage: Assets are required to be file paths (strings).
-    correctionMessage: Try converting the value to be a string.
+  ASSET_MISSING_PATH:
+    problemMessage: "Asset map entry must contain a 'path' field."
+    correctionMessage: "Try adding a 'path' field."
     hasPublishedDocs: true
     comment: No parameters.
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an asset list contains a value
-      that isn't a string.
+      The analyzer produces this diagnostic when an asset map is missing a
+      `path` value.
 
       #### Example
 
-      The following code produces this diagnostic because the asset list contains
-      a map:
+      The following code produces this diagnostic because the asset map
+      is missing a `path` value:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      flutter:
+        assets:
+          - flavors:
+            - premium
+      ```
+
+      #### Common fixes
+
+      Change the asset map so that it contains a `path` field with a string
+      value (a valid POSIX-style file path):
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      flutter:
+        assets:
+          - path: assets/image.gif
+            flavors:
+            - premium
+      ```
+  ASSET_NOT_STRING:
+    problemMessage: Assets are required to be file paths (strings).
+    correctionMessage: Try converting the value to be a string.
+    hasPublishedDocs: true
+    comment: |-
+      No parameters.
+
+      This code is deprecated in favor of the
+      'ASSET_NOT_STRING_OR_MAP' code, and will be removed.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an `assets` list contains a
+      value that isn't a string.
+
+      #### Example
+
+      The following code produces this diagnostic because the `assets` list
+      contains a map:
 
       ```yaml
       %uri="pubspec.yaml"
@@ -21093,7 +21564,7 @@ PubspecWarningCode:
 
       #### Common fixes
 
-      Change the asset list so that it only contains valid POSIX-style file
+      Change the `assets` list so that it only contains valid POSIX-style file
       paths:
 
       ```yaml
@@ -21101,7 +21572,96 @@ PubspecWarningCode:
       name: example
       flutter:
         assets:
-          - image.gif
+          - assets/image.gif
+      ```
+  ASSET_NOT_STRING_OR_MAP:
+    problemMessage: An asset value is required to be a file path (string) or map.
+    correctionMessage: Try converting the value to be a string or map.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an asset value isn't a string
+      or a map.
+
+      #### Example
+
+      The following code produces this diagnostic because the asset value
+      is a list:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      flutter:
+        assets:
+          - [![one, two, three]!]
+      ```
+
+      #### Common fixes
+
+      If you need to specify more than just the path to the asset, then replace
+      the value with a map with a `path` key (a valid POSIX-style file path):
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      flutter:
+        assets:
+          - path: assets/image.gif
+            flavors:
+            - premium
+      ```
+
+      If you only need to specify the path, then replace the value with the path
+      to the asset (a valid POSIX-style file path):
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      flutter:
+        assets:
+          - assets/image.gif
+      ```
+  ASSET_PATH_NOT_STRING:
+    problemMessage: Asset paths are required to be file paths (strings).
+    correctionMessage: Try converting the value to be a string.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an asset map contains a
+      `path` value that isn't a string.
+
+      #### Example
+
+      The following code produces this diagnostic because the asset map
+      contains a `path` value which is a list:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      flutter:
+        assets:
+          - path: [![one, two, three]!]
+            flavors:
+            - premium
+      ```
+
+      #### Common fixes
+
+      Change the `asset` map so that it contains a `path` value which is a
+      string (a valid POSIX-style file path):
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      flutter:
+        assets:
+          - path: image.gif
+            flavors:
+            - premium
       ```
   DEPENDENCIES_FIELD_NOT_MAP:
     problemMessage: "The value of the '{0}' field is expected to be a map."
@@ -22663,18 +23223,18 @@ WarningCode:
       2: the name of the second missing argument
       3: the name of the third missing argument
   DOC_DIRECTIVE_MISSING_TWO_ARGUMENTS:
-   sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
-   problemMessage: "The '{0}' directive is missing a '{1}' and a '{2}' argument."
-   correctionMessage: "Try adding the missing arguments before the closing '}'."
-   hasPublishedDocs: false
-   comment: |-
-     Parameters:
-     0: the name of the doc directive
-     1: the name of the first missing argument
-     2: the name of the second missing argument
+    sharedName: DOC_DIRECTIVE_MISSING_ARGUMENT
+    problemMessage: "The '{0}' directive is missing a '{1}' and a '{2}' argument."
+    correctionMessage: "Try adding the missing arguments before the closing '}'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the doc directive
+      1: the name of the first missing argument
+      2: the name of the second missing argument
   DOC_DIRECTIVE_UNKNOWN:
     problemMessage: "Doc directive '{0}' is unknown."
-    correctionMessage: 'Try using one of the supported doc directives.'
+    correctionMessage: "Try using one of the supported doc directives."
     hasPublishedDocs: false
     comment: |-
       Parameters:
@@ -24057,6 +24617,11 @@ WarningCode:
         void m() {}
       }
       ```
+  MACRO_WARNING:
+    problemMessage: "{0}"
+    comment: |-
+      Parameters:
+      0: the message
   MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
     sharedName: MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN
     problemMessage: "Missing concrete implementation of '{0}'."
@@ -24439,6 +25004,11 @@ WarningCode:
 
       void f() => const C();
       ```
+  NON_NULLABLE_EQUALS_PARAMETER:
+    problemMessage: "The parameter type of '==' operators should be non-nullable."
+    correctionMessage: Try using a non-nullable type.
+    hasPublishedDocs: false
+    comment: No parameters.
   NULLABLE_TYPE_IN_CATCH_CLAUSE:
     problemMessage: "A potentially nullable type can't be used in an 'on' clause because it isn't valid to throw a nullable expression."
     correctionMessage: Try using a non-nullable type.
@@ -24657,6 +25227,7 @@ WarningCode:
   REDECLARE_ON_NON_REDECLARING_MEMBER:
     problemMessage: "The {0} doesn't redeclare a {0} declared in a superinterface."
     correctionMessage: Try updating this member to match a declaration in a superinterface, or removing the redeclare annotation.
+    hasPublishedDocs: true
     comment: |-
       An error code indicating the use of a redeclare annotation on a member that does not redeclare.
 
@@ -24728,7 +25299,7 @@ WarningCode:
       0: the rule name
       1: the SDK version in which the lint was removed
   REPLACED_LINT_USE:
-    problemMessage:  "'{0}' was replaced by '{2}' in Dart '{1}'."
+    problemMessage: "'{0}' was replaced by '{2}' in Dart '{1}'."
     correctionMessage: "Replace '{0}' with '{1}'."
     comment: |-
       An error code indicating use of a removed lint rule.

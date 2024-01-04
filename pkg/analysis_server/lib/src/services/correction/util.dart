@@ -1102,9 +1102,13 @@ class CorrectionUtils {
     } else if (node is IsExpression) {
       final expressionCode = getNodeText(node.expression);
       final typeCode = getNodeText(node.type);
+      final patternCode = switch (node.type.typeOrThrow) {
+        InterfaceType() => '$typeCode()',
+        _ => '$typeCode _',
+      };
       return ExpressionCasePattern(
         expressionCode: expressionCode,
-        patternCode: '$typeCode()',
+        patternCode: patternCode,
       );
     }
     return null;

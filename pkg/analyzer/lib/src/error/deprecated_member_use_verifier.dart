@@ -16,6 +16,11 @@ abstract class BaseDeprecatedMemberUseVerifier {
   /// can be marked as deprecated - a class, a method, fields (multiple).
   final List<bool> _inDeprecatedMemberStack = [false];
 
+  final bool _strictCasts;
+
+  BaseDeprecatedMemberUseVerifier({bool strictCasts = false})
+      : _strictCasts = strictCasts;
+
   void assignmentExpression(AssignmentExpression node) {
     _checkForDeprecated(node.readElement, node.leftHandSide);
     _checkForDeprecated(node.writeElement, node.leftHandSide);
@@ -208,7 +213,7 @@ abstract class BaseDeprecatedMemberUseVerifier {
       var invokeClass = invokeType.element;
       displayName = "${invokeClass.name}.${element.displayName}";
     }
-    var message = _deprecatedMessage(element);
+    var message = _deprecatedMessage(element, strictCasts: _strictCasts);
     reportError(errorEntity, element, displayName, message);
   }
 
@@ -230,7 +235,8 @@ abstract class BaseDeprecatedMemberUseVerifier {
   /// Return the message in the deprecated annotation on the given [element], or
   /// `null` if the element doesn't have a deprecated annotation or if the
   /// annotation does not have a message.
-  static String? _deprecatedMessage(Element element) {
+  static String? _deprecatedMessage(Element element,
+      {required bool strictCasts}) {
     // Implicit getters/setters.
     if (element.isSynthetic && element is PropertyAccessorElement) {
       element = element.variable;
@@ -329,7 +335,8 @@ class DeprecatedMemberUseVerifier extends BaseDeprecatedMemberUseVerifier {
   final WorkspacePackage? _workspacePackage;
   final ErrorReporter _errorReporter;
 
-  DeprecatedMemberUseVerifier(this._workspacePackage, this._errorReporter);
+  DeprecatedMemberUseVerifier(this._workspacePackage, this._errorReporter,
+      {required super.strictCasts});
 
   @override
   void reportError(SyntacticEntity errorEntity, Element element,

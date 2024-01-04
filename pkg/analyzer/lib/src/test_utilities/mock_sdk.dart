@@ -878,6 +878,14 @@ final class Native<T> {
     this.isLeaf: false,
     this.symbol,
   });
+
+  external static Pointer<T> addressOf<T extends NativeType>(
+      @DartRepresentationOf('T') Object object);
+}
+
+final class DefaultAsset {
+  final String id;
+  const DefaultAsset(this.id);
 }
 
 final class Asset {
@@ -931,6 +939,11 @@ final class AbiSpecificIntegerMapping {
   final Map<Abi, NativeType> mapping;
 
   const AbiSpecificIntegerMapping(this.mapping);
+}
+
+@AbiSpecificIntegerMapping({})
+final class Int extends AbiSpecificInteger {
+  const Int();
 }
 
 @Since('2.17')
@@ -1256,6 +1269,14 @@ class IOSink implements Sink<List<int>> {
   Future<dynamic> close() {}
 }
 
+class Platform {
+  @deprecated
+  static final bool isAndroid = (operatingSystem == "android");
+
+  @deprecated
+  static final String localHostname = 'hostname';
+}
+
 class ProcessStartMode {
   static const normal = const ProcessStartMode._internal(0);
   const ProcessStartMode._internal(int mode);
@@ -1361,6 +1382,10 @@ final MockSdkLibrary _LIB_TYPED_DATA = MockSdkLibrary(
       'typed_data/typed_data.dart',
       '''
 library dart.typed_data;
+
+abstract final class Uint8List {
+  external factory Uint8List(int length);
+}
 
 abstract final class Int8List {
   external factory Int8List(int length);

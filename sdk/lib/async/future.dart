@@ -1298,7 +1298,6 @@ abstract interface class Completer<T> {
   /// See the
   /// [Zones article](https://dart.dev/articles/archive/zones#handling-uncaught-errors)
   /// for details on uncaught errors.
-  /// ```
   void completeError(Object error, [StackTrace? stackTrace]);
 
   /// Whether the [future] has been completed.

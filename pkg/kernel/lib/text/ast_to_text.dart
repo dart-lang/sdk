@@ -169,7 +169,8 @@ String debugVariableDeclarationName(VariableDeclaration node) {
 
 String debugNodeToString(Node node) {
   StringBuffer buffer = new StringBuffer();
-  new Printer(buffer, syntheticNames: globalDebuggingNames).writeNode(node);
+  new Printer(buffer, showOffsets: true, syntheticNames: globalDebuggingNames)
+      .writeNode(node);
   return '$buffer';
 }
 
@@ -788,9 +789,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     if (function.asyncMarker != AsyncMarker.Sync) {
       writeSpaced(getAsyncMarkerKeyword(function.asyncMarker));
     }
-    if (function.futureValueType != null) {
-      writeSpaced("/* futureValueType=");
-      writeNode(function.futureValueType);
+    if (function.emittedValueType != null) {
+      writeSpaced("/* emittedValueType=");
+      writeNode(function.emittedValueType);
       writeSpaced("*/");
     }
     if (function.dartAsyncMarker != AsyncMarker.Sync &&

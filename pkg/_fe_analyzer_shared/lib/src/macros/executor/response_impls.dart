@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../executor.dart';
 import '../api.dart';
+import '../executor.dart';
 import 'introspection_impls.dart';
 import 'serialization.dart';
 import 'serialization_extensions.dart';
@@ -69,6 +69,21 @@ class MacroInstanceIdentifierImpl implements MacroInstanceIdentifier {
                 }
               case Phase.definitions:
                 if (macro is ExtensionDefinitionMacro) {
+                  interfaces |= interfaceMask;
+                }
+            }
+          case DeclarationKind.extensionType:
+            switch (phase) {
+              case Phase.types:
+                if (macro is ExtensionTypeTypesMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.declarations:
+                if (macro is ExtensionTypeDeclarationsMacro) {
+                  interfaces |= interfaceMask;
+                }
+              case Phase.definitions:
+                if (macro is ExtensionTypeDefinitionMacro) {
                   interfaces |= interfaceMask;
                 }
             }

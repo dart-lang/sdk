@@ -532,25 +532,24 @@ static method switchList(core::List<core::int> list) → core::int
   return block {
     core::int #t9;
     final synthesized core::List<core::int> #0#0 = list;
-    function ##0#1#initializer() → core::int
-      return #0#0.{core::List::length}{core::int};
-    late final synthesized core::int #0#1 = ##0#1#initializer(){() → core::int};
+    synthesized core::int #0#1;
+    synthesized core::bool #0#1#isSet = false;
     #L1:
     {
       {
-        if(#0#1.{core::num::>=}(#C8){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t10 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::>=}(#C8){(core::num) → core::bool}) {
           #t9 = 2;
           break #L1;
         }
       }
       {
-        if(#0#1 =={core::num::==}{(core::Object) → core::bool} #C9) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t11 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}) =={core::num::==}{(core::Object) → core::bool} #C9) {
           #t9 = 1;
           break #L1;
         }
       }
       {
-        if(#0#1.{core::num::<=}(#C7){(core::num) → core::bool}) {
+        if((#0#1#isSet ?{core::int} #0#1{core::int} : let final core::bool* #t12 = #0#1#isSet = true in #0#1 = #0#0.{core::List::length}{core::int}).{core::num::<=}(#C7){(core::num) → core::bool}) {
           #t9 = 0;
           break #L1;
         }
@@ -589,4 +588,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///negative_length.dart:12:41 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1105, effectively constant: 5
+Extra constant evaluation: evaluated: 1123, effectively constant: 5

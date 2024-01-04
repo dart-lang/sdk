@@ -2,19 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
+    hide RecordType;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 
@@ -85,8 +90,8 @@ class FlowAnalysisHelper {
       flow;
 
   FlowAnalysisHelper(TypeSystemImpl typeSystem, bool retainDataForTesting,
-      FeatureSet featureSet)
-      : this._(TypeSystemOperations(typeSystem),
+      FeatureSet featureSet, {required bool strictCasts})
+      : this._(TypeSystemOperations(typeSystem, strictCasts: strictCasts),
             retainDataForTesting ? FlowAnalysisDataForTesting() : null,
             isNonNullableByDefault: featureSet.isEnabled(Feature.non_nullable),
             respectImplicitlyTypedVarInitializers:
@@ -371,18 +376,52 @@ class FlowAnalysisHelper {
 }
 
 class TypeSystemOperations
-    with TypeOperations<DartType>
-    implements Operations<PromotableElement, DartType> {
+    implements TypeAnalyzerOperations<PromotableElement, DartType> {
+  final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
-  TypeSystemOperations(this.typeSystem);
+  TypeSystemOperations(this.typeSystem, {required this.strictCasts});
 
   @override
   DartType get boolType => typeSystem.typeProvider.boolType;
 
   @override
+  DartType get doubleType => throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  DartType get dynamicType => typeSystem.typeProvider.dynamicType;
+
+  @override
+  DartType get errorType => InvalidTypeImpl.instance;
+
+  @override
+  DartType get intType => throw UnimplementedError('TODO(paulberry)');
+
+  @override
+  DartType get neverType => typeSystem.typeProvider.neverType;
+
+  @override
+  DartType get objectQuestionType => typeSystem.objectQuestion;
+
+  @override
+  DartType get unknownType => UnknownInferredType.instance;
+
+  @override
   bool areStructurallyEqual(DartType type1, DartType type2) {
     return type1 == type2;
+  }
+
+  @override
+  shared.RecordType<DartType>? asRecordType(DartType type) {
+    if (type is RecordType) {
+      return shared.RecordType(
+        positional: type.positionalFields.map((e) => e.type).toList(),
+        named: type.namedFields
+            .map((e) => shared.NamedType(e.name, e.type))
+            .toList(),
+      );
+    }
+    return null;
   }
 
   @override
@@ -407,8 +446,14 @@ class TypeSystemOperations
   }
 
   @override
+  bool isAlwaysExhaustiveType(DartType type) {
+    return typeSystem.isAlwaysExhaustive(type);
+  }
+
+  @override
   bool isAssignableTo(DartType fromType, DartType toType) {
-    return typeSystem.isAssignableTo(fromType, toType);
+    return typeSystem.isAssignableTo(fromType, toType,
+        strictCasts: strictCasts);
   }
 
   @override
@@ -444,6 +489,21 @@ class TypeSystemOperations
   bool isTypeParameterType(DartType type) => type is TypeParameterType;
 
   @override
+  bool isVariableFinal(PromotableElement element) {
+    return element.isFinal;
+  }
+
+  @override
+  DartType iterableType(DartType elementType) {
+    return typeSystem.typeProvider.iterableType(elementType);
+  }
+
+  @override
+  DartType listType(DartType elementType) {
+    return typeSystem.typeProvider.listType(elementType);
+  }
+
+  @override
   DartType lub(DartType type1, DartType type2) {
     return typeSystem.leastUpperBound(type1, type2);
   }
@@ -451,6 +511,14 @@ class TypeSystemOperations
   @override
   DartType makeNullable(DartType type) {
     return typeSystem.makeNullable(type);
+  }
+
+  @override
+  DartType mapType({
+    required DartType keyType,
+    required DartType valueType,
+  }) {
+    return typeSystem.typeProvider.mapType(keyType, valueType);
   }
 
   @override
@@ -498,6 +566,29 @@ class TypeSystemOperations
   }
 
   @override
+  DartType recordType(
+      {required List<DartType> positional,
+      required List<shared.NamedType<DartType>> named}) {
+    return RecordTypeImpl(
+      positionalFields: positional.map((type) {
+        return RecordTypePositionalFieldImpl(type: type);
+      }).toList(),
+      namedFields: named.map((namedType) {
+        return RecordTypeNamedFieldImpl(
+          name: namedType.name,
+          type: namedType.type,
+        );
+      }).toList(),
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+  }
+
+  @override
+  DartType streamType(DartType elementType) {
+    return typeSystem.typeProvider.streamType(elementType);
+  }
+
+  @override
   DartType? tryPromoteToType(DartType to, DartType from) {
     return typeSystem.tryPromoteToType(to, from);
   }
@@ -510,6 +601,7 @@ class TypeSystemOperations
   @override
   PropertyNonPromotabilityReason? whyPropertyIsNotPromotable(
       covariant ExecutableElement property) {
+    if (property.isPublic) return PropertyNonPromotabilityReason.isNotPrivate;
     if (property is! PropertyAccessorElement) {
       return PropertyNonPromotabilityReason.isNotField;
     }
@@ -523,7 +615,6 @@ class TypeSystemOperations
       return PropertyNonPromotabilityReason.isNotField;
     }
     if (field.isPromotable) return null;
-    if (field.isPublic) return PropertyNonPromotabilityReason.isNotPrivate;
     if (field.isExternal) return PropertyNonPromotabilityReason.isExternal;
     if (!field.isFinal) return PropertyNonPromotabilityReason.isNotFinal;
     // Non-promotion reason must be due to a conflict with some other

@@ -14,6 +14,7 @@ import 'package:vm_service/vm_service.dart';
 
 import '../../devtools_server.dart';
 import 'utils.dart';
+import 'vs_code.dart';
 
 class MachineModeCommandHandler {
   static const launchDevToolsService = 'launchDevTools';
@@ -81,6 +82,9 @@ class MachineModeCommandHandler {
           break;
         case 'devTools.survey':
           _handleDevToolsSurvey(id, params);
+          break;
+        case 'vscode.extensions.discover':
+          await _handleVsCodeExtensionsDiscover(id, params);
           break;
         default:
           DevToolsUtils.printOutput(
@@ -195,6 +199,36 @@ class MachineModeCommandHandler {
       server.clientManager.toJson(id),
       machineMode: machineMode,
     );
+  }
+
+  Future<void> _handleVsCodeExtensionsDiscover(
+      dynamic id, Map<String, dynamic> params) async {
+    if (params case {'rootPaths': List rootPaths}) {
+      final manager = VsCodeExtensionsManager();
+
+      DevToolsUtils.printOutput(
+        'Extensions',
+        {
+          'id': id,
+          'result': {
+            for (final rootPath in rootPaths.cast<String>())
+              rootPath: await manager.findVsCodeExtensions(rootPath),
+          }
+        },
+        machineMode: machineMode,
+      );
+    } else {
+      final errorMessage =
+          "Invalid input: $params does not contain 'List<String> rootPaths'";
+      DevToolsUtils.printOutput(
+        errorMessage,
+        {
+          'id': id,
+          'error': errorMessage,
+        },
+        machineMode: machineMode,
+      );
+    }
   }
 
   void _handleDevToolsSurvey(dynamic id, Map<String, dynamic> params) {

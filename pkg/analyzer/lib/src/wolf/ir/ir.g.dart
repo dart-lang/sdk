@@ -46,6 +46,12 @@ mixin _RawIRWriterMixin implements _RawIRWriterMixinInterface {
     _params1.add(argumentNames.index);
   }
 
+  void concat(int count) {
+    _opcodes.add(Opcode.concat);
+    _params0.add(count);
+    _params1.add(0);
+  }
+
   void drop() {
     _opcodes.add(Opcode.drop);
     _params0.add(0);
@@ -163,6 +169,9 @@ mixin IRToStringMixin implements RawIRContainerInterface {
 
       case Opcode.not:
         return 'not';
+
+      case Opcode.concat:
+        return 'concat(${Opcode.concat.decodeCount(this, address)})';
 
       case Opcode.is_:
         return 'is(${typeRefToString(Opcode.is_.decodeType(this, address))})';
@@ -339,19 +348,20 @@ class Opcode {
   static const identical = _ParameterShape3._(5);
   static const eq = _ParameterShape3._(6);
   static const not = _ParameterShape3._(7);
-  static const is_ = _ParameterShape4._(8);
-  static const drop = _ParameterShape3._(9);
-  static const dup = _ParameterShape3._(10);
-  static const shuffle = _ParameterShape5._(11);
-  static const block = _ParameterShape6._(12);
-  static const loop = _ParameterShape7._(13);
-  static const function = _ParameterShape8._(14);
-  static const end = _ParameterShape3._(15);
-  static const br = _ParameterShape9._(16);
-  static const brIf = _ParameterShape9._(17);
-  static const await_ = _ParameterShape3._(18);
-  static const yield_ = _ParameterShape3._(19);
-  static const call = _ParameterShape10._(20);
+  static const concat = _ParameterShape0._(8);
+  static const is_ = _ParameterShape4._(9);
+  static const drop = _ParameterShape3._(10);
+  static const dup = _ParameterShape3._(11);
+  static const shuffle = _ParameterShape5._(12);
+  static const block = _ParameterShape6._(13);
+  static const loop = _ParameterShape7._(14);
+  static const function = _ParameterShape8._(15);
+  static const end = _ParameterShape3._(16);
+  static const br = _ParameterShape9._(17);
+  static const brIf = _ParameterShape9._(18);
+  static const await_ = _ParameterShape3._(19);
+  static const yield_ = _ParameterShape3._(20);
+  static const call = _ParameterShape10._(21);
 
   String describe() => opcodeNameTable[index];
 
@@ -364,6 +374,7 @@ class Opcode {
     "identical",
     "eq",
     "not",
+    "concat",
     "is",
     "drop",
     "dup",

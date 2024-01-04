@@ -298,6 +298,28 @@ const zero = 0;
 ''');
   }
 
+  test_int_extensionTypeBool() async {
+    await assertErrorsInCode('''
+extension type E(bool it) {}
+
+void f(E x) {
+  if (x case (0)) {}
+}
+''', [
+      error(WarningCode.CONSTANT_PATTERN_NEVER_MATCHES_VALUE_TYPE, 58, 1),
+    ]);
+  }
+
+  test_int_extensionTypeInt() async {
+    await assertNoErrorsInCode('''
+extension type E(int it) {}
+
+void f(E x) {
+  if (x case (0)) {}
+}
+''');
+  }
+
   test_int_functionType() async {
     await assertErrorsInCode('''
 void f(void Function() x) {

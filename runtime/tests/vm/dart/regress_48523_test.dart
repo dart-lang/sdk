@@ -95,7 +95,7 @@ Future main() async {
   print('[testee] shutting down');
 }
 
-final timeout = const Duration(milliseconds: 200);
+final timeout = const Duration(milliseconds: 2000);
 
 @pragma('vm:never-inline')
 Future<bool> waitUntilReloadDone() async {

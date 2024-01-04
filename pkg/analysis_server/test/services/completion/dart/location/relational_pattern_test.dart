@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RelationalPatternTest1);
-    defineReflectiveTests(RelationalPatternTest2);
+    defineReflectiveTests(RelationalPatternTest);
   });
 }
 
 @reflectiveTest
-class RelationalPatternTest1 extends AbstractCompletionDriverTest
-    with RelationalPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class RelationalPatternTest2 extends AbstractCompletionDriverTest
-    with RelationalPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class RelationalPatternTest extends AbstractCompletionDriverTest
+    with RelationalPatternTestCases {}
 
 mixin RelationalPatternTestCases on AbstractCompletionDriverTest {
   Future<void> test_argument_greaterThanOrEqual_partial() async {
@@ -40,8 +29,7 @@ class A01 {}
 class A02 {}
 class B01 {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -54,33 +42,6 @@ suggestions
   A02
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A01
-    kind: constructorInvocation
-  A02
-    kind: class
-  A02
-    kind: constructorInvocation
-  B01
-    kind: class
-  B01
-    kind: constructorInvocation
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_argument_lessThan() async {

@@ -10,49 +10,6 @@ import 'package:logging/logging.dart';
 import 'driver.dart';
 import 'input_converter.dart';
 
-/// A [CompletionRequestOperation] tracks response time along with
-/// the first and last completion notifications.
-class CompletionRequestOperation extends RequestOperation {
-  late Driver driver;
-  late StreamSubscription<CompletionResultsParams> subscription;
-  late String notificationId;
-  late Stopwatch stopwatch;
-  bool firstNotification = true;
-
-  CompletionRequestOperation(super.converter, super.json);
-
-  @override
-  Future<void>? perform(Driver driver) {
-    this.driver = driver;
-    subscription = driver.onCompletionResults.listen(processNotification);
-    return super.perform(driver);
-  }
-
-  void processNotification(CompletionResultsParams event) {
-    if (event.id == notificationId) {
-      var elapsed = stopwatch.elapsed;
-      if (firstNotification) {
-        firstNotification = false;
-        driver.results.record('completion notification first', elapsed,
-            notification: true);
-      }
-      if (event.isLast) {
-        subscription.cancel();
-        driver.results.record('completion notification last', elapsed,
-            notification: true);
-      }
-    }
-  }
-
-  @override
-  void processResult(
-      String id, Map<String, Object?> result, Stopwatch stopwatch) {
-    notificationId = result['id'] as String;
-    this.stopwatch = stopwatch;
-    super.processResult(id, result, stopwatch);
-  }
-}
-
 /// An [Operation] represents an action such as sending a request to the server.
 abstract class Operation {
   Future<void>? perform(Driver driver);

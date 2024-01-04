@@ -129,6 +129,41 @@ enum A {
 ''');
   }
 
+  test_constructor_namedGenerative() async {
+    await assertDiagnostics(r'''
+class C {
+  C.c();
+}
+''', [
+      lint(6, 1),
+      lint(14, 1),
+    ]);
+  }
+
+  test_constructor_unnamedFactory() async {
+    await assertDiagnostics(r'''
+class C {
+  C._();
+
+  factory C() => C._();
+}
+''', [
+      lint(6, 1),
+      lint(30, 1),
+    ]);
+  }
+
+  test_constructor_unnamedGenerative() async {
+    await assertDiagnostics(r'''
+class C {
+  C();
+}
+''', [
+      lint(6, 1),
+      lint(12, 1),
+    ]);
+  }
+
   test_enum() async {
     await assertDiagnostics(r'''
 enum A {

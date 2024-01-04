@@ -85,7 +85,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
                                     TokenPosition position);
   Fragment CheckStackOverflowInPrologue(const Function& dart_function);
   Fragment SetupCapturedParameters(const Function& dart_function);
-  Fragment InitSuspendableFunction(const Function& dart_function);
+  Fragment InitSuspendableFunction(const Function& dart_function,
+                                   const AbstractType* emitted_value_type);
   Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function);
@@ -387,13 +388,14 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildLoadAbiSpecificInt(bool at_index);
   Fragment BuildStoreAbiSpecificInt(bool at_index);
 
-  // Build FG for '_asFunctionInternal'. Reads an Arguments from the
-  // Kernel buffer and pushes the resulting closure.
-  Fragment BuildFfiAsFunctionInternal();
+  // Build FG for FFI call.
+  Fragment BuildFfiCall();
 
   // Build FG for '_nativeCallbackFunction'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting Function object.
-  Fragment BuildFfiNativeCallbackFunction(FfiFunctionKind kind);
+  Fragment BuildFfiNativeCallbackFunction(FfiCallbackKind kind);
+
+  Fragment BuildFfiNativeAddressOf();
 
   Fragment BuildArgumentsCachableIdempotentCall(intptr_t* argument_count);
   Fragment BuildCachableIdempotentCall(TokenPosition position,

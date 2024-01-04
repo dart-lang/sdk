@@ -24,7 +24,7 @@ class B<T> {
 }
 
 class C extends B<C> {
-  C(C data) : super(data);
+  C(super.data);
 }
 
 var tests = <IsolateTest>[

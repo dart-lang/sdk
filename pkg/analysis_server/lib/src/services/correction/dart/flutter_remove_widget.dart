@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -33,13 +34,13 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var widgetCreation = flutter.identifyNewExpression(node);
+    var widgetCreation = Flutter.identifyNewExpression(node);
     if (widgetCreation == null) {
       return;
     }
 
     // Prepare the list of our children.
-    var childrenArgument = flutter.findChildrenArgument(widgetCreation);
+    var childrenArgument = Flutter.findChildrenArgument(widgetCreation);
     if (childrenArgument != null) {
       var childrenExpression = childrenArgument.expression;
       if (childrenExpression is ListLiteral &&
@@ -48,11 +49,11 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
             builder, widgetCreation, childrenExpression.elements);
       }
     } else {
-      var childArgument = flutter.findChildArgument(widgetCreation);
+      var childArgument = Flutter.findChildArgument(widgetCreation);
       if (childArgument != null) {
         await _removeSingle(builder, widgetCreation, childArgument.expression);
       } else {
-        var builderArgument = flutter.findBuilderArgument(widgetCreation);
+        var builderArgument = Flutter.findBuilderArgument(widgetCreation);
         if (builderArgument != null) {
           await _removeBuilder(builder, widgetCreation, builderArgument);
         }

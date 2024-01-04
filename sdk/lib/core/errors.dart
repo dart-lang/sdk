@@ -306,7 +306,6 @@ class RangeError extends ArgumentError {
   /// name and message text of the thrown error.
   ///
   /// Returns [value] if it is in the interval.
-  @pragma("wasm:entry-point")
   static int checkValueInInterval(int value, int minValue, int maxValue,
       [String? name, String? message]) {
     if (value < minValue || value > maxValue) {

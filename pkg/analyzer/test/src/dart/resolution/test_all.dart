@@ -75,7 +75,6 @@ import 'mixin_test.dart' as mixin_resolution;
 import 'named_type_test.dart' as named_type;
 import 'namespace_test.dart' as namespace;
 import 'node_text_expectations.dart';
-import 'non_nullable_blaze_workspace_test.dart' as non_nullable_blaze_workspace;
 import 'non_nullable_test.dart' as non_nullable;
 import 'null_assert_pattern_test.dart' as null_assert_pattern;
 import 'null_check_pattern_test.dart' as null_check_pattern;
@@ -184,7 +183,6 @@ main() {
     mixin_resolution.main();
     named_type.main();
     namespace.main();
-    non_nullable_blaze_workspace.main();
     non_nullable.main();
     null_assert_pattern.main();
     null_check_pattern.main();

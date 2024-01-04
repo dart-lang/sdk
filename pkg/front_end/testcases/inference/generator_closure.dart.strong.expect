@@ -7,7 +7,7 @@ import "dart:async";
 
 static method foo(() → asy::Stream<core::int> values) → void {}
 static method main() → void {
-  self::foo(() → asy::Stream<core::int> async* {
+  self::foo(() → asy::Stream<core::int> async* /* emittedValueType= core::int */ {
     yield 0;
     yield 1;
   });

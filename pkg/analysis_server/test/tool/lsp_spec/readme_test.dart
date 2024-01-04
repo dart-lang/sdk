@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
-import '../../../tool/lsp_spec/meta_model_reader.dart';
+import '../../../tool/lsp_spec/meta_model.dart';
 
 void main() {
   final serverPkgPath = _getAnalysisServerPkgPath();
@@ -20,15 +20,18 @@ void main() {
   group('LSP readme', () {
     test('contains all methods', () {
       final readmeContent = readmeFile.readAsStringSync();
-      final model = LspMetaModelReader().readFile(metaModelJsonFile);
+      var model = LspMetaModelReader().readFile(metaModelJsonFile);
+      model = LspMetaModelCleaner().cleanModel(model);
 
       final missingMethods = StringBuffer();
       for (final method in model.methods) {
         // Handle `foo/*` in the readme as well as `foo/bar`.
-        final methodWildcard = method.replaceAll(RegExp(r'\/[^\/]+$'), '/*');
-        if (!readmeContent.contains(' $method ') &&
+        final methodName = method.value;
+        final methodWildcard =
+            methodName.replaceAll(RegExp(r'\/[^\/]+$'), '/*');
+        if (!readmeContent.contains(' $methodName ') &&
             !readmeContent.contains(' $methodWildcard ')) {
-          missingMethods.writeln(method);
+          missingMethods.writeln(methodName);
         }
       }
 

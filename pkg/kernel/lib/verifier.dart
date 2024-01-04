@@ -806,7 +806,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     currentAsyncMarker = node.asyncMarker;
     if (!isOutline &&
         node.asyncMarker == AsyncMarker.Async &&
-        node.futureValueType == null) {
+        node.emittedValueType == null) {
       problem(node,
           "No future value type set for async function in opt-in library.");
     }

@@ -530,7 +530,7 @@ class NegateValue extends Value {
       }
       return info.newSubtractValue(other, value);
     }
-    if (other is InstructionValue) {
+    if (other is VariableValue) {
       return info.newSubtractValue(other, value);
     }
     return other - value;
@@ -548,7 +548,7 @@ class NegateValue extends Value {
       }
       return info.newSubtractValue(this, other);
     }
-    if (other is InstructionValue) {
+    if (other is VariableValue) {
       return info.newSubtractValue(this, other);
     }
     if (other is NegateValue) return this + other.value;

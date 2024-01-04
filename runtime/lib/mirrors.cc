@@ -244,7 +244,8 @@ static InstancePtr CreateMethodMirror(const Function& func,
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
 
   String& name = String::Handle(func.name());
-  name = String::ScrubNameRetainPrivate(name, func.is_extension_member());
+  name = String::ScrubNameRetainPrivate(
+      name, func.is_extension_member() || func.is_extension_type_member());
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
   args.SetAt(3, instantiator);
@@ -273,6 +274,8 @@ static InstancePtr CreateMethodMirror(const Function& func,
   kind_flags |= (static_cast<intptr_t>(is_synthetic) << Mirrors::kSynthetic);
   kind_flags |= (static_cast<intptr_t>(func.is_extension_member())
                  << Mirrors::kExtensionMember);
+  kind_flags |= (static_cast<intptr_t>(func.is_extension_type_member())
+                 << Mirrors::kExtensionTypeMember);
   args.SetAt(5, Smi::Handle(Smi::New(kind_flags)));
 
   return CreateMirror(Symbols::_MethodMirror(), args);
@@ -285,7 +288,7 @@ static InstancePtr CreateVariableMirror(const Field& field,
 
   const String& name = String::Handle(field.name());
 
-  const Array& args = Array::Handle(Array::New(8));
+  const Array& args = Array::Handle(Array::New(9));
   args.SetAt(0, field_ref);
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
@@ -294,6 +297,7 @@ static InstancePtr CreateVariableMirror(const Field& field,
   args.SetAt(5, Bool::Get(field.is_final()));
   args.SetAt(6, Bool::Get(field.is_const()));
   args.SetAt(7, Bool::Get(field.is_extension_member()));
+  args.SetAt(8, Bool::Get(field.is_extension_type_member()));
 
   return CreateMirror(Symbols::_VariableMirror(), args);
 }
@@ -1264,7 +1268,8 @@ DEFINE_NATIVE_ENTRY(ClosureMirror_function, 0, 1) {
   bool callable = closure.IsCallable(&function);
   if (callable) {
     const Function& parent = Function::Handle(function.parent_function());
-    if (function.IsImplicitClosureFunction() || parent.is_extension_member()) {
+    if (function.IsImplicitClosureFunction() || parent.is_extension_member() ||
+        parent.is_extension_type_member()) {
       // The VM uses separate Functions for tear-offs, but the mirrors consider
       // the tear-offs to be the same as the torn-off methods. Avoid handing out
       // a reference to the tear-off here to avoid a special case in the

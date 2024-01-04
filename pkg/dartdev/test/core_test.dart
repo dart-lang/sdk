@@ -41,7 +41,7 @@ void _dartdevCommand() {
   });
 
   test('compile', () {
-    assertDartdevCommandProperties(CompileCommand(), 'compile', 'compile', 5);
+    assertDartdevCommandProperties(CompileCommand(), 'compile', 'compile', 6);
   });
 
   test('compile/js', () {
@@ -77,6 +77,13 @@ void _dartdevCommand() {
         CompileCommand().subcommands['aot-snapshot'] as DartdevCommand,
         'aot-snapshot',
         'compile/aot-snapshot');
+  });
+
+  test('compile/wasm', () {
+    assertDartdevCommandProperties(
+        CompileCommand().subcommands['wasm'] as DartdevCommand,
+        'wasm',
+        'compile/wasm');
   });
 
   test('create', () {

@@ -29,9 +29,9 @@ class C1 {
   final int? notPrivate = 0;
   //         ^^^^^^^^^^
   // [context 3] 'notPrivate' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See http://dart.dev/go/non-promo-field-promotion-unavailable
-  // [context 3] 'notPrivate' refers to a public field so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
+  // [context 3] 'notPrivate' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field
   // [context 10] 'notPrivate' couldn't be promoted because field promotion is only available in Dart 3.2 and above.
-  // [context 10] 'notPrivate' refers to a public field so it couldn't be promoted.
+  // [context 10] 'notPrivate' refers to a public property so it couldn't be promoted.
   int? _notFinal = 0;
   //   ^^^^^^^^^
   // [context 4] '_notFinal' couldn't be promoted because field promotion is only available in Dart 3.2 and above.  See http://dart.dev/go/non-promo-field-promotion-unavailable

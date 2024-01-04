@@ -31,6 +31,10 @@ testStoreLoad() {
   final pUseNegative = p.elementAt(1);
   Expect.equals(10, pUseNegative[-1]);
 
+  // Test negative index using operators
+  final pUseNegative1 = p + 1;
+  Expect.equals(10, pUseNegative1[-1]);
+
   final p1 = calloc<Double>(2);
   p1.value = 10.0;
   Expect.approxEquals(10.0, p1.value);
@@ -80,12 +84,21 @@ testCompoundLoadAndStore() {
     Expect.isTrue(foos.elementAt(i).ref.a == 10);
   }
 
+  for (var i = 1; i < 9; i++) {
+    foos[i] = reference;
+    Expect.isTrue(foos[i].a == 10);
+
+    (foos + i).ref = reference;
+    Expect.isTrue((foos + i).ref.a == 10);
+  }
+
   final bars = calloc<Bar>(10);
   bars[0].foo = reference;
 
   for (var i = 1; i < 9; i++) {
     bars[i] = bars[0];
     Expect.isTrue(bars.elementAt(i).ref.foo.a == 10);
+    Expect.isTrue((bars + i).ref.foo.a == 10);
   }
 
   calloc.free(foos);

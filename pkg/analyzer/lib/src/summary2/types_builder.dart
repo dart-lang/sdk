@@ -454,14 +454,15 @@ class TypesBuilder {
         toDeclaration.mapInterfaceTypes(element.interfaces),
       );
 
-      augmented.constructors.addAll(
-        element.constructors.notAugmented.map((element) {
+      augmented.constructors = [
+        ...augmented.constructors.notAugmented,
+        ...element.constructors.notAugmented.map((element) {
           if (toDeclaration.map.isEmpty) {
             return element;
           }
           return ConstructorMember(typeProvider, element, toDeclaration, false);
         }),
-      );
+      ];
     }
 
     if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {
@@ -470,33 +471,36 @@ class TypesBuilder {
       );
     }
 
-    augmented.fields.addAll(
-      element.fields.notAugmented.map((element) {
+    augmented.fields = [
+      ...augmented.fields.notAugmented,
+      ...element.fields.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
         return FieldMember(typeProvider, element, toDeclaration, false);
       }),
-    );
+    ];
 
-    augmented.accessors.addAll(
-      element.accessors.notAugmented.map((element) {
+    augmented.accessors = [
+      ...augmented.accessors.notAugmented,
+      ...element.accessors.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
         return PropertyAccessorMember(
             typeProvider, element, toDeclaration, false);
       }),
-    );
+    ];
 
-    augmented.methods.addAll(
-      element.methods.notAugmented.map((element) {
+    augmented.methods = [
+      ...augmented.methods.notAugmented,
+      ...element.methods.notAugmented.map((element) {
         if (toDeclaration.map.isEmpty) {
           return element;
         }
         return MethodMember(typeProvider, element, toDeclaration, false);
       }),
-    );
+    ];
   }
 
   /// The [FunctionType] to use when a function type is expected for a type
@@ -647,6 +651,7 @@ class _MixinInference {
       supertypeConstraints,
       matchingInterfaceTypes,
       genericMetadataIsEnabled: featureSet.isEnabled(Feature.generic_metadata),
+      strictInference: false,
     );
     if (inferredTypeArguments == null) {
       return mixinType;

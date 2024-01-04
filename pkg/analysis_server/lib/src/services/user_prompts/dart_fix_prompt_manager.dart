@@ -14,6 +14,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
@@ -59,22 +60,27 @@ class DartFixPromptManager {
   ///
   /// Usually checks are throttled but when constraints change (or the set of
   /// context paths) additional checks are allowed.
-  Map<String, String?> _lastContextSdkVersionConstraints = {};
+  Map<String, List<String?>> _lastContextSdkVersionConstraints = {};
 
   CancelableToken? _inProgressCheckCancellationToken;
 
   DartFixPromptManager(this.server, this.preferences);
 
-  /// Gets a map of context root paths to their version constraint strings.
+  /// Gets a map of context root paths to a list of associated sdk version
+  /// constraints.
   @visibleForTesting
-  Map<String, String?> get currentContextSdkConstraints {
-    return {
-      for (final context in server.contextManager.analysisContexts)
-        // TODO(pq): update to a new source for sdk version constraints
-        // https://github.com/dart-lang/sdk/issues/54043
-        context.contextRoot.root.path:
-            context.analysisOptions.sdkVersionConstraint?.toString(),
-    };
+  Map<String, List<String?>> get currentContextSdkConstraints {
+    final constraintMap = <String, List<String?>>{};
+    for (final context in server.contextManager.analysisContexts) {
+      final workspace = context.contextRoot.workspace;
+      final sdkConstraints = workspace is PubWorkspace
+          ? workspace.pubPackages
+              .map((p) => p.sdkVersionConstraint?.toString())
+              .toList()
+          : <String>[];
+      constraintMap[context.contextRoot.root.path] = sdkConstraints;
+    }
+    return constraintMap;
   }
 
   bool get hasCheckedRecently {

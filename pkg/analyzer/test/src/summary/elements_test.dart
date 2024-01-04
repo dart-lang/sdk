@@ -46471,39 +46471,29 @@ void f2(Never?<aliasElement: self::@typeAlias::A2, aliasArguments: [int]> a) {}
 ''');
   }
 
-  test_typedef_nonFunction_aliasElement_recordType() async {
+  test_typedef_nonFunction_aliasElement_recordType_generic() async {
     var library = await buildLibrary(r'''
-typedef A1 = (int, String);
-typedef A2<T, U> = (T, U);
-void f1(A1 a) {}
-void f2(A2<int, String> a) {}
+typedef A<T, U> = (T, U);
+void f(A<int, String> a) {}
 ''');
 
     checkElementText(library, r'''
 library
   definingUnit
     typeAliases
-      A1 @8
-        aliasedType: (int, String)
-      A2 @36
+      A @8
         typeParameters
-          covariant T @39
+          covariant T @10
             defaultType: dynamic
-          covariant U @42
+          covariant U @13
             defaultType: dynamic
         aliasedType: (T, U)
     functions
-      f1 @60
+      f @31
         parameters
-          requiredPositional a @66
+          requiredPositional a @48
             type: (int, String)
-              alias: self::@typeAlias::A1
-        returnType: void
-      f2 @77
-        parameters
-          requiredPositional a @96
-            type: (int, String)
-              alias: self::@typeAlias::A2
+              alias: self::@typeAlias::A
                 typeArguments
                   int
                   String

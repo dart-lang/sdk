@@ -562,10 +562,15 @@ class CallingConventions {
 
   // Whether 1 or 2 byte-sized arguments or return values are passed extended
   // to 4 bytes.
-  // TODO(ffi): Need to add kExtendedToWord.
+#if XLEN == 32
   static constexpr ExtensionStrategy kReturnRegisterExtension = kExtendedTo4;
   static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo4;
-  static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo4;
+#else
+  static constexpr ExtensionStrategy kReturnRegisterExtension = kExtendedTo8;
+  static constexpr ExtensionStrategy kArgumentRegisterExtension = kExtendedTo8;
+  static constexpr ExtensionStrategy kArgumentStackExtension = kExtendedTo8;
+#endif
 
   static constexpr Register kReturnReg = A0;
   static constexpr Register kSecondReturnReg = A1;

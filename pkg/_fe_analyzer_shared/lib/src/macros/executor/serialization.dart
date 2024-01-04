@@ -727,7 +727,14 @@ Serializer Function() get serializerFactory => switch (serializationMode) {
 /// side. This indicates the different modes, as well as the format used.
 enum SerializationMode {
   byteData,
-  json,
+  json;
+
+  factory SerializationMode.fromOption(String option) => switch (option) {
+        'json' => SerializationMode.json,
+        'bytedata' => SerializationMode.byteData,
+        _ => throw new ArgumentError('Unrecognized macro serialization mode '
+            '$option'),
+      };
 }
 
 extension SerializationModeHelpers on SerializationMode {

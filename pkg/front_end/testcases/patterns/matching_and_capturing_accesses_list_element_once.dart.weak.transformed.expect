@@ -532,15 +532,16 @@ static method main() → dynamic {
     hoisted core::int x;
     hoisted core::int y;
     final synthesized self::A #0#0 = a;
-    function ##0#4#initializer() → core::int
-      return #0#0.{self::A::[]}(0){(core::int) → core::int};
-    late final synthesized core::int #0#4 = ##0#4#initializer(){() → core::int};
-    function ##0#5#initializer() → core::int
-      return #0#0.{self::A::[]}(1){(core::int) → core::int};
-    late final synthesized core::int #0#5 = ##0#5#initializer(){() → core::int};
-    if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (#0#4 is core::int && (let final core::int #t9 = x = #0#4 in true)) && (#0#5 is core::int && (let final core::int #t10 = y = #0#5 in true))) {
-      self::expectEquals(x, 0);
-      self::expectEquals(y, 0);
+    synthesized core::int #0#4;
+    synthesized core::bool #0#4#isSet = false;
+    synthesized core::int #0#5;
+    synthesized core::bool #0#5#isSet = false;
+    if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && ((#0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool* #t9 = #0#4#isSet = true in #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int}) is core::int && (let final core::int #t10 = x = #0#4#isSet ?{core::int} #0#4{core::int} : let final core::bool* #t11 = #0#4#isSet = true in #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int} in true)) && (#0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t12 = #0#5#isSet = true in #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int}) is core::int) {
+      y = #0#5#isSet ?{core::int} #0#5{core::int} : let final core::bool* #t13 = #0#5#isSet = true in #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int};
+      {
+        self::expectEquals(x, 0);
+        self::expectEquals(y, 0);
+      }
     }
   }
   self::expectEquals(a.{self::A::count}{core::int}, 2);
@@ -567,4 +568,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:462:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:471:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:480:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1081, effectively constant: 4
+Extra constant evaluation: evaluated: 1101, effectively constant: 4

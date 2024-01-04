@@ -17,7 +17,22 @@ import 'package:analyzer/src/workspace/simple.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
+
+/// Check if the given list of path components contains a package build
+/// generated directory, it would have the following path segments,
+/// '.dart_tool/build/generated'.
+bool _isPackageBuildGeneratedPath(List<String> pathComponents, int startIndex) {
+  if (pathComponents.length > startIndex + 2) {
+    if (pathComponents[startIndex] == file_paths.dotDartTool &&
+        pathComponents[startIndex + 1] == file_paths.packageBuild &&
+        pathComponents[startIndex + 2] == file_paths.packageBuildGenerated) {
+      return true;
+    }
+  }
+  return false;
+}
 
 /// Instances of the class `PackageBuildFileUriResolver` resolve `file` URI's by
 /// first resolving file uri's in the expected way, and then by looking in the
@@ -30,13 +45,12 @@ class PackageBuildFileUriResolver extends ResourceUriResolver {
   @override
   Uri pathToUri(String path) {
     var pathContext = workspace.provider.pathContext;
+
     if (pathContext.isWithin(workspace.root, path)) {
       var relative = pathContext.relative(path, from: workspace.root);
       var components = pathContext.split(relative);
       if (components.length > 4 &&
-          components[0] == '.dart_tool' &&
-          components[1] == 'build' &&
-          components[2] == 'generated' &&
+          _isPackageBuildGeneratedPath(components, 0) &&
           components[3] == workspace.projectPackageName) {
         var canonicalPath = pathContext.joinAll([
           workspace.root,
@@ -250,6 +264,8 @@ class PubWorkspace extends SimpleWorkspace {
     return PackageMapUriResolver(provider, packageMap);
   }
 
+  List<PubWorkspacePackage> get pubPackages => [_theOnlyPackage];
+
   /// For some package file, which may or may not be a package source (it could
   /// be in `bin/`, `web/`, etc), find where its built counterpart will exist if
   /// its a generated source.
@@ -264,7 +280,12 @@ class PubWorkspace extends SimpleWorkspace {
     }
     var context = provider.pathContext;
     var fullBuiltPath = context.normalize(context.join(
-        root, _dartToolRootName, 'build', 'generated', packageName, builtPath));
+        root,
+        file_paths.dotDartTool,
+        file_paths.packageBuild,
+        file_paths.packageBuildGenerated,
+        packageName,
+        builtPath));
     return provider.getFile(fullBuiltPath);
   }
 
@@ -307,17 +328,18 @@ class PubWorkspace extends SimpleWorkspace {
     try {
       final relativePath = context.relative(filePath, from: root);
       final file = builtFile(relativePath, projectPackageName);
-
       if (file!.exists) {
         return file;
       }
-
       return provider.getFile(filePath);
     } catch (_) {
       return null;
     }
   }
 
+  /// Find the [PubWorkspacePackage] that contains the given file path. The path
+  /// can be for a source file or a generated file. Generated files are located
+  /// in the '.dart_tool/build/generated' folder of the containing package.
   @override
   PubWorkspacePackage? findPackageFor(String filePath) {
     var pathContext = provider.pathContext;
@@ -349,6 +371,8 @@ class PubWorkspace extends SimpleWorkspace {
   }
 
   /// Find the pub workspace that contains the given [filePath].
+  /// A [PubWorkspace] is rooted at the innermost pubspec/package-config pair,
+  /// or if that's not found, then the outermost pubspec.
   static PubWorkspace? find(
     ResourceProvider provider,
     Packages packages,
@@ -397,6 +421,12 @@ class PubWorkspace extends SimpleWorkspace {
 /// understand whether arbitrary file paths represent libraries declared within
 /// a given package in a [PubWorkspace].
 class PubWorkspacePackage extends WorkspacePackage {
+  static const List<String> _generatedPathParts = [
+    file_paths.dotDartTool,
+    file_paths.packageBuild,
+    file_paths.packageBuildGenerated,
+  ];
+
   @override
   final String root;
 
@@ -404,6 +434,11 @@ class PubWorkspacePackage extends WorkspacePackage {
 
   /// A flag to indicate if we've tried to parse the pubspec.
   bool _parsedPubspec = false;
+
+  VersionConstraint? _sdkVersionConstraint;
+
+  /// A flag to indicate if we've tried to parse the sdk constraint.
+  bool _parsedSdkConstraint = false;
 
   @override
   final PubWorkspace workspace;
@@ -423,11 +458,31 @@ class PubWorkspacePackage extends WorkspacePackage {
     return _pubspec;
   }
 
+  /// The version range for the SDK specified for this package , or `null` if
+  /// it is ill-formatted or not set.
+  VersionConstraint? get sdkVersionConstraint {
+    if (!_parsedSdkConstraint) {
+      _parsedSdkConstraint = true;
+
+      var sdkValue = pubspec?.environment?.sdk?.value.text;
+      if (sdkValue != null) {
+        try {
+          _sdkVersionConstraint = VersionConstraint.parse(sdkValue);
+        } catch (_) {
+          // Ill-formatted constraints, default to a `null` value.
+        }
+      }
+    }
+    return _sdkVersionConstraint;
+  }
+
   @override
   bool contains(Source source) {
     var uri = source.uri;
 
     if (uri.isScheme('package')) {
+      // TODO(keertip): Check to see if we can use information from package
+      // config to find out if a file is in this package.
       var packageName = uri.pathSegments[0];
       return packageName == workspace.projectPackageName;
     }
@@ -436,7 +491,6 @@ class PubWorkspacePackage extends WorkspacePackage {
       var path = source.fullName;
       return workspace.findPackageFor(path) != null;
     }
-
     return false;
   }
 
@@ -462,16 +516,13 @@ class PubWorkspacePackage extends WorkspacePackage {
       return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
     }
 
-    if (workspace.usesPackageBuild) {
-      libFolder = workspace.provider.pathContext
-          .joinAll([root, ...PubWorkspace._generatedPathParts, 'test', 'lib']);
-      if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
-        // A file in "$generated/lib" is public iff it is not in
-        // "$generated/lib/src".
-        var libSrcFolder =
-            workspace.provider.pathContext.join(libFolder, 'src');
-        return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
-      }
+    libFolder = workspace.provider.pathContext
+        .joinAll([root, ..._generatedPathParts, 'test', 'lib']);
+    if (workspace.provider.pathContext.isWithin(libFolder, filePath)) {
+      // A file in "$generated/lib" is public iff it is not in
+      // "$generated/lib/src".
+      var libSrcFolder = workspace.provider.pathContext.join(libFolder, 'src');
+      return !workspace.provider.pathContext.isWithin(libSrcFolder, filePath);
     }
     return false;
   }

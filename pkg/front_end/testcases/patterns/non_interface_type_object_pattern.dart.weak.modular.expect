@@ -11,65 +11,89 @@ static method test<T extends core::Object? = dynamic>(dynamic o) → dynamic {
   {
     hoisted core::int hashCode;
     final synthesized dynamic #0#0 = o;
-    if(#0#0 is () → void && (let final dynamic #t1 = hashCode = #0#0{() → void}.{core::Object::hashCode}{core::int} in true)) {
-      core::print(hashCode);
-      return 1;
+    if(#0#0 is () → void) {
+      hashCode = #0#0{() → void}.{core::Object::hashCode}{core::int};
+      {
+        core::print(hashCode);
+        return 1;
+      }
     }
   }
   {
     hoisted core::int hashCode;
     final synthesized dynamic #1#0 = o;
-    if(#1#0 is (core::int) → core::int && (let final dynamic #t2 = hashCode = #1#0{(core::int) → core::int}.{core::Object::hashCode}{core::int} in true)) {
-      core::print(hashCode);
-      return 2;
+    if(#1#0 is (core::int) → core::int) {
+      hashCode = #1#0{(core::int) → core::int}.{core::Object::hashCode}{core::int};
+      {
+        core::print(hashCode);
+        return 2;
+      }
     }
   }
   {
     hoisted core::int hashCode;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is (core::String) → core::String && (let final dynamic #t3 = hashCode = #2#0{(core::String) → core::String}.{core::Object::hashCode}{core::int} in true)) {
-      core::print(hashCode);
-      return 3;
+    if(#2#0 is (core::String) → core::String) {
+      hashCode = #2#0{(core::String) → core::String}.{core::Object::hashCode}{core::int};
+      {
+        core::print(hashCode);
+        return 3;
+      }
     }
   }
   {
     hoisted core::int hashCode;
     final synthesized dynamic #3#0 = o;
-    if(#3#0 is (self::test::T%) → self::test::T% && (let final dynamic #t4 = hashCode = #3#0{(self::test::T%) → self::test::T%}.{core::Object::hashCode}{core::int} in true)) {
-      core::print(hashCode);
-      return 4;
+    if(#3#0 is (self::test::T%) → self::test::T%) {
+      hashCode = #3#0{(self::test::T%) → self::test::T%}.{core::Object::hashCode}{core::int};
+      {
+        core::print(hashCode);
+        return 4;
+      }
     }
   }
   {
     hoisted core::int hashCode;
     final synthesized dynamic #4#0 = o;
-    if(#4#0 is (dynamic) → dynamic && (let final dynamic #t5 = hashCode = #4#0{(dynamic) → dynamic}.{core::Object::hashCode}{core::int} in true)) {
-      core::print(hashCode);
-      return 5;
+    if(#4#0 is (dynamic) → dynamic) {
+      hashCode = #4#0{(dynamic) → dynamic}.{core::Object::hashCode}{core::int};
+      {
+        core::print(hashCode);
+        return 5;
+      }
     }
   }
   {
     hoisted core::int hashCode;
     final synthesized dynamic #5#0 = o;
-    if(#5#0 is Null && (let final dynamic #t6 = hashCode = #5#0{Null}.{core::Object::hashCode}{<object>}.{core::int} in true)) {
-      core::print(hashCode);
-      return 6;
+    if(#5#0 is Null) {
+      hashCode = #5#0{Null}.{core::Object::hashCode}{<object>}.{core::int};
+      {
+        core::print(hashCode);
+        return 6;
+      }
     }
   }
   {
     hoisted core::int hashCode;
     final synthesized dynamic #6#0 = o;
-    if(#6#0 is FutureOr<core::int> && (let final dynamic #t7 = hashCode = #6#0{FutureOr<core::int>}.{core::Object::hashCode}{<object>}.{core::int} in true)) {
-      core::print(hashCode);
-      return 7;
+    if(#6#0 is FutureOr<core::int>) {
+      hashCode = #6#0{FutureOr<core::int>}.{core::Object::hashCode}{<object>}.{core::int};
+      {
+        core::print(hashCode);
+        return 7;
+      }
     }
   }
   {
     hoisted dynamic hashCode;
     final synthesized dynamic #7#0 = o;
-    if(#7#0 is dynamic && (let final dynamic #t8 = hashCode = #7#0.{core::Object::hashCode}{<object>}.{core::int} in true)) {
-      core::print(hashCode);
-      return 0;
+    if(#7#0 is dynamic) {
+      hashCode = #7#0.{core::Object::hashCode}{<object>}.{core::int};
+      {
+        core::print(hashCode);
+        return 0;
+      }
     }
   }
   return 1.{core::int::unary-}(){() → core::int};

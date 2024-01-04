@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ParenthesizedPatternTest1);
-    defineReflectiveTests(ParenthesizedPatternTest2);
+    defineReflectiveTests(ParenthesizedPatternTest);
   });
 }
 
 @reflectiveTest
-class ParenthesizedPatternTest1 extends AbstractCompletionDriverTest
-    with ParenthesizedPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ParenthesizedPatternTest2 extends AbstractCompletionDriverTest
-    with ParenthesizedPatternTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ParenthesizedPatternTest extends AbstractCompletionDriverTest
+    with ParenthesizedPatternTestCases {}
 
 mixin ParenthesizedPatternTestCases on AbstractCompletionDriverTest {
   void test_empty() async {
@@ -57,8 +46,7 @@ void f(int i) {
   if (i case (f^) ) ];
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -67,24 +55,5 @@ suggestions
   final
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 }

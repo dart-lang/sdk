@@ -4,22 +4,15 @@
 
 library dart2js.js_emitter.native_emitter;
 
-import '../common.dart';
-import '../common/elements.dart' show JCommonElements, JElementEnvironment;
-import '../elements/types.dart' show DartType, FunctionType;
+import '../common/elements.dart' show JCommonElements;
 import '../elements/entities.dart';
-import '../js/js.dart' as jsAst;
-import '../js/js.dart' show js;
-import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
 
-import 'js_emitter.dart' show CodeEmitterTask;
 import 'model.dart';
 
 class NativeEmitter {
-  final CodeEmitterTask _emitterTask;
   final JClosedWorld _closedWorld;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
@@ -40,14 +33,10 @@ class NativeEmitter {
   // redirected.
   final Map<ClassTypeData, List<ClassTypeData>> typeRedirections = {};
 
-  NativeEmitter(
-      this._emitterTask, this._closedWorld, this._nativeCodegenEnqueuer);
+  NativeEmitter(this._closedWorld, this._nativeCodegenEnqueuer);
 
   JCommonElements get _commonElements => _closedWorld.commonElements;
-  JElementEnvironment get _elementEnvironment =>
-      _closedWorld.elementEnvironment;
   NativeData get _nativeData => _closedWorld.nativeData;
-  InterceptorData get _interceptorData => _closedWorld.interceptorData;
 
   /// Prepares native classes for emission. Returns the unneeded classes.
   ///
@@ -285,110 +274,5 @@ class NativeEmitter {
         cls.callStubs.isEmpty &&
         !cls.superclass!.isSimpleMixinApplication &&
         !cls.fields.any(needsAccessor);
-  }
-
-  void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
-      FunctionEntity member, List<jsAst.Parameter> stubParameters) {
-    jsAst.Expression? closureConverter;
-    _elementEnvironment.forEachParameter(member,
-        (DartType type, String? name, _) {
-      type = type.withoutNullability;
-
-      // If [name] is not in [stubParameters], then the parameter is an optional
-      // parameter that was not provided for this stub.
-      for (jsAst.Parameter stubParameter in stubParameters) {
-        if (stubParameter.name == name) {
-          if (type is FunctionType) {
-            closureConverter ??= _emitterTask.emitter
-                .staticFunctionAccess(_commonElements.closureConverter);
-
-            // The parameter type is a function type either directly or through
-            // typedef(s).
-            int arity = type.parameterTypes.length;
-            statements.add(js
-                .statement('# = #(#, $arity)', [name, closureConverter, name]));
-            break;
-          }
-        }
-      }
-    });
-  }
-
-  List<jsAst.Statement> generateParameterStubStatements(
-      FunctionEntity member,
-      bool isInterceptedMethod,
-      jsAst.Name invocationName,
-      List<jsAst.Parameter> stubParameters,
-      List<jsAst.Expression> argumentsBuffer,
-      int indexOfLastOptionalArgumentInParameters) {
-    // The target JS function may check arguments.length so we need to
-    // make sure not to pass any unspecified optional arguments to it.
-    // For example, for the following Dart method:
-    //   foo({x, y, z});
-    // The call:
-    //   foo(y: 1)
-    // must be turned into a JS call to:
-    //   foo(null, y).
-
-    List<jsAst.Statement> statements = [];
-    potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
-
-    jsAst.Expression receiver;
-    List<jsAst.Expression> arguments;
-
-    assert(nativeMethods.contains(member), failedAt(member));
-
-    // When calling a JS method, we call it with the native name, and only the
-    // arguments up until the last one provided.
-    final target = _nativeData.getFixedBackendName(member)!;
-
-    if (isInterceptedMethod) {
-      receiver = argumentsBuffer[0];
-      arguments = argumentsBuffer.sublist(
-          1, indexOfLastOptionalArgumentInParameters + 1);
-    } else {
-      // Native methods that are not intercepted must be static.
-      assert(member.isStatic || member.isTopLevel, failedAt(member));
-      arguments = argumentsBuffer.sublist(
-          0, indexOfLastOptionalArgumentInParameters + 1);
-      if (_nativeData.isJsInteropMember(member)) {
-        // fixedBackendPath is allowed to have the form foo.bar.baz for
-        // interop. This template is uncached to avoid possibly running out of
-        // memory when Dart2Js is run in server mode. In reality the risk of
-        // caching these templates causing an issue  is very low as each class
-        // and library that uses typed JavaScript interop will create only 1
-        // unique template.
-        receiver = js
-            .uncachedExpressionTemplate(
-                _nativeData.getFixedBackendMethodPath(member)!)
-            .instantiate([]) as jsAst.Expression;
-      } else {
-        receiver = js('this');
-      }
-    }
-    statements
-        .add(js.statement('return #.#(#)', [receiver, target, arguments]));
-
-    return statements;
-  }
-
-  bool isSupertypeOfNativeClass(ClassEntity element) {
-    if (_interceptorData.isMixedIntoInterceptedClass(element)) {
-      return true;
-    }
-
-    return subtypes[element] != null;
-  }
-
-  bool requiresNativeIsCheck(ClassEntity element) {
-    // TODO(sra): Remove this function.  It determines if a native type may
-    // satisfy a check against [element], in which case an interceptor must be
-    // used.  We should also use an interceptor if the check can't be satisfied
-    // by a native class in case we get a native instance that tries to spoof
-    // the type info.  i.e the criteria for whether or not to use an interceptor
-    // is whether the receiver can be native, not the type of the test.
-    ClassEntity cls = element;
-    if (_nativeData.isNativeOrExtendsNative(cls)) return true;
-    return isSupertypeOfNativeClass(element);
   }
 }

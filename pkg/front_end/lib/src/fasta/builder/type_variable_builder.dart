@@ -38,6 +38,7 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
   TypeVariableBuilderBase(
       String name, Builder? compilationUnit, int charOffset, this.fileUri,
       {this.bound,
+      this.defaultType,
       required this.kind,
       int? variableVariance,
       List<MetadataBuilder>? metadata})
@@ -83,6 +84,98 @@ sealed class TypeVariableBuilderBase extends TypeDeclarationBuilderImpl
 
   void finish(SourceLibraryBuilder library, ClassBuilder object,
       TypeBuilder dynamicType);
+
+  TypeBuilder? _unaliasAndErase(TypeBuilder? typeBuilder) {
+    if (typeBuilder is! NamedTypeBuilder) {
+      return typeBuilder;
+    } else {
+      TypeDeclarationBuilder? declaration = typeBuilder.declaration;
+      if (declaration is TypeAliasBuilder) {
+        // We pass empty lists as [unboundTypes] and [unboundTypeVariables]
+        // because new builders can be generated during unaliasing. We ignore
+        // the returned builders, however, because they will not be used in the
+        // output and are needed only for the checks.
+        //
+        // We also don't instantiate-to-bound raw types because it won't affect
+        // the dependency cycle analysis.
+        return _unaliasAndErase(declaration.unalias(typeBuilder.typeArguments,
+            unboundTypes: [], unboundTypeVariables: []));
+      } else if (declaration is ExtensionTypeDeclarationBuilder) {
+        TypeBuilder? representationType =
+            declaration.declaredRepresentationTypeBuilder;
+        if (representationType == null) {
+          return null;
+        } else {
+          List<NominalVariableBuilder>? typeParameters =
+              declaration.typeParameters;
+          List<TypeBuilder>? typeArguments = typeBuilder.typeArguments;
+          if (typeParameters != null && typeArguments != null) {
+            representationType = representationType.subst(
+                new Map<NominalVariableBuilder, TypeBuilder>.fromIterables(
+                    typeParameters, typeArguments));
+          }
+          return _unaliasAndErase(representationType);
+        }
+      } else {
+        return typeBuilder;
+      }
+    }
+  }
+
+  TypeVariableCyclicDependency? findCyclicDependency(
+      {Map<TypeVariableBuilderBase, TypeVariableTraversalState>?
+          typeVariablesTraversalState,
+      Map<TypeVariableBuilderBase, TypeVariableBuilderBase>? cycleElements}) {
+    typeVariablesTraversalState ??= {};
+    cycleElements ??= {};
+
+    switch (typeVariablesTraversalState[this] ??=
+        TypeVariableTraversalState.unvisited) {
+      case TypeVariableTraversalState.visited:
+        return null;
+      case TypeVariableTraversalState.active:
+        typeVariablesTraversalState[this] = TypeVariableTraversalState.visited;
+        List<TypeVariableBuilderBase>? viaTypeVariables;
+        TypeVariableBuilderBase? nextViaTypeVariable = cycleElements[this];
+        while (nextViaTypeVariable != null && nextViaTypeVariable != this) {
+          (viaTypeVariables ??= []).add(nextViaTypeVariable);
+          nextViaTypeVariable = cycleElements[nextViaTypeVariable];
+        }
+        return new TypeVariableCyclicDependency(this,
+            viaTypeVariables: viaTypeVariables);
+      case TypeVariableTraversalState.unvisited:
+        typeVariablesTraversalState[this] = TypeVariableTraversalState.active;
+        TypeBuilder? bound = this.bound;
+        if (bound is NamedTypeBuilder) {
+          TypeBuilder? unaliasedAndErasedBound = _unaliasAndErase(bound);
+          TypeDeclarationBuilder? unaliasedAndErasedBoundDeclaration =
+              unaliasedAndErasedBound?.declaration;
+          TypeVariableBuilderBase? nextVariable;
+          if (unaliasedAndErasedBoundDeclaration is TypeVariableBuilderBase) {
+            nextVariable = unaliasedAndErasedBoundDeclaration;
+          }
+
+          if (nextVariable != null) {
+            cycleElements[this] = nextVariable;
+            TypeVariableCyclicDependency? result =
+                nextVariable.findCyclicDependency(
+                    typeVariablesTraversalState: typeVariablesTraversalState,
+                    cycleElements: cycleElements);
+            typeVariablesTraversalState[this] =
+                TypeVariableTraversalState.visited;
+            return result;
+          } else {
+            typeVariablesTraversalState[this] =
+                TypeVariableTraversalState.visited;
+            return null;
+          }
+        } else {
+          typeVariablesTraversalState[this] =
+              TypeVariableTraversalState.visited;
+          return null;
+        }
+    }
+  }
 }
 
 class NominalVariableBuilder extends TypeVariableBuilderBase {
@@ -111,12 +204,25 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
             variableVariance: variableVariance,
             metadata: metadata);
 
-  NominalVariableBuilder.fromKernel(TypeParameter parameter)
+  /// Restores a [NominalVariableBuilder] from kernel
+  ///
+  /// The [loader] parameter is supposed to be passed by the clients and be not
+  /// null. It is needed to restore [bound] and [defaultType] of the type
+  /// variable from dill. The null value of this parameter is used only once in
+  /// [TypeBuilderComputer] to break the infinite loop of recovering type
+  /// variables of some recursive declarations, like the declaration of `A` in
+  /// the example below.
+  ///
+  ///   class A<X extends A<X>> {}
+  NominalVariableBuilder.fromKernel(TypeParameter parameter,
+      {required Loader? loader})
       : actualParameter = parameter,
         // TODO(johnniwinther): Do we need to support synthesized type
         //  parameters from kernel?
         super(parameter.name ?? "", null, parameter.fileOffset, null,
-            kind: TypeVariableKind.fromKernel);
+            kind: TypeVariableKind.fromKernel,
+            bound: loader?.computeTypeBuilder(parameter.bound),
+            defaultType: loader?.computeTypeBuilder(parameter.defaultType));
 
   @override
   String get debugName => "NominalVariableBuilder";
@@ -310,21 +416,17 @@ class NominalVariableBuilder extends TypeVariableBuilderBase {
   }
 }
 
-List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
-    sortAllTypeVariablesTopologically(
-        Iterable< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */
-                Object>
-            typeVariables) {
+List<TypeVariableBuilderBase> sortAllTypeVariablesTopologically(
+    Iterable<TypeVariableBuilderBase> typeVariables) {
   assert(typeVariables.every((typeVariable) =>
       typeVariable is NominalVariableBuilder ||
       typeVariable is StructuralVariableBuilder));
 
-  Set< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
-      unhandled = new Set<Object>.identity()..addAll(typeVariables);
-  List< /* TypeVariableBuilder | FunctionTypeTypeVariableBuilder */ Object>
-      result = <Object>[];
+  Set<TypeVariableBuilderBase> unhandled =
+      new Set<TypeVariableBuilderBase>.identity()..addAll(typeVariables);
+  List<TypeVariableBuilderBase> result = <TypeVariableBuilderBase>[];
   while (unhandled.isNotEmpty) {
-    Object rootVariable = unhandled.first;
+    TypeVariableBuilderBase rootVariable = unhandled.first;
     unhandled.remove(rootVariable);
 
     TypeBuilder? rootVariableBound;
@@ -683,4 +785,48 @@ class FreshStructuralVariableBuildersFromNominalVariableBuilders {
 
   FreshStructuralVariableBuildersFromNominalVariableBuilders(
       this.freshStructuralVariableBuilders, this.substitutionMap);
+}
+
+/// This enum is used internally for dependency analysis of type variables.
+enum TypeVariableTraversalState {
+  /// An [unvisited] type variable isn't yet visited by the traversal algorithm.
+  unvisited,
+
+  /// An [active] type variable is traversed, but not fully processed.
+  active,
+
+  /// A [visited] type variable is fully processed.
+  visited;
+}
+
+/// Represents a cyclic dependency of a type variable on itself.
+///
+/// An examples of such dependencies are X  in the following cases.
+///
+///   typedef F<Y> = Y;
+///   extension type E<Y>(Y it) {}
+///
+///   class A<X extends X> {} // Error.
+///   class B<X extends Y, Y extends X> {} // Error.
+///   class C<X extends F<Y>, Y extends X> {} // Error.
+///   class D<X extends E<Y>, Y extends X> {} // Error.
+class TypeVariableCyclicDependency {
+  /// Type variable that's the bound of itself.
+  final TypeVariableBuilderBase typeVariableBoundOfItself;
+
+  /// The elements in a non-trivial self-dependency cycle.
+  ///
+  /// The loop is considered non-trivial if it includes more than one type
+  /// variable.
+  final List<TypeVariableBuilderBase>? viaTypeVariables;
+
+  TypeVariableCyclicDependency(this.typeVariableBoundOfItself,
+      {this.viaTypeVariables});
+
+  @override
+  String toString() {
+    return "TypeVariableCyclicDependency("
+        "typeVariableBoundOfItself=${typeVariableBoundOfItself}, "
+        "viaTypeVariable=${viaTypeVariables})";
+  }
 }

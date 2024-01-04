@@ -40,9 +40,7 @@ class LspMetaModelReader {
     final structures = model['structures'] as List?;
     final enums = model['enumerations'] as List?;
     final typeAliases = model['typeAliases'] as List?;
-    final methodNames = [...?requests, ...?notifications]
-        .map((item) => item['method'] as String)
-        .toList();
+    final methods = [...?requests, ...?notifications].toList();
     [
       ...?structures?.map(_readStructure),
       ...?enums?.map((e) => _readEnum(e)),
@@ -55,12 +53,15 @@ class LspMetaModelReader {
     requests?.forEach(_readRequest);
     notifications?.forEach(_readNotification);
 
-    final methodsEnum = _createMethodNamesEnum(methodNames);
+    final methodsEnum = _createMethodsEnum(methods);
     if (methodsEnum != null) {
       _addType(methodsEnum);
     }
 
-    return LspMetaModel(types: types, methods: methodNames);
+    return LspMetaModel(
+      types: types,
+      methods: methodsEnum?.members.cast<Constant>().toList() ?? [],
+    );
   }
 
   /// Adds [type] to the current list and prevents its name from being used
@@ -74,18 +75,25 @@ class LspMetaModelReader {
       str.substring(0, 1).toLowerCase() + str.substring(1);
 
   /// Creates an enum for all LSP method names.
-  LspEnum? _createMethodNamesEnum(List<String> methods) {
-    Constant toConstant(String value) {
-      final comment = '''Constant for the '$value' method.''';
+  LspEnum? _createMethodsEnum(List<Object?> methods) {
+    Constant toConstant(Map<String, Object?> item) {
+      final name = item['method'] as String;
+      // We use documentation from the request/notification for things like
+      // proposed check, but we don't put the full request/notification docs
+      // on the method enum member.
+      final documentation = item['documentation'] as String?;
+      final comment = '''Constant for the '$name' method.''';
       return Constant(
-        name: _generateMemberName(value, camelCase: true),
+        name: _generateMemberName(name, camelCase: true),
         comment: comment,
+        isProposed: _isProposed(documentation),
         type: TypeReference.string,
-        value: value,
+        value: name,
       );
     }
 
-    final methodConstants = methods.map(toConstant).toList();
+    final methodConstants =
+        methods.cast<Map<String, Object?>>().map(toConstant).toList();
 
     if (methodConstants.isEmpty) {
       return null;
@@ -120,6 +128,7 @@ class LspMetaModelReader {
       _addType(TypeAlias(
         name: name,
         comment: documentation,
+        isProposed: _isProposed(documentation),
         baseType: type,
         isRename: false,
       ));
@@ -128,9 +137,11 @@ class LspMetaModelReader {
 
   Constant _extractEnumValue(TypeBase parentType, dynamic model) {
     final name = model['name'] as String;
+    final documentation = model['documentation'] as String?;
     return Constant(
       name: _generateMemberName(name),
-      comment: model['documentation'] as String?,
+      comment: documentation,
+      isProposed: _isProposed(documentation),
       type: parentType,
       value: model['value'].toString(),
     );
@@ -138,6 +149,7 @@ class LspMetaModelReader {
 
   Member _extractMember(String parentName, dynamic model) {
     final name = model['name'] as String;
+    final documentation = model['documentation'] as String?;
     var type = _extractType(parentName, name, model['type']);
 
     // Unions may contain `null` types which we promote up to the field.
@@ -154,7 +166,8 @@ class LspMetaModelReader {
 
     return Field(
       name: _generateMemberName(name),
-      comment: model['documentation'] as String?,
+      comment: documentation,
+      isProposed: _isProposed(documentation),
       type: type,
       allowsNull: allowsNull,
       allowsUndefined: model['optional'] == true,
@@ -274,14 +287,20 @@ class LspMetaModelReader {
     return '${capitalize(parent)}${capitalize(child)}';
   }
 
+  bool _isProposed(String? documentation) {
+    return documentation?.contains('@proposed') ?? false;
+  }
+
   LspEnum _readEnum(dynamic model) {
     final name = model['name'] as String;
     final type = TypeReference(name);
     final baseType = _extractType(name, null, model['type']);
+    final documentation = model['documentation'] as String?;
 
     return LspEnum(
       name: name,
-      comment: model['documentation'] as String?,
+      comment: documentation,
+      isProposed: _isProposed(documentation),
       typeOfValues: baseType,
       members: [
         ...?(model['values'] as List?)?.map((p) => _extractEnumValue(type, p)),
@@ -320,9 +339,11 @@ class LspMetaModelReader {
 
   LspEntity _readStructure(dynamic model) {
     final name = model['name'] as String;
+    final documentation = model['documentation'] as String?;
     return Interface(
       name: name,
-      comment: model['documentation'] as String?,
+      comment: documentation,
+      isProposed: _isProposed(documentation),
       baseTypes: [
         ...?(model['extends'] as List?)
             ?.map((e) => TypeReference(e['name'] as String)),
@@ -337,9 +358,11 @@ class LspMetaModelReader {
 
   TypeAlias _readTypeAlias(dynamic model) {
     final name = model['name'] as String;
+    final documentation = model['documentation'] as String?;
     return TypeAlias(
       name: name,
-      comment: model['documentation'] as String?,
+      comment: documentation,
+      isProposed: _isProposed(documentation),
       baseType: _extractType(name, null, model['type']),
       isRename: false,
     );

@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.38 Broaden `initializerExpression` to match implemented behavior.
+//
 // v0.37 Correct `libraryExport` to use `configurableUri`, not `uri`.
 //
 // v0.36 Update syntax from `inline class` to `extension type`, including
@@ -379,7 +381,7 @@ defaultFormalParameter
     ;
 
 defaultNamedParameter
-    :    REQUIRED? normalFormalParameter ('=' expression)?
+    :    metadata REQUIRED? normalFormalParameterNoMetadata ('=' expression)?
     ;
 
 typeWithParameters
@@ -570,7 +572,9 @@ fieldInitializer
     ;
 
 initializerExpression
-    :    conditionalExpression
+    :    throwExpression
+    |    assignableExpression assignmentOperator expression
+    |    conditionalExpression
     |    cascade
     ;
 
@@ -1185,7 +1189,7 @@ patternField
     ;
 
 objectPattern
-    :    typeName typeArguments? '(' patternFields? ')'
+    :    (typeName typeArguments? | typeNamedFunction) '(' patternFields? ')'
     ;
 
 patternVariableDeclaration
@@ -1439,9 +1443,13 @@ typeNotFunction
     |    VOID
     ;
 
+typeNamedFunction
+    :    (typeIdentifier '.')? FUNCTION
+    ;
+
 typeNotVoidNotFunction
     :    typeName typeArguments?
-    |    FUNCTION
+    |    typeNamedFunction
     ;
 
 typeName

@@ -4,6 +4,7 @@
 
 library dart2js.js_model.env;
 
+import 'package:js_shared/variance.dart';
 import 'package:kernel/ast.dart' as ir;
 
 import '../constants/values.dart';
@@ -25,8 +26,8 @@ import 'closure.dart'
         ClosureFieldData;
 import 'element_map.dart'
     show
-        JsToElementMap,
         ClassDefinition,
+        JsToElementMap,
         MemberDefinition,
         forEachOrderedParameterByFunctionNode;
 import 'element_map_impl.dart';
@@ -918,6 +919,21 @@ abstract class DelegatedFunctionData implements FunctionData {
   @override
   ClassTypeVariableAccess get classTypeVariableAccess =>
       baseData.classTypeVariableAccess;
+}
+
+class ParameterStubFunctionData extends DelegatedFunctionData {
+  @override
+  final MemberDefinition definition;
+
+  ParameterStubFunctionData(super.baseData, this.definition);
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    throw UnimplementedError('Cannot serialize parameter stub data.');
+  }
+
+  @override
+  StaticTypeCache get staticTypes => const StaticTypeCache();
 }
 
 class GeneratorBodyFunctionData extends DelegatedFunctionData {

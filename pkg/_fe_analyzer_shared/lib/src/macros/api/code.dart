@@ -203,6 +203,8 @@ final class NamedTypeAnnotationCode extends TypeAnnotationCode {
 final class FunctionTypeAnnotationCode extends TypeAnnotationCode {
   final List<ParameterCode> namedParameters;
 
+  final List<ParameterCode> optionalPositionalParameters;
+
   final List<ParameterCode> positionalParameters;
 
   final TypeAnnotationCode? returnType;
@@ -226,6 +228,14 @@ final class FunctionTypeAnnotationCode extends TypeAnnotationCode {
           positional,
           ', ',
         ],
+        if (optionalPositionalParameters.isNotEmpty) ...[
+          '[',
+          for (ParameterCode optional in optionalPositionalParameters) ...[
+            optional,
+            ', ',
+          ],
+          ']',
+        ],
         if (namedParameters.isNotEmpty) ...[
           '{',
           for (ParameterCode named in namedParameters) ...[
@@ -239,6 +249,7 @@ final class FunctionTypeAnnotationCode extends TypeAnnotationCode {
 
   FunctionTypeAnnotationCode({
     this.namedParameters = const [],
+    this.optionalPositionalParameters = const [],
     this.positionalParameters = const [],
     this.returnType,
     this.typeParameters = const [],

@@ -53,6 +53,7 @@ class ElementTextConfiguration {
   bool withFunctionTypeParameters = false;
   bool withImports = true;
   bool withLibraryAugmentations = false;
+  bool withMacroStackTraces = false;
   bool withMetadata = true;
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
@@ -111,6 +112,7 @@ class _ElementWriter {
       }
 
       _writeFieldNameNonPromotabilityInfo(e.fieldNameNonPromotabilityInfo);
+      _writeMacroDiagnostics(e);
     });
   }
 
@@ -213,6 +215,9 @@ class _ElementWriter {
     }
 
     void writeConstructors() {
+      if (!configuration.withConstructors) {
+        return;
+      }
       if (augmented is AugmentedInterfaceElementImpl) {
         final sorted = augmented.constructors.sortedBy((e) => e.name);
         expect(sorted, isNotEmpty);
@@ -477,6 +482,7 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeType('extendedType', e.extendedType);
+      _writeMacroDiagnostics(e);
     });
 
     _sink.withIndent(() {
@@ -547,6 +553,7 @@ class _ElementWriter {
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
       _writeReturnType(e.returnType);
+      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });
@@ -745,7 +752,11 @@ class _ElementWriter {
         if (stackTraceIndex >= 0) {
           final end = stackTraceIndex + stackTraceText.length;
           final withoutStackTrace = message.substring(0, end);
-          _sink.writelnWithIndent('message:\n$withoutStackTrace <cut>');
+          if (configuration.withMacroStackTraces) {
+            _sink.writelnWithIndent('message:\n$message');
+          } else {
+            _sink.writelnWithIndent('message:\n$withoutStackTrace <cut>');
+          }
         } else {
           _sink.writelnWithIndent('message: $message');
         }
@@ -785,9 +796,41 @@ class _ElementWriter {
                 );
                 _sink.writelnWithIndent('message: ${diagnostic.message}');
               });
+            case DeclarationsIntrospectionCycleDiagnostic():
+              _sink.writelnWithIndent(
+                'DeclarationsIntrospectionCycleDiagnostic',
+              );
+              _sink.writeElements(
+                'components',
+                diagnostic.components,
+                (component) {
+                  _sink.writelnWithIndent(
+                    'DeclarationsIntrospectionCycleComponent',
+                  );
+                  _sink.withIndent(() {
+                    _elementPrinter.writeNamedElement(
+                      'element',
+                      component.element,
+                    );
+                    _sink.writelnWithIndent(
+                      'annotationIndex: ${component.annotationIndex}',
+                    );
+                  });
+                },
+              );
             case ExceptionMacroDiagnostic():
-              // TODO(scheglov): Handle this case.
-              throw UnimplementedError();
+              _sink.writelnWithIndent('ExceptionMacroDiagnostic');
+              _sink.withIndent(() {
+                _sink.writelnWithIndent(
+                  'annotationIndex: ${diagnostic.annotationIndex}',
+                );
+                _sink.writelnWithIndent(
+                  'message: ${diagnostic.message}',
+                );
+                _sink.writelnWithIndent(
+                  'stackTrace:\n${diagnostic.stackTrace}',
+                );
+              });
             case MacroDiagnostic():
               _sink.writelnWithIndent('MacroDiagnostic');
               _sink.withIndent(() {
@@ -1053,6 +1096,7 @@ class _ElementWriter {
       _writeReturnType(e.returnType);
       _writeNonSyntheticElement(e);
       writeLinking();
+      _writeMacroDiagnostics(e);
       _writeAugmentationTarget(e);
       _writeAugmentation(e);
     });

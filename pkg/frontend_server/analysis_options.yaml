@@ -1,11 +1,21 @@
-include: package:lints/recommended.yaml
-
 analyzer:
   exclude:
     - test/fixtures/**
 
 linter:
   rules:
-    - directives_ordering
-    - sort_pub_dependencies
+    - collection_methods_unrelated_type
+    - curly_braces_in_flow_control_structures
+    - prefer_adjacent_string_concatenation
     - unawaited_futures
+    - avoid_void_async
+    - recursive_getters
+    - avoid_empty_else
+    - empty_statements
+    - valid_regexps
+    - package_api_docs
+    - lines_longer_than_80_chars
+    - unrelated_type_equality_checks
+    - annotate_overrides
+    - always_declare_return_types
+    # - always_specify_types

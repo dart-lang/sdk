@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import '../common/expect.dart';
-import '../common/test_helper.dart';
+import '../common/service_test_common.dart';
 import 'http_request_helpers.dart';
 
 Future<String> getIsolateGroupId(
@@ -23,7 +22,7 @@ Future<String> getIsolateGroupId(
 }
 
 Future<void> testeeBefore() async {
-  final info = await Service.getInfo();
+  final info = await waitForServiceInfo();
   final serverUri = info.serverUri!;
   try {
     final result = createServiceObject(

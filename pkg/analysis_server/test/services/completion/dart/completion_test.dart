@@ -12,24 +12,13 @@ import '../../../client/completion_driver_test.dart';
 //  or 'declaration' test class.
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ConvertedTest1);
-    defineReflectiveTests(ConvertedTest2);
+    defineReflectiveTests(ConvertedTest);
   });
 }
 
 @reflectiveTest
-class ConvertedTest1 extends AbstractCompletionDriverTest
-    with ConvertedTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ConvertedTest2 extends AbstractCompletionDriverTest
-    with ConvertedTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ConvertedTest extends AbstractCompletionDriverTest
+    with ConvertedTestCases {}
 
 mixin ConvertedTestCases on AbstractCompletionDriverTest {
   Future<void> test_001_1() async {
@@ -89,8 +78,7 @@ void r1(var v) {
   v.toString().hash^Code
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 4
   right: 4
@@ -98,18 +86,6 @@ suggestions
   hashCode
     kind: getter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 4
-  right: 4
-suggestions
-  hashCode
-    kind: getter
-  toString
-    kind: methodInvocation
-''');
-    }
   }
 
   Future<void> test_002_1() async {
@@ -119,8 +95,7 @@ void r2(var vim) {
   v^.toString()
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -131,53 +106,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  r2
-    kind: functionInvocation
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  vim
-    kind: parameter
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_003_1() async {
@@ -308,37 +236,13 @@ void rr(var vim) {
   v.toString();
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   vim
     kind: parameter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A
-    kind: class
-  A
-    kind: constructorInvocation
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-  vim
-    kind: parameter
-''');
-    }
   }
 
   Future<void> test_005_3() async {
@@ -351,8 +255,7 @@ void rr(var vim) {
   v^.toString();
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -367,59 +270,6 @@ suggestions
   vq
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A
-    kind: class
-  A
-    kind: constructorInvocation
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  vf
-    kind: localVariable
-  vim
-    kind: parameter
-  void
-    kind: keyword
-  vq
-    kind: localVariable
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_006_1() async {
@@ -429,8 +279,7 @@ void r2(var vim, {va: 2, b: 3}) {
   v^.toString()
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -441,55 +290,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  b
-    kind: parameter
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  r2
-    kind: functionInvocation
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  va
-    kind: parameter
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_007_1() async {
@@ -499,8 +299,7 @@ void r2(var vim, [va: 2, b: 3]) {
   v^.toString()
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -511,55 +310,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  b
-    kind: parameter
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  r2
-    kind: functionInvocation
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  va
-    kind: parameter
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_008_1() async {
@@ -605,27 +355,13 @@ class Bclass extends^ Aclass {}
 abstract class Eclass implements Aclass, Bclass {}
 class Fclass extends Bclass with  Eclass {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 7
 suggestions
   extends
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 7
-suggestions
-  extends
-    kind: keyword
-  implements
-    kind: keyword
-  with
-    kind: keyword
-''');
-    }
   }
 
   @FailingTest(reason: 'Bclass is being suggested, but it cannot extend itself')
@@ -856,7 +592,6 @@ suggestions
 ''');
   }
 
-  @failingTest
   Future<void> test_010_3() async {
     await computeSuggestions('''
 class test <t  ^extends String, List, > {}
@@ -2709,8 +2444,7 @@ void f() {
   var foo = true^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -2721,27 +2455,6 @@ suggestions
   truefalse
     kind: topLevelVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  falsetrue
-    kind: topLevelVariable
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-  truefalse
-    kind: topLevelVariable
-''');
-    }
   }
 
   Future<void> test_020_1() async {
@@ -2932,8 +2645,7 @@ class T {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 1
@@ -2941,30 +2653,6 @@ suggestions
   _m
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 1
-suggestions
-  _m
-    kind: field
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_025_3() async {
@@ -3117,8 +2805,7 @@ class T {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 1
@@ -3126,26 +2813,6 @@ suggestions
   _m
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 1
-suggestions
-  _m
-    kind: field
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_025_6() async {
@@ -3610,33 +3277,13 @@ suggestions
     await computeSuggestions('''
 var aBcD; var x=ab^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   aBcD
     kind: topLevelVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  aBcD
-    kind: topLevelVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_027_1() async {
@@ -3644,8 +3291,7 @@ suggestions
     await computeSuggestions('''
 m(){try{}catch(eeee,ssss){s^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -3654,51 +3300,6 @@ suggestions
   switch
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  ssss
-    kind: localVariable
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   @failingTest
@@ -3795,8 +3396,7 @@ suggestions
     await computeSuggestions('''
 class Caster {} m() {try {} on Cas^ter catch (CastBlock) {}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
   right: 3
@@ -3804,20 +3404,6 @@ suggestions
   Caster
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-  right: 3
-suggestions
-  Caster
-    kind: class
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_031_2() async {
@@ -3892,39 +3478,13 @@ m() {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
   ONE
     kind: topLevelVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  ONE
-    kind: topLevelVariable
-  UKSI
-    kind: topLevelVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_032_2() async {
@@ -3945,39 +3505,13 @@ m() {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
   EIN
     kind: topLevelVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  EIN
-    kind: topLevelVariable
-  ICHI
-    kind: topLevelVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   @failingTest
@@ -4169,25 +3703,13 @@ void f() {
   new HtS^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
   HttpServer
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  HttpClient
-    kind: constructorInvocation
-  HttpServer
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_038_1() async {
@@ -4263,16 +3785,6 @@ m(){f(a, b, {x1, x2, y}) {};f(1, 2, ^);}
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
   |x1: |
     kind: namedArgument
   |x2: |
@@ -4298,16 +3810,6 @@ m(){f(a, b, {x1, x2, y}) {};f(1, 2, ^
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
   |x1: |
     kind: namedArgument
   |x2: |
@@ -4323,16 +3825,6 @@ m(){f(a, b, {x1, x2, y}) {};f(1, 2, ^;
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
   |x1: |
     kind: namedArgument
   |x2: |
@@ -4393,63 +3885,13 @@ suggestions
     await computeSuggestions('''
 class A { var fff; get z {ff^}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   fff
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  fff
-    kind: field
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets001_1() async {
@@ -4457,8 +3899,7 @@ suggestions
     await computeSuggestions('''
 class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MA^X;xc.abs();num f = MAX;}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
   right: 1
@@ -4466,30 +3907,6 @@ suggestions
   MAX
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-  right: 1
-suggestions
-  MAX
-    kind: field
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets001_2() async {
@@ -4497,8 +3914,7 @@ suggestions
     await computeSuggestions('''
 class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MAX;x^c.abs();num f = MAX;}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 1
@@ -4506,56 +3922,6 @@ suggestions
   xc
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  xc
-    kind: field
-''');
-    }
   }
 
   Future<void> test_commentSnippets001_3() async {
@@ -4563,8 +3929,7 @@ suggestions
     await computeSuggestions('''
 class X {static final num MAX = 0;num yc,xc;mth() {xc = yc = MAX;xc.abs();num f = M^AX;}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 2
@@ -4572,30 +3937,6 @@ suggestions
   MAX
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 2
-suggestions
-  MAX
-    kind: field
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets002_1() async {
@@ -4618,63 +3959,13 @@ suggestions
     await computeSuggestions('''
 class Y {String x='hi';mth() {x.length;int n = 0;x^.codeUnitAt(n);}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   x
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  x
-    kind: field
-''');
-    }
   }
 
   Future<void> test_commentSnippets002_3() async {
@@ -4682,8 +3973,7 @@ suggestions
     await computeSuggestions('''
 class Y {String x='hi';mth() {x.length;int n = 0;x.codeUnitAt(n^);}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -4692,29 +3982,6 @@ suggestions
   null
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  n
-    kind: localVariable
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets004_1() async {
@@ -4911,8 +4178,7 @@ suggestions
     await computeSuggestions('''
 class Date { static Date JUN, JUL;}class X { m() { return Da^te.JUL; }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
   right: 2
@@ -4922,32 +4188,6 @@ suggestions
   Date
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-  right: 2
-suggestions
-  Date
-    kind: class
-  Date
-    kind: constructorInvocation
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets005_2() async {
@@ -5012,8 +4252,7 @@ suggestions
     await computeSuggestions('''
 class C {mth(Map x, ) {}mtf(, Map x) {}m() {for (in^t i=0; i<5; i++); A x;}}class int{}class Arrays{}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
   right: 1
@@ -5021,16 +4260,6 @@ suggestions
   int
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-  right: 1
-suggestions
-  int
-    kind: class
-''');
-    }
   }
 
   Future<void> test_commentSnippets007_4() async {
@@ -5038,8 +4267,7 @@ suggestions
     await computeSuggestions('''
 class C {mth(Map x, ) {}mtf(, Map x) {}m() {for (int i=0; i<5; i++); A^ x;}}class int{}class Arrays{}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -5050,57 +4278,6 @@ suggestions
   assert
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  Arrays
-    kind: class
-  Arrays
-    kind: constructorInvocation
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets008_1() async {
@@ -5108,8 +4285,7 @@ suggestions
     await computeSuggestions('''
 class Date{}final num M = Dat^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -5118,27 +4294,6 @@ suggestions
   Date
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  Date
-    kind: class
-  Date
-    kind: constructorInvocation
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets009_1() async {
@@ -5207,25 +4362,13 @@ suggestions
 class Maps{}class x extends^ M implements
 {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 7
 suggestions
   extends
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 7
-suggestions
-  extends
-    kind: keyword
-  with
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets009_6() async {
@@ -5234,25 +4377,13 @@ suggestions
 class Maps{}class x extends M implements^
 {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 10
 suggestions
   implements
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 10
-suggestions
-  implements
-    kind: keyword
-  with
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets010_1() async {
@@ -5276,27 +4407,13 @@ suggestions
     await computeSuggestions('''
 class x implements M^{}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   Map
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  Map
-    kind: class
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets012_1() async {
@@ -5305,27 +4422,13 @@ suggestions
 class x implements M^
 {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   Map
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  Map
-    kind: class
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets013_1() async {
@@ -5387,8 +4490,40 @@ class x {}^
 ''');
     assertResponse(r'''
 suggestions
+  abstract
+    kind: keyword
+  base
+    kind: keyword
+  class
+    kind: keyword
+  const
+    kind: keyword
+  covariant
+    kind: keyword
+  dynamic
+    kind: keyword
+  extension
+    kind: keyword
+  external
+    kind: keyword
+  final
+    kind: keyword
+  interface
+    kind: keyword
+  late
+    kind: keyword
+  mixin
+    kind: keyword
   num
     kind: class
+  sealed
+    kind: keyword
+  typedef
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
 ''');
   }
 
@@ -5411,8 +4546,7 @@ suggestions
     await computeSuggestions('''
 class D {f(){} g(){f^(f);}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -5425,64 +4559,14 @@ suggestions
   for
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  f
-    kind: methodInvocation
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets015_2() async {
     allowedIdentifiers = {'f'};
     await computeSuggestions('''
-class D {f(){} g(){f(f^);}}
+class D {f(p){} g(){f(f^);}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -5491,29 +4575,6 @@ suggestions
   false
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  f
-    kind: methodInvocation
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets016_1() async {
@@ -5594,8 +4655,7 @@ suggestions
     await computeSuggestions('''
 class Map{}class Arrays{}class C{ m(^){} n( x, q)
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   Map
     kind: class
@@ -5608,23 +4668,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  Map
-    kind: class
-  Map
-    kind: class
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets018_2() async {
@@ -5664,8 +4707,7 @@ suggestions
     await computeSuggestions('''
 classMap{}class tst {var newt;void newf(){}test() {var newz;new^/**/;}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -5676,75 +4718,6 @@ suggestions
   newz
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  Map
-    kind: class
-  Map
-    kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
-    kind: constructorInvocation
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  newf
-    kind: methodInvocation
-  newt
-    kind: field
-  newz
-    kind: localVariable
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets021_1() async {
@@ -5752,8 +4725,7 @@ suggestions
     await computeSuggestions('''
 class Map{}class tst {var newt;void newf(){}test() {var newz;new ^/**/;}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   Map
     kind: constructorInvocation
@@ -5770,27 +4742,6 @@ suggestions
   Map.unmodifiable
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  Map
-    kind: constructorInvocation
-  Map
-    kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_commentSnippets022_1() async {
@@ -5798,8 +4749,7 @@ suggestions
     await computeSuggestions('''
 class Map{}class F{m(){new ^;}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   Map
     kind: constructorInvocation
@@ -5816,27 +4766,6 @@ suggestions
   Map.unmodifiable
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  Map
-    kind: constructorInvocation
-  Map
-    kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_commentSnippets022a_1() async {
@@ -5844,8 +4773,7 @@ suggestions
     await computeSuggestions('''
 class Map{}class F{m(){new ^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   Map
     kind: constructorInvocation
@@ -5862,27 +4790,6 @@ suggestions
   Map.unmodifiable
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  Map
-    kind: constructorInvocation
-  Map
-    kind: constructorInvocation
-  Map.from
-    kind: constructorInvocation
-  Map.fromEntries
-    kind: constructorInvocation
-  Map.fromIterable
-    kind: constructorInvocation
-  Map.fromIterables
-    kind: constructorInvocation
-  Map.identity
-    kind: constructorInvocation
-  Map.unmodifiable
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_commentSnippets022b_1() async {
@@ -6032,37 +4939,13 @@ suggestions
     await computeSuggestions('''
 class C {num m() {var q; num x= q^ + /**/;}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   q
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  q
-    kind: localVariable
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets026_1() async {
@@ -6070,8 +4953,7 @@ suggestions
     await computeSuggestions('''
 class List{}class a implements ^{}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   List
     kind: class
@@ -6080,19 +4962,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  List
-    kind: class
-  List
-    kind: class
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets027_1() async {
@@ -6100,23 +4969,15 @@ suggestions
     await computeSuggestions('''
 class String{}class List{}class test <X extends ^String> {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   right: 6
 suggestions
   List
     kind: class
+  dynamic
+    kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  right: 6
-suggestions
-  List
-    kind: class
-''');
-    }
   }
 
   Future<void> test_commentSnippets027_2() async {
@@ -6124,25 +4985,13 @@ suggestions
     await computeSuggestions('''
 class String{}class List{}class test <X extends String^> {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 6
 suggestions
   String
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 6
-suggestions
-  List
-    kind: class
-  String
-    kind: class
-''');
-    }
   }
 
   Future<void> test_commentSnippets028_1() async {
@@ -6150,23 +4999,15 @@ suggestions
     await computeSuggestions('''
 class String{}class List{}class DateTime{}typedef T Y<T extends ^>(List input);
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   DateTime
     kind: class
   String
     kind: class
+  dynamic
+    kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  DateTime
-    kind: class
-  String
-    kind: class
-''');
-    }
   }
 
   Future<void> test_commentSnippets029_1() async {
@@ -6180,6 +5021,8 @@ replacement
 suggestions
   DateTime
     kind: class
+  dynamic
+    kind: keyword
 ''');
   }
 
@@ -6228,8 +5071,7 @@ suggestions
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T^ k);T m(T a, T b){}final T f = null;}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -6238,27 +5080,6 @@ suggestions
   this
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  T
-    kind: typeParameter
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  super
-    kind: keyword
-  this
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets030_3() async {
@@ -6266,47 +5087,13 @@ suggestions
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T^ m(T a, T b){}final T f = null;}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   T
     kind: typeParameter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  T
-    kind: typeParameter
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets030_4() async {
@@ -6314,31 +5101,13 @@ suggestions
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T^ a, T b){}final T f = null;}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   T
     kind: typeParameter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  T
-    kind: typeParameter
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets030_5() async {
@@ -6346,31 +5115,13 @@ suggestions
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T a, T^ b){}final T f = null;}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   T
     kind: typeParameter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  T
-    kind: typeParameter
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets030_6() async {
@@ -6378,27 +5129,13 @@ suggestions
     await computeSuggestions('''
 class Bar<T extends Foo> {const Bar(T k);T m(T a, T b){}final T^ f = null;}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   T
     kind: typeParameter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  T
-    kind: typeParameter
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets031_1() async {
@@ -6406,23 +5143,13 @@ suggestions
     await computeSuggestions('''
 class Bar<T extends Foo> {m(x){if (x is ^) return;if (x is!)}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   Bar
     kind: class
   T
     kind: typeParameter
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  Bar
-    kind: class
-  T
-    kind: typeParameter
-''');
-    }
   }
 
   Future<void> test_commentSnippets031_2() async {
@@ -6444,8 +5171,7 @@ suggestions
     await computeSuggestions('''
 class Fit{}class Bar<T extends Fooa> {const F^ara();}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse('''
+    assertResponse('''
 replacement
   left: 1
   right: 3
@@ -6457,42 +5183,6 @@ suggestions
   final
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 3
-suggestions
-  Bar
-    kind: class
-  Fit
-    kind: class
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets032_2() async {
@@ -6582,8 +5272,7 @@ suggestions
     await computeSuggestions('''
 class List{}t3() {var x=new List^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
@@ -6594,27 +5283,6 @@ suggestions
   List.generate
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-  List
-    kind: constructorInvocation
-  List.empty
-    kind: constructorInvocation
-  List.filled
-    kind: constructorInvocation
-  List.from
-    kind: constructorInvocation
-  List.generate
-    kind: constructorInvocation
-  List.of
-    kind: constructorInvocation
-  List.unmodifiable
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_commentSnippets037_1() async {
@@ -6782,24 +5450,11 @@ suggestions
     await computeSuggestions('''
 class List{}class XXX {XXX.fisk();}void f() {f(); ^}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   List
     kind: class
   List
-    kind: constructorInvocation
-  List.empty
-    kind: constructorInvocation
-  List.filled
-    kind: constructorInvocation
-  List.from
-    kind: constructorInvocation
-  List.generate
-    kind: constructorInvocation
-  List.of
-    kind: constructorInvocation
-  List.unmodifiable
     kind: constructorInvocation
   XXX
     kind: class
@@ -6842,69 +5497,6 @@ suggestions
   while
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  List
-    kind: class
-  List
-    kind: class
-  List
-    kind: constructorInvocation
-  List.empty
-    kind: constructorInvocation
-  List.filled
-    kind: constructorInvocation
-  List.from
-    kind: constructorInvocation
-  List.generate
-    kind: constructorInvocation
-  List.of
-    kind: constructorInvocation
-  List.unmodifiable
-    kind: constructorInvocation
-  XXX
-    kind: class
-  XXX.fisk
-    kind: constructorInvocation
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets047_1() async {
@@ -6930,12 +5522,11 @@ suggestions
   }
 
   Future<void> test_commentSnippets048_1() async {
-    allowedIdentifiers = {'json'};
+    allowedIdentifiers = {'json', 'JsonCodec', 'JsonDecoder'};
     await computeSuggestions('''
 import 'dart:convert' as json;f() {var x=new js^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -6946,27 +5537,17 @@ suggestions
   json.JsonDecoder
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  json
-    kind: library
-''');
-    }
   }
 
   Future<void> test_commentSnippets049_1() async {
-    allowedIdentifiers = {'json', 'jxx'};
+    allowedIdentifiers = {'json', 'jxx', 'JsonCodec', 'JsonDecoder'};
     await computeSuggestions('''
 import 'dart:convert' as json;
 import 'dart:convert' as jxx;
 class JsonDecoderX{}
 f1() {var x=new j^s}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 1
@@ -6984,18 +5565,6 @@ suggestions
   jxx.JsonDecoder
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 1
-suggestions
-  json
-    kind: library
-  jxx
-    kind: library
-''');
-    }
   }
 
   Future<void> test_commentSnippets049_2() async {
@@ -7006,8 +5575,7 @@ import 'dart:convert' as jxx;
 class JsonDecoderX{}
 f1() {var x=new ^js}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   right: 2
 suggestions
@@ -7024,32 +5592,17 @@ suggestions
   jxx.JsonDecoder
     kind: constructorInvocation
 ''');
-    } else {
-      // TODO(brianwilkerson): We should not be suggesting 'JsonDecoder'.
-      assertResponse(r'''
-replacement
-  right: 2
-suggestions
-  JsonDecoder
-    kind: constructorInvocation
-  json
-    kind: library
-  jxx
-    kind: library
-''');
-    }
   }
 
   Future<void> test_commentSnippets049_3() async {
-    allowedIdentifiers = {'json', 'jxx'};
+    allowedIdentifiers = {'json', 'jxx', 'JsonCodec', 'JsonDecoder'};
     await computeSuggestions('''
 import 'dart:convert' as json;
 import 'dart:convert' as jxx;
 class JsonDecoderX{}
 f1() {var x=new js^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -7064,17 +5617,6 @@ suggestions
   jxx.JsonDecoder
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  json
-    kind: library
-  jxx
-    kind: library
-''');
-    }
   }
 
   Future<void> test_commentSnippets050_1() async {
@@ -7092,9 +5634,8 @@ k() {
   const xdr.a(1, 2, 3);
 }
 ''');
-    if (isProtocolVersion2) {
-      // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
-      assertResponse(r'''
+    // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
+    assertResponse(r'''
 replacement
   left: 1
   right: 2
@@ -7104,22 +5645,6 @@ suggestions
   xdr
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 2
-suggestions
-  xa
-    kind: constructorInvocation
-  xdr
-    kind: constructorInvocation
-  xdr.a
-    kind: constructorInvocation
-  xdr.b
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_commentSnippets050_2() async {
@@ -7137,9 +5662,8 @@ k() {
   const x^dr.a(1, 2, 3);
 }
 ''');
-    if (isProtocolVersion2) {
-      // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
-      assertResponse(r'''
+    // TODO(brianwilkerson): We ought to be suggesting 'xdr.a' and 'xdr.b'.
+    assertResponse(r'''
 replacement
   left: 1
   right: 2
@@ -7149,22 +5673,6 @@ suggestions
   xdr
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 2
-suggestions
-  xa
-    kind: constructorInvocation
-  xdr
-    kind: constructorInvocation
-  xdr.a
-    kind: constructorInvocation
-  xdr.b
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_commentSnippets050_3() async {
@@ -7352,63 +5860,13 @@ class Z {
   }
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   x
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  x
-    kind: field
-''');
-    }
   }
 
   Future<void> test_commentSnippets061_1() async {
@@ -8198,63 +6656,13 @@ class X {
   _x1(){}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   _x1
     kind: methodInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  _x1
-    kind: methodInvocation
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets075_1() async {
@@ -8310,8 +6718,7 @@ suggestions
     await computeSuggestions('''
 class Map<K,V>{}class List<E>{}class int{}void f() {var m=new Map<Lis^t<Map<int,int>>,List<int>>();}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
   right: 1
@@ -8319,22 +6726,6 @@ suggestions
   List
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-  right: 1
-suggestions
-  List
-    kind: class
-  List
-    kind: class
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets076_2() async {
@@ -8342,8 +6733,7 @@ suggestions
     await computeSuggestions('''
 class Map<K,V>{}class List<E>{}class int{}void f() {var m=new Map<List<Map<int,in^t>>,List<int>>();}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
   right: 1
@@ -8351,22 +6741,6 @@ suggestions
   int
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-  right: 1
-suggestions
-  dynamic
-    kind: keyword
-  int
-    kind: class
-  int
-    kind: class
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets076_3() async {
@@ -8374,8 +6748,7 @@ suggestions
     await computeSuggestions('''
 class Map<K,V>{}class List<E>{}class int{}void f() {var m=new Map<List<Map<int,int>>,List<^int>>();}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   right: 3
 suggestions
@@ -8386,21 +6759,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  right: 3
-suggestions
-  dynamic
-    kind: keyword
-  int
-    kind: class
-  int
-    kind: class
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets076a_1() async {
@@ -8408,8 +6766,7 @@ suggestions
     await computeSuggestions('''
 class Map<K,V>{}class List<E>{}class int{}void f() {var m=new Map<Lis^t<Map<int,int>>,List<>>();}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
   right: 1
@@ -8417,22 +6774,6 @@ suggestions
   List
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-  right: 1
-suggestions
-  List
-    kind: class
-  List
-    kind: class
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets076a_2() async {
@@ -8440,8 +6781,7 @@ suggestions
     await computeSuggestions('''
 class Map<K,V>{}class List<E>{}class int{}void f() {var m=new Map<List<Map<int,in^t>>,List<>>();}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
   right: 1
@@ -8449,22 +6789,6 @@ suggestions
   int
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-  right: 1
-suggestions
-  dynamic
-    kind: keyword
-  int
-    kind: class
-  int
-    kind: class
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets076a_3() async {
@@ -8472,8 +6796,7 @@ suggestions
     await computeSuggestions('''
 class Map<K,V>{}class List<E>{}class int{}void f() {var m=new Map<List<Map<int,int>>,List<^>>();}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   dynamic
     kind: keyword
@@ -8482,19 +6805,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  dynamic
-    kind: keyword
-  int
-    kind: class
-  int
-    kind: class
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets077_1() async {
@@ -8521,8 +6831,7 @@ class File {
 }
 f() => new Fil^
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -8535,27 +6844,6 @@ suggestions
   FileMode._internal1
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  File
-    kind: constructorInvocation
-  File
-    kind: constructorInvocation
-  File
-    kind: constructorInvocation
-  File.fromPath
-    kind: constructorInvocation
-  FileMode
-    kind: constructorInvocation
-  FileMode._internal
-    kind: constructorInvocation
-  FileMode._internal1
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_commentSnippets078_1() async {
@@ -8637,23 +6925,13 @@ suggestions
           var v = (HttpRequest req, HttpResp^)
         }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 8
 suggestions
   HttpResponse
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 8
-suggestions
-  HttpResponse
-    kind: class
-''');
-    }
   }
 
   Future<void> test_commentSnippets083_1() async {
@@ -8693,8 +6971,7 @@ suggestions
     await computeSuggestions('''
 class List{}class Map{}class Z extends List with ^Map {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   right: 3
 suggestions
@@ -8707,25 +6984,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  right: 3
-suggestions
-  List
-    kind: class
-  List
-    kind: class
-  Map
-    kind: class
-  Map
-    kind: class
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets085_2() async {
@@ -8733,8 +6991,7 @@ suggestions
     await computeSuggestions('''
 class List{}class Map{}class Z extends List with Ma^p {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
   right: 1
@@ -8742,26 +6999,6 @@ suggestions
   Map
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-  right: 1
-suggestions
-  List
-    kind: class
-  List
-    kind: class
-  Map
-    kind: class
-  Map
-    kind: class
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets086_1() async {
@@ -8769,8 +7006,7 @@ suggestions
     await computeSuggestions('''
 class Q{f(){xy() {};x^y();}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 1
@@ -8778,56 +7014,6 @@ suggestions
   xy
     kind: functionInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  xy
-    kind: functionInvocation
-''');
-    }
   }
 
   Future<void> test_commentSnippets086_2() async {
@@ -8889,8 +7075,7 @@ suggestions
     await computeSuggestions('''
 class Map{}class Q extends Object with ^Map {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   right: 3
 suggestions
@@ -8901,24 +7086,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      // TODO(brianwilkerson): Don't suggest 'HashMap'.
-      assertResponse(r'''
-replacement
-  right: 3
-suggestions
-  HashMap
-    kind: class
-  Map
-    kind: class
-  Map
-    kind: class
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_commentSnippets088_1() async {
@@ -9354,8 +7521,7 @@ suggestions
     await computeSuggestions('''
 typedef int fnint(int k); fn^int x;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
   right: 3
@@ -9365,24 +7531,6 @@ suggestions
   fnint
     kind: typeAlias
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-  right: 3
-suggestions
-  const
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  fnint
-    kind: typeAlias
-  late
-    kind: keyword
-''');
-    }
   }
 
   @FailingTest(reason: 'The constructor for AAA is not being suggested')
@@ -9419,25 +7567,13 @@ const bar = null;
 void f() {
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
   fooConst
     kind: topLevelVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  bar
-    kind: topLevelVariable
-  fooConst
-    kind: topLevelVariable
-''');
-    }
   }
 
   Future<void> test_completion_annotation_type_1() async {
@@ -9451,30 +7587,14 @@ class AAA {
 void f() {
 }
 ''');
-    if (isProtocolVersion2) {
-      // TODO(brianwilkerson): We should be suggesting the named constructor here.
-      assertResponse(r'''
+    // TODO(brianwilkerson): We should be suggesting the named constructor here.
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
   AAA
-    kind: class
-  AAA
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  AAA
-    kind: class
-  AAA
-    kind: constructorInvocation
-  AAA.nnn
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_completion_annotation_type_inClass_withoutMember_1() async {
@@ -9488,27 +7608,13 @@ class C {
   @A^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   AAA
-    kind: class
-  AAA
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  AAA
-    kind: class
-  AAA
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_completion_argument_typeName_1() async {
@@ -9522,8 +7628,7 @@ void f() {
   f(En^);
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
@@ -9532,33 +7637,6 @@ suggestions
   Enum
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  Enum
-    kind: class
-  Enum
-    kind: class
-  Enum
-    kind: constructorInvocation
-  Enum
-    kind: constructorInvocation
-  Enum.FOO
-    kind: field
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_arguments_ignoreEmpty_1() async {
@@ -9584,33 +7662,13 @@ void f(p) {
   var v = as^;
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   asVisible
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  asVisible
-    kind: localVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_as_asPrefixedIdentifierStart_1() async {
@@ -9755,8 +7813,7 @@ suggestions
     await computeSuggestions('''
 import 'dart:math' show s^"
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -9765,19 +7822,6 @@ suggestions
   sqrt
     kind: function
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  cos
-    kind: function
-  sin
-    kind: function
-  sqrt
-    kind: function
-''');
-    }
   }
 
   Future<void> test_completion_constructor_field_1() async {
@@ -9785,31 +7829,12 @@ suggestions
     await computeSuggestions('''
 class X { X(this.field); int f^ield;}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 4
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 4
-suggestions
-  abstract
-    kind: keyword
-  covariant
-    kind: keyword
-  external
-    kind: keyword
-  late
-    kind: keyword
-  static
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_constructorArguments_showOnlyCurrent_1() async {
@@ -9853,10 +7878,9 @@ void f() {
   new m.Random(^);
 }
 ''');
-    if (isProtocolVersion2) {
-      // TODO(brianwilkerson): The suggestions here are correct, except for the
-      //  last line, which needs to be removed.
-      assertResponse(r'''
+    // TODO(brianwilkerson): The suggestions here are correct, except for the
+    //  last line, which needs to be removed.
+    assertResponse(r'''
 suggestions
   m
     kind: library
@@ -9882,33 +7906,6 @@ suggestions
     kind: functionInvocation
   forced fail
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  m
-    kind: library
-  m.Point
-    kind: class
-  m.Point
-    kind: constructorInvocation
-  m.Random
-    kind: class
-  m.Random
-    kind: constructorInvocation
-  m.cos
-    kind: functionInvocation
-  m.max
-    kind: functionInvocation
-  m.min
-    kind: functionInvocation
-  m.sin
-    kind: functionInvocation
-  m.sqrt
-    kind: functionInvocation
-  m.tan
-    kind: functionInvocation
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_forClass_1() async {
@@ -9944,27 +7941,13 @@ class AAA {
   methodA() {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 6
 suggestions
   methodA
     kind: method
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 6
-suggestions
-  int
-    kind: class
-  int.fromEnvironment
-    kind: constructorInvocation
-  methodA
-    kind: method
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_forConstructor_1() async {
@@ -9980,25 +7963,13 @@ class A {
   methodA() {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   aaa
     kind: parameter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  aaa
-    kind: parameter
-  bbb
-    kind: parameter
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_forConstructor_2() async {
@@ -10014,8 +7985,7 @@ class A {
   methodA() {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -10024,21 +7994,6 @@ suggestions
   int.fromEnvironment
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  double
-    kind: class
-  double
-    kind: constructorInvocation
-  int
-    kind: class
-  int.fromEnvironment
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_forConstructor_3() async {
@@ -10074,25 +8029,13 @@ suggestions
 functionA(aaa, bbb) {}
 functionB() {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   aaa
     kind: parameter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  aaa
-    kind: parameter
-  bbb
-    kind: parameter
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_forFunction_2() async {
@@ -10106,8 +8049,7 @@ suggestions
 functionA(aaa, bbb) {}
 functionB() {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -10116,21 +8058,6 @@ suggestions
   int.fromEnvironment
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  double
-    kind: class
-  double
-    kind: constructorInvocation
-  int
-    kind: class
-  int.fromEnvironment
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_forFunction_3() async {
@@ -10144,8 +8071,7 @@ suggestions
 functionA(aaa, bbb) {}
 functionB() {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 8
 suggestions
@@ -10154,21 +8080,6 @@ suggestions
   functionB
     kind: function
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 8
-suggestions
-  functionA
-    kind: function
-  functionB
-    kind: function
-  int
-    kind: class
-  int.fromEnvironment
-    kind: constructorInvocation
-''');
-    }
   }
 
   @failingTest
@@ -10207,8 +8118,7 @@ suggestions
 typedef FunctionA(aaa, bbb) {}
 typedef FunctionB() {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -10217,21 +8127,6 @@ suggestions
   int.fromEnvironment
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  double
-    kind: class
-  double
-    kind: constructorInvocation
-  int
-    kind: class
-  int.fromEnvironment
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void>
@@ -10246,8 +8141,7 @@ suggestions
 typedef FunctionA(aaa, bbb) {}
 typedef FunctionB() {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 8
 suggestions
@@ -10256,21 +8150,6 @@ suggestions
   FunctionB
     kind: typeAlias
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 8
-suggestions
-  FunctionA
-    kind: typeAlias
-  FunctionB
-    kind: typeAlias
-  int
-    kind: class
-  int.fromEnvironment
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_forMethod_1() async {
@@ -10286,25 +8165,13 @@ class A {
   methodB() {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   aaa
     kind: parameter
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  aaa
-    kind: parameter
-  bbb
-    kind: parameter
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_forMethod_2() async {
@@ -10320,8 +8187,7 @@ class A {
   methodB() {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -10330,21 +8196,6 @@ suggestions
   int.fromEnvironment
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  double
-    kind: class
-  double
-    kind: constructorInvocation
-  int
-    kind: class
-  int.fromEnvironment
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_forMethod_3() async {
@@ -10360,8 +8211,7 @@ class A {
   methodB() {}
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 6
 suggestions
@@ -10370,21 +8220,6 @@ suggestions
   methodB
     kind: method
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 6
-suggestions
-  int
-    kind: class
-  int.fromEnvironment
-    kind: constructorInvocation
-  methodA
-    kind: method
-  methodB
-    kind: method
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_incomplete_1() async {
@@ -10405,29 +8240,13 @@ class B {}
  */
 class C {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 5
 suggestions
   double
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 5
-suggestions
-  double
-    kind: class
-  double
-    kind: constructorInvocation
-  int
-    kind: class
-  int.fromEnvironment
-    kind: constructorInvocation
-''');
-    }
   }
 
   Future<void> test_completion_dartDoc_reference_incomplete_2() async {
@@ -10544,8 +8363,7 @@ void f(p) {
   Str;
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -10554,53 +8372,6 @@ suggestions
   str
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  STR
-    kind: topLevelVariable
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  str
-    kind: localVariable
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_exactPrefix_hasHigherRelevance_2() async {
@@ -10614,8 +8385,7 @@ void f(p) {
   Str;
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -10624,53 +8394,6 @@ suggestions
   str
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  STR
-    kind: topLevelVariable
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  str
-    kind: localVariable
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_exactPrefix_hasHigherRelevance_3() async {
@@ -10684,8 +8407,7 @@ void f(p) {
   Str^;
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -10702,61 +8424,6 @@ suggestions
   str
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  STR
-    kind: topLevelVariable
-  String
-    kind: class
-  String.fromCharCode
-    kind: constructorInvocation
-  String.fromCharCodes
-    kind: constructorInvocation
-  String.fromEnvironment
-    kind: constructorInvocation
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  str
-    kind: localVariable
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   @failingTest
@@ -10796,8 +8463,7 @@ suggestions
     await computeSuggestions('''
 class int{}class Foo { mth() { for (in^t i = 0; i < 5; i++); }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
   right: 1
@@ -10805,16 +8471,6 @@ suggestions
   int
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-  right: 1
-suggestions
-  int
-    kind: class
-''');
-    }
   }
 
   Future<void> test_completion_forStmt_vars_2() async {
@@ -10822,35 +8478,13 @@ suggestions
     await computeSuggestions('''
 class int{}class Foo { mth() { for (int i = 0; i^ < 5; i++); }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   i
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  false
-    kind: keyword
-  i
-    kind: localVariable
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_forStmt_vars_3() async {
@@ -10858,37 +8492,13 @@ suggestions
     await computeSuggestions('''
 class int{}class Foo { mth() { for (int i = 0; i < 5; i^++); }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   i
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  i
-    kind: localVariable
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_function_1() async {
@@ -10896,31 +8506,13 @@ suggestions
     await computeSuggestions('''
 class Foo { int boo = 7; mth() { PNGS.sort((String a, Str^) => a.compareTo(b)); }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
   String
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  String
-    kind: class
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  final
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   @failingTest
@@ -10929,23 +8521,13 @@ suggestions
     await computeSuggestions('''
 class Foo { int boo = 7; mth() { PNGS.sort((String a, Str^)); }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
   String
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  String
-    kind: class
-''');
-    }
   }
 
   Future<void> test_completion_functionTypeParameter_namedArgument_1() async {
@@ -10957,16 +8539,6 @@ void f(FFF fff) {
 ''');
     assertResponse(r'''
 suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
   |x1: |
     kind: namedArgument
   |x2: |
@@ -11045,37 +8617,13 @@ suggestions
     await computeSuggestions('''
 class Foo { int myField = 7; mth() { if (m^) {}}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   myField
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  myField
-    kind: field
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_ifStmt_field2a_1() async {
@@ -11083,37 +8631,13 @@ suggestions
     await computeSuggestions('''
 class Foo { int myField = 7; mth() { if (m^) }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   myField
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  myField
-    kind: field
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_ifStmt_field2b_1() async {
@@ -11121,37 +8645,13 @@ suggestions
     await computeSuggestions('''
 class Foo { myField = 7; mth() { if (m^) {}}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   myField
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  myField
-    kind: field
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_ifStmt_localVar_1() async {
@@ -11159,37 +8659,13 @@ suggestions
     await computeSuggestions('''
 class Foo { mth() { int value = 7; if (v^) {}}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   value
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-  value
-    kind: localVariable
-''');
-    }
   }
 
   Future<void> test_completion_ifStmt_localVara_1() async {
@@ -11197,33 +8673,11 @@ suggestions
     await computeSuggestions('''
 class Foo { mth() { value = 7; if (v^) {}}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_ifStmt_topLevelVar_1() async {
@@ -11231,8 +8685,7 @@ suggestions
     await computeSuggestions('''
 int topValue = 7; class Foo { mth() { if (t^) {}}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -11243,29 +8696,6 @@ suggestions
   true
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  topValue
-    kind: topLevelVariable
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_ifStmt_topLevelVara_1() async {
@@ -11273,8 +8703,7 @@ suggestions
     await computeSuggestions('''
 topValue = 7; class Foo { mth() { if (t^) {}}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -11285,29 +8714,6 @@ suggestions
   true
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  topValue
-    kind: topLevelVariable
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_ifStmt_unionType_nonStrict_1() async {
@@ -11551,8 +8957,7 @@ class A {
   final f = null;
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -11566,76 +8971,6 @@ suggestions
   String
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
-    kind: override
-    selection: 62 14
-  @override
-  // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
-    kind: override
-    selection: 69 17
-  @override
-  String toString() {
-    // TODO: implement toString
-    return super.toString();
-  }
-    kind: override
-    selection: 68 24
-  @override
-  bool operator ==(Object other) {
-    // TODO: implement ==
-    return super == other;
-  }
-    kind: override
-    selection: 75 22
-  @override
-  noSuchMethod(Invocation invocation) {
-    // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
-  }
-    kind: override
-    selection: 90 38
-  String
-    kind: class
-  abstract
-    kind: keyword
-  bool
-    kind: class
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  external
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_incompleteClosure_parameterType_1() async {
@@ -11648,8 +8983,7 @@ void f() {
   f2((Str));
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -11662,41 +8996,6 @@ suggestions
   String.fromEnvironment
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  String
-    kind: class
-  String.fromCharCode
-    kind: constructorInvocation
-  String.fromCharCodes
-    kind: constructorInvocation
-  String.fromEnvironment
-    kind: constructorInvocation
-  bool
-    kind: class
-  bool.fromEnvironment
-    kind: constructorInvocation
-  bool.hasEnvironment
-    kind: constructorInvocation
-  const
-    kind: keyword
-  f1
-    kind: function
-  f2
-    kind: function
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_incompleteClosure_parameterType_2() async {
@@ -11709,8 +9008,7 @@ void f() {
   f2((Str^));
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
 suggestions
@@ -11723,41 +9021,6 @@ suggestions
   String.fromEnvironment
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-suggestions
-  String
-    kind: class
-  String.fromCharCode
-    kind: constructorInvocation
-  String.fromCharCodes
-    kind: constructorInvocation
-  String.fromEnvironment
-    kind: constructorInvocation
-  bool
-    kind: class
-  bool.fromEnvironment
-    kind: constructorInvocation
-  bool.hasEnvironment
-    kind: constructorInvocation
-  const
-    kind: keyword
-  f1
-    kind: functionInvocation
-  f2
-    kind: functionInvocation
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   @failingTest
@@ -12074,37 +9337,13 @@ suggestions
     await computeSuggestions('''
 class Foo { int input = 7; mth() { if (in^) {}}}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   input
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  input
-    kind: field
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_keyword_syntheticIdentifier_1() async {
@@ -12116,35 +9355,13 @@ void f() {
   var v = case^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 4
 suggestions
   caseVar
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 4
-suggestions
-  caseVar
-    kind: localVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  otherVar
-    kind: localVariable
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_libraryIdentifier_atEOF_1() async {
@@ -12235,29 +9452,11 @@ suggestions
     await computeSuggestions('''
 func({foo}) {} void f() { func(foo: 0, fo^); }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_namedArgument_constructor_1() async {
@@ -12265,35 +9464,13 @@ suggestions
     await computeSuggestions('''
 class A {A({foo, bar}) {}} void f() { new A(fo^); }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   |foo: |
     kind: namedArgument
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  |bar: |
-    kind: namedArgument
-  const
-    kind: keyword
-  false
-    kind: keyword
-  |foo: |
-    kind: namedArgument
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_namedArgument_empty_1() async {
@@ -12315,35 +9492,13 @@ suggestions
     await computeSuggestions('''
 func({foo, bar}) {} void f() { func(fo^); }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   |foo: |
     kind: namedArgument
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  |bar: |
-    kind: namedArgument
-  const
-    kind: keyword
-  false
-    kind: keyword
-  |foo: |
-    kind: namedArgument
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_namedArgument_notNamed_1() async {
@@ -12351,29 +9506,11 @@ suggestions
     await computeSuggestions('''
 func([foo]) {} void f() { func(fo^); }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_namedArgument_unresolvedFunction_1() async {
@@ -12381,29 +9518,11 @@ suggestions
     await computeSuggestions('''
 void f() { func(fo^); }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_newMemberType1_1() async {
@@ -12411,8 +9530,7 @@ suggestions
     await computeSuggestions('''
 class Collection{}class List extends Collection{}class Foo { ^ }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   Collection
     kind: class
@@ -12443,41 +9561,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  Collection
-    kind: class
-  List
-    kind: class
-  List
-    kind: class
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_newMemberType2_1() async {
@@ -12485,8 +9568,7 @@ suggestions
     await computeSuggestions('''
 class Collection{}class List extends Collection{}class Foo {^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   Collection
     kind: class
@@ -12517,41 +9599,6 @@ suggestions
   void
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  Collection
-    kind: class
-  List
-    kind: class
-  List
-    kind: class
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_newMemberType3_1() async {
@@ -12559,8 +9606,7 @@ suggestions
     await computeSuggestions('''
 class Collection{}class List extends Collection{}class Foo {L^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -12569,78 +9615,6 @@ suggestions
   late
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
-    kind: override
-    selection: 62 14
-  @override
-  // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
-    kind: override
-    selection: 69 17
-  @override
-  String toString() {
-    // TODO: implement toString
-    return super.toString();
-  }
-    kind: override
-    selection: 68 24
-  @override
-  bool operator ==(Object other) {
-    // TODO: implement ==
-    return super == other;
-  }
-    kind: override
-    selection: 75 22
-  @override
-  noSuchMethod(Invocation invocation) {
-    // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
-  }
-    kind: override
-    selection: 90 38
-  Collection
-    kind: class
-  List
-    kind: class
-  List
-    kind: class
-  abstract
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  external
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_newMemberType4_1() async {
@@ -12648,8 +9622,7 @@ suggestions
     await computeSuggestions('''
 class Collection{}class List extends Collection{}class Foo {C^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -12660,78 +9633,6 @@ suggestions
   covariant
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
-    kind: override
-    selection: 62 14
-  @override
-  // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
-    kind: override
-    selection: 69 17
-  @override
-  String toString() {
-    // TODO: implement toString
-    return super.toString();
-  }
-    kind: override
-    selection: 68 24
-  @override
-  bool operator ==(Object other) {
-    // TODO: implement ==
-    return super == other;
-  }
-    kind: override
-    selection: 75 22
-  @override
-  noSuchMethod(Invocation invocation) {
-    // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
-  }
-    kind: override
-    selection: 90 38
-  Collection
-    kind: class
-  List
-    kind: class
-  List
-    kind: class
-  abstract
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  dynamic
-    kind: keyword
-  external
-    kind: keyword
-  factory
-    kind: keyword
-  final
-    kind: keyword
-  get
-    kind: keyword
-  late
-    kind: keyword
-  operator
-    kind: keyword
-  set
-    kind: keyword
-  static
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_positionalArgument_constructor_1() async {
@@ -12996,33 +9897,13 @@ suggestions
     await computeSuggestions('''
 f() { var vvv = 42; return v^ }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   vvv
     kind: localVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-  vvv
-    kind: localVariable
-''');
-    }
   }
 
   Future<void> test_completion_return_withoutExpression_1() async {
@@ -13052,37 +9933,13 @@ suggestions
     await computeSuggestions('''
 class num{}class Sunflower {static final num MAX_D = 300;num xc, yc;Sunflower() {xc = yc = MA^ }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
 suggestions
   MAX_D
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-suggestions
-  MAX_D
-    kind: field
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_staticField1_2() async {
@@ -13090,8 +9947,7 @@ suggestions
     await computeSuggestions('''
 class num{}class Sunflower {static final n^um MAX_D = 300;num xc, yc;Sunflower() {xc = yc = MA }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 2
@@ -13099,22 +9955,6 @@ suggestions
   num
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 2
-suggestions
-  dynamic
-    kind: keyword
-  num
-    kind: class
-  num
-    kind: class
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_staticField1_3() async {
@@ -13122,8 +9962,7 @@ suggestions
     await computeSuggestions('''
 class num{}class Sunflower {static final num MAX_D = 300;nu^m xc, yc;Sunflower() {xc = yc = MA }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 2
   right: 1
@@ -13131,32 +9970,6 @@ suggestions
   num
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 2
-  right: 1
-suggestions
-  abstract
-    kind: keyword
-  const
-    kind: keyword
-  covariant
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  late
-    kind: keyword
-  num
-    kind: class
-  static
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_staticField1_4() async {
@@ -13164,8 +9977,7 @@ suggestions
     await computeSuggestions('''
 class num{}class Sunflower {static final num MAX_D = 300;num xc, yc;Sun^flower() {xc = yc = MA }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
   right: 6
@@ -13173,17 +9985,6 @@ suggestions
   Sunflower
     kind: class
 ''');
-    } else {
-      // TODO(brianwilkerson): We used to suggest the class name in a constructor
-      //  declaration, but I don't think this case is useful enough to worry about
-      //  supporting.
-      assertResponse(r'''
-replacement
-  left: 3
-  right: 6
-suggestions
-''');
-    }
   }
 
   Future<void> test_completion_staticField1_X() async {
@@ -13191,8 +9992,7 @@ suggestions
     await computeSuggestions('''
 class num{}class Sunflower {static final num MAX_D = 300;num xc, yc;Sunflower() {x^c = yc = MA }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 1
@@ -13200,56 +10000,6 @@ suggestions
   xc
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 1
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  null
-    kind: keyword
-  return
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-  xc
-    kind: field
-''');
-    }
   }
 
   Future<void> test_completion_staticField1_Y() async {
@@ -13257,8 +10007,7 @@ suggestions
     await computeSuggestions('''
 class num{}class Sunflower {static final num MAX_D = 300;num xc, yc;Sunflower() {xc = y^c = MA }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
   right: 1
@@ -13266,30 +10015,6 @@ suggestions
   yc
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-  right: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-  yc
-    kind: field
-''');
-    }
   }
 
   Future<void> test_completion_staticField_withoutVarOrFinal_1() async {
@@ -13297,8 +10022,7 @@ suggestions
     await computeSuggestions('''
 class num{}class Sunflower {static n^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -13312,60 +10036,6 @@ suggestions
   num
     kind: class
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  @override
-  // TODO: implement hashCode
-  int get hashCode => super.hashCode;
-    kind: override
-    selection: 62 14
-  @override
-  // TODO: implement runtimeType
-  Type get runtimeType => super.runtimeType;
-    kind: override
-    selection: 69 17
-  @override
-  String toString() {
-    // TODO: implement toString
-    return super.toString();
-  }
-    kind: override
-    selection: 68 24
-  @override
-  bool operator ==(Object other) {
-    // TODO: implement ==
-    return super == other;
-  }
-    kind: override
-    selection: 75 22
-  @override
-  noSuchMethod(Invocation invocation) {
-    // TODO: implement noSuchMethod
-    return super.noSuchMethod(invocation);
-  }
-    kind: override
-    selection: 90 38
-  const
-    kind: keyword
-  dynamic
-    kind: keyword
-  external
-    kind: keyword
-  final
-    kind: keyword
-  num
-    kind: class
-  num
-    kind: class
-  var
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_super_superType_1() async {
@@ -13407,8 +10077,6 @@ class B extends A {
 ''');
     assertResponse(r'''
 suggestions
-  assert
-    kind: keyword
   bar
     kind: constructorInvocation
   fooA
@@ -13431,8 +10099,7 @@ class B extends A {
   B() : super.f^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -13441,21 +10108,6 @@ suggestions
   fooB
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  assert
-    kind: keyword
-  bar
-    kind: constructorInvocation
-  fooA
-    kind: constructorInvocation
-  fooB
-    kind: constructorInvocation
-''');
-    }
   }
 
   @FailingTest(reason: 'instance members should not be suggested')
@@ -13578,8 +10230,7 @@ suggestions
     await computeSuggestions('''
 class DateTime{static var JUN;}final num M = Dat^eTime.JUN;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 3
   right: 5
@@ -13589,32 +10240,6 @@ suggestions
   DateTime
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 3
-  right: 5
-suggestions
-  DateTime
-    kind: class
-  DateTime
-    kind: class
-  DateTime
-    kind: constructorInvocation
-  DateTime.now
-    kind: constructorInvocation
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_completion_while_1() async {
@@ -13622,35 +10247,13 @@ suggestions
     await computeSuggestions('''
 class Foo { int boo = 7; mth() { while (b^) {} }}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   boo
     kind: field
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  boo
-    kind: field
-  false
-    kind: keyword
-  null
-    kind: keyword
-  super
-    kind: keyword
-  switch
-    kind: keyword
-  this
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_export_ignoreIfThisLibraryExports_1() async {
@@ -13662,8 +10265,7 @@ void f() {
   ^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   assert
     kind: keyword
@@ -13708,51 +10310,6 @@ suggestions
   while
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  assert
-    kind: keyword
-  const
-    kind: keyword
-  cos
-    kind: functionInvocation
-  do
-    kind: keyword
-  dynamic
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  for
-    kind: keyword
-  if
-    kind: keyword
-  late
-    kind: keyword
-  libFunction
-    kind: functionInvocation
-  null
-    kind: keyword
-  return
-    kind: keyword
-  switch
-    kind: keyword
-  throw
-    kind: keyword
-  true
-    kind: keyword
-  try
-    kind: keyword
-  var
-    kind: keyword
-  void
-    kind: keyword
-  while
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_export_showIfImportLibraryWithExport_1() async {
@@ -13915,27 +10472,13 @@ suggestions
             f2() {var x=new json.JsonDe^}
             f3() {var x=new json.JsonDecoder}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 6
 suggestions
   JsonDecoder
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 6
-suggestions
-  JsonDecoder
-    kind: constructorInvocation
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_library004_3() async {
@@ -13948,27 +10491,13 @@ suggestions
             f2() {var x=new json.JsonDe}
             f3() {var x=new json.JsonDecoder^}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 11
 suggestions
   JsonDecoder
     kind: constructorInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 11
-suggestions
-  JsonDecoder
-    kind: constructorInvocation
-  dynamic
-    kind: keyword
-  void
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_library005_1() async {
@@ -14083,33 +10612,13 @@ void f() {
   var y = _
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
   l1t
     kind: topLevelVariable
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  l1t
-    kind: topLevelVariable
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_library007_2() async {
@@ -14125,29 +10634,11 @@ void f() {
   var y = _^
 }
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  const
-    kind: keyword
-  false
-    kind: keyword
-  null
-    kind: keyword
-  switch
-    kind: keyword
-  true
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_library008_1() async {

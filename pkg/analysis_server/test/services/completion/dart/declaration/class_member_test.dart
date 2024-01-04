@@ -8,26 +8,14 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ClassMemberTest1);
-    defineReflectiveTests(ClassMemberTest2);
-    defineReflectiveTests(StaticClassMemberTest1);
-    defineReflectiveTests(StaticClassMemberTest2);
+    defineReflectiveTests(ClassMemberTest);
+    defineReflectiveTests(StaticClassMemberTest);
   });
 }
 
 @reflectiveTest
-class ClassMemberTest1 extends AbstractCompletionDriverTest
-    with ClassMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class ClassMemberTest2 extends AbstractCompletionDriverTest
-    with ClassMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class ClassMemberTest extends AbstractCompletionDriverTest
+    with ClassMemberTestCases {}
 
 mixin ClassMemberTestCases on AbstractCompletionDriverTest {
   @override
@@ -61,18 +49,8 @@ suggestions
 }
 
 @reflectiveTest
-class StaticClassMemberTest1 extends AbstractCompletionDriverTest
-    with StaticClassMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class StaticClassMemberTest2 extends AbstractCompletionDriverTest
-    with StaticClassMemberTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class StaticClassMemberTest extends AbstractCompletionDriverTest
+    with StaticClassMemberTestCases {}
 
 mixin StaticClassMemberTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterCascade_onlyStatic_notFromSuperclass() async {

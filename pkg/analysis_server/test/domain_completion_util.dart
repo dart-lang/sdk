@@ -11,17 +11,13 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 
 import 'analysis_server_base.dart';
-import 'constants.dart';
 
 class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
-  late String completionId;
+  // TODO(brianwilkerson): Merge this class and `CompletionTestCase`.
   late int completionOffset; // TODO(scheglov): remove it
   int? replacementOffset;
   late int replacementLength;
-  Map<String, Completer<void>> receivedSuggestionsCompleters = {};
   List<CompletionSuggestion> suggestions = [];
-  bool suggestionsDone = false;
-  Map<String, List<CompletionSuggestion>> allSuggestions = {};
 
   void assertHasResult(CompletionSuggestionKind kind, String completion,
       {bool isDeprecated = false,
@@ -79,6 +75,7 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
   Future<void> getCodeSuggestions({
     required String path,
     required String content,
+    int maxResults = 1 << 10,
   }) async {
     completionOffset = content.indexOf('^');
     expect(completionOffset, isNot(equals(-1)), reason: 'missing ^');
@@ -95,21 +92,26 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
     return await getSuggestions(
       path: path,
       completionOffset: completionOffset,
+      maxResults: maxResults,
     );
   }
 
   Future<void> getSuggestions({
     required String path,
     required int completionOffset,
+    required int maxResults,
   }) async {
-    var request =
-        CompletionGetSuggestionsParams(path, completionOffset).toRequest('0');
+    var request = CompletionGetSuggestions2Params(
+      path,
+      completionOffset,
+      maxResults,
+    ).toRequest('0');
+
     var response = await handleSuccessfulRequest(request);
-    var result = CompletionGetSuggestionsResult.fromResponse(response);
-    completionId = result.id;
-    assertValidId(completionId);
-    await _getResultsCompleter(completionId).future;
-    expect(suggestionsDone, isTrue);
+    var result = CompletionGetSuggestions2Result.fromResponse(response);
+    replacementOffset = result.replacementOffset;
+    replacementLength = result.replacementLength;
+    suggestions = result.suggestions;
   }
 
   Future<void> getTestCodeSuggestions(String content) {
@@ -121,19 +123,7 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
 
   @override
   Future<void> processNotification(Notification notification) async {
-    if (notification.event == COMPLETION_RESULTS) {
-      var params = CompletionResultsParams.fromNotification(notification);
-      var id = params.id;
-      assertValidId(id);
-      replacementOffset = params.replacementOffset;
-      replacementLength = params.replacementLength;
-      suggestionsDone = params.isLast;
-      expect(suggestionsDone, isNotNull);
-      suggestions = params.results;
-      expect(allSuggestions.containsKey(id), isFalse);
-      allSuggestions[id] = params.results;
-      _getResultsCompleter(id).complete(null);
-    } else if (notification.event == SERVER_NOTIFICATION_ERROR) {
+    if (notification.event == SERVER_NOTIFICATION_ERROR) {
       fail('server error: ${notification.toJson()}');
     }
   }
@@ -142,10 +132,5 @@ class AbstractCompletionDomainTest extends PubPackageAnalysisServerTest {
   Future<void> setUp() async {
     super.setUp();
     await setRoots(included: [workspaceRootPath], excluded: []);
-  }
-
-  Completer<void> _getResultsCompleter(String id) {
-    return receivedSuggestionsCompleters.putIfAbsent(
-        id, () => Completer<void>());
   }
 }

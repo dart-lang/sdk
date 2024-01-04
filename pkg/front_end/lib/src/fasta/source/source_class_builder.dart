@@ -246,7 +246,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (supertypeBuilder != null) {
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
-    Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder);
+    Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder,
+        isMixinDeclaration ? TypeUse.mixinOnType : TypeUse.classExtendsType);
     if (supertype != null &&
         LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
       supertype = null;
@@ -302,8 +303,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
-        Supertype? supertype =
-            interfaceBuilders![i].buildSupertype(libraryBuilder);
+        Supertype? supertype = interfaceBuilders![i]
+            .buildSupertype(libraryBuilder, TypeUse.classImplementsType);
         if (supertype != null) {
           if (LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
             continue;

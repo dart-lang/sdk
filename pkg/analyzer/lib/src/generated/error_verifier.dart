@@ -5,6 +5,7 @@
 import 'dart:collection';
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
+import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -47,6 +48,7 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/this_access_tracker.dart';
+import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
@@ -156,7 +158,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   late final InterfaceType _intType;
 
   /// The options for verification.
-  final AnalysisOptionsImpl _options;
+  final AnalysisOptionsImpl options;
 
   /// The object providing access to the types defined by the language.
   final TypeProvider _typeProvider;
@@ -242,11 +244,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   /// Initialize a newly created error verifier.
   ErrorVerifier(this.errorReporter, this._currentLibrary, this._typeProvider,
-      this._inheritanceManager, this.libraryVerificationContext, this._options)
+      this._inheritanceManager, this.libraryVerificationContext, this.options)
       : _uninstantiatedBoundChecker =
             _UninstantiatedBoundChecker(errorReporter),
         _checkUseVerifier = UseResultVerifier(errorReporter),
-        _requiredParametersVerifier = RequiredParametersVerifier(errorReporter),
+        _requiredParametersVerifier = RequiredParametersVerifier(errorReporter,
+            strictCasts: options.strictCasts),
         _duplicateDefinitionVerifier = DuplicateDefinitionVerifier(
           _inheritanceManager,
           _currentLibrary,
@@ -259,7 +262,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _intType = _typeProvider.intType;
     typeSystem = _currentLibrary.typeSystem;
     _typeArgumentsVerifier =
-        TypeArgumentsVerifier(_options, _currentLibrary, errorReporter);
+        TypeArgumentsVerifier(options, _currentLibrary, errorReporter);
     _constructorFieldsVerifier = ConstructorFieldsVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
@@ -268,6 +271,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       typeProvider: _typeProvider as TypeProviderImpl,
       typeSystem: typeSystem,
       errorReporter: errorReporter,
+      strictCasts: strictCasts,
     );
   }
 
@@ -283,6 +287,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     assert(_enclosingClass == null);
     assert(_enclosingExecutable.element == null);
   }
+
+  @override
+  bool get strictCasts => options.strictCasts;
 
   /// The language team is thinking about adding abstract fields, or external
   /// fields. But for now we will ignore such fields in `Struct` subtypes.
@@ -433,10 +440,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         return;
       }
 
-      final declarationElement = augmented.declaration;
-      declarationElement as ClassElementImpl;
-
       _isInNativeClass = node.nativeClause != null;
+
+      final declarationElement = augmented.declaration;
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
@@ -468,11 +474,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
       _checkForMixinClassErrorCodes(node, members, superclass, withClause);
-      // TODO(scheglov): Report macro diagnostics.
+      _reportMacroDiagnostics(element, node.metadata);
 
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
+        strictCasts: strictCasts,
       ).checkStaticAccessors(declarationElement.accessors);
 
       super.visitClassDeclaration(node);
@@ -528,6 +535,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
+      strictCasts: strictCasts,
     ).checkStaticAccessors(element.accessors);
 
     super.visitCompilationUnit(node);
@@ -535,7 +543,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) {
+  void visitConstructorDeclaration(
+    covariant ConstructorDeclarationImpl node,
+  ) {
     var element = node.declaredElement!;
     _withEnclosingExecutable(element, () {
       _checkForNonConstGenerativeEnumConstructor(node);
@@ -553,6 +563,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
       _checkForUndefinedConstructorInInitializerImplicit(node);
       _checkForReturnInGenerativeConstructor(node);
+      _reportMacroDiagnostics(element, node.metadata);
       super.visitConstructorDeclaration(node);
     });
   }
@@ -629,6 +640,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
+        strictCasts: strictCasts,
       ).checkStaticAccessors(element.accessors);
 
       super.visitEnumDeclaration(node);
@@ -672,6 +684,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     GetterSetterTypesVerifier(
       typeSystem: typeSystem,
       errorReporter: errorReporter,
+      strictCasts: strictCasts,
     ).checkExtension(element);
 
     final name = node.name;
@@ -696,8 +709,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       final declarationElement = augmented.declaration;
-      declarationElement as ExtensionTypeElementImpl;
-
       _enclosingClass = declarationElement;
 
       _checkForBuiltInIdentifierAsName(node.name,
@@ -726,6 +737,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       GetterSetterTypesVerifier(
         typeSystem: typeSystem,
         errorReporter: errorReporter,
+        strictCasts: strictCasts,
       ).checkExtensionType(element, interface);
 
       super.visitExtensionTypeDeclaration(node);
@@ -736,7 +748,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitFieldDeclaration(FieldDeclaration node) {
+  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
     var fields = node.fields;
     _thisAccessTracker.enterFieldDeclaration(node);
     _isInStaticVariableDeclaration = node.isStatic;
@@ -754,6 +766,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForWrongTypeParameterVarianceInField(node);
       _checkForLateFinalFieldWithConstConstructor(node);
       _checkForNonFinalFieldInEnum(node);
+
+      for (final field in fields.variables) {
+        if (field.declaredElement case final FieldElementImpl element) {
+          _reportMacroDiagnostics(element, node.metadata);
+        }
+      }
+
       super.visitFieldDeclaration(node);
     } finally {
       _isInStaticVariableDeclaration = false;
@@ -1003,8 +1022,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitMethodDeclaration(MethodDeclaration node) {
-    _withEnclosingExecutable(node.declaredElement!, () {
+  void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
+    final element = node.declaredElement!;
+    _withEnclosingExecutable(element, () {
       var returnType = node.returnType;
       if (node.isSetter) {
         _checkForWrongNumberOfParametersForSetter(node.name, node.parameters);
@@ -1023,6 +1043,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForTypeAnnotationDeferredClass(returnType);
       _returnTypeVerifier.verifyReturnType(returnType);
       _checkForWrongTypeParameterVarianceInMethod(node);
+      _reportMacroDiagnostics(element, node.metadata);
       super.visitMethodDeclaration(node);
     });
   }
@@ -1047,7 +1068,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     // TODO(scheglov): Verify for all mixin errors.
     var outerClass = _enclosingClass;
     try {
@@ -1058,8 +1079,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
 
       final declarationElement = augmented.declaration;
-      declarationElement as MixinElementImpl;
-
       _enclosingClass = declarationElement;
 
       List<ClassMember> members = node.members;
@@ -1080,6 +1099,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForFinalNotInitializedInClass(members);
       _checkForMainFunction1(node.name, declarationElement);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
+      _reportMacroDiagnostics(element, node.metadata);
       //      _checkForBadFunctionUse(node);
       super.visitMixinDeclaration(node);
     } finally {
@@ -1632,8 +1652,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // Report specific problem when return type is incompatible
     FunctionType constructorType = declaration.declaredElement!.type;
     DartType constructorReturnType = constructorType.returnType;
-    if (!typeSystem.isAssignableTo(
-        redirectedReturnType, constructorReturnType)) {
+    if (!typeSystem.isAssignableTo(redirectedReturnType, constructorReturnType,
+        strictCasts: strictCasts)) {
       errorReporter.reportErrorForNode(
           CompileTimeErrorCode.REDIRECT_TO_INVALID_RETURN_TYPE,
           redirectedConstructor,
@@ -2659,7 +2679,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // Use an explicit string instead of [loopType] to remove the "<E>".
     String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
 
-    if (iterableType is DynamicType && typeSystem.strictCasts) {
+    if (iterableType is DynamicType && strictCasts) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
@@ -2696,7 +2716,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       iterableType = requiredSequenceType;
     }
 
-    if (!typeSystem.isAssignableTo(iterableType, requiredSequenceType)) {
+    if (!typeSystem.isAssignableTo(iterableType, requiredSequenceType,
+        strictCasts: strictCasts)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
         node.iterable,
@@ -2720,7 +2741,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return true;
     }
 
-    if (!typeSystem.isAssignableTo(sequenceElementType, variableType)) {
+    if (!typeSystem.isAssignableTo(sequenceElementType, variableType,
+        strictCasts: strictCasts)) {
       // Use an explicit string instead of [loopType] to remove the "<E>".
       String loopNamedType = awaitKeyword != null ? 'Stream' : 'Iterable';
 
@@ -2749,13 +2771,15 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             errorReporter: errorReporter,
             errorNode: node.iterable,
             genericMetadataIsEnabled: true,
+            strictInference: options.strictInference,
           );
           if (typeArguments.isNotEmpty) {
             tearoffType = tearoffType.instantiate(typeArguments);
           }
         }
 
-        if (!typeSystem.isAssignableTo(tearoffType, variableType)) {
+        if (!typeSystem.isAssignableTo(tearoffType, variableType,
+            strictCasts: strictCasts)) {
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
             node.iterable,
@@ -3288,7 +3312,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForIllegalLanguageOverride(CompilationUnit node) {
-    var sourceLanguageConstraint = _options.sourceLanguageConstraint;
+    var sourceLanguageConstraint = options.sourceLanguageConstraint;
     if (sourceLanguageConstraint == null) {
       return;
     }
@@ -4843,7 +4867,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var expression = node.expression;
     var type = node.expression.typeOrThrow;
 
-    if (!typeSystem.isAssignableTo(type, typeSystem.objectNone)) {
+    if (!typeSystem.isAssignableTo(type, typeSystem.objectNone,
+        strictCasts: strictCasts)) {
       errorReporter.reportErrorForNode(
         CompileTimeErrorCode.THROW_OF_INVALID_TYPE,
         expression,
@@ -5852,6 +5877,72 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       return parameter.parameter.name;
     }
     return null;
+  }
+
+  void _reportMacroDiagnostics(
+    MacroTargetElement element,
+    List<Annotation> metadata,
+  ) {
+    DiagnosticMessage convertMessage(MacroDiagnosticMessage object) {
+      final target = object.target;
+      switch (target) {
+        case ApplicationMacroDiagnosticTarget():
+          final node = metadata[target.annotationIndex];
+          return DiagnosticMessageImpl(
+            filePath: element.source!.fullName,
+            length: node.length,
+            message: object.message,
+            offset: node.offset,
+            url: null,
+          );
+        case ElementMacroDiagnosticTarget():
+          final element = target.element;
+          return DiagnosticMessageImpl(
+            filePath: element.source!.fullName,
+            length: element.nameLength,
+            message: object.message,
+            offset: element.nameOffset,
+            url: null,
+          );
+      }
+    }
+
+    for (final diagnostic in element.macroDiagnostics) {
+      switch (diagnostic) {
+        case ArgumentMacroDiagnostic():
+          // TODO(scheglov): implement
+          throw UnimplementedError();
+        case DeclarationsIntrospectionCycleDiagnostic():
+          // TODO(scheglov): implement
+          throw UnimplementedError();
+        case ExceptionMacroDiagnostic():
+          // TODO(scheglov): implement
+          throw UnimplementedError();
+        case MacroDiagnostic():
+          final errorCode = switch (diagnostic.severity) {
+            macro.Severity.info => HintCode.MACRO_INFO,
+            macro.Severity.warning => WarningCode.MACRO_WARNING,
+            macro.Severity.error => CompileTimeErrorCode.MACRO_ERROR,
+          };
+          final target = diagnostic.message.target;
+          switch (target) {
+            case ApplicationMacroDiagnosticTarget():
+              errorReporter.reportErrorForNode(
+                errorCode,
+                metadata[target.annotationIndex],
+                [diagnostic.message.message],
+                diagnostic.contextMessages.map(convertMessage).toList(),
+              );
+            case ElementMacroDiagnosticTarget():
+              errorReporter.reportErrorForElement(
+                errorCode,
+                target.element,
+                [diagnostic.message.message],
+                diagnostic.contextMessages.map(convertMessage).toList(),
+              );
+          }
+      }
+    }
   }
 
   void _withEnclosingExecutable(

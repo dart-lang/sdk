@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SwitchExpressionTest1);
-    defineReflectiveTests(SwitchExpressionTest2);
+    defineReflectiveTests(SwitchExpressionTest);
   });
 }
 
 @reflectiveTest
-class SwitchExpressionTest1 extends AbstractCompletionDriverTest
-    with SwitchExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class SwitchExpressionTest2 extends AbstractCompletionDriverTest
-    with SwitchExpressionTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class SwitchExpressionTest extends AbstractCompletionDriverTest
+    with SwitchExpressionTestCases {}
 
 mixin SwitchExpressionTestCases on AbstractCompletionDriverTest {
   Future<void> test_body_afterArrow() async {
@@ -64,8 +53,7 @@ int f(Object p01) {
 
 class A1 {}
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A1
     kind: class
@@ -84,25 +72,6 @@ suggestions
   var
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A1
-    kind: class
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_body_empty() async {
@@ -123,8 +92,7 @@ final v01 = 0;
 
 int f01() => 0;
 ''');
-    if (isProtocolVersion2) {
-      assertResponse(r'''
+    assertResponse(r'''
 suggestions
   A1
     kind: class
@@ -149,27 +117,6 @@ suggestions
   var
     kind: keyword
 ''');
-    } else {
-      assertResponse(r'''
-suggestions
-  A1
-    kind: class
-  c01
-    kind: topLevelVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_body_partial() async {
@@ -192,9 +139,8 @@ final B03 = 0;
 int A04() => 0;
 int B04() => 0;
 ''');
-    if (isProtocolVersion2) {
-      // TODO(scheglov): This is wrong.
-      assertResponse(r'''
+    // TODO(scheglov): This is wrong.
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -209,33 +155,6 @@ suggestions
   A04
     kind: functionInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A02
-    kind: topLevelVariable
-  B01
-    kind: class
-  B02
-    kind: topLevelVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_body_partial2() async {
@@ -258,9 +177,8 @@ final B03 = 0;
 int A04() => 0;
 int B04() => 0;
 ''');
-    if (isProtocolVersion2) {
-      // TODO(scheglov): This is wrong.
-      assertResponse(r'''
+    // TODO(scheglov): This is wrong.
+    assertResponse(r'''
 replacement
   left: 1
 suggestions
@@ -275,33 +193,6 @@ suggestions
   A04
     kind: functionInvocation
 ''');
-    } else {
-      assertResponse(r'''
-replacement
-  left: 1
-suggestions
-  A01
-    kind: class
-  A02
-    kind: topLevelVariable
-  B01
-    kind: class
-  B02
-    kind: topLevelVariable
-  const
-    kind: keyword
-  false
-    kind: keyword
-  final
-    kind: keyword
-  null
-    kind: keyword
-  true
-    kind: keyword
-  var
-    kind: keyword
-''');
-    }
   }
 
   Future<void> test_expression() async {

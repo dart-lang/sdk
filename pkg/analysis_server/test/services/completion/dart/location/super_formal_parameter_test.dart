@@ -8,24 +8,13 @@ import '../../../../client/completion_driver_test.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(SuperFormalParameterTest1);
-    defineReflectiveTests(SuperFormalParameterTest2);
+    defineReflectiveTests(SuperFormalParameterTest);
   });
 }
 
 @reflectiveTest
-class SuperFormalParameterTest1 extends AbstractCompletionDriverTest
-    with SuperFormalParameterTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version1;
-}
-
-@reflectiveTest
-class SuperFormalParameterTest2 extends AbstractCompletionDriverTest
-    with SuperFormalParameterTestCases {
-  @override
-  TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
-}
+class SuperFormalParameterTest extends AbstractCompletionDriverTest
+    with SuperFormalParameterTestCases {}
 
 mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
   @override
