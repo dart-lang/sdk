@@ -112,7 +112,7 @@ TestPlatform get defaultTestPlatform {
   if (Platform.isLinux) return TestPlatform.linux;
   if (Platform.isMacOS) return TestPlatform.macos;
   if (Platform.isWindows) return TestPlatform.windows;
-  throw 'Unexpected platform';
+  throw 'Unexpected platform: ${Platform.operatingSystem}';
 }
 
 void testPragma(int i) {
@@ -136,8 +136,117 @@ void testPragma(int i) {
     case TestPlatform.windows:
       print("is windows");
       break;
-    default:
-      throw "Unexpected platform";
+  }
+}
+
+const bool kDebugMode = bool.fromEnvironment('test.define.debug');
+
+TestPlatform? debugDefaultTestPlatform;
+
+@pragma("vm:platform-const-if", !kDebugMode)
+TestPlatform get defaultTestPlatformOverridableWhenDebug {
+  late TestPlatform result;
+  if (Platform.isAndroid) {
+    result = TestPlatform.android;
+  }
+  if (Platform.isFuchsia) {
+    result = TestPlatform.fuchsia;
+  }
+  if (Platform.isIOS) {
+    result = TestPlatform.ios;
+  }
+  if (Platform.isLinux) {
+    result = TestPlatform.linux;
+  }
+  if (Platform.isMacOS) {
+    result = TestPlatform.macos;
+  }
+  if (Platform.isWindows) {
+    result = TestPlatform.windows;
+  }
+  if (kDebugMode && debugDefaultTestPlatform != null) {
+    result = debugDefaultTestPlatform!;
+  }
+  return result;
+}
+
+void testConditionalPragma(int i) {
+  print(defaultTestPlatformOverridableWhenDebug);
+  switch (defaultTestPlatformOverridableWhenDebug) {
+    case TestPlatform.android:
+      print("is android");
+      break;
+    case TestPlatform.fuchsia:
+      print("is fuchsia");
+      break;
+    case TestPlatform.ios:
+      print("is ios");
+      break;
+    case TestPlatform.linux:
+      print("is linux");
+      break;
+    case TestPlatform.macos:
+      print("is macos");
+      break;
+    case TestPlatform.windows:
+      print("is windows");
+      break;
+  }
+}
+
+const bool enableAsserts = bool.fromEnvironment('test.define.enableAsserts');
+
+@pragma("vm:platform-const-if", !enableAsserts)
+TestPlatform get defaultTestPlatformOverridableWithAsserts {
+  late TestPlatform result;
+  if (Platform.isAndroid) {
+    result = TestPlatform.android;
+  }
+  if (Platform.isFuchsia) {
+    result = TestPlatform.fuchsia;
+  }
+  if (Platform.isIOS) {
+    result = TestPlatform.ios;
+  }
+  if (Platform.isLinux) {
+    result = TestPlatform.linux;
+  }
+  if (Platform.isMacOS) {
+    result = TestPlatform.macos;
+  }
+  if (Platform.isWindows) {
+    result = TestPlatform.windows;
+  }
+  assert(() {
+    if (Platform.environment.containsKey('FLUTTER_TEST')) {
+      result = TestPlatform.android;
+    }
+    return true;
+  }());
+  return result;
+}
+
+void testConditionalPragmaWithAsserts(int i) {
+  print(defaultTestPlatformOverridableWithAsserts);
+  switch (defaultTestPlatformOverridableWithAsserts) {
+    case TestPlatform.android:
+      print("is android");
+      break;
+    case TestPlatform.fuchsia:
+      print("is fuchsia");
+      break;
+    case TestPlatform.ios:
+      print("is ios");
+      break;
+    case TestPlatform.linux:
+      print("is linux");
+      break;
+    case TestPlatform.macos:
+      print("is macos");
+      break;
+    case TestPlatform.windows:
+      print("is windows");
+      break;
   }
 }
 
@@ -152,4 +261,7 @@ main(List<String> args) {
   testWindows(i);
   testSwitchStatements(i);
   testPragma(i);
+  debugDefaultTestPlatform = TestPlatform.android;
+  testConditionalPragma(i);
+  testConditionalPragmaWithAsserts(i);
 }

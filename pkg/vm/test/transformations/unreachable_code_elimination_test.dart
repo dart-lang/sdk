@@ -34,8 +34,9 @@ runTestCase(Uri source) async {
         'test.define.isTrue': 'true',
         'test.define.isFalse': 'false'
       });
-  final evaluator =
-      VMConstantEvaluator.create(target, component, targetOS, nnbdMode);
+  final evaluator = VMConstantEvaluator.create(
+      target, component, targetOS, nnbdMode,
+      enableAsserts: enableAsserts);
   component = transformComponent(target, component, evaluator, enableAsserts);
   verifyComponent(
       target, VerificationStage.afterGlobalTransformations, component);

@@ -763,8 +763,12 @@ class ConstantsTransformer extends RemovingTransformer {
       if (shouldInline(target.initializer!)) {
         return evaluateAndTransformWithContext(node, node);
       }
-    } else if (target is Procedure && target.kind == ProcedureKind.Method) {
-      return evaluateAndTransformWithContext(node, node);
+    } else if (target is Procedure) {
+      if (target.kind == ProcedureKind.Method) {
+        return evaluateAndTransformWithContext(node, node);
+      } else if (target.kind == ProcedureKind.Getter && enableConstFunctions) {
+        return evaluateAndTransformWithContext(node, node);
+      }
     }
     return super.visitStaticGet(node, removalSentinel);
   }
@@ -2443,7 +2447,8 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   final EvaluationMode evaluationMode;
 
   final bool enableTripleShift;
-  final bool enableConstFunctions;
+  final bool enableAsserts;
+  bool enableConstFunctions;
   bool inExtensionTypeConstConstructor = false;
 
   final Map<Constant, Constant> canonicalizationCache;
@@ -2488,6 +2493,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
       this._environmentDefines, this.typeEnvironment, this.errorReporter,
       {this.enableTripleShift = false,
       this.enableConstFunctions = false,
+      this.enableAsserts = true,
       this.errorOnUnevaluatedConstant = false,
       this.evaluationMode = EvaluationMode.weak})
       : numberSemantics = backend.numberSemantics,
@@ -3692,6 +3698,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   /// Returns [null] on success and an error-"constant" on failure, as such the
   /// return value should be checked.
   AbortConstant? checkAssert(AssertStatement statement) {
+    if (!enableAsserts) return null;
     final Constant condition = _evaluateSubexpression(statement.condition);
     if (condition is AbortConstant) return condition;
 
@@ -4577,27 +4584,23 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitStaticGet(StaticGet node) {
-    return withNewEnvironment(() {
-      final Member target = node.target;
-      visitedLibraries.add(target.enclosingLibrary);
-      if (target is Field) {
-        if (target.isConst) {
-          return evaluateExpressionInContext(target, target.initializer!);
-        }
-        return createEvaluationErrorConstant(
-            node,
-            templateConstEvalInvalidStaticInvocation
-                .withArguments(target.name.text));
-      } else if (target is Procedure && target.kind == ProcedureKind.Method) {
+    final Member target = node.target;
+    visitedLibraries.add(target.enclosingLibrary);
+    if (target is Field && target.isConst) {
+      return withNewEnvironment(
+          () => evaluateExpressionInContext(target, target.initializer!));
+    } else if (target is Procedure) {
+      if (target.kind == ProcedureKind.Method) {
         // TODO(johnniwinther): Remove this. This should never occur.
         return canonicalize(new StaticTearOffConstant(target));
-      } else {
-        return createEvaluationErrorConstant(
-            node,
-            templateConstEvalInvalidStaticInvocation
-                .withArguments(target.name.text));
+      } else if (target.kind == ProcedureKind.Getter && enableConstFunctions) {
+        return _handleFunctionInvocation(target.function, [], [], {});
       }
-    });
+    }
+    return createEvaluationErrorConstant(
+        node,
+        templateConstEvalInvalidStaticInvocation
+            .withArguments(target.name.text));
   }
 
   @override
@@ -5617,6 +5620,7 @@ class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
 
   @override
   ExecutionStatus visitAssertBlock(AssertBlock node) {
+    if (!exprEvaluator.enableAsserts) return const ProceedStatus();
     throw new UnsupportedError(
         'Statement constant evaluation does not support ${node.runtimeType}.');
   }

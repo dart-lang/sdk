@@ -20,54 +20,54 @@ class TestPlatform extends core::_Enum /*isEnum*/  {
 }
 static const field core::bool kDebugMode = #C20;
 static field self::TestPlatform? debugDefaultTestPlatform;
-static const field core::bool enableAsserts = #C20;
+static const field core::bool enableAsserts = #C21;
 static method testAndroid(core::int i) → void {
-  final core::bool b = #C20;
+  final core::bool b = #C21;
   core::print(b);
 }
 static method testFuchsia(core::int i) → void {
   final core::bool b = #C21;
   core::print(b);
-  {
-    final core::String os = #C5;
-    core::print(os);
-    final core::String sep = #C22;
-    core::print(sep);
-  }
 }
 static method testIOS(core::int i) → void {
-  final core::bool b = #C20;
+  final core::bool b = #C21;
   core::print(b);
 }
 static method testLinux(core::int i) → void {
-  final core::bool b = #C20;
+  final core::bool b = #C21;
   core::print(b);
 }
 static method testMacOS(core::int i) → void {
   final core::bool b = #C20;
   core::print(b);
+  {
+    final core::String os = #C14;
+    core::print(os);
+    final core::String sep = #C22;
+    core::print(sep);
+  }
 }
 static method testWindows(core::int i) → void {
-  final core::bool b = #C20;
+  final core::bool b = #C21;
   core::print(b);
 }
 static method testSwitchStatements(core::int i) → void {
   #L1:
   {
-    core::print("is fuchsia");
+    core::print("is macos");
     break #L1;
   }
 }
 @#C25
 static get defaultTestPlatform() → self::TestPlatform {
-  return #C6;
-  throw "Unexpected platform: ${#C5}";
+  return #C15;
+  throw "Unexpected platform: ${#C14}";
 }
 static method testPragma(core::int i) → void {
-  core::print(#C6);
+  core::print(#C15);
   #L2:
   {
-    core::print("is fuchsia");
+    core::print("is macos");
     break #L2;
   }
 }
@@ -75,32 +75,69 @@ static method testPragma(core::int i) → void {
 static get defaultTestPlatformOverridableWhenDebug() → self::TestPlatform {
   late self::TestPlatform result;
   {
-    result = #C6;
+    result = #C15;
+  }
+  if(!(self::debugDefaultTestPlatform == null)) {
+    result = self::debugDefaultTestPlatform!;
   }
   return result;
 }
 static method testConditionalPragma(core::int i) → void {
-  core::print(#C6);
+  core::print(self::defaultTestPlatformOverridableWhenDebug);
   #L3:
-  {
-    core::print("is fuchsia");
-    break #L3;
+  switch(self::defaultTestPlatformOverridableWhenDebug) /* isExplicitlyExhaustive, self::TestPlatform */ {
+    #L4:
+    case #C3:
+      {
+        core::print("is android");
+        break #L3;
+      }
+    #L5:
+    case #C6:
+      {
+        core::print("is fuchsia");
+        break #L3;
+      }
+    #L6:
+    case #C9:
+      {
+        core::print("is ios");
+        break #L3;
+      }
+    #L7:
+    case #C12:
+      {
+        core::print("is linux");
+        break #L3;
+      }
+    #L8:
+    case #C15:
+      {
+        core::print("is macos");
+        break #L3;
+      }
+    #L9:
+    case #C18:
+      {
+        core::print("is windows");
+        break #L3;
+      }
   }
 }
-@#C27
+@#C28
 static get defaultTestPlatformOverridableWithAsserts() → self::TestPlatform {
   late self::TestPlatform result;
   {
-    result = #C6;
+    result = #C15;
   }
   return result;
 }
 static method testConditionalPragmaWithAsserts(core::int i) → void {
-  core::print(#C6);
-  #L4:
+  core::print(#C15);
+  #L10:
   {
-    core::print("is fuchsia");
-    break #L4;
+    core::print("is macos");
+    break #L10;
   }
 }
 static method main(core::List<core::String> args) → dynamic {
@@ -139,12 +176,13 @@ constants  {
   #C17 = "windows"
   #C18 = self::TestPlatform {index:#C16, _name:#C17}
   #C19 = <self::TestPlatform>[#C3, #C6, #C9, #C12, #C15, #C18]
-  #C20 = false
-  #C21 = true
+  #C20 = true
+  #C21 = false
   #C22 = "/"
   #C23 = "vm:platform-const"
   #C24 = null
   #C25 = core::pragma {name:#C23, options:#C24}
   #C26 = "vm:platform-const-if"
   #C27 = core::pragma {name:#C26, options:#C21}
+  #C28 = core::pragma {name:#C26, options:#C20}
 }
