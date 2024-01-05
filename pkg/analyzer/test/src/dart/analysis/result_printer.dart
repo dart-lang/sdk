@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/driver_event.dart' as events;
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:test/test.dart';
 
@@ -78,6 +79,8 @@ class DriverEventsPrinter {
         _writeGetResolvedUnit(event);
       case ResultStreamEvent():
         _writeResultStreamEvent(event);
+      case SchedulerStatusEvent():
+        _writeSchedulerStatusEvent(event);
       default:
         throw UnimplementedError('${event.runtimeType}');
     }
@@ -199,6 +202,18 @@ class DriverEventsPrinter {
       default:
         throw UnimplementedError('${object.runtimeType}');
     }
+  }
+
+  void _writeSchedulerStatusEvent(SchedulerStatusEvent event) {
+    sink.writeIndentedLine(() {
+      sink.write('[status] ');
+      switch (event.status) {
+        case AnalysisStatus.ANALYZING:
+          sink.write('analyzing');
+        case AnalysisStatus.IDLE:
+          sink.write('idle');
+      }
+    });
   }
 }
 
@@ -405,4 +420,10 @@ final class ResultStreamEvent extends DriverEvent {
   ResultStreamEvent({
     required this.object,
   });
+}
+
+final class SchedulerStatusEvent extends DriverEvent {
+  final AnalysisStatus status;
+
+  SchedulerStatusEvent(this.status);
 }

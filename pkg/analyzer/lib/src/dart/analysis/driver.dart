@@ -432,6 +432,8 @@ class AnalysisDriver {
   /// using [addFile], for example when [getResolvedUnit] was called for a file.
   Stream<Object> get results => _onResults;
 
+  AnalysisDriverScheduler get scheduler => _scheduler;
+
   /// Return the search support for the driver.
   Search get search => _search;
 
