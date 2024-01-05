@@ -1908,12 +1908,11 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     b.local_set(typeArgsLocal);
 
     // Evaluate positional arguments
-    makeList(DynamicType(), positionalArguments.length,
+    final positionalArgsLocal = function.addLocal(makeArray(
+        translator.nullableObjectArrayType, positionalArguments.length,
         (elementType, elementIdx) {
       wrap(positionalArguments[elementIdx], elementType);
-    }, isGrowable: false);
-    final positionalArgsLocal = function.addLocal(
-        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    }));
     b.local_set(positionalArgsLocal);
 
     // Evaluate named arguments. The arguments need to be evaluated in the
@@ -1929,9 +1928,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
     namedArgumentLocals.sort((e1, e2) => e1.key.compareTo(e2.key));
 
-    // Create named argument list
-    makeList(DynamicType(), namedArguments.length * 2,
-        (elementType, elementIdx) {
+    // Create named argument array
+    final namedArgsLocal = function.addLocal(
+        makeArray(translator.nullableObjectArrayType, namedArguments.length * 2,
+            (elementType, elementIdx) {
       if (elementIdx % 2 == 0) {
         final name = namedArgumentLocals[elementIdx ~/ 2].key;
         final w.ValueType symbolValueType =
@@ -1942,9 +1942,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         final local = namedArgumentLocals[elementIdx ~/ 2].value;
         b.local_get(local);
       }
-    }, isGrowable: false);
-    final namedArgsLocal = function.addLocal(
-        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    }));
     b.local_set(namedArgsLocal);
 
     final nullBlock = b.block([], [translator.topInfo.nonNullableType]);
@@ -2973,12 +2971,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   w.ValueType makeArrayFromExpressions(
       List<Expression> expressions, InterfaceType elementType) {
-    return translator.makeArray(
-        function,
-        translator.arrayTypeForDartType(elementType),
-        expressions.length, (w.ValueType elementType, int i) {
-      wrap(expressions[i], elementType);
+    return makeArray(
+        translator.arrayTypeForDartType(elementType), expressions.length,
+        (w.ValueType type, int i) {
+      wrap(expressions[i], type);
     });
+  }
+
+  w.ValueType makeArray(w.ArrayType arrayType, int length,
+      void Function(w.ValueType, int) generateItem) {
+    return translator.makeArray(function, arrayType, length, generateItem);
   }
 
   @override
@@ -3456,7 +3458,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           param.name!,
           () {
             b.local_get(positionalArgsLocal);
-            translator.indexList(b, (b) => b.i32_const(positionalParamIdx));
+            b.i32_const(positionalParamIdx);
+            b.array_get(translator.nullableObjectArrayType);
           },
           () {
             types.makeType(this, param.type);
@@ -3490,8 +3493,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           param.name!,
           () {
             b.local_get(namedArgsLocal);
-            translator.indexList(b,
-                (b) => b.i32_const(mapNamedParameterToArrayIndex(param.name!)));
+            b.i32_const(mapNamedParameterToArrayIndex(param.name!));
+            b.array_get(translator.nullableObjectArrayType);
           },
           () {
             types.makeType(this, param.type);
@@ -3519,7 +3522,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     void pushArgument(w.Local listLocal, int listIdx, int wasmInputIdx) {
       b.local_get(listLocal);
-      translator.indexList(b, (b) => b.i32_const(listIdx));
+      b.i32_const(listIdx);
+      b.array_get(translator.nullableObjectArrayType);
       translator.convertType(function, translator.topInfo.nullableType,
           memberWasmInputs[wasmInputIdx]);
     }
