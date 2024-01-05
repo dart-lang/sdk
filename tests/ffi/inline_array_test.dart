@@ -18,6 +18,7 @@ void main() {
   testStore();
   testToString();
   testRange();
+  testRangeArrayOfPointer();
 }
 
 void testSizeOf() {
@@ -87,4 +88,24 @@ void testRange() {
   Expect.throws(() => array[8]);
   Expect.throws(() => array[8] = 0);
   calloc.free(pointer);
+}
+
+void testRangeArrayOfPointer() {
+  final pointer = calloc<StructWithArrayOfPointer>();
+  final struct = pointer.ref;
+  final array = struct.a0;
+  array[0] = Pointer.fromAddress(123);
+  Expect.equals(123, array[0].address);
+  array[7] = nullptr;
+  Expect.equals(0, array[7].address);
+  Expect.throws(() => array[-1]);
+  Expect.throws(() => array[-1] = nullptr);
+  Expect.throws(() => array[8]);
+  Expect.throws(() => array[8] = nullptr);
+  calloc.free(pointer);
+}
+
+final class StructWithArrayOfPointer extends Struct {
+  @Array(8)
+  external Array<Pointer<Uint8>> a0;
 }
