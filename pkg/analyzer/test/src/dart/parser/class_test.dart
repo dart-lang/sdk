@@ -47,7 +47,43 @@ ClassDeclaration
 ''');
   }
 
-  test_constructor_external_fieldFormalParameter() {
+  test_constructor_external_fieldFormalParameter_optionalPositional() {
+    final parseResult = parseStringWithErrors(r'''
+class A {
+  final int f;
+  external A([this.f = 0]);
+}
+''');
+    parseResult.assertErrors([
+      error(
+          ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS, 39, 4),
+    ]);
+
+    final node = parseResult.findNode.singleConstructorDeclaration;
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  externalKeyword: external
+  returnType: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    leftDelimiter: [
+    parameter: DefaultFormalParameter
+      parameter: FieldFormalParameter
+        thisKeyword: this
+        period: .
+        name: f
+      separator: =
+      defaultValue: IntegerLiteral
+        literal: 0
+    rightDelimiter: ]
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
+  test_constructor_external_fieldFormalParameter_requiredPositional() {
     final parseResult = parseStringWithErrors(r'''
 class A {
   final int f;

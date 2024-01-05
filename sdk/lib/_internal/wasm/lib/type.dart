@@ -57,19 +57,6 @@ extension on WasmArray<String> {
   bool get isNotEmpty => length != 0;
 }
 
-// TODO: Remove any occurence of `List`s in this file.
-extension on List<_Type> {
-  @pragma("wasm:prefer-inline")
-  WasmArray<_Type> toWasmArray() {
-    if (isEmpty) return const WasmArray<_Type>.literal(<_Type>[]);
-    final result = WasmArray<_Type>.filled(length, this[0]);
-    for (int i = 1; i < length; ++i) {
-      result[i] = this[i];
-    }
-    return result;
-  }
-}
-
 // TODO(joshualitt): We can cache the result of [_FutureOrType.asFuture].
 abstract class _Type implements Type {
   final bool isDeclaredNullable;
@@ -393,6 +380,7 @@ class _FunctionType extends _Type {
   // representations that don't have this overhead in the common case.
   final int typeParameterOffset;
   final WasmArray<_Type> typeParameterBounds;
+  @pragma("wasm:entry-point")
   final WasmArray<_Type> typeParameterDefaults;
   final _Type returnType;
   final WasmArray<_Type> positionalParameters;
@@ -1165,16 +1153,12 @@ class _TypeCheckVerificationError extends Error {
 ///
 /// [namedArguments] is a list of `Symbol` and `Object?` pairs.
 @pragma("wasm:entry-point")
-bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
-    WasmArray<Object?> positionalArguments, WasmArray<dynamic> namedArguments) {
-  // Check type args, add default types to the type list if its empty
-  if (typeArguments.isEmpty) {
-    final defaults = functionType.typeParameterDefaults;
-    for (int i = 0; i < defaults.length; ++i) {
-      typeArguments.add(defaults[i]);
-    }
-  } else if (typeArguments.length !=
-      functionType.typeParameterDefaults.length) {
+bool _checkClosureShape(
+    _FunctionType functionType,
+    WasmArray<_Type> typeArguments,
+    WasmArray<Object?> positionalArguments,
+    WasmArray<dynamic> namedArguments) {
+  if (typeArguments.length != functionType.typeParameterDefaults.length) {
     return false;
   }
 
@@ -1236,16 +1220,18 @@ bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
 ///
 /// [namedArguments] is a list of `Symbol` and `Object?` pairs.
 @pragma("wasm:entry-point")
-void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
-    WasmArray<Object?> positionalArguments, WasmArray<dynamic> namedArguments) {
+void _checkClosureType(
+    _FunctionType functionType,
+    WasmArray<_Type> typeArguments,
+    WasmArray<Object?> positionalArguments,
+    WasmArray<dynamic> namedArguments) {
   assert(functionType.typeParameterBounds.length == typeArguments.length);
 
   if (!typeArguments.isEmpty) {
-    final typesAsArray = typeArguments.toWasmArray();
-    for (int i = 0; i < typesAsArray.length; i += 1) {
-      final typeArgument = typesAsArray[i];
+    for (int i = 0; i < typeArguments.length; i += 1) {
+      final typeArgument = typeArguments[i];
       final paramBound = _TypeUniverse.substituteTypeArgument(
-          functionType.typeParameterBounds[i], typesAsArray, functionType);
+          functionType.typeParameterBounds[i], typeArguments, functionType);
       if (!_typeUniverse.isSubtype(typeArgument, null, paramBound, null)) {
         final stackTrace = StackTrace.current;
         final typeError = _TypeError.fromMessageAndStackTrace(
@@ -1257,7 +1243,7 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
     }
 
     functionType = _TypeUniverse.substituteFunctionTypeArgument(
-        functionType, typesAsArray);
+        functionType, typeArguments);
   }
 
   // Check positional arguments

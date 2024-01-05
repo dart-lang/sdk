@@ -80,6 +80,10 @@ mixin ResourceProviderMixin {
     resourceProvider.modifyFile(convertedPath, content);
   }
 
+  void modifyFile2(File file, String content) {
+    modifyFile(file.path, content);
+  }
+
   File newAnalysisOptionsYamlFile(String directoryPath, String content) {
     String path = join(directoryPath, file_paths.analysisOptionsYaml);
     return newFile(path, content);

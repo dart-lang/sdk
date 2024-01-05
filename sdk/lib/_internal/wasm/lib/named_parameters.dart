@@ -18,6 +18,17 @@ int? _getNamedParameterIndex(
   return null;
 }
 
+/// Converts type arguments passed to a dynamic forwarder to a
+/// list that can be passed to `Invocation` constructors.
+@pragma("wasm:entry-point")
+List<_Type?> _typeArgumentsToList(WasmArray<_Type> typeArgs) {
+  final result = <_Type>[];
+  for (int i = 0; i < typeArgs.length; ++i) {
+    result.add(typeArgs[i]);
+  }
+  return result;
+}
+
 /// Converts a positional parameter list passed to a dynamic forwarder to a
 /// list that can be passed to `Invocation` constructors.
 @pragma("wasm:entry-point")

@@ -200,7 +200,7 @@ class Forwarder {
     final b = function.body;
 
     final receiverLocal = function.locals[0]; // ref #Top
-    final typeArgsLocal = function.locals[1]; // ref _ListBase
+    final typeArgsLocal = function.locals[1]; // ref WasmArray
     final positionalArgsLocal = function.locals[2]; // ref WasmArray
     final namedArgsLocal = function.locals[3]; // ref WasmArray
 
@@ -277,12 +277,12 @@ class Forwarder {
         if (targetMemberParamInfo.typeParamCount == 0) {
           // typeArgs.length == 0
           b.local_get(typeArgsLocal);
-          translator.getListLength(b);
+          b.array_len();
           b.i32_eqz();
         } else {
           // typeArgs.length == 0 || typeArgs.length == typeParams.length
           b.local_get(typeArgsLocal);
-          translator.getListLength(b);
+          b.array_len();
           b.local_tee(numArgsLocal);
           b.i32_eqz();
           b.local_get(numArgsLocal);
@@ -673,9 +673,7 @@ void generateDynamicFunctionCall(
   w.Local namedArgsLocal,
   w.Label noSuchMethodBlock,
 ) {
-  final listArgumentType =
-      translator.classInfo[translator.listBaseClass]!.nonNullableType;
-  assert(typeArgsLocal.type == listArgumentType);
+  assert(typeArgsLocal.type == translator.typeArrayTypeRef);
   assert(posArgsLocal.type == translator.nullableObjectArrayTypeRef);
   assert(namedArgsLocal.type == translator.nullableObjectArrayTypeRef);
 
@@ -688,6 +686,20 @@ void generateDynamicFunctionCall(
   b.struct_get(translator.closureLayouter.closureBaseStruct,
       FieldIndex.closureRuntimeType);
   b.local_tee(functionTypeLocal);
+
+  // If no type arguments were supplied but the closure has type parameters, use
+  // the default values.
+  b.local_get(typeArgsLocal);
+  b.array_len();
+  b.i32_eqz();
+  b.if_();
+  b.local_get(functionTypeLocal);
+  b.struct_get(
+      translator.classInfo[translator.functionTypeClass]!.struct,
+      translator
+          .fieldIndex[translator.functionTypeTypeParameterDefaultsField]!);
+  b.local_set(typeArgsLocal);
+  b.end();
 
   // Check closure shape
   b.local_get(typeArgsLocal);
@@ -743,6 +755,8 @@ void createInvocationObject(
       translator.classInfo[translator.symbolClass]!.nonNullableType);
 
   b.local_get(typeArgsLocal);
+  b.call(translator.functions
+      .getFunction(translator.typeArgumentsToList.reference));
   b.local_get(positionalArgsLocal);
   b.call(translator.functions
       .getFunction(translator.positionalParametersToList.reference));

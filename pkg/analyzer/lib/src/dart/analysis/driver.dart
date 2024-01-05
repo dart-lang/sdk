@@ -328,6 +328,11 @@ class AnalysisDriver {
   /// Return the set of files explicitly added to analysis using [addFile].
   Set<String> get addedFiles => _fileTracker.addedFiles;
 
+  /// See [addedFiles].
+  Set<File> get addedFiles2 {
+    return addedFiles.map(resourceProvider.getFile).toSet();
+  }
+
   /// Return the analysis options used to control analysis.
   @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
   AnalysisOptions get analysisOptions => _analysisOptions;
@@ -405,6 +410,11 @@ class AnalysisDriver {
     _priorityFiles.clear();
     _priorityFiles.addAll(priorityPaths);
     _scheduler.notify(this);
+  }
+
+  /// See [priorityFiles].
+  set priorityFiles2(List<File> files) {
+    priorityFiles = files.map((e) => e.path).toList();
   }
 
   /// Return the [ResourceProvider] that is used to access the file system.
@@ -531,6 +541,11 @@ class AnalysisDriver {
     }
   }
 
+  /// See [addFile].
+  void addFile2(File file) {
+    addFile(file.path);
+  }
+
   /// Return a [Future] that completes after pending file changes are applied,
   /// so that [currentSession] can be used to compute results.
   ///
@@ -621,6 +636,11 @@ class AnalysisDriver {
       );
       _scheduler.notify(this);
     }
+  }
+
+  /// See [changeFile].
+  void changeFile2(File file) {
+    changeFile(file.path);
   }
 
   /// Clear the library context and any related data structures. Mostly we do
@@ -1248,6 +1268,11 @@ class AnalysisDriver {
       );
       _scheduler.notify(this);
     }
+  }
+
+  /// See [removeFile].
+  void removeFile2(File file) {
+    removeFile(file.path);
   }
 
   Future<ResolvedForCompletionResultImpl?> resolveForCompletion({

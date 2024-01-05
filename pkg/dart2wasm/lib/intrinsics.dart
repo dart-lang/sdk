@@ -1710,21 +1710,9 @@ class Intrinsifier {
       final posArgsNullableLocal = function.locals[1]; // ref null Object,
       final namedArgsLocal = function.locals[2]; // ref null Object
 
-      final listArgumentType =
-          translator.classInfo[translator.listBaseClass]!.nonNullableType;
-
-      // Create type argument list. It will be initialized as empty and it
-      // needs to be growable as `_checkClosureShape` updates it with default
-      // bounds if the function being invokes has type parameters.
-      final typeArgsLocal = function.addLocal(listArgumentType);
-      translator.makeList(function, (b) {
-        translator.constants.instantiateConstant(
-            function,
-            b,
-            TypeLiteralConstant(
-                InterfaceType(translator.typeClass, Nullability.nonNullable)),
-            translator.types.nonNullableTypeType);
-      }, 0, (elementType, elementIndex) {}, isGrowable: true);
+      // Create empty type arguments array.
+      final typeArgsLocal = function.addLocal(translator.makeArray(function,
+          translator.typeArrayType, 0, (elementType, elementIndex) {}));
       b.local_set(typeArgsLocal);
 
       // Create empty list for positional args if the argument is null
