@@ -21,6 +21,7 @@ void main() {
   testRangeArrayOfPointer();
   testRangeArrayOfArray();
   testRangeArrayOfStruct();
+  testRangeArrayOfAbiSpecificInt();
 }
 
 void testSizeOf() {
@@ -137,4 +138,24 @@ void testRangeArrayOfStruct() {
   Expect.throws(() => array[-1]);
   Expect.throws(() => array[2]);
   calloc.free(pointer);
+}
+
+void testRangeArrayOfAbiSpecificInt() {
+  final pointer = calloc<StructWithArrayOfAbiSpecificInt>();
+  final struct = pointer.ref;
+  final array = struct.a0;
+  array[0] = 1;
+  Expect.equals(1, array[0]);
+  array[7] = 7;
+  Expect.equals(7, array[7]);
+  Expect.throws(() => array[-1]);
+  Expect.throws(() => array[-1] = 0);
+  Expect.throws(() => array[8]);
+  Expect.throws(() => array[8] = 0);
+  calloc.free(pointer);
+}
+
+final class StructWithArrayOfAbiSpecificInt extends Struct {
+  @Array(8)
+  external Array<Size> a0;
 }

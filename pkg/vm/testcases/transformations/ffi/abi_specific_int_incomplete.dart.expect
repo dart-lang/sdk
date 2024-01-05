@@ -111,10 +111,18 @@ static method testInlineArray() → void {
   final ffi::Pointer<self::IncompleteArrayStruct> p = #C51.{ffi::Allocator::allocate}<self::IncompleteArrayStruct>(self::IncompleteArrayStruct::#sizeOf){(core::int, {alignment: core::int?}) → ffi::Pointer<self::IncompleteArrayStruct>};
   final ffi::Array<self::Incomplete> array = new self::IncompleteArrayStruct::#fromTypedDataBase(p!).{self::IncompleteArrayStruct::a0}{ffi::Array<self::Incomplete>};
   for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-    ffi::_storeAbiSpecificIntAtIndex<self::Incomplete>(array.{ffi::Array::_typedDataBase}{core::Object}, i, i);
+    block {
+      synthesized ffi::Array<dynamic> #array = array!;
+      synthesized core::int #index = i!;
+      #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
+    } =>ffi::_storeAbiSpecificIntAtIndex<self::Incomplete>(#array.{ffi::Array::_typedDataBase}{core::Object}, #index, i);
   }
   for (core::int i = 0; i.{core::num::<}(100){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int}) {
-    core::print(ffi::_loadAbiSpecificIntAtIndex<self::Incomplete>(array.{ffi::Array::_typedDataBase}{core::Object}, i));
+    core::print( block {
+      synthesized ffi::Array<dynamic> #array = array!;
+      synthesized core::int #index = i!;
+      #array.{ffi::Array::_checkIndex}(#index){(core::int) → void};
+    } =>ffi::_loadAbiSpecificIntAtIndex<self::Incomplete>(#array.{ffi::Array::_typedDataBase}{core::Object}, #index));
   }
   #C51.{self::_DummyAllocator::free}(p){(ffi::Pointer<ffi::NativeType>) → void};
 }
