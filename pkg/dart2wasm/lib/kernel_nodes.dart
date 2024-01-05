@@ -71,6 +71,8 @@ mixin KernelNodes {
       index.getClass("dart:core", "_AbstractFunctionType");
   late final Class functionTypeClass =
       index.getClass("dart:core", "_FunctionType");
+  late final Field functionTypeTypeParameterDefaultsField =
+      index.getField("dart:core", "_FunctionType", "typeParameterDefaults");
   late final Class functionTypeParameterTypeClass =
       index.getClass("dart:core", "_FunctionTypeParameterType");
   late final Class futureOrTypeClass =
@@ -275,6 +277,8 @@ mixin KernelNodes {
   // dart:core dynamic invocation helper procedures
   late final Procedure getNamedParameterIndex =
       index.getTopLevelProcedure("dart:core", "_getNamedParameterIndex");
+  late final Procedure typeArgumentsToList =
+      index.getTopLevelProcedure("dart:core", "_typeArgumentsToList");
   late final Procedure positionalParametersToList =
       index.getTopLevelProcedure("dart:core", "_positionalParametersToList");
   late final Procedure namedParametersToMap =

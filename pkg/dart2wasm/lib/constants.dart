@@ -58,10 +58,6 @@ class Constants {
 
   w.ModuleBuilder get m => translator.m;
 
-  /// Makes a type list [ListConstant].
-  ListConstant makeTypeList(Iterable<DartType> types) => ListConstant(
-      translator.typeType, types.map((t) => TypeLiteralConstant(t)).toList());
-
   /// Makes a `WasmArray<_Type>` [InstanceConstant].
   InstanceConstant makeTypeArray(Iterable<DartType> types) => makeArrayOf(
       translator.typeType, types.map((t) => TypeLiteralConstant(t)).toList());
@@ -647,7 +643,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       final namedArgsListLocal = function.locals[3];
 
       b.local_get(closureLocal);
-      final ListConstant typeArgs = constants.makeTypeList(constant.types);
+      final InstanceConstant typeArgs = constants.makeTypeArray(constant.types);
       constants.instantiateConstant(
           function, b, typeArgs, typeArgsListLocal.type);
       b.local_get(posArgsListLocal);

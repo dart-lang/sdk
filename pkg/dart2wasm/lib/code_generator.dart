@@ -1896,15 +1896,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         function.addLocal(translator.topInfo.nullableType);
     b.local_set(nullableReceiverLocal);
 
-    // Evaluate type arguments. Type argument list is growable as we may want
-    // to add default bounds when the callee has type parameters but no type
-    // arguments are passed.
-    makeList(InterfaceType(translator.typeClass, Nullability.nonNullable),
-        typeArguments.length, (elementType, elementIdx) {
-      translator.types.makeType(this, typeArguments[elementIdx]);
-    }, isGrowable: true);
+    // Evaluate type arguments.
     final typeArgsLocal = function.addLocal(
-        translator.classInfo[translator.growableListClass]!.nonNullableType);
+        makeArray(translator.typeArrayType, typeArguments.length,
+            (elementType, elementIdx) {
+      translator.types.makeType(this, typeArguments[elementIdx]);
+    }));
     b.local_set(typeArgsLocal);
 
     // Evaluate positional arguments
@@ -3399,7 +3396,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Type argument list is either empty or have the right number of types
       // (checked by the forwarder).
       b.local_get(typeArgsLocal);
-      translator.getListLength(b);
+      b.array_len();
       b.i32_eqz();
       b.if_([], List.generate(memberTypeParams.length, (_) => typeType));
       // No type arguments passed, initialize with defaults
@@ -3411,9 +3408,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
           typeParamIdx < memberTypeParams.length;
           typeParamIdx += 1) {
         b.local_get(typeArgsLocal);
-        translator.indexList(b, (b) => b.i32_const(typeParamIdx));
-        translator.convertType(
-            function, translator.topInfo.nullableType, typeType);
+        b.i32_const(typeParamIdx);
+        b.array_get(translator.typeArrayType);
       }
       b.end();
 

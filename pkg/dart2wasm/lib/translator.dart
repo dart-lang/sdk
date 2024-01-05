@@ -130,6 +130,8 @@ class Translator with KernelNodes {
       .heapType as w.ArrayType;
   late final w.ArrayType nullableObjectArrayType =
       arrayTypeForDartType(coreTypes.objectRawType(Nullability.nullable));
+  late final w.RefType typeArrayTypeRef =
+      w.RefType.def(typeArrayType, nullable: false);
   late final w.RefType nullableObjectArrayTypeRef =
       w.RefType.def(nullableObjectArrayType, nullable: false);
 
@@ -185,7 +187,7 @@ class Translator with KernelNodes {
     w.RefType.def(closureLayouter.closureBaseStruct, nullable: false),
 
     // Type arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    typeArrayTypeRef,
 
     // Positional arguments
     nullableObjectArrayTypeRef,
@@ -203,7 +205,7 @@ class Translator with KernelNodes {
     topInfo.nonNullableType,
 
     // Type arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    typeArrayTypeRef,
 
     // Positional arguments
     nullableObjectArrayTypeRef,
@@ -1202,7 +1204,8 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
     // Push type arguments
     for (int typeIdx = 0; typeIdx < typeCount; typeIdx += 1) {
       b.local_get(typeArgsListLocal);
-      translator.indexList(b, (b) => b.i32_const(typeIdx));
+      b.i32_const(typeIdx);
+      b.array_get(translator.typeArrayType);
       translator.convertType(
           function, translator.topInfo.nullableType, targetInputs[inputIdx]);
       inputIdx += 1;

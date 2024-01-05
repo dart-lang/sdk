@@ -570,24 +570,13 @@ class ClosureLayouter extends RecursiveVisitor {
     b.struct_get(
         instantiationContextStruct, FieldIndex.instantiationContextInner);
 
-    // Push types, as list
-    translator.makeList(
-        function,
-        (b) {
-          translator.constants.instantiateConstant(
-              function,
-              b,
-              TypeLiteralConstant(
-                  InterfaceType(translator.typeClass, Nullability.nonNullable)),
-              translator.types.nonNullableTypeType);
-        },
-        typeCount,
+    // Push types
+    translator.makeArray(function, translator.typeArrayType, typeCount,
         (elementType, elementIdx) {
-          b.local_get(instantiationContextLocal);
-          b.struct_get(instantiationContextStruct,
-              FieldIndex.instantiationContextTypeArgumentsBase + elementIdx);
-        },
-        isGrowable: true);
+      b.local_get(instantiationContextLocal);
+      b.struct_get(instantiationContextStruct,
+          FieldIndex.instantiationContextTypeArgumentsBase + elementIdx);
+    });
 
     b.local_get(posArgsListLocal);
     b.local_get(namedArgsListLocal);
