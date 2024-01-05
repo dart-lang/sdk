@@ -97,6 +97,11 @@ js/type_parameter_lowering_test: SkipByDesign # Issue 42085. CSP policy disallow
 [ $simulator ]
 convert/utf85_test: Skip # Pass, Slow Issue 20111.
 
+[ $compiler == dart2js && $runtime == d8 ]
+js/js_util/async_test: Skip # Issue 54520
+js/js_util/promise_reject_null_test: Skip # Issue 54520
+js/static_interop_test/js_types_test: Skip # Issue 54520
+
 [ $compiler != dart2js && $compiler != dart2wasm && $compiler != ddc ]
 js_interop_unsafe/*: SkipByDesign # Only supported on web backends.
 
