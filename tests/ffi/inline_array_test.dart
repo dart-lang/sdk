@@ -19,6 +19,8 @@ void main() {
   testToString();
   testRange();
   testRangeArrayOfPointer();
+  testRangeArrayOfArray();
+  testRangeArrayOfStruct();
 }
 
 void testSizeOf() {
@@ -108,4 +110,31 @@ void testRangeArrayOfPointer() {
 final class StructWithArrayOfPointer extends Struct {
   @Array(8)
   external Array<Pointer<Uint8>> a0;
+}
+
+void testRangeArrayOfArray() {
+  final pointer = calloc<StructWithArrayArray>();
+  final struct = pointer.ref;
+  final array = struct.a0;
+  array[0] = array[1];
+  Expect.throws(() => array[-1]);
+  Expect.throws(() => array[-1] = array[1]);
+  Expect.throws(() => array[2]);
+  Expect.throws(() => array[2] = array[1]);
+  calloc.free(pointer);
+}
+
+final class StructWithArrayArray extends Struct {
+  @Array(2, 2)
+  external Array<Array<Uint8>> a0;
+}
+
+void testRangeArrayOfStruct() {
+  final pointer = calloc<Struct4BytesInlineArrayMultiDimensionalInt>();
+  final struct = pointer.ref;
+  final array = struct.a0[0];
+  print(array[0]);
+  Expect.throws(() => array[-1]);
+  Expect.throws(() => array[2]);
+  calloc.free(pointer);
 }

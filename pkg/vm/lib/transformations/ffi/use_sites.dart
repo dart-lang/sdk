@@ -938,14 +938,43 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final constructor = clazz.constructors
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
 
-    final typedDataBasePrime = typedDataBaseOffset(
-        getArrayTypedDataBaseField(NullCheck(node.arguments.positional[0])),
-        multiply(node.arguments.positional[1], inlineSizeOf(dartType)!),
-        inlineSizeOf(dartType)!,
-        dartType,
-        node.fileOffset);
+    final arrayVar = VariableDeclaration("#array",
+        initializer: NullCheck(node.arguments.positional[0]),
+        type: InterfaceType(arrayClass, Nullability.nonNullable),
+        isSynthesized: true)
+      ..fileOffset = node.fileOffset;
+    final indexVar = VariableDeclaration("#index",
+        initializer: NullCheck(node.arguments.positional[1]),
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
+      ..fileOffset = node.fileOffset;
 
-    return ConstructorInvocation(constructor, Arguments([typedDataBasePrime]));
+    return BlockExpression(
+      Block([
+        arrayVar,
+        indexVar,
+        ExpressionStatement(InstanceInvocation(
+          InstanceAccessKind.Instance,
+          VariableGet(arrayVar),
+          arrayCheckIndex.name,
+          Arguments([VariableGet(indexVar)]),
+          interfaceTarget: arrayCheckIndex,
+          functionType: arrayCheckIndex.getterType as FunctionType,
+        )),
+      ]),
+      ConstructorInvocation(
+        constructor,
+        Arguments([
+          typedDataBaseOffset(
+            getArrayTypedDataBaseField(VariableGet(arrayVar)),
+            multiply(VariableGet(indexVar), inlineSizeOf(dartType)!),
+            inlineSizeOf(dartType)!,
+            dartType,
+            node.fileOffset,
+          )
+        ]),
+      ),
+    );
   }
 
   /// Generates an expression that returns a new `Array<dartType>`.
@@ -1031,12 +1060,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       arrayVar,
       indexVar,
       ExpressionStatement(InstanceInvocation(
-          InstanceAccessKind.Instance,
-          VariableGet(arrayVar),
-          arrayCheckIndex.name,
-          Arguments([VariableGet(indexVar)]),
-          interfaceTarget: arrayCheckIndex,
-          functionType: arrayCheckIndex.getterType as FunctionType)),
+        InstanceAccessKind.Instance,
+        VariableGet(arrayVar),
+        arrayCheckIndex.name,
+        Arguments([VariableGet(indexVar)]),
+        interfaceTarget: arrayCheckIndex,
+        functionType: arrayCheckIndex.getterType as FunctionType,
+      )),
       singleElementSizeVar,
       elementSizeVar,
       offsetVar
