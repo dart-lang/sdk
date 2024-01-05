@@ -1,3 +1,11 @@
+## 3.2.5
+
+This is a patch release that:
+
+- Fixes a Dart2js issue with values updated in a loop. (issue [#54494][])
+
+[#54494]: https://github.com/dart-lang/sdk/issues/54494
+
 ## 3.2.4 - 2023-12-21
 
 This is a patch release that:
