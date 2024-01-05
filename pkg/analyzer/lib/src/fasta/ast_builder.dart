@@ -5663,10 +5663,11 @@ class AstBuilder extends StackListener {
 
     if (modifiers?.externalKeyword != null) {
       for (final formalParameter in parameters.parameters) {
-        if (formalParameter is FieldFormalParameterImpl) {
+        final notDefault = formalParameter.notDefault;
+        if (notDefault is FieldFormalParameterImpl) {
           errorReporter.errorReporter?.reportErrorForToken(
             ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_FIELD_INITIALIZERS,
-            formalParameter.thisKeyword,
+            notDefault.thisKeyword,
           );
         }
       }
