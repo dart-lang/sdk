@@ -329,14 +329,7 @@ class Intrinsifier {
         return codeGen.wrap(element, typeOfExp(element));
       }
 
-      // Access the underlying array directly.
-      ClassInfo info = translator.classInfo[translator.listBaseClass]!;
-      codeGen.wrap(receiver, info.nonNullableType);
-      b.struct_get(info.struct, FieldIndex.listArray);
-      codeGen.wrap(arg, w.NumType.i64);
-      b.i32_wrap_i64();
-      b.array_get(translator.listArrayType);
-      return translator.topInfo.nullableType;
+      return null;
     }
 
     if (node.arguments.positional.length == 1) {
