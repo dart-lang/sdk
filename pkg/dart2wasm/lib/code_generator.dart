@@ -1778,7 +1778,42 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         _lookupSuperTarget(node.interfaceTarget, setter: false).reference;
     w.FunctionType targetFunctionType =
         translator.functions.getFunctionType(target);
-    w.ValueType receiverType = targetFunctionType.inputs.first;
+    w.ValueType receiverType = targetFunctionType.inputs[0];
+
+    // When calling `==` and the argument is potentially nullable, check if the
+    // argument is `null`.
+    if (node.name.text == '==') {
+      assert(node.arguments.positional.length == 1);
+      assert(node.arguments.named.isEmpty);
+      final argument = node.arguments.positional[0];
+      if (dartTypeOf(argument).isPotentiallyNullable) {
+        w.Label resultBlock = b.block(const [], const [w.NumType.i32]);
+
+        w.ValueType argumentType = targetFunctionType.inputs[1];
+        // `==` arguments are non-nullable.
+        assert(argumentType.nullable == false);
+
+        final argumentNullBlock = b.block(const [], const []);
+
+        visitThis(receiverType);
+        wrap(argument, argumentType.withNullability(true));
+        b.br_on_null(argumentNullBlock);
+
+        final resultType = translator.outputOrVoid(call(target));
+        // `super ==` should return bool.
+        assert(resultType == w.NumType.i32);
+        b.br(resultBlock);
+
+        b.end(); // argumentNullBlock
+
+        b.i32_const(0); // false
+        b.br(resultBlock);
+
+        b.end(); // resultBlock
+        return w.NumType.i32;
+      }
+    }
+
     visitThis(receiverType);
     _visitArguments(node.arguments, target, 1);
     return translator.outputOrVoid(call(target));
