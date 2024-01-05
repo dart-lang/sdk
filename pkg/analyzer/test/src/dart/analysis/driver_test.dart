@@ -118,10 +118,118 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     registerLintRules();
   }
 
+  test_addedFiles() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final b = newFile('$testPackageLibPath/b.dart', '');
+
+    final driver = driverFor(testFile);
+
+    driver.addFile(a.path);
+    driver.addFile(b.path);
+    await driver.applyPendingFileChanges();
+    expect(driver.addedFiles, unorderedEquals([a.path, b.path]));
+
+    driver.removeFile(a.path);
+    await driver.applyPendingFileChanges();
+    expect(driver.addedFiles, unorderedEquals([b.path]));
+  }
+
+  test_addFile() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final b = newFile('$testPackageLibPath/b.dart', '');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile(b.path);
+    driver.addFile(a.path);
+
+    // The results are reported in the order of adding.
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[status] analyzing
+[stream]
+  ErrorsResult #0
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isLibrary
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[status] idle
+''');
+  }
+
+  test_addFile_afterRemove() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}''');
+
+    final b = newFile('$testPackageLibPath/b.dart', r'''
+import 'a.dart';
+''');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+    driver.addFile(a.path);
+    driver.addFile(b.path);
+
+    // Initial analysis, `b` does not use `a`, so there is a hint.
+    await pumpEventQueue();
+    assertDriverEventsText(collector.take(), r'''
+[status] analyzing
+[stream]
+  ErrorsResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[stream]
+  ErrorsResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isLibrary
+    errors
+      7 +8 UNUSED_IMPORT
+[status] idle
+''');
+
+    // Update `b` to use `a`, no more hints.
+    newFile(b.path, r'''
+import 'a.dart';
+void f() {
+  A;
+}
+''');
+
+    // Remove and add `b`.
+    driver.removeFile(b.path);
+    driver.addFile(b.path);
+
+    // `b` was analyzed, no more hints.
+    await pumpEventQueue();
+    assertDriverEventsText(collector.take(), r'''
+[status] analyzing
+[stream]
+  ErrorsResult #0
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isLibrary
+[status] idle
+''');
+  }
+
+  test_addFile_notAbsolutePath() async {
+    final driver = driverFor(testFile);
+    expect(() {
+      driver.addFile('not_absolute.dart');
+    }, throwsArgumentError);
+  }
+
   test_addFile_priorityFiles() async {
-    final a = newFile('$testPackageLibPath/a.dart', 'class A {}');
-    final b = newFile('$testPackageLibPath/b.dart', 'class B {}');
-    final c = newFile('$testPackageLibPath/c.dart', 'class C {}');
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final b = newFile('$testPackageLibPath/b.dart', '');
+    final c = newFile('$testPackageLibPath/c.dart', '');
 
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
@@ -131,12 +239,12 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     driver.addFile(c.path);
     driver.priorityFiles = [b.path];
 
-    await pumpEventQueue();
-
     // 1. The priority file is produced first.
     // 2. We get full `ResolvedUnitResult`.
     // 3. For other files we get only `ErrorsResult`.
+    await pumpEventQueue();
     assertDriverEventsText(collector.events, r'''
+[status] analyzing
 [stream]
   ResolvedUnitResult #0
     path: /home/test/lib/b.dart
@@ -152,6 +260,81 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     path: /home/test/lib/c.dart
     uri: package:test/c.dart
     flags: isLibrary
+[status] idle
+''');
+  }
+
+  test_addFile_thenRemove() async {
+    final a = newFile('$testPackageLibPath/a.dart', '').path;
+    final b = newFile('$testPackageLibPath/b.dart', '').path;
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile(a);
+    driver.addFile(b);
+
+    // Now remove `a`.
+    driver.removeFile(a);
+
+    // We remove `a` before analysis started.
+    // So, only `b` was analyzed.
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[status] analyzing
+[stream]
+  ErrorsResult #0
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: isLibrary
+[status] idle
+''');
+  }
+
+  test_cachedPriorityResults() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+
+    final driver = driverFor(testFile);
+
+    final collector = DriverEventCollector(driver);
+    final idProvider = IdProvider();
+
+    driver.priorityFiles = [a.path];
+
+    collector.getResolvedUnit('A1', a);
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.take(), idProvider: idProvider, r'''
+[status] analyzing
+[future] getResolvedUnit
+  name: A1
+  ResolvedUnitResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #0
+[status] idle
+''');
+
+    // Get the (cached) result, not reported to the stream.
+    collector.getResolvedUnit('A2', a);
+    await pumpEventQueue();
+    assertDriverEventsText(collector.take(), idProvider: idProvider, r'''
+[future] getResolvedUnit
+  name: A2
+  ResolvedUnitResult #0
+''');
+
+    // Get the (cached) result, reported to the stream.
+    collector.getResolvedUnit('A3', a, sendCachedToStream: true);
+    await pumpEventQueue();
+    assertDriverEventsText(collector.take(), idProvider: idProvider, r'''
+[stream]
+  ResolvedUnitResult #0
+[future] getResolvedUnit
+  name: A3
+  ResolvedUnitResult #0
 ''');
   }
 
@@ -324,6 +507,7 @@ part of 'a.dart';
     assertDriverEventsText(collector.events, configure: (configuration) {
       configuration.withOperations = true;
     }, r'''
+[status] analyzing
 [operation] computeAnalysisResult
   file: /home/test/lib/a.dart
   library: /home/test/lib/a.dart
@@ -346,6 +530,7 @@ part of 'a.dart';
     flags: exists isPart
 [stream]
   ResolvedUnitResult #1
+[status] idle
 [operation] computeResolvedLibrary
   library: /home/test/lib/a.dart
 [future] getResolvedLibraryByUri
@@ -470,6 +655,36 @@ part 'a.dart';
 ''', [
       error(CompileTimeErrorCode.PART_OF_DIFFERENT_LIBRARY, 21, 8),
     ]);
+  }
+
+  test_schedulerStatus_hasAddedFile() async {
+    final a = newFile('$testPackageLibPath/a.dart', '');
+
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    driver.addFile(a.path);
+
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+[status] analyzing
+[stream]
+  ErrorsResult #0
+    path: /home/test/lib/a.dart
+    uri: package:test/a.dart
+    flags: isLibrary
+[status] idle
+''');
+  }
+
+  test_schedulerStatus_noAddedFile() async {
+    final driver = driverFor(testFile);
+    final collector = DriverEventCollector(driver);
+
+    // No files, so no status changes.
+    await pumpEventQueue();
+    assertDriverEventsText(collector.events, r'''
+''');
   }
 }
 
@@ -776,89 +991,6 @@ class AnalysisDriverTest extends BaseAnalysisDriverTest {
     expect(typeStr, expected);
   }
 
-  test_addedFiles() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-
-    driver.addFile(a);
-    await driver.applyPendingFileChanges();
-    expect(driver.addedFiles, contains(a));
-    expect(driver.addedFiles, isNot(contains(b)));
-
-    driver.removeFile(a);
-    await driver.applyPendingFileChanges();
-    expect(driver.addedFiles, isNot(contains(a)));
-    expect(driver.addedFiles, isNot(contains(b)));
-  }
-
-  test_addFile_notAbsolutePath() async {
-    expect(() {
-      driver.addFile('not_absolute.dart');
-    }, throwsArgumentError);
-  }
-
-  test_addFile_shouldRefresh() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-
-    newFile(a, 'class A {}');
-    newFile(b, r'''
-import 'a.dart';
-''');
-
-    driver.addFile(a);
-    driver.addFile(b);
-
-    void assertNumberOfErrorsInB(int n) {
-      var bResult = allResults.withPath(b);
-      expect(bResult.errors, hasLength(n));
-      allResults.clear();
-    }
-
-    // Initial analysis, 'b' does not use 'a', so there is a hint.
-    await waitForIdleWithoutExceptions();
-    assertNumberOfErrorsInB(1);
-
-    // Update 'b' to use 'a', no more hints.
-    newFile(b, r'''
-import 'a.dart';
-main() {
-  print(A);
-}
-''');
-    driver.changeFile(b);
-    await waitForIdleWithoutExceptions();
-    assertNumberOfErrorsInB(0);
-
-    // Change 'b' content so that it has a hint.
-    // Remove 'b' and add it again.
-    // The file 'b' must be refreshed, and the hint must be reported.
-    newFile(b, r'''
-import 'a.dart';
-''');
-    driver.removeFile(b);
-    driver.addFile(b);
-    await waitForIdleWithoutExceptions();
-    assertNumberOfErrorsInB(1);
-  }
-
-  test_addFile_thenRemove() async {
-    var a = convertPath('/test/lib/a.dart');
-    var b = convertPath('/test/lib/b.dart');
-    newFile(a, 'class A {}');
-    newFile(b, 'class B {}');
-    driver.addFile(a);
-    driver.addFile(b);
-
-    // Now remove 'a'.
-    driver.removeFile(a);
-
-    await waitForIdleWithoutExceptions();
-
-    // Only 'b' has been analyzed, because 'a' was removed before we started.
-    expect(allResults.pathList, [b]);
-  }
-
   test_analyze_resolveDirectives_error_missingLibraryDirective() async {
     var lib = convertPath('/test/lib.dart');
     var part = convertPath('/test/part.dart');
@@ -932,35 +1064,6 @@ part 'part.dart';
     List<AnalysisError> errors = libResult.errors;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode, CompileTimeErrorCode.PART_OF_NON_PART);
-  }
-
-  test_cachedPriorityResults() async {
-    var a = convertPath('/test/bin/a.dart');
-    newFile(a, 'var a = 1;');
-
-    driver.priorityFiles = [a];
-
-    ResolvedUnitResult result1 = await driver.getResolvedUnitValid(a);
-    expect(driver.testView!.priorityResults, containsPair(a, result1));
-
-    await waitForIdleWithoutExceptions();
-    allResults.clear();
-
-    // Get the (cached) result, not reported to the stream.
-    {
-      ResolvedUnitResult result2 = await driver.getResolvedUnitValid(a);
-      expect(result2, same(result1));
-      expect(allResults, isEmpty);
-    }
-
-    // Get the (cached) result, reported to the stream.
-    {
-      var result2 = await driver.getResolvedUnit(a, sendCachedToStream: true);
-      expect(result2, same(result1));
-
-      expect(allResults, hasLength(1));
-      expect(allResults.single, same(result1));
-    }
   }
 
   test_cachedPriorityResults_flush_onAnyFileChange() async {
@@ -3766,37 +3869,6 @@ class F extends X {}
     expect(analyzedPaths[3], e);
   }
 
-  test_results_priority() async {
-    String content = 'int f() => 42;';
-    addTestFile(content, priority: true);
-
-    await waitForIdleWithoutExceptions();
-
-    expect(allResults, hasLength(2));
-    var result = allResults.whereType<ResolvedUnitResult>().single;
-    expect(result.path, testFile);
-    expect(result.uri.toString(), 'package:test/test.dart');
-    expect(result.content, content);
-    expect(result.unit, isNotNull);
-    expect(result.errors, hasLength(0));
-
-    var f = result.unit.declarations[0] as FunctionDeclaration;
-    assertType(f.declaredElement!.type, 'int Function()');
-    assertType(f.returnType!.typeOrThrow, 'int');
-  }
-
-  test_results_regular() async {
-    String content = 'int f() => 42;';
-    addTestFile(content);
-    await waitForIdleWithoutExceptions();
-
-    expect(allResults, hasLength(2));
-    var result = allResults.whereType<ErrorsResult>().single;
-    expect(result.path, testFile);
-    expect(result.uri.toString(), 'package:test/test.dart');
-    expect(result.errors, hasLength(0));
-  }
-
   test_results_removeFile_changeFile() async {
     var a = convertPath('/test/lib/a.dart');
     var b = convertPath('/test/lib/b.dart');
@@ -3839,17 +3911,6 @@ var v = 0
     // Only result for a.dart should be produced, b.dart is not affected.
     await waitForIdleWithoutExceptions();
     expect(allResults, hasLength(2));
-  }
-
-  test_results_status() async {
-    addTestFile('int f() => 42;');
-    await waitForIdleWithoutExceptions();
-
-    expect(allStatuses, hasLength(2));
-    expect(allStatuses[0].isAnalyzing, isTrue);
-    expect(allStatuses[0].isIdle, isFalse);
-    expect(allStatuses[1].isAnalyzing, isFalse);
-    expect(allStatuses[1].isIdle, isTrue);
   }
 
   test_waitForIdle() async {
@@ -3975,9 +4036,15 @@ var v = 0
 /// absence of duplicate events, etc.
 class DriverEventCollector {
   final AnalysisDriver driver;
-  final List<DriverEvent> events = [];
+  List<DriverEvent> events = [];
 
   DriverEventCollector(this.driver) {
+    driver.scheduler.status.listen((status) {
+      events.add(
+        SchedulerStatusEvent(status),
+      );
+    });
+
     driver.results.listen((object) {
       events.add(
         ResultStreamEvent(
@@ -4023,8 +4090,16 @@ class DriverEventCollector {
     }));
   }
 
-  void getResolvedUnit(String name, File file) {
-    final future = driver.getResolvedUnit(file.path);
+  void getResolvedUnit(
+    String name,
+    File file, {
+    bool sendCachedToStream = false,
+  }) {
+    final future = driver.getResolvedUnit(
+      file.path,
+      sendCachedToStream: sendCachedToStream,
+    );
+
     unawaited(future.then((value) {
       events.add(
         GetResolvedUnitEvent(
@@ -4033,6 +4108,20 @@ class DriverEventCollector {
         ),
       );
     }));
+  }
+
+  List<DriverEvent> take() {
+    final result = events;
+    events = [];
+    return result;
+  }
+
+  List<DriverEvent> take2() {
+    try {
+      return events;
+    } finally {
+      events = [];
+    }
   }
 }
 

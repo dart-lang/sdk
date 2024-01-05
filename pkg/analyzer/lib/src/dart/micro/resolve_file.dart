@@ -559,6 +559,7 @@ class FileResolver {
   }
 
   // TODO(pq): remove after cider extensions are updated.
+  @Deprecated("Use 'resolve' instead.")
   Future<ResolvedUnitResult> resolve2({
     required String path,
     OperationPerformanceImpl? performance,
