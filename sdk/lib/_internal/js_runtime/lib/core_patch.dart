@@ -822,11 +822,16 @@ class _Uri {
   @patch
   static bool get _isWindows => _isWindowsCached;
 
-  static final bool _isWindowsCached = JS(
-      'bool',
-      'typeof process != "undefined" && '
-          'Object.prototype.toString.call(process) == "[object process]" && '
-          'process.platform == "win32"');
+  // Consider the possibility of using Windows behavior if app is
+  // compiled with `--server-mode` and running on Node or a similar platform.
+  static final bool _isWindowsCached =
+      !const bool.fromEnvironment('dart.library.html') &&
+          JS<bool>(
+            'bool',
+            'typeof process != "undefined" && '
+                'Object.prototype.toString.call(process) == "[object process]" && '
+                'process.platform == "win32"',
+          );
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that

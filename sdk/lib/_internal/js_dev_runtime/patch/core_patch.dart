@@ -884,14 +884,9 @@ class Uri {
 
 @patch
 class _Uri {
+  // DDC is only used when targeting the browser, so this is always false.
   @patch
-  static bool get _isWindows => _isWindowsCached;
-
-  static final bool _isWindowsCached = JS(
-      'bool',
-      'typeof process != "undefined" && '
-          'Object.prototype.toString.call(process) == "[object process]" && '
-          'process.platform == "win32"');
+  static bool get _isWindows => false;
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to [_unreservedTable], i.e. characters that
