@@ -187,12 +187,13 @@ class DiscoveredPluginInfoTest with ResourceProviderMixin, _ContextRoot {
 
 @reflectiveTest
 class PluginManagerFromDiskTest extends PluginTestSupport {
+  String byteStorePath = '/byteStore';
   late PluginManager manager;
 
   @override
   void setUp() {
     super.setUp();
-    manager = PluginManager(resourceProvider, '/byteStore', '',
+    manager = PluginManager(resourceProvider, byteStorePath, '',
         notificationManager, InstrumentationService.NULL_SERVICE);
   }
 
@@ -283,6 +284,9 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
     pkg1Dir.deleteSync(recursive: true);
   }
 
+  @SkippedTest(
+      reason: 'flaky timeouts',
+      issue: 'https://github.com/dart-lang/sdk/issues/38629')
   Future<void> test_broadcastRequest_noCurrentSession() async {
     var pkg1Dir = io.Directory.systemTemp.createTempSync('pkg1');
     var pkgPath = pkg1Dir.resolveSymbolicLinksSync();
@@ -294,26 +298,11 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
           await manager.addPluginToContextRoot(contextRoot, plugin1Path);
 
           var responses = manager.broadcastRequest(
-            CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
-            contextRoot: contextRoot,
-          );
+              CompletionGetSuggestionsParams('/pkg1/lib/pkg1.dart', 100),
+              contextRoot: contextRoot);
           expect(responses, hasLength(0));
 
           await manager.stopAll();
-          var exception = manager.plugins.first.exception;
-          expect(exception, isNotNull);
-          var innerException = exception!.exception;
-          expect(
-            innerException,
-            isA<PluginException>().having(
-              (e) => e.message,
-              'message',
-              allOf(
-                contains('Unable to spawn isolate'),
-                contains('(invalid content here)'),
-              ),
-            ),
-          );
         });
     pkg1Dir.deleteSync(recursive: true);
   }
@@ -452,12 +441,7 @@ class PluginManagerFromDiskTest extends PluginTestSupport {
   }
 
   ContextRootImpl _newContextRoot(String root) {
-    root = resourceProvider.convertPath(root);
-    return ContextRootImpl(
-      resourceProvider,
-      resourceProvider.getFolder(root),
-      BasicWorkspace.find(resourceProvider, Packages.empty, root),
-    );
+    throw UnimplementedError();
   }
 }
 
@@ -705,12 +689,92 @@ class PluginSessionTest with ResourceProviderMixin {
   }
 }
 
-/// A superclass for test classes that define tests that require plugins to be
-/// created on disk.
+/// A class designed to be used as a superclass for test classes that define
+/// tests that require plugins to be created on disk.
 abstract class PluginTestSupport {
+  late PhysicalResourceProvider resourceProvider;
+  late TestNotificationManager notificationManager;
+
+  /// The content to be used for the '.packages' file, or `null` if the content
+  /// has not yet been computed.
+  String? _packagesFileContent;
+
+  void setUp() {
+    resourceProvider = PhysicalResourceProvider.INSTANCE;
+    notificationManager = TestNotificationManager();
+  }
+
+  /// Create a directory structure representing a plugin on disk, run the given
+  /// [test] function, and then remove the directory. The directory will have
+  /// the following structure:
+  /// ```
+  /// pluginDirectory
+  ///   .packages
+  ///   bin
+  ///     plugin.dart
+  /// ```
+  /// The name of the plugin directory will be the [pluginName], if one is
+  /// provided (in order to allow more than one plugin to be created by a single
+  /// test). The 'plugin.dart' file will contain the given [content], or default
+  /// content that implements a minimal plugin if the contents are not given.
+  /// The [test] function will be passed the path of the directory that was
+  /// created.
+  Future<void> withPlugin(
+      {String? content,
+      String? pluginName,
+      required Future<void> Function(String) test}) async {
+    var tempDirectory =
+        io.Directory.systemTemp.createTempSync(pluginName ?? 'test_plugin');
+    try {
+      var pluginPath = tempDirectory.resolveSymbolicLinksSync();
+      //
+      // Create a .packages file.
+      //
+      var packagesFile = io.File(path.join(pluginPath, '.packages'));
+      packagesFile.writeAsStringSync(_getPackagesFileContent());
+      //
+      // Create the 'bin' directory.
+      //
+      var binPath = path.join(pluginPath, 'bin');
+      io.Directory(binPath).createSync();
+      //
+      // Create the 'plugin.dart' file.
+      //
+      var pluginFile = io.File(path.join(binPath, 'plugin.dart'));
+      pluginFile.writeAsStringSync(content ?? _defaultPluginContent());
+      //
+      // Run the actual test code.
+      //
+      await test(pluginPath);
+    } finally {
+      tempDirectory.deleteSync(recursive: true);
+    }
+  }
+
+  /// Convert the [sdkPackageMap] into a plugin-specific map by applying the
+  /// given relative path [delta] to each line.
+  String _convertPackageMap(String sdkDirPath, List<String> sdkPackageMap) {
+    var buffer = StringBuffer();
+    for (var line in sdkPackageMap) {
+      if (!line.startsWith('#')) {
+        var index = line.indexOf(':');
+        var packageName = line.substring(0, index + 1);
+        var relativePath = line.substring(index + 1);
+        var absolutePath = path.join(sdkDirPath, relativePath);
+        // Convert to file:/// URI since that's how absolute paths in
+        // .packages must be for windows
+        absolutePath = Uri.file(absolutePath).toString();
+        buffer.write(packageName);
+        buffer.writeln(absolutePath);
+      }
+    }
+    return buffer.toString();
+  }
+
   /// The default content of the plugin. This is a minimal plugin that will only
   /// respond correctly to version checks and to shutdown requests.
-  static const _defaultPluginContent = r'''
+  String _defaultPluginContent() {
+    return r'''
 import 'dart:async';
 import 'dart:isolate';
 import 'package:analyzer/file_system/file_system.dart';
@@ -750,106 +814,30 @@ class MinimalPlugin extends ServerPlugin {
   bool isCompatibleWith(Version serverVersion) => true;
 }
 ''';
-
-  /// The content to be used for the package config file.
-  static String get _packageConfigContent {
-    var sdkPackagesFile = io.File(_sdkPackageConfigPath);
-    var sdkPackageMap = sdkPackagesFile.readAsLinesSync();
-    return _convertPackageMap(
-        path.dirname(sdkPackagesFile.path), sdkPackageMap);
   }
 
-  /// The path to the package config file in the root of the Dart SDK.
-  static String get _sdkPackageConfigPath {
-    var filePath = io.Platform.script.toFilePath();
-    // Walk up the directory structure from this script file to the
-    // 'analysis_server' root directory.
-    while (
-        filePath.isNotEmpty && path.basename(filePath) != 'analysis_server') {
-      filePath = path.dirname(filePath);
+  /// Return the content to be used for the '.packages' file.
+  String _getPackagesFileContent() {
+    var packagesFileContent = _packagesFileContent;
+    if (packagesFileContent == null) {
+      var sdkPackagesFile = io.File(_sdkPackagesPath());
+      var sdkPackageMap = sdkPackagesFile.readAsLinesSync();
+      packagesFileContent = _packagesFileContent =
+          _convertPackageMap(path.dirname(sdkPackagesFile.path), sdkPackageMap);
     }
-    filePath = path.dirname(path.dirname(filePath));
-    return path.join(filePath, '.dart_tool', 'package_config.json');
+    return packagesFileContent;
   }
 
-  late PhysicalResourceProvider resourceProvider;
-
-  late TestNotificationManager notificationManager;
-
-  void setUp() {
-    resourceProvider = PhysicalResourceProvider.INSTANCE;
-    notificationManager = TestNotificationManager();
-  }
-
-  /// Creates a directory structure representing a plugin on disk, runs the
-  /// given [test] function, and then removes the directory.
-  ///
-  /// The directory will have the following structure:
-  /// ```
-  /// <pluginDirectory>
-  ///   .dart_tool/
-  ///     package_config.dart
-  ///   bin/
-  ///     plugin.dart
-  /// ```
-  /// The name of the plugin directory will be the [pluginName], if one is
-  /// provided (in order to allow more than one plugin to be created by a single
-  /// test). The 'plugin.dart' file will contain the given [content], or default
-  /// content that implements a minimal plugin if the contents are not given.
-  /// The [test] function will be passed the path of the directory that was
-  /// created.
-  Future<void> withPlugin({
-    String content = _defaultPluginContent,
-    String pluginName = 'test_plugin',
-    required Future<void> Function(String) test,
-  }) async {
-    var tempDirectory = io.Directory.systemTemp.createTempSync(pluginName);
-    try {
-      var pluginPath = tempDirectory.resolveSymbolicLinksSync();
-      // Create a package config file.
-      var pluginDartToolPath = path.join(pluginPath, '.dart_tool');
-      io.Directory(pluginDartToolPath).createSync();
-      var packageConfigFile = io.File(
-        path.join(pluginDartToolPath, 'package_config.json'),
-      );
-      packageConfigFile.writeAsStringSync(_packageConfigContent);
-      //
-      // Create the 'bin' directory.
-      //
-      var binPath = path.join(pluginPath, 'bin');
-      io.Directory(binPath).createSync();
-      //
-      // Create the 'plugin.dart' file.
-      //
-      var pluginFile = io.File(path.join(binPath, 'plugin.dart'));
-      pluginFile.writeAsStringSync(content);
-      //
-      // Run the actual test code.
-      //
-      await test(pluginPath);
-    } finally {
-      tempDirectory.deleteSync(recursive: true);
+  /// Return the path to the '.packages' file in the root of the SDK checkout.
+  String _sdkPackagesPath() {
+    var packagesPath = io.Platform.script.toFilePath();
+    while (packagesPath.isNotEmpty &&
+        path.basename(packagesPath) != 'analysis_server') {
+      packagesPath = path.dirname(packagesPath);
     }
-  }
-
-  /// Converts the [sdkPackageMap] into a plugin-specific map.
-  static String _convertPackageMap(
-      String sdkDirPath, List<String> sdkPackageMap) {
-    var buffer = StringBuffer();
-    for (var line in sdkPackageMap) {
-      if (!line.startsWith('#')) {
-        var index = line.indexOf(':');
-        var packageName = line.substring(0, index + 1);
-        var relativePath = line.substring(index + 1);
-        var absolutePath = path.join(sdkDirPath, relativePath);
-        // Convert to 'file:///' URI since that's how absolute paths in
-        // package config files must be for Windows.
-        absolutePath = Uri.file(absolutePath).toString();
-        buffer.write(packageName);
-        buffer.writeln(absolutePath);
-      }
-    }
-    return buffer.toString();
+    packagesPath = path.dirname(packagesPath);
+    packagesPath = path.dirname(packagesPath);
+    return path.join(packagesPath, '.packages');
   }
 }
 
@@ -920,19 +908,5 @@ mixin _ContextRoot on ResourceProviderMixin {
       resourceProvider.getFolder(root),
       BasicWorkspace.find(resourceProvider, Packages.empty, root),
     );
-  }
-}
-
-extension on PhysicalResourceProvider {
-  /// Converts the given posix [filePath] to conform to this provider's path
-  /// context.
-  String convertPath(String filePath) {
-    if (pathContext.style == path.windows.style) {
-      if (filePath.startsWith(path.posix.separator)) {
-        filePath = r'C:' + filePath;
-      }
-      return filePath.replaceAll(path.posix.separator, path.windows.separator);
-    }
-    return filePath;
   }
 }

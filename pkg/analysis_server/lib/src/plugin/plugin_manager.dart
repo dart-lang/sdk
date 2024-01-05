@@ -196,9 +196,7 @@ abstract class PluginInfo {
   }
 
   void reportException(CaughtException exception) {
-    // If a previous exception has been reported, do not replace it here; the
-    //first should have more "root cause" information.
-    _exception ??= exception;
+    _exception = exception;
     instrumentationService.logPluginException(
         data, exception.exception, exception.stackTrace);
   }
@@ -974,7 +972,7 @@ class PluginSession {
         onDone: handleOnDone, onError: handleOnError) as dynamic);
     if (channel == null) {
       // If there is an error when starting the isolate, the channel will invoke
-      // `handleOnDone`, which will cause `channel` to be set to `null`.
+      // handleOnDone, which will cause `channel` to be set to `null`.
       info.reportException(CaughtException(
           PluginException('Unrecorded error while starting the plugin.'),
           StackTrace.current));
