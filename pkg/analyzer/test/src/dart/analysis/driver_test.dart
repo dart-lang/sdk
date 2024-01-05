@@ -150,14 +150,14 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
 
     final driver = driverFor(testFile);
 
-    driver.addFile(a.path);
-    driver.addFile(b.path);
+    driver.addFile2(a);
+    driver.addFile2(b);
     await driver.applyPendingFileChanges();
-    expect(driver.addedFiles, unorderedEquals([a.path, b.path]));
+    expect(driver.addedFiles2, unorderedEquals([a, b]));
 
-    driver.removeFile(a.path);
+    driver.removeFile2(a);
     await driver.applyPendingFileChanges();
-    expect(driver.addedFiles, unorderedEquals([b.path]));
+    expect(driver.addedFiles2, unorderedEquals([b]));
   }
 
   test_addFile() async {
@@ -167,8 +167,8 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    driver.addFile(b.path);
-    driver.addFile(a.path);
+    driver.addFile2(b);
+    driver.addFile2(a);
 
     // The results are reported in the order of adding.
     await assertEventsText(collector, r'''
@@ -197,8 +197,8 @@ import 'a.dart';
 
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
-    driver.addFile(a.path);
-    driver.addFile(b.path);
+    driver.addFile2(a);
+    driver.addFile2(b);
 
     // Initial analysis, `b` does not use `a`, so there is a hint.
     await assertEventsText(collector, r'''
@@ -219,7 +219,7 @@ import 'a.dart';
 ''');
 
     // Update `b` to use `a`, no more hints.
-    newFile(b.path, r'''
+    modifyFile2(b, r'''
 import 'a.dart';
 void f() {
   A;
@@ -227,8 +227,8 @@ void f() {
 ''');
 
     // Remove and add `b`.
-    driver.removeFile(b.path);
-    driver.addFile(b.path);
+    driver.removeFile2(b);
+    driver.addFile2(b);
 
     // `b` was analyzed, no more hints.
     await assertEventsText(collector, r'''
@@ -257,10 +257,10 @@ void f() {
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    driver.addFile(a.path);
-    driver.addFile(b.path);
-    driver.addFile(c.path);
-    driver.priorityFiles = [b.path];
+    driver.addFile2(a);
+    driver.addFile2(b);
+    driver.addFile2(c);
+    driver.priorityFiles2 = [b];
 
     // 1. The priority file is produced first.
     // 2. We get full `ResolvedUnitResult`.
@@ -287,17 +287,17 @@ void f() {
   }
 
   test_addFile_thenRemove() async {
-    final a = newFile('$testPackageLibPath/a.dart', '').path;
-    final b = newFile('$testPackageLibPath/b.dart', '').path;
+    final a = newFile('$testPackageLibPath/a.dart', '');
+    final b = newFile('$testPackageLibPath/b.dart', '');
 
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    driver.addFile(a);
-    driver.addFile(b);
+    driver.addFile2(a);
+    driver.addFile2(b);
 
     // Now remove `a`.
-    driver.removeFile(a);
+    driver.removeFile2(a);
 
     // We remove `a` before analysis started.
     // So, only `b` was analyzed.
@@ -318,7 +318,7 @@ void f() {
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    driver.priorityFiles = [a.path];
+    driver.priorityFiles2 = [a];
 
     // Get the result, not cached.
     collector.getResolvedUnit('A1', a);
@@ -669,7 +669,7 @@ part 'a.dart';
     final driver = driverFor(testFile);
     final collector = DriverEventCollector(driver);
 
-    driver.addFile(a.path);
+    driver.addFile2(a);
 
     await assertEventsText(collector, r'''
 [status] analyzing
@@ -1360,7 +1360,7 @@ var A = B;
 import 'a.dart';
 ''');
 
-    driver.addFile(b.path);
+    driver.addFile2(b);
     await waitForIdleWithoutExceptions();
 
     // Has CompileTimeErrorCode.URI_DOES_NOT_EXIST
@@ -1368,7 +1368,7 @@ import 'a.dart';
     allResults.clear();
 
     final a = newFile('/test/lib/a.dart', '');
-    driver.changeFile(a.path);
+    driver.changeFile2(a);
     await waitForIdleWithoutExceptions();
 
     // No errors anymore.
@@ -1443,7 +1443,7 @@ import 'c.dart';
 
     // Change `b.dart`, also removes `c.dart` and `d.dart` that import it.
     // But `a.dart` and `d.dart` is not affected.
-    driver.changeFile(b.path);
+    driver.changeFile2(b);
     var affectedPathList = await driver.applyPendingFileChanges();
     expect(affectedPathList, unorderedEquals([b.path, c.path, d.path]));
 
@@ -1512,7 +1512,7 @@ import 'b.dart';
     // Change `a.dart`, remove `b.dart` that part it.
     // Removes `c.dart` that imports `b.dart`.
     // But `d.dart` is not affected.
-    driver.changeFile(a.path);
+    driver.changeFile2(a);
     var affectedPathList = await driver.applyPendingFileChanges();
     expect(affectedPathList, unorderedEquals([a.path, b.path, c.path]));
 
@@ -2290,7 +2290,7 @@ part 'b.dart';
 part of 'a.dart';
 ''');
 
-    driver.priorityFiles = [a.path];
+    driver.priorityFiles2 = [a];
 
     final result1 = await driver.getResolvedLibrary(a.path);
     result1 as ResolvedLibraryResult;
@@ -3612,8 +3612,8 @@ var a = new A();
 var b = new B();
 ''');
 
-    driver.addFile(c.path);
-    driver.priorityFiles = [c.path];
+    driver.addFile2(c);
+    driver.priorityFiles2 = [c];
 
     await waitForIdleWithoutExceptions();
 
