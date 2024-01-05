@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/packages.dart';
-import 'package:analyzer/src/dart/analysis/analysis_options_map.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
@@ -54,15 +53,13 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
 
   var logger = PerformanceLog(null);
   var scheduler = AnalysisDriverScheduler(logger);
-  var sharedOptions = analysisOptions as AnalysisOptionsImpl;
-  var optionsMap = AnalysisOptionsMap.forSharedOptions(sharedOptions);
   var driver = AnalysisDriver(
     scheduler: scheduler,
     logger: logger,
     resourceProvider: resourceProvider,
     byteStore: byteStore ?? MemoryByteStore(),
     sourceFactory: sourceFactory,
-    analysisOptionsMap: optionsMap,
+    analysisOptions: analysisOptions as AnalysisOptionsImpl,
     externalSummaries: dataStore,
     packages: packages,
   );
