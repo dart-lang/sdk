@@ -134,41 +134,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertDriverEventsText(
-    List<DriverEvent> events,
-    String expected, {
-    void Function(DriverEventsPrinterConfiguration)? configure,
-    IdProvider? idProvider,
-  }) {
-    final configuration = DriverEventsPrinterConfiguration();
-    configure?.call(configuration);
-
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(sink: buffer, indent: '');
-    idProvider ??= IdProvider();
-
-    final elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-      selfUriStr: null,
-    );
-
-    DriverEventsPrinter(
-      configuration: configuration,
-      sink: sink,
-      elementPrinter: elementPrinter,
-      idProvider: idProvider,
-    ).write(events);
-
-    final actual = buffer.toString();
-    if (actual != expected) {
-      print('-------- Actual --------');
-      print('$actual------------------------');
-      NodeTextExpectationsCollector.add(actual);
-    }
-    expect(actual, expected);
-  }
-
   void assertElement(Object? nodeOrElement, Object? elementOrMatcher) {
     Element? element;
     if (nodeOrElement is AstNode) {

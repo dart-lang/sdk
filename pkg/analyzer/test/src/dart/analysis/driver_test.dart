@@ -32,7 +32,9 @@ import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../util/element_printer.dart';
 import '../../../util/element_type_matchers.dart';
+import '../../../util/tree_string_sink.dart';
 import '../../../utils.dart';
 import '../resolution/context_collection_resolution.dart';
 import '../resolution/node_text_expectations.dart';
@@ -47,18 +49,6 @@ main() {
     defineReflectiveTests(AnalysisDriver_BlazeWorkspaceTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
-}
-
-/// Returns a [Future] that completes after pumping the event queue [times]
-/// times. By default, this should pump the event queue enough times to allow
-/// any code to run, as long as it's not waiting on some external event.
-Future pumpEventQueue([int times = 5000]) {
-  if (times == 0) return Future.value();
-  // We use a delayed future to allow microtask events to finish. The
-  // Future.value or Future() constructors use scheduleMicrotask themselves and
-  // would therefore not wait for microtask callbacks that are scheduled after
-  // invoking this method.
-  return Future.delayed(Duration.zero, () => pumpEventQueue(times - 1));
 }
 
 @reflectiveTest
@@ -112,6 +102,42 @@ import '$innerUri';
 
 @reflectiveTest
 class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
+  Future<void> assertEventsText(
+    DriverEventCollector collector,
+    String expected, {
+    void Function(DriverEventsPrinterConfiguration)? configure,
+  }) async {
+    await pumpEventQueue(times: 5000);
+
+    final configuration = DriverEventsPrinterConfiguration();
+    configure?.call(configuration);
+
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(sink: buffer, indent: '');
+
+    final elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+      selfUriStr: null,
+    );
+
+    final events = collector.take();
+    DriverEventsPrinter(
+      configuration: configuration,
+      sink: sink,
+      elementPrinter: elementPrinter,
+      idProvider: collector.idProvider,
+    ).write(events);
+
+    final actual = buffer.toString();
+    if (actual != expected) {
+      print('-------- Actual --------');
+      print('$actual------------------------');
+      NodeTextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -145,8 +171,7 @@ class AnalysisDriver_PubPackageTest extends PubPackageResolutionTest {
     driver.addFile(a.path);
 
     // The results are reported in the order of adding.
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [status] analyzing
 [stream]
   ErrorsResult #0
@@ -176,8 +201,7 @@ import 'a.dart';
     driver.addFile(b.path);
 
     // Initial analysis, `b` does not use `a`, so there is a hint.
-    await pumpEventQueue();
-    assertDriverEventsText(collector.take(), r'''
+    await assertEventsText(collector, r'''
 [status] analyzing
 [stream]
   ErrorsResult #0
@@ -207,11 +231,10 @@ void f() {
     driver.addFile(b.path);
 
     // `b` was analyzed, no more hints.
-    await pumpEventQueue();
-    assertDriverEventsText(collector.take(), r'''
+    await assertEventsText(collector, r'''
 [status] analyzing
 [stream]
-  ErrorsResult #0
+  ErrorsResult #2
     path: /home/test/lib/b.dart
     uri: package:test/b.dart
     flags: isLibrary
@@ -242,8 +265,7 @@ void f() {
     // 1. The priority file is produced first.
     // 2. We get full `ResolvedUnitResult`.
     // 3. For other files we get only `ErrorsResult`.
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [status] analyzing
 [stream]
   ResolvedUnitResult #0
@@ -279,8 +301,7 @@ void f() {
 
     // We remove `a` before analysis started.
     // So, only `b` was analyzed.
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [status] analyzing
 [stream]
   ErrorsResult #0
@@ -295,16 +316,13 @@ void f() {
     final a = newFile('$testPackageLibPath/a.dart', '');
 
     final driver = driverFor(testFile);
-
     final collector = DriverEventCollector(driver);
-    final idProvider = IdProvider();
 
     driver.priorityFiles = [a.path];
 
+    // Get the result, not cached.
     collector.getResolvedUnit('A1', a);
-
-    await pumpEventQueue();
-    assertDriverEventsText(collector.take(), idProvider: idProvider, r'''
+    await assertEventsText(collector, r'''
 [status] analyzing
 [future] getResolvedUnit
   name: A1
@@ -319,8 +337,7 @@ void f() {
 
     // Get the (cached) result, not reported to the stream.
     collector.getResolvedUnit('A2', a);
-    await pumpEventQueue();
-    assertDriverEventsText(collector.take(), idProvider: idProvider, r'''
+    await assertEventsText(collector, r'''
 [future] getResolvedUnit
   name: A2
   ResolvedUnitResult #0
@@ -328,8 +345,7 @@ void f() {
 
     // Get the (cached) result, reported to the stream.
     collector.getResolvedUnit('A3', a, sendCachedToStream: true);
-    await pumpEventQueue();
-    assertDriverEventsText(collector.take(), idProvider: idProvider, r'''
+    await assertEventsText(collector, r'''
 [stream]
   ResolvedUnitResult #0
 [future] getResolvedUnit
@@ -344,8 +360,7 @@ void f() {
 
     collector.getLibraryByUri('X', 'foo:bar');
 
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [future] getLibraryByUri
   name: X
   CannotResolveUriResult
@@ -363,8 +378,7 @@ library augment 'b.dart';
     final uriStr = 'package:test/a.dart';
     collector.getLibraryByUri('X', uriStr);
 
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [future] getLibraryByUri
   name: X
   NotLibraryButAugmentationResult
@@ -382,8 +396,7 @@ part of 'b.dart';
     final uriStr = 'package:test/a.dart';
     collector.getLibraryByUri('X', uriStr);
 
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [future] getLibraryByUri
   name: X
   NotLibraryButPartResult
@@ -435,8 +448,7 @@ library augment 'b.dart';
 
     collector.getResolvedLibrary('X', a);
 
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [future] getResolvedLibrary
   name: X
   NotLibraryButAugmentationResult
@@ -453,8 +465,7 @@ part of 'b.dart';
 
     collector.getResolvedLibrary('X', a);
 
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [future] getResolvedLibrary
   name: X
   NotLibraryButPartResult
@@ -468,8 +479,7 @@ part of 'b.dart';
     final uri = Uri.parse('foo:bar');
     collector.getResolvedLibraryByUri('X', uri);
 
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [future] getResolvedLibraryByUri
   name: X
   CannotResolveUriResult
@@ -494,8 +504,6 @@ part of 'a.dart';
     final uri = Uri.parse('package:test/a.dart');
     collector.getResolvedLibraryByUri('A2', uri);
 
-    await pumpEventQueue();
-
     // Note, that the `get` events are reported before `stream` events.
     // TODO(scheglov): The current state is not optimal.
     // We resolve `a.dart` separately as `analysisId: 0`.
@@ -504,7 +512,7 @@ part of 'a.dart';
     // So, we resolved it twice.
     // Even worse, for `getResolvedLibraryByUri` we resolve it again.
     // Theoretically we could have just one resolution overall.
-    assertDriverEventsText(collector.events, configure: (configuration) {
+    await assertEventsText(collector, configure: (configuration) {
       configuration.withOperations = true;
     }, r'''
 [status] analyzing
@@ -560,8 +568,7 @@ library augment 'b.dart';
     final uri = Uri.parse('package:test/a.dart');
     collector.getResolvedLibraryByUri('X', uri);
 
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [future] getResolvedLibraryByUri
   name: X
   NotLibraryButAugmentationResult
@@ -579,8 +586,7 @@ part of 'b.dart';
     final uri = Uri.parse('package:test/a.dart');
     collector.getResolvedLibraryByUri('X', uri);
 
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [future] getResolvedLibraryByUri
   name: X
   NotLibraryButPartResult
@@ -665,8 +671,7 @@ part 'a.dart';
 
     driver.addFile(a.path);
 
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 [status] analyzing
 [stream]
   ErrorsResult #0
@@ -682,8 +687,7 @@ part 'a.dart';
     final collector = DriverEventCollector(driver);
 
     // No files, so no status changes.
-    await pumpEventQueue();
-    assertDriverEventsText(collector.events, r'''
+    await assertEventsText(collector, r'''
 ''');
   }
 }
@@ -4035,6 +4039,7 @@ var v = 0
 /// requests. We are interested in relative orders, identity of the objects,
 /// absence of duplicate events, etc.
 class DriverEventCollector {
+  final idProvider = IdProvider();
   final AnalysisDriver driver;
   List<DriverEvent> events = [];
 
@@ -4114,14 +4119,6 @@ class DriverEventCollector {
     final result = events;
     events = [];
     return result;
-  }
-
-  List<DriverEvent> take2() {
-    try {
-      return events;
-    } finally {
-      events = [];
-    }
   }
 }
 
