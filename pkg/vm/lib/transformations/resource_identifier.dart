@@ -5,10 +5,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/util/relativize.dart'
+    show relativizeUri;
 import 'package:collection/collection.dart';
 import 'package:front_end/src/fasta/kernel/resource_identifier.dart'
     as ResourceIdentifiers;
-import 'package:kernel/import_table.dart' show relativeUriPath;
 import 'package:kernel/kernel.dart';
 import 'package:vm/metadata/loading_units.dart';
 
@@ -92,8 +93,8 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor<void> {
   }
 
   Identifier _identifierOf(StaticInvocation node, String resourceId) {
-    final identifierUri =
-        relativeUriPath(node.target.enclosingLibrary.fileUri, Uri.base);
+    final identifierUri = relativizeUri(
+        Uri.base, node.target.enclosingLibrary.fileUri, Platform.isWindows);
 
     return identifiers
             .where((id) => id.name == node.name.text && id.uri == identifierUri)
@@ -140,7 +141,7 @@ class _ResourceIdentifierVisitor extends RecursiveVisitor<void> {
 
     final location = node.location!;
     return ResourceReference(
-      uri: relativeUriPath(location.file, Uri.base),
+      uri: relativizeUri(Uri.base, location.file, Platform.isWindows),
       line: location.line,
       column: location.column,
       arguments: arguments,
