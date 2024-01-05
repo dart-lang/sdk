@@ -181,12 +181,57 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     }
     final Member target = node.target;
     try {
+      if (target == abiSpecificIntegerArrayElemAt ||
+          target == abiSpecificIntegerArraySetElemAt) {
+        final pointer = node.arguments.positional[0];
+        final pointerType =
+            pointer.getStaticType(staticTypeContext!) as InterfaceType;
+        ensureNativeTypeValid(pointerType, pointer,
+            allowCompounds: true, allowInlineArray: true);
+
+        final typeArg = pointerType.typeArguments.single;
+        final nativeTypeCfe =
+            NativeTypeCfe(this, typeArg) as AbiSpecificNativeTypeCfe;
+
+        final arrayVar = VariableDeclaration("#array",
+            initializer: NullCheck(node.arguments.positional[0]),
+            type: InterfaceType(arrayClass, Nullability.nonNullable),
+            isSynthesized: true)
+          ..fileOffset = node.fileOffset;
+        final indexVar = VariableDeclaration("#index",
+            initializer: NullCheck(node.arguments.positional[1]),
+            type: coreTypes.intNonNullableRawType,
+            isSynthesized: true)
+          ..fileOffset = node.fileOffset;
+
+        return BlockExpression(
+          Block([
+            arrayVar,
+            indexVar,
+            ExpressionStatement(InstanceInvocation(
+              InstanceAccessKind.Instance,
+              VariableGet(arrayVar),
+              arrayCheckIndex.name,
+              Arguments([VariableGet(indexVar)]),
+              interfaceTarget: arrayCheckIndex,
+              functionType: arrayCheckIndex.getterType as FunctionType,
+            )),
+          ]),
+          abiSpecificLoadOrStoreExpression(
+            nativeTypeCfe,
+            typedDataBase: getArrayTypedDataBaseField(VariableGet(arrayVar)),
+            index: VariableGet(indexVar),
+            value: target == abiSpecificIntegerArraySetElemAt
+                ? node.arguments.positional.last
+                : null,
+            fileOffset: node.fileOffset,
+          ),
+        );
+      }
       if (target == abiSpecificIntegerPointerGetValue ||
           target == abiSpecificIntegerPointerSetValue ||
           target == abiSpecificIntegerPointerElemAt ||
-          target == abiSpecificIntegerPointerSetElemAt ||
-          target == abiSpecificIntegerArrayElemAt ||
-          target == abiSpecificIntegerArraySetElemAt) {
+          target == abiSpecificIntegerPointerSetElemAt) {
         final pointer = node.arguments.positional[0];
         final pointerType =
             pointer.getStaticType(staticTypeContext!) as InterfaceType;
@@ -199,19 +244,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         return abiSpecificLoadOrStoreExpression(
           nativeTypeCfe,
-          typedDataBase: (target == abiSpecificIntegerArrayElemAt ||
-                  target == abiSpecificIntegerArraySetElemAt)
-              ? getArrayTypedDataBaseField(node.arguments.positional[0])
-              : node.arguments.positional[0],
+          typedDataBase: node.arguments.positional[0],
           index: (target == abiSpecificIntegerPointerElemAt ||
-                  target == abiSpecificIntegerPointerSetElemAt ||
-                  target == abiSpecificIntegerArrayElemAt ||
-                  target == abiSpecificIntegerArraySetElemAt)
+                  target == abiSpecificIntegerPointerSetElemAt)
               ? node.arguments.positional[1]
               : null,
           value: (target == abiSpecificIntegerPointerSetValue ||
-                  target == abiSpecificIntegerPointerSetElemAt ||
-                  target == abiSpecificIntegerArraySetElemAt)
+                  target == abiSpecificIntegerPointerSetElemAt)
               ? node.arguments.positional.last
               : null,
           fileOffset: node.fileOffset,
@@ -938,14 +977,43 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final constructor = clazz.constructors
         .firstWhere((c) => c.name == Name("#fromTypedDataBase"));
 
-    final typedDataBasePrime = typedDataBaseOffset(
-        getArrayTypedDataBaseField(NullCheck(node.arguments.positional[0])),
-        multiply(node.arguments.positional[1], inlineSizeOf(dartType)!),
-        inlineSizeOf(dartType)!,
-        dartType,
-        node.fileOffset);
+    final arrayVar = VariableDeclaration("#array",
+        initializer: NullCheck(node.arguments.positional[0]),
+        type: InterfaceType(arrayClass, Nullability.nonNullable),
+        isSynthesized: true)
+      ..fileOffset = node.fileOffset;
+    final indexVar = VariableDeclaration("#index",
+        initializer: NullCheck(node.arguments.positional[1]),
+        type: coreTypes.intNonNullableRawType,
+        isSynthesized: true)
+      ..fileOffset = node.fileOffset;
 
-    return ConstructorInvocation(constructor, Arguments([typedDataBasePrime]));
+    return BlockExpression(
+      Block([
+        arrayVar,
+        indexVar,
+        ExpressionStatement(InstanceInvocation(
+          InstanceAccessKind.Instance,
+          VariableGet(arrayVar),
+          arrayCheckIndex.name,
+          Arguments([VariableGet(indexVar)]),
+          interfaceTarget: arrayCheckIndex,
+          functionType: arrayCheckIndex.getterType as FunctionType,
+        )),
+      ]),
+      ConstructorInvocation(
+        constructor,
+        Arguments([
+          typedDataBaseOffset(
+            getArrayTypedDataBaseField(VariableGet(arrayVar)),
+            multiply(VariableGet(indexVar), inlineSizeOf(dartType)!),
+            inlineSizeOf(dartType)!,
+            dartType,
+            node.fileOffset,
+          )
+        ]),
+      ),
+    );
   }
 
   /// Generates an expression that returns a new `Array<dartType>`.
@@ -1031,12 +1099,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       arrayVar,
       indexVar,
       ExpressionStatement(InstanceInvocation(
-          InstanceAccessKind.Instance,
-          VariableGet(arrayVar),
-          arrayCheckIndex.name,
-          Arguments([VariableGet(indexVar)]),
-          interfaceTarget: arrayCheckIndex,
-          functionType: arrayCheckIndex.getterType as FunctionType)),
+        InstanceAccessKind.Instance,
+        VariableGet(arrayVar),
+        arrayCheckIndex.name,
+        Arguments([VariableGet(indexVar)]),
+        interfaceTarget: arrayCheckIndex,
+        functionType: arrayCheckIndex.getterType as FunctionType,
+      )),
       singleElementSizeVar,
       elementSizeVar,
       offsetVar

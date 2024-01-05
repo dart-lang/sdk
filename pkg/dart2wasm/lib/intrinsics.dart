@@ -1728,17 +1728,15 @@ class Intrinsifier {
       b.local_set(typeArgsLocal);
 
       // Create empty list for positional args if the argument is null
-      final posArgsLocal = function.addLocal(listArgumentType);
+      final posArgsLocal =
+          function.addLocal(translator.nullableObjectArrayTypeRef);
       b.local_get(posArgsNullableLocal);
       b.ref_is_null();
-      b.if_([], [listArgumentType]);
-      translator.constants.instantiateConstant(
-          function,
-          b,
-          ListConstant(
-              InterfaceType(translator.objectInfo.cls!, Nullability.nullable),
-              []),
-          translator.objectInfo.nonNullableType);
+
+      b.if_([], [translator.nullableObjectArrayTypeRef]);
+      translator.makeArray(
+          function, translator.nullableObjectArrayType, 0, (_, __) {});
+
       b.else_();
       // List argument may be a custom list type, convert it to `_ListBase`
       // with `_List.of`.
@@ -1751,15 +1749,16 @@ class Intrinsifier {
       b.local_get(posArgsNullableLocal);
       b.ref_as_non_null();
       codeGen.call(translator.listOf.reference);
+      translator.getListBaseArray(b);
       b.end();
       b.local_set(posArgsLocal);
 
       // Convert named argument map to list, to be passed to shape and type
       // checkers and the dynamic call entry.
-      final namedArgsListLocal = function.addLocal(listArgumentType);
+      final namedArgsListLocal =
+          function.addLocal(translator.nullableObjectArrayTypeRef);
       b.local_get(namedArgsLocal);
-      codeGen.call(translator.namedParameterMapToList.reference);
-      b.ref_cast(listArgumentType); // ref Object -> ref _ListBase
+      codeGen.call(translator.namedParameterMapToArray.reference);
       b.local_set(namedArgsListLocal);
 
       final noSuchMethodBlock = b.block();

@@ -128,6 +128,10 @@ class Translator with KernelNodes {
           .fields[FieldIndex.listArray]
           .type as w.RefType)
       .heapType as w.ArrayType;
+  late final w.ArrayType nullableObjectArrayType =
+      arrayTypeForDartType(coreTypes.objectRawType(Nullability.nullable));
+  late final w.RefType nullableObjectArrayTypeRef =
+      w.RefType.def(nullableObjectArrayType, nullable: false);
 
   /// Dart types that have specialized Wasm representations.
   late final Map<Class, w.StorageType> builtinTypes = {
@@ -184,10 +188,10 @@ class Translator with KernelNodes {
     classInfo[listBaseClass]!.nonNullableType,
 
     // Positional arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    nullableObjectArrayTypeRef,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[listBaseClass]!.nonNullableType,
+    nullableObjectArrayTypeRef,
   ], [
     topInfo.nullableType
   ]);
@@ -202,10 +206,10 @@ class Translator with KernelNodes {
     classInfo[listBaseClass]!.nonNullableType,
 
     // Positional arguments
-    classInfo[listBaseClass]!.nonNullableType,
+    nullableObjectArrayTypeRef,
 
     // Named arguments, represented as array of symbol and object pairs
-    classInfo[listBaseClass]!.nonNullableType,
+    nullableObjectArrayTypeRef,
   ], [
     topInfo.nullableType
   ]);
@@ -1029,16 +1033,12 @@ class Translator with KernelNodes {
     return arrayTypeRef;
   }
 
-  /// Indexes a Dart `List` on the stack.
+  /// Indexes a Dart `_ListBase` on the stack.
   void indexList(
       w.InstructionsBuilder b, void pushIndex(w.InstructionsBuilder b)) {
-    ClassInfo info = classInfo[listBaseClass]!;
-    w.ArrayType arrayType =
-        (info.struct.fields[FieldIndex.listArray].type as w.RefType).heapType
-            as w.ArrayType;
-    b.struct_get(info.struct, FieldIndex.listArray);
+    getListBaseArray(b);
     pushIndex(b);
-    b.array_get(arrayType);
+    b.array_get(nullableObjectArrayType);
   }
 
   /// Pushes a Dart `List`'s length onto the stack as `i32`.
@@ -1046,6 +1046,12 @@ class Translator with KernelNodes {
     ClassInfo info = classInfo[listBaseClass]!;
     b.struct_get(info.struct, FieldIndex.listLength);
     b.i32_wrap_i64();
+  }
+
+  /// Get the _ListBase._array field of type WasmArray<Object?>.
+  void getListBaseArray(w.InstructionsBuilder b) {
+    ClassInfo info = classInfo[listBaseClass]!;
+    b.struct_get(info.struct, FieldIndex.listArray);
   }
 
   ClassInfo getRecordClassInfo(RecordType recordType) =>
@@ -1207,16 +1213,18 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       if (posIdx < positionalRequired) {
         // Shape check passed, argument must be passed
         b.local_get(posArgsListLocal);
-        translator.indexList(b, (b) => b.i32_const(posIdx));
+        b.i32_const(posIdx);
+        b.array_get(translator.nullableObjectArrayType);
       } else {
         // Argument may be missing
         b.i32_const(posIdx);
         b.local_get(posArgsListLocal);
-        translator.getListLength(b);
+        b.array_len();
         b.i32_lt_u();
         b.if_([], [translator.topInfo.nullableType]);
         b.local_get(posArgsListLocal);
-        translator.indexList(b, (b) => b.i32_const(posIdx));
+        b.i32_const(posIdx);
+        b.array_get(translator.nullableObjectArrayType);
         b.else_();
         translator.constants.instantiateConstant(function, b,
             paramInfo.positional[posIdx]!, translator.topInfo.nullableType);
@@ -1260,12 +1268,11 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       if (functionNodeDefaultValue == null && paramInfoDefaultValue == null) {
         // Shape check passed, parameter must be passed
         b.local_get(namedArgsListLocal);
-        translator.indexList(b, (b) {
-          b.local_get(namedArgValueIndexLocal);
-          translator.convertType(
-              function, namedArgValueIndexLocal.type, w.NumType.i64);
-          b.i32_wrap_i64();
-        });
+        b.local_get(namedArgValueIndexLocal);
+        translator.convertType(
+            function, namedArgValueIndexLocal.type, w.NumType.i64);
+        b.i32_wrap_i64();
+        b.array_get(translator.nullableObjectArrayType);
       } else {
         // Parameter may not be passed.
         b.local_get(namedArgValueIndexLocal);
@@ -1289,12 +1296,11 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         }
         b.else_(); // value index not null
         b.local_get(namedArgsListLocal);
-        translator.indexList(b, (b) {
-          b.local_get(namedArgValueIndexLocal);
-          translator.convertType(
-              function, namedArgValueIndexLocal.type, w.NumType.i64);
-          b.i32_wrap_i64();
-        });
+        b.local_get(namedArgValueIndexLocal);
+        translator.convertType(
+            function, namedArgValueIndexLocal.type, w.NumType.i64);
+        b.i32_wrap_i64();
+        b.array_get(translator.nullableObjectArrayType);
         b.end();
         translator.convertType(
             function, translator.topInfo.nullableType, targetInputs[inputIdx]);

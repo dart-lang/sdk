@@ -275,10 +275,12 @@ mixin KernelNodes {
   // dart:core dynamic invocation helper procedures
   late final Procedure getNamedParameterIndex =
       index.getTopLevelProcedure("dart:core", "_getNamedParameterIndex");
-  late final Procedure namedParameterListToMap =
-      index.getTopLevelProcedure("dart:core", "_namedParameterListToMap");
-  late final Procedure namedParameterMapToList =
-      index.getTopLevelProcedure("dart:core", "_namedParameterMapToList");
+  late final Procedure positionalParametersToList =
+      index.getTopLevelProcedure("dart:core", "_positionalParametersToList");
+  late final Procedure namedParametersToMap =
+      index.getTopLevelProcedure("dart:core", "_namedParametersToMap");
+  late final Procedure namedParameterMapToArray =
+      index.getTopLevelProcedure("dart:core", "_namedParameterMapToArray");
   late final Procedure listOf = index.getProcedure("dart:core", "_List", "of");
 
   // dart:_wasm procedures

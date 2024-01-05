@@ -70,15 +70,6 @@ extension on List<_Type> {
   }
 }
 
-// Direct getter to bypass the covariance check and the bounds check when
-// indexing into a Dart list. This makes the indexing more efficient and avoids
-// performing type checks while performing type checks.
-extension _BypassListIndexingChecks<T> on List<T> {
-  @pragma("wasm:prefer-inline")
-  T _getUnchecked(int index) =>
-      unsafeCast(unsafeCast<_ListBase<T>>(this)._data[index]);
-}
-
 // TODO(joshualitt): We can cache the result of [_FutureOrType.asFuture].
 abstract class _Type implements Type {
   final bool isDeclaredNullable;
@@ -1175,7 +1166,7 @@ class _TypeCheckVerificationError extends Error {
 /// [namedArguments] is a list of `Symbol` and `Object?` pairs.
 @pragma("wasm:entry-point")
 bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
-    List<Object?> positionalArguments, List<dynamic> namedArguments) {
+    WasmArray<Object?> positionalArguments, WasmArray<dynamic> namedArguments) {
   // Check type args, add default types to the type list if its empty
   if (typeArguments.isEmpty) {
     final defaults = functionType.typeParameterDefaults;
@@ -1208,8 +1199,7 @@ bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
       continue;
     }
 
-    String argName = _symbolToString(
-        namedArguments._getUnchecked(namedArgIdx * 2) as Symbol);
+    String argName = _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
 
     final cmp = argName.compareTo(param.name);
 
@@ -1247,7 +1237,7 @@ bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
 /// [namedArguments] is a list of `Symbol` and `Object?` pairs.
 @pragma("wasm:entry-point")
 void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
-    List<Object?> positionalArguments, List<dynamic> namedArguments) {
+    WasmArray<Object?> positionalArguments, WasmArray<dynamic> namedArguments) {
   assert(functionType.typeParameterBounds.length == typeArguments.length);
 
   if (!typeArguments.isEmpty) {
@@ -1272,7 +1262,7 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
 
   // Check positional arguments
   for (int i = 0; i < positionalArguments.length; i += 1) {
-    final Object? arg = positionalArguments._getUnchecked(i);
+    final Object? arg = positionalArguments[i];
     final _Type paramTy = functionType.positionalParameters[i];
     if (!_isSubtype(arg, paramTy)) {
       // TODO(50991): Positional parameter names not available in runtime
@@ -1286,10 +1276,10 @@ void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
   int namedParamIdx = 0;
   int namedArgIdx = 0;
   while (namedArgIdx * 2 < namedArguments.length) {
-    final String argName = _symbolToString(
-        namedArguments._getUnchecked(namedArgIdx * 2) as Symbol);
+    final String argName =
+        _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
     if (argName == functionType.namedParameters[namedParamIdx].name) {
-      final arg = namedArguments._getUnchecked(namedArgIdx * 2 + 1);
+      final arg = namedArguments[namedArgIdx * 2 + 1];
       final paramTy = functionType.namedParameters[namedParamIdx].type;
       if (!_isSubtype(arg, paramTy)) {
         _TypeError._throwArgumentTypeCheckError(
