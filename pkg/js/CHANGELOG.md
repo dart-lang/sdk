@@ -3,8 +3,11 @@
 - Remove dependency on `dart:js`.
 - Update SDK lower constraint to 3.1.0-66.0.dev.
 - Update SDK upper constraint to 4.0.0.
-- Moved annotations to single location in `dart:_js_annotations`. This makes it
-easier to avoid collisions with `dart:js_interop`'s `@JS`.
+- **Breaking Change**: Moved annotations to single location in
+  `dart:_js_annotations`. This makes it easier to avoid collisions with
+  `dart:js_interop`'s `@JS`, as you will now see a static error instead of it
+  resolving in favor of the package definition. However, since this may result
+  in breakages in previously working code, this is treated as a breaking change.
 
 ## 0.6.7
 
