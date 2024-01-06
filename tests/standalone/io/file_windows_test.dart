@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import "package:expect/expect.dart";
 
 // wstat not return stat for "C:" but return for "C: " or "C://"
