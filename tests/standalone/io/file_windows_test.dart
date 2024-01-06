@@ -3,8 +3,20 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-
 import "package:expect/expect.dart";
+
+// wstat not return stat for "C:" but return for "C: " or "C://"
+// This issue found on https://github.com/dart-lang/sdk/issues/54386
+void testStat() {
+  final cDrive = Directory("C:");
+  final cDriveStat = cDrive.statSync();
+  expect(cDriveStat.type, FileSystemEntityType.notFound);
+
+  final cDriveWithSpace = Directory("C: ");
+  final cDriveWithSpaceStat = cDriveWithSpace.statSync();
+  expect(cDriveWithSpaceStat.type, FileSystemEntityType.directory);
+  
+}
 
 void testDeleteLongPathPrefix() {
   var dir = Directory.systemTemp.createTempSync('dart_file_win');
@@ -25,4 +37,5 @@ void testDeleteLongPathPrefix() {
 void main() {
   if (!Platform.isWindows) return;
   testDeleteLongPathPrefix();
+  testStat();
 }
