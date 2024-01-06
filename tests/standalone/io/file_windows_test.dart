@@ -5,8 +5,6 @@
 import 'dart:io';
 import "package:expect/expect.dart";
 
-import '../../../out/DebugX64/dart-sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/runtime.dart';
-
 // wstat not return stat for "C:" but return for "C: " or "C://"
 // This issue found on https://github.com/dart-lang/sdk/issues/54386
 void testStat() {
