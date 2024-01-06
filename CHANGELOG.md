@@ -88,6 +88,12 @@
   better organize the API surface. See `JSAnyUtilityExtension` and
   `JSAnyOperatorExtension` for the new extensions. This shouldn't make a
   difference unless the extension names were explicitly used.
+- Add `importModule` to allow users to dynamically import modules using the JS
+  `import()` expression.
+
+#### `dart:js_interop_unsafe`
+
+- Add `has` helper to make `hasProperty` calls more concise.
 
 [#52687]: https://github.com/dart-lang/sdk/issues/52687
 
