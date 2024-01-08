@@ -5,4 +5,5 @@ extension Extension on Never {
 }
 
 implicitAccess(Never never) {}
+
 main() {}

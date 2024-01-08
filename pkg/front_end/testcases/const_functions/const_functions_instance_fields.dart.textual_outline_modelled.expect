@@ -16,12 +16,21 @@ class C extends A {
 }
 
 const var1 = fn();
+
 const var2 = fn2();
+
 const var3 = const A(1).y;
+
 const var4 = fn4();
+
 const var5 = fn5();
+
 int fn() => const A(1).y;
+
 int fn2() {}
+
 int fn4() => const B(1).y;
+
 int fn5() => const C().y;
+
 void main() {}

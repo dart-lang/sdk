@@ -5,4 +5,5 @@ class MyClass<T> {
 }
 
 test() {}
+
 main() {}

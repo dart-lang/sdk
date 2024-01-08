@@ -35,4 +35,5 @@ D4 d4 = throw '';
 class E<X extends X Function(X)> {}
 
 E e = throw '';
+
 main() {}

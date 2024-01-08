@@ -15,5 +15,7 @@ class IndexTester {
 }
 
 f(x) => x;
+
 main() {}
+
 testNSM() {}

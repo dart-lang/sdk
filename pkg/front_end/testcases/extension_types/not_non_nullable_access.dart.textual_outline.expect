@@ -7,6 +7,7 @@ extension type ET1(int i) {
   int get getter => i;
   void set setter(int value) {}
 }
+
 extension type ET2<T>(T t) {
   ET2<T>? operator +(ET2<T>? t) => t;
   T operator -() => t;
@@ -16,13 +17,23 @@ extension type ET2<T>(T t) {
   T get getter => t;
   void set setter(T value) {}
 }
+
 method1(ET1 et) {}
+
 method2(ET1? et) {}
+
 method3<S>(S s, ET2<S> et) {}
+
 method4<S>(S s, ET2<S>? et) {}
+
 method5<S, U extends ET2<S>>(S s, U et) {}
+
 method6<S, U extends ET2<S>>(S s, U? et) {}
+
 method7<S, U extends ET2<S>, V extends U>(S s, V et) {}
+
 method8<S, U extends ET2<S>, V extends U>(S s, V? et) {}
+
 method9<S, U extends ET2<S>, V extends U?>(S s, V et) {}
+
 method10<S, U extends ET2<S>?, V extends U>(S s, V et) {}

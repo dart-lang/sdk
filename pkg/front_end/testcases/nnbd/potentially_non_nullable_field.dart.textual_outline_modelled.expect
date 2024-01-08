@@ -18,6 +18,9 @@ class A<T extends Object?> {
 }
 
 int? y;
+
 int x;
+
 late int z;
+
 main() {}

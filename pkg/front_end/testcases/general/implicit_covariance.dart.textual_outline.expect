@@ -11,4 +11,5 @@ class C {
 class D<T extends num> extends C with B<T> {}
 
 class E<T extends num> = C with B<T>;
+
 main() {}

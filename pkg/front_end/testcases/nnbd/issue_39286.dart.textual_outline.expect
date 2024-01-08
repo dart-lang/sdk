@@ -8,4 +8,5 @@ class D {
 }
 
 void test(C x) {}
+
 main() {}

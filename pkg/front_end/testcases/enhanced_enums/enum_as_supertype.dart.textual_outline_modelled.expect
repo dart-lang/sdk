@@ -15,10 +15,13 @@ enum EM with M { element }
 enum EN with N { element }
 
 expectEquals(x, y) {}
+
 main() {}
+
 mixin M on Enum {
   int get foo => index;
 }
+
 mixin N implements Enum {
   int get foo => index;
 }

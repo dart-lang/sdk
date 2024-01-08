@@ -9,4 +9,5 @@ class C {
 }
 
 foo() {}
+
 main() {}

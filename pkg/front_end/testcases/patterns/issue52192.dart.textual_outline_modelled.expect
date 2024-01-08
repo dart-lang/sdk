@@ -7,7 +7,11 @@ class B implements A<int> {
 }
 
 expect(expected, actual) {}
+
 int callCount = 0;
+
 throws(void Function() f) {}
+
 void foo(Object o, num value) {}
+
 void main() {}

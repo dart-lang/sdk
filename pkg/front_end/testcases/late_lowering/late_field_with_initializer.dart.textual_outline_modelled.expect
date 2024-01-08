@@ -19,4 +19,5 @@ extension Extension<T> on Class<T> {
 }
 
 late int lateTopLevelField1 = 123;
+
 main() {}

@@ -19,6 +19,7 @@ class Box {
 }
 
 stringArgument(x) {}
+
 intArgument(x) {}
 
 class FinalBox {
@@ -39,4 +40,5 @@ class DynamicReceiver2 {
 }
 
 void makeDynamicCall(receiver) {}
+
 main() {}

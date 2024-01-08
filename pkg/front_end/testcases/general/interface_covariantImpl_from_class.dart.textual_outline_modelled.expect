@@ -11,4 +11,5 @@ class B<T> {
 }
 
 typedef void F<T>(T t);
+
 void main() {}

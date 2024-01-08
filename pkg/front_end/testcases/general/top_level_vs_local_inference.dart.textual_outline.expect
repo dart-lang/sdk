@@ -9,4 +9,5 @@ class TableSchema<F extends Column, C extends TableContext> {
 }
 
 var schema = TableSchema(fields: []);
+
 void method() {}

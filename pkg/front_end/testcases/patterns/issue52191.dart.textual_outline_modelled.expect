@@ -1,9 +1,11 @@
 main() {}
+
 void printBugsConditional(int n) => n == 0
     ? print('no bugs')
     : n == 1
         ? print('one bug')
         : print('$n bugs');
+
 void printBugsSwitch(int n) => switch (n) {
       0 => print('no bugs'),
       1 => print('one bug'),

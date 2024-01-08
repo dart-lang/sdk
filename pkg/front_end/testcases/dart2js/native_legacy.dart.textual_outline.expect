@@ -1,14 +1,23 @@
 import 'dart:_js_helper';
 
 var topLevelField;
+
 get topLevelGetter => null;
+
 set topLevelSetter(_) {}
+
 topLevelFunction() {}
+
 external get externalTopLevelGetter;
+
 external set externalTopLevelSetter(_);
+
 external externalTopLevelFunction();
+
 get nativeTopLevelGetter native;
+
 set nativeTopLevelSetter(_) native;
+
 nativeTopLevelFunction() native;
 
 class Class {

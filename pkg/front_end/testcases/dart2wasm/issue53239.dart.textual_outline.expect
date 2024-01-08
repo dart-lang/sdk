@@ -8,5 +8,7 @@ class C1 {
 extension type ET1(int id) {
   ET1.n1(this.id, [String s = "b"]) {}
 }
+
 main() {}
+
 expect(expected, actual) {}

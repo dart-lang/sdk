@@ -5,7 +5,9 @@ enum E with M1 {
 }
 
 expectEquals(x, y) {}
+
 main() {}
+
 mixin M1 on Enum {
   int mixedInMethod1(int v) => v;
 }

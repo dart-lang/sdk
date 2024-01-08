@@ -8,6 +8,9 @@ class A {
 class B extends A {}
 
 expect(expected, actual) {}
+
 extension type E(B it) implements B {}
+
 extension type F(B it) implements E {}
+
 main() {}

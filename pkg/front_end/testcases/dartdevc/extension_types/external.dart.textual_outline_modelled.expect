@@ -26,4 +26,5 @@ extension type B._(A a) {
   external void set property(B b);
   external void set setter(B b);
 }
+
 void method(A a) {}

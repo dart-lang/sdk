@@ -21,12 +21,17 @@ class C2 extends A2 {
 }
 
 expectIdentical(expected, actual) {}
+
 extension type const E1(A1 it) implements A1 {
   const factory E1.redir(A1 it) = E1;
 }
+
 extension type const E2(A2 it) implements A2 {
   const E2.pick(bool b) : this(b ? B2.element : C2.element);
 }
+
 main() {}
+
 test1() {}
+
 test2() {}

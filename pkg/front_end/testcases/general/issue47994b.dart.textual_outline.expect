@@ -7,5 +7,7 @@ class Class {
 }
 
 main() {}
+
 expect(expected, actual) {}
+
 Object? test(void Function() f) {}

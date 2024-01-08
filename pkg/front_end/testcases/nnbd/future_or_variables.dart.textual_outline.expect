@@ -1,12 +1,16 @@
 import 'dart:async';
 
 FutureOr topLevelField1;
+
 FutureOr<int?> topLevelField2;
+
 FutureOr<FutureOr> topLevelField3;
+
 void toplevelMethod1(
     [FutureOr parameter1,
     FutureOr<int?> parameter2,
     FutureOr<FutureOr> parameter3]) {}
+
 void toplevelMethod2(
     {FutureOr parameter1,
     FutureOr<int?> parameter2,

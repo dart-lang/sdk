@@ -9,5 +9,7 @@ class Square {
 }
 
 expect(expected, actual) {}
+
 main() {}
+
 void logger(String s) {}

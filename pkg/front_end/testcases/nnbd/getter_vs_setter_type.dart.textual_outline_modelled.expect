@@ -91,9 +91,15 @@ extension Extension<T, S extends T> on int {
 }
 
 int get property1 => 0;
+
 int get property2 => 0;
+
 main() {}
+
 num get property3 => 0;
+
 void set property1(int value) {}
+
 void set property2(num value) {}
+
 void set property3(int value) {}

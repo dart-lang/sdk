@@ -7,4 +7,5 @@ class I {
 }
 
 f(C c) {}
+
 main() {}

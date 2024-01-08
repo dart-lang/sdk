@@ -1,4 +1,5 @@
 // @dart = 2.19
+
 class A extends Function {}
 
 class B implements Function {}

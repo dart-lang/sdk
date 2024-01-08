@@ -3,7 +3,9 @@ library test;
 import 'dart:async';
 
 Future f() async {}
+
 Future main() async {}
+
 T F<T>() => throw '';
 
 abstract class MyStream<T> extends Stream<T> {

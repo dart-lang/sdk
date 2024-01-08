@@ -45,10 +45,12 @@ class C4 extends C3 {}
 class C5 with C1 implements C2 {}
 
 main() {}
+
 mixin A2 {
   void mixedInClassMember() {}
   void mixedInInterfaceMember();
 }
+
 mixin C1 {
   void mixedInAndImplementedClassMember() {}
   void mixedInAndImplementedInterfaceMember();

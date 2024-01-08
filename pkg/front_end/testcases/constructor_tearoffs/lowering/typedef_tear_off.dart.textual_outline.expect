@@ -12,10 +12,17 @@ class B<X> {
 }
 
 typedef DA1 = A;
+
 typedef DA2<X extends num> = A;
+
 typedef DB1 = B<String>;
+
 typedef DB2<X extends num> = B<X>;
+
 typedef DB3<X extends num, Y extends String> = B<X>;
+
 main() {}
+
 expect(expected, actual) {}
+
 throws(Function() f, {bool inSoundModeOnly = false}) {}

@@ -10,8 +10,13 @@ class B implements A {
 }
 
 extension type ET1(B b) implements A {}
+
 extension type ET2(B b) implements ET1, B {}
+
 extension type IntET(int i) implements int {}
+
 extension type TypeET(Type t) implements Type {}
+
 extension type BoolET(bool b) implements bool {}
+
 void test() {}

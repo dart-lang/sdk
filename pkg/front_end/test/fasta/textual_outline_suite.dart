@@ -128,18 +128,14 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
             null, context.expectationSet["EmptyOutput"], description.uri);
       }
 
-      // In an attempt to make it less sensitive to formatting first remove
-      // excess new lines, then format.
       List<String> lines = result.split("\n");
       bool containsUnknownChunk = false;
       StringBuffer sb = new StringBuffer();
       for (String line in lines) {
-        if (line.trim() != "") {
-          if (line == "---- unknown chunk starts ----") {
-            containsUnknownChunk = true;
-          }
-          sb.writeln(line);
+        if (line == "---- unknown chunk starts ----") {
+          containsUnknownChunk = true;
         }
+        sb.writeln(line);
       }
       result = sb.toString().trim();
 

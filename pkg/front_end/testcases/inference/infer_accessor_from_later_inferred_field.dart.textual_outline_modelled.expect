@@ -10,4 +10,5 @@ class B {
 }
 
 dynamic f() => null;
+
 main() {}

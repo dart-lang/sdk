@@ -15,6 +15,7 @@ class Extends extends BaseClass {}
 class Implements implements BaseClass {}
 
 mixin MixinImplements implements BaseMixin {}
+
 mixin MixinImplementsIndirect implements SubtypeOfBase {}
 
 class With with BaseMixin {}

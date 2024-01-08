@@ -46,11 +46,16 @@ extension Extension on A {
 
 @Annotation()
 external final int finalTopLevelField;
+
 external final untypedFinalTopLevelField;
+
 @Annotation()
 external int topLevelField;
+
 external var untypedTopLevelField;
+
 main() {}
+
 mixin B {
   @Annotation()
   external covariant num covariantInstanceField;

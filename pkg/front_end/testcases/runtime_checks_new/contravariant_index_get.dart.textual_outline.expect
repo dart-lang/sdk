@@ -7,4 +7,5 @@ class C<T> {
 }
 
 F<num> test(C<num> c) {}
+
 main() {}

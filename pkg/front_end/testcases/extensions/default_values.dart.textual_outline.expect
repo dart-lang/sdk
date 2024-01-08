@@ -9,4 +9,5 @@ extension Extension on Class {
 }
 
 main() {}
+
 expect(expected, actual) {}

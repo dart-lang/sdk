@@ -8,4 +8,5 @@ extension Extension on Class {
 }
 
 main() {}
+
 errors() {}

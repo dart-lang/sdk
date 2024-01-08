@@ -1,4 +1,5 @@
 // @dart = 2.19
+
 import 'dart:ffi';
 
 class ExtendsBase extends Opaque {}

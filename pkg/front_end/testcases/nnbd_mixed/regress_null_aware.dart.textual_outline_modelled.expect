@@ -1,4 +1,5 @@
 // @dart = 2.6
+
 class Class {
   List<String> method(String node, Set<String> set) => set.add(node)
       ? [node, ...?map[node]?.expand((node) => method(node, set))?.toList()]

@@ -9,4 +9,5 @@ class C extends B {
 }
 
 var x = new C().f();
+
 main() {}

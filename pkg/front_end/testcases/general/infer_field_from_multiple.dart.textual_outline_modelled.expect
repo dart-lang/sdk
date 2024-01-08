@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class A<T> {
   T field10;
   T field11;

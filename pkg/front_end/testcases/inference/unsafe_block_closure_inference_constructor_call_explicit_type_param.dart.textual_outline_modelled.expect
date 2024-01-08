@@ -5,6 +5,7 @@ class C<T> {
 }
 
 main() {}
+
 var v = new C<int>(() {
   return 1;
 });

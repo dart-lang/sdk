@@ -13,4 +13,5 @@ class LegacyWithFinal with LegacyImplementFinalCore {}
 
 mixin LegacyOnBase<E extends LinkedListEntry<E>>
     on LegacyImplementBaseCore<E> {}
+
 mixin LegacyOnFinal on LegacyImplementFinalCore {}

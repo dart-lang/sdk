@@ -7,6 +7,7 @@ class Foo {
 class C<@Foo(const []) T> {}
 
 typedef void F<@Foo(const []) T>();
+
 void f<@Foo(const []) T>() {}
 
 class D {

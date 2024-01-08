@@ -15,4 +15,5 @@ class Baz {
 }
 
 typedef hest_t({@foo named});
+
 main() {}

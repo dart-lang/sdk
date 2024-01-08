@@ -6,6 +6,9 @@ class A {
 }
 
 int foo<T>(T x) => 3;
+
 main() {}
+
 typedef Foo<S> = S Function<T>(T x);
+
 void test1() {}

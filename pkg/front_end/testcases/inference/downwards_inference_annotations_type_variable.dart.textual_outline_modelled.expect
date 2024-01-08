@@ -11,5 +11,7 @@ class Foo {
 }
 
 main() {}
+
 typedef void F<@Foo(const []) T>();
+
 void f<@Foo(const []) T>() {}

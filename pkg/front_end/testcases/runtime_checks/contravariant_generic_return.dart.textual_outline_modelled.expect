@@ -6,7 +6,11 @@ class C<T> {
 }
 
 typedef void F<T>(T x);
+
 void g1(C<num> c) {}
+
 void g2(C<num> c) {}
+
 void g3(C<num> c) {}
+
 void main() {}

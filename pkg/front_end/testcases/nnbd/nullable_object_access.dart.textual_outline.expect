@@ -12,5 +12,6 @@ abstract class Class {
 }
 
 main() {}
+
 void test(Class c1, Class? c2, Invocation invocation,
     CustomInvocation customInvocation) {}

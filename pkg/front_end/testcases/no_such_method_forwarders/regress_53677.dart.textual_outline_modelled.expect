@@ -1,5 +1,7 @@
 class MA = A with M;
+
 main() {}
+
 mixin M on A {
   String m1(int v, [String s = "s1"]);
   String m2(int v, {String s});

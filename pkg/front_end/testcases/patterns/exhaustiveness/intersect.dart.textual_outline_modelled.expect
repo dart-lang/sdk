@@ -1,11 +1,20 @@
 exhaustiveBoundedTypeVariableByBound<T extends bool>(T x1, T x2) {}
+
 exhaustiveBoundedTypeVariableByType<T extends bool>(T x1, T x2) {}
+
 exhaustiveBoundedTypeVariableByValue<T extends bool>(T x1, T x2) {}
+
 exhaustivePromotedTypeVariableByBound1<T>(T x1, T x2) {}
+
 exhaustivePromotedTypeVariableByType<T>(T x1, T x2) {}
+
 exhaustivePromotedTypeVariableByValue<T>(T x1, T x2) {}
+
 nonExhaustiveBoundedTypeVariable<T extends bool>(T x1, T x2) {}
+
 nonExhaustiveBoundedTypeVariableByOtherType<T extends bool, S extends bool>(
     T x1, T x2) {}
+
 nonExhaustivePromotedTypeVariable<T>(T x1, T x2) {}
+
 nonExhaustivePromotedTypeVariableByOtherType<T, S extends bool>(T x1, T x2) {}

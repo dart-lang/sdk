@@ -8,4 +8,5 @@ this.
   E.named() : this.x = 5, this.y = 6;
   y = 2;
 }
+
 main() {}

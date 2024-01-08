@@ -1,4 +1,5 @@
 main() {}
+
 f(A a) {}
 
 class B extends A with M {

@@ -1,4 +1,5 @@
 // @dart = 2.4
+
 class late {
   int get g => 1;
 }

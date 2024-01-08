@@ -1,4 +1,5 @@
 X id<X>(X x) => x;
+
 X other<X>(X x) => throw '$x';
 
 class A {

@@ -17,4 +17,5 @@ enum E {
 }
 
 main() {}
+
 test() {}

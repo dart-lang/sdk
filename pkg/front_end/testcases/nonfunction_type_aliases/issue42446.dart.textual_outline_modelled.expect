@@ -5,6 +5,9 @@ class A2<X extends A2<X>> {
 }
 
 foo() {}
+
 main() {}
+
 typedef B<X extends A<X>> = A<X>;
+
 typedef B2<X extends A2<X>> = A2<X>;

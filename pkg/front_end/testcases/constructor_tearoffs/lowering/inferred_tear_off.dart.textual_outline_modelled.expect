@@ -12,13 +12,23 @@ class B<T> implements A {
 }
 
 main() {}
+
 typedef F<T> = A;
+
 typedef G<T extends num> = B;
+
 var A_named = A.named;
+
 var A_new = A.new;
+
 var B_named = B<int>.named;
+
 var B_new = B.new;
+
 var F_named = F.named;
+
 var F_new = F.new;
+
 var G_named = G<int>.named;
+
 var G_new = G.new;

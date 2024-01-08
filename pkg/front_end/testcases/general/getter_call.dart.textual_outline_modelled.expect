@@ -1,5 +1,7 @@
 bool enableRead = true;
+
 callField(Class c) {}
+
 callGetter(Class c) {}
 
 class Class {
@@ -41,12 +43,21 @@ class Subclass extends Class {
 }
 
 expect(expected, actual) {}
+
 int method1() => 0;
+
 int method2(int a) => -a;
+
 int method3(int a, int b) => a - b;
+
 int method4(int a, [int b = 0]) => a - b;
+
 int method5([int a = 0, int b = 0]) => a - b;
+
 int method6(int a, {int b = 0}) => a - b;
+
 int method7({int a = 0, int b = 0}) => a - b;
+
 int read(int value) => enableRead ? value : -1;
+
 main() {}

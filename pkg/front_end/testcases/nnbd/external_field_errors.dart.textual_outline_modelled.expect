@@ -15,9 +15,13 @@ extension Extension on A {
 }
 
 external const int constField = 0;
+
 external final int finalTopLevelField = 0;
+
 external int topLevelField = 0;
+
 main() {}
+
 mixin B {
   external static final int finalStaticField = 0;
   external static int staticField = 0;

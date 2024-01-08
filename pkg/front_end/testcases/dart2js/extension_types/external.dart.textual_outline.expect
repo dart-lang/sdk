@@ -1,4 +1,5 @@
 @JS()
+
 library static_interop;
 
 import 'dart:js_interop';
@@ -26,4 +27,5 @@ extension type B._(A a) {
   external static B get staticProperty;
   external static void set staticProperty(B b);
 }
+
 void method(A a) {}

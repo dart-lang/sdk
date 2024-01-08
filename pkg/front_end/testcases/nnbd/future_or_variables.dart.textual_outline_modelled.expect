@@ -1,7 +1,9 @@
 import 'dart:async';
 
 FutureOr<FutureOr> topLevelField3;
+
 FutureOr<int?> topLevelField2;
+
 FutureOr topLevelField1;
 
 class Class1 {
@@ -39,10 +41,12 @@ class Class2 {
 }
 
 main() {}
+
 void toplevelMethod1(
     [FutureOr parameter1,
     FutureOr<int?> parameter2,
     FutureOr<FutureOr> parameter3]) {}
+
 void toplevelMethod2(
     {FutureOr parameter1,
     FutureOr<int?> parameter2,

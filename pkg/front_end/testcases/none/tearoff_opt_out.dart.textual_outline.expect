@@ -1,7 +1,9 @@
 // @dart = 2.9
+
 class Class {
   void call() {}
 }
 
 test(Class c) {}
+
 main() {}

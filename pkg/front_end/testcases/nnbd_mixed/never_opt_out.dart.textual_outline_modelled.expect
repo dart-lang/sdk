@@ -1,4 +1,5 @@
 // @dart = 2.6
+
 import 'never_opt_out_lib.dart';
 
 Never optOutNever;
@@ -28,6 +29,9 @@ class C extends A {
 class GenericClass<T> {}
 
 genericMethod<T>() {}
+
 main() {}
+
 throws(void Function() f) {}
+
 var inferredOptOutNever = optInNever;

@@ -34,13 +34,21 @@ class AA5 {
 }
 
 class C1 = A1 with B1;
+
 class C2 = A2 with B2;
+
 class C3 = A3 with B3;
+
 class C4 = A4 with B4;
+
 class C5a = A5 with B5;
+
 class C5b = C5a with B5;
+
 class C5c = C5b with B5;
+
 class C7 = A7 with B7;
+
 class C9 = A9 with B9;
 
 class D1 extends C1 {
@@ -80,10 +88,17 @@ class D9 extends C9 {
 }
 
 main() {}
+
 mixin B1 {}
+
 mixin B2 {}
+
 mixin B3 {}
+
 mixin B4 {}
+
 mixin B5 {}
+
 mixin B7 {}
+
 mixin B9 {}

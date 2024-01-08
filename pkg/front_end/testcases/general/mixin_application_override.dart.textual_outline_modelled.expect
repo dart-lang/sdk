@@ -1,8 +1,13 @@
 class A0 = S with M;
+
 class A0X = S with M, MX;
+
 class A1 = S with M1, M;
+
 class A1X = S with M1, M, MX;
+
 class A2 = S with M1, M2, M;
+
 class A2X = S with M1, M2, M, MX;
 
 class B0 extends S with M {}
@@ -22,9 +27,13 @@ class S {
 }
 
 main() {}
+
 mixin M {
   foo() {}
 }
+
 mixin M1 {}
+
 mixin M2 {}
+
 mixin MX {}

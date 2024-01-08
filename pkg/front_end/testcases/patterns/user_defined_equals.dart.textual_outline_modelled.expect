@@ -9,8 +9,13 @@ class Class2 {
 }
 
 const Class1 c1 = const Class1();
+
 const Class2 c2 = const Class2();
+
 expect(expected, actual) {}
+
 main() {}
+
 test1(o) {}
+
 test2(o) {}

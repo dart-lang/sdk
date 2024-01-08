@@ -1,6 +1,7 @@
 mixin M1 {
   method(covariant int a, int b) {}
 }
+
 mixin M2 {
   method(int a, covariant int b) {}
 }
@@ -60,6 +61,7 @@ class Interface2 {
 mixin Mixin1 {
   void method(int a, int b, covariant int c, int d, int e) {}
 }
+
 mixin Mixin2 {
   void method(int a, int b, int c, covariant int d, int e) {}
 }

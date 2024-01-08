@@ -7,4 +7,5 @@ class C {
 var v = new C().f(() {
   return 1;
 });
+
 main() {}

@@ -13,6 +13,7 @@ extension on I {
 }
 
 main() {}
+
 method(A a) => switch (a) {
       I(:var member) => member,
     };

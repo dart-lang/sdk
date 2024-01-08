@@ -1,12 +1,19 @@
 import 'dart:async';
 
 Class? c2;
+
 Class c1 = Class();
+
 Function f3 = () {};
+
 FutureOr<Class> f2 = Class();
+
 GetterCall c3 = GetterCall();
+
 Never n = throw '';
+
 String a = '';
+
 bool c = true;
 
 class Class {
@@ -18,6 +25,7 @@ class GetterCall {
 }
 
 double b = 0.5;
+
 dynamic d = null;
 
 extension Ambiguous1 on String {
@@ -41,9 +49,13 @@ extension ExtensionSetter on bool {
 }
 
 int? i2 = null;
+
 int i1 = 0;
+
 main() {}
+
 method<T extends Class, S extends int>(Class c, int i, T t, S s) {}
+
 test<T extends Class?, S extends int>(
     Class? c1,
     GetterCall c2,
@@ -59,17 +71,31 @@ test<T extends Class?, S extends int>(
     bool c,
     FutureOr<Class> f2,
     Function f3) {}
+
 var topLevel1 = c1<int>;
+
 var topLevel10 = b<int>;
+
 var topLevel11 = c<int>;
+
 var topLevel12 = f2<int>;
+
 var topLevel13 = f3<int>;
+
 var topLevel2 = i1<int>;
+
 var topLevel3 = c2<int>;
+
 var topLevel4 = c3<int>;
+
 var topLevel5 = i2<int>;
+
 var topLevel6 = f1<int>;
+
 var topLevel7 = n<int>;
+
 var topLevel8 = d<int>;
+
 var topLevel9 = a<int>;
+
 void Function<T>()? f1 = null;

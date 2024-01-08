@@ -11,5 +11,7 @@ class Subclass extends Superclass {
 }
 
 topLevelNamed(beta, alpha, {gamma, delta}) {}
+
 topLevelOptional(beta, alpha, [gamma, delta]) {}
+
 main() {}

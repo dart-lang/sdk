@@ -1,3 +1,5 @@
 dynamic a;
+
 main() {}
+
 test() {}

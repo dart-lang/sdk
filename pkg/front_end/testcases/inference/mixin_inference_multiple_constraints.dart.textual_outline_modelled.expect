@@ -9,4 +9,5 @@ class M1 implements I<int> {}
 class M2 extends M1 implements J<double> {}
 
 main() {}
+
 mixin M0<X, Y> on I<X>, J<Y> {}

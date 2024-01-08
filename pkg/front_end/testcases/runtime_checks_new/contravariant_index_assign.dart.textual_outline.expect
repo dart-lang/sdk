@@ -17,4 +17,5 @@ class C2<T> {
 }
 
 void test(C<num> c, C2<num> c2) {}
+
 main() {}

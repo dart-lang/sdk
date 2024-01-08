@@ -1,7 +1,9 @@
 // @dart = 2.9
+
 library test;
 
 void expectTypeError(void callback()) {}
+
 void expect(Object value, Object expected) {}
 
 class C<T> {
@@ -19,5 +21,7 @@ class D {
 }
 
 int numToInt(num n) => 1;
+
 num numToNum(num n) => 2;
+
 void main() {}

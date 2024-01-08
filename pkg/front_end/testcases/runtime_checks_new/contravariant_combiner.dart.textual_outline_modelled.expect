@@ -12,8 +12,13 @@ class C {
 }
 
 typedef void F<T>(T x);
+
 void main() {}
+
 void test1(B<num, F<num>> b) {}
+
 void test2(C c) {}
+
 void test3(C c) {}
+
 void test4(C c) {}

@@ -14,16 +14,22 @@ abstract class A {
   external abstract int externalInstanceField1;
   external abstract late int externalLateInstanceField;
 }
+
 abstract const int constField = 0;
+
 abstract final int finalTopLevelField = 0;
+
 abstract int topLevelField;
+
 extension Extension on A {
   abstract final int finalExtensionInstanceField;
   abstract int extensionInstanceField;
   abstract static final int finalExtensionStaticField = 0;
   abstract static int extensionStaticField = 0;
 }
+
 main() {}
+
 mixin B {
   abstract static final int finalStaticField;
   abstract static int staticField;
