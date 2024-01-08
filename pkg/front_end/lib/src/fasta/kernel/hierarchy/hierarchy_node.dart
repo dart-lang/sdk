@@ -287,17 +287,8 @@ class ClassHierarchyNodeBuilder extends HierarchyNodeBuilder {
     if (typeArguments.isEmpty || typeArguments.first is! UnknownType) {
       return mixinNode;
     }
-    FreshStructuralParametersFromTypeParameters freshTypeParameters =
-        getFreshStructuralParametersFromTypeParameters(
-            mixedInType.classNode.typeParameters);
     new BuilderMixinInferrer(
-            _classBuilder,
-            _hierarchy.coreTypes,
-            new TypeBuilderConstraintGatherer(
-                _hierarchy, freshTypeParameters.freshTypeParameters,
-                isNonNullableByDefault:
-                    cls.enclosingLibrary.isNonNullableByDefault),
-            freshTypeParameters.substitutionMap)
+            _classBuilder, _hierarchy, mixedInType.classNode.typeParameters)
         .infer(cls);
     List<TypeBuilder> inferredArguments = new List<TypeBuilder>.generate(
         typeArguments.length,
