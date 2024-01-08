@@ -281,19 +281,32 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertErrorsInResult(const []);
   }
 
-  void assertParsedNodeText(
-    AstNode node,
-    String expected, {
-    String? selfUriStr,
-    bool skipArgumentList = false,
-  }) {
-    var actual = _parsedNodeText(
-      node,
-      selfUriStr: selfUriStr,
-      skipArgumentList: skipArgumentList,
+  void assertParsedNodeText(AstNode node, String expected) {
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
     );
+
+    final elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+      selfUriStr: null,
+    );
+
+    node.accept(
+      ResolvedAstPrinter(
+        sink: sink,
+        elementPrinter: elementPrinter,
+        configuration: ResolvedNodeTextConfiguration(),
+        withResolution: false,
+      ),
+    );
+
+    final actual = buffer.toString();
     if (actual != expected) {
-      print(actual);
+      print('-------- Actual --------');
+      print('$actual------------------------');
       NodeTextExpectationsCollector.add(actual);
     }
     expect(actual, expected);
@@ -541,34 +554,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     } else {
       return wrapMatcher(elementOrMatcher);
     }
-  }
-
-  String _parsedNodeText(
-    AstNode node, {
-    String? selfUriStr,
-    bool skipArgumentList = false,
-  }) {
-    selfUriStr ??= '${result.libraryElement.source.uri}';
-    final buffer = StringBuffer();
-    final sink = TreeStringSink(
-      sink: buffer,
-      indent: '',
-    );
-    final elementPrinter = ElementPrinter(
-      sink: sink,
-      configuration: ElementPrinterConfiguration(),
-      selfUriStr: selfUriStr,
-    );
-    node.accept(
-      ResolvedAstPrinter(
-        sink: sink,
-        elementPrinter: elementPrinter,
-        configuration: ResolvedNodeTextConfiguration()
-          ..skipArgumentList = skipArgumentList,
-        withResolution: false,
-      ),
-    );
-    return buffer.toString();
   }
 
   String _resolvedNodeText(AstNode node) {

@@ -2662,7 +2662,7 @@ class A {}
     // Pending changes are no applied yes, so `a` is empty.
     {
       final result = driver.parseFileSync2(a) as ParsedUnitResult;
-      assertParsedNodeText(result.unit, selfUriStr: '', r'''
+      assertParsedNodeText(result.unit, r'''
 CompilationUnit
 ''');
     }
@@ -2687,7 +2687,7 @@ CompilationUnit
     // So, now `class A {}` is declared.
     {
       final result = driver.parseFileSync2(a) as ParsedUnitResult;
-      assertParsedNodeText(result.unit, selfUriStr: '', r'''
+      assertParsedNodeText(result.unit, r'''
 CompilationUnit
   declarations
     ClassDeclaration
@@ -2734,7 +2734,7 @@ class A {}
     final driver = driverFor(testFile);
 
     final result = driver.parseFileSync2(a) as ParsedUnitResult;
-    assertParsedNodeText(result.unit, selfUriStr: '', r'''
+    assertParsedNodeText(result.unit, r'''
 CompilationUnit
   declarations
     ClassDeclaration
