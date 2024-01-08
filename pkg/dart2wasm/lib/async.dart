@@ -774,8 +774,6 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.local_get(suspendStateLocal);
     b.struct_get(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-    // Non-null Dart field represented as nullable Wasm field.
-    b.ref_as_non_null();
     b.ref_null(translator.topInfo.struct);
     call(translator.completerComplete.reference);
     b.return_();
@@ -790,7 +788,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      b.ref_as_non_null();
       b.local_get(exceptionLocal);
       b.local_get(stackTraceLocal);
       call(translator.completerCompleteError.reference);
@@ -1205,8 +1202,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      // Non-null Dart field represented as nullable Wasm field.
-      b.ref_as_non_null();
       b.local_get(suspendStateLocal);
       b.struct_get(asyncSuspendStateInfo.struct,
           FieldIndex.asyncSuspendStateCurrentReturnValue);
@@ -1264,8 +1259,6 @@ class AsyncCodeGenerator extends CodeGenerator {
       b.local_get(suspendStateLocal);
       b.struct_get(
           asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateCompleter);
-      // Non-null Dart field represented as nullable Wasm field.
-      b.ref_as_non_null();
     }
 
     final value = node.expression;
