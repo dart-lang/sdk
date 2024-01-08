@@ -39,6 +39,8 @@ final class _Closure implements Function {
   @pragma("vm:entry-point")
   var _delayed_type_arguments;
   @pragma("vm:entry-point")
+  var _default_type_arguments;
+  @pragma("vm:entry-point")
   var _function;
   @pragma("vm:entry-point")
   var _context;

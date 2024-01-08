@@ -2874,15 +2874,40 @@ class UntaggedClosure : public UntaggedInstance {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
 
-  // No instance fields should be declared before the following fields whose
-  // offsets must be identical in Dart and C++.
-
   // The following fields are also declared in the Dart source of class
-  // _Closure.
+  // _Closure, and so must be the first fields in the object and must appear
+  // in the same order, so the offsets are identical in Dart and C++.
+  //
+  // Note that the type of a closure is defined by instantiating the
+  // signature of the closure function with the instantiator, function, and
+  // delayed (if non-empty) type arguments stored in the closure value.
+
+  // Stores the instantiator type arguments provided when the closure was
+  // created.
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
   VISIT_FROM(instantiator_type_arguments)
+  // Stores the function type arguments provided for any generic parent
+  // functions when the closure was created.
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
+  // If this field contains the empty type argument vector, then the closure
+  // value is generic.
+  //
+  // To create a new closure that is a specific type instantiation of a generic
+  // closure, a copy of the closure is created where the empty type argument
+  // vector in this field is replaced with the vector of local type arguments.
+  // The resulting closure value is not generic, and so an attempt to provide
+  // type arguments when invoking the new closure value is treated the same as
+  // calling any other non-generic function with unneeded type arguments.
+  //
+  // If the signature for the closure function has no local type parameters,
+  // the only guarantee about this field is that it never contains the empty
+  // type arguments vector. Thus, only this field need be inspected to
+  // determine whether a given closure value is generic.
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
+  // Stores an instantiated to bounds version of the local type parameters
+  // (if any). This field is retrieved when a generic closure is called
+  // without providing type arguments.
+  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, default_type_arguments)
   COMPRESSED_POINTER_FIELD(FunctionPtr, function)
   COMPRESSED_POINTER_FIELD(ContextPtr, context)
   COMPRESSED_POINTER_FIELD(SmiPtr, hash)
@@ -2895,29 +2920,6 @@ class UntaggedClosure : public UntaggedInstance {
   ONLY_IN_PRECOMPILED(uword entry_point_);
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
-
-  // Note that instantiator_type_arguments_, function_type_arguments_ and
-  // delayed_type_arguments_ are used to instantiate the signature of function_
-  // when this closure is involved in a type test. In other words, these fields
-  // define the function type of this closure instance.
-  //
-  // function_type_arguments_ and delayed_type_arguments_ may also be used when
-  // invoking the closure. Whereas the source frontend will save a copy of the
-  // function's type arguments in the closure's context and only use the
-  // function_type_arguments_ field for type tests, the kernel frontend will use
-  // the function_type_arguments_ vector here directly.
-  //
-  // If this closure is generic, it can be invoked with function type arguments
-  // that will be processed in the prolog of the closure function_. For example,
-  // if the generic closure function_ has a generic parent function, the
-  // passed-in function type arguments get concatenated to the function type
-  // arguments of the parent that are found in the context_.
-  //
-  // delayed_type_arguments_ is used to support the partial instantiation
-  // feature. When this field is set to any value other than
-  // Object::empty_type_arguments(), the types in this vector will be passed as
-  // type arguments to the closure when invoked. In this case there may not be
-  // any type arguments passed directly (or NSM will be invoked instead).
 
   friend class UnitDeserializationRoots;
 };

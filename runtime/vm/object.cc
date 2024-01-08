@@ -26313,6 +26313,34 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
       instantiator_type_arguments.ptr());
   result.untag()->set_function_type_arguments(function_type_arguments.ptr());
   result.untag()->set_delayed_type_arguments(delayed_type_arguments.ptr());
+  // Cache instantiating the local type parameters to bounds. For non-generic
+  // closures, we just leave the field as its null initialization.
+  if (function.IsGeneric()) {
+    auto* const thread = Thread::Current();
+    Function::DefaultTypeArgumentsKind kind;
+    auto& default_type_args = TypeArguments::Handle(
+        thread->zone(), function.InstantiateToBounds(thread, &kind));
+    switch (kind) {
+      case Function::DefaultTypeArgumentsKind::kInvalid:
+        // We shouldn't hit the invalid case.
+        UNREACHABLE();
+        break;
+      case Function::DefaultTypeArgumentsKind::kIsInstantiated:
+        // Nothing left to do.
+        break;
+      case Function::DefaultTypeArgumentsKind::kNeedsInstantiation:
+        default_type_args = default_type_args.InstantiateAndCanonicalizeFrom(
+            instantiator_type_arguments, function_type_arguments);
+        break;
+      case Function::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments:
+        default_type_args = instantiator_type_arguments.ptr();
+        break;
+      case Function::DefaultTypeArgumentsKind::kSharesFunctionTypeArguments:
+        default_type_args = function_type_arguments.ptr();
+        break;
+    }
+    result.untag()->set_default_type_arguments(default_type_args.ptr());
+  }
   result.untag()->set_function(function.ptr());
   result.untag()->set_context(context.ptr());
 #if defined(DART_PRECOMPILED_RUNTIME)
