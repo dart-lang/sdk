@@ -2440,67 +2440,6 @@ import 'package:test/b.dart';
     expect(result, isA<InvalidPathResult>());
   }
 
-  test_hasFilesToAnalyze_addFile() async {
-    final a = newFile('$testPackageLibPath/a.dart', '');
-
-    final driver = driverFor(testFile);
-
-    // No files yet, nothing to analyze.
-    expect(driver.hasFilesToAnalyze, isFalse);
-
-    // Add `a`, it should be analyzed.
-    driver.addFile2(a);
-    driver.priorityFiles2 = [a];
-    expect(driver.hasFilesToAnalyze, isTrue);
-
-    // Wait for idle, nothing to do.
-    await pumpEventQueue(times: 5000);
-    expect(driver.hasFilesToAnalyze, isFalse);
-  }
-
-  test_hasFilesToAnalyze_getFilesReferencingName() async {
-    final driver = driverFor(testFile);
-
-    // Request of referenced names is not analysis of a file.
-    unawaited(driver.getFilesReferencingName('X'));
-    expect(driver.hasFilesToAnalyze, isFalse);
-  }
-
-  test_hasFilesToAnalyze_getResolvedUnit() async {
-    final a = newFile('$testPackageLibPath/a.dart', '');
-
-    final driver = driverFor(testFile);
-    final collector = DriverEventCollector(driver);
-
-    // No files yet, nothing to analyze.
-    expect(driver.hasFilesToAnalyze, isFalse);
-
-    // Ask to analyze `a`, so there is a file to analyze.
-    final future = driver.getResolvedUnit2(a);
-    expect(driver.hasFilesToAnalyze, isTrue);
-
-    // Once analysis is done, there is nothing to analyze.
-    await future;
-    expect(driver.hasFilesToAnalyze, isFalse);
-
-    // Ignore results.
-    await pumpEventQueue(times: 5000);
-    collector.take();
-
-    // Change a file, even if not added, it still might affect analysis.
-    final b = getFile('$testPackageLibPath/b.dart');
-    driver.changeFile2(b);
-    expect(driver.hasFilesToAnalyze, isTrue);
-
-    // Once the pending changes processed, nothing to analyze.
-    await pumpEventQueue(times: 5000);
-    expect(driver.hasFilesToAnalyze, isFalse);
-
-    // No analysis done.
-    await assertEventsText(collector, r'''
-''');
-  }
-
   test_hermetic_modifyLibraryFile_resolvePart() async {
     final a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

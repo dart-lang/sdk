@@ -355,14 +355,6 @@ class AnalysisDriver {
   /// The current file system state.
   FileSystemState get fsState => _fsState;
 
-  /// Return `true` if the driver has a file to analyze.
-  bool get hasFilesToAnalyze {
-    return hasPendingFileChanges ||
-        _fileTracker.hasChangedFiles ||
-        _requestedFiles.isNotEmpty ||
-        _fileTracker.hasPendingFiles;
-  }
-
   bool get hasPendingFileChanges => _pendingFileChanges.isNotEmpty;
 
   /// Return the set of files that are known at this moment. This set does not
@@ -523,6 +515,14 @@ class AnalysisDriver {
       return AnalysisDriverPriority.general;
     }
     return AnalysisDriverPriority.nothing;
+  }
+
+  /// Whether the driver has a file to analyze.
+  bool get _hasFilesToAnalyze {
+    return hasPendingFileChanges ||
+        _fileTracker.hasChangedFiles ||
+        _requestedFiles.isNotEmpty ||
+        _fileTracker.hasPendingFiles;
   }
 
   /// Add the file with the given [path] to the set of files that are explicitly
@@ -2164,7 +2164,7 @@ class AnalysisDriverScheduler {
   /// Return `true` if there is a driver with a file to analyze.
   bool get _hasFilesToAnalyze {
     for (final driver in _drivers) {
-      if (driver.hasFilesToAnalyze) {
+      if (driver._hasFilesToAnalyze) {
         return true;
       }
     }
