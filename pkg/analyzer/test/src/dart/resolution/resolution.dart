@@ -284,10 +284,12 @@ mixin ResolutionTest implements ResourceProviderMixin {
   void assertParsedNodeText(
     AstNode node,
     String expected, {
+    String? selfUriStr,
     bool skipArgumentList = false,
   }) {
     var actual = _parsedNodeText(
       node,
+      selfUriStr: selfUriStr,
       skipArgumentList: skipArgumentList,
     );
     if (actual != expected) {
@@ -543,8 +545,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   String _parsedNodeText(
     AstNode node, {
+    String? selfUriStr,
     bool skipArgumentList = false,
   }) {
+    selfUriStr ??= '${result.libraryElement.source.uri}';
     final buffer = StringBuffer();
     final sink = TreeStringSink(
       sink: buffer,
@@ -553,7 +557,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     final elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration(),
-      selfUriStr: '${result.libraryElement.source.uri}',
+      selfUriStr: selfUriStr,
     );
     node.accept(
       ResolvedAstPrinter(
@@ -651,6 +655,10 @@ class _MultiplyDefinedElementMatcher extends Matcher {
 }
 
 extension ResolvedUnitResultExtension on ResolvedUnitResult {
+  FindElement get findElement {
+    return FindElement(unit);
+  }
+
   FindNode get findNode {
     return FindNode(content, unit);
   }

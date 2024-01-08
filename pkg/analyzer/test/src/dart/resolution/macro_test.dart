@@ -317,14 +317,14 @@ class A {}
           return unitResult.isAugmentation;
         };
     }, r'''
-ResolvedLibraryResult
+ResolvedLibraryResult #0
   element: package:test/test.dart
   units
-    ResolvedUnitResult #0
+    ResolvedUnitResult #1
       path: /home/test/lib/test.dart
       uri: package:test/test.dart
       flags: exists isLibrary
-    ResolvedUnitResult #1
+    ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
       flags: exists isAugmentation isMacroAugmentation
@@ -378,10 +378,10 @@ void f() {
           return unitResult.isAugmentation;
         };
     }, r'''
-ResolvedLibraryResult
+ResolvedLibraryResult #0
   element: package:test/test.dart
   units
-    ResolvedUnitResult #0
+    ResolvedUnitResult #1
       path: /home/test/lib/test.dart
       uri: package:test/test.dart
       flags: exists isLibrary
@@ -395,7 +395,7 @@ ResolvedLibraryResult
               staticType: int
             semicolon: ;
         rightBracket: }
-    ResolvedUnitResult #1
+    ResolvedUnitResult #2
       path: /home/test/lib/test.macro.dart
       uri: package:test/test.macro.dart
       flags: exists isAugmentation isMacroAugmentation

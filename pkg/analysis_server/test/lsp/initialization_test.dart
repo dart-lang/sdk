@@ -722,7 +722,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // analysis root it will not occur.
     // https://github.com/dart-lang/sdk/issues/37338
     for (var driver in server.driverMap.values) {
-      expect(driver.getCachedResult(nestedFilePath), isNotNull);
+      expect(driver.getCachedResolvedUnit(nestedFilePath), isNotNull);
     }
 
     // Closing the file should remove it.
@@ -1078,7 +1078,7 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     // analysis root it will not occur.
     // https://github.com/dart-lang/sdk/issues/37338
     for (var driver in server.driverMap.values) {
-      expect(driver.getCachedResult(nestedFilePath), isNotNull);
+      expect(driver.getCachedResolvedUnit(nestedFilePath), isNotNull);
     }
 
     // Closing the file should remove it.

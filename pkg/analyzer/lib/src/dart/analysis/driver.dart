@@ -369,6 +369,10 @@ class AnalysisDriver {
   /// not been processed yet, it might be missing.
   Set<String> get knownFiles => _fsState.knownFilePaths;
 
+  /// See [knownFiles].
+  Set<File> get knownFiles2 =>
+      _fsState.knownFiles.map((e) => e.resource).toSet();
+
   /// Return the context in which libraries should be analyzed.
   LibraryContext get libraryContext {
     return _libraryContext ??= LibraryContext(
@@ -720,9 +724,14 @@ class AnalysisDriver {
   /// The [path] must be absolute and normalized.
   ///
   /// The [path] can be any file - explicitly or implicitly analyzed, or neither.
-  ResolvedUnitResult? getCachedResult(String path) {
+  ResolvedUnitResult? getCachedResolvedUnit(String path) {
     _throwIfNotAbsolutePath(path);
     return _priorityResults[path];
+  }
+
+  /// See [getCachedResolvedUnit].
+  ResolvedUnitResult? getCachedResolvedUnit2(File file) {
+    return _priorityResults[file.path];
   }
 
   /// Return a [Future] that completes with the [ErrorsResult] for the Dart
@@ -767,6 +776,12 @@ class AnalysisDriver {
     return task.completer.future;
   }
 
+  /// See [getFilesDefiningClassMemberName].
+  Future<List<File>> getFilesDefiningClassMemberName2(String name) async {
+    final pathList = await getFilesDefiningClassMemberName(name);
+    return pathList.map((path) => resourceProvider.getFile(path)).toList();
+  }
+
   /// Return a [Future] that completes with the list of known files that
   /// reference the given external [name].
   Future<List<String>> getFilesReferencingName(String name) {
@@ -775,6 +790,12 @@ class AnalysisDriver {
     _referencingNameTasks.add(task);
     _scheduler.notify(this);
     return task.completer.future;
+  }
+
+  /// See [getFilesReferencingName].
+  Future<List<File>> getFilesReferencingName2(String name) async {
+    final pathList = await getFilesReferencingName(name);
+    return pathList.map((path) => resourceProvider.getFile(path)).toList();
   }
 
   /// Return the [FileResult] for the Dart file with the given [path].
@@ -792,6 +813,11 @@ class AnalysisDriver {
     );
   }
 
+  /// See [getFileSync].
+  SomeFileResult getFileSync2(File file) {
+    return getFileSync(file.path);
+  }
+
   /// Return a [Future] that completes with the [AnalysisDriverUnitIndex] for
   /// the file with the given [path], or with `null` if the file cannot be
   /// analyzed.
@@ -807,6 +833,11 @@ class AnalysisDriver {
     _indexRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
+  }
+
+  /// See [getIndex].
+  Future<AnalysisDriverUnitIndex?> getIndex2(File file) {
+    return getIndex(file.path);
   }
 
   /// Return a [Future] that completes with [LibraryElementResult] for the given
@@ -899,6 +930,11 @@ class AnalysisDriver {
       session: currentSession,
       units: units,
     );
+  }
+
+  /// See [getParsedLibrary].
+  SomeParsedLibraryResult getParsedLibrary2(File file) {
+    return getParsedLibrary(file.path);
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
@@ -1014,7 +1050,7 @@ class AnalysisDriver {
 
     // Return the cached result.
     {
-      ResolvedUnitResult? result = getCachedResult(path);
+      ResolvedUnitResult? result = getCachedResolvedUnit(path);
       if (result != null) {
         if (sendCachedToStream) {
           _resultController.add(result);
@@ -1034,6 +1070,15 @@ class AnalysisDriver {
     _requestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
+  }
+
+  /// See [getResolvedUnit].
+  Future<SomeResolvedUnitResult> getResolvedUnit2(File file,
+      {bool sendCachedToStream = false}) {
+    return getResolvedUnit(
+      file.path,
+      sendCachedToStream: sendCachedToStream,
+    );
   }
 
   /// Return a [Future] that completes with the [SomeUnitElementResult]
@@ -1063,6 +1108,11 @@ class AnalysisDriver {
     return completer.future;
   }
 
+  /// See [getUnitElement].
+  Future<SomeUnitElementResult> getUnitElement2(File file) {
+    return getUnitElement(file.path);
+  }
+
   /// Return a [ParsedUnitResult] for the file with the given [path].
   ///
   /// The [path] must be absolute and normalized.
@@ -1086,6 +1136,11 @@ class AnalysisDriver {
       unit: unit,
       errors: listener.errors,
     );
+  }
+
+  /// See [parseFileSync].
+  SomeParsedUnitResult parseFileSync2(File file) {
+    return parseFileSync(file.path);
   }
 
   /// Perform a single chunk of work and produce [results].
