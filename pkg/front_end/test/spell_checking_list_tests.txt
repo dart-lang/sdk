@@ -137,6 +137,7 @@ characteristics
 charset
 checkme
 checkout
+chk
 chromes
 chunked
 cipd
