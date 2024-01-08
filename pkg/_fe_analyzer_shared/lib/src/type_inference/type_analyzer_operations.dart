@@ -63,6 +63,10 @@ abstract interface class TypeAnalyzerOperations<Variable extends Object,
   /// If [type] is a record type, returns it.
   RecordType<Type>? asRecordType(Type type);
 
+  /// If [type] is an extension type, returns the ultimate representation type.
+  /// Otherwise returns [type] as is.
+  Type extensionTypeErasure(Type type);
+
   /// Computes the greatest lower bound of [type1] and [type2].
   Type glb(Type type1, Type type2);
 
