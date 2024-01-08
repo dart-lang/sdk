@@ -43,12 +43,6 @@ def Main():
     os.environ['FUCHSIA_SDK_ROOT'] = os.path.join(os.environ['SRC_ROOT'],
                                                   'third_party', 'fuchsia',
                                                   'sdk', sdk_dir)
-    # TODO(zijiehe): Remove this experimental config after upgrading sdk to a
-    # version later than https://fxrev.dev/841540.
-    subprocess.call([
-        os.path.join(os.environ['FUCHSIA_SDK_ROOT'], 'tools', 'x64', 'ffx'),
-        'config', 'set', 'product.experimental', 'true'
-    ])
 
     with subprocess.Popen(sys.argv[1:]) as proc:
         try:
