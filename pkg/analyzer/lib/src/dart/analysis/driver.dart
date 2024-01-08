@@ -131,9 +131,6 @@ class AnalysisDriver {
 
   late final StoredFileContentStrategy _fileContentStrategy;
 
-  /// The analysis options to analyze with.
-  final AnalysisOptionsImpl _analysisOptions;
-
   /// The [Packages] object with packages and their language versions.
   final Packages _packages;
 
@@ -242,6 +239,7 @@ class AnalysisDriver {
 
   final AnalysisDriverTestView? testView;
 
+  // TODO(pq): replace with an analysis options map.
   late FeatureSetProvider featureSetProvider;
 
   late FileSystemState _fsState;
@@ -270,9 +268,8 @@ class AnalysisDriver {
   bool _disposed = false;
 
   /// A map that associates files to corresponding analysis options.
-  // TODO(pq): his will replace the single [_analysisOptions] instance.
-  // ignore: unused_field
-  final AnalysisOptionsMap? _analysisOptionsMap;
+  // TODO(pq): retype to OptionsOptionsMap
+  late final SharedOptionsOptionsMap analysisOptionsMap;
 
   /// Create a new instance of [AnalysisDriver].
   ///
@@ -284,13 +281,13 @@ class AnalysisDriver {
     required ResourceProvider resourceProvider,
     required ByteStore byteStore,
     required SourceFactory sourceFactory,
-    required AnalysisOptionsImpl analysisOptions,
     required Packages packages,
     this.macroSupport,
     this.ownedFiles,
     this.analysisContext,
-    // TODO(pq): to replace analysis options instance
-    AnalysisOptionsMap? analysisOptionsMap,
+    @Deprecated("Use 'analysisOptionsMap' instead")
+    AnalysisOptionsImpl? analysisOptions,
+    SharedOptionsOptionsMap? analysisOptionsMap,
     FileContentCache? fileContentCache,
     UnlinkedUnitStore? unlinkedUnitStore,
     InfoDeclarationStore? infoDeclarationStore,
@@ -307,8 +304,6 @@ class AnalysisDriver {
         _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         _infoDeclarationStore =
             infoDeclarationStore ?? NoOpInfoDeclarationStore(),
-        _analysisOptions = analysisOptions,
-        _analysisOptionsMap = analysisOptionsMap,
         _logger = logger,
         _packages = packages,
         _sourceFactory = sourceFactory,
@@ -318,6 +313,21 @@ class AnalysisDriver {
     analysisContext?.driver = this;
     testView?.driver = this;
     _onResults = _resultController.stream.asBroadcastStream();
+
+    // Setup the options map.
+    // This extra work is temporary and will get simplified when the deprecated support for
+    // passing in a single analysisOptions is removed.
+    if (analysisOptionsMap != null && analysisOptions != null) {
+      throw AssertionError(
+          'An analysisOptionsMap or analysisOptions can be specified, but not both');
+    }
+    if (analysisOptions != null) {
+      this.analysisOptionsMap =
+          AnalysisOptionsMap.forSharedOptions(analysisOptions);
+    } else {
+      // This '!' is temporary. The analysisOptionsMap is effectively required but can't be until Google3 is updated.
+      this.analysisOptionsMap = analysisOptionsMap!;
+    }
 
     _fileContentStrategy = StoredFileContentStrategy(_fileContentCache);
 
@@ -336,7 +346,7 @@ class AnalysisDriver {
 
   /// Return the analysis options used to control analysis.
   @Deprecated("Use 'getAnalysisOptionsForFile(file)' instead")
-  AnalysisOptions get analysisOptions => _analysisOptions;
+  AnalysisOptions get analysisOptions => analysisOptionsMap.sharedOptions;
 
   /// Return the current analysis session.
   AnalysisSessionImpl get currentSession {
@@ -346,8 +356,8 @@ class AnalysisDriver {
   /// Return a list of the names of all the plugins enabled in analysis options
   /// in this driver.
   List<String> get enabledPluginNames =>
-      // TODO(pq): get this value from a union of all the plugins enabled in the  `_analysisOptionsMap`
-      _analysisOptions.enabledPluginNames;
+      // TODO(pq): get this value from a union of all the plugins enabled in the  `analysisOptionsMap`
+      analysisOptionsMap.sharedOptions.enabledPluginNames;
 
   /// Return the stream that produces [ExceptionResult]s.
   Stream<ExceptionResult> get exceptions => _exceptionController.stream;
@@ -374,7 +384,7 @@ class AnalysisDriver {
       logger: _logger,
       byteStore: _byteStore,
       infoDeclarationStore: _infoDeclarationStore,
-      analysisOptions: _analysisOptions,
+      analysisOptions: analysisOptionsMap.sharedOptions,
       declaredVariables: declaredVariables,
       sourceFactory: _sourceFactory,
       macroSupport: macroSupport,
@@ -715,8 +725,7 @@ class AnalysisDriver {
   }
 
   AnalysisOptions getAnalysisOptionsForFile(File file) =>
-      // TODO(pq): replace w/ _analysisOptionsMap?.getOptions(file)
-      _analysisOptions;
+      analysisOptionsMap.getOptions(file);
 
   /// Return the cached [ResolvedUnitResult] for the Dart file with the given
   /// [path]. If there is no cached result, return `null`. Usually only results
@@ -1670,14 +1679,14 @@ class AnalysisDriver {
   void _createFileTracker() {
     _fillSalt();
 
+    var sharedOptions = analysisOptionsMap.sharedOptions;
     featureSetProvider = FeatureSetProvider.build(
       sourceFactory: sourceFactory,
       resourceProvider: _resourceProvider,
       packages: _packages,
-      packageDefaultFeatureSet: _analysisOptions.contextFeatures,
-      nonPackageDefaultLanguageVersion:
-          _analysisOptions.nonPackageLanguageVersion,
-      nonPackageDefaultFeatureSet: _analysisOptions.nonPackageFeatureSet,
+      packageDefaultFeatureSet: sharedOptions.contextFeatures,
+      nonPackageDefaultLanguageVersion: sharedOptions.nonPackageLanguageVersion,
+      nonPackageDefaultFeatureSet: sharedOptions.nonPackageFeatureSet,
     );
 
     _fsState = FileSystemState(
@@ -1769,7 +1778,7 @@ class AnalysisDriver {
   void _fillSaltForElements() {
     var buffer = ApiSignature();
     buffer.addInt(DATA_VERSION);
-    buffer.addUint32List(_analysisOptions.signatureForElements);
+    buffer.addUint32List(analysisOptionsMap.sharedOptions.signatureForElements);
     _addDeclaredVariablesToSignature(buffer);
     _saltForElements = buffer.toUint32List();
   }
@@ -1779,7 +1788,7 @@ class AnalysisDriver {
     buffer.addInt(DATA_VERSION);
     buffer.addBool(enableIndex);
     buffer.addBool(enableDebugResolutionMarkers);
-    buffer.addUint32List(_analysisOptions.signature);
+    buffer.addUint32List(analysisOptionsMap.sharedOptions.signature);
     _addDeclaredVariablesToSignature(buffer);
 
     var workspace = analysisContext?.contextRoot.workspace;
@@ -1792,7 +1801,7 @@ class AnalysisDriver {
     var buffer = ApiSignature();
     buffer.addInt(DATA_VERSION);
     buffer.addBool(enableIndex);
-    buffer.addUint32List(_analysisOptions.unlinkedSignature);
+    buffer.addUint32List(analysisOptionsMap.sharedOptions.unlinkedSignature);
     _saltForUnlinked = buffer.toUint32List();
   }
 
