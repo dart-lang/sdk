@@ -20,8 +20,7 @@ class A1<X extends Function<T>()> {
 
 class A2<X extends void Function<Y extends Function<T>()>()> {}
 
-class A3<
-    X extends Function(void Function<Y extends Function(Function<T>())>())> {}
+class A3< X extends Function(void Function<Y extends Function(Function<T>())>())> {}
 
 class B1 {}
 
@@ -47,7 +46,6 @@ typedef F3<X extends Function<T>()> = Function();
 
 typedef F4<X extends Function<Y extends Function<T>()>()> = Function();
 
-typedef F5<X extends Function(Function<Y extends Function(Function<T>())>())>
-    = Function();
+typedef F5<X extends Function(Function<Y extends Function(Function<T>())>())> = Function();
 
 void set grault1(Function<X extends Function<T>()>() value) {}
