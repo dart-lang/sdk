@@ -13,19 +13,35 @@ class NonPrimitiveEquals {
 }
 
 switchStatement(o) {}
+
 switchStatementWithLabel(o) {}
+
 switchStatementWithContinue(o) {}
+
 switchStatementWithContinueNested(o1, o2) {}
+
 switchStatementEnum(E o) {}
+
 switchStatementEnumWithGuard(E o) {}
+
 switchStatementEnumWithLabel(E o) {}
+
 switchStatementEnumWithContinue(E o) {}
+
 switchStatementPrimitiveEquals(o) {}
+
 switchStatementNonPrimitiveEquals(o) {}
+
 switchExpression(o) {}
+
 switchExpressionEnum(E o) {}
+
 switchExpressionEnumWithGuard(E o) {}
+
 switchExpressionPrimitiveEquals(o) {}
+
 switchExpressionNonPrimitiveEquals(o) {}
+
 switchStatementSymbol(Symbol s) {}
+
 switchExpressionSymbol(Symbol s) {}

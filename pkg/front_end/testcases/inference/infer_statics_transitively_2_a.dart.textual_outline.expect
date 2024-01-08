@@ -1,4 +1,5 @@
 import 'infer_statics_transitively.dart';
+
 import 'infer_statics_transitively_b.dart';
 
 final a1 = m2;

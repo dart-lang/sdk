@@ -4,4 +4,5 @@ extension on List<String> {
 }
 
 main() {}
+
 void test(List<String> args) {}

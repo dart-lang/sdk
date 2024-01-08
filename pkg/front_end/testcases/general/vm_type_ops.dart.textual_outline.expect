@@ -15,6 +15,7 @@ class D<P, Q> extends C<int, Q, P> {
 }
 
 late List<Iterable> globalVar;
+
 void foo5(x) {}
 
 class E<P extends String> {

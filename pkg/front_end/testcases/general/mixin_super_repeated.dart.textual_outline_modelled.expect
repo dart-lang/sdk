@@ -3,9 +3,11 @@ class Named = S with M, N, M;
 class S {}
 
 main() {}
+
 mixin M {
   var m;
 }
+
 mixin N on M {
   get superM => super.m;
   void set superM(value) {}

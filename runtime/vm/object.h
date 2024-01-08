@@ -12437,6 +12437,16 @@ class Closure : public Instance {
     return OFFSET_OF(UntaggedClosure, delayed_type_arguments_);
   }
 
+  TypeArgumentsPtr default_type_arguments() const {
+    return untag()->default_type_arguments();
+  }
+  void set_default_type_arguments(const TypeArguments& args) const {
+    untag()->set_default_type_arguments(args.ptr());
+  }
+  static intptr_t default_type_arguments_offset() {
+    return OFFSET_OF(UntaggedClosure, default_type_arguments_);
+  }
+
   FunctionPtr function() const { return untag()->function(); }
   static intptr_t function_offset() {
     return OFFSET_OF(UntaggedClosure, function_);

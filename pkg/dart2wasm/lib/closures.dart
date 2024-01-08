@@ -1040,7 +1040,8 @@ class Closures {
           context.struct =
               m.types.defineStruct("<${constructor}-constructor-body-context>");
         } else {
-          context.struct = m.types.defineStruct("<context>");
+          context.struct =
+              m.types.defineStruct("<context ${context.owner.location}>");
         }
       }
     }

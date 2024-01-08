@@ -23,5 +23,7 @@ class _ConstImpl<T> implements Const {
 }
 
 main() {}
+
 typedef Alias = Const;
+
 typedef ImplAlias<T extends num> = _ConstImpl<T>;

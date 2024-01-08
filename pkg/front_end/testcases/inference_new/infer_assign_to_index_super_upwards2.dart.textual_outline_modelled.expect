@@ -87,6 +87,9 @@ abstract class Test9b extends Base2<double, double> {
 }
 
 double getDouble() => 0.0;
+
 int getInt() => 0;
+
 main() {}
+
 num getNum() => 0;

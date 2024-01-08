@@ -1,4 +1,5 @@
 // @dart = 3.2
+
 sealed class S {}
 
 class A extends S {}
@@ -17,13 +18,19 @@ int unsound1(S s) => switch (s) {
       X() as A => 0,
       Y() as B => 1,
     };
+
 int? sound1(S s) => switch (s) {
       X() as A => 0,
       Y() as B => 1,
       _ => null,
     };
+
 int unsound2(S s) {}
+
 int? sound2(S s) {}
+
 main() {}
+
 expect(expected, actual) {}
+
 throws(void Function() f) {}

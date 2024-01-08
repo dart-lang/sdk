@@ -4,5 +4,6 @@ class RenderAnimatedOpacity extends RenderProxyBox
     with RenderProxyBoxMixin, RenderAnimatedOpacityMixin<RenderBox> {}
 
 main() {}
+
 mixin RenderAnimatedOpacityMixin<T extends RenderObject>
     on RenderObjectWithChildMixin<T> {}

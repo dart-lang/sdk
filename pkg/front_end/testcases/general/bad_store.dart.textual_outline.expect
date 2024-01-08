@@ -3,5 +3,7 @@ class Foo {
 }
 
 dynamic identity(x) => x;
+
 void use(x) {}
+
 main(List<String> args) {}

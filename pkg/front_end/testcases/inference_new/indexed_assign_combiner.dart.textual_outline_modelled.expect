@@ -26,6 +26,9 @@ class G {
 }
 
 main() {}
+
 void test1(G g) {}
+
 void test2(G g) {}
+
 void test3(G g) {}

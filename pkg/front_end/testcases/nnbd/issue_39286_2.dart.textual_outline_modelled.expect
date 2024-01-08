@@ -10,4 +10,5 @@ class D {
 }
 
 main() {}
+
 void test(C x) {}

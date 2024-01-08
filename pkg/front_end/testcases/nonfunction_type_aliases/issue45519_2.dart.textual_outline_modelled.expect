@@ -11,7 +11,11 @@ class D<X> {
 }
 
 main() {}
+
 test() {}
+
 typedef A<X extends G<C<X>>> = C<X>;
+
 typedef B<X extends G<D<X>>> = D<X>;
+
 typedef G<X> = X Function(X);

@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 library test;
 
 class C<E> {
@@ -12,4 +13,5 @@ class C<E> {
 }
 
 main() {}
+
 void foo<E>(C<E> c, int cmp(E a, E b)) {}

@@ -10,6 +10,9 @@ extension Extension on Class {
 }
 
 main() {}
+
 test1(Class? c) {}
+
 test2(Class? c) {}
+
 expect(expected, actual) {}

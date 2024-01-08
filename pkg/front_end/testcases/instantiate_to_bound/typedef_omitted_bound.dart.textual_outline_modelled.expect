@@ -5,4 +5,5 @@ class C {
 }
 
 main() {}
+
 typedef A<T>(T p);

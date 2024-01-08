@@ -4,4 +4,5 @@ class A {
 }
 
 main() {}
+
 errors() {}

@@ -6,6 +6,9 @@ class A {
 }
 
 main() {}
+
 var a = new A();
+
 var x = () => a.b;
+
 var y = () => a.c;

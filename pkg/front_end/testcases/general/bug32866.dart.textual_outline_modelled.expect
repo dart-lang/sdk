@@ -8,4 +8,5 @@ class A implements B {
 }
 
 main() => print(a);
+
 var a = new A("foo");

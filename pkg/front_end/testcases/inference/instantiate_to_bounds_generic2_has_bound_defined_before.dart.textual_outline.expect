@@ -5,4 +5,5 @@ class A<T extends int> {}
 class B<T extends A> {}
 
 B v = throw '';
+
 test() {}

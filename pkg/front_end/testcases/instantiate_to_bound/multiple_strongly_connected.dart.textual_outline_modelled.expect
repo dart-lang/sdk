@@ -1,9 +1,15 @@
 D d = throw '';
+
 E e = throw '';
+
 F f = throw '';
+
 G g = throw '';
+
 H h = throw '';
+
 I i = throw '';
+
 J j = throw '';
 
 class A<X> {}

@@ -10,5 +10,7 @@ class B {
 }
 
 error(String? s, A? a, B? b) {}
+
 ok<T extends Object?>(String? s, A? a, T t, B? b, Invocation i) {}
+
 main() {}

@@ -8,4 +8,5 @@ class C<T> {
 }
 
 void g(C<num> c) {}
+
 void main() {}

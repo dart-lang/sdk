@@ -8,5 +8,7 @@ class A {
 }
 
 main() {}
+
 var x = null;
+
 var y = 3;

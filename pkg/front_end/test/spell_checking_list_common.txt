@@ -1060,6 +1060,7 @@ enumerations
 enums
 environment
 equal
+equalities
 equality
 equals
 equate
@@ -3290,6 +3291,7 @@ unserializable
 unsigned
 unsized
 unskip
+unsolvable
 unsorted
 unsoundness
 unspecified

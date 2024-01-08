@@ -1978,11 +1978,48 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
 
   if (target.IsGeneric()) {
     // Only generic functions need to have properly initialized
-    // delayed_type_arguments.
+    // delayed and default type arguments.
     fragment += LoadLocal(closure);
     fragment += Constant(Object::empty_type_arguments());
     fragment += StoreNativeField(Slot::Closure_delayed_type_arguments(),
                                  StoreFieldInstr::Kind::kInitializing);
+
+    Function::DefaultTypeArgumentsKind kind;
+    const auto& default_types = TypeArguments::ZoneHandle(
+        Z, target.InstantiateToBounds(thread_, &kind));
+
+    if (!default_types.IsNull()) {
+      switch (kind) {
+        case Function::DefaultTypeArgumentsKind::kInvalid:
+          UNREACHABLE();
+          break;
+        case Function::DefaultTypeArgumentsKind::kIsInstantiated:
+          fragment += LoadLocal(closure);
+          fragment += Constant(default_types);
+          fragment += StoreNativeField(Slot::Closure_default_type_arguments(),
+                                       StoreFieldInstr::Kind::kInitializing);
+          break;
+        case Function::DefaultTypeArgumentsKind::kNeedsInstantiation:
+          fragment += LoadLocal(closure);
+          fragment += LoadInstantiatorTypeArguments();
+          fragment += NullConstant();  // (Parent) function type arguments.
+          fragment += InstantiateTypeArguments(default_types);
+          fragment += StoreNativeField(Slot::Closure_default_type_arguments(),
+                                       StoreFieldInstr::Kind::kInitializing);
+          break;
+        case Function::DefaultTypeArgumentsKind::
+            kSharesInstantiatorTypeArguments:
+          fragment += LoadLocal(closure);
+          fragment += LoadInstantiatorTypeArguments();
+          fragment += StoreNativeField(Slot::Closure_default_type_arguments(),
+                                       StoreFieldInstr::Kind::kInitializing);
+          break;
+        case Function::DefaultTypeArgumentsKind::kSharesFunctionTypeArguments:
+          // Since the function has no generic parents, the null-initialized
+          // field already contains the appropriate type argument vector.
+          break;
+      }
+    }
   }
 
   return fragment;
@@ -2712,82 +2749,11 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
     return store_provided;
   }
 
-  // Load the defaults, instantiating or replacing them with the other type
-  // arguments as appropriate.
   Fragment store_default;
   store_default += LoadLocal(info.closure);
-  store_default += LoadNativeField(Slot::Closure_function());
-  store_default += LoadNativeField(Slot::Function_data());
-  LocalVariable* closure_data = MakeTemporary("closure_data");
-
-  store_default += LoadLocal(closure_data);
-  store_default += BuildExtractUnboxedSlotBitFieldIntoSmi<
-      ClosureData::PackedDefaultTypeArgumentsKind>(
-      Slot::ClosureData_packed_fields());
-  LocalVariable* default_tav_kind = MakeTemporary("default_tav_kind");
-
-  // Two locals to drop after join, closure_data and default_tav_kind.
-  JoinEntryInstr* done = BuildJoinEntry();
-
-  store_default += LoadLocal(default_tav_kind);
-  TargetEntryInstr* is_instantiated;
-  TargetEntryInstr* is_not_instantiated;
-  store_default += IntConstant(static_cast<intptr_t>(
-      ClosureData::DefaultTypeArgumentsKind::kIsInstantiated));
-  store_default += BranchIfEqual(&is_instantiated, &is_not_instantiated);
-  store_default.current = is_not_instantiated;  // Check next case.
-  store_default += LoadLocal(default_tav_kind);
-  TargetEntryInstr* needs_instantiation;
-  TargetEntryInstr* can_share;
-  store_default += IntConstant(static_cast<intptr_t>(
-      ClosureData::DefaultTypeArgumentsKind::kNeedsInstantiation));
-  store_default += BranchIfEqual(&needs_instantiation, &can_share);
-  store_default.current = can_share;  // Check next case.
-  store_default += LoadLocal(default_tav_kind);
-  TargetEntryInstr* can_share_instantiator;
-  TargetEntryInstr* can_share_function;
-  store_default += IntConstant(static_cast<intptr_t>(
-      ClosureData::DefaultTypeArgumentsKind::kSharesInstantiatorTypeArguments));
-  store_default += BranchIfEqual(&can_share_instantiator, &can_share_function);
-
-  Fragment instantiated(is_instantiated);
-  instantiated += LoadLocal(info.type_parameters);
-  instantiated += LoadNativeField(Slot::TypeParameters_defaults());
-  instantiated += StoreLocal(info.vars->function_type_args);
-  instantiated += Drop();
-  instantiated += Goto(done);
-
-  Fragment do_instantiation(needs_instantiation);
-  // Load the instantiator type arguments.
-  do_instantiation += LoadLocal(info.instantiator_type_args);
-  // Load the parent function type arguments. (No local function type arguments
-  // can be used within the defaults).
-  do_instantiation += LoadLocal(info.parent_function_type_args);
-  // Load the default type arguments to instantiate.
-  do_instantiation += LoadLocal(info.type_parameters);
-  do_instantiation += LoadNativeField(Slot::TypeParameters_defaults());
-  do_instantiation += InstantiateDynamicTypeArguments();
-  do_instantiation += StoreLocal(info.vars->function_type_args);
-  do_instantiation += Drop();
-  do_instantiation += Goto(done);
-
-  Fragment share_instantiator(can_share_instantiator);
-  share_instantiator += LoadLocal(info.instantiator_type_args);
-  share_instantiator += StoreLocal(info.vars->function_type_args);
-  share_instantiator += Drop();
-  share_instantiator += Goto(done);
-
-  Fragment share_function(can_share_function);
-  // Since the defaults won't have local type parameters, these must all be
-  // from the parent function type arguments, so we can just use it.
-  share_function += LoadLocal(info.parent_function_type_args);
-  share_function += StoreLocal(info.vars->function_type_args);
-  share_function += Drop();
-  share_function += Goto(done);
-
-  store_default.current = done;  // Return here after branching.
-  store_default += DropTemporary(&default_tav_kind);
-  store_default += DropTemporary(&closure_data);
+  store_default += LoadNativeField(Slot::Closure_default_type_arguments());
+  store_default += StoreLocal(info.vars->function_type_args);
+  store_default += Drop();
 
   Fragment store_delayed;
   store_delayed += LoadLocal(info.closure);
@@ -3773,22 +3739,31 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfNoSuchMethodForwarder(
 }
 
 Fragment FlowGraphBuilder::BuildDefaultTypeHandling(const Function& function) {
-  if (function.IsGeneric()) {
-    auto& default_types =
-        TypeArguments::ZoneHandle(Z, function.InstantiateToBounds(thread_));
+  Fragment keep_same, use_defaults;
 
-    if (!default_types.IsNull()) {
-      Fragment then;
-      Fragment otherwise;
+  if (!function.IsGeneric()) return keep_same;
 
-      otherwise += TranslateInstantiatedTypeArguments(default_types);
-      otherwise += StoreLocal(TokenPosition::kNoSource,
-                              parsed_function_->function_type_arguments());
-      otherwise += Drop();
-      return TestAnyTypeArgs(then, otherwise);
-    }
+  auto& default_types =
+      TypeArguments::ZoneHandle(Z, function.InstantiateToBounds(thread_));
+
+  if (default_types.IsNull()) return keep_same;
+
+  if (function.IsClosureFunction()) {
+    // Closure objects contain a cached version of the defaults, properly
+    // instantiated by the instantiator and parent function type arguments
+    // in the closure.
+    LocalVariable* const closure = parsed_function_->ParameterVariable(0);
+
+    use_defaults += LoadLocal(closure);
+    use_defaults += LoadNativeField(Slot::Closure_default_type_arguments());
+  } else {
+    use_defaults += TranslateInstantiatedTypeArguments(default_types);
   }
-  return Fragment();
+  use_defaults += StoreLocal(TokenPosition::kNoSource,
+                             parsed_function_->function_type_arguments());
+  use_defaults += Drop();
+
+  return TestAnyTypeArgs(keep_same, use_defaults);
 }
 
 FunctionEntryInstr* FlowGraphBuilder::BuildSharedUncheckedEntryPoint(

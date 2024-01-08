@@ -17,4 +17,5 @@ class C extends B {}
 class E extends D {}
 
 main() {}
+
 void expectTypeError(callback()) {}

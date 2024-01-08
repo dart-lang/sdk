@@ -4,6 +4,8 @@ class A {
 
 @A()
 typedef F = void Function();
+
 @A()
 typedef void G();
+
 main() {}

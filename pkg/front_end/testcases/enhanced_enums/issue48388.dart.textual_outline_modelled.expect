@@ -1,4 +1,5 @@
 // @dart = 2.19
+
 abstract class E1 extends Enum {
   int values() => 42;
 }
@@ -21,18 +22,23 @@ abstract class E5 extends Enum {
 }
 
 main() {}
+
 mixin M1 on Enum {
   final int values = 42;
 }
+
 mixin M2 on Enum {
   static final int values = 42;
 }
+
 mixin M3 on Enum {
   void set values(String x) {}
 }
+
 mixin M4 on Enum {
   static void set values(String x) {}
 }
+
 mixin M5 on Enum {
   num get values => 0;
   void set values(num x) {}

@@ -11,4 +11,5 @@ class C<T extends A> {
 class NotA {}
 
 test() {}
+
 typedef T F<T>();

@@ -9,4 +9,5 @@ class B {
 }
 
 int? nullableInt = 0;
+
 main() {}

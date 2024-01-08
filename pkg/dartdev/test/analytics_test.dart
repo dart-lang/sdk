@@ -105,22 +105,8 @@ void main() {
 
     group('pub', () {
       setUp(() {
-        // Inside each pub test reset the pub http client
+        // Inside each pub test reset the pub http client.
         innerHttpClient = http.Client();
-      });
-      test('get dry run', () async {
-        final p = project();
-        final analytics = await p.runLocalWithFakeAnalytics([
-          'pub',
-          'get',
-          '--dry-run',
-        ]);
-        expect(analytics.sentEvents, [
-          Event.dartCliCommandExecuted(
-            name: 'pub/get',
-            enabledExperiments: '',
-          ),
-        ]);
       });
 
       test(
@@ -132,12 +118,10 @@ void main() {
             },
           );
           final analytics = await p.runLocalWithFakeAnalytics(['pub', 'get']);
+
+          // Pub no longer sends custom analytics,
+          // so only the command should be sent.
           expect(analytics.sentEvents, [
-            Event.pubGet(
-              packageName: 'lints',
-              version: '2.0.1',
-              dependencyType: 'direct',
-            ),
             Event.dartCliCommandExecuted(
               name: 'pub/get',
               enabledExperiments: '',

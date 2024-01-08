@@ -8,5 +8,7 @@ mixin M on A {
   String m3(int v, {required String s});
   String m4(int v, [covariant String s]);
 }
+
 class MA = A with M;
+
 main() {}

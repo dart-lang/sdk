@@ -7,4 +7,5 @@ class C<T> {
 var v = new C<dynamic>(() {
   return 1;
 });
+
 main() {}

@@ -1,6 +1,9 @@
 typedef Foo<S> = S Function<T>(T x);
+
 int foo<T>(T x) => 3;
+
 Foo<int> bar() => foo;
+
 void test1() {}
 
 class A {

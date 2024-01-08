@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 library test;
 
 abstract class B {
@@ -10,4 +11,5 @@ abstract class C extends B {
 }
 
 main() {}
+
 void f<T extends B>(T a) {}

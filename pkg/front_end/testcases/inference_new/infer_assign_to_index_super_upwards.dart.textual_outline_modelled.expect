@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 library test;
 
 abstract class Base<T, U> {
@@ -45,6 +46,9 @@ abstract class Test9 extends Base<double, double> {
 }
 
 double getDouble() => 0.0;
+
 int getInt() => 0;
+
 main() {}
+
 num getNum() => 0;

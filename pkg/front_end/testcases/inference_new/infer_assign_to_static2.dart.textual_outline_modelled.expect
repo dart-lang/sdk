@@ -1,7 +1,9 @@
 library test;
 
 B? topLevelVariable2;
+
 B topLevelVariable = throw '';
+
 T f<T>() => throw '';
 
 class A {}
@@ -18,5 +20,7 @@ class B extends A {
 class C extends B {}
 
 main() {}
+
 void test_staticVariable() {}
+
 void test_topLevelVariable() {}

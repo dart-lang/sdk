@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class X {}
 
 class Foo<T extends X> {

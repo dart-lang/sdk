@@ -1,5 +1,7 @@
 import 'return_async_promoted_lib.dart';
 
 void main() {}
+
 int? nullable() => null;
+
 int? nonNullable() => 0;

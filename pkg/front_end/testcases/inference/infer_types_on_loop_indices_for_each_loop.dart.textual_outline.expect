@@ -13,4 +13,5 @@ class Baz<T, E extends Iterable<T>, S extends E> {
 }
 
 test() {}
+
 main() {}

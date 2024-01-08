@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class NonStruct {}
 
 class Struct {}
@@ -14,4 +15,5 @@ extension Extension<T extends Struct> on T {
 }
 
 main() {}
+
 testNonStruct() {}

@@ -7,4 +7,5 @@ class C extends B {
 }
 
 main() {}
+
 void test(B x) {}

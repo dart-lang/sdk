@@ -5,6 +5,7 @@ mixin class AlsoNotObject {}
 mixin class B extends Object with NotObject {}
 
 mixin class C = Object with NotObject;
+
 mixin class D = Object with AlsoNotObject, NotObject;
 
 mixin class NotObject {}

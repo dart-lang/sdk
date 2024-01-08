@@ -5,4 +5,5 @@ class C {
 }
 
 main() {}
+
 void f(C? c) {}

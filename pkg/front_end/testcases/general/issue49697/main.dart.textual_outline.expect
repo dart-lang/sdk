@@ -1,4 +1,5 @@
 // @dart = 2.19
+
 import 'main_lib.dart';
 
 enum A { a, b }
@@ -11,11 +12,19 @@ enum B {
 }
 
 int? a1(A? a) {}
+
 int? a2(A? a) {}
+
 int b1(B b) {}
+
 int? b2(B? b) {}
+
 int? c1(C? c) {}
+
 int? c2(C? c) {}
+
 int d1(D d) {}
+
 int? d2(D? d) {}
+
 void main() {}

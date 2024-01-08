@@ -25,5 +25,7 @@ extension GenericExtension<T> on GenericClass<T> {
 }
 
 main() {}
+
 test(Class c, Class? cn) {}
+
 expect(expected, actual) {}

@@ -1,4 +1,5 @@
 StateA? a = StateA();
+
 StateB b = StateB();
 
 class SomeClass with Diagnosticable {}
@@ -10,5 +11,7 @@ class StateA extends State {}
 class StateB extends State<int> {}
 
 foo<T>(T x) {}
+
 main() {}
+
 mixin Diagnosticable {}

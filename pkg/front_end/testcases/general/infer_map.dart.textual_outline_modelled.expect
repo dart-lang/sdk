@@ -1,4 +1,5 @@
 List<A> list1 = intList.map((i) => new B()).toList();
+
 List<int> intList = [1, 2];
 
 class A {}
@@ -6,4 +7,5 @@ class A {}
 class B extends A {}
 
 main() {}
+
 test(List<A> list) {}

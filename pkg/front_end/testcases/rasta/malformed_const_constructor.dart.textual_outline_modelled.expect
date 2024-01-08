@@ -5,4 +5,5 @@ class A {
 ---- unknown chunk ends ----
   x = 'foo' ;
 }
+
 main() {}

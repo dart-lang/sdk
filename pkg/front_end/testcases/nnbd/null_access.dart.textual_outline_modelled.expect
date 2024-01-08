@@ -15,4 +15,5 @@ class NullableIndexClass {
 
 errors(Class? nullableClass, Class nonNullableClass, int? nullableInt,
     int nonNullableInt, NullableIndexClass? nullableNullableIndexClass) {}
+
 main() {}

@@ -3,5 +3,7 @@ class C<T> {
 }
 
 main() {}
+
 typedef void Func();
+
 use(x) {}

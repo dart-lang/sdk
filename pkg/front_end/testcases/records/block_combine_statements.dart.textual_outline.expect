@@ -1,4 +1,5 @@
 void main() {}
+
 Iterable<(Iterable<A>, Iterable<A>)> split<A>(Iterable<A> it) => switch (it) {
       Iterable<A>(isEmpty: true) => [
           (Iterable<A>.empty(), Iterable<A>.empty())

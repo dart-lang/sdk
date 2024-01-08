@@ -11,5 +11,7 @@ class BA1 extends B implements A {}
 class BA2 extends B implements A {}
 
 main() {}
+
 takeSubclassOfA(obj) {}
+
 takeSubclassOfB(obj) {}

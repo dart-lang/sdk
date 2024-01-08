@@ -65,7 +65,9 @@ extension Extension1 on int {
 }
 
 main() {}
+
 typedef F<X extends Class<X>> = X;
+
 void method1(
   F t1,
   F<dynamic> t2,

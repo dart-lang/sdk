@@ -13,4 +13,5 @@ final Map<String, dynamic> json = {
 interface class Model {}
 
 void test1() {}
+
 void test2() {}

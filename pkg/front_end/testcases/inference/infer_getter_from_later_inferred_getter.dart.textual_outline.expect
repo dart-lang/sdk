@@ -13,4 +13,5 @@ abstract class C {
 }
 
 dynamic f() => null;
+
 main() {}

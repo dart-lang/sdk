@@ -4,4 +4,5 @@ class C {
 }
 
 const constTopLevelField = 42;
+
 main() {}

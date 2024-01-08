@@ -1,3 +1,5 @@
 int foo(int x, int y) {}
+
 main() {}
+
 void loop(List xs) {}

@@ -1,7 +1,11 @@
 import augment 'scope_access_lib1.dart';
+
 import augment 'scope_access_lib2.dart';
+
 void topLevelMethod() {}
+
 void set topLevelSetter(value) {}
+
 class Class {
   Class.constructor() {}
   static void staticMethod() {}

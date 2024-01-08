@@ -10,6 +10,9 @@ class MyFuture<T> implements Future<T> {
 }
 
 Future<int> g1(bool x) async {}
+
 Future<int> g2(bool x) async => x ? 42 : new Future.value(42);
+
 Future<int> g3(bool x) async {}
+
 main() {}

@@ -7,4 +7,5 @@ class C<T> {
 }
 
 main() {}
+
 typedef void F<T>(T x);

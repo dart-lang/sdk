@@ -24,4 +24,5 @@ class TestListener extends Listener {
 }
 
 external External createExternal();
+
 main() {}

@@ -9,4 +9,5 @@ class G<X extends Class<X>> {}
 class Class1 {}
 
 test() {}
+
 main() {}

@@ -1,0 +1,12 @@
+enum A {
+  a(0),
+  b(1);
+
+  final int value2;
+  const A(this.value);
+}
+
+int fn(A a) => switch (a) {
+      A.a => 0,
+      A.b => 1,
+    };

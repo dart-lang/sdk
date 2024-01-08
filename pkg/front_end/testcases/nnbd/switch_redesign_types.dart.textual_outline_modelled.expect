@@ -1,4 +1,5 @@
 // @dart = 2.19
+
 bar(B b) {}
 
 class A {

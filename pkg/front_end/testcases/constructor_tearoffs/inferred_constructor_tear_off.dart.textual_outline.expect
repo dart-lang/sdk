@@ -1,4 +1,5 @@
 final bool inSoundMode = <int?>[] is! List<int>;
+
 main() {}
 
 class Class1 {
@@ -16,7 +17,11 @@ class Class2 implements Interface2 {
 }
 
 var Class1_new = Class1.new;
+
 var Class2_new = Class2.new;
+
 testInferred() {}
+
 expect(expected, actual) {}
+
 throws(Function() f, {bool inSoundModeOnly = false}) {}

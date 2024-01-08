@@ -13,9 +13,15 @@ class Class2 implements Interface2 {
 }
 
 expect(expected, actual) {}
+
 final bool inSoundMode = <int?>[] is! List<int>;
+
 main() {}
+
 testInferred() {}
+
 throws(Function() f, {bool inSoundModeOnly = false}) {}
+
 var Class1_new = Class1.new;
+
 var Class2_new = Class2.new;

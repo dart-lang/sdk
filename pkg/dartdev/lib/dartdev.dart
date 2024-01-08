@@ -121,14 +121,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(FormatCommand(verbose: verbose));
     addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
-    addCommand(
-      pubCommand(
-        analytics: PubAnalytics(
-          () => unifiedAnalytics,
-        ),
-        isVerbose: () => verbose,
-      ),
-    );
+    addCommand(pubCommand(isVerbose: () => verbose));
     addCommand(RunCommand(
       verbose: verbose,
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,

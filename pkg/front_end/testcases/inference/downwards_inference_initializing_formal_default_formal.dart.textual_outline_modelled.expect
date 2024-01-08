@@ -9,5 +9,7 @@ class Foo {
 }
 
 main() {}
+
 typedef T Function2<S, T>([S x]);
+
 void f([List<int> l = const [1]]) {}

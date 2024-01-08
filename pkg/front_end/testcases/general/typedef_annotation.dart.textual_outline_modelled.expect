@@ -3,7 +3,9 @@ class A {
 }
 
 main() {}
+
 @A()
 typedef F = void Function();
+
 @A()
 typedef void G();

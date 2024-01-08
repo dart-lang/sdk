@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class Foo<S extends num> {
   void test1(S x) {}
 }

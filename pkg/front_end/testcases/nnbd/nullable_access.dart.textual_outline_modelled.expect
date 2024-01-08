@@ -11,5 +11,7 @@ class Class {
 }
 
 expect(expected, actual) {}
+
 main() {}
+
 throws(void Function() f) {}

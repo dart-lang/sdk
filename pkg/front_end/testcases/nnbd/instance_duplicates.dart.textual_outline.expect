@@ -54,4 +54,5 @@ class Class {
 }
 
 test(Class c) {}
+
 main() {}

@@ -14,8 +14,13 @@ class Class {
 }
 
 errors() {}
+
 late final int lateFinalTopLevelField;
+
 late final int lateFinalTopLevelFieldWithInit = 0;
+
 late int lateTopLevelField;
+
 main() {}
+
 noErrors() {}

@@ -5,6 +5,7 @@ import 'dart:async';
 abstract class MyFuture implements Future<int> {}
 
 main() {}
+
 void test(
     int x0,
     Future<int> x1,

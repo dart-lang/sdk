@@ -1,4 +1,5 @@
 class C<T> {}
+
 extension ext<T> on C<T> {
   int field;
   final int property = 42;
@@ -7,5 +8,7 @@ extension ext<T> on C<T> {
   static void set property2(int value) {}
   method() {}
 }
+
 main() {}
+
 errors() {}

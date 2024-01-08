@@ -4115,13 +4115,13 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           switch (op) {
             case '|':
               return canonicalize(
-                  new BoolConstant(receiver.value || other.value));
+                  makeBoolConstant(receiver.value || other.value));
             case '&':
               return canonicalize(
-                  new BoolConstant(receiver.value && other.value));
+                  makeBoolConstant(receiver.value && other.value));
             case '^':
               return canonicalize(
-                  new BoolConstant(receiver.value != other.value));
+                  makeBoolConstant(receiver.value != other.value));
           }
         }
       }

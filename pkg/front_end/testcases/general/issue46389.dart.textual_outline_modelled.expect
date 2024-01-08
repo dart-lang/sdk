@@ -13,5 +13,7 @@ mixin B<X> {
   void set baz(X x);
   void set boz(X x);
 }
+
 throws(void Function() f) {}
+
 void main() {}

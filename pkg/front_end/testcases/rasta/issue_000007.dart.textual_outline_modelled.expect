@@ -3,6 +3,7 @@ class Base {}
 class Sub extends Base with Mixin {}
 
 main() {}
+
 mixin Mixin {
   foo() => print('foo');
 }

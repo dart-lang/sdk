@@ -7,4 +7,5 @@ class C<TypeZ extends Map<A, B>> {}
 extension D<TypeZ extends Map<A, B>> on int {}
 
 main() {}
+
 typedef E<TypeZ extends Map<A, B>> = int;

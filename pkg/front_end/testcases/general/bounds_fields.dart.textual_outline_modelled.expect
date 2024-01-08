@@ -1,18 +1,33 @@
 F<Class<ConcreteClass>>? field6a, field6b;
+
 F<Class<dynamic>>? field4a, field4b;
+
 F<Class>? field3a, field3b;
+
 F<ConcreteClass>? field5a, field5b;
+
 F<Object>? field7a, field7b;
+
 F<dynamic>? field2a, field2b;
+
 F<int>? field8a, field8b;
+
 F? field1a, field1b;
+
 G<Class<ConcreteClass>>? field6c, field6d;
+
 G<Class<dynamic>>? field4c, field4d;
+
 G<Class>? field3c, field3d;
+
 G<ConcreteClass>? field5c, field5d;
+
 G<Object>? field7c, field8d;
+
 G<dynamic>? field2c, field2d;
+
 G<int>? field8c, field7d;
+
 G? field1c, field1d;
 
 class Class<T> {}
@@ -60,4 +75,5 @@ extension Extension1 on int {
 }
 
 main() {}
+
 typedef F<X extends Class<X>> = X;

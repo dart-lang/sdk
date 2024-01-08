@@ -7,5 +7,7 @@ abstract class MyStream<T> extends Stream<T> {
 }
 
 Stream<List<int>> foo() async* {}
+
 Iterable<Map<int, int>> bar() sync* {}
+
 main() {}

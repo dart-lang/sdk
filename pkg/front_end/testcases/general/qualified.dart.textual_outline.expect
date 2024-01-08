@@ -1,6 +1,7 @@
 library test.qualified.main;
 
 import "qualified_lib.dart" as lib;
+
 part "qualified_part.dart";
 
 class Bad extends lib.Missing {

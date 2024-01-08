@@ -12,6 +12,7 @@ class Super {
 }
 
 main() {}
+
 mixin Mixin {
   abstract int extendedAbstractMixedInAbstractField;
   abstract int extendedConcreteMixedInAbstractField;

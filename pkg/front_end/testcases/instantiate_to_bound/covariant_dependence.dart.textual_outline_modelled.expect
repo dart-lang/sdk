@@ -1,6 +1,9 @@
 C c = throw '';
+
 D d = throw '';
+
 E e = throw '';
+
 F f = throw '';
 
 class A<X> {}

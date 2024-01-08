@@ -8,6 +8,7 @@ exhaustiveInferred(A<num> a) => switch (a) {
       A<int>(:var member) => 0,
       A<num>(:var member) => 1,
     };
+
 exhaustiveTyped(A<num> a) => switch (a) {
       A<int>(:void Function(int) member) => 0,
       A<num>(:void Function(num) member) => 1,
@@ -22,14 +23,17 @@ extension<T> on I<T> {
 }
 
 intersection(o) {}
+
 nonExhaustiveRestricted(A<num> a) => switch (a) {
       A<num>(:void Function(num) member) => 1,
       A<int>(:var member) => 0,
     };
+
 num exhaustiveMixed(I<num> i) => switch (i) {
       I<num>(:int member) => member,
       J<num>(:double member) => member,
     };
+
 unreachable(A<num> a) => switch (a) {
       A<num>(:var member) => 1,
       A<int>(:var member) => 0,

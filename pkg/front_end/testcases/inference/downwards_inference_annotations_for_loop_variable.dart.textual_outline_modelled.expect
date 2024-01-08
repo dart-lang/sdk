@@ -5,4 +5,5 @@ class Foo {
 }
 
 main() {}
+
 void test() {}

@@ -1,5 +1,7 @@
 // @dart = 2.6
+
 import 'dart:ffi';
+
 import "package:ffi/ffi.dart";
 
 class Coordinate extends Struct {

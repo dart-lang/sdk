@@ -50,6 +50,7 @@ class Super {
 }
 
 main() {}
+
 mixin Mixin {
   static void extendedInstanceMixedInStaticMethod() {}
   static void mixedInStaticDeclaredInstanceMethod() {}

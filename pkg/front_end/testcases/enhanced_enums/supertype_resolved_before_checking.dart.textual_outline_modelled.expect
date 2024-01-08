@@ -7,5 +7,7 @@ enum E<S extends num, T extends num> with GM<T>, M implements I, GI<S> {
 }
 
 main() {}
+
 mixin GM<T> on Enum {}
+
 mixin M on Object {}

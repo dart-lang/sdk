@@ -7,5 +7,7 @@ class C {
 }
 
 String test1(C c) {}
+
 main() {}
+
 throws(void Function() f) {}

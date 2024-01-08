@@ -1,4 +1,5 @@
 // @dart = 2.8
+
 T init<T>(T value) {}
 
 class Class {
@@ -16,16 +17,26 @@ class Class {
 }
 
 const int constTopLevelField = 324;
+
 dynamic lastInit;
+
 expect(expected, actual) {}
+
 final int finalTopLevelFieldWithInitializer1 = init(87);
+
 final int finalTopLevelFieldWithInitializer2 =
     finalTopLevelFieldWithInitializer2Init++ == 0
         ? finalTopLevelFieldWithInitializer2 + 1
         : 87;
+
 int finalTopLevelFieldWithInitializer2Init = 0;
+
 int topLevelFieldWithInitializer1 = init(42);
+
 int topLevelFieldWithInitializer2 = init(42);
+
 int topLevelFieldWithoutInitializer;
+
 main() {}
+
 throws(f(), String message) {}

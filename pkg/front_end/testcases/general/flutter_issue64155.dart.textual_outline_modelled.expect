@@ -1,4 +1,5 @@
 // @dart = 2.9
+
 class Class1 with TestMixin<Response<String>, String> {
   _test() {}
 }
@@ -23,6 +24,7 @@ class Response<T> {
 }
 
 main() {}
+
 mixin TestMixin<R, T> {
   Future<T> test(Future<R> fetch) async {}
 }

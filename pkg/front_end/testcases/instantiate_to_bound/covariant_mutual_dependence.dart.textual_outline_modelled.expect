@@ -1,5 +1,7 @@
 D d = throw '';
+
 E e = throw '';
+
 F f = throw '';
 
 class B<X, Y> {}

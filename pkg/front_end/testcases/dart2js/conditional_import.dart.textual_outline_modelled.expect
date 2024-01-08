@@ -9,7 +9,11 @@ import "conditional_import.dart"
 class HttpRequest {}
 
 expect(expected, actual) {}
+
 testA(a.HttpRequest request) {}
+
 testB(b.HttpRequest request) {}
+
 testC(c.HttpRequest request) {}
+
 void main() {}

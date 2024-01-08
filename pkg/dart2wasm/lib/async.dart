@@ -165,6 +165,8 @@ class _YieldFinder extends RecursiveVisitor {
   // transform the expression as expected.
   @override
   void visitAwaitExpression(AwaitExpression node) {
+    // Await expressions should've been converted to `VariableSet` statements
+    // by `_AwaitTransformer`.
     throw 'Unexpected await expression: $node (${node.location})';
   }
 
@@ -1374,9 +1376,25 @@ class AsyncCodeGenerator extends CodeGenerator {
     b.struct_set(
         asyncSuspendStateInfo.struct, FieldIndex.asyncSuspendStateTargetIndex);
 
+    final DartType? runtimeType = node.runtimeCheckType;
+    DartType? futureTypeParam = null;
+    if (runtimeType != null) {
+      final futureType = runtimeType as InterfaceType;
+      assert(futureType.classNode == translator.coreTypes.futureClass);
+      assert(futureType.typeArguments.length == 1);
+      futureTypeParam = futureType.typeArguments[0];
+    }
+
+    if (futureTypeParam != null) {
+      types.makeType(this, futureTypeParam);
+    }
     b.local_get(suspendStateLocal);
     wrap(node.operand, translator.topInfo.nullableType);
-    call(translator.awaitHelper.reference);
+    if (runtimeType != null) {
+      call(translator.awaitHelperWithTypeCheck.reference);
+    } else {
+      call(translator.awaitHelper.reference);
+    }
     b.return_();
 
     // Generate resume label

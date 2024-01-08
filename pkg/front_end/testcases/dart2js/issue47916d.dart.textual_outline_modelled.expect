@@ -11,4 +11,5 @@ class C<T> implements B<T> {
 }
 
 main() {}
+
 test() {}

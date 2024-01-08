@@ -12,4 +12,5 @@ class GenericClass<T> {
 }
 
 const int value = 42;
+
 void func() {}

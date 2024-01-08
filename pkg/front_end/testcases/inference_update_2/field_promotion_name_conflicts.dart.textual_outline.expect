@@ -42,6 +42,7 @@ abstract class D {
 }
 
 int? _f8;
+
 int? get _f9 => 0;
 
 extension on String {
@@ -52,18 +53,33 @@ mixin M {
   int? _f12;
   int? get _f13 => 0;
 }
+
 void acceptsInt(int x) {}
+
 void testFinalField(C c) {}
+
 void testNonFinalField(C c) {}
+
 void testAbstractGetter(C c) {}
+
 void testConcreteGetter(C c) {}
+
 void testSetter(C c) {}
+
 void testStaticField(C c) {}
+
 void testStaticGetter(C c) {}
+
 void testTopLevelField(C c) {}
+
 void testTopLevelGetter(C c) {}
+
 void testExtensionGetter(C c) {}
+
 void testGetterInPart(C c) {}
+
 void testFieldInMixin(C c) {}
+
 void testGetterInMixin(C c) {}
+
 main() {}
