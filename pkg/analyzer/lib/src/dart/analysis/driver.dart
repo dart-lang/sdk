@@ -51,6 +51,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/uri_cache.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
@@ -2558,7 +2559,7 @@ class _DiscoverAvailableFilesTask {
       // Discover files in package/lib folders.
       var packageMap = driver._sourceFactory.packageMap;
       if (packageMap != null) {
-        folderIterator = packageMap.values.expand((f) => f).iterator;
+        folderIterator = packageMap.values.flattenedToList.iterator;
       } else {
         folderIterator = <Folder>[].iterator;
       }

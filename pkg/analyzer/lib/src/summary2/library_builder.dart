@@ -460,7 +460,7 @@ class LibraryBuilder {
     }
 
     final augmentationCode = macroApplier.buildAugmentationLibraryCode(
-      _macroResults.expand((e) => e).toList(),
+      _macroResults.flattenedToList,
     );
     if (augmentationCode == null) {
       return;

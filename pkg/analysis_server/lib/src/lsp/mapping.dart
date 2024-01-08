@@ -27,6 +27,7 @@ import 'package:analyzer/source/source_range.dart' as server;
 import 'package:analyzer/src/dart/analysis/search.dart' as server
     show DeclarationKind;
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
@@ -1165,8 +1166,7 @@ List<lsp.DocumentHighlight> toHighlights(
       .map((occurrence) => occurrence.offsets.map((offset) =>
           lsp.DocumentHighlight(
               range: toRange(lineInfo, offset, occurrence.length))))
-      .expand((occurrences) => occurrences)
-      .toSet()
+      .flattenedToSet
       .toList();
 }
 
