@@ -11,7 +11,7 @@ import 'package:stream_channel/stream_channel.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'constants.dart';
-import 'dart_tooling_daemon.dart';
+import '../dart_tooling_daemon.dart';
 import 'rpc_error_codes.dart';
 
 /// Represents a client that is connected to a DTD service.
@@ -67,8 +67,8 @@ class DTDClient extends Client {
   }
 
   @override
-  void streamNotify(String streamId, Object eventData) {
-    _clientPeer.sendNotification('streamNotify', eventData);
+  void streamNotify(String stream, Object data) {
+    _clientPeer.sendNotification('streamNotify', data);
   }
 
   /// Start receiving JSON RPC requests from the client.

@@ -47,6 +47,7 @@ declare_args() {
 # ........dartdev.dart.snapshot (app-jit snapshot or kernel dill file)
 # ........dartdevc.dart.snapshot
 # ........dds_aot.dart.snapshot (AOT snapshot) or dds.dart.snapshot (ia32)
+# ........dart_tooling_daemon.dart.snapshot
 # ........frontend_server_aot.dart.snapshot (AOT snapshot, if not on ia32)
 # ........frontend_server.dart.snapshot
 # ........gen_kernel_aot.dart.snapshot (if not on ia32)
@@ -114,6 +115,10 @@ _platform_sdk_snapshots = [
   [
     "dartdev",
     "../utils/dartdev:dartdev",
+  ],
+  [
+    "dart_tooling_daemon",
+    "../utils/dtd:dtd",
   ],
   [
     "frontend_server",

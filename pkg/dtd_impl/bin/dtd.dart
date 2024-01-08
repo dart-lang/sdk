@@ -2,9 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart_tooling_daemon.dart';
+import 'package:dtd_impl/dart_tooling_daemon.dart';
 
 void main(List<String> args) async {
+  final argParser = DartToolingDaemonOptions.createArgParser();
+  final results = argParser.parse(args);
+  if (results.wasParsed(DartToolingDaemonOptions.train.name)) {
+    return;
+  }
+
   final dartToolingDaemon = await DartToolingDaemon.startService(
     shouldLogRequests: true,
   ); // TODO(@danchevalier): turn off logging

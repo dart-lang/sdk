@@ -19,6 +19,7 @@ dependencies:
   dart_style: any
   dartdoc: any
   dds: any
+  dtd_impl: any
   front_end: any
   logging: any
   meta: any

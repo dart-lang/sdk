@@ -77,6 +77,13 @@ class Sdk {
         'frontend_server_aot.dart.snapshot',
       );
 
+  String get dtdSnapshot => path.absolute(
+        sdkPath,
+        'bin',
+        'snapshots',
+        'dart_tooling_daemon.dart.snapshot',
+      );
+
   String get devToolsBinaries => path.absolute(
         sdkPath,
         'bin',

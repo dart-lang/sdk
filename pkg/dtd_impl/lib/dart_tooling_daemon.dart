@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:args/args.dart';
 import 'package:dart_service_protocol_shared/dart_service_protocol_shared.dart';
 import 'package:shelf/shelf.dart';
 import 'package:sse/server/sse_handler.dart';
@@ -14,10 +15,46 @@ import 'package:shelf/shelf_io.dart' as io;
 import 'package:dtd/dtd.dart' as dtd;
 import 'package:dtd/dtd_file_system_service.dart';
 
-import 'constants.dart';
-import 'dtd_client.dart';
-import 'dtd_client_manager.dart';
-import 'dtd_stream_manager.dart';
+import 'src/constants.dart';
+import 'src/dtd_client.dart';
+import 'src/dtd_client_manager.dart';
+import 'src/dtd_stream_manager.dart';
+
+/// Contains all the flags and options used by the DTD argument parser.
+enum DartToolingDaemonOptions {
+  // Used when executing a training run while generating an AppJIT snapshot as
+  // part of an SDK build.
+  train(isFlag: true, negatable: false, hide: true);
+
+  const DartToolingDaemonOptions({
+    required this.isFlag,
+    this.negatable = true,
+    this.hide = false,
+  });
+
+  final bool isFlag;
+  final bool negatable;
+  final bool hide;
+
+  /// Returns an argument parser that can be used to configure the daemon.
+  static ArgParser createArgParser({
+    int? usageLineLength,
+  }) {
+    final argParser = ArgParser(usageLineLength: usageLineLength);
+    for (final entry in DartToolingDaemonOptions.values) {
+      if (entry.isFlag) {
+        argParser.addFlag(
+          entry.name,
+          negatable: entry.negatable,
+          hide: entry.hide,
+        );
+      } else {
+        throw UnimplementedError('Add support for options');
+      }
+    }
+    return argParser;
+  }
+}
 
 /// TODO(https://github.com/dart-lang/sdk/issues/54429): Add shutdown behavior.
 

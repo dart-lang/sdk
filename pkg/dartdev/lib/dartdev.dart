@@ -28,6 +28,7 @@ import 'src/commands/info.dart';
 import 'src/commands/language_server.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
+import 'src/commands/tooling_daemon.dart';
 import 'src/core.dart';
 import 'src/experiments.dart';
 import 'src/unified_analytics.dart';
@@ -129,6 +130,7 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(TestCommand(
       nativeAssetsExperimentEnabled: nativeAssetsExperimentEnabled,
     ));
+    addCommand(ToolingDaemonCommand(verbose: verbose));
   }
 
   @visibleForTesting
