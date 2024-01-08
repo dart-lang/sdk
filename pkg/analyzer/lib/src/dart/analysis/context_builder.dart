@@ -65,8 +65,6 @@ class ContextBuilderImpl implements ContextBuilder {
     AnalysisDriverScheduler? scheduler,
     String? sdkPath,
     String? sdkSummaryPath,
-    @Deprecated('Use updateAnalysisOptions2')
-    void Function(AnalysisOptionsImpl)? updateAnalysisOptions,
     void Function({
       required AnalysisOptionsImpl analysisOptions,
       required ContextRoot contextRoot,
@@ -81,11 +79,6 @@ class ContextBuilderImpl implements ContextBuilder {
     // TODO(scheglov): Remove this, and make `sdkPath` required.
     sdkPath ??= getSdkPath();
     ArgumentError.checkNotNull(sdkPath, 'sdkPath');
-    if (updateAnalysisOptions != null && updateAnalysisOptions2 != null) {
-      throw ArgumentError(
-          'Either updateAnalysisOptions or updateAnalysisOptions2 must be '
-          'given, but not both.');
-    }
 
     byteStore ??= MemoryByteStore();
     performanceLog ??= PerformanceLog(null);
@@ -121,9 +114,7 @@ class ContextBuilderImpl implements ContextBuilder {
     var sourceFactory = workspace.createSourceFactory(sdk, summaryData);
 
     var options = _getAnalysisOptions(contextRoot, sourceFactory);
-    if (updateAnalysisOptions != null) {
-      updateAnalysisOptions(options);
-    } else if (updateAnalysisOptions2 != null) {
+    if (updateAnalysisOptions2 != null) {
       updateAnalysisOptions2(
         analysisOptions: options,
         contextRoot: contextRoot,
@@ -173,13 +164,11 @@ class ContextBuilderImpl implements ContextBuilder {
   AnalysisOptionsMap _createOptionsMap(
       ContextRoot contextRoot,
       SourceFactory sourceFactory,
-      @Deprecated("Use 'updateAnalysisOptions2' instead")
-      void Function(AnalysisOptionsImpl p1)? updateAnalysisOptions,
       void Function(
               {required AnalysisOptionsImpl analysisOptions,
               required ContextRoot contextRoot,
               required DartSdk sdk})?
-          updateAnalysisOptions2,
+          updateAnalysisOptions,
       DartSdk sdk) {
     var map = AnalysisOptionsMap();
     var provider = AnalysisOptionsProvider(sourceFactory);
@@ -196,9 +185,7 @@ class ContextBuilderImpl implements ContextBuilder {
         }
       }
       if (updateAnalysisOptions != null) {
-        updateAnalysisOptions(options);
-      } else if (updateAnalysisOptions2 != null) {
-        updateAnalysisOptions2(
+        updateAnalysisOptions(
           analysisOptions: options,
           contextRoot: contextRoot,
           sdk: sdk,
