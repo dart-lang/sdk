@@ -1494,6 +1494,13 @@ class Assembler : public AssemblerBase {
   // nearby the load of the table address.
   void LoadAllocationTracingStateAddress(Register dest, intptr_t cid);
 
+  static bool AddressCanHoldConstantIndex(const Object& constant,
+                                          bool is_load,
+                                          bool is_external,
+                                          intptr_t cid,
+                                          intptr_t index_scale,
+                                          bool* needs_base = nullptr);
+
   Address ElementAddressForIntIndex(bool is_load,
                                     bool is_external,
                                     intptr_t cid,

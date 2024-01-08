@@ -2174,6 +2174,20 @@ void Assembler::GenerateUnRelocatedPcRelativeTailCall(
   pattern.set_distance(offset_into_target);
 }
 
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
+  if (!Utils::IsInt(32, offset)) {
+    return false;
+  }
+  return Address::CanHoldOffset(static_cast<int32_t>(offset), Address::Offset,
+                                Address::OperandSizeFor(cid));
+}
+
 Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,

@@ -3732,6 +3732,44 @@ void Assembler::GenerateUnRelocatedPcRelativeTailCall(
   pattern.set_distance(offset_into_target);
 }
 
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_load,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale,
+                                            bool* needs_base) {
+  if ((cid == kTypedDataInt32x4ArrayCid) ||
+      (cid == kTypedDataFloat32x4ArrayCid) ||
+      (cid == kTypedDataFloat64x2ArrayCid)) {
+    // We are using vldmd/vstmd which do not support offset.
+    return false;
+  }
+
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const intptr_t offset_base =
+      (is_external ? 0
+                   : (target::Instance::DataOffsetFor(cid) - kHeapObjectTag));
+  const int64_t offset = index * index_scale + offset_base;
+  if (!Utils::MagnitudeIsUint(12, offset)) {
+    return false;
+  }
+  if (Address::CanHoldImmediateOffset(is_load, cid, offset)) {
+    if (needs_base != nullptr) {
+      *needs_base = false;
+    }
+    return true;
+  }
+
+  if (needs_base != nullptr &&
+      Address::CanHoldImmediateOffset(is_load, cid, offset - offset_base)) {
+    *needs_base = true;
+    return true;
+  }
+
+  return false;
+}
+
 Address Assembler::ElementAddressForIntIndex(bool is_load,
                                              bool is_external,
                                              intptr_t cid,

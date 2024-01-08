@@ -1373,19 +1373,6 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ LeaveCFrame();
 }
 
-static bool CanBeImmediateIndex(Value* value, intptr_t cid) {
-  ConstantInstr* constant = value->definition()->AsConstant();
-  if ((constant == nullptr) ||
-      !compiler::Assembler::IsSafeSmi(constant->value())) {
-    return false;
-  }
-  const int64_t index = Smi::Cast(constant->value()).AsInt64Value();
-  const intptr_t scale = Instance::ElementSizeFor(cid);
-  const intptr_t offset = Instance::DataOffsetFor(cid);
-  const int64_t displacement = index * scale + offset;
-  return Utils::IsInt(32, displacement);
-}
-
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(
     Zone* zone,
     bool opt) const {
@@ -1592,15 +1579,18 @@ LocationSummary* LoadIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id())) {
-    // CanBeImmediateIndex must return false for unsafe smis.
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    // The index is either untagged (element size == 1) or a smi (for all
-    // element sizes > 1).
-    locs->set_in(1, (index_scale() == 1) ? Location::WritableRegister()
-                                         : Location::RequiresRegister());
-  }
+  // The index is either untagged (element size == 1) or a smi (for all
+  // element sizes > 1).
+  const bool need_writable_index_register = index_scale() == 1;
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
+  locs->set_in(
+      1, can_be_constant
+             ? Location::Constant(index()->definition()->AsConstant())
+             : (need_writable_index_register ? Location::WritableRegister()
+                                             : Location::RequiresRegister()));
   if ((representation() == kUnboxedFloat) ||
       (representation() == kUnboxedDouble) ||
       (representation() == kUnboxedFloat32x4) ||
@@ -1751,15 +1741,18 @@ LocationSummary* StoreIndexedInstr::MakeLocationSummary(Zone* zone,
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
-  if (CanBeImmediateIndex(index(), class_id())) {
-    // CanBeImmediateIndex must return false for unsafe smis.
-    locs->set_in(1, Location::Constant(index()->definition()->AsConstant()));
-  } else {
-    // The index is either untagged (element size == 1) or a smi (for all
-    // element sizes > 1).
-    locs->set_in(1, (index_scale() == 1) ? Location::WritableRegister()
-                                         : Location::RequiresRegister());
-  }
+  // The index is either untagged (element size == 1) or a smi (for all
+  // element sizes > 1).
+  const bool need_writable_index_register = index_scale() == 1;
+  const bool can_be_constant =
+      index()->BindsToConstant() &&
+      compiler::Assembler::AddressCanHoldConstantIndex(
+          index()->BoundConstant(), IsExternal(), class_id(), index_scale());
+  locs->set_in(
+      1, can_be_constant
+             ? Location::Constant(index()->definition()->AsConstant())
+             : (need_writable_index_register ? Location::WritableRegister()
+                                             : Location::RequiresRegister()));
   switch (class_id()) {
     case kArrayCid:
       locs->set_in(2, LocationRegisterOrConstant(value()));

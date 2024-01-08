@@ -4605,6 +4605,20 @@ static OperandSize OperandSizeFor(intptr_t cid) {
   }
 }
 
+bool Assembler::AddressCanHoldConstantIndex(const Object& constant,
+                                            bool is_external,
+                                            intptr_t cid,
+                                            intptr_t index_scale) {
+  if (!IsSafeSmi(constant)) return false;
+  const int64_t index = target::SmiValue(constant);
+  const int64_t offset = index * index_scale + HeapDataOffset(is_external, cid);
+  if (IsITypeImm(offset)) {
+    ASSERT(IsSTypeImm(offset));
+    return true;
+  }
+  return false;
+}
+
 Address Assembler::ElementAddressForIntIndex(bool is_external,
                                              intptr_t cid,
                                              intptr_t index_scale,
