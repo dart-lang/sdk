@@ -1253,7 +1253,7 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
         .addLocal(translator.classInfo[translator.boxedIntClass]!.nullableType);
 
     for (String paramName in paramInfo.names) {
-      final Constant? paramInfoDefaultValue = paramInfo.named[paramName]!;
+      final Constant? paramInfoDefaultValue = paramInfo.named[paramName];
       final Expression? functionNodeDefaultValue =
           initializerForNamedParamInMember(paramName);
 
@@ -1276,6 +1276,10 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
             function, namedArgValueIndexLocal.type, w.NumType.i64);
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
+        translator.convertType(
+            function,
+            translator.nullableObjectArrayType.elementType.type.unpacked,
+            target.type.inputs[inputIdx]);
       } else {
         // Parameter may not be passed.
         b.local_get(namedArgValueIndexLocal);
