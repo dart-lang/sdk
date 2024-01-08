@@ -619,20 +619,7 @@ class AsyncCodeGenerator extends CodeGenerator {
     }
 
     // _AsyncCompleter _completer
-    final DartType returnType = functionNode.returnType;
-    final DartType completerType;
-    if (returnType is InterfaceType &&
-        returnType.classNode == translator.coreTypes.futureClass) {
-      // Return type = Future<T>, completer type = _AsyncCompleter<T>.
-      completerType = returnType.typeArguments.single;
-    } else if (returnType is FutureOrType) {
-      // Return type = FutureOr<T>, completer type = _AsyncCompleter<T>.
-      completerType = returnType.typeArgument;
-    } else {
-      // In all other cases we use _AsyncCompleter<dynamic>.
-      completerType = const DynamicType();
-    }
-    types.makeType(this, completerType);
+    types.makeType(this, functionNode.emittedValueType!);
     call(translator.makeAsyncCompleter.reference);
 
     // Allocate `_AsyncSuspendState`
