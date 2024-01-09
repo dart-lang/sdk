@@ -417,9 +417,10 @@ def ProcessOptions(args):
         return False
     if os.environ.get('RBE_cfg') == None and \
        socket.getfqdn().endswith('.corp.google.com') and \
-       (args.rbe or args.goma) and \
        sys.platform in ['linux']:
         print('You can speed up your build by following: go/dart-rbe')
+        if not args.rbe and not args.goma:
+            print('Goma is no longer enabled by default since RBE is ready.')
     return True
 
 
@@ -446,7 +447,7 @@ def AddCommonGnOptionArgs(parser):
                         help='Disable goma',
                         dest='goma',
                         action='store_false')
-    parser.set_defaults(goma=not use_rbe)
+    parser.set_defaults(goma=not use_rbe and sys.platform not in ['linux'])
 
     parser.add_argument('--rbe', help='Use rbe', action='store_true')
     parser.add_argument('--no-rbe',
