@@ -836,6 +836,7 @@ abstract class FileSystemEntity {
     if (Platform.isWindows) {
       // "C:" and "C:\" are semantically different on Windows and only "C:\" is an
       // absolute path.
+      // See https://learn.microsoft.com/en-us/dotnet/standard/io/file-path-formats
       final minimumCharToNotTrim = _isAbsolute(path) ? 3 : 1;
       while (path.length > minimumCharToNotTrim &&
           (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {
