@@ -6,14 +6,15 @@ import 'dart:io';
 
 import "package:expect/expect.dart";
 
-// wstat not return stat for "C:" but return for "C: " or "C://"
-// This issue found on https://github.com/dart-lang/sdk/issues/54386
-void testStat() {
+/// Regression test for https://github.com/dart-lang/sdk/issues/54386.
+void testDriveLetterStat() {
+
+  // "C:" not acceptable
   final cDrive = Directory("C:");
   final cDriveStat = cDrive.statSync();
   Expect.equals(cDriveStat.type, FileSystemEntityType.notFound);
 
-  // These needs to pass
+  // These are acceptable cases
   final acceptablePathRootDrives = ["C: ", "C:\\", "C:/"];
 
   for (final drivePath in acceptablePathRootDrives) {
@@ -42,5 +43,5 @@ void testDeleteLongPathPrefix() {
 void main() {
   if (!Platform.isWindows) return;
   testDeleteLongPathPrefix();
-  testStat();
+  testDriveLetterStat();
 }

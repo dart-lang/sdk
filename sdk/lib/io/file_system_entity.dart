@@ -834,7 +834,8 @@ abstract class FileSystemEntity {
     // TODO(40614): Remove once non-nullability is sound.
     ArgumentError.checkNotNull(path, "path");
     if (Platform.isWindows) {
-      // Since windows require minimum of 3 chars which is Drive Letter (Ex: C:\\ or C:/, C: is not accepted)
+      // "C:" and "C:\" are semantically different on Windows and only "C:\" is an
+      // absolute path.
       final minimumCharToNotTrim = _isAbsolute(path) ? 3 : 1;
       while (path.length > minimumCharToNotTrim &&
           (path.endsWith(Platform.pathSeparator) || path.endsWith('/'))) {
