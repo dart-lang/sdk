@@ -444,11 +444,13 @@ void f<X extends num, Y extends X>(Y y) {
   }
 
   test_propertyAccess_functionClass_call() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f(Function a) {
   return (a).call;
 }
-''');
+''', [
+      error(CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION, 30, 8),
+    ]);
   }
 
   test_propertyAccess_functionType_call() async {

@@ -126,6 +126,30 @@ AssignmentExpression
 ''');
   }
 
+  test_functionClass_call_read() async {
+    await assertNoErrorsInCode('''
+void f(Function a) {
+  a.call;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: Function
+  period: .
+  identifier: SimpleIdentifier
+    token: call
+    staticElement: <null>
+    staticType: Function
+  staticElement: <null>
+  staticType: Function
+''');
+  }
+
   test_hasReceiver_typeAlias_staticGetter() async {
     await assertNoErrorsInCode(r'''
 class A {
